@@ -2106,7 +2106,7 @@ int xitoaA(INT_PTR nNumber, char *szStr)
   {
     if (szStr) szStr[b]='-';
     ++b;
-    nNumber=-nNumber;
+    nNumber=0 - nNumber;
   }
   for (a=0; nNumber != 0; ++a)
   {
@@ -2154,7 +2154,7 @@ int xitoaW(INT_PTR nNumber, wchar_t *wszStr)
   {
     if (wszStr) wszStr[b]=L'-';
     ++b;
-    nNumber=-nNumber;
+    nNumber=0 - nNumber;
   }
   for (a=0; nNumber != 0; ++a)
   {
@@ -2286,7 +2286,7 @@ int xi64toaA(__int64 nNumber, char *szStr)
   {
     if (szStr) szStr[b]='-';
     ++b;
-    nNumber=-nNumber;
+    nNumber=0 - nNumber;
   }
   for (a=0; nNumber != 0; ++a)
   {
@@ -2334,7 +2334,7 @@ int xi64toaW(__int64 nNumber, wchar_t *wszStr)
   {
     if (wszStr) wszStr[b]=L'-';
     ++b;
-    nNumber=-nNumber;
+    nNumber=0 - nNumber;
   }
   for (a=0; nNumber != 0; ++a)
   {
@@ -2742,8 +2742,28 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
  *                            pFormat syntax is equal to wsprintfA function.
  *[in]  ...                  Specifies one or more optional arguments. The number and type of argument parameters
  *                            depend on the corresponding format-control specifications in the pFormat parameter.
+ *                           %[-][0][width][.precision]type
+ *                             "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                             "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                             [width]       Copy the specified minimum number of characters to the output buffer.
+ *                             [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                           For strings, copy the specified maximum number of characters to the output buffer.
+ *                                           Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                             [type]
+ *                               "d"         signed integer (32-bit).
+ *                               "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                               "u"         unsigned integer (32-bit).
+ *                               "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                               "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                               "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                               "s"         ansi string.
+ *                               "S"         unicode string.
+ *
  *
  *Returns:  number of characters copied, not including the terminating null character.
+ *
+ *Examples:
+ *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
  *
  *Note:
  *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
@@ -2761,7 +2781,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
   unsigned int dwPrecision;
   unsigned int dwLen=0;
   int nWidth;
-  INT_PTR i;
+  BOOL bInt64;
+  INT_PTR nSigned;
+  INT_PTR nUnsigned;
 
   va_list val;
   va_start(val, pFormat);
@@ -2774,6 +2796,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       chFillChar=' ';
       dwPrecision=0;
       nWidth=0;
+      bInt64=FALSE;
       ++pFmt;
 
       if (*pFmt == '-')
@@ -2807,6 +2830,11 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
           dwPrecision=(unsigned int)-1;
         }
       }
+      if (*pFmt == L'I')
+      {
+        bInt64=TRUE;
+        ++pFmt;
+      }
 
       if (*pFmt == '%')
       {
@@ -2815,63 +2843,72 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (*pFmt == 'c')
       {
-        i=va_arg(val, INT_PTR);
+        nSigned=va_arg(val, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
           pOut+=nWidth;
         }
-        if (szOutput) *pOut=(char)i;
+        if (szOutput) *pOut=(char)nSigned;
         ++pOut;
       }
       else if (*pFmt == 'd')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nSigned=va_arg(val, INT_PTR);
+        else
+          nSigned=va_arg(val, int);
         if (!szOutput || nWidth > 0)
         {
-          dwLen=xitoaA(i, NULL) - 1;
+          dwLen=xitoaA(nSigned, NULL) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
-            if (nWidth > 0 && i < 0)
+            if (nWidth > 0 && nSigned < 0)
             {
               if (szOutput) *pStartOut='-';
               ++pStartOut;
             }
           }
         }
-        if (szOutput) dwLen=xitoaA(i, pOut);
+        if (szOutput) dwLen=xitoaA(nSigned, pOut);
         pOut+=dwLen;
       }
       else if (*pFmt == 'u')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nUnsigned=va_arg(val, UINT_PTR);
+        else
+          nUnsigned=va_arg(val, UINT);
         if (!szOutput || nWidth > 0)
         {
-          dwLen=xuitoaA((UINT_PTR)i, NULL) - 1;
+          dwLen=xuitoaA(nUnsigned, NULL) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
           }
         }
-        if (szOutput) dwLen=xuitoaA((UINT_PTR)i, pOut);
+        if (szOutput) dwLen=xuitoaA(nUnsigned, pOut);
         pOut+=dwLen;
       }
       else if (*pFmt == 'x' || *pFmt == 'X')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nUnsigned=va_arg(val, UINT_PTR);
+        else
+          nUnsigned=va_arg(val, UINT);
         if (!szOutput || nWidth > 0)
         {
-          dwLen=dec2hexA((UINT_PTR)i, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
+          dwLen=dec2hexA(nUnsigned, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
           }
         }
-        if (szOutput) dwLen=dec2hexA((UINT_PTR)i, pOut, 0, (*pFmt == 'x')?TRUE:FALSE);
+        if (szOutput) dwLen=dec2hexA(nUnsigned, pOut, 0, (*pFmt == 'x')?TRUE:FALSE);
         pOut+=dwLen;
       }
       else if (*pFmt == 's' || *pFmt == 'S')
@@ -2964,8 +3001,28 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *                                wpFormat syntax is equal to wsprintfW function.
  *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
  *                                depend on the corresponding format-control specifications in the wpFormat parameter.
+ *                               %[-][0][width][.precision]type
+ *                                 "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                                 "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                                 [width]       Copy the specified minimum number of characters to the output buffer.
+ *                                 [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                               For strings, copy the specified maximum number of characters to the output buffer.
+ *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                                 [type]
+ *                                   "d"         signed integer (32-bit).
+ *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                                   "u"         unsigned integer (32-bit).
+ *                                   "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                                   "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                                   "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                                   "s"         unicode string.
+ *                                   "S"         ansi string.
+ *
  *
  *Returns:  number of characters copied, not including the terminating null character.
+ *
+ *Examples:
+ *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
  *
  *Note:
  *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW.
@@ -2983,7 +3040,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   unsigned int dwPrecision;
   unsigned int dwLen=0;
   int nWidth;
-  INT_PTR i;
+  BOOL bInt64;
+  INT_PTR nSigned;
+  INT_PTR nUnsigned;
 
   va_list val;
   va_start(val, wpFormat);
@@ -2996,6 +3055,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       wchFillChar=L' ';
       dwPrecision=0;
       nWidth=0;
+      bInt64=FALSE;
       ++wpFmt;
 
       if (*wpFmt == L'-')
@@ -3029,6 +3089,11 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
           dwPrecision=(unsigned int)-1;
         }
       }
+      if (*wpFmt == L'I')
+      {
+        bInt64=TRUE;
+        ++wpFmt;
+      }
 
       if (*wpFmt == L'%')
       {
@@ -3037,63 +3102,72 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (*wpFmt == L'c')
       {
-        i=va_arg(val, INT_PTR);
+        nSigned=va_arg(val, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
           wpOut+=nWidth;
         }
-        if (wszOutput) *wpOut=(wchar_t)i;
+        if (wszOutput) *wpOut=(wchar_t)nSigned;
         ++wpOut;
       }
       else if (*wpFmt == L'd')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nSigned=va_arg(val, INT_PTR);
+        else
+          nSigned=va_arg(val, int);
         if (!wszOutput || nWidth > 0)
         {
-          dwLen=xitoaW(i, NULL) - 1;
+          dwLen=xitoaW(nSigned, NULL) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
-            if (nWidth > 0 && i < 0)
+            if (nWidth > 0 && nSigned < 0)
             {
               if (wszOutput) *wpStartOut=L'-';
               ++wpStartOut;
             }
           }
         }
-        if (wszOutput) dwLen=xitoaW(i, wpOut);
+        if (wszOutput) dwLen=xitoaW(nSigned, wpOut);
         wpOut+=dwLen;
       }
       else if (*wpFmt == L'u')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nUnsigned=va_arg(val, UINT_PTR);
+        else
+          nUnsigned=va_arg(val, UINT);
         if (!wszOutput || nWidth > 0)
         {
-          dwLen=xuitoaW((UINT_PTR)i, NULL) - 1;
+          dwLen=xuitoaW(nUnsigned, NULL) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
           }
         }
-        if (wszOutput) dwLen=xuitoaW((UINT_PTR)i, wpOut);
+        if (wszOutput) dwLen=xuitoaW(nUnsigned, wpOut);
         wpOut+=dwLen;
       }
       else if (*wpFmt == L'x' || *wpFmt == L'X')
       {
-        i=va_arg(val, INT_PTR);
+        if (bInt64)
+          nUnsigned=va_arg(val, UINT_PTR);
+        else
+          nUnsigned=va_arg(val, UINT);
         if (!wszOutput || nWidth > 0)
         {
-          dwLen=dec2hexW((UINT_PTR)i, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
+          dwLen=dec2hexW(nUnsigned, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
             nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
           }
         }
-        if (wszOutput) dwLen=dec2hexW((UINT_PTR)i, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
+        if (wszOutput) dwLen=dec2hexW(nUnsigned, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
         wpOut+=dwLen;
       }
       else if (*wpFmt == L's' || *wpFmt == L'S')

@@ -976,7 +976,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Видалено записів: %d"
     MSG_SEARCH_ENDED        "Пошук завершений."
     MSG_REPLACE_COUNT       "Кількість замін: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Змінених файлів: %d\nКількість замін: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Змінених файлів: %d\nКількість замін: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Файл буде відкритий знову, всі зміни будуть втрачені."
     MSG_FILE_CHANGED        """%s"" був змінений іззовні.\n\nПеревідкрити його?"

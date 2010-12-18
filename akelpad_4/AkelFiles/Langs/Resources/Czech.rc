@@ -953,7 +953,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Smazáno záznamù: %d"
     MSG_SEARCH_ENDED        "Vyhledávání je dokonèeno."
     MSG_REPLACE_COUNT       "Poèet zmìn: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Zmìny v souboru: %d\nPoèet zmìn: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Zmìny v souboru: %d\nPoèet zmìn: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Soubor bude znovu otevøen. Všechny zmìny budou ztraceny."
     MSG_FILE_CHANGED        "Soubor ""%s"" byl zmìnìn jinou aplikací.\n\nChcete ho znovu otevøít?"

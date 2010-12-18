@@ -1726,7 +1726,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         wchar_t *wpFindIt;
         int nFindItLen;
-        int nResult=-1;
+        INT_PTR nResult=-1;
 
         nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
         if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
@@ -1756,7 +1756,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wchar_t *wpReplaceWith;
         int nFindItLen;
         int nReplaceWithLen;
-        int nResult=-1;
+        INT_PTR nResult=-1;
 
         nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
         if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))

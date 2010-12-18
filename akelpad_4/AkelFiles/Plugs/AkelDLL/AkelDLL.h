@@ -708,7 +708,7 @@ typedef struct _FRAMEDATA {
   INT_PTR nCaretByteOffset;
   int nCaretChar;
   int nFontPoint;
-  int nReplaceCount;
+  INT_PTR nReplaceCount;
 } FRAMEDATA;
 
 typedef struct _WNDPROCDATA {
@@ -845,7 +845,7 @@ typedef struct {
   const char *pReplaceWith;    //Replace string.
   int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                   //Replace all.
-  int nChanges;                //Count of changes.
+  INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEA;
 
 typedef struct {
@@ -855,7 +855,7 @@ typedef struct {
   const wchar_t *pReplaceWith; //Replace string.
   int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                   //Replace all.
-  int nChanges;                //Count of changes.
+  INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEW;
 
 typedef struct {

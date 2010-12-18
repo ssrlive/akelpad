@@ -958,7 +958,7 @@ BEGIN
     MSG_SEARCH_ENDED        "Suche beendet."
     MSG_REPLACE_COUNT       "Anzahl der Veränderungen: %d"
     MSG_REPLACE_COUNT_ALLFILES 
-                            "Dateien verändert: %d\nAnzahl der Veränderungen: %d"
+                            "Dateien verändert: %d\nAnzahl der Veränderungen: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Die Datei wird neu geöffnet, alle Änderungen werden verworfen."
     MSG_FILE_CHANGED        """%s"" wurde von außen verändert.\n\nWollen Sie diese Datei neu öffnen?"

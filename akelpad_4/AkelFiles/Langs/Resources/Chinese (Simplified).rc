@@ -941,7 +941,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "已删除记录: %d"
     MSG_SEARCH_ENDED        "搜索完成。"
     MSG_REPLACE_COUNT       "更改的数量: %d"
-    MSG_REPLACE_COUNT_ALLFILES "更改的文件数: %d\n更改的数量: %d"
+    MSG_REPLACE_COUNT_ALLFILES "更改的文件数: %d\n更改的数量: %Id"
     MSG_FILE_WILL_BE_REOPENED "文件将被重新打开，所有更改将会丢失。"
     MSG_FILE_CHANGED        """%s"" 已经被外部修改。\n\n是否要重新打开?"
     MSG_CP_UNIMPLEMENTED    "无法使用代码页 ""%d""。"

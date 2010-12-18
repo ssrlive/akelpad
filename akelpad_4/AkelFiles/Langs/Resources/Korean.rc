@@ -949,7 +949,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "삭제된 기록: %d"
     MSG_SEARCH_ENDED        "검색을 마쳤습니다."
     MSG_REPLACE_COUNT       "바뀐 갯수: %d"
-    MSG_REPLACE_COUNT_ALLFILES "바뀐 파일 수: %d\n바뀐 갯수: %d"
+    MSG_REPLACE_COUNT_ALLFILES "바뀐 파일 수: %d\n바뀐 갯수: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "파일이 다시 열립니다. 변경사항은 저장되지 않습니다."
     MSG_FILE_CHANGED        """%s"" 파일이 외부에서 변경되었습니다.\n\n다시 읽을까요?"

@@ -961,7 +961,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Registros eliminados: %d"
     MSG_SEARCH_ENDED        "Búsqueda finalizada."
     MSG_REPLACE_COUNT       "Cuenta de cambios: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Archivos cambiados: %d\nCuenta de cambios: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Archivos cambiados: %d\nCuenta de cambios: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "El archivo será reabierto, todos los cambios se  perderán."
     MSG_FILE_CHANGED        """%s"" ha sido modificado fuera.\n\n¿Quiere reabrirlo?"

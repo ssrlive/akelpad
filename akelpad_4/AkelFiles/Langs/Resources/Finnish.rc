@@ -962,7 +962,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Poistettuja tietueita: %d"
     MSG_SEARCH_ENDED        "Haku p‰‰ttynyt."
     MSG_REPLACE_COUNT       "Muutoksia: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Muutettuja tiedostoja: %d\nMuutoksia: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Muutettuja tiedostoja: %d\nMuutoksia: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Tiedosto avataan uudelleen, kaikki muutokset menetet‰‰n."
     MSG_FILE_CHANGED        "Tiedostoa ""%s"" on muokattu jossain toisessa ohjelmassa.\n\nHaluatko avata sen uudelleen?"

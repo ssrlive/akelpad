@@ -954,7 +954,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Törölt rekordok: %d"
     MSG_SEARCH_ENDED        "Keresés befejezõdött."
     MSG_REPLACE_COUNT       "Módosítások száma: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Módosított fájlok: %d\nMódosítások száma: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Módosított fájlok: %d\nMódosítások száma: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "A fájl újra meg lesz nyitva. Minden változtatás el fog veszni."
     MSG_FILE_CHANGED        """%s"" módosítva lett.\n\nSzeretné újra megnyitni?"
