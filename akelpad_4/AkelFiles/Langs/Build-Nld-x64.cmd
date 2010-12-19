@@ -1,5 +1,5 @@
 @ECHO OFF
-Set MSSDK=D:\Program Files\Microsoft Platform SDK
+Set MSSDK=C:\Program Files\Microsoft Platform SDK
 Set LANGNAME=Dutch
 Set LANGID=0x413
 Set BIT=64

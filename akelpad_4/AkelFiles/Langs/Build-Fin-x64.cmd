@@ -1,5 +1,5 @@
 @ECHO OFF
-Set MSSDK=D:\Program Files\Microsoft Platform SDK
+Set MSSDK=C:\Program Files\Microsoft Platform SDK
 Set LANGNAME=Finnish
 Set LANGID=0x40B
 Set BIT=64

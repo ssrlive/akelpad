@@ -1,5 +1,5 @@
 @ECHO OFF
-Set MSSDK=D:\Program Files\Microsoft Platform SDK
+Set MSSDK=C:\Program Files\Microsoft Platform SDK
 Set LANGNAME=English
 Set LANGID=0x409
 Set BIT=64

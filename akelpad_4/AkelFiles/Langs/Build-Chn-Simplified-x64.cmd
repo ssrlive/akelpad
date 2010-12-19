@@ -1,5 +1,5 @@
 @ECHO OFF
-Set MSSDK=D:\Program Files\Microsoft Platform SDK
+Set MSSDK=C:\Program Files\Microsoft Platform SDK
 Set LANGNAME=Chinese (Simplified)
 Set LANGID=0x804
 Set BIT=64
