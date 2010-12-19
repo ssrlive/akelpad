@@ -1,6 +1,6 @@
 @ECHO OFF
-Set MSSDK=D:\Program Files\Microsoft Platform SDK
-Set VCDIR=D:\Program Files\Microsoft Visual C++ Toolkit 2003
+Set MSSDK=C:\Program Files\Microsoft Platform SDK
+Set VCDIR=C:\Program Files\Microsoft Visual C++ Toolkit 2003
 Set LANGNAME=Ukrainian
 Set LANGID=0x422
 Set BIT=32
