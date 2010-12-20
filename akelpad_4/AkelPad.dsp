@@ -48,7 +48,7 @@ RSC=rc.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
-# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
+# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -76,7 +76,7 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -103,7 +103,7 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
