@@ -4194,7 +4194,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
           if (lpData->nCodePage == CP_UNICODE_UTF8)
             dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, wszBuffer, nBufferBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=API_MultiByteToWideChar(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
         }
         wszBuffer[dwCharsConverted]='\0';
 
@@ -4324,7 +4324,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
         }
         else
         {
-          dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, dwBytesRead, wszBuf, dwBufBytesSize / sizeof(wchar_t));
+          dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)dwBytesRead, wszBuf, dwBufBytesSize / sizeof(wchar_t));
 
           if (dwCharsConverted > 0)
           {
@@ -4423,7 +4423,7 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
           if (nCodePage == CP_UNICODE_UTF8)
             dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=MultiByteToWideChar(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=API_MultiByteToWideChar(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
         }
         wszBuffer[dwCharsConverted]='\0';
       }
@@ -10305,16 +10305,16 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
 
   if (nUnicodeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszSelText, AELB_ASIS, TRUE))
   {
-    nAnsiLen=WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
+    nAnsiLen=API_WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
 
     if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
     {
-      WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
-      nUnicodeLen=MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
+      API_WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
+      nUnicodeLen=API_MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
 
       if (wszText=AllocWideStr(nUnicodeLen))
       {
-        MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
+        API_MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
         API_HeapFree(hHeap, 0, (LPVOID)szText);
         szText=NULL;
 
@@ -18192,7 +18192,7 @@ BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem)
   return bResult;
 }
 
-wchar_t* AllocWideStr(DWORD dwSize)
+wchar_t* AllocWideStr(SIZE_T dwSize)
 {
   return (wchar_t *)API_HeapAlloc(hHeap, 0, dwSize * sizeof(wchar_t));
 }
@@ -18232,4 +18232,79 @@ UINT_PTR API_SetFilePointer(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveM
   #else
     return SetFilePointer(hFile, nDistanceToMove, NULL, dwMoveMethod);
   #endif
+}
+
+//Don't use CP_UTF7, CP_UTF8 with cbMultiByte > 0x0FFFFFFF
+INT_PTR API_MultiByteToWideChar(UINT dwCodePage, DWORD dwFlags, const char *lpMultiByteStr, INT_PTR cbMultiByte, wchar_t *lpWideCharStr, INT_PTR cchWideChar)
+{
+  INT_PTR nMultiByteCount=0;
+  INT_PTR nWideCount=0;
+  int nMultiByteSrc;
+  int nWideDst;
+  int nCharsConverted;
+
+  if (cbMultiByte == -1)
+    cbMultiByte=xstrlenA(lpMultiByteStr) + 1;
+
+  //Convert string sequentially with maximum block 0x0FFFFFFF
+  for (;;)
+  {
+    nMultiByteSrc=(int)min(cbMultiByte - nMultiByteCount, 0x0FFFFFFF);
+    nWideDst=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
+
+    if (nCharsConverted=MultiByteToWideChar(dwCodePage, dwFlags, lpMultiByteStr + nMultiByteCount, nMultiByteSrc, lpWideCharStr + nWideCount, nWideDst))
+    {
+      nMultiByteCount+=nMultiByteSrc;
+      nWideCount+=nCharsConverted;
+      if (nMultiByteCount >= cbMultiByte || nWideCount >= cchWideChar)
+        break;
+
+      if ((*(lpMultiByteStr + nMultiByteCount - 1) != '\0' && *(lpWideCharStr + nWideCount - 1) == '\0') || //Windows 95/98/Me/2000/XP/2003
+          (*(lpMultiByteStr + nMultiByteCount - 1) != '?' && *(lpWideCharStr + nWideCount - 1) == '?'))     //Windows Vista/7/2008
+      {
+        //Double-byte char was split
+        --nMultiByteCount;
+        --nWideCount;
+      }
+    }
+    else break;
+  }
+  return nWideCount;
+}
+
+INT_PTR API_WideCharToMultiByte(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, INT_PTR cchWideChar, char *lpMultiByteStr, INT_PTR cbMultiByte, const char *lpDefaultChar, BOOL *lpUsedDefaultChar)
+{
+  INT_PTR nMultiByteCount=0;
+  INT_PTR nWideCount=0;
+  int nWideSrc;
+  int nMultiByteDst;
+  int nCharsConverted;
+  BOOL bUsedDefaultChar;
+
+  if (cchWideChar == -1)
+    cchWideChar=xstrlenW(lpWideCharStr) + 1;
+  if (lpUsedDefaultChar)
+    bUsedDefaultChar=FALSE;
+  else
+    bUsedDefaultChar=TRUE;
+
+  //Convert string sequentially with maximum block 0x3FFFFFFF
+  for (;;)
+  {
+    nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
+    nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
+
+    if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
+    {
+      nWideCount+=nWideSrc;
+      nMultiByteCount+=nCharsConverted;
+      if (nWideCount >= cchWideChar || nMultiByteCount >= cbMultiByte)
+        break;
+    }
+    else break;
+  }
+  if (lpUsedDefaultChar)
+    *lpUsedDefaultChar=bUsedDefaultChar;
+
+  return nMultiByteCount;
 }
