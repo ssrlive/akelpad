@@ -1027,7 +1027,7 @@ void* xmemset(void *dest, int c, UINT_PTR count)
 INT_PTR xarraysizeA(const char *pString, int *nElements)
 {
   const char *pCount=pString;
-  INT_PTR nCount=1;
+  int nCount=1;
 
   if (!pCount) return 0;
 
@@ -1063,7 +1063,7 @@ INT_PTR xarraysizeA(const char *pString, int *nElements)
 INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements)
 {
   const wchar_t *wpCount=wpString;
-  INT_PTR nCount=1;
+  int nCount=1;
 
   if (!wpCount) return 0;
 
@@ -2443,23 +2443,23 @@ INT_PTR hex2decW(const wchar_t *wpStrHex)
 int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase)
 {
   UINT_PTR a=nDec;
-  unsigned int b=0;
-  unsigned int c=0;
+  DWORD b=0;
+  DWORD c=0;
   char d;
   int nResult;
 
   do
   {
-    b=a % 16;
+    b=(DWORD)(a % 16);
     a=a / 16;
     if (b < 10)
     {
-      if (szStrHex) szStrHex[c]=b + '0';
+      if (szStrHex) szStrHex[c]=(char)(b + '0');
       ++c;
     }
     else
     {
-      if (szStrHex) szStrHex[c]=b + (bLowerCase?'a':'A') - 10;
+      if (szStrHex) szStrHex[c]=(char)(b + (bLowerCase?'a':'A') - 10);
       ++c;
     }
   }
@@ -2512,23 +2512,23 @@ int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase
 int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase)
 {
   UINT_PTR a=nDec;
-  unsigned int b=0;
-  unsigned int c=0;
+  DWORD b=0;
+  DWORD c=0;
   wchar_t d;
   int nResult;
 
   do
   {
-    b=a % 16;
+    b=(DWORD)(a % 16);
     a=a / 16;
     if (b < 10)
     {
-      if (wszStrHex) wszStrHex[c]=b + '0';
+      if (wszStrHex) wszStrHex[c]=(wchar_t)(b + '0');
       ++c;
     }
     else
     {
-      if (wszStrHex) wszStrHex[c]=b + (bLowerCase?L'a':L'A') - 10;
+      if (wszStrHex) wszStrHex[c]=(wchar_t)(b + (bLowerCase?L'a':L'A') - 10);
       ++c;
     }
   }
@@ -2661,7 +2661,7 @@ INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex,
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
   char szHexChar[4];
-  int nHexChar;
+  INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
 
@@ -2676,7 +2676,7 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 
     if ((nHexChar=hex2decA(szHexChar)) >= 0)
     {
-      if (pData) pData[b]=nHexChar;
+      if (pData) pData[b]=(unsigned char)nHexChar;
     }
     else break;
   }
@@ -2708,7 +2708,7 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
   wchar_t wszHexChar[4];
-  int nHexChar;
+  INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
 
@@ -2723,7 +2723,7 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
 
     if ((nHexChar=hex2decW(wszHexChar)) >= 0)
     {
-      if (pData) pData[b]=nHexChar;
+      if (pData) pData[b]=(unsigned char)nHexChar;
     }
     else break;
   }
@@ -2812,9 +2812,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       if (*pFmt >= '1' && *pFmt <= '9')
       {
         if (nWidth == -1)
-          nWidth-=xatoiA(pFmt, &pFmt) - 1;
+          nWidth-=(int)xatoiA(pFmt, &pFmt) - 1;
         else
-          nWidth=xatoiA(pFmt, &pFmt);
+          nWidth=(int)xatoiA(pFmt, &pFmt);
       }
       if (*pFmt == '.')
       {
@@ -2938,7 +2938,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
                 if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwPrecision?(int)dwPrecision + 1:-1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
                   pOut[--dwLen]='\0';
               }
-              else dwLen=xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+              else dwLen=(unsigned int)xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
             }
             pOut+=dwLen;
           }
@@ -2955,7 +2955,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (nWidth < 0)
       {
-        nWidth=min((pOut - pStartOut) + nWidth, 0);
+        nWidth=(int)min((pOut - pStartOut) + nWidth, 0);
 
         if (szOutput)
         {
@@ -3071,9 +3071,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       if (*wpFmt >= L'1' && *wpFmt <= L'9')
       {
         if (nWidth == -1)
-          nWidth-=xatoiW(wpFmt, &wpFmt) - 1;
+          nWidth-=(int)xatoiW(wpFmt, &wpFmt) - 1;
         else
-          nWidth=xatoiW(wpFmt, &wpFmt);
+          nWidth=(int)xatoiW(wpFmt, &wpFmt);
       }
       if (*wpFmt == L'.')
       {
@@ -3197,7 +3197,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
                 if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwPrecision?(int)dwPrecision + 1:-1, wpOut, dwLen + 1))
                   wpOut[--dwLen]='\0';
               }
-              else dwLen=xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+              else dwLen=(unsigned int)xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
             }
             wpOut+=dwLen;
           }
@@ -3214,7 +3214,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (nWidth < 0)
       {
-        nWidth=min((wpOut - wpStartOut) + nWidth, 0);
+        nWidth=(int)min((wpOut - wpStartOut) + nWidth, 0);
 
         if (wszOutput)
         {
