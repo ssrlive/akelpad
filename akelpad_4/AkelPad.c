@@ -385,7 +385,7 @@ HWND hMdiClient=NULL;
 BOOL bMdiMaximize=-1;
 BOOL bMdiNoWindows=FALSE;
 HWND hTab=NULL;
-DWORD dwTabOpenTimer=0;
+UINT_PTR dwTabOpenTimer=0;
 int nTabOpenItem=-1;
 int nDocumentsCount=0;
 int nDocumentsModified=0;
@@ -1016,7 +1016,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (uMsg == AKD_GETMAINPROC)
     {
-      return StackProcGet(&hMainProcStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hMainProcStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETMAINPROC)
     {
@@ -1024,7 +1024,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_GETMAINPROCRET)
     {
-      return StackProcGet(&hMainProcRetStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hMainProcRetStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETMAINPROCRET)
     {
@@ -1032,7 +1032,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_GETEDITPROC)
     {
-      return StackProcGet(&hEditProcStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hEditProcStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETEDITPROC)
     {
@@ -1040,7 +1040,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_GETEDITPROCRET)
     {
-      return StackProcGet(&hEditProcRetStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hEditProcRetStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETEDITPROCRET)
     {
@@ -1048,7 +1048,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_GETFRAMEPROC)
     {
-      return StackProcGet(&hFrameProcStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hFrameProcStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETFRAMEPROC)
     {
@@ -1056,7 +1056,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_GETFRAMEPROCRET)
     {
-      return StackProcGet(&hFrameProcRetStack, wParam, (WNDPROCDATA **)lParam);
+      return StackProcGet(&hFrameProcRetStack, (int)wParam, (WNDPROCDATA **)lParam);
     }
     else if (uMsg == AKD_SETFRAMEPROCRET)
     {
@@ -1078,7 +1078,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallSend->lParam;
       pcsW.dwSupport=lpCallSend->dwSupport;
-      nResult=CallPluginSend(NULL, &pcsW, wParam);
+      nResult=CallPluginSend(NULL, &pcsW, (DWORD)wParam);
 
       lpCallSend->dwSupport=pcsW.dwSupport;
       return nResult;
@@ -1093,9 +1093,9 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wParam)
       {
         if (uMsg == AKD_DLLFINDA || (bOldWindows && uMsg == AKD_DLLFIND))
-          nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)wParam);
+          nPluginFunctionLen=(int)xprintfW(wszPluginFunction, L"%S", (char *)wParam);
         else
-          nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)wParam);
+          nPluginFunctionLen=(int)xprintfW(wszPluginFunction, L"%s", (wchar_t *)wParam);
         return (LRESULT)StackPluginFind(&hPluginsStack, wszPluginFunction, nPluginFunctionLen);
       }
       if (lParam)
@@ -1113,9 +1113,9 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       int nPluginFunctionLen;
 
       if (uMsg == AKD_DLLADDA || (bOldWindows && uMsg == AKD_DLLADD))
-        nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)pa->pFunction);
+        nPluginFunctionLen=(int)xprintfW(wszPluginFunction, L"%S", (char *)pa->pFunction);
       else
-        nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)pa->pFunction);
+        nPluginFunctionLen=(int)xprintfW(wszPluginFunction, L"%s", (wchar_t *)pa->pFunction);
       return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bAutoLoad, pa->PluginProc, pa->lpParameter);
     }
     else if (uMsg == AKD_DLLDELETE)
@@ -1540,7 +1540,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETCMDLINEOPTIONS)
     {
-      dwCmdLineOptions=wParam;
+      dwCmdLineOptions=(DWORD)wParam;
       return 0;
     }
     if (uMsg == AKD_PARSECMDLINEW)
@@ -1700,7 +1700,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam == PASTE_SINGLELINE)
         return PasteInEditAsRichEdit(hWnd);
       else
-        return DoEditPaste(hWnd, lParam);
+        return DoEditPaste(hWnd, (BOOL)lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -1788,7 +1788,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpString, L"%S", (char *)lParam);
       else
         xprintfW(wpString, L"%s", (wchar_t *)lParam);
-      bResult=GoTo(wParam, wpString);
+      bResult=GoTo((DWORD)wParam, wpString);
 
       FreeWideStr(wpString);
       return bResult;
@@ -1894,7 +1894,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        SetModifyStatus(lpFrame, lParam);
+        SetModifyStatus(lpFrame, (BOOL)lParam);
       return 0;
     }
     if (uMsg == AKD_SETNEWLINE)
@@ -1902,7 +1902,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        SetNewLineStatus(lpFrame, lParam, AENL_INPUT|AENL_OUTPUT);
+        SetNewLineStatus(lpFrame, (int)lParam, AENL_INPUT|AENL_OUTPUT);
       return 0;
     }
     if (uMsg == AKD_GETFONT ||
@@ -1976,7 +1976,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (moCur.nRecentFiles != lParam)
         {
-          moCur.nRecentFiles=lParam;
+          moCur.nRecentFiles=(int)lParam;
           FreeMemoryRecentFiles();
 
           if (moCur.nRecentFiles)
@@ -2071,7 +2071,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETEDITOPTION)
     {
-      return SetCurEditOption(wParam, lParam);
+      return SetCurEditOption((int)wParam, (DWORD)lParam);
     }
 
     //Windows
@@ -2216,11 +2216,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Frames
     if (uMsg == AKD_FRAMEACTIVATE)
     {
-      return (LRESULT)ActivateMdiFrameWindow((FRAMEDATA *)lParam, wParam);
+      return (LRESULT)ActivateMdiFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
     }
     if (uMsg == AKD_FRAMENEXT)
     {
-      return (LRESULT)NextMdiFrameWindow((FRAMEDATA *)lParam, wParam);
+      return (LRESULT)NextMdiFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
     }
     if (uMsg == AKD_FRAMEDESTROY)
     {
@@ -2248,7 +2248,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, TRUE);
       }
       if (wParam == FWF_BYINDEX)
-        return (LRESULT)StackFrameGetByIndex(&hFramesStack, lParam);
+        return (LRESULT)StackFrameGetByIndex(&hFramesStack, (int)lParam);
       if (wParam == FWF_BYFILENAME)
       {
         wchar_t *wpFileName=AllocWideStr(MAX_PATH);
@@ -2256,9 +2256,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nFileNameLen;
 
         if (uMsg == AKD_FRAMEFINDA || (bOldWindows && uMsg == AKD_FRAMEFIND))
-          nFileNameLen=xprintfW(wpFileName, L"%S", (char *)lParam);
+          nFileNameLen=(int)xprintfW(wpFileName, L"%S", (char *)lParam);
         else
-          nFileNameLen=xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
+          nFileNameLen=(int)xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
         lpResult=StackFrameGetByName(&hFramesStack, wpFileName, nFileNameLen);
 
         FreeWideStr(wpFileName);
@@ -2294,7 +2294,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
     {
-      return (LRESULT)GlobalAlloc(wParam, lParam);
+      return (LRESULT)GlobalAlloc((UINT)wParam, (SIZE_T)lParam);
     }
     if (uMsg == AKD_GLOBALLOCK)
     {
@@ -2352,7 +2352,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETQUEUE)
     {
-      return GetQueueStatus(wParam);
+      return GetQueueStatus((UINT)wParam);
     }
     if (uMsg == AKD_ISMESSAGEBOX)
     {
@@ -2370,7 +2370,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (rh=(REGHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(REGHANDLE)))
         {
-          rh->dwType=wParam;
+          rh->dwType=(DWORD)wParam;
 
           if (lParam)
           {
@@ -2410,7 +2410,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ih=(INIHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLE)))
         {
-          ih->dwType=wParam;
+          ih->dwType=(DWORD)wParam;
 
           if (lParam)
           {
@@ -2570,7 +2570,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ih=(INIHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLE)))
       {
-        ih->dwType=wParam;
+        ih->dwType=(DWORD)wParam;
         if (ih->dwType & POB_READ)
           bCreate=FALSE;
         else if (ih->dwType & POB_SAVE)
@@ -2599,9 +2599,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INISECTION *lpResult;
 
       if (uMsg == AKD_INIGETSECTIONA || (bOldWindows && uMsg == AKD_INIGETSECTION))
-        nSectionLen=xprintfW(wpSection, L"%S", (char *)lParam);
+        nSectionLen=(int)xprintfW(wpSection, L"%S", (char *)lParam);
       else
-        nSectionLen=xprintfW(wpSection, L"%s", (wchar_t *)lParam);
+        nSectionLen=(int)xprintfW(wpSection, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniSectionW(&ih->hIniFile, wpSection, nSectionLen, FALSE);
 
       FreeWideStr(wpSection);
@@ -2626,9 +2626,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIKEY *lpResult;
 
       if (uMsg == AKD_INIGETKEYA || (bOldWindows && uMsg == AKD_INIGETKEY))
-        nKeyLen=xprintfW(wpKey, L"%S", (char *)lParam);
+        nKeyLen=(int)xprintfW(wpKey, L"%S", (char *)lParam);
       else
-        nKeyLen=xprintfW(wpKey, L"%s", (wchar_t *)lParam);
+        nKeyLen=(int)xprintfW(wpKey, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniKeyW(lpIniSection, wpKey, nKeyLen, FALSE);
 
       FreeWideStr(wpKey);
@@ -2719,7 +2719,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!hWnd)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
-      return -IndexSubtract(hWnd, NULL, NULL, lParam, FALSE);
+      return -IndexSubtract(hWnd, NULL, NULL, (int)lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGE ||
         uMsg == AKD_EXGETTEXTRANGEA ||
@@ -2801,16 +2801,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pmpcl->pm.lParam=(LPARAM)&pmpcl->pcls;
         PostMessage(hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmpcl);
       }
-      else nResult=SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pmpcl->pcls);
+      else nResult=(int)SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pmpcl->pcls);
     }
     return nResult;
   }
   else if (uMsg == WM_INITMENU)
   {
-    LPARAM lMenuState;
-
     if (!lParam || (lParam & IMENU_EDIT))
     {
+      int nMenuState;
+
       if (lpFrameCurrent->ei.hWndEdit)
       {
         EnableMenuItem(hMainMenu, IDM_FILE_CREATENEW, (nMDI && moCur.bSingleOpenProgram)?MF_GRAYED:MF_ENABLED);
@@ -2828,11 +2828,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_FIRST_CHAR_MENU, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
 
-        lMenuState=(!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))?MF_GRAYED:MF_ENABLED;
-        EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_TAB_MENU, lMenuState);
-        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_TAB_MENU, lMenuState);
-        EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_SPACE_MENU, lMenuState);
-        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_SPACE_MENU, lMenuState);
+        nMenuState=(!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))?MF_GRAYED:MF_ENABLED;
+        EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_TAB_MENU, nMenuState);
+        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_TAB_MENU, nMenuState);
+        EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_SPACE_MENU, nMenuState);
+        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_SPACE_MENU, nMenuState);
       }
       EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszCommand)?MF_ENABLED:MF_GRAYED);
     }
@@ -2890,7 +2890,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MOVE)
   {
-    DWORD dwStyle;
+    UINT_PTR dwStyle;
 
     dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
 
@@ -2907,7 +2907,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
       }
-      dwLastMainSize=wParam;
+      dwLastMainSize=(DWORD)wParam;
       SendMessage(hStatus, WM_SIZE, wParam, lParam);
       UpdateSize();
       return TRUE;
@@ -3691,7 +3691,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           FRAMEDATA *lpFrame;
 
           bTabPressed=TRUE;
-          nDocumentIndex=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+          nDocumentIndex=(int)SendMessage(hTab, TCM_GETCURSEL, 0, 0);
           lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nDocumentIndex);
           ActivateMdiFrameWindow(lpFrame, 0);
           bTabPressed=FALSE;
@@ -4619,7 +4619,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_MDINEXT)
   {
-    NextMdiFrameWindow(lpFrameCurrent, lParam);
+    NextMdiFrameWindow(lpFrameCurrent, (BOOL)lParam);
     return TRUE;
   }
   else if (uMsg == WM_MDIACTIVATE)
@@ -4736,7 +4736,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       GetCursorPos(&pt);
       thti.pt=pt;
       ScreenToClient(hWnd, &thti.pt);
-      nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+      nItem=(int)SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
 
       if (nItem != -1)
       {
@@ -4824,7 +4824,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       thti.pt.x=LOWORD(lParam);
       thti.pt.y=HIWORD(lParam);
-      nDragItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+      nDragItem=(int)SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
 
       if (nDragItem != -1)
       {
@@ -5396,7 +5396,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == HKM_SETHOTKEY)
   {
-    wInitHotkey=wParam;
+    wInitHotkey=(WORD)wParam;
 
     SetWindowLongPtrWide(hWnd, GWLP_USERDATA, wInitHotkey);
   }

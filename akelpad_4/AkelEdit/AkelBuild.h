@@ -606,8 +606,8 @@ typedef struct _AKELEDIT {
   POINT ptLButtonDownPrevPos;
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
-  DWORD dwMouseMoveTimer;
-  DWORD dwMouseScrollTimer;
+  UINT_PTR dwMouseMoveTimer;
+  UINT_PTR dwMouseScrollTimer;
   int nCurrentCursor;
   POINT ptMButtonDown;
   POINT ptMButtonScroll;
@@ -627,7 +627,7 @@ typedef struct _AKELEDIT {
   BOOL bDropping;
   BOOL bDragging;
   BOOL bDragSelectionDelete;
-  DWORD dwDragSelectionLength;
+  UINT_PTR dwDragSelectionLength;
   int nMoveBeforeBeginDrag;
   int nMoveBeforeDropScroll;
 
@@ -790,7 +790,7 @@ DWORD AE_IsPointOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);
-int AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGEMATCH *mrm);
+INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGEMATCH *mrm);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm);
 AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, BOOL bBack);
@@ -972,7 +972,7 @@ HRESULT WINAPI AEIDataObject_DAdvise(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, D
 HRESULT WINAPI AEIDataObject_DUnadvise(LPUNKNOWN lpTable, DWORD dwConnection);
 HRESULT WINAPI AEIDataObject_EnumDAdvise(LPUNKNOWN lpTable, IEnumSTATDATA **ppEnumAdvise);
 int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc);
-DWORD AE_DataObjectCopySelection(AKELEDIT *ae);
+UINT_PTR AE_DataObjectCopySelection(AKELEDIT *ae);
 void AE_DataObjectFreeSelection(AKELEDIT *ae);
 BOOL AE_IsEqualIID(const GUID *rguid1, const GUID *rguid2);
 

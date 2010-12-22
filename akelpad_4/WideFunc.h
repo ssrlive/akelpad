@@ -596,7 +596,7 @@ DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWOR
   }
   else WideNotInitialized();
 
-  return xstrcpynW(wszLongPath, wpShortPath, dwLongPathSize);
+  return (DWORD)xstrcpynW(wszLongPath, wpShortPath, dwLongPathSize);
 }
 #endif
 
@@ -882,8 +882,8 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
 
     //Make nMaxFile less than 0x7FFF otherwise crash possible
     xmemcpy(&ofnA, lpofn, sizeof(OPENFILENAMEA));
-    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, xarraysizeW(lpofn->lpstrFilter, NULL));
-    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, xarraysizeW(lpofn->lpstrCustomFilter, NULL));
+    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, (int)xarraysizeW(lpofn->lpstrFilter, NULL));
+    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, (int)xarraysizeW(lpofn->lpstrCustomFilter, NULL));
     ofnA.nMaxFile=min(lpofn->nMaxFile * sizeof(wchar_t), 0x7FFF);
     ofnA.lpstrFile=(char *)GlobalAlloc(GPTR, ofnA.nMaxFile);
     WideToAnsi(lpofn->lpstrFile, -1, ofnA.lpstrFile, ofnA.nMaxFile);
@@ -905,9 +905,9 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
       bResult=GetSaveFileNameA(&ofnA);
     if (bResult)
     {
-      AnsiToWide(ofnA.lpstrCustomFilter, xarraysizeA(ofnA.lpstrCustomFilter, NULL), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
-      AnsiToWide(ofnA.lpstrFile, xarraysizeA(ofnA.lpstrFile, NULL), lpofn->lpstrFile, lpofn->nMaxFile);
-      AnsiToWide(ofnA.lpstrFileTitle, xarraysizeA(ofnA.lpstrFileTitle, NULL), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
+      AnsiToWide(ofnA.lpstrCustomFilter, (int)xarraysizeA(ofnA.lpstrCustomFilter, NULL), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
+      AnsiToWide(ofnA.lpstrFile, (int)xarraysizeA(ofnA.lpstrFile, NULL), lpofn->lpstrFile, lpofn->nMaxFile);
+      AnsiToWide(ofnA.lpstrFileTitle, (int)xarraysizeA(ofnA.lpstrFileTitle, NULL), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
     }
 
     FreeAnsi((char *)ofnA.lpstrFilter);
@@ -2158,15 +2158,15 @@ int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
 
       xmemcpy(&lvcA, lvcW, sizeof(LVCOLUMNA));
       lvcA.pszText=AllocAnsi(lvcW->pszText);
-      nResult=SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)&lvcA);
+      nResult=(int)SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)&lvcA);
 
       FreeAnsi((char *)lvcA.pszText);
       return nResult;
     }
-    return SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
+    return (int)SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
+    return (int)SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
 
   WideNotInitialized();
   return -1;
@@ -2227,15 +2227,15 @@ int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW)
 
       xmemcpy(&lviA, lviW, sizeof(LVITEMA));
       lviA.pszText=AllocAnsi(lviW->pszText);
-      nResult=SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
+      nResult=(int)SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
       FreeAnsi((char *)lviA.pszText);
       return nResult;
     }
-    return SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)lviW);
+    return (int)SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
+    return (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return -1;
@@ -2259,15 +2259,15 @@ BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW)
 
       xmemcpy(&lviA, lviW, sizeof(LVITEMA));
       lviA.pszText=AllocAnsi(lviW->pszText);
-      bResult=SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)&lviA);
+      bResult=(int)SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)&lviA);
 
       FreeAnsi((char *)lviA.pszText);
       return bResult;
     }
-    return SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)lviW);
+    return (int)SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
+    return (int)SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2388,13 +2388,13 @@ int ComboBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, CB_ADDSTRING, 0, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, CB_ADDSTRING, 0, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_ADDSTRING, 0, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, CB_ADDSTRING, 0, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2414,13 +2414,13 @@ int ComboBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2440,13 +2440,13 @@ int ComboBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2466,13 +2466,13 @@ int ComboBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2488,9 +2488,9 @@ int ComboBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 int ComboBox_GetLBTextLenWide(HWND hWnd, int nIndex)
 {
   if (WideGlobal_bOldWindows == TRUE)
-    return SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
+    return (int)SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
+    return (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2511,11 +2511,11 @@ int ComboBox_GetLBTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     int nTextLen;
     int nResult=CB_ERR;
 
-    if ((nTextLen=SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0)) != CB_ERR)
+    if ((nTextLen=(int)SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0)) != CB_ERR)
     {
       if (szText=(char *)GlobalAlloc(GPTR, nTextLen + 1))
       {
-        if ((nResult=SendMessageA(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)szText)) != CB_ERR)
+        if ((nResult=(int)SendMessageA(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)szText)) != CB_ERR)
         {
           if (nResult=AnsiToWide(szText, nResult + 1, wszText, nResult + 1))
             --nResult;
@@ -2526,7 +2526,7 @@ int ComboBox_GetLBTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)wszText);
+    return (int)SendMessageW(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)wszText);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2546,13 +2546,13 @@ int ListBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2572,13 +2572,13 @@ int ListBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2624,13 +2624,13 @@ int ListBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2651,11 +2651,11 @@ int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     int nTextLen;
     int nResult=LB_ERR;
 
-    if ((nTextLen=SendMessageA(hWnd, LB_GETTEXTLEN, (WPARAM)nIndex, 0)) != LB_ERR)
+    if ((nTextLen=(int)SendMessageA(hWnd, LB_GETTEXTLEN, (WPARAM)nIndex, 0)) != LB_ERR)
     {
       if (szText=(char *)GlobalAlloc(GPTR, nTextLen + 1))
       {
-        if ((nResult=SendMessageA(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)szText)) != LB_ERR)
+        if ((nResult=(int)SendMessageA(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)szText)) != LB_ERR)
         {
           if (nResult=AnsiToWide(szText, nResult + 1, wszText, nResult + 1))
             --nResult;
@@ -2666,7 +2666,7 @@ int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)wszText);
+    return (int)SendMessageW(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)wszText);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2692,7 +2692,7 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
       tciW->cchTextMax*=sizeof(wchar_t);
       if (tciW->pszText=(wchar_t *)GlobalAlloc(GPTR, tciW->cchTextMax))
       {
-        bResult=SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+        bResult=(BOOL)SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
         AnsiToWide((char *)tciW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)tciW->pszText);
       }
@@ -2700,10 +2700,10 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
       tciW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return (BOOL)SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return (BOOL)SendMessageW(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return FALSE;
@@ -2727,15 +2727,15 @@ int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 
       xmemcpy(&tciA, tciW, sizeof(TCITEMA));
       tciA.pszText=AllocAnsi(tciW->pszText);
-      nResult=SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
+      nResult=(int)SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
 
       FreeAnsi((char *)tciA.pszText);
       return nResult;
     }
-    return SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return (int)SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return (int)SendMessageW(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return -1;
@@ -2759,15 +2759,15 @@ BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 
       xmemcpy(&tciA, tciW, sizeof(TCITEMA));
       tciA.pszText=AllocAnsi(tciW->pszText);
-      bResult=SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
+      bResult=(BOOL)SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
 
       FreeAnsi((char *)tciA.pszText);
       return bResult;
     }
-    return SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return (BOOL)SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return (BOOL)SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return FALSE;
@@ -2820,13 +2820,13 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText)
     char *pText=AllocAnsi(wpText);
     BOOL bResult;
 
-    bResult=SendMessageA(hWnd, SB_SETTEXTA, (WPARAM)iPart, (LPARAM)pText);
+    bResult=(BOOL)SendMessageA(hWnd, SB_SETTEXTA, (WPARAM)iPart, (LPARAM)pText);
 
     FreeAnsi(pText);
     return bResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, SB_SETTEXTW, (WPARAM)iPart, (LPARAM)wpText);
+    return (BOOL)SendMessageW(hWnd, SB_SETTEXTW, (WPARAM)iPart, (LPARAM)wpText);
 
   WideNotInitialized();
   return FALSE;
