@@ -1,36 +1,35 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commdlg.h>
+#include "StrFunc.h"
 #include "Resources\resource.h"
 
 
-//// Defines
+//Include string functions
+#define xmemset
+#include "StrFunc.h"
 
-#define APP_NAMEA    "AkelPad redirector"
-#define APP_NAMEW   L"AkelPad redirector"
+//Defines
+#define APP_NAMEA  "AkelPad redirector"
+#define APP_NAMEW L"AkelPad redirector"
 
-//// Functions prototypes
-
+//Functions prototypes
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 
-//// Global variables
-
+//Global variables
 char szCmdLine[32768];
 wchar_t wszCmdLine[32768];
 BOOL bOldWindows;
 
-
-//// GCC
-
+//GCC
 int main()
 {
   return 0;
 }
 
-//// Entry point
-
-extern "C" void _WinMain()
+//Entry point
+void _WinMain()
 {
   if (GetWindowsDirectoryW(NULL, 0))
     bOldWindows=FALSE;
@@ -39,8 +38,8 @@ extern "C" void _WinMain()
 
   if (bOldWindows)
   {
-    STARTUPINFO si={0};
-    PROCESS_INFORMATION pi={0};
+    STARTUPINFOA siA;
+    PROCESS_INFORMATION pi;
     char szModule[MAX_PATH];
     char szPath[MAX_PATH];
     char *pCmdLineParams;
@@ -64,9 +63,10 @@ extern "C" void _WinMain()
 
     if (!lstrcmpiA(szModule, szPath))
     {
-      OPENFILENAMEA efnA={0};
+      OPENFILENAMEA efnA;
 
       szPath[0]='\0';
+      xmemset(&efnA, 0, sizeof(OPENFILENAMEA));
       efnA.lStructSize      =sizeof(OPENFILENAMEA);
       efnA.hwndOwner        =NULL;
       efnA.lpstrFile        =szPath;
@@ -93,12 +93,13 @@ extern "C" void _WinMain()
 
     wsprintfA(szCmdLine, "\"%s\" ", szPath);
     pCmdLineParams=GetCommandLineParamsA();
-    lstrcat(szCmdLine, pCmdLineParams);
+    lstrcatA(szCmdLine, pCmdLineParams);
 
-    si.cb=sizeof(STARTUPINFO);
-    GetStartupInfo(&si);
+    xmemset(&siA, 0, sizeof(STARTUPINFOA));
+    siA.cb=sizeof(STARTUPINFOA);
+    GetStartupInfoA(&siA);
 
-    if (CreateProcess(NULL, szCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+    if (CreateProcessA(NULL, szCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &siA, &pi))
     {
       MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, 0);
       CloseHandle(pi.hThread);
@@ -107,8 +108,8 @@ extern "C" void _WinMain()
   }
   else
   {
-    STARTUPINFOW siW={0};
-    PROCESS_INFORMATION pi={0};
+    STARTUPINFOW siW;
+    PROCESS_INFORMATION pi;
     wchar_t wszModule[MAX_PATH];
     wchar_t wszPath[MAX_PATH];
     wchar_t *wpCmdLineParams;
@@ -132,9 +133,10 @@ extern "C" void _WinMain()
 
     if (!lstrcmpiW(wszModule, wszPath))
     {
-      OPENFILENAMEW efnW={0};
+      OPENFILENAMEW efnW;
 
       wszPath[0]='\0';
+      xmemset(&efnW, 0, sizeof(OPENFILENAMEW));
       efnW.lStructSize      =sizeof(OPENFILENAMEW);
       efnW.hwndOwner        =NULL;
       efnW.lpstrFile        =wszPath;
@@ -163,6 +165,7 @@ extern "C" void _WinMain()
     wpCmdLineParams=GetCommandLineParamsW();
     lstrcatW(wszCmdLine, wpCmdLineParams);
 
+    xmemset(&siW, 0, sizeof(STARTUPINFOA));
     siW.cb=sizeof(STARTUPINFOW);
     GetStartupInfoW(&siW);
 

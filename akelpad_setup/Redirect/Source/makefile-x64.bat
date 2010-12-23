@@ -1,6 +1,6 @@
 @ECHO OFF
-Set MINGW=C:\MinGW
-Set BIT=32
+Set MINGW=C:\MinGW-w64
+Set BIT=64
 
 ::#######################::
 Set PATH=%MINGW%\bin;%PATH%
