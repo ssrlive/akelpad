@@ -3025,7 +3025,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
  *
  *Note:
- *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW.
+ *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
  ********************************************************************/
 #if defined xprintfW || defined ALLSTRFUNC
 #define xprintfW_INCLUDED
