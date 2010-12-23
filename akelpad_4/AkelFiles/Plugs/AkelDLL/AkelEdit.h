@@ -1976,24 +1976,23 @@ Return Value
 
 Example:
  AETEXTRANGEA tr;
- int nLen;
 
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
- tr.pText=NULL;
+ tr.pBuffer=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
  tr.nCodePage=CP_ACP;
  tr.lpDefaultChar=NULL;
  tr.lpUsedDefChar=NULL;
  tr.bFillSpaces=FALSE;
 
- if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
+ if (tr.dwBufferMax=SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
  {
-   if (tr.pText=(char *)GlobalAlloc(GPTR, nLen + 1))
+   if (tr.pBuffer=(char *)GlobalAlloc(GPTR, tr.dwBufferMax))
    {
      SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
-     MessageBoxA(NULL, tr.pText, NULL, 0);
+     MessageBoxA(NULL, tr.pBuffer, NULL, 0);
 
-     GlobalFree((HGLOBAL)tr.pText);
+     GlobalFree((HGLOBAL)tr.pBuffer);
    }
  }
 
@@ -2011,21 +2010,20 @@ Return Value
 
 Example:
  AETEXTRANGEW tr;
- int nLen;
 
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
- tr.pText=NULL;
+ tr.pBuffer=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
  tr.bFillSpaces=FALSE;
 
- if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
+ if (tr.dwBufferMax=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
  {
-   if (tr.pText=(wchar_t *)GlobalAlloc(GPTR, (nLen + 1) * sizeof(wchar_t)))
+   if (tr.pBuffer=(wchar_t *)GlobalAlloc(GPTR, tr.dwBufferMax * sizeof(wchar_t)))
    {
      SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
-     MessageBoxW(NULL, tr.pText, NULL, 0);
+     MessageBoxW(NULL, tr.pBuffer, NULL, 0);
 
-     GlobalFree((HGLOBAL)tr.pText);
+     GlobalFree((HGLOBAL)tr.pBuffer);
    }
  }
 
