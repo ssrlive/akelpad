@@ -1,11 +1,8 @@
 # Make file for build Redirect with GCC
-# mingw32-make.exe LANG=English all clean
+# mingw32-make.exe BIT=32 all clean
 
-CC = g++
-CFLAGS = -Wall -Os
-LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -ladvapi32 -lcomdlg32
-ifndef LANG
-  LANG = English
+ifndef BIT
+  BIT = 32
 endif
 ifndef NIX
   DEL = del
@@ -13,17 +10,34 @@ else
   DEL = rm -f
 endif
 
-all: Redirect.exe
+ifeq ($(BIT), 64)
+  ENTRY = _WinMain
+  CC = x86_64-w64-mingw32-g++.exe
+  RES = x86_64-w64-mingw32-windres.exe
+  STRIP = x86_64-w64-mingw32-strip.exe
+  OUTFILE = notepad-x64.exe
+else
+  ENTRY = __WinMain
+  CC = g++.exe
+  RES = windres.exe
+  STRIP = strip.exe
+  OUTFILE = notepad.exe
+endif
+CFLAGS = -Os -g0 -Wchar-subscripts -Wcomment -Wformat -Wreturn-type -Wsign-compare -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
+LDFLAGS = -mwindows -e $(ENTRY) -static-libgcc -lkernel32 -luser32 -ladvapi32 -lcomdlg32
+DEFINES = -D CINTERFACE
 
-Redirect.exe: Redirect.o Resource.o
-	$(CC) $(CFLAGS) Redirect.o Resource.o $(LDFLAGS) -o notepad.exe
-	strip --strip-all notepad.exe
+all: notepad.exe
+
+notepad.exe: Redirect.o Resource.o
+	$(CC) $(CFLAGS) Redirect.o Resource.o $(LDFLAGS) -o $(OUTFILE)
+	$(STRIP) --strip-all $(OUTFILE)
 
 Redirect.o:
-	$(CC) $(CFLAGS) $(DEFINES) -c Redirect.cpp
+	$(CC) $(CFLAGS) $(DEFINES) -c -xc Redirect.c
 
 Resource.o:
-	windres -D EXE_VERSION -I Resources "Resources/Redirect.rc" -o Resource.o
+	$(RES) --use-temp-file -D RC_VERSIONBIT=$(BIT) -I Resources "Resources/Redirect.rc" -o Resource.o
 
 clean:
 	$(DEL) Redirect.o
