@@ -9,7 +9,7 @@
  *                                                                *
  *  WideFunc.h header uses some functions from StrFunc.h header:  *
  *   - Basic requirement is xmemcpy.                              *
- *   - GetLongPathNameWide required xstrcpynW.                    *
+ *   - GetLongPathNameWide required xstrcpynW, xstrlenW.          *
  *   - GetOpenFileNameWide required xarraysizeA and xarraysizeW.  *
  *****************************************************************/
 
