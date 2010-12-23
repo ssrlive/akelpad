@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 4)
 
 
 //// Defines
@@ -289,8 +289,8 @@
 
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.
-#define LI_WRAP           0x00000002  //Lock inherit wrapping.
-#define LI_COLORS         0x00000003  //Lock inherit colors.
+#define LI_COLORS         0x00000002  //Lock inherit colors.
+#define LI_WRAP           0x00000004  //Lock inherit wrapping.
 
 //Find text flags
 #ifndef FR_DOWN
@@ -1512,6 +1512,8 @@ typedef struct {
 #define AKD_SEARCHHISTORY          (WM_USER + 215)
 #define AKD_GETEDITOPTION          (WM_USER + 216)
 #define AKD_SETEDITOPTION          (WM_USER + 217)
+#define AKD_GETCOLORS              (WM_USER + 218)
+#define AKD_SETCOLORS              (WM_USER + 219)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -2642,7 +2644,7 @@ Example (Unicode):
  SendMessage(pd->hMainWnd, AKD_GETFONTW, (WPARAM)NULL, (LPARAM)&lfFont);
  lfFont.lfHeight-=2;
  lstrcpynW(lfFont.lfFaceName, L"Courier New", LF_FACESIZE);
- SendMessage(pd->hMainWnd, AKD_SETFONTW, (WPARAM)pd->hWndEdit, (LPARAM)&lfFont);
+ SendMessage(pd->hMainWnd, AKD_SETFONTW, (WPARAM)NULL, (LPARAM)&lfFont);
 
 
 AKD_GETCODEPAGELIST
@@ -2724,6 +2726,41 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETEDITOPTION, EO_TEXTMARGINS, MAKELONG(4, 4));
+
+
+AKD_GETCOLORS
+_____________
+
+Get colors.
+
+(HWND)wParam       == edit window, NULL for current edit window.
+(AECOLORS *)lParam == pointer to a AECOLORS structure.
+
+Return Value
+ Pointer to a AECOLORS structure.
+
+Example:
+ See AKD_SETCOLORS example.
+
+
+AKD_SETCOLORS
+_____________
+
+Set colors.
+
+(HWND)wParam       == edit window, NULL for current edit window.
+(AECOLORS *)lParam == pointer to a AECOLORS structure.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example (Unicode):
+ AECOLORS aec;
+
+ SendMessage(pd->hMainWnd, AKD_GETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
+ aec.crBasicBk=RGB(0x00, 0xFF, 0x00);
+ SendMessage(pd->hMainWnd, AKD_SETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
 
 
 AKD_GETMODELESS
