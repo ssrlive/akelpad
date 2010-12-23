@@ -2073,6 +2073,33 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return SetCurEditOption((int)wParam, (DWORD)lParam);
     }
+    if (uMsg == AKD_GETCOLORS)
+    {
+      FRAMEDATA *lpFrame;
+
+      if (lParam)
+      {
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        {
+          xmemcpy((AECOLORS *)lParam, &lpFrameCurrent->aec, sizeof(AECOLORS));
+          return (LRESULT)lParam;
+        }
+      }
+      return (LRESULT)NULL;
+    }
+    if (uMsg == AKD_SETCOLORS)
+    {
+      FRAMEDATA *lpFrame;
+
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+      {
+        xmemcpy(&lpFrameCurrent->aec, (AECOLORS *)lParam, sizeof(AECOLORS));
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
+        lpFrameCurrent->aec.dwFlags=AECLR_ALL;
+        return TRUE;
+      }
+      return FALSE;
+    }
 
     //Windows
     if (uMsg == AKD_GETMODELESS)
