@@ -172,7 +172,7 @@ UINT_PTR SetFilePointer64(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveMet
     if (SetFilePointerEx(hFile, liDistanceToMove, &liNewFilePointer, dwMoveMethod))
       return liNewFilePointer.QuadPart;
     else
-      return 0;
+      return (UINT_PTR)-1;
   #else
     return SetFilePointer(hFile, nDistanceToMove, NULL, dwMoveMethod);
   #endif
