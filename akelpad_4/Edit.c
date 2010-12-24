@@ -11,6 +11,7 @@
 #include "WideFunc.h"
 #include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
+#include "AkelEdit\x64Func.h"
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
 #include "AkelFiles\Langs\Resources\version.h"
@@ -2874,13 +2875,13 @@ BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile)
   int nKeyLen;
   int nStringLen;
 
-  if ((dwFileSize=API_GetFileSize(hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(hFile)) != INVALID_FILE_SIZE)
   {
     if (dwFileSize >= sizeof(wchar_t))
     {
       if (wszText=wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwFileSize + sizeof(wchar_t)))
       {
-        if (API_ReadFile(hFile, wpText, dwFileSize, &dwBytesRead, NULL))
+        if (ReadFile64(hFile, wpText, dwFileSize, &dwBytesRead, NULL))
         {
           dwUnicodeLen=dwBytesRead / sizeof(wchar_t);
           wpLastChar=wpText + dwUnicodeLen;
@@ -3997,18 +3998,18 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     if (nCodePage == CP_UNICODE_UTF16LE ||
         nCodePage == CP_UNICODE_UTF16BE)
     {
-      API_SetFilePointer(hFile, 2, FILE_BEGIN);
+      SetFilePointer64(hFile, 2, FILE_BEGIN);
       fsd.dwBytesCurrent=2;
     }
     else if (nCodePage == CP_UNICODE_UTF32LE ||
              nCodePage == CP_UNICODE_UTF32BE)
     {
-      API_SetFilePointer(hFile, 4, FILE_BEGIN);
+      SetFilePointer64(hFile, 4, FILE_BEGIN);
       fsd.dwBytesCurrent=4;
     }
     else if (nCodePage == CP_UNICODE_UTF8)
     {
-      API_SetFilePointer(hFile, 3, FILE_BEGIN);
+      SetFilePointer64(hFile, 3, FILE_BEGIN);
       fsd.dwBytesCurrent=3;
     }
   }
@@ -4151,7 +4152,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   UINT_PTR dwCharsConverted;
   DWORD i;
 
-  if ((dwFileSize=API_GetFileSize(lpData->hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(lpData->hFile)) != INVALID_FILE_SIZE)
   {
     if (lpData->dwBytesMax == (UINT_PTR)-1)
       lpData->dwBytesMax=dwFileSize;
@@ -4169,7 +4170,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         szBuffer=(unsigned char *)wszBuffer + lpData->dwBytesMax;
 
       //Read data from file
-      if (API_ReadFile(lpData->hFile, szBuffer, lpData->dwBytesMax, &dwBytesRead, NULL))
+      if (ReadFile64(lpData->hFile, szBuffer, lpData->dwBytesMax, &dwBytesRead, NULL))
       {
         //Translate data to UNICODE
         if (lpData->nCodePage == CP_UNICODE_UTF16LE)
@@ -4195,7 +4196,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
           if (lpData->nCodePage == CP_UNICODE_UTF8)
             dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, wszBuffer, nBufferBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=API_MultiByteToWideChar(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=MultiByteToWideChar64(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
         }
         wszBuffer[dwCharsConverted]='\0';
 
@@ -4252,7 +4253,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   AESTREAMIN aesi;
 
   if (lpData->dwBytesMax == (UINT_PTR)-1)
-    lpData->dwBytesMax=API_GetFileSize(lpData->hFile);
+    lpData->dwBytesMax=GetFileSize64(lpData->hFile);
   SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   aesi.dwCookie=(UINT_PTR)lpData;
@@ -4285,7 +4286,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
 
   if (lpData->dwBytesCurrent <= lpData->dwBytesMax)
   {
-    if (API_ReadFile(lpData->hFile, pcTranslateBuffer, dwBufBytesSize / sizeof(wchar_t), &dwBytesRead, NULL))
+    if (ReadFile64(lpData->hFile, pcTranslateBuffer, dwBufBytesSize / sizeof(wchar_t), &dwBytesRead, NULL))
     {
       lpData->dwBytesCurrent+=dwBytesRead;
 
@@ -4320,7 +4321,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
           {
             //UTF-8 char was split
             lpData->dwBytesCurrent+=dwBytesConverted - dwBytesRead;
-            API_SetFilePointer(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
+            SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
           }
         }
         else
@@ -4334,7 +4335,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
             {
               //Double-byte char was split
               --lpData->dwBytesCurrent;
-              API_SetFilePointer(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
+              SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
               --dwCharsConverted;
             }
           }
@@ -4361,26 +4362,26 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
   //Offset BOM
   if (bBOM)
   {
-    if (API_SetFilePointer(hFile, 0, FILE_CURRENT) == 0)
+    if (SetFilePointer64(hFile, 0, FILE_CURRENT) == 0)
     {
       if (nCodePage == CP_UNICODE_UTF16LE ||
           nCodePage == CP_UNICODE_UTF16BE)
       {
-        API_SetFilePointer(hFile, 2, FILE_BEGIN);
+        SetFilePointer64(hFile, 2, FILE_BEGIN);
       }
       else if (nCodePage == CP_UNICODE_UTF32LE ||
                nCodePage == CP_UNICODE_UTF32BE)
       {
-        API_SetFilePointer(hFile, 4, FILE_BEGIN);
+        SetFilePointer64(hFile, 4, FILE_BEGIN);
       }
       else if (nCodePage == CP_UNICODE_UTF8)
       {
-        API_SetFilePointer(hFile, 3, FILE_BEGIN);
+        SetFilePointer64(hFile, 3, FILE_BEGIN);
       }
     }
   }
 
-  if ((dwFileSize=API_GetFileSize(hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(hFile)) != INVALID_FILE_SIZE)
   {
     if (dwBytesMax == (UINT_PTR)-1)
       dwBytesMax=dwFileSize;
@@ -4398,7 +4399,7 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
         szBuffer=(unsigned char *)wszBuffer + dwBytesMax;
 
       //Read data from file
-      if (API_ReadFile(hFile, szBuffer, dwBytesMax, &dwBytesRead, NULL))
+      if (ReadFile64(hFile, szBuffer, dwBytesMax, &dwBytesRead, NULL))
       {
         //Translate data to UNICODE
         if (nCodePage == CP_UNICODE_UTF16LE)
@@ -4424,7 +4425,7 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
           if (nCodePage == CP_UNICODE_UTF8)
             dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=API_MultiByteToWideChar(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=MultiByteToWideChar64(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
         }
         wszBuffer[dwCharsConverted]='\0';
       }
@@ -7328,18 +7329,18 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
     if (*nCodePage == CP_UNICODE_UTF16LE ||
         *nCodePage == CP_UNICODE_UTF16BE)
     {
-      API_SetFilePointer(hFile, 2, FILE_BEGIN);
+      SetFilePointer64(hFile, 2, FILE_BEGIN);
       fsd.dwBytesCurrent=2;
     }
     else if (*nCodePage == CP_UNICODE_UTF32LE ||
              *nCodePage == CP_UNICODE_UTF32BE)
     {
-      API_SetFilePointer(hFile, 4, FILE_BEGIN);
+      SetFilePointer64(hFile, 4, FILE_BEGIN);
       fsd.dwBytesCurrent=4;
     }
     else if (*nCodePage == CP_UNICODE_UTF8)
     {
-      API_SetFilePointer(hFile, 3, FILE_BEGIN);
+      SetFilePointer64(hFile, 3, FILE_BEGIN);
       fsd.dwBytesCurrent=3;
     }
   }
@@ -7411,7 +7412,7 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
       return EDT_ALLOC;
     }
 
-    if (!API_ReadFile(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
+    if (!ReadFile64(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
     {
       SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
       API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
@@ -7723,259 +7724,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
     }
   }
   return FALSE;
-}
-
-
-UINT_PTR UTF32toUTF16(const unsigned long *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
-{
-  const unsigned long *pSrc=pSource;
-  const unsigned long *pSrcEnd=pSource + nSourceLen;
-  unsigned short *pDst=szTarget;
-  unsigned short *pDstEnd=szTarget + nTargetMax;
-  unsigned long nChar;
-
-  while (pSrc < pSrcEnd && pDst < pDstEnd)
-  {
-    nChar=*pSrc;
-
-    if (nChar <= 0xFFFF)
-    {
-      // UTF-16 surrogate values are illegal in UTF-32; 0xffff or 0xfffe are both reserved values
-      if (nChar >= 0xD800 && nChar <= 0xDFFF)
-        *pDst++=0xFFFD;
-      else
-        *pDst++=(unsigned short)nChar;
-    }
-    else if (nChar <= 0x0010FFFF)
-    {
-      if (pDst + 1 >= pDstEnd) break;
-      nChar-=0x0010000UL;
-      *pDst++=(unsigned short)((nChar >> 10) + 0xD800);
-      *pDst++=(unsigned short)((nChar & 0x3FFUL) + 0xDC00);
-    }
-    else
-    {
-      *pDst++=0xFFFD;
-    }
-    ++pSrc;
-  }
-  if (nSourceDone)
-    *nSourceDone=pSrc - pSource;
-  return (pDst - szTarget);
-}
-
-UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned long *szTarget, UINT_PTR nTargetMax)
-{
-  const unsigned short *pSrc=pSource;
-  const unsigned short *pSrcEnd=pSource + nSourceLen;
-  unsigned long *pDst=szTarget;
-  unsigned long *pDstEnd=szTarget + nTargetMax;
-  unsigned long nChar;
-
-  while (pSrc < pSrcEnd && pDst < pDstEnd)
-  {
-    nChar=*pSrc;
-
-    //Surrogate pair. High surrogate.
-    if (nChar >= 0xD800 && nChar <= 0xDBFF)
-    {
-      if (++pSrc >= pSrcEnd)
-      {
-        --pSrc;
-        break;
-      }
-
-      //Low surrogate
-      if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
-        nChar=((nChar - 0xD800) << 10) + (*pSrc - 0xDC00) + 0x0010000UL;
-      else
-        continue;
-    }
-    *pDst++=nChar;
-    ++pSrc;
-  }
-  if (nSourceDone)
-    *nSourceDone=pSrc - pSource;
-  return (pDst - szTarget);
-}
-
-UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax)
-{
-  unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
-  const unsigned short *pSrc=pSource;
-  const unsigned short *pSrcEnd=pSource + nSourceLen;
-  const unsigned short *pSrcDone=pSource;
-  unsigned char *pDst=szTarget;
-  unsigned char *pDstEnd=szTarget + nTargetMax;
-  unsigned long nChar;
-  unsigned int nBitesInChar;
-
-  while (pSrc < pSrcEnd && pDst < pDstEnd)
-  {
-    nChar=*pSrc;
-
-    //Surrogate pair. High surrogate.
-    if (nChar >= 0xD800 && nChar <= 0xDBFF)
-    {
-      if (++pSrc >= pSrcEnd)
-      {
-        --pSrc;
-        break;
-      }
-
-      //Low surrogate
-      if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
-        nChar=0x10000 + ((nChar - 0xD800) << 10) + (*pSrc - 0xDC00);
-      else
-      {
-        pSrcDone=pSource;
-        continue;
-      }
-    }
-
-    if (nChar < 0x110000)
-    {
-      if (nChar >= 0x10000)
-      {
-        if (pDst + 3 >= pDstEnd) break;
-        nBitesInChar=4;
-      }
-      else if (nChar >= 0x800)
-      {
-        if (pDst + 2 >= pDstEnd) break;
-        nBitesInChar=3;
-      }
-      else if (nChar >= 0x80)
-      {
-        if (pDst + 1 >= pDstEnd) break;
-        nBitesInChar=2;
-      }
-      else if (nChar >= 0)
-      {
-        nBitesInChar=1;
-      }
-
-      switch (nBitesInChar)
-      {
-        case 4:
-        {
-          *(pDst + 3)=(unsigned char)(nChar | 0x80) & 0xBF;
-          nChar=nChar >> 6;
-        }
-        case 3:
-        {
-          *(pDst + 2)=(unsigned char)(nChar | 0x80) & 0xBF;
-          nChar=nChar >> 6;
-        }
-        case 2:
-        {
-          *(pDst + 1)=(unsigned char)(nChar | 0x80) & 0xBF;
-          nChar=nChar >> 6;
-        }
-        case 1:
-        {
-          *pDst=(unsigned char)(nChar | lpFirstByteMark[nBitesInChar]);
-        }
-      }
-      pDst+=nBitesInChar;
-    }
-    pSrcDone=++pSrc;
-  }
-  if (nSourceDone)
-    *nSourceDone=pSrcDone - pSource;
-  return (pDst - szTarget);
-}
-
-UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
-{
-  unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
-  const unsigned char *pSrc=pSource;
-  const unsigned char *pSrcEnd=pSource + nSourceLen;
-  const unsigned char *pSrcDone=pSource;
-  unsigned short *pDst=szTarget;
-  unsigned short *pDstEnd=szTarget + nTargetMax;
-  unsigned long nChar;
-  unsigned int nTrailing;
-
-  while (pSrc < pSrcEnd && pDst < pDstEnd)
-  {
-    if (*pSrc < 0x80)
-    {
-      nTrailing=0;
-    }
-    else if (*pSrc < 0xC0)
-    {
-      //Trailing byte in leading position
-      pSrcDone=++pSrc;
-      continue;
-    }
-    else if (*pSrc < 0xE0)
-    {
-      if (pSrc + 1 >= pSrcEnd) break;
-      nTrailing=1;
-    }
-    else if (*pSrc < 0xF0)
-    {
-      if (pSrc + 2 >= pSrcEnd) break;
-      nTrailing=2;
-    }
-    else if (*pSrc < 0xF8)
-    {
-      if (pSrc + 3 >= pSrcEnd) break;
-      nTrailing=3;
-    }
-    else
-    {
-      //No chance for this in UTF-16
-      pSrcDone=++pSrc;
-      continue;
-    }
-
-    //Get unicode char
-    nChar=0;
-
-    switch (nTrailing)
-    {
-      case 3:
-      {
-        nChar+=*pSrc++;
-        nChar=nChar << 6;
-      }
-      case 2:
-      {
-        nChar+=*pSrc++;
-        nChar=nChar << 6;
-      }
-      case 1:
-      {
-        nChar+=*pSrc++;
-        nChar=nChar << 6;
-      }
-      case 0:
-      {
-        nChar+=*pSrc++;
-      }
-    }
-    nChar-=lpOffsetsFromUTF8[nTrailing];
-
-    //Write unicode char
-    if (nChar <= 0xFFFF)
-    {
-      *pDst++=(unsigned short)nChar;
-    }
-    else
-    {
-      //Surrogate pair
-      if (pDst + 1 >= pDstEnd) break;
-      nChar-=0x10000;
-      *pDst++=(unsigned short)((nChar >> 10) + 0xD800);
-      *pDst++=(unsigned short)((nChar & 0x3ff) + 0xDC00);
-    }
-    pSrcDone=pSrc;
-  }
-  if (nSourceDone)
-    *nSourceDone=pSrcDone - pSource;
-  return (pDst - szTarget);
 }
 
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen)
@@ -10306,16 +10054,16 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
 
   if (nUnicodeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszSelText, AELB_ASIS, TRUE))
   {
-    nAnsiLen=API_WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
+    nAnsiLen=WideCharToMultiByte64(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
 
     if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
     {
-      API_WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
-      nUnicodeLen=API_MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
+      WideCharToMultiByte64(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
+      nUnicodeLen=MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
 
       if (wszText=AllocWideStr(nUnicodeLen))
       {
-        API_MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
+        MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
         API_HeapFree(hHeap, 0, (LPVOID)szText);
         szText=NULL;
 
@@ -18116,59 +17864,15 @@ HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD d
   return hResult;
 }
 
-BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, UINT_PTR nNumberOfBytesToRead, UINT_PTR *lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
-{
-  DWORD dwBytesToRead;
-  DWORD dwBytesRead;
-  UINT_PTR dwCount=0;
-  BOOL bResult;
-
-  //Read file sequentially with maximum block 0xFFFF
-  for (;;)
-  {
-    dwBytesToRead=(DWORD)min(nNumberOfBytesToRead - dwCount, 0xFFFF);
-
-    if (bResult=ReadFile(hFile, (LPBYTE)lpBuffer + dwCount, dwBytesToRead, &dwBytesRead, lpOverlapped))
-    {
-      dwCount+=dwBytesRead;
-      if (dwBytesRead < dwBytesToRead || dwCount >= nNumberOfBytesToRead)
-        break;
-    }
-    else break;
-  }
-  *lpNumberOfBytesRead=dwCount;
-
-  return bResult;
-}
-
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
-  DWORD dwBytesToWrite;
-  DWORD dwBytesWritten;
-  UINT_PTR dwCount=0;
-  BOOL bResult;
-
-  //Write file sequentially with maximum block 0xFFFF
-  for (;;)
+  if (!WriteFile64(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped))
   {
-    dwBytesToWrite=(DWORD)min(nNumberOfBytesToWrite - dwCount, 0xFFFF);
-
-    if (bResult=WriteFile(hFile, (LPBYTE)lpBuffer + dwCount, dwBytesToWrite, &dwBytesWritten, lpOverlapped))
-    {
-      dwCount+=dwBytesWritten;
-      if (dwBytesWritten < dwBytesToWrite || dwCount >= nNumberOfBytesToWrite)
-        break;
-    }
-    else
-    {
-      API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-      API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-      break;
-    }
+    API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    return FALSE;
   }
-  *lpNumberOfBytesWritten=dwCount;
-
-  return bResult;
+  return TRUE;
 }
 
 LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes)
@@ -18203,109 +17907,4 @@ BOOL FreeWideStr(wchar_t *wpVar)
   if (wpVar)
     return API_HeapFree(hHeap, 0, (LPVOID)wpVar);
   return FALSE;
-}
-
-UINT_PTR API_GetFileSize(HANDLE hFile)
-{
-  #ifdef _WIN64
-    LARGE_INTEGER liFileSize;
-
-    if (GetFileSizeEx(hFile, &liFileSize))
-      return liFileSize.QuadPart;
-    else
-      return 0;
-  #else
-    return GetFileSize(hFile, NULL);
-  #endif
-}
-
-UINT_PTR API_SetFilePointer(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveMethod)
-{
-  #ifdef _WIN64
-    LARGE_INTEGER liDistanceToMove;
-    LARGE_INTEGER liNewFilePointer;
-
-    liDistanceToMove.QuadPart=nDistanceToMove;
-    if (SetFilePointerEx(hFile, liDistanceToMove, &liNewFilePointer, dwMoveMethod))
-      return liNewFilePointer.QuadPart;
-    else
-      return 0;
-  #else
-    return SetFilePointer(hFile, nDistanceToMove, NULL, dwMoveMethod);
-  #endif
-}
-
-//Don't use CP_UTF7, CP_UTF8 with cbMultiByte > 0x0FFFFFFF
-INT_PTR API_MultiByteToWideChar(UINT dwCodePage, DWORD dwFlags, const char *lpMultiByteStr, INT_PTR cbMultiByte, wchar_t *lpWideCharStr, INT_PTR cchWideChar)
-{
-  INT_PTR nMultiByteCount=0;
-  INT_PTR nWideCount=0;
-  int nMultiByteSrc;
-  int nWideDst;
-  int nCharsConverted;
-
-  if (cbMultiByte == -1)
-    cbMultiByte=xstrlenA(lpMultiByteStr) + 1;
-
-  //Convert string sequentially with maximum block 0x0FFFFFFF
-  for (;;)
-  {
-    nMultiByteSrc=(int)min(cbMultiByte - nMultiByteCount, 0x0FFFFFFF);
-    nWideDst=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
-
-    if (nCharsConverted=MultiByteToWideChar(dwCodePage, dwFlags, lpMultiByteStr + nMultiByteCount, nMultiByteSrc, lpWideCharStr + nWideCount, nWideDst))
-    {
-      nMultiByteCount+=nMultiByteSrc;
-      nWideCount+=nCharsConverted;
-      if (nMultiByteCount >= cbMultiByte || nWideCount >= cchWideChar)
-        break;
-
-      if ((*(lpMultiByteStr + nMultiByteCount - 1) != '\0' && *(lpWideCharStr + nWideCount - 1) == '\0') || //Windows 95/98/Me/2000/XP/2003
-          (*(lpMultiByteStr + nMultiByteCount - 1) != '?' && *(lpWideCharStr + nWideCount - 1) == '?'))     //Windows Vista/7/2008
-      {
-        //Double-byte char was split
-        --nMultiByteCount;
-        --nWideCount;
-      }
-    }
-    else break;
-  }
-  return nWideCount;
-}
-
-INT_PTR API_WideCharToMultiByte(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, INT_PTR cchWideChar, char *lpMultiByteStr, INT_PTR cbMultiByte, const char *lpDefaultChar, BOOL *lpUsedDefaultChar)
-{
-  INT_PTR nMultiByteCount=0;
-  INT_PTR nWideCount=0;
-  int nWideSrc;
-  int nMultiByteDst;
-  int nCharsConverted;
-  BOOL bUsedDefaultChar;
-
-  if (cchWideChar == -1)
-    cchWideChar=xstrlenW(lpWideCharStr) + 1;
-  if (lpUsedDefaultChar)
-    bUsedDefaultChar=FALSE;
-  else
-    bUsedDefaultChar=TRUE;
-
-  //Convert string sequentially with maximum block 0x3FFFFFFF
-  for (;;)
-  {
-    nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
-    nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
-
-    if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
-    {
-      nWideCount+=nWideSrc;
-      nMultiByteCount+=nCharsConverted;
-      if (nWideCount >= cchWideChar || nMultiByteCount >= cbMultiByte)
-        break;
-    }
-    else break;
-  }
-  if (lpUsedDefaultChar)
-    *lpUsedDefaultChar=bUsedDefaultChar;
-
-  return nMultiByteCount;
 }

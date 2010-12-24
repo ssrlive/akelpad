@@ -10,6 +10,7 @@
 #include "WideFunc.h"
 #include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
+#include "AkelEdit\x64Func.h"
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
 #include "AkelFiles\Langs\Resources\version.h"
@@ -48,6 +49,7 @@
   #define xstrcmpiW
   #define xstrcpynA
   #define xstrcpynW
+  #define UTF8toUTF16
 #else
   #define WideCharLower_INCLUDED
   #define xmemcpy_INCLUDED
@@ -59,6 +61,7 @@
   #define xstrcmpiW_INCLUDED
   #define xstrcpynA_INCLUDED
   #define xstrcpynW_INCLUDED
+  #define UTF8toUTF16_INCLUDED
 #endif
 #define WideCharUpper
 #define xarraysizeA
@@ -77,7 +80,24 @@
 #define hex2binW
 #define bin2hexW
 #define xprintfW
+#define UTF16toUTF8
+#define UTF32toUTF16
+#define UTF16toUTF32
 #include "AkelEdit\StrFunc.h"
+
+//Include x64 functions
+#ifndef AKELEDIT_STATICBUILD
+  #define MultiByteToWideChar64
+  #define WideCharToMultiByte64
+#else
+  #define MultiByteToWideChar64_INCLUDED
+  #define WideCharToMultiByte64_INCLUDED
+#endif
+#define GetFileSize64
+#define SetFilePointer64
+#define ReadFile64
+#define WriteFile64
+#include "AkelEdit\x64Func.h"
 
 //Include wide functions
 #define AppendMenuWide

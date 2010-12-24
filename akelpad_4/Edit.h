@@ -1028,17 +1028,10 @@ INT_PTR API_DialogBoxParamA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND 
 INT_PTR API_DialogBoxParamW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 HANDLE API_CreateFileA(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
-BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, UINT_PTR nNumberOfBytesToRead, UINT_PTR *lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
 wchar_t* AllocWideStr(SIZE_T dwSize);
 BOOL FreeWideStr(wchar_t *wpVar);
-UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex);
-UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
-UINT_PTR API_GetFileSize(HANDLE hFile);
-UINT_PTR API_SetFilePointer(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveMethod);
-INT_PTR API_MultiByteToWideChar(UINT dwCodePage, DWORD dwFlags, const char *lpMultiByteStr, INT_PTR cbMultiByte, wchar_t *lpWideCharStr, INT_PTR cchWideChar);
-INT_PTR API_WideCharToMultiByte(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, INT_PTR cchWideChar, char *lpMultiByteStr, INT_PTR cbMultiByte, const char *lpDefaultChar, BOOL *lpUsedDefaultChar);
 
 #endif
