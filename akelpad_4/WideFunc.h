@@ -136,9 +136,9 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
 
 //Menus (MENUWIDEFUNC). User32.lib.
 int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax, UINT uFlag);
-BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
-BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
-BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
+BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem);
+BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem);
+BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem);
 
 //Controls (CONTROLWIDEFUNC). User32.lib.
 int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW);
@@ -2052,7 +2052,7 @@ int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax,
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
+BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
@@ -2083,7 +2083,7 @@ BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, const wchar_t *wp
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
+BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
@@ -2114,7 +2114,7 @@ BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, c
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
+BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
@@ -2192,7 +2192,7 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
       lviW->cchTextMax*=sizeof(wchar_t);
       if (lviW->pszText=(wchar_t *)GlobalAlloc(GPTR, lviW->cchTextMax))
       {
-        bResult=SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
+        bResult=(BOOL)SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
         AnsiToWide((char *)lviW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)lviW->pszText);
       }
@@ -2200,10 +2200,10 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
       lviW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
+    return (BOOL)SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
+    return (BOOL)SendMessageW(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2293,7 +2293,7 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
       tviW->cchTextMax*=sizeof(wchar_t);
       if (tviW->pszText=(wchar_t *)GlobalAlloc(GPTR, tviW->cchTextMax))
       {
-        bResult=SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
+        bResult=(BOOL)SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
         AnsiToWide((char *)tviW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)tviW->pszText);
       }
@@ -2301,10 +2301,10 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
       tviW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
+    return (BOOL)SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
+    return (BOOL)SendMessageW(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2360,15 +2360,15 @@ BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
 
       xmemcpy(&tviA, tviW, sizeof(TVITEMA));
       tviA.pszText=AllocAnsi(tviW->pszText);
-      bResult=SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)&tviA);
+      bResult=(BOOL)SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)&tviA);
 
       FreeAnsi((char *)tviA.pszText);
       return bResult;
     }
-    return SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)tviW);
+    return (BOOL)SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)tviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
+    return (BOOL)SendMessageW(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2598,13 +2598,13 @@ int ListBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     char *pString=AllocAnsi(wpString);
     int nResult;
 
-    nResult=SendMessageA(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)pString);
+    nResult=(int)SendMessageA(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)pString);
 
     FreeAnsi(pString);
     return nResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
+    return (int)SendMessageW(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2788,19 +2788,19 @@ DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText)
     int nTextLen;
     DWORD dwResult=0;
 
-    nTextLen=SendMessageA(hWnd, SB_GETTEXTLENGTH, (WPARAM)iPart, 0);
+    nTextLen=(int)SendMessageA(hWnd, SB_GETTEXTLENGTH, (WPARAM)iPart, 0);
     nTextLen=LOWORD(nTextLen);
 
     if (szText=(char *)GlobalAlloc(GPTR, nTextLen + 1))
     {
-      dwResult=SendMessageA(hWnd, SB_GETTEXTA, (WPARAM)iPart, (LPARAM)szText);
+      dwResult=(DWORD)SendMessageA(hWnd, SB_GETTEXTA, (WPARAM)iPart, (LPARAM)szText);
       AnsiToWide(szText, nTextLen + 1, wszText, nTextLen + 1);
       GlobalFree((HGLOBAL)szText);
     }
     return dwResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessageW(hWnd, SB_GETTEXTW, (WPARAM)iPart, (LPARAM)wszText);
+    return (DWORD)SendMessageW(hWnd, SB_GETTEXTW, (WPARAM)iPart, (LPARAM)wszText);
 
   WideNotInitialized();
   return 0;

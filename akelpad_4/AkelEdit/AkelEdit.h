@@ -720,7 +720,7 @@ typedef struct _AEFOLD {
 
 typedef struct {
   DWORD dwFlags;         //[in]     See AEFF_* defines.
-  DWORD dwFindIt;        //[in]     Depend on AEFF_FIND* define.
+  UINT_PTR dwFindIt;     //[in]     Depend on AEFF_FIND* define.
   AEFOLD *lpParent;      //[out]    Parent fold.
   AEFOLD *lpPrevSubling; //[out]    Previous subling fold.
 } AEFINDFOLD;

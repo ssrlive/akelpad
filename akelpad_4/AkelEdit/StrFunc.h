@@ -14,10 +14,10 @@
  *                                                               *
  * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
  * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
- * hex2decA, hex2decW, dec2hexA, dec2hexW                        *
- *                                                               *
- *Special functions:                                             *
+ * hex2decA, hex2decW, dec2hexA, dec2hexW,                       *
  * bin2hexA, bin2hexW, hex2binA, hex2binW, xprintfA, xprintfW    *
+ *                                                               *
+ * UTF16toUTF8, UTF8toUTF16, UTF32toUTF16, UTF16toUTF32          *
  *****************************************************************/
 
 #ifndef _STRFUNC_H_
@@ -63,13 +63,17 @@ INT_PTR hex2decA(const char *pStrHex);
 INT_PTR hex2decW(const wchar_t *wpStrHex);
 int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
-
 INT_PTR bin2hexA(const unsigned char *pData, INT_PTR nBytes, char *szStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
 INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax);
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax);
 INT_PTR xprintfA(char *szOutput, const char *pFormat, ...);
 INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...);
+
+UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax);
+UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax);
+UINT_PTR UTF32toUTF16(const unsigned long *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax);
+UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned long *szTarget, UINT_PTR nTargetMax);
 
 #endif
 
@@ -1760,9 +1764,9 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
   if (nTextLen == -1)
     nTextLen=xstrlenA(pText) + 1;
   if (nItLen == -1)
-    nItLen=xstrlenA(pIt);
+    nItLen=(int)xstrlenA(pIt);
   if (nWithLen == -1)
-    nWithLen=xstrlenA(pWith);
+    nWithLen=(int)xstrlenA(pWith);
   pTextMax=pText + nTextLen;
   pItMax=pIt + nItLen;
   pWithMax=pWith + nWithLen;
@@ -1848,9 +1852,9 @@ int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int n
   if (nTextLen == -1)
     nTextLen=xstrlenW(wpText) + 1;
   if (nItLen == -1)
-    nItLen=xstrlenW(wpIt);
+    nItLen=(int)xstrlenW(wpIt);
   if (nWithLen == -1)
-    nWithLen=xstrlenW(wpWith);
+    nWithLen=(int)xstrlenW(wpWith);
   wpTextMax=wpText + nTextLen;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
@@ -3249,6 +3253,363 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
 }
 #endif
 
+/********************************************************************
+ *
+ *  UTF16toUTF8
+ *
+ *Converts UTF-16 string to UTF-8 string.
+ *
+ * [in] const unsigned short *pSource  UTF-16 string.
+ * [in] UINT_PTR nSourceLen            UTF-16 string length in characters.
+ *[out] UINT_PTR *nSourceDone          Number of processed characters in UTF-16 string. Can be NULL.
+ *[out] unsigned char *szTarget        Output buffer, if NULL required buffer size returned in bytes.
+ * [in] UINT_PTR nTargetMax            Size of the output buffer in bytes.
+ *
+ *Returns: number of bytes copied to szTarget buffer.
+ ********************************************************************/
+#if defined UTF16toUTF8 || defined ALLSTRFUNC
+#define UTF16toUTF8_INCLUDED
+#undef UTF16toUTF8
+UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax)
+{
+  unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
+  const unsigned short *pSrc=pSource;
+  const unsigned short *pSrcEnd=pSource + nSourceLen;
+  const unsigned short *pSrcDone=pSource;
+  unsigned char *pDst=szTarget;
+  unsigned char *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
+  unsigned int nBitesInChar;
+
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
+  {
+    nChar=*pSrc;
+
+    //Surrogate pair. High surrogate.
+    if (nChar >= 0xD800 && nChar <= 0xDBFF)
+    {
+      if (++pSrc >= pSrcEnd)
+      {
+        --pSrc;
+        break;
+      }
+
+      //Low surrogate
+      if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (*pSrc - 0xDC00);
+      else
+      {
+        pSrcDone=pSource;
+        continue;
+      }
+    }
+
+    if (nChar < 0x110000)
+    {
+      if (nChar >= 0x10000)
+      {
+        if (pDst + 3 >= pDstEnd) break;
+        nBitesInChar=4;
+      }
+      else if (nChar >= 0x800)
+      {
+        if (pDst + 2 >= pDstEnd) break;
+        nBitesInChar=3;
+      }
+      else if (nChar >= 0x80)
+      {
+        if (pDst + 1 >= pDstEnd) break;
+        nBitesInChar=2;
+      }
+      else if (nChar >= 0)
+      {
+        nBitesInChar=1;
+      }
+
+      switch (nBitesInChar)
+      {
+        case 4:
+        {
+          if (szTarget)
+            *(pDst + 3)=(unsigned char)(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 3:
+        {
+          if (szTarget)
+            *(pDst + 2)=(unsigned char)(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 2:
+        {
+          if (szTarget)
+            *(pDst + 1)=(unsigned char)(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 1:
+        {
+          if (szTarget)
+            *pDst=(unsigned char)(nChar | lpFirstByteMark[nBitesInChar]);
+        }
+      }
+      pDst+=nBitesInChar;
+    }
+    pSrcDone=++pSrc;
+  }
+  if (nSourceDone)
+    *nSourceDone=pSrcDone - pSource;
+  return (pDst - szTarget);
+}
+#endif
+
+/********************************************************************
+ *
+ *  UTF8toUTF16
+ *
+ *Converts UTF-8 string to UTF-16 string.
+ *
+ * [in] const unsigned char *pSource  UTF-8 string.
+ * [in] UINT_PTR nSourceLen           UTF-8 string length in bytes.
+ *[out] UINT_PTR *nSourceDone         Number of processed bytes in UTF-8 string. Can be NULL.
+ *[out] unsigned short *szTarget      Output buffer, if NULL required buffer size returned in characters.
+ * [in] UINT_PTR nTargetMax           Size of the output buffer in characters.
+ *
+ *Returns: number of characters copied to szTarget buffer.
+ ********************************************************************/
+#if defined UTF8toUTF16 || defined ALLSTRFUNC
+#define UTF8toUTF16_INCLUDED
+#undef UTF8toUTF16
+UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
+{
+  unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
+  const unsigned char *pSrc=pSource;
+  const unsigned char *pSrcEnd=pSource + nSourceLen;
+  const unsigned char *pSrcDone=pSource;
+  unsigned short *pDst=szTarget;
+  unsigned short *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
+  unsigned int nTrailing;
+
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
+  {
+    if (*pSrc < 0x80)
+    {
+      nTrailing=0;
+    }
+    else if (*pSrc < 0xC0)
+    {
+      //Trailing byte in leading position
+      pSrcDone=++pSrc;
+      continue;
+    }
+    else if (*pSrc < 0xE0)
+    {
+      if (pSrc + 1 >= pSrcEnd) break;
+      nTrailing=1;
+    }
+    else if (*pSrc < 0xF0)
+    {
+      if (pSrc + 2 >= pSrcEnd) break;
+      nTrailing=2;
+    }
+    else if (*pSrc < 0xF8)
+    {
+      if (pSrc + 3 >= pSrcEnd) break;
+      nTrailing=3;
+    }
+    else
+    {
+      //No chance for this in UTF-16
+      pSrcDone=++pSrc;
+      continue;
+    }
+
+    //Get unicode char
+    nChar=0;
+
+    switch (nTrailing)
+    {
+      case 3:
+      {
+        nChar+=*pSrc++;
+        nChar=nChar << 6;
+      }
+      case 2:
+      {
+        nChar+=*pSrc++;
+        nChar=nChar << 6;
+      }
+      case 1:
+      {
+        nChar+=*pSrc++;
+        nChar=nChar << 6;
+      }
+      case 0:
+      {
+        nChar+=*pSrc++;
+      }
+    }
+    nChar-=lpOffsetsFromUTF8[nTrailing];
+
+    //Write unicode char
+    if (nChar <= 0xFFFF)
+    {
+      if (szTarget)
+        *pDst++=(unsigned short)nChar;
+      else
+        pDst+=1;
+    }
+    else
+    {
+      //Surrogate pair
+      if (pDst + 1 >= pDstEnd) break;
+      nChar-=0x10000;
+
+      if (szTarget)
+      {
+        *pDst++=(unsigned short)((nChar >> 10) + 0xD800);
+        *pDst++=(unsigned short)((nChar & 0x3ff) + 0xDC00);
+      }
+      else pDst+=2;
+    }
+    pSrcDone=pSrc;
+  }
+  if (nSourceDone)
+    *nSourceDone=pSrcDone - pSource;
+  return (pDst - szTarget);
+}
+#endif
+
+/********************************************************************
+ *
+ *  UTF32toUTF16
+ *
+ *Converts UTF-32 string to UTF-16 string.
+ *
+ * [in] const unsigned long *pSource  UTF-32 string.
+ * [in] UINT_PTR nSourceLen           UTF-32 string length in characters.
+ *[out] UINT_PTR *nSourceDone         Number of processed characters in UTF-32 string. Can be NULL.
+ *[out] unsigned short *szTarget      Output buffer, if NULL required buffer size returned in characters.
+ * [in] UINT_PTR nTargetMax           Size of the output buffer in characters.
+ *
+ *Returns: number of characters copied to szTarget buffer.
+ ********************************************************************/
+#if defined UTF32toUTF16 || defined ALLSTRFUNC
+#define UTF32toUTF16_INCLUDED
+#undef UTF32toUTF16
+UINT_PTR UTF32toUTF16(const unsigned long *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
+{
+  const unsigned long *pSrc=pSource;
+  const unsigned long *pSrcEnd=pSource + nSourceLen;
+  unsigned short *pDst=szTarget;
+  unsigned short *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
+
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
+  {
+    nChar=*pSrc;
+
+    if (nChar <= 0xFFFF)
+    {
+      // UTF-16 surrogate values are illegal in UTF-32; 0xffff or 0xfffe are both reserved values
+      if (nChar >= 0xD800 && nChar <= 0xDFFF)
+      {
+        if (szTarget)
+          *pDst++=0xFFFD;
+        else
+          pDst+=1;
+      }
+      else
+      {
+        if (szTarget)
+          *pDst++=(unsigned short)nChar;
+        else
+          pDst+=1;
+      }
+    }
+    else if (nChar <= 0x0010FFFF)
+    {
+      if (pDst + 1 >= pDstEnd) break;
+      nChar-=0x0010000UL;
+
+      if (szTarget)
+      {
+        *pDst++=(unsigned short)((nChar >> 10) + 0xD800);
+        *pDst++=(unsigned short)((nChar & 0x3FFUL) + 0xDC00);
+      }
+      else pDst+=2;
+    }
+    else
+    {
+      if (szTarget)
+        *pDst++=0xFFFD;
+      else
+        pDst+=1;
+    }
+    ++pSrc;
+  }
+  if (nSourceDone)
+    *nSourceDone=pSrc - pSource;
+  return (pDst - szTarget);
+}
+#endif
+
+/********************************************************************
+ *
+ *  UTF16toUTF32
+ *
+ *Converts UTF-16 string to UTF-32 string.
+ *
+ * [in] const unsigned short *pSource  UTF-16 string.
+ * [in] UINT_PTR nSourceLen            UTF-16 string length in characters.
+ *[out] UINT_PTR *nSourceDone          Number of processed characters in UTF-16 string. Can be NULL.
+ *[out] unsigned long *szTarget        Output buffer, if NULL required buffer size returned in characters.
+ * [in] UINT_PTR nTargetMax            Size of the output buffer in characters.
+ *
+ *Returns: number of characters copied to szTarget buffer.
+ ********************************************************************/
+#if defined UTF16toUTF32 || defined ALLSTRFUNC
+#define UTF16toUTF32_INCLUDED
+#undef UTF16toUTF32
+UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned long *szTarget, UINT_PTR nTargetMax)
+{
+  const unsigned short *pSrc=pSource;
+  const unsigned short *pSrcEnd=pSource + nSourceLen;
+  unsigned long *pDst=szTarget;
+  unsigned long *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
+
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
+  {
+    nChar=*pSrc;
+
+    //Surrogate pair. High surrogate.
+    if (nChar >= 0xD800 && nChar <= 0xDBFF)
+    {
+      if (++pSrc >= pSrcEnd)
+      {
+        --pSrc;
+        break;
+      }
+
+      //Low surrogate
+      if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
+        nChar=((nChar - 0xD800) << 10) + (*pSrc - 0xDC00) + 0x0010000UL;
+      else
+        continue;
+    }
+    if (szTarget)
+      *pDst++=nChar;
+    else
+      pDst+=1;
+    ++pSrc;
+  }
+  if (nSourceDone)
+    *nSourceDone=pSrc - pSource;
+  return (pDst - szTarget);
+}
+#endif
+
 
 /********************************************************************
  *                                                                  *
@@ -3261,7 +3622,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
 #include <stdio.h>
 #include "StrFunc.h"
 
-//insert functions
+//Include string functions
 #define xstrcmpiA
 #define xstrcmpinA
 #define xstrrepA

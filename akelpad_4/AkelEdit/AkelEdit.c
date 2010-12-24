@@ -38,6 +38,7 @@
 #include <imm.h>
 #include "StackFunc.h"
 #include "StrFunc.h"
+#include "x64Func.h"
 #include "AkelBuild.h"
 #include "Resources\resource.h"
 #include "Resources\version.h"
@@ -63,7 +64,13 @@
 #define xstrcmpiW
 #define xstrcpynA
 #define xstrcpynW
+#define UTF8toUTF16
 #include "StrFunc.h"
+
+//Include x64 functions
+#define MultiByteToWideChar64
+#define WideCharToMultiByte64
+#include "x64Func.h"
 
 
 //// Global variables
@@ -13721,7 +13728,7 @@ UINT_PTR AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultC
       dwUnicodeLen=AE_GetTextRange(ae, ciRangeStart, ciRangeEnd, wszText, (UINT_PTR)-1, nNewLine, bColumnSel, bFillSpaces);
 
       //Get Ansi text
-      dwAnsiBytes=AE_WideCharToMultiByte64(nCodePage, 0, wszText, dwUnicodeLen + 1, NULL, 0, lpDefaultChar, lpUsedDefaultChar);
+      dwAnsiBytes=WideCharToMultiByte64(nCodePage, 0, wszText, dwUnicodeLen + 1, NULL, 0, lpDefaultChar, lpUsedDefaultChar);
 
       if (szBuffer)
       {
@@ -13729,7 +13736,7 @@ UINT_PTR AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultC
 
         if (dwAnsiBytes)
         {
-          AE_WideCharToMultiByte64(nCodePage, 0, wszText, dwUnicodeLen + 1, szBuffer, dwAnsiBytes, lpDefaultChar, lpUsedDefaultChar);
+          WideCharToMultiByte64(nCodePage, 0, wszText, dwUnicodeLen + 1, szBuffer, dwAnsiBytes, lpDefaultChar, lpUsedDefaultChar);
           szBuffer[--dwAnsiBytes]='\0';
         }
       }
@@ -13946,14 +13953,14 @@ UINT_PTR AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR
   UINT_PTR dwUnicodeLen;
   UINT_PTR dwResult=0;
 
-  if (dwUnicodeLen=AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
+  if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
       dwUnicodeLen-=1;
 
     if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
     {
-      AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
       dwResult=AE_SetText(ae, wszText, dwUnicodeLen, nNewLine, FALSE);
 
       AE_HeapFree(NULL, 0, (LPVOID)wszText);
@@ -14828,14 +14835,14 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
-  if (dwUnicodeLen=AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
+  if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
       dwUnicodeLen-=1;
 
     if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
     {
-      AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
       AE_AppendText(ae, wszText, dwUnicodeLen, nNewLine);
 
       AE_HeapFree(NULL, 0, (LPVOID)wszText);
@@ -14888,14 +14895,14 @@ void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
-  if (dwUnicodeLen=AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
+  if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
       dwUnicodeLen-=1;
 
     if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
     {
-      AE_MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
       AE_ReplaceSel(ae, wszText, dwUnicodeLen, nNewLine, bColumnSel, ciInsertStart, ciInsertEnd);
 
       AE_HeapFree(NULL, 0, (LPVOID)wszText);
@@ -16683,14 +16690,14 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
   UINT_PTR dwUnicodeLen;
   BOOL bResult=FALSE;
 
-  if (dwUnicodeLen=AE_MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
+  if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
   {
     if (ftA->dwTextLen == (UINT_PTR)-1)
       dwUnicodeLen-=1;
 
     if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
     {
-      AE_MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
+      MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
       ftW.dwFlags=ftA->dwFlags;
       ftW.pText=wszText;
       ftW.dwTextLen=dwUnicodeLen;
@@ -16804,14 +16811,14 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
   UINT_PTR dwUnicodeLen;
   DWORD dwResult=0;
 
-  if (dwUnicodeLen=AE_MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
+  if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
   {
     if (ftA->dwTextLen == (UINT_PTR)-1)
       dwUnicodeLen-=1;
 
     if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
     {
-      AE_MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
+      MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
       ftW.dwFlags=ftA->dwFlags;
       ftW.pText=wszText;
       ftW.dwTextLen=dwUnicodeLen;
@@ -17692,13 +17699,13 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
             AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, ae->bColumnSel, TRUE);
 
             //Get Ansi text
-            dwAnsiLen=AE_WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
+            dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
 
             if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
             {
               if (pDataTargetA=GlobalLock(hDataTargetA))
               {
-                AE_WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
+                WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
                 GlobalUnlock(hDataTargetA);
               }
             }
@@ -18898,81 +18905,6 @@ wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase)
   }
 }
 
-//Don't use CP_UTF7, CP_UTF8 with cbMultiByte > 0x0FFFFFFF
-INT_PTR AE_MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMultiByteStr, INT_PTR cbMultiByte, wchar_t *lpWideCharStr, INT_PTR cchWideChar)
-{
-  INT_PTR nMultiByteCount=0;
-  INT_PTR nWideCount=0;
-  int nMultiByteSrc;
-  int nWideDst;
-  int nCharsConverted;
-
-  if (cbMultiByte == -1)
-    cbMultiByte=xstrlenA(lpMultiByteStr) + 1;
-
-  //Convert string sequentially with maximum block 0x0FFFFFFF
-  for (;;)
-  {
-    nMultiByteSrc=(int)min(cbMultiByte - nMultiByteCount, 0x0FFFFFFF);
-    nWideDst=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
-
-    if (nCharsConverted=MultiByteToWideChar(dwCodePage, dwFlags, lpMultiByteStr + nMultiByteCount, nMultiByteSrc, lpWideCharStr + nWideCount, nWideDst))
-    {
-      nMultiByteCount+=nMultiByteSrc;
-      nWideCount+=nCharsConverted;
-      if (nMultiByteCount >= cbMultiByte || nWideCount >= cchWideChar)
-        break;
-
-      if ((*(lpMultiByteStr + nMultiByteCount - 1) != '\0' && *(lpWideCharStr + nWideCount - 1) == '\0') || //Windows 95/98/Me/2000/XP/2003
-          (*(lpMultiByteStr + nMultiByteCount - 1) != '?' && *(lpWideCharStr + nWideCount - 1) == '?'))     //Windows Vista/7/2008
-      {
-        //Double-byte char was split
-        --nMultiByteCount;
-        --nWideCount;
-      }
-    }
-    else break;
-  }
-  return nWideCount;
-}
-
-INT_PTR AE_WideCharToMultiByte64(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpWideCharStr, INT_PTR cchWideChar, char *lpMultiByteStr, INT_PTR cbMultiByte, const char *lpDefaultChar, BOOL *lpUsedDefaultChar)
-{
-  INT_PTR nMultiByteCount=0;
-  INT_PTR nWideCount=0;
-  int nWideSrc;
-  int nMultiByteDst;
-  int nCharsConverted;
-  BOOL bUsedDefaultChar;
-
-  if (cchWideChar == -1)
-    cchWideChar=xstrlenW(lpWideCharStr) + 1;
-  if (lpUsedDefaultChar)
-    bUsedDefaultChar=FALSE;
-  else
-    bUsedDefaultChar=TRUE;
-
-  //Convert string sequentially with maximum block 0x3FFFFFFF
-  for (;;)
-  {
-    nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
-    nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
-
-    if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
-    {
-      nWideCount+=nWideSrc;
-      nMultiByteCount+=nCharsConverted;
-      if (nWideCount >= cchWideChar || nMultiByteCount >= cbMultiByte)
-        break;
-    }
-    else break;
-  }
-  if (lpUsedDefaultChar)
-    *lpUsedDefaultChar=bUsedDefaultChar;
-
-  return nMultiByteCount;
-}
-
 
 //// OLE Drag'n'Drop
 
@@ -19232,11 +19164,11 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               wchar_t *wszText;
               UINT_PTR dwUnicodeBytes;
 
-              dwUnicodeBytes=AE_MultiByteToWideChar64(CP_ACP, 0, (char *)pData, -1, NULL, 0) * sizeof(wchar_t);
+              dwUnicodeBytes=MultiByteToWideChar64(CP_ACP, 0, (char *)pData, -1, NULL, 0) * sizeof(wchar_t);
 
               if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
               {
-                AE_MultiByteToWideChar64(CP_ACP, 0, (char *)pData, -1, wszText, dwUnicodeBytes / sizeof(wchar_t));
+                MultiByteToWideChar64(CP_ACP, 0, (char *)pData, -1, wszText, dwUnicodeBytes / sizeof(wchar_t));
                 AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING, 0);
                 AE_InsertText(ae, &ciCharIndex, wszText, dwUnicodeBytes / sizeof(wchar_t) - 1, AELB_ASINPUT, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
@@ -19547,13 +19479,13 @@ UINT_PTR AE_DataObjectCopySelection(AKELEDIT *ae)
           AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, ae->bColumnSel, TRUE);
 
           //Get Ansi text
-          dwAnsiLen=AE_WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
+          dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
 
           if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
           {
             if (pDataTargetA=GlobalLock(hDataTargetA))
             {
-              AE_WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
+              WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
               GlobalUnlock(hDataTargetA);
             }
           }

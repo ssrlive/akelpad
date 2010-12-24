@@ -19,7 +19,7 @@ void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {
   GETTEXTRANGE gtr;
   CHARRANGE64 cr;
-  int nLen;
+  INT_PTR nLen;
 
   //Function doesn't support autoload
   pd->dwSupport|=PDS_NOAUTOLOAD;

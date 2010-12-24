@@ -963,7 +963,7 @@ typedef struct {
 } PRINTINFO;
 
 typedef struct {
-  int nCharPos;           //Char position.
+  INT_PTR nCharPos;       //Char position.
   COLORREF crText;        //Text color.
   COLORREF crBk;          //Background color.
 } CHARCOLOR;
