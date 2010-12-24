@@ -2875,7 +2875,7 @@ BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile)
   int nKeyLen;
   int nStringLen;
 
-  if ((dwFileSize=GetFileSize64(hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(hFile)) != (UINT_PTR)-1)
   {
     if (dwFileSize >= sizeof(wchar_t))
     {
@@ -4152,7 +4152,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   UINT_PTR dwCharsConverted;
   DWORD i;
 
-  if ((dwFileSize=GetFileSize64(lpData->hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(lpData->hFile)) != (UINT_PTR)-1)
   {
     if (lpData->dwBytesMax == (UINT_PTR)-1)
       lpData->dwBytesMax=dwFileSize;
@@ -4381,7 +4381,7 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
     }
   }
 
-  if ((dwFileSize=GetFileSize64(hFile)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=GetFileSize64(hFile)) != (UINT_PTR)-1)
   {
     if (dwBytesMax == (UINT_PTR)-1)
       dwBytesMax=dwFileSize;
