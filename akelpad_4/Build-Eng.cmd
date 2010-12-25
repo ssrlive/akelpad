@@ -1,7 +1,7 @@
 @ECHO OFF
 set VCDIR=c:\Program Files\Microsoft Visual C++ Toolkit 2003
 set MSSDK=c:\Program Files\Microsoft Platform SDK
-set CLFLAGS=/Wall /wd4706 /wd4711 /wd4820 /wd4668 /wd4100 /wd4255 /wd4201 /wd4204 /wd4310 /wd4701
+set CLFLAGS=/Wall /WX /wd4100 /wd4201 /wd4204 /wd4255 /wd4310 /wd4668 /wd4701 /wd4706 /wd4711 /wd4820
 set LANGNAME=English
 set LANGID=0x409
 set BIT=32
@@ -20,6 +20,9 @@ if "%BIT%" == "32" (
 )
 
 ::### Compile ###::
+if "%VCDIR%" == "%VCDIR:2003=%" (
+  if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
+)
 rc /R /DAKELEDIT_STATICBUILD /DEXE_VERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /I "AkelEdit\Resources" /Fo"AkelPad.res" "AkelFiles\Langs\Resources\%LANGNAME%.rc"
 cl /O1 %CLFLAGS% /DAKELEDIT_STATICBUILD /DRC_VERSIONLANGID=%LANGID% AkelPad.c Edit.c AkelEdit\AkelEdit.c AkelPad.res /link kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib /SUBSYSTEM:WINDOWS /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:_WinMain /OUT:AkelPad.exe
 
