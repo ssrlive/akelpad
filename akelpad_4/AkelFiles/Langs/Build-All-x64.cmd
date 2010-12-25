@@ -15,10 +15,8 @@ if "%BIT%" == "32" (
   set "LIB=%MSSDK%\lib\amd64;%MSSDK%\lib\x64;%VCDIR%\lib\amd64;%LIB%"
   set MACHINE=AMD64
 )
+
 ::### Compile ###::
-if "%VCDIR%" == "%VCDIR:2003=%" (
-  if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
-)
 call :COMPILE "Belorussian" 0x423
 call :COMPILE "Brazilian" 0x416
 call :COMPILE "Chinese (Simplified)" 0x804
@@ -48,7 +46,7 @@ goto :EOF
 set LANGNAME=%~1
 set LANGID=%2
 rc /R /DDLL_VERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /I "..\..\AkelEdit\Resources" /Fo"%LANGNAME%.res" "Resources\%LANGNAME%.rc"
-cl /O1 %CLFLAGS% Module.c /LD /link "%LANGNAME%.res" /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANGNAME%.dll"
+cl /O1 Module.c /LD /link "%LANGNAME%.res" /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANGNAME%.dll"
 
 ::### Clean up ###::
 if exist Module.obj del Module.obj
