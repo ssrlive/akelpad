@@ -2503,7 +2503,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPTIONW)
     {
       PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
-      DWORD dwType;
+      DWORD dwType=0;
       DWORD dwResult=0;
       BOOL bAnsi;
 
@@ -3651,7 +3651,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
 
-          while (1)
+          for (;;)
           {
             lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit) break;
@@ -5216,6 +5216,7 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 {
   static BUTTONDRAWITEM *lpButtonDraw;
   static BOOL bMousePush=FALSE;
+  LRESULT lResult;
 
   if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
   {
@@ -5417,15 +5418,16 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
 
     if (!IsWindowUnicode(hWnd))
-      return CallWindowProcA(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+      lResult=CallWindowProcA(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
     else
-      return CallWindowProcW(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+      lResult=CallWindowProcW(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
 
     //Remove from stack
     if (uMsg == WM_DESTROY)
     {
       StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
     }
+    return lResult;
   }
   return 0;
 }

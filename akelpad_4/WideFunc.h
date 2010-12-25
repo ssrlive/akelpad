@@ -1217,7 +1217,7 @@ void RegClearKeyAnsi(HKEY hKey, char *pSubKey)
 
   if (RegOpenKeyExA(hKey, pSubKey, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hOpenKey) == ERROR_SUCCESS)
   {
-    while (1)
+    for (;;)
     {
       dwSize=MAX_PATH;
       if (RegEnumValueA(hOpenKey, 0, szValue, &dwSize, NULL, &dwType, NULL, NULL) != ERROR_SUCCESS)
@@ -1245,7 +1245,7 @@ void RegClearKeyWide(HKEY hKey, wchar_t *wpSubKey)
 
   if (RegOpenKeyExWide(hKey, wpSubKey, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hOpenKey) == ERROR_SUCCESS)
   {
-    while (1)
+    for (;;)
     {
       dwSize=MAX_PATH;
       if (RegEnumValueWide(hOpenKey, 0, wszValue, &dwSize, NULL, &dwType, NULL, NULL) != ERROR_SUCCESS)

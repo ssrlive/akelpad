@@ -1326,7 +1326,7 @@ BOOL DoFileOpen()
         wchar_t wszString[MAX_PATH];
         wchar_t *wpFile=wszFileList + lstrlenW(wszFileList) + 1;
         MSG msg;
-        int nFiles;
+        int nFiles=0;
         int nFileCount=0;
 
         if (*wpFile)
@@ -2923,7 +2923,7 @@ BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile)
             else goto Error;
 
             //Keys and strings
-            while (1)
+            for (;;)
             {
               while (*wpText == ' ' || *wpText == '\t' || *wpText == '\r' || *wpText == '\n')
                 ++wpText;
@@ -7188,7 +7188,7 @@ void RegEnumSystemCodePagesA()
 
   if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
   {
-    while(1)
+    for (;;)
     {
       dwSizeValue=BUFFER_SIZE;
       dwSizeString=BUFFER_SIZE;
@@ -7358,7 +7358,7 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
 int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
 {
   HANDLE hFile;
-  UINT_PTR dwBytesRead;
+  UINT_PTR dwBytesRead=0;
   unsigned char *pBuffer=NULL;
   int nRegCodePage=0;
   UINT_PTR a;
@@ -8492,8 +8492,8 @@ INT_PTR TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFin
   wchar_t *wszResultText=NULL;
   int nGetTextNewLine;
   int nReplaceSelNewLine;
-  INT_PTR nMin;
-  INT_PTR nMax;
+  INT_PTR nMin=0;
+  INT_PTR nMax=0;
   INT_PTR nFirstVisible;
   INT_PTR nRangeTextLen;
   INT_PTR nResultTextLen;
@@ -8905,8 +8905,9 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, wchar_t *wszOutput, in
           if (!*a) goto Error;
           whex[3]=*++a;
           if (!*a) goto Error;
-          *b=nDec=(int)hex2decW(whex);
+          nDec=(int)hex2decW(whex);
           if (nDec == -1) goto Error;
+          *b=(wchar_t)nDec;
           while (*++a == ' ');
         }
         while (*a && *a != ']' && ++b);
@@ -10741,7 +10742,7 @@ void ReadThemes(MAINOPTIONS *mo)
     xprintfW(wszRegKey, L"%s\\Themes", APP_REGHOMEW);
     if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      while (1)
+      for (;;)
       {
         dwSizeValue=BUFFER_SIZE;
         dwSizeString=sizeof(AECOLORS);
@@ -10867,7 +10868,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo)
     xprintfW(wszRegKey, L"%s\\Plugs", APP_REGHOMEW);
     if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      while (1)
+      for (;;)
       {
         dwSizeValue=BUFFER_SIZE;
         dwSizeString=sizeof(DWORD);
@@ -13263,7 +13264,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (GetWindowTextWide(hWndSearch, wszSearch, MAX_PATH))
         {
-          for (nItem=0; 1; ++nItem)
+          for (nItem=0;; ++nItem)
           {
             if (ListBox_GetTextWide(hWndList, nItem, wbuf) == LB_ERR)
               break;
@@ -13408,7 +13409,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (!nModifyFilter && bListChanged)
       {
-        for (nItemNew=0; 1; ++nItemNew)
+        for (nItemNew=0;; ++nItemNew)
         {
           if ((nData=SendMessage(hWndList, LB_GETITEMDATA, nItemNew, 0)) == LB_ERR)
             break;
@@ -14795,7 +14796,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
   else if (dwFlags & AE_EDIT) xstrcpyW(wszTypeKey, L"Edit");
   else if (dwFlags & AE_PRINT) xstrcpyW(wszTypeKey, L"Print");
 
-  while (1)
+  for (;;)
   {
     if (wpExtEnd=AKD_wcschr(wpExtStart, ';'))
       xstrcpynW(wbuf, wpExtStart, wpExtEnd - wpExtStart + 1);
@@ -15920,7 +15921,7 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
           if (nDec == -1) goto Error;
           while (*++a == ' ');
 
-          if (wszOutput) *b=nDec;
+          if (wszOutput) *b=(wchar_t)nDec;
           ++b;
         }
         while (*a && *a != ']');
@@ -17487,7 +17488,7 @@ int GetTabItemForDrop(HWND hWnd, POINT *pt)
     if (SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti) == -1)
       bBetween=TRUE;
 
-    while (1)
+    for (;;)
     {
       if ((i=(int)SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti)) != -1) break;
 
