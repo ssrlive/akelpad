@@ -286,7 +286,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   cs.cx=rcRect.right;
   cs.cy=rcRect.bottom - (moCur.bStatusBar?nStatusHeight:0);
   cs.hwndParent=hWndParent;
-  cs.hMenu=(HMENU)ID_EDIT;
+  cs.hMenu=(HMENU)(UINT_PTR)ID_EDIT;
   cs.hInstance=hInstance;
   cs.lpCreateParams=NULL;
 
@@ -610,7 +610,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->lpEditProc=NULL;
   lpFrameTarget->ft.dwLowDateTime=0;
   lpFrameTarget->ft.dwHighDateTime=0;
-  lpFrameTarget->dwInputLocale=(HKL)-1;
+  lpFrameTarget->dwInputLocale=(HKL)(UINT_PTR)-1;
 
   //xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, sizeof(LOGFONTW));
   //xmemcpy(&lpFrameTarget->aec, &lpFrameSource->aec, sizeof(AECOLORS));
@@ -2408,9 +2408,9 @@ void DoViewOnTop(BOOL bState, BOOL bFirst)
   moCur.bOnTop=bState;
 
   if (moCur.bOnTop)
-    SetWindowPos(hMainWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+    SetWindowPos(hMainWnd, (HWND)(UINT_PTR)-1/*HWND_TOPMOST*/, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
   else
-    SetWindowPos(hMainWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+    SetWindowPos(hMainWnd, (HWND)(UINT_PTR)-2/*HWND_NOTOPMOST*/, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
 }
 
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
@@ -5118,7 +5118,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
                          12, rcControl.top - 6, 96, 70,
                          hDlg,
-                         (HMENU)IDC_PSD_FONT_GROUP,
+                         (HMENU)(UINT_PTR)IDC_PSD_FONT_GROUP,
                          hInstance,
                          NULL);
     //Font checkbox
@@ -5128,7 +5128,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
                          24, rcControl.top + 26, 16, 16,
                          hDlg,
-                         (HMENU)IDC_PSD_FONT_CHECK,
+                         (HMENU)(UINT_PTR)IDC_PSD_FONT_CHECK,
                          hInstance,
                          NULL);
     //Font button
@@ -5138,7 +5138,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP,
                          46, rcControl.top + 22, 46, 23,
                          hDlg,
-                         (HMENU)IDC_PSD_FONT_BUTTON,
+                         (HMENU)(UINT_PTR)IDC_PSD_FONT_BUTTON,
                          hInstance,
                          NULL);
     //Color group box
@@ -5148,7 +5148,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
                          120, rcControl.top - 6, 228, 70,
                          hDlg,
-                         (HMENU)IDC_PSD_COLOR_GROUP,
+                         (HMENU)(UINT_PTR)IDC_PSD_COLOR_GROUP,
                          hInstance,
                          NULL);
     //Color text checkbox
@@ -5158,7 +5158,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
                          136, rcControl.top + 16, 200, 16,
                          hDlg,
-                         (HMENU)IDC_PSD_COLOR_TEXT_CHECK,
+                         (HMENU)(UINT_PTR)IDC_PSD_COLOR_TEXT_CHECK,
                          hInstance,
                          NULL);
     //Color background checkbox
@@ -5168,7 +5168,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
                          136, rcControl.top + 36, 200, 16,
                          hDlg,
-                         (HMENU)IDC_PSD_COLOR_BACKGROUND_CHECK,
+                         (HMENU)(UINT_PTR)IDC_PSD_COLOR_BACKGROUND_CHECK,
                          hInstance,
                          NULL);
     //Headline group box
@@ -5178,7 +5178,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
                          12, rcControl.top + 71, 336, 70,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_GROUP,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_GROUP,
                          hInstance,
                          NULL);
     //Header checkbox
@@ -5188,7 +5188,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
                          18, rcControl.top + 93, 76, 16,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_HEADER_CHECK,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_CHECK,
                          hInstance,
                          NULL);
     //Header edit
@@ -5198,7 +5198,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
                          102, rcControl.top + 91, 216, 18,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_HEADER_EDIT,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_EDIT,
                          hInstance,
                          NULL);
     //Header help
@@ -5208,7 +5208,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
                          320, rcControl.top + 91, 18, 18,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_HEADER_HELP,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_HELP,
                          hInstance,
                          NULL);
     //Footer checkbox
@@ -5218,7 +5218,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
                          18, rcControl.top + 113, 76, 16,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_FOOTER_CHECK,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_CHECK,
                          hInstance,
                          NULL);
     //Footer edit
@@ -5228,7 +5228,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
                          102, rcControl.top + 111, 216, 18,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_FOOTER_EDIT,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_EDIT,
                          hInstance,
                          NULL);
     //Footer help
@@ -5238,7 +5238,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
                          320, rcControl.top + 111, 18, 18,
                          hDlg,
-                         (HMENU)IDC_PSD_HEADLINE_FOOTER_HELP,
+                         (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_HELP,
                          hInstance,
                          NULL);
 
@@ -5953,7 +5953,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                        WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
                                        rcPreviewWindow.left, rcPreviewWindow.top, rcPreviewDialog.right, rcPreviewDialog.bottom,
                                        hDlg,
-                                       (HMENU)IDC_PREVIEW_BOX,
+                                       (HMENU)(UINT_PTR)IDC_PREVIEW_BOX,
                                        hInstance,
                                        NULL);
       }
@@ -6466,7 +6466,7 @@ void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
 
     //Erase preview window contents
     GetClientRect(hWnd, &rcPreviewClient);
-    FillRect(hBufferDC, &rcPreviewClient, (HBRUSH)(COLOR_BTNFACE + 1));
+    FillRect(hBufferDC, &rcPreviewClient, (HBRUSH)(UINT_PTR)(COLOR_BTNFACE + 1));
 
     //Set margins color
     if (hBrush=CreateSolidBrush(RGB(0xE0, 0xE0, 0xE0)))
@@ -16809,7 +16809,7 @@ void ActivateKeyboard(HKL dwInputLocale)
 {
   DWORD dwLangId=LOWORD(dwInputLocale);
 
-  if (dwInputLocale != (HKL)-1)
+  if (dwInputLocale != (HKL)(UINT_PTR)-1)
   {
     if (bWindowsNT)
     {
@@ -16818,7 +16818,7 @@ void ActivateKeyboard(HKL dwInputLocale)
 
       while (dwLangIdCount != dwLangId)
       {
-        ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
+        ActivateKeyboardLayout((HKL)(UINT_PTR)HKL_NEXT, 0);
         dwLangIdCount=LOWORD(GetKeyboardLayout(0));
         if (dwLangIdCount == dwLangIdInit) break;
       }

@@ -559,7 +559,7 @@ void _WinMain()
   //fdInit.lpEditProc=NULL;
   //fdInit.ft.dwLowDateTime=0;
   //fdInit.ft.dwHighDateTime=0;
-  fdInit.dwInputLocale=(HKL)-1;
+  fdInit.dwInputLocale=(HKL)(UINT_PTR)-1;
 
   //--Edit settings--
   fdInit.aec.dwFlags=AECLR_ALL;
@@ -1313,7 +1313,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                 ((moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)?TCS_TABS:(TCS_BUTTONS|TCS_FLATBUTTONS)),
                               rcRect.left, rcRect.top, rcRect.right, TAB_HEIGHT,
                               hWnd,
-                              (HMENU)ID_TAB,
+                              (HMENU)(UINT_PTR)ID_TAB,
                               hInstance,
                               0);
 
@@ -1345,7 +1345,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|SBARS_SIZEGRIP,
                                0, 0, 0, 0,
                                hWnd,
-                               (HMENU)ID_STATUS,
+                               (HMENU)(UINT_PTR)ID_STATUS,
                                hInstance,
                                NULL);
 
@@ -1378,7 +1378,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                  WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
                                  iSBParts[0] + iBorders[2], iBorders[1], nProgressWidth, nStatusHeight - iBorders[1],
                                  hStatus,
-                                 (HMENU)ID_PROGRESS,
+                                 (HMENU)(UINT_PTR)ID_PROGRESS,
                                  hInstance,
                                  NULL);
 
