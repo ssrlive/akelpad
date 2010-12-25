@@ -18,8 +18,10 @@ if "%BIT%" == "32" (
 )
 
 ::### Compile ###::
-if "%VCDIR%" == "%VCDIR:2003=%" (
-  if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
+if not "%VCDIR%" == "%VCDIR:VC98=%" (
+  set CLFLAGS=
+) else if "%VCDIR%" == "%VCDIR:2003=%" (
+  set CLFLAGS=%CLFLAGS% /GS-
 )
 rc /R /DRC_AKELEDITBIT=%BIT% /Fo"AkelEdit.res" "Resources\AkelEdit.rc"
 cl /O1 %CLFLAGS% AkelEdit.c AkelEdit.res /LD /link kernel32.lib user32.lib gdi32.lib ole32.lib uuid.lib imm32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:AkelEdit.dll
