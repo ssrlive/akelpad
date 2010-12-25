@@ -1414,7 +1414,7 @@ void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rang
   stack *tmpPrev;
   BOOL bBreak=FALSE;
 
-  while (1)
+  for (;;)
   {
     tmpNext=tmp1->next;
     tmpPrev=tmp2->prev;

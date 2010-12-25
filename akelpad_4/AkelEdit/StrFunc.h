@@ -1005,7 +1005,7 @@ void* xmemset(void *dest, int c, UINT_PTR count)
   {
     for (;;)
     {
-      *byte_dest=c;
+      *byte_dest=(unsigned char)c;
       if (!--count) break;
       ++byte_dest;
     }
@@ -2374,7 +2374,7 @@ INT_PTR hex2decA(const char *pStrHex)
   INT_PTR a;
   INT_PTR b=0;
 
-  while (1)
+  for (;;)
   {
     a=*pStrHex++;
     if (a >= '0' && a <= '9') a-='0';
@@ -2409,7 +2409,7 @@ INT_PTR hex2decW(const wchar_t *wpStrHex)
   INT_PTR a;
   INT_PTR b=0;
 
-  while (1)
+  for (;;)
   {
     a=*wpStrHex++;
     if (a >= '0' && a <= '9') a-='0';
@@ -3321,7 +3321,7 @@ UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PT
         if (pDst + 1 >= pDstEnd) break;
         nBitesInChar=2;
       }
-      else if (nChar >= 0)
+      else //if (nChar >= 0)
       {
         nBitesInChar=1;
       }

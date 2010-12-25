@@ -2801,7 +2801,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_GetPosFromChar(ae, &ci, NULL, &pt);
       return MAKELONG(pt.x, pt.y);
     }
-    return 0;
   }
   if (uMsg == EM_CHARFROMPOS)
   {
@@ -5928,12 +5927,12 @@ BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold)
   AEFOLD *lpElement;
 
   //Get root fold
-  if (IsBadCodePtr((FARPROC)lpFold))
+  if (IsBadCodePtr((FARPROC)(UINT_PTR)lpFold))
     return FALSE;
 
   while (lpFold->parent)
   {
-    if (IsBadCodePtr((FARPROC)lpFold->parent))
+    if (IsBadCodePtr((FARPROC)(UINT_PTR)lpFold->parent))
       return FALSE;
     lpFold=lpFold->parent;
   }
@@ -11850,8 +11849,8 @@ void AE_Paint(AKELEDIT *ae)
       if (bUseBufferDC)
       {
         if (hBitmapOld) SelectObject(to.hDC, hBitmapOld);
-        DeleteDC(to.hDC);
         DeleteObject(hBitmap);
+        DeleteDC(to.hDC);
       }
       if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
       DeleteObject(hDrawRgn);
@@ -15666,7 +15665,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
     if (dwTextLen == (UINT_PTR)-1)
       dwTextLen=xstrlenW(wpText);
 
-    if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset >= 0)
+    if (ae->ptxt->dwTextLimit >= (UINT_PTR)ae->ptxt->nLastCharOffset)
     {
       if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset < dwTextLen)
       {
@@ -18969,7 +18968,7 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
 
   if (pDropTarget->bAllowDrop)
   {
-    fmtetc.cfFormat=cfAkelEditColumnSel;
+    fmtetc.cfFormat=(CLIPFORMAT)cfAkelEditColumnSel;
 
     if (pDataObject->lpVtbl->QueryGetData(pDataObject, &fmtetc) == S_OK)
       pDropTarget->bColumnSel=TRUE;
@@ -19498,7 +19497,7 @@ UINT_PTR AE_DataObjectCopySelection(AKELEDIT *ae)
   ae->ido.stgmed[1].hGlobal=hDataTargetA;
 
   if (ae->bColumnSel)
-    ae->ido.fmtetc[2].cfFormat=cfAkelEditColumnSel;
+    ae->ido.fmtetc[2].cfFormat=(CLIPFORMAT)cfAkelEditColumnSel;
   else
     ae->ido.fmtetc[2].cfFormat=0;
 
