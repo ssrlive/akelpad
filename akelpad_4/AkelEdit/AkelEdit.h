@@ -181,6 +181,7 @@
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
 #define AECO_NOPRINTCOLLAPSED         0x00010000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define AECO_VSCROLLBYLINE            0x00040000  //Unit of vertical scrolling is line (default is pixel).
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -641,6 +642,19 @@ typedef struct {
 } ENLINK64;
 
 
+//// Structures for x64 support
+
+typedef struct {
+  INT_PTR x;
+  INT_PTR y;
+} POINT64;
+
+typedef struct {
+  INT_PTR cx;
+  INT_PTR cy;
+} SIZE64;
+
+
 //// Structures
 
 #ifndef _HSTACK_STRUCT_
@@ -846,7 +860,7 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;  //[in]     See AESC_* defines.
-  POINT ptPos;    //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
+  POINT64 ptPos;  //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
                   //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
   int nOffsetX;   //[in]     Horizontal scroll offset.
   int nOffsetY;   //[in]     Vertical scroll offset.
@@ -1020,9 +1034,9 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  int nPosNew;         //Current scroll position.
-  int nPosOld;         //Previous scroll position.
-  int nPosMax;         //Maximum scroll position.
+  INT_PTR nPosNew;     //Current scroll position.
+  INT_PTR nPosOld;     //Previous scroll position.
+  INT_PTR nPosMax;     //Maximum scroll position.
 } AENSCROLL;
 
 typedef struct {
@@ -3238,15 +3252,15 @@ ________________
 
 Obtain the current and/or maximum scroll position of the edit control.
 
-(POINT *)wParam == pointer to a POINT structure that receives the maximum scroll position in the virtual text space of the document, expressed in pixels. Can be NULL.
-(POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels. Can be NULL.
+(POINT64 *)wParam == pointer to a POINT64 structure that receives the maximum scroll position in the virtual text space of the document, expressed in pixels. Can be NULL.
+(POINT64 *)lParam == pointer to a POINT64 structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels. Can be NULL.
 
 Return Value
  Zero.
 
 Example:
- POINT ptMax;
- POINT ptPos;
+ POINT64 ptMax;
+ POINT64 ptPos;
 
  SendMessage(hWndEdit, AEM_GETSCROLLPOS, (WPARAM)&ptMax, (LPARAM)&ptPos);
 
@@ -3256,14 +3270,14 @@ ________________
 
 Scroll an edit control to a particular point.
 
-wParam          == not used.
-(POINT *)lParam == pointer to a POINT structure which specifies a point in the virtual text space of the document, expressed in pixels.
+wParam            == not used.
+(POINT64 *)lParam == pointer to a POINT64 structure which specifies a point in the virtual text space of the document, expressed in pixels.
 
 Return Value
  Zero.
 
 Example:
- POINT pt;
+ POINT64 pt;
 
  pt.x=20;
  pt.y=10;
@@ -3410,8 +3424,8 @@ _______________
 
 Obtain the current caret position.
 
-(POINT *)wParam == pointer to a POINT structure that receives the caret position in the client area coordinates, expressed in pixels. Can be NULL.
-(POINT *)lParam == pointer to a POINT structure that receives the caret position in the virtual text space of the document, expressed in pixels. Can be NULL.
+(POINT *)wParam   == pointer to a POINT structure that receives the caret position in the client area coordinates, expressed in pixels. Can be NULL.
+(POINT64 *)lParam == pointer to a POINT64 structure that receives the caret position in the virtual text space of the document, expressed in pixels. Can be NULL.
 
 Return Value
  TRUE   caret is visible.
@@ -3419,7 +3433,7 @@ Return Value
 
 Example:
  POINT ptClient;
- POINT ptGlobal;
+ POINT64 ptGlobal;
 
  SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)&ptClient, (WPARAM)&ptGlobal);
 
@@ -3459,14 +3473,14 @@ ________________
 
 Convert position coordinates.
 
-(DWORD)wParam   == see AECPT_* defines.
-(POINT *)lParam == pointer to a POINT structure.
+(DWORD)wParam     == see AECPT_* defines.
+(POINT64 *)lParam == pointer to a POINT64 structure.
 
 Return Value
  Zero.
 
 Example:
- POINT pt;
+ POINT64 pt;
 
  pt.x=SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
  pt.y=0;

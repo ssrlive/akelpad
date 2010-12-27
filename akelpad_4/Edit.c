@@ -9811,8 +9811,16 @@ void RecentFilesSave()
     xprintfW(wszRegValue, L"nm%d", i);
     RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i]));
 
+    //#ifdef _WIN64
+    //  xprintfW(wszRegValue, L"ps%d", i);
+    //  RegSetValueExWide(hKey, wszRegValue, 0, REG_QWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
+    //#else
+    //  xprintfW(wszRegValue, L"ps%d", i);
+    //  RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
+    //#endif
+
     xprintfW(wszRegValue, L"ps%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
+    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD));
 
     xprintfW(wszRegValue, L"cp%d", i);
     RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentCodepages[i], sizeof(DWORD));
