@@ -10729,7 +10729,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
 
           si.fMask=SIF_POS;
           GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-          ae->nVScrollPos=si.nPos * ae->ptxt->nCharHeight;
+          ae->nVScrollPos=((INT_PTR)si.nPos) * ae->ptxt->nCharHeight;
         }
         else
         {
@@ -10857,7 +10857,7 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
 
             si.fMask=SIF_POS;
             GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-            nPos=si.nPos * ae->ptxt->nCharHeight;
+            nPos=((INT_PTR)si.nPos) * ae->ptxt->nCharHeight;
           }
           else
           {
