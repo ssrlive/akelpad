@@ -181,7 +181,7 @@
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
 #define AECO_NOPRINTCOLLAPSED         0x00010000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
-#define AECO_VSCROLLBYLINE            0x00040000  //Unit of vertical scrolling is line (default is pixel).
+#define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
