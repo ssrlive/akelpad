@@ -4394,7 +4394,6 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->nOutputNewLine=AELB_RN;
     }
 
-ae->popt->dwOptions|=AECO_VSCROLLBYLINE;
     if (cs->style & ES_READONLY)
       ae->popt->dwOptions|=AECO_READONLY;
     if (cs->style & ES_DISABLENOSCROLL)
@@ -10717,6 +10716,12 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
     {
       if (ae->bVScrollShow && ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
       {
+        if (ae->ptxt->nVScrollMax > 0x7fffffff)
+        {
+          //Vertical scroll exceeds maximum 32-bit value
+          ae->popt->dwOptions|=AECO_VSCROLLBYLINE;
+        }
+
         if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
         {
           si.cbSize=sizeof(SCROLLINFO);
