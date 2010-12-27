@@ -318,7 +318,7 @@ BOOL bSaveDlg;
 DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
-POINT ptDocumentPos;
+POINT64 ptDocumentPos;
 WNDPROC OldFilePreviewProc;
 
 //Modeless
