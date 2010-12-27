@@ -909,8 +909,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETSCROLLPOS)
     {
-      POINT *ptMax=(POINT *)wParam;
-      POINT *ptPos=(POINT *)lParam;
+      POINT64 *ptMax=(POINT64 *)wParam;
+      POINT64 *ptPos=(POINT64 *)lParam;
 
       if (ptMax)
       {
@@ -926,7 +926,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETSCROLLPOS)
     {
-      POINT *pt=(POINT *)lParam;
+      POINT64 *pt=(POINT64 *)lParam;
 
       if (pt->x != ae->nHScrollPos)
         AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
@@ -936,7 +936,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SCROLL)
     {
-      int nResult=0;
+      INT_PTR nResult=0;
 
       if (wParam & AESB_HORZ)
       {
@@ -956,7 +956,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_LINESCROLL)
     {
-      int nResult=0;
+      INT_PTR nResult=0;
 
       if (wParam & AESB_HORZ)
       {
@@ -1064,7 +1064,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wParam == AECS_INDEXWIDTH)
       {
         AECHARINDEX *ciChar=(AECHARINDEX *)lParam;
-        POINT ptGlobal;
+        POINT64 ptGlobal;
 
         if (ciChar->nCharInLine < ciChar->lpLine->nLineLen)
         {
@@ -1086,7 +1086,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_GETCARETPOS)
     {
       POINT *ptClient=(POINT *)wParam;
-      POINT *ptGlobal=(POINT *)lParam;
+      POINT64 *ptGlobal=(POINT64 *)lParam;
 
       if (ptClient)
       {
@@ -1109,15 +1109,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_CONVERTPOINT)
     {
-      POINT *pt=(POINT *)lParam;
+      POINT64 *pt=(POINT64 *)lParam;
+      POINT ptClient;
 
       if (wParam == AECPT_GLOBALTOCLIENT)
       {
-        AE_GlobalToClient(ae, pt, pt);
+        AE_GlobalToClient(ae, pt, &ptClient);
+        pt->x=ptClient.x;
+        pt->y=ptClient.y;
       }
       if (wParam == AECPT_CLIENTTOGLOBAL)
       {
-        AE_ClientToGlobal(ae, pt, pt);
+        ptClient.x=(int)pt->x;
+        ptClient.y=(int)pt->y;
+        AE_ClientToGlobal(ae, &ptClient, pt);
       }
       return 0;
     }
@@ -1147,16 +1152,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_LINEFROMVPOS)
     {
       if (wParam == AECT_GLOBAL)
-        return AE_VPos(ae, (int)lParam, AEVPF_LINEFROMVPOS);
+        return AE_VPos(ae, lParam, AEVPF_LINEFROMVPOS);
       if (wParam == AECT_CLIENT)
-        return AE_VPos(ae, ae->nVScrollPos + ((int)lParam - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+        return AE_VPos(ae, ae->nVScrollPos + (lParam - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
     }
     if (uMsg == AEM_VPOSFROMLINE)
     {
       if (wParam == AECT_GLOBAL)
-        return AE_VPos(ae, (int)lParam, AEVPF_VPOSFROMLINE);
+        return AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE);
       if (wParam == AECT_CLIENT)
-        return ae->rcDraw.top + (AE_VPos(ae, (int)lParam, AEVPF_VPOSFROMLINE) - ae->nVScrollPos);
+        return ae->rcDraw.top + (AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE) - ae->nVScrollPos);
     }
     if (uMsg == AEM_GETMOUSESTATE)
     {
@@ -1513,7 +1518,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         if ((int)wParam >= 0)
         {
-          POINT ptFirstVisLine;
+          POINT64 ptFirstVisLine;
           int nFirstVisibleLine=0;
 
           if (!ae->popt->bVScrollLock)
@@ -2887,8 +2892,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     POINT *pt=(POINT *)lParam;
 
-    pt->x=ae->nHScrollPos;
-    pt->y=ae->nVScrollPos;
+    pt->x=(int)ae->nHScrollPos;
+    pt->y=(int)ae->nVScrollPos;
     return 1;
   }
   if (uMsg == EM_SETSCROLLPOS)
@@ -2903,7 +2908,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_SCROLL)
   {
-    int nScrolled=0;
+    INT_PTR nScrolled=0;
     BOOL bResult=FALSE;
 
     if (wParam == SB_LINEUP ||
@@ -3113,7 +3118,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_SETFONT)
   {
-    POINT ptFirstVisLine;
+    POINT64 ptFirstVisLine;
     int nFirstVisibleLine=0;
 
     if (!ae->popt->bVScrollLock)
@@ -4178,7 +4183,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         //Erase only a space after the last line
         rcErase=lpErase->rcErase;
-        rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
+        rcErase.top=max(rcErase.top, ae->rcDraw.top + (int)(ae->ptxt->nVScrollMax - ae->nVScrollPos));
 
         if (rcErase.top < rcErase.bottom)
         {
@@ -4389,6 +4394,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->nOutputNewLine=AELB_RN;
     }
 
+ae->popt->dwOptions|=AECO_VSCROLLBYLINE;
     if (cs->style & ES_READONLY)
       ae->popt->dwOptions|=AECO_READONLY;
     if (cs->style & ES_DISABLENOSCROLL)
@@ -5882,8 +5888,8 @@ void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
   {
     if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
     {
-      POINT ptPos;
-      POINT *lpPos=&ptPos;
+      POINT64 ptPos;
+      POINT64 *lpPos=&ptPos;
 
       if (AE_FirstCollapsibleLine(ae, lpFold) <= ae->ciCaretIndex.nLine &&
           AE_LastCollapsibleLine(ae, lpFold) >= ae->ciCaretIndex.nLine)
@@ -5894,7 +5900,7 @@ void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
       else
       {
         if (!(dwFlags & AECF_NOSCROLLCORRECT))
-          AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, NULL, lpPos);
+          AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, lpPos, NULL);
       }
       if (!(dwFlags & AECF_NOSCROLLCORRECT))
         AE_ScrollToPoint(ae, lpPos);
@@ -5902,10 +5908,10 @@ void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
   }
 }
 
-int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
+INT_PTR AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
 {
-  int nFirstVisiblePos;
-  int nScrolled=0;
+  INT_PTR nFirstVisiblePos;
+  INT_PTR nScrolled=0;
 
   ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
   AE_UpdateScrollBars(ae, SB_VERT);
@@ -6039,7 +6045,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
   return nCollapse;
 }
 
-int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
+INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
 {
   AEFOLD *lpSubling=NULL;
   DWORD dwFirst=(DWORD)-1;
@@ -6050,9 +6056,9 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
   int nHiddenLines=0;
 
   if (dwFlags & AEVPF_VPOSFROMLINE)
-    nLine=nValue;
+    nLine=(int)nValue;
   else if (dwFlags & AEVPF_LINEFROMVPOS)
-    nLine=nValue / ae->ptxt->nCharHeight;
+    nLine=(int)(nValue / ae->ptxt->nCharHeight);
   else
     return -1;
 
@@ -6160,7 +6166,7 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
   if (dwFlags & AEVPF_LINEFROMVPOS)
     return nLine;
   if (dwFlags & AEVPF_VPOSFROMLINE)
-    return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
+    return (INT_PTR)(nLine - nHiddenLines) * ae->ptxt->nCharHeight;
   return -1;
 }
 
@@ -7539,7 +7545,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   AEPOINT *lpPointThree=NULL;
-  POINT ptFirstVisLine;
+  POINT64 ptFirstVisLine;
   int nWrapCount;
   BOOL bNotify=FALSE;
 
@@ -7967,7 +7973,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
       while (lpCurElement)
       {
         //Set new line width (necessary for tabs)
-        lpCurElement->nLineWidth=AE_GetStringWidth(ae, lpCurElement->wpLine, lpCurElement->nLineLen, dwUnwrapLineWidth);
+        lpCurElement->nLineWidth=(int)AE_GetStringWidth(ae, lpCurElement->wpLine, lpCurElement->nLineLen, dwUnwrapLineWidth);
         dwUnwrapLineWidth+=lpCurElement->nLineWidth;
         dwUnwrapLineLen+=lpCurElement->nLineLen;
 
@@ -8053,7 +8059,7 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
   AELINEINDEX liStart;
   AELINEINDEX liEnd;
   AELINEINDEX liMaxWidthLine;
-  int nHScrollMax=0;
+  INT_PTR nHScrollMax=0;
 
   if (!liStartLine)
   {
@@ -8259,7 +8265,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   }
 }
 
-int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, const POINT *ptSelStart, const POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
+int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
 {
   if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine)
     goto Empty;
@@ -8268,8 +8274,8 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
 
   if (bColumnSel)
   {
-    int nStartX=min(ptSelStart->x, ptSelEnd->x);
-    int nEndX=max(ptSelStart->x, ptSelEnd->x);
+    INT_PTR nStartX=min(nSelStartX, nSelEndX);
+    INT_PTR nEndX=max(nSelStartX, nSelEndX);
     int nSelStart;
     int nSelEnd;
     int i;
@@ -8322,7 +8328,7 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
   return AELS_EMPTY;
 }
 
-void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, const POINT *ptSelStart, const POINT *ptSelEnd, BOOL bColumnSel)
+void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, BOOL bColumnSel)
 {
   AELINEINDEX liLine;
 
@@ -8331,7 +8337,7 @@ void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *c
 
   while (liLine.lpLine)
   {
-    AE_GetLineSelection(ae, &liLine, ciSelStart, ciSelEnd, ptSelStart, ptSelEnd, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
+    AE_GetLineSelection(ae, &liLine, ciSelStart, ciSelEnd, nSelStartX, nSelEndX, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
     if (liLine.lpLine == ciMax->lpLine) break;
     ++liLine.nLine;
 
@@ -8363,8 +8369,8 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   AECHARINDEX ciSelStartNew;
   AECHARINDEX ciSelEndNew;
   AECHARINDEX ciTmp;
-  POINT ptSelStart;
-  POINT ptSelEnd;
+  POINT64 ptSelStart;
+  POINT64 ptSelEnd;
   BOOL bColumnSelOld;
 
   if (!(dwSelFlags & AESELT_LOCKUNDOGROUPING))
@@ -8419,6 +8425,8 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     {
       ciSelStartNew.nCharInLine=min(ciSelStartNew.nCharInLine, ciSelStartNew.lpLine->nLineLen);
       ciSelEndNew.nCharInLine=min(ciSelEndNew.nCharInLine, ciSelEndNew.lpLine->nLineLen);
+      ptSelStart.x=0;
+      ptSelEnd.x=0;
 
       if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
       {
@@ -8445,7 +8453,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         ciSelEndOld.nLine < ciSelStartNew.nLine)
     {
       AE_ClearSelLines(&ciSelStartOld, &ciSelEndOld);
-      AE_GetSelLines(ae, &ciSelStartNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+      AE_GetSelLines(ae, &ciSelStartNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, bColumnSel);
     }
     else
     {
@@ -8454,18 +8462,18 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         if (ciSelStartOld.nLine < ciSelStartNew.nLine)
         {
           AE_ClearSelLines(&ciSelStartOld, &ciSelStartNew);
-          AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+          AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartNew, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, bColumnSel);
         }
-        else AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartOld, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+        else AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartOld, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, bColumnSel);
       }
       if (AEC_IndexCompare(&ciSelEndNew, &ciSelEndOld))
       {
         if (ciSelEndNew.nLine < ciSelEndOld.nLine)
         {
           AE_ClearSelLines(&ciSelEndNew, &ciSelEndOld);
-          AE_GetSelLines(ae, &ciSelEndNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+          AE_GetSelLines(ae, &ciSelEndNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, bColumnSel);
         }
-        else AE_GetSelLines(ae, &ciSelEndOld, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+        else AE_GetSelLines(ae, &ciSelEndOld, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, bColumnSel);
       }
     }
 
@@ -8747,13 +8755,13 @@ void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType)
   }
 }
 
-void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient)
+void AE_GlobalToClient(AKELEDIT *ae, const POINT64 *ptGlobal, POINT *ptClient)
 {
-  ptClient->x=ae->rcDraw.left + (ptGlobal->x - ae->nHScrollPos);
-  ptClient->y=ae->rcDraw.top + (ptGlobal->y - ae->nVScrollPos);
+  ptClient->x=ae->rcDraw.left + (int)(ptGlobal->x - ae->nHScrollPos);
+  ptClient->y=ae->rcDraw.top + (int)(ptGlobal->y - ae->nVScrollPos);
 }
 
-void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT *ptGlobal)
+void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT64 *ptGlobal)
 {
   ptGlobal->x=ae->nHScrollPos + (ptClient->x - ae->rcDraw.left);
   ptGlobal->y=ae->nVScrollPos + (ptClient->y - ae->rcDraw.top);
@@ -9006,19 +9014,20 @@ DWORD AE_IsPointOnMargin(AKELEDIT *ae, const POINT *ptPos)
 BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
 {
   AECHARINDEX ciCharIndex;
-  POINT ptChar;
+  POINT64 ptGlobal;
+  POINT ptClient;
   int nSelStartY;
   int nSelEndY;
   int nResult;
 
   if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    nSelStartY=(AE_VPos(ae, ae->ciSelStartIndex.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
-    nSelEndY=(AE_VPos(ae, ae->ciSelEndIndex.nLine + 1, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelStartY=(int)(AE_VPos(ae, ae->ciSelStartIndex.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelEndY=(int)(AE_VPos(ae, ae->ciSelEndIndex.nLine + 1, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
 
     if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
     {
-      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptChar, ae->bColumnSel))
+      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptGlobal, ae->bColumnSel))
       {
         if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
             (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
@@ -9034,9 +9043,9 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
             ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
         {
-          AE_GlobalToClient(ae, &ptChar, &ptChar);
+          AE_GlobalToClient(ae, &ptGlobal, &ptClient);
 
-          if (ptPos->x >= ptChar.x && ptPos->x <= ptChar.x + ae->ptxt->nAveCharWidth)
+          if (ptPos->x >= ptClient.x && ptPos->x <= ptClient.x + ae->ptxt->nAveCharWidth)
             return TRUE;
         }
       }
@@ -10384,7 +10393,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
   return FALSE;
 }
 
-BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret)
+BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT64 *ptCaret)
 {
   POINT ptClient;
   BOOL bResult=FALSE;
@@ -10403,7 +10412,7 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret)
   return bResult;
 }
 
-void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
+void AE_SetCaretVis(AKELEDIT *ae, const POINT64 *ptCaret)
 {
   POINT ptClient;
 
@@ -10432,7 +10441,7 @@ void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
   }
 }
 
-void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect)
+void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, BOOL bVertCorrect)
 {
   //X
   if (ae->bDropping)
@@ -10500,7 +10509,7 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect)
   }
 }
 
-DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT *ptPosition)
+DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT64 *ptPosition)
 {
   DWORD dwTest;
 
@@ -10511,11 +10520,12 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT *ptPosition)
   return AE_ScrollToPointEx(ae, (ptPosition?AESC_POINTCLIENT:AESC_POINTCARET)|(dwTest & AECSE_SCROLLEDX?AESC_OFFSETRECTDIVX:0)|(dwTest & AECSE_SCROLLEDY?AESC_OFFSETRECTDIVY:0), ptPosition, 3, 2);
 }
 
-DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY)
+DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int nOffsetX, int nOffsetY)
 {
-  POINT ptPos;
-  int x=-1;
-  int y=-1;
+  POINT ptClient;
+  POINT64 ptPos;
+  INT_PTR x=-1;
+  INT_PTR y=-1;
   DWORD dwResult=0;
 
   if (dwFlags & AESC_POINTCARET)
@@ -10523,7 +10533,11 @@ DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOf
   else if (dwFlags & AESC_POINTGLOBAL)
     ptPos=*ptPosition;
   else
-    AE_ClientToGlobal(ae, ptPosition, &ptPos);
+  {
+    ptClient.x=(int)ptPosition->x;
+    ptClient.y=(int)ptPosition->y;
+    AE_ClientToGlobal(ae, &ptClient, &ptPos);
+  }
 
   if (dwFlags & AESC_OFFSETPIXELX)
     x=nOffsetX;
@@ -10623,7 +10637,11 @@ DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOf
       if (dwFlags & AESC_POINTGLOBAL)
         *ptPosition=ptPos;
       else
-        AE_GlobalToClient(ae, &ptPos, ptPosition);
+      {
+        AE_GlobalToClient(ae, &ptPos, &ptClient);
+        ptPosition->x=ptClient.x;
+        ptPosition->y=ptClient.y;
+      }
     }
   }
   return dwResult;
@@ -10644,9 +10662,9 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
         si.cbSize=sizeof(SCROLLINFO);
         si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
         si.nMin=0;
-        si.nMax=ae->ptxt->nHScrollMax;
+        si.nMax=(int)ae->ptxt->nHScrollMax;
         si.nPage=ae->rcDraw.right - ae->rcDraw.left;
-        si.nPos=ae->nHScrollPos;
+        si.nPos=(int)ae->nHScrollPos;
         SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, bUpdateScroll);
 
         si.fMask=SIF_POS;
@@ -10699,17 +10717,34 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
     {
       if (ae->bVScrollShow && ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
       {
-        si.cbSize=sizeof(SCROLLINFO);
-        si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
-        si.nMin=0;
-        si.nMax=ae->ptxt->nVScrollMax;
-        si.nPage=ae->rcDraw.bottom - ae->rcDraw.top;
-        si.nPos=ae->nVScrollPos;
-        SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
+        if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
+        {
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+          si.nMin=0;
+          si.nMax=(int)(ae->ptxt->nVScrollMax / ae->ptxt->nCharHeight);
+          si.nPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
+          si.nPos=(int)(ae->nVScrollPos / ae->ptxt->nCharHeight);
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
 
-        si.fMask=SIF_POS;
-        GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-        ae->nVScrollPos=si.nPos;
+          si.fMask=SIF_POS;
+          GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+          ae->nVScrollPos=si.nPos * ae->ptxt->nCharHeight;
+        }
+        else
+        {
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+          si.nMin=0;
+          si.nMax=(int)ae->ptxt->nVScrollMax;
+          si.nPage=ae->rcDraw.bottom - ae->rcDraw.top;
+          si.nPos=(int)ae->nVScrollPos;
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
+
+          si.fMask=SIF_POS;
+          GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+          ae->nVScrollPos=si.nPos;
+        }
       }
       else
       {
@@ -10756,10 +10791,10 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
   if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 }
 
-int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
+INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
 {
   SCROLLINFO si;
-  int nScrollPos=0;
+  INT_PTR nScrollPos=0;
   BOOL bUpdateScroll=!(ae->popt->dwLockUpdate & AELU_SCROLLBAR);
 
   if (nBar == SB_HORZ)
@@ -10772,7 +10807,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
         {
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-          si.nPos=nPos;
+          si.nPos=(int)nPos;
           SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, bUpdateScroll);
 
           si.fMask=SIF_POS;
@@ -10791,7 +10826,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           AE_MButtonErase(ae);
           AE_ActiveColumnErase(ae);
 
-          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
+          ScrollWindow(ae->hWndEdit, (int)(ae->nHScrollPos - nPos), 0, NULL, &ae->rcDraw);
           ae->nHScrollPos=nPos;
           //UpdateWindow(ae->hWndEdit);
 
@@ -10813,14 +10848,28 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
       {
         if (ae->bVScrollShow)
         {
-          si.cbSize=sizeof(SCROLLINFO);
-          si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-          si.nPos=nPos;
-          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
+          if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
+          {
+            si.cbSize=sizeof(SCROLLINFO);
+            si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+            si.nPos=(int)(nPos / ae->ptxt->nCharHeight);
+            SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
 
-          si.fMask=SIF_POS;
-          GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-          nPos=si.nPos;
+            si.fMask=SIF_POS;
+            GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+            nPos=si.nPos * ae->ptxt->nCharHeight;
+          }
+          else
+          {
+            si.cbSize=sizeof(SCROLLINFO);
+            si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+            si.nPos=(int)nPos;
+            SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
+
+            si.fMask=SIF_POS;
+            GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+            nPos=si.nPos;
+          }
         }
         else
         {
@@ -10834,7 +10883,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           AE_MButtonErase(ae);
           AE_ActiveColumnErase(ae);
 
-          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
+          ScrollWindow(ae->hWndEdit, 0, (int)(ae->nVScrollPos - nPos), NULL, &ae->rcDraw);
           ae->nVScrollPos=nPos;
           //UpdateWindow(ae->hWndEdit);
 
@@ -10853,97 +10902,109 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
   return nScrollPos;
 }
 
-int AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
+INT_PTR AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
 {
   SCROLLINFO si;
+  INT_PTR nPos;
 
   si.cbSize=sizeof(SCROLLINFO);
   si.fMask=SIF_ALL;
   GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+  nPos=si.nPos;
 
   if (nAction == SB_LEFT)
   {
-    si.nPos=si.nMin;
+    nPos=si.nMin;
   }
   else if (nAction == SB_RIGHT)
   {
-    si.nPos=si.nMax;
+    nPos=si.nMax;
   }
   else if (nAction == SB_LINELEFT)
   {
-    si.nPos-=ae->ptxt->nAveCharWidth;
+    nPos-=ae->ptxt->nAveCharWidth;
   }
   else if (nAction == SB_LINERIGHT)
   {
-    si.nPos+=ae->ptxt->nAveCharWidth;
+    nPos+=ae->ptxt->nAveCharWidth;
   }
   else if (nAction == SB_PAGELEFT)
   {
-    si.nPos-=si.nPage;
+    nPos-=si.nPage;
   }
   else if (nAction == SB_PAGERIGHT)
   {
-    si.nPos+=si.nPage;
+    nPos+=si.nPage;
   }
   else if (nAction == SB_THUMBTRACK)
   {
-    si.nPos=si.nTrackPos;
+    nPos=si.nTrackPos;
   }
   else if (nAction == SB_THUMBPOSITION)
   {
   }
-  si.nPos=AE_AlignPos(ae, si.nPos, dwAlign);
+  nPos=AE_AlignPos(ae, nPos, dwAlign);
 
-  return AE_ScrollEditWindow(ae, SB_HORZ, si.nPos);
+  return AE_ScrollEditWindow(ae, SB_HORZ, nPos);
 }
 
-int AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
+INT_PTR AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
 {
   SCROLLINFO si;
+  INT_PTR nPos;
 
   si.cbSize=sizeof(SCROLLINFO);
   si.fMask=SIF_ALL;
   GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+  nPos=si.nPos;
 
   if (nAction == SB_TOP)
   {
-    si.nPos=si.nMin;
+    nPos=si.nMin;
   }
   else if (nAction == SB_BOTTOM)
   {
-    si.nPos=si.nMax;
+    nPos=si.nMax;
   }
   else if (nAction == SB_LINEUP)
   {
-    si.nPos-=ae->ptxt->nCharHeight;
+    if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
+      nPos-=1;
+    else
+      nPos-=ae->ptxt->nCharHeight;
   }
   else if (nAction == SB_LINEDOWN)
   {
-    si.nPos+=ae->ptxt->nCharHeight;
+    if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
+      nPos+=1;
+    else
+      nPos+=ae->ptxt->nCharHeight;
   }
   else if (nAction == SB_PAGEUP)
   {
-    si.nPos-=si.nPage;
+    nPos-=si.nPage;
   }
   else if (nAction == SB_PAGEDOWN)
   {
-    si.nPos+=si.nPage;
+    nPos+=si.nPage;
   }
   else if (nAction == SB_THUMBTRACK)
   {
-    si.nPos=si.nTrackPos;
+    nPos=si.nTrackPos;
   }
   else if (nAction == SB_THUMBPOSITION)
   {
   }
-  si.nPos=AE_AlignPos(ae, si.nPos, dwAlign);
+  if (ae->popt->dwOptions & AECO_VSCROLLBYLINE)
+    nPos*=ae->ptxt->nCharHeight;
+  nPos=AE_AlignPos(ae, nPos, dwAlign);
 
-  return AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
+  return AE_ScrollEditWindow(ae, SB_VERT, nPos);
 }
 
-int AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign)
+INT_PTR AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign)
 {
-  int nPos;
+  INT_PTR nPos;
 
   nPos=ae->nHScrollPos;
   nPos+=ae->ptxt->nAveCharWidth * nChar;
@@ -10951,9 +11012,9 @@ int AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign)
   return AE_ScrollEditWindow(ae, SB_HORZ, nPos);
 }
 
-int AE_VScrollLine(AKELEDIT *ae, int nLine, DWORD dwAlign)
+INT_PTR AE_VScrollLine(AKELEDIT *ae, int nLine, DWORD dwAlign)
 {
-  int nPos;
+  INT_PTR nPos;
 
   nPos=ae->nVScrollPos;
   nPos+=ae->ptxt->nCharHeight * nLine;
@@ -10961,7 +11022,7 @@ int AE_VScrollLine(AKELEDIT *ae, int nLine, DWORD dwAlign)
   return AE_ScrollEditWindow(ae, SB_VERT, nPos);
 }
 
-int AE_AlignPos(AKELEDIT *ae, int nPos, DWORD dwAlign)
+INT_PTR AE_AlignPos(AKELEDIT *ae, INT_PTR nPos, DWORD dwAlign)
 {
   if (dwAlign & AESB_ALIGNLEFT)
   {
@@ -11210,8 +11271,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   HFONT hPrintFontOld;
   RECT rcSpace;
   int nCharWidth=0;
-  int nLineWidth;
-  int nMaxLineWidth=0;
+  INT_PTR nLineWidth;
+  INT_PTR nMaxLineWidth=0;
   int nLineLen;
   int nLineCount=0;
   INT_PTR nMaxDrawCharOffset=0;
@@ -11385,8 +11446,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         AE_PaintTextOut(&ph->aePrint, &to, &hlp);
 
         //Draw tab character
-        rcSpace.left=to.ptFirstCharInLine.x + to.nStartDrawWidth;
-        rcSpace.top=to.ptFirstCharInLine.y;
+        rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+        rcSpace.top=(int)to.ptFirstCharInLine.y;
         rcSpace.right=rcSpace.left + nCharWidth;
         rcSpace.bottom=rcSpace.top + ph->aePrint.ptxt->nCharHeight;
 
@@ -11458,8 +11519,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   //Fill rcPageOut structure
   prn->rcPageOut.left=prn->rcPageIn.left;
   prn->rcPageOut.top=prn->rcPageIn.top;
-  prn->rcPageOut.right=prn->rcPageIn.left + nMaxLineWidth;
-  prn->rcPageOut.bottom=to.ptFirstCharInLine.y;
+  prn->rcPageOut.right=(int)(prn->rcPageIn.left + nMaxLineWidth);
+  prn->rcPageOut.bottom=(int)to.ptFirstCharInLine.y;
 
   //Free resources
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
@@ -11503,8 +11564,8 @@ void AE_Paint(AKELEDIT *ae)
       RECT rcDraw;
       RECT rcSpace;
       int nLineSelection;
-      int nMinPaintWidth=0;
-      int nMaxPaintWidth=0;
+      INT_PTR nMinPaintWidth=0;
+      INT_PTR nMaxPaintWidth=0;
       int nCharWidth=0;
       int nLastDrawLine=0;
       BOOL bUseBufferDC=TRUE;
@@ -11545,15 +11606,15 @@ void AE_Paint(AKELEDIT *ae)
       if (rcDraw.right > ae->rcDraw.left &&
           rcDraw.bottom > ae->rcDraw.top)
       {
-        to.ciDrawLine.nLine=AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+        to.ciDrawLine.nLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
         to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
         to.ciDrawLine.nCharInLine=0;
 
-        nLastDrawLine=AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+        nLastDrawLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
         nLastDrawLine=min(nLastDrawLine, ae->ptxt->nLineCount);
 
         to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
-        to.ptFirstCharInLine.y=(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+        to.ptFirstCharInLine.y=(int)(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
         nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
         nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
 
@@ -11594,8 +11655,8 @@ void AE_Paint(AKELEDIT *ae)
           //Remember first paint char in line for notify
           pntNotify.ciMinDraw=to.ciDrawLine;
           pntNotify.nMinDrawOffset=to.nDrawCharOffset;
-          pntNotify.ptMinDraw.x=to.ptFirstCharInLine.x + to.nStartDrawWidth;
-          pntNotify.ptMinDraw.y=to.ptFirstCharInLine.y;
+          pntNotify.ptMinDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+          pntNotify.ptMinDraw.y=(int)to.ptFirstCharInLine.y;
 
           //Set initial colors
           if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
@@ -11632,15 +11693,15 @@ void AE_Paint(AKELEDIT *ae)
 
           //Erase space where text will be drawn.
           rcSpace.left=rcDraw.left;
-          rcSpace.top=to.ptFirstCharInLine.y;
+          rcSpace.top=(int)to.ptFirstCharInLine.y;
           rcSpace.right=rcDraw.right;
-          rcSpace.bottom=to.ptFirstCharInLine.y + ae->ptxt->nCharHeight;
+          rcSpace.bottom=(int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
           FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
 
           //Fill space after line end, before text line is drawn.
           if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
           {
-            rcSpace.right=ae->rcDraw.left + (to.ciDrawLine.lpLine->nLineWidth - ae->nHScrollPos);
+            rcSpace.right=ae->rcDraw.left + (int)(to.ciDrawLine.lpLine->nLineWidth - ae->nHScrollPos);
 
             if (ae->bColumnSel)
             {
@@ -11650,7 +11711,7 @@ void AE_Paint(AKELEDIT *ae)
                 if (to.ciDrawLine.lpLine->nSelStart >= to.ciDrawLine.lpLine->nLineLen)
                 {
                   rcSpace.left=rcSpace.right;
-                  rcSpace.top=to.ptFirstCharInLine.y;
+                  rcSpace.top=(int)to.ptFirstCharInLine.y;
                   rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                   FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
@@ -11660,7 +11721,7 @@ void AE_Paint(AKELEDIT *ae)
                   if (rcSpace.right < ae->rcDraw.right)
                   {
                     rcSpace.left=rcSpace.right;
-                    rcSpace.top=to.ptFirstCharInLine.y;
+                    rcSpace.top=(int)to.ptFirstCharInLine.y;
                     rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
                     rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                     FillRect(to.hDC, &rcSpace, hSelBk);
@@ -11682,7 +11743,7 @@ void AE_Paint(AKELEDIT *ae)
                     if (rcSpace.right < ae->rcDraw.right)
                     {
                       rcSpace.left=rcSpace.right;
-                      rcSpace.top=to.ptFirstCharInLine.y;
+                      rcSpace.top=(int)to.ptFirstCharInLine.y;
                       rcSpace.right=ae->rcDraw.right;
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                       FillRect(to.hDC, &rcSpace, hSelBk);
@@ -11694,7 +11755,7 @@ void AE_Paint(AKELEDIT *ae)
                     if (to.ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
                     {
                       rcSpace.left=rcSpace.right;
-                      rcSpace.top=to.ptFirstCharInLine.y;
+                      rcSpace.top=(int)to.ptFirstCharInLine.y;
                       rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                       FillRect(to.hDC, &rcSpace, hSelBk);
@@ -11708,7 +11769,7 @@ void AE_Paint(AKELEDIT *ae)
             if (rcSpace.right < ae->rcDraw.right)
             {
               rcSpace.left=rcSpace.right;
-              rcSpace.top=to.ptFirstCharInLine.y;
+              rcSpace.top=(int)to.ptFirstCharInLine.y;
               rcSpace.right=ae->rcDraw.right;
               rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
               FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
@@ -11767,8 +11828,8 @@ void AE_Paint(AKELEDIT *ae)
               AE_PaintTextOut(ae, &to, &hlp);
 
               //Draw tab character
-              rcSpace.left=to.ptFirstCharInLine.x + to.nStartDrawWidth;
-              rcSpace.top=to.ptFirstCharInLine.y;
+              rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+              rcSpace.top=(int)to.ptFirstCharInLine.y;
               rcSpace.right=rcSpace.left + nCharWidth;
               rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
 
@@ -11811,12 +11872,12 @@ void AE_Paint(AKELEDIT *ae)
             //Send AEN_PAINT
             pntNotify.ciMaxDraw=to.ciDrawLine;
             pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
-            pntNotify.ptMaxDraw.x=to.ptFirstCharInLine.x + to.nStartDrawWidth;
-            pntNotify.ptMaxDraw.y=to.ptFirstCharInLine.y;
+            pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
             AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
 
             rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
-            rcSpace.top=to.ptFirstCharInLine.y;
+            rcSpace.top=(int)to.ptFirstCharInLine.y;
             rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
             rcSpace.bottom=ae->ptxt->nCharHeight;
             BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
@@ -11871,7 +11932,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   char szChar[4];
   wchar_t *wpText=to->wpStartDraw;
   int nTextLen=to->ciDrawLine.nCharInLine - (int)(to->wpStartDraw - to->ciDrawLine.lpLine->wpLine);
-  int nTextWidth=to->nDrawLineWidth - to->nStartDrawWidth;
+  int nTextWidth=(int)(to->nDrawLineWidth - to->nStartDrawWidth);
   int nCharLen;
   int nBytes;
   int i;
@@ -11890,8 +11951,8 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
         SetBkColor(to->hDC, hlp->dwActiveBG);
       }
     }
-    rcTextOut.left=to->ptFirstCharInLine.x + to->nStartDrawWidth;
-    rcTextOut.top=to->ptFirstCharInLine.y;
+    rcTextOut.left=(int)(to->ptFirstCharInLine.x + to->nStartDrawWidth);
+    rcTextOut.top=(int)to->ptFirstCharInLine.y;
     rcTextOut.right=ae->rcDraw.right/*rcTextOut.left + nTextWidth*/;
     rcTextOut.bottom=rcTextOut.top + ae->ptxt->nCharHeight;
 
@@ -12642,10 +12703,10 @@ void AE_MButtonErase(AKELEDIT *ae)
     {
       RECT rcMButtonDown;
 
-      rcMButtonDown.left=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) - 11;
-      rcMButtonDown.top=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) - 11;
-      rcMButtonDown.right=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) + 11;
-      rcMButtonDown.bottom=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) + 11;
+      rcMButtonDown.left=ae->ptMButtonDown.x + (int)(ae->ptMButtonScroll.x - ae->nHScrollPos) - 11;
+      rcMButtonDown.top=ae->ptMButtonDown.y + (int)(ae->ptMButtonScroll.y - ae->nVScrollPos) - 11;
+      rcMButtonDown.right=ae->ptMButtonDown.x + (int)(ae->ptMButtonScroll.x - ae->nHScrollPos) + 11;
+      rcMButtonDown.bottom=ae->ptMButtonDown.y + (int)(ae->ptMButtonScroll.y - ae->nVScrollPos) + 11;
 
       InvalidateRect(ae->hWndEdit, &rcMButtonDown, TRUE);
 
@@ -12729,8 +12790,8 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae)
         if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crColumnMarker))
         {
           hPenOld=(HPEN)SelectObject(hDC, hPen);
-          MoveToEx(hDC, ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos), ae->rcDraw.top, NULL);
-          LineTo(hDC, ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos), ae->rcDraw.bottom);
+          MoveToEx(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), ae->rcDraw.top, NULL);
+          LineTo(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), ae->rcDraw.bottom);
           if (hPenOld) SelectObject(hDC, hPenOld);
           DeleteObject(hPen);
         }
@@ -12754,7 +12815,7 @@ void AE_ColumnMarkerErase(AKELEDIT *ae)
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
-      rcMarker.left=ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos);
+      rcMarker.left=ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos);
       rcMarker.top=ae->rcDraw.top;
       rcMarker.right=rcMarker.left + 1;
       rcMarker.bottom=ae->rcDraw.bottom;
@@ -12809,11 +12870,11 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
   if (nFirstLine == -1)
     rcRedraw.top=ae->rcDraw.top;
   else
-    rcRedraw.top=(AE_VPos(ae, nFirstLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    rcRedraw.top=(int)(AE_VPos(ae, nFirstLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
   if (nLastLine == -1)
     rcRedraw.bottom=ae->rcDraw.bottom;
   else
-    rcRedraw.bottom=(AE_VPos(ae, nLastLine, AEVPF_VPOSFROMLINE) + ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+    rcRedraw.bottom=(int)(AE_VPos(ae, nLastLine, AEVPF_VPOSFROMLINE) + ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
 
   rcRedraw.top=max(rcRedraw.top, ae->rcDraw.top);
   rcRedraw.bottom=min(rcRedraw.bottom, ae->rcDraw.bottom);
@@ -12832,7 +12893,7 @@ int AE_GetFirstVisibleLine(AKELEDIT *ae)
 {
   int nFirstLine;
 
-  nFirstLine=AE_VPos(ae, ae->nVScrollPos, AEVPF_LINEFROMVPOS);
+  nFirstLine=(int)AE_VPos(ae, ae->nVScrollPos, AEVPF_LINEFROMVPOS);
 
   return max(nFirstLine, 0);
 }
@@ -12841,7 +12902,7 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 {
   int nLastLine;
 
-  nLastLine=AE_VPos(ae, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+  nLastLine=(int)AE_VPos(ae, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
 
   return min(nLastLine, ae->ptxt->nLineCount);
 }
@@ -12868,11 +12929,11 @@ int AE_GetLastFullVisibleLine(AKELEDIT *ae)
   return nLastLine;
 }
 
-int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize)
+int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE64 *lpSize)
 {
   HDC hDC=ae->hDC;
   SIZE sizeChar;
-  int nStringWidth=0;
+  INT_PTR nStringWidth=0;
   int i;
   int nResult=0;
   HFONT hFontOld=NULL;
@@ -12934,13 +12995,13 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
   return nResult;
 }
 
-int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int nCharExtent)
+int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, INT_PTR nCharExtent)
 {
-  SIZE sizeChar;
+  SIZE64 sizeChar;
   int nCharLen;
 
   if (*wpChar == L'\t')
-    return ae->ptxt->nTabWidth - nCharExtent % ae->ptxt->nTabWidth;
+    return (int)(ae->ptxt->nTabWidth - nCharExtent % ae->ptxt->nTabWidth);
 
   if (AE_IsHighSurrogate(*wpChar))
   {
@@ -12955,13 +13016,13 @@ int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int nCharExtent)
     AE_GetTextExtentPoint32(ae, wpChar, nCharLen, &sizeChar);
   else
     sizeChar.cx=0;
-  return sizeChar.cx;
+  return (int)sizeChar.cx;
 }
 
-int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharExtent)
+INT_PTR AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, INT_PTR nFirstCharExtent)
 {
-  SIZE sizeChar;
-  int nStringWidth=nFirstCharExtent;
+  SIZE64 sizeChar;
+  INT_PTR nStringWidth=nFirstCharExtent;
   int nStringCount=0;
   int nTabWidth;
   int i;
@@ -12975,7 +13036,7 @@ int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirs
         nStringWidth+=sizeChar.cx;
       nStringCount=i + 1;
 
-      if (nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth)
+      if (nTabWidth=(int)(ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth))
         nStringWidth+=nTabWidth;
     }
   }
@@ -12986,17 +13047,17 @@ int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirs
 
 void AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine)
 {
-  lpLine->nLineWidth=AE_GetStringWidth(ae, lpLine->wpLine, lpLine->nLineLen, 0);
+  lpLine->nLineWidth=(int)AE_GetStringWidth(ae, lpLine->wpLine, lpLine->nLineLen, 0);
 }
 
-BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos)
+BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT64 *ptGlobalPos, POINT *ptClientPos)
 {
   AECHARINDEX ciInitial;
-  DWORD dwFirst=(DWORD)-1;
-  DWORD dwSecond=(DWORD)-1;
-  DWORD dwThird=(DWORD)-1;
+  UINT_PTR dwFirst=(UINT_PTR)-1;
+  UINT_PTR dwSecond=(UINT_PTR)-1;
+  UINT_PTR dwThird=(UINT_PTR)-1;
   int nOffset=0;
-  int nStringWidth=0;
+  INT_PTR nStringWidth=0;
   int nStartChar=0;
   int i;
 
@@ -13069,25 +13130,25 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGl
     }
     if (ptClientPos)
     {
-      ptClientPos->x=(nStringWidth - ae->nHScrollPos) + ae->rcDraw.left;
-      ptClientPos->y=(AE_VPos(ae, ciInitial.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+      ptClientPos->x=(int)(nStringWidth - ae->nHScrollPos) + ae->rcDraw.left;
+      ptClientPos->y=(int)(AE_VPos(ae, ciInitial.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
     }
     return TRUE;
   }
   return FALSE;
 }
 
-int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWORD dwFlags, int *nCharIndex, int *nCharPos, BOOL bColumnSel)
+int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent, DWORD dwFlags, int *nCharIndex, INT_PTR *nCharPos, BOOL bColumnSel)
 {
   AECHARINDEX ciChar;
-  DWORD dwFirst=(DWORD)-1;
-  DWORD dwSecond=(DWORD)-1;
-  DWORD dwThird=(DWORD)-1;
-  int nOffset=0;
-  int nStringWidth=0;
+  UINT_PTR dwFirst=(UINT_PTR)-1;
+  UINT_PTR dwSecond=(UINT_PTR)-1;
+  UINT_PTR dwThird=(UINT_PTR)-1;
+  INT_PTR nOffset=0;
+  INT_PTR nStringWidth=0;
   int nStartChar=0;
   int nCharWidth=0;
-  int nHScrollMax;
+  INT_PTR nHScrollMax;
 
   if (lpLine)
   {
@@ -13260,12 +13321,12 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
   return AEPC_ERROR;
 }
 
-BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel)
+BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, INT_PTR nMinExtent, INT_PTR nMaxExtent, int *nMinCharIndex, INT_PTR *nMinCharPos, int *nMaxCharIndex, INT_PTR *nMaxCharPos, BOOL bColumnSel)
 {
   int nMinIndex=0;
   int nMaxIndex=0;
-  int nMinPos=0;
-  int nMaxPos=0;
+  INT_PTR nMinPos=0;
+  INT_PTR nMaxPos=0;
 
   if (nMinCharIndex || nMinCharPos)
   {
@@ -13284,16 +13345,16 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int
   return TRUE;
 }
 
-int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel)
+int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT64 *ptGlobalPos, BOOL bColumnSel)
 {
-  int nCharPos;
-  int nMaxExtent;
+  INT_PTR nCharPos;
+  INT_PTR nMaxExtent;
   int nFirstLine=0;
   int nLastLine=ae->ptxt->nLineCount;
-  int nHScrollMax;
+  INT_PTR nHScrollMax;
   int nResult;
 
-  ciCharIndex->nLine=AE_VPos(ae, ae->nVScrollPos + (ptClientPos->y - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+  ciCharIndex->nLine=(int)AE_VPos(ae, ae->nVScrollPos + (ptClientPos->y - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
   ciCharIndex->nLine=max(ciCharIndex->nLine, nFirstLine);
   ciCharIndex->nLine=min(ciCharIndex->nLine, nLastLine);
   ciCharIndex->nCharInLine=0;
@@ -14958,8 +15019,8 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
   int nLineCount=0;
   int nLineUnwrapCount=0;
   int nWrapCount=0;
-  int nHScrollPos;
-  int nVScrollPos;
+  INT_PTR nHScrollPos;
+  INT_PTR nVScrollPos;
   INT_PTR nStartOffset;
   INT_PTR nEndOffset;
   INT_PTR nDelLength;
@@ -15636,7 +15697,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   AEPOINT *lpRestartFrom;
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
-  POINT ptInsertFrom;
+  POINT64 ptInsertFrom;
   wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd;
   UINT_PTR dwTextCount=0;
@@ -15648,8 +15709,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   int nWrapCount=0;
   int nCaretIndexInLine=0;
   int nSpaces=0;
-  int nHScrollPos=0;
-  int nVScrollPos=0;
+  INT_PTR nHScrollPos=0;
+  INT_PTR nVScrollPos=0;
   INT_PTR nInsertOffset;
   INT_PTR nInsertInLineOffset;
   INT_PTR nStartOffset;
@@ -15920,7 +15981,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             }
             else
             {
-              ciInsertFrom.nCharInLine=ptInsertFrom.x / ae->ptxt->nSpaceCharWidth;
+              ciInsertFrom.nCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nSpaceCharWidth);
 
               lpNewElement->nLineWidth=-1;
               lpNewElement->nLineBreak=nLineBreak;
@@ -17040,7 +17101,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 {
   AECHARINDEX ciCharIn=ae->ciCaretIndex;
   AECHARINDEX ciCharOut=ae->ciCaretIndex;
-  int nCaretHorzIndent=ae->nCaretHorzIndent;
+  INT_PTR nCaretHorzIndent=ae->nCaretHorzIndent;
   BOOL bSetCaretHorzIndent=TRUE;
 
   if (nVk == VK_TAB)
@@ -17343,7 +17404,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
     else if (nVk == VK_PRIOR)
     {
-      int nVertPos;
+      INT_PTR nVertPos;
 
       if (!bShift && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelStartIndex;
@@ -17359,7 +17420,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       else
       {
         nVertPos=AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight;
-        ciCharOut.nLine=AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
+        ciCharOut.nLine=(int)AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
         AE_IndexUpdate(ae, &ciCharOut);
         AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
@@ -17370,7 +17431,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
     else if (nVk == VK_NEXT)
     {
-      int nVertPos;
+      INT_PTR nVertPos;
 
       if (!bShift && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelEndIndex;
@@ -17386,7 +17447,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       else
       {
         nVertPos=AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) + (ae->rcDraw.bottom - ae->rcDraw.top);
-        ciCharOut.nLine=AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
+        ciCharOut.nLine=(int)AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
         AE_IndexUpdate(ae, &ciCharOut);
         AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
@@ -19238,7 +19299,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
     else
     {
       AECHARINDEX ciCharIndex;
-      POINT ptGlobal;
+      POINT64 ptGlobal;
       DWORD dwScrollTest;
 
       AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
