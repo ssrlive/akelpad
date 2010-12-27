@@ -10494,7 +10494,7 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, BOOL bVertCorrect)
   {
     if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight)
     {
-      if (bVertCorrect && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
+      if ((ae->popt->dwOptions & AECO_VSCROLLBYLINE) || (bVertCorrect && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex)))
         AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight * 2 + 1, 0));
       else
         AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight + 1, 0));
@@ -10722,7 +10722,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_RANGE|SIF_PAGE|SIF_POS|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
           si.nMin=0;
-          si.nMax=(int)(ae->ptxt->nVScrollMax / ae->ptxt->nCharHeight);
+          si.nMax=(int)(ae->ptxt->nVScrollMax / ae->ptxt->nCharHeight - 1);
           si.nPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
           si.nPos=(int)(ae->nVScrollPos / ae->ptxt->nCharHeight);
           SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);

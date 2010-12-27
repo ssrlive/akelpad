@@ -1136,7 +1136,7 @@ typedef struct {
 typedef struct {
   AENMHDR hdr;
   int nAction;         //See AEDT_* defines.
-  POINT pt;            //Cursor position.
+  POINT pt;            //Cursor position in screen coordinates.
   DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
 } AENDROPTARGET;
 
@@ -3492,7 +3492,7 @@ _________________
 
 Checks is point on margin.
 
-(POINT *)wParam == pointer to a POINT structure.
+(POINT *)wParam == coordinates of a point in the control's client area.
 lParam          == not used.
 
 Return Value
@@ -3511,7 +3511,7 @@ ____________________
 
 Checks is point on selection.
 
-(POINT *)wParam == pointer to a POINT structure.
+(POINT *)wParam == coordinates of a point in the control's client area.
 lParam          == not used.
 
 Return Value
@@ -3531,7 +3531,7 @@ ______________
 
 Checks is point on URL.
 
-(POINT *)wParam       == pointer to a POINT structure.
+(POINT *)wParam       == coordinates of a point in the control's client area.
 (AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if founded. Can be NULL.
 
 Return Value

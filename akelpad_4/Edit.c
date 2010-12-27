@@ -156,7 +156,7 @@ extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
-extern POINT ptDocumentPos;
+extern POINT64 ptDocumentPos;
 extern WNDPROC OldFilePreviewProc;
 
 //Modeless
