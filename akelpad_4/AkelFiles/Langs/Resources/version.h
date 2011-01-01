@@ -7,7 +7,7 @@
     #else
       #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor"
     #endif
-    #define RC_VERSIONCOPYRIGHT "Copyright © AkelSoft 2003-2010"
+    #define RC_VERSIONCOPYRIGHT "Copyright © AkelSoft 2003-2011"
     #define RC_VERSIONNAME "AkelPad.exe"
     #undef _MAC
     #include "Version.rc"
