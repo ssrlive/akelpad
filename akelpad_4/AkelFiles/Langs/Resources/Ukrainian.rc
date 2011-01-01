@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "© 2010 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet"
+  #define RC_VERSIONCOPYRIGHT "© 2011 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet"
   #define RC_VERSIONNAME "Ukrainian.dll"
 #endif
 #include "winresrc.h"
@@ -860,7 +860,7 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Шенгальц Олександр, 2006-2010",IDC_STATIC,73,82,120,12,
+    LTEXT           "Шенгальц Олександр, 2006-2011",IDC_STATIC,73,82,120,12,
                     NOT WS_GROUP
     LTEXT           "Олексій Кузнєцов, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
@@ -895,7 +895,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2011 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet""\r\n"
     "  #define RC_VERSIONNAME ""Ukrainian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
