@@ -1,7 +1,7 @@
 /*****************************************************************
  *                   x64 functions header v1.0                   *
  *                                                               *
- * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
