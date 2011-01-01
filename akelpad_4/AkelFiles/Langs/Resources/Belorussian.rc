@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "© 2010 Mister Sh, naben"
+  #define RC_VERSIONCOPYRIGHT "© 2011 Mister Sh, naben"
   #define RC_VERSIONNAME "Belorussian.dll"
 #endif
 #include "winresrc.h"
@@ -859,7 +859,7 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Шэнгальц Аляксандр, 2006-2010",IDC_STATIC,73,82,120,12,
+    LTEXT           "Шэнгальц Аляксандр, 2006-2011",IDC_STATIC,73,82,120,12,
                     NOT WS_GROUP
     LTEXT           "Аляксей Кузняцоў, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
@@ -894,7 +894,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Mister Sh, naben""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2011 Mister Sh, naben""\r\n"
     "  #define RC_VERSIONNAME ""Belorussian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"

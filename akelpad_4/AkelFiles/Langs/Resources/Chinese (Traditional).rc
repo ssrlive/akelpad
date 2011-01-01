@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "(c) 2010 Minson"
+  #define RC_VERSIONCOPYRIGHT "(c) 2011 Minson"
   #define RC_VERSIONNAME "Chinese (Traditional).dll"
 #endif
 #include "winresrc.h"
@@ -851,7 +851,7 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Shengalts Aleksander, 2006-2010",IDC_STATIC,73,82,120,
+    LTEXT           "Shengalts Aleksander, 2006-2011",IDC_STATIC,73,82,120,
                     12,NOT WS_GROUP
     LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
@@ -886,7 +886,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""(c) 2010 Minson""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""(c) 2011 Minson""\r\n"
     "  #define RC_VERSIONNAME ""Chinese (Traditional).dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
