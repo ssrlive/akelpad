@@ -1,7 +1,7 @@
 /******************************************************************
  *                  Wide functions header v1.1                    *
  *                                                                *
- * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
