@@ -753,7 +753,9 @@ Function un.uninstConfirmLeave
 FunctionEnd
 
 Section un.install
-  ${DisableX64FSRedirection}
+  !if ${PRODUCT_BIT} == "64"
+    ${DisableX64FSRedirection}
+  !endif
 
   ${un.GetParent} "$INSTDIR" $SETUPDIR
 
