@@ -3563,13 +3563,19 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
   if (!bForceWrite)
   {
-    if (!xmemcmp(mo, &moInit, sizeof(MAINOPTIONS)) &&
-        !xmemcmp(&fd->lf, &fdInit.lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf)) &&
-        fd->ei.bWordWrap == fdInit.ei.bWordWrap &&
-        !bCodepageListChanged)
+    if (!xmemcmp(mo, &moInit, sizeof(MAINOPTIONS)))
     {
-      //Settings unchanged
-      return TRUE;
+      if (!xmemcmp(&fd->lf, &fdInit.lf, offsetof(FRAMEDATA, lpEditProc) - offsetof(FRAMEDATA, lf)))
+      {
+        if (fd->ei.bWordWrap == fdInit.ei.bWordWrap)
+        {
+          if (!bCodepageListChanged)
+          {
+            //Settings unchanged
+            return TRUE;
+          }
+        }
+      }
     }
   }
   oh.mo=mo;
