@@ -732,6 +732,9 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL);
 
+  //Get ansi language module
+  WideCharToMultiByte(CP_ACP, 0, moInit.wszLangModule, -1, moInit.szLangModule, MAX_PATH, NULL, NULL);
+
   //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
@@ -803,7 +806,6 @@ void _WinMain()
   //Load DLL's
   hLangLib=hInstance;
   dwLangModule=RC_VERSIONLANGID;
-  WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
 
   if (*moCur.wszLangModule)
   {
