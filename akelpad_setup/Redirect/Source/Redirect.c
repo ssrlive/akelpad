@@ -56,7 +56,11 @@ void _WinMain()
     }
     if (dwResult != ERROR_SUCCESS)
     {
-      GetSystemWow64DirectoryA(szCmdLine, MAX_PATH);
+      #ifdef _WIN64
+        GetSystemWow64DirectoryA(szCmdLine, MAX_PATH);
+      #else
+        GetSystemDirectoryA(szCmdLine, MAX_PATH);
+      #endif
       wsprintfA(szPath, "%s\\notepad.exe", szCmdLine);
     }
     GetModuleFileNameA(NULL, szModule, MAX_PATH);
@@ -126,7 +130,11 @@ void _WinMain()
     }
     if (dwResult != ERROR_SUCCESS)
     {
-      GetSystemWow64DirectoryW(wszCmdLine, MAX_PATH);
+      #ifdef _WIN64
+        GetSystemWow64DirectoryW(wszCmdLine, MAX_PATH);
+      #else
+        GetSystemDirectoryW(wszCmdLine, MAX_PATH);
+      #endif
       wsprintfW(wszPath, L"%s\\notepad.exe", wszCmdLine);
     }
     GetModuleFileNameW(NULL, wszModule, MAX_PATH);
