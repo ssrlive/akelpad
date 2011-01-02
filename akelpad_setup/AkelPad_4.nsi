@@ -1,6 +1,12 @@
-!define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.5.2"
-!define PRODUCT_BIT "32"
+!ifndef PRODUCT_NAME
+  !define PRODUCT_NAME "AkelPad"
+!endif
+!ifndef PRODUCT_VERSION
+  !define PRODUCT_VERSION "4.5.2"
+!endif
+!ifndef PRODUCT_BIT
+  !define PRODUCT_BIT "32"
+!endif
 
 ;_____________________________________________________________________________________________
 ;
@@ -176,7 +182,7 @@ Function .onInit
       MessageBox MB_OK|MB_ICONEXCLAMATION "$(No64bit)"
       quit
     ${EndIf}
-    ${DisableX64FSRedirection}
+    SetRegView 64
   !endif
 
   #Help message
@@ -489,6 +495,11 @@ Function SetInstallDirectory
   ${If} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ${If} $SETUPDIR == $WINDIR
     ${OrIf} $SETUPDIR == $SYSDIR
+      !if ${PRODUCT_BIT} == "64"
+        ${If} $SETUPDIR == $SYSDIR
+          StrCpy $SETUPDIR "$WINDIR\SysWOW64"
+        ${EndIf}
+      !endif
       StrCpy $SETUPEXE "$SETUPDIR\notepad.exe"
     ${EndIf}
   ${EndIf}
@@ -522,6 +533,10 @@ Function CreateShortcuts
 FunctionEnd
 
 Section
+  !if ${PRODUCT_BIT} == "64"
+    ${DisableX64FSRedirection}
+  !endif
+
   SetOutPath "$SETUPDIR"
   !if ${PRODUCT_BIT} == "64"
     File /r /x RichTune*.* /x QSearch*.* /x XBrackets*.* /x SpellCheck*.* /x GNUASpell.Copying "Files\*.*"
@@ -563,13 +578,23 @@ Section
         Pop $0
         nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
         Pop $0
+        !if ${PRODUCT_BIT} == "64"
+          nsExec::Exec 'takeown.exe /F $WINDIR\SysWOW64\notepad.exe'
+          Pop $0
+        !endif
+
         nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
         Pop $0
         nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
         Pop $0
+        !if ${PRODUCT_BIT} == "64"
+          nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "%USERNAME%":F'
+          Pop $0
+        !endif
       ${EndIf}
     ${EndIf}
 
+    #Create backup
     ${IfNot} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
       CopyFiles /SILENT "$WINDIR\notepad.exe" "$WINDIR\notepad_AkelUndo.exe"
     ${EndIf}
@@ -578,49 +603,54 @@ Section
     ${EndIf}
     ${If} ${FileExists} "$SYSDIR\DLLCACHE\notepad.exe"
       Delete "$SYSDIR\DLLCACHE\notepad.exe"
-      CopyFiles /SILENT "$SETUPDIR\AkelPad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
     ${EndIf}
+    !if ${PRODUCT_BIT} == "64"
+      ${IfNot} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+        CopyFiles /SILENT "$WINDIR\SysWOW64\notepad.exe" "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+      ${EndIf}
+      ${If} ${FileExists} "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
+        Delete "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
+      ${EndIf}
+    !endif
 
-    ${If} $SETUPDIR == $WINDIR
+    ${If} $INSTDIR == $WINDIR
+      !if ${PRODUCT_BIT} == "64"
+        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+        File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
+      !else
+        File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
+      !endif
+
       ${If} ${FileExists} "$SETUPDIR\notepad.exe"
         Delete "$SETUPDIR\notepad.exe"
       ${EndIf}
       Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
       ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
-      SetOutPath "$SYSDIR"
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=notepad.exe "Redirect\notepad.exe"
-      !endif
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
-    ${ElseIf} $SETUPDIR == $SYSDIR
+    ${ElseIf} $INSTDIR == $SYSDIR
+      !if ${PRODUCT_BIT} == "64"
+        File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
+        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+      !else
+        File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
+      !endif
+
       ${If} ${FileExists} "$SETUPDIR\notepad.exe"
         Delete "$SETUPDIR\notepad.exe"
       ${EndIf}
       Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
       ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
-      SetOutPath "$WINDIR"
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=notepad.exe "Redirect\notepad.exe"
-      !endif
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
     ${Else}
+      !if ${PRODUCT_BIT} == "64"
+        File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
+        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+        File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
+      !else
+        File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
+        File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
+      !endif
       ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
-      SetOutPath "$WINDIR"
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=notepad.exe "Redirect\notepad.exe"
-      !endif
-      SetOutPath "$SYSDIR"
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=notepad.exe "Redirect\notepad.exe"
-      !endif
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\AkelPad.exe"
     ${EndIf}
   ${EndIf}
@@ -723,6 +753,8 @@ Function un.uninstConfirmLeave
 FunctionEnd
 
 Section un.install
+  ${DisableX64FSRedirection}
+
   ${un.GetParent} "$INSTDIR" $SETUPDIR
 
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -756,10 +788,19 @@ Section un.install
       Pop $0
       nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
       Pop $0
+      !if ${PRODUCT_BIT} == "64"
+        nsExec::Exec 'takeown.exe /F $WINDIR\SysWOW64\notepad.exe'
+        Pop $0
+      !endif
+
       nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
       Pop $0
       nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
       Pop $0
+      !if ${PRODUCT_BIT} == "64"
+        nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "%USERNAME%":F'
+        Pop $0
+      !endif
     ${EndIf}
   ${EndIf}
 
@@ -767,22 +808,27 @@ Section un.install
     ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
   ${ElseIf} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
     ExecWait '"$SYSDIR\notepad.exe" /deassoc /quit'
+  ${ElseIf} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+    ExecWait '"$WINDIR\SysWOW64\notepad.exe" /deassoc /quit'
   ${Else}
     goto _totalcmd
   ${EndIf}
 
+  #Restore backup
   ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
     Delete "$WINDIR\notepad.exe"
     Rename "$WINDIR\notepad_AkelUndo.exe" "$WINDIR\notepad.exe"
-  ${ElseIf} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
+  ${EndIf}
+  ${If} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
     Delete "$SYSDIR\notepad.exe"
     Rename "$SYSDIR\notepad_AkelUndo.exe" "$SYSDIR\notepad.exe"
   ${EndIf}
-
-  ${If} ${FileExists} "$SYSDIR\DLLCACHE\notepad.exe"
-    Delete "$SYSDIR\DLLCACHE\notepad.exe"
-    CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
-  ${EndIf}
+  !if ${PRODUCT_BIT} == "64"
+    ${If} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+      Delete "$WINDIR\SysWOW64\notepad.exe"
+      Rename "$WINDIR\SysWOW64\notepad_AkelUndo.exe" "$WINDIR\SysWOW64\notepad.exe"
+    ${EndIf}
+  !endif
 
   DeleteRegValue HKLM "Software\Akelsoft\AkelPad" "Path"
 
