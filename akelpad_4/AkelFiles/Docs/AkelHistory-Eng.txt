@@ -4,6 +4,7 @@ AkelPad 4.5.2 ()
 Added: 64-bit program version.
 
 Fixed: file didn't open with modal dialog actived.
+Fixed: AkelPad.ini overwritten when there were no changes in settings.
 
 
 AkelPad 4.5.1 (Dec 02, 2010)
