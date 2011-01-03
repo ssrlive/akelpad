@@ -7,6 +7,9 @@
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
 !endif
+!ifndef PRODUCT_DIR
+  !define PRODUCT_DIR "Files"
+!endif
 
 ;_____________________________________________________________________________________________
 ;
@@ -539,9 +542,9 @@ Section
 
   SetOutPath "$SETUPDIR"
   !if ${PRODUCT_BIT} == "64"
-    File /r /x RichTune*.* /x QSearch*.* /x XBrackets*.* /x SpellCheck*.* /x GNUASpell.Copying "Files\*.*"
+    File /r /x RichTune*.* /x QSearch*.* /x XBrackets*.* /x SpellCheck*.* /x GNUASpell.Copying "${PRODUCT_DIR}\*.*"
   !else
-    File /r /x RichTune*.* "Files\*.*"
+    File /r /x RichTune*.* "${PRODUCT_DIR}\*.*"
   !endif
 
   #IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
@@ -754,7 +757,12 @@ FunctionEnd
 
 Section un.install
   !if ${PRODUCT_BIT} == "64"
+    ${IfNot} ${RunningX64}
+      MessageBox MB_OK|MB_ICONEXCLAMATION "$(No64bit)"
+      quit
+    ${EndIf}
     ${DisableX64FSRedirection}
+    SetRegView 64
   !endif
 
   ${un.GetParent} "$INSTDIR" $SETUPDIR
@@ -874,7 +882,7 @@ Section un.install
   Delete "$SETUPDIR\AkelFiles\Plugs\Coder\cache"
 
   ;Generate list and include it in script at compile-time
-  !execute 'unList\unList.exe /DATE=0 /INSTDIR="Files" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
+  !execute 'unList\unList.exe /DATE=0 /INSTDIR="${PRODUCT_DIR}" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
   !include 'unList\unList.txt'
   !delfile 'unList\unList.txt'
   RMDir "$SETUPDIR"
