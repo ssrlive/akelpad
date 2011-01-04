@@ -1,5 +1,5 @@
 
-AkelPad 4.5.2 ()
+AkelPad 4.5.2 (Jan 03, 2011)
 ----------------------------
 Added: 64-bit program version.
 
