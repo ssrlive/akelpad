@@ -732,6 +732,10 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL);
 
+  //Get status bar user flags
+  if (moInit.wszStatusUserFormat[0])
+    moInit.dwStatusUserFlags=TranslateStatusUser(NULL, moInit.wszStatusUserFormat, NULL, 0);
+
   //Get ansi language module
   WideCharToMultiByte(CP_ACP, 0, moInit.wszLangModule, -1, moInit.szLangModule, MAX_PATH, NULL, NULL);
 
@@ -1363,7 +1367,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       iSBParts[4]=560;
       iSBParts[5]=-1;
       nStatusParts=6;
-      moCur.dwStatusUserFlags=TranslateStatusUser(NULL, moCur.wszStatusUserFormat, NULL, 0);
     }
     SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)&iSBParts);
 
