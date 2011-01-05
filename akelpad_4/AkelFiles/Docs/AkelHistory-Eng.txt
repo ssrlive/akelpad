@@ -1,4 +1,10 @@
 
+AkelPad 4.5.3 ()
+----------------------------
+Fixed: out of the text area didn't redraw under some conditions.
+Fixed: AkelPad.ini overwritten when there were no changes in settings.
+
+
 AkelPad 4.5.2 (Jan 03, 2011)
 ----------------------------
 Added: 64-bit program version.

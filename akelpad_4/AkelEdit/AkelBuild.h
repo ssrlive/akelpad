@@ -714,7 +714,7 @@ void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
 AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase);
-AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex);
+BOOL AE_StackEraseMore(AKELEDIT *ae, RECT *rcErase);
 void AE_StackEraseDelete(AKELEDIT *ae, AEERASE *lpErase);
 void AE_StackEraseFree(AKELEDIT *ae);
 AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont);

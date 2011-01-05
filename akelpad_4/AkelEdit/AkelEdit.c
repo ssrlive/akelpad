@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.5.2                               *
+ *                      AkelEdit text control v1.5.3                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -4200,51 +4200,63 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     return 1;
   }
-  else if (uMsg == WM_PAINT)
+  else if (uMsg == WM_NCPAINT ||
+           uMsg == WM_PAINT)
   {
-    HDC hDC=ae->hDC;
-    HFONT hFontOld=NULL;
+    RECT rcErase;
 
-    //Get DC
-    if (!ae->hDC)
+    if (GetUpdateRect(ae->hWndEdit, &rcErase, FALSE))
     {
-      if (ae->hDC=GetDC(ae->hWndEdit))
-        if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->ptxt->hFont);
-    }
-    if (ae->hDC)
-    {
-      AE_ActiveColumnErase(ae);
-      AE_Paint(ae);
-      AE_ColumnMarkerDraw(ae);
+      if (AE_StackEraseMore(ae, &rcErase))
+        AE_StackEraseInsert(ae, &rcErase);
 
-      if (ae->bMButtonDown)
+      //Get DC
+      if (uMsg == WM_PAINT)
       {
-        AE_MButtonErase(ae);
-        ae->bMButtonDown=FALSE;
-        UpdateWindow(ae->hWndEdit);
-        ae->bMButtonDown=TRUE;
-        AE_MButtonDraw(ae);
-      }
-      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-      {
-        if (!ae->popt->bActiveColumnDraw)
+        HDC hDC=ae->hDC;
+        HFONT hFontOld=NULL;
+
+        if (!hDC)
         {
-          //Draw new vertical line
-          AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
-          AE_ActiveColumnDraw(ae);
-          ae->popt->bActiveColumnDraw=TRUE;
+          if (ae->hDC=GetDC(ae->hWndEdit))
+            if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->ptxt->hFont);
         }
-      }
+        if (ae->hDC)
+        {
+          AE_ActiveColumnErase(ae);
+          AE_Paint(ae);
+          AE_ColumnMarkerDraw(ae);
 
-      //Release DC
-      if (!hDC)
-      {
-        if (hFontOld) SelectObject(ae->hDC, hFontOld);
-        ReleaseDC(ae->hWndEdit, ae->hDC);
-        ae->hDC=NULL;
+          if (ae->bMButtonDown)
+          {
+            AE_MButtonErase(ae);
+            ae->bMButtonDown=FALSE;
+            UpdateWindow(ae->hWndEdit);
+            ae->bMButtonDown=TRUE;
+            AE_MButtonDraw(ae);
+          }
+          if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+          {
+            if (!ae->popt->bActiveColumnDraw)
+            {
+              //Draw new vertical line
+              AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
+              AE_ActiveColumnDraw(ae);
+              ae->popt->bActiveColumnDraw=TRUE;
+            }
+          }
+
+          //Release DC
+          if (!hDC)
+          {
+            if (hFontOld) SelectObject(ae->hDC, hFontOld);
+            ReleaseDC(ae->hWndEdit, ae->hDC);
+            ae->hDC=NULL;
+          }
+        }
+        return 0;
       }
     }
-    return 0;
   }
   else if (uMsg == WM_DESTROY)
   {
@@ -5143,20 +5155,21 @@ AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase)
   return lpElement;
 }
 
-AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex)
+BOOL AE_StackEraseMore(AKELEDIT *ae, RECT *rcErase)
 {
   AEERASE *lpElement=(AEERASE *)ae->hEraseStack.first;
-  int nItem=0;
 
   while (lpElement)
   {
-    if (nIndex == nItem)
-      return lpElement;
+    if (lpElement->rcErase.left <= rcErase->left &&
+        lpElement->rcErase.top <= rcErase->top &&
+        lpElement->rcErase.right >= rcErase->right &&
+        lpElement->rcErase.bottom >= rcErase->bottom)
+      return FALSE;
 
-    ++nItem;
     lpElement=lpElement->next;
   }
-  return NULL;
+  return TRUE;
 }
 
 void AE_StackEraseDelete(AKELEDIT *ae, AEERASE *lpErase)
@@ -11545,387 +11558,381 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 void AE_Paint(AKELEDIT *ae)
 {
   PAINTSTRUCT ps;
-  RECT rcErase;
 
-  if (GetUpdateRect(ae->hWndEdit, &rcErase, FALSE))
+  if (BeginPaint(ae->hWndEdit, &ps))
   {
-    AE_StackEraseInsert(ae, &rcErase);
+    AEHLPAINT hlp;
+    AETEXTOUT to;
+    AENPAINT pntNotify;
+    AEFOLD *lpCollapsed;
+    HBRUSH hBasicBk;
+    HBRUSH hSelBk;
+    HBRUSH hActiveLineBk;
+    HBRUSH hTab;
+    HBITMAP hBitmap;
+    HBITMAP hBitmapOld=NULL;
+    HFONT hFontOld=NULL;
+    HRGN hDrawRgn;
+    HRGN hDrawRgnOld=NULL;
+    RECT rcDraw;
+    RECT rcSpace;
+    int nLineSelection;
+    INT_PTR nMinPaintWidth=0;
+    INT_PTR nMaxPaintWidth=0;
+    int nCharWidth=0;
+    int nLastDrawLine=0;
+    BOOL bUseBufferDC=TRUE;
 
-    if (BeginPaint(ae->hWndEdit, &ps))
+    //Initialize
+    xmemset(&hlp, 0, sizeof(AEHLPAINT));
+    xmemset(&to, 0, sizeof(AETEXTOUT));
+    xmemset(&pntNotify, 0, sizeof(AENPAINT));
+
+    //Create GDI objects
+    hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
+    hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+    hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
+    hSelBk=CreateSolidBrush(ae->popt->crSelBk);
+    hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+
+    //Set DCs
+    to.hDC=ps.hdc;
+
+    if (bUseBufferDC)
     {
-      AEHLPAINT hlp;
-      AETEXTOUT to;
-      AENPAINT pntNotify;
-      AEFOLD *lpCollapsed;
-      HBRUSH hBasicBk;
-      HBRUSH hSelBk;
-      HBRUSH hActiveLineBk;
-      HBRUSH hTab;
-      HBITMAP hBitmap;
-      HBITMAP hBitmapOld=NULL;
-      HFONT hFontOld=NULL;
-      HRGN hDrawRgn;
-      HRGN hDrawRgnOld=NULL;
-      RECT rcDraw;
-      RECT rcSpace;
-      int nLineSelection;
-      INT_PTR nMinPaintWidth=0;
-      INT_PTR nMaxPaintWidth=0;
-      int nCharWidth=0;
-      int nLastDrawLine=0;
-      BOOL bUseBufferDC=TRUE;
+      to.hDC=CreateCompatibleDC(ps.hdc);
+      hBitmap=CreateCompatibleBitmap(ps.hdc, ae->rcEdit.right, ae->rcEdit.bottom);
+      hBitmapOld=(HBITMAP)SelectObject(to.hDC, hBitmap);
+    }
+    if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(to.hDC, ae->ptxt->hFont);
 
-      //Initialize
-      xmemset(&hlp, 0, sizeof(AEHLPAINT));
-      xmemset(&to, 0, sizeof(AETEXTOUT));
-      xmemset(&pntNotify, 0, sizeof(AENPAINT));
+    //Send AEN_PAINT
+    pntNotify.hDC=to.hDC;
+    AE_NotifyPaint(ae, AEPNT_BEGIN, &pntNotify);
 
-      //Create GDI objects
-      hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-      hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
-      hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-      hSelBk=CreateSolidBrush(ae->popt->crSelBk);
-      hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+    rcDraw=ps.rcPaint;
+    if (rcDraw.top + ae->ptxt->nCharHeight <= ae->rcDraw.top)
+      rcDraw.top=ae->rcDraw.top;
+    if (rcDraw.bottom > ae->rcDraw.bottom)
+      rcDraw.bottom=ae->rcDraw.bottom;
 
-      //Set DCs
-      to.hDC=ps.hdc;
+    if (rcDraw.right > ae->rcDraw.left &&
+        rcDraw.bottom > ae->rcDraw.top)
+    {
+      to.ciDrawLine.nLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+      to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
+      to.ciDrawLine.nCharInLine=0;
 
-      if (bUseBufferDC)
+      nLastDrawLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+      nLastDrawLine=min(nLastDrawLine, ae->ptxt->nLineCount);
+
+      to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
+      to.ptFirstCharInLine.y=(int)(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+      nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
+      nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
+
+      if (to.ciDrawLine.lpLine)
       {
-        to.hDC=CreateCompatibleDC(ps.hdc);
-        hBitmap=CreateCompatibleBitmap(ps.hdc, ae->rcEdit.right, ae->rcEdit.bottom);
-        hBitmapOld=(HBITMAP)SelectObject(to.hDC, hBitmap);
+        ae->nFirstDrawLineOffset=AE_AkelIndexToRichOffset(ae, &to.ciDrawLine);
+        ae->liFirstDrawLine.nLine=to.ciDrawLine.nLine;
+        ae->liFirstDrawLine.lpLine=to.ciDrawLine.lpLine;
       }
-      if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(to.hDC, ae->ptxt->hFont);
+      to.nDrawCharOffset=ae->nFirstDrawLineOffset;
 
-      //Send AEN_PAINT
-      pntNotify.hDC=to.hDC;
-      AE_NotifyPaint(ae, AEPNT_BEGIN, &pntNotify);
-
-      rcDraw=ps.rcPaint;
-      if (rcDraw.top + ae->ptxt->nCharHeight <= ae->rcDraw.top)
-        rcDraw.top=ae->rcDraw.top;
-      if (rcDraw.bottom > ae->rcDraw.bottom)
-        rcDraw.bottom=ae->rcDraw.bottom;
-
-      if (rcDraw.right > ae->rcDraw.left &&
-          rcDraw.bottom > ae->rcDraw.top)
+      //Check that active highlight theme exists
+      if (ae->popt->lpActiveTheme)
       {
-        to.ciDrawLine.nLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
-        to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
-        to.ciDrawLine.nCharInLine=0;
-
-        nLastDrawLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
-        nLastDrawLine=min(nLastDrawLine, ae->ptxt->nLineCount);
-
-        to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
-        to.ptFirstCharInLine.y=(int)(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
-        nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
-        nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
-
-        if (to.ciDrawLine.lpLine)
-        {
-          ae->nFirstDrawLineOffset=AE_AkelIndexToRichOffset(ae, &to.ciDrawLine);
-          ae->liFirstDrawLine.nLine=to.ciDrawLine.nLine;
-          ae->liFirstDrawLine.lpLine=to.ciDrawLine.lpLine;
-        }
-        to.nDrawCharOffset=ae->nFirstDrawLineOffset;
-
-        //Check that active highlight theme exists
-        if (ae->popt->lpActiveTheme)
-        {
-          if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
-            ae->popt->lpActiveTheme=NULL;
-        }
-        to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND;
+        if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
+          ae->popt->lpActiveTheme=NULL;
       }
-      else to.ciDrawLine.lpLine=NULL;
+      to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND;
+    }
+    else to.ciDrawLine.lpLine=NULL;
 
-      while (to.ciDrawLine.lpLine)
+    while (to.ciDrawLine.lpLine)
+    {
+      //Line must be visible
+      if (!(lpCollapsed=AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine)))
       {
-        //Line must be visible
-        if (!(lpCollapsed=AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine)))
+        //Close all previous items
+        AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
+
+        //Get first paint char in line
+        AE_GetCharInLine(ae, to.ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &to.ciDrawLine.nCharInLine, &to.nDrawLineWidth, FALSE);
+        to.nDrawCharOffset+=min(to.ciDrawLine.nCharInLine, to.ciDrawLine.lpLine->nLineLen);
+        to.nStartDrawWidth=to.nDrawLineWidth;
+        to.nMaxDrawCharsCount=0;
+        to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
+        hlp.dwFindFirst=AEHPT_SELECTION|AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
+
+        //Remember first paint char in line for notify
+        pntNotify.ciMinDraw=to.ciDrawLine;
+        pntNotify.nMinDrawOffset=to.nDrawCharOffset;
+        pntNotify.ptMinDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+        pntNotify.ptMinDraw.y=(int)to.ptFirstCharInLine.y;
+
+        //Set initial colors
+        if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
         {
-          //Close all previous items
-          AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
+          hlp.dwDefaultText=ae->popt->crActiveLineText;
+          hlp.dwDefaultBG=ae->popt->crActiveLineBk;
+          hlp.hbrDefaultBG=hActiveLineBk;
+        }
+        else
+        {
+          hlp.dwDefaultText=ae->popt->crBasicText;
+          hlp.dwDefaultBG=ae->popt->crBasicBk;
+          hlp.hbrDefaultBG=hBasicBk;
+        }
+        hlp.dwActiveText=hlp.dwDefaultText;
+        hlp.dwActiveBG=hlp.dwDefaultBG;
+        hlp.hbrActiveBG=hlp.hbrDefaultBG;
+        hlp.dwPaintType=0;
+        hlp.dwFontStyle=AEHLS_NONE;
 
-          //Get first paint char in line
-          AE_GetCharInLine(ae, to.ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &to.ciDrawLine.nCharInLine, &to.nDrawLineWidth, FALSE);
-          to.nDrawCharOffset+=min(to.ciDrawLine.nCharInLine, to.ciDrawLine.lpLine->nLineLen);
-          to.nStartDrawWidth=to.nDrawLineWidth;
-          to.nMaxDrawCharsCount=0;
-          to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
-          hlp.dwFindFirst=AEHPT_SELECTION|AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
-
-          //Remember first paint char in line for notify
-          pntNotify.ciMinDraw=to.ciDrawLine;
-          pntNotify.nMinDrawOffset=to.nDrawCharOffset;
-          pntNotify.ptMinDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
-          pntNotify.ptMinDraw.y=(int)to.ptFirstCharInLine.y;
-
-          //Set initial colors
-          if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-          {
-            hlp.dwDefaultText=ae->popt->crActiveLineText;
-            hlp.dwDefaultBG=ae->popt->crActiveLineBk;
-            hlp.hbrDefaultBG=hActiveLineBk;
-          }
-          else
-          {
-            hlp.dwDefaultText=ae->popt->crBasicText;
-            hlp.dwDefaultBG=ae->popt->crBasicBk;
-            hlp.hbrDefaultBG=hBasicBk;
-          }
-          hlp.dwActiveText=hlp.dwDefaultText;
-          hlp.dwActiveBG=hlp.dwDefaultBG;
-          hlp.hbrActiveBG=hlp.hbrDefaultBG;
-          hlp.dwPaintType=0;
-          hlp.dwFontStyle=AEHLS_NONE;
-
-          if (ae->popt->bHideSelection)
-          {
+        if (ae->popt->bHideSelection)
+        {
+          nLineSelection=AELS_EMPTY;
+        }
+        else
+        {
+          if (to.ciDrawLine.lpLine->nSelStart == to.ciDrawLine.lpLine->nSelEnd)
             nLineSelection=AELS_EMPTY;
-          }
+          else if (to.ciDrawLine.lpLine->nSelStart == 0 && to.ciDrawLine.lpLine->nSelEnd == to.ciDrawLine.lpLine->nLineLen)
+            nLineSelection=AELS_FULL;
           else
+            nLineSelection=AELS_PARTLY;
+        }
+
+        //Erase space where text will be drawn.
+        rcSpace.left=rcDraw.left;
+        rcSpace.top=(int)to.ptFirstCharInLine.y;
+        rcSpace.right=rcDraw.right;
+        rcSpace.bottom=(int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
+        FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
+
+        //Fill space after line end, before text line is drawn.
+        if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
+        {
+          rcSpace.right=ae->rcDraw.left + (int)(to.ciDrawLine.lpLine->nLineWidth - ae->nHScrollPos);
+
+          if (ae->bColumnSel)
           {
-            if (to.ciDrawLine.lpLine->nSelStart == to.ciDrawLine.lpLine->nSelEnd)
-              nLineSelection=AELS_EMPTY;
-            else if (to.ciDrawLine.lpLine->nSelStart == 0 && to.ciDrawLine.lpLine->nSelEnd == to.ciDrawLine.lpLine->nLineLen)
-              nLineSelection=AELS_FULL;
-            else
-              nLineSelection=AELS_PARTLY;
-          }
-
-          //Erase space where text will be drawn.
-          rcSpace.left=rcDraw.left;
-          rcSpace.top=(int)to.ptFirstCharInLine.y;
-          rcSpace.right=rcDraw.right;
-          rcSpace.bottom=(int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
-          FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
-
-          //Fill space after line end, before text line is drawn.
-          if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
-          {
-            rcSpace.right=ae->rcDraw.left + (int)(to.ciDrawLine.lpLine->nLineWidth - ae->nHScrollPos);
-
-            if (ae->bColumnSel)
+            //Draw column selection
+            if (nLineSelection == AELS_PARTLY)
             {
-              //Draw column selection
-              if (nLineSelection == AELS_PARTLY)
+              if (to.ciDrawLine.lpLine->nSelStart >= to.ciDrawLine.lpLine->nLineLen)
               {
-                if (to.ciDrawLine.lpLine->nSelStart >= to.ciDrawLine.lpLine->nLineLen)
+                rcSpace.left=rcSpace.right;
+                rcSpace.top=(int)to.ptFirstCharInLine.y;
+                rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
+                rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+                FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
+              }
+              if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
+              {
+                if (rcSpace.right < ae->rcDraw.right)
                 {
                   rcSpace.left=rcSpace.right;
                   rcSpace.top=(int)to.ptFirstCharInLine.y;
-                  rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
+                  rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                  FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
+                  FillRect(to.hDC, &rcSpace, hSelBk);
                 }
-                if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
+              }
+            }
+          }
+          else
+          {
+            if (!ae->popt->bHideSelection)
+            {
+              //Draw new line selection
+              if (to.ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
+                  to.ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
+              {
+                if (ae->popt->dwOptions & AECO_ENTIRENEWLINEDRAW)
                 {
+                  //Draw selection to the right edge
                   if (rcSpace.right < ae->rcDraw.right)
                   {
                     rcSpace.left=rcSpace.right;
                     rcSpace.top=(int)to.ptFirstCharInLine.y;
-                    rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
+                    rcSpace.right=ae->rcDraw.right;
+                    rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+                    FillRect(to.hDC, &rcSpace, hSelBk);
+                  }
+                }
+                else if (!(ae->popt->dwOptions & AECO_NONEWLINEDRAW) &&
+                         to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+                {
+                  if (to.ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
+                  {
+                    rcSpace.left=rcSpace.right;
+                    rcSpace.top=(int)to.ptFirstCharInLine.y;
+                    rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
                     rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                     FillRect(to.hDC, &rcSpace, hSelBk);
                   }
                 }
               }
             }
-            else
-            {
-              if (!ae->popt->bHideSelection)
-              {
-                //Draw new line selection
-                if (to.ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
-                    to.ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
-                {
-                  if (ae->popt->dwOptions & AECO_ENTIRENEWLINEDRAW)
-                  {
-                    //Draw selection to the right edge
-                    if (rcSpace.right < ae->rcDraw.right)
-                    {
-                      rcSpace.left=rcSpace.right;
-                      rcSpace.top=(int)to.ptFirstCharInLine.y;
-                      rcSpace.right=ae->rcDraw.right;
-                      rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                      FillRect(to.hDC, &rcSpace, hSelBk);
-                    }
-                  }
-                  else if (!(ae->popt->dwOptions & AECO_NONEWLINEDRAW) &&
-                           to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
-                  {
-                    if (to.ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
-                    {
-                      rcSpace.left=rcSpace.right;
-                      rcSpace.top=(int)to.ptFirstCharInLine.y;
-                      rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
-                      rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                      FillRect(to.hDC, &rcSpace, hSelBk);
-                    }
-                  }
-                }
-              }
-            }
-
-            //Fill space to the right edge
-            if (rcSpace.right < ae->rcDraw.right)
-            {
-              rcSpace.left=rcSpace.right;
-              rcSpace.top=(int)to.ptFirstCharInLine.y;
-              rcSpace.right=ae->rcDraw.right;
-              rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-              FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
-            }
           }
 
-          //Scan line
-          while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
+          //Fill space to the right edge
+          if (rcSpace.right < ae->rcDraw.right)
           {
-            if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
-            {
-              nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
-            }
-
-            //Selection
-            if (nLineSelection == AELS_FULL || nLineSelection == AELS_PARTLY)
-            {
-              if (to.ciDrawLine.lpLine->nSelStart == to.ciDrawLine.nCharInLine ||
-                  ((hlp.dwFindFirst & AEHPT_SELECTION) && AEC_IsCharInSelection(&to.ciDrawLine)))
-              {
-                hlp.dwFindFirst&=~AEHPT_SELECTION;
-
-                //Draw text up to selection start
-                AE_PaintTextOut(ae, &to, &hlp);
-
-                hlp.dwActiveText=ae->popt->crSelText;
-                hlp.dwActiveBG=ae->popt->crSelBk;
-                hlp.hbrActiveBG=hSelBk;
-                hlp.dwPaintType|=AEHPT_SELECTION;
-                hlp.dwFontStyle=AEHLS_NONE;
-              }
-              else if (to.ciDrawLine.lpLine->nSelEnd == to.ciDrawLine.nCharInLine)
-              {
-                //Draw text up to selection end
-                AE_PaintTextOut(ae, &to, &hlp);
-
-                hlp.dwActiveText=hlp.dwDefaultText;
-                hlp.dwActiveBG=hlp.dwDefaultBG;
-                hlp.hbrActiveBG=hlp.hbrDefaultBG;
-                hlp.dwPaintType&=~AEHPT_SELECTION;
-                hlp.dwFontStyle=AEHLS_NONE;
-              }
-            }
-
-            //Check highlight close
-            AE_PaintCheckHighlightCloseItem(ae, &to, &hlp);
-
-            //Check highlight open
-            AE_PaintCheckHighlightOpenItem(ae, &to, &hlp, nLastDrawLine);
-
-            if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
-
-            //Draw text up to tab character
-            if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
-            {
-              AE_PaintTextOut(ae, &to, &hlp);
-
-              //Draw tab character
-              rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
-              rcSpace.top=(int)to.ptFirstCharInLine.y;
-              rcSpace.right=rcSpace.left + nCharWidth;
-              rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-
-              if (hTab=CreateSolidBrush(hlp.dwActiveBG))
-              {
-                FillRect(to.hDC, &rcSpace, hTab);
-                DeleteObject(hTab);
-              }
-              to.nStartDrawWidth+=nCharWidth;
-              to.wpStartDraw+=1;
-            }
-
-            //Draw only 2048 characters at once
-            if (to.nMaxDrawCharsCount >= 2048)
-            {
-              AE_PaintTextOut(ae, &to, &hlp);
-            }
-            else ++to.nMaxDrawCharsCount;
-
-            //Stop line checking and draw it, if it's outside draw area
-            if (to.nDrawLineWidth > nMaxPaintWidth)
-              break;
-
-            //Increment line width
-            to.nDrawLineWidth+=nCharWidth;
-
-            //Increment char count
-            to.nDrawCharOffset+=AEC_IndexLen(&to.ciDrawLine);
-            AEC_IndexInc(&to.ciDrawLine);
-          }
-          if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
-            to.nDrawCharOffset+=to.ciDrawLine.lpLine->nLineLen - to.ciDrawLine.nCharInLine;
-
-          //Draw text line
-          AE_PaintTextOut(ae, &to, &hlp);
-
-          //Copy line from buffer DC
-          if (bUseBufferDC)
-          {
-            //Send AEN_PAINT
-            pntNotify.ciMaxDraw=to.ciDrawLine;
-            pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
-            pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
-            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
-            AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
-
-            rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
+            rcSpace.left=rcSpace.right;
             rcSpace.top=(int)to.ptFirstCharInLine.y;
-            rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
-            rcSpace.bottom=ae->ptxt->nCharHeight;
-            BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
+            rcSpace.right=ae->rcDraw.right;
+            rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+            FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
+          }
+        }
+
+        //Scan line
+        while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
+        {
+          if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
+          {
+            nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
           }
 
-          //Next line
-          to.ptFirstCharInLine.y+=ae->ptxt->nCharHeight;
-          if (to.ptFirstCharInLine.y >= rcDraw.bottom)
+          //Selection
+          if (nLineSelection == AELS_FULL || nLineSelection == AELS_PARTLY)
+          {
+            if (to.ciDrawLine.lpLine->nSelStart == to.ciDrawLine.nCharInLine ||
+                ((hlp.dwFindFirst & AEHPT_SELECTION) && AEC_IsCharInSelection(&to.ciDrawLine)))
+            {
+              hlp.dwFindFirst&=~AEHPT_SELECTION;
+
+              //Draw text up to selection start
+              AE_PaintTextOut(ae, &to, &hlp);
+
+              hlp.dwActiveText=ae->popt->crSelText;
+              hlp.dwActiveBG=ae->popt->crSelBk;
+              hlp.hbrActiveBG=hSelBk;
+              hlp.dwPaintType|=AEHPT_SELECTION;
+              hlp.dwFontStyle=AEHLS_NONE;
+            }
+            else if (to.ciDrawLine.lpLine->nSelEnd == to.ciDrawLine.nCharInLine)
+            {
+              //Draw text up to selection end
+              AE_PaintTextOut(ae, &to, &hlp);
+
+              hlp.dwActiveText=hlp.dwDefaultText;
+              hlp.dwActiveBG=hlp.dwDefaultBG;
+              hlp.hbrActiveBG=hlp.hbrDefaultBG;
+              hlp.dwPaintType&=~AEHPT_SELECTION;
+              hlp.dwFontStyle=AEHLS_NONE;
+            }
+          }
+
+          //Check highlight close
+          AE_PaintCheckHighlightCloseItem(ae, &to, &hlp);
+
+          //Check highlight open
+          AE_PaintCheckHighlightOpenItem(ae, &to, &hlp, nLastDrawLine);
+
+          if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
+
+          //Draw text up to tab character
+          if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
+          {
+            AE_PaintTextOut(ae, &to, &hlp);
+
+            //Draw tab character
+            rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+            rcSpace.top=(int)to.ptFirstCharInLine.y;
+            rcSpace.right=rcSpace.left + nCharWidth;
+            rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+
+            if (hTab=CreateSolidBrush(hlp.dwActiveBG))
+            {
+              FillRect(to.hDC, &rcSpace, hTab);
+              DeleteObject(hTab);
+            }
+            to.nStartDrawWidth+=nCharWidth;
+            to.wpStartDraw+=1;
+          }
+
+          //Draw only 2048 characters at once
+          if (to.nMaxDrawCharsCount >= 2048)
+          {
+            AE_PaintTextOut(ae, &to, &hlp);
+          }
+          else ++to.nMaxDrawCharsCount;
+
+          //Stop line checking and draw it, if it's outside draw area
+          if (to.nDrawLineWidth > nMaxPaintWidth)
             break;
 
-          if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
-            ++to.nDrawCharOffset;
-          AEC_NextLine(&to.ciDrawLine);
+          //Increment line width
+          to.nDrawLineWidth+=nCharWidth;
+
+          //Increment char count
+          to.nDrawCharOffset+=AEC_IndexLen(&to.ciDrawLine);
+          AEC_IndexInc(&to.ciDrawLine);
         }
-        else
+        if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
+          to.nDrawCharOffset+=to.ciDrawLine.lpLine->nLineLen - to.ciDrawLine.nCharInLine;
+
+        //Draw text line
+        AE_PaintTextOut(ae, &to, &hlp);
+
+        //Copy line from buffer DC
+        if (bUseBufferDC)
         {
-          if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &to.ciDrawLine, &to.ciDrawLine, FALSE))
-            to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
-          else
-            break;
+          //Send AEN_PAINT
+          pntNotify.ciMaxDraw=to.ciDrawLine;
+          pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
+          pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+          pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
+          AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
+
+          rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
+          rcSpace.top=(int)to.ptFirstCharInLine.y;
+          rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
+          rcSpace.bottom=ae->ptxt->nCharHeight;
+          BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
         }
+
+        //Next line
+        to.ptFirstCharInLine.y+=ae->ptxt->nCharHeight;
+        if (to.ptFirstCharInLine.y >= rcDraw.bottom)
+          break;
+
+        if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+          ++to.nDrawCharOffset;
+        AEC_NextLine(&to.ciDrawLine);
       }
-
-      //Send AEN_PAINT
-      AE_NotifyPaint(ae, AEPNT_END, &pntNotify);
-
-      //Clean-up
-      if (hFontOld) SelectObject(to.hDC, hFontOld);
-
-      if (bUseBufferDC)
+      else
       {
-        if (hBitmapOld) SelectObject(to.hDC, hBitmapOld);
-        DeleteObject(hBitmap);
-        DeleteDC(to.hDC);
+        if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &to.ciDrawLine, &to.ciDrawLine, FALSE))
+          to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
+        else
+          break;
       }
-      if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
-      DeleteObject(hDrawRgn);
-      DeleteObject(hBasicBk);
-      DeleteObject(hSelBk);
-      DeleteObject(hActiveLineBk);
-
-      EndPaint(ae->hWndEdit, &ps);
     }
+
+    //Send AEN_PAINT
+    AE_NotifyPaint(ae, AEPNT_END, &pntNotify);
+
+    //Clean-up
+    if (hFontOld) SelectObject(to.hDC, hFontOld);
+
+    if (bUseBufferDC)
+    {
+      if (hBitmapOld) SelectObject(to.hDC, hBitmapOld);
+      DeleteObject(hBitmap);
+      DeleteDC(to.hDC);
+    }
+    if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
+    DeleteObject(hDrawRgn);
+    DeleteObject(hBasicBk);
+    DeleteObject(hSelBk);
+    DeleteObject(hActiveLineBk);
+
+    EndPaint(ae->hWndEdit, &ps);
   }
 }
 
