@@ -2115,11 +2115,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_SETCOLORS)
     {
       FRAMEDATA *lpFrame;
+      AECOLORS *aec=(AECOLORS *)lParam;
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        xmemcpy(&lpFrameCurrent->aec, (AECOLORS *)lParam, sizeof(AECOLORS));
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
+        lpFrameCurrent->aec.dwFlags=aec->dwFlags;
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
         lpFrameCurrent->aec.dwFlags=AECLR_ALL;
         return TRUE;
       }
