@@ -624,6 +624,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
       AESELECTION *aes=(AESELECTION *)lParam;
 
+      if (aes->dwFlags & AESELT_INDEXUPDATE)
+      {
+        aes->crSel.ciMin.lpLine=AE_GetLineData(ae, aes->crSel.ciMin.nLine);
+        if (aes->crSel.ciMin.nLine == aes->crSel.ciMax.nLine)
+          aes->crSel.ciMax.lpLine=aes->crSel.ciMin.lpLine;
+        else
+          aes->crSel.ciMax.lpLine=AE_GetLineData(ae, aes->crSel.ciMax.nLine);
+        if (lpciCaret)
+        {
+          if (aes->crSel.ciMin.nLine == lpciCaret->nLine)
+            lpciCaret->lpLine=aes->crSel.ciMin.lpLine;
+          else if (aes->crSel.ciMax.nLine == lpciCaret->nLine)
+            lpciCaret->lpLine=aes->crSel.ciMax.lpLine;
+        }
+      }
       AE_AkelEditSetSel(ae, aes, lpciCaret);
       return 0;
     }
