@@ -2137,7 +2137,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       }
     }
 
-    ReplaceSelW(hWnd, wszRange, -1, AELB_ASINPUT, -1, NULL, NULL);
+    ReplaceSelW(hWnd, wszRange, -1, AELB_ASINPUT, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
     if (!bSelection)
@@ -2145,11 +2145,6 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
       crRange.ciMin=crInitialSel.ciMin;
       crRange.ciMax=crInitialSel.ciMin;
-    }
-    else
-    {
-      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMin);
-      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMax);
     }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
