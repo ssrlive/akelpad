@@ -2101,13 +2101,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETCOLORS)
     {
       FRAMEDATA *lpFrame;
+      AECOLORS *aec=(AECOLORS *)lParam;
 
-      if (lParam)
+      if (aec)
       {
         if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
         {
-          xmemcpy((AECOLORS *)lParam, &lpFrameCurrent->aec, sizeof(AECOLORS));
-          return (LRESULT)lParam;
+          xmemcpy(aec, &lpFrame->aec, sizeof(AECOLORS));
+          return (LRESULT)aec;
         }
       }
       return (LRESULT)NULL;
@@ -2117,13 +2118,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
       AECOLORS *aec=(AECOLORS *)lParam;
 
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+      if (aec)
       {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
-        lpFrameCurrent->aec.dwFlags=aec->dwFlags;
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
-        lpFrameCurrent->aec.dwFlags=AECLR_ALL;
-        return TRUE;
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
+          lpFrame->aec.dwFlags=aec->dwFlags;
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
+          lpFrame->aec.dwFlags=AECLR_ALL;
+          return TRUE;
+        }
       }
       return FALSE;
     }
