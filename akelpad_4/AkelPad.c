@@ -1183,7 +1183,6 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocEdit, FALSE);
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrameCurrent->ei.hDocEdit, 0);
       }
-      StackFrameDelete(&hFramesStack, lpFrameCurrent);
 
       //Destroy real edits
       SplitDestroy(&fdInit, CN_CLONE1|CN_CLONE2|CN_CLONE3);
@@ -1200,6 +1199,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         CopyFrameData(&fdLast, lpFrameCurrent);
         xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
       }
+      StackFrameDelete(&hFramesStack, lpFrameCurrent);
     }
     else if (nMDI == WMD_MDI)
     {
