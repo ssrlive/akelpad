@@ -2,6 +2,7 @@
 AkelPad 4.5.3 ()
 ----------------------------
 Fixed: out of the text area didn't redraw under some conditions.
+Fixed: saving settings in SDI mode.
 Fixed: AkelPad.ini overwritten when there were no changes in settings.
 
 
