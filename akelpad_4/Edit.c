@@ -15251,11 +15251,6 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_GLOBALPRINT;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/C"))
-        {
-          dwCmdLineOptions&=~CLO_MSGOPENCREATEYES & ~CLO_MSGOPENCREATENO;
-          continue;
-        }
         else if (!xstrcmpiW(wszCmdArg, L"/C+"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENCREATENO;
@@ -15268,9 +15263,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_MSGOPENCREATENO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/B"))
+        else if (!xstrcmpiW(wszCmdArg, L"/C"))
         {
-          dwCmdLineOptions&=~CLO_MSGOPENBINARYYES & ~CLO_MSGOPENBINARYNO;
+          dwCmdLineOptions&=~CLO_MSGOPENCREATEYES & ~CLO_MSGOPENCREATENO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/B+"))
@@ -15285,9 +15280,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_MSGOPENBINARYNO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/L"))
+        else if (!xstrcmpiW(wszCmdArg, L"/B"))
         {
-          dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES & ~CLO_MSGSAVELOSTSYMBOLSNO;
+          dwCmdLineOptions&=~CLO_MSGOPENBINARYYES & ~CLO_MSGOPENBINARYNO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/L+"))
@@ -15300,6 +15295,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         {
           dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES;
           dwCmdLineOptions|=CLO_MSGSAVELOSTSYMBOLSNO;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/L"))
+        {
+          dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES & ~CLO_MSGSAVELOSTSYMBOLSNO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/X"))
