@@ -15251,6 +15251,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_GLOBALPRINT;
           continue;
         }
+        else if (!xstrcmpiW(wszCmdArg, L"/C"))
+        {
+          dwCmdLineOptions&=~CLO_MSGOPENCREATEYES & ~CLO_MSGOPENCREATENO;
+          continue;
+        }
         else if (!xstrcmpiW(wszCmdArg, L"/C+"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENCREATENO;
@@ -15263,6 +15268,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_MSGOPENCREATENO;
           continue;
         }
+        else if (!xstrcmpiW(wszCmdArg, L"/B"))
+        {
+          dwCmdLineOptions&=~CLO_MSGOPENBINARYYES & ~CLO_MSGOPENBINARYNO;
+          continue;
+        }
         else if (!xstrcmpiW(wszCmdArg, L"/B+"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENBINARYNO;
@@ -15273,6 +15283,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         {
           dwCmdLineOptions&=~CLO_MSGOPENBINARYYES;
           dwCmdLineOptions|=CLO_MSGOPENBINARYNO;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/L"))
+        {
+          dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES & ~CLO_MSGSAVELOSTSYMBOLSNO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/L+"))
