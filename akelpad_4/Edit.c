@@ -6367,18 +6367,18 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       }
       else
       {
-        POINT pt;
+        POINT ptClient;
 
-        GetCursorPos(&pt);
-        ScreenToClient(hWnd, &pt);
-        pt.x=MulDiv(100, ptPreviewScroll.x + pt.x, nPreviewZoomPercent) - pt.x;
-        pt.y=MulDiv(100, ptPreviewScroll.y + pt.y, nPreviewZoomPercent) - pt.y;
+        GetCursorPos(&ptClient);
+        ScreenToClient(hWnd, &ptClient);
+        ptClient.x=MulDiv(100, ptPreviewScroll.x + ptClient.x, nPreviewZoomPercent) - ptClient.x;
+        ptClient.y=MulDiv(100, ptPreviewScroll.y + ptClient.y, nPreviewZoomPercent) - ptClient.y;
 
         bPreviewRedrawLock=TRUE;
         SendMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, TRUE);
         bPreviewRedrawLock=FALSE;
-        PreviewHScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, pt.x);
-        PreviewVScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, pt.y);
+        PreviewHScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, ptClient.x);
+        PreviewVScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, ptClient.y);
       }
     }
   }
@@ -6386,12 +6386,12 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   {
     if (dwMouseCapture & MSC_PREVIEWMOVE)
     {
-      POINT pt;
+      POINT ptScreen;
 
-      GetCursorPos(&pt);
-      PreviewHScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.x - pt.x);
-      PreviewVScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.y - pt.y);
-      ptMouseMove=pt;
+      GetCursorPos(&ptScreen);
+      PreviewHScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.x - ptScreen.x);
+      PreviewVScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.y - ptScreen.y);
+      ptMouseMove=ptScreen;
     }
   }
   else if (uMsg == WM_LBUTTONUP ||
@@ -6853,22 +6853,22 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     if ((HWND)wParam == hWndFilePreview)
     {
       RECT rcRect;
-      POINT pt;
+      POINT ptScreen;
       AECHARRANGE cr;
 
       if (lParam == -1)
       {
         GetWindowRect((HWND)wParam, &rcRect);
-        pt.x=rcRect.left;
-        pt.y=rcRect.top;
+        ptScreen.x=rcRect.left;
+        ptScreen.y=rcRect.top;
       }
       else
       {
-        GetCursorPos(&pt);
+        GetCursorPos(&ptScreen);
       }
       GetSel((HWND)wParam, &cr, NULL, NULL);
       EnableMenuItem(hPopupView, IDM_EDIT_COPY, AEC_IndexCompare(&cr.ciMin, &cr.ciMax)?MF_ENABLED:MF_GRAYED);
-      i=TrackPopupMenu(hPopupView, TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hDlg, NULL);
+      i=TrackPopupMenu(hPopupView, TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen.x, ptScreen.y, 0, hDlg, NULL);
 
       if (i == IDM_EDIT_COPY)
         SendMessage((HWND)wParam, WM_COPY, 0, 0);
@@ -10009,19 +10009,19 @@ void FillMenuPopupCodepage()
   }
 }
 
-void ShowMenuPopupCodepage(POINT *pt)
+void ShowMenuPopupCodepage(POINT *ptScreen)
 {
   NCONTEXTMENU ncm;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
-  ncm.pt=*pt;
+  ncm.pt=*ptScreen;
   ncm.bProcess=TRUE;
   SendMessage(hMainWnd, AKDN_CONTEXTMENU, 0, (LPARAM)&ncm);
 
   if (ncm.bProcess)
   {
-    TrackPopupMenu(hPopupCodepage, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt->x, pt->y, 0, hMainWnd, NULL);
+    TrackPopupMenu(hPopupCodepage, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen->x, ptScreen->y, 0, hMainWnd, NULL);
   }
 }
 
@@ -13234,17 +13234,20 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if ((HWND)wParam == hWndList)
     {
-      POINT pt;
+      POINT ptScreen;
       HWND hWndControl;
       BOOL bEnable;
 
       if (lParam == -1)
       {
-        pt.x=0;
-        pt.y=0;
-        ClientToScreen(hWndList, &pt);
+        ptScreen.x=0;
+        ptScreen.y=0;
+        ClientToScreen(hWndList, &ptScreen);
       }
-      else GetCursorPos(&pt);
+      else
+      {
+        GetCursorPos(&ptScreen);
+      }
 
       for (nItem=0; lpMenuItems[nItem]; ++nItem)
       {
@@ -13258,7 +13261,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       CheckMenuRadioItem(hMenuList, IDC_MDILIST_ALL, IDC_MDILIST_ONLYUNMODIFIED, IDC_MDILIST_ALL + nModifyFilter, MF_BYCOMMAND);
-      TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hDlg, NULL);
+      TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen.x, ptScreen.y, 0, hDlg, NULL);
     }
   }
   else if (uMsg == WM_COMMAND)
@@ -13891,7 +13894,7 @@ HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
   return NULL;
 }
 
-DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt)
+DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *ptScreen)
 {
   DOCK *dkElement=(DOCK *)hDocks->hStack.first;
   RECT rc;
@@ -13902,7 +13905,7 @@ DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt)
     {
       if (GetWindowRect(dkElement->hWnd, &rc))
       {
-        if (PtInRect(&rc, *pt))
+        if (PtInRect(&rc, *ptScreen))
           return dkElement;
       }
     }
@@ -17096,7 +17099,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
   return FALSE;
 }
 
-void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
+void GetMovingRect(DOCK *dkData, POINT *ptScreen, MINMAXINFO *mmi, RECT *rcScreen)
 {
   RECT rcInitial=nsSize.rcInitial;
   RECT rcCurrent=nsSize.rcCurrent;
@@ -17108,7 +17111,7 @@ void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
 
   if (dkData->nSide == DKS_LEFT)
   {
-    rcScreen->right=max(rcScreen->left + mmi->ptMinTrackSize.x, pt->x);
+    rcScreen->right=max(rcScreen->left + mmi->ptMinTrackSize.x, ptScreen->x);
     rcScreen->right=min(rcScreen->left + mmi->ptMaxTrackSize.x, rcScreen->right);
     rcScreen->right=min(rcInitial.right, rcScreen->right);
     rcScreen->right=min(rcCurrent.right - DOCK_MAINMIN_X, rcScreen->right);
@@ -17117,7 +17120,7 @@ void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
   }
   else if (dkData->nSide == DKS_TOP)
   {
-    rcScreen->bottom=max(rcScreen->top + mmi->ptMinTrackSize.y, pt->y);
+    rcScreen->bottom=max(rcScreen->top + mmi->ptMinTrackSize.y, ptScreen->y);
     rcScreen->bottom=min(rcScreen->top + mmi->ptMaxTrackSize.y, rcScreen->bottom);
     rcScreen->bottom=min(rcInitial.bottom, rcScreen->bottom);
     rcScreen->bottom=min(rcCurrent.bottom - DOCK_MAINMIN_Y, rcScreen->bottom);
@@ -17126,7 +17129,7 @@ void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
   }
   else if (dkData->nSide == DKS_RIGHT)
   {
-    rcScreen->left=min(rcScreen->right - mmi->ptMinTrackSize.x, pt->x);
+    rcScreen->left=min(rcScreen->right - mmi->ptMinTrackSize.x, ptScreen->x);
     rcScreen->left=max(rcScreen->right - mmi->ptMaxTrackSize.x, rcScreen->left);
     rcScreen->left=max(rcInitial.left, rcScreen->left);
     rcScreen->left=max(rcCurrent.left + DOCK_MAINMIN_X, rcScreen->left);
@@ -17135,7 +17138,7 @@ void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
   }
   else if (dkData->nSide == DKS_BOTTOM)
   {
-    rcScreen->top=min(rcScreen->bottom - mmi->ptMinTrackSize.y, pt->y);
+    rcScreen->top=min(rcScreen->bottom - mmi->ptMinTrackSize.y, ptScreen->y);
     rcScreen->top=max(rcScreen->bottom - mmi->ptMaxTrackSize.y, rcScreen->top);
     rcScreen->top=max(rcInitial.top, rcScreen->top);
     rcScreen->top=max(rcCurrent.top + DOCK_MAINMIN_Y, rcScreen->top);
@@ -17176,18 +17179,18 @@ void DrawMovingRect(RECT *rcScreen)
   }
 }
 
-int GetMouseEdge(HWND hWnd, POINT *pt)
+int GetMouseEdge(HWND hWnd, POINT *ptScreen)
 {
   RECT rc;
 
   GetWindowRect(hWnd, &rc);
 
-  if (PtInRect(&rc, *pt))
+  if (PtInRect(&rc, *ptScreen))
   {
-    if (pt->x >= rc.left && pt->x <= rc.left + DOCK_BORDER_1X) return DKS_LEFT;
-    if (pt->y >= rc.top && pt->y <= rc.top + DOCK_BORDER_1X) return DKS_TOP;
-    if (pt->x <= rc.right && pt->x >= rc.right - DOCK_BORDER_1X) return DKS_RIGHT;
-    if (pt->y <= rc.bottom && pt->y >= rc.bottom - DOCK_BORDER_1X) return DKS_BOTTOM;
+    if (ptScreen->x >= rc.left && ptScreen->x <= rc.left + DOCK_BORDER_1X) return DKS_LEFT;
+    if (ptScreen->y >= rc.top && ptScreen->y <= rc.top + DOCK_BORDER_1X) return DKS_TOP;
+    if (ptScreen->x <= rc.right && ptScreen->x >= rc.right - DOCK_BORDER_1X) return DKS_RIGHT;
+    if (ptScreen->y <= rc.bottom && ptScreen->y >= rc.bottom - DOCK_BORDER_1X) return DKS_BOTTOM;
   }
   return 0;
 }
@@ -17213,12 +17216,12 @@ int GetOppEdge(int nEdge)
 
 BOOL IsCursorOnWindow(HWND hWnd)
 {
-  RECT rc;
-  POINT pt;
+  RECT rcScreen;
+  POINT ptScreen;
 
-  GetCursorPos(&pt);
-  GetWindowRect(hWnd, &rc);
-  return PtInRect(&rc, pt);
+  GetCursorPos(&ptScreen);
+  GetWindowRect(hWnd, &rcScreen);
+  return PtInRect(&rcScreen, ptScreen);
 }
 
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
@@ -17488,7 +17491,7 @@ int GetTabItemFromCursorPos(HWND hWnd)
   return (int)SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
 }
 
-int GetTabItemForDrop(HWND hWnd, POINT *pt)
+int GetTabItemForDrop(HWND hWnd, POINT *rcScreen)
 {
   TCHITTESTINFO thti;
   RECT rcTab;
@@ -17500,10 +17503,10 @@ int GetTabItemForDrop(HWND hWnd, POINT *pt)
 
   GetWindowRect(hWnd, &rcTab);
 
-  if (pt->x > rcTab.left && pt->y > rcTab.top &&
-      pt->x < rcTab.right && pt->y < rcTab.bottom)
+  if (rcScreen->x > rcTab.left && rcScreen->y > rcTab.top &&
+      rcScreen->x < rcTab.right && rcScreen->y < rcTab.bottom)
   {
-    nTabClientX=pt->x - rcTab.left;
+    nTabClientX=rcScreen->x - rcTab.left;
     rcTab.right-=rcTab.left;
     rcTab.bottom-=rcTab.top;
     thti.pt.x=nTabClientX;
