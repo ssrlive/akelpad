@@ -138,7 +138,6 @@
 #define AECF_RECURSE          0x00000002  //Recursive processing with all childrens.
 #define AECF_NOUPDATE         0x00000004  //Don't update scroll and selection.
 #define AECF_NOCARETCORRECT   0x00000008  //If in collapsed fold located caret, don't move it to fold start.
-#define AECF_NOSCROLLCORRECT  0x00000010  //If fold collapsed, don't scroll to make fold start visible.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -253,6 +252,7 @@
 #define AESELT_NOVERTSCROLLCORRECT 0x00000100  //On some conditions scroll can be increased to a height of one line.
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
+#define AESELT_INDEXUPDATE         0x00000800  //Update lpLine member of the AEM_SETSEL message structures, to avoid dangling of a pointer after text change.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -4407,7 +4407,7 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
   AEFOLD *lpFold;
   AEFOLD *lpResult=NULL;
 
-  hFoldStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETFOLDSTACK, 0, 0))
+  hFoldStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETFOLDSTACK, 0, 0);
 
   for (lpFold=(AEFOLD *)hFoldStack->first; lpFold; lpFold=AEC_NextFold(lpFold, TRUE))
   {
