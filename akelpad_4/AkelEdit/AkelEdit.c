@@ -5926,10 +5926,10 @@ void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
       }
       else
       {
-        if (!(dwFlags & AECF_NOSCROLLCORRECT))
+        if (!(dwFlags & AECF_NOUPDATE))
           AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, lpPos, NULL);
       }
-      if (!(dwFlags & AECF_NOSCROLLCORRECT))
+      if (!(dwFlags & AECF_NOUPDATE))
         AE_ScrollToPoint(ae, lpPos);
     }
   }
