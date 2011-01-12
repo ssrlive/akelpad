@@ -1,5 +1,5 @@
 
-AkelPad 4.5.3 ()
+AkelPad 4.5.3 (Jan 12, 2011)
 ----------------------------
 Added: command line parameters /C, /B, /L for return to the ask mode.
 
