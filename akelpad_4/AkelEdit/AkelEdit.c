@@ -15197,7 +15197,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
                   if (lpPoint->nTmpPointOffset == AEPTO_CALC)
                     lpPoint->nTmpPointOffset=lpPoint->nPointOffset - nRichTextCount;
 
-                  if (nElementLine != ciDeleteEnd.nLine)
+                  if (lpPoint->ciPoint.nLine > nElementLine && nElementLine != ciDeleteEnd.nLine)
                   {
                     //Parse next line
                     if (!lpRestartFrom) lpRestartFrom=lpPoint;
@@ -15909,7 +15909,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                       if (lpPoint->nTmpPointOffset == AEPTO_CALC)
                         lpPoint->nTmpPointOffset=lpPoint->nPointOffset + dwRichTextCount;
 
-                      if (nLineBreak != AELB_EOF)
+                      if (lpPoint->ciPoint.nLine > ciLastChar.nLine && nLineBreak != AELB_EOF)
                       {
                         //Parse next line
                         if (!lpRestartFrom) lpRestartFrom=lpPoint;
