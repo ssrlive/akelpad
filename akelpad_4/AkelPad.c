@@ -2433,9 +2433,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%S", APP_REGHOMEW, (char *)lParam);
+              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, (rh->dwType & POB_SCRIPTS)?L"Scripts\\":L"", (char *)lParam);
             else
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%s", APP_REGHOMEW, (wchar_t *)lParam);
+              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%s", APP_REGHOMEW, (rh->dwType & POB_SCRIPTS)?L"Scripts\\":L"", (wchar_t *)lParam);
           }
           else xprintfW(rh->wszKey, L"%s\\Options", APP_REGHOMEW);
 
@@ -2473,9 +2473,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%S.ini", wszExeDir, (char *)lParam);
+              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, (ih->dwType & POB_SCRIPTS)?L"Scripts\\":L"", (char *)lParam);
             else
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s.ini", wszExeDir, (wchar_t *)lParam);
+              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, (ih->dwType & POB_SCRIPTS)?L"Scripts\\":L"", (wchar_t *)lParam);
           }
           else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
 

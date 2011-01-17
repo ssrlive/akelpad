@@ -223,9 +223,10 @@
 #define INI_STRINGUNICODE   4
 
 //Options flags
-#define POB_READ     0x1  //Begins read options.
-#define POB_SAVE     0x2  //Begins save options.
-#define POB_CLEAR    0x4  //Begins new save options (POB_SAVE|POB_CLEAR).
+#define POB_READ     0x01  //Begins read options.
+#define POB_SAVE     0x02  //Begins save options.
+#define POB_CLEAR    0x04  //Begins new save options (POB_SAVE|POB_CLEAR).
+#define POB_SCRIPTS  0x10  //Begins Scripts plugin options.
 
 //Option type
 #define PO_DWORD     1  //32-bit number.
@@ -3510,8 +3511,8 @@ Example:
  See AKD_BEGINOPTIONS examples
 
 
-AKD_ENDOPTION
-_____________
+AKD_ENDOPTIONS
+______________
 
 Ends plugin options.
 
