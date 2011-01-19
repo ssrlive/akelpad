@@ -229,9 +229,10 @@
 #define POB_SCRIPTS  0x10  //Begins Scripts plugin options.
 
 //Option type
-#define PO_DWORD     1  //32-bit number.
-#define PO_BINARY    2  //Binary data in any form.
-#define PO_STRING    3  //Null-terminated string.
+#define PO_DWORD     1   //32-bit number.
+#define PO_BINARY    2   //Binary data in any form.
+#define PO_STRING    3   //Null-terminated string.
+#define PO_REMOVE    10  //Delete option.
 
 //Support flags
 #define PDS_SUPPORTALL   0x00000000  //Function support everything (default).
@@ -770,14 +771,14 @@ typedef struct {
 
 typedef struct {
   const char *pOptionName;       //Option name.
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  DWORD dwType;                  //Data type: see PO_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONA;
 
 typedef struct {
   const wchar_t *pOptionName;    //Option name.
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  DWORD dwType;                  //Data type: see PO_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONW;

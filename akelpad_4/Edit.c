@@ -3197,58 +3197,6 @@ BOOL StackSetIniData(INIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD d
   return FALSE;
 }
 
-int IniGetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
-{
-  INISECTION *lpIniSection;
-  INIKEY *lpIniKey;
-
-  if (!(lpIniSection=StackOpenIniSectionA(hIniFile, pSection, lstrlenA(pSection), FALSE)))
-    return 0;
-  if (!(lpIniKey=StackOpenIniKeyA(lpIniSection, pKey, lstrlenA(pKey), FALSE)))
-    return 0;
-
-  return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
-}
-
-int IniGetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
-{
-  INISECTION *lpIniSection;
-  INIKEY *lpIniKey;
-
-  if (!(lpIniSection=StackOpenIniSectionW(hIniFile, wpSection, lstrlenW(wpSection), FALSE)))
-    return 0;
-  if (!(lpIniKey=StackOpenIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey), FALSE)))
-    return 0;
-
-  return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
-}
-
-BOOL IniSetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
-{
-  INISECTION *lpIniSection;
-  INIKEY *lpIniKey;
-
-  if (!(lpIniSection=StackOpenIniSectionA(hIniFile, pSection, lstrlenA(pSection), TRUE)))
-    return FALSE;
-  if (!(lpIniKey=StackOpenIniKeyA(lpIniSection, pKey, lstrlenA(pKey), TRUE)))
-    return FALSE;
-
-  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
-}
-
-BOOL IniSetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
-{
-  INISECTION *lpIniSection;
-  INIKEY *lpIniKey;
-
-  if (!(lpIniSection=StackOpenIniSectionW(hIniFile, wpSection, lstrlenW(wpSection), TRUE)))
-    return FALSE;
-  if (!(lpIniKey=StackOpenIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey), TRUE)))
-    return FALSE;
-
-  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
-}
-
 void StackDeleteIniKey(INISECTION *lpIniSection, INIKEY *lpIniKey)
 {
   if (lpIniKey)
@@ -3292,6 +3240,86 @@ void StackFreeIni(INIFILE *hIniFile)
     lpIniSection=lpIniSection->next;
   }
   StackClear((stack **)&hIniFile->first, (stack **)&hIniFile->last);
+}
+
+INIKEY* IniOpenKeyA(INIFILE *hIniFile, const char *pSection, const char *pKey, BOOL bCreate, INISECTION **lppIniSection)
+{
+  INISECTION *lpIniSection;
+
+  if (!(lpIniSection=StackOpenIniSectionA(hIniFile, pSection, lstrlenA(pSection), bCreate)))
+    return 0;
+  if (lppIniSection)
+    *lppIniSection=lpIniSection;
+  return StackOpenIniKeyA(lpIniSection, pKey, lstrlenA(pKey), bCreate);
+}
+
+INIKEY* IniOpenKeyW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, BOOL bCreate, INISECTION **lppIniSection)
+{
+  INISECTION *lpIniSection;
+
+  if (!(lpIniSection=StackOpenIniSectionW(hIniFile, wpSection, lstrlenW(wpSection), bCreate)))
+    return 0;
+  if (lppIniSection)
+    *lppIniSection=lpIniSection;
+  return StackOpenIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey), bCreate);
+}
+
+int IniGetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyA(hIniFile, pSection, pKey, FALSE, NULL)))
+    return 0;
+  return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
+}
+
+int IniGetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyW(hIniFile, wpSection, wpKey, FALSE, NULL)))
+    return 0;
+  return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
+}
+
+BOOL IniSetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyA(hIniFile, pSection, pKey, TRUE, NULL)))
+    return FALSE;
+  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
+}
+
+BOOL IniSetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyW(hIniFile, wpSection, wpKey, TRUE, NULL)))
+    return FALSE;
+  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
+}
+
+BOOL IniDelKeyA(INIFILE *hIniFile, const char *pSection, const char *pKey)
+{
+  INISECTION *lpIniSection;
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyA(hIniFile, pSection, pKey, FALSE, &lpIniSection)))
+    return FALSE;
+  StackDeleteIniKey(lpIniSection, lpIniKey);
+  return TRUE;
+}
+
+BOOL IniDelKeyW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey)
+{
+  INISECTION *lpIniSection;
+  INIKEY *lpIniKey;
+
+  if (!(lpIniKey=IniOpenKeyW(hIniFile, wpSection, wpKey, FALSE, &lpIniSection)))
+    return FALSE;
+  StackDeleteIniKey(lpIniSection, lpIniKey);
+  return TRUE;
 }
 
 

@@ -2537,29 +2537,48 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (rh->dwType & POB_READ)
         {
-          dwSize=po->dwData;
-          if (bAnsi)
+          if (po->dwType != PO_REMOVE)
           {
-            if (RegQueryValueExA(rh->hKey, (char *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-              dwResult=dwSize;
-          }
-          else
-          {
-            if (RegQueryValueExWide(rh->hKey, (wchar_t *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-              dwResult=dwSize;
+            dwSize=po->dwData;
+            if (bAnsi)
+            {
+              if (RegQueryValueExA(rh->hKey, (char *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+                dwResult=dwSize;
+            }
+            else
+            {
+              if (RegQueryValueExWide(rh->hKey, (wchar_t *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+                dwResult=dwSize;
+            }
           }
         }
         else if (rh->dwType & POB_SAVE)
         {
           if (bAnsi)
           {
-            if (RegSetValueExA(rh->hKey, (char *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-              dwResult=TRUE;
+            if (po->dwType == PO_REMOVE)
+            {
+              if (RegDeleteValueA(rh->hKey, (char *)po->pOptionName) == ERROR_SUCCESS)
+                dwResult=TRUE;
+            }
+            else
+            {
+              if (RegSetValueExA(rh->hKey, (char *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+                dwResult=TRUE;
+            }
           }
           else
           {
-            if (RegSetValueExWide(rh->hKey, (wchar_t *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-              dwResult=TRUE;
+            if (po->dwType == PO_REMOVE)
+            {
+              if (RegDeleteValueWide(rh->hKey, (wchar_t *)po->pOptionName) == ERROR_SUCCESS)
+                dwResult=TRUE;
+            }
+            else
+            {
+              if (RegSetValueExWide(rh->hKey, (wchar_t *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+                dwResult=TRUE;
+            }
           }
         }
       }
@@ -2576,17 +2595,30 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ih->dwType & POB_READ)
         {
-          if (bAnsi)
-            dwResult=IniGetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
-          else
-            dwResult=IniGetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          if (po->dwType != PO_REMOVE)
+          {
+            if (bAnsi)
+              dwResult=IniGetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            else
+              dwResult=IniGetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          }
         }
         else if (ih->dwType & POB_SAVE)
         {
           if (bAnsi)
-            dwResult=IniSetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          {
+            if (po->dwType == PO_REMOVE)
+              dwResult=IniDelKeyA(&ih->hIniFile, "Options", (char *)po->pOptionName);
+            else
+              dwResult=IniSetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          }
           else
-            dwResult=IniSetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          {
+            if (po->dwType == PO_REMOVE)
+              dwResult=IniDelKeyW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName);
+            else
+              dwResult=IniSetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          }
         }
       }
       return dwResult;
