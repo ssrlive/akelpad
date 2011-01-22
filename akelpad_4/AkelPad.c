@@ -3705,6 +3705,28 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return TRUE;
         }
       }
+      else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED)
+      {
+        if (nMDI)
+        {
+          FRAMEDATA *lpFrameInit=lpFrameCurrent;
+          BOOL bBreak=FALSE;
+
+          while (!bBreak)
+          {
+            lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+            if (lpFrameCurrent == lpFrameInit)
+              bBreak=TRUE;
+
+            if (!lpFrameCurrent->ei.bModified)
+            {
+              if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+                return FALSE;
+            }
+          }
+          return TRUE;
+        }
+      }
     }
   }
   else if (uMsg == WM_NOTIFY)
