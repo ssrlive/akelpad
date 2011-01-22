@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 5)
 
 
 //// Defines
@@ -1337,9 +1337,12 @@ typedef struct {
 #define IDM_WINDOW_FRAMECLOSEALL        4319  //Close all documents.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE 4320  //Close all documents, but active.
-                                                 //Return Value: TRUE - success, FALSE - failed.
-                                                 //
+#define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE  4320  //Close all documents, but active.
+                                                  //Return Value: TRUE - success, FALSE - failed.
+                                                  //
+#define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents.
+                                                  //Return Value: TRUE - success, FALSE - failed.
+                                                  //
 #define IDM_WINDOW_FILECLOSE            4324  //Close file.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //

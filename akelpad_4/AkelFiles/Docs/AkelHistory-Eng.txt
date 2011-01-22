@@ -1,4 +1,9 @@
 
+AkelPad 4.5.4 ()
+----------------------------
+Added: command 4321 - close all unmodified tabs.
+
+
 AkelPad 4.5.3 (Jan 12, 2011)
 ----------------------------
 Added: command line parameters /C, /B, /L for return to the ask mode.
