@@ -50,6 +50,7 @@
   #define xstrcpynA
   #define xstrcpynW
   #define UTF8toUTF16
+  #define UTF16toUTF8
 #else
   #define WideCharLower_INCLUDED
   #define xmemcpy_INCLUDED
@@ -62,6 +63,7 @@
   #define xstrcpynA_INCLUDED
   #define xstrcpynW_INCLUDED
   #define UTF8toUTF16_INCLUDED
+  #define UTF16toUTF8_INCLUDED
 #endif
 #define WideCharUpper
 #define xarraysizeA
@@ -80,7 +82,6 @@
 #define hex2binW
 #define bin2hexW
 #define xprintfW
-#define UTF16toUTF8
 #define UTF32toUTF16
 #define UTF16toUTF32
 #include "AkelEdit\StrFunc.h"
@@ -237,6 +238,8 @@ HSTACK hHandlesStack={0};
 RECT rcPluginsInitDialog={0};
 BOOL bSavePluginsStackOnExit=FALSE;
 WNDPROC OldHotkeyInputProc=NULL;
+wchar_t wszLastFunction[MAX_PATH]=L"";
+int nLastFunctionIndex;
 
 //INI
 INIFILE hIniFile={0};
@@ -273,6 +276,7 @@ BOOL bMainOnStart=FALSE;
 BOOL bMainOnFinish=FALSE;
 BOOL bEditOnFinish=FALSE;
 BOOL bFirstTabOnFinish=FALSE;
+BOOL bChangedPromptOnFinish=TRUE;
 
 //Status window
 STATUSSTATE ssStatus;
@@ -343,7 +347,7 @@ RECT rcGotoDlg={0};
 DWORD dwGotoType=GT_LINE;
 
 //Options dialog
-HHOOK hPropertyHook;
+HHOOK hHookPropertySheet;
 HWND hPropertyTab;
 int nPropertyStartPage=0;
 BOOL bOptionsSave;
@@ -642,6 +646,7 @@ void _WinMain()
   xstrcpyW(moInit.wszFileTypesPrint, STR_ASSOCIATE_PRINTW);
   //moInit.dwFileTypesAssociated=0;
   //moInit.bKeybLayoutMDI=FALSE;
+  //moInit.bSilentCloseEmptyMDI=FALSE;
   //moInit.bDateLog=FALSE;
   //moInit.bSaveInReadOnlyMsg=FALSE;
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
@@ -3491,11 +3496,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_WINDOW_FILECLOSE)
     {
-      return CloseDocument();
+      return CloseDocument(TRUE);
     }
     else if (LOWORD(wParam) == IDM_WINDOW_FILEEXIT)
     {
-      if (CloseDocument())
+      if (CloseDocument(TRUE))
       {
         if (!nMDI)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
@@ -3676,7 +3681,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!nMDI)
         {
-          return CloseDocument();
+          return CloseDocument(TRUE);
         }
         else
         {
@@ -4630,6 +4635,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
           xprintfW(wbuf, L"&%d/%d", nPart, 100 - nPart);
           AppendMenuWide(hPopupSize, MF_STRING, nPart, wbuf);
         }
+        SetMenuDefaultItem(hPopupSize, 50, FALSE);
         GetCursorPos(&ptPos);
 
         if (nPart=TrackPopupMenu(hPopupSize, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON|TPM_CENTERALIGN, ptPos.x, ptPos.y, 0, hMainWnd, NULL))
@@ -4763,14 +4769,24 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
       FRAMEDATA *lpFrame;
       int nTabItem;
+      BOOL bSaveChangedPrompt;
 
       if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
       {
         //Activate frame
         ActivateMdiFrameWindow(lpFrame, 0);
 
+        //Is save prompt required
+        if (bChangedPromptOnFinish && lpFrame->ei.bModified && (!moCur.bSilentCloseEmptyMDI || lpFrame->ei.wszFile[0] || GetTextLength(lpFrame->ei.hWndEdit)))
+          bSaveChangedPrompt=TRUE;
+        else
+          bSaveChangedPrompt=FALSE;
+
         //Ask if document unsaved
-        if (!SaveChanged()) return TRUE;
+        if (bSaveChangedPrompt)
+        {
+          if (!SaveChanged()) return TRUE;
+        }
         RecentFilesSaveCurrentFile();
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)

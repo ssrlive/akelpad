@@ -1,7 +1,20 @@
 
 AkelPad 4.5.4 ()
 ----------------------------
-Added: command 4321 - close all unmodified tabs.
+Added: option for moving caret at right mouse click.
+Added: option for silently closing unsaved empty tab (MDI/PMDI).
+Added: at program close, in saving document message added option "None for All".
+Added: ability to move to a problem location, in message about the loss of characters in
+       the specified encoding.
+Added: Eastern European recognition (1250, OEM, UTF-8).
+Added: Western European recognition (1252, OEM, UTF-8).
+Added: command 4321 - close all unmodified tabs (MDI/PMDI).
+Added: "\|" in /Insert() command line method - sets the caret position after text insertion.
+Added: locally remembers last call plugin.
+
+Fixed: UTF-8 recoding.
+Fixed: copy/paste text from the clipboard between AkelEdit windows with different bits
+      (Windows x64).
 
 
 AkelPad 4.5.3 (Jan 12, 2011)

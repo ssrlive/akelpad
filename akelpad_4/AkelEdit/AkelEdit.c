@@ -65,6 +65,7 @@
 #define xstrcpynA
 #define xstrcpynW
 #define UTF8toUTF16
+#define UTF16toUTF8
 #include "StrFunc.h"
 
 //Include x64 functions
@@ -465,7 +466,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_CHECKCODEPAGE)
     {
-      return AE_CheckCodepage(ae, (int)wParam);
+      return AE_CheckCodepage(ae, (int)wParam, (int *)lParam);
     }
     if (uMsg == AEM_FINDTEXTA)
     {
@@ -3849,6 +3850,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
       }
       return 0;
+    }
+    else if (uMsg == WM_RBUTTONDOWN)
+    {
+      if (ae->popt->dwOptions & AECO_RBUTTONDOWNMOVECARET)
+      {
+        if (ae->nCurrentCursor != AECC_SELECTION)
+        {
+          POINT ptPos;
+
+          GetCursorPos(&ptPos);
+          ScreenToClient(ae->hWndEdit, &ptPos);
+
+          ae->dwMouseSelType=AEMSS_CHARS;
+          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
+        }
+      }
     }
     else if (uMsg == WM_MBUTTONDOWN)
     {
@@ -8143,20 +8160,39 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
   }
 }
 
-int AE_CheckCodepage(AKELEDIT *ae, int nCodePage)
+int AE_CheckCodepage(AKELEDIT *ae, int nCodePage, int *lpdwCharInLine)
 {
   AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  char *szLine;
+  char *pCount;
+  char chChar=0x00;
   int nLine=1;
-  BOOL bUsedDefaultChar;
+  int nLineLen;
+  BOOL bUsedDefaultChar=FALSE;
 
   while (lpLine)
   {
     if (lpLine->nLineLen)
     {
-      bUsedDefaultChar=FALSE;
       WideCharToMultiByte(nCodePage, WC_NO_BEST_FIT_CHARS, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, &bUsedDefaultChar);
+
       if (bUsedDefaultChar)
+      {
+        //Get character in line
+        if (lpdwCharInLine)
+        {
+          nLineLen=WideCharToMultiByte(nCodePage, WC_NO_BEST_FIT_CHARS, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
+
+          if (szLine=(char *)AE_HeapAlloc(ae, 0, nLineLen + 1))
+          {
+            WideCharToMultiByte(nCodePage, WC_NO_BEST_FIT_CHARS, lpLine->wpLine, lpLine->nLineLen + 1, szLine, nLineLen + 1, &chChar, NULL);
+            for (pCount=szLine; *pCount != chChar; ++pCount);
+            *lpdwCharInLine=(DWORD)(pCount - szLine) + 1;
+            AE_HeapFree(ae, 0, (LPVOID)szLine);
+          }
+        }
         return nLine;
+      }
     }
     ++nLine;
     lpLine=lpLine->next;
@@ -11473,13 +11509,10 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       }
       if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
 
-      //Draw text up to tab character
       if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
       {
-        AE_PaintTextOut(&ph->aePrint, &to, &hlp);
-
-        //Draw tab character
-        rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+        //Fill tab space
+        rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nDrawLineWidth);
         rcSpace.top=(int)to.ptFirstCharInLine.y;
         rcSpace.right=rcSpace.left + nCharWidth;
         rcSpace.bottom=rcSpace.top + ph->aePrint.ptxt->nCharHeight;
@@ -11495,6 +11528,10 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
             }
           }
         }
+
+        //Draw text up to tab character
+        AE_PaintTextOut(&ph->aePrint, &to, &hlp);
+
         to.nStartDrawWidth+=nCharWidth;
         to.wpStartDraw+=1;
       }
@@ -11853,10 +11890,8 @@ void AE_Paint(AKELEDIT *ae)
           //Draw text up to tab character
           if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
           {
-            AE_PaintTextOut(ae, &to, &hlp);
-
-            //Draw tab character
-            rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+            //Fill tab space
+            rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nDrawLineWidth);
             rcSpace.top=(int)to.ptFirstCharInLine.y;
             rcSpace.right=rcSpace.left + nCharWidth;
             rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
@@ -11866,6 +11901,10 @@ void AE_Paint(AKELEDIT *ae)
               FillRect(to.hDC, &rcSpace, hTab);
               DeleteObject(hTab);
             }
+
+            //Draw text up to tab character
+            AE_PaintTextOut(ae, &to, &hlp);
+
             to.nStartDrawWidth+=nCharWidth;
             to.wpStartDraw+=1;
           }
@@ -13040,10 +13079,11 @@ int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, INT_PTR nCharExtent)
   else nCharLen=1;
 
   if (nCharLen)
-    AE_GetTextExtentPoint32(ae, wpChar, nCharLen, &sizeChar);
-  else
-    sizeChar.cx=0;
-  return (int)sizeChar.cx;
+  {
+    if (AE_GetTextExtentPoint32(ae, wpChar, nCharLen, &sizeChar))
+      return (int)sizeChar.cx;
+  }
+  return 0;
 }
 
 INT_PTR AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, INT_PTR nFirstCharExtent)
@@ -17812,8 +17852,10 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
       {
         if (pDataInfo=(AECLIPBOARDINFO *)GlobalLock(hDataInfo))
         {
-          pDataInfo->dwAnsiLen=dwAnsiLen?dwAnsiLen - 1:0;
-          pDataInfo->dwUnicodeLen=dwUnicodeLen?dwUnicodeLen - 1:0;
+          pDataInfo->dwAnsiLen64=dwAnsiLen?dwAnsiLen - 1:0;
+          pDataInfo->dwUnicodeLen64=dwUnicodeLen?dwUnicodeLen - 1:0;
+          pDataInfo->dwAnsiLen=(DWORD)pDataInfo->dwAnsiLen64;
+          pDataInfo->dwUnicodeLen=(DWORD)pDataInfo->dwUnicodeLen64;
           GlobalUnlock(pDataInfo);
         }
         SetClipboardData(cfAkelEditText, hDataInfo);
@@ -17829,7 +17871,8 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
   HGLOBAL hData;
   LPVOID pData;
   AECLIPBOARDINFO *pDataInfo;
-  AECLIPBOARDINFO cbi;
+  UINT_PTR dwAnsiLen=(UINT_PTR)-1;
+  UINT_PTR dwUnicodeLen=(UINT_PTR)-1;
   BOOL bColumnSel;
   BOOL bResult=FALSE;
 
@@ -17838,15 +17881,19 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
   if (OpenClipboard(NULL))
   {
     //Get AkelEdit clipboard text length
-    cbi.dwAnsiLen=(UINT_PTR)-1;
-    cbi.dwUnicodeLen=(UINT_PTR)-1;
-
     if (hDataInfo=GetClipboardData(cfAkelEditText))
     {
       if (pDataInfo=(AECLIPBOARDINFO *)GlobalLock(hDataInfo))
       {
-        cbi.dwAnsiLen=pDataInfo->dwAnsiLen;
-        cbi.dwUnicodeLen=pDataInfo->dwUnicodeLen;
+        #ifdef _WIN64
+          //x64
+          dwAnsiLen=pDataInfo->dwAnsiLen64;
+          dwUnicodeLen=pDataInfo->dwUnicodeLen64;
+        #else
+          //x86
+          dwAnsiLen=pDataInfo->dwAnsiLen;
+          dwUnicodeLen=pDataInfo->dwUnicodeLen;
+        #endif
         GlobalUnlock(pDataInfo);
       }
     }
@@ -17856,7 +17903,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSel(ae, (wchar_t *)pData, cbi.dwUnicodeLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
+        AE_ReplaceSel(ae, (wchar_t *)pData, dwUnicodeLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
         bResult=TRUE;
         GlobalUnlock(hData);
       }
@@ -17865,7 +17912,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, cbi.dwAnsiLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
+        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, dwAnsiLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
         bResult=TRUE;
         GlobalUnlock(hData);
       }

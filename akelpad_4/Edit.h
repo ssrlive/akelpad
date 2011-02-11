@@ -63,6 +63,9 @@
 #ifndef INVALID_FILE_ATTRIBUTES
   #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
 #endif
+#ifndef SS_EDITCONTROL
+  #define SS_EDITCONTROL 0x00002000L
+#endif
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
 #endif
@@ -184,6 +187,8 @@
 //Language identifiers
 #define LANGID_RUSSIAN    0x0419
 #define LANGID_ENGLISH    0x0409
+#define LANGID_POLISH     0x0415
+#define LANGID_GERMAN     0x0407
 #define LANGID_TURKISH    0x041F
 #define LANGID_CHINESE    0x0404
 #define LANGID_JAPANESE   0x0411
@@ -384,6 +389,7 @@ typedef struct {
   DWORD dwFileTypesAssociated;
   int nClickURL;
   BOOL bKeybLayoutMDI;
+  BOOL bSilentCloseEmptyMDI;
   BOOL bDateLog;
   BOOL bSaveInReadOnlyMsg;
   wchar_t wszDefaultSaveExt[MAX_PATH];
@@ -577,6 +583,20 @@ typedef struct {
 } DIALOGCODEPAGE;
 
 typedef struct {
+  int nButtonControlID;
+  int nButtonStringID;
+  BOOL bDefaultButton;
+} BUTTONMESSAGEBOX;
+
+typedef struct {
+  HWND hWndParent;
+  const wchar_t *wpText;
+  const wchar_t *wpCaption;
+  UINT uType;
+  BUTTONMESSAGEBOX *btn;
+} DIALOGMESSAGEBOX;
+
+typedef struct {
   POSTMESSAGE pm;
   PARSECMDLINESENDW pcls;
 } PMPARSECMDLINEW;
@@ -612,7 +632,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame);
 
 BOOL DoFileNew();
-BOOL CloseDocument();
+BOOL CloseDocument(BOOL bSaveChangedPrompt);
 HWND DoFileNewWindow(DWORD dwAddFlags);
 BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam);
 BOOL DoFileOpen();
@@ -752,10 +772,8 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage);
-UINT_PTR UTF32toUTF16(const unsigned long *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax);
-UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned long *szTarget, UINT_PTR nTargetMax);
-UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax);
-UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone,  unsigned short *szTarget, UINT_PTR nTargetMax);
+BOOL IsLangEasternEurope(DWORD dwLangID);
+BOOL IsLangWesternEurope(DWORD dwLangID);
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 void ChangeFourBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 BOOL IsCodePageUnicode(int nCodePage);
@@ -854,7 +872,7 @@ void FreePluginList(HSTACK *hStack);
 BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 
-LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK CBTPropertySheetProc(int iCode, WPARAM wParam, LPARAM lParam);
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam);
 BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
@@ -875,6 +893,9 @@ int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn);
+BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData);
 int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide);
@@ -944,7 +965,7 @@ char* GetParameterCharA(STACKEXTPARAM *hParamStack, int nIndex);
 wchar_t* GetParameterCharW(STACKEXTPARAM *hParamStack, int nIndex);
 char* GetParameterExpCharA(STACKEXTPARAM *hParamStack, int nIndex);
 wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex);
-INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput);
+INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
@@ -1024,12 +1045,9 @@ HANDLE API_LoadImageW(HINSTANCE hLoadInstance, wchar_t *lpszName, UINT uType, in
 int API_LoadStringA(HINSTANCE hLoadInstance, UINT uID, char *lpBuffer, int nBufferMax);
 int API_LoadStringW(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nBufferMax);
 int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType);
-HWND API_CreateDialogA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
-HWND API_CreateDialogW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
-INT_PTR API_DialogBoxA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
-INT_PTR API_DialogBoxW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
-INT_PTR API_DialogBoxParamA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-INT_PTR API_DialogBoxParamW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+HWND API_CreateDialog(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
+INT_PTR API_DialogBox(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
+INT_PTR API_DialogBoxParam(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 HANDLE API_CreateFileA(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);

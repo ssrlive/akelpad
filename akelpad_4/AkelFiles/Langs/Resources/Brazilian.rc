@@ -777,10 +777,12 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
     CONTROL         "Seleção de mouse RichEdit",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Arrastar com mouse",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
-    GROUPBOX        "Divisão de linha",IDC_STATIC,122,190,87,33
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
+    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
+    GROUPBOX        "Divisão de linha",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
@@ -832,21 +834,24 @@ BEGIN
     CONTROL         "Lembrar o leiaute de teclado de cada aba (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
+    CONTROL         "Silently close unsaved empty tab (MDI)",
+                    IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,23,200,10
     CONTROL         "Inserir data se o arquivo possuir .LOG ao início",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,23,200,10
+                    WS_TABSTOP,9,35,200,10
     CONTROL         "Alerta ao salvar em somente leitura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,35,200,10
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
-    LTEXT           "Extensão padrão ao salvar",IDC_STATIC,37,53,171,8
-    GROUPBOX        "Janela de Procurar/Substituir",IDC_STATIC,9,72,200,41
+                    WS_TABSTOP,9,47,200,10
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
+    LTEXT           "Extensão padrão ao salvar",IDC_STATIC,37,65,171,8
+    GROUPBOX        "Janela de Procurar/Substituir",IDC_STATIC,9,84,200,41
     CONTROL         "Fechar diálogo ao substituir tudo",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,85,185,10
+                    WS_TABSTOP,17,97,185,10
     CONTROL         "Verificar ""Na seleção"" se a seleção não estiver vazia",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,97,185,10
+                    WS_TABSTOP,17,109,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -874,6 +879,13 @@ BEGIN
     LTEXT           "Página da web:",IDC_STATIC,19,41,85,11
     GROUPBOX        "Autores:",IDC_STATIC,20,62,177,109
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
+END
+
+IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
 END
 
 
@@ -1021,13 +1033,22 @@ BEGIN
     STR_ONLYMODIFIED        "Modificado"
     STR_ONLYUNMODIFIED      "Não-modificado"
     STR_INVERTSELECTION     "Inverter seleção"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Yes"
+    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_CANCEL   "Cancelar"
+    STR_MESSAGEBOX_YESTOALL "Yes to all"
+    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_GOTO     "Ir para"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "Cirílico (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Cirílico (1251, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Latim (OEM)"
-    STR_AUTODETECT_TURKISH  "Turco (ANSI, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_TURKISH  "Turco (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Chinês (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonês (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coreano (UTF-8)"
