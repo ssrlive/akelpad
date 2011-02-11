@@ -7644,10 +7644,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
     xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //îåàèíòÎEÀÈÍÒ         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
     xstrcpyA(szUTF8watermark, "\xD0\xD1");
   }
-  else if (dwLangID == LANG_ENGLISH)
-  {
-    xstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB\xCD");
-  }
   else if (IsLangEasternEurope(dwLangID))
   {
     xstrcpyA(szANSIwatermark, "\xE1\xED\xEB\xE8\x9A\xFE\xE6\x9E\xE3\xF5\x9D\xFA\xF6\xF8\xF3\xEA\xBF\xFC\xF1\xF4\xCE\xC8\xF9\xF0\xAA\xCF\xC1\xE2\xDA\x8E\xB9\xBE");
@@ -7765,14 +7761,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
         *nCodePage=CP_UNICODE_UTF8;
       }
       return TRUE;
-    }
-    else if (dwLangID == LANG_ENGLISH)
-    {
-      if (nOEMrate > nANSIrate)
-      {
-        *nCodePage=nOemCodePage;
-        return TRUE;
-      }
     }
     else if (IsLangEasternEurope(dwLangID))
     {
@@ -12278,20 +12266,18 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     dwLangID=PRIMARYLANGID(moCur.dwLangCodepageRecognition);
     if (dwLangID == LANG_RUSSIAN)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
-    else if (dwLangID == LANG_ENGLISH)
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
     else if (IsLangEasternEurope(dwLangID))
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
     else if (IsLangWesternEurope(dwLangID))
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 4, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
     else if (dwLangID == LANG_TURKISH)
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 5, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 4, 0);
     else if (dwLangID == LANG_CHINESE)
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 6, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 5, 0);
     else if (dwLangID == LANG_JAPANESE)
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 7, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 6, 0);
     else if (dwLangID == LANG_KOREAN)
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 8, 0);
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 7, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, moCur.dwCodepageRecognitionBuffer, FALSE);
@@ -12398,24 +12384,22 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       else if (i == 1)
         moCur.dwLangCodepageRecognition=LANGID_RUSSIAN;
       else if (i == 2)
-        moCur.dwLangCodepageRecognition=LANGID_ENGLISH;
-      else if (i == 3)
       {
         if (!IsLangEasternEurope(dwLangID))
           moCur.dwLangCodepageRecognition=LANGID_POLISH;
       }
-      else if (i == 4)
+      else if (i == 3)
       {
         if (!IsLangWesternEurope(dwLangID))
           moCur.dwLangCodepageRecognition=LANGID_GERMAN;
       }
-      else if (i == 5)
+      else if (i == 4)
         moCur.dwLangCodepageRecognition=LANGID_TURKISH;
-      else if (i == 6)
+      else if (i == 5)
         moCur.dwLangCodepageRecognition=LANGID_CHINESE;
-      else if (i == 7)
+      else if (i == 6)
         moCur.dwLangCodepageRecognition=LANGID_JAPANESE;
-      else if (i == 8)
+      else if (i == 7)
         moCur.dwLangCodepageRecognition=LANGID_KOREAN;
 
       //Autodetect codepage buffer
