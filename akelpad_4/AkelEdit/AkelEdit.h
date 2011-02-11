@@ -180,6 +180,7 @@
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
 #define AECO_NOPRINTCOLLAPSED         0x00010000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
 #define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
@@ -2204,17 +2205,17 @@ _________________
 
 Check that the contents of an edit control can be converted to the specified code page.
 
-(int)wParam == code page to check.
-lParam      == not used.
+(int)wParam   == code page to check.
+(int *)lParam == returns nonconverted character in line (first character == 1). Can be NULL.
 
 Return Value
- Zero if successful, otherwise returns first met line number containing nonconverted character.
+ Zero if successful, otherwise returns first met line number containing nonconverted character (first line == 1).
 
 Remarks
  Windows 95 isn't supported.
 
 Example:
- SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, 0);
+ SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, (LPARAM)NULL);
 
 
 AEM_FINDTEXTA

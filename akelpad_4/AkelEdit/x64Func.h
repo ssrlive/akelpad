@@ -86,7 +86,7 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
  *Converts unicode string to ansi string. See MSDN for WideCharToMultiByte description.
  *
  *Note:
- *  WideCharToMultiByte64 uses xstrlenW from StrFunc.h.
+ *  WideCharToMultiByte64 uses xstrlenW, UTF16toUTF8 from StrFunc.h.
  ********************************************************************/
 #if defined WideCharToMultiByte64 || defined ALLX64FUNC
 #define WideCharToMultiByte64_INCLUDED
@@ -107,20 +107,27 @@ INT_PTR WideCharToMultiByte64(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpW
   else
     bUsedDefaultChar=TRUE;
 
-  //Convert string sequentially with maximum block 0x3FFFFFFF
-  for (;;)
+  if (dwCodePage == 65001)
   {
-    nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
-    nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
-
-    if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
+    nMultiByteCount=UTF16toUTF8(lpWideCharStr, cchWideChar, NULL, (unsigned char *)lpMultiByteStr, cbMultiByte);
+  }
+  else
+  {
+    //Convert string sequentially with maximum block 0x3FFFFFFF
+    for (;;)
     {
-      nWideCount+=nWideSrc;
-      nMultiByteCount+=nCharsConverted;
-      if (nWideCount >= cchWideChar || nMultiByteCount >= cbMultiByte)
-        break;
+      nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
+      nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
+  
+      if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
+      {
+        nWideCount+=nWideSrc;
+        nMultiByteCount+=nCharsConverted;
+        if (nWideCount >= cchWideChar || nMultiByteCount >= cbMultiByte)
+          break;
+      }
+      else break;
     }
-    else break;
   }
   if (lpUsedDefaultChar)
     *lpUsedDefaultChar=bUsedDefaultChar;

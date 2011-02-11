@@ -783,10 +783,12 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
     CONTROL         "Selezione mouse RichEdit",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Trascinamento mouse",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
-    GROUPBOX        "Scarto riga",IDC_STATIC,122,190,87,33
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
+    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
+    GROUPBOX        "Scarto riga",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
@@ -838,22 +840,25 @@ BEGIN
     CONTROL         "Ricorda il layout tastiera per ogni tabulazione (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
+    CONTROL         "Silently close unsaved empty tab (MDI)",
+                    IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,23,200,10
     CONTROL         "Inserisci la data se il file ha l'estensione .LOG all'inizio",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,23,200,10
+                    WS_TABSTOP,9,35,200,10
     CONTROL         "Chiedi conferma se si salva un file in sola-lettura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,35,200,10
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
-    LTEXT           "salvataggio estensioni predefinito",IDC_STATIC,37,53,
+                    WS_TABSTOP,9,47,200,10
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
+    LTEXT           "salvataggio estensioni predefinito",IDC_STATIC,37,65,
                     171,8
-    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,72,200,41
+    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,84,200,41
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,85,185,10
+                    WS_TABSTOP,17,97,185,10
     CONTROL         "Spunta ""Nella selezione"" se la selezione non è vuota",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,97,185,10
+                    WS_TABSTOP,17,109,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -881,6 +886,13 @@ BEGIN
     LTEXT           "Sito web:",IDC_STATIC,19,41,85,11
     GROUPBOX        "Autori:",IDC_STATIC,20,62,177,109
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
+END
+
+IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
 END
 
 
@@ -949,7 +961,8 @@ BEGIN
     MSG_UPDATE_PROGRAM      "Aggiornamento di AkelPad.\n\nVersione minima di AkelPad richiesta: %d.%d.%d.%d\nVersione attuale di AkelPad: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x non è supportato."
     MSG_UPDATE_PLUGIN       "Aggiornamento %s.\n\nStruttura AkelPad: %d.%d.%d.%d\n%s struttura plugin: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" non è riconosciuto come plugin AkelPad."
+    MSG_PLUGIN_IS_NOT_SUPPORTED 
+                            """%s"" non è riconosciuto come plugin AkelPad."
     MSG_UPDATE_LANGMODULE   "Aggiornamento %s\n\nVersione corrente: %d.%d.%d.%d\nVersione richiesta: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Tasto già assegnato a ""%s""."
     MSG_CANNOT_OPEN_FILE    "Impossibile aprire il file ""%s""."
@@ -1027,13 +1040,22 @@ BEGIN
     STR_ONLYMODIFIED        "Modificato"
     STR_ONLYUNMODIFIED      "Non modificato"
     STR_INVERTSELECTION     "Inverti selezione"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Yes"
+    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_CANCEL   "Annulla"
+    STR_MESSAGEBOX_YESTOALL "Yes to all"
+    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_GOTO     "Vai a"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "Cirillico (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Cirillico (1251, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Latino (OEM)"
-    STR_AUTODETECT_TURKISH  "Turco (ANSI, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_TURKISH  "Turco (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Cinese (UTF-8)"
     STR_AUTODETECT_JAPANESE "Giapponese (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coreano (UTF-8)"

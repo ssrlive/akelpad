@@ -166,6 +166,7 @@
 #define MO_LEFTMARGINSELECTION 0x00000001  //Enables left margin line selection with mouse.
 #define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
+#define MO_RCLICKMOVECARET     0x00000008  //WM_RBUTTONDOWN message moves caret to a click position.
 
 //Paint options
 #define PAINT_PAINTGROUP        0x00000001  //Paint text by group of characters (default is character by character).
@@ -311,11 +312,6 @@
 #define PASTE_UNICODE     0 //Paste as Unicode text, if no Unicode text available ANSI text will be used (default).
 #define PASTE_ANSI        1 //Paste as ANSI text.
 #define PASTE_SINGLELINE  2 //Paste multiline text to single line edit control. All new lines replaced with '\r'.
-
-//Autoanswer
-#define AUTOANSWER_ASK  0
-#define AUTOANSWER_YES  1
-#define AUTOANSWER_NO   2
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.

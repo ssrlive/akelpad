@@ -164,8 +164,10 @@ typedef struct _AEUNDOITEM {
 
 //"AkelEditText" clipboard
 typedef struct {
-  UINT_PTR dwAnsiLen;
-  UINT_PTR dwUnicodeLen;
+  DWORD dwAnsiLen;
+  DWORD dwUnicodeLen;
+  __int64 dwAnsiLen64;
+  __int64 dwUnicodeLen64;
 } AECLIPBOARDINFO;
 
 
@@ -768,7 +770,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, DWORD dwWrap, AEPOINT **lpPoint);
 int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT **lpPoint);
 void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELINEINDEX *liEndLine, DWORD dwFlags);
-int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
+int AE_CheckCodepage(AKELEDIT *ae, int nCodePage, int *lpdwCharInLine);
 void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
