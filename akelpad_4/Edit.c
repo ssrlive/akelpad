@@ -4503,8 +4503,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nWrite=0;
   int nFileCmp;
   int nCodePageCmp;
-  int nCharInLine;
-  int nLine=0;
+  int nLostLine=0;
+  int nLostCharInLine;
 
   if (!wpFile[0])
   {
@@ -4550,7 +4550,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
   if (!IsCodePageUnicode(nCodePage))
   {
-    if (nLine=(int)SendMessage(hWnd, AEM_CHECKCODEPAGE, (WPARAM)nCodePage, (LPARAM)&nCharInLine))
+    if (nLostLine=(int)SendMessage(hWnd, AEM_CHECKCODEPAGE, (WPARAM)nCodePage, (LPARAM)&nLostCharInLine))
     {
       if (dwCmdLineOptions & CLO_MSGSAVELOSTSYMBOLSYES)
       {
@@ -4564,8 +4564,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       {
         if (!IsEditActive(hWnd))
           SetFocus(hWnd);
-        if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-          nLine=(int)SendMessage(hWnd, AEM_GETUNWRAPLINE, nLine - 1, 0) + 1;
 
         //Custom MessageBox
         {
@@ -4574,9 +4572,12 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
                                   {IDC_MESSAGEBOX_GOTO, STR_MESSAGEBOX_GOTO,   TRUE},
                                   {0, 0, 0}};
           int nChoice;
+          int nMessageLine=nLostLine;
 
+          if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
+            nMessageLine=(int)SendMessage(hWnd, AEM_GETUNWRAPLINE, nMessageLine - 1, 0) + 1;
           API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, MAX_PATH);
-          xprintfW(wbuf2, wbuf, nLine);
+          xprintfW(wbuf2, wbuf, nMessageLine);
           nChoice=MessageBoxCustom(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, (BUTTONMESSAGEBOX *)&bmb);
 
           if (nChoice == IDC_MESSAGEBOX_GOTO ||
@@ -4584,8 +4585,17 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           {
             if (nChoice == IDC_MESSAGEBOX_GOTO)
             {
-              xprintfW(wbuf, L"%d:%d", nLine, nCharInLine);
-              GoTo(GT_LINE, wbuf);
+              AECHARRANGE cr;
+
+              //Lost index
+              cr.ciMin.nLine=nLostLine - 1;
+              cr.ciMin.nCharInLine=nLostCharInLine - 1;
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&cr.ciMin);
+
+              //Set selection
+              cr.ciMax=cr.ciMin;
+              SetSel(hWnd, &cr, AESELT_LOCKSCROLL, NULL);
+              ScrollCaret(hWnd);
             }
             nResult=ESD_CODEPAGE_ERROR;
             goto End;
@@ -4700,7 +4710,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         if (nFileCmp || nCodePageCmp)
           RecentFilesSaveCurrentFile();
 
-        if ((dwFlags & SD_SELECTION) || nLine)
+        if ((dwFlags & SD_SELECTION) || nLostLine)
         {
           OpenDocument(hWnd, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
         }
