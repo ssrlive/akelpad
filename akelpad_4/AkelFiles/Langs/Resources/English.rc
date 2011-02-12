@@ -101,12 +101,12 @@ BEGIN
             MENUITEM "&UPPERCASE\tCtrl+6",          IDM_EDIT_UPPERCASE
             MENUITEM "&lowercase\tCtrl+7",          IDM_EDIT_LOWERCASE
             MENUITEM "Se&ntence case.\tCtrl+8",     IDM_EDIT_SENTENCECASE
-            MENUITEM "Title &Case\tCtrl+9",         IDM_EDIT_TITLECASE
+            MENUITEM "T&itle Case\tCtrl+9",         IDM_EDIT_TITLECASE
             MENUITEM "iN&VERT cASE\tCtrl+0",        IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
             MENUITEM "Recode...\tAlt+R",            IDM_EDIT_RECODE
         END
-        POPUP "Newline &format"
+        POPUP "Newline for&mat"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
