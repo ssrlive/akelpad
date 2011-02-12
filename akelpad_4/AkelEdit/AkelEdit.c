@@ -785,94 +785,62 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
       int nTabStop=LOWORD(wParam);
       BOOL bWrappedScan=HIWORD(wParam);
-      int nScanLimit;
+      int nCount;
+      int nCountEnd;
       int nColumn=0;
-      int nResult;
+
+      if (!bWrappedScan)
+      {
+        nCountEnd=min(ciChar.nCharInLine, ciChar.lpLine->nLineLen);
+        ciChar.nCharInLine=0;
+      }
+      else nCountEnd=AEC_WrapLineBegin(&ciChar);
 
       //Tab current size if zero
-      if (!nTabStop) nTabStop=ae->ptxt->nTabStop;
+      if (nTabStop == 0) nTabStop=ae->ptxt->nTabStop;
+      if (nTabStop == 1) return nCountEnd;
 
-      nScanLimit=min(ciChar.nCharInLine, ciChar.lpLine->nLineLen);
-      nResult=ciChar.nCharInLine - nScanLimit;
-
-      while (ciChar.lpLine)
+      for (nCount=0; nCount < nCountEnd; ++nCount)
       {
-        if (nTabStop == 1)
-        {
-          nColumn+=nScanLimit;
-        }
+        if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
+          nColumn+=nTabStop - nColumn % nTabStop;
         else
-        {
-          for (ciChar.nCharInLine=0; ciChar.nCharInLine < nScanLimit; ++ciChar.nCharInLine)
-          {
-            if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
-              nColumn+=nTabStop - nColumn % nTabStop;
-            else
-              ++nColumn;
-          }
-        }
-        nResult+=nColumn;
+          ++nColumn;
 
-        if (bWrappedScan && AEC_PrevLine(&ciChar) && ciChar.lpLine->nLineBreak == AELB_WRAP)
-        {
-          nScanLimit=ciChar.lpLine->nLineLen;
-          nColumn=0;
-        }
-        else break;
+        if (!AEC_NextChar(&ciChar))
+          break;
       }
-      return nResult;
+      return nColumn;
     }
     if (uMsg == AEM_COLUMNTOINDEX)
     {
-      AECHARINDEX *ciInput=(AECHARINDEX *)lParam;
-      AECHARINDEX ciChar=*ciInput;
+      AECHARINDEX *lpChar=(AECHARINDEX *)lParam;
       int nTabStop=LOWORD(wParam);
       BOOL bWrappedScan=HIWORD(wParam);
-      int nColumn=ciChar.nCharInLine;
-      int nCount=0;
+      int nColumn=0;
+      int nColumnEnd=lpChar->nCharInLine;
+
+      lpChar->nCharInLine=0;
+      if (bWrappedScan)
+        AEC_WrapLineBegin(lpChar);
 
       //Tab current size if zero
-      if (!nTabStop) nTabStop=ae->ptxt->nTabStop;
+      if (nTabStop == 0) nTabStop=ae->ptxt->nTabStop;
 
-      while (ciChar.lpLine)
+      while (nColumn < nColumnEnd)
       {
-        if (nTabStop == 1)
-        {
-          if (nColumn - nCount <= ciChar.lpLine->nLineLen)
-          {
-            ciChar.nCharInLine=nColumn - nCount;
-            nCount=nColumn;
-            goto ColumnToIndexEnd;
-          }
-          nCount+=ciChar.lpLine->nLineLen;
-        }
+        if (lpChar->lpLine->wpLine[lpChar->nCharInLine] == L'\t')
+          nColumn+=nTabStop - nColumn % nTabStop;
         else
-        {
-          for (ciChar.nCharInLine=0; ciChar.nCharInLine < ciChar.lpLine->nLineLen; ++ciChar.nCharInLine)
-          {
-            if (nCount >= nColumn)
-              goto ColumnToIndexEnd;
+          ++nColumn;
 
-            if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
-              nCount+=nTabStop - nCount % nTabStop;
-            else
-              ++nCount;
-          }
-        }
-
-        if (bWrappedScan && ciChar.lpLine->nLineBreak == AELB_WRAP)
-        {
-          AEC_NextLine(&ciChar);
-        }
-        else
-        {
-          ciChar.nCharInLine=ciChar.lpLine->nLineLen;
-          goto ColumnToIndexEnd;
-        }
+        //Next char in line
+        if (lpChar->nCharInLine >= lpChar->lpLine->nLineLen)
+          if (lpChar->lpLine->nLineBreak != AELB_WRAP)
+            return FALSE;
+        AEC_NextChar(lpChar);
       }
-      ColumnToIndexEnd:
-      *ciInput=ciChar;
-      return nCount;
+      return TRUE;
     }
     if (uMsg == AEM_INDEXINURL)
     {

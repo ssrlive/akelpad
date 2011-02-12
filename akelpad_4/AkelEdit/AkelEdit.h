@@ -3114,11 +3114,9 @@ Return Value
 
 Example:
  AECHARINDEX ciCaret;
- int nTabStop;
 
- nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(0, TRUE), (LPARAM)&ciCaret);
 
 
 AEM_COLUMNTOINDEX
@@ -3136,17 +3134,15 @@ Retrieve the character index of the column in line taking into account tab stop 
                          Output: AECHARINDEX structure is filled with result character index.
 
 Return Value
- Number of columns scanned.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  AECHARINDEX ciCaret;
- int nTabStop;
 
- nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciCaret);
  ciCaret.nCharInLine=10;
- SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(0, TRUE), (LPARAM)&ciCaret);
 
 
 AEM_INDEXINURL
