@@ -785,7 +785,7 @@ BEGIN
                     WS_TABSTOP,9,191,114,10
     CONTROL         "Glissement avec la souris",IDC_OPTIONS_MOUSEDRAGGING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Clic droit déplace le curseur",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Interligne",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -839,7 +839,7 @@ BEGIN
     CONTROL         "Mémoriser réglages clavier de chaque onglet (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Fermer sans demander de sauver les onglets vides (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Insérer la date si le fichier contient .LOG au début",
@@ -985,7 +985,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Les changements seront visibles aprés redémarrage du programme."
     MSG_SAVEIN_READONLY     """%s"" en lecture seule. Continuer?"
     MSG_OVERWRITEPROMPT     """%s"" existe déjà. L'écraser?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "Limite du nombre de documents atteinte. Utilisez le mode PMDI pour ouvrir plus de documents."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1039,19 +1039,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Non modifié"
     STR_INVERTSELECTION     "Inverser la sélection"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "Oui"
+    STR_MESSAGEBOX_NO       "Non"
     STR_MESSAGEBOX_CANCEL   "Abandonner"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Oui pour tout"
+    STR_MESSAGEBOX_NOTOALL  "Non pour tout"
     STR_MESSAGEBOX_GOTO     "Aller à"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrillique (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Européen de l'est (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Européen de l'ouest (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turque (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Chinois (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonais (UTF-8)"
