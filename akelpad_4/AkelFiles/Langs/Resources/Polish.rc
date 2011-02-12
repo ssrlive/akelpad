@@ -777,7 +777,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Przeci¹ganie mysz¹",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Prawy klik myszy przesuwa kursor",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Odstêp miêdzy wierszami",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -830,7 +830,7 @@ BEGIN
     CONTROL         "Pamiêtaj uk³ad klawiatury dla ka¿dego okna (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Automatycznie zamykaj puste karty (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Wstaw datê, gdy plik zawiera na pocz¹tku wpis .LOG",
@@ -1030,19 +1030,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Niezmienione"
     STR_INVERTSELECTION     "Odwróæ zaznaczenie"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "&Tak"
+    STR_MESSAGEBOX_NO       "&Nie"
     STR_MESSAGEBOX_CANCEL   "Anuluj"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Tak na wszystkie"
+    STR_MESSAGEBOX_NOTOALL  "Nie na wszystkie"
     STR_MESSAGEBOX_GOTO     "PrzejdŸ do"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Rosyjski (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Europa Wschodnia (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Europa Zachodnia (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turecki (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Chiñski (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japoñski (UTF-8)"
