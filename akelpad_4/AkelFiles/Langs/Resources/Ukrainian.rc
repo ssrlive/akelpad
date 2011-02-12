@@ -779,7 +779,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Перетаскування мишею",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Правий клік зміщує каретку",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Міжрядковий інтервал",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -832,7 +832,7 @@ BEGIN
     CONTROL         "Запам'ятовувати розкладку клавіатури для вкладки (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Мовчки закривати незбережену порожню вкладку (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Вставити дату, якщо файл містить .LOG на початку",
@@ -997,7 +997,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
-    MSG_DOCUMENTSLIMIT      "Достигнут лимит документов. Используйте режим PMDI для открытия большего количества документов."
+    MSG_DOCUMENTSLIMIT      "Досягнуто ліміт документів. Використовуйте режим PMDI для відкриття більшої кількості документів."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1051,19 +1051,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Незмінені"
     STR_INVERTSELECTION     "Інвертувати позначення"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "Так"
+    STR_MESSAGEBOX_NO       "Ні"
     STR_MESSAGEBOX_CANCEL   "Скасувати"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Так для всіх"
+    STR_MESSAGEBOX_NOTOALL  "Ні для всіх"
     STR_MESSAGEBOX_GOTO     "Перейти"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Кирилиця (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Східно-Європейский (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Західно-Європейский (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Турецька (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Китайська (UTF-8)"
     STR_AUTODETECT_JAPANESE "Японська (UTF-8)"

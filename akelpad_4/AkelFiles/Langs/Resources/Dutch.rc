@@ -781,7 +781,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Muis slepen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Klik met de rechtermuisknop beweegt dakje",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Regelafstand",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -835,7 +835,7 @@ BEGIN
     CONTROL         "Onthoud toetsenbord lay-out van elk tabblad (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Onopgemerkt sluiten niet-opgeslagen leeg tabblad (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Voeg datum in als het bestand aan het begin .LOG heeft",
@@ -980,7 +980,7 @@ BEGIN
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
     MSG_OVERWRITEPROMPT     """%s"" bestaat al. Overschrijven?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "Documenten limiet bereikt. Gebruik PMDI modus om meer documenten te openen."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1034,19 +1034,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Niet Gewijzigd"
     STR_INVERTSELECTION     "Selectie omkeren"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "Ja"
+    STR_MESSAGEBOX_NO       "Nee"
     STR_MESSAGEBOX_CANCEL   "Annuleren"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Ja op alles"
+    STR_MESSAGEBOX_NOTOALL  "Nee op alles"
     STR_MESSAGEBOX_GOTO     "Ga naar"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Slavisch (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Oost-Europese (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "West-Europese (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turks (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Chinees (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japanees (UTF-8)"
