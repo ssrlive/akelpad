@@ -1728,7 +1728,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (lParam == PASTE_SINGLELINE)
-        return PasteInEditAsRichEdit(hWnd);
+        return PasteInEditAsRichEdit(hWnd, 0);
       else
         return DoEditPaste(hWnd, (BOOL)lParam);
     }

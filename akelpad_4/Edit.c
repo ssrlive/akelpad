@@ -8100,7 +8100,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOXEDIT))
     {
-      SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
+      SendMessage(hWndComboboxEdit, EM_LIMITTEXT, PUTFIND_MAXSEL, 0);
 
       OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
@@ -8109,7 +8109,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       if (hWndComboboxEdit=GetDlgItem(hWndReplace, IDC_COMBOBOXEDIT))
       {
-        SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
+        SendMessage(hWndComboboxEdit, EM_LIMITTEXT, PUTFIND_MAXSEL, 0);
 
         OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
         SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
@@ -8449,7 +8449,7 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 {
   if (uMsg == WM_PASTE)
   {
-    PasteInEditAsRichEdit(hWnd);
+    PasteInEditAsRichEdit(hWnd, PUTFIND_MAXSEL);
     return TRUE;
   }
 
@@ -9343,7 +9343,7 @@ BOOL FreeText(LPVOID pText)
   return FALSE;
 }
 
-BOOL PasteInEditAsRichEdit(HWND hWnd)
+BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
 {
   HGLOBAL hData;
   LPVOID pData;
@@ -9357,16 +9357,24 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
       {
         //Convert \r\r\n->\r, \r\n->\r, \n->\r
         wchar_t *wpSource=(wchar_t *)pData;
+        wchar_t *wpSourceMax;
         wchar_t *wpTarget;
         wchar_t *wpSourceCount;
         wchar_t *wpTargetCount;
         int nTargetLen;
 
         nTargetLen=lstrlenW(wpSource);
+        if (nMaxLenght > 0)
+        {
+          if (nTargetLen > nMaxLenght)
+            nTargetLen=nMaxLenght;
+          wpSourceMax=wpSource + nTargetLen;
+        }
+        else wpSourceMax=(wchar_t *)MAXUINT_PTR;
 
         if (wpTarget=AllocWideStr(nTargetLen + 1))
         {
-          for (wpTargetCount=wpTarget, wpSourceCount=wpSource; *wpSourceCount; ++wpSourceCount, ++wpTargetCount)
+          for (wpTargetCount=wpTarget, wpSourceCount=wpSource; wpSourceCount < wpSourceMax; ++wpSourceCount, ++wpTargetCount)
           {
             if (*wpSourceCount == '\r')
             {
@@ -9403,16 +9411,24 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
       {
         //Convert \r\r\n->\r, \r\n->\r, \n->\r
         char *pSource=(char *)pData;
+        char *pSourceMax;
         char *pTarget;
         char *pSourceCount;
         char *pTargetCount;
         int nTargetLen;
 
         nTargetLen=lstrlenA(pSource);
+        if (nMaxLenght > 0)
+        {
+          if (nTargetLen > nMaxLenght)
+            nTargetLen=nMaxLenght;
+          pSourceMax=pSource + nTargetLen;
+        }
+        else pSourceMax=(char *)MAXUINT_PTR;
 
         if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
         {
-          for (pTargetCount=pTarget, pSourceCount=pSource; *pSourceCount; ++pSourceCount, ++pTargetCount)
+          for (pTargetCount=pTarget, pSourceCount=pSource; pSourceCount < pSourceMax; ++pSourceCount, ++pTargetCount)
           {
             if (*pSourceCount == '\r')
             {

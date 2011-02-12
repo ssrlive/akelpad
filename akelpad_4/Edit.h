@@ -806,7 +806,7 @@ INT_PTR GetRangeTextW(HWND hWnd, INT_PTR nMin, INT_PTR nMax, wchar_t **wpText);
 INT_PTR ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces);
 INT_PTR ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces);
 BOOL FreeText(LPVOID pText);
-BOOL PasteInEditAsRichEdit(HWND hWnd);
+BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght);
 BOOL ColumnPaste(HWND hWnd);
 DWORD GetLinesCountA(const char *pText, int nTextLen);
 DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen);
