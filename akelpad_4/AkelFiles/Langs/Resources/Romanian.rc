@@ -782,7 +782,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Tragere cu mausul a textului",IDC_OPTIONS_MOUSEDRAGGING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Clicul-dreapta mutã cursorul",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Spaþiu între rînduri",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -837,7 +837,7 @@ BEGIN
     CONTROL         "Memoreazã aranjamentul de tastaturã pt. fiecare tab (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Închide silenþios tabul gol nesalvat (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Insereazã data la început dacã fila este .LOG",
@@ -962,7 +962,7 @@ BEGIN
     MSG_CANNOT_OPEN_FILE    "Nu pot deschide fila ""%s""."
     MSG_WRONG_STRING        "Numãr de linie nevalid."
     MSG_LONG_FILELIST       "Prea multe file selectate."
-    MSG_DOCUMENT_CHANGED    "Documentul a fost modificat. Doreºti sã-l salvezi?"
+    MSG_DOCUMENT_CHANGED    "Documentul a fost modificat. Vrei sã-l salvezi?"
     MSG_FILE_DOES_NOT_EXIST "Creeazã filã nouã ""%s""?"
 END
 
@@ -975,13 +975,13 @@ BEGIN
                             "File modificate: %d\nNumãrul modificãrilor: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Fila va fi redeschisã, toate modificãrile vor fi pierdute."
-    MSG_FILE_CHANGED        "Fila ""%s"" a fost modificatã cu un alt program.\n\nDoreºti s-o redeschizi?"
+    MSG_FILE_CHANGED        "Fila ""%s"" a fost modificatã cu un alt program.\n\nVrei s-o redeschizi?"
     MSG_CP_UNIMPLEMENTED    "Codpagina ""%d"" nu e implementatã."
     MSG_CP_MISMATCH         "Linia ""%d"" conþine simboluri care vor fi pierdute la salvarea în aceastã codare. Continui?"
     MSG_RESTART_PROGRAM     "Modificãrile vor deveni efective la repornirea programului."
     MSG_SAVEIN_READONLY     "Fila ""%s"" e nemodificabilã (doar-citire). Continui?"
     MSG_OVERWRITEPROMPT     "Fila ""%s"" existã deja. O suprascriu?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "Ai atins limita numãrului de documente ce pot fi deschise. Foloseºte Modul PMDI pt. a deschide alte documente."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1035,19 +1035,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Nemodificate"
     STR_INVERTSELECTION     "Inverseazã selecþia"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "&Da"
+    STR_MESSAGEBOX_NO       "&Nu"
     STR_MESSAGEBOX_CANCEL   "Anuleazã"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Da la Tot"
+    STR_MESSAGEBOX_NOTOALL  "Nu la Tot"
     STR_MESSAGEBOX_GOTO     "Mergi La"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Chirilic (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Est-European (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Vest-European (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turc (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Chinez (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonez (UTF-8)"
