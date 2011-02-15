@@ -1,5 +1,5 @@
 
-AkelPad 4.5.4 ()
+AkelPad 4.5.4 (Feb 15, 2011)
 ----------------------------
 Added: option for moving caret at right mouse click.
 Added: option for silently closing unsaved empty tab (MDI/PMDI).
@@ -15,7 +15,7 @@ Added: locally remembers last call plugin.
 Fixed: UTF-8 recoding.
 Fixed: copy/paste text from the clipboard between AkelEdit windows with different bits
       (Windows x64).
-Fixed: in italic font styles tabulation overlaps the preceding symbol.
+Fixed: in italic font styles tabulation could overlap the preceding symbol.
 
 
 AkelPad 4.5.3 (Jan 12, 2011)
