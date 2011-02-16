@@ -286,6 +286,9 @@
 #define IDC_MESSAGEBOX_YESTOALL         3923
 #define IDC_MESSAGEBOX_NOTOALL          3924
 #define IDC_MESSAGEBOX_GOTO             3925
+#define IDC_MESSAGEBOX_OK               3926
+#define IDC_MESSAGEBOX_YES              3927
+#define IDC_MESSAGEBOX_NO               3928
 #define IDM_MENU_MAIN                   4001
 #define IDM_MENU_POPUP                  4002
 #define IDM_FILE_NEW                    4101
