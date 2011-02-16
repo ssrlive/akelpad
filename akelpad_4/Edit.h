@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.4 (x64)"
+  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.5 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.4 (x86)"
+  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.5 (x86)"
 #endif
 #define APP_MAIN_TITLEA              "AkelPad"
 #define APP_MAIN_TITLEW             L"AkelPad"
@@ -65,6 +65,9 @@
 #endif
 #ifndef SS_EDITCONTROL
   #define SS_EDITCONTROL 0x00002000L
+#endif
+#ifndef SPI_GETSNAPTODEFBUTTON
+  #define SPI_GETSNAPTODEFBUTTON 0x005F
 #endif
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
