@@ -778,7 +778,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Egérhúzás",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Jobb klikk a hiányjel áthelyezéséhez",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
     GROUPBOX        "Sorköz",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -831,7 +831,7 @@ BEGIN
     CONTROL         "Emlékezzen minden lap billentyûkiosztására (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "A nem mentett üres lap csendes bezárása (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "A dátum beszúrása, ha a fájl a .LOG elején van",
@@ -975,7 +975,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "A módosítások a program újraindítása után lépnek érvénybe"
     MSG_SAVEIN_READONLY     """%s"" egy írásvédett fájl. Folytatja?"
     MSG_OVERWRITEPROMPT     """%s"" már létezik. Felülírja azt?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "A dokumentumok száma elérte a felsõ határt. Használja a PMDI módot a további dokumentumok megnyitásához."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1029,19 +1029,19 @@ BEGIN
     STR_ONLYUNMODIFIED      "Nem módosított"
     STR_INVERTSELECTION     "Kiválasztás megfordítása"
     STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "Igen"
+    STR_MESSAGEBOX_NO       "&Nem"
     STR_MESSAGEBOX_CANCEL   "Mégse"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Igen mindre"
+    STR_MESSAGEBOX_NOTOALL  "Nem mindre"
     STR_MESSAGEBOX_GOTO     "Ugrás"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Cirill (1251, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE  "Kelet-európai (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE  "Nyugat-európai (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Török (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Kínai (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japán (UTF-8)"
