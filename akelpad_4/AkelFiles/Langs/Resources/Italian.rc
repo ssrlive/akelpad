@@ -840,7 +840,7 @@ BEGIN
     CONTROL         "Ricorda il layout tastiera per ogni tabulazione (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Chiude sileziosamente i tab vuoti non salvati (MDI)",
+    CONTROL         "Chiude silenziosamente i tab vuoti non salvati (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
     CONTROL         "Inserisci la data se il file ha l'estensione .LOG all'inizio",
