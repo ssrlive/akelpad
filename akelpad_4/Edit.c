@@ -275,7 +275,12 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
 
   GetClientRect(hWndParent, &rcRect);
 
-  cs.dwExStyle=(moCur.dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE;
+  if (moCur.dwPaintOptions & PAINT_STATICEDGE)
+    cs.dwExStyle=WS_EX_STATICEDGE;
+  else if (moCur.dwPaintOptions & PAINT_NOEDGE)
+    cs.dwExStyle=0;
+  else
+    cs.dwExStyle=WS_EX_CLIENTEDGE;
   if (moCur.bRichEditClass)
     cs.lpszClass=bOldWindows?L"RichEdit20A":L"RichEdit20W";
   else
