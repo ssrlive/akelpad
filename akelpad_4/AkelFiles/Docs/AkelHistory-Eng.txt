@@ -1,4 +1,9 @@
 
+AkelPad 4.5.5 ()
+----------------------------
+Added: flag 1024 in manual parameter "PaintOptions" - draw no edit window border.
+
+
 AkelPad 4.5.4 (Feb 15, 2011)
 ----------------------------
 Added: option for moving caret at right mouse click.
