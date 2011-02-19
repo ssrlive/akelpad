@@ -777,9 +777,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Przeci¹ganie mysz¹",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Prawy klik myszy przesuwa kursor",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Prawy klik przesuwa kursor",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
-    GROUPBOX        "Odstêp miêdzy wierszami",IDC_STATIC,127,190,82,33
+    GROUPBOX        "Odstêp wierszy",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
