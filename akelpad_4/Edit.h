@@ -899,6 +899,7 @@ BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL ScaleInit(HDC hDC, HWND hWnd);
 int ScaleX(int x);
 int ScaleY(int y);
 
