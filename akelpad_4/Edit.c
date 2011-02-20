@@ -223,8 +223,8 @@ extern HHOOK hHookKeys;
 extern AEPRINT prn;
 extern PRINTINFO prninfo;
 
-//Custom message box
-extern POINT ptLogPixels;
+//Zooming factor
+extern POINT ptScale;
 
 //Edit state
 extern AECHARRANGE crSel;
@@ -14146,7 +14146,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 BOOL ScaleInit(HDC hDC, HWND hWnd)
 {
-  if (!ptLogPixels.x && !ptLogPixels.y)
+  if (!ptScale.x && !ptScale.y)
   {
     HDC hNewDC=hDC;
 
@@ -14154,12 +14154,12 @@ BOOL ScaleInit(HDC hDC, HWND hWnd)
 
     if (hNewDC)
     {
-      ptLogPixels.x=GetDeviceCaps(hNewDC, LOGPIXELSX);
-      ptLogPixels.y=GetDeviceCaps(hNewDC, LOGPIXELSY);
+      ptScale.x=GetDeviceCaps(hNewDC, LOGPIXELSX);
+      ptScale.y=GetDeviceCaps(hNewDC, LOGPIXELSY);
 
       //Align to 16 pixel
-      ptLogPixels.x+=ptLogPixels.x % 16;
-      ptLogPixels.y+=ptLogPixels.y % 16;
+      ptScale.x+=ptScale.x % 16;
+      ptScale.y+=ptScale.y % 16;
     }
     else return FALSE;
 
@@ -14170,15 +14170,15 @@ BOOL ScaleInit(HDC hDC, HWND hWnd)
 
 int ScaleX(int x)
 {
-  if (ptLogPixels.x)
-    return MulDiv(x, ptLogPixels.x, 96);
+  if (ptScale.x)
+    return MulDiv(x, ptScale.x, 96);
   return x;
 }
 
 int ScaleY(int y)
 {
-  if (ptLogPixels.y)
-    return MulDiv(y, ptLogPixels.y, 96);
+  if (ptScale.y)
+    return MulDiv(y, ptScale.y, 96);
   return y;
 }
 

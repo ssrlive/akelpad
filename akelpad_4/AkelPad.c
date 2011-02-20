@@ -386,8 +386,8 @@ HHOOK hHookKeys=NULL;
 AEPRINT prn;
 PRINTINFO prninfo={0};
 
-//Custom message box
-POINT ptLogPixels={0};
+//Zooming factor
+POINT ptScale={0};
 
 //Edit state
 AECHARRANGE crSel={0};
