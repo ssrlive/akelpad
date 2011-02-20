@@ -366,7 +366,7 @@ HWND hWndZoomEdit;
 HSTACK hPreviewAllPagesStack={0};
 HSTACK hPreviewSelPagesStack={0};
 RECT rcPreviewDialog={0};
-RECT rcPreviewWindow={10, 50, 0, 0};
+RECT rcPreviewWindow={0};
 RECT rcPreviewPaper={0};
 RECT rcPreviewZoomed={0};
 POINT ptPreviewScroll;
