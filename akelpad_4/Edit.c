@@ -223,6 +223,9 @@ extern HHOOK hHookKeys;
 extern AEPRINT prn;
 extern PRINTINFO prninfo;
 
+//Custom message box
+extern POINT ptLogPixels;
+
 //Edit state
 extern AECHARRANGE crSel;
 extern AECHARINDEX ciCaret;
@@ -13995,6 +13998,10 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     wchar_t wszString[MAX_PATH];
     char *pIconIndex=NULL;
     DWORD dwIconType;
+    DWORD dwButtonWidth;
+    DWORD dwButtonHeight;
+    DWORD dwButtonEdge;
+    DWORD dwButtonOffset;
     DWORD dwButtonsCount=0;
     DWORD dwButtonsWidth;
     DWORD dwButtonX;
@@ -14002,44 +14009,54 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     DWORD dwStyle;
     BOOL bSnapToDefButton;
 
-    hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
     SystemParametersInfoA(SPI_GETSNAPTODEFBUTTON, 0, &bSnapToDefButton, 0);
 
-    //MessageBox title
-    SetWindowTextWide(hDlg, lpDialog->wpCaption);
-
-    //MessageBox icon
-    dwIconType=(BYTE)(lpDialog->uType & 0xf0);
-    if (dwIconType == MB_ICONINFORMATION) //Same as MB_ICONASTERISK
-      pIconIndex=IDI_INFORMATION;
-    else if (dwIconType == MB_ICONQUESTION)
-      pIconIndex=IDI_QUESTION;
-    else if (dwIconType == MB_ICONEXCLAMATION) //Same as MB_ICONWARNING
-      pIconIndex=IDI_EXCLAMATION;
-    else if (dwIconType == MB_ICONSTOP) //Same as MB_ICONERROR
-      pIconIndex=IDI_ERROR;
-    else if (dwIconType == MB_ICONHAND)
-      pIconIndex=IDI_HAND;
-    if (pIconIndex)
-    {
-      hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, 11, 11, 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
-      SendMessage(hWndIcon, STM_SETICON, (WPARAM)LoadIconA(NULL, pIconIndex), 0);
-    }
-
-    //Get buttons count
-    for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
-      ++dwButtonsCount;
-
-    //Get buttons width
-    dwButtonsWidth=dwButtonsCount * (75 + 6) - 6;
-    dwButtonsWidth=(dwButtonsWidth / 2) * 2;
-
-    //MessageBox text
     if (hDC=GetDC(hDlg))
     {
+      hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
       SelectObject(hDC, hGuiFont);
-      rcTextOut.left=pIconIndex?60:16;
-      rcTextOut.right=max(dwButtonsWidth + 16 * 2, 500) - 16;
+
+      //Get scale factor for ScaleX and ScaleY
+      ptLogPixels.x=GetDeviceCaps(hDC, LOGPIXELSX);
+      ptLogPixels.y=GetDeviceCaps(hDC, LOGPIXELSY);
+
+      dwButtonWidth=ScaleX(75);
+      dwButtonHeight=ScaleY(23);
+      dwButtonEdge=ScaleX(6);
+      dwButtonOffset=ScaleX(16);
+
+      //MessageBox title
+      SetWindowTextWide(hDlg, lpDialog->wpCaption);
+
+      //MessageBox icon
+      dwIconType=(BYTE)(lpDialog->uType & 0xf0);
+      if (dwIconType == MB_ICONINFORMATION) //Same as MB_ICONASTERISK
+        pIconIndex=IDI_INFORMATION;
+      else if (dwIconType == MB_ICONQUESTION)
+        pIconIndex=IDI_QUESTION;
+      else if (dwIconType == MB_ICONEXCLAMATION) //Same as MB_ICONWARNING
+        pIconIndex=IDI_EXCLAMATION;
+      else if (dwIconType == MB_ICONSTOP) //Same as MB_ICONERROR
+        pIconIndex=IDI_ERROR;
+      else if (dwIconType == MB_ICONHAND)
+        pIconIndex=IDI_HAND;
+      if (pIconIndex)
+      {
+        hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, ScaleX(11), ScaleY(11), 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
+        SendMessage(hWndIcon, STM_SETICON, (WPARAM)LoadIconA(NULL, pIconIndex), 0);
+      }
+
+      //Get buttons count
+      for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+        ++dwButtonsCount;
+
+      //Get buttons width
+      dwButtonsWidth=dwButtonsCount * (dwButtonWidth + dwButtonEdge) - dwButtonEdge;
+      dwButtonsWidth=(dwButtonsWidth / 2) * 2;
+
+      //MessageBox text
+      rcTextOut.left=pIconIndex?ScaleY(60):dwButtonOffset;
+      rcTextOut.right=max(dwButtonsWidth + dwButtonOffset * 2, (DWORD)ScaleX(500)) - dwButtonOffset;
       rcTextOut.top=0;
       rcTextOut.bottom=0;
 
@@ -14051,9 +14068,9 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       else DrawTextW(hDC, lpDialog->wpText, -1, &rcTextOut, DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX|DT_EDITCONTROL);
 
       if (pIconIndex)
-        rcTextOut.top=max((11 + 16) - RectH(&rcTextOut) / 2, 11);
+        rcTextOut.top=max(ScaleY(11 + 16) - RectH(&rcTextOut) / 2, ScaleY(11));
       else
-        rcTextOut.top=11;
+        rcTextOut.top=ScaleY(11);
       rcTextOut.bottom+=rcTextOut.top;
 
       ReleaseDC(hDlg, hDC);
@@ -14065,16 +14082,16 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Get button client Y position
-    dwButtonY=rcTextOut.bottom + 17;
+    dwButtonY=rcTextOut.bottom + ScaleY(17);
     if (pIconIndex)
     {
-      if (11 + 32 > rcTextOut.bottom)
-        dwButtonY=60;
+      if (ScaleY(11 + 32) > rcTextOut.bottom)
+        dwButtonY=ScaleY(60);
     }
 
     //MessageBox position
-    rcDlg.right=max(dwButtonsWidth + 16 * 2, (DWORD)rcTextOut.right + 16);
-    rcDlg.bottom=dwButtonY + 23 + 36;
+    rcDlg.right=max(dwButtonsWidth + dwButtonOffset * 2, (DWORD)rcTextOut.right + dwButtonOffset);
+    rcDlg.bottom=dwButtonY + dwButtonHeight + dwButtonHeight / 2 + GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CYFIXEDFRAME) * 2;
     rcDlg.left=GetSystemMetrics(SM_CXSCREEN) / 2 - rcDlg.right / 2;
     rcDlg.top=GetSystemMetrics(SM_CYSCREEN) / 2 - rcDlg.bottom / 2;
     if (rcDlg.left < 0) rcDlg.left=0;
@@ -14092,7 +14109,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (lpButton->bDefaultButton)
         dwStyle|=BS_DEFPUSHBUTTON;
 
-      if (hWndButton=CreateWindowExWide(0, L"BUTTON", NULL, dwStyle, dwButtonX, dwButtonY, 75, 23, hDlg, (HMENU)(UINT_PTR)lpButton->nButtonControlID, hInstance, NULL))
+      if (hWndButton=CreateWindowExWide(0, L"BUTTON", NULL, dwStyle, dwButtonX, dwButtonY, dwButtonWidth, dwButtonHeight, hDlg, (HMENU)(UINT_PTR)lpButton->nButtonControlID, hInstance, NULL))
       {
         SendMessage(hWndButton, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
         API_LoadStringW(hLangLib, lpButton->nButtonStringID, wszString, MAX_PATH);
@@ -14102,13 +14119,13 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
           SetFocus(hWndButton);
           if (bSnapToDefButton)
           {
-            ptCursor.x=dwButtonX + 38;
-            ptCursor.y=dwButtonY + 12;
+            ptCursor.x=dwButtonX + dwButtonWidth / 2;
+            ptCursor.y=dwButtonY + dwButtonHeight / 2;
             ClientToScreen(hDlg, &ptCursor);
             SetCursorPos(ptCursor.x, ptCursor.y);
           }
         }
-        dwButtonX+=75 + 6;
+        dwButtonX+=dwButtonWidth + dwButtonEdge;
       }
     }
   }
@@ -14118,6 +14135,20 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     return TRUE;
   }
   return FALSE;
+}
+
+int ScaleX(int x)
+{
+  if (ptLogPixels.x)
+    return MulDiv(x, ptLogPixels.x, 96);
+  return x;
+}
+
+int ScaleY(int y)
+{
+  if (ptLogPixels.y)
+    return MulDiv(y, ptLogPixels.y, 96);
+  return y;
 }
 
 

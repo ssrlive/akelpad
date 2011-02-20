@@ -3,6 +3,8 @@ AkelPad 4.5.5 ()
 ----------------------------
 Added: flag 1024 in manual parameter "PaintOptions" - draw no edit window border.
 
+Fixed: scaling message boxes.
+
 
 AkelPad 4.5.4 (Feb 15, 2011)
 ----------------------------
