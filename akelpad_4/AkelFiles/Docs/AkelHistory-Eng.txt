@@ -1,9 +1,11 @@
 
 AkelPad 4.5.5 ()
 ----------------------------
-Added: flag 1024 in manual parameter "PaintOptions" - draw no edit window border.
+Added: flag 1024 in the manual parameter "PaintOptions" - draw no edit window border.
 
 Fixed: windows zooming when using the scale other than 96 dpi.
+Fixed: using flag 256 in the manual parameter "PaintOptions" and undo after "Replace all"
+       with word wrap on.
 
 
 AkelPad 4.5.4 (Feb 15, 2011)
