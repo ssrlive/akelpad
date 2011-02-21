@@ -13981,13 +13981,18 @@ BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn)
 {
   DIALOGMESSAGEBOX dmb;
+  int nResult;
 
+  bMessageBox=TRUE;
   dmb.hWndParent=hWndParent;
   dmb.wpText=wpText;
   dmb.wpCaption=wpCaption;
   dmb.uType=uType;
   dmb.btn=btn;
-  return (int)API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_MESSAGEBOX), hWndParent, (DLGPROC)MessageBoxDlgProc, (LPARAM)&dmb);
+  nResult=(int)API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_MESSAGEBOX), hWndParent, (DLGPROC)MessageBoxDlgProc, (LPARAM)&dmb);
+  bMessageBox=FALSE;
+
+  return nResult;
 }
 
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
