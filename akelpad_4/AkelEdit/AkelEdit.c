@@ -15014,7 +15014,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
-  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
   if (!AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, 0, &ciStart, &ciEnd))
   {
     //Set caret position
