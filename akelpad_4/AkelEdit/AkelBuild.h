@@ -74,8 +74,8 @@
 #define AELS_PARTLY   3
 
 //AE_CalcLinesWidth flags
-#define AECLW_FRESH            0x00000001
-#define AECLW_LOCKUPDATE       0x00000002
+#define AECLW_FRESH              0x00000001
+#define AECLW_LOCKUPDATEHSCROLL  0x00000002
 
 //AE_GetCharInLine flags
 #define AECIL_HALFFIT          0x00000001

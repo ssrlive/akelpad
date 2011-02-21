@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.5.3                               *
+ *                      AkelEdit text control v1.5.5                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -8112,7 +8112,7 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
     if (nHScrollMax != ae->ptxt->nHScrollMax)
     {
       ae->ptxt->nHScrollMax=nHScrollMax;
-      if (!(dwFlags & AECLW_LOCKUPDATE))
+      if (!(dwFlags & AECLW_LOCKUPDATEHSCROLL))
         AE_UpdateScrollBars(ae, SB_HORZ);
     }
   }
@@ -8122,7 +8122,7 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
     {
       ae->ptxt->liMaxWidthLine=liMaxWidthLine;
       ae->ptxt->nHScrollMax=nHScrollMax;
-      if (!(dwFlags & AECLW_LOCKUPDATE))
+      if (!(dwFlags & AECLW_LOCKUPDATEHSCROLL))
         AE_UpdateScrollBars(ae, SB_HORZ);
     }
   }
@@ -14356,7 +14356,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       DWORD dwWrapLimit=ae->ptxt->dwWrapLimit;
 
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
 
       //When word wrap is off, AESF_SELECTION flag is slow for very long lines
       if (!dwWordWrap)
@@ -14377,7 +14377,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           break;
         }
         dwResult+=dwBufDone;
-        AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
+        AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd);
       }
 
       if (!dwWordWrap)
@@ -14965,7 +14965,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   nSelStartCharOffset=ae->nSelStartCharOffset;
   nSelEndCharOffset=ae->nSelEndCharOffset;
 
-  if (AE_InsertText(ae, &ciLastChar, wpText, dwTextLen, nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, NULL, NULL))
+  if (AE_InsertText(ae, &ciLastChar, wpText, dwTextLen, nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, NULL, NULL))
   {
     //Restore selection points
     AE_IndexUpdate(ae, &ciSelStartIndex);
@@ -15009,16 +15009,33 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
+  int nVScrollMax;
+  BOOL bUpdateVScroll=FALSE;
 
   if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
-  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
-  if (!AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, 0, &ciStart, &ciEnd))
+  if (dwTextLen)
   {
-    //Set caret position
-    AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+    nVScrollMax=ae->ptxt->nVScrollMax;
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
+    if (nVScrollMax != ae->ptxt->nVScrollMax)
+    {
+      //VScroll is changed
+      nVScrollMax=ae->ptxt->nVScrollMax;
+      bUpdateVScroll=TRUE;
+    }
+    AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, 0, &ciStart, &ciEnd);
+    if (bUpdateVScroll && nVScrollMax == ae->ptxt->nVScrollMax)
+    {
+      //VScroll is not updated in AE_InsertText
+      AE_UpdateScrollBars(ae, SB_VERT);
+    }
+  }
+  else
+  {
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
   }
   AE_StackUndoGroupStop(ae);
 
@@ -15092,8 +15109,8 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
     }
 
     //Set AE_CalcLinesWidth flags
-    if (dwDeleteFlags & AEDELT_LOCKUPDATE)
-      dwCalcLinesWidthFlags=AECLW_LOCKUPDATE;
+    if (dwDeleteFlags & AEDELT_LOCKUPDATEHSCROLL)
+      dwCalcLinesWidthFlags=AECLW_LOCKUPDATEHSCROLL;
 
     nStartOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteStart);
     nEndOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteEnd);
@@ -15356,7 +15373,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         if (nWrapCount)
         {
-          if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
+          if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
           {
             AE_UpdateScrollBars(ae, SB_VERT);
             ciFirstChar=lpPointOne->ciPoint;
@@ -15621,7 +15638,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         if (nLineCount + nWrapCount)
         {
-          if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
+          if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
           {
             AE_UpdateScrollBars(ae, SB_VERT);
             ciFirstChar=lpPointOne->ciPoint;
@@ -15644,7 +15661,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         //Update scroll bars
         if (nLineCount)
         {
-          if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
+          if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
           {
             AE_UpdateScrollBars(ae, SB_VERT);
             ciFirstChar=lpPointOne->ciPoint;
@@ -15670,12 +15687,14 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       //Set caret position
       AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
     }
-    if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
+    if (!(dwDeleteFlags & AEDELT_LOCKUPDATECARET))
     {
       //Set caret position
       ae->nCaretHorzIndent=ae->ptCaret.x;
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-
+    }
+    if (!(dwDeleteFlags & AEDELT_LOCKUPDATETEXT))
+    {
       //Redraw lines
       if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
       {
@@ -15783,8 +15802,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
       }
 
       //Set AE_CalcLinesWidth flags
-      if (dwInsertFlags & AEINST_LOCKUPDATE)
-        dwCalcLinesWidthFlags=AECLW_LOCKUPDATE;
+      if (dwInsertFlags & AEINST_LOCKUPDATEHSCROLL)
+        dwCalcLinesWidthFlags=AECLW_LOCKUPDATEHSCROLL;
 
       nInsertOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom);
       nLineOffsetNew=nInsertOffset - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
@@ -16170,7 +16189,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
             if (nLineCount + nWrapCount)
             {
-              if (!(dwInsertFlags & AEINST_LOCKUPDATE))
+              if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))
               {
                 AE_UpdateScrollBars(ae, SB_VERT);
                 ciFirstChar=lpPointOne->ciPoint;
@@ -16191,7 +16210,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             //Update scroll bars
             if (nLineCount)
             {
-              if (!(dwInsertFlags & AEINST_LOCKUPDATE))
+              if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))
               {
                 AE_UpdateScrollBars(ae, SB_VERT);
                 ciFirstChar=lpPointOne->ciPoint;
@@ -16521,7 +16540,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
             if (nLineCount + nWrapCount)
             {
-              if (!(dwInsertFlags & AEINST_LOCKUPDATE))
+              if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))
               {
                 AE_UpdateScrollBars(ae, SB_VERT);
                 ciFirstChar=lpPointOne->ciPoint;
@@ -16551,7 +16570,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             //Update scroll bars
             if (nLineCount)
             {
-              if (!(dwInsertFlags & AEINST_LOCKUPDATE))
+              if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))
               {
                 AE_UpdateScrollBars(ae, SB_VERT);
                 ciFirstChar=lpPointOne->ciPoint;
@@ -16630,12 +16649,14 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           //Set caret position
           AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
         }
-        if (!(dwInsertFlags & AEINST_LOCKUPDATE))
+        if (!(dwInsertFlags & AEINST_LOCKUPDATECARET))
         {
           //Set caret position
           ae->nCaretHorzIndent=ae->ptCaret.x;
           if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-
+        }
+        if (!(dwInsertFlags & AEINST_LOCKUPDATETEXT))
+        {
           //Redraw lines
           if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
           {
@@ -17598,7 +17619,7 @@ void AE_EditUndo(AKELEDIT *ae)
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASINPUT, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd))
+        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASINPUT, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
         {
           if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP))
           {
@@ -17627,7 +17648,7 @@ void AE_EditUndo(AKELEDIT *ae)
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
       }
       else if (lpCurElement->dwFlags & AEUN_SETSEL)
       {
@@ -17706,7 +17727,7 @@ void AE_EditRedo(AKELEDIT *ae)
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
       }
       else if (lpCurElement->dwFlags & AEUN_DELETE)
       {
@@ -17714,7 +17735,7 @@ void AE_EditRedo(AKELEDIT *ae)
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASINPUT, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd))
+        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASINPUT, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
         {
           //if (!lpNextElement || (lpCurElement->dwFlags & AEUN_STOPGROUP))
           //{
