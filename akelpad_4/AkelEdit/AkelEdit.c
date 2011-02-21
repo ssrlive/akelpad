@@ -15019,7 +15019,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   if (dwTextLen)
   {
     nVScrollMax=ae->ptxt->nVScrollMax;
-    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET);
     if (nVScrollMax != ae->ptxt->nVScrollMax)
     {
       //VScroll is changed
