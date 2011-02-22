@@ -15009,7 +15009,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
-  int nVScrollMax;
+  INT_PTR nVScrollMax;
   BOOL bUpdateVScroll=FALSE;
 
   if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
