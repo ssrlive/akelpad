@@ -2487,31 +2487,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
 
-          if (ih->dwType & POB_READ)
+          if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
           {
-            if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, FALSE))
-            {
-              API_HeapFree(hHeap, 0, (LPVOID)ih);
-              ih=NULL;
-            }
+            API_HeapFree(hHeap, 0, (LPVOID)ih);
+            ih=NULL;
           }
-          else if (ih->dwType & POB_SAVE)
+          else if ((ih->dwType & POB_SAVE) && (ih->dwType & POB_CLEAR))
           {
-            if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, TRUE))
-            {
-              API_HeapFree(hHeap, 0, (LPVOID)ih);
-              ih=NULL;
-            }
-            else
-            {
-              if (ih->dwType & POB_CLEAR)
-              {
-                INISECTION *lpIniSection;
+            INISECTION *lpIniSection;
 
-                if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", lstrlenW(L"Options"), FALSE))
-                  StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
-              }
-            }
+            if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", lstrlenW(L"Options"), FALSE))
+              StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
           }
         }
         return (LRESULT)ih;
@@ -2649,7 +2635,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           INIHANDLE *ih=(INIHANDLE *)wParam;
 
-          if (ih->dwType & POB_READ)
+          if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
             bResult=TRUE;
           else if (ih->dwType & POB_SAVE)
             bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);
@@ -2664,22 +2650,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIOPENW)
     {
       INIHANDLE *ih;
-      BOOL bCreate=FALSE;
 
       if (ih=(INIHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLE)))
       {
         ih->dwType=(DWORD)wParam;
-        if (ih->dwType & POB_READ)
-          bCreate=FALSE;
-        else if (ih->dwType & POB_SAVE)
-          bCreate=TRUE;
 
         if (uMsg == AKD_INIOPENA || (bOldWindows && uMsg == AKD_INIOPEN))
           xprintfW(ih->wszIniFile, L"%S", (char *)lParam);
         else
           xprintfW(ih->wszIniFile, L"%s", (wchar_t *)lParam);
 
-        if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, bCreate))
+        if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
         {
           API_HeapFree(hHeap, 0, (LPVOID)ih);
           ih=NULL;
@@ -2711,8 +2692,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLE *ih=(INIHANDLE *)wParam;
       INISECTION *lpIniSection=(INISECTION *)lParam;
 
-      StackDeleteIniSection(&ih->hIniFile, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
-      return 0;
+      return StackDeleteIniSection(&ih->hIniFile, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
     }
     if (uMsg == AKD_INIGETKEY ||
         uMsg == AKD_INIGETKEYA ||
@@ -2737,8 +2717,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INISECTION *lpIniSection=(INISECTION *)wParam;
       INIKEY *lpIniKey=(INIKEY *)lParam;
 
-      StackDeleteIniKey(lpIniSection, lpIniKey);
-      return 0;
+      return StackDeleteIniKey(lpIniSection, lpIniKey);
     }
     if (uMsg == AKD_INIGETVALUE ||
         uMsg == AKD_INIGETVALUEA ||
@@ -2799,7 +2778,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ih)
       {
-        if (ih->dwType & POB_READ)
+        if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
           bResult=TRUE;
         else if (ih->dwType & POB_SAVE)
           bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);

@@ -3641,7 +3641,8 @@ Removes all keys in ini section.
 (HINISECTION)lParam == ini section handle.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  See AKD_INIGETSECTION example
@@ -3656,7 +3657,8 @@ Deletes ini section.
 (HINISECTION)lParam == ini section handle.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example (bOldWindows == TRUE):
  HINISECTION hIniSection;
@@ -3708,7 +3710,8 @@ Deletes ini key.
 (HINIKEY)lParam     == key handle.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  See AKD_INIGETKEY examples
