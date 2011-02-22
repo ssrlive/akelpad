@@ -1471,7 +1471,7 @@ BOOL SaveChanged()
       bNoToAll=TRUE;
 
     API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wbuf, MAX_PATH);
-    nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, bNoToAll?(BUTTONMESSAGEBOX *)&bmb2:(BUTTONMESSAGEBOX *)&bmb1);
+    nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, bNoToAll?&bmb2[0]:&bmb1[0]);
 
     if (nChoice == IDC_MESSAGEBOX_YES)
     {
@@ -4611,7 +4611,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             nMessageLine=(int)SendMessage(hWnd, AEM_GETUNWRAPLINE, nMessageLine - 1, 0) + 1;
           API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, MAX_PATH);
           xprintfW(wbuf2, wbuf, nMessageLine);
-          nChoice=MessageBoxCustom(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, (BUTTONMESSAGEBOX *)&bmb);
+          nChoice=MessageBoxCustom(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
 
           if (nChoice == IDC_MESSAGEBOX_GOTO ||
               nChoice == IDCANCEL)
