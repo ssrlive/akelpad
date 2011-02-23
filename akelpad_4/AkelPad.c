@@ -192,7 +192,6 @@ HINSTANCE hInstance;
 DWORD dwCmdShow;
 DWORD dwCmdLineOptions=0;
 const wchar_t *wpCmdLine=NULL;
-BOOL bMessageBox=FALSE;
 
 //Identification
 DWORD dwExeVersion=0;
@@ -2419,10 +2418,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETQUEUE)
     {
       return GetQueueStatus((UINT)wParam);
-    }
-    if (uMsg == AKD_ISMESSAGEBOX)
-    {
-      return bMessageBox;
     }
 
     //Plugin options

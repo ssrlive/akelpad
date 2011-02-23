@@ -104,14 +104,28 @@
 #define AETCT_DELETEALL         0x00200000  //Indicate that due to AETCT_* action all text has been modified.
 
 //Insert text flags
-#define AEINST_LOCKUNDO      0x00000001
-#define AEINST_LOCKSCROLL    0x00000002
-#define AEINST_LOCKUPDATE    0x00000004
+#define AEINST_LOCKUNDO          0x00000001
+#define AEINST_LOCKSCROLL        0x00000002
+#define AEINST_LOCKUPDATEHSCROLL 0x00000004
+#define AEINST_LOCKUPDATEVSCROLL 0x00000008
+#define AEINST_LOCKUPDATECARET   0x00000010
+#define AEINST_LOCKUPDATETEXT    0x00000020
+#define AEINST_LOCKUPDATEALL    (AEINST_LOCKUPDATEHSCROLL |\
+                                 AEINST_LOCKUPDATEVSCROLL |\
+                                 AEINST_LOCKUPDATECARET   |\
+                                 AEINST_LOCKUPDATETEXT)
 
 //Delete text flags
-#define AEDELT_LOCKUNDO      0x00000001
-#define AEDELT_LOCKSCROLL    0x00000002
-#define AEDELT_LOCKUPDATE    0x00000004
+#define AEDELT_LOCKUNDO          0x00000001
+#define AEDELT_LOCKSCROLL        0x00000002
+#define AEDELT_LOCKUPDATEHSCROLL 0x00000004
+#define AEDELT_LOCKUPDATEVSCROLL 0x00000008
+#define AEDELT_LOCKUPDATECARET   0x00000010
+#define AEDELT_LOCKUPDATETEXT    0x00000020
+#define AEDELT_LOCKUPDATEALL    (AEDELT_LOCKUPDATEHSCROLL |\
+                                 AEDELT_LOCKUPDATEVSCROLL |\
+                                 AEDELT_LOCKUPDATECARET   |\
+                                 AEDELT_LOCKUPDATETEXT)
 
 //AEN_POINT types
 #define AEPTT_SETTEXT           0x00000001  //All document text has been changed. All points reset to first character.
