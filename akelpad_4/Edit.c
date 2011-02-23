@@ -18295,6 +18295,7 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
   SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
   nResult=MessageBoxW(hWnd, lpText, lpCaption, uType);
   SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
+
   return nResult;
 }
 
