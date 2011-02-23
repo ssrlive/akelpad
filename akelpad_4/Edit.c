@@ -29,7 +29,6 @@ extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
 extern DWORD dwCmdLineOptions;
 extern const wchar_t *wpCmdLine;
-extern BOOL bMessageBox;
 
 //Identification
 extern DWORD dwExeVersion;
@@ -14008,14 +14007,14 @@ int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCa
   DIALOGMESSAGEBOX dmb;
   int nResult;
 
-  bMessageBox=TRUE;
+  SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWndParent, 0);
   dmb.hWndParent=hWndParent;
   dmb.wpText=wpText;
   dmb.wpCaption=wpCaption;
   dmb.uType=uType;
   dmb.btn=btn;
   nResult=(int)API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_MESSAGEBOX), hWndParent, (DLGPROC)MessageBoxDlgProc, (LPARAM)&dmb);
-  bMessageBox=FALSE;
+  SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWndParent, 0);
 
   return nResult;
 }
@@ -18279,9 +18278,12 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
 {
   int nResult;
 
-  bMessageBox=TRUE;
-  nResult=MessageBoxW(IsWindowVisible(hWnd)?hWnd:NULL, lpText, lpCaption, uType);
-  bMessageBox=FALSE;
+  //Parent should be visible
+  hWnd=IsWindowVisible(hWnd)?hWnd:NULL;
+
+  SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
+  nResult=MessageBoxW(hWnd, lpText, lpCaption, uType);
+  SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
   return nResult;
 }
 

@@ -1438,6 +1438,8 @@ typedef struct {
 #define AKDN_HOTKEY                (WM_USER + 57)  //0x439
 #define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
 #define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
+#define AKDN_MESSAGEBOXBEGIN       (WM_USER + 61)  //0x43D
+#define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1548,7 +1550,6 @@ typedef struct {
 #define AKD_WAITKEYBOARD           (WM_USER + 288)
 #define AKD_GETQUEUE               (WM_USER + 289)
 #define AKD_POSTMESSAGE            (WM_USER + 290)
-#define AKD_ISMESSAGEBOX           (WM_USER + 291)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -1908,6 +1909,30 @@ _________________
 Notification message, sends to the main procedure after find/replace dialog found nothing.
 
 (HWND)wParam == find/replace dialog.
+lParam       == not used.
+
+Return Value
+ Zero.
+
+
+AKDN_MESSAGEBOXBEGIN
+____________________
+
+Notification message, sends to the main procedure before messagebox is open.
+
+(HWND)wParam == parent window of the messagebox.
+lParam       == not used.
+
+Return Value
+ Zero.
+
+
+AKDN_MESSAGEBOXEND
+__________________
+
+Notification message, sends to the main procedure after messagebox is closed.
+
+(HWND)wParam == parent window of the messagebox.
 lParam       == not used.
 
 Return Value
@@ -3246,22 +3271,6 @@ Example (Unicode):
    pmsd->pm.lParam=(LPARAM)&pmsd->sd;
    PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
  }
-
-
-AKD_ISMESSAGEBOX
-________________
-
-Check is any messagebox is open.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- TRUE  messagebox is open.
- FALSE messagebox isn't open.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_ISMESSAGEBOX, 0, 0);
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
