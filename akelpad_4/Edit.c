@@ -2306,6 +2306,11 @@ BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont)
     xmemcpy(lfFont, &lfTmpW, sizeof(LOGFONTW));
   }
   lfFont->lfHeight=-mod(lfFont->lfHeight);
+
+  //User pressed OK, so unlock font inheriting.
+  //if (lpFrameCurrent->dwLockInherit & LI_FONT)
+  //  lpFrameCurrent->dwLockInherit&=~LI_FONT;
+
   return TRUE;
 }
 
@@ -10860,6 +10865,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       SaveThemes(moCur.nSaveSettings);
 
+      //User pressed OK, so unlock colors inheriting.
+      if (lpFrameCurrent->dwLockInherit & LI_COLORS)
+        lpFrameCurrent->dwLockInherit&=~LI_COLORS;
+
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -14166,6 +14175,8 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         nButtonX+=nButtonWidth + nButtonEdge;
       }
     }
+
+    MessageBeep(dwIconType);
   }
   else if (uMsg == WM_COMMAND)
   {
