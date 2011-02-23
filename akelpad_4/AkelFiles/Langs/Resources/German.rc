@@ -162,7 +162,7 @@ BEGIN
 
             MENUITEM "&Verstecken",                 IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "&Standart",                   IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "&Standard",                   IDM_WINDOW_TABTYPE_STANDARD
 
             MENUITEM "B&uttons",                    IDM_WINDOW_TABTYPE_BUTTONS
 
@@ -641,7 +641,7 @@ BEGIN
     LTEXT           "Dämpfer:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
-    LTEXT           "Standartzeichensatz:",IDC_STATIC,12,150,150,8
+    LTEXT           "Standardzeichensatz:",IDC_STATIC,12,150,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filter",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
@@ -960,7 +960,7 @@ BEGIN
     MSG_CANNOT_OPEN_FILE    "Die Datei ""%s"" kann nicht geöffnet werden."
     MSG_WRONG_STRING        "Ungültige Zeilennummer."
     MSG_LONG_FILELIST       "Zu viele Dateien ausgewählt."
-    MSG_DOCUMENT_CHANGED    "Das Dokument wurde modifiziert. Wollen Sie es speichern?"
+    MSG_DOCUMENT_CHANGED    "Die Datei wurde verändert. Änderungen speichern?"
     MSG_FILE_DOES_NOT_EXIST "Soll die neue Datei ""%s"" erstellt werden?"
 END
 
@@ -985,7 +985,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_DOCNAME             "AkelPad Dokument"
-    STR_MODIFIED            "Modifiziert"
+    STR_MODIFIED            "Geändert"
     STR_READONLY            "Nur lesen"
     STR_COUNT               "%d von %d"
     STR_AUTODETECT          "&Automatisch"
@@ -1029,16 +1029,16 @@ BEGIN
     STR_PAGEFIT             "Einpassen"
     STR_PAGEWIDTH           "Breite einpassen"
     STR_ALLFILES            "Alle Dateien"
-    STR_ONLYMODIFIED        "Modifizierte"
-    STR_ONLYUNMODIFIED      "Nicht Modifizierte"
+    STR_ONLYMODIFIED        "Geänderte"
+    STR_ONLYUNMODIFIED      "Nicht geänderte"
     STR_INVERTSELECTION     "Auswahl umkehren"
-    STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "Ja"
-    STR_MESSAGEBOX_NO       "Nein"
-    STR_MESSAGEBOX_CANCEL   "Abbrechen"
-    STR_MESSAGEBOX_YESTOALL "Ja für alle"
-    STR_MESSAGEBOX_NOTOALL  "Nein für alle"
-    STR_MESSAGEBOX_GOTO     "Wechseln zu"
+    STR_MESSAGEBOX_OK       "&OK"
+    STR_MESSAGEBOX_YES      "&Ja"
+    STR_MESSAGEBOX_NO       "&Nein"
+    STR_MESSAGEBOX_CANCEL   "A&bbrechen"
+    STR_MESSAGEBOX_YESTOALL "Ja für &alle"
+    STR_MESSAGEBOX_NOTOALL  "Nein für a&lle"
+    STR_MESSAGEBOX_GOTO     "&Wechseln zu"
 END
 
 STRINGTABLE DISCARDABLE 
