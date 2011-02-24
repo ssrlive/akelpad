@@ -538,6 +538,16 @@ typedef struct _INIHANDLE {
   wchar_t wszIniFile[MAX_PATH];
 } INIHANDLE;
 
+typedef struct {
+  HWND hWndToFind;
+  HWND hWndResult;
+  HWND hWndNextResult;
+  HWND hWndNextNextResult;
+  BOOL bFound;
+  BOOL bNextNext;
+  int nCount;
+} ENUMDLG;
+
 typedef struct _HDOCK {
   HSTACK hStack;
   BOOL bSizing;
@@ -1014,6 +1024,7 @@ void ReleaseMouseCapture(DWORD dwType);
 void ActivateKeyboard(HKL dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
+BOOL CALLBACK EnumDialogsProc(HWND hWnd, LPARAM lParam);
 HWND NextClone(BOOL bPrevious);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
