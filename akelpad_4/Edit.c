@@ -17375,19 +17375,58 @@ void ActivateWindow(HWND hWnd)
 
 HWND NextDialog(BOOL bPrevious)
 {
+  static ENUMDLG ed;
   HWND hWndNext=NULL;
+  HWND hWndToFind;
 
-  if (hDlgModeless)
+  //Modeless dialogs
+  if (!(hWndToFind=GetActiveWindow()))
+    return NULL;
+  if (hWndToFind == hMainWnd)
+    hWndToFind=NULL;
+
+  if (!hWndToFind)
   {
-    if (GetActiveWindow() == hDlgModeless)
-      hWndNext=hMainWnd;
-    else
-      hWndNext=hDlgModeless;
+    ed.hWndToFind=NULL;
+    ed.bNextNext=FALSE;
+  }
+  else if (hWndToFind == ed.hWndResult)
+  {
+    if (!ed.hWndNextResult)
+    {
+      SetActiveWindow(hMainWnd);
+      return hMainWnd;
+    }
+    ed.hWndToFind=ed.hWndNextResult;
+    ed.bNextNext=FALSE;
+  }
+  else
+  {
+    ed.hWndToFind=hWndToFind;
+    ed.bNextNext=TRUE;
+  }
+  ed.nCount=0;
+  ed.hWndResult=NULL;
+  ed.hWndNextResult=NULL;
+  ed.hWndNextNextResult=NULL;
+  ed.bFound=FALSE;
+  EnumWindows(EnumDialogsProc, (LPARAM)&ed);
 
+  if (ed.nCount)
+  {
+    if (ed.bNextNext)
+    {
+      hWndNext=ed.hWndResult=ed.hWndNextResult;
+      ed.hWndNextResult=ed.hWndNextNextResult;
+    }
+    else hWndNext=ed.hWndResult;
+
+    if (!hWndNext) hWndNext=hMainWnd;
     SetActiveWindow(hWndNext);
   }
   else
   {
+    //Dockable windows
     DOCK *dkElement=NULL;
     HWND hWndFocus=GetFocus();
 
@@ -17402,6 +17441,45 @@ HWND NextDialog(BOOL bPrevious)
     SetFocus(hWndNext);
   }
   return hWndNext;
+}
+
+BOOL CALLBACK EnumDialogsProc(HWND hWnd, LPARAM lParam)
+{
+  ENUMDLG *ped=(ENUMDLG *)lParam;
+
+  if (!ped->bFound)
+  {
+    if (ped->hWndToFind == hWnd)
+      ped->bFound=TRUE;
+  }
+  if ((HWND)GetWindowLongPtrWide(hWnd, GWLP_HWNDPARENT) == hMainWnd && IsWindowVisible(hWnd))
+  {
+    if (!ped->bFound)
+    {
+      if (!ped->hWndToFind)
+        ped->bFound=TRUE;
+    }
+    ped->nCount+=1;
+
+    if (ped->bFound)
+    {
+      if (!ped->hWndResult)
+      {
+        ped->hWndResult=hWnd;
+      }
+      else if (!ped->hWndNextResult)
+      {
+        ped->hWndNextResult=hWnd;
+        if (!ped->bNextNext) return FALSE;
+      }
+      else if (!ped->hWndNextNextResult)
+      {
+        ped->hWndNextNextResult=hWnd;
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
 }
 
 HWND NextClone(BOOL bPrevious)
