@@ -30,4 +30,4 @@ cl /O1 %CLFLAGS% /DRC_VERSIONLANGID=%LANGID% AkelPad.c Edit.c AkelPad.res /link 
 if exist AkelPad.obj del AkelPad.obj
 if exist Edit.obj del Edit.obj
 if exist AkelPad.res del AkelPad.res
-@PAUSE
+if not "%1" == "/S" @PAUSE

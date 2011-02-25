@@ -31,4 +31,4 @@ if exist AkelPad.obj del AkelPad.obj
 if exist Edit.obj del Edit.obj
 if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelPad.res del AkelPad.res
-@PAUSE
+if not "%1" == "/S" @PAUSE
