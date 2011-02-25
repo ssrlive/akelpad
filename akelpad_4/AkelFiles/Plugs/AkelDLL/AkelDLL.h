@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 6)
 
 
 //// Defines
@@ -799,7 +799,7 @@ typedef struct {
 typedef struct {
   INT_PTR cpMin;              //First character in the range. First char of text: 0.
   INT_PTR cpMax;              //Last character in the range. Last char of text: -1.
-  unsigned char *pText;       //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+  unsigned char *pText;       //Pointer that receive allocated text, new lines are forced to "\r". Must be deallocated with AKD_FREETEXT message.
                               //  char *pText      if bOldWindows == TRUE
                               //  wchar_t *pText   if bOldWindows == FALSE
 } GETTEXTRANGE;
@@ -2320,7 +2320,7 @@ Retrieves the currently selected text in a edit control.
 (int *)lParam == pointer to a variable that receive text length (not including the terminating null character), can be NULL.
 
 Return Value
- Text pointer.
+ Text pointer, new lines are forced to "\r".
 
 Example:
  wchar_t *wpText;

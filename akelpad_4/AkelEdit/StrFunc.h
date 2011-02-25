@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.5                     *
+ *              String functions header v4.6                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1604,10 +1604,12 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *Find substring in string.
  *
  * [in] const char *pText  Text.
- * [in] INT_PTR nTextLen   Text length. If this value is -1, the string is assumed to be null-terminated
+ * [in] INT_PTR nTextLen   Text length.
+ *                          If this value is -1, the string is assumed to be null-terminated
  *                          and the length is calculated automatically.
  * [in] const char *pStr   Find it.
- * [in] int nStrLen        Find it length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nStrLen        Find it length.
+ *                          If this value is -1, the string is assumed to be null-terminated
  *                          and the length is calculated automatically.
  * [in] BOOL bSensitive    TRUE   case sensitive.
  *                         FALSE  case insensitive.
@@ -1666,10 +1668,12 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
  *Find substring in unicode string.
  *
  * [in] const wchar_t *wpText  Text.
- * [in] INT_PTR nTextLen       Text length. If this value is -1, the string is assumed to be null-terminated
+ * [in] INT_PTR nTextLen       Text length.
+ *                              If this value is -1, the string is assumed to be null-terminated
  *                              and the length is calculated automatically.
  * [in] const wchar_t *wpStr   Find it.
- * [in] int nStrLen            Find it length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nStrLen            Find it length.
+ *                              If this value is -1, the string is assumed to be null-terminated
  *                              and the length is calculated automatically.
  * [in] BOOL bSensitive        TRUE   case sensitive.
  *                             FALSE  case insensitive.
@@ -1736,19 +1740,22 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
  *Replace substring with string.
  *
  * [in] const char *pText    Text.
- * [in] INT_PTR nTextLen     Text length. If this value is -1, the string is assumed to be null-terminated
+ * [in] INT_PTR nTextLen     Text length.
+ *                            If this value is -1, the string is assumed to be null-terminated
  *                            and the length is calculated automatically.
  * [in] const char *pIt      Replace it.
- * [in] int nItLen           Replace it length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nItLen           Replace it length.
+ *                            If this value is -1, the string is assumed to be null-terminated
  *                            and the length is calculated automatically.
  * [in] const char *pWith    Replace with.
- * [in] int nWithLen         Replace with length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nWithLen         Replace with length.
+ *                            If this value is -1, the string is assumed to be null-terminated
  *                            and the length is calculated automatically.
  * [in] BOOL bSensitive      TRUE   case sensitive.
  *                           FALSE  case insensitive.
  *[out] char *szResult       Output, can be NULL. szResult can be the same pointer as pText, if the nItLen >= nWithLen.
  *[out] INT_PTR *nResultLen  Contains the length of the result string,
- *                            including the terminating null character,
+ *                            including the terminating null character if nTextLen == -1,
  *                            can be NULL.
  *
  *Returns:  number of changes.
@@ -1823,19 +1830,22 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
  *Replace substring with unicode string.
  *
  * [in] const wchar_t *wpText  Text.
- * [in] INT_PTR nTextLen       Text length. If this value is -1, the string is assumed to be null-terminated
+ * [in] INT_PTR nTextLen       Text length.
+ *                              If this value is -1, the string is assumed to be null-terminated
  *                              and the length is calculated automatically.
  * [in] const wchar_t *wpIt    Replace it.
- * [in] int nItLen             Replace it length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nItLen             Replace it length.
+ *                              If this value is -1, the string is assumed to be null-terminated
  *                              and the length is calculated automatically.
  * [in] const wchar_t *wpWith  Replace with.
- * [in] int nWithLen           Replace with length. If this value is -1, the string is assumed to be null-terminated
+ * [in] int nWithLen           Replace with length.
+ *                              If this value is -1, the string is assumed to be null-terminated
  *                              and the length is calculated automatically.
  * [in] BOOL bSensitive        TRUE   case sensitive.
  *                             FALSE  case insensitive.
  *[out] wchar_t *wszResult     Output, can be NULL. wszResult can be the same pointer as wpText, if the nItLen >= nWithLen.
  *[out] INT_PTR *nResultLen    Contains the length of the result string,
- *                              including the terminating null character,
+ *                              including the terminating null character if nTextLen == -1,
  *                              can be NULL.
  *
  *Returns:  number of changes.
