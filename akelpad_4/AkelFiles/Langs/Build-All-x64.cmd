@@ -38,7 +38,7 @@ call :COMPILE "Russian" 0x419
 call :COMPILE "Slovak" 0x41B
 call :COMPILE "Spanish" 0x40A
 call :COMPILE "Ukrainian" 0x422
-@PAUSE
+if not "%1" == "/S" @PAUSE
 goto :EOF
 
 :COMPILE

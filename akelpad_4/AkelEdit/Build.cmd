@@ -29,4 +29,4 @@ if exist AkelEdit.res del AkelEdit.res
 if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelEdit.lib del AkelEdit.lib
 if exist AkelEdit.exp del AkelEdit.exp
-@PAUSE
+if not "%1" == "/S" @PAUSE
