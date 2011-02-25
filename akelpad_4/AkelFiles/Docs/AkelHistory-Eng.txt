@@ -1,7 +1,8 @@
 
-AkelPad 4.5.5 ()
+AkelPad 4.5.5 (Feb 25, 2011)
 ----------------------------
 Added: flag 1024 in the manual parameter "PaintOptions" - draw no edit window border.
+Added: switching between any modeless dialogs of the program with F6 hotkey.
 
 Fixed: windows zooming when using the scale other than 96 dpi.
 Fixed: using flag 256 in the manual parameter "PaintOptions" and undo after "Replace all"
