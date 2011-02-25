@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.5.2"
+  !define PRODUCT_VERSION "4.5.5"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
