@@ -112,7 +112,6 @@ extern BOOL bMainOnStart;
 extern BOOL bMainOnFinish;
 extern BOOL bEditOnFinish;
 extern BOOL bFirstTabOnFinish;
-extern BOOL bChangedPromptOnFinish;
 
 //Status window
 extern STATUSSTATE ssStatus;
@@ -253,6 +252,7 @@ extern int nTabOpenItem;
 extern int nDocumentsCount;
 extern int nDocumentsModified;
 extern int nDocumentIndex;
+extern BOOL dwChangedPrompt;
 extern STACKASSOCICON hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
@@ -880,7 +880,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
     {
       FRAMEDATA *lpFrameToActivate;
       int nTabItem;
-      BOOL bSaveChangedPrompt;
+      DWORD dwPrompt=dwChangedPrompt;
 
       //Get previous frame
       if (lpFrame == lpFrameCurrent)
@@ -896,16 +896,13 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       ActivateMdiFrameWindow(lpFrame, !lpFrame->ei.bModified?FWA_NOUPDATEEDIT:0);
 
       //Is save prompt required
-      if (bChangedPromptOnFinish && lpFrame->ei.bModified && (!moCur.bSilentCloseEmptyMDI || lpFrame->ei.wszFile[0] || GetTextLength(lpFrame->ei.hWndEdit)))
-        bSaveChangedPrompt=TRUE;
-      else
-        bSaveChangedPrompt=FALSE;
+      if ((dwChangedPrompt & PROMPT_NONE) || !lpFrame->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrame->ei.wszFile[0] && !GetTextLength(lpFrame->ei.hWndEdit)))
+        dwPrompt|=PROMPT_NONE;
 
       if (lpFrame == lpFrameToActivate)
       {
         //Don't destroy last tab
-        if (!CloseDocument(bSaveChangedPrompt))
-          return FWDE_ABORT;
+        if (!CloseDocument(dwPrompt)) return FWDE_ABORT;
         SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);
 
         //Save frame settings
@@ -920,10 +917,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       else
       {
         //Ask if document unsaved
-        if (bSaveChangedPrompt)
-        {
-          if (!SaveChanged()) return FWDE_ABORT;
-        }
+        if (!SaveChanged(dwPrompt)) return FWDE_ABORT;
         RecentFilesSaveCurrentFile();
       }
 
@@ -1227,15 +1221,13 @@ BOOL DoFileNew()
   if (nMDI)
     return CreateMdiFrameWindow(NULL);
   else
-    return CloseDocument(TRUE);
+    return CloseDocument(0);
 }
 
-BOOL CloseDocument(BOOL bSaveChangedPrompt)
+BOOL CloseDocument(DWORD dwPrompt)
 {
-  if (bSaveChangedPrompt)
-  {
-    if (!SaveChanged()) return FALSE;
-  }
+  if (!SaveChanged(dwPrompt)) return FALSE;
+
   RecentFilesSaveCurrentFile();
   SendMessage(hMainWnd, AKDN_EDIT_ONCLOSE, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
@@ -1308,7 +1300,7 @@ BOOL DoFileOpen()
   int nOpen;
   BOOL bResult=FALSE;
 
-  if (nMDI == WMD_SDI && !SaveChanged()) return FALSE;
+  if (nMDI == WMD_SDI && !SaveChanged(0)) return FALSE;
   bSaveDlg=FALSE;
 
   //Open file dialog
@@ -1450,9 +1442,9 @@ BOOL DoFileSave()
   return !SaveDocument(NULL, lpFrameCurrent->wszFile, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM, SD_UPDATE);
 }
 
-BOOL SaveChanged()
+BOOL SaveChanged(DWORD dwPrompt)
 {
-  if (lpFrameCurrent->ei.bModified)
+  if (!(dwPrompt & PROMPT_NONE) && lpFrameCurrent->ei.bModified)
   {
     BUTTONMESSAGEBOX bmb1[]={{IDC_MESSAGEBOX_YES,    STR_MESSAGEBOX_YES,    TRUE},
                              {IDC_MESSAGEBOX_NO,     STR_MESSAGEBOX_NO,     FALSE},
@@ -1464,13 +1456,12 @@ BOOL SaveChanged()
                              {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  FALSE},
                              {0, 0, 0}};
     int nChoice;
-    BOOL bNoToAll=FALSE;
 
-    if (bMainOnFinish && nMDI && nDocumentsModified > 1)
-      bNoToAll=TRUE;
+    if (!nMDI || nDocumentsModified <= 1)
+      dwPrompt&=~PROMPT_NOTOALLBUTTON;
 
     API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wbuf, MAX_PATH);
-    nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, bNoToAll?&bmb2[0]:&bmb1[0]);
+    nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, (dwPrompt & PROMPT_NOTOALLBUTTON)?&bmb2[0]:&bmb1[0]);
 
     if (nChoice == IDC_MESSAGEBOX_YES)
     {
@@ -1478,7 +1469,7 @@ BOOL SaveChanged()
     }
     else if (nChoice == IDC_MESSAGEBOX_NOTOALL)
     {
-      bChangedPromptOnFinish=FALSE;
+      dwChangedPrompt|=PROMPT_NONE;
     }
     else if (nChoice == IDCANCEL)
     {
@@ -3995,7 +3986,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
             ActivateMdiFrameWindow(lpFrame, 0);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
-            if (SaveChanged())
+            if (SaveChanged(0))
             {
               OpenDocument(hWnd, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
             }
@@ -4909,7 +4900,7 @@ void DropFiles(HDROP hDrop)
   if (moCur.bStatusBar)
     API_LoadStringW(hLangLib, STR_COUNT, wszString, MAX_PATH);
 
-  if (nMDI || SaveChanged())
+  if (nMDI || SaveChanged(0))
   {
     nDropped=DragQueryFileWide(hDrop, 0xFFFFFFFF, NULL, 0);
 
@@ -16039,7 +16030,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 
         if (!bFileOpenedSDI)
         {
-          if (!SaveChanged())
+          if (!SaveChanged(0))
             return PCLE_END;
           nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
