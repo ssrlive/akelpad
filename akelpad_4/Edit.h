@@ -284,6 +284,10 @@
 #define INCREASE_FONT  1
 #define DECREASE_FONT  2
 
+//SaveChanged flags
+#define PROMPT_NONE           0x001  //Don't prompt, answering "No".
+#define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
+
 //Show modify
 #define SM_NONE           0x00000000
 #define SM_STATUSBAR      0x00000001
@@ -647,13 +651,13 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame);
 
 BOOL DoFileNew();
-BOOL CloseDocument(BOOL bSaveChangedPrompt);
+BOOL CloseDocument(DWORD dwPrompt);
 HWND DoFileNewWindow(DWORD dwAddFlags);
 BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam);
 BOOL DoFileOpen();
 int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSave();
-BOOL SaveChanged();
+BOOL SaveChanged(DWORD dwPrompt);
 BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM);
 void DoFileSaveAllAs();
 BOOL DoFilePageSetup(HWND hWndOwner);

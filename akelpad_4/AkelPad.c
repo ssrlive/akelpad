@@ -275,7 +275,6 @@ BOOL bMainOnStart=FALSE;
 BOOL bMainOnFinish=FALSE;
 BOOL bEditOnFinish=FALSE;
 BOOL bFirstTabOnFinish=FALSE;
-BOOL bChangedPromptOnFinish=TRUE;
 
 //Status window
 STATUSSTATE ssStatus;
@@ -416,6 +415,7 @@ int nTabOpenItem=-1;
 int nDocumentsCount=0;
 int nDocumentsModified=0;
 int nDocumentIndex=0;
+DWORD dwChangedPrompt=0;
 STACKASSOCICON hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
@@ -1624,7 +1624,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
       int nResult=0;
 
-      if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged())
+      if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged(0))
       {
         if (uMsg == AKD_OPENDOCUMENTA || (bOldWindows && uMsg == AKD_OPENDOCUMENT))
         {
@@ -2828,7 +2828,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t *wpFile=AllocWideStr(MAX_PATH);
       wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
 
-      if ((odpA->hWnd && !IsEditActive(odpA->hWnd)) || nMDI || SaveChanged())
+      if ((odpA->hWnd && !IsEditActive(odpA->hWnd)) || nMDI || SaveChanged(0))
       {
         if (cds->dwData == CD_OPENDOCUMENTA || (bOldWindows && cds->dwData == CD_OPENDOCUMENT))
         {
@@ -3011,7 +3011,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       int nOpen=EOD_SUCCESS;
 
-      if (nMDI || SaveChanged())
+      if (nMDI || SaveChanged(0))
       {
         wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
@@ -3473,11 +3473,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_WINDOW_FILECLOSE)
     {
-      return CloseDocument(TRUE);
+      return CloseDocument(0);
     }
     else if (LOWORD(wParam) == IDM_WINDOW_FILEEXIT)
     {
-      if (CloseDocument(TRUE))
+      if (CloseDocument(0))
       {
         if (!nMDI)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
@@ -3658,16 +3658,26 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!nMDI)
         {
-          return CloseDocument(TRUE);
+          return CloseDocument(0);
         }
         else
         {
+          BOOL bResult=TRUE;
+
+          //Show "No to all" button if necessary
+          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+
           while (lpFrameCurrent->hWndEditParent)
           {
             if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-              return FALSE;
+            {
+              bResult=FALSE;
+              break;
+            }
           }
-          return TRUE;
+          dwChangedPrompt=0;
+
+          return bResult;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE)
@@ -3675,6 +3685,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nMDI)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
+          BOOL bResult=TRUE;
+
+          //Show "No to all" button if necessary
+          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
 
           for (;;)
           {
@@ -3682,9 +3696,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (lpFrameCurrent == lpFrameInit) break;
 
             if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-              return FALSE;
+            {
+              bResult=FALSE;
+              break;
+            }
           }
-          return TRUE;
+          dwChangedPrompt=0;
+
+          return bResult;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED)
@@ -3804,7 +3823,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (!nMDI)
     {
-      if (!SaveChanged())
+      if (!SaveChanged(0))
       {
         bMainOnFinish=FALSE;
         return bEndSession?0:1;
@@ -3821,6 +3840,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bFirstTabOnFinish=TRUE;
       }
 
+      //Show "No to all" button if necessary
+      dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+
       while (lpFrameCurrent->hWndEditParent)
       {
         nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent);
@@ -3828,11 +3850,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nDestroyResult == FWDE_ABORT)
         {
           bMainOnFinish=FALSE;
+          dwChangedPrompt=0;
           return bEndSession?0:1;
         }
         else if (nDestroyResult != FWDE_SUCCESS)
           break;
       }
+      dwChangedPrompt=0;
     }
 
     //Close modeless dialog
@@ -4746,7 +4770,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
       FRAMEDATA *lpFrame;
       int nTabItem;
-      BOOL bSaveChangedPrompt;
+      DWORD dwPrompt=dwChangedPrompt;
 
       if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
       {
@@ -4754,16 +4778,11 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         ActivateMdiFrameWindow(lpFrame, 0);
 
         //Is save prompt required
-        if (bChangedPromptOnFinish && lpFrame->ei.bModified && (!moCur.bSilentCloseEmptyMDI || lpFrame->ei.wszFile[0] || GetTextLength(lpFrame->ei.hWndEdit)))
-          bSaveChangedPrompt=TRUE;
-        else
-          bSaveChangedPrompt=FALSE;
+        if ((dwChangedPrompt & PROMPT_NONE) || !lpFrame->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrame->ei.wszFile[0] && !GetTextLength(lpFrame->ei.hWndEdit)))
+          dwPrompt|=PROMPT_NONE;
 
         //Ask if document unsaved
-        if (bSaveChangedPrompt)
-        {
-          if (!SaveChanged()) return TRUE;
-        }
+        if (!SaveChanged(dwPrompt)) return TRUE;
         RecentFilesSaveCurrentFile();
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
