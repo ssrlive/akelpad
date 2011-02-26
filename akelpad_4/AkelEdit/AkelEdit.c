@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.5.5                               *
+ *                      AkelEdit text control v1.5.6                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -3718,7 +3718,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           cr.ciMin=ciCharIndex;
           cr.ciMax=ciCharIndex;
           cr.ciMin.nCharInLine=0;
-          if (!AEC_NextLineEx(&cr.ciMax, &cr.ciMax))
+          if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax, FALSE))
             cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 
           ae->ciMouseSelClick=ciCharIndex;
@@ -3808,7 +3808,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
           AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
           AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-          AEC_NextLineEx(&cr.ciMax, &cr.ciMax);
+          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax, FALSE);
 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
@@ -8621,7 +8621,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             ciCharIndex.nCharInLine=0;
           else
           {
-            if (!AEC_NextLineEx(&ciCharIndex, &ciCharIndex))
+            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex, FALSE))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
         }
@@ -8693,7 +8693,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) >= 0)
           {
-            if (!AEC_NextLineEx(&ciCharIndex, &ciCharIndex))
+            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex, FALSE))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
           else
