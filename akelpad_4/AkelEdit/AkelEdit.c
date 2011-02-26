@@ -15011,31 +15011,36 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   AECHARINDEX ciEnd={0};
   INT_PTR nVScrollMax;
   BOOL bUpdateVScroll=FALSE;
-
-  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
+  BOOL bUpdateCaret=FALSE;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
-  if (dwTextLen)
+
+  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
+  nVScrollMax=ae->ptxt->nVScrollMax;
+  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET))
   {
-    nVScrollMax=ae->ptxt->nVScrollMax;
-    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET);
     if (nVScrollMax != ae->ptxt->nVScrollMax)
     {
       //VScroll is changed
       nVScrollMax=ae->ptxt->nVScrollMax;
       bUpdateVScroll=TRUE;
     }
-    AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, 0, &ciStart, &ciEnd);
-    if (bUpdateVScroll && nVScrollMax == ae->ptxt->nVScrollMax)
+    bUpdateCaret=TRUE;
+  }
+  if (!AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, 0, &ciStart, &ciEnd))
+  {
+    if (bUpdateCaret)
     {
-      //VScroll is not updated in AE_InsertText
-      AE_UpdateScrollBars(ae, SB_VERT);
+      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+      ae->nCaretHorzIndent=ae->ptCaret.x;
+      if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
     }
   }
-  else
+  if (bUpdateVScroll && nVScrollMax == ae->ptxt->nVScrollMax)
   {
-    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+    //VScroll is not updated in AE_InsertText
+    AE_UpdateScrollBars(ae, SB_VERT);
   }
   AE_StackUndoGroupStop(ae);
 
