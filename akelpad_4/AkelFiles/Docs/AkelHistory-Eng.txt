@@ -1,8 +1,11 @@
 
 AkelPad 4.5.6 ()
 ----------------------------
+Changed: command with code 4501 is now 4140.
+
 Added: button "No to all" is also available when using items from "Window" menu -
        "Close all" and "Close all but active" (PMDI/MDI).
+Added: command 4206 - restore font size that was at the program start.
 
 
 AkelPad 4.5.5 (Feb 25, 2011)

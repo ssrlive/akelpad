@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 7)
 
 
 //// Defines
@@ -1097,6 +1097,9 @@ typedef struct {
 #define IDM_FILE_SAVEAS_UTF8_NOBOM      4137  //Save file as UTF8 without BOM.
                                               //Return Value: see ESD_* defines.
                                               //
+#define IDM_FILE_CODEPAGEMENU           4140  //Show codepages context menu.
+                                              //Return Value: zero.
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation.
                                               //Return Value: zero.
                                               //
@@ -1226,10 +1229,13 @@ typedef struct {
 #define IDM_VIEW_COLORS                 4202  //Color theme dialog.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_VIEW_INCREASE_FONT          4204  //Increase font 1px.
+#define IDM_VIEW_FONTSIZE_INCREASE      4204  //Increase font 1px.
                                               //Return Value: zero.
                                               //
-#define IDM_VIEW_DECREASE_FONT          4205  //Decrease font 1px.
+#define IDM_VIEW_FONTSIZE_DECREASE      4205  //Decrease font 1px.
+                                              //Return Value: zero.
+                                              //
+#define IDM_VIEW_FONTSIZE_RESTORE       4206  //Decrease font 1px.
                                               //Return Value: zero.
                                               //
 #define IDM_VIEW_WORDWRAP               4209  //Word wrap (on\off).
@@ -1365,9 +1371,6 @@ typedef struct {
                                               //Return Value: activated pane handle.
                                               //
 #define IDM_ABOUT                       4351  //About dialog.
-                                              //Return Value: zero.
-                                              //
-#define IDM_POPUP_CODEPAGEMENU          4501  //Show codepages context menu.
                                               //Return Value: zero.
                                               //
 #define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.

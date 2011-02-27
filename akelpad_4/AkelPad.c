@@ -3155,6 +3155,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
+    else if (LOWORD(wParam) == IDM_FILE_CODEPAGEMENU)
+    {
+      RECT rc;
+
+      SendMessage(hStatus, SB_GETRECT, STATUS_CODEPAGE, (LPARAM)&rc);
+      ClientToScreen(hStatus, (POINT *)&rc);
+      ShowMenuPopupCodepage((POINT *)&rc);
+    }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
       return DoFilePageSetup(hMainWnd);
@@ -3386,13 +3394,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoViewColors();
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_INCREASE_FONT)
+    else if (LOWORD(wParam) == IDM_VIEW_FONTSIZE_INCREASE)
     {
-      DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
+      DoViewFontSize(lpFrameCurrent, FONTSIZE_INCREASE);
     }
-    else if (LOWORD(wParam) == IDM_VIEW_DECREASE_FONT)
+    else if (LOWORD(wParam) == IDM_VIEW_FONTSIZE_DECREASE)
     {
-      DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
+      DoViewFontSize(lpFrameCurrent, FONTSIZE_DECREASE);
+    }
+    else if (LOWORD(wParam) == IDM_VIEW_FONTSIZE_RESTORE)
+    {
+      DoViewFontSize(lpFrameCurrent, FONTSIZE_RESTORE);
     }
     else if (LOWORD(wParam) == IDM_VIEW_READONLY)
     {
@@ -3564,14 +3576,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         hWndChild=GetNextWindow(hWndChild, GW_HWNDNEXT);
       }
       return 0;
-    }
-    else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
-    {
-      RECT rc;
-
-      SendMessage(hStatus, SB_GETRECT, STATUS_CODEPAGE, (LPARAM)&rc);
-      ClientToScreen(hStatus, (POINT *)&rc);
-      ShowMenuPopupCodepage((POINT *)&rc);
     }
 
     //WM_COMMAND (MDI)
@@ -4522,9 +4526,9 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == MK_CONTROL)
     {
       if ((short)HIWORD(wParam) < 0)
-        DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
+        DoViewFontSize(lpFrameCurrent, FONTSIZE_DECREASE);
       else
-        DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
+        DoViewFontSize(lpFrameCurrent, FONTSIZE_INCREASE);
       return TRUE;
     }
   }

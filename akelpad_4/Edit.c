@@ -2313,26 +2313,23 @@ void DoViewColors()
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
 {
-  if (nAction == INCREASE_FONT)
+  if (nAction == FONTSIZE_INCREASE)
   {
     if (lpFrame->lf.lfHeight <= -1)
-    {
       lpFrame->lf.lfHeight-=1;
-      SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
-      UpdateMappedPrintWidth(lpFrame);
-      UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
-    }
   }
-  else if (nAction == DECREASE_FONT)
+  else if (nAction == FONTSIZE_DECREASE)
   {
     if (lpFrame->lf.lfHeight < -1)
-    {
       lpFrame->lf.lfHeight+=1;
-      SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
-      UpdateMappedPrintWidth(lpFrame);
-      UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
-    }
   }
+  else if (nAction == FONTSIZE_RESTORE)
+  {
+    lpFrame->lf.lfHeight=fdInit.lf.lfHeight;
+  }
+  SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+  UpdateMappedPrintWidth(lpFrame);
+  UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
