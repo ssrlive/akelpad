@@ -19,6 +19,7 @@
 #include "winresrc.h"
 #include "staticedit.h"
 #include "version.h"
+#include "..\..\Plugs\AkelDLL\AkelDLL.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -325,14 +326,14 @@ BEGIN
     "V",            IDM_EDIT_PASTECOLUMN,   VIRTKEY, ALT, NOINVERT
     "V",            IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         IDM_VIEW_FONTSIZE_INCREASE, VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
                                                     NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
     VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
-    VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
+    VK_F12,         IDM_FILE_CODEPAGEMENU,  VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
@@ -360,7 +361,7 @@ BEGIN
     VK_RETURN,      IDM_WINDOW_CHANGESIZE,  VIRTKEY, ALT, NOINVERT
     VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
-    VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_FONTSIZE_DECREASE, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
     VK_TAB,         IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
@@ -905,6 +906,7 @@ BEGIN
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
+    "#include ""..\\..\\Plugs\\AkelDLL\\AkelDLL.h""\r\n"
     "\0"
 END
 

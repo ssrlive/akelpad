@@ -281,8 +281,9 @@
 #define INVERTCASE     5
 
 //Change font size
-#define INCREASE_FONT  1
-#define DECREASE_FONT  2
+#define FONTSIZE_INCREASE  1
+#define FONTSIZE_DECREASE  2
+#define FONTSIZE_RESTORE   3
 
 //SaveChanged flags
 #define PROMPT_NONE           0x001  //Don't prompt, answering "No".

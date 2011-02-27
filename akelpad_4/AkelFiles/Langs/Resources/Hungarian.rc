@@ -19,6 +19,7 @@
 #include "winresrc.h"
 #include "staticedit.h"
 #include "version.h"
+#include "..\..\Plugs\AkelDLL\AkelDLL.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -330,14 +331,14 @@ BEGIN
     "V",            IDM_EDIT_PASTECOLUMN,   VIRTKEY, ALT, NOINVERT
     "V",            IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         IDM_VIEW_FONTSIZE_INCREASE, VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
                                                     NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
     VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
-    VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
+    VK_F12,         IDM_FILE_CODEPAGEMENU,  VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
@@ -365,7 +366,7 @@ BEGIN
     VK_RETURN,      IDM_WINDOW_CHANGESIZE,  VIRTKEY, ALT, NOINVERT
     VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
-    VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_FONTSIZE_DECREASE, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
     VK_TAB,         IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
@@ -778,8 +779,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
     CONTROL         "Egérhúzás",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "Jobb klikk a hiányjel áthelyezéséhez",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
+    CONTROL         "Jobb klikk a hiányjel áthelyezéséhez",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,213,114,10
     GROUPBOX        "Sorköz",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
@@ -912,6 +914,7 @@ BEGIN
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
+    "#include ""..\\..\\Plugs\\AkelDLL\\AkelDLL.h""\r\n"
     "\0"
 END
 
@@ -1031,6 +1034,10 @@ BEGIN
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Igen"
     STR_MESSAGEBOX_NO       "&Nem"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_MESSAGEBOX_CANCEL   "Mégse"
     STR_MESSAGEBOX_YESTOALL "Igen mindre"
     STR_MESSAGEBOX_NOTOALL  "Nem mindre"
@@ -1040,8 +1047,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cirill (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "Kelet-európai (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Nyugat-európai (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "Kelet-európai (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "Nyugat-európai (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Török (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Kínai (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japán (UTF-8)"

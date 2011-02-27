@@ -19,6 +19,7 @@
 #include "winresrc.h"
 #include "staticedit.h"
 #include "version.h"
+#include "..\..\Plugs\AkelDLL\AkelDLL.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -49,7 +50,7 @@ BEGIN
         MENUITEM "&Uloûiù\tCtrl+S",             IDM_FILE_SAVE
         MENUITEM "Uloûiù &ako...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "U&loûiù vöetko\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Uloûiù vö&etko ako...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Uloûiù vö&etko ako...",       IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Nasta&venie strany......",    IDM_FILE_PAGESETUP
         MENUITEM "N·&hæad tlaËe...",            IDM_FILE_PRINTPREVIEW
@@ -83,7 +84,7 @@ BEGIN
         MENUITEM "Vloûiù d·&tum\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "V˝&ber"
         BEGIN
-            MENUITEM "Prilepiù stÂpce\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "Prilepiù stÂpce\tAlt+V",      IDM_EDIT_PASTECOLUMN
             MENUITEM "Ods&adiù tabul·tormi\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Zruöiù odsadenie &tab\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -151,7 +152,8 @@ BEGIN
         BEGIN
             MENUITEM "&Jedin˝ dokument (SDI)",      IDM_OPTIONS_SDI
             MENUITEM "&Viacero dokumentov (MDI)",   IDM_OPTIONS_MDI
-            MENUITEM "NeobmedzenÈ mnoûstvo dokumentov (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "NeobmedzenÈ mnoûstvo dokumentov (PMDI)", 
+                                                    IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Nastavenia...",              IDM_OPTIONS
@@ -181,9 +183,10 @@ BEGIN
         MENUITEM "&Horizont·lne",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertik·lne",                 IDM_WINDOW_TILEVERTICAL
         MENUITEM "Do &kask·dy",                 IDM_WINDOW_CASCADE
-        MENUITEM "Zavrieù",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Zavrieù vöetky",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Zavrieù vöetky okrem aktÌvneho",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Zavrieù",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Zavrieù vöetky",              IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Zavrieù vöetky okrem aktÌvneho", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "V˝ber okna...",               IDM_WINDOW_MDILIST
     END
@@ -331,14 +334,14 @@ BEGIN
     "V",            IDM_EDIT_PASTECOLUMN,   VIRTKEY, ALT, NOINVERT
     "V",            IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         IDM_VIEW_FONTSIZE_INCREASE, VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
                                                     NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
     VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
-    VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
+    VK_F12,         IDM_FILE_CODEPAGEMENU,  VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
@@ -366,7 +369,7 @@ BEGIN
     VK_RETURN,      IDM_WINDOW_CHANGESIZE,  VIRTKEY, ALT, NOINVERT
     VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
-    VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_FONTSIZE_DECREASE, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
     VK_TAB,         IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
@@ -923,6 +926,7 @@ BEGIN
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
+    "#include ""..\\..\\Plugs\\AkelDLL\\AkelDLL.h""\r\n"
     "\0"
 END
 
@@ -1042,6 +1046,10 @@ BEGIN
     STR_MESSAGEBOX_OK       "&OK"
     STR_MESSAGEBOX_YES      "¡no"
     STR_MESSAGEBOX_NO       "Nie"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_MESSAGEBOX_CANCEL   "&Zruöiù"
     STR_MESSAGEBOX_YESTOALL "¡no vöetk˝m"
     STR_MESSAGEBOX_NOTOALL  "Nie vöetk˝m"
@@ -1051,8 +1059,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrilika (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE  "V˝chodoeurÛpske (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE  "Z·padoeurÛpske (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "V˝chodoeurÛpske (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "Z·padoeurÛpske (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "TureËtina (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "»Ìnötina (UTF-8)"
     STR_AUTODETECT_JAPANESE "JaponËina (UTF-8)"
