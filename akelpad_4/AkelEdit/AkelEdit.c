@@ -514,6 +514,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return AEC_CharAtIndex(ciPos);
     }
+    if (uMsg == AEM_INPUTLANGUAGE)
+    {
+      return (LRESULT)ae->dwInputLocale;
+    }
 
     //Undo and Redo
     CanUndo:

@@ -1230,6 +1230,7 @@ typedef struct {
 #define AEM_KEYDOWN               (WM_USER + 2020)
 #define AEM_DRAGDROP              (WM_USER + 2021)
 #define AEM_CHARAT                (WM_USER + 2022)
+#define AEM_INPUTLANGUAGE         (WM_USER + 2023)
 
 //Undo and Redo
 #define AEM_CANUNDO               (WM_USER + 2051)
@@ -2411,6 +2412,21 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  nChar=SendMessage(hWndEdit, AEM_CHARAT, (WPARAM)&ciCaret, 0);
+
+
+AEM_INPUTLANGUAGE
+_________________
+
+Retrieves the active input locale identifier.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Input locale identifier.
+
+Example:
+ HKL dwInputLocale=(HKL)SendMessage(hWndEdit, AEM_INPUTLANGUAGE, 0, 0);
 
 
 AEM_CANUNDO
