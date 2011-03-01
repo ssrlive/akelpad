@@ -4813,7 +4813,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
 
           bEditOnFinish=TRUE;
-          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, 0);
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
           DestroyWindow(lpFrame->ei.hWndEdit);
           lpFrame->ei.hWndEdit=NULL;
           lpFrame->ei.hDocEdit=NULL;
