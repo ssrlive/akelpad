@@ -17870,8 +17870,8 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
       rcNewWindow.top=rcWindow->top;
     else
       rcNewWindow.top=mi.rcWork.top;
-    rcNewWindow.right=mi.rcWork.left + (rcWindow->right - rcWindow->left);
-    rcNewWindow.bottom=mi.rcWork.top + (rcWindow->bottom - rcWindow->top);
+    rcNewWindow.right=rcWindow->right;
+    rcNewWindow.bottom=rcWindow->bottom;
     *rcWindow=rcNewWindow;
     return FALSE;
   }
