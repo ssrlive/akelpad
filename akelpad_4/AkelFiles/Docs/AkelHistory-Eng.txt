@@ -7,6 +7,8 @@ Added: button "No to all" is also available when using items from "Window" menu 
        "Close all" and "Close all but active" (PMDI/MDI).
 Added: command 4206 - restore font size that was at the program start.
 
+Fixed: restore the size of the main window, that was out of sight.
+
 
 AkelPad 4.5.5 (Feb 25, 2011)
 ----------------------------
