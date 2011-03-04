@@ -10016,6 +10016,7 @@ void RecentFilesSave()
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
   HKEY hKey;
+  BOOL bDelete=FALSE;
   int i;
 
   //Save recent files array
@@ -10025,22 +10026,36 @@ void RecentFilesSave()
 
   for (i=0; i < moCur.nRecentFiles; ++i)
   {
-    xprintfW(wszRegValue, L"nm%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i]));
+    if (!bDelete && *lpwszRecentNames[i])
+    {
+      xprintfW(wszRegValue, L"nm%d", i);
+      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i])) != ERROR_SUCCESS)
+        break;
 
-    //#ifdef _WIN64
-    //  xprintfW(wszRegValue, L"ps%d", i);
-    //  RegSetValueExWide(hKey, wszRegValue, 0, REG_QWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
-    //#else
-    //  xprintfW(wszRegValue, L"ps%d", i);
-    //  RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
-    //#endif
+      xprintfW(wszRegValue, L"ps%d", i);
+      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD)) != ERROR_SUCCESS)
+        break;
 
-    xprintfW(wszRegValue, L"ps%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD));
+      xprintfW(wszRegValue, L"cp%d", i);
+      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentCodepages[i], sizeof(DWORD)) != ERROR_SUCCESS)
+        break;
+    }
+    else
+    {
+      bDelete=TRUE;
 
-    xprintfW(wszRegValue, L"cp%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentCodepages[i], sizeof(DWORD));
+      xprintfW(wszRegValue, L"nm%d", i);
+      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
+        break;
+
+      xprintfW(wszRegValue, L"ps%d", i);
+      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
+        break;
+
+      xprintfW(wszRegValue, L"cp%d", i);
+      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
+        break;
+    }
   }
   RegCloseKey(hKey);
 }
