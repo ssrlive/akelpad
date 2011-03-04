@@ -285,6 +285,10 @@
 #define FONTSIZE_DECREASE  2
 #define FONTSIZE_RESTORE   3
 
+//BUTTONMESSAGEBOX flags
+#define BMB_DEFAULT   0x001  //Default button.
+#define BMB_DISABLED  0x002  //Button is disabled.
+
 //SaveChanged flags
 #define PROMPT_NONE           0x001  //Don't prompt, answering "No".
 #define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
@@ -605,7 +609,7 @@ typedef struct {
 typedef struct {
   int nButtonControlID;
   int nButtonStringID;
-  BOOL bDefaultButton;
+  DWORD dwFlags;         //See BMB_* defines.
 } BUTTONMESSAGEBOX;
 
 typedef struct {
