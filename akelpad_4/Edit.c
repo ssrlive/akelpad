@@ -1446,20 +1446,22 @@ BOOL SaveChanged(DWORD dwPrompt)
 {
   if (!(dwPrompt & PROMPT_NONE) && lpFrameCurrent->ei.bModified)
   {
-    BUTTONMESSAGEBOX bmb1[]={{IDC_MESSAGEBOX_YES,    STR_MESSAGEBOX_YES,    TRUE},
-                             {IDC_MESSAGEBOX_NO,     STR_MESSAGEBOX_NO,     FALSE},
-                             {IDCANCEL,              STR_MESSAGEBOX_CANCEL, FALSE},
+    BUTTONMESSAGEBOX bmb1[]={{IDC_MESSAGEBOX_YES,    STR_MESSAGEBOX_YES,    BMB_DEFAULT},
+                             {IDC_MESSAGEBOX_NO,     STR_MESSAGEBOX_NO,     0},
+                             {IDCANCEL,              STR_MESSAGEBOX_CANCEL, 0},
                              {0, 0, 0}};
-    BUTTONMESSAGEBOX bmb2[]={{IDC_MESSAGEBOX_YES,     STR_MESSAGEBOX_YES,     TRUE},
-                             {IDC_MESSAGEBOX_NO,      STR_MESSAGEBOX_NO,      FALSE},
-                             {IDC_MESSAGEBOX_NOTOALL, STR_MESSAGEBOX_NOTOALL, FALSE},
-                             {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  FALSE},
+    BUTTONMESSAGEBOX bmb2[]={{IDC_MESSAGEBOX_YES,     STR_MESSAGEBOX_YES,     BMB_DEFAULT},
+                             {IDC_MESSAGEBOX_NO,      STR_MESSAGEBOX_NO,      0},
+                             {IDC_MESSAGEBOX_NOTOALL, STR_MESSAGEBOX_NOTOALL, 0},
+                             {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  0},
                              {0, 0, 0}};
     int nChoice;
 
-    if (!nMDI || nDocumentsModified <= 1)
-      dwPrompt&=~PROMPT_NOTOALLBUTTON;
-
+    if (nDocumentsModified <= 1)
+    {
+      if (dwPrompt & PROMPT_NOTOALLBUTTON)
+        bmb2[2].dwFlags|=BMB_DISABLED;
+    }
     API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wbuf, MAX_PATH);
     nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, (dwPrompt & PROMPT_NOTOALLBUTTON)?&bmb2[0]:&bmb1[0]);
 
@@ -4592,9 +4594,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
         //Custom MessageBox
         {
-          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   STR_MESSAGEBOX_OK,     FALSE},
-                                  {IDCANCEL,            STR_MESSAGEBOX_CANCEL, FALSE},
-                                  {IDC_MESSAGEBOX_GOTO, STR_MESSAGEBOX_GOTO,   TRUE},
+          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   STR_MESSAGEBOX_OK,     0},
+                                  {IDCANCEL,            STR_MESSAGEBOX_CANCEL, 0},
+                                  {IDC_MESSAGEBOX_GOTO, STR_MESSAGEBOX_GOTO,   BMB_DEFAULT},
                                   {0, 0, 0}};
           int nChoice;
           int nMessageLine=nLostLine;
@@ -14141,15 +14143,17 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       dwStyle=WS_CHILD|WS_VISIBLE|WS_TABSTOP;
       if (lpButton == lpDialog->btn)
         dwStyle|=WS_GROUP;
-      if (lpButton->bDefaultButton)
+      if (lpButton->dwFlags & BMB_DEFAULT)
         dwStyle|=BS_DEFPUSHBUTTON;
+      if (lpButton->dwFlags & BMB_DISABLED)
+        dwStyle|=WS_DISABLED;
 
       if (hWndButton=CreateWindowExWide(0, L"BUTTON", NULL, dwStyle, nButtonX, nButtonY, nButtonWidth, nButtonHeight, hDlg, (HMENU)(UINT_PTR)lpButton->nButtonControlID, hInstance, NULL))
       {
         SendMessage(hWndButton, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
         API_LoadStringW(hLangLib, lpButton->nButtonStringID, wszString, MAX_PATH);
         SetWindowTextWide(hWndButton, wszString);
-        if (lpButton->bDefaultButton)
+        if (lpButton->dwFlags & BMB_DEFAULT)
         {
           SetFocus(hWndButton);
           if (bSnapToDefButton)

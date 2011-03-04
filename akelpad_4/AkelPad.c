@@ -3669,7 +3669,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           BOOL bResult=TRUE;
 
           //Show "No to all" button if necessary
-          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+          if (nDocumentsModified > 1)
+            dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
 
           while (lpFrameCurrent->hWndEditParent)
           {
@@ -3692,7 +3693,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           BOOL bResult=TRUE;
 
           //Show "No to all" button if necessary
-          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+          if (nDocumentsModified > 1)
+            dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
 
           for (;;)
           {
@@ -3845,7 +3847,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Show "No to all" button if necessary
-      dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+      if (nDocumentsModified > 1)
+        dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
 
       while (lpFrameCurrent->hWndEditParent)
       {
