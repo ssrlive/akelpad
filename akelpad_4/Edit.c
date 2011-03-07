@@ -9908,16 +9908,15 @@ int RecentFilesFindIndex(const wchar_t *wpFile)
 
 BOOL RecentFilesDeleteIndex(int nIndex)
 {
-  int a=nIndex;
-  int b=moCur.nRecentFiles - 1;
+  int nLastIndex;
 
-  if (a < b && *lpRecentFiles[a].wszFile)
+  if (nIndex < moCur.nRecentFiles && *lpRecentFiles[nIndex].wszFile)
   {
-    for (; a < b && *lpRecentFiles[a].wszFile; ++a)
+    for (nLastIndex=moCur.nRecentFiles - 1; nIndex < nLastIndex && *lpRecentFiles[nIndex].wszFile; ++nIndex)
     {
-      xmemcpy(&lpRecentFiles[a], &lpRecentFiles[a+1], sizeof(RECENTFILE));
+      xmemcpy(&lpRecentFiles[nIndex], &lpRecentFiles[nIndex+1], sizeof(RECENTFILE));
     }
-    xmemset(&lpRecentFiles[a], 0, sizeof(RECENTFILE));
+    xmemset(&lpRecentFiles[nIndex], 0, sizeof(RECENTFILE));
     return TRUE;
   }
   return FALSE;
