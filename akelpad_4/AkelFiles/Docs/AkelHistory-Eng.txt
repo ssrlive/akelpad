@@ -1,8 +1,10 @@
 
 AkelPad 4.5.6 ()
 ----------------------------
+Changed: recent files information is now stored in the "file*" key instead of "nm*", "cp*", "ps*".
 Changed: command with code 4501 is now 4140.
 
+Added: selection remembering in the recent files.
 Added: button "No to all" is also available when using items from "Window" menu -
        "Close all" and "Close all but active" (PMDI/MDI).
 Added: command 4206 - restore font size that was at the program start.
