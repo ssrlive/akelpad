@@ -145,9 +145,7 @@ extern int nAnsiCodePage;
 extern int nOemCodePage;
 
 //Recent files
-extern wchar_t (*lpwszRecentNames)[MAX_PATH];
-extern UINT_PTR *lpdwRecentPositions;
-extern DWORD *lpdwRecentCodepages;
+extern RECENTFILE *lpRecentFiles;
 
 //Open/Save document
 extern wchar_t wszFilter[MAX_PATH];
@@ -4117,7 +4115,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           RecentFilesZero();
           RecentFilesRead();
-          RecentFilesUpdate(wszFile, -1, nCodePage);
+          RecentFilesUpdate(wszFile, nCodePage, NULL);
           RecentFilesSave();
           if (nFileCmp) bMenuRecentFiles=TRUE;
         }
@@ -4161,8 +4159,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         CHARRANGE64 cr;
 
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-        cr.cpMin=lpdwRecentPositions[0];
-        cr.cpMax=lpdwRecentPositions[0];
+        cr.cpMin=lpRecentFiles[0].cpMin;
+        cr.cpMax=lpRecentFiles[0].cpMax;
         SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
@@ -7463,6 +7461,7 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   int nRegCodePage=0;
   UINT_PTR a;
   UINT_PTR b;
+  int i;
   BOOL bUtfCodePage=FALSE;
   BOOL bUtfBOM=FALSE;
 
@@ -7477,8 +7476,13 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
     {
       RecentFilesZero();
       RecentFilesRead();
+      if (moCur.bSaveCodepages)
+      {
+        if ((i=RecentFilesFindIndex(wpFile)) >= 0)
+          nRegCodePage=lpRecentFiles[i].nCodePage;
+      }
     }
-    if (moCur.nRecentFiles && moCur.bSaveCodepages && RecentFilesGet(wpFile, NULL, &nRegCodePage) && nRegCodePage)
+    if (nRegCodePage)
     {
       if (nRegCodePage == CP_UNICODE_UTF32LE || nRegCodePage == CP_UNICODE_UTF32BE)
         dwFlags&=~ADT_BINARY_ERROR;
@@ -9878,30 +9882,55 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
 
 BOOL RecentFilesAlloc()
 {
-  if (!(lpwszRecentNames=(wchar_t (*)[MAX_PATH])API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * MAX_PATH * sizeof(wchar_t))))
-    return FALSE;
-  if (!(lpdwRecentPositions=(UINT_PTR *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(UINT_PTR))))
-    return FALSE;
-  if (!(lpdwRecentCodepages=(DWORD *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
+  if (!(lpRecentFiles=(RECENTFILE *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(RECENTFILE))))
     return FALSE;
   return TRUE;
 }
 
 void RecentFilesZero()
 {
-  xmemset(lpwszRecentNames, 0, moCur.nRecentFiles * MAX_PATH * sizeof(wchar_t));
-  xmemset(lpdwRecentPositions, 0, moCur.nRecentFiles * sizeof(UINT_PTR));
-  xmemset(lpdwRecentCodepages, 0, moCur.nRecentFiles * sizeof(DWORD));
+  xmemset(lpRecentFiles, 0, moCur.nRecentFiles * sizeof(RECENTFILE));
+}
+
+int RecentFilesFindIndex(const wchar_t *wpFile)
+{
+  int i;
+
+  if (!*wpFile) return -1;
+
+  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
+  {
+    if (!xstrcmpiW(lpRecentFiles[i].wszFile, wpFile))
+      return i;
+  }
+  return -1;
+}
+
+BOOL RecentFilesDeleteIndex(int nIndex)
+{
+  int a=nIndex;
+  int b=moCur.nRecentFiles - 1;
+
+  if (a < b && *lpRecentFiles[a].wszFile)
+  {
+    for (; a < b && *lpRecentFiles[a].wszFile; ++a)
+    {
+      xmemcpy(&lpRecentFiles[a], &lpRecentFiles[a+1], sizeof(RECENTFILE));
+    }
+    xmemset(&lpRecentFiles[a], 0, sizeof(RECENTFILE));
+    return TRUE;
+  }
+  return FALSE;
 }
 
 int RecentFilesRead()
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
+  wchar_t *wpCount;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
-  DWORD dwCodePage;
   int i;
 
   //Read recent files array
@@ -9911,100 +9940,93 @@ int RecentFilesRead()
 
   for (i=0; i < moCur.nRecentFiles; ++i)
   {
-    xprintfW(wszRegValue, L"nm%d", i);
-    dwSize=MAX_PATH * sizeof(wchar_t);
-    if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)lpwszRecentNames[i], &dwSize) != ERROR_SUCCESS)
+    xprintfW(wszRegValue, L"file%d", i);
+    dwSize=BUFFER_SIZE * sizeof(wchar_t);
+    if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wbuf, &dwSize) != ERROR_SUCCESS)
       break;
-    if (!*lpwszRecentNames[i])
+    if (!*wbuf || dwType != REG_MULTI_SZ)
       break;
 
-    xprintfW(wszRegValue, L"ps%d", i);
-    dwSize=sizeof(UINT_PTR);
-    RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)&lpdwRecentPositions[i], &dwSize);
+    //File
+    wpCount=wbuf;
+    wpCount+=xstrcpynW(lpRecentFiles[i].wszFile, wpCount, MAX_PATH) + 1;
 
-    xprintfW(wszRegValue, L"cp%d", i);
-    dwSize=sizeof(DWORD);
-    if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)&dwCodePage, &dwSize) == ERROR_SUCCESS)
-      lpdwRecentCodepages[i]=LOWORD(dwCodePage);
+    //Codepage
+    if (*wpCount)
+    {
+      lpRecentFiles[i].nCodePage=(int)xatoiW(wpCount, NULL);
+      wpCount+=xstrlenW(wpCount) + 1;
+    }
+    else lpRecentFiles[i].nCodePage=0;
+
+    //Position
+    if (*wpCount)
+    {
+      lpRecentFiles[i].cpMin=lpRecentFiles[i].cpMax=xatoiW(wpCount, &wpCount);
+      if (*wpCount == '-')
+        lpRecentFiles[i].cpMax=xatoiW(++wpCount, &wpCount);
+    }
+    else lpRecentFiles[i].cpMin=lpRecentFiles[i].cpMax=0;
   }
   RegCloseKey(hKey);
   return i;
 }
 
-BOOL RecentFilesGet(const wchar_t *wpFile, INT_PTR *nPosition, int *nCodePage)
+BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSel)
 {
-  int i;
-
-  if (!*wpFile) return FALSE;
-
-  for (i=0; i < moCur.nRecentFiles && *lpwszRecentNames[i]; ++i)
-  {
-    if (!xstrcmpiW(lpwszRecentNames[i], wpFile))
-    {
-      if (nPosition) *nPosition=lpdwRecentPositions[i];
-      if (nCodePage) *nCodePage=lpdwRecentCodepages[i];
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-BOOL RecentFilesUpdate(const wchar_t *wpFile, INT_PTR nPosition, int nCodePage)
-{
+  CHARRANGE64 cr;
   int i;
 
   if (!*wpFile) return FALSE;
 
   //Update recent files array - move/add current file to the first place
-  for (i=0; i < moCur.nRecentFiles && *lpwszRecentNames[i]; ++i)
+  if (lpcrSel)
   {
-    if (!xstrcmpiW(lpwszRecentNames[i], wpFile))
+    cr.cpMin=lpcrSel->cpMin;
+    cr.cpMax=lpcrSel->cpMax;
+  }
+  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
+  {
+    if (!xstrcmpiW(lpRecentFiles[i].wszFile, wpFile))
     {
-      if (nPosition == -1) nPosition=lpdwRecentPositions[i];
-      if (nCodePage == -1) nCodePage=lpdwRecentCodepages[i];
+      if (nCodePage == -1) nCodePage=lpRecentFiles[i].nCodePage;
+      if (!lpcrSel)
+      {
+        cr.cpMin=lpRecentFiles[i].cpMin;
+        cr.cpMax=lpRecentFiles[i].cpMax;
+      }
       goto Move;
     }
   }
   if (i >= moCur.nRecentFiles) --i;
-  if (nPosition == -1) nPosition=0;
-  if (nCodePage == -1) nCodePage=moCur.nDefaultCodePage;
+  if (nCodePage == -1) nCodePage=0;
+  if (!lpcrSel) cr.cpMin=cr.cpMax=0;
 
   Move:
   while (i > 0)
   {
-    xstrcpynW(lpwszRecentNames[i], lpwszRecentNames[i-1], MAX_PATH);
-    lpdwRecentPositions[i]=lpdwRecentPositions[i-1];
-    lpdwRecentCodepages[i]=lpdwRecentCodepages[i-1];
+    xmemcpy(&lpRecentFiles[i], &lpRecentFiles[i-1], sizeof(RECENTFILE));
     --i;
   }
-  xstrcpynW(lpwszRecentNames[0], wpFile, MAX_PATH);
-  lpdwRecentPositions[0]=nPosition;
-  lpdwRecentCodepages[0]=nCodePage;
+  xstrcpynW(lpRecentFiles[0].wszFile, wpFile, MAX_PATH);
+  lpRecentFiles[0].nCodePage=nCodePage;
+  lpRecentFiles[0].cpMin=cr.cpMin;
+  lpRecentFiles[0].cpMax=cr.cpMax;
 
   return TRUE;
 }
 
 int RecentFilesDeleteOld()
 {
-  int a;
-  int b;
   int i;
   int nDead=0;
 
   //Delete files from recent files array if they doesn't exist
-  for (i=0; i < moCur.nRecentFiles && *lpwszRecentNames[i]; ++i)
+  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
   {
-    while (*lpwszRecentNames[i] && !FileExistsWide(lpwszRecentNames[i]))
+    while (*lpRecentFiles[i].wszFile && !FileExistsWide(lpRecentFiles[i].wszFile))
     {
-      for (a=i, b=moCur.nRecentFiles - 1; a < b && *lpwszRecentNames[a]; ++a)
-      {
-        xstrcpynW(lpwszRecentNames[a], lpwszRecentNames[a+1], MAX_PATH);
-        lpdwRecentPositions[a]=lpdwRecentPositions[a+1];
-        lpdwRecentCodepages[a]=lpdwRecentCodepages[a+1];
-      }
-      *lpwszRecentNames[a]='\0';
-      lpdwRecentPositions[a]=0;
-      lpdwRecentCodepages[a]=0;
+      RecentFilesDeleteIndex(i);
       ++nDead;
     }
   }
@@ -10015,8 +10037,10 @@ void RecentFilesSave()
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
+  wchar_t wchNull=L'\0';
   HKEY hKey;
   BOOL bDelete=FALSE;
+  int nStrLen;
   int i;
 
   //Save recent files array
@@ -10026,33 +10050,18 @@ void RecentFilesSave()
 
   for (i=0; i < moCur.nRecentFiles; ++i)
   {
-    if (!bDelete && *lpwszRecentNames[i])
+    if (!bDelete && *lpRecentFiles[i].wszFile)
     {
-      xprintfW(wszRegValue, L"nm%d", i);
-      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i])) != ERROR_SUCCESS)
-        break;
-
-      xprintfW(wszRegValue, L"ps%d", i);
-      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD)) != ERROR_SUCCESS)
-        break;
-
-      xprintfW(wszRegValue, L"cp%d", i);
-      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentCodepages[i], sizeof(DWORD)) != ERROR_SUCCESS)
+      xprintfW(wszRegValue, L"file%d", i);
+      nStrLen=(int)xprintfW(wbuf, L"%s%c%d%c%Id-%Id%c", lpRecentFiles[i].wszFile, wchNull, lpRecentFiles[i].nCodePage, wchNull, lpRecentFiles[i].cpMin, lpRecentFiles[i].cpMax, wchNull);
+      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wbuf, (nStrLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
         break;
     }
     else
     {
       bDelete=TRUE;
 
-      xprintfW(wszRegValue, L"nm%d", i);
-      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
-        break;
-
-      xprintfW(wszRegValue, L"ps%d", i);
-      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
-        break;
-
-      xprintfW(wszRegValue, L"cp%d", i);
+      xprintfW(wszRegValue, L"file%d", i);
       if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
         break;
     }
@@ -10062,13 +10071,24 @@ void RecentFilesSave()
 
 void RecentFilesSaveCurrentFile()
 {
+  CHARRANGE64 cr;
+  INT_PTR i;
+
   if (moCur.nRecentFiles && lpFrameCurrent->wszFile[0])
   {
     if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrameCurrent->wszFile))
     {
       RecentFilesZero();
       RecentFilesRead();
-      RecentFilesUpdate(lpFrameCurrent->wszFile, AkelIndexToRichOffset(lpFrameCurrent->ei.hWndEdit, &ciCaret), lpFrameCurrent->ei.nCodePage);
+
+      SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+      if (AEC_IndexCompare(&ciCaret, &crSel.ciMax) < 0)
+      {
+        i=cr.cpMin;
+        cr.cpMin=cr.cpMax;
+        cr.cpMax=i;
+      }
+      RecentFilesUpdate(lpFrameCurrent->wszFile, lpFrameCurrent->ei.nCodePage, &cr);
       RecentFilesSave();
       bMenuRecentFiles=TRUE;
     }
@@ -10081,14 +10101,14 @@ void RecentFilesMenu()
 
   for (i=1; DeleteMenu(hMainMenu, IDM_RECENT_FILES + i, MF_BYCOMMAND); ++i);
 
-  if (moCur.nRecentFiles && *lpwszRecentNames[0])
+  if (moCur.nRecentFiles && *lpRecentFiles[0].wszFile)
   {
     API_LoadStringW(hLangLib, STR_RECENT_FILES_DELETE_DEAD, wbuf, BUFFER_SIZE);
     ModifyMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES, wbuf);
 
-    for (i=0; i < moCur.nRecentFiles && *lpwszRecentNames[i]; ++i)
+    for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
     {
-      TrimPathW(wbuf2, lpwszRecentNames[i], RECENTFILES_RECORD_LENGTH);
+      TrimPathW(wbuf2, lpRecentFiles[i].wszFile, RECENTFILES_RECORD_LENGTH);
       FixAmpW(wbuf2, wbuf, BUFFER_SIZE);
       InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + i + 1, wbuf);
     }
@@ -10103,20 +10123,10 @@ void RecentFilesMenu()
 
 void FreeMemoryRecentFiles()
 {
-  if (lpwszRecentNames)
+  if (lpRecentFiles)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)lpwszRecentNames);
-    lpwszRecentNames=NULL;
-  }
-  if (lpdwRecentPositions)
-  {
-    API_HeapFree(hHeap, 0, (LPVOID)lpdwRecentPositions);
-    lpdwRecentPositions=NULL;
-  }
-  if (lpdwRecentCodepages)
-  {
-    API_HeapFree(hHeap, 0, (LPVOID)lpdwRecentCodepages);
-    lpdwRecentCodepages=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)lpRecentFiles);
+    lpRecentFiles=NULL;
   }
 }
 
@@ -12681,7 +12691,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SendMessage(hWndFileTypesPrint, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, moCur.nRecentFiles, FALSE);
-    if (!moCur.nRecentFiles || !*lpwszRecentNames[0]) EnableWindow(hWndRecentFilesClear, FALSE);
+    if (!moCur.nRecentFiles || !*lpRecentFiles[0].wszFile) EnableWindow(hWndRecentFilesClear, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, moCur.nSearchStrings, FALSE);
     if (!moCur.nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
 

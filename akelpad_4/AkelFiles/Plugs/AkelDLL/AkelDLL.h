@@ -113,10 +113,10 @@
 
 //AKD_RECENTFILES flags
 #define RF_GET        1  //Retrive current recent files info.
-                         //lParam is a pointer to a RECENTFILES structure, can be NULL.
+                         //(RECENTFILE **)lParam is a pointer to a variable that receive first RECENTFILE structure address of the array, can be NULL.
                          //Return value is maximum number of recent files.
 #define RF_SET        2  //Set recent files number.
-                         //lParam is maximum number of recent files.
+                         //(int)lParam is maximum number of recent files.
                          //Return value is zero.
 #define RF_READ       3  //Update recent files from registry.
                          //lParam not used.
@@ -130,6 +130,12 @@
 #define RF_DELETEOLD  6  //Delete non-existent recent files records.
                          //lParam not used.
                          //Return value is number of records deleted.
+#define RF_FIND       7  //Find index in recent files array by file name.
+                         //(wchar_t *)lParam is a pointer to a file name.
+                         //Return value is index in recent files array, -1 if error.
+#define RF_DELETE     8  //Delete element from recent files array by index.
+                         //(int)lParam is index in recent files array to delete.
+                         //Return value is TRUE - success, FALSE - error.
 
 //AKD_SEARCHHISTORY flags
 #define SH_GET    1  //Retrive searh strings count.
@@ -820,10 +826,12 @@ typedef struct {
 #endif
 
 typedef struct {
-  wchar_t (*lpszRecentNames)[MAX_PATH];   //Recent files names.
-  UINT_PTR *lpdwRecentPositions;          //Recent files positions.
-  DWORD *lpdwRecentCodepages;             //Recent files codepages.
-} RECENTFILES;
+  DWORD dwFlags;             //Reserved.
+  wchar_t wszFile[MAX_PATH]; //Recent file name.
+  int nCodePage;             //Recent file codepages.
+  INT_PTR cpMin;             //First character in selection range.
+  INT_PTR cpMax;             //Last character in selection range.
+} RECENTFILE;
 
 typedef struct {
   DWORD dwFlags;            //See FR_* defines.
@@ -2707,9 +2715,17 @@ Return Value
  Depend on RF_* define.
 
 Example:
- RECENTFILES rf;
+ RECENTFILE *rf;
+ int nMaxRecentFiles;
+ int i;
 
- SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rf);
+ if (nMaxRecentFiles=SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rf))
+ {
+   for (i=0; i < nMaxRecentFiles && *rf[i].wszFile; ++i)
+   {
+     MessageBoxW(NULL, rf[i].wszFile, NULL, 0);
+   }
+ }
 
 
 AKD_SEARCHHISTORY

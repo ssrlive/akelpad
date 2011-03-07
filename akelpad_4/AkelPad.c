@@ -308,9 +308,7 @@ int nAnsiCodePage;
 int nOemCodePage;
 
 //Recent files
-wchar_t (*lpwszRecentNames)[MAX_PATH]=NULL;
-UINT_PTR *lpdwRecentPositions=NULL;
-DWORD *lpdwRecentCodepages=NULL;
+RECENTFILE *lpRecentFiles=NULL;
 
 //Open/Save document
 wchar_t wszFilter[MAX_PATH];
@@ -1994,14 +1992,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == RF_GET)
       {
-        RECENTFILES *rf=(RECENTFILES *)lParam;
+        RECENTFILE **rf=(RECENTFILE **)lParam;
 
-        if (rf)
-        {
-          rf->lpszRecentNames=lpwszRecentNames;
-          rf->lpdwRecentPositions=lpdwRecentPositions;
-          rf->lpdwRecentCodepages=lpdwRecentCodepages;
-        }
+        if (rf) *rf=lpRecentFiles;
         return moCur.nRecentFiles;
       }
       else if (wParam == RF_SET)
@@ -2046,6 +2039,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesSave();
         bMenuRecentFiles=TRUE;
         return nDead;
+      }
+      else if (wParam == RF_FIND)
+      {
+        return RecentFilesFindIndex((wchar_t *)lParam);
+      }
+      else if (wParam == RF_DELETE)
+      {
+        BOOL bResult;
+
+        bResult=RecentFilesDeleteIndex((int)lParam);
+        bMenuRecentFiles=TRUE;
+        return bResult;
       }
       return 0;
     }
@@ -3015,7 +3020,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
-        xstrcpynW(wpFile, lpwszRecentNames[LOWORD(wParam) - IDM_RECENT_FILES - 1], MAX_PATH);
+        xstrcpynW(wpFile, lpRecentFiles[LOWORD(wParam) - IDM_RECENT_FILES - 1].wszFile, MAX_PATH);
         nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
 
         FreeWideStr(wpFile);

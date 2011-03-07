@@ -841,9 +841,10 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
 
 BOOL RecentFilesAlloc();
 void RecentFilesZero();
+int RecentFilesFindIndex(const wchar_t *wpFile);
+BOOL RecentFilesDeleteIndex(int nIndex);
 int RecentFilesRead();
-BOOL RecentFilesGet(const wchar_t *wpFile, INT_PTR *nPosition, int *nCodePage);
-BOOL RecentFilesUpdate(const wchar_t *wpFile, INT_PTR nPosition, int nCodePage);
+BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSel);
 void RecentFilesSaveCurrentFile();
 int RecentFilesDeleteOld();
 void RecentFilesSave();
