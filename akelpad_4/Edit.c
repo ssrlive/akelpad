@@ -9926,7 +9926,7 @@ int RecentFilesRead()
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
-  wchar_t *wpCount;
+  const wchar_t *wpCount;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
@@ -9978,12 +9978,14 @@ BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSe
 
   if (!*wpFile) return FALSE;
 
-  //Update recent files array - move/add current file to the first place
   if (lpcrSel)
   {
     cr.cpMin=lpcrSel->cpMin;
     cr.cpMax=lpcrSel->cpMax;
   }
+  else cr.cpMin=cr.cpMax=0;
+
+  //Update recent files array - move/add current file to the first place
   for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
   {
     if (!xstrcmpiW(lpRecentFiles[i].wszFile, wpFile))
@@ -9999,7 +10001,6 @@ BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSe
   }
   if (i >= moCur.nRecentFiles) --i;
   if (nCodePage == -1) nCodePage=0;
-  if (!lpcrSel) cr.cpMin=cr.cpMax=0;
 
   Move:
   while (i > 0)
