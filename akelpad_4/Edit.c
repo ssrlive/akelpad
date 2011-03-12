@@ -1444,26 +1444,25 @@ BOOL SaveChanged(DWORD dwPrompt)
 {
   if (!(dwPrompt & PROMPT_NONE) && lpFrameCurrent->ei.bModified)
   {
-    BUTTONMESSAGEBOX bmb1[]={{IDC_MESSAGEBOX_YES,    STR_MESSAGEBOX_YES,    BMB_DEFAULT},
-                             {IDC_MESSAGEBOX_NO,     STR_MESSAGEBOX_NO,     0},
-                             {IDCANCEL,              STR_MESSAGEBOX_CANCEL, 0},
-                             {0, 0, 0}};
-    BUTTONMESSAGEBOX bmb2[]={{IDC_MESSAGEBOX_YES,     STR_MESSAGEBOX_YES,     BMB_DEFAULT},
-                             {IDC_MESSAGEBOX_NO,      STR_MESSAGEBOX_NO,      0},
-                             {IDC_MESSAGEBOX_NOTOALL, STR_MESSAGEBOX_NOTOALL, 0},
-                             {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  0},
-                             {0, 0, 0}};
+    BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_YES,     STR_MESSAGEBOX_YES,     BMB_DEFAULT},
+                            {IDC_MESSAGEBOX_NO,      STR_MESSAGEBOX_NO,      0},
+                            {IDC_MESSAGEBOX_NOTOALL, STR_MESSAGEBOX_NOTOALL, 0},
+                            {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  0},
+                            {0, 0, 0}};
     int nChoice;
 
     if (nDocumentsModified <= 1)
     {
       if (dwPrompt & PROMPT_NOTOALLBUTTON)
-        bmb2[2].dwFlags|=BMB_DISABLED;
+        bmb[2].dwFlags|=BMB_DISABLED;
     }
     API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wbuf, MAX_PATH);
-    nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, (dwPrompt & PROMPT_NOTOALLBUTTON)?&bmb2[0]:&bmb1[0]);
+    if (dwPrompt & PROMPT_NOTOALLBUTTON)
+      nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
+    else
+      nChoice=API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_YESNOCANCEL|MB_ICONEXCLAMATION);
 
-    if (nChoice == IDC_MESSAGEBOX_YES)
+    if (nChoice == IDC_MESSAGEBOX_YES || nChoice == IDYES)
     {
       if (!DoFileSave()) return FALSE;
     }
