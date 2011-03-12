@@ -14152,7 +14152,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     //MessageBox position
     rcDlg.right=max(nButtonsWidth + nButtonOffset * 2, rcTextOut.right + nButtonOffset);
-    rcDlg.bottom=nButtonY + nButtonHeight + nButtonHeight / 2 + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFIXEDFRAME);
+    rcDlg.bottom=nButtonY + nButtonHeight + nButtonHeight / 2 + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFIXEDFRAME) * 2;
     rcDlg.left=GetSystemMetrics(SM_CXSCREEN) / 2 - rcDlg.right / 2;
     rcDlg.top=GetSystemMetrics(SM_CYSCREEN) / 2 - rcDlg.bottom / 2;
     if (rcDlg.left < 0) rcDlg.left=0;
