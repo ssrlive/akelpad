@@ -4,6 +4,7 @@ AkelPad 4.5.6 ()
 Changed: recent files information is now stored in the "file*" key instead of "nm*",
          "cp*", "ps*". Update ContextMenu and RecentFiles plugins.
 Changed: command with code 4501 is now 4140.
+Changed: uses system message box for commands 4109, 4319, 4320, if possible.
 
 Added: selection remembering in the recent files.
 Added: button "No to all" is also available when using items from "Window" menu -
