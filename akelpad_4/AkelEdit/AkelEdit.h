@@ -2366,6 +2366,9 @@ Emulate key down pressing.
 Return Value
  Zero.
 
+Note:
+ To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
+
 Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
 
