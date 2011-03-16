@@ -149,7 +149,6 @@
 #define EO_MARKERPOS   5  //Column marker position.
 #define EO_CARETWIDTH  6  //Caret width.
 #define EO_LINEGAP     7  //Gap between lines.
-#define EO_LOCKINHERIT 21 //See LI_* defines.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
@@ -1529,6 +1528,8 @@ typedef struct {
 #define AKD_SETEDITOPTION          (WM_USER + 217)
 #define AKD_GETCOLORS              (WM_USER + 218)
 #define AKD_SETCOLORS              (WM_USER + 219)
+#define AKD_GETLOCKINHERIT         (WM_USER + 220)
+#define AKD_SETLOCKINHERIT         (WM_USER + 221)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -2801,12 +2802,47 @@ Return Value
  TRUE   success.
  FALSE  failed.
 
-Example (Unicode):
+Example:
  AECOLORS aec;
 
  SendMessage(pd->hMainWnd, AKD_GETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
  aec.crBasicBk=RGB(0x00, 0xFF, 0x00);
  SendMessage(pd->hMainWnd, AKD_SETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
+
+
+AKD_GETLOCKINHERIT
+__________________
+
+Get lock inherit flags.
+
+(HWND)wParam == edit window, NULL for current edit window.
+lParam       == not used.
+
+Return Value
+ Lock inherit flags, see LI_* defines. If error -1 is returned.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_GETLOCKINHERIT, (WPARAM)NULL, 0);
+
+
+AKD_SETLOCKINHERIT
+__________________
+
+Lock inherit new document settings from current document.
+
+(HWND)wParam  == edit window, NULL for current edit window.
+(DWORD)lParam == lock inherit flags.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+ DWORD dwLockInherit;
+
+ dwLockInherit=(DWORD)SendMessage(pd->hMainWnd, AKD_GETLOCKINHERIT, (WPARAM)NULL, 0);
+ dwLockInherit|=LI_FONT;
+ SendMessage(pd->hMainWnd, AKD_SETLOCKINHERIT, (WPARAM)NULL, dwLockInherit);
 
 
 AKD_GETMODELESS

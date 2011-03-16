@@ -9630,7 +9630,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   return nQuoteLen;
 }
 
-int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
+int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;

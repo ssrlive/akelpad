@@ -2100,10 +2100,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return lpFrameCurrent->dwLineGap;
       }
-      if (wParam == EO_LOCKINHERIT)
-      {
-        return lpFrameCurrent->dwLockInherit;
-      }
       return 0;
     }
     if (uMsg == AKD_SETEDITOPTION)
@@ -2140,6 +2136,25 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpFrame->aec.dwFlags=AECLR_ALL;
           return TRUE;
         }
+      }
+      return FALSE;
+    }
+    if (uMsg == AKD_GETLOCKINHERIT)
+    {
+      FRAMEDATA *lpFrame;
+
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        return (LRESULT)lpFrame->dwLockInherit;
+      return (LRESULT)-1;
+    }
+    if (uMsg == AKD_SETLOCKINHERIT)
+    {
+      FRAMEDATA *lpFrame;
+
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+      {
+        lpFrame->dwLockInherit=(DWORD)lParam;
+        return TRUE;
       }
       return FALSE;
     }

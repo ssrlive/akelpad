@@ -16642,11 +16642,6 @@ BOOL SetCurEditOption(int nType, UINT_PTR dwData)
       return TRUE;
     }
   }
-  else if (nType == EO_LOCKINHERIT)
-  {
-    lpFrameCurrent->dwLockInherit=(DWORD)dwData;
-    return TRUE;
-  }
   return FALSE;
 }
 
