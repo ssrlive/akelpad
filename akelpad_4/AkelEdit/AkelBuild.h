@@ -64,6 +64,10 @@
 #define AEHPT_LINK          0x00000080
 #define AEHPT_FOLD          0x00000100
 
+//AE_HighlightIsDelimiter flags
+#define AEHID_BACK          0x00000001  //Check backward.
+#define AEHID_LINEEDGE      0x00000002  //Check AEHLF_ATLINESTART and AEHLF_ATLINEEND flags.
+
 //AE_VPos flags
 #define AEVPF_LINEFROMVPOS     0x00000001
 #define AEVPF_VPOSFROMLINE     0x00000002
@@ -794,8 +798,8 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);
 INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGEMATCH *mrm);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm);
-int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm);
-AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, BOOL bBack);
+int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
+AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags);
 AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen);
 AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName);
