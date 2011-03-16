@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.5.6                               *
+ *                      AkelEdit text control v1.5.7                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -15000,6 +15000,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
+  INT_PTR nVScrollPos;
   INT_PTR nVScrollMax;
   BOOL bUpdateVScroll=FALSE;
   BOOL bUpdateCaret=FALSE;
@@ -15008,6 +15009,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   AE_StackUndoGroupStop(ae);
 
   if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
+  nVScrollPos=ae->nVScrollPos;
   nVScrollMax=ae->ptxt->nVScrollMax;
   if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET))
   {
@@ -15032,6 +15034,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   {
     //VScroll is not updated in AE_InsertText
     AE_UpdateScrollBars(ae, SB_VERT);
+    if (nVScrollPos != ae->nVScrollPos)
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   }
   AE_StackUndoGroupStop(ae);
 

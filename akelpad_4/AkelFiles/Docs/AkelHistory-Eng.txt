@@ -1,4 +1,9 @@
 
+AkelPad 4.5.7 ()
+----------------------------
+Fixed: edit window updating after text deletion.
+
+
 AkelPad 4.5.6 (Mar 16, 2010)
 ----------------------------
 Changed: recent files information is now stored in the "file*" key instead of "nm*",
