@@ -2366,7 +2366,7 @@ Emulate key down pressing.
 Return Value
  Zero.
 
-Note:
+Remarks
  To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
 
 Example:
