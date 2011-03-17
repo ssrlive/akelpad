@@ -1880,8 +1880,8 @@ ____________
 
 Set ansi text of the edit control.
 
-(DWORD)wParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-(char *)lParam == text pointer.
+(UINT_PTR)wParam == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+(char *)lParam   == text pointer.
 
 Return Value
  Text length.
@@ -1895,7 +1895,7 @@ ____________
 
 Set unicode text of the edit control.
 
-(DWORD)wParam     == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+(UINT_PTR)wParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 (wchar_t *)lParam == text pointer.
 
 Return Value
@@ -2939,7 +2939,7 @@ _____________________
 
 Convert RichEdit offset to AkelEdit character index.
 
-(DWORD)wParam         == RichEdit offset.
+(UINT_PTR)wParam      == RichEdit offset.
 (AECHARINDEX *)lParam == AkelEdit character index.
 
 Return Value
@@ -3403,8 +3403,8 @@ _________________
 
 Lock the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
 
-wParam         == not used.
-(RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
+wParam               == not used.
+(const RECT *)lParam == pointer to a RECT structure that specifies the erasing rectangle.
 
 Return Value
  TRUE   rectangle has been locked.
@@ -3422,7 +3422,7 @@ Example:
 AEM_GETCHARSIZE
 _______________
 
-Retrieve current font character height and average width.
+Retrieve current font character height/width or average width.
 
 (DWORD)wParam         == see AECS_* defines.
 (AECHARINDEX *)lParam == character index.
@@ -3581,8 +3581,8 @@ ________________
 
 Retrieves line from vertical position.
 
-(int)wParam == see AECT_* defines.
-(int)lParam == vertical position.
+(int)wParam     == see AECT_* defines.
+(INT_PTR)lParam == vertical position.
 
 Return Value
  Zero based line number.
@@ -4292,8 +4292,8 @@ ________________
 
 Sets the text limit of an edit control. The text limit is the maximum amount of text, in TCHARs, that the user can type into the edit control.
 
-(DWORD)wParam == the maximum number of TCHARs the user can enter. Default is unlimited.
-lParam        == not used.
+(UINT_PTR)wParam == the maximum number of TCHARs the user can enter. Default is unlimited.
+lParam           == not used.
 
 Return Value
  Zero.

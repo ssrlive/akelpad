@@ -980,7 +980,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
       AEERASE *lpEraseNext;
-      RECT *rcLockErase=(RECT *)lParam;
+      const RECT *rcLockErase=(const RECT *)lParam;
       RECT rcErase;
       BOOL bDelete;
       BOOL bResult=FALSE;
