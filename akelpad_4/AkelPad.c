@@ -199,7 +199,7 @@ BOOL bOldWindows;
 BOOL bOldRichEdit=FALSE;
 BOOL bOldComctl32;
 BOOL bAkelEdit=TRUE;
-BOOL bWindowsNT=FALSE;
+BOOL bWindowsNT4=FALSE;
 
 //Buffers
 wchar_t wszCmdLine[COMMANDLINE_SIZE];
@@ -465,7 +465,7 @@ void _WinMain()
     ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
     GetVersionEx(&ovi);
     if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
-      bWindowsNT=TRUE;
+      bWindowsNT4=TRUE;
   }
 
   //Get program version
