@@ -122,6 +122,7 @@
 #define IDC_OFN_COMBOBOX_LABEL 1089
 #define IDC_OFN_COMBOBOX       1136
 #define IDC_OFN_EDIT           1152
+#define IDC_OFN_PLACES         1184
 
 //Combobox edit ID
 #define IDC_COMBOBOXEDIT       1001
