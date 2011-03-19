@@ -36,7 +36,7 @@ extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
-extern BOOL bWindowsNT;
+extern BOOL bWindowsNT4;
 
 //Buffers
 extern wchar_t wszCmdLine[COMMANDLINE_SIZE];
@@ -1313,7 +1313,7 @@ BOOL DoFileOpen()
     //Open file dialog
     xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
     xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-    ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+    ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
@@ -1505,7 +1505,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   //Save file dialog
   xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-  ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+  ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
   ofnW.lCustData      =(LPARAM)&dc;
   ofnW.hwndOwner      =hMainWnd;
   ofnW.hInstance      =hLangLib;
@@ -6946,6 +6946,11 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       RECT rcControl;
       int nLeftMargin;
 
+      if (bOldWindows || bWindowsNT4)
+      {
+        //Hide arrow
+        ShowWindow(hWndShowPlaces, FALSE);
+      }
       GetWindowPos(hDlgList, hDlgParent, &rcControl);
       nLeftMargin=max(rcControl.left - rcFilePreview.left + (moCur.bShowPlaces?2:0), 0);
 
@@ -6956,8 +6961,11 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcDlg.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
 
         //Move places arrow
-        rcShowPlaces.left+=nLeftMargin;
-        SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        if (!bOldWindows && !bWindowsNT4)
+        {
+          rcShowPlaces.left+=nLeftMargin;
+          SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        }
 
         //Move preview
         rcFilePreview.left+=nLeftMargin;
@@ -6973,9 +6981,12 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         rcFilePreview.bottom=0;
 
         //Move places arrow
-        rcShowPlaces.left+=nLeftMargin;
-        rcShowPlaces.top-=rcDlg.bottom - rcFilePreview.top;
-        SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        if (!bOldWindows && !bWindowsNT4)
+        {
+          rcShowPlaces.left+=nLeftMargin;
+          rcShowPlaces.top-=rcDlg.bottom - rcFilePreview.top;
+          SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        }
 
         //Move dialog
         rcDlg.right=rcDlgParent.right;
@@ -17506,7 +17517,7 @@ void ActivateKeyboard(HKL dwInputLocale)
 
   if (dwInputLocale != (HKL)(UINT_PTR)-1)
   {
-    if (bWindowsNT)
+    if (bWindowsNT4)
     {
       DWORD dwLangIDInit=LOWORD(GetKeyboardLayout(0));
       DWORD dwLangIDCount=dwLangIDInit;
