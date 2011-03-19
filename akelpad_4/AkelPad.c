@@ -656,7 +656,7 @@ void _WinMain()
 
   //--Open file dialog--
   //moInit.wszLastDir[0]='\0';
-  //moInit.bShowPlaces=FALSE;
+  //moInit.bShowPlacesBar=FALSE;
 
   //--Print dialog--
   moInit.rcPrintMargins=prninfo.rtMargin;
