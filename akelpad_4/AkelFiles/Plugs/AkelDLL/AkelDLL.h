@@ -376,6 +376,9 @@
 #define BIF_ICON        0x002 //Icon handle is used in BUTTONDRAW.hImage.
 #define BIF_CROSS       0x004 //Draw small cross 8x7. BUTTONDRAW.hImage is ignored.
 #define BIF_DOWNARROW   0x008 //Draw small down arrow 7x4. BUTTONDRAW.hImage is ignored.
+#define BIF_UPARROW     0x010 //Draw small up arrow 7x4. BUTTONDRAW.hImage is ignored.
+#define BIF_LEFTARROW   0x020 //Draw small left arrow 4x7. BUTTONDRAW.hImage is ignored.
+#define BIF_RIGHTARROW  0x040 //Draw small right arrow 4x7. BUTTONDRAW.hImage is ignored.
 #define BIF_ETCHED      0x100 //Draw edge around button.
 #define BIF_ENABLEFOCUS 0x200 //Draw focus rectangle when button receive focus.
 

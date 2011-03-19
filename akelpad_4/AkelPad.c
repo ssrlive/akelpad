@@ -656,6 +656,7 @@ void _WinMain()
 
   //--Open file dialog--
   //moInit.wszLastDir[0]='\0';
+  //moInit.bShowPlaces=FALSE;
 
   //--Print dialog--
   moInit.rcPrintMargins=prninfo.rtMargin;
@@ -2260,28 +2261,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETBUTTONDRAW)
     {
-      BUTTONDRAWITEM *lpButtonDraw;
-
-      if ((BUTTONDRAW *)lParam == NULL)
-      {
-        if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, (HWND)wParam))
-        {
-          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)lpButtonDraw->OldButtonProc);
-
-          StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
-        }
-      }
-      else
-      {
-        if (lpButtonDraw=StackButtonDrawInsert(&hButtonDrawStack))
-        {
-          lpButtonDraw->hWnd=(HWND)wParam;
-          xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
-
-          lpButtonDraw->OldButtonProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
-          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewCloseButtonProc);
-        }
-      }
+      SetButtonDraw((HWND)wParam, (BUTTONDRAW *)lParam);
       return 0;
     }
     if (uMsg == AKD_SETHOTKEYINPUT)
@@ -5316,13 +5296,13 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
   return 0;
 }
 
-LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static BUTTONDRAWITEM *lpButtonDraw;
+  static BUTTONDRAWITEM *lpButtonDrawItem;
   static BOOL bMousePush=FALSE;
   LRESULT lResult;
 
-  if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+  if (lpButtonDrawItem=StackButtonDrawGet(&hButtonDrawStack, hWnd))
   {
     if (uMsg == WM_LBUTTONDOWN ||
         uMsg == WM_LBUTTONDBLCLK)
@@ -5388,7 +5368,7 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (uMsg == WM_SETFOCUS)
     {
-      if (lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS)
+      if (lpButtonDrawItem->bd.dwFlags & BIF_ENABLEFOCUS)
         InvalidateRect(hWnd, NULL, FALSE);
     }
     else if (uMsg == WM_ENABLE)
@@ -5423,45 +5403,49 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         }
         else
         {
-          if ((lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS) && hWnd == GetFocus())
+          if ((lpButtonDrawItem->bd.dwFlags & BIF_ENABLEFOCUS) && hWnd == GetFocus())
           {
             //Draw focus rect
             DrawFocusRect(hDC, &rcButton);
           }
-          else if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
+          else if (lpButtonDrawItem->bd.dwFlags & BIF_ETCHED)
           {
             DrawEdge(hDC, &rcButton, EDGE_ETCHED, BF_RECT);
           }
         }
 
-        if ((lpButtonDraw->bd.dwFlags & BIF_BITMAP) || (lpButtonDraw->bd.dwFlags & BIF_ICON))
+        if ((lpButtonDrawItem->bd.dwFlags & BIF_BITMAP) || (lpButtonDrawItem->bd.dwFlags & BIF_ICON))
         {
           //Draw image
-          if (lpButtonDraw->bd.hImage)
+          if (lpButtonDrawItem->bd.hImage)
           {
-            int x=(rcButton.right - rcButton.left) / 2 - lpButtonDraw->bd.nImageWidth / 2 + (bMousePush?1:0);
-            int y=(rcButton.bottom - rcButton.top) / 2 - lpButtonDraw->bd.nImageHeight / 2 + (bMousePush?1:0);
+            int x=(rcButton.right - rcButton.left) / 2 - lpButtonDrawItem->bd.nImageWidth / 2 + (bMousePush?1:0);
+            int y=(rcButton.bottom - rcButton.top) / 2 - lpButtonDrawItem->bd.nImageHeight / 2 + (bMousePush?1:0);
             DWORD dwFlags=0;
 
-            if (lpButtonDraw->bd.dwFlags & BIF_BITMAP)
+            if (lpButtonDrawItem->bd.dwFlags & BIF_BITMAP)
               dwFlags|=DST_BITMAP;
-            else if (lpButtonDraw->bd.dwFlags & BIF_ICON)
+            else if (lpButtonDrawItem->bd.dwFlags & BIF_ICON)
               dwFlags|=DST_ICON;
             if (!IsWindowEnabled(hWnd))
               dwFlags|=DSS_DISABLED;
-            DrawStateA(hDC, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDraw->bd.hImage, (WPARAM)NULL, x, y, 0, 0, dwFlags);
+            DrawStateA(hDC, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDrawItem->bd.hImage, (WPARAM)NULL, x, y, 0, 0, dwFlags);
           }
         }
-        else if ((lpButtonDraw->bd.dwFlags & BIF_CROSS) ||
-                 (lpButtonDraw->bd.dwFlags & BIF_DOWNARROW))
+        else if ((lpButtonDrawItem->bd.dwFlags & BIF_CROSS) ||
+                 (lpButtonDrawItem->bd.dwFlags & BIF_DOWNARROW) ||
+                 (lpButtonDrawItem->bd.dwFlags & BIF_UPARROW) ||
+                 (lpButtonDrawItem->bd.dwFlags & BIF_LEFTARROW) ||
+                 (lpButtonDrawItem->bd.dwFlags & BIF_RIGHTARROW))
         {
           //Draw cross
           HPEN hPen;
           HPEN hPenOld;
+          COLORREF crPenColor=GetSysColor(IsWindowEnabled(hWnd)?COLOR_BTNTEXT:COLOR_GRAYTEXT);
           int x=(rcButton.right - rcButton.left) / 2 + (bMousePush?1:0);
           int y=(rcButton.bottom - rcButton.top) / 2 + (bMousePush?1:0);
 
-          if (hPen=CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNTEXT)))
+          if (hPen=CreatePen(PS_SOLID, 0, crPenColor))
           {
             hPenOld=(HPEN)SelectObject(hDC, hPen);
 
@@ -5484,11 +5468,32 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                     {1, 1}, {6, 1},
                     {2, 2}, {5, 2},
                     {3, 3}, {4, 3}};
+              POINT ptUpArrow[]={
+                    {3, 0}, {4, 0},
+                    {2, 1}, {5, 1},
+                    {1, 2}, {6, 2},
+                    {0, 3}, {7, 3}};
+              POINT ptLeftArrow[]={
+                    {3, 0}, {4, 0},
+                    {2, 1}, {4, 1},
+                    {1, 2}, {4, 2},
+                    {0, 3}, {4, 3},
+                    {1, 4}, {4, 4},
+                    {2, 5}, {4, 5},
+                    {3, 6}, {4, 6}};
+              POINT ptRightArrow[]={
+                    {0, 0}, {1, 0},
+                    {0, 1}, {2, 1},
+                    {0, 2}, {3, 2},
+                    {0, 3}, {4, 3},
+                    {0, 4}, {3, 4},
+                    {0, 5}, {2, 5},
+                    {0, 6}, {1, 6}};
               POINT *ptDraw=NULL;
               int nElements=0;
               int i;
 
-              if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
+              if (lpButtonDrawItem->bd.dwFlags & BIF_CROSS)
               {
                 ptDraw=ptCross;
                 nElements=sizeof(ptCross) / sizeof(POINT);
@@ -5498,12 +5503,33 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 //Draw on one pixel higher
                 --y;
               }
-              else if (lpButtonDraw->bd.dwFlags & BIF_DOWNARROW)
+              else if (lpButtonDrawItem->bd.dwFlags & BIF_DOWNARROW)
               {
                 ptDraw=ptDownArrow;
                 nElements=sizeof(ptDownArrow) / sizeof(POINT);
                 x-=(7) / 2;
                 y-=(4) / 2;
+              }
+              else if (lpButtonDrawItem->bd.dwFlags & BIF_UPARROW)
+              {
+                ptDraw=ptUpArrow;
+                nElements=sizeof(ptUpArrow) / sizeof(POINT);
+                x-=(7) / 2;
+                y-=(4) / 2;
+              }
+              else if (lpButtonDrawItem->bd.dwFlags & BIF_LEFTARROW)
+              {
+                ptDraw=ptLeftArrow;
+                nElements=sizeof(ptLeftArrow) / sizeof(POINT);
+                x-=(4) / 2;
+                y-=(7) / 2;
+              }
+              else if (lpButtonDrawItem->bd.dwFlags & BIF_RIGHTARROW)
+              {
+                ptDraw=ptRightArrow;
+                nElements=sizeof(ptRightArrow) / sizeof(POINT);
+                x-=(4) / 2;
+                y-=(7) / 2;
               }
 
               for (i=0; i < nElements; i+=2)
@@ -5522,14 +5548,14 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
 
     if (!IsWindowUnicode(hWnd))
-      lResult=CallWindowProcA(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+      lResult=CallWindowProcA(lpButtonDrawItem->OldButtonProc, hWnd, uMsg, wParam, lParam);
     else
-      lResult=CallWindowProcW(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+      lResult=CallWindowProcW(lpButtonDrawItem->OldButtonProc, hWnd, uMsg, wParam, lParam);
 
     //Remove from stack
     if (uMsg == WM_DESTROY)
     {
-      StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
+      StackButtonDrawDelete(&hButtonDrawStack, lpButtonDrawItem);
     }
     return lResult;
   }

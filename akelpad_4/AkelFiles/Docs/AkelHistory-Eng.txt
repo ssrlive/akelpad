@@ -1,6 +1,8 @@
 
 AkelPad 4.5.7 ()
 ----------------------------
+Added: possibility to use new style of the open/save dialog.
+
 Fixed: edit window updating after text deletion.
 
 
