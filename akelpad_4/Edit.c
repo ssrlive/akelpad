@@ -1297,7 +1297,7 @@ BOOL DoFileOpen()
   wchar_t *wszFileList;
   DIALOGCODEPAGE dc;
   int nOpen;
-  BOOL bShowPlacesInit;
+  BOOL bShowPlacesBarInit;
   BOOL bResult=FALSE;
 
   if (nMDI == WMD_SDI && !SaveChanged(0)) return FALSE;
@@ -1308,12 +1308,12 @@ BOOL DoFileOpen()
     bSaveDlg=FALSE;
     dc.nCodePage=-1;
     dc.bBOM=-1;
-    bShowPlacesInit=moCur.bShowPlaces;
+    bShowPlacesBarInit=moCur.bShowPlacesBar;
 
     //Open file dialog
     xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
     xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-    ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+    ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
@@ -1410,7 +1410,7 @@ BOOL DoFileOpen()
         }
       }
     }
-    else if (moCur.bShowPlaces != bShowPlacesInit)
+    else if (moCur.bShowPlacesBar != bShowPlacesBarInit)
     {
       //Restart dialog
       goto FileDialog;
@@ -1493,19 +1493,19 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   OPENFILENAME_2000W ofnW;
   wchar_t wszSaveFile[MAX_PATH];
   DIALOGCODEPAGE dc;
-  BOOL bShowPlacesInit;
+  BOOL bShowPlacesBarInit;
   BOOL bResult;
 
   FileDialog:
   bSaveDlg=TRUE;
   dc.nCodePage=nDialogCodePage;
   dc.bBOM=bDialogBOM;
-  bShowPlacesInit=moCur.bShowPlaces;
+  bShowPlacesBarInit=moCur.bShowPlacesBar;
 
   //Save file dialog
   xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-  ofnW.lStructSize    =(moCur.bShowPlaces && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+  ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
   ofnW.lCustData      =(LPARAM)&dc;
   ofnW.hwndOwner      =hMainWnd;
   ofnW.hInstance      =hLangLib;
@@ -1529,7 +1529,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     if (!SaveDocument(NULL, wszSaveFile, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
-  else if (moCur.bShowPlaces != bShowPlacesInit)
+  else if (moCur.bShowPlacesBar != bShowPlacesBarInit)
   {
     //Restart dialog
     goto FileDialog;
@@ -3562,7 +3562,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
 
     //Open file dialog
     ReadOption(&oh, L"LastDirectory", MOT_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
-    ReadOption(&oh, L"ShowPlaces", MOT_DWORD, &mo->bShowPlaces, sizeof(DWORD));
+    ReadOption(&oh, L"ShowPlacesBar", MOT_DWORD, &mo->bShowPlacesBar, sizeof(DWORD));
 
     //Print dialog
     ReadOption(&oh, L"MarginsPrint", MOT_BINARY, &mo->rcPrintMargins, sizeof(RECT));
@@ -3826,7 +3826,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   //Open file dialog
   if (!SaveOption(&oh, L"LastDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszLastDir), BytesInString(mo->wszLastDir)))
     goto Error;
-  if (!SaveOption(&oh, L"ShowPlaces", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bShowPlaces), sizeof(DWORD)))
+  if (!SaveOption(&oh, L"ShowPlacesBar", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bShowPlacesBar), sizeof(DWORD)))
     goto Error;
 
   //Print dialog
@@ -6886,11 +6886,11 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   static HWND hDlgList;
   static HWND hDlgComboboxLabel;
   static HWND hDlgCombobox;
-  static HWND hDlgPlaces;
+  static HWND hDlgPlacesBar;
   static HWND hDlgCancel;
   static HWND hWndCodePage;
   static HWND hWndCodePageLabel;
-  static HWND hWndShowPlaces;
+  static HWND hWndShowPlacesBar;
   static HWND hWndFilePreview;
   static HWND hWndAutodetect;
   static RECT rcDlgParent;
@@ -6898,7 +6898,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   static RECT rcCodePageLabel;
   static RECT rcCodePage;
   static RECT rcAutodetect;
-  static RECT rcShowPlaces;
+  static RECT rcShowPlacesBar;
   static RECT rcFilePreview;
   static wchar_t wszFile[MAX_PATH];
   static int nCodePage;
@@ -6913,11 +6913,11 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
     hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX_LABEL);
     hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX);
-    hDlgPlaces=GetDlgItem(hDlgParent, IDC_OFN_PLACES);
+    hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
     hDlgCancel=GetDlgItem(hDlgParent, IDCANCEL);
     hWndCodePageLabel=GetDlgItem(hDlg, IDC_OFN_CODEPAGE_LABEL);
     hWndCodePage=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
-    hWndShowPlaces=GetDlgItem(hDlg, IDC_OFN_SHOWPLACES);
+    hWndShowPlacesBar=GetDlgItem(hDlg, IDC_OFN_SHOWPLACESBAR);
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
@@ -6938,7 +6938,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     GetWindowPos(hWndCodePageLabel, hDlg, &rcCodePageLabel);
     GetWindowPos(hWndCodePage, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hWndShowPlaces, hDlg, &rcShowPlaces);
+    GetWindowPos(hWndShowPlacesBar, hDlg, &rcShowPlacesBar);
     GetWindowPos(hWndFilePreview, hDlg, &rcFilePreview);
 
     //Move controls
@@ -6949,10 +6949,10 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       if (bOldWindows || bWindowsNT4)
       {
         //Hide arrow
-        ShowWindow(hWndShowPlaces, FALSE);
+        ShowWindow(hWndShowPlacesBar, FALSE);
       }
       GetWindowPos(hDlgList, hDlgParent, &rcControl);
-      nLeftMargin=max(rcControl.left - rcFilePreview.left + (moCur.bShowPlaces?2:0), 0);
+      nLeftMargin=max(rcControl.left - rcFilePreview.left + (moCur.bShowPlacesBar?2:0), 0);
 
       if (!bSaveDlg)
       {
@@ -6963,8 +6963,8 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         //Move places arrow
         if (!bOldWindows && !bWindowsNT4)
         {
-          rcShowPlaces.left+=nLeftMargin;
-          SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+          rcShowPlacesBar.left+=nLeftMargin;
+          SetWindowPos(hWndShowPlacesBar, 0, rcShowPlacesBar.left, rcShowPlacesBar.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
         }
 
         //Move preview
@@ -6980,9 +6980,9 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         //Move places arrow
         if (!bOldWindows && !bWindowsNT4)
         {
-          rcShowPlaces.left+=nLeftMargin;
-          rcShowPlaces.top-=rcDlg.bottom - rcFilePreview.top;
-          SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+          rcShowPlacesBar.left+=nLeftMargin;
+          rcShowPlacesBar.top-=rcDlg.bottom - rcFilePreview.top;
+          SetWindowPos(hWndShowPlacesBar, 0, rcShowPlacesBar.left, rcShowPlacesBar.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
         }
 
         //Move dialog
@@ -7013,16 +7013,16 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         BUTTONDRAW bd;
 
-        bd.dwFlags=moCur.bShowPlaces?BIF_RIGHTARROW:BIF_LEFTARROW;
-        SetButtonDraw(hWndShowPlaces, &bd);
+        bd.dwFlags=moCur.bShowPlacesBar?BIF_RIGHTARROW:BIF_LEFTARROW;
+        SetButtonDraw(hWndShowPlacesBar, &bd);
       }
 
       //Move places toolbar
-      if (hDlgPlaces)
+      if (hDlgPlacesBar)
       {
-        GetWindowPos(hDlgPlaces, hDlgParent, &rcControl);
-        rcControl.bottom=(rcDlgParent.bottom - rcControl.top) + (rcShowPlaces.top + rcShowPlaces.bottom);
-        SetWindowPos(hDlgPlaces, 0, 0, 0, rcControl.right, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+        GetWindowPos(hDlgPlacesBar, hDlgParent, &rcControl);
+        rcControl.bottom=(rcDlgParent.bottom - rcControl.top) + (rcShowPlacesBar.top + rcShowPlacesBar.bottom);
+        SetWindowPos(hDlgPlacesBar, 0, 0, 0, rcControl.right, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
       }
     }
 
@@ -7220,9 +7220,9 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       }
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OFN_SHOWPLACES)
+    else if (LOWORD(wParam) == IDC_OFN_SHOWPLACESBAR)
     {
-      moCur.bShowPlaces=!moCur.bShowPlaces;
+      moCur.bShowPlacesBar=!moCur.bShowPlacesBar;
       PostMessage(hDlgParent, WM_COMMAND, IDCANCEL, 0);
     }
   }

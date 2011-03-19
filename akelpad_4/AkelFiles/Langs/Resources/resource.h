@@ -124,7 +124,7 @@
 #define IDC_OFN_CODEPAGE                2502
 #define IDC_OFN_PREVIEW                 2503
 #define IDC_OFN_CODEPAGE_LABEL          2504
-#define IDC_OFN_SHOWPLACES              2505
+#define IDC_OFN_SHOWPLACESBAR           2505
 #define IDC_SAVEALLAS_CODEPAGE_CHECK    2531
 #define IDC_SAVEALLAS_CODEPAGE_LIST     2532
 #define IDC_SAVEALLAS_BOM               2533
