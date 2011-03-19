@@ -118,6 +118,9 @@
 #define STR_PRINT_FOOTERW             L"- %n[1] -"
 
 //Open file dialog
+#define IDC_OFN_LIST           1120
+#define IDC_OFN_COMBOBOX_LABEL 1089
+#define IDC_OFN_COMBOBOX       1136
 #define IDC_OFN_EDIT           1152
 
 //Combobox edit ID
@@ -411,6 +414,7 @@ typedef struct {
 
   //Open file dialog
   wchar_t wszLastDir[MAX_PATH];
+  BOOL bShowPlaces;
 
   //Print dialog
   RECT rcPrintMargins;
@@ -605,6 +609,33 @@ typedef struct {
   BOOL bBOM;
   BOOL bResult;
 } DIALOGCODEPAGE;
+
+//OPENFILENAMEW with _WIN32_WINNT >= 0x0500 members
+typedef struct {
+  DWORD lStructSize;
+  HWND hwndOwner;
+  HINSTANCE hInstance;
+  LPCWSTR lpstrFilter;
+  LPWSTR lpstrCustomFilter;
+  DWORD nMaxCustFilter;
+  DWORD nFilterIndex;
+  LPWSTR lpstrFile;
+  DWORD nMaxFile;
+  LPWSTR lpstrFileTitle;
+  DWORD nMaxFileTitle;
+  LPCWSTR lpstrInitialDir;
+  LPCWSTR lpstrTitle;
+  DWORD Flags;
+  WORD nFileOffset;
+  WORD nFileExtension;
+  LPCWSTR lpstrDefExt;
+  LPARAM lCustData;
+  LPOFNHOOKPROC lpfnHook;
+  LPCWSTR lpTemplateName;
+  void *pvReserved;
+  DWORD dwReserved;
+  DWORD FlagsEx;
+} OPENFILENAME_2000W;
 
 typedef struct {
   int nButtonControlID;
@@ -958,6 +989,7 @@ BUTTONDRAWITEM* StackButtonDrawInsert(HSTACK *hStack);
 BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd);
 void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw);
 void StackButtonDrawFree(HSTACK *hStack);
+void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd);
 
 void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);

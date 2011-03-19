@@ -98,8 +98,6 @@
 #define IDC_CURSOR_DRAGMOVE             1101
 #define IDC_CURSOR_HANDOPEN             1102
 #define IDC_CURSOR_HANDCLOSE            1103
-#define IDB_BITMAP_DOWNARROW            1201
-#define IDB_BITMAP_CLOSE                1202
 #define IDA_ACCEL_GLOBAL                1301
 #define IDA_ACCEL_MAIN                  1302
 #define IDD_OFN                         2001
@@ -126,6 +124,7 @@
 #define IDC_OFN_CODEPAGE                2502
 #define IDC_OFN_PREVIEW                 2503
 #define IDC_OFN_CODEPAGE_LABEL          2504
+#define IDC_OFN_SHOWPLACES              2505
 #define IDC_SAVEALLAS_CODEPAGE_CHECK    2531
 #define IDC_SAVEALLAS_CODEPAGE_LIST     2532
 #define IDC_SAVEALLAS_BOM               2533

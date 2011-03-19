@@ -1304,11 +1304,11 @@ BOOL DoFileOpen()
   //Open file dialog
   if (wszFileList=AllocWideStr(OPENFILELIST_SIZE))
   {
-    OPENFILENAMEW ofnW;
+    OPENFILENAME_2000W ofnW;
 
     xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
-    xmemset(&ofnW, 0, sizeof(OPENFILENAMEW));
-    ofnW.lStructSize    =sizeof(OPENFILENAMEW);
+    xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
+    ofnW.lStructSize    =moCur.bShowPlaces?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
@@ -1322,7 +1322,7 @@ BOOL DoFileOpen()
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
     ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
-    bResult=GetOpenFileNameWide(&ofnW);
+    bResult=GetOpenFileNameWide((OPENFILENAMEW *)&ofnW);
 
     if (bResult)
     {
@@ -3545,6 +3545,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
 
     //Open file dialog
     ReadOption(&oh, L"LastDirectory", MOT_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
+    ReadOption(&oh, L"ShowPlaces", MOT_DWORD, &mo->bShowPlaces, sizeof(DWORD));
 
     //Print dialog
     ReadOption(&oh, L"MarginsPrint", MOT_BINARY, &mo->rcPrintMargins, sizeof(RECT));
@@ -3807,6 +3808,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
   //Open file dialog
   if (!SaveOption(&oh, L"LastDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszLastDir), BytesInString(mo->wszLastDir)))
+    goto Error;
+  if (!SaveOption(&oh, L"ShowPlaces", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bShowPlaces), sizeof(DWORD)))
     goto Error;
 
   //Print dialog
@@ -5149,7 +5152,6 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
   static HWND hWndFooterHelp;
   static HFONT hPrintFont;
   static HFONT hGuiFont;
-  static HBITMAP hBitmapDownArrow;
   static LOGFONTW lfDialog;
   BOOL bState;
   int i;
@@ -5161,12 +5163,9 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     HWND hWndPrinter;
     RECT rcDlg;
     RECT rcControl;
+    BUTTONDRAW bd;
     int nExtend;
 
-    if (bOldWindows)
-      hBitmapDownArrow=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
-    else
-      hBitmapDownArrow=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
     xmemcpy(&lfDialog, &moCur.lfPrintFont, sizeof(LOGFONTW));
     hPrintFont=(HFONT)CreateFontIndirectWide(&lfDialog);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -5297,7 +5296,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     hWndHeaderHelp=CreateWindowExWide(0,
                          L"BUTTON",
                          NULL,
-                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_OWNERDRAW,
                          ScaleX(320), rcControl.top + ScaleY(91), ScaleX(18), ScaleY(18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_HELP,
@@ -5327,7 +5326,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     hWndFooterHelp=CreateWindowExWide(0,
                          L"BUTTON",
                          NULL,
-                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_OWNERDRAW,
                          ScaleX(320), rcControl.top + ScaleY(111), ScaleX(18), ScaleY(18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_HELP,
@@ -5377,7 +5376,10 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     SendMessage(hWndHeaderEdit, EM_LIMITTEXT, MAX_PATH, 0);
     SendMessage(hWndHeaderEdit, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
     SetWindowTextWide(hWndHeaderEdit, moCur.wszPrintHeader);
-    SendMessage(hWndHeaderHelp, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapDownArrow);
+
+    //Set header menu image
+    bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+    SetButtonDraw(hWndHeaderHelp, &bd);
 
     SendMessage(hWndFooterCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
     API_LoadStringW(hLangLib, STR_BOTTOM, wbuf, BUFFER_SIZE);
@@ -5392,7 +5394,10 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     SendMessage(hWndFooterEdit, EM_LIMITTEXT, MAX_PATH, 0);
     SendMessage(hWndFooterEdit, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
     SetWindowTextWide(hWndFooterEdit, moCur.wszPrintFooter);
-    SendMessage(hWndFooterHelp, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapDownArrow);
+
+    //Set footer menu image
+    bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+    SetButtonDraw(hWndFooterHelp, &bd);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -5416,32 +5421,39 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     else if (LOWORD(wParam) == IDC_PSD_HEADLINE_HEADER_HELP ||
              LOWORD(wParam) == IDC_PSD_HEADLINE_FOOTER_HELP)
     {
-      HWND hWnd=NULL;
+      HWND hWndInsert=NULL;
+      HWND hWndButton=NULL;
       RECT rc;
 
       if (LOWORD(wParam) == IDC_PSD_HEADLINE_HEADER_HELP)
-        hWnd=hWndHeaderEdit;
-      if (LOWORD(wParam) == IDC_PSD_HEADLINE_FOOTER_HELP)
-        hWnd=hWndFooterEdit;
+      {
+        hWndInsert=hWndHeaderEdit;
+        hWndButton=hWndHeaderHelp;
+      }
+      else if (LOWORD(wParam) == IDC_PSD_HEADLINE_FOOTER_HELP)
+      {
+        hWndInsert=hWndFooterEdit;
+        hWndButton=hWndFooterHelp;
+      }
 
-      GetWindowRect((HWND)lParam, &rc);
+      GetWindowRect(hWndButton, &rc);
       if (i=TrackPopupMenu(hPopupHeadline, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, rc.left, rc.top + (rc.bottom - rc.top), 0, hDlg, NULL))
       {
         if (i == IDM_POPUP_HEADLINE_SYMBOL)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%%");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%%");
         else if (i == IDM_POPUP_HEADLINE_PAGE_NUMBER)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%n[1]");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%n[1]");
         else if (i == IDM_POPUP_HEADLINE_FILENAME)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%f");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%f");
         else if (i == IDM_POPUP_HEADLINE_FILEDIR)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%d");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%d");
         else if (i == IDM_POPUP_HEADLINE_ALIGN_CENTER)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%c");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%c");
         else if (i == IDM_POPUP_HEADLINE_ALIGN_LEFT)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%l");
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%l");
         else if (i == IDM_POPUP_HEADLINE_ALIGN_RIGHT)
-          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%r");
-        SetFocus(hWnd);
+          SendMessageA(hWndInsert, EM_REPLACESEL, TRUE, (LPARAM)"%r");
+        SetFocus(hWndInsert);
       }
     }
     else if (LOWORD(wParam) == IDC_PSD_FONT_BUTTON)
@@ -5455,7 +5467,6 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if (hBitmapDownArrow) DeleteObject(hBitmapDownArrow);
       if (hPrintFont) DeleteObject(hPrintFont);
 
       moCur.bPrintFontEnable=(BOOL)SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
@@ -5475,7 +5486,6 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      if (hBitmapDownArrow) DeleteObject(hBitmapDownArrow);
       if (hPrintFont) DeleteObject(hPrintFont);
     }
   }
@@ -6855,13 +6865,22 @@ void StackPageFree(HSTACK *hStack)
 
 UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndCP;
+  static HWND hDlgParent;
+  static HWND hDlgList;
+  static HWND hDlgComboboxLabel;
+  static HWND hDlgCombobox;
+  static HWND hDlgCancel;
+  static HWND hWndCodePage;
+  static HWND hWndCodePageLabel;
+  static HWND hWndShowPlaces;
   static HWND hWndFilePreview;
   static HWND hWndAutodetect;
-  static HWND hDlgEdit;
+  static RECT rcDlgParent;
   static RECT rcDlg;
+  static RECT rcCodePageLabel;
   static RECT rcCodePage;
   static RECT rcAutodetect;
+  static RECT rcShowPlaces;
   static RECT rcFilePreview;
   static wchar_t wszFile[MAX_PATH];
   static int nCodePage;
@@ -6872,8 +6891,14 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   {
     DIALOGCODEPAGE *dc;
 
-    if (nMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
-    hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
+    hDlgParent=GetParent(hDlg);
+    hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
+    hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX_LABEL);
+    hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX);
+    hDlgCancel=GetDlgItem(hDlgParent, IDCANCEL);
+    hWndCodePageLabel=GetDlgItem(hDlg, IDC_OFN_CODEPAGE_LABEL);
+    hWndCodePage=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
+    hWndShowPlaces=GetDlgItem(hDlg, IDC_OFN_SHOWPLACES);
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
@@ -6889,17 +6914,23 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       if (dc->nCodePage >= 0) nCodePage=dc->nCodePage;
       if (dc->bBOM >= 0) bBOM=dc->bBOM;
     }
-    FillComboboxCodepage(hWndCP, lpCodepageList);
-    SelectComboboxCodepage(hWndCP, nCodePage);
+    FillComboboxCodepage(hWndCodePage, lpCodepageList);
+    SelectComboboxCodepage(hWndCodePage, nCodePage);
 
-    GetWindowPos(hDlg, NULL, &rcDlg);
-    GetWindowPos(hWndCP, hDlg, &rcCodePage);
+    GetClientRect(hDlgParent, &rcDlgParent);
+    GetWindowPos(hDlg, hDlgParent, &rcDlg);
+    GetWindowPos(hWndCodePageLabel, hDlg, &rcCodePageLabel);
+    GetWindowPos(hWndCodePage, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
+    GetWindowPos(hWndShowPlaces, hDlg, &rcShowPlaces);
     GetWindowPos(hWndFilePreview, hDlg, &rcFilePreview);
 
     if (bSaveDlg)
     {
-      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcFilePreview.top, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+      ShowWindow(hWndShowPlaces, FALSE);
+      ShowWindow(hWndFilePreview, FALSE);
+      rcDlg.bottom=rcFilePreview.top;
+      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcDlg.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
       SetWindowTextWide(hWndAutodetect, L"&BOM");
 
       if (!IsCodePageUnicode(nCodePage))
@@ -6911,17 +6942,63 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     }
     else
     {
+      RECT rcControl;
+      int nLeftMargin;
+
+      GetWindowPos(hDlgList, hDlgParent, &rcControl);
+      nLeftMargin=max(rcControl.left - rcFilePreview.left, 0);
+
+      //Move dialog
+      rcDlg.right=rcDlgParent.right;
+      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcDlg.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+
+      //Move places arrow
+      rcShowPlaces.left+=nLeftMargin;
+      SetWindowPos(hWndShowPlaces, 0, rcShowPlaces.left, rcShowPlaces.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+
+      //Move preview
+      GetWindowPos(hDlgCancel, hDlgParent, &rcControl);
+      rcFilePreview.left+=nLeftMargin;
+      rcFilePreview.right=(rcControl.left + rcControl.right + 2) - rcFilePreview.left;
+      SetWindowPos(hWndFilePreview, 0, rcFilePreview.left, rcFilePreview.top, rcFilePreview.right, rcFilePreview.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+
+      //Move codepage label
+      GetWindowPos(hDlgComboboxLabel, hDlgParent, &rcControl);
+      rcCodePageLabel.left=rcControl.left;
+      rcCodePageLabel.right=rcControl.right;
+      SetWindowPos(hWndCodePageLabel, 0, rcCodePageLabel.left, rcCodePageLabel.top, rcCodePageLabel.right, rcCodePageLabel.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+
+      //Move codepage combobox
+      GetWindowPos(hDlgCombobox, hDlgParent, &rcControl);
+      rcCodePage.left=rcControl.left;
+      rcCodePage.right=rcControl.right;
+      SetWindowPos(hWndCodePage, 0, rcCodePage.left, rcCodePage.top, rcCodePage.right, rcCodePage.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+
+      //Move autodetect checkbox
+      GetWindowPos(hDlgCancel, hDlgParent, &rcControl);
+      rcAutodetect.left=rcControl.left;
+      SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+
       API_LoadStringW(hLangLib, STR_AUTODETECT, wbuf, BUFFER_SIZE);
       SetWindowTextWide(hWndAutodetect, wbuf);
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
-      EnableWindow(hWndCP, !bAutodetect);
-    }
-    SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
-    SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
-    SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
+      EnableWindow(hWndCodePage, !bAutodetect);
 
-    OldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
-    SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
+      SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
+      SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
+      SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
+
+      //Set button image
+      {
+        BUTTONDRAW bd;
+
+        bd.dwFlags=moCur.bShowPlaces?BIF_RIGHTARROW:BIF_LEFTARROW;
+        SetButtonDraw(hWndShowPlaces, &bd);
+      }
+
+      OldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
+      SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
+    }
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6929,19 +7006,20 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     int x;
     int y;
 
-    GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hDlg, NULL, &rcTemplate);
-    x=rcTemplate.right - rcDlg.right;
-    y=rcTemplate.bottom - rcDlg.bottom;
-    rcDlg=rcTemplate;
+    GetClientRect(hDlgParent, &rcTemplate);
+    x=rcTemplate.right - rcDlgParent.right;
+    y=rcTemplate.bottom - rcDlgParent.bottom;
+    rcDlgParent=rcTemplate;
 
+    GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
     rcCodePage.right+=x;
     rcAutodetect.left+=x;
     rcFilePreview.right+=x;
 
-    SetWindowPos(hWndCP, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+    SetWindowPos(hWndCodePage, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
     SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
-    SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+    if (!bSaveDlg) SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
@@ -7005,7 +7083,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         if (nMDI)
         {
-          if (GetWindowTextLengthWide(hDlgEdit) > OPENFILELIST_SIZE)
+          if (GetWindowTextLengthWide(GetDlgItem(hDlgParent, IDC_OFN_EDIT)) > OPENFILELIST_SIZE)
           {
             API_LoadStringW(hLangLib, MSG_LONG_FILELIST, wbuf, BUFFER_SIZE);
             API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -7022,12 +7100,12 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
           EnableWindow(hWndFilePreview, FALSE);
-          if (bAutodetect) SelectComboboxCodepage(hWndCP, moCur.nDefaultCodePage);
+          if (bAutodetect) SelectComboboxCodepage(hWndCodePage, moCur.nDefaultCodePage);
           SetWindowTextWide(hWndFilePreview, L"");
           return TRUE;
         }
         EnableWindow(hWndFilePreview, TRUE);
-        if (bAutodetect) SelectComboboxCodepage(hWndCP, nCodePage);
+        if (bAutodetect) SelectComboboxCodepage(hWndCodePage, nCodePage);
       }
     }
   }
@@ -7035,7 +7113,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   {
     if (LOWORD(wParam) == IDC_OFN_CODEPAGE && HIWORD(wParam) == CBN_SELCHANGE)
     {
-      nCodePage=GetComboboxCodepage(hWndCP);
+      nCodePage=GetComboboxCodepage(hWndCodePage);
 
       if (bSaveDlg)
       {
@@ -7066,20 +7144,25 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       if (!bSaveDlg)
       {
         bAutodetect=(BOOL)SendMessage(hWndAutodetect, BM_GETCHECK, 0, 0);
-        EnableWindow(hWndCP, !bAutodetect);
-        nCodePage=GetComboboxCodepage(hWndCP);
+        EnableWindow(hWndCodePage, !bAutodetect);
+        nCodePage=GetComboboxCodepage(hWndCodePage);
 
         if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
           EnableWindow(hWndFilePreview, FALSE);
-          if (bAutodetect) SelectComboboxCodepage(hWndCP, moCur.nDefaultCodePage);
+          if (bAutodetect) SelectComboboxCodepage(hWndCodePage, moCur.nDefaultCodePage);
           SetWindowTextWide(hWndFilePreview, L"");
           return TRUE;
         }
         EnableWindow(hWndFilePreview, TRUE);
-        if (bAutodetect) SelectComboboxCodepage(hWndCP, nCodePage);
+        if (bAutodetect) SelectComboboxCodepage(hWndCodePage, nCodePage);
       }
       return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OFN_SHOWPLACES)
+    {
+      moCur.bShowPlaces=!moCur.bShowPlaces;
+      PostMessage(hDlgParent, WM_COMMAND, IDCANCEL, 0);
     }
   }
   return FALSE;
@@ -14812,6 +14895,38 @@ void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw)
 void StackButtonDrawFree(HSTACK *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd)
+{
+  BUTTONDRAWITEM *lpButtonDrawItem;
+
+  if (bd == NULL)
+  {
+    if (lpButtonDrawItem=StackButtonDrawGet(&hButtonDrawStack, hWndButton))
+    {
+      SetWindowLongPtrWide(hWndButton, GWLP_WNDPROC, (UINT_PTR)lpButtonDrawItem->OldButtonProc);
+
+      StackButtonDrawDelete(&hButtonDrawStack, lpButtonDrawItem);
+    }
+  }
+  else
+  {
+    if (!(lpButtonDrawItem=StackButtonDrawGet(&hButtonDrawStack, hWndButton)))
+      lpButtonDrawItem=StackButtonDrawInsert(&hButtonDrawStack);
+
+    if (lpButtonDrawItem)
+    {
+      lpButtonDrawItem->hWnd=hWndButton;
+      xmemcpy(&lpButtonDrawItem->bd, bd, sizeof(BUTTONDRAW));
+
+      if (!lpButtonDrawItem->OldButtonProc)
+      {
+        lpButtonDrawItem->OldButtonProc=(WNDPROC)GetWindowLongPtrWide(hWndButton, GWLP_WNDPROC);
+        SetWindowLongPtrWide(hWndButton, GWLP_WNDPROC, (UINT_PTR)NewButtonDrawProc);
+      }
+    }
+  }
 }
 
 
