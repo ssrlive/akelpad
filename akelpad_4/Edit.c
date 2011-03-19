@@ -6976,9 +6976,6 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         //Hide preview
         ShowWindow(hWndFilePreview, FALSE);
-        rcFilePreview.left+=nLeftMargin;
-        rcFilePreview.right=0;
-        rcFilePreview.bottom=0;
 
         //Move places arrow
         if (!bOldWindows && !bWindowsNT4)
@@ -7012,6 +7009,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 
       //Set button image
+      if (!bOldWindows && !bWindowsNT4)
       {
         BUTTONDRAW bd;
 
@@ -7023,7 +7021,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       if (hDlgPlaces)
       {
         GetWindowPos(hDlgPlaces, hDlgParent, &rcControl);
-        rcControl.bottom=(rcDlgParent.bottom - rcControl.top) + (rcFilePreview.top + rcFilePreview.bottom);
+        rcControl.bottom=(rcDlgParent.bottom - rcControl.top) + (rcShowPlaces.top + rcShowPlaces.bottom);
         SetWindowPos(hDlgPlaces, 0, 0, 0, rcControl.right, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
       }
     }
@@ -7065,15 +7063,21 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     y=rcTemplate.bottom - rcDlgParent.bottom;
     rcDlgParent=rcTemplate;
 
-    GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
+    //Resize codepage combobox
     rcCodePage.right+=x;
-    rcAutodetect.left+=x;
-    rcFilePreview.right+=x;
-
     SetWindowPos(hWndCodePage, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
-    SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
-    if (!bSaveDlg) SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
 
+    //Move autodetect checkbox
+    GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
+    rcAutodetect.left+=x;
+    SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+
+    //Resize preview
+    if (!bSaveDlg)
+    {
+      rcFilePreview.right+=x;
+      SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+    }
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
