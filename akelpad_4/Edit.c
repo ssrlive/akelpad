@@ -7063,14 +7063,17 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     y=rcTemplate.bottom - rcDlgParent.bottom;
     rcDlgParent=rcTemplate;
 
-    //Resize codepage combobox
-    rcCodePage.right+=x;
-    SetWindowPos(hWndCodePage, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+    if (!bOldWindows)
+    {
+      //Resize codepage combobox
+      rcCodePage.right+=x;
+      SetWindowPos(hWndCodePage, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
 
-    //Move autodetect checkbox
-    GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    rcAutodetect.left+=x;
-    SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+      //Move autodetect checkbox
+      GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
+      rcAutodetect.left+=x;
+      SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+    }
 
     //Resize preview
     if (!bSaveDlg)
