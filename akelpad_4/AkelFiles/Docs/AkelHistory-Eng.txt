@@ -1,9 +1,10 @@
 
 AkelPad 4.5.7 ()
 ----------------------------
-Added: possibility to use new style of the open/save dialog.
+Added: possibility to show places bar in open/save dialog.
 
 Fixed: edit window updating after text deletion.
+Fixed: left button click in Windows 98/Me.
 
 
 AkelPad 4.5.6 (Mar 16, 2010)
