@@ -13420,9 +13420,11 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   BOOL bInList;
   BOOL bIsSpacePrevious=FALSE;
   BOOL bIsSpaceCurrent;
+  BOOL bNewLineInList;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
+  bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
@@ -13436,10 +13438,12 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
 
   if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
+    if (bInList=bNewLineInList)
       bIsSpacePrevious=TRUE;
 
     AEC_NextLine(&ciCount);
+    if (dwFlags & AEWB_STOPNEWLINE)
+      goto End;
     ++nLen;
   }
   else
@@ -13474,22 +13478,21 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
       {
         if (bInList)
         {
-          if (!((dwFlags & AEWB_SKIPSPACEEND) && bIsSpacePrevious))
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrevious)
           {
             if (dwFlags & AEWB_RIGHTWORDSTART)
               goto End;
           }
-          bInList=FALSE;
         }
         else
         {
-          if (!((dwFlags & AEWB_SKIPSPACESTART) && bIsSpaceCurrent))
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpaceCurrent)
           {
             if (dwFlags & AEWB_RIGHTWORDEND)
               goto End;
           }
-          bInList=TRUE;
         }
+        bInList=!bInList;
       }
       bIsSpacePrevious=bIsSpaceCurrent;
 
@@ -13497,32 +13500,42 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
       AEC_IndexInc(&ciCount);
     }
     if (bColumnSel) goto End;
+
     if (ciCount.lpLine->nLineBreak != AELB_WRAP)
     {
+      if (dwFlags & AEWB_STOPNEWLINE)
+        goto End;
+
       if (bInList)
       {
-        if (dwFlags & AEWB_STOPNEWLINE)
-          goto End;
         if (dwFlags & AEWB_STOPSPACESTART)
         {
           if (!bIsSpacePrevious)
             goto End;
         }
-        bIsSpacePrevious=TRUE;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
+      if (bInList != bNewLineInList)
       {
         if (bInList)
         {
-          if (dwFlags & AEWB_RIGHTWORDSTART)
-            goto End;
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrevious)
+          {
+            if (dwFlags & AEWB_RIGHTWORDSTART)
+              goto End;
+          }
         }
         else
         {
-          if (dwFlags & AEWB_RIGHTWORDEND)
-            goto End;
+          if (!(dwFlags & AEWB_SKIPSPACESTART))
+          {
+            if (dwFlags & AEWB_RIGHTWORDEND)
+              goto End;
+          }
         }
+        bInList=!bInList;
       }
+      bIsSpacePrevious=TRUE;
+
       ++nLen;
     }
 
@@ -13550,9 +13563,11 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   BOOL bInList;
   BOOL bIsSpacePrevious=FALSE;
   BOOL bIsSpaceCurrent;
+  BOOL bNewLineInList;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
+  bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (ciCount.nCharInLine - 1 < 0)
   {
@@ -13567,10 +13582,12 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
 
   if (ciCount.nCharInLine < 0)
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
+    if (bInList=bNewLineInList)
       bIsSpacePrevious=TRUE;
 
     AEC_PrevLine(&ciCount);
+    if (dwFlags & AEWB_STOPNEWLINE)
+      goto End;
     AEC_IndexDec(&ciCount);
     ++nLen;
   }
@@ -13612,7 +13629,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
       {
         if (bInList)
         {
-          if (!((dwFlags & AEWB_SKIPSPACESTART) && bIsSpacePrevious))
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrevious)
           {
             if (dwFlags & AEWB_LEFTWORDEND)
             {
@@ -13620,11 +13637,10 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
               goto End;
             }
           }
-          bInList=FALSE;
         }
         else
         {
-          if (!((dwFlags & AEWB_SKIPSPACEEND) && bIsSpaceCurrent))
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpaceCurrent)
           {
             if (dwFlags & AEWB_LEFTWORDSTART)
             {
@@ -13632,8 +13648,8 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
               goto End;
             }
           }
-          bInList=TRUE;
         }
+        bInList=!bInList;
       }
       bIsSpacePrevious=bIsSpaceCurrent;
 
@@ -13641,32 +13657,42 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
       ++nLen;
     }
     if (bColumnSel) goto End;
+
     if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak != AELB_WRAP)
     {
+      if (dwFlags & AEWB_STOPNEWLINE)
+        goto End;
+
       if (bInList)
       {
-        if (dwFlags & AEWB_STOPNEWLINE)
-          goto End;
         if (dwFlags & AEWB_STOPSPACEEND)
         {
           if (!bIsSpacePrevious)
             goto End;
         }
-        bIsSpacePrevious=TRUE;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
+      if (bInList != bNewLineInList)
       {
         if (bInList)
         {
-          if (dwFlags & AEWB_LEFTWORDEND)
-            goto End;
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrevious)
+          {
+            if (dwFlags & AEWB_LEFTWORDEND)
+              goto End;
+          }
         }
         else
         {
-          if (dwFlags & AEWB_LEFTWORDSTART)
-            goto End;
+          if (!(dwFlags & AEWB_SKIPSPACEEND))
+          {
+            if (dwFlags & AEWB_LEFTWORDSTART)
+              goto End;
+          }
         }
+        bInList=!bInList;
       }
+      bIsSpacePrevious=TRUE;
+
       ++nLen;
     }
 
