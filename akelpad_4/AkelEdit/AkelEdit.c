@@ -87,7 +87,7 @@ BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 BOOL bRichEditClassRegisteredA=FALSE;
 BOOL bRichEditClassRegisteredW=FALSE;
-BOOL bAkelEditWindows95=FALSE;
+BOOL bAkelEditWindows9x=FALSE;
 HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
@@ -197,14 +197,14 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
 
-    //Is Windows 95?
+    //Is Windows 95/98/Me?
     {
       OSVERSIONINFO ovi;
 
       ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
       GetVersionEx(&ovi);
-      if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-        bAkelEditWindows95=TRUE;
+      if (ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+        bAkelEditWindows9x=TRUE;
     }
   }
   return bAkelEditClassRegisteredA;
@@ -3677,7 +3677,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       GetCursorPos(&ptPos);
       ScreenToClient(ae->hWndEdit, &ptPos);
 
-      if (!bAkelEditWindows95)
+      if (!bAkelEditWindows9x)
       {
         if (ptPos.x != LOWORD(lParam) || ptPos.y != HIWORD(lParam))
         {
@@ -5939,7 +5939,7 @@ INT_PTR AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
     nFirstVisiblePos=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
     nScrolled=AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
   }
-  InvalidateRect(ae->hWndEdit, NULL, TRUE);
+  InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   AE_StackUpdateClones(ae);
   return nScrolled;
 }
@@ -10855,6 +10855,12 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
           AE_ActiveColumnErase(ae);
 
           ScrollWindow(ae->hWndEdit, (int)(ae->nHScrollPos - nPos), 0, NULL, &ae->rcDraw);
+          if (bAkelEditWindows9x)
+          {
+            //Sometimes ScrollWindow don't invalidates scrolling rectangle
+            if (mod(ae->nHScrollPos - nPos) > ae->rcDraw.right - ae->rcDraw.left)
+              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+          }
           ae->nHScrollPos=nPos;
           //UpdateWindow(ae->hWndEdit);
 
@@ -10912,6 +10918,12 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
           AE_ActiveColumnErase(ae);
 
           ScrollWindow(ae->hWndEdit, 0, (int)(ae->nVScrollPos - nPos), NULL, &ae->rcDraw);
+          if (bAkelEditWindows9x)
+          {
+            //Sometimes ScrollWindow don't invalidates scrolling rectangle
+            if (mod(ae->nVScrollPos - nPos) > ae->rcDraw.bottom - ae->rcDraw.top)
+              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+          }
           ae->nVScrollPos=nPos;
           //UpdateWindow(ae->hWndEdit);
 

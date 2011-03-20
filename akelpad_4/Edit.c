@@ -7063,7 +7063,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     y=rcTemplate.bottom - rcDlgParent.bottom;
     rcDlgParent=rcTemplate;
 
-    if (!bOldWindows)
+    //if (!bOldWindows)
     {
       //Resize codepage combobox
       rcCodePage.right+=x;
