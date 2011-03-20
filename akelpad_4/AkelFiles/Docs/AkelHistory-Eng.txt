@@ -4,6 +4,7 @@ AkelPad 4.5.7 ()
 Added: possibility to show places bar in open/save dialog.
 
 Fixed: edit window updating after text deletion.
+Fixed: WordBreak parameter.
 Fixed: left button click in Windows 98/Me.
 
 
