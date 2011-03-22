@@ -14194,6 +14194,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     BUTTONMESSAGEBOX *lpButton;
     RECT rcDlg;
     RECT rcTextOut;
+    SIZE sizeString;
     POINT ptCursor;
     HWND hWndIcon;
     HWND hWndText;
@@ -14204,7 +14205,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     char *pIconIndex=NULL;
     DWORD dwIconType;
     DWORD dwStyle;
-    int nButtonWidth;
+    int nButtonWidth=0;
     int nButtonHeight;
     int nButtonEdge;
     int nButtonOffset;
@@ -14212,6 +14213,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     int nButtonsWidth;
     int nButtonX;
     int nButtonY;
+    int nStrLen;
     BOOL bSnapToDefButton;
 
     SystemParametersInfoA(SPI_GETSNAPTODEFBUTTON, 0, &bSnapToDefButton, 0);
@@ -14221,9 +14223,20 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       SelectObject(hDC, hGuiFont);
 
+      //Get maximum button width
+      for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+      {
+        if (nStrLen=API_LoadStringW(hLangLib, lpButton->nButtonStringID, wszString, MAX_PATH))
+        {
+          GetTextExtentPoint32W(hDC, wszString, nStrLen, &sizeString);
+          nButtonWidth=max(nButtonWidth, sizeString.cx + GetSystemMetrics(SM_CYFIXEDFRAME) * 2);
+        }
+        ++nButtonsCount;
+      }
+
       //Get scale factor for ScaleX and ScaleY
       ScaleInit(hDC, NULL);
-      nButtonWidth=ScaleX(75);
+      nButtonWidth=max(nButtonWidth, ScaleX(75));
       nButtonHeight=ScaleY(23);
       nButtonEdge=ScaleX(6);
       nButtonOffset=ScaleX(16);
@@ -14248,10 +14261,6 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, ScaleX(11), ScaleY(11), 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
         SendMessage(hWndIcon, STM_SETICON, (WPARAM)LoadIconA(NULL, pIconIndex), 0);
       }
-
-      //Get buttons count
-      for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
-        ++nButtonsCount;
 
       //Get buttons width
       nButtonsWidth=nButtonsCount * (nButtonWidth + nButtonEdge) - nButtonEdge;
