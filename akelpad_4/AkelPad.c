@@ -2333,6 +2333,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
       if (wParam == FWF_BYEDITDOCUMENT)
         return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
+      if (wParam == FWF_BYTABINDEX)
+        return (LRESULT)GetTabParamFromItem(hTab, (int)lParam);
       return 0;
     }
     if (uMsg == AKD_FRAMESTATS)

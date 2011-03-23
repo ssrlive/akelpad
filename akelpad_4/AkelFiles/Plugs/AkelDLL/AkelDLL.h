@@ -278,6 +278,7 @@
                               // For AKD_FRAMEFINDW string is unicode.
 #define FWF_BYEDITWINDOW   6  //Retrive frame data by edit window handle. lParam is edit window handle.
 #define FWF_BYEDITDOCUMENT 7  //Retrive frame data by edit document handle. lParam is edit document handle.
+#define FWF_BYTABINDEX     8  //Retrive frame data by tab item index. lParam is tab item index.
 
 //AKD_FRAMEACTIVATE flags
 #define FWA_NOUPDATEORDER  0x00000001  //Don't update access order during activating.
