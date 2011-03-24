@@ -1541,6 +1541,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->ptxt->dwTextLimit=wParam;
       return 0;
     }
+    if (uMsg == AEM_GETFONT)
+    {
+      if (wParam == AEGF_CURRENT)
+        return (LRESULT)ae->ptxt->hFont;
+      else if (wParam == AEGF_NORMAL)
+        return (LRESULT)ae->ptxt->hFontNormal;
+      else if (wParam == AEGF_BOLD)
+        return (LRESULT)ae->ptxt->hFontBold;
+      else if (wParam == AEGF_ITALIC)
+        return (LRESULT)ae->ptxt->hFontItalic;
+      else if (wParam == AEGF_BOLDITALIC)
+        return (LRESULT)ae->ptxt->hFontBoldItalic;
+      else if (wParam == AEGF_URL)
+        return (LRESULT)ae->ptxt->hFontUrl;
+      return 0;
+    }
 
     //Draw
     ShowScrollbar:
@@ -11908,11 +11924,19 @@ void AE_Paint(AKELEDIT *ae)
         if (bUseBufferDC)
         {
           //Send AEN_PAINT
-          pntNotify.ciMaxDraw=to.ciDrawLine;
-          pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
-          pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
-          pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
-          AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
+          if (ae->popt->dwEventMask & AENM_PAINT)
+          {
+            pntNotify.ciMaxDraw=to.ciDrawLine;
+            pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
+            pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
+            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
+            if (to.hFontPrev != ae->ptxt->hFont && to.hFontPrev)
+              SelectObject(to.hDC, to.hFontPrev);
+            AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
+            if (to.hFontPrev != ae->ptxt->hFont && ae->ptxt->hFont)
+              SelectObject(to.hDC, ae->ptxt->hFont);
+          }
 
           rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
           rcSpace.top=(int)to.ptFirstCharInLine.y;
@@ -11998,33 +12022,32 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     {
       if (!(to->dwPrintFlags & AEPRN_TEST))
       {
+        to->hFontPrev=ae->ptxt->hFont;
+
         if (to->dwPrintFlags & AEPRN_COLOREDTEXT)
         {
           if (!(hlp->dwPaintType & AEHPT_SELECTION))
           {
+            //Font
             if (hlp->dwPaintType & AEHPT_LINK)
             {
-              if (ae->ptxt->hFontUrl) SelectObject(to->hDC, ae->ptxt->hFontUrl);
+              to->hFontPrev=ae->ptxt->hFontUrl;
             }
             if (hlp->dwFontStyle)
             {
               if (hlp->dwFontStyle == AEHLS_FONTNORMAL)
-              {
-                if (ae->ptxt->hFontNormal) SelectObject(to->hDC, ae->ptxt->hFontNormal);
-              }
+                to->hFontPrev=ae->ptxt->hFontNormal;
               else if (hlp->dwFontStyle == AEHLS_FONTBOLD)
-              {
-                if (ae->ptxt->hFontBold) SelectObject(to->hDC, ae->ptxt->hFontBold);
-              }
+                to->hFontPrev=ae->ptxt->hFontBold;
               else if (hlp->dwFontStyle == AEHLS_FONTITALIC)
-              {
-                if (ae->ptxt->hFontItalic) SelectObject(to->hDC, ae->ptxt->hFontItalic);
-              }
+                to->hFontPrev=ae->ptxt->hFontItalic;
               else if (hlp->dwFontStyle == AEHLS_FONTBOLDITALIC)
-              {
-                if (ae->ptxt->hFontBoldItalic) SelectObject(to->hDC, ae->ptxt->hFontBoldItalic);
-              }
+                to->hFontPrev=ae->ptxt->hFontBoldItalic;
             }
+            if (to->hFontPrev != ae->ptxt->hFont && to->hFontPrev)
+              SelectObject(to->hDC, to->hFontPrev);
+
+            //Background
             if (hlp->dwActiveBG != hlp->dwDefaultBG)
             {
               //Fill space of the external leading
@@ -12090,13 +12113,8 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
           }
         }
 
-        if (!(hlp->dwPaintType & AEHPT_SELECTION))
-        {
-          if ((hlp->dwPaintType & AEHPT_LINK) || hlp->dwFontStyle)
-          {
-            if (ae->ptxt->hFont) SelectObject(to->hDC, ae->ptxt->hFont);
-          }
-        }
+        if (to->hFontPrev != ae->ptxt->hFont && ae->ptxt->hFont)
+          SelectObject(to->hDC, ae->ptxt->hFont);
         if (GetBkMode(to->hDC) == TRANSPARENT)
           SetBkMode(to->hDC, OPAQUE);
       }

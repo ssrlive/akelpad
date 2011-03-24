@@ -429,6 +429,14 @@
 #define AECSE_SCROLLEDUP     0x00000010  //Edit control was scrolled up vertically.
 #define AECSE_SCROLLEDDOWN   0x00000020  //Edit control was scrolled down vertically.
 
+//AEM_GETFONT type
+#define AEGF_CURRENT         0  //Current font handle.
+#define AEGF_NORMAL          1  //Normal style font handle.
+#define AEGF_BOLD            2  //Bold style font handle.
+#define AEGF_ITALIC          3  //Italic style font handle.
+#define AEGF_BOLDITALIC      4  //Bold italic style font handle.
+#define AEGF_URL             5  //URL style font handle.
+
 //AEM_GETCHARSIZE flags
 #define AECS_HEIGHT          0  //Current font character height. lParam not used.
 #define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
@@ -1342,6 +1350,7 @@ typedef struct {
 #define AEM_SETLINEGAP            (WM_USER + 2236)
 #define AEM_GETTEXTLIMIT          (WM_USER + 2237)
 #define AEM_SETTEXTLIMIT          (WM_USER + 2238)
+#define AEM_GETFONT               (WM_USER + 2239)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -4300,6 +4309,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETTEXTLIMIT, MAX_PATH, 0);
+
+
+AEM_GETFONT
+___________
+
+Retrieve font handle.
+
+(int)wParam == see AEGF_* defines.
+lParam      == not used.
+
+Return Value
+ Font handle.
+
+Example:
+ HFONT hFontItalic=(HFONT)SendMessage(hWndEdit, AEM_GETFONT, AEGF_ITALIC, 0);
 
 
 AEM_SHOWSCROLLBAR
