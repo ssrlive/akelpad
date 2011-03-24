@@ -340,6 +340,7 @@ typedef struct {
   INT_PTR nStartDrawWidth;
   int nMaxDrawCharsCount;
   DWORD dwPrintFlags;
+  HFONT hFontPrev;
 } AETEXTOUT;
 
 
