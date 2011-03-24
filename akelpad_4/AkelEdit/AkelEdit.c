@@ -11930,7 +11930,6 @@ void AE_Paint(AKELEDIT *ae)
             pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
             pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
             pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
-            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
             if (to.hFontPrev != ae->ptxt->hFont && to.hFontPrev)
               SelectObject(to.hDC, to.hFontPrev);
             AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
@@ -12004,13 +12003,9 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     if (!(to->dwPrintFlags & AEPRN_TEST))
     {
       if (to->dwPrintFlags & AEPRN_COLOREDTEXT)
-      {
         SetTextColor(to->hDC, hlp->dwActiveText);
-      }
       if (to->dwPrintFlags & AEPRN_COLOREDBACKGROUND)
-      {
         SetBkColor(to->hDC, hlp->dwActiveBG);
-      }
     }
     rcTextOut.left=(int)(to->ptFirstCharInLine.x + to->nStartDrawWidth);
     rcTextOut.top=(int)to->ptFirstCharInLine.y;
