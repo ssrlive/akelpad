@@ -3836,7 +3836,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bMainOnFinish=FALSE;
         return bEndSession?0:1;
       }
-      RecentFilesSaveCurrentFile();
+      RecentFilesSaveCurrentFile(lpFrameCurrent);
     }
     else
     {
@@ -3844,7 +3844,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrameCurrent->hWndEditParent)
       {
-        RecentFilesSaveCurrentFile();
+        RecentFilesSaveCurrentFile(lpFrameCurrent);
         bFirstTabOnFinish=TRUE;
       }
 
@@ -4783,16 +4783,17 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
       if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
       {
-        //Activate frame
-        ActivateMdiFrameWindow(lpFrame, 0);
-
         //Is save prompt required
         if ((dwChangedPrompt & PROMPT_NONE) || !lpFrame->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrame->ei.wszFile[0] && !GetTextLength(lpFrame->ei.hWndEdit)))
           dwPrompt|=PROMPT_NONE;
 
+        //Activate frame
+        if (!(dwPrompt & PROMPT_NONE))
+          ActivateMdiFrameWindow(lpFrame, 0);
+
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
-        RecentFilesSaveCurrentFile();
+        RecentFilesSaveCurrentFile(lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
