@@ -4808,7 +4808,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           //Avoid program exit blinking on last frame close
           if (bMainOnFinish)
           {
-            if (SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) == 1)
+            if (nDocumentsCount == 0)
               SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
           }
 
