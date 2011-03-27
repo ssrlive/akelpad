@@ -2,6 +2,7 @@
 AkelPad 4.6.0 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
+Changed: closing tab with middle mouse click without activation, if possible (MDI/PMDI).
 
 Added: possibility to show places bar in open/save dialog.
 
@@ -19,7 +20,7 @@ Changed: uses system message box for save file prompt, if possible.
 
 Added: selection remembering in the recent files.
 Added: button "No to all" is also available when using items from "Window" menu -
-       "Close all" and "Close all but active" (PMDI/MDI).
+       "Close all" and "Close all but active" (MDI/PMDI).
 Added: command 4206 - restore font size that was at the program start.
 
 Fixed: restore the size of the main window, that was out of sight.

@@ -895,7 +895,13 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         dwPrompt|=PROMPT_NONE;
 
       //Activate frame
-      ActivateMdiFrameWindow(lpFrame, (dwPrompt & PROMPT_NONE)?FWA_NOVISUPDATE:0);
+      if (dwPrompt & PROMPT_NONE)
+      {
+        bEditOnFinish=TRUE;
+        ActivateMdiFrameWindow(lpFrame, FWA_DESTROY|FWA_NOVISUPDATE);
+        bEditOnFinish=FALSE;
+      }
+      else ActivateMdiFrameWindow(lpFrame, FWA_DESTROY);
 
       if (lpFrame == lpFrameToActivate)
       {
@@ -916,7 +922,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       {
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return FWDE_ABORT;
-        RecentFilesSaveCurrentFile();
+        RecentFilesSaveCurrentFile(lpFrame);
       }
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
@@ -1226,7 +1232,7 @@ BOOL CloseDocument(DWORD dwPrompt)
 {
   if (!SaveChanged(dwPrompt)) return FALSE;
 
-  RecentFilesSaveCurrentFile();
+  RecentFilesSaveCurrentFile(lpFrameCurrent);
   SendMessage(hMainWnd, AKDN_EDIT_ONCLOSE, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
   SetWindowTextWide(lpFrameCurrent->ei.hWndEdit, L"");
@@ -4096,7 +4102,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   if (IsEditActive(hWnd))
   {
     //Save position of the previous file before load new document
-    RecentFilesSaveCurrentFile();
+    RecentFilesSaveCurrentFile(lpFrameCurrent);
 
     //Create edit window if necessary
     if (nMDI && !(dwFlags & OD_REOPEN) && (!lpFrameCurrent->hWndEditParent || lpFrameCurrent->ei.bModified || lpFrameCurrent->wszFile[0]))
@@ -4752,7 +4758,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
         }
         if (nFileCmp || nCodePageCmp)
-          RecentFilesSaveCurrentFile();
+          RecentFilesSaveCurrentFile(lpFrameCurrent);
 
         if ((dwFlags & SD_SELECTION) || nLostLine)
         {
@@ -10212,26 +10218,26 @@ void RecentFilesSave()
   RegCloseKey(hKey);
 }
 
-void RecentFilesSaveCurrentFile()
+void RecentFilesSaveCurrentFile(FRAMEDATA *lpFrame)
 {
   CHARRANGE64 cr;
   INT_PTR i;
 
-  if (moCur.nRecentFiles && lpFrameCurrent->wszFile[0])
+  if (moCur.nRecentFiles && lpFrame->wszFile[0])
   {
-    if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrameCurrent->wszFile))
+    if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrame->wszFile))
     {
       RecentFilesZero();
       RecentFilesRead();
 
-      SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+      SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
       if (AEC_IndexCompare(&ciCaret, &crSel.ciMax) < 0)
       {
         i=cr.cpMin;
         cr.cpMin=cr.cpMax;
         cr.cpMax=i;
       }
-      RecentFilesUpdate(lpFrameCurrent->wszFile, lpFrameCurrent->ei.nCodePage, &cr);
+      RecentFilesUpdate(lpFrame->wszFile, lpFrame->ei.nCodePage, &cr);
       RecentFilesSave();
       bMenuRecentFiles=TRUE;
     }
