@@ -890,12 +890,12 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       }
       else lpFrameToActivate=lpFrameCurrent;
 
-      //Activate frame
-      ActivateMdiFrameWindow(lpFrame, !lpFrame->ei.bModified?FWA_NOUPDATEEDIT:0);
-
       //Is save prompt required
       if ((dwChangedPrompt & PROMPT_NONE) || !lpFrame->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrame->ei.wszFile[0] && !GetTextLength(lpFrame->ei.hWndEdit)))
         dwPrompt|=PROMPT_NONE;
+
+      //Activate frame
+      ActivateMdiFrameWindow(lpFrame, (dwPrompt & PROMPT_NONE)?FWA_NOVISUPDATE:0);
 
       if (lpFrame == lpFrameToActivate)
       {
