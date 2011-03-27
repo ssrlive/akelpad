@@ -877,7 +877,7 @@ int RecentFilesFindIndex(const wchar_t *wpFile);
 BOOL RecentFilesDeleteIndex(int nIndex);
 int RecentFilesRead();
 BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSel);
-void RecentFilesSaveCurrentFile(FRAMEDATA *lpFrame);
+void RecentFilesSaveFile(FRAMEDATA *lpFrame);
 int RecentFilesDeleteOld();
 void RecentFilesSave();
 void RecentFilesMenu();

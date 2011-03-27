@@ -386,8 +386,8 @@ PRINTINFO prninfo={0};
 POINT ptScale={0};
 
 //Edit state
-AECHARRANGE crSel={0};
-AECHARINDEX ciCaret={0};
+AECHARRANGE crCurSel={0};
+AECHARINDEX ciCurCaret={0};
 int nLoopCase=0;
 DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bReopenMsg=FALSE;
@@ -2896,11 +2896,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_REDO, (!lpFrameCurrent->ei.bReadOnly && SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANREDO, 0, 0))?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_EDIT_PASTE, (!lpFrameCurrent->ei.bReadOnly && SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANPASTE, 0, 0))?MF_ENABLED:MF_GRAYED);
 
-        EnableMenuItem(hMainMenu, IDM_EDIT_CUT, (!lpFrameCurrent->ei.bReadOnly && AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))?MF_ENABLED:MF_GRAYED);
-        EnableMenuItem(hMainMenu, IDM_EDIT_CLEAR, (!lpFrameCurrent->ei.bReadOnly && AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMainMenu, IDM_EDIT_CUT, (!lpFrameCurrent->ei.bReadOnly && AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMainMenu, IDM_EDIT_CLEAR, (!lpFrameCurrent->ei.bReadOnly && AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))?MF_ENABLED:MF_GRAYED);
 
-        EnableMenuItem(hMainMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
-        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_FIRST_CHAR_MENU, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMainMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_FIRST_CHAR_MENU, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
 
         nMenuState=(!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))?MF_GRAYED:MF_ENABLED;
         EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_TAB_MENU, nMenuState);
@@ -3348,7 +3348,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       BOOL bResult;
 
-      if (!(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crSel)))
+      if (!(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crCurSel)))
         ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, AELB_ASINPUT, FALSE, NULL, NULL);
       return bResult;
     }
@@ -3836,7 +3836,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bMainOnFinish=FALSE;
         return bEndSession?0:1;
       }
-      RecentFilesSaveCurrentFile(lpFrameCurrent);
+      RecentFilesSaveFile(lpFrameCurrent);
     }
     else
     {
@@ -3844,7 +3844,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrameCurrent->hWndEditParent)
       {
-        RecentFilesSaveCurrentFile(lpFrameCurrent);
+        RecentFilesSaveFile(lpFrameCurrent);
         bFirstTabOnFinish=TRUE;
       }
 
@@ -3976,7 +3976,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (lParam == -1)
       {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)&ciCaret);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)&ciCurCaret);
         pt.y-=lpFrameCurrent->lf.lfHeight;
 
         ClientToScreen(lpFrameCurrent->ei.hWndEdit, &pt);
@@ -4002,7 +4002,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         if (lpFrameCurrent->ei.bReadOnly)
         {
           hTrackMenu=hPopupView;
-          EnableMenuItem(hTrackMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
+          EnableMenuItem(hTrackMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
         }
         else
         {
@@ -4010,9 +4010,9 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           EnableMenuItem(hTrackMenu, IDM_EDIT_UNDO, SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANUNDO, 0, 0)?MF_ENABLED:MF_GRAYED);
           EnableMenuItem(hTrackMenu, IDM_EDIT_REDO, SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANREDO, 0, 0)?MF_ENABLED:MF_GRAYED);
           EnableMenuItem(hTrackMenu, IDM_EDIT_PASTE, SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANPASTE, 0, 0)?MF_ENABLED:MF_GRAYED);
-          EnableMenuItem(hTrackMenu, IDM_EDIT_CUT, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
-          EnableMenuItem(hTrackMenu, IDM_EDIT_CLEAR, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
-          EnableMenuItem(hTrackMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax)?MF_ENABLED:MF_GRAYED);
+          EnableMenuItem(hTrackMenu, IDM_EDIT_CUT, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
+          EnableMenuItem(hTrackMenu, IDM_EDIT_CLEAR, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
+          EnableMenuItem(hTrackMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
         }
         TrackPopupMenu(hTrackMenu, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hMainWnd, NULL);
       }
@@ -4158,7 +4158,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             if ((lpFrameCurrent->nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP && bDownURL) ||
                 (lpFrameCurrent->nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
             {
-              if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+              if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
               {
                 wchar_t *wszURL;
 
@@ -4520,7 +4520,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetKeyState(VK_SHIFT) >= 0 &&
             GetKeyState(VK_CONTROL) >= 0)
         {
-          if (AutoIndent(hWnd, &crSel))
+          if (AutoIndent(hWnd, &crCurSel))
             return TRUE;
         }
       }
@@ -4793,7 +4793,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
-        RecentFilesSaveCurrentFile(lpFrame);
+        RecentFilesSaveFile(lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
