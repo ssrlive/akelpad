@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 0)
 
 
 //// Defines
@@ -1340,10 +1340,10 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_WINDOW_FRAMENEXT            4316  //Activate next MDI window.
-                                              //Return Value: zero.
+                                              //Return Value: pointer to a FRAMEDATA structure that has been activated.
                                               //
 #define IDM_WINDOW_FRAMEPREV            4317  //Activate previous MDI window.
-                                              //Return Value: zero.
+                                              //Return Value: pointer to a FRAMEDATA structure that has been activated.
                                               //
 #define IDM_WINDOW_FRAMECLOSE           4318  //Close current MDI window.
                                               //Return Value: TRUE - success, FALSE - failed.
@@ -1742,8 +1742,8 @@ ___________________
 
 Notification message, sends to the main procedure when frame has been activated.
 
-(FRAMEDATA *)wParam == Pointer to a FRAMEDATA structure, that has been activated.
-(HWND)lParam        == handle to the MDI window being activated (WMD_MDI).
+(DWORD)wParam       == see FWA_* defines.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, that has been activated.
 
 Return Value
  Zero.
@@ -1754,8 +1754,8 @@ __________________
 
 Notification message, sends to the main procedure before destroying frame.
 
-(FRAMEDATA *)wParam == Pointer to a FRAMEDATA structure, that will be destroyed.
-(HWND)lParam        == handle to the MDI window that will be destroyed (WMD_MDI).
+wParam              == not used.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, that will be destroyed.
 
 Return Value
  Zero.

@@ -822,7 +822,7 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       }
       else SetWindowTextWide(hMainWnd, APP_MAIN_TITLEW);
 
-      SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, (WPARAM)lpFrameCurrent, (LPARAM)NULL);
+      SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, dwFlags, (LPARAM)lpFrameCurrent);
     }
   }
   return lpFrameLostFocus;
@@ -927,7 +927,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         --nDocumentsCount;
         UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
-        SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)NULL);
+        SendMessage(hMainWnd, AKDN_FRAME_DESTROY, 0, (LPARAM)lpFrame);
 
         //Destroy active document
         SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
