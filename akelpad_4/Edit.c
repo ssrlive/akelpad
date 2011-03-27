@@ -837,7 +837,7 @@ FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
 
     if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
     {
-      nItemCount=(int)SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) - 1;
+      nItemCount=nDocumentsCount - 1;
 
       if (bPrev)
       {
