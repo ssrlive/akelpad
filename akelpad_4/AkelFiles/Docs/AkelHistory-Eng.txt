@@ -1,6 +1,8 @@
 
-AkelPad 4.5.7 ()
+AkelPad 4.6.0 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
+
 Added: possibility to show places bar in open/save dialog.
 
 Fixed: edit window updating after text deletion.

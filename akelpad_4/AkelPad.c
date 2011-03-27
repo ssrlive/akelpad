@@ -3650,11 +3650,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDM_WINDOW_FRAMENEXT)
       {
-        NextMdiFrameWindow(lpFrameCurrent, FALSE);
+        return (LRESULT)NextMdiFrameWindow(lpFrameCurrent, FALSE);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMEPREV)
       {
-        NextMdiFrameWindow(lpFrameCurrent, TRUE);
+        return (LRESULT)NextMdiFrameWindow(lpFrameCurrent, TRUE);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSE)
       {
@@ -4439,7 +4439,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Restore activated MDI window settings
         RestoreFrameData(lpFrameCurrent, 0);
 
-        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, (WPARAM)lpFrameCurrent, (LPARAM)lpFrameCurrent->hWndEditParent);
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent);
       }
     }
   }
@@ -4802,7 +4802,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           --nDocumentsCount;
           UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)lpFrame->hWndEditParent);
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY, 0, (LPARAM)lpFrame);
 
           //Avoid program exit blinking on last frame close
           if (bMainOnFinish)
