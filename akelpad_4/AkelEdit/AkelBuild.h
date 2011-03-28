@@ -53,17 +53,6 @@
 #define AEHF_ISFIRSTCHAR    0x00000001
 #define AEHF_FINDFIRSTCHAR  0x00000002
 
-//Highlight paint type
-#define AEHPT_SELECTION     0x00000001
-#define AEHPT_DELIM1        0x00000002
-#define AEHPT_WORD          0x00000004
-#define AEHPT_DELIM2        0x00000008
-#define AEHPT_QUOTE         0x00000010
-#define AEHPT_MARKTEXT      0x00000020
-#define AEHPT_MARKRANGE     0x00000040
-#define AEHPT_LINK          0x00000080
-#define AEHPT_FOLD          0x00000100
-
 //AE_HighlightIsDelimiter flags
 #define AEHID_BACK          0x00000001  //Check backward.
 #define AEHID_LINEEDGE      0x00000002  //Check AEHLF_ATLINESTART and AEHLF_ATLINEEND flags.
@@ -283,54 +272,6 @@ typedef struct _AETHEMEITEMW {
 } AETHEMEITEMW;
 
 typedef struct {
-  AEMARKTEXTITEMW *lpMarkText;
-  AECHARRANGE crMarkText;
-} AEMARKTEXTMATCH;
-
-typedef struct {
-  AEMARKRANGEITEM *lpMarkRange;
-  CHARRANGE64 crMarkRange;
-} AEMARKRANGEMATCH;
-
-typedef struct {
-  AEQUOTEITEMW *lpQuote;
-  AECHARRANGE crQuoteStart;
-  AECHARRANGE crQuoteEnd;
-} AEQUOTEMATCH;
-
-typedef struct {
-  AEDELIMITEMW *lpDelim1;
-  AECHARRANGE crDelim1;
-  AEWORDITEMW *lpWord;
-  AECHARRANGE crWord;
-  AEDELIMITEMW *lpDelim2;
-  AECHARRANGE crDelim2;
-} AEWORDMATCH;
-
-typedef struct {
-  CHARRANGE64 crFold;
-  AEFOLD *lpFold;
-} AEFOLDMATCH;
-
-typedef struct {
-  DWORD dwDefaultText;
-  DWORD dwDefaultBG;
-  HBRUSH hbrDefaultBG;
-  DWORD dwActiveText;
-  DWORD dwActiveBG;
-  HBRUSH hbrActiveBG;
-  DWORD dwPaintType;
-  DWORD dwFontStyle;
-  AEWORDMATCH wm;
-  AEQUOTEMATCH qm;
-  AEMARKRANGEMATCH mrm;
-  AEMARKTEXTMATCH mtm;
-  AEFOLDMATCH fm;
-  AECHARRANGE crLink;
-  DWORD dwFindFirst;
-} AEHLPAINT;
-
-typedef struct {
   HDC hDC;
   AECHARINDEX ciDrawLine;
   INT_PTR nDrawCharOffset;
@@ -340,7 +281,7 @@ typedef struct {
   INT_PTR nStartDrawWidth;
   int nMaxDrawCharsCount;
   DWORD dwPrintFlags;
-  HFONT hFontPrev;
+  AEGETHIGHLIGHT *gh;
 } AETEXTOUT;
 
 
@@ -848,6 +789,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine);
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
+void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 void AE_ActiveColumnCreate(AKELEDIT *ae);
