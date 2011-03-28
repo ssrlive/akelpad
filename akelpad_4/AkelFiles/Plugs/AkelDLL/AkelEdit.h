@@ -369,18 +369,34 @@
 #define AEHLF_QUOTEEXCLUDE           0x8000  //Quote exclude string is valid.
 
 //Highlight font style
-#define AEHLS_NONE                  0  //Current style.
-#define AEHLS_FONTNORMAL            1  //Normal style.
-#define AEHLS_FONTBOLD              2  //Bold style.
-#define AEHLS_FONTITALIC            3  //Italic style.
-#define AEHLS_FONTBOLDITALIC        4  //Bold italic style.
+#define AEHLS_NONE                   0  //Current style.
+#define AEHLS_FONTNORMAL             1  //Normal style.
+#define AEHLS_FONTBOLD               2  //Bold style.
+#define AEHLS_FONTITALIC             3  //Italic style.
+#define AEHLS_FONTBOLDITALIC         4  //Bold italic style.
 
 //Highlight elements
-#define AEHLE_DELIMITER             1  //Delimiter. New line, start of file and end of file are delimiters by default.
-#define AEHLE_WORD                  2  //Word - string surrounded with delimiters.
-#define AEHLE_QUOTE                 3  //Quote - text started with quote start string and ended with quote end string.
-#define AEHLE_MARKTEXT              4  //Mark text - mark specified text.
-#define AEHLE_MARKRANGE             5  //Mark range - mark specified range of characters.
+#define AEHLE_DELIMITER              1  //Delimiter. New line, start of file and end of file are delimiters by default.
+#define AEHLE_WORD                   2  //Word - string surrounded with delimiters.
+#define AEHLE_QUOTE                  3  //Quote - text started with quote start string and ended with quote end string.
+#define AEHLE_MARKTEXT               4  //Mark text - mark specified text.
+#define AEHLE_MARKRANGE              5  //Mark range - mark specified range of characters.
+
+//Highlight AEM_HLGETHIGHLIGHT flags
+#define AEGHF_NOSELECTION            0x00000001 //Reserved.
+#define AEGHF_NOACTIVELINETEXT       0x00000002 //Ignore active line text color.
+#define AEGHF_NOACTIVELINEBK         0x00000004 //Ignore active line background color.
+
+//Highlight paint type
+#define AEHPT_SELECTION              0x00000001
+#define AEHPT_DELIM1                 0x00000002
+#define AEHPT_WORD                   0x00000004
+#define AEHPT_DELIM2                 0x00000008
+#define AEHPT_QUOTE                  0x00000010
+#define AEHPT_MARKTEXT               0x00000020
+#define AEHPT_MARKRANGE              0x00000040
+#define AEHPT_LINK                   0x00000080
+#define AEHPT_FOLD                   0x00000100
 
 //AEM_FINDFOLD flags
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -579,21 +595,6 @@ typedef LRESULT (CALLBACK *AEEditProc)(AEHDOC hDoc, UINT uMsg, WPARAM wParam, LP
 //
 //Return Value
 // Depends on message.
-
-typedef DWORD (CALLBACK *AEStreamCallback)(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone);
-//dwCookie        Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
-//wszBuf          Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
-//dwBufBytesSize  Number of bytes to read or write.
-//dwBufBytesDone  Pointer to a variable that the callback function sets to the number of bytes actually read or written.
-//
-//Return Value
-// The callback function returns zero to indicate success.
-//
-//Remarks
-// The control continues to call the callback function until one of the following conditions occurs:
-// * The callback function returns a nonzero value.
-// * The callback function returns zero in the *dwBufBytesDone parameter.
-
 
 
 //// Structures for x64 RichEdit support
@@ -818,6 +819,20 @@ typedef struct {
   BOOL bFillSpaces;           //[in]  If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEW;
 
+typedef DWORD (CALLBACK *AEStreamCallback)(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone);
+//dwCookie        Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
+//wszBuf          Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
+//dwBufBytesSize  Number of bytes to read or write.
+//dwBufBytesDone  Pointer to a variable that the callback function sets to the number of bytes actually read or written.
+//
+//Return Value
+// The callback function returns zero to indicate success.
+//
+//Remarks
+// The control continues to call the callback function until one of the following conditions occurs:
+// * The callback function returns a nonzero value.
+// * The callback function returns zero in the *dwBufBytesDone parameter.
+
 typedef struct {
   UINT_PTR dwCookie;            //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //[out] Indicates the results of the stream-in (read) operation.
@@ -829,7 +844,7 @@ typedef struct {
 
 typedef struct {
   UINT_PTR dwCookie;            //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
-  DWORD dwError;                //[out] Indicates the results of the stream-out (write) operation.
+  DWORD dwError;                //[out] Indicates the result of the stream-out (write) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
   BOOL bColumnSel;              //[in]  Column selection. If this value is -1, use current selection type.
@@ -1033,6 +1048,73 @@ typedef struct _AEMARKRANGEITEM {
   COLORREF crText;         //Mark text color. If -1, then don't set.
   COLORREF crBk;           //Mark background color. If -1, then don't set.
 } AEMARKRANGEITEM;
+
+typedef struct {
+  AEMARKTEXTITEMW *lpMarkText;
+  AECHARRANGE crMarkText;
+} AEMARKTEXTMATCH;
+
+typedef struct {
+  AEMARKRANGEITEM *lpMarkRange;
+  CHARRANGE64 crMarkRange;
+} AEMARKRANGEMATCH;
+
+typedef struct {
+  AEQUOTEITEMW *lpQuote;
+  AECHARRANGE crQuoteStart;
+  AECHARRANGE crQuoteEnd;
+} AEQUOTEMATCH;
+
+typedef struct {
+  AEDELIMITEMW *lpDelim1;
+  AECHARRANGE crDelim1;
+  AEWORDITEMW *lpWord;
+  AECHARRANGE crWord;
+  AEDELIMITEMW *lpDelim2;
+  AECHARRANGE crDelim2;
+} AEWORDMATCH;
+
+typedef struct {
+  CHARRANGE64 crFold;
+  AEFOLD *lpFold;
+} AEFOLDMATCH;
+
+typedef struct {
+  DWORD dwDefaultText;   //Text color without highligthing.
+  DWORD dwDefaultBG;     //Background color without highligthing.
+  HBRUSH hbrDefaultBG;   //Don't use it. For internal code only.
+  DWORD dwActiveText;    //Text color with highligthing.
+  DWORD dwActiveBG;      //Background color with highligthing.
+  HBRUSH hbrActiveBG;    //Don't use it. For internal code only.
+  DWORD dwFontStyle;     //See AEHLS_* defines.
+  DWORD dwPaintType;     //See AEHPT_* defines.
+  DWORD dwFindFirst;     //Don't use it. For internal code only.
+
+  AEWORDMATCH wm;        //Word or/and delimiters items are found, if AEWORDITEMW.lpDelim1 or AEWORDITEMW.lpWord or AEWORDITEMW.lpDelim2 aren't NULL.
+  AEQUOTEMATCH qm;       //Quote item is found, if AEQUOTEMATCH.lpQuote isn't NULL.
+  AEMARKRANGEMATCH mrm;  //Mark range item is found, if AEMARKRANGEMATCH.lpMarkRange isn't NULL.
+  AEMARKTEXTMATCH mtm;   //Mark text item is found, if AEMARKTEXTMATCH.lpMarkText isn't NULL.
+  AEFOLDMATCH fm;        //Fold item is found, if AEFOLDMATCH.lpFold isn't NULL.
+  AECHARRANGE crLink;    //URL item is found, if AECHARRANGE.ciMin.lpLine and AECHARRANGE.ciMax.lpLine aren't NULL.
+} AEHLPAINT;
+
+typedef DWORD (CALLBACK *AEGetHighLighCallback)(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp);
+//dwCookie        Value of the dwCookie member of the AEGETHIGHLIGHT structure. The application specifies this value when it sends the AEM_HLGETHIGHLIGHT message.
+//crAkelRange     Range of highligthed characters.
+//crRichRange     Range of highligthed characters (RichEdit offset).
+//hlp             Highlighted information.
+//
+//Return Value
+// To continue processing, the callback function must return zero; to stop processing, it must return nonzero.
+
+typedef struct {
+  UINT_PTR dwCookie;                //[in]  Specifies an application-defined value that the edit control passes to the AEGetHighLighCallback function specified by the lpCallback member.
+  DWORD dwError;                    //[out] Indicates the result of the callback function.
+  AEGetHighLighCallback lpCallback; //[in]  Pointer to an AEGetHighLighCallback function, which is an application-defined function that the control calls to pass highligthing information.
+  AECHARRANGE crText;               //[in]  Range of characters to process.
+  DWORD dwFlags;                    //[in]  See AEGHF_* defines.
+} AEGETHIGHLIGHT;
+
 
 typedef struct {
   //Standard NMHDR
@@ -1421,6 +1503,7 @@ typedef struct {
 #define AEM_HLDELETEMARKTEXT      (WM_USER + 2553)
 #define AEM_HLADDMARKRANGE        (WM_USER + 2561)
 #define AEM_HLDELETEMARKRANGE     (WM_USER + 2562)
+#define AEM_HLGETHIGHLIGHT        (WM_USER + 2571)
 
 
 //// RichEdit messages
@@ -2092,7 +2175,7 @@ Example:
  sid.dwDataLen=lstrlenW(sid.wpData);
  sid.dwCount=0;
 
- aesi.dwCookie=(DWORD)&sid;
+ aesi.dwCookie=(UINT_PTR)&sid;
  aesi.lpCallback=InputStreamCallback;
  aesi.nNewLine=AELB_ASINPUT;
  aesi.dwTextLen=sid.dwDataLen;
@@ -2142,7 +2225,7 @@ Example:
 
  if (sod.hFile != INVALID_HANDLE_VALUE)
  {
-   aeso.dwCookie=(DWORD)&sod;
+   aeso.dwCookie=(UINT_PTR)&sod;
    aeso.lpCallback=OutputStreamCallback;
    aeso.nNewLine=AELB_ASOUTPUT;
    aeso.bColumnSel=FALSE;
@@ -5528,6 +5611,38 @@ Return Value
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)hTheme, (LPARAM)hMark);
 
+
+AEM_HLGETHIGHLIGHT
+__________________
+
+Retrieve the highligthing information provided by an application defined callback function.
+
+wParam                   == not used.
+(AEGETHIGHLIGHT *)lParam == pointer to a AEGETHIGHLIGHT structure.
+
+Return Value
+ Zero.
+
+Example:
+ AEGETHIGHLIGHT aegh;
+ wchar_t wszRange[MAX_PATH];
+ wchar_t wszMessage[MAX_PATH];
+
+ aegh.dwCookie=0;
+ aegh.lpCallback=GetHighLighCallback;
+ SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aegh.crText.ciMin, (LPARAM)&aegh.crText.ciMax);
+ aegh.dwFlags=0;
+ SendMessage(hWndEdit, AEM_HLGETHIGHLIGHT, 0, (LPARAM)&aegh);
+
+ DWORD CALLBACK GetHighLighCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
+ {
+   lstrcpynW(wszRange, crAkelRange->ciMin.lpLine->wpLine + crAkelRange->ciMin.nCharInLine, crRichRange->cpMax - crRichRange->cpMin + 1);
+   wsprintfW(wszMessage, L"[%s]\nFontStyle=%d\nActiveText=0x%06x\nActiveBG=0x%06x", wszRange, hlp->dwFontStyle, hlp->dwActiveText, hlp->dwActiveBG);
+   MessageBoxW(NULL, wszMessage, NULL, 0);
+
+   return 0;
+ }
+
 */
 
 
@@ -5641,41 +5756,45 @@ Example:
 
   int AEC_IndexInc(AECHARINDEX *ciChar)
   {
-    if (ciChar->nCharInLine >= 0)
+    if (ciChar->nCharInLine >= 0 &&
+        ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
     {
-      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]) &&
+          AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
       {
-        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-            ++ciChar->nCharInLine;
+        ciChar->nCharInLine+=2;
+        return 2;
       }
     }
-    return ++ciChar->nCharInLine;
+    ++ciChar->nCharInLine;
+    return 1;
   }
 
   int AEC_IndexDec(AECHARINDEX *ciChar)
   {
-    if (ciChar->nCharInLine - 2 >= 0)
+    if (ciChar->nCharInLine - 2 >= 0 &&
+        ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
     {
-      if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
+      if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]) &&
+          AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
       {
-        if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
-          if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
-            --ciChar->nCharInLine;
+        ciChar->nCharInLine-=2;
+        return 2;
       }
     }
-    return --ciChar->nCharInLine;
+    --ciChar->nCharInLine;
+    return 1;
   }
 
   int AEC_IndexLen(AECHARINDEX *ciChar)
   {
-    if (ciChar->nCharInLine >= 0)
+    if (ciChar->nCharInLine >= 0 &&
+        ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
     {
-      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]) &&
+          AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
       {
-        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-            return 2;
+        return 2;
       }
     }
     return 1;
