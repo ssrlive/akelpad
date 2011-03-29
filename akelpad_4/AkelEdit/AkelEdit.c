@@ -12741,7 +12741,7 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   to.ciDrawLine=gh->crText.ciMin;
   to.nDrawCharOffset=AE_AkelIndexToRichOffset(ae, &gh->crText.ciMin);
   to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
-  to.dwPrintFlags=AEPRN_TEST;
+  to.dwPrintFlags=AEPRN_TEST|((gh->dwFlags & AEGHF_NOSELECTION)?0:AEPRN_COLOREDSELECTION);
   to.gh=gh;
 
   //Set AEHLPAINT
