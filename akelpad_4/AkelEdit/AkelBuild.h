@@ -384,6 +384,7 @@ typedef struct {
   HFONT hFontUrl;
   LOGFONTA lfFontA;
   LOGFONTW lfFontW;
+  int nPointSize;
   int nCharHeight;
   int nLineGap;
   int nAveCharWidth;
