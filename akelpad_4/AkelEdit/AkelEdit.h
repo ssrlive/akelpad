@@ -349,6 +349,7 @@
 #define AEPRN_ANSI                      0x080  //Ansi text output. Can solve draw problems on Win95/98/Me.
 #define AEPRN_COLOREDTEXT               0x100  //Print colored text.
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
+#define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
@@ -1082,10 +1083,8 @@ typedef struct {
 typedef struct {
   DWORD dwDefaultText;   //Text color without highligthing.
   DWORD dwDefaultBG;     //Background color without highligthing.
-  HBRUSH hbrDefaultBG;   //Don't use it. For internal code only.
   DWORD dwActiveText;    //Text color with highligthing.
   DWORD dwActiveBG;      //Background color with highligthing.
-  HBRUSH hbrActiveBG;    //Don't use it. For internal code only.
   DWORD dwFontStyle;     //See AEHLS_* defines.
   DWORD dwPaintType;     //See AEHPT_* defines.
   DWORD dwFindFirst;     //Don't use it. For internal code only.
