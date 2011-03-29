@@ -458,6 +458,7 @@
 #define AECS_HEIGHT          0  //Current font character height. lParam not used.
 #define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
 #define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
+#define AECS_POINTSIZE       3  //Current font point size.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
@@ -1082,9 +1083,9 @@ typedef struct {
 
 typedef struct {
   DWORD dwDefaultText;   //Text color without highligthing.
-  DWORD dwDefaultBG;     //Background color without highligthing.
+  DWORD dwDefaultBk;     //Background color without highligthing.
   DWORD dwActiveText;    //Text color with highligthing.
-  DWORD dwActiveBG;      //Background color with highligthing.
+  DWORD dwActiveBk;      //Background color with highligthing.
   DWORD dwFontStyle;     //See AEHLS_* defines.
   DWORD dwPaintType;     //See AEHPT_* defines.
   DWORD dwFindFirst;     //Don't use it. For internal code only.
@@ -5623,8 +5624,6 @@ Return Value
 
 Example:
  AEGETHIGHLIGHT aegh;
- wchar_t wszRange[MAX_PATH];
- wchar_t wszMessage[MAX_PATH];
 
  aegh.dwCookie=0;
  aegh.lpCallback=GetHighLightCallback;
@@ -5634,8 +5633,11 @@ Example:
 
  DWORD CALLBACK GetHighLightCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
  {
+   wchar_t wszRange[MAX_PATH];
+   wchar_t wszMessage[MAX_PATH];
+
    lstrcpynW(wszRange, crAkelRange->ciMin.lpLine->wpLine + crAkelRange->ciMin.nCharInLine, crRichRange->cpMax - crRichRange->cpMin + 1);
-   wsprintfW(wszMessage, L"[%s]\nFontStyle=%d\nActiveText=0x%06x\nActiveBG=0x%06x", wszRange, hlp->dwFontStyle, hlp->dwActiveText, hlp->dwActiveBG);
+   wsprintfW(wszMessage, L"[%s]\nFontStyle=%d\nActiveText=0x%06x\nActiveBk=0x%06x", wszRange, hlp->dwFontStyle, hlp->dwActiveText, hlp->dwActiveBk);
    MessageBoxW(NULL, wszMessage, NULL, 0);
 
    return 0;
