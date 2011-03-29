@@ -188,8 +188,9 @@
 #define IDC_PSD_HEADLINE_FOOTER_HELP   10013
 
 //Color printing
-#define PRNC_TEXT                  0x01  //Print colored text
-#define PRNC_BACKGROUND            0x02  //Print on colored background
+#define PRNC_TEXT                  0x01  //Print colored text.
+#define PRNC_BACKGROUND            0x02  //Print on colored background.
+#define PRNC_SELECTION             0x04  //Print text selection.
 
 //Language identifiers
 #define LANGID_RUSSIAN    0x0419

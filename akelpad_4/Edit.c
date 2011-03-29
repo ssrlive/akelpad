@@ -5708,7 +5708,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
                (dwFlags & PRND_TEST?AEPRN_TEST:0)|
                (dwFlags & PRND_ANSI?AEPRN_ANSI:0)|
                (moCur.dwPrintColor & PRNC_TEXT?AEPRN_COLOREDTEXT:0)|
-               (moCur.dwPrintColor & PRNC_BACKGROUND?AEPRN_COLOREDBACKGROUND:0);
+               (moCur.dwPrintColor & PRNC_BACKGROUND?AEPRN_COLOREDBACKGROUND:0)|
+               (moCur.dwPrintColor & PRNC_SELECTION?AEPRN_COLOREDSELECTION:0);
   if (!(dwFlags & PRND_RANGE))
   {
     if (dwFlags & PRND_SELECTION)
