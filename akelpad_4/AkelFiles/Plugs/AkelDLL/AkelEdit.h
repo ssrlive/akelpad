@@ -349,6 +349,7 @@
 #define AEPRN_ANSI                      0x080  //Ansi text output. Can solve draw problems on Win95/98/Me.
 #define AEPRN_COLOREDTEXT               0x100  //Print colored text.
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
+#define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
@@ -383,7 +384,7 @@
 #define AEHLE_MARKRANGE              5  //Mark range - mark specified range of characters.
 
 //Highlight AEM_HLGETHIGHLIGHT flags
-#define AEGHF_NOSELECTION            0x00000001 //Reserved.
+#define AEGHF_NOSELECTION            0x00000001 //Ignore text selection coloring.
 #define AEGHF_NOACTIVELINETEXT       0x00000002 //Ignore active line text color.
 #define AEGHF_NOACTIVELINEBK         0x00000004 //Ignore active line background color.
 
@@ -1082,10 +1083,8 @@ typedef struct {
 typedef struct {
   DWORD dwDefaultText;   //Text color without highligthing.
   DWORD dwDefaultBG;     //Background color without highligthing.
-  HBRUSH hbrDefaultBG;   //Don't use it. For internal code only.
   DWORD dwActiveText;    //Text color with highligthing.
   DWORD dwActiveBG;      //Background color with highligthing.
-  HBRUSH hbrActiveBG;    //Don't use it. For internal code only.
   DWORD dwFontStyle;     //See AEHLS_* defines.
   DWORD dwPaintType;     //See AEHPT_* defines.
   DWORD dwFindFirst;     //Don't use it. For internal code only.
@@ -1098,7 +1097,7 @@ typedef struct {
   AECHARRANGE crLink;    //URL item is found, if AECHARRANGE.ciMin.lpLine and AECHARRANGE.ciMax.lpLine aren't NULL.
 } AEHLPAINT;
 
-typedef DWORD (CALLBACK *AEGetHighLighCallback)(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp);
+typedef DWORD (CALLBACK *AEGetHighLightCallback)(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp);
 //dwCookie        Value of the dwCookie member of the AEGETHIGHLIGHT structure. The application specifies this value when it sends the AEM_HLGETHIGHLIGHT message.
 //crAkelRange     Range of highligthed characters.
 //crRichRange     Range of highligthed characters (RichEdit offset).
@@ -1108,13 +1107,12 @@ typedef DWORD (CALLBACK *AEGetHighLighCallback)(UINT_PTR dwCookie, AECHARRANGE *
 // To continue processing, the callback function must return zero; to stop processing, it must return nonzero.
 
 typedef struct {
-  UINT_PTR dwCookie;                //[in]  Specifies an application-defined value that the edit control passes to the AEGetHighLighCallback function specified by the lpCallback member.
-  DWORD dwError;                    //[out] Indicates the result of the callback function.
-  AEGetHighLighCallback lpCallback; //[in]  Pointer to an AEGetHighLighCallback function, which is an application-defined function that the control calls to pass highligthing information.
-  AECHARRANGE crText;               //[in]  Range of characters to process.
-  DWORD dwFlags;                    //[in]  See AEGHF_* defines.
+  UINT_PTR dwCookie;                 //[in]  Specifies an application-defined value that the edit control passes to the AEGetHighLightCallback function specified by the lpCallback member.
+  DWORD dwError;                     //[out] Indicates the result of the callback function.
+  AEGetHighLightCallback lpCallback; //[in]  Pointer to an AEGetHighLightCallback function, which is an application-defined function that the control calls to pass highligthing information.
+  AECHARRANGE crText;                //[in]  Range of characters to process.
+  DWORD dwFlags;                     //[in]  See AEGHF_* defines.
 } AEGETHIGHLIGHT;
-
 
 typedef struct {
   //Standard NMHDR
@@ -5629,12 +5627,12 @@ Example:
  wchar_t wszMessage[MAX_PATH];
 
  aegh.dwCookie=0;
- aegh.lpCallback=GetHighLighCallback;
+ aegh.lpCallback=GetHighLightCallback;
  SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aegh.crText.ciMin, (LPARAM)&aegh.crText.ciMax);
  aegh.dwFlags=0;
  SendMessage(hWndEdit, AEM_HLGETHIGHLIGHT, 0, (LPARAM)&aegh);
 
- DWORD CALLBACK GetHighLighCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
+ DWORD CALLBACK GetHighLightCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
  {
    lstrcpynW(wszRange, crAkelRange->ciMin.lpLine->wpLine + crAkelRange->ciMin.nCharInLine, crRichRange->cpMax - crRichRange->cpMin + 1);
    wsprintfW(wszMessage, L"[%s]\nFontStyle=%d\nActiveText=0x%06x\nActiveBG=0x%06x", wszRange, hlp->dwFontStyle, hlp->dwActiveText, hlp->dwActiveBG);
