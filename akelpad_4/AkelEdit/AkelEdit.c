@@ -11934,15 +11934,18 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 
   if (to->gh)
   {
-    AECHARRANGE crAkelRange;
-    CHARRANGE64 crRichRange;
+    if (nTextLen || !to->ciDrawLine.lpLine->nLineLen)
+    {
+      AECHARRANGE crAkelRange;
+      CHARRANGE64 crRichRange;
 
-    crAkelRange.ciMax=to->ciDrawLine;
-    crAkelRange.ciMin=to->ciDrawLine;
-    crAkelRange.ciMin.nCharInLine-=nTextLen;
-    crRichRange.cpMax=to->nDrawCharOffset;
-    crRichRange.cpMin=to->nDrawCharOffset - nTextLen;
-    to->gh->dwError=to->gh->lpCallback(to->gh->dwCookie, &crAkelRange, &crRichRange, hlp);
+      crAkelRange.ciMax=to->ciDrawLine;
+      crAkelRange.ciMin=to->ciDrawLine;
+      crAkelRange.ciMin.nCharInLine-=nTextLen;
+      crRichRange.cpMax=to->nDrawCharOffset;
+      crRichRange.cpMin=to->nDrawCharOffset - nTextLen;
+      to->gh->dwError=to->gh->lpCallback(to->gh->dwCookie, &crAkelRange, &crRichRange, hlp);
+    }
   }
   if (nTextLen)
   {
@@ -12766,8 +12769,7 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       //Increment char count
       to.nDrawCharOffset+=AEC_IndexInc(&to.ciDrawLine);
     }
-    if (!to.ciDrawLine.lpLine->nLineLen || to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
-      AE_PaintTextOut(ae, &to, &hlp);
+    AE_PaintTextOut(ae, &to, &hlp);
     if (to.gh->dwError) return;
 
     //Next line
@@ -12778,8 +12780,7 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   }
 
   End:
-  if (to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
-    AE_PaintTextOut(ae, &to, &hlp);
+  AE_PaintTextOut(ae, &to, &hlp);
   //if (to.gh->dwError) return;
 }
 
