@@ -11932,6 +11932,18 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   int i;
   DWORD dwTextOutFlags=0;
 
+  if (to->gh)
+  {
+    AECHARRANGE crAkelRange;
+    CHARRANGE64 crRichRange;
+
+    crAkelRange.ciMax=to->ciDrawLine;
+    crAkelRange.ciMin=to->ciDrawLine;
+    crAkelRange.ciMin.nCharInLine-=nTextLen;
+    crRichRange.cpMax=to->nDrawCharOffset;
+    crRichRange.cpMin=to->nDrawCharOffset - nTextLen;
+    to->gh->dwError=to->gh->lpCallback(to->gh->dwCookie, &crAkelRange, &crRichRange, hlp);
+  }
   if (nTextLen)
   {
     if (!(to->dwPrintFlags & AEPRN_TEST))
@@ -12045,18 +12057,6 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
         if (GetBkMode(to->hDC) == TRANSPARENT)
           SetBkMode(to->hDC, OPAQUE);
       }
-    }
-    else if (to->gh)
-    {
-      AECHARRANGE crAkelRange;
-      CHARRANGE64 crRichRange;
-
-      crAkelRange.ciMax=to->ciDrawLine;
-      crAkelRange.ciMin=to->ciDrawLine;
-      crAkelRange.ciMin.nCharInLine-=nTextLen;
-      crRichRange.cpMax=to->nDrawCharOffset;
-      crRichRange.cpMin=to->nDrawCharOffset - nTextLen;
-      to->gh->dwError=to->gh->lpCallback(to->gh->dwCookie, &crAkelRange, &crRichRange, hlp);
     }
     to->wpStartDraw+=nTextLen;
     to->nStartDrawWidth+=nTextWidth;
@@ -12726,8 +12726,6 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
-  hlp.dwPaintType=0;
-  hlp.dwFontStyle=AEHLS_NONE;
 
   while (to.ciDrawLine.lpLine)
   {
@@ -12745,6 +12743,10 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       if (!(gh->dwFlags & AEGHF_NOACTIVELINEBK))
         hlp.dwDefaultBk=ae->popt->crActiveLineBk;
     }
+    hlp.dwActiveText=hlp.dwDefaultText;
+    hlp.dwActiveBk=hlp.dwDefaultBk;
+    hlp.dwPaintType=0;
+    hlp.dwFontStyle=AEHLS_NONE;
 
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
@@ -12764,7 +12766,8 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       //Increment char count
       to.nDrawCharOffset+=AEC_IndexInc(&to.ciDrawLine);
     }
-    AE_PaintTextOut(ae, &to, &hlp);
+    if (AEC_IsFirstCharInLine(&to.ciDrawLine) || to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
+      AE_PaintTextOut(ae, &to, &hlp);
     if (to.gh->dwError) return;
 
     //Next line
@@ -12775,7 +12778,8 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   }
 
   End:
-  AE_PaintTextOut(ae, &to, &hlp);
+  if (to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
+    AE_PaintTextOut(ae, &to, &hlp);
   //if (to.gh->dwError) return;
 }
 
