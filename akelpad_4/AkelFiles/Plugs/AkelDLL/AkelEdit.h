@@ -5627,7 +5627,8 @@ Example:
 
  aegh.dwCookie=0;
  aegh.lpCallback=GetHighLightCallback;
- SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aegh.crText.ciMin, (LPARAM)&aegh.crText.ciMax);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&aegh.crText.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTSELCHAR, (LPARAM)&aegh.crText.ciMax);
  aegh.dwFlags=0;
  SendMessage(hWndEdit, AEM_HLGETHIGHLIGHT, 0, (LPARAM)&aegh);
 
