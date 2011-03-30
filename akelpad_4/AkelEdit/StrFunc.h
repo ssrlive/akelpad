@@ -2774,6 +2774,7 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
  *                                           For strings, copy the specified maximum number of characters to the output buffer.
  *                                           Supported special format to specify argument as precision: "%.%us" or "%.%ds"
  *                             [type]
+ *                               "c"         ansi character.
  *                               "d"         signed integer (32-bit).
  *                               "Id"        signed integer (32-bit on x86, 64-bit on x64).
  *                               "u"         unsigned integer (32-bit).
@@ -3033,6 +3034,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *                                               For strings, copy the specified maximum number of characters to the output buffer.
  *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
  *                                 [type]
+ *                                   "c"         unicode character.
  *                                   "d"         signed integer (32-bit).
  *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
  *                                   "u"         unsigned integer (32-bit).
