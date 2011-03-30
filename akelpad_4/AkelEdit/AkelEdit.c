@@ -12766,7 +12766,7 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       //Increment char count
       to.nDrawCharOffset+=AEC_IndexInc(&to.ciDrawLine);
     }
-    if (AEC_IsFirstCharInLine(&to.ciDrawLine) || to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
+    if (!to.ciDrawLine.lpLine->nLineLen || to.wpStartDraw != (to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine))
       AE_PaintTextOut(ae, &to, &hlp);
     if (to.gh->dwError) return;
 
