@@ -1008,7 +1008,6 @@ ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFile
 void StackIconsFree(STACKASSOCICON *hStack);
 
 HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont);
-int GetFontPoint(HWND hWnd, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);

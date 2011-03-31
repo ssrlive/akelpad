@@ -15245,7 +15245,7 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
       if ((moCur.dwStatusUserFlags & CSB_BYTEOFFSET) && (dwFlags & CSB_BYTEOFFSET))
         lpFrame->nCaretByteOffset=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciCurCaret, AELB_ASIS, FALSE);
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
-        lpFrame->nFontPoint=GetFontPoint(lpFrame->ei.hWndEdit, &lpFrame->lf);
+        lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
 
       if (TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE))
         StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
@@ -15729,19 +15729,6 @@ HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont)
     fi=StackFontItemInsert(&hFontsStack, lfFont);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
   return fi->hFont;
-}
-
-int GetFontPoint(HWND hWnd, const LOGFONTW *lfFont)
-{
-  HDC hDC;
-  int nPointSize=0;
-
-  if (hDC=GetDC(hWnd))
-  {
-    nPointSize=-MulDiv(lfFont->lfHeight, 72, GetDeviceCaps(hDC, LOGPIXELSY));
-    ReleaseDC(hWnd, hDC);
-  }
-  return nPointSize;
 }
 
 FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont)

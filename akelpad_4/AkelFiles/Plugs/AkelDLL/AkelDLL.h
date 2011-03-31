@@ -2661,10 +2661,10 @@ ___________  ____________  ____________
 Get font.
 
 (HWND)wParam      == edit window, NULL for current edit window.
-(LOGFONT *)lParam == pointer to a LOGFONT structure.
+(LOGFONT *)lParam == pointer to a LOGFONT structure. Can be NULL.
 
 Return Value
- Pointer to a LOGFONT structure.
+ HFONT handle. If wParam is NULL and no frame windows exist, then returned last collected font handle.
 
 Example:
  See AKD_SETFONT example.

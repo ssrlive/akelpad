@@ -1941,17 +1941,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_GETFONTW)
     {
       FRAMEDATA *lpFrame;
+      FONTITEM *fi;
 
-      if (lParam)
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        if (lParam)
         {
           if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
             LogFontWtoA(&lpFrame->lf, (LOGFONTA *)lParam);
           else
             xmemcpy((LOGFONTW *)lParam, &lpFrame->lf, sizeof(LOGFONTW));
-          return (LRESULT)lParam;
         }
+        if (fi=StackFontItemGet(&hFontsStack, &lpFrame->lf))
+          return (LRESULT)fi->hFont;
+      }
+      else if (!wParam)
+      {
+        //If there is no frames, return last font handle
+        return (LRESULT)((FONTITEM *)hFontsStack.last)->hFont;
       }
       return (LRESULT)NULL;
     }
@@ -1964,7 +1971,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
+        if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
           LogFontAtoW((LOGFONTA *)lParam, &lfW);
         else
           xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
