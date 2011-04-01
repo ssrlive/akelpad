@@ -865,7 +865,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl);
 void AE_EditSelectAll(AKELEDIT *ae, DWORD dwSelFlags, DWORD dwSelType);
 BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret);
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret);
-BOOL AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax);
+INT_PTR AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
