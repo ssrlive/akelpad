@@ -619,16 +619,6 @@ typedef struct {
 typedef struct {
   CHARRANGE64 chrg;
   LPCSTR lpstrText;
-} FINDTEXT64A;
-
-typedef struct {
-  CHARRANGE64 chrg;
-  LPCWSTR lpstrText;
-} FINDTEXT64W;
-
-typedef struct {
-  CHARRANGE64 chrg;
-  LPCSTR lpstrText;
   CHARRANGE64 chrgText;
 } FINDTEXTEX64A;
 
@@ -648,15 +638,17 @@ typedef struct {
 
 typedef struct {
   NMHDR nmhdr;
-  CHARRANGE64 chrg;
+  CHARRANGE chrg;
   WORD seltyp;
+  CHARRANGE64 chrg64;
 } SELCHANGE64;
 
 typedef struct {
   NMHDR nmhdr;
   HANDLE hDrop;
-  INT_PTR cp;
+  LONG cp;
   BOOL fProtected;
+  INT_PTR cp64;
 } ENDROPFILES64;
 
 typedef struct {
@@ -664,7 +656,8 @@ typedef struct {
   UINT msg;
   WPARAM wParam;
   LPARAM lParam;
-  CHARRANGE64 chrg;
+  CHARRANGE chrg;
+  CHARRANGE64 chrg64;
 } ENLINK64;
 
 
@@ -1286,15 +1279,24 @@ typedef struct {
 #define AEN_DROPTARGET            (WM_USER + 1078)  //0x836
 #define AEN_LINK                  (WM_USER + 1079)  //0x837
 
-//RichEdit extensions
+//RichEdit Unicode extension
 #define EM_REPLACESELA            (WM_USER + 1901)
 #define EM_REPLACESELW            (WM_USER + 1902)
-#define EM_GETTEXTRANGEA          (WM_USER + 1903)
-#define EM_GETTEXTRANGEW          (WM_USER + 1904)
 #define EM_GETSELTEXTA            (WM_USER + 1905)
 #define EM_GETSELTEXTW            (WM_USER + 1906)
 #define EM_GETLINEA               (WM_USER + 1907)
 #define EM_GETLINEW               (WM_USER + 1908)
+
+//RichEdit x64 extension
+#define EM_GETSEL64               (WM_USER + 1951)
+#define EM_EXGETSEL64             (WM_USER + 1952)
+#define EM_EXSETSEL64             (WM_USER + 1953)
+#define EM_FINDTEXTEX64           (WM_USER + 1954)
+#define EM_FINDTEXTEX64A          (WM_USER + 1955)
+#define EM_FINDTEXTEX64W          (WM_USER + 1956)
+#define EM_GETTEXTRANGE64         (WM_USER + 1961)
+#define EM_GETTEXTRANGE64A        (WM_USER + 1962)
+#define EM_GETTEXTRANGE64W        (WM_USER + 1963)
 
 //Text retrieval and modification
 #define AEM_SETTEXTA              (WM_USER + 2001)
@@ -1586,7 +1588,7 @@ EM_STREAMIN
 EM_STREAMOUT
 EM_UNDO
 
-And additional messages:
+Additional messages for Unicode support:
 EM_REPLACESELA
 EM_REPLACESELW
 EM_GETTEXTRANGEA
@@ -1595,6 +1597,17 @@ EM_GETSELTEXTA
 EM_GETSELTEXTW
 EM_GETLINEA
 EM_GETLINEW
+
+Additional messages for x64 support:
+EM_GETSEL64
+EM_EXGETSEL64
+EM_EXSETSEL64
+EM_GETTEXTRANGE64
+EM_GETTEXTRANGE64A
+EM_GETTEXTRANGE64W
+EM_FINDTEXTEX64
+EM_FINDTEXTEX64A
+EM_FINDTEXTEX64W
 */
 
 

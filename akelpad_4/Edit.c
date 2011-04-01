@@ -4186,7 +4186,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpRecentFiles[0].cpMin;
         cr.cpMax=lpRecentFiles[0].cpMax;
-        SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+        SendMessage(hWnd, EM_EXSETSEL64, 0, (LPARAM)&cr);
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
         if ((dwFlags & OD_REOPEN))
@@ -8249,7 +8249,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       FillComboboxSearch(hWndFind, hWndReplace);
     }
-    SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+    SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
     if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax) || cr.cpMax - cr.cpMin > PUTFIND_MAXSEL || (moCur.dwSearchOptions & AEFR_SELECTION) || SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
     {
@@ -8826,7 +8826,7 @@ INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindIt
   {
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
     ScrollCaret(hWnd);
-    SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+    SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
     return cr.cpMin;
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
@@ -8976,7 +8976,7 @@ INT_PTR TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFin
           crInitialRE.cpMin=-IndexSubtract(hWnd, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
           crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
         }
-        else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
+        else SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
 
         if (dwFlags & AEFR_SELECTION)
         {
@@ -9409,7 +9409,7 @@ INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText)
       txtrngA.chrg.cpMin=nMin;
       txtrngA.chrg.cpMax=nMax;
       txtrngA.lpstrText=*pText;
-      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGEA, 0, (LPARAM)&txtrngA)))
+      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGE64A, 0, (LPARAM)&txtrngA)))
       {
         API_HeapFree(hHeap, 0, (LPVOID)*pText);
         *pText=NULL;
@@ -9439,7 +9439,7 @@ INT_PTR GetRangeTextW(HWND hWnd, INT_PTR nMin, INT_PTR nMax, wchar_t **wpText)
       txtrngW.chrg.cpMin=nMin;
       txtrngW.chrg.cpMax=nMax;
       txtrngW.lpstrText=*wpText;
-      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGEW, 0, (LPARAM)&txtrngW)))
+      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGE64W, 0, (LPARAM)&txtrngW)))
       {
         API_HeapFree(hHeap, 0, (LPVOID)*wpText);
         *wpText=NULL;
@@ -9833,7 +9833,7 @@ BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
 {
   CHARRANGE64 cr;
 
-  SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+  SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
   if (DoEditPaste(hWnd, bAnsi))
   {
     SendMessage(hWnd, EM_SETSEL, cr.cpMin, cr.cpMin);
@@ -10233,7 +10233,7 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
       RecentFilesRead();
 
       //Get selection
-      SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+      SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
       if (lpFrame == lpFrameCurrent)
       {
         if (AEC_IndexCompare(&ciCurCaret, &crCurSel.ciMax) < 0)

@@ -27,7 +27,7 @@ void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
     return;
 
   //Get current text selection
-  SendMessage(pd->hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+  SendMessage(pd->hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
   gtr.cpMin=cr.cpMin;
   gtr.cpMax=cr.cpMax;
 

@@ -2320,47 +2320,61 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
     return 0;
   }
-  if (uMsg == EM_GETTEXTRANGE ||
-      uMsg == EM_GETTEXTRANGEA ||
-      uMsg == EM_GETTEXTRANGEW)
+  if (uMsg == EM_GETTEXTRANGE)
   {
-    if (uMsg == EM_GETTEXTRANGEA || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE))
-    {
-      TEXTRANGE64A *trRE=(TEXTRANGE64A *)lParam;
-      AECHARRANGE cr;
+    TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
+    AECHARRANGE cr;
 
-      if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
-      {
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
-        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-      }
-      else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
-      {
-        if (trRE->lpstrText)
-          trRE->lpstrText[0]='\0';
-        else
-          return 1;
-      }
-    }
-    else
+    if ((UINT)trRE->chrg.cpMin < (UINT)trRE->chrg.cpMax)
     {
-      TEXTRANGE64W *trRE=(TEXTRANGE64W *)lParam;
-      AECHARRANGE cr;
+      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
+      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
 
-      if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
-      {
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
+      if (!ae->bUnicodeWindow)
+        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
+      else
         return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-      }
-      else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
+    }
+    else if ((UINT)trRE->chrg.cpMin == (UINT)trRE->chrg.cpMax)
+    {
+      if (trRE->lpstrText)
       {
-        if (trRE->lpstrText)
-          trRE->lpstrText[0]=L'\0';
+        if (!ae->bUnicodeWindow)
+          *(char *)trRE->lpstrText='\0';
         else
-          return 1;
+          *trRE->lpstrText=L'\0';
       }
+      else return 1;
+    }
+    return 0;
+  }
+  if (uMsg == EM_GETTEXTRANGE64 ||
+      uMsg == EM_GETTEXTRANGE64A ||
+      uMsg == EM_GETTEXTRANGE64W)
+  {
+    TEXTRANGE64W *trRE=(TEXTRANGE64W *)lParam;
+    AECHARRANGE cr;
+
+    if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
+    {
+      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
+      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
+
+      if (uMsg == EM_GETTEXTRANGE64A || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE64))
+        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
+      else
+        return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
+    }
+    else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
+    {
+      if (trRE->lpstrText)
+      {
+        if (uMsg == EM_GETTEXTRANGE64A || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE64))
+          *(char *)trRE->lpstrText='\0';
+        else
+          *trRE->lpstrText=L'\0';
+      }
+      else return 1;
     }
     return 0;
   }
@@ -2539,76 +2553,73 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       uMsg == EM_FINDTEXTEX ||
       uMsg == EM_FINDTEXTEXW)
   {
-    if (uMsg == EM_FINDTEXT ||
-        uMsg == EM_FINDTEXTEX)
+    FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
+    AEFINDTEXTW ft;
+    BOOL bResult;
+
+    ft.dwFlags=0;
+    if (wParam & FR_DOWN)
+      ft.dwFlags|=AEFR_DOWN;
+    if (wParam & FR_MATCHCASE)
+      ft.dwFlags|=AEFR_MATCHCASE;
+    if (wParam & FR_WHOLEWORD)
+      ft.dwFlags|=AEFR_WHOLEWORD;
+    ft.pText=(wchar_t *)ftRE->lpstrText;
+    ft.dwTextLen=(UINT_PTR)-1;
+    ft.nNewLine=AELB_R;
+    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+
+    if (!ae->bUnicodeWindow && (uMsg == EM_FINDTEXT || uMsg == EM_FINDTEXTEX))
+      bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
+    else
+      bResult=AE_FindText(ae, &ft);
+
+    if (bResult)
     {
-      //Ansi
-      if (!ae->bUnicodeWindow)
+      if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
       {
-        FINDTEXTEX64A *ftRE=(FINDTEXTEX64A *)lParam;
-        CHARRANGE64 crFoundRE;
-        AEFINDTEXTA ft;
-
-        ft.dwFlags=0;
-        if (wParam & FR_DOWN)
-          ft.dwFlags|=AEFR_DOWN;
-        if (wParam & FR_MATCHCASE)
-          ft.dwFlags|=AEFR_MATCHCASE;
-        if (wParam & FR_WHOLEWORD)
-          ft.dwFlags|=AEFR_WHOLEWORD;
-        ft.pText=(char *)ftRE->lpstrText;
-        ft.dwTextLen=(UINT_PTR)-1;
-        ft.nNewLine=AELB_R;
-        AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-        AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-
-        if (AE_FindTextAnsi(ae, CP_ACP, &ft))
-        {
-          crFoundRE.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-          crFoundRE.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
-
-          if (uMsg == EM_FINDTEXTEX)
-          {
-            ftRE->chrgText=crFoundRE;
-          }
-          return crFoundRE.cpMin;
-        }
-        return -1;
+        ftRE->chrgText.cpMin=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+        ftRE->chrgText.cpMax=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+        return ftRE->chrgText.cpMin;
       }
+      return AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
     }
+    return -1;
+  }
+  if (uMsg == EM_FINDTEXTEX64 ||
+      uMsg == EM_FINDTEXTEX64A ||
+      uMsg == EM_FINDTEXTEX64W)
+  {
+    FINDTEXTEX64W *ftRE=(FINDTEXTEX64W *)lParam;
+    AEFINDTEXTW ft;
+    BOOL bResult;
 
-    //Unicode
+    ft.dwFlags=0;
+    if (wParam & FR_DOWN)
+      ft.dwFlags|=AEFR_DOWN;
+    if (wParam & FR_MATCHCASE)
+      ft.dwFlags|=AEFR_MATCHCASE;
+    if (wParam & FR_WHOLEWORD)
+      ft.dwFlags|=AEFR_WHOLEWORD;
+    ft.pText=(wchar_t *)ftRE->lpstrText;
+    ft.dwTextLen=(UINT_PTR)-1;
+    ft.nNewLine=AELB_R;
+    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+
+    if (uMsg == EM_FINDTEXTEX64A || (!ae->bUnicodeWindow && uMsg == EM_FINDTEXTEX64))
+      bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
+    else
+      bResult=AE_FindText(ae, &ft);
+
+    if (bResult)
     {
-      FINDTEXTEX64W *ftRE=(FINDTEXTEX64W *)lParam;
-      CHARRANGE64 crFoundRE;
-      AEFINDTEXTW ft;
-
-      ft.dwFlags=0;
-      if (wParam & FR_DOWN)
-        ft.dwFlags|=AEFR_DOWN;
-      if (wParam & FR_MATCHCASE)
-        ft.dwFlags|=AEFR_MATCHCASE;
-      if (wParam & FR_WHOLEWORD)
-        ft.dwFlags|=AEFR_WHOLEWORD;
-      ft.pText=(wchar_t *)ftRE->lpstrText;
-      ft.dwTextLen=(UINT_PTR)-1;
-      ft.nNewLine=AELB_R;
-      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-
-      if (AE_FindText(ae, &ft))
-      {
-        crFoundRE.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-        crFoundRE.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
-
-        if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
-        {
-          ftRE->chrgText=crFoundRE;
-        }
-        return crFoundRE.cpMin;
-      }
-      return -1;
+      ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+      ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+      return ftRE->chrgText.cpMin;
     }
+    return -1;
   }
   if (uMsg == EM_CANPASTE)
   {
@@ -2691,33 +2702,59 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     CHARRANGE64 crRE;
 
     AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-    if (wParam) *(INT_PTR *)wParam=crRE.cpMin;
-    if (lParam) *(INT_PTR *)lParam=crRE.cpMax;
+    if (wParam) *(int *)wParam=(int)crRE.cpMin;
+    if (lParam) *(int *)lParam=(int)crRE.cpMax;
 
-    if ((UINT_PTR)crRE.cpMin > MAXUHALF_PTR)
+    if ((UINT)crRE.cpMin > 0xFFFF0000)
       return -1;
-    if ((UINT_PTR)crRE.cpMax > MAXUHALF_PTR)
+    if ((UINT)crRE.cpMax > 0xFFFF0000)
       return -1;
     return MAKELONG(crRE.cpMin, crRE.cpMax);
   }
-  if (uMsg == EM_EXGETSEL)
+  if (uMsg == EM_GETSEL64)
   {
-    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
+    CHARRANGE64 crRE;
+    INT_PTR nResult;
 
-    AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
-    return 0;
+    nResult=AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+    if (wParam) *(INT_PTR *)wParam=crRE.cpMin;
+    if (lParam) *(INT_PTR *)lParam=crRE.cpMax;
+
+    return nResult;
   }
   if (uMsg == EM_SETSEL)
   {
     AE_RichEditSetSel(ae, wParam, lParam);
     return 0;
   }
+  if (uMsg == EM_EXGETSEL)
+  {
+    CHARRANGE64 crRE;
+
+    AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+    ((CHARRANGE *)lParam)->cpMin=(int)crRE.cpMin;
+    ((CHARRANGE *)lParam)->cpMax=(int)crRE.cpMax;
+    return 0;
+  }
+  if (uMsg == EM_EXGETSEL64)
+  {
+    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
+
+    return AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
+  }
   if (uMsg == EM_EXSETSEL)
+  {
+    CHARRANGE *crRE=(CHARRANGE *)lParam;
+
+    AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
+    return ae->nSelEndCharOffset;
+  }
+  if (uMsg == EM_EXSETSEL64)
   {
     CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
 
     AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
-    return ae->nSelEndCharOffset;
+    return (ae->nSelEndCharOffset - ae->nSelStartCharOffset);
   }
   if (uMsg == EM_SELECTIONTYPE)
   {
@@ -18279,13 +18316,11 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   }
 }
 
-BOOL AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax)
+INT_PTR AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax)
 {
   *nMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
   *nMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
-  if (*nMin == *nMax)
-    return FALSE;
-  return TRUE;
+  return (*nMax - *nMin);
 }
 
 void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax)
@@ -18759,17 +18794,19 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.nmhdr.hwndFrom=ae->hWndEdit;
     sc.nmhdr.idFrom=ae->nEditCtrlID;
     sc.nmhdr.code=EN_SELCHANGE;
-    sc.chrg.cpMin=ae->nSelStartCharOffset;
-    sc.chrg.cpMax=ae->nSelEndCharOffset;
+    sc.chrg64.cpMin=ae->nSelStartCharOffset;
+    sc.chrg64.cpMax=ae->nSelEndCharOffset;
+    sc.chrg.cpMin=(int)ae->nSelStartCharOffset;
+    sc.chrg.cpMax=(int)ae->nSelEndCharOffset;
 
-    if (sc.chrg.cpMin == sc.chrg.cpMax)
+    if (ae->nSelStartCharOffset == ae->nSelEndCharOffset)
     {
       sc.seltyp=SEL_EMPTY;
     }
     else
     {
       sc.seltyp=SEL_TEXT;
-      if (sc.chrg.cpMax - sc.chrg.cpMin > 1)
+      if (ae->nSelEndCharOffset - ae->nSelStartCharOffset > 1)
         sc.seltyp|=SEL_MULTICHAR;
     }
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
@@ -18937,7 +18974,8 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
       df.nmhdr.idFrom=ae->nEditCtrlID;
       df.nmhdr.code=EN_DROPFILES;
       df.hDrop=hDrop;
-      df.cp=AE_AkelIndexToRichOffset(ae, &ciCharIndex);
+      df.cp64=AE_AkelIndexToRichOffset(ae, &ciCharIndex);
+      df.cp=(int)df.cp64;
       df.fProtected=FALSE;
 
       bResult2=(BOOL)AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&df);
@@ -19060,8 +19098,10 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
       enl.msg=uMsg;
       enl.wParam=wParam;
       enl.lParam=lParam;
-      enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crText.ciMin);
-      enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crText.ciMax);
+      enl.chrg64.cpMin=AE_AkelIndexToRichOffset(ae, &crText.ciMin);
+      enl.chrg64.cpMax=AE_AkelIndexToRichOffset(ae, &crText.ciMax);
+      enl.chrg.cpMin=(int)enl.chrg64.cpMin;
+      enl.chrg.cpMax=(int)enl.chrg64.cpMax;
       lResult2=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&enl);
     }
   }
