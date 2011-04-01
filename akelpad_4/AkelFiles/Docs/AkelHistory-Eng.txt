@@ -2,6 +2,7 @@
 AkelPad 4.6.0 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
+Changed: improved compatibility with RichEdit on x64.
 Changed: closing tab with middle mouse click without activation, if possible (MDI/PMDI).
 
 Added: possibility to show places bar in open/save dialog.
