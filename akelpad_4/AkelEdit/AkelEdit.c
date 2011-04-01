@@ -2474,6 +2474,42 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_GETTEXTEX)
   {
+    GETTEXTEX *gt=(GETTEXTEX *)wParam;
+    AECHARRANGE cr;
+    int nNewLine;
+    UINT_PTR dwResult=0;
+
+    if (gt->flags & GT_SELECTION)
+    {
+      cr.ciMin=ae->ciSelStartIndex;
+      cr.ciMax=ae->ciSelEndIndex;
+    }
+    else
+    {
+      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, FALSE);
+      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, FALSE);
+    }
+
+    if (gt->flags & GT_USECRLF)
+      nNewLine=AELB_RN;
+    else
+      nNewLine=AELB_R;
+
+    if (gt->codepage == 1200)
+    {
+      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+    }
+    else if (gt->codepage == 1201)
+    {
+      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
+    }
+    else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
+
+    return dwResult;
+  }
+  if (uMsg == EM_GETTEXTEX64)
+  {
     GETTEXTEX64 *gt=(GETTEXTEX64 *)wParam;
     AECHARRANGE cr;
     int nNewLine;
