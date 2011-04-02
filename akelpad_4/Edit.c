@@ -9977,9 +9977,10 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
     if (dwGotoType & GT_LINE)
     {
       //Line
-      nLineCount=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
       if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-        nLineCount=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
+        nLineCount=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINEUNWRAPCOUNT, 0);
+      else
+        nLineCount=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
 
       if (!nFirst)
       {
@@ -15083,7 +15084,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel.ciMax=crCurSel.ciMax;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
-    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET);
+    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET|CSB_LINECOUNT);
   }
 }
 
@@ -15244,6 +15245,13 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCurCaret);
       if ((moCur.dwStatusUserFlags & CSB_BYTEOFFSET) && (dwFlags & CSB_BYTEOFFSET))
         lpFrame->nCaretByteOffset=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciCurCaret, AELB_ASIS, FALSE);
+      if ((moCur.dwStatusUserFlags & CSB_LINECOUNT) && (dwFlags & CSB_LINECOUNT))
+      {
+        if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrame->ei.bWordWrap)
+          lpFrame->nLineCount=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINEUNWRAPCOUNT, 0);
+        else
+          lpFrame->nLineCount=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
+      }
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
 
@@ -15255,16 +15263,23 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
-  //%ch - hex character code (lowercase)
-  //%cH - hex character code (uppercase)
-  //%cd - decimal character code
-  //%or - richedit offset
-  //%ob - bytes offset
-  //%f - font size
-  //%t - tab size
-  //%m - marker value
-  //%r - replace count
-  //%% - %
+  //%ch - Current character hex code in lowercase.
+  //%cH - Current character hex code in uppercase.
+  //%cd - Current character decimal code.
+  //%cl - Current character letter.
+  //%or - Offset in symbols (RichEdit).
+  //%ob - Offset in bytes.
+  //%lc - Count of lines in document.
+  //%f  - Font size.
+  //%t  - Tabulation size.
+  //%m  - Column marker size.
+  //%r  - Replace count after "Replace all".
+  //%dc - Count of all documents (MDI/PMDI).
+  //%dm - Count of modified documents (MDI/PMDI).
+  //%ds - Count of unmodified documents (MDI/PMDI).
+  //%di - Active document index (MDI/PMDI).
+  //%%  - Symbol %.
+
   DWORD dwFlags=0;
   DWORD i;
 
@@ -15316,6 +15331,16 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
             i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%Id", lpFrame->nCaretByteOffset);
           else
             dwFlags|=CSB_BYTEOFFSET;
+        }
+      }
+      else if (*wpString == 'l')
+      {
+        if (*++wpString == 'c')
+        {
+          if (lpFrame)
+            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nLineCount);
+          else
+            dwFlags|=CSB_LINECOUNT;
         }
       }
       else if (*wpString == 'f')
