@@ -716,6 +716,7 @@ typedef struct _FRAMEDATA {
   INT_PTR nCaretRichOffset;
   INT_PTR nCaretByteOffset;
   int nCaretChar;
+  int nLineCount;
   int nFontPoint;
   INT_PTR nReplaceCount;
 } FRAMEDATA;

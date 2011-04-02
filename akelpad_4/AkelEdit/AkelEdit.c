@@ -660,20 +660,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (wParam == AEGL_LINECOUNT)
         return ae->ptxt->nLineCount + 1;
-      else if (wParam == AEGL_FIRSTSELLINE)
+      if (wParam == AEGL_FIRSTSELLINE)
         return ae->ciSelStartIndex.nLine;
-      else if (wParam == AEGL_LASTSELLINE)
+      if (wParam == AEGL_LASTSELLINE)
         return ae->ciSelEndIndex.nLine;
-      else if (wParam == AEGL_CARETLINE)
+      if (wParam == AEGL_CARETLINE)
         return ae->ciCaretIndex.nLine;
-      else if (wParam == AEGL_FIRSTVISIBLELINE)
+      if (wParam == AEGL_FIRSTVISIBLELINE)
         return AE_GetFirstVisibleLine(ae);
-      else if (wParam == AEGL_LASTVISIBLELINE)
+      if (wParam == AEGL_LASTVISIBLELINE)
         return AE_GetLastVisibleLine(ae);
-      else if (wParam == AEGL_FIRSTFULLVISIBLELINE)
+      if (wParam == AEGL_FIRSTFULLVISIBLELINE)
         return AE_GetFirstFullVisibleLine(ae);
-      else if (wParam == AEGL_LASTFULLVISIBLELINE)
+      if (wParam == AEGL_LASTFULLVISIBLELINE)
         return AE_GetLastFullVisibleLine(ae);
+      if (wParam == AEGL_LINEUNWRAPCOUNT)
+        return ae->ptxt->nLineUnwrapCount + 1;
       return 0;
     }
     if (uMsg == AEM_GETINDEX)
