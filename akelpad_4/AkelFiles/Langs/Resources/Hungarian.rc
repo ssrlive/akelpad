@@ -846,6 +846,8 @@ BEGIN
     CONTROL         "Kijelölés ""kijelölésben"" ha a kijelölés nem üres",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
+    CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,121,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

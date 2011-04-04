@@ -8794,6 +8794,7 @@ INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindIt
 {
   AEFINDTEXTW ft;
   CHARRANGE64 cr;
+  BOOL bCycle=FALSE;
 
   if (dwFlags & AEFR_SELECTION)
   {
@@ -8822,6 +8823,7 @@ INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindIt
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
+  Search:
   if (SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
@@ -8829,8 +8831,25 @@ INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindIt
     SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
     return cr.cpMin;
   }
-  else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
-
+  else
+  {
+    if (!bCycle && (dwFlags & AEFR_CYCLESEARCH) && ((dwFlags & AEFR_DOWN) || (dwFlags & AEFR_UP)))
+    {
+      if (dwFlags & AEFR_DOWN)
+      {
+        SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+        ft.crSearch.ciMax=crCurSel.ciMin;
+      }
+      else if (dwFlags & AEFR_UP)
+      {
+        ft.crSearch.ciMin=crCurSel.ciMax;
+        SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+      }
+      bCycle=TRUE;
+      goto Search;
+    }
+    SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
+  }
   return -1;
 }
 
@@ -13485,33 +13504,37 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndDefaultSaveExt;
   static HWND hWndRememberKeybLayout;
   static HWND hWndSilentCloseEmpty;
+  static HWND hWndDateLog;
+  static HWND hWndSaveInReadOnlyMsg;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndInSelIfSel;
-  static HWND hWndSaveInReadOnlyMsg;
-  static HWND hWndDateLog;
+  static HWND hWndCycleSearch;
 
   if (uMsg == WM_INITDIALOG)
   {
     hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndSilentCloseEmpty=GetDlgItem(hDlg, IDC_OPTIONS_SILENTCLOSEEMPTY);
+    hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
-    hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
+    hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
 
     if (moCur.bKeybLayoutMDI)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSilentCloseEmptyMDI)
       SendMessage(hWndSilentCloseEmpty, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.bDateLog)
+      SendMessage(hWndDateLog, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE)
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
       SendMessage(hWndInSelIfSel, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.bDateLog)
-      SendMessage(hWndDateLog, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & AEFR_CYCLESEARCH)
+      SendMessage(hWndCycleSearch, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt);
   }
@@ -13532,6 +13555,12 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       //Silently close unsaved empty tab (MDI)
       moCur.bSilentCloseEmptyMDI=(BOOL)SendMessage(hWndSilentCloseEmpty, BM_GETCHECK, 0, 0);
 
+      //.LOG feature
+      moCur.bDateLog=(BOOL)SendMessage(hWndDateLog, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      moCur.bSaveInReadOnlyMsg=(BOOL)SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
+
       //Replace all and close dialog
       if (SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0) == BST_CHECKED)
         moCur.dwSearchOptions|=AEFR_REPLACEALLANDCLOSE;
@@ -13544,11 +13573,11 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else
         moCur.dwSearchOptions&=~AEFR_CHECKINSELIFSEL;
 
-      //Save in read only file message
-      moCur.bSaveInReadOnlyMsg=(BOOL)SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
-
-      //.LOG feature
-      moCur.bDateLog=(BOOL)SendMessage(hWndDateLog, BM_GETCHECK, 0, 0);
+      //Cycle search
+      if (SendMessage(hWndCycleSearch, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwSearchOptions|=AEFR_CYCLESEARCH;
+      else
+        moCur.dwSearchOptions&=~AEFR_CYCLESEARCH;
     }
   }
   return FALSE;

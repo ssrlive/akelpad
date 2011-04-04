@@ -275,6 +275,7 @@
 #define IDC_OPTIONS_DEFAULT_SAVE_EXT    3675
 #define IDC_OPTIONS_REPLACEALL_CLOSE    3676
 #define IDC_OPTIONS_INSELIFSEL          3677
+#define IDC_OPTIONS_CYCLESEARCH         3678
 #define IDC_ABOUT_ICON                  3901
 #define IDC_ABOUT_VERSION               3902
 #define IDC_ABOUT_HOMEPAGE              3903
