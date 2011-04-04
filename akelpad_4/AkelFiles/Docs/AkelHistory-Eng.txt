@@ -6,6 +6,7 @@ Changed: improved compatibility with RichEdit on x64.
 Changed: closing tab with middle mouse click without activation, if possible (MDI/PMDI).
 
 Added: possibility to show places bar in open/save dialog.
+Added: option for cycle search.
 Added: variable "%lc" for "StatusUserFormat" - count of lines in document.
 
 Fixed: edit window updating after text deletion.
