@@ -8837,7 +8837,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     lpFrame->bReachedEOF=TRUE;
     UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
 
-    if ((dwFlags & AEFR_CYCLESEARCH) && ((dwFlags & AEFR_DOWN) || (dwFlags & AEFR_UP)))
+    if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
     {
       if (dwFlags & AEFR_DOWN)
       {
