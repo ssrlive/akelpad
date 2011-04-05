@@ -138,8 +138,8 @@
                          //Return value is TRUE - success, FALSE - error.
 
 //AKD_SEARCHHISTORY flags
-#define SH_GET    1  //Retrive searh strings count.
-#define SH_CLEAR  2  //Clear searh history.
+#define SH_GET    1  //Retrive search strings count.
+#define SH_CLEAR  2  //Clear search history.
 
 //AKD_SETEDITOPTION flags
 #define EO_TEXTMARGINS 1  //The low-order word specifies the new width of the left margin, in pixels. The high-order word specifies the new width of the right margin, in pixels.
@@ -305,16 +305,17 @@
 
 //Find text flags
 #ifndef FR_DOWN
-  #define FR_DOWN      0x00000001  //Find down.
-#endif                             //
-#ifndef FR_MATCHCASE               //
-  #define FR_MATCHCASE 0x00000004  //Search is case-sensitive.
-#endif                             //
-#define FR_UP          0x00100000  //Find up.
-#define FR_BEGINNING   0x00200000  //Search from beginning (usage: FR_DOWN|FR_BEGINNING).
-#define FR_SELECTION   0x00400000  //Search in selection (usage: FR_DOWN|FR_SELECTION).
-#define FR_ESCAPESEQ   0x00800000  //Search with escape sequences.
-#define FR_ALLFILES    0x01000000  //Search in all openned MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
+  #define FR_DOWN        0x00000001  //Find down.
+#endif                               //
+#ifndef FR_MATCHCASE                 //
+  #define FR_MATCHCASE   0x00000004  //Search is case-sensitive.
+#endif                               //
+#define FR_UP            0x00100000  //Find up.
+#define FR_BEGINNING     0x00200000  //Search from beginning (usage: FR_DOWN|FR_BEGINNING).
+#define FR_SELECTION     0x00400000  //Search in selection (usage: FR_DOWN|FR_SELECTION).
+#define FR_ESCAPESEQ     0x00800000  //Search with escape sequences.
+#define FR_ALLFILES      0x01000000  //Search in all openned MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
+#define FR_CYCLESEARCH   0x08000000  //Cycle search.
 
 //AKD_PASTE
 #define PASTE_UNICODE     0 //Paste as Unicode text, if no Unicode text available ANSI text will be used (default).
@@ -718,6 +719,7 @@ typedef struct _FRAMEDATA {
   int nCaretChar;
   int nLineCount;
   int nFontPoint;
+  BOOL bReachedEOF;
   INT_PTR nReplaceCount;
 } FRAMEDATA;
 

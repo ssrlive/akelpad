@@ -1748,65 +1748,67 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_TEXTFINDW)
     {
       TEXTFINDW *tf=(TEXTFINDW *)lParam;
-      HWND hWnd=(HWND)wParam;
+      FRAMEDATA *lpFrame;
 
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        wchar_t *wpFindIt;
-        int nFindItLen;
-        INT_PTR nResult=-1;
-
-        nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
-        if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
+        if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
         {
-          MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
+          wchar_t *wpFindIt;
+          int nFindItLen;
+          INT_PTR nResult=-1;
 
-          nResult=TextFindW(hWnd, tf->dwFlags, wpFindIt, tf->nFindItLen);
-          GlobalFree((HGLOBAL)wpFindIt);
+          nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
+          if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
+          {
+            MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
+
+            nResult=TextFindW(lpFrame, tf->dwFlags, wpFindIt, tf->nFindItLen);
+            GlobalFree((HGLOBAL)wpFindIt);
+          }
+          return nResult;
         }
-        return nResult;
+        return TextFindW(lpFrame, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
       }
-      return TextFindW(hWnd, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+      return -1;
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA ||
         uMsg == AKD_TEXTREPLACEW)
     {
       TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
-      HWND hWnd=(HWND)wParam;
+      FRAMEDATA *lpFrame;
 
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        wchar_t *wpFindIt;
-        wchar_t *wpReplaceWith;
-        int nFindItLen;
-        int nReplaceWithLen;
-        INT_PTR nResult=-1;
-
-        nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
-        if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
+        if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
         {
-          MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, wpFindIt, nFindItLen);
+          wchar_t *wpFindIt;
+          wchar_t *wpReplaceWith;
+          int nFindItLen;
+          int nReplaceWithLen;
+          INT_PTR nResult=-1;
 
-          nReplaceWithLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, NULL, 0);
-          if (wpReplaceWith=(wchar_t *)GlobalAlloc(GPTR, nReplaceWithLen * sizeof(wchar_t)))
+          nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
+          if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
           {
-            MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
+            MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, wpFindIt, nFindItLen);
 
-            nResult=TextReplaceW(hWnd, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
-            GlobalFree((HGLOBAL)wpReplaceWith);
+            nReplaceWithLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, NULL, 0);
+            if (wpReplaceWith=(wchar_t *)GlobalAlloc(GPTR, nReplaceWithLen * sizeof(wchar_t)))
+            {
+              MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
+
+              nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+              GlobalFree((HGLOBAL)wpReplaceWith);
+            }
+            GlobalFree((HGLOBAL)wpFindIt);
           }
-          GlobalFree((HGLOBAL)wpFindIt);
+          return nResult;
         }
-        return nResult;
+        return TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
       }
-      return TextReplaceW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+      return -1;
     }
     if (uMsg == AKD_GOTO ||
         uMsg == AKD_GOTOA ||
@@ -3233,11 +3235,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_FINDNEXTDOWN)
     {
-      return DoEditFindNextDown(lpFrameCurrent->ei.hWndEdit);
+      return DoEditFindNextDown(lpFrameCurrent);
     }
     else if (LOWORD(wParam) == IDM_EDIT_FINDNEXTUP)
     {
-      return DoEditFindNextUp(lpFrameCurrent->ei.hWndEdit);
+      return DoEditFindNextUp(lpFrameCurrent);
     }
     else if (LOWORD(wParam) == IDM_EDIT_REPLACE)
     {
