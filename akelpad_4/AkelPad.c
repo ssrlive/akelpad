@@ -736,7 +736,8 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
           (moInit.dwSearchOptions & AEFR_ALLFILES) |
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
-          (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL);
+          (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |
+          (moInit.dwSearchOptions & AEFR_CYCLESEARCH);
 
   //Get status bar user flags
   if (moInit.wszStatusUserFormat[0])
