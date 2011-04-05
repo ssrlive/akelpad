@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.6                     *
+ *              String functions header v4.7                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -2849,7 +2849,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
           dwPrecision=(unsigned int)va_arg(val, INT_PTR);
           pFmt+=2;
         }
-        else if (!(dwPrecision=(unsigned int)xatoiA(pFmt, &pFmt)))
+        else dwPrecision=(unsigned int)xatoiA(pFmt, &pFmt);
+
+        if (!dwPrecision)
         {
           //"%.0s" - ignore string
           dwPrecision=(unsigned int)-1;
@@ -3109,7 +3111,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
           dwPrecision=(unsigned int)va_arg(val, INT_PTR);
           wpFmt+=2;
         }
-        else if (!(dwPrecision=(unsigned int)xatoiW(wpFmt, &wpFmt)))
+        else dwPrecision=(unsigned int)xatoiW(wpFmt, &wpFmt);
+
+        if (!dwPrecision)
         {
           //"%.0s" - ignore string
           dwPrecision=(unsigned int)-1;
