@@ -4746,7 +4746,12 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_DROPFILES)
+  if (uMsg == WM_SIZE)
+  {
+    if (GetWindowLongPtrWide(hMainWnd, GWL_STYLE) & WS_MINIMIZE)
+      return TRUE;
+  }
+  else if (uMsg == WM_DROPFILES)
   {
     DropFiles((HDROP)wParam);
     return TRUE;
