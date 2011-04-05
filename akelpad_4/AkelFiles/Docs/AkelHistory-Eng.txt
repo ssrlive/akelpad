@@ -7,7 +7,6 @@ Changed: closing tab with middle mouse click without activation, if possible (MD
 
 Added: possibility to show places bar in open/save dialog.
 Added: option for cycle search.
-Added: variable "%lc" for "StatusUserFormat" - 
 Added: variables for "StatusUserFormat":
        "%lc" - count of lines in document;
        "%se[text]" - text to appear when end of the document reached during search.
