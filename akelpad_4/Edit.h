@@ -317,10 +317,11 @@
 #define CSB_TABSIZE           0x0080
 #define CSB_MARKER            0x0100
 #define CSB_REPLACECOUNT      0x0200
-#define CSB_DOCUMENTSCOUNT    0x0400
-#define CSB_DOCUMENTSMODIFIED 0x0800
-#define CSB_DOCUMENTSSAVED    0x1000
-#define CSB_DOCUMENTINDEX     0x2000
+#define CSB_SEARCHENDED       0x0400
+#define CSB_DOCUMENTSCOUNT    0x0800
+#define CSB_DOCUMENTSMODIFIED 0x1000
+#define CSB_DOCUMENTSSAVED    0x2000
+#define CSB_DOCUMENTINDEX     0x4000
 
 //File types association
 #define AE_ASSOCIATE     0x00000001
@@ -718,8 +719,8 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);
 BOOL DoEditChangeCaseW(HWND hWnd, int nCase);
 void DoEditFind();
-INT_PTR DoEditFindNextDown(HWND hWnd);
-INT_PTR DoEditFindNextUp(HWND hWnd);
+INT_PTR DoEditFindNextDown(FRAMEDATA *lpFrame);
+INT_PTR DoEditFindNextUp(FRAMEDATA *lpFrame);
 void DoEditReplace();
 void DoEditGoTo();
 BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont);
@@ -845,8 +846,8 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace);
 int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, int nNewLine);
 void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace);
-INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
-INT_PTR TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *nReplaceCount);
+INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
+INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *nReplaceCount);
 INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis);
 INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, wchar_t *wszOutput, int nNewLine);
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
