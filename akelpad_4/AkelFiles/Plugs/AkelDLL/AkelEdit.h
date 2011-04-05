@@ -216,6 +216,7 @@
 #define AEGL_LASTVISIBLELINE        5  //Last visible line.
 #define AEGL_FIRSTFULLVISIBLELINE   6  //First fully visible line.
 #define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
+#define AEGL_LINEUNWRAPCOUNT       11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
 
 //AEM_GETINDEX flags
 #define AEGI_FIRSTCHAR              1  //First character.
