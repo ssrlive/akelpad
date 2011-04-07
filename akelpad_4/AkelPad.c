@@ -3830,6 +3830,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
+  else if (uMsg == WM_SYSCOMMAND)
+  {
+    if (wParam == SC_CLOSE)
+    {
+      //Alt+F4 in dockable window cause double sending of WM_SYSCOMMAND with SC_CLOSE
+      if (bMainOnFinish)
+        return 0;
+    }
+  }
   else if (uMsg == WM_CLOSE ||
            uMsg == WM_QUERYENDSESSION)
   {
