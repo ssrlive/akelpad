@@ -1,10 +1,11 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "2.7"
+!define PRODUCT_VERSION "2.8"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
 SetCompressor /SOLID lzma
 CRCCheck off
+RequestExecutionLevel user
 
 !define LANG_ENGLISH  1033
 !define LANG_RUSSIAN  1049
