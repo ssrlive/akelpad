@@ -15253,6 +15253,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   AEUNDOITEM *lpSetSelUndo=NULL;
+  DWORD dwUndoFlags=0;
   DWORD dwCalcLinesWidthFlags=0;
   INT_PTR nRichTextCount=0;
   int nLastLineSelStart=0;
@@ -15286,6 +15287,10 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       ciDeleteEnd=ciTmp;
     }
     else if (nCompare == 0) return 0;
+
+    //Set undo flags
+    if (AEC_IndexCompare(&ae->ciCaretIndex, &ciDeleteEnd) < 0)
+      dwUndoFlags=AEUN_CARETATSTART;
 
     //Force left-top to right-bottom selection
     if (bColumnSel)
@@ -15602,7 +15607,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
               //Set undo selection
               if (lpSetSelUndo)
               {
-                lpSetSelUndo->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_UNDOONLY;
+                lpSetSelUndo->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_UNDOONLY|dwUndoFlags;
                 lpSetSelUndo->nActionStartOffset=nStartOffset;
                 lpSetSelUndo->nActionEndOffset=nEndOffset;
                 lpSetSelUndo->nExtraStartOffset=nExtraStartOffset;
@@ -15617,7 +15622,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
                 if (lpUndoElement=AE_StackUndoItemInsert(ae))
                 {
-                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_REDOONLY;
+                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_REDOONLY|dwUndoFlags;
                   lpUndoElement->nActionStartOffset=nStartOffset;
                   lpUndoElement->nActionEndOffset=nStartOffset;
                   lpUndoElement->nExtraStartOffset=nExtraStartOffset;
@@ -15655,7 +15660,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
                 if (lpUndoElement=AE_StackUndoItemInsert(ae))
                 {
-                  lpUndoElement->dwFlags=AEUN_INSERT;
+                  lpUndoElement->dwFlags=AEUN_INSERT|dwUndoFlags;
                   lpUndoElement->nActionStartOffset=nStartOffset;
                   lpUndoElement->nActionEndOffset=nEndOffset;
                   lpUndoElement->wpText=wpUndoText;
@@ -15945,6 +15950,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   UINT_PTR dwTextCount=0;
   UINT_PTR dwRichTextCount=0;
   DWORD dwCalcLinesWidthFlags=0;
+  DWORD dwUndoFlags=0;
   int nLineLen=0;
   int nLineBreak;
   int nLineCount=0;
@@ -15988,6 +15994,10 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
         else if (nNewLine == AELB_ASOUTPUT)
           nNewLine=ae->popt->nOutputNewLine;
       }
+
+      //Set undo flags
+      if (AEC_IndexCompare(&ae->ciCaretIndex, &ciInsertFrom) < 0)
+        dwUndoFlags=AEUN_CARETATSTART;
 
       //Set AE_CalcLinesWidth flags
       if (dwInsertFlags & AEINST_LOCKUPDATEHSCROLL)
@@ -16423,17 +16433,15 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
               if (ae->ptxt->dwUndoLimit)
               {
                 //Set redo selection
-                {
-                  AEUNDOITEM *lpUndoElement;
+                AEUNDOITEM *lpUndoElement;
 
-                  if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                  {
-                    lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY;
-                    lpUndoElement->nActionStartOffset=nStartOffset;
-                    lpUndoElement->nActionEndOffset=nEndOffset;
-                    lpUndoElement->wpText=NULL;
-                    lpUndoElement->dwTextLen=0;
-                  }
+                if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                {
+                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY|dwUndoFlags;
+                  lpUndoElement->nActionStartOffset=nStartOffset;
+                  lpUndoElement->nActionEndOffset=nEndOffset;
+                  lpUndoElement->wpText=NULL;
+                  lpUndoElement->dwTextLen=0;
                 }
               }
             }
@@ -17817,6 +17825,8 @@ void AE_EditUndo(AKELEDIT *ae)
               AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
             else if (lpCurElement->dwFlags & AEUN_OVERTYPECHAR)
               AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+            else if (lpCurElement->dwFlags & AEUN_CARETATSTART)
+              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
             else
               AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
           }
@@ -17848,7 +17858,10 @@ void AE_EditUndo(AKELEDIT *ae)
           ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
 
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+        if (lpCurElement->dwFlags & AEUN_CARETATSTART)
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+        else
+          AE_SetSelectionPos(ae, &ciActionEnd, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
       }
 
       //Update window
@@ -17941,7 +17954,10 @@ void AE_EditRedo(AKELEDIT *ae)
           ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
 
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+        if (lpCurElement->dwFlags & AEUN_CARETATSTART)
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+        else
+          AE_SetSelectionPos(ae, &ciActionEnd, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
       }
 
       //Update window
