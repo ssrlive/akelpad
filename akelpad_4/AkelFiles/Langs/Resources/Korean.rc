@@ -833,7 +833,7 @@ BEGIN
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "default saving extension",IDC_STATIC,37,65,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,84,200,41
+    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,84,200,53
     CONTROL         "모두 바꾸기 - 대화상자 닫기",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10

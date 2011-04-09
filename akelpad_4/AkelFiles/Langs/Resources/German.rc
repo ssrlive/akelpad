@@ -841,7 +841,7 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "Standard-Dateierweiterung beim Speichern",IDC_STATIC,37,
                     65,171,8
-    GROUPBOX        "Suchen/Ersetzen-Dialog",IDC_STATIC,9,84,200,41
+    GROUPBOX        "Suchen/Ersetzen-Dialog",IDC_STATIC,9,84,200,53
     CONTROL         "Alles ersetzen - schlieﬂt den Dialog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10

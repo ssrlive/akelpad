@@ -851,7 +851,7 @@ BEGIN
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "Predvolen· prÌpona pri ukladanÌ",IDC_STATIC,37,65,171,8
-    GROUPBOX        "DialÛg hæadaù / nahradiù",IDC_STATIC,9,84,200,41
+    GROUPBOX        "DialÛg hæadaù / nahradiù",IDC_STATIC,9,84,200,53
     CONTROL         "TlaËidlo &Nahradiù vöetko zatvorÌ dialÛg",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10

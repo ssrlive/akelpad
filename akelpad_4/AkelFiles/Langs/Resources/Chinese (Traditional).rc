@@ -830,7 +830,7 @@ BEGIN
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "預設儲存的副檔名",IDC_STATIC,37,65,171,8
-    GROUPBOX        "尋找/取代對話方塊",IDC_STATIC,9,84,200,41
+    GROUPBOX        "尋找/取代對話方塊",IDC_STATIC,9,84,200,53
     CONTROL         "關閉對話方塊時「全部取代」",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
