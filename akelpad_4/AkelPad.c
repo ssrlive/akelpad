@@ -5565,7 +5565,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                 LineTo(hDC, x + ptDraw[i + 1].x, y + ptDraw[i + 1].y);
               }
             }
-            SelectObject (hDC, hPenOld);
+            SelectObject(hDC, hPenOld);
             DeleteObject(hPen);
           }
         }
