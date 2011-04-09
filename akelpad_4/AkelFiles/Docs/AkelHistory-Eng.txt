@@ -10,6 +10,7 @@ Added: option for cycle search.
 Added: variables for "StatusUserFormat":
        "%lc" - count of lines in document;
        "%se[text]" - text to appear when end of the document reached during search.
+Added: undo buffer remember the caret position.
 
 Fixed: edit window updating after text deletion.
 Fixed: WordBreak parameter.
