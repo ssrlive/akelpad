@@ -838,7 +838,7 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "пашырэнне па змаҐчанн≥ пры захаванн≥ дакумента",
                     IDC_STATIC,37,65,171,8
-    GROUPBOX        "ƒы€лог пошуку/замены",IDC_STATIC,9,84,200,41
+    GROUPBOX        "ƒы€лог пошуку/замены",IDC_STATIC,9,84,200,53
     CONTROL         """«ам€н≥ць усЄ"" зачын€е ды€лог",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10

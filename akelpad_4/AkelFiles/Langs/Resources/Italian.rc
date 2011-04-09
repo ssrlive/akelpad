@@ -848,7 +848,7 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "salvataggio estensioni predefinito",IDC_STATIC,37,65,
                     171,8
-    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,84,200,41
+    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,84,200,53
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
