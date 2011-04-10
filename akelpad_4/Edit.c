@@ -250,7 +250,7 @@ extern int nTabOpenItem;
 extern int nDocumentsCount;
 extern int nDocumentsModified;
 extern int nDocumentIndex;
-extern BOOL dwChangedPrompt;
+extern DWORD dwChangedPrompt;
 extern STACKASSOCICON hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
