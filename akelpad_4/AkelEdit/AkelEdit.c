@@ -3774,17 +3774,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wParam & MK_CONTROL)
         bControl=TRUE;
 
+      if (ae->nMouseActive == AEMA_IGNORE)
+      {
+        ae->nMouseActive=AEMA_NONE;
+        return 0;
+      }
+      ae->nMouseActive=AEMA_NONE;
+
       GetCursorPos(&ptPos);
       ScreenToClient(ae->hWndEdit, &ptPos);
-
-      if (!bAkelEditWindows9x)
-      {
-        if (ptPos.x != LOWORD(lParam) || ptPos.y != HIWORD(lParam))
-        {
-          //Current mouse position doesn't match message position.
-          return 0;
-        }
-      }
 
       if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
           GetDoubleClickTime() >= (DWORD)(nLButtonDownCurTime - ae->nLButtonDownPrevTime))
@@ -4168,11 +4166,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     return 0;
   }
-  else if (uMsg == WM_DROPFILES)
-  {
-    if (!AE_NotifyDropFiles(ae, (HDROP)wParam))
-      return 0;
-  }
   else if (uMsg == WM_SETFOCUS)
   {
     ae->bFocus=TRUE;
@@ -4187,6 +4180,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_KILLFOCUS)
   {
+    if (ae->nMouseActive == AEMA_LBUTTONDOWN)
+    {
+      //We lost focus, so ignore next WM_LBUTTONDOWN message posted in WM_MOUSEACTIVATE
+      ae->nMouseActive=AEMA_IGNORE;
+    }
     if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
     {
       AE_HideSelection(ae, TRUE);
@@ -4196,6 +4194,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     AE_StackUndoGroupStop(ae);
     AE_NotifyKillFocus(ae, (HWND)wParam);
     return 0;
+  }
+  else if (uMsg == WM_MOUSEACTIVATE)
+  {
+    LRESULT lResult;
+
+    if (!ae->bUnicodeWindow)
+      lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
+    else
+      lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
+
+    if (lResult != MA_ACTIVATEANDEAT &&
+        lResult != MA_NOACTIVATEANDEAT &&
+        HIWORD(lParam) == WM_LBUTTONDOWN)
+    {
+      ae->nMouseActive=AEMA_LBUTTONDOWN;
+    }
+    return lResult;
+  }
+  else if (uMsg == WM_DROPFILES)
+  {
+    if (!AE_NotifyDropFiles(ae, (HDROP)wParam))
+      return 0;
   }
   else if (uMsg == WM_SYSCOLORCHANGE)
   {
