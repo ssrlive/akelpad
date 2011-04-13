@@ -46,6 +46,11 @@
 #define AECC_MBOTTOM        11
 #define AECC_MLEFTBOTTOM    12
 
+//WM_MOUSEACTIVATE
+#define AEMA_NONE           0
+#define AEMA_LBUTTONDOWN    1
+#define AEMA_IGNORE         2
+
 //Print
 #define AEPRNL_PRINTLINESIZE 32768
 
@@ -556,6 +561,7 @@ typedef struct _AKELEDIT {
   POINT ptLButtonDownPrevPos;
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
+  int nMouseActive;
   UINT_PTR dwMouseMoveTimer;
   UINT_PTR dwMouseScrollTimer;
   int nCurrentCursor;

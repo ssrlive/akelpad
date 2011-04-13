@@ -13,8 +13,8 @@ Added: variables for "StatusUserFormat":
 Added: undo buffer remember the caret position.
 
 Fixed: edit window updating after text deletion.
+Fixed: ignoring left mouse button click.
 Fixed: WordBreak parameter.
-Fixed: left button click in Windows 98/Me.
 Fixed: scroll position after restoring minimized window with word wrap on (MDI).
 
 
