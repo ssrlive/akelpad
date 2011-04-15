@@ -101,12 +101,12 @@ BEGIN
             MENUITEM "大写(&U)\tCtrl+6",            IDM_EDIT_UPPERCASE
             MENUITEM "小写(&L)\tCtrl+7",            IDM_EDIT_LOWERCASE
             MENUITEM "句子大小写(&N)\tCtrl+8",      IDM_EDIT_SENTENCECASE
-            MENUITEM "标题大小写(&C)\tCtrl+9",      IDM_EDIT_TITLECASE
+            MENUITEM "标题大小写(&I)\tCtrl+9",      IDM_EDIT_TITLECASE
             MENUITEM "反转大小写(&V)\tCtrl+0",      IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
             MENUITEM "重编码...\tAlt+R",            IDM_EDIT_RECODE
         END
-        POPUP "换行符格式(&F)"
+        POPUP "换行符格式(&M)"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
@@ -729,7 +729,7 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,60,
                     11,13
     CONTROL         "转换为空格",IDC_OPTIONS_TABSIZE_SPACES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,58,62,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,62,55,10
     GROUPBOX        "撤消次数限制",IDC_STATIC,9,88,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
@@ -834,7 +834,7 @@ BEGIN
     CONTROL         "如果选定区域不为空就选上“选定区域”。",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
-    CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
+    CONTROL         "循环搜索",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,121,185,10
 END
 
@@ -867,7 +867,7 @@ END
 IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-FONT 8, "MS Shell Dlg"
+FONT 9, "宋体"
 BEGIN
 END
 
