@@ -7816,6 +7816,16 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
 
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage)
 {
+  static const char lpTrailingBytesForUTF8[256]={
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+  };
   char szANSIwatermark[128];
   char szOEMwatermark[128];
   char szKOIwatermark[128];
@@ -7824,9 +7834,11 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
   int nOEMrate=0;
   int nKOIrate=0;
   int nUTF8rate=0;
+  int nCommonUTF8rate=0;
   DWORD dwCounter[0x80];
   DWORD dwMaxIndex=0;
   DWORD dwMaxCount=0;
+  DWORD dwTrailing;
   UINT_PTR i;
   UINT_PTR j;
   BOOL bRated=FALSE;
@@ -7941,6 +7953,32 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
       }
     }
 
+    //Get common UTF8 rate
+    if (nUTF8rate < nANSIrate || nUTF8rate < nOEMrate || nUTF8rate < nKOIrate)
+    {
+      for (i=0; i < dwBytesToCheck; ++i)
+      {
+        if (dwTrailing=lpTrailingBytesForUTF8[pBuffer[i]])
+        {
+          if (i + dwTrailing < dwBytesToCheck)
+          {
+            if (IsCharLegalUTF8(pBuffer + i, dwTrailing + 1))
+            {
+              ++nCommonUTF8rate;
+              i+=dwTrailing;
+            }
+            else
+            {
+              nCommonUTF8rate=0;
+              break;
+            }
+          }
+          else break;
+        }
+      }
+      nUTF8rate=max(nUTF8rate, nCommonUTF8rate);
+    }
+    
     //Set code page
     if (dwLangID == LANG_RUSSIAN)
     {
@@ -8079,6 +8117,35 @@ BOOL IsLangWesternEurope(DWORD dwLangID)
     return TRUE;
   }
   return FALSE;
+}
+
+BOOL IsCharLegalUTF8(const unsigned char *pSource, unsigned int nTrailingBytes)
+{
+  const unsigned char *pSrc=pSource + nTrailingBytes;
+  unsigned char nChar;
+
+  switch (nTrailingBytes)
+  {
+    default: return FALSE;
+
+    /* Everything else falls through when "TRUE"... */
+    case 4: if ((nChar=(*--pSrc)) < 0x80 || nChar > 0xBF) return FALSE;
+    case 3: if ((nChar=(*--pSrc)) < 0x80 || nChar > 0xBF) return FALSE;
+    case 2: if ((nChar=(*--pSrc)) > 0xBF) return FALSE;
+
+    switch (*pSource)
+    {
+      /* no fall-through in this inner switch */
+      case 0xE0: if (nChar < 0xA0) return FALSE; break;
+      case 0xED: if (nChar > 0x9F) return FALSE; break;
+      case 0xF0: if (nChar < 0x90) return FALSE; break;
+      case 0xF4: if (nChar > 0x8F) return FALSE; break;
+      default:   if (nChar < 0x80) return FALSE;
+    }
+    case 1: if (*pSource >= 0x80 && *pSource < 0xC2) return FALSE;
+  }
+  if (*pSource > 0xF4) return FALSE;
+  return TRUE;
 }
 
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen)
