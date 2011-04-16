@@ -8128,14 +8128,12 @@ BOOL IsCharLegalUTF8(const unsigned char *pSource, unsigned int nTrailingBytes)
   {
     default: return FALSE;
 
-    /* Everything else falls through when "TRUE"... */
     case 4: if ((nChar=(*--pSrc)) < 0x80 || nChar > 0xBF) return FALSE;
     case 3: if ((nChar=(*--pSrc)) < 0x80 || nChar > 0xBF) return FALSE;
     case 2: if ((nChar=(*--pSrc)) > 0xBF) return FALSE;
 
     switch (*pSource)
     {
-      /* no fall-through in this inner switch */
       case 0xE0: if (nChar < 0xA0) return FALSE; break;
       case 0xED: if (nChar > 0x9F) return FALSE; break;
       case 0xF0: if (nChar < 0x90) return FALSE; break;
