@@ -834,6 +834,7 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage);
 BOOL IsLangEasternEurope(DWORD dwLangID);
 BOOL IsLangWesternEurope(DWORD dwLangID);
+BOOL IsCharLegalUTF8(const unsigned char *pSource, unsigned int nTrailingBytes);
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 void ChangeFourBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 BOOL IsCodePageUnicode(int nCodePage);

@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.7                     *
+ *              String functions header v4.8                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -3298,7 +3298,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
 #undef UTF16toUTF8
 UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax)
 {
-  unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
+  static const unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
   const unsigned short *pSrc=pSource;
   const unsigned short *pSrcEnd=pSource + nSourceLen;
   const unsigned short *pSrcDone=pSource;
@@ -3418,7 +3418,7 @@ UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PT
 #undef UTF8toUTF16
 UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
 {
-  unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
+  static const unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   const unsigned char *pSrc=pSource;
   const unsigned char *pSrcEnd=pSource + nSourceLen;
   const unsigned char *pSrcDone=pSource;
