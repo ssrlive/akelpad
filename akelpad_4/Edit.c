@@ -7958,27 +7958,29 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
     {
       for (i=0; i < dwBytesToCheck; ++i)
       {
-        if (dwTrailing=lpTrailingBytesForUTF8[pBuffer[i]])
+        dwTrailing=lpTrailingBytesForUTF8[pBuffer[i]];
+
+        if (i + dwTrailing < dwBytesToCheck)
         {
-          if (i + dwTrailing < dwBytesToCheck)
+          if (IsCharLegalUTF8(pBuffer + i, dwTrailing + 1))
           {
-            if (IsCharLegalUTF8(pBuffer + i, dwTrailing + 1))
+            if (dwTrailing)
             {
               ++nCommonUTF8rate;
               i+=dwTrailing;
             }
-            else
-            {
-              nCommonUTF8rate=0;
-              break;
-            }
           }
-          else break;
+          else
+          {
+            nCommonUTF8rate=0;
+            break;
+          }
         }
+        else break;
       }
       nUTF8rate=max(nUTF8rate, nCommonUTF8rate);
     }
-    
+
     //Set code page
     if (dwLangID == LANG_RUSSIAN)
     {
