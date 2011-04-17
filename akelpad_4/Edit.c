@@ -7611,9 +7611,10 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   int nRegCodePage=0;
   UINT_PTR a;
   UINT_PTR b;
+  int nANSIrate=5;
+  int nUTF16LErate=0;
+  int nUTF16BErate=0;
   int i;
-  BOOL bUtfCodePage=FALSE;
-  BOOL bUtfBOM=FALSE;
 
   //Remembered code page from registry
   if (dwFlags & ADT_REG_CODEPAGE)
@@ -7739,52 +7740,54 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   {
     if (dwBytesRead >= 2)
     {
-      for (a=0, b=dwBytesRead - 1; a < b; ++a)
+      for (a=0, b=dwBytesRead - 1; a < b; a+=2)
       {
-        if (a % 2 == 0)
+        //Detect binary file
+        if (dwFlags & ADT_BINARY_ERROR)
         {
-          //Detect binary file
-          if (dwFlags & ADT_BINARY_ERROR)
+          if (pBuffer[a] == 0x00 && pBuffer[a + 1] == 0x00)
           {
-            if (pBuffer[a] == 0x00 && pBuffer[a + 1] == 0x00)
-            {
-              if (bUtfCodePage) *nCodePage=moCur.nDefaultCodePage;
-              if (bUtfBOM) *bBOM=FALSE;
-              API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
-              return EDT_BINARY;
-            }
+            API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
+            return EDT_BINARY;
           }
+        }
 
-          //Detect UTF-16LE, UTF-16BE without BOM
-          if (dwFlags & ADT_DETECT_CODEPAGE)
+        //Detect UTF-16LE, UTF-16BE without BOM
+        if (dwFlags & ADT_DETECT_CODEPAGE)
+        {
+          if (pBuffer[a + 1] == 0x00 && pBuffer[a] <= 0x7E)
           {
-            if (pBuffer[a + 1] == 0x00 && (pBuffer[a] == 0x0D || pBuffer[a] == 0x0A))
-            {
-              *nCodePage=CP_UNICODE_UTF16LE;
-              dwFlags&=~ADT_DETECT_CODEPAGE;
-              bUtfCodePage=TRUE;
-
-              if (dwFlags & ADT_DETECT_BOM)
-              {
-                *bBOM=FALSE;
-                dwFlags&=~ADT_DETECT_BOM;
-                bUtfBOM=TRUE;
-              }
-            }
-            else if (pBuffer[a] == 0x00 && (pBuffer[a + 1] == 0x0D || pBuffer[a + 1] == 0x0A))
-            {
-              *nCodePage=CP_UNICODE_UTF16BE;
-              dwFlags&=~ADT_DETECT_CODEPAGE;
-              bUtfCodePage=TRUE;
-
-              if (dwFlags & ADT_DETECT_BOM)
-              {
-                *bBOM=FALSE;
-                dwFlags&=~ADT_DETECT_BOM;
-                bUtfBOM=TRUE;
-              }
-            }
+            ++nUTF16LErate;
+            nUTF16BErate=-0xFFFF;
           }
+          else if (pBuffer[a] == 0x00 && pBuffer[a + 1] <= 0x7E)
+          {
+            ++nUTF16BErate;
+            nUTF16LErate=-0xFFFF;
+          }
+        }
+      }
+
+      if (nUTF16LErate >= nANSIrate && nUTF16LErate >= nUTF16BErate)
+      {
+        *nCodePage=CP_UNICODE_UTF16LE;
+        dwFlags&=~ADT_DETECT_CODEPAGE;
+
+        if (dwFlags & ADT_DETECT_BOM)
+        {
+          *bBOM=FALSE;
+          dwFlags&=~ADT_DETECT_BOM;
+        }
+      }
+      else if (nUTF16BErate >= nANSIrate && nUTF16BErate >= nUTF16LErate)
+      {
+        *nCodePage=CP_UNICODE_UTF16LE;
+        dwFlags&=~ADT_DETECT_CODEPAGE;
+
+        if (dwFlags & ADT_DETECT_BOM)
+        {
+          *bBOM=FALSE;
+          dwFlags&=~ADT_DETECT_BOM;
         }
       }
     }
