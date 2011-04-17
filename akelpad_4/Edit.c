@@ -7781,7 +7781,7 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
       }
       else if (nUTF16BErate >= nANSIrate && nUTF16BErate >= nUTF16LErate)
       {
-        *nCodePage=CP_UNICODE_UTF16LE;
+        *nCodePage=CP_UNICODE_UTF16BE;
         dwFlags&=~ADT_DETECT_CODEPAGE;
 
         if (dwFlags & ADT_DETECT_BOM)
