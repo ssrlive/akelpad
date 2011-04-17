@@ -7768,26 +7768,29 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
         }
       }
 
-      if (nUTF16LErate >= nANSIrate && nUTF16LErate >= nUTF16BErate)
+      if (dwFlags & ADT_DETECT_CODEPAGE)
       {
-        *nCodePage=CP_UNICODE_UTF16LE;
-        dwFlags&=~ADT_DETECT_CODEPAGE;
-
-        if (dwFlags & ADT_DETECT_BOM)
+        if (nUTF16LErate >= nANSIrate && nUTF16LErate >= nUTF16BErate)
         {
-          *bBOM=FALSE;
-          dwFlags&=~ADT_DETECT_BOM;
+          *nCodePage=CP_UNICODE_UTF16LE;
+          dwFlags&=~ADT_DETECT_CODEPAGE;
+
+          if (dwFlags & ADT_DETECT_BOM)
+          {
+            *bBOM=FALSE;
+            dwFlags&=~ADT_DETECT_BOM;
+          }
         }
-      }
-      else if (nUTF16BErate >= nANSIrate && nUTF16BErate >= nUTF16LErate)
-      {
-        *nCodePage=CP_UNICODE_UTF16BE;
-        dwFlags&=~ADT_DETECT_CODEPAGE;
-
-        if (dwFlags & ADT_DETECT_BOM)
+        else if (nUTF16BErate >= nANSIrate && nUTF16BErate >= nUTF16LErate)
         {
-          *bBOM=FALSE;
-          dwFlags&=~ADT_DETECT_BOM;
+          *nCodePage=CP_UNICODE_UTF16BE;
+          dwFlags&=~ADT_DETECT_CODEPAGE;
+
+          if (dwFlags & ADT_DETECT_BOM)
+          {
+            *bBOM=FALSE;
+            dwFlags&=~ADT_DETECT_BOM;
+          }
         }
       }
     }
