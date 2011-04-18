@@ -11,7 +11,8 @@ Added: applying a common algorithm for recognizing the UTF-8, if for the specifi
        ("Settings...->Codepage recognition") recognition of UTF-8 unsuccessful.
 Added: option for cycle search.
 Added: variables for "StatusUserFormat":
-       "%lc" - count of lines in document;
+       "%al" - count of lines in document;
+       "%ar" - count of symbols in document (RichEdit);
        "%se[text]" - text to appear when end of the document reached during search.
 Added: undo buffer remember the caret position.
 

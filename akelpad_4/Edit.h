@@ -313,15 +313,16 @@
 #define CSB_RICHOFFSET        0x0008
 #define CSB_BYTEOFFSET        0x0010
 #define CSB_LINECOUNT         0x0020
-#define CSB_FONTPOINT         0x0040
-#define CSB_TABSIZE           0x0080
-#define CSB_MARKER            0x0100
-#define CSB_REPLACECOUNT      0x0200
-#define CSB_SEARCHENDED       0x0400
-#define CSB_DOCUMENTSCOUNT    0x0800
-#define CSB_DOCUMENTSMODIFIED 0x1000
-#define CSB_DOCUMENTSSAVED    0x2000
-#define CSB_DOCUMENTINDEX     0x4000
+#define CSB_RICHCOUNT         0x0040
+#define CSB_FONTPOINT         0x0080
+#define CSB_TABSIZE           0x0100
+#define CSB_MARKER            0x0200
+#define CSB_REPLACECOUNT      0x0400
+#define CSB_SEARCHENDED       0x0800
+#define CSB_DOCUMENTSCOUNT    0x1000
+#define CSB_DOCUMENTSMODIFIED 0x2000
+#define CSB_DOCUMENTSSAVED    0x4000
+#define CSB_DOCUMENTINDEX     0x8000
 
 //File types association
 #define AE_ASSOCIATE     0x00000001

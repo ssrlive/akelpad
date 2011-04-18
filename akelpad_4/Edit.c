@@ -1771,6 +1771,8 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
 
       nFirstLine=SaveLineScroll(hWnd);
       SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+      SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+
       if (!bColumnSel)
         SetSel(hWnd, &crRange, 0, NULL);
 
@@ -1925,8 +1927,9 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
         else
           SetSel(hWnd, &crRange, bColumnSel?AESELT_COLUMNON:0, &crRange.ciMax);
       }
+      SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
       SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-      InvalidateRect(hWnd, NULL, TRUE);
+      InvalidateRect(hWnd, NULL, FALSE);
       RestoreLineScroll(hWnd, nFirstLine);
 
       FreeWideStr(wszRange);
@@ -1980,6 +1983,8 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
     nFirstLine=SaveLineScroll(hWnd);
     SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+
     ReplaceSelW(hWnd, wszRange, a, AELB_ASINPUT, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
@@ -1988,8 +1993,9 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
     else
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
 
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-    InvalidateRect(hWnd, NULL, TRUE);
+    InvalidateRect(hWnd, NULL, FALSE);
     RestoreLineScroll(hWnd, nFirstLine);
 
     FreeText(wszRange);
@@ -2017,8 +2023,10 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     return FALSE;
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
+
   nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
@@ -2067,8 +2075,9 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     bResult=TRUE;
   }
 
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, TRUE);
+  InvalidateRect(hWnd, NULL, FALSE);
   RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
@@ -2092,8 +2101,10 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     return FALSE;
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
+
   nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
@@ -2200,8 +2211,9 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     bResult=TRUE;
   }
 
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, TRUE);
+  InvalidateRect(hWnd, NULL, FALSE);
   RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
@@ -9117,6 +9129,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
           //Stop redraw
           SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
 
           if (!(dwFlags & AEFR_SELECTION))
             SetSel(lpFrame->ei.hWndEdit, &crRange, 0, NULL);
@@ -9182,8 +9195,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           else SendMessage(lpFrame->ei.hWndEdit, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
 
           //Start redraw
+          SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
           SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
-          InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
+          InvalidateRect(lpFrame->ei.hWndEdit, NULL, FALSE);
         }
 
         if (nFindItLen < nReplaceWithLen)
@@ -10555,8 +10569,10 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     return;
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
+
   nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
@@ -10608,8 +10624,9 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     }
     FreeText(wszSelText);
   }
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, TRUE);
+  InvalidateRect(hWnd, NULL, FALSE);
   RestoreLineScroll(hWnd, nFirstLine);
 }
 
@@ -15195,7 +15212,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel.ciMax=crCurSel.ciMax;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
-    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET|CSB_LINECOUNT);
+    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET|CSB_LINECOUNT|CSB_RICHCOUNT);
   }
 }
 
@@ -15363,6 +15380,8 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
         else
           lpFrame->nLineCount=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
       }
+      if ((moCur.dwStatusUserFlags & CSB_RICHCOUNT) && (dwFlags & CSB_RICHCOUNT))
+        lpFrame->nRichCount=GetTextLength(lpFrame->ei.hWndEdit);
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
 
@@ -15380,7 +15399,8 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
   //%cl - Current character letter.
   //%or - Offset in symbols (RichEdit).
   //%ob - Offset in bytes.
-  //%lc - Count of lines in document.
+  //%al - Count of lines in document.
+  //%ar - Count of symbols in document (RichEdit).
   //%f  - Font size.
   //%t  - Tabulation size.
   //%m  - Column marker size.
@@ -15444,14 +15464,21 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
             dwFlags|=CSB_BYTEOFFSET;
         }
       }
-      else if (*wpString == 'l')
+      else if (*wpString == 'a')
       {
-        if (*++wpString == 'c')
+        if (*++wpString == 'l')
         {
           if (lpFrame)
             i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nLineCount);
           else
             dwFlags|=CSB_LINECOUNT;
+        }
+        else if (*wpString == 'r')
+        {
+          if (lpFrame)
+            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nRichCount);
+          else
+            dwFlags|=CSB_RICHCOUNT;
         }
       }
       else if (*wpString == 'f')
