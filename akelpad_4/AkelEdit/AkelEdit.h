@@ -196,6 +196,7 @@
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
 #define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
+#define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -1380,7 +1381,6 @@ typedef struct {
 #define AEM_LINESCROLL            (WM_USER + 2158)
 #define AEM_SCROLLTOPOINT         (WM_USER + 2159)
 #define AEM_LOCKSCROLL            (WM_USER + 2161)
-#define AEM_LOCKERASERECT         (WM_USER + 2162)
 #define AEM_GETCHARSIZE           (WM_USER + 2164)
 #define AEM_GETSTRWIDTH           (WM_USER + 2165)
 #define AEM_GETCARETPOS           (WM_USER + 2166)
@@ -1443,8 +1443,9 @@ typedef struct {
 #define AEM_UPDATECARET           (WM_USER + 2353)
 #define AEM_UPDATESIZE            (WM_USER + 2354)
 #define AEM_LOCKUPDATE            (WM_USER + 2355)
-#define AEM_HIDESELECTION         (WM_USER + 2356)
-#define AEM_REDRAWLINERANGE       (WM_USER + 2357)
+#define AEM_LOCKERASERECT         (WM_USER + 2356)
+#define AEM_HIDESELECTION         (WM_USER + 2361)
+#define AEM_REDRAWLINERANGE       (WM_USER + 2362)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -3505,27 +3506,6 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
 
-AEM_LOCKERASERECT
-_________________
-
-Lock the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
-
-wParam               == not used.
-(const RECT *)lParam == pointer to a RECT structure that specifies the erasing rectangle.
-
-Return Value
- TRUE   rectangle has been locked.
- FALSE  rectangle not in erase area.
-
-Example:
- if (uMsg == WM_ERASEBKGND)
- {
-   RECT rcKeep={10, 0, 100, 100}; //Don't erase this rectangle, to avoid flashing.
-
-   SendMessage(hWndEdit, AEM_LOCKERASERECT, 0, (LPARAM)&rcKeep);
- }
-
-
 AEM_GETCHARSIZE
 _______________
 
@@ -4508,6 +4488,27 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKUPDATE, AELU_SCROLLBAR|AELU_CARET, TRUE);
  SendMessage(hWndEdit, AEM_SETRECT, FALSE, (LPARAM)&rc);
  SendMessage(hWndEdit, AEM_LOCKUPDATE, AELU_SCROLLBAR|AELU_CARET, FALSE);
+
+
+AEM_LOCKERASERECT
+_________________
+
+Lock the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
+
+wParam               == not used.
+(const RECT *)lParam == pointer to a RECT structure that specifies the erasing rectangle.
+
+Return Value
+ TRUE   rectangle has been locked.
+ FALSE  rectangle not in erase area.
+
+Example:
+ if (uMsg == WM_ERASEBKGND)
+ {
+   RECT rcKeep={10, 0, 100, 100}; //Don't erase this rectangle, to avoid flashing.
+
+   SendMessage(hWndEdit, AEM_LOCKERASERECT, 0, (LPARAM)&rcKeep);
+ }
 
 
 AEM_HIDESELECTION

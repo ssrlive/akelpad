@@ -978,73 +978,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         ae->popt->bVScrollLock=(BOOL)lParam;
       return 0;
     }
-    if (uMsg == AEM_LOCKERASERECT)
-    {
-      AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
-      AEERASE *lpEraseNext;
-      const RECT *rcLockErase=(const RECT *)lParam;
-      RECT rcErase;
-      BOOL bDelete;
-      BOOL bResult=FALSE;
-
-      //WM_ERASEBKGND came not from WM_PAINT - use all edit area
-      if (!lpErase)
-        lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
-
-      while (lpErase)
-      {
-        if (IntersectRect(&rcErase, rcLockErase, &lpErase->rcErase))
-        {
-          if (lpErase->rcErase.left < rcLockErase->right && lpErase->rcErase.right > rcLockErase->left)
-          {
-            if (lpErase->rcErase.right > rcLockErase->right)
-            {
-              rcErase.left=rcLockErase->right;
-              rcErase.top=lpErase->rcErase.top;
-              rcErase.right=lpErase->rcErase.right;
-              rcErase.bottom=lpErase->rcErase.bottom;
-              AE_StackEraseInsert(ae, &rcErase);
-            }
-            if (lpErase->rcErase.left < rcLockErase->left)
-            {
-              rcErase.left=lpErase->rcErase.left;
-              rcErase.top=lpErase->rcErase.top;
-              rcErase.right=rcLockErase->left;
-              rcErase.bottom=lpErase->rcErase.bottom;
-              AE_StackEraseInsert(ae, &rcErase);
-            }
-          }
-          if (lpErase->rcErase.top < rcLockErase->bottom && lpErase->rcErase.bottom > rcLockErase->top)
-          {
-            if (lpErase->rcErase.bottom > rcLockErase->bottom)
-            {
-              rcErase.left=lpErase->rcErase.left;
-              rcErase.top=rcLockErase->bottom;
-              rcErase.right=lpErase->rcErase.right;
-              rcErase.bottom=lpErase->rcErase.bottom;
-              AE_StackEraseInsert(ae, &rcErase);
-            }
-            if (lpErase->rcErase.top < rcLockErase->top)
-            {
-              rcErase.left=lpErase->rcErase.left;
-              rcErase.top=lpErase->rcErase.top;
-              rcErase.right=lpErase->rcErase.right;
-              rcErase.bottom=rcLockErase->top;
-              AE_StackEraseInsert(ae, &rcErase);
-            }
-          }
-          bDelete=TRUE;
-          bResult=TRUE;
-        }
-        else bDelete=FALSE;
-
-        //Next erase rectangle
-        lpEraseNext=lpErase->next;
-        if (bDelete) AE_StackEraseDelete(ae, lpErase);
-        lpErase=lpEraseNext;
-      }
-      return bResult;
-    }
     if (uMsg == AEM_GETCHARSIZE)
     {
       if (wParam == AECS_HEIGHT)
@@ -1623,6 +1556,73 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           ae->popt->dwLockUpdate&=~AELU_CARET;
       }
       return ae->popt->dwLockUpdate;
+    }
+    if (uMsg == AEM_LOCKERASERECT)
+    {
+      AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
+      AEERASE *lpEraseNext;
+      const RECT *rcLockErase=(const RECT *)lParam;
+      RECT rcErase;
+      BOOL bDelete;
+      BOOL bResult=FALSE;
+
+      //WM_ERASEBKGND came not from WM_PAINT - use all edit area
+      if (!lpErase)
+        lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
+
+      while (lpErase)
+      {
+        if (IntersectRect(&rcErase, rcLockErase, &lpErase->rcErase))
+        {
+          if (lpErase->rcErase.left < rcLockErase->right && lpErase->rcErase.right > rcLockErase->left)
+          {
+            if (lpErase->rcErase.right > rcLockErase->right)
+            {
+              rcErase.left=rcLockErase->right;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+            if (lpErase->rcErase.left < rcLockErase->left)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=rcLockErase->left;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+          }
+          if (lpErase->rcErase.top < rcLockErase->bottom && lpErase->rcErase.bottom > rcLockErase->top)
+          {
+            if (lpErase->rcErase.bottom > rcLockErase->bottom)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=rcLockErase->bottom;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+            if (lpErase->rcErase.top < rcLockErase->top)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=rcLockErase->top;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+          }
+          bDelete=TRUE;
+          bResult=TRUE;
+        }
+        else bDelete=FALSE;
+
+        //Next erase rectangle
+        lpEraseNext=lpErase->next;
+        if (bDelete) AE_StackEraseDelete(ae, lpErase);
+        lpErase=lpEraseNext;
+      }
+      return bResult;
     }
     if (uMsg == AEM_HIDESELECTION)
     {
@@ -4003,11 +4003,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
                 {
                   if (ae->bDragSelectionDelete)
                   {
-                    AE_NotifyChanging(ae, AETCT_DRAGDELETE);
-                    AE_StackUndoGroupStop(ae);
-                    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
-                    AE_StackUndoGroupStop(ae);
-                    AE_NotifyChanged(ae); //AETCT_DRAGDELETE
+                    if (!AE_IsReadOnly(ae))
+                    {
+                      AE_NotifyChanging(ae, AETCT_DRAGDELETE);
+                      AE_StackUndoGroupStop(ae);
+                      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+                      AE_StackUndoGroupStop(ae);
+                      AE_NotifyChanged(ae); //AETCT_DRAGDELETE
+                    }
                   }
                 }
               }
@@ -8530,10 +8533,10 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   POINT64 ptSelEnd;
   BOOL bColumnSelOld;
 
+  if (ae->popt->dwOptions & AECO_LOCKSELECTION)
+    return;
   if (!(dwSelFlags & AESELT_LOCKUNDOGROUPING))
-  {
     AE_StackUndoGroupStop(ae);
-  }
   if (!(dwSelFlags & AESELT_MOUSE))
     ae->dwMouseSelType=AEMSS_CHARS;
 
