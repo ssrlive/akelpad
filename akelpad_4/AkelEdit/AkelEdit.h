@@ -1994,6 +1994,9 @@ Set ansi text of the edit control.
 Return Value
  Text length.
 
+Remarks
+ Message ignore AECO_READONLY flag.
+
 Example:
  SendMessage(hWndEdit, AEM_SETTEXTA, (WPARAM)-1, (LPARAM)"SomeText");
 
@@ -2008,6 +2011,9 @@ Set unicode text of the edit control.
 
 Return Value
  Text length.
+
+Remarks
+ Message ignore AECO_READONLY flag.
 
 Example:
  SendMessage(hWndEdit, AEM_SETTEXTW, (WPARAM)-1, (LPARAM)L"SomeText");
@@ -2176,6 +2182,9 @@ Replace the contents of an edit control with a stream of data provided by an app
 
 Return Value
  Number of bytes read.
+
+Remarks
+ Message ignore AECO_READONLY flag.
 
 Example:
  typedef struct {
