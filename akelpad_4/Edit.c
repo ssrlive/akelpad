@@ -286,7 +286,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   else
     cs.lpszClass=bOldWindows?L"AkelEditA":L"AkelEditW";
   cs.lpszName=NULL;
-  cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
+  cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_MULTILINE|
            ((moCur.dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
            ((moCur.dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL);
   cs.x=0;
