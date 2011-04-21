@@ -249,6 +249,8 @@
                                        //For better performance use AEC_NextCharInLineEx instead.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
                                        //For better performance use AEC_PrevCharInLineEx instead.
+#define AEGI_FIRSTVISIBLECHAR      22  //First visible character, collapsed lines are skipped.
+#define AEGI_LASTVISIBLECHAR       23  //Last visible character, collapsed lines are skipped.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
@@ -3038,7 +3040,7 @@ wParam                == not used.
 (AECHARINDEX *)lParam == AkelEdit character index.
 
 Return Value
- RichEdit offset.
+ RichEdit offset. If error, -1 is returned.
 
 Example:
  AECHARRANGE aecr;
