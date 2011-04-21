@@ -4426,8 +4426,6 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->ptxt->dwUndoLimit=(DWORD)-1;
     ae->ptxt->nHideMinLineOffset=1;
     ae->ptxt->nHideMaxLineOffset=-1;
-    ae->bHScrollShow=TRUE;
-    ae->bVScrollShow=TRUE;
     ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
     ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
@@ -4535,6 +4533,10 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->nOutputNewLine=AELB_RN;
     }
 
+    if (cs->style & WS_HSCROLL)
+      ae->bHScrollShow=TRUE;
+    if (cs->style & WS_VSCROLL)
+      ae->bVScrollShow=TRUE;
     if (cs->style & ES_READONLY)
       ae->popt->dwOptions|=AECO_READONLY;
     if (cs->style & ES_DISABLENOSCROLL)
@@ -10851,8 +10853,17 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_RANGE;
           GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+
           if (si.nMin || si.nMax)
+          {
             bSetScroll=TRUE;
+          }
+          else
+          {
+            if (ae->ptxt->nHScrollMax <= ae->rcDraw.right - ae->rcDraw.left)
+              ae->nHScrollPos=0;
+            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos);
+          }
         }
         else bSetScroll=TRUE;
 
@@ -10932,8 +10943,17 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_RANGE;
           GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+
           if (si.nMin || si.nMax)
+          {
             bSetScroll=TRUE;
+          }
+          else
+          {
+            if (ae->ptxt->nVScrollMax <= ae->rcDraw.bottom - ae->rcDraw.top)
+              ae->nVScrollPos=0;
+            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos);
+          }
         }
         else bSetScroll=TRUE;
 
