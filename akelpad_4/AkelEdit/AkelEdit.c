@@ -2551,39 +2551,42 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     SETTEXTEX *st=(SETTEXTEX *)wParam;
     BOOL bLockCollectUndo=ae->ptxt->bLockCollectUndo;
 
-    if (!(st->flags & ST_KEEPUNDO))
+    if (!AE_IsReadOnly(ae))
     {
-      AE_EmptyUndoBuffer(ae);
-      ae->ptxt->bLockCollectUndo=TRUE;
-    }
-    if (!(st->flags & ST_SELECTION))
-      AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
-
-    if (st->codepage == 1200)
-    {
-      AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
-    }
-    else if (st->codepage == 1201)
-    {
-      wchar_t *wszText;
-      UINT_PTR dwUnicodeBytes;
-
-      dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
-
-      if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
+      if (!(st->flags & ST_KEEPUNDO))
       {
-        xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
-        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
-        AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, FALSE, NULL, NULL);
-        AE_HeapFree(NULL, 0, (LPVOID)wszText);
+        AE_EmptyUndoBuffer(ae);
+        ae->ptxt->bLockCollectUndo=TRUE;
       }
+      if (!(st->flags & ST_SELECTION))
+        AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
+  
+      if (st->codepage == 1200)
+      {
+        AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
+      }
+      else if (st->codepage == 1201)
+      {
+        wchar_t *wszText;
+        UINT_PTR dwUnicodeBytes;
+  
+        dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
+  
+        if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
+        {
+          xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
+          AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
+          AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, FALSE, NULL, NULL);
+          AE_HeapFree(NULL, 0, (LPVOID)wszText);
+        }
+      }
+      else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
+  
+      if (!(st->flags & ST_KEEPUNDO))
+        ae->ptxt->bLockCollectUndo=bLockCollectUndo;
+      if (!(st->flags & ST_SELECTION))
+        AE_SetModify(ae, FALSE);
     }
-    else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
-
-    if (!(st->flags & ST_KEEPUNDO))
-      ae->ptxt->bLockCollectUndo=bLockCollectUndo;
-    if (!(st->flags & ST_SELECTION))
-      AE_SetModify(ae, FALSE);
     return 1;
   }
   if (uMsg == EM_FINDTEXT ||
@@ -3408,11 +3411,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditChar(ae, wParam, ae->bUnicodeWindow);
-        lResult=1;
-      }
+      AE_EditChar(ae, wParam, ae->bUnicodeWindow);
+      lResult=1;
       return lResult;
     }
   }
@@ -15132,6 +15132,8 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
+  if (AE_IsReadOnly(ae)) return;
+
   if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
@@ -15156,6 +15158,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   INT_PTR nSelStartCharOffset;
   INT_PTR nSelEndCharOffset;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
@@ -15192,6 +15195,8 @@ void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
+  if (AE_IsReadOnly(ae)) return;
+
   if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
@@ -15216,6 +15221,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   BOOL bUpdateVScroll=FALSE;
   BOOL bUpdateCaret=FALSE;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
 
@@ -17383,10 +17389,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (!bAlt && bControl)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditChar(ae, VK_TAB, TRUE);
-      }
+      AE_EditChar(ae, VK_TAB, TRUE);
       return TRUE;
     }
   }
@@ -17394,10 +17397,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (!bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditKeyReturn(ae);
-      }
+      AE_EditKeyReturn(ae);
     }
     return TRUE;
   }
@@ -17405,17 +17405,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (!bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditKeyBackspace(ae, bControl);
-      }
+      AE_EditKeyBackspace(ae, bControl);
     }
     else if (!bControl && !bShift)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditUndo(ae);
-      }
+      AE_EditUndo(ae);
     }
     return TRUE;
   }
@@ -17425,17 +17419,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     {
       if (!bShift)
       {
-        if (!AE_IsReadOnly(ae))
-        {
-          AE_EditKeyDelete(ae, bControl);
-        }
+        AE_EditKeyDelete(ae, bControl);
       }
       else if (!bControl)
       {
-        if (!AE_IsReadOnly(ae))
-        {
-          AE_EditCut(ae);
-        }
+        AE_EditCut(ae);
       }
     }
     return TRUE;
@@ -17457,17 +17445,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         }
         else if (!bControl && bShift)
         {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditPasteFromClipboard(ae, FALSE);
-          }
+          AE_EditPasteFromClipboard(ae, FALSE);
         }
         else if (bControl && bShift)
         {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditPasteFromClipboard(ae, TRUE);
-          }
+          AE_EditPasteFromClipboard(ae, TRUE);
         }
       }
     }
@@ -17477,10 +17459,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditCut(ae);
-      }
+      AE_EditCut(ae);
     }
     return TRUE;
   }
@@ -17496,17 +17475,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditPasteFromClipboard(ae, FALSE);
-      }
+      AE_EditPasteFromClipboard(ae, FALSE);
     }
     else if (bControl && bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditPasteFromClipboard(ae, TRUE);
-      }
+      AE_EditPasteFromClipboard(ae, TRUE);
     }
     return TRUE;
   }
@@ -17514,17 +17487,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditUndo(ae);
-      }
+      AE_EditUndo(ae);
     }
     else if (bControl && bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditRedo(ae);
-      }
+      AE_EditRedo(ae);
     }
     return TRUE;
   }
@@ -17532,10 +17499,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      if (!AE_IsReadOnly(ae))
-      {
-        AE_EditRedo(ae);
-      }
+      AE_EditRedo(ae);
     }
     return TRUE;
   }
@@ -17817,6 +17781,7 @@ void AE_EditUndo(AKELEDIT *ae)
   AECHARINDEX ciInsertEnd;
   BOOL bColumnSel;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_UNDO);
   AE_StackUndoGroupStop(ae);
   lpCurElement=ae->ptxt->lpCurrentUndo;
@@ -17919,6 +17884,7 @@ void AE_EditRedo(AKELEDIT *ae)
   AECHARINDEX ciInsertEnd;
   BOOL bColumnSel;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_REDO);
 
   if (!lpCurElement)
@@ -18008,6 +17974,7 @@ void AE_EditRedo(AKELEDIT *ae)
 void AE_EditCut(AKELEDIT *ae)
 {
   AE_EditCopyToClipboard(ae);
+  if (AE_IsReadOnly(ae)) return;
 
   AE_NotifyChanging(ae, AETCT_CUT);
   AE_StackUndoGroupStop(ae);
@@ -18092,6 +18059,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
   BOOL bColumnSel;
   BOOL bResult=FALSE;
 
+  if (AE_IsReadOnly(ae)) return bResult;
   bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
 
   if (OpenClipboard(NULL))
@@ -18140,6 +18108,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)
 {
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_CHAR);
 
   if (!bUnicode)
@@ -18221,6 +18190,7 @@ void AE_EditKeyReturn(AKELEDIT *ae)
   const wchar_t *wpNewLine;
   int nNewLine;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_KEYRETURN);
 
   nNewLine=AE_GetNewLineString(ae, AELB_ASOUTPUT, &wpNewLine);
@@ -18247,6 +18217,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
 {
   AECHARINDEX ciCharIndex=ae->ciCaretIndex;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_KEYBACKSPACE);
 
   if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
@@ -18294,6 +18265,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
   AECHARINDEX ciCharIndex=ae->ciCaretIndex;
   int nSpaces=0;
 
+  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_KEYDELETE);
 
   if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
