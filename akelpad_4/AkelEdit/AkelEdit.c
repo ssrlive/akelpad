@@ -723,7 +723,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-      return AE_AkelIndexToRichOffset(ae, ciCharIndex);
+      if (ciCharIndex && ciCharIndex->lpLine)
+        return AE_AkelIndexToRichOffset(ae, ciCharIndex);
+      return -1;
     }
     if (uMsg == AEM_RICHOFFSETTOINDEX)
     {
@@ -7391,6 +7393,28 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
   else if (nType == AEGI_PREVCHARINLINE)
   {
     return AEC_PrevCharInLineEx(ciCharIn, ciCharOut);
+  }
+  else if (nType == AEGI_FIRSTVISIBLECHAR)
+  {
+    AECHARINDEX ciCharTmp;
+
+    if (AE_GetCharFromPos(ae, (POINT *)&ae->rcDraw.left, &ciCharTmp, NULL, FALSE))
+    {
+      *ciCharOut=ciCharTmp;
+      return ciCharOut->lpLine;
+    }
+    return NULL;
+  }
+  else if (nType == AEGI_LASTVISIBLECHAR)
+  {
+    AECHARINDEX ciCharTmp;
+
+    if (AE_GetCharFromPos(ae, (POINT *)&ae->rcDraw.right, &ciCharTmp, NULL, FALSE))
+    {
+      *ciCharOut=ciCharTmp;
+      return ciCharOut->lpLine;
+    }
+    return NULL;
   }
   return NULL;
 }
