@@ -287,7 +287,6 @@ typedef struct _AEQUOTESTART {
 
   //Stack with the same pQuoteStart.
   AESTACKQUOTEITEMHANDLE hQuoteItemHandleStack;
-  int nElements;
 } AEQUOTESTART;
 
 typedef struct {

@@ -10360,7 +10360,6 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
   if (!AE_HeapStackInsertIndex(ae, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last, (stack **)&lpQuoteItemHandle, -1, sizeof(AEQUOTEITEMHANDLE)))
   {
     lpQuoteItemHandle->lpQuoteItem=lpQuoteItem;
-    ++lpQuoteStart->nElements;
   }
   return lpQuoteStart;
 }
