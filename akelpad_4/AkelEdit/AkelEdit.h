@@ -356,22 +356,23 @@
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
 //Highlight flags
-#define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_WORDCOMPOSITION        0x0002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
-#define AEHLF_QUOTEEND_REQUIRED      0x0004  //If quote end isn't found, text after quote start will not be highlighted.
-#define AEHLF_QUOTESTART_ISDELIMITER 0x0008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
-#define AEHLF_QUOTEEND_ISDELIMITER   0x0010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
-#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x0020  //Don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x0040  //Don't highlight quote end string.
-#define AEHLF_QUOTESTART_NOCATCH     0x0080  //Don't catch and don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOMATCH       0x0100  //Don't catch and don't highlight quote end string.
-#define AEHLF_ATLINESTART            0x0200  //Quote start, delimiter or word located at line start.
-#define AEHLF_ATLINEEND              0x0400  //Quote end, delimiter or word located at line end.
-#define AEHLF_QUOTESTART_ISWORD      0x0800  //Quote start is surrounded with delimiters.
-#define AEHLF_QUOTEEND_ISWORD        0x1000  //Quote end is surrounded with delimiters.
-#define AEHLF_QUOTEWITHOUTDELIMITERS 0x2000  //Quote doesn't contain delimiters.
-#define AEHLF_QUOTEINCLUDE           0x4000  //Quote include string is valid.
-#define AEHLF_QUOTEEXCLUDE           0x8000  //Quote exclude string is valid.
+#define AEHLF_MATCHCASE              0x00001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
+#define AEHLF_WORDCOMPOSITION        0x00002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
+#define AEHLF_QUOTEEND_REQUIRED      0x00004  //If quote end isn't found, text after quote start will not be highlighted.
+#define AEHLF_QUOTESTART_ISDELIMITER 0x00008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
+#define AEHLF_QUOTEEND_ISDELIMITER   0x00010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
+#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x00020  //Don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x00040  //Don't highlight quote end string.
+#define AEHLF_QUOTESTART_NOCATCH     0x00080  //Don't catch and don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOCATCH       0x00100  //Don't catch and don't highlight quote end string.
+#define AEHLF_ATLINESTART            0x00200  //Quote start, delimiter or word located at line start.
+#define AEHLF_ATLINEEND              0x00400  //Quote end, delimiter or word located at line end.
+#define AEHLF_QUOTESTART_ISWORD      0x00800  //Quote start is surrounded with delimiters.
+#define AEHLF_QUOTEEND_ISWORD        0x01000  //Quote end is surrounded with delimiters.
+#define AEHLF_QUOTEWITHOUTDELIMITERS 0x02000  //Quote doesn't contain delimiters.
+#define AEHLF_QUOTESTART_CATCHONLY   0x04000  //Only quote start string is catched.
+#define AEHLF_QUOTEINCLUDE           0x10000  //Quote include string is valid.
+#define AEHLF_QUOTEEXCLUDE           0x20000  //Quote exclude string is valid.
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
