@@ -219,38 +219,42 @@
 #define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
 #define AEGL_LINEUNWRAPCOUNT       11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
 
-//AEM_GETINDEX flags
+//AEM_GETINDEX and AEM_GETRICHOFFSET flags
 #define AEGI_FIRSTCHAR              1  //First character.
 #define AEGI_LASTCHAR               2  //Last character.
 #define AEGI_FIRSTSELCHAR           3  //First character of the selection.
 #define AEGI_LASTSELCHAR            4  //Last character of the selection.
 #define AEGI_CARETCHAR              5  //Caret character.
-#define AEGI_NEXTCHAR               6  //Next wide character. lParam must point to an input index.
-                                       //For better performance use AEC_NextCharEx instead.
-#define AEGI_PREVCHAR               7  //Previous wide character. lParam must point to an input index.
-                                       //For better performance use AEC_PrevCharEx instead.
-#define AEGI_NEXTLINE               8  //First character of the next line. lParam must point to an input index.
-                                       //For better performance use AEC_NextLineEx instead.
-#define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
-                                       //For better performance use AEC_PrevLineEx instead.
+#define AEGI_FIRSTVISIBLECHAR       6  //First visible character, collapsed lines are skipped.
+#define AEGI_LASTVISIBLECHAR        7  //Last visible character, collapsed lines are skipped.
+#define AEGI_FIRSTFULLVISIBLECHAR   8  //First fully visible character, collapsed lines are skipped.
+#define AEGI_LASTFULLVISIBLECHAR    9  //Last fully visible character, collapsed lines are skipped.
 #define AEGI_FIRSTVISIBLELINE      10  //First character of the first visible line, collapsed lines are skipped.
 #define AEGI_LASTVISIBLELINE       11  //Last character of the last visible line, collapsed lines are skipped.
 #define AEGI_FIRSTFULLVISIBLELINE  12  //First character of the first fully visible line, collapsed lines are skipped.
 #define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
-#define AEGI_NEXTUNCOLLAPSEDLINE   14  //First character of the next line, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_PREVUNCOLLAPSEDLINE   15  //First character of the previous line, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_NEXTUNCOLLAPSEDCHAR   16  //Next wide character, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_PREVUNCOLLAPSEDCHAR   17  //Previous wide character, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+                                       //
+//Next flags require pointer to the input index in lParam.
+#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
                                        //For better performance use AEC_WrapLineBeginEx instead.
-#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
                                        //For better performance use AEC_WrapLineEndEx instead.
-#define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
+#define AEGI_NEXTCHARINLINE        20  //Next character in line.
                                        //For better performance use AEC_NextCharInLineEx instead.
-#define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
+#define AEGI_PREVCHARINLINE        21  //Previous character in line.
                                        //For better performance use AEC_PrevCharInLineEx instead.
-#define AEGI_FIRSTVISIBLECHAR      22  //First visible character, collapsed lines are skipped.
-#define AEGI_LASTVISIBLECHAR       23  //Last visible character, collapsed lines are skipped.
+#define AEGI_NEXTCHAR              22  //Next wide character.
+                                       //For better performance use AEC_NextCharEx instead.
+#define AEGI_PREVCHAR              23  //Previous wide character.
+                                       //For better performance use AEC_PrevCharEx instead.
+#define AEGI_NEXTLINE              24  //First character of the next line.
+                                       //For better performance use AEC_NextLineEx instead.
+#define AEGI_PREVLINE              25  //First character of the previous line.
+                                       //For better performance use AEC_PrevLineEx instead.
+#define AEGI_NEXTUNCOLLAPSEDCHAR   26  //Next wide character, collapsed lines are skipped.
+#define AEGI_PREVUNCOLLAPSEDCHAR   27  //Previous wide character, collapsed lines are skipped.
+#define AEGI_NEXTUNCOLLAPSEDLINE   28  //First character of the next line, collapsed lines are skipped.
+#define AEGI_PREVUNCOLLAPSEDLINE   29  //First character of the previous line, collapsed lines are skipped.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
@@ -890,8 +894,8 @@ typedef struct {
 } AEINDEXOFFSET;
 
 typedef struct {
-  AECHARINDEX *ciChar1;   //[in] First character index.
-  AECHARINDEX *ciChar2;   //[in] Second character index.
+  AECHARINDEX *ciChar1;   //[in] First character index. If NULL, first character is used.
+  AECHARINDEX *ciChar2;   //[in] Second character index. If NULL, last character is used.
   BOOL bColumnSel;        //[in] Column selection. If this value is -1, use current selection type.
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
@@ -1363,9 +1367,7 @@ typedef struct {
 #define AEM_INDEXOFFSET           (WM_USER + 2111)
 #define AEM_INDEXTORICHOFFSET     (WM_USER + 2112)
 #define AEM_RICHOFFSETTOINDEX     (WM_USER + 2113)
-#define AEM_ADDPOINT              (WM_USER + 2114)
-#define AEM_DELPOINT              (WM_USER + 2115)
-#define AEM_GETPOINTSTACK         (WM_USER + 2116)
+#define AEM_GETRICHOFFSET         (WM_USER + 2114)
 #define AEM_GETWRAPLINE           (WM_USER + 2118)
 #define AEM_GETUNWRAPLINE         (WM_USER + 2119)
 #define AEM_GETNEXTBREAK          (WM_USER + 2120)
@@ -1374,8 +1376,13 @@ typedef struct {
 #define AEM_INDEXTOCOLUMN         (WM_USER + 2123)
 #define AEM_COLUMNTOINDEX         (WM_USER + 2124)
 #define AEM_INDEXINURL            (WM_USER + 2125)
+#define AEM_ADDPOINT              (WM_USER + 2141)
+#define AEM_DELPOINT              (WM_USER + 2142)
+#define AEM_GETPOINTSTACK         (WM_USER + 2143)
 
 //Screen coordinates
+#define AEM_CHARFROMGLOBALPOS     (WM_USER + 2149)
+#define AEM_GLOBALPOSFROMCHAR     (WM_USER + 2150)
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
 #define AEM_POSFROMCHAR           (WM_USER + 2152)
 #define AEM_GETRECT               (WM_USER + 2153)
@@ -3076,86 +3083,21 @@ Example:
  SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMax, (LPARAM)&aecr.ciMax);
 
 
-AEM_ADDPOINT
-____________
-
-Add character index to a points stack. Character index will be updated after every text change.
-
-wParam            == not used.
-(AEPOINT *)lParam == pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
-
-Return Value
- Pointer to a created AEPOINT structure.
-
-Example:
- AEPOINT *lpPoint;
- AEPOINT point;
- AECHARINDEX ciChar;
-
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&point.ciPoint);
- point.nPointOffset=AEPTO_CALC;
- point.nPointLen=0;
- point.dwFlags=0;
- point.dwUserData=0;
-
- if (lpPoint=(AEPOINT *)SendMessage(hWndEdit, AEM_ADDPOINT, 0, (LPARAM)&point))
- {
-   SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
-   ciChar=lpPoint->ciPoint;  //Read new position
-   SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPoint, 0);
- }
-
-
-AEM_DELPOINT
-____________
-
-Delete character index from points stack.
-
-(AEPOINT *)wParam == pointer to a AEPOINT structure, returned by AEM_ADDPOINT.
-lParam            == not used.
-
-Return Value
- Zero.
-
-Example:
- See AEM_ADDPOINT example.
-
-
-AEM_GETPOINTSTACK
+AEM_GETRICHOFFSET
 _________________
 
-Retrieve point stack handle.
+Retrieve the specified RichEdit offset.
 
-wParam == not used.
-lParam == not used.
+(int)wParam     == see AEGI_* defines.
+(INT_PTR)lParam == input character RichEdit offset, if required.
 
 Return Value
- Pointer to a HSTACK structure.
+ RichEdit offset.
 
 Example:
-void RemoveChangedPoints(HWND hWnd)
-{
-  HSTACK *hPointStack;
-  AEPOINT *lpPointItem;
-  AEPOINT *lpPointNextItem;
+ INT_PTR nOffset;
 
-  if (hPointStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETPOINTSTACK, 0, 0))
-  {
-    lpPointItem=(AEPOINT *)hPointStack->first;
-
-    while (lpPointItem)
-    {
-      lpPointNextItem=lpPointItem->next;
-
-      if ((lpPointItem->dwFlags & AEPTF_INSERT) ||
-          (lpPointItem->dwFlags & AEPTF_DELETE))
-      {
-        SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPointItem, 0);
-      }
-      lpPointItem=lpPointNextItem;
-    }
-  }
-}
+ nOffset=SendMessage(hWndEdit, AEM_GETRICHOFFSET, AEGI_LASTCHAR, 0);
 
 
 AEM_GETWRAPLINE
@@ -3322,23 +3264,147 @@ Example:
  SendMessage(hWndEdit, AEM_INDEXINURL, (WPARAM)&ciCaret, (LPARAM)&crUrl);
 
 
-AEM_CHARFROMPOS
-_______________
+AEM_ADDPOINT
+____________
 
-Retrieve the closest wide character to a specified point in the client area of an edit control.
+Add character index to a points stack. Character index will be updated after every text change.
 
-(POINT *)wParam       == coordinates of a point in the control's client area.
+wParam            == not used.
+(AEPOINT *)lParam == pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
+
+Return Value
+ Pointer to a created AEPOINT structure.
+
+Example:
+ AEPOINT *lpPoint;
+ AEPOINT point;
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&point.ciPoint);
+ point.nPointOffset=AEPTO_CALC;
+ point.nPointLen=0;
+ point.dwFlags=0;
+ point.dwUserData=0;
+
+ if (lpPoint=(AEPOINT *)SendMessage(hWndEdit, AEM_ADDPOINT, 0, (LPARAM)&point))
+ {
+   SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+   ciChar=lpPoint->ciPoint;  //Read new position
+   SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPoint, 0);
+ }
+
+
+AEM_DELPOINT
+____________
+
+Delete character index from points stack.
+
+(AEPOINT *)wParam == pointer to a AEPOINT structure, returned by AEM_ADDPOINT.
+lParam            == not used.
+
+Return Value
+ Zero.
+
+Example:
+ See AEM_ADDPOINT example.
+
+
+AEM_GETPOINTSTACK
+_________________
+
+Retrieve point stack handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Pointer to a HSTACK structure.
+
+Example:
+void RemoveChangedPoints(HWND hWnd)
+{
+  HSTACK *hPointStack;
+  AEPOINT *lpPointItem;
+  AEPOINT *lpPointNextItem;
+
+  if (hPointStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETPOINTSTACK, 0, 0))
+  {
+    lpPointItem=(AEPOINT *)hPointStack->first;
+
+    while (lpPointItem)
+    {
+      lpPointNextItem=lpPointItem->next;
+
+      if ((lpPointItem->dwFlags & AEPTF_INSERT) ||
+          (lpPointItem->dwFlags & AEPTF_DELETE))
+      {
+        SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPointItem, 0);
+      }
+      lpPointItem=lpPointNextItem;
+    }
+  }
+}
+
+
+AEM_CHARFROMGLOBALPOS
+_____________________
+
+Retrieve the closest wide character to a specified point in the virtual text space of an edit control.
+
+(POINT64 *)wParam     == Input:  coordinates of a point in the control's virtual text space.
+                         Output: exact coordinates in the virtual text space of a returned character.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
  See AEPC_* defines.
 
 Example:
- RECT rc;
- AECHARINDEX ciFirstVisible;
+ AECHARINDEX ciCaret;
+ POINT64 ptGlobal;
 
- SendMessage(hWndEdit, AEM_GETRECT, 0, (LPARAM)&rc);
- SendMessage(hWndEdit, AEM_CHARFROMPOS, (WPARAM)&rc.left, (LPARAM)&ciFirstVisible);
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)NULL, (WPARAM)&ptGlobal);
+ SendMessage(hWndEdit, AEM_CHARFROMGLOBALPOS, (WPARAM)&ptGlobal, (LPARAM)&ciCaret);
+
+
+AEM_GLOBALPOSFROMCHAR
+_____________________
+
+Retrieve the coordinates in the virtual text space of a specified character in an edit control.
+
+(POINT64 *)wParam     == coordinates of a point in the control's virtual text space.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+ AECHARINDEX ciChar;
+ POINT64 ptGlobal;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLECHAR, (LPARAM)&ciChar);
+ SendMessage(hWndEdit, AEM_GLOBALPOSFROMCHAR, (WPARAM)&ptGlobal, (LPARAM)&ciChar);
+
+
+AEM_CHARFROMPOS
+_______________
+
+Retrieve the closest wide character to a specified point in the client area of an edit control.
+
+(POINT *)wParam       == Input:  coordinates of a point in the control's client area.
+                         Output: exact client coordinates of a returned character.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ See AEPC_* defines.
+
+Example:
+ AECHARINDEX ciFirstVisible;
+ POINT ptClient;
+
+ ptClient.x=10;
+ ptClient.y=10;
+ SendMessage(hWndEdit, AEM_CHARFROMPOS, (WPARAM)&ptClient, (LPARAM)&ciFirstVisible);
 
 
 AEM_POSFROMCHAR
@@ -3350,14 +3416,15 @@ Retrieve the client area coordinates of a specified character in an edit control
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- See AEPC_* defines.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
- POINT pt;
  AECHARINDEX ciChar;
+ POINT ptClient;
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciChar);
- SendMessage(hWndEdit, AEM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)&ciChar);
+ SendMessage(hWndEdit, AEM_POSFROMCHAR, (WPARAM)&ptClient, (LPARAM)&ciChar);
 
 
 AEM_GETRECT
@@ -3411,10 +3478,10 @@ Return Value
  Zero.
 
 Example:
- POINT64 ptMax;
- POINT64 ptPos;
+ POINT64 ptGlobalMax;
+ POINT64 ptGlobalPos;
 
- SendMessage(hWndEdit, AEM_GETSCROLLPOS, (WPARAM)&ptMax, (LPARAM)&ptPos);
+ SendMessage(hWndEdit, AEM_GETSCROLLPOS, (WPARAM)&ptGlobalMax, (LPARAM)&ptGlobalPos);
 
 
 AEM_SETSCROLLPOS
@@ -3429,11 +3496,11 @@ Return Value
  Zero.
 
 Example:
- POINT64 pt;
+ POINT64 ptGlobal;
 
- pt.x=20;
- pt.y=10;
- SendMessage(hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&pt);
+ ptGlobal.x=20;
+ ptGlobal.y=10;
+ SendMessage(hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptGlobal);
 
 
 AEM_SCROLL
@@ -3630,11 +3697,11 @@ Return Value
  See AESIDE_* defines.
 
 Example:
- POINT pt;
+ POINT ptClient;
 
- pt.x=10;
- pt.y=10;
- SendMessage(hWndEdit, AEM_POINTONMARGIN, (WPARAM)&pt, 0);
+ ptClient.x=10;
+ ptClient.y=10;
+ SendMessage(hWndEdit, AEM_POINTONMARGIN, (WPARAM)&ptClient, 0);
 
 
 AEM_POINTONSELECTION
@@ -3650,11 +3717,11 @@ Return Value
  FALSE not on selection.
 
 Example:
- POINT pt;
+ POINT ptClient;
 
- pt.x=10;
- pt.y=10;
- SendMessage(hWndEdit, AEM_POINTONSELECTION, (WPARAM)&pt, 0);
+ ptClient.x=10;
+ ptClient.y=10;
+ SendMessage(hWndEdit, AEM_POINTONSELECTION, (WPARAM)&ptClient, 0);
 
 
 AEM_POINTONURL
@@ -3670,11 +3737,11 @@ Return Value
 
 Example:
  AECHARRANGE cr;
- POINT pt;
+ POINT ptClient;
 
- pt.x=10;
- pt.y=10;
- SendMessage(hWndEdit, AEM_POINTONURL, (WPARAM)&pt, (LPARAM)&cr);
+ ptClient.x=10;
+ ptClient.y=10;
+ SendMessage(hWndEdit, AEM_POINTONURL, (WPARAM)&ptClient, (LPARAM)&cr);
 
 
 AEM_LINEFROMVPOS

@@ -598,8 +598,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     //Text coordinates
     ExGetSel:
-    if (uMsg >= AEM_CHARFROMPOS)
-      goto CharFromPos;
+    if (uMsg >= AEM_CHARFROMGLOBALPOS)
+      goto CharFromGlobalPos;
 
     if (uMsg == AEM_EXGETSEL)
     {
@@ -683,7 +683,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-      return (LRESULT)AE_GetIndex(ae, (int)wParam, ciCharIndex, ciCharIndex, FALSE);
+      return (LRESULT)AE_GetIndex(ae, (int)wParam, ciCharIndex, ciCharIndex);
     }
     if (uMsg == AEM_GETLINEINDEX)
     {
@@ -735,33 +735,48 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_RichOffsetToAkelIndex(ae, wParam, ciCharIndex);
       return 0;
     }
-    if (uMsg == AEM_ADDPOINT)
+    if (uMsg == AEM_GETRICHOFFSET)
     {
-      AEPOINT *lpSourcePoint=(AEPOINT *)lParam;
-      AEPOINT *lpTargetPoint;
+      AECHARINDEX ciChar;
 
-      if (lpTargetPoint=AE_StackPointInsert(ae, &lpSourcePoint->ciPoint))
+      if (wParam <= AEGI_CARETCHAR)
       {
-        if (lpSourcePoint->nPointOffset == AEPTO_CALC)
-          lpTargetPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpSourcePoint->ciPoint);
-        else
-          lpTargetPoint->nPointOffset=lpSourcePoint->nPointOffset;
-        lpTargetPoint->nPointLen=lpSourcePoint->nPointLen;
-        lpTargetPoint->dwFlags=lpSourcePoint->dwFlags;
-        lpTargetPoint->dwUserData=lpSourcePoint->dwUserData;
+        if (wParam == AEGI_FIRSTCHAR)
+        {
+          return 0;
+        }
+        else if (wParam == AEGI_LASTCHAR)
+        {
+          return ae->ptxt->nLastCharOffset;
+        }
+        else if (wParam == AEGI_FIRSTSELCHAR)
+        {
+          return ae->nSelStartCharOffset;
+        }
+        else if (wParam == AEGI_LASTSELCHAR)
+        {
+          return ae->nSelEndCharOffset;
+        }
+        else if (wParam == AEGI_CARETCHAR)
+        {
+          if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
+            return ae->nSelEndCharOffset;
+          else
+            return ae->nSelStartCharOffset;
+        }
       }
-      return (LRESULT)lpTargetPoint;
-    }
-    if (uMsg == AEM_DELPOINT)
-    {
-      AEPOINT *lpPoint=(AEPOINT *)wParam;
-
-      AE_StackPointDelete(ae, lpPoint);
-      return 0;
-    }
-    if (uMsg == AEM_GETPOINTSTACK)
-    {
-      return (LRESULT)&ae->ptxt->hPointsStack;
+      else if (wParam <= AEGI_LASTFULLVISIBLELINE)
+      {
+        if (AE_GetIndex(ae, wParam, NULL, &ciChar))
+          return AE_AkelIndexToRichOffset(ae, &ciChar);
+      }
+      else
+      {
+        AE_RichOffsetToAkelIndex(ae, lParam, &ciChar);
+        if (AE_GetIndex(ae, wParam, &ciChar, &ciChar))
+          return AE_AkelIndexToRichOffset(ae, &ciChar);
+      }
+      return -1;
     }
     if (uMsg == AEM_GETWRAPLINE)
     {
@@ -858,26 +873,73 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return AE_HighlightFindUrl(ae, ciChar, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crRange);
     }
+    if (uMsg == AEM_ADDPOINT)
+    {
+      AEPOINT *lpSourcePoint=(AEPOINT *)lParam;
+      AEPOINT *lpTargetPoint;
+
+      if (lpTargetPoint=AE_StackPointInsert(ae, &lpSourcePoint->ciPoint))
+      {
+        if (lpSourcePoint->nPointOffset == AEPTO_CALC)
+          lpTargetPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpSourcePoint->ciPoint);
+        else
+          lpTargetPoint->nPointOffset=lpSourcePoint->nPointOffset;
+        lpTargetPoint->nPointLen=lpSourcePoint->nPointLen;
+        lpTargetPoint->dwFlags=lpSourcePoint->dwFlags;
+        lpTargetPoint->dwUserData=lpSourcePoint->dwUserData;
+      }
+      return (LRESULT)lpTargetPoint;
+    }
+    if (uMsg == AEM_DELPOINT)
+    {
+      AEPOINT *lpPoint=(AEPOINT *)wParam;
+
+      AE_StackPointDelete(ae, lpPoint);
+      return 0;
+    }
+    if (uMsg == AEM_GETPOINTSTACK)
+    {
+      return (LRESULT)&ae->ptxt->hPointsStack;
+    }
 
     //Screen coordinates
-    CharFromPos:
+    CharFromGlobalPos:
     if (uMsg >= AEM_CONTROLCLASS)
       goto ControlClass;
 
-    if (uMsg == AEM_CHARFROMPOS)
+    if (uMsg == AEM_CHARFROMGLOBALPOS)
     {
-      POINT *pt=(POINT *)wParam;
+      POINT64 *ptGlobal=(POINT64 *)wParam;
+      POINT64 ptClient64;
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-      return AE_GetCharFromPos(ae, pt, ciCharIndex, NULL, ae->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+      AE_GlobalToClient(ae, ptGlobal, &ptClient64, NULL);
+      return AE_GetCharFromPos(ae, ptClient64.x, ptClient64.y, ciCharIndex, ptGlobal, ae->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+    }
+    if (uMsg == AEM_GLOBALPOSFROMCHAR)
+    {
+      POINT64 *ptGlobal=(POINT64 *)wParam;
+      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+      return AE_GetPosFromChar(ae, ciCharIndex, ptGlobal, NULL);
+    }
+    if (uMsg == AEM_CHARFROMPOS)
+    {
+      POINT64 ptGlobal;
+      POINT *ptClient=(POINT *)wParam;
+      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+      BOOL bResult;
+
+      if (bResult=AE_GetCharFromPos(ae, ptClient->x, ptClient->y, ciCharIndex, &ptGlobal, ae->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE)))
+        AE_GlobalToClient(ae, &ptGlobal, NULL, ptClient);
+      return bResult;
     }
     if (uMsg == AEM_POSFROMCHAR)
     {
-      POINT *pt=(POINT *)wParam;
+      POINT *ptClient=(POINT *)wParam;
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-      AE_GetPosFromChar(ae, ciCharIndex, NULL, pt);
-      return 0;
+      return AE_GetPosFromChar(ae, ciCharIndex, NULL, ptClient);
     }
     if (uMsg == AEM_GETRECT)
     {
@@ -1017,13 +1079,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       POINT64 *ptGlobal=(POINT64 *)lParam;
 
       if (ptClient)
-      {
-        AE_GlobalToClient(ae, &ae->ptCaret, ptClient);
-      }
+        AE_GlobalToClient(ae, &ae->ptCaret, NULL, ptClient);
       if (ptGlobal)
-      {
         *ptGlobal=ae->ptCaret;
-      }
       return ae->bCaretVisible;
     }
     if (uMsg == AEM_GETCARETHORZINDENT)
@@ -1038,19 +1096,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_CONVERTPOINT)
     {
       POINT64 *pt=(POINT64 *)lParam;
-      POINT ptClient;
 
       if (wParam == AECPT_GLOBALTOCLIENT)
       {
-        AE_GlobalToClient(ae, pt, &ptClient);
-        pt->x=ptClient.x;
-        pt->y=ptClient.y;
+        AE_GlobalToClient(ae, pt, pt, NULL);
       }
       if (wParam == AECPT_CLIENTTOGLOBAL)
       {
-        ptClient.x=(int)pt->x;
-        ptClient.y=(int)pt->y;
-        AE_ClientToGlobal(ae, &ptClient, pt);
+        AE_ClientToGlobal(ae, pt->x, pt->y, pt);
       }
       return 0;
     }
@@ -1058,13 +1111,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       POINT *pt=(POINT *)wParam;
 
-      return AE_IsPointOnMargin(ae, pt);
+      return AE_IsPointOnMargin(ae, pt->x, pt->y);
     }
     if (uMsg == AEM_POINTONSELECTION)
     {
       POINT *pt=(POINT *)wParam;
 
-      return AE_IsPointOnSelection(ae, pt);
+      return AE_IsPointOnSelection(ae, pt->x, pt->y);
     }
     if (uMsg == AEM_POINTONURL)
     {
@@ -1073,7 +1126,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECHARRANGE crLink;
       DWORD dwResult;
 
-      dwResult=AE_IsPointOnUrl(ae, pt, &crLink);
+      dwResult=AE_IsPointOnUrl(ae, pt->x, pt->y, &crLink);
       if (lpcrLink) xmemcpy(lpcrLink, &crLink, sizeof(AECHARRANGE));
       return dwResult;
     }
@@ -2493,8 +2546,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else
     {
-      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, FALSE);
-      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, FALSE);
+      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
     }
 
     if (gt->flags & GT_USECRLF)
@@ -2529,8 +2582,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else
     {
-      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, FALSE);
-      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, FALSE);
+      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
     }
 
     if (gt->flags & GT_USECRLF)
@@ -2887,28 +2940,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (lParam || !IsBadWritePtr((void *)wParam, sizeof(POINT)))
     {
       //RichEdit 3.0 syntax
-      POINT *pt=(POINT *)wParam;
+      POINT *ptClient=(POINT *)wParam;
 
       AE_RichOffsetToAkelIndex(ae, lParam, &ci);
-      AE_GetPosFromChar(ae, &ci, NULL, pt);
+      AE_GetPosFromChar(ae, &ci, NULL, ptClient);
       return 0;
     }
     else
     {
       //RichEdit 2.0 syntax
-      POINT pt;
+      POINT ptClient;
 
       AE_RichOffsetToAkelIndex(ae, wParam, &ci);
-      AE_GetPosFromChar(ae, &ci, NULL, &pt);
-      return MAKELONG(pt.x, pt.y);
+      AE_GetPosFromChar(ae, &ci, NULL, &ptClient);
+      return MAKELONG(ptClient.x, ptClient.y);
     }
   }
   if (uMsg == EM_CHARFROMPOS)
   {
-    POINT *pt=(POINT *)lParam;
+    POINT *ptClient=(POINT *)lParam;
     AECHARINDEX ci={0};
 
-    AE_GetCharFromPos(ae, pt, &ci, NULL, FALSE);
+    AE_GetCharFromPos(ae, ptClient->x, ptClient->y, &ci, NULL, FALSE);
     return AE_AkelIndexToRichOffset(ae, &ci);
   }
   if (uMsg == EM_GETRECT)
@@ -3285,8 +3338,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     AECHARRANGE cr;
     UINT_PTR dwResult;
 
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, FALSE);
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
 
     if (!ae->bUnicodeWindow)
       dwResult=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)lParam, wParam, AELB_ASOUTPUT, FALSE, FALSE);
@@ -3456,7 +3509,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpcf->dwStyle == CFS_CANDIDATEPOS)
       {
-        AE_GlobalToClient(ae, &ae->ptCaret, &lpcf->ptCurrentPos);
+        AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
         lpcf->ptCurrentPos.y+=ae->ptxt->nCharHeight;
         return 1;
       }
@@ -3475,7 +3528,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpcf->dwStyle == CFS_POINT)
       {
-        AE_GlobalToClient(ae, &ae->ptCaret, &lpcf->ptCurrentPos);
+        AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
         return 1;
       }
     }
@@ -3668,8 +3721,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (hImc=ImmGetContext(ae->hWndEdit))
         {
-          AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &crSel.ciMax, FALSE);
-          AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &crSel.ciMax);
+          AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin);
           ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
           if (ImmEscapeW(ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
@@ -3821,11 +3874,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
           }
 
-          AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
+          AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
           cr.ciMin=ciCharIndex;
           cr.ciMax=ciCharIndex;
           cr.ciMin.nCharInLine=0;
-          if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax, FALSE))
+          if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax))
             cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 
           ae->ciMouseSelClick=ciCharIndex;
@@ -3912,10 +3965,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
           }
 
-          AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
+          AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
           AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
           AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
@@ -4372,7 +4425,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             if (!ae->popt->bActiveColumnDraw)
             {
               //Draw new vertical line
-              AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
+              AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ae->ptActiveColumnDraw);
               AE_ActiveColumnDraw(ae);
               ae->popt->bActiveColumnDraw=TRUE;
             }
@@ -5202,9 +5255,9 @@ void AE_StackCloneDelete(AECLONE *aec)
 
     //Reset selection info
     xmemset(&aeClone->liFirstDrawLine, 0, (BYTE *)&aeClone->hDC - (BYTE *)&aeClone->liFirstDrawLine);
-    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelStartIndex, FALSE);
-    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelEndIndex, FALSE);
-    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciCaretIndex, FALSE);
+    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelStartIndex);
+    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelEndIndex);
+    AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciCaretIndex);
     AE_UpdateScrollBars(aeClone, SB_BOTH);
 
     if (!aeMaster->nCloneCount)
@@ -6391,7 +6444,7 @@ void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
 
   while (lpElement)
   {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint);
     lpElement->nPointOffset=0;
     lpElement->nPointLen=0;
     lpElement->nTmpPointOffset=AEPTO_CALC;
@@ -6758,12 +6811,12 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement);
     nElementLineOffset=0;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement);
     nElementLineOffset=ae->ptxt->nLastCharOffset;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
@@ -7039,12 +7092,12 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, INT_PTR nOffset, AECHARINDEX *ciChar
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement);
     nElementLineOffset=nOffset - 0;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement);
     nElementLineOffset=nOffset - ae->ptxt->nLastCharOffset;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
@@ -7121,12 +7174,12 @@ INT_PTR AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement);
     nElementLineOffset=0;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement);
     nElementLineOffset=ae->ptxt->nLastCharOffset;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
@@ -7167,65 +7220,168 @@ INT_PTR AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
   return nResult;
 }
 
-AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
+AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut)
 {
-  if (nType == AEGI_FIRSTCHAR)
+  if (nType < AEGI_WRAPLINEBEGIN)
   {
-    ciCharOut->nLine=0;
-    ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
-    ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_LASTCHAR)
-  {
-    ciCharOut->nLine=ae->ptxt->nLineCount;
-    ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
-    ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_FIRSTSELCHAR)
-  {
-    if (ae->bColumnSel)
+    if (nType == AEGI_FIRSTCHAR)
     {
-      ciCharOut->nLine=ae->ciSelStartIndex.nLine;
-      ciCharOut->lpLine=ae->ciSelStartIndex.lpLine;
-      ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelStart;
-    }
-    else *ciCharOut=ae->ciSelStartIndex;
-
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_LASTSELCHAR)
-  {
-    if (ae->bColumnSel)
-    {
-      ciCharOut->nLine=ae->ciSelEndIndex.nLine;
-      ciCharOut->lpLine=ae->ciSelEndIndex.lpLine;
-      ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelEnd;
-    }
-    else *ciCharOut=ae->ciSelEndIndex;
-
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_CARETCHAR)
-  {
-    *ciCharOut=ae->ciCaretIndex;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_NEXTCHAR ||
-           nType == AEGI_NEXTUNCOLLAPSEDCHAR)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpCollapsed;
-
-    if (bColumnSel)
-    {
-      AEC_IndexInc(&ciCharTmp);
-      *ciCharOut=ciCharTmp;
+      ciCharOut->nLine=0;
+      ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+      ciCharOut->nCharInLine=0;
       return ciCharOut->lpLine;
     }
-    else
+    else if (nType == AEGI_LASTCHAR)
     {
+      ciCharOut->nLine=ae->ptxt->nLineCount;
+      ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
+      ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_FIRSTSELCHAR)
+    {
+      if (ae->bColumnSel)
+      {
+        ciCharOut->nLine=ae->ciSelStartIndex.nLine;
+        ciCharOut->lpLine=ae->ciSelStartIndex.lpLine;
+        ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelStart;
+      }
+      else *ciCharOut=ae->ciSelStartIndex;
+
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_LASTSELCHAR)
+    {
+      if (ae->bColumnSel)
+      {
+        ciCharOut->nLine=ae->ciSelEndIndex.nLine;
+        ciCharOut->lpLine=ae->ciSelEndIndex.lpLine;
+        ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelEnd;
+      }
+      else *ciCharOut=ae->ciSelEndIndex;
+
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_CARETCHAR)
+    {
+      *ciCharOut=ae->ciCaretIndex;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_FIRSTVISIBLECHAR)
+    {
+      AECHARINDEX ciCharTmp;
+
+      if (AE_GetCharFromPos(ae, ae->rcDraw.left, ae->rcDraw.top, &ciCharTmp, NULL, FALSE))
+      {
+        *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      return NULL;
+    }
+    else if (nType == AEGI_LASTVISIBLECHAR)
+    {
+      AECHARINDEX ciCharTmp;
+
+      if (AE_GetCharFromPos(ae, ae->rcDraw.right, ae->rcDraw.bottom, &ciCharTmp, NULL, FALSE))
+      {
+        *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      return NULL;
+    }
+    else if (nType == AEGI_FIRSTFULLVISIBLECHAR)
+    {
+      AECHARINDEX ciCharTmp;
+      INT_PTR nVertPos;
+      int nResult;
+
+      nVertPos=ae->nVScrollPos / ae->ptxt->nCharHeight * ae->ptxt->nCharHeight;
+      if (nVertPos < ae->nVScrollPos) nVertPos+=ae->ptxt->nCharHeight;
+      nVertPos=ae->rcDraw.top + (nVertPos - ae->nVScrollPos);
+
+      if (nResult=AE_GetCharFromPos(ae, ae->rcDraw.left, nVertPos, &ciCharTmp, NULL, FALSE))
+      {
+        if (nResult == AEPC_BEFORE)
+          AEC_NextCharInLineEx(&ciCharTmp, ciCharOut);
+        else
+          *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      return NULL;
+    }
+    else if (nType == AEGI_LASTFULLVISIBLECHAR)
+    {
+      AECHARINDEX ciCharTmp;
+      INT_PTR nVertPos;
+      int nResult;
+
+      nVertPos=(ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top)) / ae->ptxt->nCharHeight * ae->ptxt->nCharHeight;
+      nVertPos=ae->rcDraw.top + (nVertPos - ae->nVScrollPos - ae->ptxt->nCharHeight);
+
+      if (nResult=AE_GetCharFromPos(ae, ae->rcDraw.right, nVertPos, &ciCharTmp, NULL, FALSE))
+      {
+        if (nResult == AEPC_AFTER)
+          AEC_PrevCharInLineEx(&ciCharTmp, ciCharOut);
+        else
+          *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      return NULL;
+    }
+    else if (nType == AEGI_FIRSTVISIBLELINE)
+    {
+      ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
+      ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+      ciCharOut->nCharInLine=0;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_LASTVISIBLELINE)
+    {
+      ciCharOut->nLine=AE_GetLastVisibleLine(ae);
+      ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+      ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_FIRSTFULLVISIBLELINE)
+    {
+      ciCharOut->nLine=AE_GetFirstFullVisibleLine(ae);
+      ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+      ciCharOut->nCharInLine=0;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_LASTFULLVISIBLELINE)
+    {
+      ciCharOut->nLine=AE_GetLastFullVisibleLine(ae);
+      ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+      ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+      return ciCharOut->lpLine;
+    }
+  }
+  else
+  {
+    //Next flags require pointer to the input index in lParam.
+    if (nType == AEGI_WRAPLINEBEGIN)
+    {
+      return (AELINEDATA *)(UINT_PTR)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
+    }
+    else if (nType == AEGI_WRAPLINEEND)
+    {
+      return (AELINEDATA *)(UINT_PTR)AEC_WrapLineEndEx(ciCharIn, ciCharOut);
+    }
+    else if (nType == AEGI_NEXTCHARINLINE)
+    {
+      return AEC_NextCharInLineEx(ciCharIn, ciCharOut);
+    }
+    else if (nType == AEGI_PREVCHARINLINE)
+    {
+      return AEC_PrevCharInLineEx(ciCharIn, ciCharOut);
+    }
+    else if (nType == AEGI_NEXTCHAR ||
+             nType == AEGI_NEXTUNCOLLAPSEDCHAR)
+    {
+      AECHARINDEX ciCharTmp=*ciCharIn;
+      AEFOLD *lpCollapsed;
+
       if (AEC_NextChar(&ciCharTmp))
       {
         if (nType == AEGI_NEXTUNCOLLAPSEDCHAR)
@@ -7251,22 +7407,13 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-  }
-  else if (nType == AEGI_PREVCHAR ||
-           nType == AEGI_PREVUNCOLLAPSEDCHAR)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpCollapsed;
+    else if (nType == AEGI_PREVCHAR ||
+             nType == AEGI_PREVUNCOLLAPSEDCHAR)
+    {
+      AECHARINDEX ciCharTmp=*ciCharIn;
+      AEFOLD *lpCollapsed;
 
-    if (bColumnSel)
-    {
-      AEC_IndexDec(&ciCharTmp);
-      *ciCharOut=ciCharTmp;
-      ciCharOut->nCharInLine=max(ciCharTmp.nCharInLine, 0);
-      return ciCharOut->lpLine;
-    }
-    else
-    {
+
       if (AEC_PrevChar(&ciCharTmp))
       {
         if (nType == AEGI_PREVUNCOLLAPSEDCHAR)
@@ -7292,134 +7439,68 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-  }
-  else if (nType == AEGI_NEXTLINE ||
-           nType == AEGI_NEXTUNCOLLAPSEDLINE)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpCollapsed;
-
-    if (AEC_NextLine(&ciCharTmp))
+    else if (nType == AEGI_NEXTLINE ||
+             nType == AEGI_NEXTUNCOLLAPSEDLINE)
     {
-      if (nType == AEGI_NEXTUNCOLLAPSEDLINE)
+      AECHARINDEX ciCharTmp=*ciCharIn;
+      AEFOLD *lpCollapsed;
+
+      if (AEC_NextLine(&ciCharTmp))
       {
-        if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
+        if (nType == AEGI_NEXTUNCOLLAPSEDLINE)
         {
-          ciCharTmp=lpCollapsed->lpMaxPoint->ciPoint;
-          while (ciCharTmp.nLine > AE_LastCollapsibleLine(ae, lpCollapsed))
-            AEC_PrevLine(&ciCharTmp);
-          AEC_NextLine(&ciCharTmp);
-        }
-      }
-    }
-
-    if (ciCharTmp.lpLine)
-    {
-      *ciCharOut=ciCharTmp;
-      return ciCharOut->lpLine;
-    }
-    else
-    {
-      *ciCharOut=*ciCharIn;
-      return NULL;
-    }
-  }
-  else if (nType == AEGI_PREVLINE ||
-           nType == AEGI_PREVUNCOLLAPSEDLINE)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpCollapsed;
-
-    if (AEC_PrevLine(&ciCharTmp))
-    {
-      if (nType == AEGI_PREVUNCOLLAPSEDLINE)
-      {
-        if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
-        {
-          ciCharTmp=lpCollapsed->lpMinPoint->ciPoint;
-          while (ciCharTmp.nLine < AE_FirstCollapsibleLine(ae, lpCollapsed))
+          if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
+          {
+            ciCharTmp=lpCollapsed->lpMaxPoint->ciPoint;
+            while (ciCharTmp.nLine > AE_LastCollapsibleLine(ae, lpCollapsed))
+              AEC_PrevLine(&ciCharTmp);
             AEC_NextLine(&ciCharTmp);
-          AEC_PrevLine(&ciCharTmp);
+          }
         }
       }
-    }
 
-    if (ciCharTmp.lpLine)
-    {
-      *ciCharOut=ciCharTmp;
-      return ciCharOut->lpLine;
+      if (ciCharTmp.lpLine)
+      {
+        *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      else
+      {
+        *ciCharOut=*ciCharIn;
+        return NULL;
+      }
     }
-    else
+    else if (nType == AEGI_PREVLINE ||
+             nType == AEGI_PREVUNCOLLAPSEDLINE)
     {
-      *ciCharOut=*ciCharIn;
-      return NULL;
-    }
-  }
-  else if (nType == AEGI_FIRSTVISIBLELINE)
-  {
-    ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
-    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-    ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_LASTVISIBLELINE)
-  {
-    ciCharOut->nLine=AE_GetLastVisibleLine(ae);
-    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-    ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_FIRSTFULLVISIBLELINE)
-  {
-    ciCharOut->nLine=AE_GetFirstFullVisibleLine(ae);
-    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-    ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_LASTFULLVISIBLELINE)
-  {
-    ciCharOut->nLine=AE_GetLastFullVisibleLine(ae);
-    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-    ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine;
-  }
-  else if (nType == AEGI_WRAPLINEBEGIN)
-  {
-    return (AELINEDATA *)(UINT_PTR)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
-  }
-  else if (nType == AEGI_WRAPLINEEND)
-  {
-    return (AELINEDATA *)(UINT_PTR)AEC_WrapLineEndEx(ciCharIn, ciCharOut);
-  }
-  else if (nType == AEGI_NEXTCHARINLINE)
-  {
-    return AEC_NextCharInLineEx(ciCharIn, ciCharOut);
-  }
-  else if (nType == AEGI_PREVCHARINLINE)
-  {
-    return AEC_PrevCharInLineEx(ciCharIn, ciCharOut);
-  }
-  else if (nType == AEGI_FIRSTVISIBLECHAR)
-  {
-    AECHARINDEX ciCharTmp;
+      AECHARINDEX ciCharTmp=*ciCharIn;
+      AEFOLD *lpCollapsed;
 
-    if (AE_GetCharFromPos(ae, (POINT *)&ae->rcDraw.left, &ciCharTmp, NULL, FALSE))
-    {
-      *ciCharOut=ciCharTmp;
-      return ciCharOut->lpLine;
-    }
-    return NULL;
-  }
-  else if (nType == AEGI_LASTVISIBLECHAR)
-  {
-    AECHARINDEX ciCharTmp;
+      if (AEC_PrevLine(&ciCharTmp))
+      {
+        if (nType == AEGI_PREVUNCOLLAPSEDLINE)
+        {
+          if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
+          {
+            ciCharTmp=lpCollapsed->lpMinPoint->ciPoint;
+            while (ciCharTmp.nLine < AE_FirstCollapsibleLine(ae, lpCollapsed))
+              AEC_NextLine(&ciCharTmp);
+            AEC_PrevLine(&ciCharTmp);
+          }
+        }
+      }
 
-    if (AE_GetCharFromPos(ae, (POINT *)&ae->rcDraw.right, &ciCharTmp, NULL, FALSE))
-    {
-      *ciCharOut=ciCharTmp;
-      return ciCharOut->lpLine;
+      if (ciCharTmp.lpLine)
+      {
+        *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      else
+      {
+        *ciCharOut=*ciCharIn;
+        return NULL;
+      }
     }
-    return NULL;
   }
   return NULL;
 }
@@ -7446,12 +7527,12 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
   }
 
   if (!ciChar1)
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciStart, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciStart);
   else
     ciStart=*ciChar1;
 
   if (!ciChar2)
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd);
   else
     ciEnd=*ciChar2;
 
@@ -7694,7 +7775,7 @@ BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar)
 
   if (ciChar->nLine > ae->ptxt->nLineCount)
   {
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, ciChar, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, ciChar);
     return TRUE;
   }
   if (ciChar->lpLine=AE_GetLineData(ae, ciChar->nLine))
@@ -7727,7 +7808,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
   if (!ae->popt->bVScrollLock)
   {
-    AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap);
     lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
   }
   nWrapCount=AE_WrapLines(ae, liWrapStart, liWrapEnd, dwWrap);
@@ -8742,7 +8823,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
 
   if (ae->rcDraw.bottom - ae->rcDraw.top > 0 && ae->rcDraw.right - ae->rcDraw.left > 0)
   {
-    AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+    AE_GetCharFromPos(ae, ptPos->x, ptPos->y, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
     if (ae->nCurrentCursor == AECC_MARGIN && (dwMouseSelType & AEMSS_WORDS))
       dwMouseSelType=AEMSS_LINES;
@@ -8779,7 +8860,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             ciCharIndex.nCharInLine=0;
           else
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex, FALSE))
+            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
         }
@@ -8851,7 +8932,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) >= 0)
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex, FALSE))
+            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
           else
@@ -8944,16 +9025,24 @@ void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType)
   }
 }
 
-void AE_GlobalToClient(AKELEDIT *ae, const POINT64 *ptGlobal, POINT *ptClient)
+void AE_GlobalToClient(AKELEDIT *ae, const POINT64 *ptGlobal, POINT64 *ptClient64, POINT *ptClient)
 {
-  ptClient->x=ae->rcDraw.left + (int)(ptGlobal->x - ae->nHScrollPos);
-  ptClient->y=ae->rcDraw.top + (int)(ptGlobal->y - ae->nVScrollPos);
+  if (ptClient64)
+  {
+    ptClient64->x=ae->rcDraw.left + (ptGlobal->x - ae->nHScrollPos);
+    ptClient64->y=ae->rcDraw.top + (ptGlobal->y - ae->nVScrollPos);
+  }
+  if (ptClient)
+  {
+    ptClient->x=ae->rcDraw.left + (int)(ptGlobal->x - ae->nHScrollPos);
+    ptClient->y=ae->rcDraw.top + (int)(ptGlobal->y - ae->nVScrollPos);
+  }
 }
 
-void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT64 *ptGlobal)
+void AE_ClientToGlobal(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, POINT64 *ptGlobal)
 {
-  ptGlobal->x=ae->nHScrollPos + (ptClient->x - ae->rcDraw.left);
-  ptGlobal->y=ae->nVScrollPos + (ptClient->y - ae->rcDraw.top);
+  ptGlobal->x=ae->nHScrollPos + (nClientX - ae->rcDraw.left);
+  ptGlobal->y=ae->nVScrollPos + (nClientY - ae->rcDraw.top);
 }
 
 int AE_SetCursor(AKELEDIT *ae)
@@ -9152,7 +9241,7 @@ int AE_SetCursor(AKELEDIT *ae)
   {
     nResult=AECC_IBEAM;
 
-    if (!bAlt && AE_IsPointOnMargin(ae, &ptPos) == AESIDE_LEFT)
+    if (!bAlt && AE_IsPointOnMargin(ae, ptPos.x, ptPos.y) == AESIDE_LEFT)
     {
       if (!(ae->popt->dwOptions & AECO_NOMARGINSEL))
       {
@@ -9160,7 +9249,7 @@ int AE_SetCursor(AKELEDIT *ae)
         nResult=AECC_MARGIN;
       }
     }
-    else if (!bAlt && !bShift && AE_IsPointOnSelection(ae, &ptPos))
+    else if (!bAlt && !bShift && AE_IsPointOnSelection(ae, ptPos.x, ptPos.y))
     {
       if (!(ae->popt->dwOptions & AECO_DISABLEDRAG))
       {
@@ -9168,7 +9257,7 @@ int AE_SetCursor(AKELEDIT *ae)
         nResult=AECC_SELECTION;
       }
     }
-    else if (!bAlt && !bShift && AE_IsPointOnUrl(ae, &ptPos, &ae->crMouseOnLink))
+    else if (!bAlt && !bShift && AE_IsPointOnUrl(ae, ptPos.x, ptPos.y, &ae->crMouseOnLink))
     {
       SetCursor(hAkelEditCursorHand);
       nResult=AECC_URL;
@@ -9177,46 +9266,46 @@ int AE_SetCursor(AKELEDIT *ae)
   return nResult;
 }
 
-DWORD AE_IsPointOnMargin(AKELEDIT *ae, const POINT *ptPos)
+DWORD AE_IsPointOnMargin(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
 {
   DWORD dwSide=0;
 
-  if (ptPos->x >= ae->rcEdit.left && ptPos->x < ae->rcDraw.left && ptPos->y > ae->rcEdit.top && ptPos->y < ae->rcEdit.bottom)
+  if (nClientX >= ae->rcEdit.left && nClientX < ae->rcDraw.left && nClientY > ae->rcEdit.top && nClientY < ae->rcEdit.bottom)
   {
     dwSide|=AESIDE_LEFT;
   }
-  if (ptPos->y >= ae->rcEdit.top && ptPos->y < ae->rcDraw.top && ptPos->x > ae->rcEdit.left && ptPos->x < ae->rcEdit.right)
+  if (nClientY >= ae->rcEdit.top && nClientY < ae->rcDraw.top && nClientX > ae->rcEdit.left && nClientX < ae->rcEdit.right)
   {
     dwSide|=AESIDE_TOP;
   }
-  if (ptPos->x > ae->rcDraw.right && ptPos->x <= ae->rcEdit.right && ptPos->y > ae->rcEdit.top && ptPos->y < ae->rcEdit.bottom)
+  if (nClientX > ae->rcDraw.right && nClientX <= ae->rcEdit.right && nClientY > ae->rcEdit.top && nClientY < ae->rcEdit.bottom)
   {
     dwSide|=AESIDE_RIGHT;
   }
-  if (ptPos->y > ae->rcDraw.bottom && ptPos->y <= ae->rcEdit.bottom && ptPos->x > ae->rcEdit.left && ptPos->x < ae->rcEdit.right)
+  if (nClientY > ae->rcDraw.bottom && nClientY <= ae->rcEdit.bottom && nClientX > ae->rcEdit.left && nClientX < ae->rcEdit.right)
   {
     dwSide|=AESIDE_BOTTOM;
   }
   return dwSide;
 }
 
-BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
+BOOL AE_IsPointOnSelection(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
 {
   AECHARINDEX ciCharIndex;
   POINT64 ptGlobal;
-  POINT ptClient;
-  int nSelStartY;
-  int nSelEndY;
+  POINT64 ptClient64;
+  INT_PTR nSelStartY;
+  INT_PTR nSelEndY;
   int nResult;
 
   if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    nSelStartY=(int)(AE_VPos(ae, ae->ciSelStartIndex.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
-    nSelEndY=(int)(AE_VPos(ae, ae->ciSelEndIndex.nLine + 1, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelStartY=(AE_VPos(ae, ae->ciSelStartIndex.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelEndY=(AE_VPos(ae, ae->ciSelEndIndex.nLine + 1, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
 
-    if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
+    if (nClientY >= nSelStartY && nClientY <= nSelEndY)
     {
-      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptGlobal, ae->bColumnSel))
+      if (nResult=AE_GetCharFromPos(ae, nClientX, nClientY, &ciCharIndex, &ptGlobal, ae->bColumnSel))
       {
         if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
             (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
@@ -9232,9 +9321,9 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
             ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
         {
-          AE_GlobalToClient(ae, &ptGlobal, &ptClient);
+          AE_GlobalToClient(ae, &ptGlobal, &ptClient64, NULL);
 
-          if (ptPos->x >= ptClient.x && ptPos->x <= ptClient.x + ae->ptxt->nAveCharWidth)
+          if (nClientX >= ptClient64.x && nClientX <= ptClient64.x + ae->ptxt->nAveCharWidth)
             return TRUE;
         }
       }
@@ -9243,18 +9332,22 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
   return FALSE;
 }
 
-DWORD AE_IsPointOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
+DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRANGE *crLink)
 {
   if (ae->popt->bDetectUrl)
   {
     AECHARINDEX ciCharIndex;
+    POINT ptClient;
     int nResult;
 
-    if (PtInRect(&ae->rcDraw, *ptPos))
+    ptClient.x=(int)nClientX;
+    ptClient.y=(int)nClientY;
+
+    if (PtInRect(&ae->rcDraw, ptClient))
     {
-      if (ptPos->y <= ae->ptxt->nVScrollMax)
+      if (nClientY <= ae->ptxt->nVScrollMax)
       {
-        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
+        if (nResult=AE_GetCharFromPos(ae, nClientX, nClientY, &ciCharIndex, NULL, FALSE))
         {
           if (nResult == AEPC_AFTER)
           {
@@ -10677,7 +10770,7 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT64 *ptCaret)
   POINT ptClient;
   BOOL bResult=FALSE;
 
-  AE_GlobalToClient(ae, ptCaret, &ptClient);
+  AE_GlobalToClient(ae, ptCaret, NULL, &ptClient);
 
   if (!(ae->popt->dwLockUpdate & AELU_CARET))
   {
@@ -10695,7 +10788,7 @@ void AE_SetCaretVis(AKELEDIT *ae, const POINT64 *ptCaret)
 {
   POINT ptClient;
 
-  AE_GlobalToClient(ae, ptCaret, &ptClient);
+  AE_GlobalToClient(ae, ptCaret, NULL, &ptClient);
 
   if (ptClient.x < ae->rcDraw.left ||
       ptClient.x > ae->rcDraw.right ||
@@ -10801,7 +10894,6 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT64 *ptPosition)
 
 DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int nOffsetX, int nOffsetY)
 {
-  POINT ptClient;
   POINT64 ptPos;
   INT_PTR x=-1;
   INT_PTR y=-1;
@@ -10812,11 +10904,7 @@ DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int n
   else if (dwFlags & AESC_POINTGLOBAL)
     ptPos=*ptPosition;
   else
-  {
-    ptClient.x=(int)ptPosition->x;
-    ptClient.y=(int)ptPosition->y;
-    AE_ClientToGlobal(ae, &ptClient, &ptPos);
-  }
+    AE_ClientToGlobal(ae, ptPosition->x, ptPosition->y, &ptPos);
 
   if (dwFlags & AESC_OFFSETPIXELX)
     x=nOffsetX;
@@ -10916,11 +11004,7 @@ DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int n
       if (dwFlags & AESC_POINTGLOBAL)
         *ptPosition=ptPos;
       else
-      {
-        AE_GlobalToClient(ae, &ptPos, &ptClient);
-        ptPosition->x=ptClient.x;
-        ptPosition->y=ptClient.y;
-      }
+        AE_GlobalToClient(ae, &ptPos, ptPosition, NULL);
     }
   }
   return dwResult;
@@ -11685,7 +11769,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else
     {
-      if (AE_GetIndex(&ph->aePrint, (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)?AEGI_NEXTUNCOLLAPSEDLINE:AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE))
+      if (AE_GetIndex(&ph->aePrint, (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)?AEGI_NEXTUNCOLLAPSEDLINE:AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin))
         bContinuePrint=TRUE;
       else
         bContinuePrint=FALSE;
@@ -11847,6 +11931,7 @@ void AE_Paint(AKELEDIT *ae)
     HRGN hDrawRgnOld=NULL;
     RECT rcDraw;
     RECT rcSpace;
+    INT_PTR nVertPos;
     INT_PTR nMinPaintWidth=0;
     INT_PTR nMaxPaintWidth=0;
     int nCharWidth=0;
@@ -11889,15 +11974,17 @@ void AE_Paint(AKELEDIT *ae)
     if (rcDraw.right > ae->rcDraw.left &&
         rcDraw.bottom > ae->rcDraw.top)
     {
-      to.ciDrawLine.nLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+      nVertPos=(ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top)) / ae->ptxt->nCharHeight * ae->ptxt->nCharHeight;
+      to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
+      to.ptFirstCharInLine.y=(nVertPos - ae->nVScrollPos) + ae->rcDraw.top;
+
+      to.ciDrawLine.nLine=(int)AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
       to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
       to.ciDrawLine.nCharInLine=0;
 
       nLastDrawLine=(int)AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
       nLastDrawLine=min(nLastDrawLine, ae->ptxt->nLineCount);
 
-      to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
-      to.ptFirstCharInLine.y=(int)(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
       nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
       nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
 
@@ -12136,7 +12223,7 @@ void AE_Paint(AKELEDIT *ae)
       }
       else
       {
-        if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &to.ciDrawLine, &to.ciDrawLine, FALSE))
+        if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &to.ciDrawLine, &to.ciDrawLine))
           to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
         else
           break;
@@ -13274,24 +13361,26 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 
 int AE_GetFirstFullVisibleLine(AKELEDIT *ae)
 {
+  INT_PTR nVertPos;
   int nFirstLine;
 
-  nFirstLine=AE_GetFirstVisibleLine(ae);
-  if (AE_VPos(ae, nFirstLine, AEVPF_VPOSFROMLINE) < ae->nVScrollPos)
-     nFirstLine=min(nFirstLine + 1, ae->ptxt->nLineCount);
+  nVertPos=ae->nVScrollPos / ae->ptxt->nCharHeight * ae->ptxt->nCharHeight;
+  if (nVertPos < ae->nVScrollPos) nVertPos+=ae->ptxt->nCharHeight;
+  nFirstLine=(int)AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
 
-  return nFirstLine;
+  return max(nFirstLine, 0);
 }
 
 int AE_GetLastFullVisibleLine(AKELEDIT *ae)
 {
+  INT_PTR nVertPos;
   int nLastLine;
 
-  nLastLine=AE_GetLastVisibleLine(ae);
-  if (AE_VPos(ae, nLastLine + 1, AEVPF_VPOSFROMLINE) > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
-     nLastLine=max(nLastLine - 1, 0);
+  nVertPos=(ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top)) / ae->ptxt->nCharHeight * ae->ptxt->nCharHeight;
+  nVertPos-=ae->ptxt->nCharHeight;
+  nLastLine=(int)AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
 
-  return nLastLine;
+  return min(nLastLine, ae->ptxt->nLineCount);
 }
 
 int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE64 *lpSize)
@@ -13711,7 +13800,7 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, INT_PTR nMinExtent,
   return TRUE;
 }
 
-int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT64 *ptGlobalPos, BOOL bColumnSel)
+int AE_GetCharFromPos(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARINDEX *ciCharIndex, POINT64 *ptGlobalPos, BOOL bColumnSel)
 {
   INT_PTR nCharPos;
   INT_PTR nMaxExtent;
@@ -13720,13 +13809,13 @@ int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCha
   INT_PTR nHScrollMax;
   int nResult;
 
-  ciCharIndex->nLine=(int)AE_VPos(ae, ae->nVScrollPos + (ptClientPos->y - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
+  ciCharIndex->nLine=(int)AE_VPos(ae, ae->nVScrollPos + (nClientY - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
   ciCharIndex->nLine=max(ciCharIndex->nLine, nFirstLine);
   ciCharIndex->nLine=min(ciCharIndex->nLine, nLastLine);
   ciCharIndex->nCharInLine=0;
   if (ptGlobalPos) ptGlobalPos->y=AE_VPos(ae, ciCharIndex->nLine, AEVPF_VPOSFROMLINE);
 
-  nMaxExtent=ae->nHScrollPos + (ptClientPos->x - ae->rcDraw.left);
+  nMaxExtent=ae->nHScrollPos + (nClientX - ae->rcDraw.left);
   nHScrollMax=max(ae->ptxt->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left));
   nMaxExtent=min(nHScrollMax - ae->ptxt->nAveCharWidth, nMaxExtent);
 
@@ -14522,7 +14611,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
               --ae->ptxt->nLastCharOffset;
 
               ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-              AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+              AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
               ae->ciCaretIndex=ciCaretChar;
               ae->ciSelStartIndex=ciCaretChar;
               ae->ciSelEndIndex=ciCaretChar;
@@ -14535,7 +14624,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
                 ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
                 ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
@@ -14607,7 +14696,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
       }
     }
     ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
     ae->ciCaretIndex=ciCaretChar;
     ae->ciSelStartIndex=ciCaretChar;
     ae->ciSelEndIndex=ciCaretChar;
@@ -14619,7 +14708,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
         ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
         ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
@@ -14848,7 +14937,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 AE_JoinNewLines(ae);
 
                 ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
@@ -14861,7 +14950,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                   ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
                   ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-                  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
                   ae->ciCaretIndex=ciCaretChar;
                   ae->ciSelStartIndex=ciCaretChar;
                   ae->ciSelEndIndex=ciCaretChar;
@@ -14937,7 +15026,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         }
 
         ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
@@ -14948,7 +15037,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
           ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-          AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+          AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
           ae->ciCaretIndex=ciCaretChar;
           ae->ciSelStartIndex=ciCaretChar;
           ae->ciSelEndIndex=ciCaretChar;
@@ -15161,13 +15250,13 @@ UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
 
   if (dwFlags & AESF_SELECTION)
   {
-    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount, FALSE);
-    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciEnd, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount);
+    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciEnd);
   }
   else
   {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCount, FALSE);
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCount);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd);
   }
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwBufLen + 1) * sizeof(wchar_t)))
@@ -15311,7 +15400,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
-  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
+  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar);
 
   //Save selection points
   ciCaretIndex=ae->ciCaretIndex;
@@ -17449,7 +17538,7 @@ void AE_UpdateCompositionPos(AKELEDIT *ae, HIMC hImc)
     if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
       AE_GetPosFromChar(ae, &ae->ciSelStartIndex, NULL, &cf.ptCurrentPos);
     else
-      AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+      AE_GlobalToClient(ae, &ae->ptCaret, NULL, &cf.ptCurrentPos);
     ImmSetCompositionWindow(hImcCur, &cf);
 
     if (!hImc) ImmReleaseContext(ae->hWndEdit, hImcCur);
@@ -17468,7 +17557,7 @@ void AE_UpdateCandidatePos(AKELEDIT *ae, HIMC hImc)
     if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
       AE_GetPosFromChar(ae, &ae->ciSelStartIndex, NULL, &cf.ptCurrentPos);
     else
-      AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+      AE_GlobalToClient(ae, &ae->ptCaret, NULL, &cf.ptCurrentPos);
     cf.ptCurrentPos.y+=ae->ptxt->nCharHeight;
     ImmSetCandidateWindow(hImcCur, &cf);
 
@@ -17683,7 +17772,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, FALSE);
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut);
       }
       else
       {
@@ -17699,7 +17788,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, FALSE);
+        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut);
       }
       else
       {
@@ -17726,7 +17815,15 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelStartIndex;
           ciCharOut=ae->ciSelStartIndex;
         }
-        else AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else
+        {
+          if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+          {
+            AEC_IndexDec(&ciCharOut);
+            ciCharOut.nCharInLine=max(ciCharOut.nCharInLine, 0);
+          }
+          else AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut);
+        }
       }
     }
     else if (nVk == VK_RIGHT)
@@ -17747,7 +17844,13 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelEndIndex;
           ciCharOut=ae->ciSelEndIndex;
         }
-        else AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else
+        {
+          if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+            AEC_IndexInc(&ciCharOut);
+          else
+            AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut);
+        }
       }
     }
     else if (nVk == VK_UP)
@@ -17755,7 +17858,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelStartIndex;
 
-      if (AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut))
       {
         if (!bControl)
         {
@@ -17766,7 +17869,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         {
           if (!AEC_WrapLineBeginEx(&ciCharIn, &ciCharOut))
           {
-            AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE);
+            AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut);
             AEC_WrapLineBegin(&ciCharOut);
           }
         }
@@ -17777,7 +17880,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelEndIndex;
 
-      if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut))
       {
         if (!bControl)
         {
@@ -17787,7 +17890,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         else
         {
           AEC_WrapLineEndEx(&ciCharIn, &ciCharOut);
-          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharOut, &ciCharOut, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharOut, &ciCharOut);
         }
       }
     }
@@ -17800,7 +17903,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        AE_GetIndex(ae, AEGI_FIRSTFULLVISIBLELINE, NULL, &ciCharOut, FALSE);
+        AE_GetIndex(ae, AEGI_FIRSTFULLVISIBLECHAR, NULL, &ciCharOut);
         if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
           ciCharOut.nCharInLine=ciCharIn.nCharInLine;
         else
@@ -17827,7 +17930,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        AE_GetIndex(ae, AEGI_LASTFULLVISIBLELINE, NULL, &ciCharOut, FALSE);
+        AE_GetIndex(ae, AEGI_LASTFULLVISIBLECHAR, NULL, &ciCharOut);
         if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
           ciCharOut.nCharInLine=ciCharIn.nCharInLine;
         else
@@ -18383,7 +18486,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
     }
 
     if ((bControl && AE_GetPrevBreak(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
-        (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
+        (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex)))
     {
       AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, 0);
@@ -18445,7 +18548,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
     }
 
     if ((bControl && AE_GetNextBreak(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
-        (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
+        (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex)))
     {
       if (!nSpaces) AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
@@ -18475,8 +18578,8 @@ void AE_EditSelectAll(AKELEDIT *ae, DWORD dwSelFlags, DWORD dwSelType)
   AECHARINDEX ciFirstChar;
   AECHARINDEX ciLastChar;
 
-  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar, FALSE);
-  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
+  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar);
+  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar);
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, dwSelFlags, dwSelType);
 }
 
@@ -19140,11 +19243,11 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
   {
     AENDROPFILES df;
     AECHARINDEX ciCharIndex;
-    POINT pt;
+    POINT ptClient;
 
-    GetCursorPos(&pt);
-    ScreenToClient(ae->hWndEdit, &pt);
-    AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
+    GetCursorPos(&ptClient);
+    ScreenToClient(ae->hWndEdit, &ptClient);
+    AE_GetCharFromPos(ae, ptClient.x, ptClient.y, &ciCharIndex, NULL, FALSE);
 
     df.hdr.hwndFrom=ae->hWndEdit;
     df.hdr.idFrom=ae->nEditCtrlID;
@@ -19163,11 +19266,11 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
     {
       ENDROPFILES64 df;
       AECHARINDEX ciCharIndex;
-      POINT pt;
+      POINT ptClient;
 
-      GetCursorPos(&pt);
-      ScreenToClient(ae->hWndEdit, &pt);
-      AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
+      GetCursorPos(&ptClient);
+      ScreenToClient(ae->hWndEdit, &ptClient);
+      AE_GetCharFromPos(ae, ptClient.x, ptClient.y, &ciCharIndex, NULL, FALSE);
 
       df.nmhdr.hwndFrom=ae->hWndEdit;
       df.nmhdr.idFrom=ae->nEditCtrlID;
@@ -19522,7 +19625,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
     LPVOID pData;
 
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
-    AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+    AE_GetCharFromPos(ae, pt.x, pt.y, &ciCharIndex, NULL, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
     //Get unicode text
     fmtetc.cfFormat=CF_UNICODETEXT;
@@ -19721,7 +19824,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       POINT64 ptGlobal;
       DWORD dwScrollTest;
 
-      AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+      AE_GetCharFromPos(ae, pt->x, pt->y, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
       //Scroll to dropping point
       dwScrollTest=AE_ScrollToPointEx(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 1);
