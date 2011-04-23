@@ -158,7 +158,10 @@ extern int nOfnCodePage;
 extern POINT64 ptDocumentPos;
 extern WNDPROC OldFilePreviewProc;
 
-//Modeless
+//MessageBox dialog
+extern HWND hDlgMsgBox;
+
+//Modeless dialog
 extern HWND hDlgModeless;
 extern int nModelessType;
 
@@ -9113,9 +9116,13 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
         if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-          nFirstVisible=IndexSubtract(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, &crRange.ciMin, nGetTextNewLine, FALSE);
-        else
-          nFirstVisible=-MAXINT_PTR;
+        {
+          if (nGetTextNewLine == AELB_ASIS)
+            nFirstVisible=IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciFirstVisibleBefore, AELB_ASIS, FALSE);
+          else
+            nFirstVisible=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore);
+        }
+        else nFirstVisible=-MAXINT_PTR;
 
         //Replace operation
         if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -MAXINT_PTR)?NULL:&nMax, (nFirstVisible == -MAXINT_PTR)?NULL:&nFirstVisible))
@@ -9182,22 +9189,24 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
               SetSel(lpFrame->ei.hWndEdit, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
           }
 
-          //Restore scroll
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
-
-          if (nFirstVisible != -MAXINT_PTR)
-          {
-            ciFirstVisibleBefore=crRange.ciMin;
-            SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
-            IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, nGetTextNewLine);
-            SendMessage(lpFrame->ei.hWndEdit, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
-          }
-          else SendMessage(lpFrame->ei.hWndEdit, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
-
           //Start redraw
           SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
           SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
           InvalidateRect(lpFrame->ei.hWndEdit, NULL, FALSE);
+
+          //Restore scroll
+          if (nFirstVisible != -MAXINT_PTR)
+          {
+            if (nGetTextNewLine == AELB_ASIS)
+            {
+              SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciFirstVisibleBefore);
+              IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, AELB_ASIS);
+            }
+            else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
+
+            SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+          }
         }
 
         if (nFindItLen < nReplaceWithLen)
@@ -14369,6 +14378,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     int nStrLen;
     BOOL bSnapToDefButton;
 
+    hDlgMsgBox=hDlg;
     SystemParametersInfoA(SPI_GETSNAPTODEFBUTTON, 0, &bSnapToDefButton, 0);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
 
@@ -14503,6 +14513,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   else if (uMsg == WM_COMMAND)
   {
     EndDialog(hDlg, LOWORD(wParam));
+    hDlgMsgBox=NULL;
     return TRUE;
   }
   return FALSE;
