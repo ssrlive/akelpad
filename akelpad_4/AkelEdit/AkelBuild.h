@@ -266,6 +266,35 @@ typedef struct {
   AEMARKTEXTITEMW *last;
 } AESTACKMARKTEXT;
 
+typedef struct _AEQUOTEITEMHANDLE {
+  struct _AEQUOTEITEMHANDLE *next;
+  struct _AEQUOTEITEMHANDLE *prev;
+  AEQUOTEITEMW *lpQuoteItem;
+} AEQUOTEITEMHANDLE;
+
+typedef struct {
+  AEQUOTEITEMHANDLE *first;
+  AEQUOTEITEMHANDLE *last;
+} AESTACKQUOTEITEMHANDLE;
+
+typedef struct _AEQUOTESTART {
+  struct _AEQUOTESTART *next;
+  struct _AEQUOTESTART *prev;
+  const wchar_t *pQuoteStart;
+  int nQuoteStartLen;
+  wchar_t chEscape;
+  DWORD dwFlags;
+
+  //Stack with the same pQuoteStart.
+  AESTACKQUOTEITEMHANDLE hQuoteItemHandleStack;
+  int nElements;
+} AEQUOTESTART;
+
+typedef struct {
+  AEQUOTESTART *first;
+  AEQUOTESTART *last;
+} AESTACKQUOTESTART;
+
 typedef struct _AETHEMEITEMW {
   struct _AETHEMEITEMW *next;
   struct _AETHEMEITEMW *prev;
@@ -273,6 +302,7 @@ typedef struct _AETHEMEITEMW {
   AESTACKDELIM hDelimiterStack;
   AESTACKWORD hWordStack;
   AESTACKQUOTE hQuoteStack;
+  AESTACKQUOTESTART hQuoteStartStack;
   AESTACKMARKTEXT hMarkTextStack;
   AESTACKMARKRANGE hMarkRangeStack;
 } AETHEMEITEMW;
@@ -433,6 +463,7 @@ typedef struct {
   AESTACKDELIM hDelimiterStack;
   AESTACKWORD hWordStack;
   AESTACKQUOTE hQuoteStack;
+  AESTACKQUOTESTART hQuoteStartStack;
   AESTACKMARKTEXT hMarkTextStack;
   AESTACKMARKRANGE hMarkRangeStack;
 
@@ -764,6 +795,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
 void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi);
 void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
+AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *lpQuoteItem);
 void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi);
 void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
