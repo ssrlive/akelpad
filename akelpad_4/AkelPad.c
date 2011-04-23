@@ -322,7 +322,10 @@ int nOfnCodePage;
 POINT64 ptDocumentPos;
 WNDPROC OldFilePreviewProc;
 
-//Modeless
+//MessageBox dialog
+HWND hDlgMsgBox=NULL;
+
+//Modeless dialog
 HWND hDlgModeless=NULL;
 int nModelessType=MLT_NONE;
 
@@ -3990,27 +3993,15 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     if ((HWND)wParam == lpFrameCurrent->ei.hWndEdit)
     {
       NCONTEXTMENU ncm;
-      RECT rc;
       POINT pt;
       HMENU hTrackMenu;
 
-      if (lParam == -1)
+      if (lParam == -1 && SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCARETPOS, (WPARAM)&pt, 0))
       {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)&ciCurCaret);
-        pt.y-=lpFrameCurrent->lf.lfHeight;
-
+        pt.y+=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCHARSIZE, AECS_HEIGHT, 0);
         ClientToScreen(lpFrameCurrent->ei.hWndEdit, &pt);
-        GetWindowRect(lpFrameCurrent->ei.hWndEdit, &rc);
-        if (pt.x > rc.right || pt.y > rc.bottom)
-        {
-          pt.x=rc.left;
-          pt.y=rc.top;
-        }
       }
-      else
-      {
-        GetCursorPos(&pt);
-      }
+      else GetCursorPos(&pt);
 
       ncm.hWnd=lpFrameCurrent->ei.hWndEdit;
       ncm.uType=NCM_EDIT;
