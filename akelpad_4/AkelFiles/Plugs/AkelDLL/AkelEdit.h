@@ -978,7 +978,7 @@ typedef struct _AEWORDITEMW {
 typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *next;
   struct _AEQUOTEITEMA *prev;
-  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
+  int nIndex;                //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
   const char *pQuoteStart;   //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
   const char *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
@@ -992,12 +992,13 @@ typedef struct _AEQUOTEITEMA {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
+  void *lpQuoteStart;        //Don't use it. For internal code only.
 } AEQUOTEITEMA;
 
 typedef struct _AEQUOTEITEMW {
   struct _AEQUOTEITEMW *next;
   struct _AEQUOTEITEMW *prev;
-  int nIndex;                   //Position of the element if positive inserts to begin of stack if negative to end.
+  int nIndex;                   //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
   const wchar_t *pQuoteStart;   //Quote start string.
   int nQuoteStartLen;           //Quote start string length.
   const wchar_t *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
@@ -1011,6 +1012,7 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;            //See AEHLS_* defines.
   COLORREF crText;              //Quote text color. If -1, then don't set.
   COLORREF crBk;                //Quote background color. If -1, then don't set.
+  void *lpQuoteStart;           //Don't use it. For internal code only.
 } AEQUOTEITEMW;
 
 typedef struct _AEMARKTEXTITEMA {
