@@ -85,14 +85,14 @@
 #define EOD_ADT_OPEN             EDT_OPEN   //See EDT_OPEN.
 #define EOD_ADT_ALLOC            EDT_ALLOC  //See EDT_ALLOC.
 #define EOD_ADT_READ             EDT_READ   //See EDT_READ.
-#define EOD_ADT_BINARY           EDT_BINARY //See EDT_BINARY.
 #define EOD_OPEN                 -11        //Can't open file.
-#define EOD_CANCEL               -12        //User press cancel.
 #define EOD_WINDOW_EXIST         -13        //File already opened.
 #define EOD_CODEPAGE_ERROR       -14        //Code page isn't implemented.
 #define EOD_STOP                 -15        //Stopped from AKDN_OPENDOCUMENT_START.
 #define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
 #define EOD_DOCUMENTS_LIMIT      -17        //Documents limit reached in MDI mode.
+#define EOD_MSGNO                -20        //File is skipped.
+#define EOD_MSGCANCEL            -21        //User press cancel.
 
 //Save document flags
 #define SD_UPDATE            0x00000001  //Update file info.
