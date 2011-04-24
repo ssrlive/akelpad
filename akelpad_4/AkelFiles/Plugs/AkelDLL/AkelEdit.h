@@ -175,12 +175,14 @@
 #define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn.
 
 //AEM_SETOPTIONS flags
+                                                  // Window styles:
 #define AECO_READONLY                 0x00000001  //Set read-only mode. You can use ES_READONLY window style.
 #define AECO_DISABLENOSCROLL          0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
 #define AECO_NOHIDESEL                0x00000004  //If you do not specify this style, then hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus. You can use ES_NOHIDESEL window style.
 #define AECO_WANTRETURN               0x00000008  //If you do not specify this style, pressing the ENTER key has the same effect as pressing the dialog box's default push button. You can use ES_WANTRETURN window style.
-#define AECO_DETAILEDUNDO             0x00000010  //The control stores any typing action, into a new action in the undo queue.
-#define AECO_DISABLEBEEP              0x00000020  //Disables sound beep, when unallowable action occur.
+#define AECO_MULTILINE                0x00000010  //Designates a multiline edit control. The default is single-line edit control. You can use ES_MULTILINE window style.
+                                                  // Other:
+#define AECO_DETAILEDUNDO             0x00000020  //The control stores any typing action, into a new action in the undo queue.
 #define AECO_PASTESELECTCOLUMN        0x00000040  //Selects pasted text in column mode.
 #define AECO_DISABLEDRAG              0x00000080  //Disables OLE text dragging.
 #define AECO_DISABLEDROP              0x00000100  //Disables OLE text dropping.
@@ -197,6 +199,7 @@
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
 #define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
+#define AECO_DISABLEBEEP              0x01000000  //Disables sound beep, when unallowable action occur.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -2196,7 +2199,7 @@ Return Value
  Number of bytes read.
 
 Remarks
- Message ignore AECO_READONLY flag.
+ Message ignore AECO_READONLY and !AECO_MULTILINE flag.
 
 Example:
  typedef struct {

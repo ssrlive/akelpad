@@ -4601,6 +4601,8 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->dwOptions|=AECO_NOHIDESEL;
     if (cs->style & ES_WANTRETURN)
       ae->popt->dwOptions|=AECO_WANTRETURN;
+    if (cs->style & ES_MULTILINE)
+      ae->popt->dwOptions|=AECO_MULTILINE;
     if (cs->style & ES_HEAP_SERIALIZE)
       ae->popt->bHeapSerialize=TRUE;
     xmemcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
@@ -14556,6 +14558,9 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
     if (dwTextLen == (UINT_PTR)-1)
       dwTextLen=xstrlenW(wpText);
 
+    if (!(ae->popt->dwOptions & AECO_MULTILINE))
+      AE_GetNextLine(ae, wpText, (DWORD)dwTextLen, (int *)&dwTextLen, NULL);
+
     while (dwTextCount < dwTextLen)
     {
       //Progressing
@@ -14743,7 +14748,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
   {
     AE_NotifyChanged(ae); //AETCT_SETTEXT
   }
-  return dwTextLen;
+  return dwTextCount;
 }
 
 UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
@@ -16251,6 +16256,9 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
       }
     }
     else dwTextLen=0;
+
+    if (!(ae->popt->dwOptions & AECO_MULTILINE))
+      AE_GetNextLine(ae, wpLineStart, (DWORD)dwTextLen, (int *)&dwTextLen, NULL);
 
     if (dwTextLen)
     {
