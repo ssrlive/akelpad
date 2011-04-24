@@ -20,6 +20,9 @@
 #define AECLASS_RICHEDIT        2
 
 //Window styles
+#ifndef ES_MULTILINE
+  #define ES_MULTILINE        0x00000004  //See AECO_MULTILINE.
+#endif
 #ifndef ES_NOHIDESEL
   #define ES_NOHIDESEL        0x00000100  //See AECO_NOHIDESEL.
 #endif
