@@ -36,15 +36,16 @@
 #define AECC_MARGIN         1
 #define AECC_SELECTION      2
 #define AECC_URL            3
-#define AECC_MCENTER        4
-#define AECC_MLEFT          5
-#define AECC_MLEFTTOP       6
-#define AECC_MTOP           7
-#define AECC_MRIGHTTOP      8
-#define AECC_MRIGHT         9
-#define AECC_MRIGHTBOTTOM   10
-#define AECC_MBOTTOM        11
-#define AECC_MLEFTBOTTOM    12
+#define AECC_MARKER         4
+#define AECC_MCENTER        5
+#define AECC_MLEFT          6
+#define AECC_MLEFTTOP       7
+#define AECC_MTOP           8
+#define AECC_MRIGHTTOP      9
+#define AECC_MRIGHT         10
+#define AECC_MRIGHTBOTTOM   11
+#define AECC_MBOTTOM        12
+#define AECC_MLEFTBOTTOM    13
 
 //WM_MOUSEACTIVATE
 #define AEMA_NONE           0
@@ -671,6 +672,7 @@ typedef struct {
 
 BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit);
+void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -773,6 +775,7 @@ int AE_SetCursor(AKELEDIT *ae);
 DWORD AE_IsPointOnMargin(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
 BOOL AE_IsPointOnSelection(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
 DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRANGE *crLink);
+BOOL AE_IsPointOnMarker(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);
@@ -836,6 +839,7 @@ void AE_ActiveColumnDraw(AKELEDIT *ae);
 void AE_ActiveColumnErase(AKELEDIT *ae);
 void AE_UpdateSize(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
+BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse);
 void AE_ColumnMarkerDraw(AKELEDIT *ae);
 void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
@@ -928,6 +932,7 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop);
 BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult);
 BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink);
+void AE_NotifyMarker(AKELEDIT *ae, BOOL bMouse);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
 LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
