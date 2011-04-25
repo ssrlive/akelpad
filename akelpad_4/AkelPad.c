@@ -4192,18 +4192,17 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
         if (aenm->bMouse)
         {
-          if (aenm->dwPos & AEMT_PIXEL)
+          if (aenm->dwType == AEMT_PIXEL)
             dwNewPos=aenm->dwPos / (DWORD)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCHARSIZE, AECS_AVEWIDTH, 0);
           else
             dwNewPos=aenm->dwPos;
+
           if (lpFrameCurrent->dwMarker == lpFrameCurrent->dwWrapLimit)
           {
-            lpFrameCurrent->dwMarker=dwNewPos;
+            SetCurEditOption(EO_MARKERPOS, dwNewPos);
             SetCurEditOption(EO_WRAPLIMIT, dwNewPos);
           }
-          else lpFrameCurrent->dwMarker=dwNewPos;
-
-          UpdateStatusUser(lpFrameCurrent, CSB_MARKER);
+          else SetCurEditOption(EO_MARKERPOS, dwNewPos);
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
