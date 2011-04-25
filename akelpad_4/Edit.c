@@ -39,13 +39,19 @@ extern BOOL bAkelEdit;
 extern BOOL bWindowsNT4;
 
 //Buffers
-extern wchar_t wszCmdLine[COMMANDLINE_SIZE];
-extern wchar_t wszCmdArg[COMMANDARG_SIZE];
 extern unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
 extern char buf[BUFFER_SIZE];
 extern wchar_t wbuf[BUFFER_SIZE];
 extern char buf2[BUFFER_SIZE];
 extern wchar_t wbuf2[BUFFER_SIZE];
+
+//Command line
+extern wchar_t wszCmdLine[COMMANDLINE_SIZE];
+extern wchar_t wszCmdArg[COMMANDARG_SIZE];
+extern wchar_t *wszCmdLineBegin;
+extern int nCmdLineBeginLen;
+extern wchar_t *wszCmdLineEnd;
+extern int nCmdLineEndLen;
 
 //Language
 extern HMODULE hLangLib;
@@ -3493,6 +3499,22 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   if (oh.hHandle)
   {
     //Manual
+    if (dwSize=ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0))
+    {
+      if (wszCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+      {
+        ReadOption(&oh, L"CmdLineBegin", MOT_STRING, wszCmdLineBegin, dwSize);
+        nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
+      }
+    }
+    if (dwSize=ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
+    {
+      if (wszCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+      {
+        ReadOption(&oh, L"CmdLineEnd", MOT_STRING, wszCmdLineEnd, dwSize);
+        nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
+      }
+    }
     ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD));
     ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
     ReadOption(&oh, L"StatusUserFormat", MOT_STRING, mo->wszStatusUserFormat, sizeof(mo->wszStatusUserFormat));
@@ -3547,7 +3569,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     }
 
     //Settings dialog
-    if (dwSize=ReadOption(&oh, L"CodepageList", INI_BINARY, NULL, 0))
+    if (dwSize=ReadOption(&oh, L"CodepageList", MOT_BINARY, NULL, 0))
     {
       if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
       {
@@ -3693,6 +3715,10 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   }
 
   //Manual
+  if (!SaveOption(&oh, L"CmdLineBegin", MOT_STRING|MOT_MANUAL, wszCmdLineBegin?wszCmdLineBegin:L"", (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
+    goto Error;
+  if (!SaveOption(&oh, L"CmdLineEnd", MOT_STRING|MOT_MANUAL, wszCmdLineEnd?wszCmdLineEnd:L"", (nCmdLineEndLen + 1) * sizeof(wchar_t)))
+    goto Error;
   if (!SaveOption(&oh, L"ShowModify", MOT_DWORD|MOT_MANUAL, &mo->dwShowModify, sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD|MOT_MANUAL, &mo->dwStatusPosType, sizeof(DWORD)))
@@ -15969,14 +15995,13 @@ void StackFontItemsFree(HSTACK *hStack)
 
 //// Command line functions
 
-wchar_t* GetCommandLineWide(void)
+wchar_t* GetCommandLineParamsWide(void)
 {
   if (bOldWindows)
-  {
-    AnsiToWide(GetCommandLineA(), -1, wszCmdLine, COMMANDLINE_SIZE);
-    return wszCmdLine;
-  }
-  else return GetCommandLineW();
+    xprintfW(wszCmdLine, L"%s %.%dS %s", wszCmdLineBegin, COMMANDLINE_SIZE, GetCommandLineParamsA(), wszCmdLineEnd);
+  else
+    xprintfW(wszCmdLine, L"%s %.%ds %s", wszCmdLineBegin, COMMANDLINE_SIZE, GetCommandLineParamsW(), wszCmdLineEnd);
+  return wszCmdLine;
 }
 
 char* GetCommandLineParamsA()
@@ -15995,7 +16020,7 @@ char* GetCommandLineParamsA()
 
 wchar_t* GetCommandLineParamsW()
 {
-  wchar_t *lpwCmdLine=GetCommandLineWide();
+  wchar_t *lpwCmdLine=GetCommandLineW();
 
   if (*lpwCmdLine++ == '\"')
     while (*lpwCmdLine != '\"' && *lpwCmdLine != '\0') ++lpwCmdLine;

@@ -203,13 +203,19 @@ BOOL bAkelEdit=TRUE;
 BOOL bWindowsNT4=FALSE;
 
 //Buffers
-wchar_t wszCmdLine[COMMANDLINE_SIZE];
-wchar_t wszCmdArg[COMMANDARG_SIZE];
 unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
 char buf[BUFFER_SIZE];
 wchar_t wbuf[BUFFER_SIZE];
 char buf2[BUFFER_SIZE];
 wchar_t wbuf2[BUFFER_SIZE];
+
+//Command line
+wchar_t wszCmdLine[COMMANDLINE_SIZE];
+wchar_t wszCmdArg[COMMANDARG_SIZE];
+wchar_t *wszCmdLineBegin=NULL;
+int nCmdLineBeginLen=0;
+wchar_t *wszCmdLineEnd=NULL;
+int nCmdLineEndLen=0;
 
 //Language
 HMODULE hLangLib;
@@ -774,20 +780,28 @@ void _WinMain()
   }
 
   //Get command line
-  wpCmdLine=GetCommandLineParamsW();
+  wpCmdLine=GetCommandLineParamsWide();
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
     HWND hWndFriend;
+    DWORD dwAtom;
 
     //Pass command line to opened instance
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
+      dwAtom=GetClassLongA(hWndFriend, GCW_ATOM);
       ActivateWindow(hWndFriend);
 
       //Wait until we can send PostMessage
       while (!IsWindowEnabled(hWndFriend))
+      {
         Sleep(100);
+
+        //Is window still exist?
+        if (GetClassLongA(hWndFriend, GCW_ATOM) != dwAtom)
+          goto Quit;
+      }
 
       SendCmdLine(hWndFriend, wpCmdLine, TRUE);
       goto Quit;
@@ -1020,6 +1034,16 @@ void _WinMain()
     SetEvent(hMutex);
     CloseHandle(hMutex);
     hMutex=0;
+  }
+  if (wszCmdLineBegin)
+  {
+    API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineBegin);
+    wszCmdLineBegin=NULL;
+  }
+  if (wszCmdLineEnd)
+  {
+    API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineEnd);
+    wszCmdLineEnd=NULL;
   }
   CodepageListFree(&lpCodepageList);
   FreeMemoryRecentFiles();

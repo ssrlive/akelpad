@@ -212,6 +212,27 @@
   <ul>
     <table cellspacing=0 cellpadding=5 border=1>
       <tr>
+        <td><b>CmdLineBegin</b></td>
+        <td>Specifies code to be added to the beginning of the command line before processing it.
+          <br>
+          <br>Example:
+          <br>/Call("Scripts::Main", 1, "InsertDate.js", "") /C+
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>CmdLineEnd</b></td>
+        <td>Specifies code to be added to the end of the command line before processing it.
+          <br>
+          <br>Example:
+          <br>/C /B /L
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+
+      <tr>
         <td><b>ShowModify</b></td>
         <td>Defines, where it will be possible to see, that the document is changed. Sets by the sum of members:
           <br><li>1 - Display "Modified" in status bar.
