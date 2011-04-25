@@ -9,6 +9,8 @@ Changed: closing tab with middle mouse click without activation, if possible (MD
 Added: possibility to show places bar in open/save dialog.
 Added: applying a common algorithm for recognizing the UTF-8, if for the specified language
        ("Settings...->Codepage recognition") recognition of UTF-8 unsuccessful.
+Added: column marker movement with mouse and Shift key and also moves wrap limit if their
+       values are equal.
 Added: option for cycle search.
 Added: variables for "StatusUserFormat":
        "%al" - count of lines in document;

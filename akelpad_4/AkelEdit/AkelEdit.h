@@ -59,6 +59,7 @@
 #define AENM_DROPFILES          0x00010000  //Sends AEN_DROPFILES notifications.
 #define AENM_DRAGDROP           0x00020000  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
 #define AENM_LINK               0x00040000  //Sends AEN_LINK notifications.
+#define AENM_MARKER             0x00080000  //Sends AEN_MARKER notifications.
 
 //AEN_SELCHANGING and AEN_SELCHANGED types
 #define AESCT_REPLACESEL        0x00000001  //Replacing selection.
@@ -193,7 +194,7 @@
 #define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
 #define AECO_PAINTGROUP               0x00000800  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-#define AECO_ALTDECINPUT              0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECO_NOMARKERMOVE             0x00001000  //Disables changing position of column marker with mouse.
 #define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
 #define AECO_NONEWLINEDRAW            0x00004000  //Disables drawing new line selection as space character.
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
@@ -203,6 +204,7 @@
 #define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
 #define AECO_DISABLEBEEP              0x01000000  //Disables sound beep, when unallowable action occur.
+#define AECO_ALTDECINPUT              0x02000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -497,6 +499,7 @@
 #define AEMSC_MOUSEMOVE       0x1  //Text selection.
 #define AEMSC_MOUSESCROLL     0x2  //Middle button scroll.
 #define AEMSC_MOUSEDRAG       0x4  //Selection dragging.
+#define AEMSC_MOUSEMARKER     0x8  //Marker moving.
 
 //AEM_GETMOUSESTATE selection
 #define AEMSS_LBUTTONUP      0x1  //WM_LBUTTONUP has been received.
@@ -1262,6 +1265,13 @@ typedef struct {
   AECHARRANGE crLink;  //Range of characters which contain URL text.
 } AENLINK;
 
+typedef struct {
+  AENMHDR hdr;
+  DWORD dwType; //Column marker type.
+  DWORD dwPos;  //Column marker position.
+  BOOL bMouse;  //Column marker position is changed with mouse.
+} AENMARKER;
+
 
 //// AkelEdit messages
 
@@ -1295,6 +1305,7 @@ typedef struct {
 #define AEN_DROPSOURCE            (WM_USER + 1077)  //0x835
 #define AEN_DROPTARGET            (WM_USER + 1078)  //0x836
 #define AEN_LINK                  (WM_USER + 1079)  //0x837
+#define AEN_MARKER                (WM_USER + 1080)  //0x838
 
 //RichEdit Unicode extension
 #define EM_REPLACESELA            (WM_USER + 1901)
@@ -1999,6 +2010,22 @@ Return Value
 
 Remarks
  To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
+
+
+AEN_MARKER
+__________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after column marker position or type is changed.
+
+(int)wParam         == specifies the control identifier.
+(AENMARKER *)lParam == pointer to a AENMARKER structure.
+
+Return Value
+ Zero.
+
+Remarks
+ To receive AEN_MARKER notifications, specify AENM_MARKER in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEM_SETTEXTA
@@ -4406,8 +4433,8 @@ _____________
 
 Set marker at specified position.
 
-(int)wParam   == see AEMT_* defines.
-(DWORD)lParam == integer, zero to clear marker.
+(int)wParam == see AEMT_* defines.
+(int)lParam == integer, zero to clear marker.
 
 Return Value
  Zero.

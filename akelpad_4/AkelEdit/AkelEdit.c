@@ -88,10 +88,11 @@ BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 BOOL bRichEditClassRegisteredA=FALSE;
 BOOL bRichEditClassRegisteredW=FALSE;
-BOOL bAkelEditWindows9x=FALSE;
+BOOL bAkelEditWindows9x=-1;
 HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
+HCURSOR hAkelEditCursorMarker=NULL;
 HCURSOR hAkelEditCursorHand=NULL;
 HCURSOR hAkelEditCursorMCenterAll=NULL;
 HCURSOR hAkelEditCursorMCenterLeftRight=NULL;
@@ -155,6 +156,8 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
   {
     WNDCLASSA wndclass;
 
+    AE_RegisterClassCommon(hInstance, bRegisterRichEdit);
+
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
@@ -162,7 +165,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;
     wndclass.hInstance    =hInstance;
     wndclass.hIcon        =NULL;
-    wndclass.hCursor      =LoadCursorA(NULL, (char *)(UINT_PTR)IDC_IBEAM);
+    wndclass.hCursor      =hAkelEditCursorIBeam;
     wndclass.hbrBackground=NULL;
     wndclass.lpszMenuName =NULL;
     wndclass.lpszClassName=AES_AKELEDITCLASSA;
@@ -174,39 +177,6 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
       wndclass.lpszClassName=AES_RICHEDITCLASSA;
       bRichEditClassRegisteredA=RegisterClassA(&wndclass);
     }
-
-    if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
-    if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
-    if (!cfAkelEditText) cfAkelEditText=RegisterClipboardFormatA("AkelEditText");
-    if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_IBEAM);
-    if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_ARROW);
-    if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMARGIN);
-    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_HAND);
-    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEHAND);
-    if (!hAkelEditCursorMCenterAll) hAkelEditCursorMCenterAll=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERALL);
-    if (!hAkelEditCursorMCenterLeftRight) hAkelEditCursorMCenterLeftRight=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERLEFTRIGHT);
-    if (!hAkelEditCursorMCenterTopBottom) hAkelEditCursorMCenterTopBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERTOPBOTTOM);
-    if (!hAkelEditCursorMLeft) hAkelEditCursorMLeft=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFT);
-    if (!hAkelEditCursorMLeftTop) hAkelEditCursorMLeftTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFTTOP);
-    if (!hAkelEditCursorMTop) hAkelEditCursorMTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMTOP);
-    if (!hAkelEditCursorMRightTop) hAkelEditCursorMRightTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHTTOP);
-    if (!hAkelEditCursorMRight) hAkelEditCursorMRight=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHT);
-    if (!hAkelEditCursorMRightBottom) hAkelEditCursorMRightBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHTBOTTOM);
-    if (!hAkelEditCursorMBottom) hAkelEditCursorMBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMBOTTOM);
-    if (!hAkelEditCursorMLeftBottom) hAkelEditCursorMLeftBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFTBOTTOM);
-    if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
-    if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
-    if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
-
-    //Is Windows 95/98/Me?
-    {
-      OSVERSIONINFO ovi;
-
-      ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-      GetVersionEx(&ovi);
-      if (ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-        bAkelEditWindows9x=TRUE;
-    }
   }
   return bAkelEditClassRegisteredA;
 }
@@ -217,6 +187,8 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
   {
     WNDCLASSW wndclass;
 
+    AE_RegisterClassCommon(hInstance, bRegisterRichEdit);
+
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
@@ -224,7 +196,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;
     wndclass.hInstance    =hInstance;
     wndclass.hIcon        =NULL;
-    wndclass.hCursor      =LoadCursorW(NULL, (wchar_t *)(UINT_PTR)IDC_IBEAM);
+    wndclass.hCursor      =hAkelEditCursorIBeam;
     wndclass.hbrBackground=NULL;
     wndclass.lpszMenuName =NULL;
     wndclass.lpszClassName=AES_AKELEDITCLASSW;
@@ -236,31 +208,48 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
       wndclass.lpszClassName=AES_RICHEDITCLASSW;
       bRichEditClassRegisteredW=RegisterClassW(&wndclass);
     }
-
-    if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
-    if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
-    if (!cfAkelEditText) cfAkelEditText=RegisterClipboardFormatW(L"AkelEditText");
-    if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorW(NULL, (wchar_t *)(UINT_PTR)IDC_IBEAM);
-    if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorW(NULL, (wchar_t *)(UINT_PTR)IDC_ARROW);
-    if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMARGIN);
-    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorW(NULL, (wchar_t *)(UINT_PTR)IDC_HAND);
-    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEHAND);
-    if (!hAkelEditCursorMCenterAll) hAkelEditCursorMCenterAll=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMCENTERALL);
-    if (!hAkelEditCursorMCenterLeftRight) hAkelEditCursorMCenterLeftRight=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMCENTERLEFTRIGHT);
-    if (!hAkelEditCursorMCenterTopBottom) hAkelEditCursorMCenterTopBottom=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMCENTERTOPBOTTOM);
-    if (!hAkelEditCursorMLeft) hAkelEditCursorMLeft=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMLEFT);
-    if (!hAkelEditCursorMLeftTop) hAkelEditCursorMLeftTop=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMLEFTTOP);
-    if (!hAkelEditCursorMTop) hAkelEditCursorMTop=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMTOP);
-    if (!hAkelEditCursorMRightTop) hAkelEditCursorMRightTop=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMRIGHTTOP);
-    if (!hAkelEditCursorMRight) hAkelEditCursorMRight=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMRIGHT);
-    if (!hAkelEditCursorMRightBottom) hAkelEditCursorMRightBottom=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMRIGHTBOTTOM);
-    if (!hAkelEditCursorMBottom) hAkelEditCursorMBottom=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMBOTTOM);
-    if (!hAkelEditCursorMLeftBottom) hAkelEditCursorMLeftBottom=LoadCursorW(hInstance, (wchar_t *)(UINT_PTR)IDC_AEMLEFTBOTTOM);
-    if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
-    if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
-    if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
   }
   return bAkelEditClassRegisteredW;
+}
+
+void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit)
+{
+  if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
+  if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
+  if (!cfAkelEditText) cfAkelEditText=RegisterClipboardFormatA("AkelEditText");
+  if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_IBEAM);
+  if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_ARROW);
+  if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMARGIN);
+  if (!hAkelEditCursorMarker) hAkelEditCursorMarker=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_SIZEWE);
+  if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(NULL, (char *)(UINT_PTR)IDC_HAND);
+  if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEHAND);
+  if (!hAkelEditCursorMCenterAll) hAkelEditCursorMCenterAll=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERALL);
+  if (!hAkelEditCursorMCenterLeftRight) hAkelEditCursorMCenterLeftRight=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERLEFTRIGHT);
+  if (!hAkelEditCursorMCenterTopBottom) hAkelEditCursorMCenterTopBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMCENTERTOPBOTTOM);
+  if (!hAkelEditCursorMLeft) hAkelEditCursorMLeft=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFT);
+  if (!hAkelEditCursorMLeftTop) hAkelEditCursorMLeftTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFTTOP);
+  if (!hAkelEditCursorMTop) hAkelEditCursorMTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMTOP);
+  if (!hAkelEditCursorMRightTop) hAkelEditCursorMRightTop=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHTTOP);
+  if (!hAkelEditCursorMRight) hAkelEditCursorMRight=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHT);
+  if (!hAkelEditCursorMRightBottom) hAkelEditCursorMRightBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMRIGHTBOTTOM);
+  if (!hAkelEditCursorMBottom) hAkelEditCursorMBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMBOTTOM);
+  if (!hAkelEditCursorMLeftBottom) hAkelEditCursorMLeftBottom=LoadCursorA(hInstance, (char *)(UINT_PTR)IDC_AEMLEFTBOTTOM);
+  if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
+  if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
+  if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
+
+  //Is Windows 95/98/Me?
+  if (bAkelEditWindows9x == -1)
+  {
+    OSVERSIONINFO ovi;
+
+    ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+    GetVersionEx(&ovi);
+    if (ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+      bAkelEditWindows9x=TRUE;
+    else
+      bAkelEditWindows9x=FALSE;
+  }
 }
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
@@ -767,13 +756,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else if (wParam <= AEGI_LASTFULLVISIBLELINE)
       {
-        if (AE_GetIndex(ae, wParam, NULL, &ciChar))
+        if (AE_GetIndex(ae, (int)wParam, NULL, &ciChar))
           return AE_AkelIndexToRichOffset(ae, &ciChar);
       }
       else
       {
         AE_RichOffsetToAkelIndex(ae, lParam, &ciChar);
-        if (AE_GetIndex(ae, wParam, &ciChar, &ciChar))
+        if (AE_GetIndex(ae, (int)wParam, &ciChar, &ciChar))
           return AE_AkelIndexToRichOffset(ae, &ciChar);
       }
       return -1;
@@ -1475,19 +1464,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETMARKER)
     {
-      if (ae->popt->dwColumnMarkerType != wParam ||
-          ae->popt->dwColumnMarkerPos != (DWORD)lParam)
-      {
-        if (lParam >= 0)
-        {
-          AE_ColumnMarkerErase(ae);
-          ae->popt->dwColumnMarkerType=(DWORD)wParam;
-          ae->popt->dwColumnMarkerPos=(DWORD)lParam;
-          AE_ColumnMarkerDraw(ae);
-          AE_StackUpdateClones(ae);
-        }
-      }
-      return 0;
+      return AE_ColumnMarkerSet(ae, (DWORD)wParam, (int)lParam, FALSE);
     }
     if (uMsg == AEM_GETLINEGAP)
     {
@@ -3861,8 +3838,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (GetFocus() != ae->hWndEdit)
           SetFocus(ae->hWndEdit);
 
+        //Marker movement capture
+        if (!bAlt && bShift && ae->nCurrentCursor == AECC_MARKER)
+        {
+          if (!ae->dwMouseMoveTimer)
+          {
+            //Timer
+            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+            AE_SetMouseCapture(ae, AEMSC_MOUSEMARKER);
+          }
+        }
         //Start margin selection capture
-        if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
+        else if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
         {
           AECHARRANGE cr;
           AECHARINDEX ciCharIndex;
@@ -4122,7 +4109,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
         ae->dwMouseMoveTimer=0;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE);
+        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
       }
       if (!(ae->popt->dwOptions & AECO_LBUTTONUPCONTINUECAPTURE))
         ae->dwMouseSelType=AEMSS_CHARS;
@@ -4163,7 +4150,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
         ae->dwMouseMoveTimer=0;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE);
+        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
       }
     }
 
@@ -9006,7 +8993,21 @@ void AE_MouseMove(AKELEDIT *ae)
   {
     GetCursorPos(&ptPos);
     ScreenToClient(ae->hWndEdit, &ptPos);
-    AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
+
+    if (ae->nCurrentCursor == AECC_MARKER)
+    {
+      INT_PTR nMarkerPos;
+
+      nMarkerPos=ptPos.x - ae->rcDraw.left;
+      if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
+        nMarkerPos=(nMarkerPos / ae->ptxt->nAveCharWidth) + nMarkerPos % ae->ptxt->nAveCharWidth / (ae->ptxt->nAveCharWidth / 2);
+
+      AE_ColumnMarkerSet(ae, ae->popt->dwColumnMarkerType, (int)nMarkerPos, TRUE);
+    }
+    else
+    {
+      AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
+    }
   }
 }
 
@@ -9264,6 +9265,14 @@ int AE_SetCursor(AKELEDIT *ae)
       SetCursor(hAkelEditCursorHand);
       nResult=AECC_URL;
     }
+    else if (!bAlt && bShift && AE_IsPointOnMarker(ae, ptPos.x, ptPos.y))
+    {
+      if (!(ae->popt->dwOptions & AECO_NOMARKERMOVE))
+      {
+        SetCursor(hAkelEditCursorMarker);
+        nResult=AECC_MARKER;
+      }
+    }
   }
   return nResult;
 }
@@ -9363,6 +9372,26 @@ DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRA
     }
   }
   return 0;
+}
+
+BOOL AE_IsPointOnMarker(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
+{
+  if (ae->popt->dwColumnMarkerPos)
+  {
+    INT_PTR nMarkerPos;
+
+    nMarkerPos=ae->popt->dwColumnMarkerPos;
+    if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
+      nMarkerPos*=ae->ptxt->nAveCharWidth;
+    nMarkerPos=ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos);
+
+    if (nMarkerPos >= nClientX - 1 && nMarkerPos <= nClientX + 1 &&
+        nClientY >= ae->rcDraw.top && nClientY <= ae->rcDraw.bottom)
+    {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crRange)
@@ -13223,19 +13252,37 @@ void AE_ActiveColumnErase(AKELEDIT *ae)
   }
 }
 
+BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse)
+{
+  if (nPos >= 0)
+  {
+    if (ae->popt->dwColumnMarkerType != dwType ||
+        ae->popt->dwColumnMarkerPos != (DWORD)nPos)
+    {
+      AE_ColumnMarkerErase(ae);
+      ae->popt->dwColumnMarkerType=dwType;
+      ae->popt->dwColumnMarkerPos=nPos;
+      AE_ColumnMarkerDraw(ae);
+      AE_StackUpdateClones(ae);
+      AE_NotifyMarker(ae, bMouse);
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 void AE_ColumnMarkerDraw(AKELEDIT *ae)
 {
   if (ae->popt->dwColumnMarkerPos)
   {
-    int nMarkerPos=0;
+    INT_PTR nMarkerPos;
     HDC hDC=ae->hDC;
     HPEN hPen;
     HPEN hPenOld;
 
+    nMarkerPos=ae->popt->dwColumnMarkerPos;
     if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
-      nMarkerPos=ae->popt->dwColumnMarkerPos * ae->ptxt->nAveCharWidth;
-    else if (ae->popt->dwColumnMarkerType == AEMT_PIXEL)
-      nMarkerPos=ae->popt->dwColumnMarkerPos;
+      nMarkerPos*=ae->ptxt->nAveCharWidth;
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
@@ -13260,12 +13307,11 @@ void AE_ColumnMarkerErase(AKELEDIT *ae)
   if (ae->popt->dwColumnMarkerPos)
   {
     RECT rcMarker;
-    int nMarkerPos=0;
+    INT_PTR nMarkerPos;
 
+    nMarkerPos=ae->popt->dwColumnMarkerPos;
     if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
-      nMarkerPos=ae->popt->dwColumnMarkerPos * ae->ptxt->nAveCharWidth;
-    else if (ae->popt->dwColumnMarkerType == AEMT_PIXEL)
-      nMarkerPos=ae->popt->dwColumnMarkerPos;
+      nMarkerPos*=ae->ptxt->nAveCharWidth;
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
@@ -19419,6 +19465,24 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
   if (lResult1 || lResult2)
     return TRUE;
   return FALSE;
+}
+
+void AE_NotifyMarker(AKELEDIT *ae, BOOL bMouse)
+{
+  //Send AEN_MARKER
+  if (ae->popt->dwEventMask & AENM_MARKER)
+  {
+    AENMARKER aenm;
+
+    aenm.hdr.hwndFrom=ae->hWndEdit;
+    aenm.hdr.idFrom=ae->nEditCtrlID;
+    aenm.hdr.code=AEN_MARKER;
+    aenm.hdr.docFrom=(AEHDOC)ae;
+    aenm.dwType=ae->popt->dwColumnMarkerType;
+    aenm.dwPos=ae->popt->dwColumnMarkerPos;
+    aenm.bMouse=bMouse;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
+  }
 }
 
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)

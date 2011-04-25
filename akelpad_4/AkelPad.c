@@ -4185,6 +4185,27 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           }
         }
       }
+      else if (((NMHDR *)lParam)->code == AEN_MARKER)
+      {
+        AENMARKER *aenm=(AENMARKER *)lParam;
+        DWORD dwNewPos;
+
+        if (aenm->bMouse)
+        {
+          if (aenm->dwPos & AEMT_PIXEL)
+            dwNewPos=aenm->dwPos / (DWORD)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCHARSIZE, AECS_AVEWIDTH, 0);
+          else
+            dwNewPos=aenm->dwPos;
+          if (lpFrameCurrent->dwMarker == lpFrameCurrent->dwWrapLimit)
+          {
+            lpFrameCurrent->dwMarker=dwNewPos;
+            SetCurEditOption(EO_WRAPLIMIT, dwNewPos);
+          }
+          else lpFrameCurrent->dwMarker=dwNewPos;
+
+          UpdateStatusUser(lpFrameCurrent, CSB_MARKER);
+        }
+      }
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
