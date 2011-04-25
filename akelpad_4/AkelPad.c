@@ -727,6 +727,7 @@ void _WinMain()
     //Get print font
     xmemcpy(&moInit.lfPrintFont, &fdInit.lf, sizeof(LOGFONTW));
   }
+  StackFontItemInsert(&hFontsStack, &fdInit.lf);
 
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
     moInit.bDefaultBOM=TRUE;
