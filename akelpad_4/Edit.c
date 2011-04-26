@@ -16311,7 +16311,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               {
                 xmemset(&si, 0, sizeof(STARTUPINFOW));
                 si.cb=sizeof(STARTUPINFOW);
-                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wszWorkDir && *wszWorkDir)?wszWorkDir:NULL, &si, &pi))
+                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
                 {
                   if (bWait)
                   {
