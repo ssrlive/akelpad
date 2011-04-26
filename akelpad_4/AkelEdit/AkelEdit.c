@@ -3899,12 +3899,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       //Two clicks
       else if (ae->nLButtonDownCount == 1)
       {
-        if (ae->nCurrentCursor == AECC_MARGIN)
+        if (ae->nCurrentCursor == AECC_MARKER)
         {
-          if (!bAlt && !bShift)
-          {
-            //Two clicks in left margin are ignored
-          }
+          //Two clicks on column marker are ignored
+        }
+        else if (ae->nCurrentCursor == AECC_MARGIN)
+        {
+          //Two clicks on left margin are ignored
         }
         else
         {
@@ -3933,7 +3934,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       //Three clicks
       else if (ae->nLButtonDownCount == 2)
       {
-        if (ae->nCurrentCursor == AECC_MARGIN)
+        if (ae->nCurrentCursor == AECC_MARKER)
+        {
+          //Three clicks on column marker are ignored
+        }
+        else if (ae->nCurrentCursor == AECC_MARGIN)
         {
           if (!bAlt && !bShift)
           {
