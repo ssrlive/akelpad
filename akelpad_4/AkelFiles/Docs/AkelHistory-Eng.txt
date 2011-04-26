@@ -19,6 +19,7 @@ Added: variables for "StatusUserFormat":
        "%ar" - count of symbols in document (RichEdit);
        "%se[text]" - text to appear when end of the document reached during search.
 Added: undo buffer remember the caret position.
+Added: parameter for waiting until the program finishes in command line method /Exec().
 
 Fixed: edit window updating after text deletion.
 Fixed: ignoring left mouse button click.
