@@ -4437,7 +4437,8 @@ Set marker at specified position.
 (int)lParam == integer, zero to clear marker.
 
 Return Value
- Zero.
+ TRUE  marker type or position is changed.
+ FALSE no changes made.
 
 Example:
  SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, 80);
