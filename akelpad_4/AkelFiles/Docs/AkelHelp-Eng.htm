@@ -149,7 +149,13 @@
           <div style="margin-left:30px">/Call("Scripts::Main")</div>
             <div style="margin-left:60px">method calls Scripts plugin and Main function.</div>
 
-          <div style="margin-top:10px"><li><b>/Exec("command line", ["working directory"])</b></div>
+          <div style="margin-top:10px"><li><b>/Exec("command line", ["working directory"], [Wait])</b></div>
+          <div style="margin-left:30px">"command line"</div>
+            <div style="margin-left:60px">Command line string.</div>
+          <div style="margin-left:30px">"working directory"</div>
+            <div style="margin-left:60px">Working directory string. Default is "".</div>
+          <div style="margin-left:30px">Wait</div>
+            <div style="margin-left:60px">Wait until the program finishes. 1 - wait, 0 - return immediately.</div>
           <div style="margin-left:30px">/Exec("notepad.exe")</div>
             <div style="margin-left:60px">method calls notepad.</div>
           <div style="margin-left:30px">/Exec(`notepad.exe`)</div>

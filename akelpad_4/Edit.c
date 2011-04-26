@@ -2497,7 +2497,7 @@ BOOL DoSettingsExec()
       {
         xmemset(&si, 0, sizeof(STARTUPINFOW));
         si.cb=sizeof(STARTUPINFOW);
-        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &si, &pi))
+        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, (wszWorkDirExp && *wszWorkDirExp)?wszWorkDirExp:NULL, &si, &pi))
         {
           bResult=TRUE;
           CloseHandle(pi.hProcess);
@@ -16300,17 +16300,24 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               PROCESS_INFORMATION pi;
               wchar_t *wpCmdLine=NULL;
               wchar_t *wpWorkDir=NULL;
+              BOOL bWait=FALSE;
 
               SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
               wpCmdLine=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
               wpWorkDir=(wchar_t *)GetParameterExpCharW(&hParamStack, 2);
+              bWait=GetParameterInt(&hParamStack, 3);
 
               if (wpCmdLine)
               {
                 xmemset(&si, 0, sizeof(STARTUPINFOW));
                 si.cb=sizeof(STARTUPINFOW);
-                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, wpWorkDir, &si, &pi))
+                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wszWorkDir && *wszWorkDir)?wszWorkDir:NULL, &si, &pi))
                 {
+                  if (bWait)
+                  {
+                    WaitForSingleObject(pi.hProcess, INFINITE);
+                    //GetExitCodeProcess(pi.hProcess, &dwExit);
+                  }
                   CloseHandle(pi.hProcess);
                   CloseHandle(pi.hThread);
                 }
