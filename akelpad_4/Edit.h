@@ -117,6 +117,10 @@
 #define STR_PRINT_FOOTERA              "- %n[1] -"
 #define STR_PRINT_FOOTERW             L"- %n[1] -"
 
+//ParseCmdLine flags
+#define PCL_ONLOAD          0
+#define PCL_ONSHOW          1
+
 //Open file dialog
 #define IDC_OFN_LIST           1120
 #define IDC_OFN_COMBOBOX_LABEL 1089
@@ -1022,7 +1026,7 @@ wchar_t* GetCommandLineParamsWide(void);
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
-int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad);
+int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost);
 void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void SetParametersExpChar(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir);

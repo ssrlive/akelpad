@@ -811,7 +811,7 @@ void _WinMain()
   //Parse commmand line on load
   if (wpCmdLine)
   {
-    int nResult=ParseCmdLine(&wpCmdLine, TRUE);
+    int nResult=ParseCmdLine(&wpCmdLine, PCL_ONLOAD);
 
     if (nResult == PCLE_QUIT)
       goto Quit;
@@ -1558,7 +1558,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Parse commmand line on show
       if (wpCmdLine)
       {
-        int nResult=ParseCmdLine(&wpCmdLine, FALSE);
+        int nResult=ParseCmdLine(&wpCmdLine, PCL_ONSHOW);
 
         wpCmdLine=NULL;
         if (nResult == PCLE_QUIT)
@@ -1595,7 +1595,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(pcls->pWorkDir);
-      nResult=ParseCmdLine(&pcls->pCmdLine, FALSE);
+      nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONSHOW);
       if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(wszExeDir);
       if (nResult == PCLE_QUIT)

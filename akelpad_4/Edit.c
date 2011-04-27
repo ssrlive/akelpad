@@ -16139,7 +16139,7 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
   return (int)(wpArg - wszArg);
 }
 
-int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
+int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
 {
   const wchar_t *wpCmdLine;
   const wchar_t *wpCmdLineNext;
@@ -16251,7 +16251,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_NONOTEPADCMD;
           continue;
         }
-        if (bOnLoad) return PCLE_ONLOAD;
+        if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
         //Process actions
         if (lpFrameCurrent->ei.hWndEdit)
@@ -16498,7 +16498,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
             }
           }
         }
-        if (bOnLoad) return PCLE_ONLOAD;
+        if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
         if (!bFileOpenedSDI)
         {
@@ -16515,7 +16515,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         SendCmdLine(hWndFriend, wpCmdLine, TRUE);
         return PCLE_END;
       }
-      if (bOnLoad) return PCLE_ONLOAD;
+      if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
       nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
