@@ -11927,7 +11927,36 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
   return UD_FAILED;
 }
 
-BOOL TranslateGlobal(LPMSG lpMsg)
+int TranslateMessageAll(LPMSG lpMsg)
+{
+  int nHotkeyStatus;
+
+  if (!TranslateMessageGlobal(lpMsg))
+  {
+    if (!TranslateMessageDialog(&hDocksStack, lpMsg))
+    {
+      if (!TranslateMessagePlugin(lpMsg))
+      {
+        if ((nHotkeyStatus=TranslateMessageHotkey(&hPluginsStack, lpMsg)) <= 0)
+        {
+          if (nHotkeyStatus < 0 || !TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
+          {
+            TranslateMessage(lpMsg);
+            DispatchMessageWide(lpMsg);
+            return TMSG_DEFAULT;
+          }
+          else return TMSG_ACCELERATOR;
+        }
+        else return TMSG_HOTKEY;
+      }
+      else return TMSG_PLUGIN;
+    }
+    else return TMSG_DIALOG;
+  }
+  else return TMSG_GLOBAL;
+}
+
+BOOL TranslateMessageGlobal(LPMSG lpMsg)
 {
   if (TranslateAcceleratorWide(hMainWnd, hGlobalAccel, lpMsg))
     return TRUE;
@@ -11946,7 +11975,7 @@ BOOL TranslateGlobal(LPMSG lpMsg)
   return FALSE;
 }
 
-BOOL TranslatePlugin(LPMSG lpMsg)
+BOOL TranslateMessagePlugin(LPMSG lpMsg)
 {
   if (lpMsg->message == AKD_POSTMESSAGE)
   {
@@ -12045,7 +12074,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
   return FALSE;
 }
 
-int TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
+int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
   BYTE nMod=0;
@@ -14854,7 +14883,7 @@ void StackDockFree(HDOCK *hDocks)
   StackClear((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last);
 }
 
-BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg)
+BOOL TranslateMessageDialog(HDOCK *hDocks, LPMSG lpMsg)
 {
   if (hDlgModeless && IsDialogMessageWide(hDlgModeless, lpMsg))
   {

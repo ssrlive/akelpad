@@ -263,6 +263,14 @@
 #define DLLSF_NOW     0x1  //Save plugins stack immediately.
 #define DLLSF_ONEXIT  0x2  //Save plugins stack on program exit.
 
+//AKD_TRANSLATEMESSAGE return type
+#define TMSG_GLOBAL       1  //Hotkey from global accelerator table (PLUGINDATA.hGlobalAccel) is translated.
+#define TMSG_DIALOG       2  //Message from modeless (see AKD_SETMODELESS) or dockable dialog (see AKD_DOCK) is translated.
+#define TMSG_PLUGIN       3  //Plugin message (see AKD_DLL*, AKD_CALLPROC, AKD_POSTMESSAGE) is translated.
+#define TMSG_HOTKEY       4  //Plugin hotkey is translated.
+#define TMSG_ACCELERATOR  5  //Hotkey from main accelerator table (PLUGINDATA.hMainAccel) is translated.
+#define TMSG_DEFAULT      6  //Default message processing.
+
 //Context menu owner
 #define NCM_EDIT     1  //Edit control.
 #define NCM_TAB      2  //Tab control.
@@ -1571,6 +1579,7 @@ typedef struct {
 #define AKD_WAITKEYBOARD           (WM_USER + 288)
 #define AKD_GETQUEUE               (WM_USER + 289)
 #define AKD_POSTMESSAGE            (WM_USER + 290)
+#define AKD_TRANSLATEMESSAGE       (WM_USER + 291)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -3294,7 +3303,7 @@ Indicates the type of messages found in the main thread's message queue
 lParam        == not used.
 
 Return Value
-  Number of messages.
+ Number of messages.
 
 Example:
  DWORD dwStatus=SendMessage(pd->hMainWnd, AKD_GETQUEUE, QS_ALLEVENTS, 0);
@@ -3309,7 +3318,7 @@ wParam                == not used.
 (POSTMESSAGE *)lParam == pointer to a POSTMESSAGE, allocated with GlobalAlloc.
 
 Return Value
-  Zero.
+ Zero.
 
 Example (Unicode):
  typedef struct {
@@ -3335,6 +3344,37 @@ Example (Unicode):
    pmsd->pm.lParam=(LPARAM)&pmsd->sd;
    PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
  }
+
+
+AKD_TRANSLATEMESSAGE
+____________________
+
+Process window message.
+
+wParam        == not used.
+(MSG *)lParam == pointer to an MSG structure that contains message information.
+
+Return Value
+ See TMSG_* defines.
+
+Example:
+ MSG msg;
+ BOOL bExitLoop=FALSE;
+
+ for (;;)
+ {
+   while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+   {
+     if (msg.message == WM_QUIT)
+       bExitLoop=TRUE;
+     else
+       SendMessage(pd->hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)&msg);
+   }
+   if (bExitLoop)
+     break;
+   WaitMessage();
+ }
+
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW

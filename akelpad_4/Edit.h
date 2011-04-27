@@ -920,9 +920,10 @@ void StackPluginFree(HSTACK *hStack);
 void CallPluginsOnStart(HSTACK *hStack);
 int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFlags);
 int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags);
-BOOL TranslateGlobal(LPMSG lpMsg);
-BOOL TranslatePlugin(LPMSG lpMsg);
-int TranslateHotkey(HSTACK *hStack, LPMSG lpMsg);
+int TranslateMessageAll(LPMSG lpMsg);
+BOOL TranslateMessageGlobal(LPMSG lpMsg);
+BOOL TranslateMessagePlugin(LPMSG lpMsg);
+int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
 
@@ -972,7 +973,7 @@ DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *ptScreen);
 void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns);
 BOOL StackDockUpdateCheck(HDOCK *hDocks);
 void StackDockFree(HDOCK *hDocks);
-BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg);
+BOOL TranslateMessageDialog(HDOCK *hDocks, LPMSG lpMsg);
 
 int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
 int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc);
