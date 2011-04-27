@@ -455,7 +455,6 @@ void _WinMain()
   HMODULE hAkelLib=NULL;
 #endif
   BOOL bMsgStatus;
-  int nHotkeyStatus;
   int nMajor;
   int nMinor;
   int nRelease;
@@ -996,23 +995,8 @@ void _WinMain()
 
   while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
   {
-    if (!TranslateGlobal(&msg))
-    {
-      if (!TranslateDialog(&hDocksStack, &msg))
-      {
-        if (!TranslatePlugin(&msg))
-        {
-          if ((nHotkeyStatus=TranslateHotkey(&hPluginsStack, &msg)) <= 0)
-          {
-            if (nHotkeyStatus < 0 || !TranslateAcceleratorWide(hMainWnd, hMainAccel, &msg))
-            {
-              TranslateMessage(&msg);
-              DispatchMessageWide(&msg);
-            }
-          }
-        }
-      }
-    }
+    TranslateMessageAll(&msg);
+
     if (bMainOnStart)
     {
       if (GetQueueStatus(QS_ALLINPUT) == 0)
@@ -2447,8 +2431,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             while (PeekMessageWide(&msg, NULL, 0, 0, PM_REMOVE))
             {
-              TranslateMessage(&msg);
-              DispatchMessageWide(&msg);
+              TranslateMessageAll(&msg);
             }
             goto Loop;
           }
@@ -2459,6 +2442,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETQUEUE)
     {
       return GetQueueStatus((UINT)wParam);
+    }
+    if (uMsg == AKD_TRANSLATEMESSAGE)
+    {
+      return TranslateMessageAll((LPMSG)lParam);
     }
 
     //Plugin options
