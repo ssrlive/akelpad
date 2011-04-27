@@ -2962,7 +2962,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
             {
               if (*pFmt == 'S')
               {
-                if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwPrecision?(int)dwPrecision + 1:-1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
+                if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwLen + 1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
                   pOut[--dwLen]='\0';
               }
               else dwLen=(unsigned int)xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
@@ -3224,7 +3224,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
             {
               if (*wpFmt == L'S')
               {
-                if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwPrecision?(int)dwPrecision + 1:-1, wpOut, dwLen + 1))
+                if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwLen + 1, wpOut, dwLen + 1))
                   wpOut[--dwLen]='\0';
               }
               else dwLen=(unsigned int)xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
