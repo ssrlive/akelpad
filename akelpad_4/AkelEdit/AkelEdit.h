@@ -4782,7 +4782,6 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT;
  ff.dwFindIt=(UINT_PTR)&ciCaret;
- ff.lpRoot=NULL;
  SendMessage(hWndEdit, AEM_FINDFOLD, (WPARAM)&ff, 0);
 
 
