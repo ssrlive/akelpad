@@ -663,7 +663,7 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   if (nMDI)
   {
     //Remember keyboard layout
-    if (moCur.bKeybLayoutMDI)
+    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
     {
       lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
     }
@@ -722,7 +722,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   if (nMDI)
   {
     //Activate keyboard layout
-    if (moCur.bKeybLayoutMDI)
+    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
     {
       ActivateKeyboard(lpFrame->dwInputLocale);
     }
@@ -2554,6 +2554,8 @@ void DoSettingsPlugins()
 
 void DoSettingsOptions()
 {
+  DWORD dwInitKeybLayoutOptions=moCur.dwKeybLayoutOptions;
+
   hHookPropertySheet=SetWindowsHookEx(WH_CBT, CBTPropertySheetProc, NULL, GetCurrentThreadId());
   bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
@@ -2651,6 +2653,13 @@ void DoSettingsOptions()
     pshW.pfnCallback =PropSheetProc;
 
     PropertySheetW(&pshW);
+  }
+
+  if (dwInitKeybLayoutOptions != moCur.dwKeybLayoutOptions)
+  {
+    //Run after property dialog closed, because SwitchLayout require focus
+    if (moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT)
+      SwitchLayout(lpFrameCurrent->ei.hWndEdit, &ciCurCaret);
   }
 
   if (bOptionsSave)
@@ -3591,11 +3600,9 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"FileTypesEdit", MOT_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
     ReadOption(&oh, L"FileTypesPrint", MOT_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
     ReadOption(&oh, L"FileTypesAssociated", MOT_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
+    ReadOption(&oh, L"KeybLayoutOptions", MOT_DWORD, &mo->dwKeybLayoutOptions, sizeof(DWORD));
     if (mo->nMDI)
-    {
-      ReadOption(&oh, L"KeybLayoutMDI", MOT_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
       ReadOption(&oh, L"SilentCloseEmptyMDI", MOT_DWORD, &mo->bSilentCloseEmptyMDI, sizeof(DWORD));
-    }
     ReadOption(&oh, L"DateLog", MOT_DWORD, &mo->bDateLog, sizeof(DWORD));
     ReadOption(&oh, L"SaveInReadOnlyMsg", MOT_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
     ReadOption(&oh, L"DefaultSaveExt", MOT_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
@@ -3852,10 +3859,10 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"FileTypesAssociated", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwFileTypesAssociated), sizeof(DWORD)))
     goto Error;
+  if (!SaveOption(&oh, L"KeybLayoutOptions", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwKeybLayoutOptions), sizeof(DWORD)))
+    goto Error;
   if (nMDI)
   {
-    if (!SaveOption(&oh, L"KeybLayoutMDI", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bKeybLayoutMDI), sizeof(DWORD)))
-      goto Error;
     if (!SaveOption(&oh, L"SilentCloseEmptyMDI", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bSilentCloseEmptyMDI), sizeof(DWORD)))
       goto Error;
   }
@@ -13665,6 +13672,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndDefaultSaveExt;
+  static HWND hWndSwitchKeybLayout;
   static HWND hWndRememberKeybLayout;
   static HWND hWndSilentCloseEmpty;
   static HWND hWndDateLog;
@@ -13676,6 +13684,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   if (uMsg == WM_INITDIALOG)
   {
     hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
+    hWndSwitchKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_SWITCH_KEYBLAYOUT);
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndSilentCloseEmpty=GetDlgItem(hDlg, IDC_OPTIONS_SILENTCLOSEEMPTY);
     hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
@@ -13684,7 +13693,9 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
 
-    if (moCur.bKeybLayoutMDI)
+    if (moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT)
+      SendMessage(hWndSwitchKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSilentCloseEmptyMDI)
       SendMessage(hWndSilentCloseEmpty, BM_SETCHECK, BST_CHECKED, 0);
@@ -13712,8 +13723,17 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       //Default save extention
       GetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt, MAX_PATH);
 
+      //Auto switch keyboard layout
+      if (SendMessage(hWndSwitchKeybLayout, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwKeybLayoutOptions|=MO_SWITCHLAYOUT;
+      else
+        moCur.dwKeybLayoutOptions&=~MO_SWITCHLAYOUT;
+
       //Remember keyboard layout for each tab (MDI)
-      moCur.bKeybLayoutMDI=(BOOL)SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0);
+      if (SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwKeybLayoutOptions|=MO_REMEMBERLAYOUT;
+      else
+        moCur.dwKeybLayoutOptions&=~MO_REMEMBERLAYOUT;
 
       //Silently close unsaved empty tab (MDI)
       moCur.bSilentCloseEmptyMDI=(BOOL)SendMessage(hWndSilentCloseEmpty, BM_GETCHECK, 0, 0);
@@ -17787,6 +17807,89 @@ void ReleaseMouseCapture(DWORD dwType)
     if (!dwMouseCapture)
       ReleaseCapture();
   }
+}
+
+BOOL SwitchLayout(HWND hWndEdit, AECHARINDEX *lpciCaret)
+{
+  AECHARINDEX ciPrevChar;
+  HKL *lpList;
+  HKL dwFirstNonLatinLocale=0;
+  HKL dwLatinLocale=0;
+  HKL dwCurLocale;
+  DWORD dwPrimaryLocale;
+  int nListCount;
+  int nChar;
+  int nCharLayout=CHARLAYOUT_NONE;
+  int i;
+  BOOL bResult=FALSE;
+
+  if (hWndEdit && GetFocus() == hWndEdit)
+  {
+    if (AEC_PrevCharInLineEx(lpciCaret, &ciPrevChar))
+    {
+      if ((nChar=AEC_CharAtIndex(&ciPrevChar)) >= 0)
+        nCharLayout=DetectCharLayout(nChar);
+    }
+    if (nCharLayout == CHARLAYOUT_NONE)
+    {
+      if ((nChar=AEC_CharAtIndex(lpciCaret)) >= 0)
+        nCharLayout=DetectCharLayout(nChar);
+    }
+
+    if (nCharLayout != CHARLAYOUT_NONE)
+    {
+      if ((nListCount=GetKeyboardLayoutList(0, NULL)) > 1)
+      {
+        if (lpList=(HKL *)GlobalAlloc(GPTR, nListCount * sizeof(UINT_PTR)))
+        {
+          GetKeyboardLayoutList(nListCount, lpList);
+
+          //Find Latin locale
+          for (i=0; i < nListCount; ++i)
+          {
+            if (PRIMARYLANGID((UINT_PTR)lpList[i]) == LANG_ENGLISH)
+              dwLatinLocale=lpList[i];
+            else if (!dwFirstNonLatinLocale)
+              dwFirstNonLatinLocale=lpList[i];
+          }
+          if (dwLatinLocale)
+          {
+            //dwCurLocale=(HKL)GetKeyboardLayout(0);
+            dwCurLocale=(HKL)SendMessage(hWndEdit, AEM_INPUTLANGUAGE, 0, 0);
+            dwPrimaryLocale=PRIMARYLANGID((UINT_PTR)dwCurLocale);
+
+            if (nCharLayout == CHARLAYOUT_ENGLISH)
+            {
+              if (dwPrimaryLocale != LANG_ENGLISH)
+              {
+                ActivateKeyboardLayout(dwLatinLocale, 0);
+                bResult=TRUE;
+              }
+            }
+            else if (nCharLayout == CHARLAYOUT_NONENGLISH)
+            {
+              if (dwPrimaryLocale == LANG_ENGLISH)
+              {
+                ActivateKeyboardLayout(dwFirstNonLatinLocale, 0);
+                bResult=TRUE;
+              }
+            }
+          }
+          GlobalFree((HGLOBAL)lpList);
+        }
+      }
+    }
+  }
+  return bResult;
+}
+
+int DetectCharLayout(int nChar)
+{
+  if ((nChar >= 'A' && nChar <= 'Z') || (nChar >= 'a' && nChar <= 'z'))
+    return CHARLAYOUT_ENGLISH;
+  else if (nChar > 0x80)
+    return CHARLAYOUT_NONENGLISH;
+  return CHARLAYOUT_NONE;
 }
 
 void ActivateKeyboard(HKL dwInputLocale)

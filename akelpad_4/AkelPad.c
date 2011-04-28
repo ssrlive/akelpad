@@ -654,7 +654,7 @@ void _WinMain()
   xstrcpyW(moInit.wszFileTypesEdit, STR_ASSOCIATE_EDITW);
   xstrcpyW(moInit.wszFileTypesPrint, STR_ASSOCIATE_PRINTW);
   //moInit.dwFileTypesAssociated=0;
-  //moInit.bKeybLayoutMDI=FALSE;
+  //moInit.dwKeybLayoutOptions=0;
   //moInit.bSilentCloseEmptyMDI=FALSE;
   //moInit.bDateLog=FALSE;
   //moInit.bSaveInReadOnlyMsg=FALSE;
@@ -4091,6 +4091,11 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         if (!bMainOnFinish)
         {
           SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+
+          if ((moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT) && !(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
+          {
+            SwitchLayout(aensc->hdr.hwndFrom, &aensc->ciCaret);
+          }
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)

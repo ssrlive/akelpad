@@ -173,6 +173,10 @@
 #define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
 #define MO_RCLICKMOVECARET     0x00000008  //WM_RBUTTONDOWN message moves caret to a click position.
 
+//Keyboard layout options
+#define MO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).
+#define MO_SWITCHLAYOUT       0x00000002  //Auto switch keyboard layout according to text under caret.
+
 //Paint options
 #define PAINT_PAINTGROUP        0x00000001  //Paint text by group of characters (default is character by character).
                                             //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
