@@ -206,6 +206,11 @@
 #define LANGID_JAPANESE   0x0411
 #define LANGID_KOREAN     0x0412
 
+//Char layout
+#define CHARLAYOUT_NONE       0
+#define CHARLAYOUT_ENGLISH    1
+#define CHARLAYOUT_NONENGLISH 2
+
 //Code pages int
 #define CP_UNICODE_UTF16LE  1200
 #define CP_UNICODE_UTF16BE  1201
@@ -413,7 +418,7 @@ typedef struct {
   wchar_t wszFileTypesPrint[MAX_PATH];
   DWORD dwFileTypesAssociated;
   int nClickURL;
-  BOOL bKeybLayoutMDI;
+  DWORD dwKeybLayoutOptions;
   BOOL bSilentCloseEmptyMDI;
   BOOL bDateLog;
   BOOL bSaveInReadOnlyMsg;
@@ -1074,6 +1079,8 @@ int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileString(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void SetMouseCapture(HWND hWnd, DWORD dwType);
 void ReleaseMouseCapture(DWORD dwType);
+BOOL SwitchLayout(HWND hWndEdit, AECHARINDEX *lpciCaret);
+int DetectCharLayout(int nChar);
 void ActivateKeyboard(HKL dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);

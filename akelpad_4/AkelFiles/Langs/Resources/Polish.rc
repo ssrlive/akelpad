@@ -473,7 +473,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "ZnajdŸ"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,162,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -507,7 +507,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Zamieñ"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,162,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -822,30 +822,33 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Zaawansowane"
 FONT 8, "MS Shell Dlg"
 BEGIN
+    CONTROL         "Auto switch keyboard layout",
+                    IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,11,200,10
     CONTROL         "Pamiêtaj uk³ad klawiatury dla ka¿dego okna (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,11,200,10
+                    WS_TABSTOP,9,23,200,10
     CONTROL         "Automatycznie zamykaj puste karty (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,23,200,10
+                    WS_TABSTOP,9,35,200,10
     CONTROL         "Wstaw datê, gdy plik zawiera na pocz¹tku wpis .LOG",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,35,200,10
+                    WS_TABSTOP,9,47,200,10
     CONTROL         "Ostrze¿enie o zapisywaniu plików tylko do odczytu",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,47,200,10
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
+                    WS_TABSTOP,9,59,200,10
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
-                    65,171,8
-    GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,84,200,53
+                    77,171,8
+    GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,96,200,53
     CONTROL         """Zamieñ wszystko"" – zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,97,185,10
+                    WS_TABSTOP,17,109,185,10
     CONTROL         "Ustaw ""W zaznaczeniu"" jeœli jest zaznaczenie",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,109,185,10
+                    WS_TABSTOP,17,121,185,10
     CONTROL         "Szukaj wko³o",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,121,185,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
