@@ -16478,14 +16478,13 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
                 if (wpText)
                 {
                   AECHARINDEX ciInsertPos;
-                  INT_PTR nInsertPos;
 
                   ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, AELB_ASINPUT, -1, &ciInsertPos, NULL);
 
                   if (dwCaret != (DWORD)-1)
                   {
-                    nInsertPos=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciInsertPos);
-                    SendMessage(lpFrameCurrent->ei.hWndEdit, EM_SETSEL, (WPARAM)nInsertPos + dwCaret, (LPARAM)nInsertPos + dwCaret);
+                    IndexOffset(lpFrameCurrent->ei.hWndEdit, &ciInsertPos, dwCaret, AELB_ASINPUT);
+                    SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_EXSETSEL, (WPARAM)&ciInsertPos, (LPARAM)&ciInsertPos);
                   }
                 }
                 if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
