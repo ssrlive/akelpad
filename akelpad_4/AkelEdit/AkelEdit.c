@@ -2586,42 +2586,40 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     SETTEXTEX *st=(SETTEXTEX *)wParam;
     BOOL bLockCollectUndo=ae->ptxt->bLockCollectUndo;
 
-    if (!AE_IsReadOnly(ae))
+    if (!(st->flags & ST_KEEPUNDO))
     {
-      if (!(st->flags & ST_KEEPUNDO))
-      {
-        AE_EmptyUndoBuffer(ae);
-        ae->ptxt->bLockCollectUndo=TRUE;
-      }
-      if (!(st->flags & ST_SELECTION))
-        AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
-
-      if (st->codepage == 1200)
-      {
-        AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
-      }
-      else if (st->codepage == 1201)
-      {
-        wchar_t *wszText;
-        UINT_PTR dwUnicodeBytes;
-
-        dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
-
-        if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
-        {
-          xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
-          AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
-          AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, FALSE, NULL, NULL);
-          AE_HeapFree(NULL, 0, (LPVOID)wszText);
-        }
-      }
-      else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
-
-      if (!(st->flags & ST_KEEPUNDO))
-        ae->ptxt->bLockCollectUndo=bLockCollectUndo;
-      if (!(st->flags & ST_SELECTION))
-        AE_SetModify(ae, FALSE);
+      AE_EmptyUndoBuffer(ae);
+      ae->ptxt->bLockCollectUndo=TRUE;
     }
+    if (!(st->flags & ST_SELECTION))
+      AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
+
+    if (st->codepage == 1200)
+    {
+      AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
+    }
+    else if (st->codepage == 1201)
+    {
+      wchar_t *wszText;
+      UINT_PTR dwUnicodeBytes;
+
+      dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
+
+      if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
+      {
+        xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
+        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
+        AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, FALSE, NULL, NULL);
+        AE_HeapFree(NULL, 0, (LPVOID)wszText);
+      }
+    }
+    else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE, NULL, NULL);
+
+    if (!(st->flags & ST_KEEPUNDO))
+      ae->ptxt->bLockCollectUndo=bLockCollectUndo;
+    if (!(st->flags & ST_SELECTION))
+      AE_SetModify(ae, FALSE);
+
     return 1;
   }
   if (uMsg == EM_FINDTEXT ||
@@ -15427,8 +15425,6 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
-  if (AE_IsReadOnly(ae)) return;
-
   if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
@@ -15453,7 +15449,6 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   INT_PTR nSelStartCharOffset;
   INT_PTR nSelEndCharOffset;
 
-  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar);
@@ -15490,8 +15485,6 @@ void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR 
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
 
-  if (AE_IsReadOnly(ae)) return;
-
   if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
     if (dwTextLen == (UINT_PTR)-1)
@@ -15516,7 +15509,6 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   BOOL bUpdateVScroll=FALSE;
   BOOL bUpdateCaret=FALSE;
 
-  if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
 
