@@ -2075,6 +2075,9 @@ wParam                  == not used.
 Return Value
  Zero.
 
+Remarks
+ Message ignore AECO_READONLY flag.
+
 Example:
  AEAPPENDTEXTA at;
 
@@ -2096,6 +2099,9 @@ wParam                  == not used.
 Return Value
  Zero.
 
+Remarks
+ Message ignore AECO_READONLY flag.
+
 Example:
  AEAPPENDTEXTW at;
 
@@ -2115,6 +2121,9 @@ wParam                  == not used.
 
 Return Value
  Zero.
+
+Remarks
+ Message ignore AECO_READONLY flag.
 
 Example:
  AEREPLACESELA rs;
@@ -2139,6 +2148,9 @@ wParam                  == not used.
 
 Return Value
  Zero.
+
+Remarks
+ Message ignore AECO_READONLY flag.
 
 Example:
  AEREPLACESELW rs;

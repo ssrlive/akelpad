@@ -17924,11 +17924,18 @@ void ActivateWindow(HWND hWnd)
   if (dwStyle & WS_VISIBLE)
   {
     if (dwStyle & WS_MINIMIZE)
+    {
       ShowWindow(hWnd, SW_RESTORE);
+      SendMessage(hWnd, WM_COMMAND, IDM_INTERNAL_UPDATEMAINCHILDREN, 0);
+    }
     else
-      SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
-
-    SendMessage(hWnd, WM_COMMAND, IDM_INTERNAL_UPDATEMAINCHILDREN, 0);
+    {
+      if (GetForegroundWindow() != hWnd)
+      {
+        SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
+        SendMessage(hWnd, WM_COMMAND, IDM_INTERNAL_UPDATEMAINCHILDREN, 0);
+      }
+    }
   }
   SendMessage(hWnd, AKDN_ACTIVATE, 0, 0);
 }
