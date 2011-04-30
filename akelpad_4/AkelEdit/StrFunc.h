@@ -2394,6 +2394,9 @@ INT_PTR hex2decA(const char *pStrHex)
   INT_PTR a;
   INT_PTR b=0;
 
+  while (*pStrHex == '0')
+    ++pStrHex;
+
   for (;;)
   {
     a=*pStrHex++;
@@ -2428,6 +2431,9 @@ INT_PTR hex2decW(const wchar_t *wpStrHex)
 {
   INT_PTR a;
   INT_PTR b=0;
+
+  while (*wpStrHex == '0')
+    ++wpStrHex;
 
   for (;;)
   {
