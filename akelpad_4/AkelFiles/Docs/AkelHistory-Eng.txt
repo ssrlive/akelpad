@@ -24,6 +24,7 @@ Added: variables for "StatusUserFormat":
 Added: undo buffer remember the caret position.
 Added: parameter for waiting until the program finishes in command line method /Exec().
 Added: menu item to open help.
+Added: Ctrl+Num/ hotkey to restore font size that was at the program start.
 
 Fixed: edit window updating after text deletion.
 Fixed: ignoring left mouse button click.
