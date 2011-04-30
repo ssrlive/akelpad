@@ -23,6 +23,7 @@ Added: variables for "StatusUserFormat":
        "%se[text]" - text to appear when end of the document reached during search.
 Added: undo buffer remember the caret position.
 Added: parameter for waiting until the program finishes in command line method /Exec().
+Added: menu item to open help.
 
 Fixed: edit window updating after text deletion.
 Fixed: ignoring left mouse button click.

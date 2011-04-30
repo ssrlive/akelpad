@@ -2935,6 +2935,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_SPACE_MENU, nMenuState);
       }
       EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszCommand)?MF_ENABLED:MF_GRAYED);
+      EnableMenuItem(hMainMenu, IDM_MANUAL, GetUserManual(NULL, BUFFER_SIZE)?MF_ENABLED:MF_GRAYED);
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
@@ -3546,6 +3547,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_WINDOW_CLONEPREV)
     {
       return (LRESULT)NextClone(TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_MANUAL)
+    {
+      if (GetUserManual(wbuf, BUFFER_SIZE))
+      {
+        ShellExecuteWide(hMainWnd, L"open", wbuf, NULL, NULL, SW_MAXIMIZE);
+        return TRUE;
+      }
+      return FALSE;
     }
     else if (LOWORD(wParam) == IDM_ABOUT)
     {

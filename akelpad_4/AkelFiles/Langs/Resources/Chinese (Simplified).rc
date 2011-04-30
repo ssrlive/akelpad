@@ -183,6 +183,8 @@ BEGIN
     END
     POPUP "°ïÖú(&H)"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "¹ØÓÚ(&A)",                    IDM_ABOUT
     END
 END

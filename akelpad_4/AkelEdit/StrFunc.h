@@ -1449,7 +1449,7 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
  *
  *[in] char *pString1  Pointer to a buffer into which the function copies characters.
  *                      The buffer must be large enough to contain the string,
- *                      including the terminating null character.
+ *                      including the terminating null character. Can be NULL.
  *[in] char *pString2  Pointer to a null-terminated string from which the function copies characters.
  *
  *Returns:  number of characters copied, not including the terminating null character.
@@ -1465,7 +1465,7 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc)
+  if (pDest != pSrc && pDest)
   {
     while (*pSrc)
       *pDest++=*pSrc++;
@@ -1485,7 +1485,7 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
  *
  *[in] wchar_t *wpString1  Pointer to a buffer into which the function copies characters.
  *                          The buffer must be large enough to contain the string,
- *                          including the terminating null character.
+ *                          including the terminating null character. Can be NULL.
  *[in] wchar_t *wpString2  Pointer to a null-terminated string from which the function copies characters.
  *
  *Returns:  number of characters copied, not including the terminating null character.
@@ -1501,7 +1501,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc)
+  if (wpDest != wpSrc && wpDest)
   {
     while (*wpSrc)
       *wpDest++=*wpSrc++;
@@ -1521,7 +1521,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *
  *[in] char *pString1        Pointer to a buffer into which the function copies characters.
  *                            The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                            including room for a terminating null character.
+ *                            including room for a terminating null character. Can be NULL.
  *[in] char *pString2        Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                            including a terminating null character.
@@ -1539,7 +1539,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc)
+  if (pDest != pSrc && pDest)
   {
     while (*pSrc && --dwMaxLength)
       *pDest++=*pSrc++;
@@ -1563,7 +1563,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
  *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                           including room for a terminating null character.
+ *                           including room for a terminating null character. Can be NULL.
  *[in] wchar_t *wpString2   Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
@@ -1581,7 +1581,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc)
+  if (wpDest != wpSrc && wpDest)
   {
     while (*wpSrc && --dwMaxLength)
       *wpDest++=*wpSrc++;

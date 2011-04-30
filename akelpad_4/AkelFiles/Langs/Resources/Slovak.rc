@@ -192,6 +192,8 @@ BEGIN
     END
     POPUP "&Pomocník"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&O programe",                 IDM_ABOUT
     END
 END

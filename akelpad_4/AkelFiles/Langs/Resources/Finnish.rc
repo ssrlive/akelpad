@@ -191,6 +191,8 @@ BEGIN
     END
     POPUP "&Ohje"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&Tietoja",                    IDM_ABOUT
     END
 END

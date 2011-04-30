@@ -188,6 +188,8 @@ BEGIN
     END
     POPUP "ヘルプ(&H)"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "バージョン情報(&A)",          IDM_ABOUT
     END
 END

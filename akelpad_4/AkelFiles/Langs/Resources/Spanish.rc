@@ -190,6 +190,8 @@ BEGIN
     END
     POPUP "Ay&uda"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&Acerca de",                  IDM_ABOUT
     END
 END

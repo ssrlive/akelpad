@@ -191,6 +191,8 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&Over",                       IDM_ABOUT
     END
 END

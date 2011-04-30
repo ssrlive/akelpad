@@ -188,6 +188,8 @@ BEGIN
     END
     POPUP "도움말(&H)"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "이 프로그램은(&A)",           IDM_ABOUT
     END
 END
