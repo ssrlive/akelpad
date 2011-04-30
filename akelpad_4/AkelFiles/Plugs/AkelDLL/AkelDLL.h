@@ -1401,6 +1401,9 @@ typedef struct {
 #define IDM_ABOUT                       4351  //About dialog.
                                               //Return Value: zero.
                                               //
+#define IDM_MANUAL                      4352  //Open user's manual.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
 #define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.
                                               //Return Value: zero.
                                               //

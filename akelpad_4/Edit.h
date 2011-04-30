@@ -966,6 +966,7 @@ int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int GetUserManual(wchar_t *wszManual, int nManualLen);
 
 int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

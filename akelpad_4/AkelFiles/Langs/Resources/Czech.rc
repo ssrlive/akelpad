@@ -188,6 +188,8 @@ BEGIN
     END
     POPUP "&Nápovìda"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&O programu",                 IDM_ABOUT
     END
 END

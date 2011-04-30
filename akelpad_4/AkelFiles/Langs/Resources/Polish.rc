@@ -189,6 +189,8 @@ BEGIN
     END
     POPUP "Pomo&c"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "&O programie",                IDM_ABOUT
     END
 END

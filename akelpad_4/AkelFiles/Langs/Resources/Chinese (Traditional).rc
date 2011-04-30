@@ -185,6 +185,8 @@ BEGIN
     END
     POPUP "說明(&H)"
     BEGIN
+        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "關於(&A)",                    IDM_ABOUT
     END
 END

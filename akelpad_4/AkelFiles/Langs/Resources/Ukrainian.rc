@@ -186,6 +186,8 @@ BEGIN
     END
     POPUP "&Довідка"
     BEGIN
+        MENUITEM "&Руководство",                IDM_MANUAL
+        MENUITEM SEPARATOR
         MENUITEM "Пр&о програму",               IDM_ABOUT
     END
 END
