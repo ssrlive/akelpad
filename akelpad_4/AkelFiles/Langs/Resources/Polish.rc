@@ -189,7 +189,7 @@ BEGIN
     END
     POPUP "Pomo&c"
     BEGIN
-        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Przewodnik",                     IDM_MANUAL
         MENUITEM SEPARATOR
         MENUITEM "&O programie",                IDM_ABOUT
     END
@@ -824,7 +824,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Zaawansowane"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Auto switch keyboard layout",
+    CONTROL         "Automatycznie prze³¹czaj uk³ad klawiatury",
                     IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
     CONTROL         "Pamiêtaj uk³ad klawiatury dla ka¿dego okna (MDI)",
