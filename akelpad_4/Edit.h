@@ -368,7 +368,6 @@
 #define MLMF_ONLYUNMODIFIED 2
 
 
-
 //// Structures
 
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
