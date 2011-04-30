@@ -14405,15 +14405,16 @@ BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int GetUserManual(wchar_t *wszManual, int nManualLen)
 {
-  wchar_t wszFile[MAX_PATH]=L"";
+  wchar_t wszFile[MAX_PATH];
 
+  wszFile[0]=L'\0';
   if (PRIMARYLANGID(dwLangModule) == LANG_RUSSIAN)
     xprintfW(wszFile, L"%s\\AkelFiles\\Docs\\AkelHelp-%s.htm", wszExeDir, L"Rus");
   if (!*wszFile || !FileExistsWide(wszFile))
     xprintfW(wszFile, L"%s\\AkelFiles\\Docs\\AkelHelp-%s.htm", wszExeDir, L"Eng");
 
   if (FileExistsWide(wszFile))
-    return xstrcpynW(wszManual, wszFile, nManualLen);
+    return (int)xstrcpynW(wszManual, wszFile, nManualLen);
   return 0;
 }
 
