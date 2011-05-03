@@ -9001,7 +9001,7 @@ void AE_MouseMove(AKELEDIT *ae)
     {
       INT_PTR nMarkerPos;
 
-      nMarkerPos=ptPos.x - ae->rcDraw.left;
+      nMarkerPos=ae->nHScrollPos + (ptPos.x - ae->rcDraw.left);
       if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
         nMarkerPos=(nMarkerPos / ae->ptxt->nAveCharWidth) + nMarkerPos % ae->ptxt->nAveCharWidth / (ae->ptxt->nAveCharWidth / 2);
 
