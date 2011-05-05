@@ -112,30 +112,39 @@
 #define SS_INI        2  //INI file.
 
 //AKD_RECENTFILES flags
-#define RF_GET        1  //Retrive current recent files info.
-                         //(RECENTFILE **)lParam is a pointer to a variable that receive first RECENTFILE structure address of the array, can be NULL.
-                         //Return value is maximum number of recent files.
-#define RF_SET        2  //Set recent files number.
-                         //(int)lParam is maximum number of recent files.
-                         //Return value is zero.
-#define RF_READ       3  //Update recent files from registry.
-                         //lParam not used.
-                         //Return value is number of records read.
-#define RF_SAVE       4  //Save current recent files to registry.
-                         //lParam not used.
-                         //Return value is zero.
-#define RF_CLEAR      5  //Clear recent files.
-                         //lParam not used.
-                         //Return value is zero.
-#define RF_DELETEOLD  6  //Delete non-existent recent files records.
-                         //lParam not used.
-                         //Return value is number of records deleted.
-#define RF_FIND       7  //Find index in recent files array by file name.
-                         //(wchar_t *)lParam is a pointer to a file name.
-                         //Return value is index in recent files array, -1 if error.
-#define RF_DELETE     8  //Delete element from recent files array by index.
-                         //(int)lParam is index in recent files array to delete.
-                         //Return value is TRUE - success, FALSE - error.
+#define RF_GET             1  //Retrive current recent files info.
+                              //(RECENTFILESTACK **)lParam is a pointer to a variable that receive pointer to a RECENTFILESTACK structure, can be NULL.
+                              //Return value is maximum number of recent files.
+#define RF_SET             2  //Set recent files number.
+                              //(int)lParam is maximum number of recent files.
+                              //Return value is zero.
+#define RF_READ            3  //Update recent files from registry.
+                              //lParam not used.
+                              //Return value is number of records read.
+#define RF_SAVE            4  //Save current recent files to registry.
+                              //lParam not used.
+                              //Return value is zero.
+#define RF_CLEAR           5  //Clear recent files.
+                              //lParam not used.
+                              //Return value is zero.
+#define RF_DELETEOLD       6  //Delete non-existent recent files records.
+                              //lParam not used.
+                              //Return value is number of records deleted.
+#define RF_FINDINDEX       7  //Find item index in recent files stack by file name.
+                              //(wchar_t *)lParam is a pointer to a file name.
+                              //Return value is item index in recent files stack, -1 if error.
+#define RF_DELETEINDEX     8  //Delete item from recent files stack by index.
+                              //(int)lParam is index in recent files array to delete.
+                              //Return value is TRUE - success, FALSE - error.
+#define RF_FINDITEMBYINDEX 9  //Find pointer to a RECENTFILE structure by index.
+                              //(int)lParam is index of item in recent files stack.
+                              //Return value is a pointer to a RECENTFILE structure.
+#define RF_FINDITEMBYNAME  10 //Find pointer to a RECENTFILE structure by file name.
+                              //(wchar_t *)lParam is a pointer to a file name.      
+                              //Return value is a pointer to a RECENTFILE structure.
+#define RF_DELETEITEM      11 //Delete item from recent files stack.
+                              //(RECENTFILE *)lParam a pointer to a RECENTFILE structure to delete.
+                              //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
 #define SH_GET    1  //Retrive search strings count.
@@ -845,13 +854,33 @@ typedef struct {
 } EXGETTEXTRANGE;
 #endif
 
+typedef struct _RECENTPARAM {
+  struct _RECENTPARAM *next;
+  struct _RECENTPARAM *prev;
+  wchar_t *pParamName;
+  wchar_t *pParamValue;
+} RECENTPARAM;
+
 typedef struct {
-  DWORD dwFlags;             //Reserved.
-  wchar_t wszFile[MAX_PATH]; //Recent file name.
-  int nCodePage;             //Recent file codepages.
-  INT_PTR cpMin;             //First character in selection range.
-  INT_PTR cpMax;             //Last character in selection range.
+  RECENTPARAM *first;
+  RECENTPARAM *last;
+} RECENTPARAMSTACK;
+
+typedef struct _RECENTFILE {
+  struct _RECENTFILE *next;
+  struct _RECENTFILE *prev;
+  wchar_t wszFile[MAX_PATH];      //Recent file name.
+  int nFileLen;                   //Recent file name length.
+  int nCodePage;                  //Recent file codepages.
+  INT_PTR cpMin;                  //First character in selection range.
+  INT_PTR cpMax;                  //Last character in selection range.
+  RECENTPARAMSTACK lpParamsStack; //Additional parameters storage.
 } RECENTFILE;
+
+typedef struct {
+  RECENTFILE *first;              //Pointer to the first RECENTFILE structure.
+  RECENTFILE *last;               //Pointer to the last RECENTFILE structure.
+} RECENTFILESTACK;
 
 typedef struct {
   DWORD dwFlags;            //See FR_* defines.
@@ -2741,15 +2770,15 @@ Return Value
  Depend on RF_* define.
 
 Example:
+ RECENTFILESTACK *rfs;
  RECENTFILE *rf;
  int nMaxRecentFiles;
- int i;
 
- if (nMaxRecentFiles=SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rf))
+ if (nMaxRecentFiles=SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rfs))
  {
-   for (i=0; i < nMaxRecentFiles && *rf[i].wszFile; ++i)
+   for (rf=rfs->first; rf; rf=rf->next)
    {
-     MessageBoxW(NULL, rf[i].wszFile, NULL, 0);
+     MessageBoxW(NULL, rf->wszFile, NULL, 0);
    }
  }
 
