@@ -885,17 +885,21 @@ BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
 
-BOOL RecentFilesAlloc();
 void RecentFilesZero();
-int RecentFilesFindIndex(const wchar_t *wpFile);
-BOOL RecentFilesDeleteIndex(int nIndex);
-int RecentFilesRead();
-BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSel);
-void RecentFilesSaveFile(FRAMEDATA *lpFrame);
+RECENTFILE* RecentFilesInsert(int nIndex);
+RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex);
+RECENTFILE* RecentFilesFindByIndex(int nIndex);
+RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile);
+void RecentFilesDelete(RECENTFILE *lpRecentFile);
 int RecentFilesDeleteOld();
+int RecentFilesRead();
 void RecentFilesSave();
+void RecentFilesSaveFile(FRAMEDATA *lpFrame);
 void RecentFilesMenu();
-void FreeMemoryRecentFiles();
+RECENTPARAM* StackRecentParamAdd(RECENTPARAMSTACK *hStack);
+RECENTPARAM* StackRecentParamGetByName(RECENTPARAMSTACK *hStack, const wchar_t *wpParamName);
+void StackRecentParamDelete(RECENTPARAMSTACK *hStack, RECENTPARAM *lpRecentParam);
+void StackRecentParamFree(RECENTPARAMSTACK *hStack);
 int TrimPathW(wchar_t *wszResult, const wchar_t *wpPath, int nMax);
 int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax);
 

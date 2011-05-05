@@ -315,7 +315,7 @@ int nAnsiCodePage;
 int nOemCodePage;
 
 //Recent files
-RECENTFILE *lpRecentFiles=NULL;
+RECENTFILESTACK hRecentFilesStack={0};
 
 //Open/Save document
 wchar_t wszFilter[MAX_PATH];
@@ -1031,7 +1031,7 @@ void _WinMain()
     wszCmdLineEnd=NULL;
   }
   CodepageListFree(&lpCodepageList);
-  FreeMemoryRecentFiles();
+  RecentFilesZero();
   FreeMemorySearch();
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
@@ -1435,11 +1435,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Allocate and read recent files
       if (moCur.nRecentFiles)
       {
-        if (RecentFilesAlloc())
-        {
-          RecentFilesZero();
-          RecentFilesRead();
-        }
+        RecentFilesZero();
+        RecentFilesRead();
       }
       bMenuRecentFiles=TRUE;
 
@@ -2016,9 +2013,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == RF_GET)
       {
-        RECENTFILE **rf=(RECENTFILE **)lParam;
+        RECENTFILESTACK **rfs=(RECENTFILESTACK **)lParam;
 
-        if (rf) *rf=lpRecentFiles;
+        if (rfs) *rfs=&hRecentFilesStack;
         return moCur.nRecentFiles;
       }
       else if (wParam == RF_SET)
@@ -2026,15 +2023,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (moCur.nRecentFiles != lParam)
         {
           moCur.nRecentFiles=(int)lParam;
-          FreeMemoryRecentFiles();
+          RecentFilesZero();
 
           if (moCur.nRecentFiles)
           {
-            if (RecentFilesAlloc())
-            {
-              RecentFilesZero();
-              RecentFilesRead();
-            }
+            RecentFilesZero();
+            RecentFilesRead();
           }
           bMenuRecentFiles=TRUE;
         }
@@ -2058,23 +2052,43 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         int nDead;
 
-        RecentFilesRead();
-        nDead=RecentFilesDeleteOld();
-        RecentFilesSave();
-        bMenuRecentFiles=TRUE;
+        if (nDead=RecentFilesDeleteOld())
+        {
+          RecentFilesSave();
+          bMenuRecentFiles=TRUE;
+        }
         return nDead;
       }
-      else if (wParam == RF_FIND)
+      else if (wParam == RF_FINDINDEX)
       {
-        return RecentFilesFindIndex((wchar_t *)lParam);
-      }
-      else if (wParam == RF_DELETE)
-      {
-        BOOL bResult;
+        int nIndex;
 
-        bResult=RecentFilesDeleteIndex((int)lParam);
+        RecentFilesFindByName((wchar_t *)lParam, &nIndex);
+        return nIndex;
+      }
+      else if (wParam == RF_DELETEINDEX)
+      {
+        RECENTFILE *rf;
+
+        if (rf=RecentFilesFindByIndex((int)lParam))
+        {
+          RecentFilesDelete(rf);
+          bMenuRecentFiles=TRUE;
+          return TRUE;
+        }
+      }
+      else if (wParam == RF_FINDITEMBYINDEX)
+      {
+        return (LRESULT)RecentFilesFindByIndex((int)lParam);
+      }
+      else if (wParam == RF_FINDITEMBYNAME)
+      {
+        return (LRESULT)RecentFilesFindByName((wchar_t *)lParam, NULL);
+      }
+      else if (wParam == RF_DELETEITEM)
+      {
+        RecentFilesDelete((RECENTFILE *)lParam);
         bMenuRecentFiles=TRUE;
-        return bResult;
       }
       return 0;
     }
@@ -3026,11 +3040,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       int nDead;
 
-      RecentFilesRead();
-      nDead=RecentFilesDeleteOld();
-      RecentFilesSave();
-      bMenuRecentFiles=TRUE;
-
+      if (nDead=RecentFilesDeleteOld())
+      {
+        RecentFilesSave();
+        bMenuRecentFiles=TRUE;
+      }
       API_LoadStringW(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
       xprintfW(wbuf2, wbuf, nDead);
       API_MessageBox(hWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -3042,11 +3056,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nMDI || SaveChanged(0))
       {
+        RECENTFILE *lpRecentFile;
         wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
-        xstrcpynW(wpFile, lpRecentFiles[LOWORD(wParam) - IDM_RECENT_FILES - 1].wszFile, MAX_PATH);
-        nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
-
+        if (lpRecentFile=RecentFilesFindByIndex(LOWORD(wParam) - IDM_RECENT_FILES - 1))
+        {
+          xstrcpynW(wpFile, lpRecentFile->wszFile, MAX_PATH);
+          nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        }
         FreeWideStr(wpFile);
       }
       return nOpen;

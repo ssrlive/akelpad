@@ -151,7 +151,7 @@ extern int nAnsiCodePage;
 extern int nOemCodePage;
 
 //Recent files
-extern RECENTFILE *lpRecentFiles;
+extern RECENTFILESTACK hRecentFilesStack;
 
 //Open/Save document
 extern wchar_t wszFilter[MAX_PATH];
@@ -3961,6 +3961,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   HANDLE hFile;
   FILESTREAMDATA fsd;
   FRAMEDATA *lpFrame;
+  RECENTFILE *lpRecentFile;
   HWND hWndFriend=NULL;
   int nResult=EOD_SUCCESS;
   int nDetect;
@@ -4188,7 +4189,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           RecentFilesZero();
           RecentFilesRead();
-          RecentFilesUpdate(wszFile, nCodePage, NULL);
+          if (lpRecentFile=RecentFilesUpdate(wszFile))
+            lpRecentFile->nCodePage=nCodePage;
           RecentFilesSave();
           if (nFileCmp) bMenuRecentFiles=TRUE;
         }
@@ -4232,8 +4234,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         CHARRANGE64 cr;
 
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-        cr.cpMin=lpRecentFiles[0].cpMin;
-        cr.cpMax=lpRecentFiles[0].cpMax;
+        cr.cpMin=hRecentFilesStack.first->cpMin;
+        cr.cpMax=hRecentFilesStack.first->cpMax;
         SendMessage(hWnd, EM_EXSETSEL64, 0, (LPARAM)&cr);
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
@@ -7653,6 +7655,7 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
 
 int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
 {
+  RECENTFILE *lpRecentFile;
   HANDLE hFile;
   UINT_PTR dwBytesRead=0;
   unsigned char *pBuffer=NULL;
@@ -7662,7 +7665,6 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   int nANSIrate=5;
   int nUTF16LErate=0;
   int nUTF16BErate=0;
-  int i;
 
   //Remembered code page from registry
   if (dwFlags & ADT_REG_CODEPAGE)
@@ -7671,15 +7673,10 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
     dwFlags&=~ADT_DETECT_CODEPAGE;
     dwFlags&=~ADT_DETECT_BOM;
 
-    if (moCur.nRecentFiles)
+    if (moCur.nRecentFiles && moCur.bSaveCodepages)
     {
-      RecentFilesZero();
-      RecentFilesRead();
-      if (moCur.bSaveCodepages)
-      {
-        if ((i=RecentFilesFindIndex(wpFile)) >= 0)
-          nRegCodePage=lpRecentFiles[i].nCodePage;
-      }
+      if (lpRecentFile=RecentFilesFindByName(wpFile, NULL))
+        nRegCodePage=lpRecentFile->nCodePage;
     }
     if (nRegCodePage)
     {
@@ -10188,46 +10185,101 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
 
 //// Recent files
 
-BOOL RecentFilesAlloc()
-{
-  if (!(lpRecentFiles=(RECENTFILE *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(RECENTFILE))))
-    return FALSE;
-  return TRUE;
-}
-
 void RecentFilesZero()
 {
-  xmemset(lpRecentFiles, 0, moCur.nRecentFiles * sizeof(RECENTFILE));
-}
+  RECENTFILE *lpRecentFile;
 
-int RecentFilesFindIndex(const wchar_t *wpFile)
-{
-  int i;
-
-  if (!*wpFile) return -1;
-
-  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
+  for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
   {
-    if (!xstrcmpiW(lpRecentFiles[i].wszFile, wpFile))
-      return i;
+    StackRecentParamFree(&lpRecentFile->lpParamsStack);
   }
-  return -1;
+  StackClear((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last);
 }
 
-BOOL RecentFilesDeleteIndex(int nIndex)
+RECENTFILE* RecentFilesInsert(int nIndex)
 {
-  int nLastIndex;
+  RECENTFILE *lpRecentFile=NULL;
 
-  if (nIndex < moCur.nRecentFiles && *lpRecentFiles[nIndex].wszFile)
+  StackInsertIndex((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last, (stack **)&lpRecentFile, nIndex, sizeof(RECENTFILE));
+
+  return lpRecentFile;
+}
+
+RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex)
+{
+  RECENTFILE *lpRecentFile;
+  int nFileLen=xstrlenW(wpFile);
+  int nIndex=0;
+
+  if (*wpFile)
   {
-    for (nLastIndex=moCur.nRecentFiles - 1; nIndex < nLastIndex && *lpRecentFiles[nIndex].wszFile; ++nIndex)
+    for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
     {
-      xmemcpy(&lpRecentFiles[nIndex], &lpRecentFiles[nIndex+1], sizeof(RECENTFILE));
+      if (lpRecentFile->nFileLen == nFileLen && !xstrcmpiW(lpRecentFile->wszFile, wpFile))
+      {
+        if (lpIndex) *lpIndex=nIndex;
+        return lpRecentFile;
+      }
+      ++nIndex;
     }
-    xmemset(&lpRecentFiles[nIndex], 0, sizeof(RECENTFILE));
-    return TRUE;
   }
-  return FALSE;
+  if (lpIndex) *lpIndex=-1;
+  return NULL;
+}
+
+RECENTFILE* RecentFilesFindByIndex(int nIndex)
+{
+  RECENTFILE *lpRecentFile;
+  int i=0;
+
+  for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
+  {
+    if (i++ == nIndex)
+      return lpRecentFile;
+  }
+  return NULL;
+}
+
+RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
+{
+  RECENTFILE *lpRecentFile;
+
+  if (lpRecentFile=RecentFilesFindByName(wpFile, NULL))
+  {
+    StackMoveIndex((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last, (stack *)lpRecentFile, 1);
+  }
+  else
+  {
+    if (lpRecentFile=RecentFilesInsert(1))
+      lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpFile, MAX_PATH);
+  }
+  return lpRecentFile;
+}
+
+void RecentFilesDelete(RECENTFILE *lpRecentFile)
+{
+  StackRecentParamFree(&lpRecentFile->lpParamsStack);
+  StackDelete((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last, (stack *)lpRecentFile);
+}
+
+int RecentFilesDeleteOld()
+{
+  RECENTFILE *lpRecentFile;
+  RECENTFILE *lpNextRecentFile;
+  int nDead=0;
+
+  //Delete files from recent files array if they doesn't exist
+  for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpNextRecentFile)
+  {
+    lpNextRecentFile=lpRecentFile->next;
+
+    if (!FileExistsWide(lpRecentFile->wszFile))
+    {
+      RecentFilesDelete(lpRecentFile);
+      ++nDead;
+    }
+  }
+  return nDead;
 }
 
 int RecentFilesRead()
@@ -10239,6 +10291,14 @@ int RecentFilesRead()
   DWORD dwType;
   DWORD dwSize;
   int i;
+
+  //Params
+  RECENTFILE *lpRecentFile;
+  RECENTPARAM *lpRecentParam;
+  const wchar_t *wpParamName;
+  const wchar_t *wpParamValue;
+  int nParamName;
+  int nParaValue;
 
   //Read recent files array
   xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
@@ -10254,91 +10314,59 @@ int RecentFilesRead()
     if (!*wbuf || dwType != REG_MULTI_SZ)
       break;
 
-    //File
-    wpCount=wbuf;
-    wpCount+=xstrcpynW(lpRecentFiles[i].wszFile, wpCount, MAX_PATH) + 1;
-
-    //Codepage
-    if (*wpCount)
+    if (lpRecentFile=RecentFilesInsert(-1))
     {
-      lpRecentFiles[i].nCodePage=(int)xatoiW(wpCount, NULL);
-      wpCount+=xstrlenW(wpCount) + 1;
-    }
-    else lpRecentFiles[i].nCodePage=0;
+      //File
+      wpCount=wbuf;
+      lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
+      wpCount+=lpRecentFile->nFileLen + 1;
 
-    //Position
-    if (*wpCount)
-    {
-      lpRecentFiles[i].cpMin=lpRecentFiles[i].cpMax=xatoiW(wpCount, &wpCount);
-      if (*wpCount == '-')
-        lpRecentFiles[i].cpMax=xatoiW(++wpCount, &wpCount);
+      //Codepage
+      if (*wpCount)
+      {
+        lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
+        wpCount+=xstrlenW(wpCount) + 1;
+      }
+
+      //Position
+      if (*wpCount)
+      {
+        lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
+        if (*wpCount == '-')
+          lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
+        wpCount+=xstrlenW(wpCount) + 1;
+      }
+
+      //Parameters
+      if (*wpCount)
+      {
+        do
+        {
+          for (wpParamName=wpCount; *wpCount; ++wpCount)
+          {
+            if (*wpCount == '=')
+            {
+              nParamName=wpCount - wpParamName;
+              wpParamValue=wpCount + 1;
+              while (*++wpCount);
+              nParaValue=wpCount - wpParamValue;
+
+              if (lpRecentParam=StackRecentParamAdd(&lpRecentFile->lpParamsStack))
+              {
+                if (lpRecentParam->pParamName=AllocWideStr(nParamName + 1))
+                  xstrcpynW(lpRecentParam->pParamName, wpParamName, nParamName + 1);
+                if (lpRecentParam->pParamValue=AllocWideStr(nParaValue + 1))
+                  xstrcpynW(lpRecentParam->pParamValue, wpParamValue, nParaValue + 1);
+              }
+            }
+          }
+        }
+        while (*++wpCount);
+      }
     }
-    else lpRecentFiles[i].cpMin=lpRecentFiles[i].cpMax=0;
   }
   RegCloseKey(hKey);
   return i;
-}
-
-BOOL RecentFilesUpdate(const wchar_t *wpFile, int nCodePage, CHARRANGE64 *lpcrSel)
-{
-  CHARRANGE64 cr;
-  int i;
-
-  if (!*wpFile) return FALSE;
-
-  if (lpcrSel)
-  {
-    cr.cpMin=lpcrSel->cpMin;
-    cr.cpMax=lpcrSel->cpMax;
-  }
-  else cr.cpMin=cr.cpMax=0;
-
-  //Update recent files array - move/add current file to the first place
-  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
-  {
-    if (!xstrcmpiW(lpRecentFiles[i].wszFile, wpFile))
-    {
-      if (nCodePage == -1) nCodePage=lpRecentFiles[i].nCodePage;
-      if (!lpcrSel)
-      {
-        cr.cpMin=lpRecentFiles[i].cpMin;
-        cr.cpMax=lpRecentFiles[i].cpMax;
-      }
-      goto Move;
-    }
-  }
-  if (i >= moCur.nRecentFiles) --i;
-  if (nCodePage == -1) nCodePage=0;
-
-  Move:
-  while (i > 0)
-  {
-    xmemcpy(&lpRecentFiles[i], &lpRecentFiles[i-1], sizeof(RECENTFILE));
-    --i;
-  }
-  xstrcpynW(lpRecentFiles[0].wszFile, wpFile, MAX_PATH);
-  lpRecentFiles[0].nCodePage=nCodePage;
-  lpRecentFiles[0].cpMin=cr.cpMin;
-  lpRecentFiles[0].cpMax=cr.cpMax;
-
-  return TRUE;
-}
-
-int RecentFilesDeleteOld()
-{
-  int i;
-  int nDead=0;
-
-  //Delete files from recent files array if they doesn't exist
-  for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
-  {
-    while (*lpRecentFiles[i].wszFile && !FileExistsWide(lpRecentFiles[i].wszFile))
-    {
-      RecentFilesDeleteIndex(i);
-      ++nDead;
-    }
-  }
-  return nDead;
 }
 
 void RecentFilesSave()
@@ -10347,40 +10375,66 @@ void RecentFilesSave()
   wchar_t wszRegValue[32];
   wchar_t wchNull=L'\0';
   HKEY hKey;
-  BOOL bDelete=FALSE;
   int nStrLen;
-  int i;
+  int i=0;
+
+  //Params
+  RECENTFILE *lpRecentFile;
+  RECENTPARAM *lpRecentParam;
+  DWORD dwSize;
+  wchar_t *wszRecentParams=NULL;
 
   //Save recent files array
   xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
   if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
     return;
 
-  for (i=0; i < moCur.nRecentFiles; ++i)
+  for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
   {
-    if (!bDelete && *lpRecentFiles[i].wszFile)
-    {
-      xprintfW(wszRegValue, L"file%d", i);
-      nStrLen=(int)xprintfW(wbuf, L"%s%c%d%c%Id-%Id%c", lpRecentFiles[i].wszFile, wchNull, lpRecentFiles[i].nCodePage, wchNull, lpRecentFiles[i].cpMin, lpRecentFiles[i].cpMax, wchNull);
-      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wbuf, (nStrLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
-        break;
-    }
-    else
-    {
-      bDelete=TRUE;
+    xprintfW(wszRegValue, L"file%d", i++);
 
-      xprintfW(wszRegValue, L"file%d", i);
-      if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
-        break;
+    //Alloc params
+    for (dwSize=0, lpRecentParam=lpRecentFile->lpParamsStack.first; lpRecentParam; lpRecentParam=lpRecentParam->next)
+    {
+      dwSize+=(DWORD)xprintfW(NULL, L"%s=%s%c", lpRecentParam->pParamName, lpRecentParam->pParamValue, wchNull) - 1;
     }
+    if (dwSize)
+    {
+      if (wszRecentParams=AllocWideStr(dwSize + 1))
+      {
+        for (dwSize=0, lpRecentParam=lpRecentFile->lpParamsStack.first; lpRecentParam; lpRecentParam=lpRecentParam->next)
+        {
+          dwSize+=(DWORD)xprintfW(wszRecentParams + dwSize, L"%s=%s%c", lpRecentParam->pParamName, lpRecentParam->pParamValue, wchNull);
+        }
+      }
+    }
+
+    //Set value
+    nStrLen=(int)xprintfW(wbuf, L"%s%c%d%c%Id-%Id%c%s", lpRecentFile->wszFile, wchNull, lpRecentFile->nCodePage, wchNull, lpRecentFile->cpMin, lpRecentFile->cpMax, wchNull, wszRecentParams);
+    if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wbuf, (nStrLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+      break;
+
+    //Free params
+    if (wszRecentParams)
+    {
+      FreeWideStr(wszRecentParams);
+      wszRecentParams=NULL;
+    }
+  }
+
+  for (;;)
+  {
+    xprintfW(wszRegValue, L"file%d", i++);
+    if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
+      break;
   }
   RegCloseKey(hKey);
 }
 
 void RecentFilesSaveFile(FRAMEDATA *lpFrame)
 {
+  RECENTFILE *lpRecentFile;
   CHARRANGE64 cr;
-  INT_PTR i;
   BOOL bSwitch=FALSE;
 
   if (moCur.nRecentFiles && lpFrame->wszFile[0])
@@ -10406,14 +10460,13 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
         if (AEC_IndexCompare(&ciCaret, &aes.crSel.ciMax) < 0)
           bSwitch=TRUE;
       }
-      if (bSwitch)
-      {
-        i=cr.cpMin;
-        cr.cpMin=cr.cpMax;
-        cr.cpMax=i;
-      }
 
-      RecentFilesUpdate(lpFrame->wszFile, lpFrame->ei.nCodePage, &cr);
+      if (lpRecentFile=RecentFilesUpdate(lpFrame->wszFile))
+      {
+        lpRecentFile->nCodePage=lpFrame->ei.nCodePage;
+        lpRecentFile->cpMin=bSwitch?cr.cpMax:cr.cpMin;
+        lpRecentFile->cpMax=bSwitch?cr.cpMin:cr.cpMax;
+      }
       RecentFilesSave();
       bMenuRecentFiles=TRUE;
     }
@@ -10422,22 +10475,23 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
 
 void RecentFilesMenu()
 {
+  RECENTFILE *lpRecentFile;
   int i;
 
   for (i=1; DeleteMenu(hMainMenu, IDM_RECENT_FILES + i, MF_BYCOMMAND); ++i);
 
-  if (moCur.nRecentFiles && *lpRecentFiles[0].wszFile)
+  if (moCur.nRecentFiles && hRecentFilesStack.first)
   {
     API_LoadStringW(hLangLib, STR_RECENT_FILES_DELETE_DEAD, wbuf, BUFFER_SIZE);
     ModifyMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES, wbuf);
 
-    for (i=0; i < moCur.nRecentFiles && *lpRecentFiles[i].wszFile; ++i)
+    for (i=0, lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
     {
-      TrimPathW(wbuf2, lpRecentFiles[i].wszFile, RECENTFILES_RECORD_LENGTH);
+      TrimPathW(wbuf2, lpRecentFile->wszFile, RECENTFILES_RECORD_LENGTH);
       FixAmpW(wbuf2, wbuf, BUFFER_SIZE);
-      InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + i + 1, wbuf);
+      InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + (++i), wbuf);
     }
-    InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_SEPARATOR, IDM_RECENT_FILES + i + 1, NULL);
+    InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_SEPARATOR, IDM_RECENT_FILES + (++i), NULL);
   }
   else
   {
@@ -10446,13 +10500,44 @@ void RecentFilesMenu()
   }
 }
 
-void FreeMemoryRecentFiles()
+RECENTPARAM* StackRecentParamAdd(RECENTPARAMSTACK *hStack)
 {
-  if (lpRecentFiles)
+  RECENTPARAM *lpRecentParam=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpRecentParam, -1, sizeof(RECENTPARAM));
+
+  return lpRecentParam;
+}
+
+RECENTPARAM* StackRecentParamGetByName(RECENTPARAMSTACK *hStack, const wchar_t *wpParamName)
+{
+  RECENTPARAM *lpRecentParam;
+
+  for (lpRecentParam=hStack->first; lpRecentParam; lpRecentParam=lpRecentParam->next)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)lpRecentFiles);
-    lpRecentFiles=NULL;
+    if (!xstrcmpiW(lpRecentParam->pParamName, wpParamName))
+      return lpRecentParam;
   }
+  return NULL;
+}
+
+void StackRecentParamDelete(RECENTPARAMSTACK *hStack, RECENTPARAM *lpRecentParam)
+{
+  if (lpRecentParam->pParamName) FreeWideStr(lpRecentParam->pParamName);
+  if (lpRecentParam->pParamValue) FreeWideStr(lpRecentParam->pParamValue);
+  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpRecentParam);
+}
+
+void StackRecentParamFree(RECENTPARAMSTACK *hStack)
+{
+  RECENTPARAM *lpRecentParam;
+
+  for (lpRecentParam=hStack->first; lpRecentParam; lpRecentParam=lpRecentParam->next)
+  {
+    if (lpRecentParam->pParamName) FreeWideStr(lpRecentParam->pParamName);
+    if (lpRecentParam->pParamValue) FreeWideStr(lpRecentParam->pParamValue);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 int TrimPathW(wchar_t *wszResult, const wchar_t *wpPath, int nMax)
@@ -13048,7 +13133,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SendMessage(hWndFileTypesPrint, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, moCur.nRecentFiles, FALSE);
-    if (!moCur.nRecentFiles || !*lpRecentFiles[0].wszFile) EnableWindow(hWndRecentFilesClear, FALSE);
+    if (!moCur.nRecentFiles || !hRecentFilesStack.first) EnableWindow(hWndRecentFilesClear, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, moCur.nSearchStrings, FALSE);
     if (!moCur.nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
 
@@ -13149,15 +13234,12 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       if (bRecentFilesRefresh)
       {
-        FreeMemoryRecentFiles();
+        RecentFilesZero();
 
         if (moCur.nRecentFiles)
         {
-          if (RecentFilesAlloc())
-          {
-            RecentFilesZero();
-            RecentFilesRead();
-          }
+          RecentFilesZero();
+          RecentFilesRead();
         }
         bMenuRecentFiles=TRUE;
 
