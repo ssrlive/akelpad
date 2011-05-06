@@ -1031,7 +1031,7 @@ void _WinMain()
     wszCmdLineEnd=NULL;
   }
   CodepageListFree(&lpCodepageList);
-  RecentFilesZero();
+  RecentFilesZero(&hRecentFilesStack);
   FreeMemorySearch();
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
@@ -1435,8 +1435,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Allocate and read recent files
       if (moCur.nRecentFiles)
       {
-        RecentFilesZero();
-        RecentFilesRead();
+        RecentFilesZero(&hRecentFilesStack);
+        RecentFilesRead(&hRecentFilesStack);
       }
       bMenuRecentFiles=TRUE;
 
@@ -2023,41 +2023,41 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (moCur.nRecentFiles != lParam)
         {
           moCur.nRecentFiles=(int)lParam;
-          RecentFilesZero();
+          RecentFilesZero(&hRecentFilesStack);
 
           if (moCur.nRecentFiles)
           {
-            RecentFilesZero();
-            RecentFilesRead();
+            RecentFilesZero(&hRecentFilesStack);
+            RecentFilesRead(&hRecentFilesStack);
           }
           bMenuRecentFiles=TRUE;
         }
       }
       else if (wParam == RF_READ)
       {
-        return RecentFilesRead();
+        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+
+        if (!rfs) rfs=&hRecentFilesStack;
+        return RecentFilesRead(rfs);
       }
       else if (wParam == RF_SAVE)
       {
-        RecentFilesSave();
+        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+
+        if (!rfs) rfs=&hRecentFilesStack;
+        RecentFilesSave(rfs);
         bMenuRecentFiles=TRUE;
       }
       else if (wParam == RF_CLEAR)
       {
-        RecentFilesZero();
-        RecentFilesSave();
-        bMenuRecentFiles=TRUE;
+        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+
+        if (!rfs) rfs=&hRecentFilesStack;
+        RecentFilesZero(rfs);
       }
       else if (wParam == RF_DELETEOLD)
       {
-        int nDead;
-
-        if (nDead=RecentFilesDeleteOld())
-        {
-          RecentFilesSave();
-          bMenuRecentFiles=TRUE;
-        }
-        return nDead;
+        return RecentFilesDeleteOld();
       }
       else if (wParam == RF_FINDINDEX)
       {
@@ -3042,7 +3042,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nDead=RecentFilesDeleteOld())
       {
-        RecentFilesSave();
+        RecentFilesSave(&hRecentFilesStack);
         bMenuRecentFiles=TRUE;
       }
       API_LoadStringW(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
