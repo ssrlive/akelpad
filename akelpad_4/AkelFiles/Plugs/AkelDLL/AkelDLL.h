@@ -119,13 +119,13 @@
                               //(int)lParam is maximum number of recent files.
                               //Return value is zero.
 #define RF_READ            3  //Update recent files from registry.
-                              //lParam not used.
+                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is number of records read.
 #define RF_SAVE            4  //Save current recent files to registry.
-                              //lParam not used.
+                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is zero.
-#define RF_CLEAR           5  //Clear recent files.
-                              //lParam not used.
+#define RF_CLEAR           5  //Clear recent files stack. Use RF_SAVE to save result.
+                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is zero.
 #define RF_DELETEOLD       6  //Delete non-existent recent files records.
                               //lParam not used.
