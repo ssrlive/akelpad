@@ -2057,7 +2057,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (wParam == RF_DELETEOLD)
       {
-        return RecentFilesDeleteOld();
+        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+
+        if (!rfs) rfs=&hRecentFilesStack;
+        return RecentFilesDeleteOld(rfs);
       }
       else if (wParam == RF_FINDINDEX)
       {
@@ -2072,7 +2075,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (rf=RecentFilesFindByIndex((int)lParam))
         {
-          RecentFilesDelete(rf);
+          RecentFilesDelete(&hRecentFilesStack, rf);
           bMenuRecentFiles=TRUE;
           return TRUE;
         }
@@ -2087,7 +2090,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (wParam == RF_DELETEITEM)
       {
-        RecentFilesDelete((RECENTFILE *)lParam);
+        RecentFilesDelete(&hRecentFilesStack, (RECENTFILE *)lParam);
         bMenuRecentFiles=TRUE;
       }
       return 0;
@@ -3040,7 +3043,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       int nDead;
 
-      if (nDead=RecentFilesDeleteOld())
+      if (nDead=RecentFilesDeleteOld(&hRecentFilesStack))
       {
         RecentFilesSave(&hRecentFilesStack);
         bMenuRecentFiles=TRUE;

@@ -118,17 +118,17 @@
 #define RF_SET             2  //Set recent files number.
                               //(int)lParam is maximum number of recent files.
                               //Return value is zero.
-#define RF_READ            3  //Update recent files from registry.
+#define RF_READ            3  //Read recent files from registry.
                               //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is number of records read.
-#define RF_SAVE            4  //Save current recent files to registry.
+#define RF_SAVE            4  //Save recent files to registry.
                               //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is zero.
 #define RF_CLEAR           5  //Clear recent files stack. Use RF_SAVE to save result.
                               //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is zero.
-#define RF_DELETEOLD       6  //Delete non-existent recent files records.
-                              //lParam not used.
+#define RF_DELETEOLD       6  //Delete non-existent recent files records. Use RF_SAVE to save result.
+                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is number of records deleted.
 #define RF_FINDINDEX       7  //Find item index in recent files stack by file name.
                               //(wchar_t *)lParam is a pointer to a file name.
@@ -880,6 +880,7 @@ typedef struct _RECENTFILE {
 typedef struct {
   RECENTFILE *first;              //Pointer to the first RECENTFILE structure.
   RECENTFILE *last;               //Pointer to the last RECENTFILE structure.
+  int nElements;                  //Items in stack.
 } RECENTFILESTACK;
 
 typedef struct {

@@ -886,12 +886,12 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
 
 RECENTFILE* RecentFilesInsert(RECENTFILESTACK *hStack, int nIndex);
+void RecentFilesDelete(RECENTFILESTACK *hStack, RECENTFILE *lpRecentFile);
 void RecentFilesZero(RECENTFILESTACK *hStack);
 RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex);
 RECENTFILE* RecentFilesFindByIndex(int nIndex);
 RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile);
-void RecentFilesDelete(RECENTFILE *lpRecentFile);
-int RecentFilesDeleteOld();
+int RecentFilesDeleteOld(RECENTFILESTACK *hStack);
 int RecentFilesRead(RECENTFILESTACK *hStack);
 void RecentFilesSave(RECENTFILESTACK *hStack);
 void RecentFilesSaveFile(FRAMEDATA *lpFrame);

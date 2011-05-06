@@ -10189,9 +10189,17 @@ RECENTFILE* RecentFilesInsert(RECENTFILESTACK *hStack, int nIndex)
 {
   RECENTFILE *lpRecentFile=NULL;
 
-  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpRecentFile, nIndex, sizeof(RECENTFILE));
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpRecentFile, nIndex, sizeof(RECENTFILE)))
+    ++hStack->nElements;
 
   return lpRecentFile;
+}
+
+void RecentFilesDelete(RECENTFILESTACK *hStack, RECENTFILE *lpRecentFile)
+{
+  StackRecentParamFree(&lpRecentFile->lpParamsStack);
+  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpRecentFile);
+  --hStack->nElements;
 }
 
 void RecentFilesZero(RECENTFILESTACK *hStack)
@@ -10203,6 +10211,7 @@ void RecentFilesZero(RECENTFILESTACK *hStack)
     StackRecentParamFree(&lpRecentFile->lpParamsStack);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->nElements=0;
 }
 
 RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex)
@@ -10251,31 +10260,29 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   else
   {
     if (lpRecentFile=RecentFilesInsert(&hRecentFilesStack, 1))
+    {
       lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpFile, MAX_PATH);
+      if (hRecentFilesStack.nElements > moCur.nRecentFiles)
+        RecentFilesDelete(&hRecentFilesStack, hRecentFilesStack.last);
+    }
   }
   return lpRecentFile;
 }
 
-void RecentFilesDelete(RECENTFILE *lpRecentFile)
-{
-  StackRecentParamFree(&lpRecentFile->lpParamsStack);
-  StackDelete((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last, (stack *)lpRecentFile);
-}
-
-int RecentFilesDeleteOld()
+int RecentFilesDeleteOld(RECENTFILESTACK *hStack)
 {
   RECENTFILE *lpRecentFile;
   RECENTFILE *lpNextRecentFile;
   int nDead=0;
 
   //Delete files from recent files array if they doesn't exist
-  for (lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpNextRecentFile)
+  for (lpRecentFile=hStack->first; lpRecentFile; lpRecentFile=lpNextRecentFile)
   {
     lpNextRecentFile=lpRecentFile->next;
 
     if (!FileExistsWide(lpRecentFile->wszFile))
     {
-      RecentFilesDelete(lpRecentFile);
+      RecentFilesDelete(hStack, lpRecentFile);
       ++nDead;
     }
   }
