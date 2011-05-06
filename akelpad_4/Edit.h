@@ -5,48 +5,43 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW          L"AkelPad 4.6.0 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.6.0 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW          L"AkelPad 4.6.0 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.6.0 (x86)"
 #endif
-#define APP_MAIN_TITLEA              "AkelPad"
 #define APP_MAIN_TITLEW             L"AkelPad"
 #define APP_MAIN_CLASSA              "AkelPad4"
 #define APP_MAIN_CLASSW             L"AkelPad4"
-#define APP_SDI_TITLEA               ""
 #define APP_SDI_TITLEW              L""
-#define APP_SDI_CLASSA               "AkelPad SDI Class"
 #define APP_SDI_CLASSW              L"AkelPad SDI Class"
-#define APP_MDI_CLASSA               "AkelPad MDI Class"
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
-#define APP_PRINTPREVIEW_CLASSA      "AkelPad Print Preview"
 #define APP_PRINTPREVIEW_CLASSW     L"AkelPad Print Preview"
 #define APP_MUTEXA                   "AkelPad Mutex"
-#define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_REGHOMEA                 "Software\\Akelsoft\\AkelPad"
 #define APP_REGHOMEW                L"Software\\Akelsoft\\AkelPad"
-#define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
-#define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
 #define APP_ABOUT_EMAIL_SHENGALTSW  L"shengalts@mail.ru"
-#define APP_ABOUT_EMAIL_KUZNETSOVA   "developer@akelpad.net.ru"
-#define APP_ABOUT_EMAIL_KUZNETSOVW  L"developer@akelpad.net.ru"
 
 //Code pages strings
-#define STR_UNICODE_UTF16LEA   "1200  (UTF-16 LE)"
-#define STR_UNICODE_UTF16LEW  L"1200  (UTF-16 LE)"
-#define STR_UNICODE_UTF16BEA   "1201  (UTF-16 BE)"
-#define STR_UNICODE_UTF16BEW  L"1201  (UTF-16 BE)"
-#define STR_UNICODE_UTF8A      "65001 (UTF-8)"
-#define STR_UNICODE_UTF8W     L"65001 (UTF-8)"
-#define STR_UNICODE_UTF7A      "65000 (UTF-7)"
-#define STR_UNICODE_UTF7W     L"65000 (UTF-7)"
-#define STR_UNICODE_UTF32LEA   "12000  (UTF-32 LE)"
-#define STR_UNICODE_UTF32LEW  L"12000  (UTF-32 LE)"
-#define STR_UNICODE_UTF32BEA   "12001  (UTF-32 BE)"
-#define STR_UNICODE_UTF32BEW  L"12001  (UTF-32 BE)"
-#define STR_NOBOMA             "  *BOM"
-#define STR_NOBOMW            L"  *BOM"
+#define STR_UNICODE_UTF16LEW        L"1200  (UTF-16 LE)"
+#define STR_UNICODE_UTF16BEW        L"1201  (UTF-16 BE)"
+#define STR_UNICODE_UTF8W           L"65001 (UTF-8)"
+#define STR_UNICODE_UTF7W           L"65000 (UTF-7)"
+#define STR_UNICODE_UTF32LEW        L"12000  (UTF-32 LE)"
+#define STR_UNICODE_UTF32BEW        L"12001  (UTF-32 BE)"
+#define STR_NOBOMW                  L"  *BOM"
+
+#define STR_DEFAULTSAVEEXTW         L"txt"
+#define STR_ASSOCIATE_OPENW         L"txt;log;ini;inf"
+#define STR_ASSOCIATE_EDITW         L"bat;cmd;reg;htm;html"
+#define STR_ASSOCIATE_PRINTW        L"txt;log;ini;inf"
+#define STR_WORD_DELIMITERSW        L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
+#define STR_WRAP_DELIMITERSW        L" \t"
+#define STR_URL_LEFTDELIMITERSW     L" \t\n'`\"(<{[="
+#define STR_URL_RIGHTDELIMITERSW    L" \t\n'`\")>}]"
+#define STR_URL_PREFIXESW           L"http: https: www. ftp: file: mailto:"
+#define STR_SENTENCE_DELIMITERSW    L".?!"
+#define STR_PRINT_HEADERW           L"%l***%c<%f>%r***"
+#define STR_PRINT_FOOTERW           L"- %n[1] -"
 
 #ifndef TCN_GETOBJECT
   #define TCN_GETOBJECT (TCN_FIRST - 3)
@@ -96,26 +91,6 @@
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
 #define EDIT_MARGINS               MAKELONG(3, 4)
-
-#define STR_DEFAULTSAVEEXTA            "txt"
-#define STR_DEFAULTSAVEEXTW           L"txt"
-#define STR_ASSOCIATE_OPENA            "txt;log;ini;inf"
-#define STR_ASSOCIATE_OPENW           L"txt;log;ini;inf"
-#define STR_ASSOCIATE_EDITA            "bat;cmd;reg;htm;html"
-#define STR_ASSOCIATE_EDITW           L"bat;cmd;reg;htm;html"
-#define STR_ASSOCIATE_PRINTA           "txt;log;ini;inf"
-#define STR_ASSOCIATE_PRINTW          L"txt;log;ini;inf"
-#define STR_WORD_DELIMITERSW          L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
-#define STR_WRAP_DELIMITERSW          L" \t"
-#define STR_URL_LEFTDELIMITERSW       L" \t\n'`\"(<{[="
-#define STR_URL_RIGHTDELIMITERSW      L" \t\n'`\")>}]"
-#define STR_URL_PREFIXESW             L"http: https: www. ftp: file: mailto:"
-#define STR_SENTENCE_DELIMITERSA       ".?!"
-#define STR_SENTENCE_DELIMITERSW      L".?!"
-#define STR_PRINT_HEADERA              "%l***%c<%f>%r***"
-#define STR_PRINT_HEADERW             L"%l***%c<%f>%r***"
-#define STR_PRINT_FOOTERA              "- %n[1] -"
-#define STR_PRINT_FOOTERW             L"- %n[1] -"
 
 //ParseCmdLine flags
 #define PCL_ONLOAD          0
