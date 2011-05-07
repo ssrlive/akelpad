@@ -4683,13 +4683,13 @@ Return Value
 Example:
 AEFOLD* GetFold(HWND hWnd, int nLine)
 {
-  HSTACK *hFoldStack;
+  HSTACK *hFoldsStack;
   AEFOLD *lpFold;
   AEFOLD *lpResult=NULL;
 
-  hFoldStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETFOLDSTACK, 0, 0);
+  hFoldsStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETFOLDSTACK, 0, 0);
 
-  for (lpFold=(AEFOLD *)hFoldStack->first; lpFold; lpFold=AEC_NextFold(lpFold, TRUE))
+  for (lpFold=(AEFOLD *)hFoldsStack->first; lpFold; lpFold=AEC_NextFold(lpFold, TRUE))
   {
     if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
       break;
