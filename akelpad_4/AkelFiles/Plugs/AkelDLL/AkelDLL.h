@@ -145,6 +145,15 @@
 #define RF_DELETEITEM      11 //Delete item from recent files stack.
                               //(RECENTFILE *)lParam a pointer to a RECENTFILE structure to delete.
                               //Return value is zero.
+#define RF_GETPARAM        21 //Get recent file parameter by name.
+                              //(RECENTFILEPARAM *)lParam a pointer to a RECENTFILEPARAM structure with filled "file" and "pParamName" members.
+                              //Return value is a pointer to a real RECENTFILEPARAM structure or NULL if error.
+#define RF_SETPARAM        22 //Set recent file parameter.
+                              //(RECENTFILEPARAM *)lParam a pointer to a RECENTFILEPARAM structure with filled "file", "pParamName" and "pParamValue" members.
+                              //Return value is a pointer to a real RECENTFILEPARAM structure or NULL if error.
+#define RF_DELETEPARAM     23 //Delete recent file parameter.
+                              //(RECENTFILEPARAM *)lParam a pointer to a real RECENTFILEPARAM structure.
+                              //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
 #define SH_GET    1  //Retrive search strings count.
@@ -854,34 +863,35 @@ typedef struct {
 } EXGETTEXTRANGE;
 #endif
 
-typedef struct _RECENTPARAM {
-  struct _RECENTPARAM *next;
-  struct _RECENTPARAM *prev;
-  wchar_t *pParamName;
-  wchar_t *pParamValue;
-} RECENTPARAM;
-
-typedef struct {
-  RECENTPARAM *first;
-  RECENTPARAM *last;
-} RECENTPARAMSTACK;
-
 typedef struct _RECENTFILE {
   struct _RECENTFILE *next;
   struct _RECENTFILE *prev;
-  wchar_t wszFile[MAX_PATH];      //Recent file name.
-  int nFileLen;                   //Recent file name length.
-  int nCodePage;                  //Recent file codepages.
-  INT_PTR cpMin;                  //First character in selection range.
-  INT_PTR cpMax;                  //Last character in selection range.
-  RECENTPARAMSTACK lpParamsStack; //Additional parameters storage.
+  wchar_t wszFile[MAX_PATH];  //Recent file name.
+  int nFileLen;               //Recent file name length.
+  int nCodePage;              //Recent file codepages.
+  INT_PTR cpMin;              //First character in selection range.
+  INT_PTR cpMax;              //Last character in selection range.
+  HSTACK lpParamsStack;       //Additional parameters storage (RECENTFILEPARAMSTACK structure).
 } RECENTFILE;
 
 typedef struct {
-  RECENTFILE *first;              //Pointer to the first RECENTFILE structure.
-  RECENTFILE *last;               //Pointer to the last RECENTFILE structure.
-  int nElements;                  //Items in stack.
+  RECENTFILE *first;          //Pointer to the first RECENTFILE structure.
+  RECENTFILE *last;           //Pointer to the last RECENTFILE structure.
+  int nElements;              //Items in stack.
 } RECENTFILESTACK;
+
+typedef struct _RECENTFILEPARAM {
+  struct _RECENTFILEPARAM *next;
+  struct _RECENTFILEPARAM *prev;
+  RECENTFILE *file;
+  wchar_t *pParamName;
+  wchar_t *pParamValue;
+} RECENTFILEPARAM;
+
+typedef struct {
+  RECENTFILEPARAM *first;
+  RECENTFILEPARAM *last;
+} RECENTFILEPARAMSTACK;
 
 typedef struct {
   DWORD dwFlags;            //See FR_* defines.
