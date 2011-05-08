@@ -871,10 +871,10 @@ int RecentFilesRead(RECENTFILESTACK *hStack);
 void RecentFilesSave(RECENTFILESTACK *hStack);
 void RecentFilesSaveFile(FRAMEDATA *lpFrame);
 void RecentFilesMenu();
-RECENTPARAM* StackRecentParamAdd(RECENTPARAMSTACK *hStack);
-RECENTPARAM* StackRecentParamGetByName(RECENTPARAMSTACK *hStack, const wchar_t *wpParamName);
-void StackRecentParamDelete(RECENTPARAMSTACK *hStack, RECENTPARAM *lpRecentParam);
-void StackRecentParamFree(RECENTPARAMSTACK *hStack);
+RECENTFILEPARAM* StackRecentFileParamAdd(RECENTFILE *lpRecentFile);
+RECENTFILEPARAM* StackRecentFileParamGetByName(RECENTFILE *lpRecentFile, const wchar_t *wpParamName);
+void StackRecentFileParamDelete(RECENTFILEPARAM *lpRecentFileParam);
+void StackRecentFileParamFree(RECENTFILE *lpRecentFile);
 int TrimPathW(wchar_t *wszResult, const wchar_t *wpPath, int nMax);
 int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax);
 

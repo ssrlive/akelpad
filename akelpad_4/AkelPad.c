@@ -2093,6 +2093,43 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesDelete(&hRecentFilesStack, (RECENTFILE *)lParam);
         bMenuRecentFiles=TRUE;
       }
+      else if (wParam == RF_GETPARAM)
+      {
+        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
+
+        return (LRESULT)StackRecentFileParamGetByName(rfp->file, rfp->pParamName);
+      }
+      else if (wParam == RF_SETPARAM)
+      {
+        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
+        RECENTFILEPARAM *lpRecentFileParam;
+        int nParamNameLen;
+        int nParamValueLen;
+
+        if (!(lpRecentFileParam=StackRecentFileParamGetByName(rfp->file, rfp->pParamName)))
+          lpRecentFileParam=StackRecentFileParamAdd(rfp->file);
+
+        if (lpRecentFileParam)
+        {
+          if (lpRecentFileParam->pParamName) FreeWideStr(lpRecentFileParam->pParamName);
+          if (lpRecentFileParam->pParamValue) FreeWideStr(lpRecentFileParam->pParamValue);
+
+          nParamNameLen=xstrlenW(rfp->pParamName);
+          if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
+            xstrcpynW(lpRecentFileParam->pParamName, rfp->pParamName, nParamNameLen + 1);
+
+          nParamValueLen=xstrlenW(rfp->pParamValue);
+          if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
+            xstrcpynW(lpRecentFileParam->pParamValue, rfp->pParamValue, nParamValueLen + 1);
+        }
+        return (LRESULT)lpRecentFileParam;
+      }
+      else if (wParam == RF_DELETEPARAM)
+      {
+        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
+
+        StackRecentFileParamDelete(rfp);
+      }
       return 0;
     }
     if (uMsg == AKD_SEARCHHISTORY)
