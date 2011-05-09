@@ -183,7 +183,7 @@ BEGIN
     END
     POPUP "帮助(&H)"
     BEGIN
-        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "用户手册(&M)",                     IDM_MANUAL
         MENUITEM SEPARATOR
         MENUITEM "关于(&A)",                    IDM_ABOUT
     END
@@ -819,7 +819,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "高级"
 FONT 9, "宋体"
 BEGIN
-    CONTROL         "Auto switch keyboard layout",
+    CONTROL         "自动切换键盘布局",
                     IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
     CONTROL         "记住每个标签页的键盘布局(MDI)",
