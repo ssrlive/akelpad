@@ -4187,7 +4187,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         //Read position of the new document
         if (moCur.nRecentFiles)
         {
-          RecentFilesZero(&hRecentFilesStack);
           RecentFilesRead(&hRecentFilesStack);
           if (lpRecentFile=RecentFilesUpdate(wszFile))
             lpRecentFile->nCodePage=nCodePage;
@@ -10212,6 +10211,7 @@ void RecentFilesZero(RECENTFILESTACK *hStack)
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   hStack->nElements=0;
+  hStack->dwSaveTime=0;
 }
 
 RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex)
@@ -10297,7 +10297,8 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
-  int i;
+  DWORD dwSaveTime;
+  int i=0;
 
   //Params
   RECENTFILE *lpRecentFile;
@@ -10307,68 +10308,79 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
   int nParamNameLen;
   int nParamValueLen;
 
+  if (!moCur.nRecentFiles) return 0;
+
   //Read recent files array
   xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
   if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
     return 0;
 
-  for (i=0; i < moCur.nRecentFiles; ++i)
+  //Tick count
+  dwSize=sizeof(DWORD);
+  RegQueryValueExWide(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&dwSaveTime, &dwSize);
+
+  if (hStack->dwSaveTime != dwSaveTime)
   {
-    xprintfW(wszRegValue, L"file%d", i);
-    dwSize=BUFFER_SIZE * sizeof(wchar_t);
-    if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wbuf, &dwSize) != ERROR_SUCCESS)
-      break;
-    if (!*wbuf || dwType != REG_MULTI_SZ)
-      break;
+    RecentFilesZero(hStack);
 
-    if (lpRecentFile=RecentFilesInsert(hStack, -1))
+    for (i=0; i < moCur.nRecentFiles; ++i)
     {
-      //File
-      wpCount=wbuf;
-      lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
-      wpCount+=lpRecentFile->nFileLen + 1;
-
-      //Codepage
-      if (*wpCount)
+      xprintfW(wszRegValue, L"file%d", i);
+      dwSize=BUFFER_SIZE * sizeof(wchar_t);
+      if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wbuf, &dwSize) != ERROR_SUCCESS)
+        break;
+      if (!*wbuf || dwType != REG_MULTI_SZ)
+        break;
+  
+      if (lpRecentFile=RecentFilesInsert(hStack, -1))
       {
-        lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
-        wpCount+=xstrlenW(wpCount) + 1;
-      }
-
-      //Position
-      if (*wpCount)
-      {
-        lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
-        if (*wpCount == '-')
-          lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
-        wpCount+=xstrlenW(wpCount) + 1;
-      }
-
-      //Parameters
-      if (*wpCount)
-      {
-        do
+        //File
+        wpCount=wbuf;
+        lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
+        wpCount+=lpRecentFile->nFileLen + 1;
+  
+        //Codepage
+        if (*wpCount)
         {
-          for (wpParamName=wpCount; *wpCount; ++wpCount)
+          lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
+          wpCount+=xstrlenW(wpCount) + 1;
+        }
+  
+        //Position
+        if (*wpCount)
+        {
+          lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
+          if (*wpCount == '-')
+            lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
+          wpCount+=xstrlenW(wpCount) + 1;
+        }
+  
+        //Parameters
+        if (*wpCount)
+        {
+          do
           {
-            if (*wpCount == '=')
+            for (wpParamName=wpCount; *wpCount; ++wpCount)
             {
-              nParamNameLen=wpCount - wpParamName;
-              wpParamValue=wpCount + 1;
-              while (*++wpCount);
-              nParamValueLen=wpCount - wpParamValue;
-
-              if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
+              if (*wpCount == '=')
               {
-                if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
-                  xstrcpynW(lpRecentFileParam->pParamName, wpParamName, nParamNameLen + 1);
-                if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
-                  xstrcpynW(lpRecentFileParam->pParamValue, wpParamValue, nParamValueLen + 1);
+                nParamNameLen=wpCount - wpParamName;
+                wpParamValue=wpCount + 1;
+                while (*++wpCount);
+                nParamValueLen=wpCount - wpParamValue;
+  
+                if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
+                {
+                  if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
+                    xstrcpynW(lpRecentFileParam->pParamName, wpParamName, nParamNameLen + 1);
+                  if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
+                    xstrcpynW(lpRecentFileParam->pParamValue, wpParamValue, nParamValueLen + 1);
+                }
               }
             }
           }
+          while (*++wpCount);
         }
-        while (*++wpCount);
       }
     }
   }
@@ -10383,6 +10395,7 @@ void RecentFilesSave(RECENTFILESTACK *hStack)
   wchar_t wchNull=L'\0';
   HKEY hKey;
   int nStrLen;
+  DWORD dwSaveTime;
   int i=0;
 
   //Params
@@ -10435,6 +10448,12 @@ void RecentFilesSave(RECENTFILESTACK *hStack)
     if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
       break;
   }
+
+  //Tick count
+  dwSaveTime=(DWORD)GetTickCount();
+  RegSetValueExWide(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
+  hStack->dwSaveTime=dwSaveTime;
+
   RegCloseKey(hKey);
 }
 
@@ -10448,7 +10467,6 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
   {
     if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrame->wszFile))
     {
-      RecentFilesZero(&hRecentFilesStack);
       RecentFilesRead(&hRecentFilesStack);
 
       //Get selection
@@ -13244,12 +13262,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (bRecentFilesRefresh)
       {
         RecentFilesZero(&hRecentFilesStack);
-
-        if (moCur.nRecentFiles)
-        {
-          RecentFilesZero(&hRecentFilesStack);
-          RecentFilesRead(&hRecentFilesStack);
-        }
+        RecentFilesRead(&hRecentFilesStack);
         bMenuRecentFiles=TRUE;
 
         //Clean save
