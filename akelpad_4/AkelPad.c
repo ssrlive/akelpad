@@ -1433,11 +1433,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Allocate and read recent files
-      if (moCur.nRecentFiles)
-      {
-        RecentFilesZero(&hRecentFilesStack);
-        RecentFilesRead(&hRecentFilesStack);
-      }
+      RecentFilesRead(&hRecentFilesStack);
       bMenuRecentFiles=TRUE;
 
       //Call plugins on start
@@ -2024,12 +2020,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           moCur.nRecentFiles=(int)lParam;
           RecentFilesZero(&hRecentFilesStack);
-
-          if (moCur.nRecentFiles)
-          {
-            RecentFilesZero(&hRecentFilesStack);
-            RecentFilesRead(&hRecentFilesStack);
-          }
+          RecentFilesRead(&hRecentFilesStack);
           bMenuRecentFiles=TRUE;
         }
       }
