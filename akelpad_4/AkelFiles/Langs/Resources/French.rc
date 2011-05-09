@@ -860,7 +860,7 @@ BEGIN
     CONTROL         "Cocher ""Dans la sélection"" si la sélection n'est pas vide",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
-    CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
+    CONTROL         "Recherche cyclique",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
 END
 
