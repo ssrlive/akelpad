@@ -4400,7 +4400,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
           AE_ActiveColumnErase(ae);
           AE_Paint(ae);
-          AE_ColumnMarkerDraw(ae);
 
           if (ae->bMButtonDown)
           {
@@ -12226,6 +12225,9 @@ void AE_Paint(AKELEDIT *ae)
         //Draw text line
         AE_PaintTextOut(ae, &to, &hlp);
 
+        //Draw column marker
+        AE_ColumnMarkerDraw(ae, to.hDC, to.ptFirstCharInLine.y, to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
+
         //Copy line from buffer DC
         if (bUseBufferDC)
         {
@@ -13262,10 +13264,17 @@ BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse)
     if (ae->popt->dwColumnMarkerType != dwType ||
         ae->popt->dwColumnMarkerPos != (DWORD)nPos)
     {
+      HDC hDC=ae->hDC;
+
       AE_ColumnMarkerErase(ae);
       ae->popt->dwColumnMarkerType=dwType;
       ae->popt->dwColumnMarkerPos=nPos;
-      AE_ColumnMarkerDraw(ae);
+
+      if (hDC || (hDC=GetDC(ae->hWndEdit)))
+      {
+        AE_ColumnMarkerDraw(ae, hDC, ae->rcDraw.top, ae->rcDraw.bottom);
+        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+      }
       AE_StackUpdateClones(ae);
       AE_NotifyMarker(ae, bMouse);
       return TRUE;
@@ -13274,12 +13283,11 @@ BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse)
   return FALSE;
 }
 
-void AE_ColumnMarkerDraw(AKELEDIT *ae)
+void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 {
   if (ae->popt->dwColumnMarkerPos)
   {
     INT_PTR nMarkerPos;
-    HDC hDC=ae->hDC;
     HPEN hPen;
     HPEN hPenOld;
 
@@ -13289,17 +13297,13 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae)
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
-      if (hDC || (hDC=GetDC(ae->hWndEdit)))
+      if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crColumnMarker))
       {
-        if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crColumnMarker))
-        {
-          hPenOld=(HPEN)SelectObject(hDC, hPen);
-          MoveToEx(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), ae->rcDraw.top, NULL);
-          LineTo(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), ae->rcDraw.bottom);
-          if (hPenOld) SelectObject(hDC, hPenOld);
-          DeleteObject(hPen);
-        }
-        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+        hPenOld=(HPEN)SelectObject(hDC, hPen);
+        MoveToEx(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nTop, NULL);
+        LineTo(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nBottom);
+        if (hPenOld) SelectObject(hDC, hPenOld);
+        DeleteObject(hPen);
       }
     }
   }
