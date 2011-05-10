@@ -840,7 +840,7 @@ void AE_ActiveColumnErase(AKELEDIT *ae);
 void AE_UpdateSize(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse);
-void AE_ColumnMarkerDraw(AKELEDIT *ae);
+void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom);
 void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);

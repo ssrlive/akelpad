@@ -9,6 +9,7 @@ Changed: closing tab with middle mouse click without activation, if possible (MD
 Changed: TextLayout plugin integrated in program. Switching keyboard layout according
          to text under caret. Requires two or more layouts, one of which must be English.
 Changed: renamed parameter "KeybLayoutMDI" in "KeybLayoutOptions".
+Changed: removed column marker flashing.
 
 Added: possibility to show places bar in open/save dialog.
 Added: applying a common algorithm for recognizing the UTF-8, if for the specified language
