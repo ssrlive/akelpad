@@ -16284,6 +16284,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
   const wchar_t *wpCmdLineNext;
   wchar_t *wpAction;
   STACKEXTPARAM hParamStack={0};
+  EXTPARAM *lpParameter;
   DWORD dwAction;
   HWND hWndFriend=NULL;
   int nOpen;
@@ -16433,11 +16434,14 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
           if (dwAction)
           {
             for (wpAction=wszCmdArg; *wpAction != '('; ++wpAction);
-            GetMethodParameters(&hParamStack, ++wpAction, NULL);
+            ParseMethodParameters(&hParamStack, ++wpAction, NULL);
 
             if (dwAction == EXTACT_COMMAND)
             {
-              int nCommand=GetParameterInt(&hParamStack, 1);
+              int nCommand=0;
+
+              if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                nCommand=lpParameter->nNumber;
 
               if (nCommand)
               {
@@ -16449,9 +16453,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
               PLUGINCALLSENDW pcs;
               unsigned char *lpStruct=NULL;
 
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
 
-              if (CreateParametersStruct(&hParamStack, &lpStruct))
+              if (StructMethodParameters(&hParamStack, &lpStruct))
               {
                 pcs.pFunction=(wchar_t *)*(INT_PTR *)lpStruct;
                 if (*(INT_PTR *)(lpStruct + sizeof(INT_PTR)) > (INT_PTR)sizeof(INT_PTR))
@@ -16470,10 +16474,13 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
               wchar_t *wpWorkDir=NULL;
               BOOL bWait=FALSE;
 
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              wpCmdLine=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-              wpWorkDir=(wchar_t *)GetParameterExpCharW(&hParamStack, 2);
-              bWait=GetParameterInt(&hParamStack, 3);
+              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                wpCmdLine=lpParameter->wpExpanded;
+              if (lpParameter=GetMethodParameter(&hParamStack, 2))
+                wpWorkDir=lpParameter->wpExpanded;
+              if (lpParameter=GetMethodParameter(&hParamStack, 3))
+                bWait=lpParameter->nNumber;
 
               if (wpCmdLine)
               {
@@ -16498,12 +16505,13 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
               int nCodePage=-1;
               BOOL bBOM=-1;
 
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              wpFile=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-              if (hParamStack.nElements >= 2)
-                nCodePage=GetParameterInt(&hParamStack, 2);
-              if (hParamStack.nElements >= 3)
-                bBOM=GetParameterInt(&hParamStack, 3);
+              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                wpFile=lpParameter->wpExpanded;
+              if (lpParameter=GetMethodParameter(&hParamStack, 2))
+                nCodePage=lpParameter->nNumber;
+              if (lpParameter=GetMethodParameter(&hParamStack, 3))
+                bBOM=lpParameter->nNumber;
 
               if (dwAction == EXTACT_OPENFILE)
               {
@@ -16534,10 +16542,13 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
               int nPointSize=0;
               HDC hDC;
 
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              wpFaceName=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-              dwFontStyle=GetParameterInt(&hParamStack, 2);
-              nPointSize=GetParameterInt(&hParamStack, 3);
+              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                wpFaceName=lpParameter->wpExpanded;
+              if (lpParameter=GetMethodParameter(&hParamStack, 2))
+                dwFontStyle=lpParameter->nNumber;
+              if (lpParameter=GetMethodParameter(&hParamStack, 3))
+                nPointSize=lpParameter->nNumber;
 
               if (nPointSize)
               {
@@ -16562,10 +16573,12 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
             }
             else if (dwAction == EXTACT_RECODE)
             {
-              TEXTRECODE tr;
+              TEXTRECODE tr={0};
 
-              tr.nCodePageFrom=GetParameterInt(&hParamStack, 1);
-              tr.nCodePageTo=GetParameterInt(&hParamStack, 2);
+              if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                tr.nCodePageFrom=lpParameter->nNumber;
+              if (lpParameter=GetMethodParameter(&hParamStack, 2))
+                tr.nCodePageTo=lpParameter->nNumber;
               RecodeTextW(lpFrameCurrent->ei.hWndEdit, tr.nCodePageFrom, tr.nCodePageTo);
             }
             else if (dwAction == EXTACT_INSERT)
@@ -16579,9 +16592,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
 
               if (!IsReadOnly(lpFrameCurrent->ei.hWndEdit))
               {
-                SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-                wpText=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-                bEscSequences=GetParameterInt(&hParamStack, 2);
+                ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+                if (lpParameter=GetMethodParameter(&hParamStack, 1))
+                  wpText=lpParameter->wpExpanded;
+                if (lpParameter=GetMethodParameter(&hParamStack, 2))
+                  bEscSequences=lpParameter->nNumber;
 
                 if (bEscSequences)
                 {
@@ -16683,7 +16698,7 @@ void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost)
   }
 }
 
-void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
+void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
   const wchar_t *wpParamBegin=wpText;
@@ -16692,7 +16707,7 @@ void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, cons
   wchar_t wchStopChar;
   int nStringLen;
 
-  GetMethodParameter:
+  MethodParameter:
   while (*wpParamBegin == ' ' || *wpParamBegin == '\t') ++wpParamBegin;
 
   if (*wpParamBegin == '\"' || *wpParamBegin == '\'' || *wpParamBegin == '`')
@@ -16745,14 +16760,14 @@ void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, cons
   if (*wpParamEnd == ',')
   {
     wpParamBegin=++wpParamEnd;
-    goto GetMethodParameter;
+    goto MethodParameter;
   }
   if (*wpParamEnd == ')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
 }
 
-void SetParametersExpChar(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
+void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
   EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
@@ -16881,7 +16896,7 @@ void SetParametersExpChar(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, con
   }
 }
 
-int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct)
+int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct)
 {
   EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
   unsigned char *lpStruct=NULL;
@@ -16925,63 +16940,12 @@ int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
   return nStructSize;
 }
 
-int GetParameterInt(STACKEXTPARAM *hParamStack, int nIndex)
+EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
 {
   EXTPARAM *lpParameter;
 
   if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-  {
-    if (lpParameter->dwType == EXTPARAM_INT)
-      return lpParameter->nNumber;
-  }
-  return 0;
-}
-
-char* GetParameterCharA(STACKEXTPARAM *hParamStack, int nIndex)
-{
-  EXTPARAM *lpParameter;
-
-  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-      return lpParameter->pString;
-  }
-  return NULL;
-}
-
-wchar_t* GetParameterCharW(STACKEXTPARAM *hParamStack, int nIndex)
-{
-  EXTPARAM *lpParameter;
-
-  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-      return lpParameter->wpString;
-  }
-  return NULL;
-}
-
-char* GetParameterExpCharA(STACKEXTPARAM *hParamStack, int nIndex)
-{
-  EXTPARAM *lpParameter;
-
-  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-      return lpParameter->pExpanded;
-  }
-  return NULL;
-}
-
-wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex)
-{
-  EXTPARAM *lpParameter;
-
-  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-      return lpParameter->wpExpanded;
-  }
+    return lpParameter;
   return NULL;
 }
 
