@@ -125,6 +125,7 @@
 #define FindFirstFileWide
 #define FindNextFileWide
 #define FindWindowExWide
+#define GetClassLongPtrWide
 #define GetCPInfoExWide
 #define GetCurrentDirectoryWide
 #define GetDateFormatWide
@@ -168,6 +169,7 @@
 #define RegSetValueExWide
 #define SearchPathWide
 #define SendMessageWide
+#define SetClassLongPtrWide
 #define SetCurrentDirectoryWide
 #define SetDlgItemTextWide
 #define SetFileAttributesWide
@@ -790,7 +792,7 @@ void _WinMain()
     //Pass command line to opened instance
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
-      dwAtom=GetClassLongA(hWndFriend, GCW_ATOM);
+      dwAtom=GetClassLongPtrWide(hWndFriend, GCW_ATOM);
       ActivateWindow(hWndFriend);
 
       //Wait until we can send PostMessage
@@ -799,7 +801,7 @@ void _WinMain()
         Sleep(100);
 
         //Is window still exist?
-        if (GetClassLongA(hWndFriend, GCW_ATOM) != dwAtom)
+        if (GetClassLongPtrWide(hWndFriend, GCW_ATOM) != dwAtom)
           goto Quit;
       }
 
@@ -1310,8 +1312,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                       hInstance,
                                       (LPVOID)&ccs);
 
-        dwClassStyle=GetClassLongA(hMdiClient, GCL_STYLE);
-        SetClassLongA(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
+        dwClassStyle=GetClassLongPtrWide(hMdiClient, GCL_STYLE);
+        SetClassLongPtrWide(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
 
         OldMdiClientProc=(WNDPROC)GetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC);
         SetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC, (UINT_PTR)NewMdiClientProc);
@@ -2337,6 +2339,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, lParam);
       OldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
       SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewHotkeyInputProc);
+
+      //Update cursor
+      SendMessage((HWND)wParam, WM_SETCURSOR, 0, 0);
       return 0;
     }
     if (uMsg == AKD_DIALOGRESIZE)
