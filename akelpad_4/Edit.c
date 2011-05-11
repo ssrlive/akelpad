@@ -10217,7 +10217,7 @@ void RecentFilesZero(RECENTFILESTACK *hStack)
 RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex)
 {
   RECENTFILE *lpRecentFile;
-  int nFileLen=xstrlenW(wpFile);
+  int nFileLen=(int)xstrlenW(wpFile);
   int nIndex=0;
 
   if (*wpFile)
@@ -10261,7 +10261,7 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   {
     if (lpRecentFile=RecentFilesInsert(&hRecentFilesStack, 1))
     {
-      lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpFile, MAX_PATH);
+      lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpFile, MAX_PATH);
       if (hRecentFilesStack.nElements > moCur.nRecentFiles)
         RecentFilesDelete(&hRecentFilesStack, hRecentFilesStack.last);
     }
@@ -10336,7 +10336,7 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
       {
         //File
         wpCount=wbuf;
-        lpRecentFile->nFileLen=xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
+        lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
         wpCount+=lpRecentFile->nFileLen + 1;
   
         //Codepage
@@ -10364,10 +10364,10 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
             {
               if (*wpCount == '=')
               {
-                nParamNameLen=wpCount - wpParamName;
+                nParamNameLen=(int)(wpCount - wpParamName);
                 wpParamValue=wpCount + 1;
                 while (*++wpCount);
-                nParamValueLen=wpCount - wpParamValue;
+                nParamValueLen=(int)(wpCount - wpParamValue);
   
                 if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
                 {
@@ -16770,7 +16770,7 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
-  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
+  EXTPARAM *lpParameter;
   wchar_t wszFileDir[MAX_PATH];
   wchar_t *wszString;
   wchar_t *wpCount;
@@ -16786,7 +16786,7 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
   nExeDirLen=lstrlenW(wpExeDir);
   nExpandStrLen=0;
 
-  while (lpParameter)
+  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
     if (lpParameter->dwType == EXTPARAM_CHAR)
     {
@@ -16892,13 +16892,12 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
         GlobalFree((HGLOBAL)wszString);
       }
     }
-    lpParameter=lpParameter->next;
   }
 }
 
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct)
 {
-  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
+  EXTPARAM *lpParameter;
   unsigned char *lpStruct=NULL;
   int nStructSize=0;
   int nOffset=0;
@@ -16910,7 +16909,7 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
 
     if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
     {
-      while (lpParameter)
+      for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
       {
         if (nIndex == 1)
         {
@@ -16932,7 +16931,6 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
 
         nOffset+=sizeof(INT_PTR);
         ++nIndex;
-        lpParameter=lpParameter->next;
       }
     }
   }
@@ -16947,6 +16945,24 @@ EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
   if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
     return lpParameter;
   return NULL;
+}
+
+void FreeMethodParameters(STACKEXTPARAM *hParamStack)
+{
+  EXTPARAM *lpParameter;
+
+  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+    {
+      if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
+      if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
+      if (lpParameter->pExpanded) GlobalFree((HGLOBAL)lpParameter->pExpanded);
+      if (lpParameter->wpExpanded) GlobalFree((HGLOBAL)lpParameter->wpExpanded);
+    }
+  }
+  StackClear((stack **)&hParamStack->first, (stack **)&hParamStack->last);
+  hParamStack->nElements=0;
 }
 
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret)
@@ -17055,25 +17071,6 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
   Error:
   if (wszOutput) *wszOutput='\0';
   return 0;
-}
-
-void FreeMethodParameters(STACKEXTPARAM *hParamStack)
-{
-  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
-
-  while (lpParameter)
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-    {
-      if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
-      if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
-      if (lpParameter->pExpanded) GlobalFree((HGLOBAL)lpParameter->pExpanded);
-      if (lpParameter->wpExpanded) GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-    }
-    lpParameter=lpParameter->next;
-  }
-  StackClear((stack **)&hParamStack->first, (stack **)&hParamStack->last);
-  hParamStack->nElements=0;
 }
 
 

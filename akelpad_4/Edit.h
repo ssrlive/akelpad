@@ -1016,8 +1016,8 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
-INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
+INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
 BOOL SetCurEditOption(int nType, UINT_PTR dwData);

@@ -792,7 +792,7 @@ void _WinMain()
     //Pass command line to opened instance
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
-      dwAtom=GetClassLongPtrWide(hWndFriend, GCW_ATOM);
+      dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
       ActivateWindow(hWndFriend);
 
       //Wait until we can send PostMessage
@@ -1312,7 +1312,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                       hInstance,
                                       (LPVOID)&ccs);
 
-        dwClassStyle=GetClassLongPtrWide(hMdiClient, GCL_STYLE);
+        dwClassStyle=(DWORD)GetClassLongPtrWide(hMdiClient, GCL_STYLE);
         SetClassLongPtrWide(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
 
         OldMdiClientProc=(WNDPROC)GetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC);
@@ -2107,11 +2107,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpRecentFileParam->pParamName) FreeWideStr(lpRecentFileParam->pParamName);
           if (lpRecentFileParam->pParamValue) FreeWideStr(lpRecentFileParam->pParamValue);
 
-          nParamNameLen=xstrlenW(rfp->pParamName);
+          nParamNameLen=(int)xstrlenW(rfp->pParamName);
           if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
             xstrcpynW(lpRecentFileParam->pParamName, rfp->pParamName, nParamNameLen + 1);
 
-          nParamValueLen=xstrlenW(rfp->pParamValue);
+          nParamValueLen=(int)xstrlenW(rfp->pParamValue);
           if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
             xstrcpynW(lpRecentFileParam->pParamValue, rfp->pParamValue, nParamValueLen + 1);
         }
