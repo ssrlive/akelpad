@@ -2250,6 +2250,13 @@ void DoEditFind()
       ShowWindow(hDlgModeless, SW_SHOW);
     }
   }
+  else if (nModelessType == MLT_FIND)
+  {
+    if (!SendMessage(hDlgModeless, AKDLG_PUTFIND, 0, 0))
+      BringWindowToTop(hDlgModeless);
+    else
+      SetFocus(hDlgModeless);
+  }
 }
 
 INT_PTR DoEditFindNextDown(FRAMEDATA *lpFrame)
@@ -2291,6 +2298,13 @@ void DoEditReplace()
     {
       ShowWindow(hDlgModeless, SW_SHOW);
     }
+  }
+  else if (nModelessType == MLT_REPLACE)
+  {
+    if (!SendMessage(hDlgModeless, AKDLG_PUTFIND, 0, 0))
+      BringWindowToTop(hDlgModeless);
+    else
+      SetFocus(hDlgModeless);
   }
 }
 
@@ -8324,8 +8338,6 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndReplaceAllButton;
   static HWND hWndCancelButton;
   static BOOL bSpecialCheck=FALSE;
-  CHARRANGE64 cr;
-  wchar_t *wszData;
   HWND hWndFocus=NULL;
   HWND hWndComboboxEdit;
   BOOL bReplace=FALSE;
@@ -8368,20 +8380,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       FillComboboxSearch(hWndFind, hWndReplace);
     }
-    SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-
-    if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax) || cr.cpMax - cr.cpMin > PUTFIND_MAXSEL || (moCur.dwSearchOptions & AEFR_SELECTION) || SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
-    {
+    if (!SendMessage(hDlg, AKDLG_PUTFIND, 0, 0))
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
-    }
-    else
-    {
-      if (ExGetRangeTextW(lpFrameCurrent->ei.hWndEdit, &crCurSel.ciMin, &crCurSel.ciMax, FALSE, &wszData, AELB_R, FALSE))
-      {
-        SetWindowTextWide(hWndFind, wszData);
-        FreeText((LPVOID)wszData);
-      }
-    }
+
     if (!nMDI)
     {
       ShowWindow(hWndAllFiles, SW_HIDE);
@@ -8428,6 +8429,28 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SetWindowPos(hDlg, 0, rcFindAndReplaceDlg.left, rcFindAndReplaceDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
+  }
+  else if (uMsg == AKDLG_PUTFIND)
+  {
+    CHARRANGE64 cr;
+    wchar_t *wszData;
+    int nSelLen;
+    BOOL bResult=FALSE;
+
+    if (nSelLen=SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr))
+    {
+      if (nSelLen <= PUTFIND_MAXSEL && !(moCur.dwSearchOptions & AEFR_SELECTION) && !SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
+      {
+        if (ExGetRangeTextW(lpFrameCurrent->ei.hWndEdit, &crCurSel.ciMin, &crCurSel.ciMax, FALSE, &wszData, AELB_R, FALSE))
+        {
+          SetWindowTextWide(hWndFind, wszData);
+          bResult=TRUE;
+          FreeText((LPVOID)wszData);
+        }
+      }
+    }
+    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, bResult);
+    return TRUE;
   }
   else if (uMsg == WM_COMMAND)
   {
