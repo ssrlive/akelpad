@@ -1,15 +1,15 @@
 
-AkelPad 4.6.0 ()
+AkelPad 4.6.0 (May 11, 2011)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: improved compatibility with RichEdit on x64.
 Changed: improved UTF-16LE/UTF-16BE detection without BOM.
 Changed: improved internal work with recent files.
 Changed: closing tab with middle mouse click without activation, if possible (MDI/PMDI).
+Changed: column marker flashing minimized.
 Changed: TextLayout plugin integrated in program. Switching keyboard layout according
          to text under caret. Requires two or more layouts, one of which must be English.
 Changed: renamed parameter "KeybLayoutMDI" in "KeybLayoutOptions".
-Changed: column marker flashing minimized.
 
 Added: possibility to show places bar in open/save dialog.
 Added: applying a common algorithm for recognizing the UTF-8, if for the specified language
@@ -38,7 +38,7 @@ Fixed: scroll position after restoring minimized window with word wrap on (MDI).
 Fixed: "\|" in /Insert() command line method.
 
 
-AkelPad 4.5.6 (Mar 16, 2010)
+AkelPad 4.5.6 (Mar 16, 2011)
 ----------------------------
 Changed: recent files information is now stored in the "file*" key instead of "nm*",
          "cp*", "ps*". Update ContextMenu and RecentFiles plugins.
