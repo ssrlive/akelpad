@@ -193,7 +193,7 @@
 #define AECO_CARETOUTEDGE             0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
 #define AECO_NOMARKERAFTERLASTLINE    0x00000800  //Disables marker painting after last line.
-#define AECO_NOMARKERMOVE             0x00001000  //Disables changing position of column marker with mouse.
+#define AECO_NOMARKERMOVE             0x00001000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
 #define AECO_NONEWLINEDRAW            0x00004000  //Disables drawing new line selection as space character.
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
