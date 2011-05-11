@@ -8437,7 +8437,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     int nSelLen;
     BOOL bResult=FALSE;
 
-    if (nSelLen=SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr))
+    if (nSelLen=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr))
     {
       if (nSelLen <= PUTFIND_MAXSEL && !(moCur.dwSearchOptions & AEFR_SELECTION) && !SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
       {
