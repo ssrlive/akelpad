@@ -12226,7 +12226,7 @@ void AE_Paint(AKELEDIT *ae)
         AE_PaintTextOut(ae, &to, &hlp);
 
         //Draw column marker
-        AE_ColumnMarkerDraw(ae, to.hDC, to.ptFirstCharInLine.y, to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
+        AE_ColumnMarkerDraw(ae, to.hDC, (int)to.ptFirstCharInLine.y, (int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight));
 
         //Copy line from buffer DC
         if (bUseBufferDC)
