@@ -196,14 +196,15 @@
 #define MO_SWITCHLAYOUT       0x00000002  //Auto switch keyboard layout according to text under caret.
 
 //Paint options
-#define PAINT_PAINTGROUP        0x00000001  //Paint text by group of characters (default is character by character).
-                                            //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-#define PAINT_NONEWLINEDRAW     0x00000002  //Disables drawing new line selection as space character.
-#define PAINT_ENTIRENEWLINEDRAW 0x00000004  //Draw new line selection to the right edge.
-#define PAINT_HIDESEL           0x00000008  //Hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus.
-#define PAINT_HIDENOSCROLL      0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
-#define PAINT_STATICEDGE        0x00000200  //Draw thin edit window border.
-#define PAINT_NOEDGE            0x00000400  //Draw no edit window border.
+#define PAINT_PAINTGROUP            0x00000001  //Paint text by group of characters (default is character by character).
+                                                //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
+#define PAINT_NONEWLINEDRAW         0x00000002  //Disables drawing new line selection as space character.
+#define PAINT_ENTIRENEWLINEDRAW     0x00000004  //Draw new line selection to the right edge.
+#define PAINT_HIDESEL               0x00000008  //Hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus.
+#define PAINT_NOMARKERAFTERLASTLINE 0x00000010  //Disables marker painting after last line.
+#define PAINT_HIDENOSCROLL          0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
+#define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
+#define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
 
 //Tab options MDI
 #define TAB_VIEW_NONE         0x00000001

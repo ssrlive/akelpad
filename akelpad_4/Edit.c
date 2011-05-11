@@ -361,6 +361,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_NONEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
+  if (moCur.dwPaintOptions & PAINT_NOMARKERAFTERLASTLINE)
+    dwOptions|=AECO_NOMARKERAFTERLASTLINE;
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
 
   //Font

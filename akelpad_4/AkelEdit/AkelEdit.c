@@ -12266,6 +12266,15 @@ void AE_Paint(AKELEDIT *ae)
       }
     }
 
+    if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
+    {
+      if (ae->rcDraw.bottom - ae->rcDraw.top > ae->ptxt->nVScrollMax)
+      {
+        //Draw column marker on non-text lines
+        AE_ColumnMarkerDraw(ae, ps.hdc, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+      }
+    }
+
     //Send AEN_PAINT
     AE_NotifyPaint(ae, AEPNT_END, &pntNotify);
 
