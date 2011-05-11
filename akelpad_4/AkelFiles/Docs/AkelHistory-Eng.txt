@@ -25,6 +25,8 @@ Added: variables for "StatusUserFormat":
        "%al" - count of lines in document;
        "%ar" - count of symbols in document (RichEdit);
        "%se[text]" - text to appear when end of the document reached during search.
+Added: flag 16 in the manual parameter "PaintOptions" - disable marker painting after
+       last line.
 Added: undo buffer remember the caret position.
 Added: parameter for waiting until the program finishes in command line method /Exec().
 Added: menu item to open help.
