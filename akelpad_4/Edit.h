@@ -256,6 +256,9 @@
 #define AEFR_WHOLEWORDGOODSTART 0x10000000
 #define AEFR_WHOLEWORDGOODEND   0x20000000
 
+//Find/Replace dialog message
+#define AKDLG_PUTFIND           (WM_USER + 1)
+
 //Insert/Delete char in selection
 #define STRSEL_CHECK   0x00000001
 #define STRSEL_INSERT  0x00000002
