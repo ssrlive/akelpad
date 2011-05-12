@@ -192,7 +192,7 @@ BEGIN
     END
     POPUP "&Aide"
     BEGIN
-        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Manuel",                     IDM_MANUAL
         MENUITEM SEPARATOR
         MENUITEM "&A propos",                   IDM_ABOUT
     END

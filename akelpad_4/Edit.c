@@ -15634,6 +15634,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
   //%f  - Font size.
   //%t  - Tabulation size.
   //%m  - Column marker size.
+  //%se[text] - Text to appear when end of the document reached during search.
   //%r  - Replace count after "Replace all".
   //%dc - Count of all documents (MDI/PMDI).
   //%dm - Count of modified documents (MDI/PMDI).
