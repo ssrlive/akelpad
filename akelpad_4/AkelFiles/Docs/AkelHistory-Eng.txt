@@ -1,4 +1,9 @@
 
+AkelPad 4.6.1 ()
+----------------------------
+Fixed: status bar update if in manual parameter "StatusUserFormat" only "%se[text]" specified.
+
+
 AkelPad 4.6.0 (May 11, 2011)
 ----------------------------
 Changed: plugin architecture. Update plugins.
