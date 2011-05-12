@@ -15615,8 +15615,8 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
 
-      if (TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE))
-        StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
+      TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE);
+      StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
     }
   }
 }
