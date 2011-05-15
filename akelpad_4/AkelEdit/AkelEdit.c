@@ -10455,10 +10455,10 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
   for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
   {
     if (lpQuoteStart->nQuoteStartLen == lpQuoteItem->nQuoteStartLen &&
+        lpQuoteStart->dwFlags == lpQuoteItem->dwFlags &&
         lpQuoteStart->chEscape == lpQuoteItem->chEscape &&
-        (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISDELIMITER) == (lpQuoteItem->dwFlags & AEHLF_QUOTESTART_ISDELIMITER) &&
-        (lpQuoteStart->dwFlags & AEHLF_ATLINESTART) == (lpQuoteItem->dwFlags & AEHLF_ATLINESTART) &&
-        (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISWORD) == (lpQuoteItem->dwFlags & AEHLF_QUOTESTART_ISWORD))
+        !(lpQuoteStart->dwFlags & AEHLF_QUOTEINCLUDE) &&
+        !(lpQuoteStart->dwFlags & AEHLF_QUOTEEXCLUDE))
     {
       if (!lpQuoteItem->nQuoteStartLen)
         break;
