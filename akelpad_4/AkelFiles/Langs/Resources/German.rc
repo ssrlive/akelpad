@@ -940,9 +940,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fehler in der Nachrichtenfolge."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Fehler beim Zuweisen des Speichers f?r das Redaktionsfenster."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Zu wenig Speicher."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" ist eine binäre Datei. Weitermachen?"
     MSG_ERROR_IO            "Eingabe-/Ausgabefehler."
     MSG_ERROR_SYNTAX        "Syntaxfehler."
@@ -1049,6 +1047,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Ja für &alle"
     STR_MESSAGEBOX_NOTOALL  "Nein für a&lle"
     STR_MESSAGEBOX_GOTO     "&Wechseln zu"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

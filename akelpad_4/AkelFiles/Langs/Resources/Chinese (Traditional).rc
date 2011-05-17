@@ -929,8 +929,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "訊息佇列發生錯誤。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "為編輯控制項配置記憶體時發生錯誤。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY "記憶體不足。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" 是一個二進位檔案。要繼續嗎?"
     MSG_ERROR_IO            "輸出/輸入錯誤。"
     MSG_ERROR_SYNTAX        "語法錯誤。"
@@ -1034,6 +1033,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "全部皆是"
     STR_MESSAGEBOX_NOTOALL  "全部皆否"
     STR_MESSAGEBOX_GOTO     "移至"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

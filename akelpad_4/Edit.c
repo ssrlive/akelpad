@@ -10356,21 +10356,21 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
         break;
       if (!*wbuf || dwType != REG_MULTI_SZ)
         break;
-  
+
       if (lpRecentFile=RecentFilesInsert(hStack, -1))
       {
         //File
         wpCount=wbuf;
         lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
         wpCount+=lpRecentFile->nFileLen + 1;
-  
+
         //Codepage
         if (*wpCount)
         {
           lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
           wpCount+=xstrlenW(wpCount) + 1;
         }
-  
+
         //Position
         if (*wpCount)
         {
@@ -10379,7 +10379,7 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
             lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
           wpCount+=xstrlenW(wpCount) + 1;
         }
-  
+
         //Parameters
         if (*wpCount)
         {
@@ -10393,7 +10393,7 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
                 wpParamValue=wpCount + 1;
                 while (*++wpCount);
                 nParamValueLen=(int)(wpCount - wpParamValue);
-  
+
                 if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
                 {
                   if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
@@ -14569,9 +14569,10 @@ int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCa
 
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static DIALOGMESSAGEBOX *lpDialog;
+
   if (uMsg == WM_INITDIALOG)
   {
-    DIALOGMESSAGEBOX *lpDialog=(DIALOGMESSAGEBOX *)lParam;
     BUTTONMESSAGEBOX *lpButton;
     RECT rcDlg;
     RECT rcTextOut;
@@ -14597,6 +14598,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     int nStrLen;
     BOOL bSnapToDefButton;
 
+    lpDialog=(DIALOGMESSAGEBOX *)lParam;
     hDlgMsgBox=hDlg;
     SystemParametersInfoA(SPI_GETSNAPTODEFBUTTON, 0, &bSnapToDefButton, 0);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -14731,9 +14733,17 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_COMMAND)
   {
-    EndDialog(hDlg, LOWORD(wParam));
-    hDlgMsgBox=NULL;
-    return TRUE;
+    BUTTONMESSAGEBOX *lpButton;
+
+    for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+    {
+      if (LOWORD(wParam) == lpButton->nButtonControlID)
+      {
+        EndDialog(hDlg, LOWORD(wParam));
+        hDlgMsgBox=NULL;
+        return TRUE;
+      }
+    }
   }
   return FALSE;
 }

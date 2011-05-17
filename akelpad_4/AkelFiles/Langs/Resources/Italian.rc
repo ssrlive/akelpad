@@ -947,9 +947,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Errore nella coda dei messaggi."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Errore di allocazione di memoria per il controllo modifiche."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Memoria insufficiente."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" è un file binario. Continuare?"
     MSG_ERROR_IO            "Errore input/output."
     MSG_ERROR_SYNTAX        "Errore di sintassi."
@@ -1057,6 +1055,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Sì a tutto"
     STR_MESSAGEBOX_NOTOALL  "No a tutto"
     STR_MESSAGEBOX_GOTO     "Vai a"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

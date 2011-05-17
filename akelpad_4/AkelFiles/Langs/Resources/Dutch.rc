@@ -941,9 +941,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fout in de berichtenwachtrij."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Fout bij de toewijzing van geheugen."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Niet genoeg geheugen."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"
     MSG_ERROR_IO            "Invoer/uitvoer fout."
     MSG_ERROR_SYNTAX        "Syntaxis fout."
@@ -1050,6 +1048,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Ja op alles"
     STR_MESSAGEBOX_NOTOALL  "Nee op alles"
     STR_MESSAGEBOX_GOTO     "Ga naar"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

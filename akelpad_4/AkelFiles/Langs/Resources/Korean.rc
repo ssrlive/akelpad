@@ -932,9 +932,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "메시지 큐에 에러 발생."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "에디트 컨트롤 메모리 할당 중 오류가 발생했습니다."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "메모리가 부족합니다."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" 파일은 바이너리 파일입니다. 계속할까요?"
     MSG_ERROR_IO            "입출력 오류."
     MSG_ERROR_SYNTAX        "구문 오류."
@@ -1039,6 +1037,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Yes to all"
     STR_MESSAGEBOX_NOTOALL  "No to all"
     STR_MESSAGEBOX_GOTO     "줄 번호 이동"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

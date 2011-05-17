@@ -4110,8 +4110,13 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     {
       if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
       {
-        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
-        API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        BUTTONMESSAGEBOX bmb[]={{IDYES, STR_MESSAGEBOX_TERMINATE, BMB_DEFAULT},
+                                {IDNO,  STR_MESSAGEBOX_CONTINUE,  0},
+                                {0, 0, 0}};
+
+        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
+        if (MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR, &bmb[0]) == IDYES)
+          ExitProcess(0);
       }
       else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
       {

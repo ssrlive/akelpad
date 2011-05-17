@@ -935,9 +935,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "メッセージ キューのエラーです。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "エディット コントロールへのメモリの割り当てエラーです。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY "メモリが足りません。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" はバイナリ ファイルです。続行しますか?"
     MSG_ERROR_IO            "入力/出力エラーです。"
     MSG_ERROR_SYNTAX        "構文エラーです。"
@@ -1044,6 +1042,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "すべて はい"
     STR_MESSAGEBOX_NOTOALL  "すべて いいえ"
     STR_MESSAGEBOX_GOTO     "指定位置へ移動"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

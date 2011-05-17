@@ -85,6 +85,8 @@
 #define STR_MESSAGEBOX_YESTOALL         145
 #define STR_MESSAGEBOX_NOTOALL          146
 #define STR_MESSAGEBOX_GOTO             147
+#define STR_MESSAGEBOX_TERMINATE        148
+#define STR_MESSAGEBOX_CONTINUE         149
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_EASTERNEUROPE    502
 #define STR_AUTODETECT_WESTERNEUROPE    503
@@ -302,7 +304,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

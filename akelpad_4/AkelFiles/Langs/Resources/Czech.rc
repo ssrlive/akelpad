@@ -937,9 +937,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Chyba ve frontì zpráv."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Chyba pøi alokaci pamìti pro editaci."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Nedostatek pamìti."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" je binární soubor. Pokraèovat?"
     MSG_ERROR_IO            "Vstupní/Výstupní chyba."
     MSG_ERROR_SYNTAX        "Chyba syntaxe."
@@ -1044,6 +1042,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Ano vše"
     STR_MESSAGEBOX_NOTOALL  "Ne nic"
     STR_MESSAGEBOX_GOTO     "Pøejít"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

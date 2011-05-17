@@ -950,9 +950,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Chyba frontu spr·v."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Chyba! NemÙûem alokovaù dostatoËnÈ mnoûstvo pam‰te pre editaËnÈ pole."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Nedostatok pam‰te."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" je bin·rny s˙bor. PokraËovaù?"
     MSG_ERROR_IO            "Vstupno-v˝stupn· chyba."
     MSG_ERROR_SYNTAX        "Syntaktick· chyba."
@@ -1057,6 +1055,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "¡no vöetk˝m"
     STR_MESSAGEBOX_NOTOALL  "Nie vöetk˝m"
     STR_MESSAGEBOX_GOTO     "Prejsù"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 
