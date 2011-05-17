@@ -938,9 +938,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Hiba az üzenet sorban."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Szerkesztõmezõ memória kiosztási hiba."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Nincs elegendõ memória."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" egy bináris fájl. Folytatja?"
     MSG_ERROR_IO            "Bemeneti/kimeneti hiba."
     MSG_ERROR_SYNTAX        "Szintaktikai hiba."
@@ -1045,6 +1043,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Igen mindre"
     STR_MESSAGEBOX_NOTOALL  "Nem mindre"
     STR_MESSAGEBOX_GOTO     "Ugrás"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

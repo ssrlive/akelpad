@@ -936,9 +936,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "B³¹d w kolejce wiadomoœci."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "B³¹d przydzielania pamiêci dla kontroli edycji."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Niewystarczaj¹ca iloœæ pamiêci."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" jest plikiem binarnym. Kontynuowaæ?"
     MSG_ERROR_IO            "B³¹d wejœcia/wyjœcia."
     MSG_ERROR_SYNTAX        "B³¹d sk³adni."
@@ -1045,6 +1043,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Tak na wszystkie"
     STR_MESSAGEBOX_NOTOALL  "Nie na wszystkie"
     STR_MESSAGEBOX_GOTO     "PrzejdŸ do"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

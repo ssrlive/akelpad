@@ -958,9 +958,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Ошибка в очереди сообщений."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Ошибка выделения памяти для окна редактирования."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Не хватает памяти."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Критическая ошибка: недостаточно памяти. Рекомендуется завершить работу программы."
     MSG_ERROR_BINARY        """%s"" бинарный файл. Продолжить?"
     MSG_ERROR_IO            "Ошибка ввода/вывода."
     MSG_ERROR_SYNTAX        "Синтаксическая ошибка."
@@ -1065,6 +1063,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Да для всех"
     STR_MESSAGEBOX_NOTOALL  "Нет для всех"
     STR_MESSAGEBOX_GOTO     "Перейти"
+    STR_MESSAGEBOX_TERMINATE "Завершить"
+    STR_MESSAGEBOX_CONTINUE "Продолжить"
 END
 
 STRINGTABLE DISCARDABLE 

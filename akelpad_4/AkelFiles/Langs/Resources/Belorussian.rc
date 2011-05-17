@@ -958,9 +958,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Памылка ў чарзе паведамленняў."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Памылка вылучэння памяці для акна рэдагавання."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Бракуе памяці."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Критическая ошибка: недостаточно памяти. Рекомендуется завершить работу программы."
     MSG_ERROR_BINARY        """%s"" бінарны файл. Працягнуць?"
     MSG_ERROR_IO            "Памылка ўвода/вывада."
     MSG_ERROR_SYNTAX        "Сінтаксічная памылка."
@@ -1065,6 +1063,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Так, для ўсіх"
     STR_MESSAGEBOX_NOTOALL  "Не, для ўсіх"
     STR_MESSAGEBOX_GOTO     "Перайсці"
+    STR_MESSAGEBOX_TERMINATE "Завершить"
+    STR_MESSAGEBOX_CONTINUE "Продолжить"
 END
 
 STRINGTABLE DISCARDABLE 

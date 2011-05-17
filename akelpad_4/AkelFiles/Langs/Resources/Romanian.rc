@@ -943,9 +943,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Eroare în coada de mesaje."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Eroare la alocarea memoriei pentru controlul editãrii."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Memorie insuficientã."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" e o filã binarã. Continui?"
     MSG_ERROR_IO            "Eroare de intrare/ieºire (I/O)."
     MSG_ERROR_SYNTAX        "Eroare de sintaxã."
@@ -1051,6 +1049,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Da la Tot"
     STR_MESSAGEBOX_NOTOALL  "Nu la Tot"
     STR_MESSAGEBOX_GOTO     "Mergi La"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 

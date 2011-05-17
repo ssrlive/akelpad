@@ -944,9 +944,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Virhe viestijonossa."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "Virhe varattaessa muistia muokkaussäätimelle."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Muisti ei riitä."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" on binääritiedosto. Jatketaanko?"
     MSG_ERROR_IO            "Syöttö/tulostusvirhe."
     MSG_ERROR_SYNTAX        "Syntaksivirhe."
@@ -1052,6 +1050,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Yes to all"
     STR_MESSAGEBOX_NOTOALL  "No to all"
     STR_MESSAGEBOX_GOTO     "Siirry"
+    STR_MESSAGEBOX_TERMINATE "Terminate"
+    STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 
