@@ -1577,9 +1577,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!bEditOnFinish)
       {
-        if (lpFrameCurrent->ei.hWndEdit)
-          SetFocus(lpFrameCurrent->ei.hWndEdit);
-
         //Check modification time
         CheckModificationTime(lpFrameCurrent);
       }
@@ -4055,13 +4052,16 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 {
   if (uMsg == WM_SETFOCUS)
   {
-    if (!bFrameActivating && !bEditOnFinish)
+    if (!bEditOnFinish)
     {
       if (lpFrameCurrent->ei.hWndEdit)
         SetFocus(lpFrameCurrent->ei.hWndEdit);
 
-      //Check modification time
-      CheckModificationTime(lpFrameCurrent);
+      if (!bFrameActivating)
+      {
+        //Check modification time
+        CheckModificationTime(lpFrameCurrent);
+      }
     }
   }
   else if (uMsg == WM_CONTEXTMENU)
