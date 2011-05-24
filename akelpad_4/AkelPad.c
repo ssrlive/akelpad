@@ -429,7 +429,8 @@ DWORD dwChangedPrompt=0;
 STACKASSOCICON hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
-BOOL bTabPressed=FALSE;
+BOOL bTabPressing=FALSE;
+BOOL bFrameActivating=FALSE;
 RECT rcMdiListInitDialog={0};
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
@@ -1570,6 +1571,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
       bMainOnStart=TRUE;
+      return 0;
+    }
+    else if (uMsg == AKDN_FRAME_ACTIVATE)
+    {
+      if (!bEditOnFinish)
+      {
+        if (lpFrameCurrent->ei.hWndEdit)
+          SetFocus(lpFrameCurrent->ei.hWndEdit);
+
+        //Check modification time
+        CheckModificationTime(lpFrameCurrent);
+      }
       return 0;
     }
 
@@ -3900,11 +3913,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FRAMEDATA *lpFrame;
 
-          bTabPressed=TRUE;
+          bTabPressing=TRUE;
           nDocumentIndex=(int)SendMessage(hTab, TCM_GETCURSEL, 0, 0);
           lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nDocumentIndex);
           ActivateMdiFrameWindow(lpFrame, 0);
-          bTabPressed=FALSE;
+          bTabPressing=FALSE;
         }
       }
     }
@@ -4040,20 +4053,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == AKDN_FRAME_ACTIVATE ||
-      uMsg == WM_SETFOCUS)
+  if (uMsg == WM_SETFOCUS)
   {
-    if (bEditOnFinish)
-      return FALSE;
-
-    if (uMsg == WM_SETFOCUS)
+    if (!bFrameActivating && !bEditOnFinish)
     {
       if (lpFrameCurrent->ei.hWndEdit)
         SetFocus(lpFrameCurrent->ei.hWndEdit);
-    }
 
-    //Check modification time
-    CheckModificationTime(lpFrameCurrent);
+      //Check modification time
+      CheckModificationTime(lpFrameCurrent);
+    }
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
@@ -4555,6 +4564,13 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Restore activated MDI window settings
         RestoreFrameData(lpFrameCurrent, 0);
 
+        //Remove blinking frame windows effect (end)
+        if (bMdiMaximize)
+        {
+          SendMessage(hMdiClient, WM_SETREDRAW, TRUE, 0);
+          InvalidateRect(lpFrameCurrent->hWndEditParent, NULL, FALSE);
+        }
+
         SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent);
       }
     }
@@ -4870,28 +4886,6 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   {
     NextMdiFrameWindow(lpFrameCurrent, (BOOL)lParam);
     return TRUE;
-  }
-  else if (uMsg == WM_MDIACTIVATE)
-  {
-    //Remove blinking frame windows effect (from Mark editor)
-    if (lpFrameCurrent->hWndEditParent)
-    {
-      SendMessage(hWnd, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-
-      if (bMdiMaximize)
-      {
-        LRESULT lResult;
-
-        SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-        if (bOldWindows)
-          lResult=CallWindowProcA(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
-        else
-          lResult=CallWindowProcW(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
-        SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-        InvalidateRect((HWND)wParam, NULL, TRUE);
-        return lResult;
-      }
-    }
   }
   else if (uMsg == WM_MDIDESTROY)
   {
