@@ -263,7 +263,8 @@ extern DWORD dwChangedPrompt;
 extern STACKASSOCICON hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
-extern BOOL bTabPressed;
+extern BOOL bTabPressing;
+extern BOOL bFrameActivating;
 extern RECT rcMdiListInitDialog;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -730,7 +731,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     }
 
     //Update tabs
-    if (!bTabPressed)
+    if (!bTabPressing)
     {
       int nTabItem;
 
@@ -797,6 +798,8 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
 
+  bFrameActivating=TRUE;
+
   if (lpFrameCurrent != lpFrame)
   {
     if (lpFrameCurrent == &fdInit)
@@ -812,6 +815,14 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
     if (nMDI == WMD_MDI)
     {
+      //Remove blinking frame windows effect (begin)
+      if (lpFrameCurrent->hWndEditParent)
+      {
+        SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
+        if (bMdiMaximize) SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
+      }
+
+      //Activate frame
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)lpFrame->hWndEditParent, 0);
     }
     else if (nMDI == WMD_PMDI)
@@ -836,6 +847,8 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, dwFlags, (LPARAM)lpFrameCurrent);
     }
   }
+  bFrameActivating=FALSE;
+
   return lpFrameLostFocus;
 }
 
