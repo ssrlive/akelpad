@@ -9965,9 +9965,12 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
         nWordLen+=AEC_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORDLENGTH)
           return 0;
-        if (AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
-            AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMax) >= 0)
-          return 0;
+        if (qm->lpQuote)
+        {
+          if (AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
+              AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMax) >= 0)
+            return 0;
+        }
 
         //Is delimiter
         if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE))
@@ -9981,7 +9984,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
 
         if (AEC_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0)
           goto SetEmptyFirstDelim;
-        if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) ||
+        if ((qm->lpQuote && !AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax)) ||
             (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFold.cpMax)
         {
           if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE))
