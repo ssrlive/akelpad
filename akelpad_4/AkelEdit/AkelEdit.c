@@ -860,6 +860,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECHARINDEX *ciChar=(AECHARINDEX *)wParam;
       AECHARRANGE *crRange=(AECHARRANGE *)lParam;
 
+      xmemset(crRange, 0, sizeof(AECHARRANGE));
       return AE_HighlightFindUrl(ae, ciChar, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crRange);
     }
     if (uMsg == AEM_ADDPOINT)
