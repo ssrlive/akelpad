@@ -16338,6 +16338,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
   HWND hWndFriend=NULL;
   int nOpen;
   BOOL bFileOpenedSDI=FALSE;
+  BOOL bIgnoreNextArg=FALSE;
 
   if (wppCmdLine && *wppCmdLine)
   {
@@ -16346,10 +16347,20 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
 
     for (; GetCommandLineArg(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, &wpCmdLineNext, !(dwCmdLineOptions & CLO_NONOTEPADCMD)); wpCmdLine=wpCmdLineNext)
     {
+      if (bIgnoreNextArg)
+      {
+        bIgnoreNextArg=FALSE;
+        continue;
+      }
       if (wszCmdArg[0] == '/')
       {
         //On load
-        if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
+        if (!xstrcmpiW(wszCmdArg, L"/Z"))
+        {
+          bIgnoreNextArg=TRUE;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
         {
           if (moCur.dwFileTypesAssociated & AE_OPEN)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
