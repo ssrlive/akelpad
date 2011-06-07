@@ -528,8 +528,8 @@ typedef struct _PLUGINFUNCTION {
   wchar_t wszFunction[MAX_PATH];  //Function name (Unicode).
   int nFunctionLen;               //Function name length.
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;                 //TRUE  if function support autoload.
-                                  //FALSE if function doesn't support autoload.
+  BOOL bAutoLoad;                 //TRUE  if function has autoload flag.
+                                  //FALSE if function has no autoload flag.
   BOOL bRunning;                  //Function is running.
   PLUGINPROC PluginProc;          //Function procedure.
   void *lpParameter;              //Procedure parameter.
@@ -774,8 +774,8 @@ typedef struct _WNDPROCRETDATA {
 typedef struct {
   const char *pFunction;      //Function name, format "Plugin::Function".
   WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;             //TRUE  if function support autoload.
-                              //FALSE if function doesn't support autoload.
+  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
+                              //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
   void *lpParameter;          //Procedure parameter.
 } PLUGINADDA;
@@ -783,8 +783,8 @@ typedef struct {
 typedef struct {
   const wchar_t *pFunction;   //Function name, format "Plugin::Function".
   WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;             //TRUE  if function support autoload.
-                              //FALSE if function doesn't support autoload.
+  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
+                              //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
   void *lpParameter;          //Procedure parameter.
 } PLUGINADDW;
