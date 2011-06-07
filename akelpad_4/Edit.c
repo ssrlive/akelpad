@@ -16524,6 +16524,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
                   pcs.lParam=0;
                 //pcs.dwSupport=0;
                 CallPluginSend(NULL, &pcs, 0);
+
+                GlobalFree((HGLOBAL)lpStruct);
               }
             }
             else if (dwAction == EXTACT_EXEC)
