@@ -3502,9 +3502,11 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     else if (dwType & MOT_STRING) dwType=INI_STRINGUNICODE;
 
     if (lpIniKey=StackOpenIniKeyW((INISECTION *)oh->hHandle, wpParam, lstrlenW(wpParam), TRUE))
-      return StackSetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
-    else
-      return 0;
+    {
+      StackSetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
+      return dwSize;
+    }
+    else return 0;
   }
 }
 
