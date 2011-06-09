@@ -243,7 +243,7 @@ WNDPROCRET lpfnEditProcRet;
 HSTACK hPluginsStack={0};
 HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
-RECT rcPluginsInitDialog={0};
+RECT rcPluginsMinMaxDialog={274, 192, 0, 0};
 BOOL bSavePluginsStackOnExit=FALSE;
 WNDPROC OldHotkeyInputProc=NULL;
 wchar_t wszLastFunction[MAX_PATH]=L"";
@@ -338,7 +338,7 @@ HWND hDlgModeless=NULL;
 int nModelessType=MLT_NONE;
 
 //Recode dialog
-RECT rcRecodeDlg={0};
+RECT rcRecodeMinMaxDialog={194, 264, 0, 0};
 
 //Find/Replace dialog
 RECT rcFindAndReplaceDlg={0};
@@ -365,7 +365,7 @@ BOOL bOptionsRestart;
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
 COLORREF crCustColors[16]={0};
-RECT rcColorsInitDialog={0};
+RECT rcColorsMinMaxDialog={364, 297, 0, 0};
 
 //Print
 HWND hWndPreviewEdit=NULL;
@@ -431,7 +431,7 @@ HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
 BOOL bTabPressing=FALSE;
 BOOL bFrameActivating=FALSE;
-RECT rcMdiListInitDialog={0};
+RECT rcMdiListMinMaxDialog={221, 463, 0, 0};
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
 FRAMEDATA *lpFrame;
@@ -2358,7 +2358,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
 
-      return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+      return DialogResizeMessages(drsm->drs, drsm->rcMinMax, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
     }
 
     //Frames
@@ -5353,6 +5353,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               hDocksStack.nSizingSide=dkData->nSide;
               hDocksStack.nSizingType=DKC_SIZING;
               UpdateSize();
+              SendMessage(hMainWnd, AKDN_DOCK_RESIZE, (WPARAM)dkData, DKC_SIZING);
             }
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
           }
@@ -5384,6 +5385,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 hDocksStack.nSizingSide=dkDragSource->nSide;
                 hDocksStack.nSizingType=DKC_DRAGDROP;
                 UpdateSize();
+                SendMessage(hMainWnd, AKDN_DOCK_RESIZE, (WPARAM)dkData, DKC_DRAGDROP);
               }
             }
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);

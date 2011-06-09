@@ -140,7 +140,7 @@
                               //(int)lParam is index of item in recent files stack.
                               //Return value is a pointer to a RECENTFILE structure.
 #define RF_FINDITEMBYNAME  10 //Find pointer to a RECENTFILE structure by file name.
-                              //(wchar_t *)lParam is a pointer to a file name.      
+                              //(wchar_t *)lParam is a pointer to a file name.
                               //Return value is a pointer to a RECENTFILE structure.
 #define RF_DELETEITEM      11 //Delete item from recent files stack.
                               //(RECENTFILE *)lParam a pointer to a RECENTFILE structure to delete.
@@ -362,7 +362,6 @@
 #define MLT_GOTO     5 //Go to dialog.
 
 //DIALOGRESIZEMSG flags
-#define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
 #define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
 
 //DIALOGRESIZE type
@@ -968,7 +967,9 @@ typedef struct {
 
 typedef struct {
   DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array.
-  RECT *rcInit;       //Pointer to a initial rectangle. Set all members of RECT to zero at first call.
+  RECT *rcMinMax;     //Pointer to a min/max sizes. Each member is valid if not equal to zero. Can be NULL.
+                      //RECT->rcMinMax.left, RECT->rcMinMax.top specifies minimum dialog size.
+                      //RECT->rcMinMax.right, RECT->rcMinMax.bottom specifies maximum dialog size.
   RECT *rcCurrent;    //Pointer to a current rectangle. Set all members of RECT to zero at first call.
   DWORD dwFlags;      //See DRM_* defines.
   HWND hDlg;          //Dialog handle.
@@ -1501,6 +1502,7 @@ typedef struct {
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
 #define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
 #define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 33)  //0x421
+#define AKDN_DOCK_RESIZE           (WM_USER + 34)  //0x422
 
 #define AKDN_DLLCALL               (WM_USER + 41)  //0x429
 #define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
@@ -1852,6 +1854,18 @@ AKDN_DOCK_CAPTURE_ONFINISH
 __________________________
 
 Notification message, sends to the main procedure after mouse capturing finished.
+
+(DOCK *)wParam == pointer to a DOCK structure.
+(int)lParam    == see DKC_* defines.
+
+Return Value
+ Zero.
+
+
+AKDN_DOCK_RESIZE
+________________
+
+Notification message, sends to the main procedure after dock window size or side is changed.
 
 (DOCK *)wParam == pointer to a DOCK structure.
 (int)lParam    == see DKC_* defines.
@@ -3062,7 +3076,7 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
       bMainDialogRectChanged=TRUE;
