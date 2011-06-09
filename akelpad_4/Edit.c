@@ -77,7 +77,7 @@ extern WNDPROCRET lpfnEditProcRet;
 extern HSTACK hPluginsStack;
 extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
-extern RECT rcPluginsInitDialog;
+extern RECT rcPluginsMinMaxDialog;
 extern BOOL bSavePluginsStackOnExit;
 extern WNDPROC OldHotkeyInputProc;
 extern wchar_t wszLastFunction[MAX_PATH];
@@ -172,7 +172,7 @@ extern HWND hDlgModeless;
 extern int nModelessType;
 
 //Recode dialog
-extern RECT rcRecodeDlg;
+extern RECT rcRecodeMinMaxDialog;
 
 //Find/Replace dialog
 extern RECT rcFindAndReplaceDlg;
@@ -199,7 +199,7 @@ extern BOOL bOptionsRestart;
 extern HSTACK hFontsStack;
 extern HSTACK hThemesStack;
 extern COLORREF crCustColors[16];
-extern RECT rcColorsInitDialog;
+extern RECT rcColorsMinMaxDialog;
 
 //Print
 extern HWND hWndPreviewEdit;
@@ -265,7 +265,7 @@ extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
 extern BOOL bTabPressing;
 extern BOOL bFrameActivating;
-extern RECT rcMdiListInitDialog;
+extern RECT rcMdiListMinMaxDialog;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
 extern FRAMEDATA *lpWndFrame;
@@ -11373,7 +11373,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcColorsInitDialog, &moCur.rcColorsCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcColorsMinMaxDialog, &moCur.rcColorsCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -12557,7 +12557,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &moCur.rcPluginsCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcPluginsMinMaxDialog, &moCur.rcPluginsCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -14255,7 +14255,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &moCur.rcMdiListCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMdiListMinMaxDialog, &moCur.rcMdiListCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -18281,7 +18281,7 @@ void UpdateSize()
   }
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_INITDIALOG)
   {
@@ -18289,9 +18289,8 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
     RECT rcControl;
     int i;
 
-    GetWindowPos(hDlg, NULL, rcInit);
     rcTemplate=*rcCurrent;
-    *rcCurrent=*rcInit;
+    GetWindowPos(hDlg, NULL, rcCurrent);
 
     for (i=0; drs[i].lpWnd; ++i)
     {
@@ -18301,35 +18300,52 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
         if (drs[i].dwType & DRS_SIZE)
         {
           if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcInit->right - (rcControl.left + rcControl.right);
+            drs[i].nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
           else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcInit->bottom - (rcControl.top + rcControl.bottom);
+            drs[i].nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
         }
         else if (drs[i].dwType & DRS_MOVE)
         {
           if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcInit->right - rcControl.left;
+            drs[i].nOffset=rcCurrent->right - rcControl.left;
           else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcInit->bottom - rcControl.top;
+            drs[i].nOffset=rcCurrent->bottom - rcControl.top;
         }
       }
     }
 
     if (rcTemplate.right && rcTemplate.bottom)
     {
-      rcTemplate.left=rcInit->left + (rcInit->right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInit->top + (rcInit->bottom - rcTemplate.bottom) / 2;
+      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER)
+      {
+        rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
+        rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
+      }
       SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
     }
   }
   else if (uMsg == WM_GETMINMAXINFO)
   {
-    if (dwFlags & DRM_GETMINMAXINFO)
+    if (rcMinMax)
     {
       MINMAXINFO *mmi=(MINMAXINFO *)lParam;
 
-      mmi->ptMinTrackSize.x=rcInit->right;
-      mmi->ptMinTrackSize.y=rcInit->bottom;
+      if (rcMinMax->left)
+        mmi->ptMinTrackSize.x=rcMinMax->left;
+      if (rcMinMax->top)
+        mmi->ptMinTrackSize.y=rcMinMax->top;
+      if (rcMinMax->right)
+        mmi->ptMaxTrackSize.x=rcMinMax->right;
+      if (rcMinMax->bottom)
+        mmi->ptMaxTrackSize.y=rcMinMax->bottom;
+    }
+  }
+  else if (uMsg == WM_MOVE)
+  {
+    if (!(GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER))
+    {
+      GetWindowPos(hDlg, NULL, rcCurrent);
+      return TRUE;
     }
   }
   else if (uMsg == WM_SIZE)
