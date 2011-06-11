@@ -10806,12 +10806,11 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszSelText;
-  char *szText;
+  char *szText=NULL;
   wchar_t *wszText;
   int nFirstLine;
   INT_PTR nUnicodeLen;
   INT_PTR nAnsiLen;
-  INT_PTR nAnsiBufferLen;
   BOOL bSelection;
 
   if (IsReadOnly(lpFrame->ei.hWndEdit))
@@ -10848,43 +10847,43 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
     //Autodetect
     if (*nCodePageFrom == -1 && *nCodePageTo == -1)
     {
-      nAnsiBufferLen=(nUnicodeLen + 1) * 3;
+      //Detect nCodePageFrom
+      int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
+                                 {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
+                                 {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
+                                 {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
+                                 {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
+                                 {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
+                                 {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
+                                 {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
+      int nIndex;
+      int i;
+      BOOL bUsedDefaultChar=TRUE;
 
-      if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiBufferLen))
+      if (nIndex=GetDetectionIndex(moCur.dwLangCodepageRecognition))
       {
-        //Detect nCodePageFrom
-        int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
-                                   {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
-                                   {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
-                                   {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
-                                   {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
-                                   {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
-                                   {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
-                                   {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
-        int nIndex;
-        int i;
-        BOOL bUsedDefaultChar=TRUE;
-
-        if (nIndex=GetDetectionIndex(moCur.dwLangCodepageRecognition))
+        for (i=0; lpDetectCodePage[nIndex][i]; ++i)
         {
-          for (i=0; lpDetectCodePage[nIndex][i]; ++i)
-          {
-            nAnsiLen=WideCharToMultiByte64(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, nUnicodeLen + 1, szText, nAnsiBufferLen, NULL, &bUsedDefaultChar);
+          nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, &bUsedDefaultChar);
 
-            if (!bUsedDefaultChar)
+          if (!bUsedDefaultChar)
+          {
+            if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
             {
+              WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
               *nCodePageFrom=lpDetectCodePage[nIndex][i];
-              break;
             }
+            break;
           }
         }
+      }
 
-        if (*nCodePageFrom > 0)
-        {
-          //Detect nCodePageTo
-          if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, (unsigned char *)szText, nAnsiLen, nCodePageTo))
-            *nCodePageTo=moCur.nDefaultCodePage;
-        }
+      if (szText)
+      {
+        //Detect nCodePageTo
+        if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, (unsigned char *)szText, nAnsiLen, nCodePageTo))
+          *nCodePageTo=*nCodePageFrom;
+
         API_HeapFree(hHeap, 0, (LPVOID)szText);
       }
     }
@@ -10977,8 +10976,16 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowTextWide(hWndCodePageAutodetect, wbuf);
 
     FillComboboxCodepage(hWndCodePageFromList, lpCodepageList);
+    if (nCodePageFrom > 0) SelectComboboxCodepage(hWndCodePageFromList, nCodePageFrom);
     FillComboboxCodepage(hWndCodePageToList, lpCodepageList);
+    if (nCodePageTo > 0) SelectComboboxCodepage(hWndCodePageToList, nCodePageTo);
 
+    if (nCodePageFrom <= 0 && nCodePageTo <= 0 && bAutodetect == FALSE)
+    {
+      nCodePageFrom=-1;
+      nCodePageTo=-1;
+      bAutodetect=TRUE;
+    }
     if (bAutodetect)
     {
       SendMessage(hWndCodePageAutodetect, BM_SETCHECK, BST_CHECKED, 0);
