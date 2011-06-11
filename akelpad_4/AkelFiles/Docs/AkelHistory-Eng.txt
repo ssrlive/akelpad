@@ -9,6 +9,7 @@ Added: command line option /Z to ignore the next command line parameter. Can be 
        alternative way to replace MS Notepad.
 
 Fixed: edit window updating when appear message about file changing (MDI).
+Fixed: edit window updating after text deletion with word wrap on.
 Fixed: status bar update if in manual parameter "StatusUserFormat" only "%se[text]" specified.
 
 

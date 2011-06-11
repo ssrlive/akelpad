@@ -1953,7 +1953,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
       }
       SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
       SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-      InvalidateRect(hWnd, NULL, FALSE);
+      InvalidateRect(hWnd, NULL, TRUE);
       RestoreLineScroll(hWnd, nFirstLine);
 
       FreeWideStr(wszRange);
@@ -2019,7 +2019,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-    InvalidateRect(hWnd, NULL, FALSE);
+    InvalidateRect(hWnd, NULL, TRUE);
     RestoreLineScroll(hWnd, nFirstLine);
 
     FreeText(wszRange);
@@ -2101,7 +2101,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 
   SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
+  InvalidateRect(hWnd, NULL, TRUE);
   RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
@@ -9291,7 +9291,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           //Start redraw
           SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
           SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
-          InvalidateRect(lpFrame->ei.hWndEdit, NULL, FALSE);
+          InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
 
           //Restore scroll
           if (nFirstVisible != -MAXINT_PTR)
@@ -10935,7 +10935,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
     SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
-    InvalidateRect(lpFrame->ei.hWndEdit, NULL, FALSE);
+    InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
     RestoreLineScroll(lpFrame->ei.hWndEdit, nFirstLine);
   }
 }
