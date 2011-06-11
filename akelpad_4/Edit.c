@@ -10800,7 +10800,7 @@ void ShowMenuPopupCodepage(POINT *ptScreen)
 
 //// Recode
 
-void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *nCodePageTo)
+void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCodePageFrom, int *nCodePageTo)
 {
   AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
@@ -10813,11 +10813,11 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
   INT_PTR nAnsiLen;
   BOOL bSelection;
 
-  if (IsReadOnly(lpFrame->ei.hWndEdit) && !hWndPreview)
-    return;
-
-  if (!hWndPreview)
+  if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
   {
+    if (IsReadOnly(lpFrame->ei.hWndEdit))
+      return;
+
     crInitialSel.ciMin=crCurSel.ciMin;
     crInitialSel.ciMax=crCurSel.ciMax;
 
@@ -10831,7 +10831,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
 
-    if (!hWndPreview)
+    if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
       SetSel(lpFrame->ei.hWndEdit, &crRange, 0, &crRange.ciMax);
     bSelection=FALSE;
   }
@@ -10889,7 +10889,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
     }
 
     //Convert
-    if (*nCodePageFrom > 0 && *nCodePageTo > 0)
+    if (!(dwFlags & RCS_DETECTONLY) && *nCodePageFrom > 0 && *nCodePageTo > 0)
     {
       nAnsiLen=WideCharToMultiByte64(*nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
 
@@ -10931,7 +10931,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
     FreeText(wszSelText);
   }
 
-  if (!hWndPreview)
+  if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
     SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
@@ -11025,7 +11025,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (nCodePageFrom != 0 && nCodePageTo != 0)
     {
-      RecodeTextW(lpFrameCurrent, hWndCodePagePreview, &nCodePageFrom, &nCodePageTo);
+      RecodeTextW(lpFrameCurrent, hWndCodePagePreview, 0, &nCodePageFrom, &nCodePageTo);
 
       if (nCodePageFrom <= 0 || SelectComboboxCodepage(hWndCodePageFromList, nCodePageFrom) == CB_ERR)
         SendMessage(hWndCodePageFromList, CB_SETCURSEL, (WPARAM)-1, 0);
@@ -11078,7 +11078,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDOK)
       {
-        RecodeTextW(lpFrameCurrent, NULL, &nCodePageFrom, &nCodePageTo);
+        RecodeTextW(lpFrameCurrent, NULL, 0, &nCodePageFrom, &nCodePageTo);
       }
       return TRUE;
     }
@@ -16834,7 +16834,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
                 tr.nCodePageFrom=lpParameter->nNumber;
               if (lpParameter=GetMethodParameter(&hParamStack, 2))
                 tr.nCodePageTo=lpParameter->nNumber;
-              RecodeTextW(lpFrameCurrent, NULL, &tr.nCodePageFrom, &tr.nCodePageTo);
+              RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
             }
             else if (dwAction == EXTACT_INSERT)
             {

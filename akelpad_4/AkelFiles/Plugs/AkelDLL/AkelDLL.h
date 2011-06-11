@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 1)
 
 
 //// Defines
@@ -347,6 +347,9 @@
 #define FR_ESCAPESEQ     0x00800000  //Search with escape sequences.
 #define FR_ALLFILES      0x01000000  //Search in all openned MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
 #define FR_CYCLESEARCH   0x08000000  //Cycle search.
+
+//AKD_RECODESEL flags
+#define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //AKD_PASTE
 #define PASTE_UNICODE     0 //Paste as Unicode text, if no Unicode text available ANSI text will be used (default).
@@ -929,6 +932,7 @@ typedef struct {
 typedef struct {
   int nCodePageFrom;        //Source code page.
   int nCodePageTo;          //Target code page.
+  DWORD dwFlags;            //See RCS_* defines.
 } TEXTRECODE;
 
 typedef struct {
@@ -2543,6 +2547,7 @@ Example:
 
  tr.nCodePageFrom=1251;
  tr.nCodePageTo=866;
+ tr.dwFlags=0;
  SendMessage(pd->hMainWnd, AKD_RECODESEL, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
 
