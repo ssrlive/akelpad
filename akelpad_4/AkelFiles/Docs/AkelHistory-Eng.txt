@@ -1,5 +1,5 @@
 
-AkelPad 4.6.1 ()
+AkelPad 4.6.1 (Jun 11, 2011)
 ----------------------------
 Added: in dialog "Recode...":
        - automatic recognition of incoming and outgoing encodings;
