@@ -8125,22 +8125,39 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
         *nCodePage=CP_UNICODE_UTF8;
         return TRUE;
       }
+      else
+      {
+        if (nAnsiCodePage == 936 ||
+            nAnsiCodePage == 950)
+        {
+          *nCodePage=nAnsiCodePage;
+          return TRUE;
+        }
+      }
     }
     else if (dwLangID == LANG_JAPANESE)
     {
       if (nUTF8rate > nANSIrate)
       {
         *nCodePage=CP_UNICODE_UTF8;
-        return TRUE;
       }
+      else
+      {
+        *nCodePage=932;
+      }
+      return TRUE;
     }
     else if (dwLangID == LANG_KOREAN)
     {
       if (nUTF8rate > nANSIrate)
       {
         *nCodePage=CP_UNICODE_UTF8;
-        return TRUE;
       }
+      else
+      {
+        *nCodePage=949;
+      }
+      return TRUE;
     }
   }
   return FALSE;
@@ -10794,6 +10811,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
   int nFirstLine;
   INT_PTR nUnicodeLen;
   INT_PTR nAnsiLen;
+  INT_PTR nAnsiBufferLen;
   BOOL bSelection;
 
   if (IsReadOnly(lpFrame->ei.hWndEdit))
@@ -10830,42 +10848,43 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
     //Autodetect
     if (*nCodePageFrom == -1 && *nCodePageTo == -1)
     {
-      nAnsiLen=(nUnicodeLen + 1) * 3;
+      nAnsiBufferLen=(nUnicodeLen + 1) * 3;
 
-      if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+      if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiBufferLen))
       {
         //Detect nCodePageFrom
-        int lpDetectCodePage[][5]={{0,               0,   0,               0,               0},  //DETECTINDEX_NONE
-                                   {1251,            866, CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
-                                   {1250,            852, CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
-                                   {1252,            850, CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
-                                   {1254,            857, CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
-                                   {CP_UNICODE_UTF8, 0,   0,               0,               0},  //DETECTINDEX_CHINESE
-                                   {CP_UNICODE_UTF8, 0,   0,               0,               0},  //DETECTINDEX_JAPANESE
-                                   {CP_UNICODE_UTF8, 0,   0,               0,               0}}; //DETECTINDEX_KOREAN
+        int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
+                                   {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
+                                   {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
+                                   {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
+                                   {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
+                                   {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
+                                   {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
+                                   {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
         int nIndex;
         int i;
         BOOL bUsedDefaultChar=TRUE;
 
-        nIndex=GetDetectionIndex(moCur.dwLangCodepageRecognition);
-
-        for (i=0; lpDetectCodePage[nIndex][i]; ++i)
+        if (nIndex=GetDetectionIndex(moCur.dwLangCodepageRecognition))
         {
-          WideCharToMultiByte64(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, &bUsedDefaultChar);
-
-          if (!bUsedDefaultChar)
+          for (i=0; lpDetectCodePage[nIndex][i]; ++i)
           {
-            *nCodePageFrom=lpDetectCodePage[nIndex][i];
-            break;
+            nAnsiLen=WideCharToMultiByte64(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, nUnicodeLen + 1, szText, nAnsiBufferLen, NULL, &bUsedDefaultChar);
+
+            if (!bUsedDefaultChar)
+            {
+              *nCodePageFrom=lpDetectCodePage[nIndex][i];
+              break;
+            }
           }
         }
-        if (*nCodePageFrom == -1)
-          *nCodePageFrom=moCur.nDefaultCodePage;
 
-        //Detect nCodePageTo
-        if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, (unsigned char *)szText, nAnsiLen, nCodePageTo))
-          *nCodePageTo=moCur.nDefaultCodePage;
-
+        if (*nCodePageFrom > 0)
+        {
+          //Detect nCodePageTo
+          if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, (unsigned char *)szText, nAnsiLen, nCodePageTo))
+            *nCodePageTo=moCur.nDefaultCodePage;
+        }
         API_HeapFree(hHeap, 0, (LPVOID)szText);
       }
     }
@@ -10995,13 +11014,23 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       nCodePageTo=GetComboboxCodepage(hWndCodePageToList);
     }
 
-    RecodeTextW(lpFrameCurrent, hWndCodePagePreview, &nCodePageFrom, &nCodePageTo);
+    if (nCodePageFrom != 0 && nCodePageTo != 0)
+    {
+      RecodeTextW(lpFrameCurrent, hWndCodePagePreview, &nCodePageFrom, &nCodePageTo);
 
-    if (nCodePageFrom <= 0 || SelectComboboxCodepage(hWndCodePageFromList, nCodePageFrom) == CB_ERR)
-      SendMessage(hWndCodePageFromList, CB_SETCURSEL, (WPARAM)-1, 0);
-    if (nCodePageTo <= 0 || SelectComboboxCodepage(hWndCodePageToList, nCodePageTo) == CB_ERR)
-      SendMessage(hWndCodePageToList, CB_SETCURSEL, (WPARAM)-1, 0);
+      if (nCodePageFrom <= 0 || SelectComboboxCodepage(hWndCodePageFromList, nCodePageFrom) == CB_ERR)
+        SendMessage(hWndCodePageFromList, CB_SETCURSEL, (WPARAM)-1, 0);
+      if (nCodePageTo <= 0 || SelectComboboxCodepage(hWndCodePageToList, nCodePageTo) == CB_ERR)
+        SendMessage(hWndCodePageToList, CB_SETCURSEL, (WPARAM)-1, 0);
 
+      if (nCodePageFrom <= 0 && nCodePageTo <= 0)
+      {
+        bAutodetect=FALSE;
+        SendMessage(hWndCodePageAutodetect, BM_SETCHECK, BST_UNCHECKED, 0);
+        EnableWindow(hWndCodePageFromList, TRUE);
+        EnableWindow(hWndCodePageToList, TRUE);
+      }
+    }
     if (nCodePageFrom > 0 && nCodePageTo > 0 && nCodePageFrom != nCodePageTo)
       EnableWindow(hWndOK, TRUE);
     else

@@ -1065,9 +1065,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Eastern European (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Western European (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turkkilainen (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Kiinalainen (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japanilainen (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Korealainen (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Kiinalainen (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japanilainen (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Korealainen (949, UTF-8)"
 END
 
 #endif    // Finnish resources

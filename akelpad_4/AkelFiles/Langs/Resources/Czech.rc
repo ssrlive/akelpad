@@ -1057,9 +1057,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Východoevropský (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Západoevropský (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Tureètina (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Èínština (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japonština (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Korejština (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Èínština (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japonština (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Korejština (949, UTF-8)"
 END
 
 #endif    // Czech resources
