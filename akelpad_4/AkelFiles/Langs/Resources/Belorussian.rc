@@ -1078,9 +1078,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Усходне-Еўрапейскі (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Заходне-Еўрапейскі (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Турэцкі (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Кітайскі (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Японскі (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Карэйскі (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Кітайскі (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Японскі (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Карэйскі (949, UTF-8)"
 END
 
 #endif    // Unknown language: 0x23, 0x1 resources

@@ -1070,9 +1070,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Východoeurópske (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Západoeurópske (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Tureètina (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Èínština (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japonèina (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Kórejèina (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Èínština (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japonèina (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Kórejèina (949, UTF-8)"
 END
 
 #endif    // Slovak resources

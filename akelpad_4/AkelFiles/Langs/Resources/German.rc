@@ -1062,9 +1062,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Osteuropäisch (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Westeuropäisch (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Türkisch (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Chinesisch (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japanisch (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Koreanisch (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Chinesisch (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japanisch (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Koreanisch (949, UTF-8)"
 END
 
 #endif    // German (Germany) resources

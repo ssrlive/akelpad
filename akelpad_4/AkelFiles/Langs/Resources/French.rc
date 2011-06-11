@@ -1068,9 +1068,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Européen de l'est (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Européen de l'ouest (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turque (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Chinois (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japonais (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Coréen (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Chinois (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japonais (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Coréen (949, UTF-8)"
 END
 
 #endif    // French (France) resources

@@ -1070,9 +1070,9 @@ BEGIN
     STR_AUTODETECT_EASTERNEUROPE "Europa orientale (1250, OEM, UTF-8)"
     STR_AUTODETECT_WESTERNEUROPE "Europa occidentale (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turco (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Cinese (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Giapponese (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Coreano (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Cinese (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Giapponese (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Coreano (949, UTF-8)"
 END
 
 #endif    // Italian (Italy) resources
