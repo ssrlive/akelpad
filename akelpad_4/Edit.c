@@ -10972,6 +10972,8 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
+    EnsureWindowInMonitor(&moCur.rcRecodeCurrentDialog);
+
     API_LoadStringW(hLangLib, STR_AUTODETECT, wbuf, BUFFER_SIZE);
     SetWindowTextWide(hWndCodePageAutodetect, wbuf);
 
