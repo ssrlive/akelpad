@@ -10813,7 +10813,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
   INT_PTR nAnsiLen;
   BOOL bSelection;
 
-  if (IsReadOnly(lpFrame->ei.hWndEdit))
+  if (IsReadOnly(lpFrame->ei.hWndEdit) && !hWndPreview)
     return;
 
   if (!hWndPreview)
@@ -11040,7 +11040,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableWindow(hWndCodePageToList, TRUE);
       }
     }
-    if (nCodePageFrom > 0 && nCodePageTo > 0 && nCodePageFrom != nCodePageTo)
+    if (!lpFrameCurrent->ei.bReadOnly && nCodePageFrom > 0 && nCodePageTo > 0 && nCodePageFrom != nCodePageTo)
       EnableWindow(hWndOK, TRUE);
     else
       EnableWindow(hWndOK, FALSE);
@@ -11062,7 +11062,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_SETREADONLY)
     {
-      EnableWindow(GetDlgItem(hDlg, IDOK), !lpFrameCurrent->ei.bReadOnly);
+      EnableWindow(hWndOK, !lpFrameCurrent->ei.bReadOnly);
     }
     else if (LOWORD(wParam) == IDOK ||
              LOWORD(wParam) == IDCANCEL)
