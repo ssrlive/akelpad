@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.5.6"
+  !define PRODUCT_VERSION "4.6.1"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -542,7 +542,7 @@ Section
 
   SetOutPath "$SETUPDIR"
   !if ${PRODUCT_BIT} == "64"
-    File /r /x RichTune*.* /x QSearch*.* /x XBrackets*.* /x SpellCheck*.* /x GNUASpell.Copying "${PRODUCT_DIR}\*.*"
+    File /r /x RichTune*.* /x SpellCheck*.* /x GNUASpell.Copying "${PRODUCT_DIR}\*.*"
   !else
     File /r /x RichTune*.* "${PRODUCT_DIR}\*.*"
   !endif
