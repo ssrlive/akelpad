@@ -338,7 +338,7 @@ HWND hDlgModeless=NULL;
 int nModelessType=MLT_NONE;
 
 //Recode dialog
-RECT rcRecodeMinMaxDialog={194, 264, 0, 0};
+RECT rcRecodeMinMaxDialog={246, 264, 0, 0};
 
 //Find/Replace dialog
 RECT rcFindAndReplaceDlg={0};
