@@ -904,7 +904,7 @@ void LanguageMenu();
 void FillMenuPopupCodepage();
 void ShowMenuPopupCodepage(POINT *ptScreen);
 
-void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *nCodePageTo);
+void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCodePageFrom, int *nCodePageTo);
 BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
