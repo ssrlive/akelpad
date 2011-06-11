@@ -679,6 +679,9 @@ void _WinMain()
   xstrcpyW(moInit.wszPrintFooter, STR_PRINT_FOOTERW);
   //moInit.bPrintFontEnable=FALSE;
 
+  //--Recode dialog--
+  //xmemset(&moInit.rcRecodeCurrentDialog, 0, sizeof(RECT));
+
   //--Colors dialog--
   //xmemset(&moInit.rcColorsCurrentDialog, 0, sizeof(RECT));
 
@@ -1848,12 +1851,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_RECODESEL)
     {
       TEXTRECODE *tr=(TEXTRECODE *)lParam;
-      HWND hWnd=(HWND)wParam;
+      FRAMEDATA *lpFrame;
 
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      RecodeTextW(hWnd, tr->nCodePageFrom, tr->nCodePageTo);
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        RecodeTextW(lpFrame, NULL, &tr->nCodePageFrom, &tr->nCodePageTo);
       return 0;
     }
     if (uMsg == AKD_GETCHARCOLOR)

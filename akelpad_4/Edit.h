@@ -181,6 +181,16 @@
 #define LANGID_JAPANESE   0x0411
 #define LANGID_KOREAN     0x0412
 
+//Language detection order index
+#define DETECTINDEX_NONE          0
+#define DETECTINDEX_RUSSIAN       1
+#define DETECTINDEX_EASTERNEUROPE 2
+#define DETECTINDEX_WESTERNEUROPE 3
+#define DETECTINDEX_TURKISH       4
+#define DETECTINDEX_CHINESE       5
+#define DETECTINDEX_JAPANESE      6
+#define DETECTINDEX_KOREAN        7
+
 //Char layout
 #define CHARLAYOUT_NONE       0
 #define CHARLAYOUT_ENGLISH    1
@@ -258,6 +268,9 @@
 
 //Find/Replace dialog message
 #define AKDLG_PUTFIND           (WM_USER + 1)
+
+//Recode dialog message
+#define AKDLG_RECODEUPDATE      (WM_USER + 1)
 
 //Insert/Delete char in selection
 #define STRSEL_CHECK   0x00000001
@@ -407,6 +420,9 @@ typedef struct {
   //Open file dialog
   wchar_t wszLastDir[MAX_PATH];
   BOOL bShowPlacesBar;
+
+  //Recode dialog
+  RECT rcRecodeCurrentDialog;
 
   //Print dialog
   RECT rcPrintMargins;
@@ -819,6 +835,7 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage);
+int GetDetectionIndex(DWORD dwLangID);
 BOOL IsLangEasternEurope(DWORD dwLangID);
 BOOL IsLangWesternEurope(DWORD dwLangID);
 BOOL IsCharLegalUTF8(const unsigned char *pSource, unsigned int nTrailingBytes);
@@ -859,6 +876,7 @@ BOOL ColumnPaste(HWND hWnd);
 DWORD GetLinesCountA(const char *pText, int nTextLen);
 DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen);
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
+void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
@@ -886,7 +904,7 @@ void LanguageMenu();
 void FillMenuPopupCodepage();
 void ShowMenuPopupCodepage(POINT *ptScreen);
 
-void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo);
+void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *nCodePageTo);
 BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

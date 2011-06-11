@@ -183,8 +183,10 @@
 #define IDC_GOTO_NUMBER                 3101
 #define IDC_GOTO_LINE                   3102
 #define IDC_GOTO_OFFSET                 3103
-#define IDC_RECODE_CODEPAGE_FROM        3151
-#define IDC_RECODE_CODEPAGE_TO          3152
+#define IDC_RECODE_CODEPAGEFROM_LIST    3151
+#define IDC_RECODE_CODEPAGETO_LIST      3152
+#define IDC_RECODE_AUTODETECT           3153
+#define IDC_RECODE_PREVIEW              3154
 #define IDC_COLORS_LIST                 3201
 #define IDC_COLORS_THEME_NAME           3202
 #define IDC_COLORS_THEME_SAVE           3203
@@ -304,7 +306,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

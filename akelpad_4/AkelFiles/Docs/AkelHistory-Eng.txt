@@ -1,6 +1,10 @@
 
 AkelPad 4.6.1 ()
 ----------------------------
+Added: in dialog "Recode...":
+       - automatic recognition of incoming and outgoing encodings;
+       - preview;
+       - change dialog sizes and save them.
 Added: command line option /Z to ignore the next command line parameter. Can be used for
        alternative way to replace MS Notepad.
 
