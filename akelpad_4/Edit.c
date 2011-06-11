@@ -10864,7 +10864,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, int *nCodePageFrom, int *
       {
         for (i=0; lpDetectCodePage[nIndex][i]; ++i)
         {
-          nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, &bUsedDefaultChar);
+          nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, (int)(nUnicodeLen + 1), NULL, 0, NULL, &bUsedDefaultChar);
 
           if (!bUsedDefaultChar)
           {
