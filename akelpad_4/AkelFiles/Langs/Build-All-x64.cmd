@@ -18,26 +18,69 @@ if "%BIT%" == "32" (
 
 ::### Compile ###::
 call :COMPILE "Belorussian" 0x423
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Brazilian" 0x416
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Chinese (Simplified)" 0x804
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Chinese (Traditional)" 0x404
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Czech" 0x405
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Dutch" 0x413
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "English" 0x409
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Finnish" 0x40B
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "French" 0x40C
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "German" 0x407
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Hungarian" 0x40E
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Italian" 0x410
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Japanese" 0x411
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Korean" 0x412
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Polish" 0x415
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Romanian" 0x418
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Russian" 0x419
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Russian" 0x419
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Slovak" 0x41B
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Spanish" 0x40A
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Ukrainian" 0x422
+if not %ERRORLEVEL% == 0 goto END
+
+:END
 if not "%1" == "/S" @PAUSE
 goto :EOF
 
@@ -45,6 +88,8 @@ goto :EOF
 set LANGNAME=%~1
 set LANGID=%2
 rc /R /DDLL_VERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /I "..\..\AkelEdit\Resources" /Fo"%LANGNAME%.res" "Resources\%LANGNAME%.rc"
+if not %ERRORLEVEL% == 0 echo %LANGNAME%.rc FAILED!
+if not %ERRORLEVEL% == 0 goto :EOF
 cl /O1 Module.c /LD /link "%LANGNAME%.res" /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANGNAME%.dll"
 
 ::### Clean up ###::
