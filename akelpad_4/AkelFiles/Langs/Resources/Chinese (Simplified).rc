@@ -40,152 +40,152 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 
 IDM_MENU_MAIN MENU DISCARDABLE 
 BEGIN
-    POPUP "œÑ(&F)"
+    POPUP "Œƒº˛(&F)"
     BEGIN
-        MENUITEM "—Ç(&N)\tCtrl+N",            IDM_FILE_NEW
-        MENUITEM "—Çÿ®&W)\tCtrl+Shift+N",  IDM_FILE_CREATENEW
-        MENUITEM "Úø®®&O)...\tCtrl+O",         IDM_FILE_OPEN
-        MENUITEM "◊ò—ÇÚø®®&R)\tF5",            IDM_FILE_REOPEN
+        MENUITEM "–¬Ω®(&N)\tCtrl+N",            IDM_FILE_NEW
+        MENUITEM "–¬Ω®¥∞ø⁄(&W)\tCtrl+Shift+N",  IDM_FILE_CREATENEW
+        MENUITEM "¥Úø™(&O)...\tCtrl+O",         IDM_FILE_OPEN
+        MENUITEM "÷ÿ–¬¥Úø™(&R)\tF5",            IDM_FILE_REOPEN
         MENUITEM SEPARATOR
-        MENUITEM "‰¶¶S)\tCtrl+S",            IDM_FILE_SAVE
-        MENUITEM "¬≠Áé™(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
-        MENUITEM "»´‰¶¶L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
-        MENUITEM "»´¬≠Áé™...",               IDM_FILE_SAVEALLAS
+        MENUITEM "±£¥Ê(&S)\tCtrl+S",            IDM_FILE_SAVE
+        MENUITEM "¡Ì¥ÊŒ™(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "»´≤ø±£¥Ê(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
+        MENUITEM "»´≤ø¡Ì¥ÊŒ™...",               IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
-        MENUITEM "“≥ƒ¶ ®◊É(&G)...",             IDM_FILE_PAGESETUP
-        MENUITEM "Ûì¢î@(&V)...",             IDM_FILE_PRINTPREVIEW
-        MENUITEM "Ûìü®&P)...\tCtrl+P",         IDM_FILE_PRINT
+        MENUITEM "“≥√Ê…Ë÷√(&G)...",             IDM_FILE_PAGESETUP
+        MENUITEM "¥Ú”°‘§¿¿(&V)...",             IDM_FILE_PRINTPREVIEW
+        MENUITEM "¥Ú”°(&P)...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "ÿÆœÑ(&F)"
+        POPUP "◊ÓΩ¸Œƒº˛(&F)"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
         MENUITEM SEPARATOR
-        MENUITEM "ŒãÌ±öÌµò)\tEsc",               IDM_FILE_EXIT
+        MENUITEM "ÕÀ≥ˆ(&X)\tEsc",               IDM_FILE_EXIT
     END
-    POPUP "‡º≠(&E)"
+    POPUP "±‡º≠(&E)"
     BEGIN
-        MENUITEM "–ª(&N)\tCtrl+Z",            IDM_EDIT_UNDO
-        MENUITEM "÷∏(&E)\tCtrl+Shift+Z",      IDM_EDIT_REDO
+        MENUITEM "≥∑œ˚(&N)\tCtrl+Z",            IDM_EDIT_UNDO
+        MENUITEM "ª÷∏¥(&E)\tCtrl+Shift+Z",      IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "Ì≥†Ìæ®&C)\tCtrl+X",            IDM_EDIT_CUT
-        MENUITEM "◊Ü(&O)\tCtrl+C",            IDM_EDIT_COPY
-        MENUITEM "’≥Õπ(&P)\tCtrl+V",            IDM_EDIT_PASTE
-        MENUITEM "…æ(&D)\tDel",               IDM_EDIT_CLEAR
+        MENUITEM "ºÙ«–(&C)\tCtrl+X",            IDM_EDIT_CUT
+        MENUITEM "∏¥÷∆(&O)\tCtrl+C",            IDM_EDIT_COPY
+        MENUITEM "’≥Ã˘(&P)\tCtrl+V",            IDM_EDIT_PASTE
+        MENUITEM "…æ≥˝(&D)\tDel",               IDM_EDIT_CLEAR
         MENUITEM "»´—°(&A)\tCtrl+A",            IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
-        MENUITEM "Íñí(&F)...\tCtrl+F",         IDM_EDIT_FIND
-        MENUITEM "–≤–ÇÍñí–Ç“ªÌ±öÌµó)\tF3",      IDM_EDIT_FINDNEXTDOWN
-        MENUITEM "–≤ èÍñí–Ç“ªÌ±öÌµï)\tShift+F3", IDM_EDIT_FINDNEXTUP
-        MENUITEM "Õ¶(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "◊™(&G)...\tCtrl+G",         IDM_EDIT_GOTO
+        MENUITEM "≤È’“(&F)...\tCtrl+F",         IDM_EDIT_FIND
+        MENUITEM "œÚœ¬≤È’“œ¬“ª∏ˆ(&W)\tF3",      IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "œÚ…œ≤È’“œ¬“ª∏ˆ(&U)\tShift+F3", IDM_EDIT_FINDNEXTUP
+        MENUITEM "ÃÊªª(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
+        MENUITEM "◊™µΩ(&G)...\tCtrl+G",         IDM_EDIT_GOTO
         MENUITEM SEPARATOR
-        MENUITEM "Êâ´√®&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
-        MENUITEM "Êâ´…ï«ö(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
-        POPUP "—°’±(&S)"
+        MENUITEM "≤Â»Î∑˚∫≈(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
+        MENUITEM "≤Â»Î»’∆⁄(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
+        POPUP "—°‘Ò(&S)"
         BEGIN
-            MENUITEM "¬ê’≥Õπ\tAlt+V",               IDM_EDIT_PASTECOLUMN
-            MENUITEM "◊ÜÌ∏ªÃµ(&B)\tTab",         IDM_EDIT_INSERT_TAB_MENU
-            MENUITEM "◊ÜÌ∏ªÃµ(&T)\tShift+Tab", IDM_EDIT_DELETE_TAB_MENU
-            MENUITEM "’∏ÚåµΩ(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
+            MENUITEM "¡–’≥Ã˘\tAlt+V",               IDM_EDIT_PASTECOLUMN
+            MENUITEM "÷∆±Ì∑˚ÀıΩ¯(&B)\tTab",         IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "÷∆±Ì∑˚∑¥ÀıΩ¯(&T)\tShift+Tab", IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "ø’∏ÒÀıΩ¯(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
 
-            MENUITEM "’∏Ò∑µãÌ∂ªÌ∂®&A)\tShift+Space", IDM_EDIT_DELETE_SPACE_MENU
+            MENUITEM "ø’∏Ò∑¥ÀıΩ¯(&A)\tShift+Space", IDM_EDIT_DELETE_SPACE_MENU
 
-            MENUITEM "…æ€íÌº°Ì∂∑(&F)\tShift+Backspace", 
+            MENUITEM "…æ≥˝µ⁄“ª∏ˆ◊÷∑˚(&F)\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
-            MENUITEM "»•Œ≤ƒø’∏ÌùöÌµó)\tAlt+Backspace", 
+            MENUITEM "»•≥˝Œ≤≤øµƒø’∏Ò(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
-            MENUITEM "Ì∞ÉÌ≤®&U)\tCtrl+6",            IDM_EDIT_UPPERCASE
+            MENUITEM "¥Û–¥(&U)\tCtrl+6",            IDM_EDIT_UPPERCASE
             MENUITEM "–°–¥(&L)\tCtrl+7",            IDM_EDIT_LOWERCASE
-            MENUITEM "ÂòìÌ∞ÇÌ≤ê(&N)\tCtrl+8",      IDM_EDIT_SENTENCECASE
-            MENUITEM "Îç¢Ì∞ÇÌ≤ê(&I)\tCtrl+9",      IDM_EDIT_TITLECASE
-            MENUITEM "◊™Ì∞ÇÌ≤ê(&V)\tCtrl+0",      IDM_EDIT_INVERTCASE
+            MENUITEM "æ‰◊”¥Û–°–¥(&N)\tCtrl+8",      IDM_EDIT_SENTENCECASE
+            MENUITEM "±ÍÃ‚¥Û–°–¥(&I)\tCtrl+9",      IDM_EDIT_TITLECASE
+            MENUITEM "∑¥◊™¥Û–°–¥(&V)\tCtrl+0",      IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
-            MENUITEM "◊ò·É´...\tAlt+R",            IDM_EDIT_RECODE
+            MENUITEM "÷ÿ±‡¬Î...\tAlt+R",            IDM_EDIT_RECODE
         END
-        POPUP "—êÚäª®&M)"
+        POPUP "ªª––∑˚∏Ò Ω(&M)"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
             MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
-    POPUP "Èø¥(&V)"
+    POPUP "≤Èø¥(&V)"
     BEGIN
-        MENUITEM "ÿñÕ•(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "“ï…´(&C)...",                 IDM_VIEW_COLORS
+        MENUITEM "◊÷ÃÂ(&F)...",                 IDM_VIEW_FONT
+        MENUITEM "—’…´(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "÷ªÌûøÌø®&R)",                    IDM_VIEW_READONLY
-        MENUITEM "ÿî—ê(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "∏ñ¥ÌùöÌµê)",                IDM_VIEW_SPLIT_WINDOW_ALL
-        MENUITEM "ÿú’öÿÆ«∞(&A)\tCtrl+T",        IDM_VIEW_ONTOP
-        MENUITEM "◊¥Ã¨8(&S)",                  IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM "÷ª∂¡(&R)",                    IDM_VIEW_READONLY
+        MENUITEM "◊‘∂Øªª––(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
+        MENUITEM "≤∑÷¥∞∏Ò(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "◊‹‘⁄◊Ó«∞(&A)\tCtrl+T",        IDM_VIEW_ONTOP
+        MENUITEM "◊¥Ã¨¿∏(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
-        POPUP "‘Ø“î / &Language"
+        POPUP "”Ô—‘ / &Language"
         BEGIN
             MENUITEM "_",                           IDM_LANGUAGE
         END
     END
-    POPUP "—°–Æ(&O)"
+    POPUP "—°œÓ(&O)"
     BEGIN
-        MENUITEM "ÂΩæ(&N)...\tAlt+P",          IDM_OPTIONS_PLUGINS
-        MENUITEM "÷¥—ê(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
+        MENUITEM "≤Âº˛(&N)...\tAlt+P",          IDM_OPTIONS_PLUGINS
+        MENUITEM "÷¥––(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "¬¥ÿ≥ﬂø’∏ÌùöÌµã)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
-        MENUITEM "·ãìœÑ¬®&C)",            IDM_OPTIONS_WATCHFILE
-        MENUITEM "ÁèÑ ±‚¶¶T)",            IDM_OPTIONS_SAVETIME
-        MENUITEM "Õ¨“ªœÑ÷ªÚø´íÃ®&F)",      IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "Õ¨“ªÕêÛñª¥Úø´íÃ®&P)",      IDM_OPTIONS_SINGLEOPEN_PROGRAM
+        MENUITEM "±£¡Ù◊Û±ﬂø’∏Ò(&K)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
+        MENUITEM "º‡ ”Œƒº˛∏¸∏ƒ(&C)",            IDM_OPTIONS_WATCHFILE
+        MENUITEM "±£¥ÊŒƒº˛ ±º‰(&T)",            IDM_OPTIONS_SAVETIME
+        MENUITEM "Õ¨“ªŒƒº˛÷ª¥Úø™“ª¥Œ(&F)",      IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "Õ¨“ª≥Ã–Ú÷ª¥Úø™“ª¥Œ(&P)",      IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
-        POPUP "€Ñ Ω(&W)"
+        POPUP "¥∞ø⁄ƒ£ Ω(&W)"
         BEGIN
-            MENUITEM "ÿ†(&SDI)",               IDM_OPTIONS_SDI
-            MENUITEM "‡¥∞ÿ†(&MDI)",               IDM_OPTIONS_MDI
-            MENUITEM "Œ±‡¥∞ÿ†(&PMDI)",            IDM_OPTIONS_PMDI
+            MENUITEM "µ•¥∞ø⁄ (&SDI)",               IDM_OPTIONS_SDI
+            MENUITEM "∂‡¥∞ø⁄ (&MDI)",               IDM_OPTIONS_MDI
+            MENUITEM "Œ±∂‡¥∞ø⁄ (&PMDI)",            IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
-        MENUITEM " ®◊É(&S)...",                 IDM_OPTIONS
+        MENUITEM "…Ë÷√(&S)...",                 IDM_OPTIONS
     END
-    POPUP "ÿ®&W)"
+    POPUP "¥∞ø⁄(&W)"
     BEGIN
-        POPUP "Îá©(&T)"
+        POPUP "±Í«©(&T)"
         BEGIN
-            MENUITEM "(&T)",                    IDM_WINDOW_TABVIEW_TOP
-            MENUITEM "◊≤(&B)",                    IDM_WINDOW_TABVIEW_BOTTOM
+            MENUITEM "∂•≤ø(&T)",                    IDM_WINDOW_TABVIEW_TOP
+            MENUITEM "µ◊≤ø(&B)",                    IDM_WINDOW_TABVIEW_BOTTOM
 
-            MENUITEM "”æ÷®&H)",                    IDM_WINDOW_TABVIEW_NONE
+            MENUITEM "“˛≤ÿ(&H)",                    IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "Îóº(&S)",                    IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "±Í◊º(&S)",                    IDM_WINDOW_TABTYPE_STANDARD
 
-            MENUITEM "≈•(&U)",                    IDM_WINDOW_TABTYPE_BUTTONS
+            MENUITEM "∞¥≈•(&U)",                    IDM_WINDOW_TABTYPE_BUTTONS
 
-            MENUITEM "∆Ωƒ¶≈•(&F)",                IDM_WINDOW_TABTYPE_FLATBUTTONS
+            MENUITEM "∆Ω√Ê∞¥≈•(&F)",                IDM_WINDOW_TABTYPE_FLATBUTTONS
 
             MENUITEM SEPARATOR
-            MENUITEM "–ÇÌ±∏Ì∫èÌ±öÌµé)",               IDM_WINDOW_TABSWITCH_NEXTPREV
+            MENUITEM "œ¬∏ˆ-…œ∏ˆ(&N)",               IDM_WINDOW_TABSWITCH_NEXTPREV
 
-            MENUITEM "‘í-ÿ≥(&R)",                   IDM_WINDOW_TABSWITCH_RIGHTLEFT
+            MENUITEM "”“-◊Û(&R)",                   IDM_WINDOW_TABSWITCH_RIGHTLEFT
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "ÀÆ∆Ω∆Ω«å(&H)",                IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "÷±∆Ω«å(&V)",                IDM_WINDOW_TILEVERTICAL
-        MENUITEM "„∂æ(&C)",                    IDM_WINDOW_CASCADE
-        MENUITEM "ÿ±”¢,                        IDM_WINDOW_FRAMECLOSE
-        MENUITEM "»´ÿ±”¢,                    IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Ó∂ØŒ¢»´ÿ±”¢,            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "ÀÆ∆Ω∆Ω∆Ã(&H)",                IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "¥π÷±∆Ω∆Ã(&V)",                IDM_WINDOW_TILEVERTICAL
+        MENUITEM "≤„µ˛(&C)",                    IDM_WINDOW_CASCADE
+        MENUITEM "πÿ±’",                        IDM_WINDOW_FRAMECLOSE
+        MENUITEM "»´≤øπÿ±’",                    IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "≥˝ªÓ∂ØÕ‚»´≤øπÿ±’",            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
-        MENUITEM "—°’±ÿÆ..",                 IDM_WINDOW_MDILIST
+        MENUITEM "—°‘Ò¥∞ø⁄...",                 IDM_WINDOW_MDILIST
     END
-    POPUP "êó∫(&H)"
+    POPUP "∞Ô÷˙(&H)"
     BEGIN
-        MENUITEM "‘ÉÀñÌûæÌ∂¶M)",                     IDM_MANUAL
+        MENUITEM "”√ªß ÷≤·(&M)",                     IDM_MANUAL
         MENUITEM SEPARATOR
-        MENUITEM "Ÿìÿ®&A)",                    IDM_ABOUT
+        MENUITEM "πÿ”⁄(&A)",                    IDM_ABOUT
     END
 END
 
@@ -193,49 +193,49 @@ IDM_MENU_POPUP MENU DISCARDABLE
 BEGIN
     POPUP "EditPopup"
     BEGIN
-        MENUITEM "–ª(&U)",                    IDM_EDIT_UNDO
-        MENUITEM "÷∏(&R)",                    IDM_EDIT_REDO
+        MENUITEM "≥∑œ˚(&U)",                    IDM_EDIT_UNDO
+        MENUITEM "ª÷∏¥(&R)",                    IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "Ì≥†Ìæ®&C)",                    IDM_EDIT_CUT
-        MENUITEM "◊Ü(&O)",                    IDM_EDIT_COPY
-        MENUITEM "’≥Õπ(&P)",                    IDM_EDIT_PASTE
-        MENUITEM "…æ(&D)",                    IDM_EDIT_CLEAR
+        MENUITEM "ºÙ«–(&C)",                    IDM_EDIT_CUT
+        MENUITEM "∏¥÷∆(&O)",                    IDM_EDIT_COPY
+        MENUITEM "’≥Ã˘(&P)",                    IDM_EDIT_PASTE
+        MENUITEM "…æ≥˝(&D)",                    IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
         MENUITEM "»´—°(&A)",                    IDM_EDIT_SELECTALL
     END
     POPUP "ViewPopup"
     BEGIN
-        MENUITEM "◊Ü(&O)",                    IDM_EDIT_COPY
+        MENUITEM "∏¥÷∆(&O)",                    IDM_EDIT_COPY
         MENUITEM SEPARATOR
         MENUITEM "»´—°(&A)",                    IDM_EDIT_SELECTALL
     END
     POPUP "CodepagePopup"
     BEGIN
-        POPUP "Úø´é"
+        POPUP "¥Úø™Œ™"
         BEGIN
             MENUITEM "_",                           IDM_POPUP_OPENAS
         END
         MENUITEM SEPARATOR
-        POPUP "¬≠Áé™"
+        POPUP "¡Ì¥ÊŒ™"
         BEGIN
             MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
         MENUITEM SEPARATOR
-        MENUITEM "◊ò—ÇÏ≥¢",                    IDM_FILE_REDETECT
+        MENUITEM "÷ÿ–¬ºÏ≤‚",                    IDM_FILE_REDETECT
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "“≥√´[€í“≥]\t%n[1]",         IDM_POPUP_HEADLINE_PAGE_NUMBER
+        MENUITEM "“≥¬Î[µ⁄“ª“≥]\t%n[1]",         IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "œÑƒª≈út%f",                IDM_POPUP_HEADLINE_FILENAME
-        MENUITEM "œÑÃπ’öƒø¬º\t%d",            IDM_POPUP_HEADLINE_FILEDIR
-        MENUITEM "√†%\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM "Œƒº˛√˚≥∆\t%f",                IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Œƒº˛À˘‘⁄ƒø¬º\t%d",            IDM_POPUP_HEADLINE_FILEDIR
+        MENUITEM "∑˚∫≈ %\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
-        MENUITEM "‘ñœút%c",                    IDM_POPUP_HEADLINE_ALIGN_CENTER
+        MENUITEM "æ”÷–\t%c",                    IDM_POPUP_HEADLINE_ALIGN_CENTER
 
-        MENUITEM "ÿ≥’ÜÍõ¥%l",                  IDM_POPUP_HEADLINE_ALIGN_LEFT
+        MENUITEM "◊Û∂‘∆Î\t%l",                  IDM_POPUP_HEADLINE_ALIGN_LEFT
 
-        MENUITEM "‘í’ÜÍõ¥%r",                  IDM_POPUP_HEADLINE_ALIGN_RIGHT
+        MENUITEM "”“∂‘∆Î\t%r",                  IDM_POPUP_HEADLINE_ALIGN_RIGHT
 
     END
 END
@@ -379,9 +379,9 @@ END
 
 IDD_OFN DIALOGEX 0, 0, 275, 120
 STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
-FONT 9, "ÃéÕ•", 400, 0, 0x86
+FONT 9, "ÀŒÃÂ", 400, 0, 0x86
 BEGIN
-    LTEXT           "√´“≥(&C):",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
+    LTEXT           "¥˙¬Î“≥(&C):",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
     COMBOBOX        IDC_OFN_CODEPAGE,53,1,145,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
@@ -394,17 +394,17 @@ END
 IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "»´¬≠Áé™"
-FONT 9, "ÃéÕ•"
+CAPTION "»´≤ø¡Ì¥ÊŒ™"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    CONTROL         "√´“≥(&C):",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+    CONTROL         "¥˙¬Î“≥(&C):",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "—êÚäª®&F):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
+    CONTROL         "ªª––∑˚∏Ò Ω(&F):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
@@ -413,45 +413,45 @@ BEGIN
                     BS_AUTORADIOBUTTON,84,85,50,8
     CONTROL         "Mac",IDC_SAVEALLAS_NEWLINE_MAC,"Button",
                     BS_AUTORADIOBUTTON,140,85,40,8
-    DEFPUSHBUTTON   "»∑",IDOK,47,115,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,102,115,50,14,BS_CENTER
+    DEFPUSHBUTTON   "»∑∂®",IDOK,47,115,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,102,115,50,14,BS_CENTER
 END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 264
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "—°’±ÿ¢
-FONT 9, "ÃéÕ•"
+CAPTION "—°‘Ò¥∞ø⁄"
+FONT 9, "ÀŒÃÂ"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,219,LBS_SORT | 
                     LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
                     WS_TABSTOP
     RTEXT           "",IDC_MDILIST_STATS,92,232,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "»∑",IDOK,198,10,50,14
-    GROUPBOX        "∆Ö¬ê",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    DEFPUSHBUTTON   "»∑∂®",IDOK,198,10,50,14
+    GROUPBOX        "≈≈¡–",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
     PUSHBUTTON      "ÀÆ∆Ω",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "÷±",IDC_MDILIST_VERT,198,60,50,14
-    GROUPBOX        "Îá©",IDC_MDILIST_TABS_GROUP,191,86,64,72
-    PUSHBUTTON      "–≤ è",IDC_MDILIST_UP,198,100,50,14
-    PUSHBUTTON      "–≤–Ç",IDC_MDILIST_DOWN,198,115,50,14
-    PUSHBUTTON      "∆Ö—≤",IDC_MDILIST_SORT,198,138,50,14
-    GROUPBOX        "œÑ",IDC_MDILIST_FILES_GROUP,191,163,64,49
-    PUSHBUTTON      "‰†¨IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "ÿ±”¢,IDC_MDILIST_CLOSE,198,192,50,14
-    CONTROL         "ÌªìÌª≥ƒ¢,IDC_MDILIST_ONLYNAMES,"Button",BS_AUTOCHECKBOX | 
+    PUSHBUTTON      "¥π÷±",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "±Í«©",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "œÚ…œ",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "œÚœ¬",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "≈≈–Ú",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Œƒº˛",IDC_MDILIST_FILES_GROUP,191,163,64,49
+    PUSHBUTTON      "±£¥Ê",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "πÿ±’",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Ωˆ√˚≥∆",IDC_MDILIST_ONLYNAMES,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,191,219,67,10
-    PUSHBUTTON      "»°–ª",IDCANCEL,198,243,50,14
+    PUSHBUTTON      "»°œ˚",IDCANCEL,198,243,50,14
 END
 
 IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
-CAPTION "‘§@"
-FONT 9, "ÃéÕ•", 400, 0, 0x86
+CAPTION "‘§¿¿"
+FONT 9, "ÀŒÃÂ", 400, 0, 0x86
 BEGIN
-    DEFPUSHBUTTON   "Ûìü®&P)...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "“≥ƒ¶ ®◊É(&G)...",IDC_PREVIEW_PAGESETUP,62,9,62,14
+    DEFPUSHBUTTON   "¥Ú”°(&P)...",IDC_PREVIEW_PRINT,9,9,50,14
+    PUSHBUTTON      "“≥√Ê…Ë÷√(&G)...",IDC_PREVIEW_PAGESETUP,62,9,62,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -459,43 +459,43 @@ BEGIN
     PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
     COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "—°»∏‘≤(&S)",IDC_PREVIEW_SELECTION,"Button",
+    CONTROL         "—°∂®«¯”Ú(&S)",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
-    PUSHBUTTON      "ÿ±”®&C)",IDC_PREVIEW_CLOSE,390,9,50,14
+    PUSHBUTTON      "πÿ±’(&C)",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 270, 108
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
-CAPTION "Íñí"
-FONT 9, "ÃéÕ•", 400, 0, 0x86
+CAPTION "≤È’“"
+FONT 9, "ÀŒÃÂ", 400, 0, 0x86
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,41,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "»∏÷¥Ì∞ÇÌ≤ê",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "«¯∑÷¥Û–°–¥",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "÷ªÿñ∆•∆§",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "’˚◊÷∆•≈‰",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,42,105,12
-    CONTROL         "◊™”•—≤¬ê",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "◊™“Â∑˚–Ú¡–",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
-    GROUPBOX        "–≤",IDC_STATIC,135,27,66,58
-    CONTROL         "–≤–Ç",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    GROUPBOX        "∑ΩœÚ",IDC_STATIC,135,27,66,58
+    CONTROL         "œÚœ¬",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,37,50,10
-    CONTROL         "–≤ è",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "œÚ…œ",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
                     141,48,50,10
-    CONTROL         " º",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "ø™ º",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     141,59,50,10
-    CONTROL         "—°»∏‘≤",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "—°∂®«¯”Ú",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     141,70,50,10
-    CONTROL         "Ãπ‘êœÑ",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "À˘”–Œƒº˛",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,87,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,135,80,66,19
-    DEFPUSHBUTTON   "Íñí–Ç“ªÌ±öÌµÜ)",IDC_SEARCH_FIND_BUTTON,206,6,58,14,
+    DEFPUSHBUTTON   "≤È’“œ¬“ª∏ˆ(&F)",IDC_SEARCH_FIND_BUTTON,206,6,58,14,
                     BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,206,23,58,14,BS_CENTER
-    LTEXT           "Íñí≈ö…ù:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16◊Üÿñ\n \\\\ - –±–ü\n \\n - —ê\n \\t - ◊ÜÌ∏ª)",
+    PUSHBUTTON      "»°œ˚",IDCANCEL,206,23,58,14,BS_CENTER
+    LTEXT           "≤È’“ƒ⁄»›:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
+    LTEXT           "(\\[...] - 16Ω¯÷∆◊÷∑˚¥Æ£¨\n \\\\ - ∑¥–±œﬂ£¨\n \\n - ªª––∑˚£¨\n \\t - ÷∆±Ì∑˚)",
                     IDC_STATIC,21,66,97,33,NOT WS_GROUP
 END
 
@@ -503,70 +503,70 @@ IDD_REPLACE DIALOGEX 70, 70, 270, 122
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
-CAPTION "Õ¶"
-FONT 9, "ÃéÕ•", 400, 0, 0x86
+CAPTION "ÃÊªª"
+FONT 9, "ÀŒÃÂ", 400, 0, 0x86
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,41,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_SEARCH_REPLACE,41,23,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "»∏÷¥Ì∞ÇÌ≤ê",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "«¯∑÷¥Û–°–¥",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "÷ªÿñ∆•∆§",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "’˚◊÷∆•≈‰",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,56,105,12
-    CONTROL         "◊™”•—≤¬ê",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "◊™“Â∑˚–Ú¡–",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
-    GROUPBOX        "–≤",IDC_STATIC,135,41,66,58
-    CONTROL         "–≤–Ç",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    GROUPBOX        "∑ΩœÚ",IDC_STATIC,135,41,66,58
+    CONTROL         "œÚœ¬",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,51,50,10
-    CONTROL         "–≤ è",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "œÚ…œ",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
                     141,62,50,10
-    CONTROL         " º",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "ø™ º",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     141,73,50,10
-    CONTROL         "—°»∏‘≤",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "—°∂®«¯”Ú",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     141,84,50,10
-    CONTROL         "Ãπ‘êœÑ",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "À˘”–Œƒº˛",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,101,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,135,94,66,19
-    DEFPUSHBUTTON   "Íñí–Ç“ªÌ±öÌµÜ)",IDC_SEARCH_FIND_BUTTON,206,6,58,14,
+    DEFPUSHBUTTON   "≤È’“œ¬“ª∏ˆ(&F)",IDC_SEARCH_FIND_BUTTON,206,6,58,14,
                     BS_CENTER
-    PUSHBUTTON      "Õ¶(&R)",IDC_SEARCH_REPLACE_BUTTON,206,23,58,14,
+    PUSHBUTTON      "ÃÊªª(&R)",IDC_SEARCH_REPLACE_BUTTON,206,23,58,14,
                     BS_CENTER
-    PUSHBUTTON      "»´Õ¶(&A)",IDC_SEARCH_ALL_BUTTON,206,39,58,14,
+    PUSHBUTTON      "»´≤øÃÊªª(&A)",IDC_SEARCH_ALL_BUTTON,206,39,58,14,
                     BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,206,55,58,14,BS_CENTER
-    LTEXT           "Íñí≈ö…ù:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
-    LTEXT           "Õ¶Œ™:",IDC_STATIC,12,25,29,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16◊Üÿñ\n \\\\ - –±–ü\n \\n - —ê\n \\t - ◊ÜÌ∏ª)",
+    PUSHBUTTON      "»°œ˚",IDCANCEL,206,55,58,14,BS_CENTER
+    LTEXT           "≤È’“ƒ⁄»›:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
+    LTEXT           "ÃÊªªŒ™:",IDC_STATIC,12,25,29,8,NOT WS_GROUP
+    LTEXT           "(\\[...] - 16Ω¯÷∆◊÷∑˚¥Æ£¨\n \\\\ - ∑¥–±œﬂ£¨\n \\n - ªª––∑˚£¨\n \\t - ÷∆±Ì∑˚)",
                     IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "◊™"
-FONT 9, "ÃéÕ•"
+CAPTION "◊™µΩ"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    LTEXT           "Õ∏◊™:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
+    LTEXT           "Ã¯◊™µΩ:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
-    CONTROL         "—ê:¬ê",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,41,
+    CONTROL         "––:¡–",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,41,
                     70,10
-    CONTROL         "∆´”Ü",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
+    CONTROL         "∆´“∆¡ø",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
                     42,50,10
-    PUSHBUTTON      "»∑",IDOK,23,63,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,77,63,50,14,BS_CENTER
+    PUSHBUTTON      "»∑∂®",IDOK,23,63,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,77,63,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
-CAPTION "◊ò—Ç·É´"
-FONT 9, "ÃéÕ•"
+CAPTION "÷ÿ–¬±‡¬Î"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    RTEXT           "—∫",IDC_STATIC,6,11,35,8
+    RTEXT           "¥”:",IDC_STATIC,6,11,35,8
     COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    RTEXT           ":",IDC_STATIC,6,29,35,8
+    RTEXT           "µΩ:",IDC_STATIC,6,29,35,8
     COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_RECODE_AUTODETECT,"Button",
@@ -574,74 +574,74 @@ BEGIN
     CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
                     WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
                     WS_EX_CLIENTEDGE
-    PUSHBUTTON      "»∑",IDOK,165,193,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,219,193,50,14,BS_CENTER
+    PUSHBUTTON      "»∑∂®",IDOK,165,193,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,219,193,50,14,BS_CENTER
 END
 
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 162
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
-CAPTION "“ï…´"
-FONT 9, "ÃéÕ•"
+CAPTION "—’…´"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    LTEXT           "“ï…´:",IDC_STATIC,11,6,103,8
+    LTEXT           "—’…´∑Ω∞∏:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "‰†¨IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "…æ",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "±£¥Ê",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "…æ≥˝",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,91
-    PUSHBUTTON      "»∑",IDOK,123,142,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,176,142,50,14,BS_CENTER
+    PUSHBUTTON      "»∑∂®",IDOK,123,142,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,176,142,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
-CAPTION "ÂΩæ"
-FONT 9, "ÃéÕ•"
+CAPTION "≤Âº˛"
+FONT 9, "ÀŒÃÂ"
 BEGIN
     CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
-    LTEXT           "—°ƒ≤ÂΩæ ó‘∂‘îÿ°",IDC_PLUGINS_LIST_INFO,11,192,
+    LTEXT           "π¥—°µƒ≤Âº˛ø…◊‘∂Øº”‘ÿ°£",IDC_PLUGINS_LIST_INFO,11,192,
                     264,8
-    LTEXT           "…à:",IDC_PLUGINS_HOTKEY_LABEL,284,13,37,8
+    LTEXT           "»»º¸:",IDC_PLUGINS_HOTKEY_LABEL,284,13,37,8
     CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,282,24,50,14
-    PUSHBUTTON      "÷∏",IDC_PLUGINS_ASSIGN,282,42,50,14
-    DEFPUSHBUTTON   "ÓÄêÌ±¢,IDC_PLUGINS_CALL,9,209,50,14
-    PUSHBUTTON      "»∑",IDOK,228,209,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,282,209,50,14,BS_CENTER
+    PUSHBUTTON      "÷∏∂®",IDC_PLUGINS_ASSIGN,282,42,50,14
+    DEFPUSHBUTTON   "µ˜”√",IDC_PLUGINS_CALL,9,209,50,14
+    PUSHBUTTON      "»∑∂®",IDOK,228,209,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,282,209,50,14,BS_CENTER
 END
 
 IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "‰†ç
-FONT 9, "ÃéÕ•"
+CAPTION "≥£πÊ"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    GROUPBOX        "÷¥—ê",IDC_STATIC,9,6,200,90
-    LTEXT           "ƒº¬Æ (%f œÑ%a akelpad ƒø¬º):",IDC_STATIC,21,24,160,
+    GROUPBOX        "÷¥––",IDC_STATIC,9,6,200,90
+    LTEXT           "√¸¡Ó (%f Œƒº˛£¨%a akelpad ƒø¬º):",IDC_STATIC,21,24,160,
                     8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "ÿ∑ƒø¬º (%d œÑÃπ’öƒø¬º):",IDC_STATIC,21,59,160,8,NOT 
+    LTEXT           "π§◊˜ƒø¬º (%d Œƒº˛À˘‘⁄ƒø¬º):",IDC_STATIC,21,59,160,8,NOT 
                     WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
-    LTEXT           "√´“≥ ∂Ìö¢Ì∞¨IDC_STATIC,12,110,150,8
+    LTEXT           "¥˙¬Î“≥ ∂±:",IDC_STATIC,12,110,150,8
     COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,121,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "‰∏¢,IDC_STATIC,170,110,37,8
+    LTEXT           "ª∫¥Ê:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
-    LTEXT           "ƒ¨…è√´“≥:",IDC_STATIC,12,150,150,8
+    LTEXT           "ƒ¨»œ¥˙¬Î“≥:",IDC_STATIC,12,150,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "…∏—°",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "ƒ¨…è—ê",IDC_STATIC,9,190,200,33
+    GROUPBOX        "ƒ¨»œªª––∑˚",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -654,62 +654,62 @@ IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "…∏—°"
-FONT 9, "ÃéÕ•"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    LTEXT           "”ë—°√´“≥:",IDC_STATIC,11,7,135,8
+    LTEXT           "“——°¥˙¬Î“≥:",IDC_STATIC,11,7,135,8
     LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_CUSTOM,7,18,141,209,
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "–≤ è",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
-    PUSHBUTTON      "–≤–Ç",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
+    PUSHBUTTON      "œÚ…œ",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
+    PUSHBUTTON      "œÚœ¬",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
     PUSHBUTTON      "<",IDC_OPTIONS_CODEPAGES_FILTER_ADD,155,56,50,14
     PUSHBUTTON      ">",IDC_OPTIONS_CODEPAGES_FILTER_DELETE,155,71,50,14
     PUSHBUTTON      "<<",IDC_OPTIONS_CODEPAGES_FILTER_ADDALL,155,93,50,14
     PUSHBUTTON      ">>",IDC_OPTIONS_CODEPAGES_FILTER_DELETEALL,155,108,50,
                     14
-    LTEXT           " ì√¥√´“≥:",IDC_STATIC,217,7,135,8
+    LTEXT           "ø…”√¥˙¬Î“≥:",IDC_STATIC,217,7,135,8
     LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM,213,18,141,209,
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "»∑",IDOK,127,235,50,14,BS_CENTER
-    PUSHBUTTON      "»°–ª",IDCANCEL,181,235,50,14,BS_CENTER
+    PUSHBUTTON      "»∑∂®",IDOK,127,235,50,14,BS_CENTER
+    PUSHBUTTON      "»°œ˚",IDCANCEL,181,235,50,14,BS_CENTER
 END
 
 IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "◊¢·≤≠"
-FONT 9, "ÃéÕ•"
+CAPTION "◊¢≤·±Ì"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    GROUPBOX        "Áä®◊É",IDC_STATIC,9,6,200,29
-    CONTROL         "◊¢·≤≠",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
+    GROUPBOX        "±£¥Ê…Ë÷√µΩ",IDC_STATIC,9,6,200,29
+    CONTROL         "◊¢≤·±Ì",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
                     BS_AUTORADIOBUTTON,32,19,70,10
-    CONTROL         "INI œÑ",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
+    CONTROL         "INI Œƒº˛",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "ÿÆœÑ",IDC_STATIC,9,42,200,64
-    CONTROL         "»óÊâ´‰éª◊É",IDC_OPTIONS_SAVEPOSITIONS,"Button",
+    GROUPBOX        "◊ÓΩ¸Œƒº˛",IDC_STATIC,9,42,200,64
+    CONTROL         "º«◊°≤Â»Îµ„Œª÷√",IDC_OPTIONS_SAVEPOSITIONS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
-    CONTROL         "»ó√´“≥",IDC_OPTIONS_SAVECODEPAGES,"Button",
+    CONTROL         "º«◊°¥˙¬Î“≥",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
-    LTEXT           "œÑÌªØÌª∫",IDC_STATIC,19,88,73,11,NOT WS_GROUP
+    LTEXT           "Œƒº˛∏ˆ ˝:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,86,11,13
-    PUSHBUTTON      "»•",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "ÃëÃ∑z ∑",IDC_STATIC,9,113,200,33
-    LTEXT           "z ∑–ÆÀΩ:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
+    PUSHBUTTON      "«Â≥˝",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
+    GROUPBOX        "À—À˜¿˙ ∑",IDC_STATIC,9,113,200,33
+    LTEXT           "¿˙ ∑œÓ ˝:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,126,11,13
-    PUSHBUTTON      "»•",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,14
-    GROUPBOX        "œÑ`—çŸÅ",IDC_STATIC,9,153,200,70
-    CONTROL         "Úø®∫",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
+    PUSHBUTTON      "«Â≥˝",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,14
+    GROUPBOX        "Œƒº˛¿‡–Õπÿ¡™",IDC_STATIC,9,153,200,70
+    CONTROL         "¥Úø™:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
                     BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,169,43,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,64,167,138,13,ES_AUTOHSCROLL
-    CONTROL         "‡º≠:",IDC_OPTIONS_ASSOCIATE_EDIT,"Button",
+    CONTROL         "±‡º≠:",IDC_OPTIONS_ASSOCIATE_EDIT,"Button",
                     BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,187,43,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_EDIT,64,185,138,13,ES_AUTOHSCROLL
-    CONTROL         "Ûìü∫",IDC_OPTIONS_ASSOCIATE_PRINT,"Button",
+    CONTROL         "¥Ú”°:",IDC_OPTIONS_ASSOCIATE_PRINT,"Button",
                     BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,205,43,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_PRINT,64,203,138,13,ES_AUTOHSCROLL
 END
@@ -717,67 +717,67 @@ END
 IDD_OPTIONS_EDITOR1 DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "‡º≠«∑ 1"
-FONT 9, "ÃéÕ•"
+CAPTION "±‡º≠∆˜ 1"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    GROUPBOX        "œÑﬂæÌû∫Ì∞¨IDC_STATIC,9,6,200,34
+    GROUPBOX        "Œƒ±æ±ﬂæ‡",IDC_STATIC,9,6,200,34
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,18,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,20,
                     11,13
-    CONTROL         "—°’±",IDC_OPTIONS_EDITMARGIN_SELECTION,"Button",
+    CONTROL         "—°‘Ò",IDC_OPTIONS_EDITMARGIN_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,100,10
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,168,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,190,20,11,13
-    GROUPBOX        "◊ÜÌ∏ªÌ∞ÅÌø¢,IDC_STATIC,9,46,105,34
+    GROUPBOX        "÷∆±Ì∑˚¥Û–°",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,60,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,60,
                     11,13
-    CONTROL         "◊™Œ™’∏ÌùÇÌªâDC_OPTIONS_TABSIZE_SPACES,"Button",
+    CONTROL         "◊™ªªŒ™ø’∏Ò",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,62,55,10
-    GROUPBOX        "–ªœä–û◊Ü",IDC_STATIC,9,88,105,34
+    GROUPBOX        "≥∑œ˚¥Œ ˝œﬁ÷∆",IDC_STATIC,9,88,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,102,
                     11,13
-    CONTROL         "◊∞–ª",IDC_OPTIONS_UNDO_DETAILED,"Button",
+    CONTROL         "÷≤Ω≥∑œ˚",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "—ê Ω",IDC_STATIC,121,46,88,76
-    CONTROL         " »¢,IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+    GROUPBOX        "ªª––∑Ω Ω",IDC_STATIC,121,46,88,76
+    CONTROL         "∞¥ µ•¥ ",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
-    CONTROL         " √¢,IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+    CONTROL         "∞¥ ∑˚∫≈",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,73,72,10
-    LTEXT           "Ëêû:",IDC_STATIC,129,91,37,8
+    LTEXT           "ΩÁœﬁ:",IDC_STATIC,129,91,37,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,151,
                     102,11,13
-    LTEXT           "Í¥ü–ü:",IDC_STATIC,168,91,37,8
+    LTEXT           "±Í≥ﬂœﬂ:",IDC_STATIC,168,91,37,8
     EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
-    GROUPBOX        "Êâ´·†¨IDC_STATIC,9,128,200,56
-    CONTROL         "’ä—≠Êâ´‰ìÜ—êƒ©‡†î≈ì“±›¢,
+    GROUPBOX        "≤Â»Îµ„",IDC_STATIC,9,128,200,56
+    CONTROL         "‘ –Ì≤Â»Îµ„“∆∂ØµΩ––ƒ©±ﬂ‘µµƒ”“±ﬂ",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,142,185,10
-    CONTROL         "–î æ«∞¬ê",IDC_OPTIONS_CARETVERTLINE,"Button",
+    CONTROL         "œ‘ æµ±«∞¡–",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
-    RTEXT           "Ì∑à:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
+    RTEXT           "øÌ∂»:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit À≥Îë°’±",IDC_OPTIONS_RICHEDITMOUSE,"Button",
+    CONTROL         "RichEdit  Û±Í—°‘Ò",IDC_OPTIONS_RICHEDITMOUSE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,191,114,10
-    CONTROL         "À≥Îéè√¢,IDC_OPTIONS_MOUSEDRAGGING,"Button",
+    CONTROL         " Û±ÍÕœ∑≈",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,202,114,10
-    CONTROL         "‘í„º∑ ±”ÜÊâ´·†¨IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "”“º¸µ„ª˜ ±“∆∂Ø≤Â»Îµ„",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,213,114,10
-    GROUPBOX        "—êÌû∫Ì∞¨IDC_STATIC,127,190,82,33
+    GROUPBOX        "––æ‡",IDC_STATIC,127,190,82,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
@@ -787,80 +787,80 @@ END
 IDD_OPTIONS_EDITOR2 DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "‡º≠«∑ 2"
-FONT 9, "ÃéÕ•"
+CAPTION "±‡º≠∆˜ 2"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    GROUPBOX        "t—¢,IDC_STATIC,9,6,200,120
-    CONTROL         "–î æ",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
+    GROUPBOX        "≥¨¡¥Ω”",IDC_STATIC,9,6,200,120
+    CONTROL         "œ‘ æ",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,19,178,10
-    CONTROL         "ÌæóÌ≤ø",IDC_OPTIONS_URL_SINGLECLICK,"Button",
+    CONTROL         "µ•ª˜¥Úø™",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,33,172,10
-    CONTROL         "À´ÌæóÌ≤ø",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
+    CONTROL         "À´ª˜¥Úø™",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,44,172,10
     CONTROL         "«∞◊∫:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,60,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,72,172,13,ES_AUTOHSCROLL
-    CONTROL         "÷∏Ì≤£Ìπ∫",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+    CONTROL         "∑÷∏Ù∑˚:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,91,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,103,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,103,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         " ∑÷∏Ì≤£Ìπ∫",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+    CONTROL         "µ•¥ ∑÷∏Ù∑˚:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,135,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "◊ò◊É",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
+    PUSHBUTTON      "÷ÿ÷√",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
                     BS_CENTER
-    CONTROL         "—ê÷∏Ì≤£Ìπ∫",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+    CONTROL         "ªª––∑÷∏Ù∑˚:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "◊ò◊É",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
+    PUSHBUTTON      "÷ÿ÷√",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
                     BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "ﬂº"
-FONT 9, "ÃéÕ•"
+CAPTION "∏ﬂº∂"
+FONT 9, "ÀŒÃÂ"
 BEGIN
-    CONTROL         "ÿî»ê∆å‘¢,
+    CONTROL         "◊‘∂Ø«–ªªº¸≈Ã≤ºæ÷",
                     IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "»ó√øÌ∫äÌªá“≥ƒº∆å‘®MDI)",
+    CONTROL         "º«◊°√ø∏ˆ±Í«©“≥µƒº¸≈Ã≤ºæ÷(MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "ƒ¨ÿ±÷éÊ∂Ñ’±Îá© (MDI)",
+    CONTROL         "æ≤ƒ¨πÿ±’Œ¥±£¥Êµƒø’±Í«© (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
-    CONTROL         "…ßœÑ”î .LOG Õ∑Õ≤Êâ´…ï«ö",IDC_OPTIONS_LOGDATE,
+    CONTROL         "»Áπ˚Œƒº˛“‘ .LOG ø™Õ∑æÕ≤Â»Î»’∆⁄",IDC_OPTIONS_LOGDATE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,47,200,10
-    CONTROL         "ÊµΩ÷ª¬éƒº ±‰†¨IDC_OPTIONS_SAVEIN_READONLY_MSG,
+    CONTROL         "±£¥ÊµΩ÷ª∂¡Œƒº˛ ±æØ∏Ê",IDC_OPTIONS_SAVEIN_READONLY_MSG,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
-    LTEXT           "Áä±ƒ¨…è≈Ä’πƒª",IDC_STATIC,37,77,171,8
-    GROUPBOX        "Íñí/Õ¶ ‘ª†´âDC_STATIC,9,96,200,53
-    CONTROL         "»´Õ¶ - ÿ±’∂‘ª†´âDC_OPTIONS_REPLACEALL_CLOSE,
+    LTEXT           "±£¥Ê ±ƒ¨»œµƒ¿©’π√˚",IDC_STATIC,37,77,171,8
+    GROUPBOX        "≤È’“/ÃÊªª ∂‘ª∞øÚ",IDC_STATIC,9,96,200,53
+    CONTROL         "»´≤øÃÊªª - πÿ±’∂‘ª∞øÚ",IDC_OPTIONS_REPLACEALL_CLOSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,109,185,10
-    CONTROL         "…ß—°»∏‘≤Œ™’æŒë è—°»∏‘≤",
+    CONTROL         "»Áπ˚—°∂®«¯”Ú≤ªŒ™ø’æÕ—°…œ°∞—°∂®«¯”Ú°±°£",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
-    CONTROL         "—≠ÃëÃ∑",IDC_OPTIONS_CYCLESEARCH,"Button",
+    CONTROL         "—≠ª∑À—À˜",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Ÿìÿ¢
-FONT 9, "ÃéÕ•"
+CAPTION "πÿ”⁄"
+FONT 9, "ÀŒÃÂ"
 BEGIN
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
                     150,11
-    LTEXT           "◊∑“≥:",IDC_STATIC,19,41,85,11
+    LTEXT           "÷˜“≥:",IDC_STATIC,19,41,85,11
     PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
-    GROUPBOX        "ÿ∑÷ü:",IDC_STATIC,20,62,177,109
+    GROUPBOX        "◊˜’ﬂ:",IDC_STATIC,20,62,177,109
     LTEXT           "Shengalts Aleksander, 2006-2011",IDC_STATIC,72,82,125,8,
                     NOT WS_GROUP
     LTEXT           "E-Mail:",IDC_STATIC,43,98,29,8,NOT WS_GROUP,WS_EX_RIGHT
@@ -873,13 +873,13 @@ BEGIN
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     WS_DISABLED | NOT WS_BORDER | NOT WS_TABSTOP,
                     WS_EX_STATICEDGE
-    PUSHBUTTON      "»∑",IDOK,148,183,50,14,BS_CENTER
+    PUSHBUTTON      "»∑∂®",IDOK,148,183,50,14,BS_CENTER
 END
 
 IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-FONT 9, "ÃéÕ•"
+FONT 9, "ÀŒÃÂ"
 BEGIN
 END
 
@@ -929,123 +929,124 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "–ªœ¢‘Å–µƒ¥Óè≥"
+    MSG_ERROR_IN_MESSAGE_QUEUE "œ˚œ¢∂”¡–µƒ¥ÌŒÛ°£"
     MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
-    MSG_ERROR_BINARY        """%s"" Àá“ªÌ∫üÌæΩ◊ÜœÑÕê?"
-    MSG_ERROR_IO            "À§…´/À§Ì∫ñÌæéÛ°°¢
-    MSG_ERROR_SYNTAX        "‘ØÓè≥"
-    MSG_ERROR_PRINT         "œûÛì¢éƒµ"
-    MSG_ERROR_RUN           "œû’ã—êÕêÚ°°¢
-    MSG_ERROR_LOAD_DLL      "œû‘î÷†""%s"""
-    MSG_ERROR_UNLOAD_DLL    "œû–∂’ò ""%s"""
+    MSG_ERROR_BINARY        """%s""  «“ª∏ˆ∂˛Ω¯÷∆Œƒº˛°£ºÃ–¯?"
+    MSG_ERROR_IO            " ‰»Î/ ‰≥ˆ¥ÌŒÛ°£"
+    MSG_ERROR_SYNTAX        "”Ô∑®¥ÌŒÛ°£"
+    MSG_ERROR_PRINT         "Œﬁ∑®¥Ú”°Œƒµµ°£"
+    MSG_ERROR_RUN           "Œﬁ∑®‘À––≥Ã–Ú°£"
+    MSG_ERROR_LOAD_DLL      "Œﬁ∑®º”‘ÿ ""%s""°£"
+    MSG_ERROR_UNLOAD_DLL    "Œﬁ∑®–∂‘ÿ ""%s""°£"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ÷ß◊ó‘∂‘îÿ°"
-    MSG_FUNCTION_NOT_FOUND  "÷íÀΩ ""%s::%s""Ãπ’öœÑ: ""%s"""
-    MSG_UPDATE_PROGRAM      "—Ç AkelPad\n\n—®“™¬†AkelPad ÿÆ–°Ê±æ: %d.%d.%d.%d\n«∞¬†AkelPad Ê±æ: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "÷ß‘†AkelPad 4.x.x"
-    MSG_UPDATE_PLUGIN       "—Ç %s\n\nAkelPad Õ•œµ·ππ: %d.%d.%d.%d\n%s ÂΩæÕ•œµ·ππ: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" Œ¥ ∂Òé®†AkelPad ÂΩæ"
-    MSG_UPDATE_LANGMODULE   "—Ç %s\n\n«∞Ê±æ: %d.%d.%d.%d\n—®“™Ê±æ: %d.%d.%d.%d"
-    MSG_HOTKEY_EXISTS       "…à”ë÷∏ ""%s"""
-    MSG_CANNOT_OPEN_FILE    "œûÚø´éƒº ""%s"""
-    MSG_WRONG_STRING        "œû–ß≈ê–∫≈°"
-    MSG_LONG_FILELIST       "—°’±Ã´·èÑ"
-    MSG_DOCUMENT_CHANGED    "œÑ”ë—ûƒ°ÀáÒ±£¥‰Ω¢
-    MSG_FILE_DOES_NOT_EXIST "—ÇœÑ ""%s""?"
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ≤ª÷ß≥÷◊‘∂Øº”‘ÿ°£"
+    MSG_FUNCTION_NOT_FOUND  "’“≤ªµΩ∫Ø ˝ ""%s::%s""£¨À˘‘⁄Œƒº˛: ""%s""°£"
+    MSG_UPDATE_PROGRAM      "∏¸–¬ AkelPad°£\n\n–Ë“™µƒ AkelPad ◊Ó–°∞Ê±æ: %d.%d.%d.%d\nµ±«∞µƒ AkelPad ∞Ê±æ: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "≤ª÷ß≥÷ AkelPad 4.x.x°£"
+    MSG_UPDATE_PLUGIN       "∏¸–¬ %s°£\n\nAkelPad ÃÂœµΩ·ππ: %d.%d.%d.%d\n%s ≤Âº˛ÃÂœµΩ·ππ: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" Œ¥±ª ∂±Œ™ AkelPad ≤Âº˛°£"
+    MSG_UPDATE_LANGMODULE   "∏¸–¬ %s\n\nµ±«∞∞Ê±æ: %d.%d.%d.%d\n–Ë“™∞Ê±æ: %d.%d.%d.%d"
+    MSG_HOTKEY_EXISTS       "»»º¸“—æ≠÷∏∂®∏¯ ""%s""°£"
+    MSG_CANNOT_OPEN_FILE    "Œﬁ∑®¥Úø™Œƒº˛ ""%s""°£"
+    MSG_WRONG_STRING        "Œﬁ–ßµƒ––∫≈°£"
+    MSG_LONG_FILELIST       "—°‘ÒÃ´∂‡Œƒº˛°£"
+    MSG_DOCUMENT_CHANGED    "Œƒµµ“—æ≠±ª–ﬁ∏ƒ°£ «∑Ò±£¥Ê?"
+    MSG_FILE_DOES_NOT_EXIST "¥¥Ω®–¬Œƒº˛ ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_RECENTFILES_DELETED "”ë…æ»Ç: %d"
-    MSG_SEARCH_ENDED        "ÃëÃ∑Œ™…°"
-    MSG_REPLACE_COUNT       "ƒµ≈ä: %d"
-    MSG_REPLACE_COUNT_ALLFILES "ƒµ≈éƒºÀΩ: %d\nƒµ≈ä: %Id"
-    MSG_FILE_WILL_BE_REOPENED "œÑ◊ò—ÇÚø™£Ãπ‘êƒΩ·∂™ ß"
-    MSG_FILE_CHANGED        """%s"" ”ëŒ¢—ûƒ°\n\nÀáÚí´ñŸê¬¥Úø®ø"
-    MSG_CP_UNIMPLEMENTED    "œû π‘É√´“≥ ""%d"""
-    MSG_CP_MISMATCH         "”î·É´Áä±·∂™ ß≈£—ê∆é%dÕê?"
-    MSG_RESTART_PROGRAM     "ƒΩ’ö◊ò—Ç«¥ÕêÚª¥â–ß"
-    MSG_SAVEIN_READONLY     """%s"" Àá“ªÌºõÌª∂¬éƒºÕê?"
-    MSG_OVERWRITEPROMPT     """%s"" ”ëÁïöÕ¶?"
-    MSG_DOCUMENTSLIMIT      "”ëêèÑÀΩ–û“™Úø™∏‡π∂œÑ»´ π‘É PMDI ƒ£ Ω"
+    MSG_RECENTFILES_DELETED "“—…æ≥˝º«¬º: %d"
+    MSG_SEARCH_ENDED        "À—À˜ÕÍ≥…°£"
+    MSG_REPLACE_COUNT       "∏¸∏ƒµƒ ˝¡ø: %d"
+    MSG_REPLACE_COUNT_ALLFILES "∏¸∏ƒµƒŒƒº˛ ˝: %d\n∏¸∏ƒµƒ ˝¡ø: %Id"
+    MSG_FILE_WILL_BE_REOPENED "Œƒº˛Ω´±ª÷ÿ–¬¥Úø™£¨À˘”–∏¸∏ƒΩ´ª·∂™ ß°£"
+    MSG_FILE_CHANGED        """%s"" “—æ≠±ªÕ‚≤ø–ﬁ∏ƒ°£\n\n «∑Ò“™÷ÿ–¬¥Úø™?"
+    MSG_CP_UNIMPLEMENTED    "Œﬁ∑® π”√¥˙¬Î“≥ ""%d""°£"
+    MSG_CP_MISMATCH         "“‘±æ±‡¬Î±£¥Ê ±Ω´ª·∂™ ß∑˚∫≈£¨––∫≈Œ™°∞%d°±°£ºÃ–¯?"
+    MSG_RESTART_PROGRAM     "∏¸∏ƒΩ´‘⁄÷ÿ–¬∆Ù∂Ø≥Ã–Ú∫Û…˙–ß°£"
+    MSG_SAVEIN_READONLY     """%s""  «“ª∏ˆ÷ª∂¡Œƒº˛°£ºÃ–¯?"
+    MSG_OVERWRITEPROMPT     """%s"" “—æ≠¥Ê‘⁄°£ÃÊªª?"
+    MSG_DOCUMENTSLIMIT      "“—æ≠µΩ¥ÔŒƒµµ ˝¡øº´œﬁ°£“™¥Úø™∏¸∂‡∏ˆŒƒµµ£¨«Î π”√ PMDI ƒ£ Ω°£"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_DOCNAME             "AkelPad œÑ"
-    STR_MODIFIED            "”ë—û¬¢
-    STR_READONLY            "÷ªÌûøÌø¢
+    STR_DOCNAME             "AkelPad Œƒµµ"
+    STR_MODIFIED            "“—–ﬁ∏ƒ"
+    STR_READONLY            "÷ª∂¡"
     STR_COUNT               "%d / %d"
-    STR_AUTODETECT          "ÿîÏ≥¢(&A)"
-    STR_RECENT_FILES_EMPTY  "(”©"
-    STR_RECENT_FILES_DELETE_DEAD "…æÁïöƒº»Ç"
-    STR_OPTIONS             " ®◊É..."
-    STR_LANGUAGE_NONE       "≈ö"
-    STR_FILE_FILTER         "œÑœÑ (*.txt)|*.txt|Ãπ‘êœÑ (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   " ñ—êœÑ (*.exe)|*.exe|Ãπ‘êœÑ (*.*)|*.*"
+    STR_AUTODETECT          "◊‘∂ØºÏ≤‚(&A)"
+    STR_RECENT_FILES_EMPTY  "(ø’)"
+    STR_RECENT_FILES_DELETE_DEAD "…æ≥˝≤ª¥Ê‘⁄µƒº«¬º"
+    STR_OPTIONS             "…Ë÷√..."
+    STR_LANGUAGE_NONE       "ƒ⁄≤ø"
+    STR_FILE_FILTER         "Œƒ±æŒƒº˛ (*.txt)|*.txt|À˘”–Œƒº˛ (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "ø…÷¥––Œƒº˛ (*.exe)|*.exe|À˘”–Œƒº˛ (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "œû"
-    STR_PLUGIN              "ÂΩæ"
-    STR_FUNCTION            "ÀΩ"
-    STR_HOTKEY              "…à"
+    STR_NONE                "Œﬁ"
+    STR_PLUGIN              "≤Âº˛"
+    STR_FUNCTION            "∫Ø ˝"
+    STR_HOTKEY              "»»º¸"
     STR_STATUS              "◊¥Ã¨"
-    STR_RUNNING             "÷Ω’ö’ã—ê"
-    STR_FONT                "ÿñÕ•"
-    STR_COLOR               "“ï…´"
-    STR_HEADLINE            "Îç¢—ê"
+    STR_RUNNING             "’˝‘⁄‘À––"
+    STR_FONT                "◊÷ÃÂ"
+    STR_COLOR               "—’…´"
+    STR_HEADLINE            "±ÍÃ‚––"
     STR_TOP                 "“≥√º:"
-    STR_BOTTOM              "“≥√∫"
-    STR_ELEMENT             "‘™"
-    STR_STANDARDTHEME       "Îóº"
-    STR_TEXT                "œÑ"
-    STR_BACKGROUND          ""
-    STR_SAMPLE              " æ}"
+    STR_BOTTOM              "“≥Ω≈:"
+    STR_ELEMENT             "‘™º˛"
+    STR_STANDARDTHEME       "±Í◊º"
+    STR_TEXT                "Œƒ±æ"
+    STR_BACKGROUND          "±≥æ∞"
+    STR_SAMPLE              " æ¿˝"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "“ï…´"
-    STR_SELECTION           "—°»∏‘≤"
-    STR_ACTIVELINE          "«∞—ê"
-    STR_ACTIVECOLUMN        "«∞¬ê"
-    STR_COLUMNMARKER        "¬êÍ¥ü–ü"
-    STR_CARET               "Êâ´·†ç
-    STR_URL                 "t—¢
-    STR_PAGEFIT             "Àä–íƒ¶"
-    STR_PAGEWIDTH           "“≥ƒ¶Ì∑à"
-    STR_ALLFILES            "Ãπ‘êœÑ"
-    STR_ONLYMODIFIED        "”ë—û¬¢
-    STR_ONLYUNMODIFIED      "Œ¥—û¬¢
-    STR_INVERTSELECTION     "—°"
-    STR_MESSAGEBOX_OK       "»∑"
-    STR_MESSAGEBOX_YES      "Àá(&Y)"
-    STR_MESSAGEBOX_NO       "ÌùöÌµé)"
+    STR_BASIC               "ª˘±æ—’…´"
+    STR_SELECTION           "—°∂®«¯”Ú"
+    STR_ACTIVELINE          "µ±«∞––"
+    STR_ACTIVECOLUMN        "µ±«∞¡–"
+    STR_COLUMNMARKER        "¡–±Í≥ﬂœﬂ"
+    STR_CARET               "≤Â»Îµ„"
+    STR_URL                 "≥¨¡¥Ω”"
+    STR_PAGEFIT             "  ∫œ“≥√Ê"
+    STR_PAGEWIDTH           "“≥√ÊøÌ∂»"
+    STR_ALLFILES            "À˘”–Œƒº˛"
+    STR_ONLYMODIFIED        "“—–ﬁ∏ƒ"
+    STR_ONLYUNMODIFIED      "Œ¥–ﬁ∏ƒ"
+    STR_INVERTSELECTION     "∑¥—°"
+    STR_MESSAGEBOX_OK       "»∑∂®"
+    STR_MESSAGEBOX_YES      " «(&Y)"
+    STR_MESSAGEBOX_NO       "∑Ò(&N)"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_MESSAGEBOX_CANCEL   "»°–ª"
-    STR_MESSAGEBOX_YESTOALL "»´Àá"
-    STR_MESSAGEBOX_NOTOALL  "»´ÌùÄÌªä    STR_MESSAGEBOX_GOTO     "◊™"
+    STR_MESSAGEBOX_CANCEL   "»°œ˚"
+    STR_MESSAGEBOX_YESTOALL "»´ «"
+    STR_MESSAGEBOX_NOTOALL  "»´∑Ò"
+    STR_MESSAGEBOX_GOTO     "◊™µΩ"
     STR_MESSAGEBOX_TERMINATE "Terminate"
     STR_MESSAGEBOX_CONTINUE "Continue"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "œ∑oœÑ (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE "≈∑ (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE "œ∑≈∑ (1252, OEM, UTF-8)"
-    STR_AUTODETECT_TURKISH  "ŒÅ«§œÑ (1254, OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "◊êœÑ (ANSI, UTF-8)"
-    STR_AUTODETECT_JAPANESE "…ïœÑ (932, UTF-8)"
-    STR_AUTODETECT_KOREAN   "œÑ (949, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Œ˜¿Ô∂˚Œƒ (1251, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "∂´≈∑ (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "Œ˜≈∑ (1252, OEM, UTF-8)"
+    STR_AUTODETECT_TURKISH  "Õ¡∂˙∆‰Œƒ (1254, OEM, UTF-8)"
+    STR_AUTODETECT_CHINESE  "÷–Œƒ (UTF-8)"
+    STR_AUTODETECT_JAPANESE "»’Œƒ (UTF-8)"
+    STR_AUTODETECT_KOREAN   "∫´Œƒ (UTF-8)"
 END
 
 #endif    // Chinese (P.R.C.) resources
