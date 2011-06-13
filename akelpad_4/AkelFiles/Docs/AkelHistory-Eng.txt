@@ -1,6 +1,11 @@
 
 AkelPad 4.6.1 (Jun 11, 2011)
 ----------------------------
+Changed: file reopening if user saved a file in different new line format.
+
+
+AkelPad 4.6.1 (Jun 11, 2011)
+----------------------------
 Added: in dialog "Recode...":
        - automatic recognition of incoming and outgoing encodings;
        - preview;
