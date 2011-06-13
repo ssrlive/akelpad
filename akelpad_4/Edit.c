@@ -4847,7 +4847,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         if (nFileCmp || nCodePageCmp)
           RecentFilesSaveFile(lpFrameCurrent);
 
-        if ((dwFlags & SD_SELECTION) || nLostLine)
+        if ((dwFlags & SD_SELECTION) || nLostLine ||
+            //Is output new line format is changed?
+            HIWORD(SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETNEWLINE, 0, 0)) != AELB_ASIS)
         {
           OpenDocument(hWnd, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
         }
@@ -9142,7 +9144,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     else return FALSE;
 
     //Find new line in wpFindIt and wpReplaceWith.
-    nGetTextNewLine=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETNEWLINE, 0, 0);
+    nGetTextNewLine=HIWORD(SendMessage(lpFrame->ei.hWndEdit, AEM_GETNEWLINE, 0, 0));
 
     if (nGetTextNewLine == AELB_ASIS)
     {
