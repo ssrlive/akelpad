@@ -560,7 +560,7 @@ END
 IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
-CAPTION "重新编码"
+CAPTION "重编码"
 FONT 9, "宋体"
 BEGIN
     RTEXT           "从:",IDC_STATIC,6,11,35,8
@@ -930,7 +930,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "消息队列的错误。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "严重错误: 内存不足。建议终止本程序。"
     MSG_ERROR_BINARY        """%s"" 是一个二进制文件。继续?"
     MSG_ERROR_IO            "输入/输出错误。"
     MSG_ERROR_SYNTAX        "语法错误。"
@@ -1034,8 +1034,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "全是"
     STR_MESSAGEBOX_NOTOALL  "全否"
     STR_MESSAGEBOX_GOTO     "转到"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "终止"
+    STR_MESSAGEBOX_CONTINUE "继续"
 END
 
 STRINGTABLE DISCARDABLE 
