@@ -3768,7 +3768,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
+          int nDestroyResult=FWDE_SUCCESS;
+          int nDestroyCount=0;
           BOOL bResult=TRUE;
+
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
@@ -3776,13 +3780,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           while (lpFrameCurrent->hWndEditParent)
           {
-            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+            if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
+            ++nDestroyCount;
           }
           dwChangedPrompt=0;
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
           return bResult;
         }
@@ -3792,7 +3798,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nMDI)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
+          int nDestroyResult=FWDE_SUCCESS;
+          int nDestroyCount=0;
           BOOL bResult=TRUE;
+
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
@@ -3803,13 +3813,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit) break;
 
-            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+            if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
+            ++nDestroyCount;
           }
           dwChangedPrompt=0;
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
           return bResult;
         }
@@ -3819,7 +3831,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nMDI)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
+          int nDestroyResult=FWDE_SUCCESS;
+          int nDestroyCount=0;
           BOOL bBreak=FALSE;
+          BOOL bResult=TRUE;
+
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           while (!bBreak)
           {
@@ -3829,11 +3846,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (!lpFrameCurrent->ei.bModified)
             {
-              if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-                return FALSE;
+              if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
+              {
+                bResult=FALSE;
+                break;
+              }
+              ++nDestroyCount;
             }
           }
-          return TRUE;
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
+
+          return bResult;
         }
       }
     }
@@ -3949,7 +3972,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else
     {
-      int nDestroyResult;
+      int nDestroyResult=FWDE_SUCCESS;
+      int nDestroyCount=0;
+
+      SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
       if (lpFrameCurrent->hWndEditParent)
       {
@@ -3968,13 +3994,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nDestroyResult == FWDE_ABORT)
         {
           bMainOnFinish=FALSE;
-          dwChangedPrompt=0;
-          return bEndSession?0:1;
+          break;
         }
         else if (nDestroyResult != FWDE_SUCCESS)
           break;
+        ++nDestroyCount;
       }
       dwChangedPrompt=0;
+      SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
+
+      if (!bMainOnFinish)
+        return bEndSession?0:1;
     }
 
     //Close modeless dialog

@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 2)
 
 
 //// Defines
@@ -1488,40 +1488,42 @@ typedef struct {
 //// AkelPad main window WM_USER messages
 
 //Notification messages
-#define AKDN_MAIN_ONSTART          (WM_USER + 1)   //0x401
-#define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)   //0x402
-#define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)   //0x403
-#define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
-#define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
-#define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
+#define AKDN_MAIN_ONSTART              (WM_USER + 1)   //0x401
+#define AKDN_MAIN_ONSTART_PRESHOW      (WM_USER + 2)   //0x402
+#define AKDN_MAIN_ONSTART_SHOW         (WM_USER + 3)   //0x403
+#define AKDN_MAIN_ONSTART_FINISH       (WM_USER + 4)   //0x404
+#define AKDN_MAIN_ONSTART_IDLE         (WM_USER + 5)   //0x405
+#define AKDN_MAIN_ONFINISH             (WM_USER + 6)   //0x406
 
-#define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
-#define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
-#define AKDN_EDIT_ONCLOSE          (WM_USER + 13)  //0x40D
+#define AKDN_EDIT_ONSTART              (WM_USER + 11)  //0x40B
+#define AKDN_EDIT_ONFINISH             (WM_USER + 12)  //0x40C
+#define AKDN_EDIT_ONCLOSE              (WM_USER + 13)  //0x40D
 
-#define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
-#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
-#define AKDN_FRAME_DESTROY         (WM_USER + 23)  //0x417
+#define AKDN_FRAME_NOWINDOWS           (WM_USER + 21)  //0x415
+#define AKDN_FRAME_ACTIVATE            (WM_USER + 22)  //0x416
+#define AKDN_FRAME_DESTROY             (WM_USER + 23)  //0x417
+#define AKDN_FRAME_DESTROY_GROUPSTART  (WM_USER + 24)  //0x418
+#define AKDN_FRAME_DESTROY_GROUPFINISH (WM_USER + 25)  //0x419
 
-#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
-#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
-#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 33)  //0x421
-#define AKDN_DOCK_RESIZE           (WM_USER + 34)  //0x422
+#define AKDN_DOCK_GETMINMAXINFO        (WM_USER + 31)  //0x41F
+#define AKDN_DOCK_CAPTURE_ONSTART      (WM_USER + 32)  //0x420
+#define AKDN_DOCK_CAPTURE_ONFINISH     (WM_USER + 33)  //0x421
+#define AKDN_DOCK_RESIZE               (WM_USER + 34)  //0x422
 
-#define AKDN_DLLCALL               (WM_USER + 41)  //0x429
-#define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
+#define AKDN_DLLCALL                   (WM_USER + 41)  //0x429
+#define AKDN_DLLUNLOAD                 (WM_USER + 42)  //0x42A
 
-#define AKDN_ACTIVATE              (WM_USER + 51)  //0x433
-#define AKDN_SIZE                  (WM_USER + 52)  //0x434
-#define AKDN_OPENDOCUMENT_START    (WM_USER + 53)  //0x435
-#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 54)  //0x436
-#define AKDN_SAVEDOCUMENT_START    (WM_USER + 55)  //0x437
-#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 56)  //0x438
-#define AKDN_HOTKEY                (WM_USER + 57)  //0x439
-#define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
-#define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
-#define AKDN_MESSAGEBOXBEGIN       (WM_USER + 61)  //0x43D
-#define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
+#define AKDN_ACTIVATE                  (WM_USER + 51)  //0x433
+#define AKDN_SIZE                      (WM_USER + 52)  //0x434
+#define AKDN_OPENDOCUMENT_START        (WM_USER + 53)  //0x435
+#define AKDN_OPENDOCUMENT_FINISH       (WM_USER + 54)  //0x436
+#define AKDN_SAVEDOCUMENT_START        (WM_USER + 55)  //0x437
+#define AKDN_SAVEDOCUMENT_FINISH       (WM_USER + 56)  //0x438
+#define AKDN_HOTKEY                    (WM_USER + 57)  //0x439
+#define AKDN_CONTEXTMENU               (WM_USER + 58)  //0x43A
+#define AKDN_SEARCH_ENDED              (WM_USER + 59)  //0x43B
+#define AKDN_MESSAGEBOXBEGIN           (WM_USER + 61)  //0x43D
+#define AKDN_MESSAGEBOXEND             (WM_USER + 62)  //0x43E
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1825,6 +1827,30 @@ Notification message, sends to the main procedure before destroying frame.
 
 wParam              == not used.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, that will be destroyed.
+
+Return Value
+ Zero.
+
+
+AKDN_FRAME_DESTROY_GROUPSTART
+_____________________________
+
+Notification message, sends to the main procedure before destroying frame group.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+
+AKDN_FRAME_DESTROY_GROUPFINISH
+______________________________
+
+Notification message, sends to the main procedure after frame group destroyed.
+
+(int)wParam == count of destroyed frames.
+(int)lParam == last destroy result, see FWDE_* defines.
 
 Return Value
  Zero.

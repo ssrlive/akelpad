@@ -14665,23 +14665,30 @@ BOOL CloseListBoxSelItems(HWND hWnd)
   FRAMEDATA *lpFrame;
   int *lpSelItems;
   int nSelCount;
+  int nDestroyResult=FWDE_SUCCESS;
+  int nDestroyCount=0;
   int i;
   BOOL bResult=TRUE;
 
   if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
   {
+    SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
+
     for (i=nSelCount - 1; i >= 0; --i)
     {
       if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
-        if (DestroyMdiFrameWindow(lpFrame) != FWDE_SUCCESS)
+        if ((nDestroyResult=DestroyMdiFrameWindow(lpFrame)) != FWDE_SUCCESS)
         {
           bResult=FALSE;
           break;
         }
+        ++nDestroyCount;
         SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
       }
     }
+    SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
+
     FreeListBoxSelItems(&lpSelItems);
   }
   return bResult;
