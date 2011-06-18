@@ -761,6 +761,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
     else
       dwStyle=!bMdiMaximize?0:WS_MAXIMIZE;
 
+    dwMdiFrameActivating=FWA_NOTIFY_CREATE;
     CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?(DWORD)rcRectMDI->left:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->top:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->right:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->bottom:(DWORD)CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
