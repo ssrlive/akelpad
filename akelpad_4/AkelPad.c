@@ -431,7 +431,7 @@ HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
 BOOL bTabPressing=FALSE;
 BOOL bFrameActivating=FALSE;
-DWORD dwMdiFrameActivating;
+DWORD dwMdiFrameActivating=0;
 RECT rcMdiListMinMaxDialog={221, 463, 0, 0};
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
@@ -4571,6 +4571,9 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               StackFrameMove(&hFramesStack, lpFrame, -1);
           }
         }
+        //Destroying
+        else if (lParam)
+          dwMdiFrameActivating=FWA_NOTIFY_AFTERDESTROY;
 
         //Save deactivated MDI window settings
         if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
