@@ -265,6 +265,7 @@ extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
 extern BOOL bTabPressing;
 extern BOOL bFrameActivating;
+extern DWORD dwMdiFrameActivating;
 extern RECT rcMdiListMinMaxDialog;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -760,10 +761,6 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
     else
       dwStyle=!bMdiMaximize?0:WS_MAXIMIZE;
 
-    if (lpFrameCurrent == &fdInit)
-      lpFramePrevious=NULL;
-    else
-      lpFramePrevious=lpFrameCurrent;
     CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?(DWORD)rcRectMDI->left:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->top:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->right:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->bottom:(DWORD)CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
@@ -780,7 +777,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
 
       AddTabItem(hTab, (LPARAM)lpFrame);
 
-      ActivateMdiFrameWindow(lpFrame, 0);
+      ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_CREATE);
       SetEditWindowSettings(lpFrameCurrent);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
@@ -802,32 +799,25 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
   if (lpFrameCurrent != lpFrame)
   {
-    if (lpFrameCurrent == &fdInit)
-      lpFramePrevious=NULL;
-    else
-      lpFramePrevious=lpFrameCurrent;
-
-    if (!(dwFlags & FWA_NOUPDATEORDER))
-    {
-      //Move item to the end of stack, to use access order later.
-      StackFrameMove(&hFramesStack, lpFrame, -1);
-    }
-
     if (nMDI == WMD_MDI)
     {
-      //Remove blinking frame windows effect (begin)
-      if (lpFrameCurrent->hWndEditParent)
-      {
-        SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-        if (bMdiMaximize) SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
-      }
-
       //Activate frame
+      dwMdiFrameActivating=dwFlags;
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)lpFrame->hWndEditParent, 0);
     }
     else if (nMDI == WMD_PMDI)
     {
+      if (!(dwFlags & FWA_NOUPDATEORDER))
+      {
+        //Move item to the end of stack, to use access order later.
+        StackFrameMove(&hFramesStack, lpFrame, -1);
+      }
+
       //Save deactivated frame data
+      if (lpFrameCurrent == &fdInit)
+        lpFramePrevious=NULL;
+      else
+        lpFramePrevious=lpFrameCurrent;
       if (lpFrameCurrent->ei.hDocEdit)
         SaveFrameData(lpFrameCurrent);
 
@@ -922,10 +912,10 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       if (dwPrompt & PROMPT_NONE)
       {
         bEditOnFinish=TRUE;
-        ActivateMdiFrameWindow(lpFrame, FWA_DESTROY|FWA_NOVISUPDATE);
+        ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY|FWA_NOVISUPDATE);
         bEditOnFinish=FALSE;
       }
-      else ActivateMdiFrameWindow(lpFrame, FWA_DESTROY);
+      else ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
 
       if (lpFrame == lpFrameToActivate)
       {
@@ -979,7 +969,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 
         //Activate previous window
         if (lpFrameToActivate)
-          ActivateMdiFrameWindow(lpFrameToActivate, 0);
+          ActivateMdiFrameWindow(lpFrameToActivate, FWA_NOTIFY_AFTERDESTROY);
       }
     }
     return FWDE_SUCCESS;
@@ -4092,7 +4082,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           if (lpFrame=StackFrameGetByName(&hFramesStack, wszFile, -1))
           {
-            ActivateMdiFrameWindow(lpFrame, 0);
+            ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_REOPEN);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
             if (SaveChanged(0))
@@ -14665,30 +14655,23 @@ BOOL CloseListBoxSelItems(HWND hWnd)
   FRAMEDATA *lpFrame;
   int *lpSelItems;
   int nSelCount;
-  int nDestroyResult=FWDE_SUCCESS;
-  int nDestroyCount=0;
   int i;
   BOOL bResult=TRUE;
 
   if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
   {
-    SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
-
     for (i=nSelCount - 1; i >= 0; --i)
     {
       if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
-        if ((nDestroyResult=DestroyMdiFrameWindow(lpFrame)) != FWDE_SUCCESS)
+        if (DestroyMdiFrameWindow(lpFrame) != FWDE_SUCCESS)
         {
           bResult=FALSE;
           break;
         }
-        ++nDestroyCount;
         SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
       }
     }
-    SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
-
     FreeListBoxSelItems(&lpSelItems);
   }
   return bResult;

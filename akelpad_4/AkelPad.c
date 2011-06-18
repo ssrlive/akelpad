@@ -431,6 +431,7 @@ HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
 BOOL bTabPressing=FALSE;
 BOOL bFrameActivating=FALSE;
+DWORD dwMdiFrameActivating;
 RECT rcMdiListMinMaxDialog={221, 463, 0, 0};
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
@@ -3768,11 +3769,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-          int nDestroyResult=FWDE_SUCCESS;
-          int nDestroyCount=0;
           BOOL bResult=TRUE;
-
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
@@ -3780,15 +3777,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           while (lpFrameCurrent->hWndEditParent)
           {
-            if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
+            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
-            ++nDestroyCount;
           }
           dwChangedPrompt=0;
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
           return bResult;
         }
@@ -3798,11 +3793,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nMDI)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
-          int nDestroyResult=FWDE_SUCCESS;
-          int nDestroyCount=0;
           BOOL bResult=TRUE;
-
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
@@ -3813,15 +3804,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit) break;
 
-            if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
+            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
-            ++nDestroyCount;
           }
           dwChangedPrompt=0;
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
           return bResult;
         }
@@ -3831,12 +3820,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nMDI)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
-          int nDestroyResult=FWDE_SUCCESS;
-          int nDestroyCount=0;
           BOOL bBreak=FALSE;
           BOOL bResult=TRUE;
-
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
 
           while (!bBreak)
           {
@@ -3846,15 +3831,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (!lpFrameCurrent->ei.bModified)
             {
-              if ((nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent)) != FWDE_SUCCESS)
+              if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
               {
                 bResult=FALSE;
                 break;
               }
-              ++nDestroyCount;
             }
           }
-          SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
           return bResult;
         }
@@ -3972,10 +3955,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else
     {
-      int nDestroyResult=FWDE_SUCCESS;
-      int nDestroyCount=0;
-
-      SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPSTART, 0, 0);
+      int nDestroyResult;
 
       if (lpFrameCurrent->hWndEditParent)
       {
@@ -3998,10 +3978,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (nDestroyResult != FWDE_SUCCESS)
           break;
-        ++nDestroyCount;
       }
       dwChangedPrompt=0;
-      SendMessage(hMainWnd, AKDN_FRAME_DESTROY_GROUPFINISH, (WPARAM)nDestroyCount, (LPARAM)nDestroyResult);
 
       if (!bMainOnFinish)
         return bEndSession?0:1;
@@ -4579,6 +4557,21 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWnd == (HWND)wParam)
       {
+        //Switching between
+        if (lpFrameCurrent->hWndEditParent)
+        {
+          //Remove blinking frame windows effect (begin)
+          SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
+          if (bMdiMaximize) SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
+
+          if (!(dwMdiFrameActivating & FWA_NOUPDATEORDER))
+          {
+            //Move item to the end of stack, to use access order later.
+            if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)lParam, GWLP_USERDATA))
+              StackFrameMove(&hFramesStack, lpFrame, -1);
+          }
+        }
+
         //Save deactivated MDI window settings
         if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
           SaveFrameData(lpFrame);
@@ -4602,7 +4595,8 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           InvalidateRect(lpFrameCurrent->hWndEditParent, NULL, FALSE);
         }
 
-        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent);
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, dwMdiFrameActivating, (LPARAM)lpFrameCurrent);
+        dwMdiFrameActivating=0;
       }
     }
   }
@@ -4935,7 +4929,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         //Activate frame
         if (!(dwPrompt & PROMPT_NONE))
-          ActivateMdiFrameWindow(lpFrame, 0);
+          ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
 
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
