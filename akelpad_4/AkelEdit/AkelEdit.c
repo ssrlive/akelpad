@@ -7505,7 +7505,7 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
   AELINEDATA *lpElement;
   INT_PTR nCount=0;
   int nCompare;
-  int nLineBreak;
+  BYTE nLineBreak;
 
   if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
@@ -7554,14 +7554,14 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
         if (nNewLine == AELB_ASIS)
           nLineBreak=AELB_RN;
         else
-          nLineBreak=nNewLine;
+          nLineBreak=(BYTE)nNewLine;
       }
       else
       {
         if (nNewLine == AELB_ASIS)
           nLineBreak=lpElement->nLineBreak;
         else
-          nLineBreak=nNewLine;
+          nLineBreak=(BYTE)nNewLine;
       }
 
       if (nLineBreak == AELB_R)
@@ -7608,7 +7608,7 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
           if (nNewLine == AELB_ASIS)
             nLineBreak=lpElement->nLineBreak;
           else
-            nLineBreak=nNewLine;
+            nLineBreak=(BYTE)nNewLine;
 
           if (nLineBreak == AELB_R)
             nCount+=1;
@@ -7631,7 +7631,7 @@ UINT_PTR AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *
   AECHARINDEX ciCount=*ciCharIn;
   INT_PTR nOffsetCount=nOffset;
   int nSub;
-  int nLineBreak;
+  BYTE nLineBreak;
 
   //Set new line
   if (nNewLine < AELB_ASIS)
@@ -7679,7 +7679,7 @@ UINT_PTR AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *
       if (nLineBreak != AELB_WRAP)
       {
         if (nNewLine != AELB_ASIS)
-          nLineBreak=nNewLine;
+          nLineBreak=(BYTE)nNewLine;
 
         if (nLineBreak == AELB_R)
           nOffsetCount-=1;
@@ -7725,7 +7725,7 @@ UINT_PTR AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *
       if (nLineBreak != AELB_WRAP)
       {
         if (nNewLine != AELB_ASIS)
-          nLineBreak=nNewLine;
+          nLineBreak=(BYTE)nNewLine;
 
         if (nLineBreak == AELB_R)
           nOffsetCount+=1;
@@ -8182,10 +8182,10 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
   AELINEDATA *lpNextElement;
   AEPOINT *lpTmpPoint=*lpPoint;
   DWORD dwUnwrapLineWidth=0;
-  DWORD dwUnwrapLineBreak=AELB_EOF;
   DWORD dwUnwrapLineLen=0;
   DWORD dwCountWidth=0;
   DWORD dwCountLen=0;
+  BYTE nUnwrapLineBreak=AELB_EOF;
   int nLineCount=0;
 
   if (liLine->lpLine->nLineWidth == -1)
@@ -8220,7 +8220,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
 
         if (dwUnwrapLineWidth >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
         {
-          dwUnwrapLineBreak=lpCurElement->nLineBreak;
+          nUnwrapLineBreak=lpCurElement->nLineBreak;
           break;
         }
         lpCurElement=lpCurElement->next;
@@ -8230,7 +8230,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
       if (lpNewElement=AE_StackLineInsertBefore(ae, liLine->lpLine))
       {
         lpNewElement->nLineWidth=dwUnwrapLineWidth;
-        lpNewElement->nLineBreak=dwUnwrapLineBreak;
+        lpNewElement->nLineBreak=nUnwrapLineBreak;
         lpNewElement->nLineLen=dwUnwrapLineLen;
 
         if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
@@ -14359,7 +14359,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
   AELINEDATA *lpElement;
   UINT_PTR dwCopied=0;
   UINT_PTR dwCharsToCopy;
-  int nLineBreak;
+  BYTE nLineBreak;
   int i;
 
   if (ciStart.lpLine && ciEnd.lpLine)
@@ -14417,14 +14417,14 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 if (nNewLine == AELB_ASIS)
                   nLineBreak=AELB_RN;
                 else
-                  nLineBreak=nNewLine;
+                  nLineBreak=(BYTE)nNewLine;
               }
               else
               {
                 if (nNewLine == AELB_ASIS)
                   nLineBreak=lpElement->nLineBreak;
                 else
-                  nLineBreak=nNewLine;
+                  nLineBreak=(BYTE)nNewLine;
               }
 
               if (nLineBreak == AELB_R)
@@ -14506,7 +14506,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   if (nNewLine == AELB_ASIS)
                     nLineBreak=lpElement->nLineBreak;
                   else
-                    nLineBreak=nNewLine;
+                    nLineBreak=(BYTE)nNewLine;
 
                   if (nLineBreak == AELB_R)
                   {
@@ -14587,7 +14587,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
   int nLinesInPage;
-  int nLineBreak;
+  BYTE nLineBreak;
   BOOL bUpdated=FALSE;
   BOOL bStopProgress=FALSE;
 
@@ -14651,7 +14651,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
         if (lpElement->nLineBreak != AELB_EOF)
         {
           if (nNewLine != AELB_ASIS)
-            lpElement->nLineBreak=nNewLine;
+            lpElement->nLineBreak=(BYTE)nNewLine;
         }
         else --ae->ptxt->nLastCharOffset;
 
@@ -14840,7 +14840,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   int nNewLine=aesi->nNewLine;
   int nLinesInPage;
   int nApproxLinesCount=0;
-  int nLineBreak;
+  BYTE nLineBreak;
   BOOL bUpdated=FALSE;
   BOOL bStopProgress=FALSE;
 
@@ -14971,7 +14971,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
               if (lpElement->nLineBreak != AELB_EOF)
               {
                 if (nNewLine != AELB_ASIS)
-                  lpElement->nLineBreak=nNewLine;
+                  lpElement->nLineBreak=(BYTE)nNewLine;
                 ++nApproxLinesCount;
               }
               else --ae->ptxt->nLastCharOffset;
@@ -15055,13 +15055,13 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
             }
           }
           lpElement=(AELINEDATA *)ae->ptxt->hLinesStack.last;
-          if (lpElement) lpElement->nLineBreak=MAKEWORD(lpElement->nLineBreak, AELB_SPLIT);
+          if (lpElement) lpElement->nLineFlags=AELF_SPLIT;
           dwTextCount+=dwBlockLen;
         }
 
         //Last line
         LastLine:
-        if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
+        if (lpElement) lpElement->nLineFlags=0;
 
         if (!lpElement || lpElement->nLineBreak != AELB_EOF)
         {
@@ -15163,10 +15163,11 @@ int AE_JoinNewLines(AKELEDIT *ae)
   {
     dwCountLen+=liLineEnd.lpLine->nLineLen;
 
-    if (HIBYTE(liLineEnd.lpLine->nLineBreak) == AELB_SPLIT)
+    if (liLineEnd.lpLine->nLineFlags == AELF_SPLIT)
       ++nSplitFound;
 
-    if (liLineEnd.lpLine->nLineBreak != MAKEWORD(AELB_EOF, AELB_SPLIT))
+    if (!(liLineEnd.lpLine->nLineBreak == AELB_EOF &&
+          liLineEnd.lpLine->nLineFlags == AELF_SPLIT))
     {
       if (!nSplitFound)
       {
@@ -15179,9 +15180,9 @@ int AE_JoinNewLines(AKELEDIT *ae)
       else
       {
         //Join split new line
-        if (HIBYTE(liLineEnd.lpLine->nLineBreak) == AELB_SPLIT)
+        if (liLineEnd.lpLine->nLineFlags == AELF_SPLIT)
         {
-          liLineEnd.lpLine->nLineBreak=LOBYTE(liLineEnd.lpLine->nLineBreak);
+          liLineEnd.lpLine->nLineFlags=0;
 
           if (!liLineEnd.lpLine->nLineLen)
           {
@@ -15200,7 +15201,8 @@ int AE_JoinNewLines(AKELEDIT *ae)
               AE_StackLineDelete(ae, liLineEnd.lpLine->next->next);
               AE_StackLineDelete(ae, liLineEnd.lpLine->next);
             }
-            else if (liLineEnd.lpLine->prev && liLineEnd.lpLine->prev->nLineBreak == MAKEWORD(AELB_EOF, AELB_SPLIT))
+            else if (liLineEnd.lpLine->prev && (liLineEnd.lpLine->prev->nLineBreak == AELB_EOF &&
+                                                liLineEnd.lpLine->prev->nLineFlags == AELF_SPLIT))
             {
               //  text\0|
               //  \r or \n or \r\n or \r\r\n
@@ -15262,7 +15264,7 @@ int AE_JoinNewLines(AKELEDIT *ae)
               xmemcpy(lpNewElement->wpLine + dwCountLen, lpCurElement->wpLine, lpCurElement->nLineLen * sizeof(wchar_t));
               dwCountLen+=lpCurElement->nLineLen;
 
-              if (HIBYTE(lpCurElement->nLineBreak) != AELB_SPLIT)
+              if (lpCurElement->nLineFlags != AELF_SPLIT)
               {
                 AE_StackLineDelete(ae, lpCurElement);
                 break;
@@ -15301,7 +15303,7 @@ UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   AECHARINDEX ciEnd;
   wchar_t *wszBuf;
   int nNewLine=aeso->nNewLine;
-  int nLineBreak;
+  BYTE nLineBreak;
   BOOL bColumnSel=aeso->bColumnSel;
   DWORD dwBufLen=2048;
   DWORD dwBufCount=0;
@@ -15366,7 +15368,7 @@ UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
       if (nNewLine == AELB_ASIS)
         nLineBreak=ciCount.lpLine->nLineBreak;
       else
-        nLineBreak=nNewLine;
+        nLineBreak=(BYTE)nNewLine;
 
       if (ciCount.lpLine->nLineBreak != AELB_WRAP)
       {
@@ -16284,8 +16286,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   UINT_PTR dwRichTextCount=0;
   DWORD dwCalcLinesWidthFlags=0;
   DWORD dwUndoFlags=0;
+  BYTE nLineBreak;
   int nLineLen=0;
-  int nLineBreak;
   int nLineCount=0;
   int nWrapCount=0;
   int nCaretIndexInLine=0;
@@ -16390,7 +16392,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             if (nLineBreak != AELB_EOF)
             {
               if (nNewLine != AELB_ASIS)
-                nLineBreak=nNewLine;
+                nLineBreak=(BYTE)nNewLine;
             }
 
             if (lpElement)
@@ -16799,7 +16801,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             if (nLineBreak != AELB_EOF)
             {
               if (nNewLine != AELB_ASIS)
-                nLineBreak=nNewLine;
+                nLineBreak=(BYTE)nNewLine;
             }
             else --dwRichTextCount;
 
@@ -17232,7 +17234,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   return dwTextCount;
 }
 
-wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak)
+wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, BYTE *nLineBreak)
 {
   wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd;
@@ -17486,8 +17488,8 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount;
-  int nLineBreak;
   int nNewLine;
+  BYTE nLineBreak;
   DWORD dwCount;
 
   if (ft->dwFlags & AEFR_WHOLEWORD)
@@ -17545,7 +17547,7 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       if (nNewLine == AELB_ASIS)
         nLineBreak=ciCount.lpLine->nLineBreak;
       else
-        nLineBreak=nNewLine;
+        nLineBreak=(BYTE)nNewLine;
 
       if (nLineBreak == AELB_R)
       {

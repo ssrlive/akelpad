@@ -716,7 +716,9 @@ typedef struct _AELINEDATA {
   struct _AELINEDATA *prev;   //Pointer to the previous AELINEDATA structure.
   wchar_t *wpLine;            //Text of the line, terminated with NULL character.
   int nLineLen;               //Length of the wpLine, not including the terminating NULL character.
-  int nLineBreak;             //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP. HIWORD is free and can be used.
+  BYTE nLineBreak;            //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP.
+  BYTE nLineFlags;            //Reserved.
+  WORD nReserved;             //Reserved.
   int nLineWidth;             //Width of the line in pixels.
   int nSelStart;              //Selection start character position in line.
   int nSelEnd;                //Selection end character position in line.
