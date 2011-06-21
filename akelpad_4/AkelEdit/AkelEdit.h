@@ -3623,11 +3623,12 @@ Lock scrolling of an edit control.
 (int)wParam  == SB_BOTH  lock horizontal and vertical scroll.
                 SB_HORZ  lock horizontal scroll.
                 SB_VERT  lock vertical scroll.
+                -1       only retrieve current SB_* lock, lParam is ignored.
 (BOOL)lParam == TRUE   lock scroll.
                 FALSE  unlock scroll.
 
 Return Value
- Zero.
+ Previous SB_* lock or -1 if no locking information defined.
 
 Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
@@ -4542,11 +4543,12 @@ Show or hide scroll bars in the edit control.
 (int)wParam  == SB_BOTH  horizontal and vertical scroll bars.
                 SB_HORZ  horizontal scroll bar.
                 SB_VERT  vertical scroll bar.
+                -1       only retrieve current SB_* visibility, lParam is ignored.
 (BOOL)lParam == TRUE   show.
                 FALSE  hide.
 
 Return Value
- Zero.
+ Previous SB_* visibility or -1 if no visibile scroll bars.
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
