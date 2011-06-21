@@ -6051,14 +6051,12 @@ Example:
   {
     AEC_IndexInc(ciChar);
 
-    if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
     {
-      AEC_NextLine(ciChar);
-
-      if (ciChar->lpLine)
+      if (ciChar->nCharInLine > ciChar->lpLine->nLineLen ||
+          ciChar->lpLine->nLineBreak == AELB_WRAP)
       {
-        if (ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
-          AEC_IndexInc(ciChar);
+        AEC_NextLine(ciChar);
       }
     }
     return ciChar->lpLine;
@@ -6070,9 +6068,7 @@ Example:
 
     if (ciChar->nCharInLine < 0)
     {
-      AEC_PrevLine(ciChar);
-
-      if (ciChar->lpLine)
+      if (AEC_PrevLine(ciChar))
       {
         if (ciChar->lpLine->nLineBreak == AELB_WRAP)
           AEC_IndexDec(ciChar);
@@ -6115,12 +6111,15 @@ Example:
 
   AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar)
   {
-    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
+    AEC_IndexInc(ciChar);
+
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
     {
-      if (ciChar->lpLine->nLineBreak != AELB_WRAP)
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+        AEC_NextLine(ciChar);
+      else
         return NULL;
     }
-    AEC_NextChar(ciChar);
     return ciChar->lpLine;
   }
 
@@ -6165,6 +6164,18 @@ Example:
       *ciOut=*ciIn;
       return NULL;
     }
+  }
+
+  AELINEDATA* AEC_ValidCharInLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    {
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+        AEC_NextLine(ciChar);
+      else
+        ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+    }
+    return ciChar->lpLine;
   }
 
   int AEC_WrapLineBegin(AECHARINDEX *ciChar)
@@ -6306,6 +6317,7 @@ Example:
   AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
   AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_ValidCharInLine(AECHARINDEX *ciChar);
   int AEC_WrapLineBegin(AECHARINDEX *ciChar);
   int AEC_WrapLineEnd(AECHARINDEX *ciChar);
   int AEC_WrapLineBeginEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
