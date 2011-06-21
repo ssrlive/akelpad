@@ -3714,8 +3714,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (hImc=ImmGetContext(ae->hWndEdit))
         {
-          AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &crSel.ciMax);
-          AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin);
+          AEC_NextCharEx(&ae->ciSelStartIndex, &crSel.ciMax);
+          AEC_PrevCharEx(&crSel.ciMax, &crSel.ciMin);
           ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
           if (ImmEscapeW(ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
@@ -18573,7 +18573,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
     }
 
     if ((bControl && AE_GetPrevBreak(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
-        (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex)))
+        (!bControl && AEC_PrevCharEx(&ae->ciSelStartIndex, &ciCharIndex)))
     {
       AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, 0);
@@ -18635,7 +18635,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
     }
 
     if ((bControl && AE_GetNextBreak(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
-        (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex)))
+        (!bControl && AEC_NextCharEx(&ae->ciSelStartIndex, &ciCharIndex)))
     {
       if (!nSpaces) AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
