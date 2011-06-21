@@ -7766,13 +7766,11 @@ BOOL AE_IndexNormalize(AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine > 0 && ciChar->nCharInLine < ciChar->lpLine->nLineLen)
   {
-    if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+    if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]) &&
+        AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
     {
-      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
-      {
-        --ciChar->nCharInLine;
-        return TRUE;
-      }
+      --ciChar->nCharInLine;
+      return TRUE;
     }
   }
   return FALSE;
@@ -14046,7 +14044,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   }
 
   End:
-  ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
+  AEC_ValidCharInLine(&ciCount);
 
   if (AEC_IndexCompare(ciChar, &ciCount))
   {
@@ -14202,7 +14200,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   }
 
   End:
-  ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
+  AEC_ValidCharInLine(&ciCount);
 
   if (AEC_IndexCompare(ciChar, &ciCount))
   {

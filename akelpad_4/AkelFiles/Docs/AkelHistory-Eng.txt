@@ -1,7 +1,8 @@
 
-AkelPad 4.6.1 (Jun 11, 2011)
+AkelPad 4.6.2 ()
 ----------------------------
 Changed: file reopening if user saved a file in different new line format.
+Changed: movement to the next line with right arrow key when mode wrap is on.
 
 
 AkelPad 4.6.1 (Jun 11, 2011)
