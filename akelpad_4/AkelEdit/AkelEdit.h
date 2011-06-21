@@ -6175,6 +6175,10 @@ Example:
       else
         ciChar->nCharInLine=ciChar->lpLine->nLineLen;
     }
+    else if (ciChar->nCharInLine < 0)
+    {
+      ciChar->nCharInLine=0;
+    }
     return ciChar->lpLine;
   }
 
