@@ -716,7 +716,9 @@ typedef struct _AELINEDATA {
   struct _AELINEDATA *prev;   //Pointer to the previous AELINEDATA structure.
   wchar_t *wpLine;            //Text of the line, terminated with NULL character.
   int nLineLen;               //Length of the wpLine, not including the terminating NULL character.
-  int nLineBreak;             //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP. HIWORD is free and can be used.
+  BYTE nLineBreak;            //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP.
+  BYTE nLineFlags;            //Reserved.
+  WORD nReserved;             //Reserved.
   int nLineWidth;             //Width of the line in pixels.
   int nSelStart;              //Selection start character position in line.
   int nSelEnd;                //Selection end character position in line.
@@ -3621,11 +3623,12 @@ Lock scrolling of an edit control.
 (int)wParam  == SB_BOTH  lock horizontal and vertical scroll.
                 SB_HORZ  lock horizontal scroll.
                 SB_VERT  lock vertical scroll.
+                -1       only retrieve current SB_* lock, lParam is ignored.
 (BOOL)lParam == TRUE   lock scroll.
                 FALSE  unlock scroll.
 
 Return Value
- Zero.
+ Previous SB_* lock or -1 if no locking information defined.
 
 Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
@@ -4540,11 +4543,12 @@ Show or hide scroll bars in the edit control.
 (int)wParam  == SB_BOTH  horizontal and vertical scroll bars.
                 SB_HORZ  horizontal scroll bar.
                 SB_VERT  vertical scroll bar.
+                -1       only retrieve current SB_* visibility, lParam is ignored.
 (BOOL)lParam == TRUE   show.
                 FALSE  hide.
 
 Return Value
- Zero.
+ Previous SB_* visibility or -1 if no visibile scroll bars.
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);

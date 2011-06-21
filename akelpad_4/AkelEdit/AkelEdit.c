@@ -1027,11 +1027,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_LOCKSCROLL)
     {
+      int nResult=-1;
+
+      if (ae->popt->bHScrollLock && ae->popt->bVScrollLock)
+        nResult=SB_BOTH;
+      else if (ae->popt->bHScrollLock)
+        nResult=SB_HORZ;
+      else if (ae->popt->bVScrollLock)
+        nResult=SB_VERT;
+
       if (wParam == SB_BOTH || wParam == SB_HORZ)
         ae->popt->bHScrollLock=(BOOL)lParam;
       if (wParam == SB_BOTH || wParam == SB_VERT)
         ae->popt->bVScrollLock=(BOOL)lParam;
-      return 0;
+      return nResult;
     }
     if (uMsg == AEM_GETCHARSIZE)
     {
@@ -1537,6 +1546,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_SHOWSCROLLBAR)
     {
       BOOL bUpdate=FALSE;
+      int nResult=-1;
+
+      if (ae->bHScrollShow && ae->bVScrollShow)
+        nResult=SB_BOTH;
+      else if (ae->bHScrollShow)
+        nResult=SB_HORZ;
+      else if (ae->bVScrollShow)
+        nResult=SB_VERT;
 
       if (wParam == SB_BOTH || wParam == SB_HORZ)
       {
@@ -1557,7 +1574,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (bUpdate)
         ShowScrollBar(ae->hWndEdit, (int)wParam, (BOOL)lParam);
 
-      return 0;
+      return nResult;
     }
     if (uMsg == AEM_UPDATESCROLLBAR)
     {
