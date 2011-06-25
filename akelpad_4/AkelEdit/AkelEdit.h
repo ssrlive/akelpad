@@ -538,6 +538,11 @@
 #define AESF_SELECTION       0x00000001  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
 #define AESF_FILLSPACES      0x00000002  //Stream-out (write) the current column selection with the filling empty spaces. Valid if bColumnSel member of a AESTREAMOUT structure is TRUE.
 
+//AEM_ISRANGEMODIFIED return value
+#define AEIRM_UNMODIFIED      1
+#define AEIRM_MODIFIEDUNSAVED 2
+#define AEIRM_MODIFIEDSAVED   3
+
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
 #endif
@@ -1370,6 +1375,7 @@ typedef struct {
 #define AEM_GETMODIFY             (WM_USER + 2062)
 #define AEM_SETMODIFY             (WM_USER + 2063)
 #define AEM_UNDOBUFFERSIZE        (WM_USER + 2064)
+#define AEM_ISRANGEMODIFIED       (WM_USER + 2065)
 
 //Text coordinates
 #define AEM_EXGETSEL              (WM_USER + 2099)
@@ -2834,6 +2840,35 @@ Example:
  SendMessage(hWndEdit, AEM_UNDOBUFFERSIZE, 0, 0);
 
 
+AEM_ISRANGEMODIFIED
+___________________
+
+Retrieve modification flag of specified range of characters.
+
+wParam                == not used.
+(CHARRANGE64 *)lParam == range of characters to check (RichEdit offset).
+
+Return Value
+ See AEIRM_* defines.
+
+Example (check is line has been modified):
+ AECHARINDEX ciCaretLine;
+ CHARRANGE64 crLineRange;
+ int nLineModified;
+
+ //Get first char of caret line
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaretLine);
+ ciCaretLine.nCharInLine=0;
+
+ //Get caret line coordinates in RichEdit offsets
+ crLineRange.cpMin=SendMessage(hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciCaretLine);
+ crLineRange.cpMax=crLineRange.cpMin + ciCaretLine.lpLine->nLineLen;
+ if (ciCaretLine.lpLine->nLineBreak != AELB_WRAP)
+   ++crLineRange.cpMax;
+
+ nLineModified=(int)SendMessage(hWndEdit, AEM_ISRANGEMODIFIED, 0, (LPARAM)&crLineRange);
+
+
 AEM_EXGETSEL
 ____________
 
@@ -3056,9 +3091,13 @@ Return Value
 
 Example:
  AEINDEXSUBTRACT is;
+ AECHARINDEX ciChar1;
+ AECHARINDEX ciChar2;
 
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&is.ciChar1);
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&is.ciChar2);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar1);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciChar2);
+ is.ciChar1=&ciChar1;
+ is.ciChar2=&ciChar2;
  is.bColumnSel=FALSE;
  is.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_INDEXSUBTRACT, 0, (LPARAM)&is);
