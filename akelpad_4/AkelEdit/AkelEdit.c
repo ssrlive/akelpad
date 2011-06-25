@@ -584,6 +584,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_StackUndoSize(ae);
     }
+    if (uMsg == AEM_ISRANGEMODIFIED)
+    {
+      return AE_StackIsRangeModified(ae, (const CHARRANGE64 *)lParam);
+    }
 
     //Text coordinates
     ExGetSel:
@@ -6534,6 +6538,51 @@ UINT_PTR AE_StackUndoSize(AKELEDIT *ae)
     lpElement=lpElement->next;
   }
   return dwSize;
+}
+
+int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
+{
+  AEUNDOITEM *lpElement=ae->ptxt->lpCurrentUndo;
+  CHARRANGE64 crRange=*lpcrRange;
+  INT_PTR nActionLen;
+  int nResult=AEIRM_MODIFIEDUNSAVED;
+
+  while (lpElement)
+  {
+    if (lpElement == ae->ptxt->lpSavePoint)
+      nResult=AEIRM_MODIFIEDSAVED;
+
+    if (lpElement->dwFlags & AEUN_DELETE)
+    {
+      if (crRange.cpMax > lpElement->nActionStartOffset &&
+          crRange.cpMin < lpElement->nActionEndOffset)
+      {
+        return nResult;
+      }
+      else if (crRange.cpMin >= lpElement->nActionEndOffset)
+      {
+        nActionLen=lpElement->nActionEndOffset - lpElement->nActionStartOffset;
+        crRange.cpMin-=nActionLen;
+        crRange.cpMax-=nActionLen;
+      }
+    }
+    else if (lpElement->dwFlags & AEUN_INSERT)
+    {
+      if (crRange.cpMax > lpElement->nActionStartOffset &&
+          crRange.cpMin <= lpElement->nActionStartOffset)
+      {
+        return nResult;
+      }
+      else if (crRange.cpMin >= lpElement->nActionStartOffset)
+      {
+        nActionLen=lpElement->nActionEndOffset - lpElement->nActionStartOffset;
+        crRange.cpMin+=nActionLen;
+        crRange.cpMax+=nActionLen;
+      }
+    }
+    lpElement=lpElement->prev;
+  }
+  return AEIRM_UNMODIFIED;
 }
 
 void AE_StackUndoGroupStop(AKELEDIT *ae)

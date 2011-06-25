@@ -735,6 +735,7 @@ AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae);
 void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem);
 void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem);
 UINT_PTR AE_StackUndoSize(AKELEDIT *ae);
+int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange);
 void AE_StackUndoGroupStop(AKELEDIT *ae);
 AELINEDATA* AE_StackLineAdd(AKELEDIT *ae);
 AELINEDATA* AE_StackLineInsertBefore(AKELEDIT *ae, AELINEDATA *lpLine);
