@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.6.2                               *
+ *                      AkelEdit text control v1.6.3                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -13411,25 +13411,30 @@ void AE_ColumnMarkerErase(AKELEDIT *ae)
 void AE_UpdateSize(AKELEDIT *ae)
 {
   RECT rcClient;
-  int nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
+  int nDrawWidth;
 
   GetClientRect(ae->hWndEdit, &rcClient);
-  ae->rcDraw.right+=rcClient.right - ae->rcEdit.right;
-  ae->rcDraw.bottom+=rcClient.bottom - ae->rcEdit.bottom;
-  ae->rcEdit.right=rcClient.right;
-  ae->rcEdit.bottom=rcClient.bottom;
 
-  AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-  if (ae->ptxt->dwWordWrap)
+  if (rcClient.right && rcClient.bottom)
   {
-    if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
+    nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
+    ae->rcDraw.right+=rcClient.right - ae->rcEdit.right;
+    ae->rcDraw.bottom+=rcClient.bottom - ae->rcEdit.bottom;
+    ae->rcEdit.right=rcClient.right;
+    ae->rcEdit.bottom=rcClient.bottom;
+
+    AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
+    if (ae->ptxt->dwWordWrap)
     {
-      AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-      AE_StackUpdateClones(ae);
+      if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
+      {
+        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+        AE_StackUpdateClones(ae);
+      }
     }
+    AE_UpdateScrollBars(ae, SB_BOTH);
+    AE_UpdateEditWindow(ae->hWndEdit, TRUE);
   }
-  AE_UpdateScrollBars(ae, SB_BOTH);
-  AE_UpdateEditWindow(ae->hWndEdit, TRUE);
 }
 
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
