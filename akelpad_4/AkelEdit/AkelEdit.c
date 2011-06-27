@@ -11553,6 +11553,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
   AEFONTITEMA *fi;
   TEXTMETRICA tmPrintA;
   SIZE sizeWidth;
+  HDC hEditDC;
   HFONT hPrintFontOld;
 
   if (!prn->hPrinterDC || !prn->hEditFont)
@@ -11568,7 +11569,12 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 
     //Calculate print font
     GetObjectA(prn->hEditFont, sizeof(LOGFONTA), &ph->aePrint.ptxt->lfFontA);
-    ph->aePrint.ptxt->lfFontA.lfHeight=MulDiv(ae->ptxt->nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+    if (hEditDC=GetDC(ae->hWndEdit))
+    {
+      ph->aePrint.ptxt->nPointSize=MulDiv(ph->aePrint.ptxt->lfFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
+      ReleaseDC(ae->hWndEdit, hEditDC);
+    }
+    ph->aePrint.ptxt->lfFontA.lfHeight=MulDiv(ph->aePrint.ptxt->nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
     ph->aePrint.ptxt->lfFontA.lfHeight=-mod(ph->aePrint.ptxt->lfFontA.lfHeight);
     ph->aePrint.ptxt->lfFontA.lfWidth=0;
 
@@ -11619,6 +11625,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
   AEFONTITEMW *fi;
   TEXTMETRICW tmPrintW;
   SIZE sizeWidth;
+  HDC hEditDC;
   HFONT hPrintFontOld;
 
   if (!prn->hPrinterDC || !prn->hEditFont)
@@ -11634,7 +11641,12 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 
     //Calculate print font
     GetObjectW(prn->hEditFont, sizeof(LOGFONTW), &ph->aePrint.ptxt->lfFontW);
-    ph->aePrint.ptxt->lfFontW.lfHeight=MulDiv(ae->ptxt->nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+    if (hEditDC=GetDC(ae->hWndEdit))
+    {
+      ph->aePrint.ptxt->nPointSize=MulDiv(ph->aePrint.ptxt->lfFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
+      ReleaseDC(ae->hWndEdit, hEditDC);
+    }
+    ph->aePrint.ptxt->lfFontW.lfHeight=MulDiv(ph->aePrint.ptxt->nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
     ph->aePrint.ptxt->lfFontW.lfHeight=-mod(ph->aePrint.ptxt->lfFontW.lfHeight);
     ph->aePrint.ptxt->lfFontW.lfWidth=0;
 
