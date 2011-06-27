@@ -1,4 +1,9 @@
 
+AkelPad 4.6.3 ()
+----------------------------
+Fixed: printing font setting ignored.
+
+
 AkelPad 4.6.2 (Jun 25, 2011)
 ----------------------------
 Changed: file reopening if user saved a file in different new line format.
