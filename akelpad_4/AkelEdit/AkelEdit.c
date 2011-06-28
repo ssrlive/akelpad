@@ -3718,7 +3718,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (hImc=ImmGetContext(ae->hWndEdit))
         {
-          AEC_NextCharEx(&ae->ciSelStartIndex, &crSel.ciMax);
+          crSel.ciMax=ae->ciSelStartIndex;
+          AEC_ValidCharInLine(&crSel.ciMax);
+          AEC_NextCharEx(&crSel.ciMax, &crSel.ciMax);
           AEC_PrevCharEx(&crSel.ciMax, &crSel.ciMin);
           ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
@@ -7280,7 +7282,7 @@ INT_PTR AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 
 AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut)
 {
-  if (nType < AEGI_WRAPLINEBEGIN)
+  if (nType < AEGI_VALIDCHARINLINE)
   {
     if (nType == AEGI_FIRSTCHAR)
     {
@@ -7418,7 +7420,22 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
   else
   {
     //Next flags require pointer to the input index in lParam.
-    if (nType == AEGI_WRAPLINEBEGIN)
+    if (nType == AEGI_VALIDCHARINLINE)
+    {
+      AECHARINDEX ciCharTmp=*ciCharIn;
+
+      if (AEC_ValidCharInLine(&ciCharTmp))
+      {
+        *ciCharOut=ciCharTmp;
+        return ciCharOut->lpLine;
+      }
+      else
+      {
+        *ciCharOut=*ciCharIn;
+        return NULL;
+      }
+    }
+    else if (nType == AEGI_WRAPLINEBEGIN)
     {
       return (AELINEDATA *)(UINT_PTR)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
     }
@@ -18707,9 +18724,11 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
         }
       }
     }
+    ciCharIndex=ae->ciSelStartIndex;
+    AEC_ValidCharInLine(&ciCharIndex);
 
-    if ((bControl && AE_GetNextBreak(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
-        (!bControl && AEC_NextCharEx(&ae->ciSelStartIndex, &ciCharIndex)))
+    if ((bControl && AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
+        (!bControl && AEC_NextCharEx(&ciCharIndex, &ciCharIndex)))
     {
       if (!nSpaces) AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
