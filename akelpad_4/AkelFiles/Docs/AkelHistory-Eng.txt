@@ -3,6 +3,7 @@ AkelPad 4.6.3 ()
 ----------------------------
 Fixed: ignore of symbol deletion if caret was located at the end of wrapped line.
 Fixed: printing font setting ignored.
+Fixed: scroll position after restoring from minimized state.
 
 
 AkelPad 4.6.2 (Jun 25, 2011)
