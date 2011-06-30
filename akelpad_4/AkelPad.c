@@ -3195,6 +3195,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_REDETECT)
     {
+      if (!lpFrameCurrent->wszFile[0])
+      {
+        DoEditRecode();
+        return EOD_SUCCESS;
+      }
       return DoFileReopenAs(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
     }
     else if (LOWORD(wParam) == IDM_FILE_REOPENAS_ANSI)
@@ -3342,7 +3347,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_RECODE)
     {
-      DoEditRecode(lpFrameCurrent->ei.hWndEdit);
+      DoEditRecode();
     }
     else if (LOWORD(wParam) == IDM_EDIT_INSERT_TAB_MENU ||
              LOWORD(wParam) == IDM_EDIT_INSERT_TAB)
