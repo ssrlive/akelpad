@@ -716,7 +716,7 @@ void DoEditClear(HWND hWnd);
 void DoEditSelectAll(HWND hWnd);
 void DoEditInsertDate(HWND hWnd);
 void DoEditInsertChar();
-void DoEditRecode(HWND hWnd);
+void DoEditRecode();
 BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpString);
 BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);

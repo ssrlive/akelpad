@@ -1720,7 +1720,7 @@ void DoEditInsertDate(HWND hWnd)
   ReplaceSelW(hWnd, wbuf, -1, AELB_ASINPUT, -1, NULL, NULL);
 }
 
-void DoEditRecode(HWND hWnd)
+void DoEditRecode()
 {
   if (!hDlgModeless)
   {
