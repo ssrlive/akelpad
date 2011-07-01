@@ -1448,7 +1448,12 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
 
   if (!lpFrameCurrent->wszFile[0])
   {
-    SetCodePageStatus(lpFrameCurrent, (dwFlags & OD_ADT_DETECT_CODEPAGE)?lpFrameCurrent->ei.nCodePage:nCodePage, (dwFlags & OD_ADT_DETECT_BOM)?lpFrameCurrent->ei.bBOM:bBOM);
+    if (dwFlags & OD_ADT_DETECT_CODEPAGE)
+      nCodePage=lpFrameCurrent->ei.nCodePage;
+    if (dwFlags & OD_ADT_DETECT_BOM)
+      bBOM=IsCodePageUnicode(nCodePage);
+
+    SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
 
