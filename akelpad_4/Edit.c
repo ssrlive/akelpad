@@ -1753,9 +1753,7 @@ void DoEditRecode()
 
 BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpString)
 {
-  AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
-  AECHARINDEX ciInitialCaret;
   AETEXTRANGEW tr;
   wchar_t *wszRange=NULL;
   INT_PTR nRangeLen;
@@ -1769,10 +1767,15 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
   INT_PTR b=0;
   INT_PTR i;
   BOOL bColumnSel;
+  BOOL bCaretAtStart;
   BOOL bResult=FALSE;
 
   if (!(nAction & STRSEL_CHECK) && IsReadOnly(hWnd))
     return FALSE;
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+    bCaretAtStart=TRUE;
+  else
+    bCaretAtStart=FALSE;
   crRange.ciMin=crCurSel.ciMin;
   crRange.ciMax=crCurSel.ciMax;
 
@@ -1789,12 +1792,6 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
         //SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&crRange.ciMax);
       }
     }
-    crInitialSel.ciMin=crRange.ciMin;
-    crInitialSel.ciMax=crRange.ciMax;
-    if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
-      ciInitialCaret=crInitialSel.ciMin;
-    else
-      ciInitialCaret=crInitialSel.ciMax;
 
     if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, bColumnSel))
     {
@@ -1957,7 +1954,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
         ReplaceSelW(hWnd, wszRange, a, AELB_ASINPUT, bColumnSel, &crRange.ciMin, &crRange.ciMax);
 
         //Update selection
-        if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+        if (bCaretAtStart)
           SetSel(hWnd, &crRange, bColumnSel?AESELT_COLUMNON:0, &crRange.ciMin);
         else
           SetSel(hWnd, &crRange, bColumnSel?AESELT_COLUMNON:0, &crRange.ciMax);
@@ -1981,9 +1978,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
 
 BOOL DoEditDeleteFirstCharW(HWND hWnd)
 {
-  AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
-  AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
   INT_PTR nRangeLen;
   INT_PTR a;
@@ -1991,11 +1986,14 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
   int nFirstLine=0;
   int nLockScroll;
   BOOL bDelete;
+  BOOL bCaretAtStart;
 
   if (IsReadOnly(hWnd))
     return FALSE;
-  crInitialSel.ciMin=crCurSel.ciMin;
-  crInitialSel.ciMax=crCurSel.ciMax;
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+    bCaretAtStart=TRUE;
+  else
+    bCaretAtStart=FALSE;
   crRange.ciMin=crCurSel.ciMin;
   crRange.ciMax=crCurSel.ciMax;
 
@@ -2030,7 +2028,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
     ReplaceSelW(hWnd, wszRange, a, AELB_ASINPUT, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
-    if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+    if (bCaretAtStart)
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMin);
     else
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
@@ -2053,7 +2051,6 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 {
-  AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
@@ -2063,12 +2060,15 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   int nFirstLine=0;
   int nLockScroll;
   BOOL bSelection;
+  BOOL bCaretAtStart;
   BOOL bResult=FALSE;
 
   if (IsReadOnly(hWnd))
     return FALSE;
-  crInitialSel.ciMin=crCurSel.ciMin;
-  crInitialSel.ciMax=crCurSel.ciMax;
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+    bCaretAtStart=TRUE;
+  else
+    bCaretAtStart=FALSE;
 
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
   if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
@@ -2110,12 +2110,12 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     //Update selection
     if (!bSelection)
     {
-      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-      crRange.ciMin=crInitialSel.ciMin;
-      crRange.ciMax=crInitialSel.ciMin;
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
+      crRange.ciMin=ciInitialCaret;
+      crRange.ciMax=ciInitialCaret;
     }
 
-    if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+    if (bCaretAtStart)
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMin);
     else
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
@@ -2137,7 +2137,6 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 
 BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
 {
-  AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
@@ -2148,12 +2147,15 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
   INT_PTR nRangeLen;
   INT_PTR i;
   BOOL bSelection;
+  BOOL bCaretAtStart;
   BOOL bResult=FALSE;
 
   if (IsReadOnly(hWnd))
     return FALSE;
-  crInitialSel.ciMin=crCurSel.ciMin;
-  crInitialSel.ciMax=crCurSel.ciMax;
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+    bCaretAtStart=TRUE;
+  else
+    bCaretAtStart=FALSE;
 
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
   if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
@@ -2253,12 +2255,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     //Update selection
     if (!bSelection)
     {
-      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-      crRange.ciMin=crInitialSel.ciMin;
-      crRange.ciMax=crInitialSel.ciMin;
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
+      crRange.ciMin=ciInitialCaret;
+      crRange.ciMax=ciInitialCaret;
     }
 
-    if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+    if (bCaretAtStart)
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMin);
     else
       SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
@@ -9096,7 +9098,6 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
   AECHARRANGE crInsert;
-  AECHARINDEX ciInitialCaret=ciCurCaret;
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
   CHARRANGE64 crInitialRE;
@@ -9115,9 +9116,14 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   int i;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
+  BOOL bCaretAtStart;
 
   if (IsReadOnly(lpFrame->ei.hWndEdit))
     return 0;
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+    bCaretAtStart=TRUE;
+  else
+    bCaretAtStart=FALSE;
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
   if (nFindItLen == -1)
@@ -9301,7 +9307,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
             nMax=nMin;
           if (dwFlags & AEFR_SELECTION)
           {
-            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+            if (bCaretAtStart)
               SetSel(lpFrame->ei.hWndEdit, &crInsert, bInitialColumnSel, &crInsert.ciMin);
             else
               SetSel(lpFrame->ei.hWndEdit, &crInsert, bInitialColumnSel, &crInsert.ciMax);
@@ -9326,7 +9332,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
             }
-            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+            if (bCaretAtStart)
               SetSel(lpFrame->ei.hWndEdit, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
             else
               SetSel(lpFrame->ei.hWndEdit, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
@@ -10659,7 +10665,6 @@ void ShowMenuPopupCodepage(POINT *ptScreen)
 
 void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCodePageFrom, int *nCodePageTo)
 {
-  AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszSelText;
@@ -10669,15 +10674,17 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   int nLockScroll=0;
   INT_PTR nUnicodeLen;
   INT_PTR nAnsiLen;
+  BOOL bCaretAtStart;
   BOOL bSelection;
 
   if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
   {
     if (IsReadOnly(lpFrame->ei.hWndEdit))
       return;
-
-    crInitialSel.ciMin=crCurSel.ciMin;
-    crInitialSel.ciMax=crCurSel.ciMax;
+    if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+      bCaretAtStart=TRUE;
+    else
+      bCaretAtStart=FALSE;
 
     SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
     if ((nLockScroll=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
@@ -10772,12 +10779,12 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
             //Update selection
             if (!bSelection)
             {
-              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-              crRange.ciMin=crInitialSel.ciMin;
-              crRange.ciMax=crInitialSel.ciMin;
+              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
+              crRange.ciMin=ciInitialCaret;
+              crRange.ciMax=ciInitialCaret;
             }
 
-            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+            if (bCaretAtStart)
               SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS, &crRange.ciMin);
             else
               SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
