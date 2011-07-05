@@ -1751,10 +1751,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!hWnd)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
-      if (lParam == PASTE_SINGLELINE)
+      if (lParam & PASTE_SINGLELINE)
         return PasteInEditAsRichEdit(hWnd, 0);
       else
-        return DoEditPaste(hWnd, (BOOL)lParam);
+        return DoEditPaste(hWnd, (DWORD)lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -3307,7 +3307,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTE)
     {
-      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, FALSE);
+      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, 0);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CLEAR)
     {
@@ -3431,15 +3431,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTEANSI)
     {
-      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, TRUE);
+      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_ANSI);
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTECOLUMN)
     {
-      return ColumnPaste(lpFrameCurrent->ei.hWndEdit);
+      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_COLUMN);
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTEAFTER)
     {
-      return PasteAfter(lpFrameCurrent->ei.hWndEdit, FALSE);
+      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_AFTER);
     }
     else if (LOWORD(wParam) == IDM_EDIT_AUTOINDENT)
     {

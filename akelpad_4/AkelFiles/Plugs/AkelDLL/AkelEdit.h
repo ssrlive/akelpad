@@ -244,6 +244,8 @@
 #define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
                                        //
 //Next flags require pointer to the input index in lParam.
+#define AEGI_VALIDCHARINLINE       17  //Correct character to make sure that it is on line.
+                                       //For better performance use AEC_ValidCharInLine instead.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
                                        //For better performance use AEC_WrapLineBeginEx instead.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
@@ -306,6 +308,10 @@
 //AEM_SETNEWLINE flags
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
+
+//AEM_PASTE flags
+#define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
+#define AEPFC_COLUMN         0x00000002  //Paste to column selection.
 
 //AEM_LOCKUPDATE FLAGS
 #define AELU_SCROLLBAR  0x00000001
@@ -2356,16 +2362,15 @@ _________
 
 Paste text from clipboard.
 
-wParam       == not used.
-(BOOL)lParam == TRUE   paste as ANSI text.
-                FALSE  paste as Unicode text, if no Unicode text available ANSI text will be used (default).
+wParam        == not used.
+(DWORD)lParam == see AEPFC_* defines.
 
 Return Value
  TRUE   success.
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_PASTE, 0, FALSE);
+ SendMessage(hWndEdit, AEM_PASTE, 0, 0);
 
 
 AEM_CUT

@@ -442,7 +442,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_PASTE)
     {
-      return AE_EditPasteFromClipboard(ae, (BOOL)lParam);
+      return AE_EditPasteFromClipboard(ae, (DWORD)lParam);
     }
     if (uMsg == AEM_CUT)
     {
@@ -3305,7 +3305,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_PASTE)
   {
-    AE_EditPasteFromClipboard(ae, FALSE);
+    AE_EditPasteFromClipboard(ae, 0);
     return 0;
   }
   else if (uMsg == WM_CLEAR)
@@ -16647,7 +16647,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                         AEUNDOITEM *lpUndoElement;
                         wchar_t *wpUndoText;
                         const wchar_t *wpLineBreak;
-                        UINT_PTR dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
+                        UINT_PTR dwUndoTextLen=AE_GetNewLineString(lpNewElement->nLineBreak, &wpLineBreak);
 
                         if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                         {
@@ -17415,7 +17415,31 @@ wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, in
   return wpLineEnd;
 }
 
-int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, const wchar_t **wpNewLine)
+DWORD AE_GetLinesCount(const wchar_t *wpText, int nTextLen)
+{
+  const wchar_t *wpEnd=wpText + nTextLen;
+  DWORD dwLines=1;
+
+  while (wpText < wpEnd)
+  {
+    if (*wpText == L'\r' || *wpText == L'\n')
+    {
+      if (*wpText == L'\r' && *(wpText + 1) == L'\n')
+        wpText+=2;
+      else if (*wpText == L'\r' && *(wpText + 1) == L'\r' && *(wpText + 2) == L'\n')
+        wpText+=3;
+      else if (*wpText == L'\n')
+        wpText+=1;
+      else if (*wpText == L'\r')
+        wpText+=1;
+      if (wpText < wpEnd) ++dwLines;
+    }
+    else ++wpText;
+  }
+  return dwLines;
+}
+
+int AE_GetNewLineString(int nNewLine, const wchar_t **wpNewLine)
 {
   if (nNewLine == AELB_R)
   {
@@ -17862,11 +17886,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         }
         else if (!bControl && bShift)
         {
-          AE_EditPasteFromClipboard(ae, FALSE);
+          AE_EditPasteFromClipboard(ae, 0);
         }
         else if (bControl && bShift)
         {
-          AE_EditPasteFromClipboard(ae, TRUE);
+          AE_EditPasteFromClipboard(ae, AEPFC_ANSI);
         }
       }
     }
@@ -17892,11 +17916,15 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditPasteFromClipboard(ae, FALSE);
+      AE_EditPasteFromClipboard(ae, 0);
     }
     else if (bControl && bShift && !bAlt)
     {
-      AE_EditPasteFromClipboard(ae, TRUE);
+      AE_EditPasteFromClipboard(ae, AEPFC_ANSI);
+    }
+    else if (!bControl && !bShift && bAlt)
+    {
+      AE_EditPasteFromClipboard(ae, AEPFC_COLUMN);
     }
     return TRUE;
   }
@@ -18479,15 +18507,17 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
   }
 }
 
-BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
+BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
 {
   HGLOBAL hDataInfo;
-  HGLOBAL hData;
+  HGLOBAL hData=NULL;
   LPVOID pData;
   AECLIPBOARDINFO *pDataInfo;
+  wchar_t *wszText=NULL;
   UINT_PTR dwAnsiLen=(UINT_PTR)-1;
   UINT_PTR dwUnicodeLen=(UINT_PTR)-1;
   BOOL bColumnSel;
+  BOOL bFreeText=FALSE;
   BOOL bResult=FALSE;
 
   if (AE_IsReadOnly(ae)) return bResult;
@@ -18514,24 +18544,107 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
     }
 
     //Get clipboard text
-    if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
+    if (!(dwFlags & AEPFC_ANSI) && (hData=GetClipboardData(CF_UNICODETEXT)))
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSel(ae, (wchar_t *)pData, dwUnicodeLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
-        bResult=TRUE;
-        GlobalUnlock(hData);
+        wszText=(wchar_t *)pData;
       }
     }
     else if (hData=GetClipboardData(CF_TEXT))
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, dwAnsiLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
-        bResult=TRUE;
-        GlobalUnlock(hData);
+        if (dwUnicodeLen=MultiByteToWideChar64(CP_ACP, 0, (char *)pData, dwAnsiLen, NULL, 0))
+        {
+          if (dwAnsiLen == (UINT_PTR)-1)
+            dwUnicodeLen-=1;
+
+          if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+          {
+            MultiByteToWideChar64(CP_ACP, 0, (char *)pData, dwAnsiLen, wszText, dwUnicodeLen + 1);
+            bFreeText=TRUE;
+          }
+        }
       }
     }
+
+    if (wszText)
+    {
+      if (dwFlags & AEPFC_COLUMN)
+      {
+        wchar_t *wpSource=wszText;
+        wchar_t *wpTarget;
+        AECHARRANGE crRange;
+        int nLineSelStart;
+        int nLineSelEnd;
+        int nLineSelRange;
+        int nLineSourceRange;
+        int nLineTargetRange;
+        int nSourceLen;
+        int nTargetLen;
+        int nTargetCount;
+        int i;
+        BOOL bCaretAtStart;
+
+        if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciCaretIndex))
+          bCaretAtStart=TRUE;
+        else
+          bCaretAtStart=FALSE;
+        nLineSelStart=AE_GetUnwrapLine(ae, ae->ciSelStartIndex.nLine);
+        nLineSelEnd=AE_GetUnwrapLine(ae, ae->ciSelEndIndex.nLine);
+        nLineSelRange=(nLineSelEnd - nLineSelStart) + 1;
+
+        nSourceLen=lstrlenW(wpSource);
+        while (nSourceLen > 0)
+        {
+          if (wpSource[nSourceLen - 1] == '\r' ||
+              wpSource[nSourceLen - 1] == '\n')
+          {
+            --nSourceLen;
+          }
+          else break;
+        }
+        if (nSourceLen)
+        {
+          nLineSourceRange=AE_GetLinesCount(wpSource, nSourceLen);
+          nLineTargetRange=nLineSelRange / nLineSourceRange;
+          if (nLineSelRange % nLineSourceRange)
+            ++nLineTargetRange;
+          nTargetLen=(nSourceLen + 1) * nLineTargetRange - 1;
+
+          if (wpTarget=(wchar_t *)AE_HeapAlloc(ae, 0, (nTargetLen + 1) * sizeof(wchar_t)))
+          {
+            for (i=0; i < nLineTargetRange; ++i)
+            {
+              nTargetCount=i * (nSourceLen + 1);
+              xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
+              wpTarget[nTargetCount + nSourceLen]='\r';
+            }
+            wpTarget[nTargetLen]='\0';
+
+            AE_ReplaceSel(ae, wpTarget, nTargetLen, AELB_ASINPUT, TRUE, &crRange.ciMin, &crRange.ciMax);
+            bResult=TRUE;
+
+            //Update selection
+            if (bCaretAtStart)
+              AE_SetSelectionPos(ae, &crRange.ciMin, &crRange.ciMax, TRUE, 0, 0);
+            else
+              AE_SetSelectionPos(ae, &crRange.ciMax, &crRange.ciMin, TRUE, 0, 0);
+
+            AE_HeapFree(ae, 0, (LPVOID)wpTarget);
+          }
+        }
+      }
+      else
+      {
+        AE_ReplaceSel(ae, wszText, dwUnicodeLen, AELB_ASINPUT, bColumnSel, NULL, NULL);
+        bResult=TRUE;
+      }
+      if (bFreeText) AE_HeapFree(NULL, 0, (LPVOID)wszText);
+    }
+    if (hData) GlobalUnlock(hData);
+
     CloseClipboard();
   }
   return bResult;
@@ -18624,7 +18737,7 @@ void AE_EditKeyReturn(AKELEDIT *ae)
   if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_KEYRETURN);
 
-  nNewLine=AE_GetNewLineString(ae, AELB_ASOUTPUT, &wpNewLine);
+  nNewLine=AE_GetNewLineString(AELB_ASOUTPUT, &wpNewLine);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
   ciCharIndex=ae->ciCaretIndex;
   ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);

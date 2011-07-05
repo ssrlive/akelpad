@@ -711,7 +711,7 @@ void DoEditUndo(HWND hWnd);
 void DoEditRedo(HWND hWnd);
 void DoEditCut(HWND hWnd);
 void DoEditCopy(HWND hWnd);
-BOOL DoEditPaste(HWND hWnd, BOOL bAnsi);
+BOOL DoEditPaste(HWND hWnd, DWORD dwFlags);
 void DoEditClear(HWND hWnd);
 void DoEditSelectAll(HWND hWnd);
 void DoEditInsertDate(HWND hWnd);
@@ -872,10 +872,6 @@ INT_PTR ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOO
 INT_PTR ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces);
 BOOL FreeText(LPVOID pText);
 BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght);
-BOOL ColumnPaste(HWND hWnd);
-DWORD GetLinesCountA(const char *pText, int nTextLen);
-DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen);
-BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
