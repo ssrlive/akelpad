@@ -881,7 +881,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
 UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, BYTE *nLineBreak);
-int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, const wchar_t **wpNewLine);
+DWORD AE_GetLinesCount(const wchar_t *wpText, int nTextLen);
+int AE_GetNewLineString(int nNewLine, const wchar_t **wpNewLine);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
 DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar);
@@ -900,7 +901,7 @@ void AE_EditUndo(AKELEDIT *ae);
 void AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
 void AE_EditCopyToClipboard(AKELEDIT *ae);
-BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi);
+BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags);
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode);
 void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl);

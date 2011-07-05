@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 3)
 
 
 //// Defines
@@ -356,9 +356,10 @@
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //AKD_PASTE
-#define PASTE_UNICODE     0 //Paste as Unicode text, if no Unicode text available ANSI text will be used (default).
-#define PASTE_ANSI        1 //Paste as ANSI text.
-#define PASTE_SINGLELINE  2 //Paste multiline text to single line edit control. All new lines replaced with '\r'.
+#define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
+#define PASTE_COLUMN     0x00000002  //Paste to column selection.
+#define PASTE_AFTER      0x00001000  //Paste text after caret.
+#define PASTE_SINGLELINE 0x00002000  //Paste multiline text to single line edit control. All new lines replaced with '\r'.
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.

@@ -309,6 +309,10 @@
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
+//AEM_PASTE flags
+#define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
+#define AEPFC_COLUMN         0x00000002  //Paste to column selection.
+
 //AEM_LOCKUPDATE FLAGS
 #define AELU_SCROLLBAR  0x00000001
 #define AELU_CARET      0x00000002
@@ -2358,16 +2362,15 @@ _________
 
 Paste text from clipboard.
 
-wParam       == not used.
-(BOOL)lParam == TRUE   paste as ANSI text.
-                FALSE  paste as Unicode text, if no Unicode text available ANSI text will be used (default).
+wParam        == not used.
+(DWORD)lParam == see AEPFC_* defines.
 
 Return Value
  TRUE   success.
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_PASTE, 0, FALSE);
+ SendMessage(hWndEdit, AEM_PASTE, 0, 0);
 
 
 AEM_CUT
