@@ -1040,6 +1040,7 @@ void _WinMain()
   CodepageListFree(&lpCodepageList);
   RecentFilesZero(&hRecentFilesStack);
   FreeMemorySearch();
+  StackFontItemsFree(&hFontsStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
   StackFramesFree(&hFramesStack);
@@ -4024,7 +4025,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
     StackButtonDrawFree(&hButtonDrawStack);
-    StackFontItemsFree(&hFontsStack);
 
     PostQuitMessage(0);
     return 0;
