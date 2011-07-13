@@ -2687,14 +2687,15 @@ ___________________
 
 Erase undo and redo history.
 
-wParam == not used.
-lParam == not used.
+(BOOL)wParam == TRUE   erase only redo history.
+                FALSE  erase undo and redo history.
+lParam       == not used.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
+ SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, FALSE, 0);
 
 
 AEM_STOPGROUPTYPING
@@ -2753,15 +2754,15 @@ ___________________
 
 Stop collect undo/redo history.
 
-(BOOL)wParam == TRUE   stop collect
-                FALSE  start collect
+(BOOL)wParam == TRUE   stop collect.
+                FALSE  start collect.
 lParam       == not used.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
+ SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, FALSE, 0);
  SendMessage(hWndEdit, AEM_LOCKCOLLECTUNDO, TRUE, 0);
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
@@ -2773,14 +2774,14 @@ ________________
 
 Get the maximum number of actions that can stored in the undo queue.
 
-wParam == not used.
-lParam == not used.
+wParam          == not used.
+(DWORD *)lParam == pointer to a variable that receives current number of actions stored in the undo queue. Can be NULL.
 
 Return Value
  Maximum number of actions that can be stored in the undo queue.
 
 Example:
- SendMessage(hWndEdit, AEM_GETUNDOLIMIT, 0, 0);
+ SendMessage(hWndEdit, AEM_GETUNDOLIMIT, 0, (LPARAM)NULL);
 
 
 AEM_SETUNDOLIMIT

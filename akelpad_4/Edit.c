@@ -1767,15 +1767,13 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
   INT_PTR b=0;
   INT_PTR i;
   BOOL bColumnSel;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
   BOOL bResult=FALSE;
 
   if (!(nAction & STRSEL_CHECK) && IsReadOnly(hWnd))
     return FALSE;
   if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
     bCaretAtStart=TRUE;
-  else
-    bCaretAtStart=FALSE;
   crRange.ciMin=crCurSel.ciMin;
   crRange.ciMax=crCurSel.ciMax;
 
@@ -1981,14 +1979,12 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
   int nFirstLine=0;
   int nLockScroll;
   BOOL bDelete;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
 
   if (IsReadOnly(hWnd))
     return FALSE;
   if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
     bCaretAtStart=TRUE;
-  else
-    bCaretAtStart=FALSE;
   crRange.ciMin=crCurSel.ciMin;
   crRange.ciMax=crCurSel.ciMax;
 
@@ -2050,15 +2046,13 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   int nFirstLine=0;
   int nLockScroll;
   BOOL bSelection;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
   BOOL bResult=FALSE;
 
   if (IsReadOnly(hWnd))
     return FALSE;
   if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
     bCaretAtStart=TRUE;
-  else
-    bCaretAtStart=FALSE;
 
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
   if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
@@ -2133,15 +2127,13 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
   INT_PTR nRangeLen;
   INT_PTR i;
   BOOL bSelection;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
   BOOL bResult=FALSE;
 
   if (IsReadOnly(hWnd))
     return FALSE;
   if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
     bCaretAtStart=TRUE;
-  else
-    bCaretAtStart=FALSE;
 
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
   if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
@@ -9098,14 +9090,12 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   int i;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
 
   if (IsReadOnly(lpFrame->ei.hWndEdit))
     return 0;
   if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
     bCaretAtStart=TRUE;
-  else
-    bCaretAtStart=FALSE;
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
   if (nFindItLen == -1)
@@ -10650,7 +10640,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   int nLockScroll=0;
   INT_PTR nUnicodeLen;
   INT_PTR nAnsiLen;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
   BOOL bSelection;
 
   if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
@@ -10659,8 +10649,6 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
       return;
     if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
       bCaretAtStart=TRUE;
-    else
-      bCaretAtStart=FALSE;
 
     SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
     if ((nLockScroll=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
