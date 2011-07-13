@@ -4429,7 +4429,12 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
     //lpFrame=(FRAMEDATA *)mcs->lParam
 
-    if (lpFrame=CreateFrameData(hWnd, lpFrameCurrent))
+    if (!nDocumentsCount && fdLast.hIcon)
+      lpFrame=&fdLast;
+    else
+      lpFrame=lpFrameCurrent;
+
+    if (lpFrame=CreateFrameData(hWnd, lpFrame))
     {
       SetWindowLongPtrWide(hWnd, GWLP_USERDATA, (UINT_PTR)lpFrame);
 

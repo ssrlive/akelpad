@@ -1,11 +1,13 @@
 
-AkelPad 4.6.3 ()
+AkelPad 4.6.3 (Jun 13, 2011)
 ----------------------------
 Changed: for unsaved document command 4121 opens "Recode..." dialog.
 
 Fixed: ignore of symbol deletion if caret was located at the end of wrapped line.
 Fixed: printing font setting ignored.
 Fixed: scroll position after restoring from minimized state.
+Fixed: frame settings aren't inherited, in case of closing the last frame and then creating
+       a new one (MDI).
 
 
 AkelPad 4.6.2 (Jun 25, 2011)
