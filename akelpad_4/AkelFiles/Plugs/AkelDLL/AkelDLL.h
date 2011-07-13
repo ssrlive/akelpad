@@ -2467,15 +2467,15 @@ _________
 
 Paste text from clipboard to the edit control.
 
-(HWND)wParam == edit window, NULL for current edit window.
-(int)lParam  == see PASTE_* defines.
+(HWND)wParam  == edit window, NULL for current edit window.
+(DWORD)lParam == see PASTE_* defines.
 
 Return Value
  TRUE   success.
  FALSE  failed.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, PASTE_UNICODE);
+ SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, 0);
 
 
 AKD_COPY
