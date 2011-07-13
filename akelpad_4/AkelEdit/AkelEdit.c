@@ -538,7 +538,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_EMPTYUNDOBUFFER)
     {
-      AE_EmptyUndoBuffer(ae);
+      if (wParam)
+      {
+        if (AE_EditCanRedo(ae))
+          AE_StackRedoDeleteAll(ae, ae->ptxt->lpCurrentUndo);
+      }
+      else AE_EmptyUndoBuffer(ae);
+
       return 0;
     }
     if (uMsg == AEM_STOPGROUPTYPING)
@@ -563,6 +569,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETUNDOLIMIT)
     {
+      DWORD *lpdwUndoCount=(DWORD *)lParam;
+
+      if (lpdwUndoCount)
+        *lpdwUndoCount=ae->ptxt->dwUndoCount;
       return ae->ptxt->dwUndoLimit;
     }
     if (uMsg == AEM_SETUNDOLIMIT)
