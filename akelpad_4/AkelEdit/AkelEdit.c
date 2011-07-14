@@ -4213,9 +4213,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (uMsg == WM_MOUSEWHEEL)
     {
-      DWORD dwLines;
+      DWORD dwLines=0;
 
       SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
+      if (!dwLines) dwLines=3;
 
       if ((short)HIWORD(wParam) < 0)
       {
@@ -4231,12 +4232,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else
           AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
       }
+      return 0;
     }
     else
     {
-      DWORD dwChars;
+      DWORD dwChars=0;
 
       SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &dwChars, 0);
+      if (!dwChars) dwChars=3;
 
       if ((short)HIWORD(wParam) < 0)
       {
@@ -4252,8 +4255,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else
           AE_HScrollChar(ae, dwChars, AESB_ALIGNLEFT);
       }
+      return 1;
     }
-    return 0;
   }
   else if (uMsg == WM_SETCURSOR)
   {
