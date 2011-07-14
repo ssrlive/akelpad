@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.6.3                               *
+ *                      AkelEdit text control v1.6.4                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1019,7 +1019,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (wParam & AESB_HORZ)
       {
-        nResult=AE_HScrollLine(ae, (int)lParam, (DWORD)wParam);
+        nResult=AE_HScrollChar(ae, (int)lParam, (DWORD)wParam);
 
         if (wParam & AESB_RETURNUNITS)
           nResult=nResult / ae->ptxt->nAveCharWidth;
@@ -4204,29 +4204,54 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           return 0;
     }
   }
-  else if (uMsg == WM_MOUSEWHEEL)
+  else if (uMsg == WM_MOUSEWHEEL ||
+           uMsg == WM_MOUSEHWHEEL)
   {
-    DWORD dwLines;
-
     if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
       if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
         return 0;
 
-    SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
-
-    if ((short)HIWORD(wParam) < 0)
+    if (uMsg == WM_MOUSEWHEEL)
     {
-      if (dwLines == (DWORD)-1)
-        AE_VScroll(ae, SB_PAGEDOWN, 0);
+      DWORD dwLines;
+
+      SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
+
+      if ((short)HIWORD(wParam) < 0)
+      {
+        if (dwLines == (DWORD)-1)
+          AE_VScroll(ae, SB_PAGEDOWN, 0);
+        else
+          AE_VScrollLine(ae, dwLines, AESB_ALIGNTOP);
+      }
       else
-        AE_VScrollLine(ae, dwLines, AESB_ALIGNTOP);
+      {
+        if (dwLines == (DWORD)-1)
+          AE_VScroll(ae, SB_PAGEUP, 0);
+        else
+          AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
+      }
     }
     else
     {
-      if (dwLines == (DWORD)-1)
-        AE_VScroll(ae, SB_PAGEUP, 0);
+      DWORD dwChars;
+
+      SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &dwChars, 0);
+
+      if ((short)HIWORD(wParam) < 0)
+      {
+        if (dwChars == (DWORD)-1)
+          AE_HScroll(ae, SB_PAGELEFT, 0);
+        else
+          AE_HScrollChar(ae, -(int)dwChars, AESB_ALIGNLEFT);
+      }
       else
-        AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
+      {
+        if (dwChars == (DWORD)-1)
+          AE_HScroll(ae, SB_PAGERIGHT, 0);
+        else
+          AE_HScrollChar(ae, dwChars, AESB_ALIGNLEFT);
+      }
     }
     return 0;
   }
@@ -11529,7 +11554,7 @@ INT_PTR AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
   return AE_ScrollEditWindow(ae, SB_VERT, nPos);
 }
 
-INT_PTR AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign)
+INT_PTR AE_HScrollChar(AKELEDIT *ae, int nChar, DWORD dwAlign)
 {
   INT_PTR nPos;
 
