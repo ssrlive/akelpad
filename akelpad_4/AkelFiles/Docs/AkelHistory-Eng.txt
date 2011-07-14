@@ -1,4 +1,9 @@
 
+AkelPad 4.6.4 ()
+----------------------------
+Added: support of mouse with horizontal scrolling (WinVista/7).
+
+
 AkelPad 4.6.3 (Jun 13, 2011)
 ----------------------------
 Changed: for unsaved document command 4121 opens "Recode..." dialog.

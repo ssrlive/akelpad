@@ -122,6 +122,12 @@
 #ifndef COLOR_HOTLIGHT
   #define COLOR_HOTLIGHT  26
 #endif
+#ifndef WM_MOUSEHWHEEL
+  #define WM_MOUSEHWHEEL  0x020E
+#endif
+#ifndef SPI_GETWHEELSCROLLCHARS
+  #define SPI_GETWHEELSCROLLCHARS  0x006C
+#endif
 #ifndef WM_IME_REQUEST
   #define WM_IME_REQUEST         0x0288
 #endif
@@ -819,7 +825,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos);
 INT_PTR AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
 INT_PTR AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
-INT_PTR AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign);
+INT_PTR AE_HScrollChar(AKELEDIT *ae, int nChar, DWORD dwAlign);
 INT_PTR AE_VScrollLine(AKELEDIT *ae, int nLine, DWORD dwAlign);
 INT_PTR AE_AlignPos(AKELEDIT *ae, INT_PTR nPos, DWORD dwAlign);
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn);
