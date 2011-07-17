@@ -17164,19 +17164,22 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
 {
-  if (!hWnd || IsEditActive(hWnd))
+  if (lpFrameCurrent->ei.hWndEdit)
   {
-    xmemcpy(ei, &lpFrameCurrent->ei, sizeof(EDITINFO));
-    return TRUE;
-  }
-  else
-  {
-    FRAMEDATA *lpFrame;
-
-    if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+    if (!hWnd || IsEditActive(hWnd))
     {
-      xmemcpy(ei, &lpFrame->ei, sizeof(EDITINFO));
+      xmemcpy(ei, &lpFrameCurrent->ei, sizeof(EDITINFO));
       return TRUE;
+    }
+    else
+    {
+      FRAMEDATA *lpFrame;
+
+      if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+      {
+        xmemcpy(ei, &lpFrame->ei, sizeof(EDITINFO));
+        return TRUE;
+      }
     }
   }
   return FALSE;
