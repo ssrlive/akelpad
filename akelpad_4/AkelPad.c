@@ -3353,38 +3353,50 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_EDIT_INSERT_TAB_MENU ||
              LOWORD(wParam) == IDM_EDIT_INSERT_TAB)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-        InsertTabStop(lpFrameCurrent->ei.hWndEdit);
-      else
-        IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_TAB);
+      if (lpFrameCurrent->ei.hWndEdit)
+      {
+        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+          InsertTabStop(lpFrameCurrent->ei.hWndEdit);
+        else
+          IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_TAB);
+      }
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_TAB_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_TAB)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-        InsertTabStop(lpFrameCurrent->ei.hWndEdit);
-      else
-        IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_TAB);
+      if (lpFrameCurrent->ei.hWndEdit)
+      {
+        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+          InsertTabStop(lpFrameCurrent->ei.hWndEdit);
+        else
+          IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_TAB);
+      }
     }
     else if (LOWORD(wParam) == IDM_EDIT_INSERT_SPACE_MENU ||
              LOWORD(wParam) == IDM_EDIT_INSERT_SPACE)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (lpFrameCurrent->ei.hWndEdit)
       {
-        if (!IsReadOnly(NULL))
-          SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        {
+          if (!IsReadOnly(NULL))
+            SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        }
+        else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
       }
-      else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_SPACE_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_SPACE)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (lpFrameCurrent->ei.hWndEdit)
       {
-        if (!IsReadOnly(NULL)) SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        {
+          if (!IsReadOnly(NULL))
+            SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        }
+        else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_SPACE, L" ");
       }
-      else
-        DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_SPACE, L" ");
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_FIRST_CHAR_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_FIRST_CHAR)
