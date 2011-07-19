@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 4)
 
 
 //// Defines
@@ -186,10 +186,11 @@
 #define CO_CARETVERTLINE 0x00000002  //Draw caret vertical line.
 
 //Mouse options
-#define MO_LEFTMARGINSELECTION 0x00000001  //Enables left margin line selection with mouse.
-#define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
-#define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
-#define MO_RCLICKMOVECARET     0x00000008  //WM_RBUTTONDOWN message moves caret to a click position.
+#define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.
+#define MO_RICHEDITMOUSE         0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define MO_MOUSEDRAGGING         0x00000004  //Enables OLE text dragging.
+#define MO_RCLICKMOVECARET       0x00000008  //WM_RBUTTONDOWN message moves caret to a click position.
+#define MO_NONEWLINEMOUSESELECT  0x00000010  //Triple click and left margin click selects only line contents without new line.
 
 //Keyboard layout options
 #define MO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).

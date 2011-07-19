@@ -357,6 +357,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_DISABLEDRAG;
   if (lpFrame->dwMouseOptions & MO_RCLICKMOVECARET)
     dwOptions|=AECO_RBUTTONDOWNMOVECARET;
+  if (lpFrame->dwMouseOptions & MO_NONEWLINEMOUSESELECT)
+    dwOptions|=AECO_NONEWLINEMOUSESELECT;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
@@ -13597,7 +13599,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SetCurEditOption(EO_CARETWIDTH, a);
 
       //Mouse options
-      lpFrameCurrent->dwMouseOptions=0;
+      lpFrameCurrent->dwMouseOptions&=~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
       if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
         lpFrameCurrent->dwMouseOptions|=MO_LEFTMARGINSELECTION;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
