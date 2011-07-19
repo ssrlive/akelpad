@@ -3897,7 +3897,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           cr.ciMin=ciCharIndex;
           cr.ciMax=ciCharIndex;
           cr.ciMin.nCharInLine=0;
-          if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax))
+          if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax))
             cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 
           ae->ciMouseSelClick=ciCharIndex;
@@ -3992,7 +3992,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
           AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
           AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
+          if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
+            AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
@@ -8971,7 +8972,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             ciCharIndex.nCharInLine=0;
           else
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
+            if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
         }
@@ -9043,7 +9044,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) >= 0)
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
+            if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
           else
