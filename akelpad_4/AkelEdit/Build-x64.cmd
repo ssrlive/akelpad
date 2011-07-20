@@ -32,4 +32,4 @@ if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelEdit.lib del AkelEdit.lib
 if exist AkelEdit.exp del AkelEdit.exp
 if not "%1" == "/S" @PAUSE
-if defined EXITCODE exit /B %EXITCODE%
+if defined EXITCODE exit %EXITCODE%

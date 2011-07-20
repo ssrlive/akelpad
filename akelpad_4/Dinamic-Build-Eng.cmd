@@ -33,4 +33,4 @@ if exist AkelPad.obj del AkelPad.obj
 if exist Edit.obj del Edit.obj
 if exist AkelPad.res del AkelPad.res
 if not "%1" == "/S" @PAUSE
-if defined EXITCODE exit /B %EXITCODE%
+if defined EXITCODE exit %EXITCODE%
