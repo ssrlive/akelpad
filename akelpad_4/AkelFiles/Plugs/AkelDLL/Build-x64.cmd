@@ -22,9 +22,11 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
   if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
 )
 cl /O1 %CLFLAGS% AkelDLL.c /LD /link kernel32.lib user32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain
+if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
 if exist AkelDLL.obj del AkelDLL.obj
 if exist AkelDLL.lib del AkelDLL.lib
 if exist AkelDLL.exp del AkelDLL.exp
 if not "%1" == "/S" @PAUSE
+if defined EXITCODE exit /b %EXITCODE%

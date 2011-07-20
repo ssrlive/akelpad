@@ -24,10 +24,13 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
   if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
 )
 rc /R /DEXE_VERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /Fo"AkelPad.res" "AkelFiles\Langs\Resources\%LANGNAME%.rc"
+if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 cl /O1 %CLFLAGS% /DRC_VERSIONLANGID=%LANGID% AkelPad.c Edit.c AkelPad.res /link kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib version.lib /SUBSYSTEM:WINDOWS /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:_WinMain /OUT:AkelPad.exe
+if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
 if exist AkelPad.obj del AkelPad.obj
 if exist Edit.obj del Edit.obj
 if exist AkelPad.res del AkelPad.res
 if not "%1" == "/S" @PAUSE
+if defined EXITCODE exit /B %EXITCODE%
