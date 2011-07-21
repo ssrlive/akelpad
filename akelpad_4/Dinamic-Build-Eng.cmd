@@ -32,5 +32,7 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 if exist AkelPad.obj del AkelPad.obj
 if exist Edit.obj del Edit.obj
 if exist AkelPad.res del AkelPad.res
+
+::### End ###::
 if not "%1" == "/S" @PAUSE
-if defined EXITCODE exit %EXITCODE%
+if defined EXITCODE exit %2 %EXITCODE%

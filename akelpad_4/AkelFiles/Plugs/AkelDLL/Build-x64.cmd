@@ -28,5 +28,7 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 if exist AkelDLL.obj del AkelDLL.obj
 if exist AkelDLL.lib del AkelDLL.lib
 if exist AkelDLL.exp del AkelDLL.exp
+
+::### End ###::
 if not "%1" == "/S" @PAUSE
-if defined EXITCODE exit /b %EXITCODE%
+if defined EXITCODE exit %2 %EXITCODE%
