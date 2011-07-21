@@ -31,5 +31,7 @@ if exist AkelEdit.res del AkelEdit.res
 if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelEdit.lib del AkelEdit.lib
 if exist AkelEdit.exp del AkelEdit.exp
+
+::### End ###::
 if not "%1" == "/S" @PAUSE
-if defined EXITCODE exit %EXITCODE%
+if defined EXITCODE exit %2 %EXITCODE%
