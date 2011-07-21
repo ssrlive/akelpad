@@ -5,6 +5,8 @@ Added: support of mouse with horizontal scrolling (WinVista/7).
 Added: manual parameter for "MouseOptions" with a value of 16 - triple click and left margin
        click selects only line contents without new line.
 
+Fixed: letters case are not changed in the recent files list.
+
 
 AkelPad 4.6.3 (Jun 13, 2011)
 ----------------------------

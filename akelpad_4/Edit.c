@@ -10181,6 +10181,9 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   if (lpRecentFile=RecentFilesFindByName(wpFile, NULL))
   {
     StackMoveIndex((stack **)&hRecentFilesStack.first, (stack **)&hRecentFilesStack.last, (stack *)lpRecentFile, 1);
+
+    //Letters case could be different
+    xstrcpynW(lpRecentFile->wszFile, wpFile, MAX_PATH);
   }
   else
   {
