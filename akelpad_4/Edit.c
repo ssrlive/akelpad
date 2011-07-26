@@ -40,6 +40,7 @@ extern BOOL bWindowsNT4;
 
 //Buffers
 extern unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
+extern wchar_t wszMsg[BUFFER_SIZE];
 extern char buf[BUFFER_SIZE];
 extern wchar_t wbuf[BUFFER_SIZE];
 extern char buf2[BUFFER_SIZE];
@@ -1461,8 +1462,8 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
 
   if (lpFrameCurrent->ei.bModified)
   {
-    API_LoadStringW(hLangLib, MSG_FILE_WILL_BE_REOPENED, wbuf, BUFFER_SIZE);
-    nAnswer=API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION);
+    API_LoadStringW(hLangLib, MSG_FILE_WILL_BE_REOPENED, wszMsg, BUFFER_SIZE);
+    nAnswer=API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION);
   }
   if (!lpFrameCurrent->ei.bModified || nAnswer == IDOK)
   {
@@ -1494,11 +1495,11 @@ BOOL SaveChanged(DWORD dwPrompt)
       if (dwPrompt & PROMPT_NOTOALLBUTTON)
         bmb[2].dwFlags|=BMB_DISABLED;
     }
-    API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wbuf, MAX_PATH);
+    API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wszMsg, MAX_PATH);
     if (dwPrompt & PROMPT_NOTOALLBUTTON)
-      nChoice=MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
+      nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
     else
-      nChoice=API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_YESNOCANCEL|MB_ICONEXCLAMATION);
+      nChoice=API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNOCANCEL|MB_ICONEXCLAMATION);
 
     if (nChoice == IDC_MESSAGEBOX_YES || nChoice == IDYES)
     {
@@ -2547,8 +2548,8 @@ BOOL DoSettingsExec()
         }
         else
         {
-          API_LoadStringW(hLangLib, MSG_ERROR_RUN, wbuf, BUFFER_SIZE);
-          API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          API_LoadStringW(hLangLib, MSG_ERROR_RUN, wszMsg, BUFFER_SIZE);
+          API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         }
       }
       FreeWideStr(wszWorkDirExp);
@@ -2719,8 +2720,8 @@ void DoSettingsOptions()
 
   if (bOptionsRestart)
   {
-    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
   }
 }
 
@@ -2838,8 +2839,8 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
 
   if (dwNewType != dwOldType)
   {
-    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
   }
 }
 
@@ -4054,8 +4055,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
   if (nDocumentsCount > MDI_MAXDOCUMENTS && nMDI == WMD_MDI)
   {
-    API_LoadStringW(hLangLib, MSG_DOCUMENTSLIMIT, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+    API_LoadStringW(hLangLib, MSG_DOCUMENTSLIMIT, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     nResult=EOD_DOCUMENTS_LIMIT;
     goto End;
   }
@@ -4073,8 +4074,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     else
     {
       API_LoadStringW(hLangLib, MSG_FILE_DOES_NOT_EXIST, wbuf, BUFFER_SIZE);
-      xprintfW(wbuf2, wbuf, wszFile);
-      if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
+      xprintfW(wszMsg, wbuf, wszFile);
+      if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
       {
         nResult=EOD_MSGCANCEL;
         goto End;
@@ -4141,8 +4142,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
           else
           {
             API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
-            xprintfW(wbuf2, wbuf, wszFile);
-            if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+            xprintfW(wszMsg, wbuf, wszFile);
+            if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
             {
               nResult=EOD_MSGCANCEL;
               goto End;
@@ -4162,8 +4163,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   if (!IsCodePageValid(nCodePage))
   {
     API_LoadStringW(hLangLib, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
-    xprintfW(wbuf2, wbuf, nCodePage);
-    API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    xprintfW(wszMsg, wbuf, nCodePage);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     nResult=EOD_CODEPAGE_ERROR;
     goto End;
   }
@@ -4698,8 +4699,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (!IsEditActive(hWnd))
       SetFocus(hWnd);
     API_LoadStringW(hLangLib, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
-    xprintfW(wbuf2, wbuf, nCodePage);
-    API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    xprintfW(wszMsg, wbuf, nCodePage);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     nResult=ESD_CODEPAGE_ERROR;
     goto End;
   }
@@ -4731,9 +4732,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
           if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
             nMessageLine=(int)SendMessage(hWnd, AEM_GETUNWRAPLINE, nMessageLine - 1, 0) + 1;
-          API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, MAX_PATH);
-          xprintfW(wbuf2, wbuf, nMessageLine);
-          nChoice=MessageBoxCustom(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
+          API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, BUFFER_SIZE);
+          xprintfW(wszMsg, wbuf, nMessageLine);
+          nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
 
           if (nChoice == IDC_MESSAGEBOX_GOTO ||
               nChoice == IDCANCEL)
@@ -4769,8 +4770,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       if (!IsEditActive(hWnd))
         SetFocus(hWnd);
       API_LoadStringW(hLangLib, MSG_SAVEIN_READONLY, wbuf, BUFFER_SIZE);
-      xprintfW(wbuf2, wbuf, wszFile);
-      if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_YESNO|MB_ICONEXCLAMATION) == IDNO)
+      xprintfW(wszMsg, wbuf, wszFile);
+      if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONEXCLAMATION) == IDNO)
       {
         nResult=ESD_READONLY;
         goto End;
@@ -5971,8 +5972,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 
   if (bPrintError)
   {
-    API_LoadStringW(hLangLib, MSG_ERROR_PRINT, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    API_LoadStringW(hLangLib, MSG_ERROR_PRINT, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
   if (prn->hEditFont)
   {
@@ -7223,8 +7224,8 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       if (!IsCodePageValid(nOfnCodePage))
       {
         API_LoadStringW(hLangLib, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
-        xprintfW(wbuf2, wbuf, nOfnCodePage);
-        API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        xprintfW(wszMsg, wbuf, nOfnCodePage);
+        API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
 
         SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
         return TRUE;
@@ -7238,8 +7239,8 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         {
           if (GetWindowTextLengthWide(GetDlgItem(hDlgParent, IDC_OFN_EDIT)) > OPENFILELIST_SIZE)
           {
-            API_LoadStringW(hLangLib, MSG_LONG_FILELIST, wbuf, BUFFER_SIZE);
-            API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+            API_LoadStringW(hLangLib, MSG_LONG_FILELIST, wszMsg, BUFFER_SIZE);
+            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           }
         }
 
@@ -8687,8 +8688,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
           {
             API_LoadStringW(hLangLib, MSG_REPLACE_COUNT_ALLFILES, wbuf, BUFFER_SIZE);
-            xprintfW(wbuf2, wbuf, nChangedFiles, nChanges);
-            API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+            xprintfW(wszMsg, wbuf, nChangedFiles, nChanges);
+            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
           }
           else
           {
@@ -8730,8 +8731,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
           if (nResult == -1)
           {
-            API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wbuf, BUFFER_SIZE);
-            API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+            API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
+            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
           }
         }
       }
@@ -8769,8 +8770,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
             if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
             {
               API_LoadStringW(hLangLib, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
-              xprintfW(wbuf2, wbuf, nReplaceCount);
-              API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+              xprintfW(wszMsg, wbuf, nReplaceCount);
+              API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
             }
             else
             {
@@ -8780,8 +8781,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           else
           {
-            API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wbuf, BUFFER_SIZE);
-            API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+            API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
+            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
           }
         }
         else
@@ -8940,8 +8941,8 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, 
         {
           if (!(nTextLen=(int)EscapeStringToEscapeDataW(*wszText_orig, *wszText, nNewLine)))
           {
-            API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
-            API_MessageBox(GetParent(hWnd), wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+            API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
+            API_MessageBox(GetParent(hWnd), wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
             nTextLen=-1;
           }
         }
@@ -10003,8 +10004,8 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!GoTo(dwGotoType, wbuf))
         {
-          API_LoadStringW(hLangLib, MSG_WRONG_STRING, wbuf, BUFFER_SIZE);
-          API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+          API_LoadStringW(hLangLib, MSG_WRONG_STRING, wszMsg, BUFFER_SIZE);
+          API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
         }
       }
     }
@@ -11354,8 +11355,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ctElement=StackThemeGetByName(&hThemesStack, wszThemeName))
         {
           API_LoadStringW(hLangLib, MSG_OVERWRITEPROMPT, wbuf, BUFFER_SIZE);
-          xprintfW(wbuf2, wbuf, ctElement->wszName);
-          if (API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION) == IDYES)
+          xprintfW(wszMsg, wbuf, ctElement->wszName);
+          if (API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION) == IDYES)
           {
             xstrcpynW(ctElement->wszName, wszThemeName, MAX_PATH);
             xmemcpy(&ctElement->aec, &aecColorsDlg, sizeof(AECOLORS));
@@ -12071,24 +12072,24 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                 else
                 {
                   API_LoadStringW(hLangLib, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
-                  xprintfW(wbuf2, wbuf, wszPlugin, wszFunction, wszDLL);
-                  API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                  xprintfW(wszMsg, wbuf, wszPlugin, wszFunction, wszDLL);
+                  API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                   if (bInMemory) return UD_FAILED;
                 }
               }
               else
               {
                 API_LoadStringW(hLangLib, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
-                xprintfW(wbuf2, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
-                                      LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
-                API_MessageBox(hMainWnd, wbuf2, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+                xprintfW(wszMsg, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                       LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+                API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
               }
             }
             else
             {
               API_LoadStringW(hLangLib, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-              xprintfW(wbuf2, wbuf, wszDLL);
-              API_MessageBox(hMainWnd, wbuf2, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+              xprintfW(wszMsg, wbuf, wszDLL);
+              API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
             }
           }
           else
@@ -12100,18 +12101,18 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
             else
               xstrcpynW(wszStr, L"AkelPad", MAX_PATH);
             API_LoadStringW(hLangLib, MSG_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
-            xprintfW(wbuf2, wbuf, wszStr,
+            xprintfW(wszMsg, wbuf, wszStr,
                                    LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
                                    wszPlugin,
                                    LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
-            API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+            API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           }
         }
         else
         {
           API_LoadStringW(hLangLib, MSG_PLUGIN_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-          xprintfW(wbuf2, wbuf, wszDLL);
-          API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          xprintfW(wszMsg, wbuf, wszDLL);
+          API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         }
 
         if (FreeLibrary(hModule))
@@ -12123,8 +12124,8 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
       else
       {
         API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-        xprintfW(wbuf2, wbuf, wszDLL);
-        API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        xprintfW(wszMsg, wbuf, wszDLL);
+        API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
     }
   }
@@ -12452,8 +12453,8 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
       {
         API_LoadStringW(hLangLib, MSG_HOTKEY_EXISTS, wbuf, BUFFER_SIZE);
-        xprintfW(wbuf2, wbuf, pfElement->wszFunction);
-        API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        xprintfW(wszMsg, wbuf, pfElement->wszFunction);
+        API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         SetFocus(hWndHotkey);
       }
     }
@@ -12554,8 +12555,8 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (pliElement->nAutoLoad == 0)
                     {
                       API_LoadStringW(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-                      xprintfW(wbuf2, wbuf, pliElement->pf->wszFunction);
-                      API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                      xprintfW(wszMsg, wbuf, pliElement->pf->wszFunction);
+                      API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                     }
                     pliElement->pf->bAutoLoad=FALSE;
 
@@ -19124,11 +19125,8 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
 {
   int nResult;
 
-  //Parent should be visible
-  hWnd=IsWindowVisible(hWnd)?hWnd:NULL;
-
   SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
-  nResult=MessageBoxW(hWnd, lpText, lpCaption, uType);
+  nResult=MessageBoxW(IsWindowVisible(hWnd)?hWnd:NULL, lpText, lpCaption, uType);
   SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
 
   return nResult;
@@ -19200,8 +19198,8 @@ HANDLE API_CreateFileA(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwSh
   {
     MultiByteToWideChar(CP_ACP, 0, lpFileName, -1, wszFile, MAX_PATH);
     API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-    xprintfW(wbuf2, wbuf, wszFile);
-    API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    xprintfW(wszMsg, wbuf, wszFile);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
   return hResult;
@@ -19214,8 +19212,8 @@ HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD d
   if ((hResult=CreateFileWide(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile)) == INVALID_HANDLE_VALUE)
   {
     API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-    xprintfW(wbuf2, wbuf, lpFileName);
-    API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    xprintfW(wszMsg, wbuf, lpFileName);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
   return hResult;
@@ -19225,8 +19223,8 @@ BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrit
 {
   if (!WriteFile64(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped))
   {
-    API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    API_LoadStringW(hLangLib, MSG_ERROR_IO, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     return FALSE;
   }
   return TRUE;
@@ -19238,8 +19236,8 @@ LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes)
 
   if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
   {
-    API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wszMsg, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
   return lpResult;
