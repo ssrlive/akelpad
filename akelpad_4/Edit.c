@@ -19123,10 +19123,17 @@ int API_LoadStringW(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nB
 
 int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType)
 {
+  HWND hWndParent=hWnd;
+  DWORD dwStyle;
   int nResult;
 
   SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
-  nResult=MessageBoxW(IsWindowVisible(hWnd)?hWnd:NULL, lpText, lpCaption, uType);
+
+  dwStyle=(DWORD)GetWindowLongPtrWide(hWnd, GWL_STYLE);
+  if (/*(dwStyle & WS_DISABLED) || */!(dwStyle & WS_VISIBLE))
+    hWndParent=NULL;
+  nResult=MessageBoxW(hWndParent, lpText, lpCaption, uType);
+
   SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
 
   return nResult;
