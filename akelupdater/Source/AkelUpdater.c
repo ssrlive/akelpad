@@ -64,15 +64,47 @@ typedef struct _stack_t {
   char text[1];
 } stack_t;
 
+typedef struct
+{
+  int autoclose;
+  int all_user_var;
+  int exec_error;
+  int abort;
+  int exec_reboot;
+  int reboot_called;
+  int XXX_cur_insttype;
+  int plugin_api_version;
+  int silent;
+  int instdir_error;
+  int rtl;
+  int errlvl;
+  int alter_reg_view;
+  int status_update;
+} exec_flags_t;
+
+typedef struct {
+  exec_flags_t *exec_flags;
+  int (__stdcall *ExecuteCodeSegment)(int, HWND);
+  void (__stdcall *validate_filename)(char *);
+} extra_parameters;
+
 stack_t **g_stacktop;
 char *g_variables;
 unsigned int g_stringsize;
+extra_parameters *g_pluginParms;
+BOOL g_unicode;
 
-#define EXDLL_INIT()        \
-{                           \
-  g_stacktop=stacktop;      \
-  g_variables=variables;    \
-  g_stringsize=string_size; \
+#define EXDLL_INIT()         \
+{                            \
+  g_stacktop=stacktop;       \
+  g_variables=variables;     \
+  g_stringsize=string_size;  \
+  g_pluginParms=extra;       \
+  {                                                     \
+    wchar_t wszPath[]=L"C:\\";                          \
+    g_pluginParms->validate_filename((char *)wszPath);  \
+    g_unicode=(wszPath[2] == L'\\')?FALSE:TRUE;         \
+  }                                                     \
 }
 
 /* NSIS variables */
@@ -152,7 +184,7 @@ void pushstring(const char *str, int len);
 #ifdef __GNUC__
   extern "C"
 #endif
-void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
 {
   EXDLL_INIT();
   {
@@ -166,7 +198,7 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variable
 #ifdef __GNUC__
   extern "C"
 #endif
-void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
 {
   EXDLL_INIT();
   {
@@ -180,7 +212,7 @@ void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *vari
 #ifdef __GNUC__
   extern "C"
 #endif
-void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
 {
   EXDLL_INIT();
   {
