@@ -1617,7 +1617,6 @@ typedef struct {
 #define AKD_SETBUTTONDRAW          (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
-#define AKD_UPDATEMENU             (WM_USER + 258)
 
 //Frames
 #define AKD_FRAMEACTIVATE          (WM_USER + 261)
