@@ -58,6 +58,10 @@
 #define CR_INSTALLEDNEWER  2
 #define CR_NOTINSTALLED    3
 
+#ifndef SCS_64BIT_BINARY
+  #define SCS_64BIT_BINARY 6
+#endif
+
 /* ExDll */
 typedef struct _stack_t {
   struct _stack_t *next;
@@ -92,7 +96,7 @@ stack_t **g_stacktop;
 char *g_variables;
 unsigned int g_stringsize;
 extra_parameters *g_pluginParms;
-BOOL g_unicode;
+BOOL g_unicode=-1;
 
 #define EXDLL_INIT()         \
 {                            \
@@ -100,6 +104,7 @@ BOOL g_unicode;
   g_variables=variables;     \
   g_stringsize=string_size;  \
   g_pluginParms=extra;       \
+  if (g_unicode == -1)                                  \
   {                                                     \
     wchar_t wszPath[]=L"C:\\";                          \
     g_pluginParms->validate_filename((char *)wszPath);  \
@@ -180,6 +185,10 @@ void pushinteger(int integer);
 int popstring(char *str, int len);
 void pushstring(const char *str, int len);
 
+//GetProcAddress
+BOOL (WINAPI *GetBinaryTypeAPtr)(LPCTSTR lpApplicationName, LPDWORD lpBinaryType);
+
+
 /* NSIS functions code */
 #ifdef __GNUC__
   extern "C"
@@ -188,9 +197,16 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variable
 {
   EXDLL_INIT();
   {
+    HMODULE hKernel32;
+
     popstring(szBuf, MAX_PATH);
+
+    //Initial information
     hInstanceEXE=GetModuleHandleA(NULL);
+    hKernel32=GetModuleHandleA("kernel32.dll");
+    GetBinaryTypeAPtr=(BOOL (WINAPI *)(LPCTSTR, LPDWORD))GetProcAddress(hKernel32, "GetBinaryTypeA");
     wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
+
     DialogBoxA(hInstanceDLL, MAKEINTRESOURCEA(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProcA);
   }
 }
@@ -371,9 +387,36 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
            !popstring(szCompareResult, MAX_PATH))
     {
       if (!xmemcmp(szName, "AkelPad", lstrlenA("AkelPad")))
+      {
         hWndList=hWndListExe;
-      else
-        hWndList=hWndListDll;
+
+        if (GetBinaryTypeAPtr)
+        {
+          DWORD dwBinaryType;
+
+          wsprintfA(szBuf, "%s\\..\\AkelPad.exe", szExeDir);
+          if (GetBinaryTypeAPtr(szBuf, &dwBinaryType))
+          {
+            if (dwBinaryType == SCS_64BIT_BINARY)
+              wsprintfA(szName, "%s (x64)", szName);
+            else
+              wsprintfA(szName, "%s (x86)", szName);
+          }
+          else
+          {
+            wsprintfA(szBuf, "%s\\..\\notepad.exe", szExeDir);
+            if (GetBinaryTypeAPtr(szBuf, &dwBinaryType))
+            {
+              if (dwBinaryType == SCS_64BIT_BINARY)
+                wsprintfA(szName, "%s (x64)", szName);
+              else
+                wsprintfA(szName, "%s (x86)", szName);
+            }
+          }
+        }
+      }
+      else hWndList=hWndListDll;
+
       ++nAllItemsCount;
       nCompareResult=xatoiA(szCompareResult, NULL);
 
