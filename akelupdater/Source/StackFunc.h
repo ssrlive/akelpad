@@ -1,7 +1,7 @@
 /*****************************************************************
- *              Stack functions header v3.2                      *
+ *              Stack functions header v3.3                      *
  *                                                               *
- * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Linear functions:                                              *
@@ -24,8 +24,8 @@
 #ifndef _HSTACK_STRUCT_
 #define _HSTACK_STRUCT_
 typedef struct {
-  int first;
-  int last;
+  INT_PTR first;
+  INT_PTR last;
 } HSTACK;
 #endif
 
@@ -1414,7 +1414,7 @@ void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rang
   stack *tmpPrev;
   BOOL bBreak=FALSE;
 
-  while (1)
+  for (;;)
   {
     tmpNext=tmp1->next;
     tmpPrev=tmp2->prev;
