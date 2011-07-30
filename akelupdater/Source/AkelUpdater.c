@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v2.7                  *
+ *                 AkelUpdater NSIS plugin v2.9                  *
  *                                                               *
- * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
@@ -25,6 +25,7 @@
 
 //Include string functions
 #define xmemcmp
+#define xstrlenA
 #define xstrcpynA
 #define xatoiA
 #define xitoaA
@@ -32,11 +33,6 @@
 
 /* Defines */
 #define NSIS_MAX_STRLEN 1024
-
-//Plugins list
-#define LVSI_NAME     0
-#define LVSI_LATEST   1
-#define LVSI_CURRENT  2
 
 //String IDs
 #define STRID_PROGRAM  0
@@ -48,6 +44,19 @@
 #define STRID_SELECT   6
 #define STRID_UPDATE   7
 #define STRID_CANCEL   8
+
+//Plugins list
+#define LVSI_NAME     0
+#define LVSI_LATEST   1
+#define LVSI_CURRENT  2
+
+#define PE_NONE       0
+#define PE_NOTAKELPAD 1
+#define PE_CANTLOAD   2
+
+#define CR_INSTALLEDOLDER  1
+#define CR_INSTALLEDNEWER  2
+#define CR_NOTINSTALLED    3
 
 /* ExDll */
 typedef struct _stack_t {
@@ -102,6 +111,7 @@ typedef struct _PLUGINITEM {
   struct _PLUGINITEM *prev;
   char szPluginName[MAX_PATH];
   HSTACK hCopiesStack;
+  DWORD dwError;
 } PLUGINITEM;
 
 
@@ -110,11 +120,12 @@ char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
 char szExeDir[MAX_PATH];
 char szPlugsDir[MAX_PATH];
-HSTACK hPluginsStack={0};
+HSTACK hValidPluginsStack={0};
+HSTACK hWrongPluginsStack={0};
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
 WORD wLangSystem;
-RECT rcMainInitDialog={0};
+RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
 
 /* Funtions prototypes and macros */
@@ -122,7 +133,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void StackPluginsFill(HSTACK *hStack);
+void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack);
 PLUGINITEM* StackPluginInsert(HSTACK *hStack, const char *pPluginName);
 PLUGINITEM* StackPluginGet(HSTACK *hStack, const char *pPluginName);
 void StackPluginsSort(HSTACK *hStack);
@@ -318,8 +329,8 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     GetExeDirA(hInstanceEXE, szExeDir, MAX_PATH);
     wsprintfA(szPlugsDir, "%s\\Plugs", szExeDir);
-    StackPluginsFill(&hPluginsStack);
-    StackPluginsSort(&hPluginsStack);
+    StackPluginsFill(&hValidPluginsStack, &hWrongPluginsStack);
+    StackPluginsSort(&hValidPluginsStack);
 
     //Rows
     while (!popstring(szName, MAX_PATH) &&
@@ -335,7 +346,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       nCompareResult=xatoiA(szCompareResult, NULL);
 
       //Find copies
-      if (lpPluginItem=StackPluginGet(&hPluginsStack, szName))
+      if (lpPluginItem=StackPluginGet(&hValidPluginsStack, szName))
       {
         lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
 
@@ -364,12 +375,12 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.mask=LVIF_STATE|LVIF_PARAM;
       lviA.iItem=nIndex;
       lviA.iSubItem=LVSI_NAME;
-      lviA.state=(((nCompareResult == 1) + 1) << 12);
+      lviA.state=(((nCompareResult == CR_INSTALLEDOLDER) + 1) << 12);
       lviA.stateMask=LVIS_STATEIMAGEMASK;
       lviA.lParam=nCompareResult;
       SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
 
-      if (nCompareResult == 1)
+      if (nCompareResult == CR_INSTALLEDOLDER)
       {
         //0  Versions are equal
         //1  "$UPDATENEWVER" is newer
@@ -392,6 +403,16 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.iSubItem=LVSI_CURRENT;
       SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
     }
+
+    //Show invalid DLLs
+    //for (lpPluginItem=(PLUGINITEM *)hWrongPluginsStack.first; lpPluginItem; lpPluginItem=lpPluginItem->next)
+    //{
+    //  lviA.mask=LVIF_TEXT;
+    //  lviA.pszText=lpPluginItem->szPluginName;
+    //  lviA.iItem=0x7FFFFFFF;
+    //  lviA.iSubItem=LVSI_NAME;
+    //  SendMessage(hWndListDll, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
+    //}
 
     wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
     SetWindowTextA(hWndSeleted, szBuf);
@@ -454,7 +475,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (((NMLISTVIEW *)lParam)->iSubItem == LVSI_NAME)
         {
-          while (1)
+          for (;;)
           {
             lviA.mask=LVIF_STATE;
             lviA.iItem=nIndex;
@@ -526,17 +547,17 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (lplvcd->iSubItem == LVSI_NAME ||
                lplvcd->iSubItem == LVSI_LATEST)
             {
-              if (lviA.lParam == 3) //Not installed
+              if (lviA.lParam == CR_NOTINSTALLED) //Not installed
               {
                 lplvcd->clrText=RGB(0xC0, 0xC0, 0xC0);
                 lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
               }
-              else if (lviA.lParam == 2) //Installed version is higher than on site
+              else if (lviA.lParam == CR_INSTALLEDNEWER) //Installed version is higher than on site
               {
                 lplvcd->clrText=RGB(0xFF, 0x00, 0x00);
                 lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
               }
-              else if (lviA.lParam == 1) //New version available on site
+              else if (lviA.lParam == CR_INSTALLEDOLDER) //New version available on site
               {
                 lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
                 lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
@@ -572,7 +593,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int i;
 
       // EXE
-      for (nIndex=0; 1; ++nIndex)
+      for (nIndex=0; ; ++nIndex)
       {
         lviA.mask=LVIF_STATE;
         lviA.iItem=nIndex;
@@ -594,7 +615,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       // DLL
-      for (nIndex=0; 1; ++nIndex)
+      for (nIndex=0; ; ++nIndex)
       {
         lviA.mask=LVIF_TEXT|LVIF_STATE;
         lviA.pszText=szName;
@@ -616,7 +637,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //Find copies and push them in format "OrigName|CopyName1|CopyName2"
-          if (lpPluginItem=StackPluginGet(&hPluginsStack, szName))
+          if (lpPluginItem=StackPluginGet(&hValidPluginsStack, szName))
           {
             lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
 
@@ -653,7 +674,8 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessageA(hWndLanguage, CB_GETLBTEXT, (WPARAM)nSelection, (LPARAM)szBuf);
       setuservariable(INST_2, szBuf);
 
-      StackPluginsFree(&hPluginsStack);
+      StackPluginsFree(&hValidPluginsStack);
+      StackPluginsFree(&hWrongPluginsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -661,13 +683,14 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       pushstring("0|0", MAX_PATH);
 
-      StackPluginsFree(&hPluginsStack);
+      StackPluginsFree(&hValidPluginsStack);
+      StackPluginsFree(&hWrongPluginsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
   }
 
-  DialogResizeMessages(&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -700,7 +723,7 @@ int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **
     pCount=pCmdLine;
 
     //Parse: /O or /O="param" or /O='param' or /O=`param`
-    while (1)
+    for (;;)
     {
       if (*pCount != '\"' && *pCount != '\'' && *pCount != '`')
       {
@@ -743,7 +766,7 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
   return FALSE;
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_INITDIALOG)
   {
@@ -751,9 +774,8 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
     RECT rcControl;
     int i;
 
-    GetWindowPos(hDlg, NULL, rcInit);
     rcTemplate=*rcCurrent;
-    *rcCurrent=*rcInit;
+    GetWindowPos(hDlg, NULL, rcCurrent);
 
     for (i=0; drs[i].lpWnd; ++i)
     {
@@ -763,35 +785,52 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
         if (drs[i].dwType & DRS_SIZE)
         {
           if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcInit->right - (rcControl.left + rcControl.right);
+            drs[i].nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
           else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcInit->bottom - (rcControl.top + rcControl.bottom);
+            drs[i].nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
         }
         else if (drs[i].dwType & DRS_MOVE)
         {
           if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcInit->right - rcControl.left;
+            drs[i].nOffset=rcCurrent->right - rcControl.left;
           else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcInit->bottom - rcControl.top;
+            drs[i].nOffset=rcCurrent->bottom - rcControl.top;
         }
       }
     }
 
     if (rcTemplate.right && rcTemplate.bottom)
     {
-      rcTemplate.left=rcInit->left + (rcInit->right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInit->top + (rcInit->bottom - rcTemplate.bottom) / 2;
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
+      if (GetWindowLongA(hDlg, GWL_STYLE) & DS_CENTER)
+      {
+        rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
+        rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
+      }
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
     }
   }
   else if (uMsg == WM_GETMINMAXINFO)
   {
-    if (dwFlags & DRM_GETMINMAXINFO)
+    if (rcMinMax)
     {
       MINMAXINFO *mmi=(MINMAXINFO *)lParam;
 
-      mmi->ptMinTrackSize.x=rcInit->right;
-      mmi->ptMinTrackSize.y=rcInit->bottom;
+      if (rcMinMax->left)
+        mmi->ptMinTrackSize.x=rcMinMax->left;
+      if (rcMinMax->top)
+        mmi->ptMinTrackSize.y=rcMinMax->top;
+      if (rcMinMax->right)
+        mmi->ptMaxTrackSize.x=rcMinMax->right;
+      if (rcMinMax->bottom)
+        mmi->ptMaxTrackSize.y=rcMinMax->bottom;
+    }
+  }
+  else if (uMsg == WM_MOVE)
+  {
+    if (!(GetWindowLongA(hDlg, GWL_STYLE) & DS_CENTER))
+    {
+      GetWindowPos(hDlg, NULL, rcCurrent);
+      return TRUE;
     }
   }
   else if (uMsg == WM_SIZE)
@@ -821,7 +860,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
                                          (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
                                          (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
                                          (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
-                                          dwFlags|SWP_NOZORDER);
+                                          dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
         }
       }
       InvalidateRect(hDlg, NULL, TRUE);
@@ -849,7 +888,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWOR
   return FALSE;
 }
 
-void StackPluginsFill(HSTACK *hStack)
+void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack)
 {
   char szSearchDir[MAX_PATH];
   char szFile[MAX_PATH];
@@ -860,6 +899,7 @@ void StackPluginsFill(HSTACK *hStack)
   HANDLE hSearch;
   HMODULE hInstance;
   void (*DllAkelPadID)(PLUGINVERSION *pv);
+  DWORD dwError;
 
   wsprintfA(szSearchDir, "%s\\*.dll", szPlugsDir);
 
@@ -867,6 +907,7 @@ void StackPluginsFill(HSTACK *hStack)
   {
     do
     {
+      dwError=PE_NONE;
       wsprintfA(szFile, "%s\\%s", szPlugsDir, wfdA.cFileName);
 
       if (hInstance=LoadLibraryA(szFile))
@@ -875,8 +916,8 @@ void StackPluginsFill(HSTACK *hStack)
         {
           DllAkelPadID(&pv);
 
-          if (!(lpPluginItem=StackPluginGet(hStack, pv.pPluginName)))
-            lpPluginItem=StackPluginInsert(hStack, pv.pPluginName);
+          if (!(lpPluginItem=StackPluginGet(hValidStack, pv.pPluginName)))
+            lpPluginItem=StackPluginInsert(hValidStack, pv.pPluginName);
 
           if (lpPluginItem)
           {
@@ -885,7 +926,21 @@ void StackPluginsFill(HSTACK *hStack)
               StackPluginInsert(&lpPluginItem->hCopiesStack, szBaseName);
           }
         }
+        else dwError=PE_NOTAKELPAD;
+
         FreeLibrary(hInstance);
+      }
+      else dwError=PE_CANTLOAD;
+
+      if (dwError != PE_NONE)
+      {
+        GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
+        if (dwError == PE_NOTAKELPAD)
+          wsprintfA(szBuf, "%s [NOT PLUGIN]", szBaseName);
+        else if (dwError == PE_CANTLOAD)
+          wsprintfA(szBuf, "%s [CAN'T LOAD]", szBaseName);
+        if (lpPluginItem=StackPluginInsert(hWrongStack, szBuf))
+          lpPluginItem->dwError=dwError;
       }
     }
     while (FindNextFileA(hSearch, &wfdA));
