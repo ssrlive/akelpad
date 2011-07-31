@@ -35,24 +35,31 @@
 #define NSIS_MAX_STRLEN 1024
 
 //String IDs
-#define STRID_PROGRAM  0
-#define STRID_PLUGIN   1
-#define STRID_LATEST   2
-#define STRID_CURRENT  3
-#define STRID_MIRROR   4
-#define STRID_LANGUAGE 5
-#define STRID_SELECT   6
-#define STRID_UPDATE   7
-#define STRID_CANCEL   8
+#define STRID_PROGRAM          0
+#define STRID_PLUGIN           1
+#define STRID_LATEST           2
+#define STRID_CURRENT          3
+#define STRID_MIRROR           4
+#define STRID_LANGUAGE         5
+#define STRID_SELECT           6
+#define STRID_ERRORNOTINLIST   7
+#define STRID_ERRORNOTPLUGIN   8
+#define STRID_ERRORCANTLOAD    9
+#define STRID_ERRORCOUNT       10
+#define STRID_UPDATE           11
+#define STRID_CANCEL           12
+
+#define AKDLL_UPDATESTATUS  (WM_USER + 1)
 
 //Plugins list
 #define LVSI_NAME     0
 #define LVSI_LATEST   1
 #define LVSI_CURRENT  2
 
-#define PE_NONE       0
-#define PE_NOTAKELPAD 1
-#define PE_CANTLOAD   2
+#define PE_NONE        0
+#define PE_NOTINLIST   1
+#define PE_NOTPLUGIN   2
+#define PE_CANTLOAD    3
 
 #define CR_INSTALLEDOLDER  1
 #define CR_INSTALLEDNEWER  2
@@ -147,6 +154,8 @@ typedef struct _PLUGINITEM {
   struct _PLUGINITEM *next;
   struct _PLUGINITEM *prev;
   char szPluginName[MAX_PATH];
+  char szErrorName[MAX_PATH];
+  int nCompareResult;
   HSTACK hCopiesStack;
   DWORD dwError;
 } PLUGINITEM;
@@ -157,10 +166,10 @@ char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
 char szExeDir[MAX_PATH];
 char szPlugsDir[MAX_PATH];
-HSTACK hValidPluginsStack={0};
-HSTACK hWrongPluginsStack={0};
+HSTACK hDllsStack={0};
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
+int nProgramCompareResult=CR_NOTINSTALLED;
 WORD wLangSystem;
 RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
@@ -170,13 +179,14 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack);
+void StackPluginsFill(HSTACK *hStack);
 PLUGINITEM* StackPluginInsert(HSTACK *hStack, const char *pPluginName);
 PLUGINITEM* StackPluginGet(HSTACK *hStack, const char *pPluginName);
 void StackPluginsSort(HSTACK *hStack);
 void StackPluginsFree(HSTACK *hStack);
 int GetExeDirA(HINSTANCE hInstance, char *szExeDir, int nLen);
 int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen);
+BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 const char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
 void setuservariable(const int varnum, const char *var);
@@ -265,13 +275,14 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndMirror;
   static HWND hWndListDll;
   static HWND hWndListInfo;
-  static HWND hWndSeleted;
+  static HWND hWndSelected;
   static HWND hWndUpdate;
   static HWND hWndCancel;
   static BOOL bSelectAllExe=TRUE;
   static BOOL bSelectAllDll=TRUE;
   static int nAllItemsCount=0;
   static int nSelItemsCount=0;
+  static int nErrorsCount=0;
   static LVITEMA lviA;
   static DIALOGRESIZE drs[]={{&hWndGroupExe,    DRS_SIZE|DRS_X, 0},
                              {&hWndListExe,     DRS_SIZE|DRS_X, 0},
@@ -280,8 +291,8 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndListDll,     DRS_SIZE|DRS_X, 0},
                              {&hWndListDll,     DRS_SIZE|DRS_Y, 0},
                              {&hWndListInfo,    DRS_MOVE|DRS_Y, 0},
-                             {&hWndSeleted,     DRS_MOVE|DRS_X, 0},
-                             {&hWndSeleted,     DRS_MOVE|DRS_Y, 0},
+                             {&hWndSelected,    DRS_MOVE|DRS_X, 0},
+                             {&hWndSelected,    DRS_MOVE|DRS_Y, 0},
                              {&hWndUpdate,      DRS_MOVE|DRS_Y, 0},
                              {&hWndCancel,      DRS_MOVE|DRS_X, 0},
                              {&hWndCancel,      DRS_MOVE|DRS_Y, 0},
@@ -293,7 +304,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     char szLatestVer[MAX_PATH];
     char szCurrentVer[MAX_PATH];
     char szCompareResult[MAX_PATH];
-    PLUGINITEM *lpPluginItem;
+    PLUGINITEM *lpPluginItem=NULL;
     PLUGINITEM *lpCopyItem;
     HWND hWndList;
     LVCOLUMNA lvcA;
@@ -309,7 +320,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndMirror=GetDlgItem(hDlg, IDC_MIRROR);
     hWndListDll=GetDlgItem(hDlg, IDC_LIST_DLL);
     hWndListInfo=GetDlgItem(hDlg, IDC_LIST_INFO);
-    hWndSeleted=GetDlgItem(hDlg, IDC_SELECTED);
+    hWndSelected=GetDlgItem(hDlg, IDC_SELECTED);
     hWndUpdate=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
@@ -377,8 +388,8 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     GetExeDirA(hInstanceEXE, szExeDir, MAX_PATH);
     wsprintfA(szPlugsDir, "%s\\Plugs", szExeDir);
-    StackPluginsFill(&hValidPluginsStack, &hWrongPluginsStack);
-    StackPluginsSort(&hValidPluginsStack);
+    StackPluginsFill(&hDllsStack);
+    StackPluginsSort(&hDllsStack);
 
     //Rows
     while (!popstring(szName, MAX_PATH) &&
@@ -420,26 +431,35 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ++nAllItemsCount;
       nCompareResult=xatoiA(szCompareResult, NULL);
 
-      //Find copies
-      if (lpPluginItem=StackPluginGet(&hValidPluginsStack, szName))
+      if (hWndList == hWndListExe)
       {
-        lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
-
-        if (lpCopyItem)
+        nProgramCompareResult=nCompareResult;
+        lstrcpynA(szBuf, szName, MAX_PATH);
+      }
+      else if (hWndList == hWndListDll)
+      {
+        //Find copies
+        if (lpPluginItem=StackPluginGet(&hDllsStack, szName))
         {
-          nOffset=wsprintfA(szBuf, "%s (%s", szName, lpCopyItem->szPluginName);
-          lpCopyItem=lpCopyItem->next;
+          lpPluginItem->dwError=PE_NONE;
+          lpPluginItem->nCompareResult=nCompareResult;
 
-          while (lpCopyItem)
+          if (lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first)
           {
-            nOffset+=wsprintfA(szBuf + nOffset, ", %s", lpCopyItem->szPluginName);
+            nOffset=wsprintfA(szBuf, "%s (%s", szName, lpCopyItem->szPluginName);
             lpCopyItem=lpCopyItem->next;
+
+            while (lpCopyItem)
+            {
+              nOffset+=wsprintfA(szBuf + nOffset, ", %s", lpCopyItem->szPluginName);
+              lpCopyItem=lpCopyItem->next;
+            }
+            szBuf[nOffset]=')';
           }
-          szBuf[nOffset]=')';
+          else lstrcpynA(szBuf, szName, MAX_PATH);
         }
         else lstrcpynA(szBuf, szName, MAX_PATH);
       }
-      else lstrcpynA(szBuf, szName, MAX_PATH);
 
       lviA.mask=LVIF_TEXT;
       lviA.pszText=szBuf;
@@ -452,7 +472,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.iSubItem=LVSI_NAME;
       lviA.state=(((nCompareResult == CR_INSTALLEDOLDER) + 1) << 12);
       lviA.stateMask=LVIS_STATEIMAGEMASK;
-      lviA.lParam=nCompareResult;
+      lviA.lParam=(LPARAM)lpPluginItem;
       SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
 
       if (nCompareResult == CR_INSTALLEDOLDER)
@@ -464,6 +484,10 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bSelectAllExe=FALSE;
         else if (hWndList == hWndListDll)
           bSelectAllDll=FALSE;
+      }
+      else if (nCompareResult == CR_INSTALLEDNEWER)
+      {
+        ++nErrorsCount;
       }
 
       lviA.mask=LVIF_TEXT;
@@ -479,18 +503,61 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
     }
 
-    //Show invalid DLLs
-    //for (lpPluginItem=(PLUGINITEM *)hWrongPluginsStack.first; lpPluginItem; lpPluginItem=lpPluginItem->next)
-    //{
-    //  lviA.mask=LVIF_TEXT;
-    //  lviA.pszText=lpPluginItem->szPluginName;
-    //  lviA.iItem=0x7FFFFFFF;
-    //  lviA.iSubItem=LVSI_NAME;
-    //  SendMessage(hWndListDll, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
-    //}
+    //Mark unofficial DLLs
+    for (lpPluginItem=(PLUGINITEM *)hDllsStack.first; lpPluginItem; lpPluginItem=lpPluginItem->next)
+    {
+      if (lpPluginItem->dwError == PE_NOTINLIST)
+      {
+        wsprintfA(lpPluginItem->szErrorName, "%s %s", lpPluginItem->szPluginName, GetLangStringA(wLangSystem, STRID_ERRORNOTINLIST));
+      }
+    }
 
-    wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
-    SetWindowTextA(hWndSeleted, szBuf);
+    //Show invalid DLLs
+    for (lpPluginItem=(PLUGINITEM *)hDllsStack.last; lpPluginItem; lpPluginItem=lpPluginItem->prev)
+    {
+      if (lpPluginItem->dwError)
+      {
+        lviA.mask=LVIF_TEXT|LVIF_PARAM;
+        lviA.pszText=lpPluginItem->szErrorName;
+        lviA.iItem=0x7FFFFFFF;
+        lviA.iSubItem=LVSI_NAME;
+        lviA.lParam=(LPARAM)lpPluginItem;
+        nIndex=SendMessage(hWndListDll, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
+
+        if (lpPluginItem->dwError == PE_NOTPLUGIN  ||
+            lpPluginItem->dwError == PE_CANTLOAD)
+        {
+          ++nErrorsCount;
+        }
+        else if (lpPluginItem->dwError == PE_NOTINLIST)
+        {
+          int nMajor;
+          int nMinor;
+          int nRelease;
+          int nBuild;
+
+          wsprintfA(szBuf, "%s\\Plugs\\%s.dll", szExeDir, lpPluginItem->szPluginName);
+          GetFileVersionA(szBuf, &nMajor, &nMinor, &nRelease, &nBuild, NULL);
+          wsprintfA(szBuf, "%d.%d", nMajor, nMinor);
+          lviA.mask=LVIF_TEXT;
+          lviA.pszText=szBuf;
+          lviA.iItem=nIndex;
+          lviA.iSubItem=LVSI_CURRENT;
+          SendMessage(hWndListDll, LVM_SETITEMA, 0, (LPARAM)&lviA);
+        }
+      }
+    }
+
+    PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+  }
+  else if (uMsg == AKDLL_UPDATESTATUS)
+  {
+    if (nErrorsCount)
+      wsprintfA(szBuf2, "(%s: %d)   ", GetLangStringA(wLangSystem, STRID_ERRORCOUNT), nErrorsCount);
+    else
+      szBuf2[0]='\0';
+    wsprintfA(szBuf, "%s%d / %d", szBuf2, nSelItemsCount, nAllItemsCount);
+    SetWindowTextA(hWndSelected, szBuf);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -536,8 +603,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (!nSelItemsCount)
                 EnableWindow(hWndUpdate, FALSE);
             }
-            wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
-            SetWindowTextA(hWndSeleted, szBuf);
+            PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
           }
         }
       }
@@ -576,6 +642,15 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bNewState >=0 && bOldState >=0 && bNewState != bOldState)
           {
+            PLUGINITEM *lpPluginItem=(PLUGINITEM *)((NMLISTVIEW *)lParam)->lParam;
+
+            if (lpPluginItem && lpPluginItem->dwError)
+            {
+              //Wrong plugin
+              SetWindowLongA(hDlg, DWLP_MSGRESULT, 1);
+              return TRUE;
+            }
+
             if (bNewState)
             {
               if (!nSelItemsCount)
@@ -588,8 +663,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (!nSelItemsCount)
                 EnableWindow(hWndUpdate, FALSE);
             }
-            wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
-            SetWindowTextA(hWndSeleted, szBuf);
+            PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
           }
         }
       }
@@ -613,36 +687,60 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (lplvcd->nmcd.dwDrawStage == (CDDS_SUBITEM|CDDS_ITEMPREPAINT))
         {
-          lviA.mask=LVIF_PARAM;
-          lviA.iItem=lplvcd->nmcd.dwItemSpec;
-          lviA.iSubItem=LVSI_NAME;
+          int nCompareResult=CR_NOTINSTALLED;
 
-          if (SendMessage(((NMLISTVIEW *)lParam)->hdr.hwndFrom, LVM_GETITEMA, 0, (LPARAM)&lviA))
+          if (wParam == IDC_LIST_EXE)
           {
-            if (lplvcd->iSubItem == LVSI_NAME ||
-               lplvcd->iSubItem == LVSI_LATEST)
+            nCompareResult=nProgramCompareResult;
+          }
+          else if (wParam == IDC_LIST_DLL)
+          {
+            lviA.mask=LVIF_PARAM;
+            lviA.iItem=lplvcd->nmcd.dwItemSpec;
+            lviA.iSubItem=LVSI_NAME;
+
+            if (SendMessage(((NMLISTVIEW *)lParam)->hdr.hwndFrom, LVM_GETITEMA, 0, (LPARAM)&lviA))
             {
-              if (lviA.lParam == CR_NOTINSTALLED) //Not installed
+              PLUGINITEM *lpPluginItem=(PLUGINITEM *)lviA.lParam;
+
+              if (lpPluginItem)
               {
-                lplvcd->clrText=RGB(0xC0, 0xC0, 0xC0);
-                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
-              }
-              else if (lviA.lParam == CR_INSTALLEDNEWER) //Installed version is higher than on site
-              {
-                lplvcd->clrText=RGB(0xFF, 0x00, 0x00);
-                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
-              }
-              else if (lviA.lParam == CR_INSTALLEDOLDER) //New version available on site
-              {
-                lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
-                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+                if (lpPluginItem->dwError == PE_NONE)
+                {
+                  nCompareResult=lpPluginItem->nCompareResult;
+                }
+                else if (lpPluginItem->dwError == PE_NOTPLUGIN  ||
+                         lpPluginItem->dwError == PE_CANTLOAD)
+                {
+                  nCompareResult=CR_INSTALLEDNEWER;
+                }
               }
             }
-            else
+          }
+
+          if (lplvcd->iSubItem == LVSI_NAME ||
+              lplvcd->iSubItem == LVSI_LATEST)
+          {
+            if (nCompareResult == CR_NOTINSTALLED) //Not installed
             {
-              lplvcd->clrText=RGB(0x00, 0x00, 0x00);
+              lplvcd->clrText=RGB(0xC0, 0xC0, 0xC0);
               lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
             }
+            else if (nCompareResult == CR_INSTALLEDNEWER) //Installed version is higher than on site
+            {
+              lplvcd->clrText=RGB(0xFF, 0x00, 0x00);
+              lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+            }
+            else if (nCompareResult == CR_INSTALLEDOLDER) //New version available on site
+            {
+              lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
+              lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+            }
+          }
+          else
+          {
+            lplvcd->clrText=RGB(0x00, 0x00, 0x00);
+            lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
           }
           lResult=CDRF_DODEFAULT;
         }
@@ -712,7 +810,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //Find copies and push them in format "OrigName|CopyName1|CopyName2"
-          if (lpPluginItem=StackPluginGet(&hValidPluginsStack, szName))
+          if (lpPluginItem=StackPluginGet(&hDllsStack, szName))
           {
             lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
 
@@ -749,8 +847,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessageA(hWndLanguage, CB_GETLBTEXT, (WPARAM)nSelection, (LPARAM)szBuf);
       setuservariable(INST_2, szBuf);
 
-      StackPluginsFree(&hValidPluginsStack);
-      StackPluginsFree(&hWrongPluginsStack);
+      StackPluginsFree(&hDllsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -758,8 +855,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       pushstring("0|0", MAX_PATH);
 
-      StackPluginsFree(&hValidPluginsStack);
-      StackPluginsFree(&hWrongPluginsStack);
+      StackPluginsFree(&hDllsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -963,7 +1059,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
   return FALSE;
 }
 
-void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack)
+void StackPluginsFill(HSTACK *hStack)
 {
   char szSearchDir[MAX_PATH];
   char szFile[MAX_PATH];
@@ -991,17 +1087,20 @@ void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack)
         {
           DllAkelPadID(&pv);
 
-          if (!(lpPluginItem=StackPluginGet(hValidStack, pv.pPluginName)))
-            lpPluginItem=StackPluginInsert(hValidStack, pv.pPluginName);
+          if (!(lpPluginItem=StackPluginGet(hStack, pv.pPluginName)))
+            lpPluginItem=StackPluginInsert(hStack, pv.pPluginName);
 
           if (lpPluginItem)
           {
             GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
             if (lstrcmpiA(szBaseName, pv.pPluginName))
               StackPluginInsert(&lpPluginItem->hCopiesStack, szBaseName);
+
+            //Set PE_NOTINLIST flag and remove it later
+            lpPluginItem->dwError=PE_NOTINLIST;
           }
         }
-        else dwError=PE_NOTAKELPAD;
+        else dwError=PE_NOTPLUGIN;
 
         FreeLibrary(hInstance);
       }
@@ -1009,13 +1108,16 @@ void StackPluginsFill(HSTACK *hValidStack, HSTACK *hWrongStack)
 
       if (dwError != PE_NONE)
       {
-        GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
-        if (dwError == PE_NOTAKELPAD)
-          wsprintfA(szBuf, "%s [NOT PLUGIN]", szBaseName);
-        else if (dwError == PE_CANTLOAD)
-          wsprintfA(szBuf, "%s [CAN'T LOAD]", szBaseName);
-        if (lpPluginItem=StackPluginInsert(hWrongStack, szBuf))
+        if (lpPluginItem=StackPluginInsert(hStack, wfdA.cFileName))
+        {
+          if (dwError == PE_NOTPLUGIN)
+            wsprintfA(lpPluginItem->szErrorName, "%s %s", lpPluginItem->szPluginName, GetLangStringA(wLangSystem, STRID_ERRORNOTPLUGIN));
+          else if (dwError == PE_CANTLOAD)
+            wsprintfA(lpPluginItem->szErrorName, "%s %s", lpPluginItem->szPluginName,  GetLangStringA(wLangSystem, STRID_ERRORCANTLOAD));
+          else
+            wsprintfA(lpPluginItem->szErrorName, "%s", lpPluginItem->szPluginName);
           lpPluginItem->dwError=dwError;
+        }
       }
     }
     while (FindNextFileA(hSearch, &wfdA));
@@ -1109,6 +1211,51 @@ int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen)
   return nBaseNameMaxLen;
 }
 
+BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
+{
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate;
+
+  VS_FIXEDFILEINFO ffi;
+  VS_FIXEDFILEINFO *pffi=&ffi;
+  void *pVerBuf;
+  DWORD dwHandle;
+  DWORD dwVerSize;
+  UINT uLen;
+  BOOL bResult=FALSE;
+
+  *nMajor=*nMinor=*nRelease=*nBuild=0;
+
+  if (dwVerSize=GetFileVersionInfoSizeA((char *)pFile, &dwHandle))
+  {
+    if (pVerBuf=GlobalAlloc(GPTR, dwVerSize))
+    {
+      if (GetFileVersionInfoA((char *)pFile, dwHandle, dwVerSize, pVerBuf))
+      {
+        if (VerQueryValueA(pVerBuf, "\\", (void **)&pffi, &uLen))
+        {
+          *nMajor=pffi->dwFileVersionMS / 0x00010000;
+          *nMinor=pffi->dwFileVersionMS & 0x0000FFFF;
+          *nRelease=pffi->dwFileVersionLS / 0x00010000;
+          *nBuild=pffi->dwFileVersionLS & 0x0000FFFF;
+          bResult=TRUE;
+        }
+        if (dwLanguage)
+        {
+          if (VerQueryValueA(pVerBuf, "\\VarFileInfo\\Translation", (void **)&lpTranslate, &uLen))
+          {
+            *dwLanguage=lpTranslate->wLanguage;
+          }
+        }
+      }
+      GlobalFree((HGLOBAL)pVerBuf);
+    }
+  }
+  return bResult;
+}
+
 const char* GetLangStringA(LANGID wLangID, int nStringID)
 {
   if (wLangID == LANG_RUSSIAN)
@@ -1127,6 +1274,14 @@ const char* GetLangStringA(LANGID wLangID, int nStringID)
       return "\xDF\xE7\xFB\xEA";
     if (nStringID == STRID_SELECT)
       return "\xD3\xF1\xF2\xE0\xED\xEE\xE2\xE8\xF2\xE5\x20\xE3\xE0\xEB\xEE\xF7\xEA\xF3\x20\xE4\xEB\xFF\x20\xE7\xE0\xE3\xF0\xF3\xE7\xEA\xE8\x2E";
+    if (nStringID == STRID_ERRORNOTINLIST)
+      return "[\xED\xE5\xF2\x20\xE2\x20\xF1\xEF\xE8\xF1\xEA\xE5]";
+    if (nStringID == STRID_ERRORNOTPLUGIN)
+      return "[\xCD\xC5\x20\xDF\xC2\xCB\x2E\x20\xCF\xCB\xC0\xC3\xC8\xCD\xCE\xCC]";
+    if (nStringID == STRID_ERRORCANTLOAD)
+      return "[\xCD\xC5\x20\xC7\xC0\xC3\xD0\xD3\xC6\xC0\xC5\xD2\xD1\xDF]";
+    if (nStringID == STRID_ERRORCOUNT)
+      return "\xCE\xF8\xE8\xE1\xEE\xEA";
     if (nStringID == STRID_UPDATE)
       return "\xCE\xE1\xED\xEE\xE2\xE8\xF2\xFC";
     if (nStringID == STRID_CANCEL)
@@ -1148,6 +1303,14 @@ const char* GetLangStringA(LANGID wLangID, int nStringID)
       return "Language";
     if (nStringID == STRID_SELECT)
       return "Select checkbox for download.";
+    if (nStringID == STRID_ERRORCOUNT)
+      return "Errors";
+    if (nStringID == STRID_ERRORNOTINLIST)
+      return "[not in list]";
+    if (nStringID == STRID_ERRORNOTPLUGIN)
+      return "[NOT PLUGIN]";
+    if (nStringID == STRID_ERRORCANTLOAD)
+      return "[CAN'T LOAD]";
     if (nStringID == STRID_UPDATE)
       return "Update";
     if (nStringID == STRID_CANCEL)
@@ -1191,7 +1354,7 @@ int popstring(char *str, int len)
 
   if (!g_stacktop || !*g_stacktop) return 1;
   th=(*g_stacktop);
-  lstrcpyn(str, th->text, len);
+  lstrcpynA(str, th->text, len);
   *g_stacktop=th->next;
   GlobalFree((HGLOBAL)th);
   return 0;
@@ -1204,7 +1367,7 @@ void pushstring(const char *str, int len)
 
   if (!g_stacktop) return;
   th=(stack_t*)GlobalAlloc(GPTR, sizeof(stack_t) + len);
-  lstrcpyn(th->text, str, len);
+  lstrcpynA(th->text, str, len);
   th->next=*g_stacktop;
   *g_stacktop=th;
 }
