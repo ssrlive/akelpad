@@ -65,6 +65,9 @@
 #define CR_INSTALLEDNEWER  2
 #define CR_NOTINSTALLED    3
 
+#ifndef SCS_32BIT_BINARY
+  #define SCS_32BIT_BINARY 0
+#endif
 #ifndef SCS_64BIT_BINARY
   #define SCS_64BIT_BINARY 6
 #endif
@@ -170,6 +173,7 @@ HSTACK hDllsStack={0};
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
 int nProgramCompareResult=CR_NOTINSTALLED;
+DWORD dwProgramBinaryType=SCS_32BIT_BINARY;
 WORD wLangSystem;
 RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
@@ -203,19 +207,40 @@ BOOL (WINAPI *GetBinaryTypeAPtr)(LPCTSTR lpApplicationName, LPDWORD lpBinaryType
 #ifdef __GNUC__
   extern "C"
 #endif
-void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
+void __declspec(dllexport) Init(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
 {
   EXDLL_INIT();
   {
     HMODULE hKernel32;
 
-    popstring(szBuf, MAX_PATH);
-
-    //Initial information
     hInstanceEXE=GetModuleHandleA(NULL);
+    wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
+    GetExeDirA(hInstanceEXE, szExeDir, MAX_PATH);
+    wsprintfA(szPlugsDir, "%s\\Plugs", szExeDir);
+
     hKernel32=GetModuleHandleA("kernel32.dll");
     GetBinaryTypeAPtr=(BOOL (WINAPI *)(LPCTSTR, LPDWORD))GetProcAddress(hKernel32, "GetBinaryTypeA");
-    wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
+    if (GetBinaryTypeAPtr)
+    {
+      wsprintfA(szBuf, "%s\\..\\AkelPad.exe", szExeDir);
+      if (!GetBinaryTypeAPtr(szBuf, &dwProgramBinaryType))
+      {
+        wsprintfA(szBuf, "%s\\..\\notepad.exe", szExeDir);
+        GetBinaryTypeAPtr(szBuf, &dwProgramBinaryType);
+      }
+    }
+    pushinteger(dwProgramBinaryType == SCS_64BIT_BINARY?64:32);
+  }
+}
+
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop, extra_parameters *extra)
+{
+  EXDLL_INIT();
+  {
+    popstring(szBuf, MAX_PATH);
 
     DialogBoxA(hInstanceDLL, MAKEINTRESOURCEA(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProcA);
   }
@@ -386,8 +411,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lvcA.iSubItem=LVSI_CURRENT;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
 
-    GetExeDirA(hInstanceEXE, szExeDir, MAX_PATH);
-    wsprintfA(szPlugsDir, "%s\\Plugs", szExeDir);
     StackPluginsFill(&hDllsStack);
     StackPluginsSort(&hDllsStack);
 
@@ -398,35 +421,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
            !popstring(szCompareResult, MAX_PATH))
     {
       if (!xmemcmp(szName, "AkelPad", lstrlenA("AkelPad")))
-      {
         hWndList=hWndListExe;
-
-        if (GetBinaryTypeAPtr)
-        {
-          DWORD dwBinaryType;
-
-          wsprintfA(szBuf, "%s\\..\\AkelPad.exe", szExeDir);
-          if (GetBinaryTypeAPtr(szBuf, &dwBinaryType))
-          {
-            if (dwBinaryType == SCS_64BIT_BINARY)
-              wsprintfA(szName, "%s (x64)", szName);
-            else
-              wsprintfA(szName, "%s (x86)", szName);
-          }
-          else
-          {
-            wsprintfA(szBuf, "%s\\..\\notepad.exe", szExeDir);
-            if (GetBinaryTypeAPtr(szBuf, &dwBinaryType))
-            {
-              if (dwBinaryType == SCS_64BIT_BINARY)
-                wsprintfA(szName, "%s (x64)", szName);
-              else
-                wsprintfA(szName, "%s (x86)", szName);
-            }
-          }
-        }
-      }
-      else hWndList=hWndListDll;
+      else
+        hWndList=hWndListDll;
 
       ++nAllItemsCount;
       nCompareResult=xatoiA(szCompareResult, NULL);
@@ -434,7 +431,11 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (hWndList == hWndListExe)
       {
         nProgramCompareResult=nCompareResult;
-        lstrcpynA(szBuf, szName, MAX_PATH);
+
+        if (dwProgramBinaryType == SCS_64BIT_BINARY)
+          wsprintfA(szBuf, "%s (x64)", szName);
+        else
+          wsprintfA(szBuf, "%s (x86)", szName);
       }
       else if (hWndList == hWndListDll)
       {
