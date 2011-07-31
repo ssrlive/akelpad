@@ -251,7 +251,7 @@ Function .onInit
   ${EndIf}
 
   ;Show dialog (Result: $0="ExeVersion|ExeBit|DllCount", $1="Download mirror", $2="Language")
-  AkelUpdater::List $ZIPLANG
+  AkelUpdater::List $ZIPLANG ${PRODUCT_VERSION}
   StrCpy $ZIPMIRROR $1
   StrCpy $ZIPLANG $2
 
