@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v2.9                  *
+ *                 AkelUpdater NSIS plugin v3.0                  *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -169,6 +169,8 @@ char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
 char szExeDir[MAX_PATH];
 char szPlugsDir[MAX_PATH];
+char szLanguage[MAX_PATH];
+char szAkelUpdaterVersion[32];
 HSTACK hDllsStack={0};
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
@@ -240,7 +242,8 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variable
 {
   EXDLL_INIT();
   {
-    popstring(szBuf, MAX_PATH);
+    popstring(szLanguage, MAX_PATH);
+    popstring(szAkelUpdaterVersion, MAX_PATH);
 
     DialogBoxA(hInstanceDLL, MAKEINTRESOURCEA(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProcA);
   }
@@ -351,6 +354,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
 
+    wsprintfA(szBuf, "AkelUpdater %s", szAkelUpdaterVersion);
+    SetWindowTextA(hDlg, szBuf);
+
     SetDlgItemTextA(hDlg, IDC_MIRROR_LABEL, GetLangStringA(wLangSystem, STRID_MIRROR));
     SetDlgItemTextA(hDlg, IDC_LANGUAGE_LABEL, GetLangStringA(wLangSystem, STRID_LANGUAGE));
     SetDlgItemTextA(hDlg, IDC_LIST_INFO, GetLangStringA(wLangSystem, STRID_SELECT));
@@ -365,7 +371,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SendMessageA(hWndLanguage, CB_ADDSTRING, 0, (LPARAM)"eng");
     SendMessageA(hWndLanguage, CB_ADDSTRING, 0, (LPARAM)"rus");
-    if (!lstrcmpA(szBuf, "rus"))
+    if (!lstrcmpA(szLanguage, "rus"))
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)1, 0);
     else
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)0, 0);
