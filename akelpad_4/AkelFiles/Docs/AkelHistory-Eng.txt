@@ -1,5 +1,5 @@
 
-AkelPad 4.6.4 ()
+AkelPad 4.6.4 (Aug 01, 2011)
 ----------------------------
 Added: support of mouse with horizontal scrolling (WinVista/7).
 Added: manual parameter for "MouseOptions" with a value of 16 - triple click and left margin
@@ -8,7 +8,7 @@ Added: manual parameter for "MouseOptions" with a value of 16 - triple click and
 Fixed: letters case are not changed in the recent files list.
 
 
-AkelPad 4.6.3 (Jun 13, 2011)
+AkelPad 4.6.3 (Jul 13, 2011)
 ----------------------------
 Changed: for unsaved document command 4121 opens "Recode..." dialog.
 
