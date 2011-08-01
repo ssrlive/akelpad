@@ -193,8 +193,8 @@
 #define MO_NONEWLINEMOUSESELECT  0x00000010  //Triple click and left margin click selects only line contents without new line.
 
 //Keyboard layout options
-#define MO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).
-#define MO_SWITCHLAYOUT       0x00000002  //Auto switch keyboard layout according to text under caret.
+#define KLO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).
+#define KLO_SWITCHLAYOUT       0x00000002  //Auto switch keyboard layout according to text under caret.
 
 //Paint options
 #define PAINT_PAINTGROUP            0x00000001  //Paint text by group of characters (default is character by character).
