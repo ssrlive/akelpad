@@ -4196,7 +4196,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
 
-          if ((moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT) && !(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
+          if ((moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT) && !(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
           {
             SwitchLayout(aensc->hdr.hwndFrom, &aensc->ciCaret);
           }

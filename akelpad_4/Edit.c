@@ -670,7 +670,7 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   if (nMDI)
   {
     //Remember keyboard layout
-    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
+    if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
     {
       lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
     }
@@ -729,7 +729,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   if (nMDI)
   {
     //Activate keyboard layout
-    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
+    if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
     {
       ActivateKeyboard(lpFrame->dwInputLocale);
     }
@@ -2701,7 +2701,7 @@ void DoSettingsOptions()
   if (dwInitKeybLayoutOptions != moCur.dwKeybLayoutOptions)
   {
     //Run after property dialog closed, because SwitchLayout require focus
-    if (moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT)
+    if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
       SwitchLayout(lpFrameCurrent->ei.hWndEdit, &ciCurCaret);
   }
 
@@ -13868,9 +13868,9 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
 
-    if (moCur.dwKeybLayoutOptions & MO_SWITCHLAYOUT)
+    if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
       SendMessage(hWndSwitchKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwKeybLayoutOptions & MO_REMEMBERLAYOUT)
+    if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSilentCloseEmptyMDI)
       SendMessage(hWndSilentCloseEmpty, BM_SETCHECK, BST_CHECKED, 0);
@@ -13900,15 +13900,15 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       //Auto switch keyboard layout
       if (SendMessage(hWndSwitchKeybLayout, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        moCur.dwKeybLayoutOptions|=MO_SWITCHLAYOUT;
+        moCur.dwKeybLayoutOptions|=KLO_SWITCHLAYOUT;
       else
-        moCur.dwKeybLayoutOptions&=~MO_SWITCHLAYOUT;
+        moCur.dwKeybLayoutOptions&=~KLO_SWITCHLAYOUT;
 
       //Remember keyboard layout for each tab (MDI)
       if (SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        moCur.dwKeybLayoutOptions|=MO_REMEMBERLAYOUT;
+        moCur.dwKeybLayoutOptions|=KLO_REMEMBERLAYOUT;
       else
-        moCur.dwKeybLayoutOptions&=~MO_REMEMBERLAYOUT;
+        moCur.dwKeybLayoutOptions&=~KLO_REMEMBERLAYOUT;
 
       //Silently close unsaved empty tab (MDI)
       moCur.bSilentCloseEmptyMDI=(BOOL)SendMessage(hWndSilentCloseEmpty, BM_GETCHECK, 0, 0);
