@@ -1,14 +1,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "StrFunc.h"
-#include "AkelDLL.h"
+#include "..\StrFunc.h"
+#include "..\AkelDLL.h"
 
 
 //Include string functions
 #define xatoiA
 #define xstrcpynA
 #define xstrlenA
-#include "StrFunc.h"
+#include "..\StrFunc.h"
 
 //Defines
 #define PE_NONE              0
