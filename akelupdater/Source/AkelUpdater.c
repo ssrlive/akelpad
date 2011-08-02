@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.0                  *
+ *                 AkelUpdater NSIS plugin v3.1                  *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -25,6 +25,7 @@
 
 //Include string functions
 #define xmemcmp
+#define xmemset
 #define xstrlenA
 #define xstrcpynA
 #define xatoiA
@@ -37,17 +38,18 @@
 //String IDs
 #define STRID_PROGRAM          0
 #define STRID_PLUGIN           1
-#define STRID_LATEST           2
-#define STRID_CURRENT          3
-#define STRID_MIRROR           4
-#define STRID_LANGUAGE         5
-#define STRID_SELECT           6
-#define STRID_ERRORNOTINLIST   7
-#define STRID_ERRORNOTPLUGIN   8
-#define STRID_ERRORCANTLOAD    9
-#define STRID_ERRORCOUNT       10
-#define STRID_UPDATE           11
-#define STRID_CANCEL           12
+#define STRID_COPIES           2
+#define STRID_LATEST           3
+#define STRID_CURRENT          4
+#define STRID_MIRROR           5
+#define STRID_LANGUAGE         6
+#define STRID_SELECT           7
+#define STRID_ERRORNOTINLIST   8
+#define STRID_ERRORNOTPLUGIN   9
+#define STRID_ERRORCANTLOAD    10
+#define STRID_ERRORCOUNT       11
+#define STRID_UPDATE           12
+#define STRID_CANCEL           13
 
 #define AKDLL_UPDATESTATUS  (WM_USER + 1)
 
@@ -55,11 +57,6 @@
 #define LVSI_NAME     0
 #define LVSI_LATEST   1
 #define LVSI_CURRENT  2
-
-#define PE_NONE        0
-#define PE_NOTINLIST   1
-#define PE_NOTPLUGIN   2
-#define PE_CANTLOAD    3
 
 #define CR_INSTALLEDOLDER  1
 #define CR_INSTALLEDNEWER  2
@@ -71,6 +68,16 @@
 #ifndef SCS_64BIT_BINARY
   #define SCS_64BIT_BINARY 6
 #endif
+
+#define PE_NONE        0
+#define PE_NOTINLIST   1
+#define PE_NOTPLUGIN   2
+#define PE_CANTLOAD    3
+
+typedef struct {
+  char szPluginName[MAX_PATH];
+  DWORD dwError;
+} DLLINFO;
 
 /* ExDll */
 typedef struct _stack_t {
@@ -169,14 +176,18 @@ char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
 char szExeDir[MAX_PATH];
 char szPlugsDir[MAX_PATH];
-char szLanguage[MAX_PATH];
-char szAkelUpdaterVersion[32];
-HSTACK hDllsStack={0};
+char szInputLanguage[MAX_PATH];
+char szInputVersion[32];
+char szInputHelper[MAX_PATH];
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
-int nProgramCompareResult=CR_NOTINSTALLED;
-DWORD dwProgramBinaryType=SCS_32BIT_BINARY;
 WORD wLangSystem;
+HSTACK hDllsStack={0};
+DLLINFO diGlobal;
+HWND hWndDialog=NULL;
+int nProgramCompareResult=CR_NOTINSTALLED;
+int nInputBit=32;
+BOOL bInputNoCopies=FALSE;
 RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
 
@@ -214,6 +225,7 @@ void __declspec(dllexport) Init(HWND hwndParent, int string_size, char *variable
   EXDLL_INIT();
   {
     HMODULE hKernel32;
+    DWORD dwBinaryType=SCS_32BIT_BINARY;
 
     hInstanceEXE=GetModuleHandleA(NULL);
     wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
@@ -225,13 +237,13 @@ void __declspec(dllexport) Init(HWND hwndParent, int string_size, char *variable
     if (GetBinaryTypeAPtr)
     {
       wsprintfA(szBuf, "%s\\..\\AkelPad.exe", szExeDir);
-      if (!GetBinaryTypeAPtr(szBuf, &dwProgramBinaryType))
+      if (!GetBinaryTypeAPtr(szBuf, &dwBinaryType))
       {
         wsprintfA(szBuf, "%s\\..\\notepad.exe", szExeDir);
-        GetBinaryTypeAPtr(szBuf, &dwProgramBinaryType);
+        GetBinaryTypeAPtr(szBuf, &dwBinaryType);
       }
     }
-    pushinteger(dwProgramBinaryType == SCS_64BIT_BINARY?64:32);
+    pushinteger(dwBinaryType == SCS_64BIT_BINARY?64:32);
   }
 }
 
@@ -242,8 +254,11 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variable
 {
   EXDLL_INIT();
   {
-    popstring(szLanguage, MAX_PATH);
-    popstring(szAkelUpdaterVersion, MAX_PATH);
+    popstring(szInputVersion, MAX_PATH);
+    popstring(szInputLanguage, MAX_PATH);
+    nInputBit=popinteger();
+    bInputNoCopies=popinteger();
+    popstring(szInputHelper, MAX_PATH);
 
     DialogBoxA(hInstanceDLL, MAKEINTRESOURCEA(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProcA);
   }
@@ -341,6 +356,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     int nOffset;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceEXE, MAKEINTRESOURCEA(IDI_ICON)));
+    hWndDialog=hDlg;
     hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
     hWndListExe=GetDlgItem(hDlg, IDC_LIST_EXE);
     hWndLanguage=GetDlgItem(hDlg, IDC_LANGUAGE);
@@ -354,7 +370,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
 
-    wsprintfA(szBuf, "AkelUpdater %s", szAkelUpdaterVersion);
+    wsprintfA(szBuf, "AkelUpdater %s", szInputVersion);
     SetWindowTextA(hDlg, szBuf);
 
     SetDlgItemTextA(hDlg, IDC_MIRROR_LABEL, GetLangStringA(wLangSystem, STRID_MIRROR));
@@ -371,7 +387,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SendMessageA(hWndLanguage, CB_ADDSTRING, 0, (LPARAM)"eng");
     SendMessageA(hWndLanguage, CB_ADDSTRING, 0, (LPARAM)"rus");
-    if (!lstrcmpA(szLanguage, "rus"))
+    if (!lstrcmpA(szInputLanguage, "rus"))
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)1, 0);
     else
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)0, 0);
@@ -399,8 +415,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndListExe, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
 
     //Columns DLL
+    wsprintfA(szBuf, "%s%s", GetLangStringA(wLangSystem, STRID_PLUGIN), bInputNoCopies?NULL:GetLangStringA(wLangSystem, STRID_COPIES));
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_PLUGIN);
+    lvcA.pszText=(char *)szBuf;
     lvcA.cx=210;
     lvcA.iSubItem=LVSI_NAME;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_NAME, (LPARAM)&lvcA);
@@ -438,7 +455,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         nProgramCompareResult=nCompareResult;
 
-        if (dwProgramBinaryType == SCS_64BIT_BINARY)
+        if (nInputBit == 64)
           wsprintfA(szBuf, "%s (x64)", szName);
         else
           wsprintfA(szBuf, "%s (x86)", szName);
@@ -556,6 +573,14 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+  }
+  else if (uMsg == WM_COPYDATA)
+  {
+    COPYDATASTRUCT *cds=(COPYDATASTRUCT *)lParam;
+    DLLINFO *di=cds->lpData;
+
+    xstrcpynA(diGlobal.szPluginName, di->szPluginName, MAX_PATH);
+    diGlobal.dwError=di->dwError;
   }
   else if (uMsg == AKDLL_UPDATESTATUS)
   {
@@ -1077,7 +1102,6 @@ void StackPluginsFill(HSTACK *hStack)
   HANDLE hSearch;
   HMODULE hInstance;
   void (*DllAkelPadID)(PLUGINVERSION *pv);
-  DWORD dwError;
 
   wsprintfA(szSearchDir, "%s\\*.dll", szPlugsDir);
 
@@ -1085,45 +1109,97 @@ void StackPluginsFill(HSTACK *hStack)
   {
     do
     {
-      dwError=PE_NONE;
       wsprintfA(szFile, "%s\\%s", szPlugsDir, wfdA.cFileName);
+      diGlobal.szPluginName[0]='\0';
+      diGlobal.dwError=PE_CANTLOAD;
 
-      if (hInstance=LoadLibraryA(szFile))
+      if (bInputNoCopies)
       {
-        if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
+        GetBaseNameA(wfdA.cFileName, diGlobal.szPluginName, MAX_PATH);
+        diGlobal.dwError=PE_NONE;
+      }
+      else
+      {
+        if (nInputBit == 64)
         {
-          DllAkelPadID(&pv);
+          STARTUPINFOA si;
+          PROCESS_INFORMATION pi;
 
-          if (!(lpPluginItem=StackPluginGet(hStack, pv.pPluginName)))
-            lpPluginItem=StackPluginInsert(hStack, pv.pPluginName);
+          wsprintfA(szBuf, "\"%s\" \"%d\" \"%s\"", szInputHelper, hWndDialog, szFile);
+          xmemset(&si, 0, sizeof(STARTUPINFOA));
+          si.cb=sizeof(STARTUPINFOA);
 
-          if (lpPluginItem)
+          if (CreateProcessA(NULL, szBuf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
           {
-            GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
-            if (lstrcmpiA(szBaseName, pv.pPluginName))
-              StackPluginInsert(&lpPluginItem->hCopiesStack, szBaseName);
+            //Wait for pi.hProcess and process messages.
+            MSG msg;
+            BOOL bExitLoop=FALSE;
 
-            //Set PE_NOTINLIST flag and remove it later
-            lpPluginItem->dwError=PE_NOTINLIST;
+            for (;;)
+            {
+              while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+              {
+                if (msg.message == WM_QUIT)
+                  bExitLoop=TRUE;
+                else
+                {
+                  TranslateMessage(&msg);
+                  DispatchMessageA(&msg);
+                }
+              }
+              if (bExitLoop)
+                break;
+              if (MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+                break;
+            }
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
           }
         }
-        else dwError=PE_NOTPLUGIN;
+        else
+        {
+          if (hInstance=LoadLibraryA(szFile))
+          {
+            if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
+            {
+              DllAkelPadID(&pv);
 
-        FreeLibrary(hInstance);
+              xstrcpynA(diGlobal.szPluginName, pv.pPluginName, MAX_PATH);
+              diGlobal.dwError=PE_NONE;
+            }
+            else diGlobal.dwError=PE_NOTPLUGIN;
+
+            FreeLibrary(hInstance);
+          }
+          else diGlobal.dwError=PE_CANTLOAD;
+        }
       }
-      else dwError=PE_CANTLOAD;
+      if (diGlobal.szPluginName[0])
+      {
+        if (!(lpPluginItem=StackPluginGet(hStack, diGlobal.szPluginName)))
+          lpPluginItem=StackPluginInsert(hStack, diGlobal.szPluginName);
 
-      if (dwError != PE_NONE)
+        if (lpPluginItem)
+        {
+          GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
+          if (lstrcmpiA(szBaseName, diGlobal.szPluginName))
+            StackPluginInsert(&lpPluginItem->hCopiesStack, szBaseName);
+
+          //Set PE_NOTINLIST flag and remove it later
+          lpPluginItem->dwError=PE_NOTINLIST;
+        }
+      }
+      if (diGlobal.dwError != PE_NONE)
       {
         if (lpPluginItem=StackPluginInsert(hStack, wfdA.cFileName))
         {
-          if (dwError == PE_NOTPLUGIN)
+          if (diGlobal.dwError == PE_NOTPLUGIN)
             wsprintfA(lpPluginItem->szErrorName, "%s %s", lpPluginItem->szPluginName, GetLangStringA(wLangSystem, STRID_ERRORNOTPLUGIN));
-          else if (dwError == PE_CANTLOAD)
+          else if (diGlobal.dwError == PE_CANTLOAD)
             wsprintfA(lpPluginItem->szErrorName, "%s %s", lpPluginItem->szPluginName,  GetLangStringA(wLangSystem, STRID_ERRORCANTLOAD));
           else
             wsprintfA(lpPluginItem->szErrorName, "%s", lpPluginItem->szPluginName);
-          lpPluginItem->dwError=dwError;
+          lpPluginItem->dwError=diGlobal.dwError;
         }
       }
     }
@@ -1270,7 +1346,9 @@ const char* GetLangStringA(LANGID wLangID, int nStringID)
     if (nStringID == STRID_PROGRAM)
       return "\xCF\xF0\xEE\xE3\xF0\xE0\xEC\xEC\xE0";
     if (nStringID == STRID_PLUGIN)
-      return "\xCF\xEB\xE0\xE3\xE8\xED\x20\x28\xEA\xEE\xEF\xE8\xE8\x29";
+      return "\xCF\xEB\xE0\xE3\xE8\xED";
+    if (nStringID == STRID_COPIES)
+      return " (\xEA\xEE\xEF\xE8\xE8)";
     if (nStringID == STRID_LATEST)
       return "\xCF\xEE\xF1\xEB\xE5\xE4\xED\xFF\xFF";
     if (nStringID == STRID_CURRENT)
@@ -1299,7 +1377,9 @@ const char* GetLangStringA(LANGID wLangID, int nStringID)
     if (nStringID == STRID_PROGRAM)
       return "Program";
     if (nStringID == STRID_PLUGIN)
-      return "Plugin (copies)";
+      return "Plugin";
+    if (nStringID == STRID_COPIES)
+      return " (copies)";
     if (nStringID == STRID_LATEST)
       return "Latest";
     if (nStringID == STRID_CURRENT)

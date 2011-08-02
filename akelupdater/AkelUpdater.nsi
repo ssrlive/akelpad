@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "3.0"
+!define PRODUCT_VERSION "3.1"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -117,6 +117,7 @@ Var LANGEXIST
 Var ZIPMIRROR
 Var ZIPLANG
 Var DLONLY
+Var NOCOPIES
 Var ZIPXLANG
 Var UNZIP
 Var NOTEPAD
@@ -140,11 +141,17 @@ Function .onInit
      |   /LANG=[eng|rus]$\n\
      |     Select language.$\n\
      |$\n\
+     |   /BIT=[32|64]$\n\
+     |     Update to 32-bit or to 64-bit version. If not specified it will be autodetected.$\n\
+     |$\n\
      |   /SAVEDIR=[path]$\n\
      |     Save downloads to directory.$\n\
      |$\n\
      |   /DLONLY$\n\
      |     Don't update, download only.$\n\
+     |$\n\
+     |   /NOCOPIES$\n\
+     |     Don't load DLLs to find original plugin name.$\n\
      |$\n\
      |   /UNZIP=[options]$\n\
      |     nsUnzip options.$\n\
@@ -166,8 +173,10 @@ Function .onInit
 
   InitPluginsDir
   StrCpy $SAVEDIR $PLUGINSDIR
+  StrCpy $EXEBIT 0
   StrCpy $ZIPLANG $(lng)
   StrCpy $DLONLY 0
+  StrCpy $NOCOPIES 0
   StrCpy $PROXYPARAM /NUL
   StrCpy $PROXYVALUE /NUL
   StrCpy $LOGINPARAM /NUL
@@ -195,11 +204,20 @@ Function .onInit
     ${EndIf}
   ${EndIf}
 
+  ${GetOptions} $PARAMETERS "/BIT=" $0
+  ${IfNot} ${Errors}
+    ${If} $0 == 32
+      StrCpy $EXEBIT 32
+    ${ElseIf} $0 == 64
+      StrCpy $EXEBIT 64
+    ${EndIf}
+  ${EndIf}
+
   ${GetOptions} $PARAMETERS "/LANG=" $0
   ${IfNot} ${Errors}
-    ${If} $ZIPLANG == eng
+    ${If} $0 == eng
       StrCpy $ZIPLANG eng
-    ${ElseIf} $ZIPLANG == rus
+    ${ElseIf} $0 == rus
       StrCpy $ZIPLANG rus
     ${EndIf}
   ${EndIf}
@@ -213,6 +231,11 @@ Function .onInit
   ${GetOptions} $PARAMETERS "/DLONLY" $0
   ${IfNot} ${Errors}
     StrCpy $DLONLY 1
+  ${EndIf}
+
+  ${GetOptions} $PARAMETERS "/NOCOPIES" $0
+  ${IfNot} ${Errors}
+    StrCpy $NOCOPIES 1
   ${EndIf}
 
   ${GetOptions} $PARAMETERS "/UNZIP=" $0
@@ -234,13 +257,23 @@ Function .onInit
 
   ;Initialize AkelUpdater.dll variables
   AkelUpdater::Init /NOUNLOAD
-  Pop $EXEBIT
+  Pop $0
+  ${If} $EXEBIT == "0"
+    StrCpy $EXEBIT $0
+
+    ${If} $EXEBIT == "64"
+      StrCpy $BITSUFFIXMINUS "-x64"
+      StrCpy $BITSUFFIXSLASH "/x64"
+    ${Else}
+      StrCpy $BITSUFFIXMINUS ""
+      StrCpy $BITSUFFIXSLASH ""
+    ${EndIf}
+  ${EndIf}
+
+  ;Extract helper
   ${If} $EXEBIT == "64"
-    StrCpy $BITSUFFIXMINUS "-x64"
-    StrCpy $BITSUFFIXSLASH "/x64"
-  ${Else}
-    StrCpy $BITSUFFIXMINUS ""
-    StrCpy $BITSUFFIXSLASH ""
+  ${AndIf} $NOCOPIES == 0
+    File "/oname=$PLUGINSDIR\AkelUpdaterHelp.exe" "AkelUpdaterHelp.exe"
   ${EndIf}
 
   ;Fill stack with versions
@@ -250,8 +283,8 @@ Function .onInit
     Quit
   ${EndIf}
 
-  ;Show dialog (Result: $0="ExeVersion|ExeBit|DllCount", $1="Download mirror", $2="Language")
-  AkelUpdater::List $ZIPLANG ${PRODUCT_VERSION}
+  ;Show dialog (Result: $0="ExeVersion|DllCount", $1="Download mirror", $2="Language")
+  AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $EXEBIT $NOCOPIES "$PLUGINSDIR\AkelUpdaterHelp.exe"
   StrCpy $ZIPMIRROR $1
   StrCpy $ZIPLANG $2
 
