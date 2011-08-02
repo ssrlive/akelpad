@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "3.2"
+!define PRODUCT_VERSION "3.3"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -138,6 +138,9 @@ Function .onInit
      |   /AUTH=LOGIN:PASSWORD$\n\
      |     Proxy login and password (http only).$\n\
      |$\n\
+     |   /NOPROXY$\n\
+     |     Disables proxy settings for this connection (if any).$\n\
+     |$\n\
      |   /LANG=[eng|rus]$\n\
      |     Select language.$\n\
      |$\n\
@@ -202,6 +205,12 @@ Function .onInit
         StrCpy $PASSWORDVALUE $2
       ${EndIf}
     ${EndIf}
+  ${EndIf}
+
+  ${GetOptions} $PARAMETERS "/NOPROXY" $0
+  ${IfNot} ${Errors}
+    StrCpy $PROXYPARAM /NOPROXY
+    StrCpy $PROXYVALUE /NUL
   ${EndIf}
 
   ${GetOptions} $PARAMETERS "/BIT=" $0
