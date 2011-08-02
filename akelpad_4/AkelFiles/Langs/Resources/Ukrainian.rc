@@ -558,7 +558,7 @@ BEGIN
     CONTROL         "Рядок:Стовпчик",IDC_GOTO_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "Зміщення",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    86,42,50,10
+                    86,41,50,10
     PUSHBUTTON      "Перейти",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Скасувати",IDCANCEL,77,63,50,14,BS_CENTER
 END
@@ -964,7 +964,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Помилка в черзі повідомлень."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Критическая ошибка: недостаточно памяти. Рекомендуется завершить работу программы."
+    MSG_ERROR_NOT_ENOUGH_MEMORY "Критична помилка: недостатньо пам'яті. Рекомендується завершити роботу програми."
     MSG_ERROR_BINARY        """%s"" бінарний файл. Продовжити?"
     MSG_ERROR_IO            "Помилка введення/виведення."
     MSG_ERROR_SYNTAX        "Синтаксична помилка."
@@ -1005,7 +1005,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
-    MSG_DOCUMENTSLIMIT      "Досягнуто ліміт документів. Використовуйте режим PMDI для відкриття більшої кількості документів."
+    MSG_DOCUMENTSLIMIT      "Досягнута межа кількості документов. Щоб відкрити більше документів, використовуйте режим PMDI."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1069,8 +1069,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Так для всіх"
     STR_MESSAGEBOX_NOTOALL  "Ні для всіх"
     STR_MESSAGEBOX_GOTO     "Перейти"
-    STR_MESSAGEBOX_TERMINATE "Завершить"
-    STR_MESSAGEBOX_CONTINUE "Продолжить"
+    STR_MESSAGEBOX_TERMINATE "Завершити"
+    STR_MESSAGEBOX_CONTINUE "Продовжити"
 END
 
 STRINGTABLE DISCARDABLE 

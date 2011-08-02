@@ -557,7 +557,7 @@ BEGIN
     CONTROL         "&Wiersz:Kolumna",IDC_GOTO_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "&Znak (Offset)",IDC_GOTO_OFFSET,"Button",
-                    BS_AUTORADIOBUTTON,86,42,50,10
+                    BS_AUTORADIOBUTTON,86,41,50,10
     PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Anuluj",IDCANCEL,77,63,50,14,BS_CENTER
 END

@@ -559,7 +559,7 @@ BEGIN
     CONTROL         "Zeile:Spalte",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,
                     14,41,70,10
     CONTROL         "Zeichen",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
-                    42,50,10
+                    41,50,10
     PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Abbrechen",IDCANCEL,77,63,50,14,BS_CENTER
 END

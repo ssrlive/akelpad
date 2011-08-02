@@ -1032,7 +1032,11 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
   {
     if (!(GetWindowLongA(hDlg, GWL_STYLE) & DS_CENTER))
     {
-      GetWindowPos(hDlg, NULL, rcCurrent);
+      RECT rcTemplate;
+
+      GetWindowPos(hDlg, NULL, &rcTemplate);
+      rcCurrent->left=rcTemplate.left;
+      rcCurrent->top=rcTemplate.top;
       return TRUE;
     }
   }
