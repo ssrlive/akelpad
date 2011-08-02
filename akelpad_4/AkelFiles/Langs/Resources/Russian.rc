@@ -160,7 +160,7 @@ BEGIN
 
             MENUITEM "С&крыть",                     IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "&Стандартные",                IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "&Стандарные",                 IDM_WINDOW_TABTYPE_STANDARD
 
             MENUITEM "Кн&опки",                     IDM_WINDOW_TABTYPE_BUTTONS
 
@@ -557,7 +557,7 @@ BEGIN
     CONTROL         "Строка:Колонка",IDC_GOTO_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "Смещение",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    86,42,50,10
+                    86,41,50,10
     PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Отмена",IDCANCEL,77,63,50,14,BS_CENTER
 END
