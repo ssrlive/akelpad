@@ -160,7 +160,7 @@ BEGIN
 
             MENUITEM "С&крыть",                     IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "&Стандарные",                 IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "&Стандартные",                IDM_WINDOW_TABTYPE_STANDARD
 
             MENUITEM "Кн&опки",                     IDM_WINDOW_TABTYPE_BUTTONS
 
