@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.1                  *
+ *                 AkelUpdater NSIS plugin v3.2                  *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -478,7 +478,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               nOffset+=wsprintfA(szBuf + nOffset, ", %s", lpCopyItem->szPluginName);
               lpCopyItem=lpCopyItem->next;
             }
-            szBuf[nOffset]=')';
+            wsprintfA(szBuf + nOffset, ")");
           }
           else lstrcpynA(szBuf, szName, MAX_PATH);
         }
