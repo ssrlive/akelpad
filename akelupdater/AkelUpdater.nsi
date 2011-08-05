@@ -65,7 +65,7 @@ ShowInstDetails show
 XPStyle on
 
 VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2010 Shengalts Aleksander aka Instructor"
+VIAddVersionKey LegalCopyright "© 2011 Shengalts Aleksander aka Instructor"
 VIAddVersionKey ProductName "${PRODUCT_NAME}"
 VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
 VIAddVersionKey Comments ""
