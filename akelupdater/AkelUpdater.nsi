@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "3.3"
+!define PRODUCT_VERSION "3.4"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -269,14 +269,13 @@ Function .onInit
   Pop $0
   ${If} $EXEBIT == "0"
     StrCpy $EXEBIT $0
-
-    ${If} $EXEBIT == "64"
-      StrCpy $BITSUFFIXMINUS "-x64"
-      StrCpy $BITSUFFIXSLASH "/x64"
-    ${Else}
-      StrCpy $BITSUFFIXMINUS ""
-      StrCpy $BITSUFFIXSLASH ""
-    ${EndIf}
+  ${EndIf}
+  ${If} $EXEBIT == "64"
+    StrCpy $BITSUFFIXMINUS "-x64"
+    StrCpy $BITSUFFIXSLASH "/x64"
+  ${Else}
+    StrCpy $BITSUFFIXMINUS ""
+    StrCpy $BITSUFFIXSLASH ""
   ${EndIf}
 
   ;Extract helper
