@@ -1082,7 +1082,8 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
 
     if ((lResult=RegEnumValueA(hKey, dwIndex, szValueName, &dwValueChars, lpReserved, &dwDataType, NULL, &dwDataChars)) == ERROR_SUCCESS)
     {
-      *lpcValueName=AnsiToWide(szValueName, dwValueChars + 1, wszValueName, *lpcValueName);
+      if (*lpcValueName=AnsiToWide(szValueName, dwValueChars + 1, wszValueName, *lpcValueName))
+        --*lpcValueName;
       dwValueChars=MAX_PATH;
 
       if (dwDataType == REG_SZ || dwDataType == REG_EXPAND_SZ || dwDataType == REG_MULTI_SZ)
