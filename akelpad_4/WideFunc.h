@@ -1082,13 +1082,16 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
 
     if ((lResult=RegEnumValueA(hKey, dwIndex, szValueName, &dwValueChars, lpReserved, &dwDataType, NULL, &dwDataChars)) == ERROR_SUCCESS)
     {
+      *lpcValueName=AnsiToWide(szValueName, dwValueChars + 1, wszValueName, *lpcValueName);
+      dwValueChars=MAX_PATH;
+
       if (dwDataType == REG_SZ || dwDataType == REG_EXPAND_SZ || dwDataType == REG_MULTI_SZ)
       {
         if (lpData)
         {
           if (szData=(char *)GlobalAlloc(GPTR, dwDataChars))
           {
-            RegEnumValueA(hKey, dwIndex, szValueName, &dwValueChars, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
+            lResult=RegEnumValueA(hKey, dwIndex, szValueName, &dwValueChars, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
             dwDataChars=AnsiToWide(szData, dwDataChars, (wchar_t *)lpData, *lpcbData / sizeof(wchar_t));
             GlobalFree((HGLOBAL)szData);
           }
@@ -1097,8 +1100,6 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
         if (lpcbData) *lpcbData=dwDataChars * sizeof(wchar_t);
       }
       else lResult=RegEnumValueA(hKey, dwIndex, szValueName, &dwValueChars, lpReserved, lpType, lpData, lpcbData);
-
-      *lpcValueName=AnsiToWide(szValueName, dwValueChars, wszValueName, *lpcValueName);
     }
     return lResult;
   }
@@ -1134,7 +1135,7 @@ LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserv
         {
           if (szData=(char *)GlobalAlloc(GPTR, dwDataChars))
           {
-            RegQueryValueExA(hKey, pValueName, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
+            lResult=RegQueryValueExA(hKey, pValueName, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
             dwDataChars=AnsiToWide(szData, dwDataChars, (wchar_t *)lpData, *lpcbData / sizeof(wchar_t));
             GlobalFree((HGLOBAL)szData);
           }
