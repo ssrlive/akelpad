@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.2                    *
+ *                  Wide functions header v1.3                    *
  *                                                                *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -84,8 +84,9 @@ UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch);
 //Registry (REGWIDEFUNC). Advapi32.lib.
 LONG RegCreateKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwReserved, wchar_t *wpClass, DWORD dwOptions, REGSAM samDesired, LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition);
 LONG RegOpenKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwOptions, REGSAM samDesired, PHKEY phkResult);
-LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+LONG RegEnumKeyExWide(HKEY hKey, DWORD dwIndex, wchar_t *wszKeyName, LPDWORD lpcKeyName, LPDWORD lpReserved, wchar_t *lpClass, LPDWORD lpcClass, PFILETIME lpftLastWriteTime);
 LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD lpcValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
 LONG RegSetValueExWide(HKEY hKey, const wchar_t *wpValueName, DWORD dwReserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
 LONG RegDeleteValueWide(HKEY hKey, const wchar_t *wpValue);
 LONG RegDeleteKeyWide(HKEY hKey, const wchar_t *wpSubKey);
@@ -1023,45 +1024,39 @@ LONG RegOpenKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwOptions, REGSA
 }
 #endif
 
-#if defined RegQueryValueExWide || defined REGWIDEFUNC || defined ALLWIDEFUNC
-#define RegQueryValueExWide_INCLUDED
-#undef RegQueryValueExWide
+#if defined RegEnumKeyExWide || defined REGWIDEFUNC || defined ALLWIDEFUNC
+#define RegEnumKeyExWide_INCLUDED
+#undef RegEnumKeyExWide
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+LONG RegEnumKeyExWide(HKEY hKey, DWORD dwIndex, wchar_t *wszKeyName, LPDWORD lpcKeyName, LPDWORD lpReserved, wchar_t *lpClass, LPDWORD lpcClass, PFILETIME lpftLastWriteTime)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
-    char *pValueName=AllocAnsi(wpValueName);
-    char *szData;
-    DWORD dwDataType;
-    DWORD dwDataChars;
+    char szKeyName[MAX_PATH];
+    char szClassName[MAX_PATH];
+    DWORD dwKeyChars=MAX_PATH;
+    DWORD dwClassChars=MAX_PATH;
     LONG lResult;
 
-    if ((lResult=RegQueryValueExA(hKey, pValueName, lpReserved, &dwDataType, NULL, &dwDataChars)) == ERROR_SUCCESS)
+    if ((lResult=RegEnumKeyExA(hKey, dwIndex, szKeyName, &dwKeyChars, lpReserved, szClassName, &dwClassChars, lpftLastWriteTime)) == ERROR_SUCCESS)
     {
-      if (dwDataType == REG_SZ || dwDataType == REG_EXPAND_SZ || dwDataType == REG_MULTI_SZ)
+      if (lpcKeyName)
       {
-        if (lpData)
-        {
-          if (szData=(char *)GlobalAlloc(GPTR, dwDataChars))
-          {
-            RegQueryValueExA(hKey, pValueName, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
-            dwDataChars=AnsiToWide(szData, dwDataChars, (wchar_t *)lpData, *lpcbData / sizeof(wchar_t));
-            GlobalFree((HGLOBAL)szData);
-          }
-        }
-        if (lpType) *lpType=dwDataType;
-        if (lpcbData) *lpcbData=dwDataChars * sizeof(wchar_t);
+        if (*lpcKeyName=AnsiToWide(szKeyName, dwKeyChars + 1, wszKeyName, *lpcKeyName))
+          --*lpcKeyName;
       }
-      else lResult=RegQueryValueExA(hKey, pValueName, lpReserved, lpType, lpData, lpcbData);
+      if (lpClass)
+      {
+        if (*lpcClass=AnsiToWide(szClassName, dwClassChars + 1, lpClass, *lpcClass))
+          --*lpcClass;
+      }
     }
-    FreeAnsi(pValueName);
     return lResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return RegQueryValueExW(hKey, wpValueName, lpReserved, lpType, lpData, lpcbData);
+    return RegEnumKeyExW(hKey, dwIndex, wszKeyName, lpcKeyName, lpReserved, lpClass, lpcClass, lpftLastWriteTime);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1109,6 +1104,51 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
   }
   else if (WideGlobal_bOldWindows == FALSE)
     return RegEnumValueW(hKey, dwIndex, wszValueName, lpcValueName, lpReserved, lpType, lpData, lpcbData);
+
+  WideNotInitialized();
+  return !ERROR_SUCCESS;
+}
+#endif
+
+#if defined RegQueryValueExWide || defined REGWIDEFUNC || defined ALLWIDEFUNC
+#define RegQueryValueExWide_INCLUDED
+#undef RegQueryValueExWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pValueName=AllocAnsi(wpValueName);
+    char *szData;
+    DWORD dwDataType;
+    DWORD dwDataChars;
+    LONG lResult;
+
+    if ((lResult=RegQueryValueExA(hKey, pValueName, lpReserved, &dwDataType, NULL, &dwDataChars)) == ERROR_SUCCESS)
+    {
+      if (dwDataType == REG_SZ || dwDataType == REG_EXPAND_SZ || dwDataType == REG_MULTI_SZ)
+      {
+        if (lpData)
+        {
+          if (szData=(char *)GlobalAlloc(GPTR, dwDataChars))
+          {
+            RegQueryValueExA(hKey, pValueName, lpReserved, lpType, (LPBYTE)szData, &dwDataChars);
+            dwDataChars=AnsiToWide(szData, dwDataChars, (wchar_t *)lpData, *lpcbData / sizeof(wchar_t));
+            GlobalFree((HGLOBAL)szData);
+          }
+        }
+        if (lpType) *lpType=dwDataType;
+        if (lpcbData) *lpcbData=dwDataChars * sizeof(wchar_t);
+      }
+      else lResult=RegQueryValueExA(hKey, pValueName, lpReserved, lpType, lpData, lpcbData);
+    }
+    FreeAnsi(pValueName);
+    return lResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+    return RegQueryValueExW(hKey, wpValueName, lpReserved, lpType, lpData, lpcbData);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
