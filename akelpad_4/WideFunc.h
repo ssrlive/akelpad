@@ -52,6 +52,7 @@ LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 //File and directories (FILEWIDEFUNC). Kernel32.lib.
 BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName, BOOL bFailIfExists);
 BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName);
 BOOL DeleteFileWide(const wchar_t *wpFile);
 DWORD GetFileAttributesWide(const wchar_t *wpFile);
@@ -220,6 +221,34 @@ HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dw
 
   WideNotInitialized();
   return 0;
+}
+#endif
+
+#if defined CopyFileWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define CopyFileWide_INCLUDED
+#undef CopyFileWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName, BOOL bFailIfExists)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pExistingFileName=AllocAnsi(wpExistingFileName);
+    char *pNewFileName=AllocAnsi(wpNewFileName);
+    BOOL bResult;
+
+    bResult=CopyFileA(pExistingFileName, pNewFileName, bFailIfExists);
+
+    FreeAnsi(pExistingFileName);
+    FreeAnsi(pNewFileName);
+    return bResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+    return CopyFileW(wpExistingFileName, wpNewFileName, bFailIfExists);
+
+  WideNotInitialized();
+  return FALSE;
 }
 #endif
 
