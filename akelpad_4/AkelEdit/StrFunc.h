@@ -1620,7 +1620,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *          FALSE pStr isn't founded.
  *
  *Note:
- *  - xstrstrA uses xstrlenA.
+ *  xstrstrA uses xstrlenA.
  ********************************************************************/
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
@@ -2596,11 +2596,11 @@ int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLower
  *
  *Returns: copied chars.
  *
- *Note:
- *  bin2hexA uses dec2hexA.
- *
  *Examples:
  *  bin2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
+ *
+ *Note:
+ *  bin2hexA uses dec2hexA.
  ********************************************************************/
 #if defined bin2hexA || defined ALLSTRFUNC
 #define bin2hexA_INCLUDED
@@ -2787,11 +2787,11 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
  *
  *Returns:  number of characters copied, not including the terminating null character.
  *
- *Examples:
- *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
- *
  *Note:
  *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
+ *
+ *Examples:
+ *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
 #if defined xprintfA || defined ALLSTRFUNC
 #define xprintfA_INCLUDED
@@ -3049,11 +3049,11 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *
  *Returns:  number of characters copied, not including the terminating null character.
  *
- *Examples:
- *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
- *
  *Note:
  *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *
+ *Examples:
+ *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
 #if defined xprintfW || defined ALLSTRFUNC
 #define xprintfW_INCLUDED
