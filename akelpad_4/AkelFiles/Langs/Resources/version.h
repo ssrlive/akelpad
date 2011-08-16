@@ -1,4 +1,4 @@
-#define RC_AKELPADID 4,6,4,0
+#define RC_AKELPADID 4,6,5,0
 
 #if !defined(EXE_VERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
   #if defined(EXE_VERSION)
