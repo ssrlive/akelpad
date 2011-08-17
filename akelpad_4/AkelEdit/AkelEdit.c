@@ -14199,16 +14199,16 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     return 0;
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
-  if (ciCount.nCharInLine - 1 < 0)
+  if (ciCount.nCharInLine <= 0)
   {
     if (ciCount.lpLine->prev)
     {
       if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
         AEC_PrevLine(&ciCount);
     }
-    else goto End;
+    else return 0;
   }
-  AEC_IndexDec(&ciCount);
+  nLen+=AEC_IndexDec(&ciCount);
 
   if (ciCount.nCharInLine < 0)
   {
@@ -14239,18 +14239,12 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
         if (dwFlags & AEWB_STOPSPACEEND)
         {
           if (!bIsSpacePrevious && bIsSpaceCurrent)
-          {
-            AEC_IndexInc(&ciCount);
             goto End;
-          }
         }
         if (dwFlags & AEWB_STOPSPACESTART)
         {
           if (bIsSpacePrevious && !bIsSpaceCurrent)
-          {
-            AEC_IndexInc(&ciCount);
             goto End;
-          }
         }
       }
       if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
@@ -14260,10 +14254,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
           if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrevious)
           {
             if (dwFlags & AEWB_LEFTWORDEND)
-            {
-              AEC_IndexInc(&ciCount);
               goto End;
-            }
           }
         }
         else
@@ -14271,10 +14262,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
           if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpaceCurrent)
           {
             if (dwFlags & AEWB_LEFTWORDSTART)
-            {
-              AEC_IndexInc(&ciCount);
               goto End;
-            }
           }
         }
         bInList=!bInList;
@@ -14332,6 +14320,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   }
 
   End:
+  nLen-=AEC_IndexInc(&ciCount);
   AEC_ValidCharInLine(&ciCount);
 
   if (AEC_IndexCompare(ciChar, &ciCount))
