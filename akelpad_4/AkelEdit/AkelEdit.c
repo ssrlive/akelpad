@@ -14074,9 +14074,9 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
       bIsSpacePrevious=TRUE;
 
     AEC_NextLine(&ciCount);
+    ++nLen;
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
-    ++nLen;
   }
   else
   {
@@ -14216,9 +14216,9 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
       bIsSpacePrevious=TRUE;
 
     AEC_PrevLine(&ciCount);
+    nLen+=AEC_IndexDec(&ciCount);
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
-    nLen+=AEC_IndexDec(&ciCount);
   }
   else
   {
@@ -15761,6 +15761,12 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
   if (ciRangeStart->lpLine && ciRangeEnd->lpLine)
   {
+    if (!bColumnSel)
+    {
+      AEC_ValidCharInLine(&ciDeleteStart);
+      AEC_ValidCharInLine(&ciDeleteEnd);
+    }
+
     //Exchange indexes
     if ((nCompare=AEC_IndexCompare(&ciDeleteStart, &ciDeleteEnd)) > 0)
     {
