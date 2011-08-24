@@ -1,3 +1,12 @@
+/***********************************************************************************
+ *                      AkelAdmin UAC support for AkelPad                          *
+ *                                                                                 *
+ * Copyright 2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)       *
+ *                                                                                 *
+ * License: this source is distributed under "BSD license" conditions.             *
+ ***********************************************************************************/
+
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include "..\AkelEdit\StrFunc.h"
@@ -59,6 +68,7 @@ void _WinMain()
   wchar_t *pArguments=wpCmdLine;
   wchar_t wszSource[MAX_PATH];
   wchar_t wszTarget[MAX_PATH];
+  int nAction=-1;
   DWORD dwSourceAttr;
   DWORD dwTargetAttr;
   DWORD dwExitCode=1;
@@ -76,82 +86,91 @@ void _WinMain()
       //Skip executable
       GetCommandLineArgW(pArguments, NULL, 0, &pArguments);
 
-      //First argument is source file
-      if (GetCommandLineArgW(pArguments, wszSource, MAX_PATH, &pArguments))
+      //First argument is action number. Currently only one action with zero number.
+      if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
       {
-        //Second argument is target file
-        if (GetCommandLineArgW(pArguments, wszTarget, MAX_PATH, &pArguments))
+        nAction=(int)xatoiW(wszBuffer, NULL);
+
+        if (nAction == 0)
         {
-          //Third argument is AkelPad language
-          if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
+          //Second argument is source file
+          if (GetCommandLineArgW(pArguments, wszSource, MAX_PATH, &pArguments))
           {
-            wLangModule=PRIMARYLANGID(xatoiW(wszBuffer, NULL));
-
-            if ((dwSourceAttr=GetFileAttributesW(wszSource)) != INVALID_FILE_ATTRIBUTES &&
-                (dwTargetAttr=GetFileAttributesW(wszTarget)) != INVALID_FILE_ATTRIBUTES)
+            //Third argument is target file
+            if (GetCommandLineArgW(pArguments, wszTarget, MAX_PATH, &pArguments))
             {
-              SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                       GROUP_SECURITY_INFORMATION|
-                                       LABEL_SECURITY_INFORMATION|
-                                       OWNER_SECURITY_INFORMATION;
-              SECURITY_DESCRIPTOR *psd=NULL;
-              DWORD dwSize=0;
-
-              //Retrive file security
-              GetFileSecurityW(wszTarget, ssi, NULL, 0, &dwSize);
-
-              if (dwSize)
+              //Fourth argument is AkelPad language
+              if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
               {
-                if (psd=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                wLangModule=PRIMARYLANGID(xatoiW(wszBuffer, NULL));
+
+                if ((dwSourceAttr=GetFileAttributesW(wszSource)) != INVALID_FILE_ATTRIBUTES &&
+                    (dwTargetAttr=GetFileAttributesW(wszTarget)) != INVALID_FILE_ATTRIBUTES)
                 {
-                  if (!GetFileSecurityW(wszTarget, ssi, psd, dwSize, &dwSize))
+                  SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                           GROUP_SECURITY_INFORMATION|
+                                           LABEL_SECURITY_INFORMATION|
+                                           OWNER_SECURITY_INFORMATION;
+                  SECURITY_DESCRIPTOR *psd=NULL;
+                  DWORD dwSize=0;
+
+                  //Retrive file security
+                  GetFileSecurityW(wszTarget, ssi, NULL, 0, &dwSize);
+
+                  if (dwSize)
+                  {
+                    if (psd=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                    {
+                      if (!GetFileSecurityW(wszTarget, ssi, psd, dwSize, &dwSize))
+                      {
+                        GlobalFree(psd);
+                        psd=NULL;
+                      }
+                    }
+                  }
+
+                  //Replace protected file
+                  if (DeleteFileW(wszTarget))
+                  {
+                    if (MoveFileW(wszSource, wszTarget))
+                    {
+                      //Copy attributes and security
+                      SetFileAttributesW(wszTarget, dwTargetAttr);
+                      if (psd)
+                      {
+                        if (!SetFileSecurityW(wszTarget, ssi, psd))
+                        {
+                          wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSECURITY), wszTarget);
+                          MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
+                        }
+                      }
+                      dwExitCode=0;
+                    }
+                    else
+                    {
+                      wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORMOVE), wszSource, wszTarget);
+                      MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
+                    }
+                  }
+                  else
+                  {
+                    wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORDELETE), wszTarget);
+                    MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
+                  }
+
+                  //Free security buffer
+                  if (psd)
                   {
                     GlobalFree(psd);
                     psd=NULL;
                   }
                 }
               }
-
-              //Replace protected file
-              if (DeleteFileW(wszTarget))
-              {
-                if (MoveFileW(wszSource, wszTarget))
-                {
-                  //Copy attributes and security
-                  SetFileAttributesW(wszTarget, dwTargetAttr);
-                  if (psd)
-                  {
-                    if (!SetFileSecurityW(wszTarget, ssi, psd))
-                    {
-                      wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSECURITY), wszTarget);
-                      MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
-                    }
-                  }
-                  dwExitCode=0;
-                }
-                else
-                {
-                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORMOVE), wszSource, wszTarget);
-                  MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
-                }
-              }
-              else
-              {
-                wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORDELETE), wszTarget);
-                MessageBoxW(NULL, wszBuffer, L"AkelAdmin", MB_ICONERROR);
-              }
-
-              //Free security buffer
-              if (psd)
-              {
-                GlobalFree(psd);
-                psd=NULL;
-              }
             }
           }
         }
       }
-      if (!wLangModule)
+      if (nAction == -1)
         MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORCALL), L"AkelAdmin", MB_ICONEXCLAMATION);
     }
     else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORDIR), L"AkelAdmin", MB_ICONEXCLAMATION);
