@@ -68,7 +68,7 @@ void _WinMain()
   wchar_t *pArguments=wpCmdLine;
   wchar_t wszSource[MAX_PATH];
   wchar_t wszTarget[MAX_PATH];
-  int nAction=-1;
+  int nAction=0;
   DWORD dwSourceAttr;
   DWORD dwTargetAttr;
   DWORD dwExitCode=1;
@@ -86,12 +86,12 @@ void _WinMain()
       //Skip executable
       GetCommandLineArgW(pArguments, NULL, 0, &pArguments);
 
-      //First argument is action number. Currently only one action with zero number.
+      //First argument is action number (currently only one action).
       if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
       {
         nAction=(int)xatoiW(wszBuffer, NULL);
 
-        if (nAction == 0)
+        if (nAction == 1)
         {
           //Second argument is source file
           if (GetCommandLineArgW(pArguments, wszSource, MAX_PATH, &pArguments))
@@ -170,7 +170,7 @@ void _WinMain()
           }
         }
       }
-      if (nAction == -1)
+      if (nAction == 0)
         MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORCALL), L"AkelAdmin", MB_ICONEXCLAMATION);
     }
     else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORDIR), L"AkelAdmin", MB_ICONEXCLAMATION);

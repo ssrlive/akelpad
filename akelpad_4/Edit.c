@@ -4891,7 +4891,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       SHELLEXECUTEINFOW sei;
 
       dwExitCode=1;
-      xprintfW(wbuf, L"\"%d\" \"%s\" \"%s\" \"%d\"", 0, wszTempFile, wszFile, dwLangModule);
+      xprintfW(wbuf, L"\"%d\" \"%s\" \"%s\" \"%d\"", 1, wszTempFile, wszFile, dwLangModule);
       sei.cbSize=sizeof(SHELLEXECUTEINFOW);
       sei.fMask=SEE_MASK_NOASYNC|SEE_MASK_NOCLOSEPROCESS;
       sei.hwnd=lpFrameCurrent->ei.hWndEdit;
