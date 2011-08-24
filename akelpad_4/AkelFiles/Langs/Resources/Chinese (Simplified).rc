@@ -967,6 +967,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" 已经被外部修改。\n\n是否要重新打开?"
     MSG_CP_UNIMPLEMENTED    "无法使用代码页 ""%d""。"
     MSG_CP_MISMATCH         "以本编码保存时将会丢失符号，行号为“%d”。继续?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "更改将在重新启动程序后生效。"
     MSG_SAVEIN_READONLY     """%s"" 是一个只读文件。继续?"
     MSG_OVERWRITEPROMPT     """%s"" 已经存在。替换?"

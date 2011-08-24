@@ -988,6 +988,7 @@ BEGIN
     MSG_FILE_CHANGED        "Tiedostoa ""%s"" on muokattu jossain toisessa ohjelmassa.\n\nHaluatko avata sen uudelleen?"
     MSG_CP_UNIMPLEMENTED    "Koodisivua ""%d"" ei ole toteutettu."
     MSG_CP_MISMATCH         "Rivi ""%d"" sis‰lt‰‰ symboleita, jotka menetet‰‰n t‰ll‰ koodauksella tallennettaessa. Jatketaanko?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenk‰ynnistyksen j‰lkeen."
     MSG_SAVEIN_READONLY     """%s"" on vain luku -tiedosto. Jatketaanko?"
     MSG_OVERWRITEPROMPT     """%s"" on jo olemassa. Korvataanko se?"

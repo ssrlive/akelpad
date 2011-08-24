@@ -1001,6 +1001,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" быҐ зменены звонку.\n\nѕераадкрыць €го?"
     MSG_CP_UNIMPLEMENTED    """%d"" кодава€ старонка не падтрымл≥ваецца."
     MSG_CP_MISMATCH         "–адок ""%d"" зм€шчае знак≥, €к≥€ будуць згублены пры захаванн≥ Ґ гэтай кадыроҐцы. ѕрац€гнуць?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "«мены Ґступ€ць у с≥лу пасл€ перазапуску праграмы."
     MSG_SAVEIN_READONLY     """%s"" файл мае атрыбут ""“ольк≥ чытанне"". ѕрац€гнуць?"
     MSG_OVERWRITEPROMPT     """%s"" ужо ≥снуе. ѕеразап≥саць?"

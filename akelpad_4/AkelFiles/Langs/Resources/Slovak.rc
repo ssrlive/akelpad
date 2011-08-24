@@ -993,6 +993,7 @@ BEGIN
     MSG_FILE_CHANGED        "Súbor ""%s"" bol zmenenı inou aplikáciou.\n\nChcete ho znovu otvori?"
     MSG_CP_UNIMPLEMENTED    "Kódová stránka ""%d"" nie je podporovaná."
     MSG_CP_MISMATCH         "Na riadku ""%d"" sú znaky, ktoré nie je moné uloi v tomto kódovaní. Pokraèova?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Zmeny sa uplatnia po reštarte programu."
     MSG_SAVEIN_READONLY     "Súbor ""%s"" je v reime len na èítanie. Pokraèova?"
     MSG_OVERWRITEPROMPT     """%s"" u existuje. Prepísa?"

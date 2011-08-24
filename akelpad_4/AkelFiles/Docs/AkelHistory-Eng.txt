@@ -1,6 +1,8 @@
 
 AkelPad 4.6.5 ()
 ----------------------------
+Added: support for "AkelAdmin.exe" tool, which provides the ability to save changes to
+       a protected file (UAC).
 Fixed: flag 256 of "WordBreak" manual parameter.
 
 

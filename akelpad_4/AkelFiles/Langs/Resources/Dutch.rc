@@ -986,6 +986,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" is gewijzigd van buitenaf.\n\nWilt u het weer openen?"
     MSG_CP_UNIMPLEMENTED    """%d"" tekenreeks pagina is niet geïmplementeerd."
     MSG_CP_MISMATCH         "Regel ""%d"" bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks.  \nDoorgaan?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
     MSG_OVERWRITEPROMPT     """%s"" bestaat al. Overschrijven?"

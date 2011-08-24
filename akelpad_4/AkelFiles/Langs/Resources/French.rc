@@ -991,6 +991,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" a été modifié de l'extérieur.\n\nVoulez-vous le réouvrir?"
     MSG_CP_UNIMPLEMENTED    "La page de code ""%d"" n'est pas implémentée."
     MSG_CP_MISMATCH         "La ligne ""%d"" contient des symboles qui seront perdus lors de la sauvegarde dans ce codage. Continuer?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Les changements seront visibles aprés redémarrage du programme."
     MSG_SAVEIN_READONLY     """%s"" en lecture seule. Continuer?"
     MSG_OVERWRITEPROMPT     """%s"" existe déjà. L'écraser?"

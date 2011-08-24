@@ -985,6 +985,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" wurde von außen verändert.\n\nWollen Sie diese Datei neu öffnen?"
     MSG_CP_UNIMPLEMENTED    """%d"" Zeichensatz wird nicht unterstützt."
     MSG_CP_MISMATCH         "Die Zeile ""%d"" enthält Symbole, die verloren gehen, wenn in dieser Kodierung gespeichert wird. Fortsetzen?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
     MSG_OVERWRITEPROMPT     """%s"" existiert schon. Überschreiben?"

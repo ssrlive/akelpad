@@ -4151,7 +4151,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                                 {0, 0, 0}};
 
         API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
-        if (MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR, &bmb[0]) == IDYES)
+        if (MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR, NULL, &bmb[0]) == IDYES)
           ExitProcess(0);
       }
       else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)

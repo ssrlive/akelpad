@@ -981,6 +981,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" módosítva lett.\n\nSzeretné újra megnyitni?"
     MSG_CP_UNIMPLEMENTED    """%d"" kódlap nem alkalmazható."
     MSG_CP_MISMATCH         "Sor""%d"" szimbólumokat tartalmaz, amely el fog veszni a mentésnél, ebben a kódolásban. Folytatja?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "A módosítások a program újraindítása után lépnek érvénybe"
     MSG_SAVEIN_READONLY     """%s"" egy írásvédett fájl. Folytatja?"
     MSG_OVERWRITEPROMPT     """%s"" már létezik. Felülírja azt?"

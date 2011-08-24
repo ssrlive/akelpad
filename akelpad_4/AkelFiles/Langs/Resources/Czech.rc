@@ -981,6 +981,7 @@ BEGIN
     MSG_FILE_CHANGED        "Soubor ""%s"" byl zmìnìn jinou aplikací.\n\nChcete ho znovu otevøít?"
     MSG_CP_UNIMPLEMENTED    "Kódování ""%d"" není podporováno."
     MSG_CP_MISMATCH         "Øádek ""%d"" obsahuje znaky, které nelze uložit v tomto kódování. Pokraèovat?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Zmìny budou aplikovány pøi pøíštím spuštìní programu."
     MSG_SAVEIN_READONLY     "Soubor ""%s"" je v režimu jen ke ètení. Pokraèovat?"
     MSG_OVERWRITEPROMPT     """%s"" již existuje. Chcete ho pøepsat?"

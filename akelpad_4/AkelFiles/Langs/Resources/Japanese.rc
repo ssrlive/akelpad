@@ -980,6 +980,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" は外部で変更されています。\n\n開き直しますか?"
     MSG_CP_UNIMPLEMENTED    """%d"" コードページは実装されていません。"
     MSG_CP_MISMATCH         "行 ""%d"" はこのエンコードでの保存時に失われる記号を含みます。続行しますか?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "変更はプログラムの再起動時に反映されます。"
     MSG_SAVEIN_READONLY     """%s"" は読み取り専用ファイルです。続行しますか?"
     MSG_OVERWRITEPROMPT     """%s"" は既に存在します。 上書きしますか?"

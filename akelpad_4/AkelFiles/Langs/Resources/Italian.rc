@@ -993,6 +993,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" è stato modificato dall'esterno.\n\nSi desidera riaprirlo?"
     MSG_CP_UNIMPLEMENTED    "Il codice della pagina ""%d"" non è stato implementato."
     MSG_CP_MISMATCH         "La riga ""%d"" contiene dei simboli che verranno persi se salvati in questa codifica. Si desidera continuare?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "I cambiamenti saranno visibili al prossimo riavvio del programma."
     MSG_SAVEIN_READONLY     """%s"" è in sola-lettura. Continuare?"
     MSG_OVERWRITEPROMPT     """%s"" è già presente. Sovrascriverlo?"

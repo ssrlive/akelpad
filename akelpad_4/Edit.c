@@ -1497,7 +1497,7 @@ BOOL SaveChanged(DWORD dwPrompt)
     }
     API_LoadStringW(hLangLib, MSG_DOCUMENT_CHANGED, wszMsg, MAX_PATH);
     if (dwPrompt & PROMPT_NOTOALLBUTTON)
-      nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
+      nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, NULL, &bmb[0]);
     else
       nChoice=API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNOCANCEL|MB_ICONEXCLAMATION);
 
@@ -4650,6 +4650,8 @@ BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   wchar_t wszFile[MAX_PATH];
+  wchar_t wszAdminExe[MAX_PATH];
+  wchar_t wszTempFile[MAX_PATH];
   WIN32_FIND_DATAW wfdW;
   HANDLE hFile;
   FILESTREAMDATA fsd;
@@ -4661,6 +4663,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nCodePageCmp;
   int nLostLine=0;
   int nLostCharInLine;
+  DWORD dwExitCode=0;
 
   if (!wpFile[0])
   {
@@ -4670,6 +4673,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
   GetFullName(wpFile, wszFile, MAX_PATH);
+  wszAdminExe[0]=L'\0';
+  wszTempFile[0]=L'\0';
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4734,7 +4739,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             nMessageLine=(int)SendMessage(hWnd, AEM_GETUNWRAPLINE, nMessageLine - 1, 0) + 1;
           API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, BUFFER_SIZE);
           xprintfW(wszMsg, wbuf, nMessageLine);
-          nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, &bmb[0]);
+          nChoice=MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, NULL, &bmb[0]);
 
           if (nChoice == IDC_MESSAGEBOX_GOTO ||
               nChoice == IDCANCEL)
@@ -4786,12 +4791,49 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     }
   }
 
-  hFile=API_CreateFileW(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE)
   {
-    nResult=ESD_OPEN;
-    goto BackAttr;
+    //User Account Control (UAC). Part 1.
+    if (!bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+    {
+      xprintfW(wszAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
+
+      if (FileExistsWide(wszAdminExe))
+      {
+        //Custom MessageBox
+        BUTTONMESSAGEBOX bmb[]={{IDYES, STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
+                                {IDNO,  STR_MESSAGEBOX_CANCEL,   0},
+                                {0, 0, 0}};
+        wchar_t wszTempDir[MAX_PATH];
+        HICON hIconShield;
+
+        ExtractIconExWide(wszAdminExe, 1, &hIconShield, NULL, 1);
+        API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
+        xprintfW(wszMsg, wbuf, wszFile);
+        if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShield, &bmb[0]) == IDYES)
+        {
+          if (GetTempPathW(MAX_PATH, wszTempDir))
+          {
+            TrimPathBackslash(wszTempDir);
+            xprintfW(wszTempFile, L"%s\\%s", wszTempDir, GetFileName(wszFile));
+            hFile=CreateFileWide(wszTempFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+          }
+        }
+        if (hIconShield) DestroyIcon(hIconShield);
+      }
+    }
+
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+      API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, wszTempFile[0]?wszTempFile:wszFile);
+      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+
+      nResult=ESD_OPEN;
+      goto BackAttr;
+    }
   }
 
   if (bBOM)
@@ -4832,14 +4874,49 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (dwAttr != INVALID_FILE_ATTRIBUTES)
     {
       if (!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-        SetFileAttributesWide(wszFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
+        SetFileAttributesWide(wszTempFile[0]?wszTempFile:wszFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
       if (moCur.bSaveTime)
       {
-        if ((hFile=API_CreateFileW(wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
+        if ((hFile=API_CreateFileW(wszTempFile[0]?wszTempFile:wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
         {
           SetFileTime(hFile, NULL, NULL, &wfdW.ftLastWriteTime);
           CloseHandle(hFile);
         }
+      }
+    }
+
+    //User Account Control (UAC). Part 2.
+    if (wszTempFile[0])
+    {
+      SHELLEXECUTEINFOW sei;
+
+      dwExitCode=1;
+      xprintfW(wbuf, L"\"%s\" \"%s\" \"%d\"", wszTempFile, wszFile, dwLangModule);
+      sei.cbSize=sizeof(SHELLEXECUTEINFOW);
+      sei.fMask=SEE_MASK_NOASYNC|SEE_MASK_NOCLOSEPROCESS;
+      sei.hwnd=lpFrameCurrent->ei.hWndEdit;
+      sei.lpVerb=L"runas";
+      sei.lpFile=wszAdminExe;
+      sei.lpParameters=wbuf;
+      sei.lpDirectory=NULL;
+      sei.nShow=SW_SHOWDEFAULT;
+
+      if (ShellExecuteExW(&sei) && sei.hProcess)
+      {
+        WaitForSingleObject(sei.hProcess, INFINITE);
+        GetExitCodeProcess(sei.hProcess, &dwExitCode);
+        CloseHandle(sei.hProcess);
+      }
+
+      //Return focus if needed
+      if (lpFrameCurrent->ei.hWndEdit && GetFocus() != lpFrameCurrent->ei.hWndEdit)
+        SetFocus(lpFrameCurrent->ei.hWndEdit);
+
+      if (dwExitCode)
+      {
+        DeleteFileWide(wszTempFile);
+        nResult=ESD_OPEN;
+        goto BackAttr;
       }
     }
 
@@ -14593,7 +14670,7 @@ int GetUserManual(wchar_t *wszManual, int nManualLen)
 
 //// System-like MessageBox implementation
 
-int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn)
+int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *btn)
 {
   DIALOGMESSAGEBOX dmb;
   int nResult;
@@ -14603,6 +14680,7 @@ int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCa
   dmb.wpText=wpText;
   dmb.wpCaption=wpCaption;
   dmb.uType=uType;
+  dmb.hIcon=hIcon;
   dmb.btn=btn;
   nResult=(int)API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_MESSAGEBOX), hWndParent, (DLGPROC)MessageBoxDlgProc, (LPARAM)&dmb);
   SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWndParent, 0);
@@ -14626,8 +14704,9 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     HWND hWndButton;
     HDC hDC;
     HFONT hGuiFont;
+    HICON hIcon;
     wchar_t wszString[MAX_PATH];
-    char *pIconIndex=NULL;
+    char *pIconIndex;
     DWORD dwIconType;
     DWORD dwStyle;
     int nButtonWidth=0;
@@ -14673,20 +14752,28 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       //MessageBox icon
       dwIconType=(BYTE)(lpDialog->uType & 0xf0);
-      if (dwIconType == MB_ICONINFORMATION) //Same as MB_ICONASTERISK
-        pIconIndex=IDI_INFORMATION;
-      else if (dwIconType == MB_ICONQUESTION)
-        pIconIndex=IDI_QUESTION;
-      else if (dwIconType == MB_ICONEXCLAMATION) //Same as MB_ICONWARNING
-        pIconIndex=IDI_EXCLAMATION;
-      else if (dwIconType == MB_ICONSTOP) //Same as MB_ICONERROR
-        pIconIndex=IDI_ERROR;
-      else if (dwIconType == MB_ICONHAND)
-        pIconIndex=IDI_HAND;
-      if (pIconIndex)
+      hIcon=lpDialog->hIcon;
+
+      if (!hIcon)
+      {
+        pIconIndex=NULL;
+        if (dwIconType == MB_ICONINFORMATION) //Same as MB_ICONASTERISK
+          pIconIndex=IDI_INFORMATION;
+        else if (dwIconType == MB_ICONQUESTION)
+          pIconIndex=IDI_QUESTION;
+        else if (dwIconType == MB_ICONEXCLAMATION) //Same as MB_ICONWARNING
+          pIconIndex=IDI_EXCLAMATION;
+        else if (dwIconType == MB_ICONSTOP) //Same as MB_ICONERROR
+          pIconIndex=IDI_ERROR;
+        else if (dwIconType == MB_ICONHAND)
+          pIconIndex=IDI_HAND;
+        if (pIconIndex)
+          hIcon=LoadIconA(NULL, pIconIndex);
+      }
+      if (hIcon)
       {
         hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, ScaleX(11), ScaleY(11), 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
-        SendMessage(hWndIcon, STM_SETICON, (WPARAM)LoadIconA(NULL, pIconIndex), 0);
+        SendMessage(hWndIcon, STM_SETICON, (WPARAM)hIcon, 0);
       }
 
       //Get buttons width
@@ -14694,7 +14781,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       nButtonsWidth=(nButtonsWidth / 2) * 2;
 
       //MessageBox text
-      rcTextOut.left=pIconIndex?ScaleY(60):nButtonOffset;
+      rcTextOut.left=hIcon?ScaleY(60):nButtonOffset;
       rcTextOut.right=max(nButtonsWidth + nButtonOffset * 2, ScaleX(500)) - nButtonOffset;
       rcTextOut.top=0;
       rcTextOut.bottom=0;
@@ -14706,7 +14793,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else DrawTextW(hDC, lpDialog->wpText, -1, &rcTextOut, DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX|DT_EDITCONTROL);
 
-      if (pIconIndex)
+      if (hIcon)
         rcTextOut.top=max(ScaleY(11 + 16) - RectH(&rcTextOut) / 2, ScaleY(11));
       else
         rcTextOut.top=ScaleY(11);
@@ -14724,7 +14811,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     //Get button client Y position
     nButtonY=rcTextOut.bottom + ScaleY(17);
-    if (pIconIndex)
+    if (hIcon)
     {
       if (ScaleY(11 + 32) > rcTextOut.bottom)
         nButtonY=ScaleY(60);
@@ -16583,7 +16670,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
                   if (bWait)
                   {
                     WaitForSingleObject(pi.hProcess, INFINITE);
-                    //GetExitCodeProcess(pi.hProcess, &dwExit);
+                    //GetExitCodeProcess(pi.hProcess, &dwExitCode);
                   }
                   CloseHandle(pi.hProcess);
                   CloseHandle(pi.hThread);
@@ -17732,6 +17819,19 @@ const wchar_t* GetFileExt(const wchar_t *wpFile)
     else if (wpFile[i] == '\\') break;
   }
   return NULL;
+}
+
+void TrimPathBackslash(wchar_t *wszPath)
+{
+  int i;
+
+  for (i=lstrlenW(wszPath) - 1; i >= 0; --i)
+  {
+    if (wszPath[i] == '\\')
+      wszPath[i]='\0';
+    else
+      break;
+  }
 }
 
 void TrimModifyState(wchar_t *wszFile)
