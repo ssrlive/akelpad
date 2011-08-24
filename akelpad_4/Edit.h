@@ -73,6 +73,12 @@
 #ifndef PROPSHEETHEADERW_V1_SIZE
   #define PROPSHEETHEADERW_V1_SIZE CCSIZEOF_STRUCT(PROPSHEETHEADERW, pfnCallback)
 #endif
+#ifndef SEE_MASK_NOASYNC
+  #define SEE_MASK_NOASYNC 0x00000100
+#endif
+#ifndef SEE_MASK_NOCLOSEPROCESS
+  #define SEE_MASK_NOCLOSEPROCESS 0x00000040
+#endif
 
 #ifndef mod
   #define mod(a)  (((a) < 0) ? (0 - (a)) : (a))
@@ -656,6 +662,7 @@ typedef struct {
   const wchar_t *wpText;
   const wchar_t *wpCaption;
   UINT uType;
+  HICON hIcon;
   BUTTONMESSAGEBOX *btn;
 } DIALOGMESSAGEBOX;
 
@@ -963,7 +970,7 @@ void FreeListBoxSelItems(int **lpSelItems);
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetUserManual(wchar_t *wszManual, int nManualLen);
 
-int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, BUTTONMESSAGEBOX *btn);
+int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *btn);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL ScaleInit(HDC hDC, HWND hWnd);
 int ScaleX(int x);
@@ -1062,6 +1069,7 @@ BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax);
 const wchar_t* GetFileName(const wchar_t *wpFile);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 const wchar_t* GetFileExt(const wchar_t *wpFile);
+void TrimPathBackslash(wchar_t *wszPath);
 void TrimModifyState(wchar_t *wszFile);
 void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSeconds);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);

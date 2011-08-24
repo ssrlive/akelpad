@@ -34,10 +34,11 @@
 #define MSG_FILE_CHANGED                69
 #define MSG_CP_UNIMPLEMENTED            70
 #define MSG_CP_MISMATCH                 71
-#define MSG_RESTART_PROGRAM             72
-#define MSG_SAVEIN_READONLY             73
-#define MSG_OVERWRITEPROMPT             74
-#define MSG_DOCUMENTSLIMIT              75
+#define MSG_ACCESSDENIED                72
+#define MSG_RESTART_PROGRAM             73
+#define MSG_SAVEIN_READONLY             74
+#define MSG_OVERWRITEPROMPT             75
+#define MSG_DOCUMENTSLIMIT              76
 #define STR_DOCNAME                     101
 #define STR_MODIFIED                    102
 #define STR_READONLY                    103

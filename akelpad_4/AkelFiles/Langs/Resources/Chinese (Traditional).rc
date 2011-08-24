@@ -971,6 +971,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" 外部已被修改。\n\n您要重新開啟嗎?"
     MSG_CP_UNIMPLEMENTED    """%d"" 字碼頁尚未執行。"
     MSG_CP_MISMATCH         "行號為 ""%d"" 所包含的符號將在此編碼儲存時遺失。要繼續嗎?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效。"
     MSG_SAVEIN_READONLY     """%s"" 為唯讀檔案。要繼續嗎?"
     MSG_OVERWRITEPROMPT     """%s"" 已經存在。要將它覆寫嗎?"

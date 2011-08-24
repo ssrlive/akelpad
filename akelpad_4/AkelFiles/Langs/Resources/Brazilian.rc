@@ -986,6 +986,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" foi modificado por outro programa.\n\nQuer reabri-lo ?"
     MSG_CP_UNIMPLEMENTED    "O código de página ""%d"" não está implementado."
     MSG_CP_MISMATCH         "A linha ""%d"" contém caracteres que serão perdidos se salvar nesta codificação. Continuar ?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
     MSG_OVERWRITEPROMPT     """%s"" já existe; sobrescrevê-lo ?"

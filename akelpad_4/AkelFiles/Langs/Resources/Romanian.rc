@@ -987,6 +987,7 @@ BEGIN
     MSG_FILE_CHANGED        "Fila ""%s"" a fost modificatã cu un alt program.\n\nVrei s-o redeschizi?"
     MSG_CP_UNIMPLEMENTED    "Codpagina ""%d"" nu e implementatã."
     MSG_CP_MISMATCH         "Linia ""%d"" conþine simboluri care vor fi pierdute la salvarea în aceastã codare. Continui?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Modificãrile vor deveni efective la repornirea programului."
     MSG_SAVEIN_READONLY     "Fila ""%s"" e nemodificabilã (doar-citire). Continui?"
     MSG_OVERWRITEPROMPT     "Fila ""%s"" existã deja. O suprascriu?"

@@ -1002,6 +1002,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" був змінений іззовні.\n\nПеревідкрити його?"
     MSG_CP_UNIMPLEMENTED    "Кодова сторінка ""%d"" не підтримується."
     MSG_CP_MISMATCH         "Рядок ""%d"" містить символи, які будуть втрачені при збереженні в цьому кодуванні. Продовжити?"
+    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
