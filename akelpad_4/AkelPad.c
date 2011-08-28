@@ -366,7 +366,7 @@ BOOL bOptionsRestart;
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
 COLORREF crCustColors[16]={0};
-RECT rcColorsMinMaxDialog={364, 297, 0, 0};
+RECT rcColorsMinMaxDialog={364, 312, 0, 0};
 
 //Print
 HWND hWndPreviewEdit=NULL;
@@ -594,6 +594,7 @@ void _WinMain()
     fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   fdInit.aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
+  fdInit.aec.crUrlCursorText=fdInit.aec.crUrlText;
   fdInit.dwEditMargins=EDIT_MARGINS;
   fdInit.nTabStopSize=EDIT_TABSTOPS;
   fdInit.bTabStopAsSpaces=FALSE;

@@ -350,6 +350,7 @@
 #define AECLR_URLTEXT        0x00000100  //Sets hiperlink text color. crUrlText member is valid.
 #define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
 #define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
+#define AECLR_URLCURSORTEXT  0x00000800  //Sets active hiperlink text color. crUrlCursorText member is valid.
 
 #define AECLR_ALL  (AECLR_CARET          |\
                     AECLR_BASICTEXT      |\
@@ -360,7 +361,8 @@
                     AECLR_ACTIVELINEBK   |\
                     AECLR_URLTEXT        |\
                     AECLR_ACTIVECOLUMN   |\
-                    AECLR_COLUMNMARKER)
+                    AECLR_COLUMNMARKER   |\
+                    AECLR_URLCURSORTEXT)
 
 //Print
 #define AEPRN_TEST                      0x001  //Calculate data without painting.
@@ -908,6 +910,7 @@ typedef struct {
   COLORREF crUrlText;        //[in] Hiperlink text color.
   COLORREF crActiveColumn;   //[in] Active column color.
   COLORREF crColumnMarker;   //[in] Column marker color.
+  COLORREF crUrlCursorText;  //[in] Active hiperlink text color.
 } AECOLORS;
 
 typedef struct {

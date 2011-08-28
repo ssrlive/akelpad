@@ -11070,59 +11070,20 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       LVITEMW lviW;
       int i;
 
-      API_LoadStringW(hLangLib, STR_BASIC, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_BASIC;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_SELECTION, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_SELECTION;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_ACTIVELINE, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_ACTIVELINE;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_ACTIVECOLUMN, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_ACTIVECOLUMN;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_COLUMNMARKER, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_COLUMNMARKER;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_CARET, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_CARET;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
-
-      API_LoadStringW(hLangLib, STR_URL, wbuf, BUFFER_SIZE);
-      lviW.mask=LVIF_TEXT;
-      lviW.pszText=wbuf;
-      lviW.iItem=LVI_COLOR_URL;
-      lviW.iSubItem=LVSI_COLOR_ELEMENT;
-      ListView_InsertItemWide(hWndList, &lviW);
+      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_ACTIVEURL; ++i)
+      {
+        API_LoadStringW(hLangLib, STR_BASIC + i, wbuf, BUFFER_SIZE);
+        lviW.mask=LVIF_TEXT;
+        lviW.pszText=wbuf;
+        lviW.iItem=i;
+        lviW.iSubItem=LVSI_COLOR_ELEMENT;
+        ListView_InsertItemWide(hWndList, &lviW);
+      }
 
       //Set "Sample" text
       API_LoadStringW(hLangLib, STR_SAMPLE, wbuf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_ACTIVECOLUMN; ++i)
+      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_ACTIVELINE; ++i)
       {
         lviW.mask=LVIF_TEXT;
         lviW.pszText=wbuf;
@@ -11289,6 +11250,21 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crUrlText;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_ACTIVEURL)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlCursorText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlCursorText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlCursorText;
+            }
+          }
           lResult=CDRF_DODEFAULT;
         }
         else lResult=CDRF_DODEFAULT;
@@ -11323,6 +11299,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlText);
+            else if (lvhti.iItem == LVI_COLOR_ACTIVEURL)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlCursorText);
           }
           else if (lvhti.iSubItem == LVSI_COLOR_BACKGROUND)
           {
@@ -11340,6 +11318,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlText);
+            else if (lvhti.iItem == LVI_COLOR_ACTIVEURL)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlCursorText);
           }
           if (bResult)
           {
@@ -11590,6 +11570,7 @@ void ReadThemes(MAINOPTIONS *mo)
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
+  aec.crUrlCursorText=aec.crUrlText;
   StackThemeAdd(&hThemesStack, wbuf, &aec);
 
   if (mo->nSaveSettings == SS_REGISTRY)
@@ -11645,6 +11626,7 @@ void ReadThemes(MAINOPTIONS *mo)
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
     aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
+    aec.crUrlCursorText=RGB(0x00, 0x00, 0x98);
     StackThemeAdd(&hThemesStack, L"Notepad++", &aec);
   }
 }
