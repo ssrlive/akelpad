@@ -11570,7 +11570,7 @@ void ReadThemes(MAINOPTIONS *mo)
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
-  aec.crUrlCursorText=aec.crUrlText;
+  aec.crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
   StackThemeAdd(&hThemesStack, wbuf, &aec);
 
   if (mo->nSaveSettings == SS_REGISTRY)

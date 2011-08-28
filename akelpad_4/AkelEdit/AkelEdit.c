@@ -4547,7 +4547,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
     ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
     ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
-    ae->popt->crUrlCursorText=ae->popt->crUrlText;
+    ae->popt->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
@@ -12665,15 +12665,11 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
       if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_LINK))
       {
-        if (ae->popt->crUrlText != ae->popt->crUrlCursorText &&
-            ae->nCurrentCursor == AECC_URL &&
-            !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
-        {
-          //Cursor on URL
+        //Is cursor on URL
+        if (ae->nCurrentCursor == AECC_URL && !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
           hlp->dwActiveText=ae->popt->crUrlCursorText;
-        }
-        else hlp->dwActiveText=ae->popt->crUrlText;
-
+        else
+          hlp->dwActiveText=ae->popt->crUrlText;
         hlp->dwActiveBk=hlp->dwDefaultBk;
         hlp->dwFontStyle=AEHLS_NONE;
       }
@@ -19066,13 +19062,9 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
   if (aec->dwFlags & AECLR_URLCURSORTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      if (GetSysColorBrush(COLOR_HOTLIGHT))
-        aec->crUrlCursorText=GetSysColor(COLOR_HOTLIGHT);
-      else
-        aec->crUrlCursorText=RGB(0x00, 0x00, 0xFF);
-    }
-    else aec->crUrlCursorText=ae->popt->crUrlCursorText;
+      aec->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
+    else
+      aec->crUrlCursorText=ae->popt->crUrlCursorText;
   }
 }
 
@@ -19225,10 +19217,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
     {
       if (aec->dwFlags & AECLR_DEFAULT)
       {
-        if (GetSysColorBrush(COLOR_HOTLIGHT))
-          ae->popt->crUrlCursorText=GetSysColor(COLOR_HOTLIGHT);
-        else
-          ae->popt->crUrlCursorText=RGB(0x00, 0x00, 0xFF);
+        ae->popt->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
       }
       else
       {
