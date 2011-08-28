@@ -345,6 +345,7 @@
 #define LVI_COLOR_COLUMNMARKER  4
 #define LVI_COLOR_CARET         5
 #define LVI_COLOR_URL           6
+#define LVI_COLOR_ACTIVEURL     7
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1

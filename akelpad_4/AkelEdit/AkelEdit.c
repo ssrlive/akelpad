@@ -4547,6 +4547,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
     ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
     ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
+    ae->popt->crUrlCursorText=ae->popt->crUrlText;
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
@@ -9173,10 +9174,11 @@ void AE_ClientToGlobal(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, POINT64
 
 int AE_SetCursor(AKELEDIT *ae)
 {
+  AECHARRANGE crLink;
   POINT ptPos;
   BOOL bAlt=FALSE;
   BOOL bShift=FALSE;
-  int nResult=0;
+  int nResult=AECC_IBEAM;
 
   if (GetKeyState(VK_MENU) < 0)
     bAlt=TRUE;
@@ -9361,12 +9363,10 @@ int AE_SetCursor(AKELEDIT *ae)
   else if (ae->dwMouseMoveTimer)
   {
     SetCursor(hAkelEditCursorIBeam);
-    nResult=AECC_IBEAM;
+    //nResult=AECC_IBEAM;
   }
   else
   {
-    nResult=AECC_IBEAM;
-
     if (!bAlt && AE_IsPointOnMargin(ae, ptPos.x, ptPos.y) == AESIDE_LEFT)
     {
       if (!(ae->popt->dwOptions & AECO_NOMARGINSEL))
@@ -9383,7 +9383,7 @@ int AE_SetCursor(AKELEDIT *ae)
         nResult=AECC_SELECTION;
       }
     }
-    else if (!bAlt && !bShift && AE_IsPointOnUrl(ae, ptPos.x, ptPos.y, &ae->crMouseOnLink))
+    else if (!bAlt && !bShift && AE_IsPointOnUrl(ae, ptPos.x, ptPos.y, &crLink))
     {
       SetCursor(hAkelEditCursorHand);
       nResult=AECC_URL;
@@ -9396,6 +9396,24 @@ int AE_SetCursor(AKELEDIT *ae)
         nResult=AECC_MARKER;
       }
     }
+  }
+
+  if (ae->nCurrentCursor == AECC_URL || nResult == AECC_URL)
+  {
+    //On URL
+    if (nResult == AECC_URL)
+      xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
+
+    //Update URL color
+    if (ae->nCurrentCursor != nResult)
+    {
+      if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+        AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+    }
+
+    //Not on URL
+    if (nResult != AECC_URL)
+      xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
   }
   return nResult;
 }
@@ -12647,7 +12665,15 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
       if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_LINK))
       {
-        hlp->dwActiveText=ae->popt->crUrlText;
+        if (ae->popt->crUrlText != ae->popt->crUrlCursorText &&
+            ae->nCurrentCursor == AECC_URL &&
+            !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
+        {
+          //Cursor on URL
+          hlp->dwActiveText=ae->popt->crUrlCursorText;
+        }
+        else hlp->dwActiveText=ae->popt->crUrlText;
+
         hlp->dwActiveBk=hlp->dwDefaultBk;
         hlp->dwFontStyle=AEHLS_NONE;
       }
@@ -19037,6 +19063,17 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     }
     else aec->crUrlText=ae->popt->crUrlText;
   }
+  if (aec->dwFlags & AECLR_URLCURSORTEXT)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+    {
+      if (GetSysColorBrush(COLOR_HOTLIGHT))
+        aec->crUrlCursorText=GetSysColor(COLOR_HOTLIGHT);
+      else
+        aec->crUrlCursorText=RGB(0x00, 0x00, 0xFF);
+    }
+    else aec->crUrlCursorText=ae->popt->crUrlCursorText;
+  }
 }
 
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
@@ -19180,6 +19217,22 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
       else
       {
         ae->popt->crUrlText=aec->crUrlText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
+    }
+    if (aec->dwFlags & AECLR_URLCURSORTEXT)
+    {
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        if (GetSysColorBrush(COLOR_HOTLIGHT))
+          ae->popt->crUrlCursorText=GetSysColor(COLOR_HOTLIGHT);
+        else
+          ae->popt->crUrlCursorText=RGB(0x00, 0x00, 0xFF);
+      }
+      else
+      {
+        ae->popt->crUrlCursorText=aec->crUrlCursorText;
         ae->popt->bDefaultColors=FALSE;
       }
       bUpdateDrawRect=TRUE;

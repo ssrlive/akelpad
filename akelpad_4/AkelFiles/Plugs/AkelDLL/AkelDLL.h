@@ -499,6 +499,7 @@ typedef struct {
     COLORREF crUrlText;
     COLORREF crActiveColumn;
     COLORREF crColumnMarker;
+    COLORREF crUrlCursorText;
   } AECOLORS;
 
   DECLARE_HANDLE (AEHDOC);
