@@ -592,7 +592,7 @@ void _WinMain()
     fdInit.aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
   else
     fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
-  fdInit.aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
+  fdInit.aec.crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
   fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   fdInit.aec.crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
   fdInit.dwEditMargins=EDIT_MARGINS;
