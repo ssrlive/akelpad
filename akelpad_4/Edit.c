@@ -2816,31 +2816,21 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
       SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_TABS) & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
       SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
     }
-  }
-  else
-  {
-    if ((dwOldType & TAB_TYPE_BUTTONS) ||
-        (dwOldType & TAB_TYPE_FLATBUTTONS))
+    else
     {
-      if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
-      {
-        SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
-        SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
-        return;
-      }
-      else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
-      {
-        SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
-        SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
-        return;
-      }
+      API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     }
   }
-
-  if (dwNewType != dwOldType)
+  else if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
   {
-    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+    SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
+    SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+  }
+  else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
+  {
+    SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
+    SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
   }
 }
 
