@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.6.5                               *
+ *                      AkelEdit text control v1.6.6                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -9400,20 +9400,21 @@ int AE_SetCursor(AKELEDIT *ae)
 
   if (ae->nCurrentCursor == AECC_URL || nResult == AECC_URL)
   {
-    //On URL
-    if (nResult == AECC_URL)
-      xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
-
-    //Update URL color
-    if (ae->nCurrentCursor != nResult)
+    //Leave URL
+    if (xmemcmp(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE)))
     {
       if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
         AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
     }
 
-    //Not on URL
-    if (nResult != AECC_URL)
-      xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
+    if (nResult == AECC_URL)
+    {
+      xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
+
+      if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+        AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+    }
+    else xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
   }
   return nResult;
 }
