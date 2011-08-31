@@ -1,5 +1,5 @@
 
-AkelPad 4.6.5 ()
+AkelPad 4.6.5 (Aug 31, 2011)
 ----------------------------
 Added: support for "AkelAdmin.exe" tool, which provides the ability to save changes to
        a protected file (UAC).

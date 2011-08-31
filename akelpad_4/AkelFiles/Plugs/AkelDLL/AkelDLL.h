@@ -1508,7 +1508,8 @@ typedef struct {
 
 #define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
-#define AKDN_FRAME_DESTROY         (WM_USER + 23)  //0x417
+#define AKDN_FRAME_DEACTIVATE      (WM_USER + 23)  //0x417
+#define AKDN_FRAME_DESTROY         (WM_USER + 24)  //0x418
 
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
 #define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
@@ -1820,6 +1821,18 @@ Notification message, sends to the main procedure when frame has been activated.
 
 (DWORD)wParam       == see FWA_* defines.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, that has been activated.
+
+Return Value
+ Zero.
+
+
+AKDN_FRAME_DEACTIVATE
+_____________________
+
+Notification message, sends to the main procedure before deactivating frame.
+
+(DWORD)wParam       == see FWA_* defines.
+(FRAMEDATA *)lParam == pointer to a current FRAMEDATA structure, that will be deactivated.
 
 Return Value
  Zero.
