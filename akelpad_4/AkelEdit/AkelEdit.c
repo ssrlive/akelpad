@@ -9400,21 +9400,32 @@ int AE_SetCursor(AKELEDIT *ae)
 
   if (ae->nCurrentCursor == AECC_URL || nResult == AECC_URL)
   {
-    //Leave URL
-    if (xmemcmp(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE)))
-    {
-      if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
-        AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
-    }
-
     if (nResult == AECC_URL)
     {
-      xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
+      if (xmemcmp(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE)))
+      {
+        //Mouse moved from one URL to another - remove highlight of first URL.
+        if (ae->nCurrentCursor == AECC_URL)
+        {
+          if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+            AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+        }
 
+        //Highlight current URL.
+        xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
+
+        if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+          AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+      }
+    }
+    else
+    {
+      //Remove URL highlight.
       if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
         AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+
+      xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
     }
-    else xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
   }
   return nResult;
 }
