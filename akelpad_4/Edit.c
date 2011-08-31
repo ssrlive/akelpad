@@ -803,6 +803,13 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
   if (lpFrameCurrent != lpFrame)
   {
+    //Save deactivated frame data
+    if (lpFrameCurrent == &fdInit)
+      lpFramePrevious=NULL;
+    else
+      lpFramePrevious=lpFrameCurrent;
+    SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwFlags, (LPARAM)lpFramePrevious);
+
     if (nMDI == WMD_MDI)
     {
       //Activate frame
@@ -817,11 +824,6 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
         StackFrameMove(&hFramesStack, lpFrame, -1);
       }
 
-      //Save deactivated frame data
-      if (lpFrameCurrent == &fdInit)
-        lpFramePrevious=NULL;
-      else
-        lpFramePrevious=lpFrameCurrent;
       if (lpFrameCurrent->ei.hDocEdit)
         SaveFrameData(lpFrameCurrent);
 
