@@ -4795,8 +4795,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       if (FileExistsWide(wszAdminExe))
       {
         //Custom MessageBox
-        BUTTONMESSAGEBOX bmb[]={{IDYES, STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
-                                {IDNO,  STR_MESSAGEBOX_CANCEL,   0},
+        BUTTONMESSAGEBOX bmb[]={{IDOK,     STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
+                                {IDCANCEL, STR_MESSAGEBOX_CANCEL,   0},
                                 {0, 0, 0}};
         wchar_t wszTempDir[MAX_PATH];
         HICON hIconShield;
@@ -4804,7 +4804,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         ExtractIconExWide(wszAdminExe, 1, &hIconShield, NULL, 1);
         API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
         xprintfW(wszMsg, wbuf, wszFile);
-        if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShield, &bmb[0]) == IDYES)
+        if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShield, &bmb[0]) == IDOK)
         {
           if (GetTempPathW(MAX_PATH, wszTempDir))
           {
