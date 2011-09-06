@@ -1,6 +1,7 @@
 
 AkelPad 4.6.6 ()
 ----------------------------
+Fixed: file could be saved in virtual store (UAC).
 Fixed: highlight link under cursor.
 
 
