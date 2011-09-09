@@ -4804,7 +4804,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         BUTTONMESSAGEBOX bmb[]={{IDOK,     STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
                                 {IDCANCEL, STR_MESSAGEBOX_CANCEL,   0},
                                 {0, 0, 0}};
-        wchar_t wszTempDir[MAX_PATH];
         SHELLEXECUTEINFOW sei;
         HANDLE lpHandles[2];
         HANDLE hMutex;
@@ -4855,10 +4854,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           }
           if (bPipeInitAkelAdmin)
           {
-            if (GetTempPathW(MAX_PATH, wszTempDir))
+            if (GetTempPathW(MAX_PATH, wbuf))
             {
-              TrimPathBackslash(wszTempDir);
-              xprintfW(wszTempFile, L"%s\\%s", wszTempDir, GetFileName(wszFile));
+              TrimPathBackslash(wbuf);
+              xprintfW(wszTempFile, L"%s\\%s", wbuf, GetFileName(wszFile));
               hFile=CreateFileWide(wszTempFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             }
           }
