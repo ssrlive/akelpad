@@ -30,6 +30,7 @@
 #define STR_UNICODE_UTF32BEW        L"12001  (UTF-32 BE)"
 #define STR_NOBOMW                  L"  *BOM"
 
+#define STR_AKELADMINW              L"AkelAdmin"
 #define STR_DEFAULTSAVEEXTW         L"txt"
 #define STR_ASSOCIATE_OPENW         L"txt;log;ini;inf"
 #define STR_ASSOCIATE_EDITW         L"bat;cmd;reg;htm;html"
@@ -666,6 +667,14 @@ typedef struct {
   HICON hIcon;
   BUTTONMESSAGEBOX *btn;
 } DIALOGMESSAGEBOX;
+
+typedef struct {
+  int nAction;
+  DWORD dwExitCode;
+  wchar_t wszSourceFile[MAX_PATH];
+  wchar_t wszTargetFile[MAX_PATH];
+  DWORD dwLangModule;
+} ADMINPIPE;
 
 typedef struct {
   POSTMESSAGE pm;
