@@ -1,6 +1,8 @@
 
 AkelPad 4.6.6 ()
 ----------------------------
+Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
+
 Fixed: file could be saved in virtual store (UAC).
 Fixed: highlight link under cursor.
 
