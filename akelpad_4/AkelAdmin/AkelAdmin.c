@@ -97,7 +97,7 @@ void _WinMain()
     GetExeDir(hInstance, wszBuffer, BUFFER_SIZE);
 
     //Get default language ID
-    wLangModule=GetUserDefaultLangID();
+    wLangModule=PRIMARYLANGID(GetUserDefaultLangID());
 
     if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer)))
     {
