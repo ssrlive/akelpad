@@ -166,7 +166,7 @@ void _WinMain()
                 //Signal mutex
                 SetEvent(hMutex);
 
-                //Wait for client connect with CreateFile.
+                //Wait for client connect with CreateFile
                 while (ConnectNamedPipe(hPipeAkelAdmin, NULL))
                 {
                   ADMINPIPE apipe;
@@ -176,9 +176,10 @@ void _WinMain()
                   DWORD dwBytesWritten;
                   BOOL bBreak=FALSE;
 
+                  //Accept connection only from initial caller that runs this process
                   if (GetNamedPipeClientProcessIdPtr && (*GetNamedPipeClientProcessIdPtr)(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId)
                   {
-                    //Wait for client WriteFile.
+                    //Wait for client WriteFile
                     if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(apipe), &dwBytesRead, NULL))
                     {
                       if (apipe.nAction == 0)
