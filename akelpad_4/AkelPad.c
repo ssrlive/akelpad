@@ -189,6 +189,7 @@
 //Process
 HANDLE hHeap;
 HANDLE hMutex=0;
+DWORD dwProcessId;
 
 //WinMain
 HINSTANCE hInstance;
@@ -331,6 +332,11 @@ int nOfnCodePage;
 POINT64 ptDocumentPos;
 WNDPROC OldFilePreviewProc;
 
+//AkelAdmin
+wchar_t wszAkelAdminPipe[32];
+BOOL bPipeInitAkelAdmin=FALSE;
+HICON hIconShieldAkelAdmin=NULL;
+
 //MessageBox dialog
 HWND hDlgMsgBox=NULL;
 
@@ -467,6 +473,7 @@ void _WinMain()
 
   //Process
   hHeap=GetProcessHeap();
+  dwProcessId=GetCurrentProcessId();
 
   //Is unicode Windows
   bOldWindows=!GetWindowsDirectoryW(NULL, 0);
@@ -498,6 +505,9 @@ void _WinMain()
   //Get program directory
   GetExeDir(hInstance, wszExeDir, MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
+
+  //Zero AkelAdmin pipe name
+  wszAkelAdminPipe[0]=L'\0';
 
   //Set default options before reading from registry/ini
   xmemset(&moInit, 0, sizeof(MAINOPTIONS));
@@ -1038,6 +1048,29 @@ void _WinMain()
   {
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineEnd);
     wszCmdLineEnd=NULL;
+  }
+  if (bPipeInitAkelAdmin)
+  {
+    ADMINPIPE apipe;
+    HANDLE hFilePipe;
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwBytesWritten;
+
+    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+    {
+      //Unload AkelAdmin.
+      xmemset(&apipe, 0, sizeof(ADMINPIPE));
+      apipe.nAction=0;
+      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+      CloseHandle(hFilePipe);
+    }
+    bPipeInitAkelAdmin=FALSE;
+  }
+  if (hIconShieldAkelAdmin)
+  {
+    DestroyIcon(hIconShieldAkelAdmin);
+    hIconShieldAkelAdmin=NULL;
   }
   CodepageListFree(&lpCodepageList);
   RecentFilesZero(&hRecentFilesStack);
