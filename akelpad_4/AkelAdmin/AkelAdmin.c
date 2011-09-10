@@ -18,12 +18,13 @@
 
 
 //Defines
-#define STRID_ERRORDIR           1
-#define STRID_ERRORCALL          2
-#define STRID_ERRORFILESECURITY  3
-#define STRID_ERRORPIPESECURITY  4
-#define STRID_ERRORDELETE        5
-#define STRID_ERRORMOVE          6
+#define STRID_ERRORWIN           1
+#define STRID_ERRORDIR           2
+#define STRID_ERRORCALL          3
+#define STRID_ERRORFILESECURITY  4
+#define STRID_ERRORPIPESECURITY  5
+#define STRID_ERRORDELETE        6
+#define STRID_ERRORMOVE          7
 
 #define BUFFER_SIZE      1024
 
@@ -69,6 +70,8 @@ LANGID wLangModule=0;
 
 //GetProcAddress
 BOOL (WINAPI *GetNamedPipeClientProcessIdPtr)(HANDLE, ULONG *);
+DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
+DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
 
 
 //GCC
@@ -90,13 +93,13 @@ void _WinMain()
   //Get program HINSTANCE
   hInstance=GetModuleHandleW(NULL);
 
+  //Get default language ID
+  wLangModule=PRIMARYLANGID(GetUserDefaultLangID());
+
   if (hInstance)
   {
     //Get program directory
     GetExeDir(hInstance, wszBuffer, BUFFER_SIZE);
-
-    //Get default language ID
-    wLangModule=PRIMARYLANGID(GetUserDefaultLangID());
 
     if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer)))
     {
@@ -116,7 +119,8 @@ void _WinMain()
           {
             HANDLE hPipeAkelAdmin;
             HANDLE hMutex;
-            HANDLE hKernel32;
+            HMODULE hKernel32;
+            HMODULE hAdvApi32;
             DWORD dwInitProcessId;
             DWORD dwClientProcessId;
 
@@ -129,6 +133,10 @@ void _WinMain()
               //Get functions addresses
               hKernel32=GetModuleHandleW(L"kernel32.dll");
               GetNamedPipeClientProcessIdPtr=(BOOL (WINAPI *)(HANDLE, ULONG *))GetProcAddress(hKernel32, "GetNamedPipeClientProcessId");
+
+              hAdvApi32=GetModuleHandleW(L"advapi32.dll");
+              SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
+              SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
 
               if ((hPipeAkelAdmin=CreateNamedPipeW(wszAkelAdminPipe, PIPE_ACCESS_DUPLEX|PIPE_WAIT|WRITE_DAC, 0, 1, sizeof(ADMINPIPE), sizeof(ADMINPIPE), 0, NULL)) != INVALID_HANDLE_VALUE)
               {
@@ -150,9 +158,9 @@ void _WinMain()
                   eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
                   eal[0].Trustee.pMultipleTrustee=NULL;
 
-                  if (SetEntriesInAclW(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
+                  if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
                   {
-                    if (SetSecurityInfo(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL) == ERROR_SUCCESS)
+                    if ((*SetSecurityInfoPtr)(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL) == ERROR_SUCCESS)
                       bChangeAccessResult=TRUE;
                     LocalFree(pNewACL);
                   }
@@ -274,6 +282,8 @@ void _WinMain()
     }
     else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORDIR), STR_AKELADMIN, MB_ICONEXCLAMATION);
   }
+  else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORWIN), STR_AKELADMIN, MB_ICONEXCLAMATION);
+
   ExitProcess(dwExitCode);
 }
 
@@ -351,6 +361,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 {
   if (wLangID == LANG_RUSSIAN)
   {
+    if (nStringID == STRID_ERRORWIN)
+      return L"\x041F\x0440\x0435\x0434\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x043E\x0020\x0434\x043B\x044F\x0020\x004E\x0054\x0020\x0441\x0438\x0441\x0442\x0435\x043C\x002E";
     if (nStringID == STRID_ERRORDIR)
       return L"AkelAdmin \x0434\x043E\x043B\x0436\x0435\x043D\x0020\x043D\x0430\x0445\x043E\x0434\x0438\x0442\x044C\x0441\x044F\x0020\x0432\x0020\x043F\x0430\x043F\x043A\x0435 AkelFiles.";
     if (nStringID == STRID_ERRORCALL)
@@ -366,6 +378,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
   }
   else
   {
+    if (nStringID == STRID_ERRORWIN)
+      return L"Designed for NT systems.";
     if (nStringID == STRID_ERRORDIR)
       return L"AkelAdmin should be in AkelFiles folder.";
     if (nStringID == STRID_ERRORCALL)
