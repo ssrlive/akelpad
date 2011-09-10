@@ -9,11 +9,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <Aclapi.h>
+#include <aclapi.h>
 #include "..\AkelEdit\StrFunc.h"
 
 //Include string functions
-#define xmemset
 #define xatoiW
 #include "..\AkelEdit\StrFunc.h"
 
@@ -139,10 +138,9 @@ void _WinMain()
                 SID *pSIDEveryone=NULL;
                 BOOL bChangeAccessResult=FALSE;
 
-                // Specify the DACL to use. Create a SID for the Everyone group.
+                //Specify the DACL to use. Create a SID for the Everyone group.
                 if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
                 {
-                  xmemset(&eal[0], 0, sizeof(EXPLICIT_ACCESS));
                   eal[0].grfAccessPermissions=GENERIC_ALL;
                   eal[0].grfAccessMode=SET_ACCESS;
                   eal[0].grfInheritance=NO_INHERITANCE;
@@ -362,7 +360,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_ERRORFILESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
     if (nStringID == STRID_ERRORDELETE)
-      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0434\x0430\x043B\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B \"%s\"";
+      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0437\x0430\x043C\x0435\x043D\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B \"%s\"";
     if (nStringID == STRID_ERRORMOVE)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x0435\x0440\x0435\x043C\x0435\x0441\x0442\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B.\n\x0418\x0437:\"%s\"\n\x0432: \"%s\"";
   }
@@ -377,7 +375,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_ERRORFILESECURITY)
       return L"Can't set security options for file \"%s\"";
     if (nStringID == STRID_ERRORDELETE)
-      return L"Can't delete file \"%s\"";
+      return L"Can't replace file \"%s\"";
     if (nStringID == STRID_ERRORMOVE)
       return L"Can't move file.\nFrom: \"%s\"\nto: \"%s\"";
   }
