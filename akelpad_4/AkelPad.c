@@ -6,6 +6,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <aclapi.h>
 #include <richedit.h>
 #include "WideFunc.h"
 #include "AkelEdit\StackFunc.h"
@@ -447,6 +448,10 @@ FRAMEDATA *lpFrame;
 //GetProcAddress
 HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
 BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
+DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL)=NULL;
+DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *)=NULL;
+BOOL (WINAPI *ShellExecuteExWPtr)(LPSHELLEXECUTEINFOW)=NULL;
+
 
 //GCC
 #ifdef __GNUC__
@@ -461,7 +466,7 @@ void _WinMain()
 {
   WNDCLASSW wndclassW;
   MSG msg;
-  HMODULE hUser32=NULL;
+  HMODULE hUser32;
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
@@ -847,7 +852,6 @@ void _WinMain()
 
   //Get functions addresses
   hUser32=GetModuleHandleA("user32.dll");
-
   MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
   GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
