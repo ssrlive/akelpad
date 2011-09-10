@@ -229,8 +229,8 @@ void _WinMain()
                               {
                                 if (!SetFileSecurityW(apipe.wszTargetFile, ssi, psd))
                                 {
-                                  //wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORFILESECURITY), apipe.wszTargetFile);
-                                  //MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORFILESECURITY), apipe.wszTargetFile);
+                                  MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
                                 }
                               }
                               apipe.dwExitCode=0;
@@ -357,8 +357,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0414\x0430\x043D\x043D\x0430\x044F\x0020\x043F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0430\x0020\x043F\x0440\x0435\x0434\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x043D\x0443\x0442\x0440\x0435\x043D\x043D\x0435\x0433\x043E\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x043D\x0438\x044F AkelPad'\x043E\x043C. \x041D\x0435\x0020\x0432\x044B\x0437\x044B\x0432\x0430\x0439\x0442\x0435\x0020\x0435\x0435\x0020\x043D\x0430\x043F\x0440\x044F\x043C\x0443\x044E.";
     if (nStringID == STRID_ERRORPIPESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x043A\x0430\x043D\x0430\x043B\x0430.";
-    //if (nStringID == STRID_ERRORFILESECURITY)
-    //  return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
+    if (nStringID == STRID_ERRORFILESECURITY)
+      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
     if (nStringID == STRID_ERRORDELETE)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0437\x0430\x043C\x0435\x043D\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B \"%s\"";
     if (nStringID == STRID_ERRORMOVE)
@@ -372,8 +372,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"This program is internal for AkelPad. Don't call it directly.";
     if (nStringID == STRID_ERRORPIPESECURITY)
       return L"Can't set security options for pipe.";
-    //if (nStringID == STRID_ERRORFILESECURITY)
-    //  return L"Can't set security options for file \"%s\"";
+    if (nStringID == STRID_ERRORFILESECURITY)
+      return L"Can't set security options for file \"%s\"";
     if (nStringID == STRID_ERRORDELETE)
       return L"Can't replace file \"%s\"";
     if (nStringID == STRID_ERRORMOVE)
