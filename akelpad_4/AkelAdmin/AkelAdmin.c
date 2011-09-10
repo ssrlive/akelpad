@@ -140,7 +140,7 @@ void _WinMain()
                 BOOL bChangeAccessResult=FALSE;
 
                 // Specify the DACL to use. Create a SID for the Everyone group.
-                if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &pSIDEveryone))
+                if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
                 {
                   xmemset(&eal[0], 0, sizeof(EXPLICIT_ACCESS));
                   eal[0].grfAccessPermissions=GENERIC_ALL;
