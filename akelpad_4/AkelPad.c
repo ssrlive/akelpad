@@ -1049,29 +1049,12 @@ void _WinMain()
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineEnd);
     wszCmdLineEnd=NULL;
   }
-  if (bPipeInitAkelAdmin)
-  {
-    ADMINPIPE apipe;
-    HANDLE hFilePipe;
-    UINT_PTR dwBytesRead;
-    UINT_PTR dwBytesWritten;
-
-    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-    {
-      //Unload AkelAdmin.
-      xmemset(&apipe, 0, sizeof(ADMINPIPE));
-      apipe.nAction=0;
-      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-      CloseHandle(hFilePipe);
-    }
-    bPipeInitAkelAdmin=FALSE;
-  }
   if (hIconShieldAkelAdmin)
   {
     DestroyIcon(hIconShieldAkelAdmin);
     hIconShieldAkelAdmin=NULL;
   }
+  AkelAdminExit();
   CodepageListFree(&lpCodepageList);
   RecentFilesZero(&hRecentFilesStack);
   FreeMemorySearch();

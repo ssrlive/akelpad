@@ -7,6 +7,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <aclapi.h>
 #include <richedit.h>
 #include "WideFunc.h"
 #include "AkelEdit\StackFunc.h"
@@ -4822,6 +4823,32 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             //Pipe server doesn't exist
             if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
             {
+              //Set security for hMutex. It required under limited user of WinXP.
+              ACL *pNewACL=NULL;
+              EXPLICIT_ACCESSW eal[1];
+              SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
+              SID *pSIDEveryone=NULL;
+
+              //Specify the DACL to use. Create a SID for the Everyone group.
+              if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
+              {
+                eal[0].grfAccessPermissions=GENERIC_ALL;
+                eal[0].grfAccessMode=SET_ACCESS;
+                eal[0].grfInheritance=NO_INHERITANCE;
+                eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
+                eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
+                eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
+                eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
+                eal[0].Trustee.pMultipleTrustee=NULL;
+
+                if (SetEntriesInAclW(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
+                {
+                  SetSecurityInfo(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
+                  LocalFree(pNewACL);
+                }
+                FreeSid(pSIDEveryone);
+              }
+
               //Code 10 initialize AkelAdmin process
               xprintfW(wbuf, L"\"%d\" \"%d\"", 10, dwProcessId);
               sei.cbSize=sizeof(SHELLEXECUTEINFOW);
@@ -4948,6 +4975,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
       if (apipe.dwExitCode)
       {
+        //Reset AkelAdmin
+        AkelAdminExit();
+
         DeleteFileWide(wszTempFile);
         nResult=ESD_OPEN;
         goto BackAttr;
@@ -5084,6 +5114,28 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
     return 0;
   }
   return 1;
+}
+
+void AkelAdminExit()
+{
+  if (bPipeInitAkelAdmin)
+  {
+    ADMINPIPE apipe;
+    HANDLE hFilePipe;
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwBytesWritten;
+
+    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+    {
+      //Unload AkelAdmin.
+      xmemset(&apipe, 0, sizeof(ADMINPIPE));
+      apipe.nAction=0;
+      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+      CloseHandle(hFilePipe);
+    }
+    bPipeInitAkelAdmin=FALSE;
+  }
 }
 
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
