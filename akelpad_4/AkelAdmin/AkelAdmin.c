@@ -177,7 +177,7 @@ void _WinMain()
                   BOOL bBreak=FALSE;
 
                   //Accept connection only from initial caller that runs this process
-                  if (GetNamedPipeClientProcessIdPtr && (*GetNamedPipeClientProcessIdPtr)(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId)
+                  if (!GetNamedPipeClientProcessIdPtr || ((*GetNamedPipeClientProcessIdPtr)(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
                   {
                     //Wait for client WriteFile
                     if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(apipe), &dwBytesRead, NULL))
