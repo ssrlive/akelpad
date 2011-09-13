@@ -370,7 +370,6 @@ typedef struct {
   int nHeight;
   COLORREF crBasic;
   COLORREF crInvert;
-  BOOL bZebra;
 } AEBITMAPDATA;
 
 typedef struct _AEBITMAPITEM {
@@ -378,7 +377,6 @@ typedef struct _AEBITMAPITEM {
   struct _AEBITMAPITEM *prev;
   AEBITMAPDATA bd;
   HBITMAP hBitmap;
-  HBRUSH hPatternBrush;
 } AEBITMAPITEM;
 
 
@@ -516,8 +514,6 @@ typedef struct {
   int nCaretInsertWidth;
   int nCaretOvertypeHeight;
   BOOL bOverType;
-  HBRUSH hActiveColumn;
-  BOOL bActiveColumnDraw;
   DWORD dwColumnMarkerType;
   DWORD dwColumnMarkerPos;
   wchar_t wszWordDelimiters[128];
@@ -814,7 +810,7 @@ void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
 void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
 void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
-HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
+HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert);
 HBITMAP AE_LoadBitmapFromMemory(const BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT64 *ptCaret);
@@ -842,9 +838,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
 void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
-void AE_ActiveColumnCreate(AKELEDIT *ae);
-void AE_ActiveColumnDraw(AKELEDIT *ae);
-void AE_ActiveColumnErase(AKELEDIT *ae);
+void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom);
 void AE_UpdateSize(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse);

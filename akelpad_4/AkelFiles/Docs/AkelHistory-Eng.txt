@@ -1,6 +1,8 @@
 
 AkelPad 4.6.6 ()
 ----------------------------
+Changed: active column flashing minimized.
+
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 
 Fixed: file could be saved in virtual store (UAC).
