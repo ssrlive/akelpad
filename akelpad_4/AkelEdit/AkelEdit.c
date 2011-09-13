@@ -1215,13 +1215,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (!(dwOptionsOld & AECO_ACTIVECOLUMN) && (dwOptionsNew & AECO_ACTIVECOLUMN))
       {
-        AE_ActiveColumnCreate(ae);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackUpdateClones(ae);
       }
       else if ((dwOptionsOld & AECO_ACTIVECOLUMN) && !(dwOptionsNew & AECO_ACTIVECOLUMN))
       {
-        AE_ActiveColumnErase(ae);
+        //Erase active column
+        AE_ActiveColumnDraw(ae, ae->hDC, ae->rcDraw.top, ae->rcDraw.bottom);
         AE_StackUpdateClones(ae);
       }
       if ((dwOptionsOld & AECO_CARETOUTEDGE) && !(dwOptionsNew & AECO_CARETOUTEDGE))
@@ -4425,7 +4425,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (rcErase.top < rcErase.bottom)
         {
+          //Erase active column after last line
+          AE_ActiveColumnDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+
           FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+
+          if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
+          {
+            //Draw column marker on non-text lines
+            AE_ColumnMarkerDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+          }
+          //Draw active column on non-text lines
+          AE_ActiveColumnDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
         }
       }
 
@@ -4461,7 +4472,23 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         if (ae->hDC)
         {
-          AE_ActiveColumnErase(ae);
+          if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+          {
+            POINT ptActiveColumnDraw;
+
+            AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ptActiveColumnDraw);
+            if (ptActiveColumnDraw.x != ae->ptActiveColumnDraw.x)
+            {
+              //Erase column at old caret position
+              AE_ActiveColumnDraw(ae, ae->hDC, ae->rcDraw.top, ae->rcDraw.bottom);
+
+              //Draw column at new caret position
+              ae->ptActiveColumnDraw=ptActiveColumnDraw;
+              AE_ActiveColumnDraw(ae, ae->hDC, ae->rcDraw.top, ae->rcDraw.bottom);
+            }
+            else ae->ptActiveColumnDraw=ptActiveColumnDraw;
+          }
+
           AE_Paint(ae);
 
           if (ae->bMButtonDown)
@@ -4471,16 +4498,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             UpdateWindow(ae->hWndEdit);
             ae->bMButtonDown=TRUE;
             AE_MButtonDraw(ae);
-          }
-          if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-          {
-            if (!ae->popt->bActiveColumnDraw)
-            {
-              //Draw new vertical line
-              AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ae->ptActiveColumnDraw);
-              AE_ActiveColumnDraw(ae);
-              ae->popt->bActiveColumnDraw=TRUE;
-            }
           }
 
           //Release DC
@@ -5588,7 +5605,7 @@ AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd)
   {
     xmemcpy(&lpElement->bd, bd, sizeof(AEBITMAPDATA));
 
-    lpElement->hBitmap=AE_CreateBitmap(bd->nWidth, bd->nHeight, bd->crBasic, bd->crInvert, bd->bZebra);
+    lpElement->hBitmap=AE_CreateBitmap(bd->nWidth, bd->nHeight, bd->crBasic, bd->crInvert);
 
     return lpElement;
   }
@@ -5616,7 +5633,6 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
   while (lpElement)
   {
     if (lpElement->hBitmap) DeleteObject(lpElement->hBitmap);
-    if (lpElement->hPatternBrush) DeleteObject(lpElement->hPatternBrush);
 
     lpElement=lpElement->next;
   }
@@ -10787,7 +10803,7 @@ void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
     AE_HeapStackClear(ae, (stack **)&ae->ptxt->hMarkRangeStack.first, (stack **)&ae->ptxt->hMarkRangeStack.last);
 }
 
-HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra)
+HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert)
 {
   BITMAPFILEHEADER *lpBmpFileHeader;
   BITMAPINFOHEADER *lpBmpInfoHeader;
@@ -10842,18 +10858,6 @@ HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crIn
         a+=3;
       }
       while (a % 4) lpBitmapBits[a++]=0x00;
-
-      if (bZebra)
-      {
-        for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
-        {
-          lpBitmapBits[a + 0]=0x00;
-          lpBitmapBits[a + 1]=0x00;
-          lpBitmapBits[a + 2]=0x00;
-          a+=3;
-        }
-        while (a % 4) lpBitmapBits[a++]=0x00;
-      }
     }
 
     hBitmap=AE_LoadBitmapFromMemory((unsigned char *)lpBmpFileData);
@@ -10927,7 +10931,6 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       bd.nHeight=nCaretHeight;
       bd.crBasic=ae->popt->crCaret;
       bd.crInvert=ae->popt->crActiveLineBk;
-      bd.bZebra=FALSE;
 
       if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
         bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
@@ -11398,7 +11401,7 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
         if (nPos != ae->nHScrollPos)
         {
           AE_MButtonErase(ae);
-          AE_ActiveColumnErase(ae);
+          ae->ptActiveColumnDraw.x+=(int)(ae->nHScrollPos - nPos);
 
           ScrollWindow(ae->hWndEdit, (int)(ae->nHScrollPos - nPos), 0, NULL, &ae->rcDraw);
           if (bAkelEditWindows9x)
@@ -11461,7 +11464,7 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
         if (nPos != ae->nVScrollPos)
         {
           AE_MButtonErase(ae);
-          AE_ActiveColumnErase(ae);
+          ae->ptActiveColumnDraw.y+=(int)(ae->nVScrollPos - nPos);
 
           ScrollWindow(ae->hWndEdit, 0, (int)(ae->nVScrollPos - nPos), NULL, &ae->rcDraw);
           if (bAkelEditWindows9x)
@@ -12404,6 +12407,9 @@ void AE_Paint(AKELEDIT *ae)
         //Draw column marker
         AE_ColumnMarkerDraw(ae, to.hDC, (int)to.ptFirstCharInLine.y, (int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight));
 
+        //Draw active column
+        AE_ActiveColumnDraw(ae, to.hDC, (int)to.ptFirstCharInLine.y, (int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight));
+
         //Copy line from buffer DC
         if (bUseBufferDC)
         {
@@ -12439,15 +12445,6 @@ void AE_Paint(AKELEDIT *ae)
           to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
         else
           break;
-      }
-    }
-
-    if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
-    {
-      if (ae->rcDraw.bottom - ae->rcDraw.top > ae->ptxt->nVScrollMax)
-      {
-        //Draw column marker on non-text lines
-        AE_ColumnMarkerDraw(ae, ps.hdc, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
       }
     }
 
@@ -13392,56 +13389,48 @@ void AE_MButtonErase(AKELEDIT *ae)
   }
 }
 
-void AE_ActiveColumnCreate(AKELEDIT *ae)
-{
-  AEBITMAPITEM *bi;
-  AEBITMAPDATA bd;
-
-  bd.nWidth=8;
-  bd.nHeight=8;
-  bd.crBasic=ae->popt->crActiveColumn;
-  bd.crInvert=ae->popt->crBasicBk;
-  bd.bZebra=TRUE;
-
-  if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
-    bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
-  if (!bi->hPatternBrush)
-    bi->hPatternBrush=CreatePatternBrush(bi->hBitmap);
-  ae->popt->hActiveColumn=bi->hPatternBrush;
-}
-
-void AE_ActiveColumnDraw(AKELEDIT *ae)
+void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 {
   if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
   {
-    HBRUSH hBrushOld;
-    HDC hDC=ae->hDC;
-
     if (ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
     {
+      HDC hInputDC=hDC;
+      HPEN hPen;
+      HPEN hPenOld;
+      int nModeOld;
+      int i;
+
       if (hDC || (hDC=GetDC(ae->hWndEdit)))
       {
-        hBrushOld=(HBRUSH)SelectObject(hDC, ae->popt->hActiveColumn);
-        if (ae->ptActiveColumnDraw.y > ae->rcDraw.top)
-          PatBlt(hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->ptActiveColumnDraw.y - ae->rcDraw.top, PATINVERT);
-        if (ae->rcDraw.bottom > ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight)
-          PatBlt(hDC, ae->ptActiveColumnDraw.x, ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight, 1, ae->rcDraw.bottom - (ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight), PATINVERT);
-        SelectObject(hDC, hBrushOld);
+        nTop=max(ae->rcDraw.top, nTop);
+        nBottom=min(ae->rcDraw.bottom, nBottom);
+        nTop+=(ae->nVScrollPos + (nTop - ae->rcDraw.top)) % 2;
 
-        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+        if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crActiveColumn))
+        {
+          hPenOld=(HPEN)SelectObject(hDC, hPen);
+          nModeOld=SetROP2(hDC, R2_NOTXORPEN);
+
+          for (i=nTop; i < nBottom; i+=2)
+          {
+            if (i >= ae->ptActiveColumnDraw.y && i < ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight)
+            {
+              //Skip caret height
+              i=ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight;
+              i+=(ae->nVScrollPos + (i - ae->rcDraw.top)) % 2;
+            }
+
+            //Draw dot
+            MoveToEx(hDC, ae->ptActiveColumnDraw.x, i, NULL);
+            LineTo(hDC, ae->ptActiveColumnDraw.x + 1, i + 1);
+          }
+          SetROP2(hDC, nModeOld);
+          if (hPenOld) SelectObject(hDC, hPenOld);
+          DeleteObject(hPen);
+        }
+        if (!hInputDC) ReleaseDC(ae->hWndEdit, hDC);
       }
-    }
-  }
-}
-
-void AE_ActiveColumnErase(AKELEDIT *ae)
-{
-  if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-  {
-    if (ae->popt->bActiveColumnDraw)
-    {
-      AE_ActiveColumnDraw(ae);
-      ae->popt->bActiveColumnDraw=FALSE;
     }
   }
 }
@@ -19179,9 +19168,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->bDefaultColors=FALSE;
       }
       bUpdateDrawRect=TRUE;
-
-      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-        AE_ActiveColumnCreate(ae);
     }
     if (aec->dwFlags & AECLR_COLUMNMARKER)
     {
