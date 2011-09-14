@@ -83,6 +83,7 @@ HSTACK hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontsStackA={0};
 HSTACK hAkelEditFontsStackW={0};
 HSTACK hAkelEditBitmapsStack={0};
+HSTACK hAkelEditPensStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
@@ -272,6 +273,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
   AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
   AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
+  AE_StackPenItemsFree(&hAkelEditPensStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredA)
@@ -304,6 +306,7 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
   AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
   AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
+  AE_StackPenItemsFree(&hAkelEditPensStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredW)
@@ -1215,6 +1218,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (!(dwOptionsOld & AECO_ACTIVECOLUMN) && (dwOptionsNew & AECO_ACTIVECOLUMN))
       {
+        AEPENITEM *lpPenItem;
+
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crActiveColumn)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crActiveColumn);
+        ae->popt->hActiveColumnPen=lpPenItem->hPen;
+
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackUpdateClones(ae);
       }
@@ -1488,6 +1497,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETMARKER)
     {
+      AEPENITEM *lpPenItem;
+
+      if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crColumnMarker)))
+        lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crColumnMarker);
+      ae->popt->hColumnMarkerPen=lpPenItem->hPen;
+
       return AE_ColumnMarkerSet(ae, (DWORD)wParam, (int)lParam, FALSE);
     }
     if (uMsg == AEM_GETLINEGAP)
@@ -5527,9 +5542,9 @@ AEFONTITEMW* AE_StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 
 AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont)
 {
-  AEFONTITEMA *lpElement=(AEFONTITEMA *)hStack->first;
+  AEFONTITEMA *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEFONTITEMA *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
         lpElement->lfFont.lfWeight == lfFont->lfWeight &&
@@ -5539,16 +5554,15 @@ AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont)
       if (!xstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement;
     }
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
 AEFONTITEMW* AE_StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont)
 {
-  AEFONTITEMW *lpElement=(AEFONTITEMW *)hStack->first;
+  AEFONTITEMW *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEFONTITEMW *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
         lpElement->lfFont.lfWeight == lfFont->lfWeight &&
@@ -5558,41 +5572,36 @@ AEFONTITEMW* AE_StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont)
       if (!xstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement;
     }
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
 void AE_StackFontItemsFreeA(HSTACK *hStack)
 {
-  AEFONTITEMA *lpElement=(AEFONTITEMA *)hStack->first;
+  AEFONTITEMA *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEFONTITEMA *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hFontNormal) DeleteObject(lpElement->hFontNormal);
     if (lpElement->hFontBold) DeleteObject(lpElement->hFontBold);
     if (lpElement->hFontItalic) DeleteObject(lpElement->hFontItalic);
     if (lpElement->hFontBoldItalic) DeleteObject(lpElement->hFontBoldItalic);
     if (lpElement->hFontUrl) DeleteObject(lpElement->hFontUrl);
-
-    lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 void AE_StackFontItemsFreeW(HSTACK *hStack)
 {
-  AEFONTITEMW *lpElement=(AEFONTITEMW *)hStack->first;
+  AEFONTITEMW *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEFONTITEMW *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hFontNormal) DeleteObject(lpElement->hFontNormal);
     if (lpElement->hFontBold) DeleteObject(lpElement->hFontBold);
     if (lpElement->hFontItalic) DeleteObject(lpElement->hFontItalic);
     if (lpElement->hFontBoldItalic) DeleteObject(lpElement->hFontBoldItalic);
     if (lpElement->hFontUrl) DeleteObject(lpElement->hFontUrl);
-
-    lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -5614,30 +5623,64 @@ AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd)
 
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd)
 {
-  AEBITMAPITEM *lpElement=(AEBITMAPITEM *)hStack->first;
+  AEBITMAPITEM *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEBITMAPITEM *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (!xmemcmp(&lpElement->bd, bd, sizeof(AEBITMAPDATA)))
       return lpElement;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
 void AE_StackBitmapItemsFree(HSTACK *hStack)
 {
-  AEBITMAPITEM *lpElement=(AEBITMAPITEM *)hStack->first;
+  AEBITMAPITEM *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEBITMAPITEM *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hBitmap) DeleteObject(lpElement->hBitmap);
-
-    lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
+
+AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor)
+{
+  AEPENITEM *lpElement=NULL;
+
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEPENITEM)))
+  {
+    lpElement->crPenColor=crPenColor;
+    lpElement->hPen=CreatePen(PS_SOLID, 0, crPenColor);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor)
+{
+  AEPENITEM *lpElement;
+
+  for (lpElement=(AEPENITEM *)hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->crPenColor == crPenColor)
+      return lpElement;
+  }
+  return NULL;
+}
+
+void AE_StackPenItemsFree(HSTACK *hStack)
+{
+  AEPENITEM *lpElement;
+
+  for (lpElement=(AEPENITEM *)hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->hPen) DeleteObject(lpElement->hPen);
+  }
+  AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
 
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
 {
@@ -13396,39 +13439,35 @@ void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
     if (ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
     {
       HDC hInputDC=hDC;
-      HPEN hPen;
       HPEN hPenOld;
       int nModeOld;
       int i;
 
       if (hDC || (hDC=GetDC(ae->hWndEdit)))
       {
+        hPenOld=(HPEN)SelectObject(hDC, ae->popt->hActiveColumnPen);
+        nModeOld=SetROP2(hDC, R2_NOTXORPEN);
+
         nTop=max(ae->rcDraw.top, nTop);
         nBottom=min(ae->rcDraw.bottom, nBottom);
         nTop+=(ae->nVScrollPos + (nTop - ae->rcDraw.top)) % 2;
 
-        if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crActiveColumn))
+        for (i=nTop; i < nBottom; i+=2)
         {
-          hPenOld=(HPEN)SelectObject(hDC, hPen);
-          nModeOld=SetROP2(hDC, R2_NOTXORPEN);
-
-          for (i=nTop; i < nBottom; i+=2)
+          if (i >= ae->ptActiveColumnDraw.y && i < ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight)
           {
-            if (i >= ae->ptActiveColumnDraw.y && i < ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight)
-            {
-              //Skip caret height
-              i=ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight;
-              i+=(ae->nVScrollPos + (i - ae->rcDraw.top)) % 2;
-            }
-
-            //Draw dot
-            MoveToEx(hDC, ae->ptActiveColumnDraw.x, i, NULL);
-            LineTo(hDC, ae->ptActiveColumnDraw.x + 1, i + 1);
+            //Skip caret height
+            i=ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight;
+            i+=(ae->nVScrollPos + (i - ae->rcDraw.top)) % 2;
           }
-          SetROP2(hDC, nModeOld);
-          if (hPenOld) SelectObject(hDC, hPenOld);
-          DeleteObject(hPen);
+
+          //Draw dot
+          MoveToEx(hDC, ae->ptActiveColumnDraw.x, i, NULL);
+          LineTo(hDC, ae->ptActiveColumnDraw.x + 1, i + 1);
         }
+
+        SetROP2(hDC, nModeOld);
+        if (hPenOld) SelectObject(hDC, hPenOld);
         if (!hInputDC) ReleaseDC(ae->hWndEdit, hDC);
       }
     }
@@ -13465,9 +13504,8 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 {
   if (ae->popt->dwColumnMarkerPos)
   {
-    INT_PTR nMarkerPos;
-    HPEN hPen;
     HPEN hPenOld;
+    INT_PTR nMarkerPos;
 
     nMarkerPos=ae->popt->dwColumnMarkerPos;
     if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
@@ -13475,14 +13513,10 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
-      if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crColumnMarker))
-      {
-        hPenOld=(HPEN)SelectObject(hDC, hPen);
-        MoveToEx(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nTop, NULL);
-        LineTo(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nBottom);
-        if (hPenOld) SelectObject(hDC, hPenOld);
-        DeleteObject(hPen);
-      }
+      hPenOld=(HPEN)SelectObject(hDC, ae->popt->hColumnMarkerPen);
+      MoveToEx(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nTop, NULL);
+      LineTo(hDC, ae->rcDraw.left + (int)(nMarkerPos - ae->nHScrollPos), nBottom);
+      if (hPenOld) SelectObject(hDC, hPenOld);
     }
   }
 }
@@ -19168,6 +19202,15 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->bDefaultColors=FALSE;
       }
       bUpdateDrawRect=TRUE;
+
+      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+      {
+        AEPENITEM *lpPenItem;
+
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crActiveColumn)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crActiveColumn);
+        ae->popt->hActiveColumnPen=lpPenItem->hPen;
+      }
     }
     if (aec->dwFlags & AECLR_COLUMNMARKER)
     {
@@ -19180,7 +19223,16 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->crColumnMarker=aec->crColumnMarker;
         ae->popt->bDefaultColors=FALSE;
       }
-      AE_ColumnMarkerErase(ae);
+      bUpdateDrawRect=TRUE;
+
+      if (ae->popt->dwColumnMarkerPos)
+      {
+        AEPENITEM *lpPenItem;
+
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crColumnMarker)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crColumnMarker);
+        ae->popt->hColumnMarkerPen=lpPenItem->hPen;
+      }
     }
     if (aec->dwFlags & AECLR_CARET)
     {

@@ -336,7 +336,7 @@ typedef struct _AEERASE {
 } AEERASE;
 
 
-//// Manage fonts
+//// Manage GDI objects
 
 typedef struct _AEFONTITEMA {
   struct _AEFONTITEMA *next;
@@ -362,9 +362,6 @@ typedef struct _AEFONTITEMW {
   WORD lpCharWidths[65536];
 } AEFONTITEMW;
 
-
-//// Manage bitmaps
-
 typedef struct {
   int nWidth;
   int nHeight;
@@ -378,6 +375,13 @@ typedef struct _AEBITMAPITEM {
   AEBITMAPDATA bd;
   HBITMAP hBitmap;
 } AEBITMAPITEM;
+
+typedef struct _AEPENITEM {
+  struct _AEPENITEM *next;
+  struct _AEPENITEM *prev;
+  COLORREF crPenColor;
+  HPEN hPen;
+} AEPENITEM;
 
 
 //// Stacks
@@ -514,6 +518,8 @@ typedef struct {
   int nCaretInsertWidth;
   int nCaretOvertypeHeight;
   BOOL bOverType;
+  HPEN hActiveColumnPen;
+  HPEN hColumnMarkerPen;
   DWORD dwColumnMarkerType;
   DWORD dwColumnMarkerPos;
   wchar_t wszWordDelimiters[128];
@@ -717,6 +723,9 @@ void AE_StackFontItemsFreeW(HSTACK *hStack);
 AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
+AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor);
+AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor);
+void AE_StackPenItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold);
 void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, UINT_PTR dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
 AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine);
