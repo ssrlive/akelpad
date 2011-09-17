@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 5)
 
 
 //// Defines
@@ -112,7 +112,7 @@
 #define SS_INI        2  //INI file.
 
 //AKD_RECENTFILES flags
-#define RF_GET             1  //Retrive current recent files info.
+#define RF_GET             1  //Retrieve current recent files info.
                               //(RECENTFILESTACK **)lParam is a pointer to a variable that receive pointer to a RECENTFILESTACK structure, can be NULL.
                               //Return value is maximum number of recent files.
 #define RF_SET             2  //Set recent files number.
@@ -156,7 +156,7 @@
                               //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
-#define SH_GET    1  //Retrive search strings count.
+#define SH_GET    1  //Retrieve search strings count.
 #define SH_CLEAR  2  //Clear search history.
 
 //AKD_SETEDITOPTION flags
@@ -301,16 +301,16 @@
 #define NCM_STATUS   3  //Status bar control.
 
 //AKD_FRAMEFIND flags
-#define FWF_CURRENT        1  //Retrive current frame data pointer. lParam not used.
-#define FWF_NEXT           2  //Retrive next frame data pointer. lParam is a frame data pointer.
-#define FWF_PREV           3  //Retrive previous frame data pointer. lParam is a frame data pointer.
-#define FWF_BYINDEX        4  //Retrive frame data by index. lParam is frame index. First frame has index 1.
-#define FWF_BYFILENAME     5  //Retrive frame data by full file name. lParam is full file name string.
+#define FWF_CURRENT        1  //Retrieve current frame data pointer. lParam not used.
+#define FWF_NEXT           2  //Retrieve next frame data pointer. lParam is a frame data pointer.
+#define FWF_PREV           3  //Retrieve previous frame data pointer. lParam is a frame data pointer.
+#define FWF_BYINDEX        4  //Retrieve frame data by index. lParam is frame index. First frame has index 1.
+#define FWF_BYFILENAME     5  //Retrieve frame data by full file name. lParam is full file name string.
                               // For AKD_FRAMEFINDA string is ansi.
                               // For AKD_FRAMEFINDW string is unicode.
-#define FWF_BYEDITWINDOW   6  //Retrive frame data by edit window handle. lParam is edit window handle.
-#define FWF_BYEDITDOCUMENT 7  //Retrive frame data by edit document handle. lParam is edit document handle.
-#define FWF_BYTABINDEX     8  //Retrive frame data by tab item index. lParam is tab item index.
+#define FWF_BYEDITWINDOW   6  //Retrieve frame data by edit window handle. lParam is edit window handle.
+#define FWF_BYEDITDOCUMENT 7  //Retrieve frame data by edit document handle. lParam is edit document handle.
+#define FWF_BYTABINDEX     8  //Retrieve frame data by tab item index. lParam is tab item index.
 
 //AKD_FRAMEACTIVATE and AKDN_FRAME_ACTIVATE flags
 #define FWA_NOUPDATEORDER         0x00000001  //Don't update access order during activating.
@@ -350,7 +350,7 @@
 #define FR_BEGINNING     0x00200000  //Search from beginning (usage: FR_DOWN|FR_BEGINNING).
 #define FR_SELECTION     0x00400000  //Search in selection (usage: FR_DOWN|FR_SELECTION).
 #define FR_ESCAPESEQ     0x00800000  //Search with escape sequences.
-#define FR_ALLFILES      0x01000000  //Search in all openned MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
+#define FR_ALLFILES      0x01000000  //Search in all opened MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
 #define FR_CYCLESEARCH   0x08000000  //Cycle search.
 
 //AKD_RECODESEL flags
@@ -3175,7 +3175,7 @@ Example:
 AKD_FRAMESTATS
 ______________
 
-Retrive windows statistics.
+Retrieve windows statistics.
 
 (int)wParam == see FWS_* defines.
 lParam      == not used.
@@ -3190,7 +3190,7 @@ Example:
 AKD_FRAMENOWINDOWS
 __________________
 
-Retrive is there no windows in MDI client (WMD_MDI) or only one empty window (WMD_PMDI or WMD_SDI).
+Retrieve is there no windows in MDI client (WMD_MDI) or only one empty window (WMD_PMDI or WMD_SDI).
 
 wParam == not used.
 lParam == not used.

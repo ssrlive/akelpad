@@ -17851,17 +17851,22 @@ BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax)
 {
   wchar_t wszFileBuf[MAX_PATH];
   wchar_t *wpFileName;
+  BOOL bResult=FALSE;
 
   if (GetFullPathNameWide(wpFile, MAX_PATH, wszFileBuf, &wpFileName))
   {
     if (FileExistsWide(wszFileBuf))
     {
-      GetLongPathNameWide(wszFileBuf, wszFileFullName, nFileMax);
-      return TRUE;
+      if (GetLongPathNameWide(wszFileBuf, wszFileFullName, nFileMax))
+        return TRUE;
+
+      //GetLongPathName can fail on x86 build when open system file on x64,
+      //but we return TRUE to allow AkelAdmin.exe execution.
+      bResult=TRUE;
     }
     xstrcpynW(wszFileFullName, wszFileBuf, nFileMax);
   }
-  return FALSE;
+  return bResult;
 }
 
 const wchar_t* GetFileName(const wchar_t *wpFile)
