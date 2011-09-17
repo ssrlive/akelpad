@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.8                     *
+ *              String functions header v4.9                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1716,7 +1716,7 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
            #elif defined WideCharUpper_INCLUDED
              (!bSensitive && WideCharUpper(*wpMatchCount) == WideCharUpper(*wpStrCount)))
            #else
-             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrrepW will not work on Win95/98/Me.")
+             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrstrW will not work on Win95/98/Me.")
              (!bSensitive && (UINT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpMatchCount) == (UINT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpStrCount)))
            #endif
     {
