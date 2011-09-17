@@ -153,7 +153,7 @@
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
 #define AECF_COLLAPSE         0x00000001  //Collapse fold.
-#define AECF_RECURSE          0x00000002  //Recursive processing with all childrens.
+#define AECF_RECURSE          0x00000002  //Recursive processing with all children.
 #define AECF_NOUPDATE         0x00000004  //Don't update scroll and selection.
 #define AECF_NOCARETCORRECT   0x00000008  //If in collapsed fold located caret, don't move it to fold start.
 
@@ -347,10 +347,10 @@
 #define AECLR_SELBK          0x00000020  //Sets background in selection color. crSelBk member is valid.
 #define AECLR_ACTIVELINETEXT 0x00000040  //Sets active line text color. crActiveLineText member is valid.
 #define AECLR_ACTIVELINEBK   0x00000080  //Sets active line background color. crActiveLineBk member is valid.
-#define AECLR_URLTEXT        0x00000100  //Sets hiperlink text color. crUrlText member is valid.
+#define AECLR_URLTEXT        0x00000100  //Sets hyperlink text color. crUrlText member is valid.
 #define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
 #define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
-#define AECLR_URLCURSORTEXT  0x00000800  //Sets active hiperlink text color. crUrlCursorText member is valid.
+#define AECLR_URLCURSORTEXT  0x00000800  //Sets active hyperlink text color. crUrlCursorText member is valid.
 
 #define AECLR_ALL  (AECLR_CARET          |\
                     AECLR_BASICTEXT      |\
@@ -907,10 +907,10 @@ typedef struct {
   COLORREF crSelBk;          //[in] Background color in selection.
   COLORREF crActiveLineText; //[in] Text color in active line.
   COLORREF crActiveLineBk;   //[in] Background color in active line.
-  COLORREF crUrlText;        //[in] Hiperlink text color.
+  COLORREF crUrlText;        //[in] Hyperlink text color.
   COLORREF crActiveColumn;   //[in] Active column color.
   COLORREF crColumnMarker;   //[in] Column marker color.
-  COLORREF crUrlCursorText;  //[in] Active hiperlink text color.
+  COLORREF crUrlCursorText;  //[in] Active hyperlink text color.
 } AECOLORS;
 
 typedef struct {
@@ -1113,10 +1113,10 @@ typedef struct {
 } AEFOLDMATCH;
 
 typedef struct {
-  DWORD dwDefaultText;   //Text color without highligthing.
-  DWORD dwDefaultBk;     //Background color without highligthing.
-  DWORD dwActiveText;    //Text color with highligthing.
-  DWORD dwActiveBk;      //Background color with highligthing.
+  DWORD dwDefaultText;   //Text color without highlighting.
+  DWORD dwDefaultBk;     //Background color without highlighting.
+  DWORD dwActiveText;    //Text color with highlighting.
+  DWORD dwActiveBk;      //Background color with highlighting.
   DWORD dwFontStyle;     //See AEHLS_* defines.
   DWORD dwPaintType;     //See AEHPT_* defines.
   DWORD dwFindFirst;     //Don't use it. For internal code only.
@@ -1131,8 +1131,8 @@ typedef struct {
 
 typedef DWORD (CALLBACK *AEGetHighLightCallback)(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp);
 //dwCookie        Value of the dwCookie member of the AEGETHIGHLIGHT structure. The application specifies this value when it sends the AEM_HLGETHIGHLIGHT message.
-//crAkelRange     Range of highligthed characters.
-//crRichRange     Range of highligthed characters (RichEdit offset).
+//crAkelRange     Range of highlighted characters.
+//crRichRange     Range of highlighted characters (RichEdit offset).
 //hlp             Highlighted information.
 //
 //Return Value
@@ -1141,7 +1141,7 @@ typedef DWORD (CALLBACK *AEGetHighLightCallback)(UINT_PTR dwCookie, AECHARRANGE 
 typedef struct {
   UINT_PTR dwCookie;                 //[in]  Specifies an application-defined value that the edit control passes to the AEGetHighLightCallback function specified by the lpCallback member.
   DWORD dwError;                     //[out] Indicates the result of the callback function.
-  AEGetHighLightCallback lpCallback; //[in]  Pointer to an AEGetHighLightCallback function, which is an application-defined function that the control calls to pass highligthing information.
+  AEGetHighLightCallback lpCallback; //[in]  Pointer to an AEGetHighLightCallback function, which is an application-defined function that the control calls to pass highlighting information.
   AECHARRANGE crText;                //[in]  Range of characters to process.
   DWORD dwFlags;                     //[in]  See AEGHF_* defines.
 } AEGETHIGHLIGHT;
@@ -4105,7 +4105,7 @@ Example:
 AEM_SETDETECTURL
 ________________
 
-Enables or disables detection and highligthing of URLs by an edit control.
+Enables or disables detection and highlighting of URLs by an edit control.
 
 (BOOL)wParam == TRUE   enable URL detection.
                 FALSE  disable URL detection.
@@ -4943,7 +4943,7 @@ Example:
 AEM_UPDATEFOLD
 ______________
 
-Update scroll and selection. Tipically can be used after fold deletion/collaption.
+Update scroll and selection. Typically can be used after fold deletion/collaption.
 
 wParam      == not used.
 (int)lParam == first visible line that was before fold deletion/collaption. If -1, ignored.
@@ -5024,7 +5024,7 @@ Example:
 AEM_SETDOCUMENT
 _______________
 
-Associate or deassociate document handle with edit control to which message is sended.
+Associate or deassociate document handle with edit control to which message is send.
 
 (AEHDOC)wParam == document handle.
 (DWORD)lParam  == see AESWD_* defines.
@@ -5098,7 +5098,7 @@ Example:
 AEM_ADDCLONE
 ____________
 
-Adds clone to the master window. Message sended to a master window which will be cloned.
+Adds clone to the master window. Message send to a master window which will be cloned.
 
 (HWND)wParam == edit control handle which become a clone. Text of the master and clone windows will be the same.
 lParam       == not used.
@@ -5114,7 +5114,7 @@ Example:
 AEM_DELCLONE
 ____________
 
-Removes clone from the master window. Message sended to a master window.
+Removes clone from the master window. Message send to a master window.
 
 (HWND)wParam == edit control handle that will lose clone status. Text of the clone window will be restored.
 lParam       == not used.
@@ -5129,7 +5129,7 @@ Example:
 AEM_GETMASTER
 _____________
 
-Retrieve master window handle. Message sended to a master or slave window.
+Retrieve master window handle. Message send to a master or slave window.
 
 wParam == not used.
 lParam == not used.
@@ -5153,7 +5153,7 @@ Example:
 AEM_GETCLONE
 ____________
 
-Retrieve clone window handle. Message sended to a master window.
+Retrieve clone window handle. Message send to a master window.
 
 (DWORD)wParam == zero based clone index.
 lParam        == not used.
@@ -5811,7 +5811,7 @@ Example:
 AEM_HLGETHIGHLIGHT
 __________________
 
-Retrieve the highligthing information provided by an application defined callback function.
+Retrieve the highlighting information provided by an application defined callback function.
 
 wParam                   == not used.
 (AEGETHIGHLIGHT *)lParam == pointer to a AEGETHIGHLIGHT structure.
