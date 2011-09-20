@@ -284,7 +284,7 @@ BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
 BOOL bMainOnStart=FALSE;
-BOOL bMainOnFinish=FALSE;
+int nMainOnFinish=MOF_NONE;
 BOOL bEditOnFinish=FALSE;
 BOOL bFirstTabOnFinish=FALSE;
 
@@ -1217,6 +1217,8 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
   if (uMsg == AKDN_MAIN_ONFINISH)
   {
+    nMainOnFinish=MOF_DESTROY;
+
     //Unload plugins
     StackHandleFree(&hHandlesStack);
 
@@ -3670,7 +3672,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (bReopenMsg)
       {
-        if (!bMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
+        if (!nMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
         {
           API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
           xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
@@ -3685,7 +3687,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
     {
-      if (!bMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
+      if (!nMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
       {
         API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
@@ -3695,7 +3697,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_ERRORIO_MSG)
     {
-      if (!bMainOnFinish)
+      if (!nMainOnFinish)
       {
         API_LoadStringW(hLangLib, MSG_ERROR_IO, wszMsg, BUFFER_SIZE);
         API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
@@ -3971,7 +3973,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (wParam == SC_CLOSE)
     {
       //Alt+F4 in dockable window cause double sending of WM_SYSCOMMAND with SC_CLOSE
-      if (bMainOnFinish)
+      if (nMainOnFinish)
         return 0;
     }
   }
@@ -3982,13 +3984,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (uMsg == WM_QUERYENDSESSION)
       bEndSession=TRUE;
-    bMainOnFinish=TRUE;
+    nMainOnFinish=MOF_QUERYEND;
 
     if (!nMDI)
     {
       if (!SaveChanged(0))
       {
-        bMainOnFinish=FALSE;
+        nMainOnFinish=MOF_NONE;
         return bEndSession?0:1;
       }
       RecentFilesSaveFile(lpFrameCurrent);
@@ -4013,7 +4015,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nDestroyResult == FWDE_ABORT)
         {
-          bMainOnFinish=FALSE;
+          nMainOnFinish=MOF_NONE;
           break;
         }
         else if (nDestroyResult != FWDE_SUCCESS)
@@ -4021,7 +4023,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       dwChangedPrompt=0;
 
-      if (!bMainOnFinish)
+      if (!nMainOnFinish)
         return bEndSession?0:1;
     }
 
@@ -4213,7 +4215,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        if (!bMainOnFinish)
+        if (!nMainOnFinish)
         {
           SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
 
@@ -4817,10 +4819,13 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
   {
     if (hCursorClone)
     {
+      DWORD dwFlags=0;
+
       if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
-        SplitDestroy(lpFrameCurrent, CN_CLONE1|CN_CLONE3);
+        dwFlags|=CN_CLONE1|CN_CLONE3;
       if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
-        SplitDestroy(lpFrameCurrent, CN_CLONE2|CN_CLONE3);
+        dwFlags|=CN_CLONE2|CN_CLONE3;
+      SplitDestroy(lpFrameCurrent, dwFlags);
       SetFocus(lpFrameCurrent->ei.hWndEdit);
 
       if (lpFrameCurrent->ei.hWndClone1 || lpFrameCurrent->ei.hWndClone2 || lpFrameCurrent->ei.hWndClone3)
@@ -4993,7 +4998,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, 0, (LPARAM)lpFrame);
 
           //Avoid program exit blinking on last frame close
-          if (bMainOnFinish)
+          if (nMainOnFinish)
           {
             if (nDocumentsCount == 0)
               SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
@@ -5019,7 +5024,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, (LONG)0);
 
           //Save frame settings
-          if (!bMainOnFinish || bFirstTabOnFinish)
+          if (!nMainOnFinish || bFirstTabOnFinish)
           {
             bFirstTabOnFinish=FALSE;
             CopyFrameData(&fdLast, lpFrame);

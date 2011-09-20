@@ -246,6 +246,11 @@
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
+//nMainOnFinish type
+#define MOF_NONE        0
+#define MOF_QUERYEND    1
+#define MOF_DESTROY     2
+
 //Main option type
 #define MOT_DWORD       0x01  //32-bit number.
 #define MOT_BINARY      0x02  //Binary data in any form.
