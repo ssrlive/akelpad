@@ -6,6 +6,8 @@ Changed: active column flashing minimized.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 
 Fixed: file could be saved in virtual store (UAC).
+Fixed: opening a system file under a limited user using the x86 version of program
+       (Windows x64).
 Fixed: highlight link under cursor.
 Fixed: error in the program when exiting, if the last closed document has split windows,
        which was switched off earlier in this document, and the caret is not in the first
