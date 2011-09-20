@@ -118,7 +118,7 @@ extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
 extern BOOL bMainOnStart;
-extern BOOL bMainOnFinish;
+extern int nMainOnFinish;
 extern BOOL bEditOnFinish;
 extern BOOL bFirstTabOnFinish;
 
@@ -940,7 +940,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);
 
         //Save frame settings
-        if (!bMainOnFinish || bFirstTabOnFinish)
+        if (!nMainOnFinish || bFirstTabOnFinish)
         {
           bFirstTabOnFinish=FALSE;
           CopyFrameData(&fdLast, lpFrame);
@@ -972,7 +972,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocEdit, 0);
 
         //Save frame settings
-        if (!bMainOnFinish || bFirstTabOnFinish)
+        if (!nMainOnFinish || bFirstTabOnFinish)
         {
           bFirstTabOnFinish=FALSE;
           CopyFrameData(&fdLast, lpFrame);
@@ -1215,8 +1215,16 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone3=NULL;
       }
     }
-    SplitVisUpdate(lpFrame);
-    SetSelectionStatus(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, NULL, NULL);
+    if (!lpFrame->ei.hWndClone1 && !lpFrame->ei.hWndClone2 && !lpFrame->ei.hWndClone3)
+    {
+      lpFrameCurrent->ei.hWndMaster=NULL;
+      lpFrameCurrent->ei.hDocMaster=NULL;
+    }
+    if (nMainOnFinish != MOF_DESTROY)
+    {
+      SplitVisUpdate(lpFrame);
+      SetSelectionStatus(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, NULL, NULL);
+    }
   }
   bEditOnFinish=FALSE;
 }
@@ -2476,7 +2484,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
     {
       SplitCreate(lpFrameCurrent, CN_CLONE2);
     }
-    if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL)
+    else if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL)
     {
       SplitCreate(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
     }
@@ -2493,11 +2501,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
   else
   {
     //Destroy
-    lpFrameCurrent->ei.hWndEdit=lpFrameCurrent->ei.hWndMaster;
-    lpFrameCurrent->ei.hDocEdit=lpFrameCurrent->ei.hDocMaster;
     SplitDestroy(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
-    lpFrameCurrent->ei.hWndMaster=NULL;
-    lpFrameCurrent->ei.hDocMaster=NULL;
     SetFocus(lpFrameCurrent->ei.hWndEdit);
   }
 
@@ -10581,7 +10585,7 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
 
   if (moCur.nRecentFiles && lpFrame->wszFile[0])
   {
-    if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrame->wszFile))
+    if (!nMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrame->wszFile))
     {
       RecentFilesRead(&hRecentFilesStack);
 
