@@ -1045,7 +1045,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual document
-          lpFrame->ei.hDocClone1=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          lpFrame->ei.hDocClone1=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, lpFrame->ei.hWndClone1);
           SendMessage(lpFrame->ei.hWndClone1, AEM_SETDOCUMENT, (WPARAM)lpFrame->ei.hDocClone1, AESWD_NOREDRAW);
         }
       }
@@ -1077,7 +1077,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual document
-          lpFrame->ei.hDocClone2=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          lpFrame->ei.hDocClone2=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, lpFrame->ei.hWndClone2);
           SendMessage(lpFrame->ei.hWndClone2, AEM_SETDOCUMENT, (WPARAM)lpFrame->ei.hDocClone2, AESWD_NOREDRAW);
         }
       }
@@ -1109,7 +1109,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual document
-          lpFrame->ei.hDocClone3=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          lpFrame->ei.hDocClone3=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, lpFrame->ei.hWndClone3);
           SendMessage(lpFrame->ei.hWndClone3, AEM_SETDOCUMENT, (WPARAM)lpFrame->ei.hDocClone3, AESWD_NOREDRAW);
         }
       }

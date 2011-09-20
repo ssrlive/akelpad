@@ -4707,6 +4707,10 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     xmemcpy(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
     AE_GetUrlPrefixes(ae);
 
+    //ae->rcEdit.left=cs->x;
+    //ae->rcEdit.top=cs->y;
+    //ae->rcEdit.right=cs->cx;
+    //ae->rcEdit.bottom=cs->cy;
     GetClientRect(ae->hWndEdit, &ae->rcEdit);
     AE_SetDrawRect(ae, NULL, FALSE);
 
