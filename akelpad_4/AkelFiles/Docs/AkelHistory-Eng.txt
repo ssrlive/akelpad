@@ -12,6 +12,7 @@ Fixed: highlight link under cursor.
 Fixed: error in the program when exiting, if the last closed document has split windows,
        which was switched off earlier in this document, and the caret is not in the first
        window (PMDI).
+Fixed: scrolling after window resplit (PMDI).
 
 
 AkelPad 4.6.5 (Aug 31, 2011)
