@@ -5120,7 +5120,8 @@ Removes clone from the master window. Message send to a master window.
 lParam       == not used.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
