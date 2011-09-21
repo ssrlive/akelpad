@@ -7523,10 +7523,8 @@ LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       return TRUE;
     }
   }
-  if (bOldWindows)
-    return CallWindowProcA(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
+
+  return CallWindowProcWide(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)
@@ -9042,10 +9040,7 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     return TRUE;
   }
 
-  if (bOldWindows)
-    return CallWindowProcA(OldComboboxEdit, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldComboboxEdit, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(OldComboboxEdit, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace)

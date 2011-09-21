@@ -104,6 +104,7 @@
 
 //Include wide functions
 #define AppendMenuWide
+#define CallWindowProcWide
 #define ComboBox_AddStringWide
 #define ComboBox_FindStringExactWide
 #define ComboBox_FindStringWide
@@ -4752,10 +4753,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return lResult;
   }
 
-  if (bOldWindows)
-    return CallWindowProcA(OldEditProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldEditProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(OldEditProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5036,10 +5034,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     }
   }
 
-  if (bOldWindows)
-    return CallWindowProcA(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5205,10 +5200,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
   }
 
-  if (bOldWindows)
-    return CallWindowProcA(OldTabProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldTabProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(OldTabProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5221,10 +5213,7 @@ LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (lpDock=StackDockFindWindow(&hDocksStack, hWnd, FALSE))
   {
-    if (bOldWindows)
-      return CallWindowProcA(lpDock->lpOldDockProc, hWnd, uMsg, wParam, lParam);
-    else
-      return CallWindowProcW(lpDock->lpOldDockProc, hWnd, uMsg, wParam, lParam);
+    return CallWindowProcWide(lpDock->lpOldDockProc, hWnd, uMsg, wParam, lParam);
   }
   return 0;
 }
