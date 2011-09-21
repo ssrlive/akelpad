@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.3                    *
+ *                  Wide functions header v1.4                    *
  *                                                                *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -118,6 +118,7 @@ UINT_PTR GetClassLongPtrWide(HWND hWnd, int nIndex);
 UINT_PTR SetClassLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex);
 UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
+LRESULT CallWindowProcWide(WNDPROC lpPrevWndFunc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpClassName, const wchar_t *wpWindowName);
 int GetWindowTextLengthWide(HWND hWnd);
 int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax);
@@ -180,7 +181,9 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText);
 #endif
 BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateDirectoryW(wpDir, lpSecurityAttributes);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pDir=AllocAnsi(wpDir);
     BOOL bResult;
@@ -190,8 +193,6 @@ BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityA
     FreeAnsi(pDir);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateDirectoryW(wpDir, lpSecurityAttributes);
 
   WideNotInitialized();
   return FALSE;
@@ -206,7 +207,9 @@ BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityA
 #endif
 HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateFileW(wpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFileName=AllocAnsi(wpFileName);
     HANDLE hResult;
@@ -216,8 +219,6 @@ HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dw
     FreeAnsi(pFileName);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateFileW(wpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 
   WideNotInitialized();
   return 0;
@@ -232,7 +233,9 @@ HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dw
 #endif
 BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName, BOOL bFailIfExists)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CopyFileW(wpExistingFileName, wpNewFileName, bFailIfExists);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pExistingFileName=AllocAnsi(wpExistingFileName);
     char *pNewFileName=AllocAnsi(wpNewFileName);
@@ -244,8 +247,6 @@ BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileNam
     FreeAnsi(pNewFileName);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CopyFileW(wpExistingFileName, wpNewFileName, bFailIfExists);
 
   WideNotInitialized();
   return FALSE;
@@ -260,7 +261,9 @@ BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileNam
 #endif
 BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return MoveFileW(wpExistingFileName, wpNewFileName);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pExistingFileName=AllocAnsi(wpExistingFileName);
     char *pNewFileName=AllocAnsi(wpNewFileName);
@@ -272,8 +275,6 @@ BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileNam
     FreeAnsi(pNewFileName);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return MoveFileW(wpExistingFileName, wpNewFileName);
 
   WideNotInitialized();
   return FALSE;
@@ -288,7 +289,9 @@ BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileNam
 #endif
 BOOL DeleteFileWide(const wchar_t *wpFile)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return DeleteFileW(wpFile);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFile=AllocAnsi(wpFile);
     BOOL bResult;
@@ -298,8 +301,6 @@ BOOL DeleteFileWide(const wchar_t *wpFile)
     FreeAnsi(pFile);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return DeleteFileW(wpFile);
 
   WideNotInitialized();
   return FALSE;
@@ -314,7 +315,9 @@ BOOL DeleteFileWide(const wchar_t *wpFile)
 #endif
 DWORD GetFileAttributesWide(const wchar_t *wpFile)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetFileAttributesW(wpFile);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFile=AllocAnsi(wpFile);
     DWORD dwResult;
@@ -324,8 +327,6 @@ DWORD GetFileAttributesWide(const wchar_t *wpFile)
     FreeAnsi(pFile);
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetFileAttributesW(wpFile);
 
   WideNotInitialized();
   return (DWORD)-1;
@@ -340,7 +341,9 @@ DWORD GetFileAttributesWide(const wchar_t *wpFile)
 #endif
 BOOL SetFileAttributesWide(const wchar_t *wpFile, DWORD dwFileAttributes)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return SetFileAttributesW(wpFile, dwFileAttributes);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFile=AllocAnsi(wpFile);
     BOOL bResult;
@@ -350,8 +353,6 @@ BOOL SetFileAttributesWide(const wchar_t *wpFile, DWORD dwFileAttributes)
     FreeAnsi(pFile);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return SetFileAttributesW(wpFile, dwFileAttributes);
 
   WideNotInitialized();
   return FALSE;
@@ -366,7 +367,9 @@ BOOL SetFileAttributesWide(const wchar_t *wpFile, DWORD dwFileAttributes)
 #endif
 HANDLE FindFirstFileWide(const wchar_t *wpFile, WIN32_FIND_DATAW *lpFindFileData)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return FindFirstFileW(wpFile, lpFindFileData);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     WIN32_FIND_DATAA wfdA;
     char *pFile=AllocAnsi(wpFile);
@@ -381,8 +384,6 @@ HANDLE FindFirstFileWide(const wchar_t *wpFile, WIN32_FIND_DATAW *lpFindFileData
     FreeAnsi(pFile);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return FindFirstFileW(wpFile, lpFindFileData);
 
   WideNotInitialized();
   return 0;
@@ -397,7 +398,9 @@ HANDLE FindFirstFileWide(const wchar_t *wpFile, WIN32_FIND_DATAW *lpFindFileData
 #endif
 BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return FindNextFileW(hFindFile, lpFindFileData);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     WIN32_FIND_DATAA wfdA;
     BOOL bResult;
@@ -410,8 +413,6 @@ BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData)
     }
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return FindNextFileW(hFindFile, lpFindFileData);
 
   WideNotInitialized();
   return FALSE;
@@ -426,7 +427,9 @@ BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData)
 #endif
 DWORD GetCurrentDirectoryWide(int nDirMax, wchar_t *wszDir)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetCurrentDirectoryW(nDirMax, wszDir);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szDir[MAX_PATH];
     DWORD dwResult;
@@ -436,8 +439,6 @@ DWORD GetCurrentDirectoryWide(int nDirMax, wchar_t *wszDir)
       --dwResult;
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetCurrentDirectoryW(nDirMax, wszDir);
 
   WideNotInitialized();
   return 0;
@@ -452,7 +453,9 @@ DWORD GetCurrentDirectoryWide(int nDirMax, wchar_t *wszDir)
 #endif
 BOOL SetCurrentDirectoryWide(const wchar_t *wpDir)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return SetCurrentDirectoryW(wpDir);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pDir=AllocAnsi(wpDir);
     BOOL bResult;
@@ -462,8 +465,6 @@ BOOL SetCurrentDirectoryWide(const wchar_t *wpDir)
     FreeAnsi(pDir);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return SetCurrentDirectoryW(wpDir);
 
   WideNotInitialized();
   return FALSE;
@@ -478,7 +479,9 @@ BOOL SetCurrentDirectoryWide(const wchar_t *wpDir)
 #endif
 HMODULE LoadLibraryWide(const wchar_t *wpFileName)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return LoadLibraryW(wpFileName);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFileName=AllocAnsi(wpFileName);
     HMODULE hResult;
@@ -488,8 +491,6 @@ HMODULE LoadLibraryWide(const wchar_t *wpFileName)
     FreeAnsi(pFileName);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return LoadLibraryW(wpFileName);
 
   WideNotInitialized();
   return 0;
@@ -504,7 +505,9 @@ HMODULE LoadLibraryWide(const wchar_t *wpFileName)
 #endif
 HMODULE GetModuleHandleWide(const wchar_t *wpModule)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetModuleHandleW(wpModule);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pModule=AllocAnsi(wpModule);
     HMODULE hResult;
@@ -514,8 +517,6 @@ HMODULE GetModuleHandleWide(const wchar_t *wpModule)
     FreeAnsi(pModule);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetModuleHandleW(wpModule);
 
   WideNotInitialized();
   return 0;
@@ -530,7 +531,9 @@ HMODULE GetModuleHandleWide(const wchar_t *wpModule)
 #endif
 DWORD GetModuleFileNameWide(HMODULE hModule, wchar_t *wszFileName, DWORD nSize)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetModuleFileNameW(hModule, wszFileName, nSize);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szFileName[MAX_PATH];
     DWORD dwResult;
@@ -542,8 +545,6 @@ DWORD GetModuleFileNameWide(HMODULE hModule, wchar_t *wszFileName, DWORD nSize)
     }
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetModuleFileNameW(hModule, wszFileName, nSize);
 
   WideNotInitialized();
   return 0;
@@ -558,7 +559,9 @@ DWORD GetModuleFileNameWide(HMODULE hModule, wchar_t *wszFileName, DWORD nSize)
 #endif
 DWORD GetFullPathNameWide(const wchar_t *wpPath, DWORD nBufferLength, wchar_t *wszBuffer, wchar_t **wpFilePart)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetFullPathNameW(wpPath, nBufferLength, wszBuffer, wpFilePart);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pPath=AllocAnsi(wpPath);
     char szFullPath[MAX_PATH];
@@ -585,8 +588,6 @@ DWORD GetFullPathNameWide(const wchar_t *wpPath, DWORD nBufferLength, wchar_t *w
     FreeAnsi(pPath);
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetFullPathNameW(wpPath, nBufferLength, wszBuffer, wpFilePart);
 
   WideNotInitialized();
   return 0;
@@ -604,7 +605,12 @@ DWORD GetFullPathNameWide(const wchar_t *wpPath, DWORD nBufferLength, wchar_t *w
 #endif
 DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWORD dwLongPathSize)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_GetLongPathNameWPtr)
+      return WideGlobal_GetLongPathNameWPtr(wpShortPath, wszLongPath, dwLongPathSize);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (WideGlobal_GetLongPathNameAPtr)
     {
@@ -621,11 +627,6 @@ DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWOR
       return dwResult;
     }
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (WideGlobal_GetLongPathNameWPtr)
-      return WideGlobal_GetLongPathNameWPtr(wpShortPath, wszLongPath, dwLongPathSize);
-  }
   else WideNotInitialized();
 
   return (DWORD)xstrcpynW(wszLongPath, wpShortPath, dwLongPathSize);
@@ -640,7 +641,9 @@ DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWOR
 #endif
 UINT SearchPathWide(const wchar_t *wpPath, const wchar_t *wpFileName, const wchar_t *wpExtension, DWORD nBufferLength, wchar_t *wszBuffer, wchar_t **wpFilePart)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return SearchPathW(wpPath, wpFileName, wpExtension, nBufferLength, wszBuffer, wpFilePart);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pPath=AllocAnsi(wpPath);
     char *pFileName=AllocAnsi(wpFileName);
@@ -671,8 +674,6 @@ UINT SearchPathWide(const wchar_t *wpPath, const wchar_t *wpFileName, const wcha
     FreeAnsi(pExtension);
     return uResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return SearchPathW(wpPath, wpFileName, wpExtension, nBufferLength, wszBuffer, wpFilePart);
 
   WideNotInitialized();
   return 0;
@@ -687,7 +688,9 @@ UINT SearchPathWide(const wchar_t *wpPath, const wchar_t *wpFileName, const wcha
 #endif
 DWORD ExpandEnvironmentStringsWide(const wchar_t *wpSrc, wchar_t *wszDst, DWORD nSize)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return ExpandEnvironmentStringsW(wpSrc, wszDst, nSize);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pSrc=AllocAnsi(wpSrc);
     char szDst[MAX_PATH];
@@ -699,8 +702,6 @@ DWORD ExpandEnvironmentStringsWide(const wchar_t *wpSrc, wchar_t *wszDst, DWORD 
     FreeAnsi(pSrc);
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return ExpandEnvironmentStringsW(wpSrc, wszDst, nSize);
 
   WideNotInitialized();
   return 0;
@@ -715,7 +716,9 @@ DWORD ExpandEnvironmentStringsWide(const wchar_t *wpSrc, wchar_t *wszDst, DWORD 
 #endif
 BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, const wchar_t *wpCurrentDirectory, STARTUPINFOW *lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateProcessW(wpApplicationName, wpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, wpCurrentDirectory, lpStartupInfo, lpProcessInformation);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     STARTUPINFOA si;
     char *pApplicationName=AllocAnsi(wpApplicationName);
@@ -737,8 +740,6 @@ BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine,
     FreeAnsi(pTitle);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateProcessW(wpApplicationName, wpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, wpCurrentDirectory, lpStartupInfo, lpProcessInformation);
 
   WideNotInitialized();
   return FALSE;
@@ -784,7 +785,9 @@ BOOL FileExistsWide(const wchar_t *wpFile)
 #endif
 HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t *wpFile, const wchar_t *wpParameters, const wchar_t *wpDirectory, INT nShowCmd)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return ShellExecuteW(hwnd, wpOperation, wpFile, wpParameters, wpDirectory, nShowCmd);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pOperation=AllocAnsi(wpOperation);
     char *pFile=AllocAnsi(wpFile);
@@ -800,8 +803,6 @@ HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t 
     FreeAnsi(pDirectory);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return ShellExecuteW(hwnd, wpOperation, wpFile, wpParameters, wpDirectory, nShowCmd);
 
   WideNotInitialized();
   return 0;
@@ -819,7 +820,12 @@ HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t 
 #endif
 BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_SHGetPathFromIDListWPtr)
+      return WideGlobal_SHGetPathFromIDListWPtr(pidl, wszPath);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (WideGlobal_SHGetPathFromIDListAPtr)
     {
@@ -830,11 +836,6 @@ BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath)
         AnsiToWide(szPath, -1, wszPath, MAX_PATH);
       return bResult;
     }
-  }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (WideGlobal_SHGetPathFromIDListWPtr)
-      return WideGlobal_SHGetPathFromIDListWPtr(pidl, wszPath);
   }
   else WideNotInitialized();
 
@@ -853,7 +854,12 @@ BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath)
 #endif
 LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_SHBrowseForFolderWPtr)
+      return WideGlobal_SHBrowseForFolderWPtr(lpbi);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (WideGlobal_SHBrowseForFolderAPtr)
     {
@@ -868,11 +874,6 @@ LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi)
       FreeAnsi((char *)biA.lpszTitle);
       return lpResult;
     }
-  }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (WideGlobal_SHBrowseForFolderWPtr)
-      return WideGlobal_SHBrowseForFolderWPtr(lpbi);
   }
   else WideNotInitialized();
 
@@ -907,7 +908,14 @@ BOOL GetSaveFileNameWide(LPOPENFILENAMEW lpofn)
 #if defined GetOpenFileNameWide_INCLUDED || defined GetSaveFileNameWide_INCLUDED || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
 BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (!bSave)
+      return GetOpenFileNameW(lpofn);
+    else
+      return GetSaveFileNameW(lpofn);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     OPENFILENAMEA ofnA;
     BOOL bResult;
@@ -955,13 +963,6 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
         FreeAnsi((char *)ofnA.lpTemplateName);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (!bSave)
-      return GetOpenFileNameW(lpofn);
-    else
-      return GetSaveFileNameW(lpofn);
-  }
 
   WideNotInitialized();
   return FALSE;
@@ -976,7 +977,9 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
 #endif
 UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return DragQueryFileW(hDrop, iFile, wszFile, cch);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szFile[MAX_PATH];
     int nFileLen;
@@ -989,8 +992,6 @@ UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch)
       --nFileLen;
     return nFileLen;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return DragQueryFileW(hDrop, iFile, wszFile, cch);
 
   WideNotInitialized();
   return 0;
@@ -1007,7 +1008,9 @@ UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch)
 #endif
 LONG RegCreateKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwReserved, wchar_t *wpClass, DWORD dwOptions, REGSAM samDesired, LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegCreateKeyExW(hKey, wpSubKey, dwReserved, wpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pSubKey=AllocAnsi(wpSubKey);
     char *pClass=AllocAnsi(wpClass);
@@ -1019,8 +1022,6 @@ LONG RegCreateKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwReserved, wc
     FreeAnsi(pClass);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegCreateKeyExW(hKey, wpSubKey, dwReserved, wpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1035,7 +1036,9 @@ LONG RegCreateKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwReserved, wc
 #endif
 LONG RegOpenKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwOptions, REGSAM samDesired, PHKEY phkResult)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegOpenKeyExW(hKey, wpSubKey, dwOptions, samDesired, phkResult);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pSubKey=AllocAnsi(wpSubKey);
     LONG lResult;
@@ -1045,8 +1048,6 @@ LONG RegOpenKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwOptions, REGSA
     FreeAnsi(pSubKey);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegOpenKeyExW(hKey, wpSubKey, dwOptions, samDesired, phkResult);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1061,7 +1062,9 @@ LONG RegOpenKeyExWide(HKEY hKey, const wchar_t *wpSubKey, DWORD dwOptions, REGSA
 #endif
 LONG RegEnumKeyExWide(HKEY hKey, DWORD dwIndex, wchar_t *wszKeyName, LPDWORD lpcKeyName, LPDWORD lpReserved, wchar_t *lpClass, LPDWORD lpcClass, PFILETIME lpftLastWriteTime)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegEnumKeyExW(hKey, dwIndex, wszKeyName, lpcKeyName, lpReserved, lpClass, lpcClass, lpftLastWriteTime);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szKeyName[MAX_PATH];
     char szClassName[MAX_PATH];
@@ -1084,8 +1087,6 @@ LONG RegEnumKeyExWide(HKEY hKey, DWORD dwIndex, wchar_t *wszKeyName, LPDWORD lpc
     }
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegEnumKeyExW(hKey, dwIndex, wszKeyName, lpcKeyName, lpReserved, lpClass, lpcClass, lpftLastWriteTime);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1100,7 +1101,9 @@ LONG RegEnumKeyExWide(HKEY hKey, DWORD dwIndex, wchar_t *wszKeyName, LPDWORD lpc
 #endif
 LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD lpcValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegEnumValueW(hKey, dwIndex, wszValueName, lpcValueName, lpReserved, lpType, lpData, lpcbData);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szValueName[MAX_PATH];
     char *szData;
@@ -1133,8 +1136,6 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
     }
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegEnumValueW(hKey, dwIndex, wszValueName, lpcValueName, lpReserved, lpType, lpData, lpcbData);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1149,7 +1150,9 @@ LONG RegEnumValueWide(HKEY hKey, DWORD dwIndex, wchar_t *wszValueName, LPDWORD l
 #endif
 LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegQueryValueExW(hKey, wpValueName, lpReserved, lpType, lpData, lpcbData);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pValueName=AllocAnsi(wpValueName);
     char *szData;
@@ -1178,8 +1181,6 @@ LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserv
     FreeAnsi(pValueName);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegQueryValueExW(hKey, wpValueName, lpReserved, lpType, lpData, lpcbData);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1194,7 +1195,9 @@ LONG RegQueryValueExWide(HKEY hKey, const wchar_t *wpValueName, LPDWORD lpReserv
 #endif
 LONG RegSetValueExWide(HKEY hKey, const wchar_t *wpValueName, DWORD dwReserved, DWORD dwType, const BYTE *lpData, DWORD cbData)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegSetValueExW(hKey, wpValueName, dwReserved, dwType, lpData, cbData);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pValueName=AllocAnsi(wpValueName);
     char *szData;
@@ -1214,8 +1217,6 @@ LONG RegSetValueExWide(HKEY hKey, const wchar_t *wpValueName, DWORD dwReserved, 
     FreeAnsi(pValueName);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegSetValueExW(hKey, wpValueName, dwReserved, dwType, lpData, cbData);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1230,7 +1231,9 @@ LONG RegSetValueExWide(HKEY hKey, const wchar_t *wpValueName, DWORD dwReserved, 
 #endif
 LONG RegDeleteValueWide(HKEY hKey, const wchar_t *wpValue)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegDeleteValueW(hKey, wpValue);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pValue=AllocAnsi(wpValue);
     LONG lResult;
@@ -1240,8 +1243,6 @@ LONG RegDeleteValueWide(HKEY hKey, const wchar_t *wpValue)
     FreeAnsi(pValue);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegDeleteValueW(hKey, wpValue);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1256,7 +1257,9 @@ LONG RegDeleteValueWide(HKEY hKey, const wchar_t *wpValue)
 #endif
 LONG RegDeleteKeyWide(HKEY hKey, const wchar_t *wpSubKey)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegDeleteKeyW(hKey, wpSubKey);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pSubKey=AllocAnsi(wpSubKey);
     LONG lResult;
@@ -1266,8 +1269,6 @@ LONG RegDeleteKeyWide(HKEY hKey, const wchar_t *wpSubKey)
     FreeAnsi(pSubKey);
     return lResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegDeleteKeyW(hKey, wpSubKey);
 
   WideNotInitialized();
   return !ERROR_SUCCESS;
@@ -1341,7 +1342,9 @@ void RegClearKeyWide(HKEY hKey, wchar_t *wpSubKey)
 #endif
 int GetDateFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpDate, const wchar_t *wpFormat, wchar_t *wszDateStr, int cchDate)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetDateFormatW(Locale, dwFlags, lpDate, wpFormat, wszDateStr, cchDate);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFormat=AllocAnsi(wpFormat);
     char szDateStr[MAX_PATH];
@@ -1353,8 +1356,6 @@ int GetDateFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpDate, cons
     FreeAnsi(pFormat);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetDateFormatW(Locale, dwFlags, lpDate, wpFormat, wszDateStr, cchDate);
 
   WideNotInitialized();
   return 0;
@@ -1369,7 +1370,9 @@ int GetDateFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpDate, cons
 #endif
 int GetTimeFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpTime, const wchar_t *wpFormat, wchar_t *wszTimeStr, int cchTime)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetTimeFormatW(Locale, dwFlags, lpTime, wpFormat, wszTimeStr, cchTime);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFormat=AllocAnsi(wpFormat);
     char szTimeStr[MAX_PATH];
@@ -1381,8 +1384,6 @@ int GetTimeFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpTime, cons
     FreeAnsi(pFormat);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetTimeFormatW(Locale, dwFlags, lpTime, wpFormat, wszTimeStr, cchTime);
 
   WideNotInitialized();
   return 0;
@@ -1400,7 +1401,12 @@ int GetTimeFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpTime, cons
 #endif
 BOOL GetCPInfoExWide(UINT CodePage, DWORD dwFlags, LPCPINFOEXW lpCPInfoEx)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_GetCPInfoExWPtr)
+      return WideGlobal_GetCPInfoExWPtr(CodePage, dwFlags, lpCPInfoEx);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (WideGlobal_GetCPInfoExAPtr)
     {
@@ -1414,11 +1420,6 @@ BOOL GetCPInfoExWide(UINT CodePage, DWORD dwFlags, LPCPINFOEXW lpCPInfoEx)
       }
       return bResult;
     }
-  }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (WideGlobal_GetCPInfoExWPtr)
-      return WideGlobal_GetCPInfoExWPtr(CodePage, dwFlags, lpCPInfoEx);
   }
   else WideNotInitialized();
 
@@ -1434,7 +1435,9 @@ BOOL GetCPInfoExWide(UINT CodePage, DWORD dwFlags, LPCPINFOEXW lpCPInfoEx)
 #endif
 int GetKeyNameTextWide(LONG lParam, wchar_t *wpString, int nSize)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetKeyNameTextW(lParam, wpString, nSize);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char szString[MAX_PATH];
     int nResult;
@@ -1446,8 +1449,6 @@ int GetKeyNameTextWide(LONG lParam, wchar_t *wpString, int nSize)
     }
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetKeyNameTextW(lParam, wpString, nSize);
 
   WideNotInitialized();
   return 0;
@@ -1464,14 +1465,14 @@ int GetKeyNameTextWide(LONG lParam, wchar_t *wpString, int nSize)
 #endif
 HFONT CreateFontIndirectWide(const LOGFONTW *lfFont)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateFontIndirectW(lfFont);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     LOGFONTA lfA;
 
     return CreateFontIndirectA(LogFontWtoA(lfFont, &lfA));
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateFontIndirectW(lfFont);
 
   WideNotInitialized();
   return 0;
@@ -1486,7 +1487,9 @@ HFONT CreateFontIndirectWide(const LOGFONTW *lfFont)
 #endif
 int AddFontResourceWide(const wchar_t *wpFontName)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return AddFontResourceW(wpFontName);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFontName=AllocAnsi(wpFontName);
     int nResult;
@@ -1496,8 +1499,6 @@ int AddFontResourceWide(const wchar_t *wpFontName)
     FreeAnsi(pFontName);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return AddFontResourceW(wpFontName);
 
   WideNotInitialized();
   return 0;
@@ -1512,7 +1513,9 @@ int AddFontResourceWide(const wchar_t *wpFontName)
 #endif
 BOOL RemoveFontResourceWide(const wchar_t *wpFontName)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RemoveFontResourceW(wpFontName);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pFontName=AllocAnsi(wpFontName);
     BOOL bResult;
@@ -1522,8 +1525,6 @@ BOOL RemoveFontResourceWide(const wchar_t *wpFontName)
     FreeAnsi(pFontName);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RemoveFontResourceW(wpFontName);
 
   WideNotInitialized();
   return FALSE;
@@ -1540,7 +1541,9 @@ BOOL RemoveFontResourceWide(const wchar_t *wpFontName)
 #endif
 int StartDocWide(HDC hdc, const DOCINFOW *lpdi)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return StartDocW(hdc, lpdi);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     DOCINFOA diA;
     char *pDocName=AllocAnsi(lpdi->lpszDocName);
@@ -1560,8 +1563,6 @@ int StartDocWide(HDC hdc, const DOCINFOW *lpdi)
     FreeAnsi(pDatatype);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return StartDocW(hdc, lpdi);
 
   WideNotInitialized();
   return 0;
@@ -1578,7 +1579,9 @@ int StartDocWide(HDC hdc, const DOCINFOW *lpdi)
 #endif
 ATOM RegisterClassWide(WNDCLASSW *lpWndClass)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return RegisterClassW(lpWndClass);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     WNDCLASSA wcA;
     ATOM wResult;
@@ -1594,8 +1597,6 @@ ATOM RegisterClassWide(WNDCLASSW *lpWndClass)
     FreeAnsi((char *)wcA.lpszClassName);
     return wResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return RegisterClassW(lpWndClass);
 
   WideNotInitialized();
   return 0;
@@ -1610,7 +1611,9 @@ ATOM RegisterClassWide(WNDCLASSW *lpWndClass)
 #endif
 BOOL UnregisterClassWide(const wchar_t *wpClassName, HINSTANCE hInstance)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return UnregisterClassW(wpClassName, hInstance);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pClassName=AllocAnsi(wpClassName);
     BOOL bResult;
@@ -1620,8 +1623,6 @@ BOOL UnregisterClassWide(const wchar_t *wpClassName, HINSTANCE hInstance)
     FreeAnsi(pClassName);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return UnregisterClassW(wpClassName, hInstance);
 
   WideNotInitialized();
   return 0;
@@ -1636,7 +1637,9 @@ BOOL UnregisterClassWide(const wchar_t *wpClassName, HINSTANCE hInstance)
 #endif
 HWND CreateWindowExWide(DWORD dwExStyle, const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateWindowExW(dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pClassName=AllocAnsi(wpClassName);
     char *pWindowName=AllocAnsi(wpWindowName);
@@ -1648,8 +1651,6 @@ HWND CreateWindowExWide(DWORD dwExStyle, const wchar_t *wpClassName, const wchar
     FreeAnsi(pWindowName);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateWindowExW(dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
   WideNotInitialized();
   return 0;
@@ -1664,7 +1665,9 @@ HWND CreateWindowExWide(DWORD dwExStyle, const wchar_t *wpClassName, const wchar
 #endif
 HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateMDIWindowW((wchar_t *)wpClassName, (wchar_t *)wpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hInstance, lParam);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pClassName=AllocAnsi(wpClassName);
     char *pWindowName=AllocAnsi(wpWindowName);
@@ -1676,8 +1679,6 @@ HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName
     FreeAnsi(pWindowName);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return CreateMDIWindowW((wchar_t *)wpClassName, (wchar_t *)wpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hInstance, lParam);
 
   WideNotInitialized();
   return 0;
@@ -1693,15 +1694,15 @@ HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName
 UINT_PTR GetClassLongPtrWide(HWND hWnd, int nIndex)
 {
   #ifdef _WIN64
-    if (WideGlobal_bOldWindows == TRUE)
-      return GetClassLongPtrA(hWnd, nIndex);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return GetClassLongPtrW(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return GetClassLongPtrA(hWnd, nIndex);
   #else
-    if (WideGlobal_bOldWindows == TRUE)
-      return GetClassLongA(hWnd, nIndex);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return GetClassLongW(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return GetClassLongA(hWnd, nIndex);
   #endif
 
   WideNotInitialized();
@@ -1718,15 +1719,15 @@ UINT_PTR GetClassLongPtrWide(HWND hWnd, int nIndex)
 UINT_PTR SetClassLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
 {
   #ifdef _WIN64
-    if (WideGlobal_bOldWindows == TRUE)
-      return SetClassLongPtrA(hWnd, nIndex, dwNewLong);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return SetClassLongPtrW(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return SetClassLongPtrA(hWnd, nIndex, dwNewLong);
   #else
-    if (WideGlobal_bOldWindows == TRUE)
-      return SetClassLongA(hWnd, nIndex, dwNewLong);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return SetClassLongW(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return SetClassLongA(hWnd, nIndex, dwNewLong);
   #endif
 
   WideNotInitialized();
@@ -1743,15 +1744,15 @@ UINT_PTR SetClassLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
 UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex)
 {
   #ifdef _WIN64
-    if (WideGlobal_bOldWindows == TRUE)
-      return GetWindowLongPtrA(hWnd, nIndex);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return GetWindowLongPtrW(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return GetWindowLongPtrA(hWnd, nIndex);
   #else
-    if (WideGlobal_bOldWindows == TRUE)
-      return GetWindowLongA(hWnd, nIndex);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return GetWindowLongW(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return GetWindowLongA(hWnd, nIndex);
   #endif
 
   WideNotInitialized();
@@ -1768,16 +1769,34 @@ UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex)
 UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
 {
   #ifdef _WIN64
-    if (WideGlobal_bOldWindows == TRUE)
-      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
   #else
-    if (WideGlobal_bOldWindows == TRUE)
-      return SetWindowLongA(hWnd, nIndex, dwNewLong);
-    else if (WideGlobal_bOldWindows == FALSE)
+    if (WideGlobal_bOldWindows == FALSE)
       return SetWindowLongW(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == TRUE)
+      return SetWindowLongA(hWnd, nIndex, dwNewLong);
   #endif
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined CallWindowProcWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define CallWindowProcWide_INCLUDED
+#undef CallWindowProcWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LRESULT CallWindowProcWide(WNDPROC lpPrevWndFunc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return CallWindowProcW(lpPrevWndFunc, hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return CallWindowProcA(lpPrevWndFunc, hWnd, uMsg, wParam, lParam);
 
   WideNotInitialized();
   return 0;
@@ -1792,7 +1811,9 @@ UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
 #endif
 HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpClassName, const wchar_t *wpWindowName)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return FindWindowExW(hWndParent, hWndChildAfter, wpClassName, wpWindowName);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pClassName=AllocAnsi(wpClassName);
     char *pWindowName=AllocAnsi(wpWindowName);
@@ -1804,8 +1825,6 @@ HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpCla
     FreeAnsi(pWindowName);
     return hResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return FindWindowExW(hWndParent, hWndChildAfter, wpClassName, wpWindowName);
 
   WideNotInitialized();
   return 0;
@@ -1820,10 +1839,10 @@ HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpCla
 #endif
 int GetWindowTextLengthWide(HWND hWnd)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return GetWindowTextLengthA(hWnd);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return GetWindowTextLengthW(hWnd);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return GetWindowTextLengthA(hWnd);
 
   WideNotInitialized();
   return 0;
@@ -1838,7 +1857,9 @@ int GetWindowTextLengthWide(HWND hWnd)
 #endif
 int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetWindowTextW(hWnd, wszText, nTextMax);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen=0;
@@ -1852,8 +1873,6 @@ int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax)
     }
     return nTextLen;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetWindowTextW(hWnd, wszText, nTextMax);
 
   WideNotInitialized();
   return 0;
@@ -1868,7 +1887,9 @@ int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax)
 #endif
 BOOL SetWindowTextWide(HWND hWnd, const wchar_t *wpText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return SetWindowTextW(hWnd, wpText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pText=AllocAnsi(wpText);
     BOOL bResult;
@@ -1878,8 +1899,6 @@ BOOL SetWindowTextWide(HWND hWnd, const wchar_t *wpText)
     FreeAnsi(pText);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return SetWindowTextW(hWnd, wpText);
 
   WideNotInitialized();
   return FALSE;
@@ -1894,7 +1913,9 @@ BOOL SetWindowTextWide(HWND hWnd, const wchar_t *wpText)
 #endif
 int GetDlgItemTextWide(HWND hDlg, int nIDDlgItem, wchar_t *wszText, int nTextMax)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetDlgItemTextW(hDlg, nIDDlgItem, wszText, nTextMax);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen=0;
@@ -1908,8 +1929,6 @@ int GetDlgItemTextWide(HWND hDlg, int nIDDlgItem, wchar_t *wszText, int nTextMax
     }
     return nTextLen;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetDlgItemTextW(hDlg, nIDDlgItem, wszText, nTextMax);
 
   WideNotInitialized();
   return 0;
@@ -1924,7 +1943,9 @@ int GetDlgItemTextWide(HWND hDlg, int nIDDlgItem, wchar_t *wszText, int nTextMax
 #endif
 BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return SetDlgItemTextW(hDlg, nIDDlgItem, wpText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pText=AllocAnsi(wpText);
     BOOL bResult;
@@ -1934,8 +1955,6 @@ BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText)
     FreeAnsi(pText);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return SetDlgItemTextW(hDlg, nIDDlgItem, wpText);
 
   WideNotInitialized();
   return FALSE;
@@ -1952,10 +1971,10 @@ BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText)
 #endif
 BOOL GetMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return GetMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
 
   WideNotInitialized();
   return 0;
@@ -1970,10 +1989,10 @@ BOOL GetMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 #endif
 BOOL PeekMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
   WideNotInitialized();
   return 0;
@@ -1988,10 +2007,10 @@ BOOL PeekMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilter
 #endif
 LRESULT DispatchMessageWide(const MSG *lpMsg)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return DispatchMessageA(lpMsg);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return DispatchMessageW(lpMsg);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return DispatchMessageA(lpMsg);
 
   WideNotInitialized();
   return 0;
@@ -2006,10 +2025,10 @@ LRESULT DispatchMessageWide(const MSG *lpMsg)
 #endif
 int TranslateAcceleratorWide(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return TranslateAcceleratorA(hWnd, hAccTable, lpMsg);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return TranslateAcceleratorW(hWnd, hAccTable, lpMsg);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return TranslateAcceleratorA(hWnd, hAccTable, lpMsg);
 
   WideNotInitialized();
   return 0;
@@ -2024,10 +2043,10 @@ int TranslateAcceleratorWide(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg)
 #endif
 BOOL IsDialogMessageWide(HWND hDlg, LPMSG lpMsg)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return IsDialogMessageA(hDlg, lpMsg);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return IsDialogMessageW(hDlg, lpMsg);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return IsDialogMessageA(hDlg, lpMsg);
 
   WideNotInitialized();
   return 0;
@@ -2042,10 +2061,10 @@ BOOL IsDialogMessageWide(HWND hDlg, LPMSG lpMsg)
 #endif
 LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return SendMessageA(hWnd, uMsg, wParam, lParam);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return SendMessageW(hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return SendMessageA(hWnd, uMsg, wParam, lParam);
 
   WideNotInitialized();
   return 0;
@@ -2060,10 +2079,10 @@ LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return PostMessageA(hWnd, uMsg, wParam, lParam);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return PostMessageW(hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return PostMessageA(hWnd, uMsg, wParam, lParam);
 
   WideNotInitialized();
   return 0;
@@ -2080,7 +2099,9 @@ LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTextMax)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return LoadStringW(hLoadInstance, uID, wszText, nTextMax);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen=0;
@@ -2094,8 +2115,6 @@ int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTex
     }
     return nTextLen;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return LoadStringW(hLoadInstance, uID, wszText, nTextMax);
 
   WideNotInitialized();
   return 0;
@@ -2113,7 +2132,12 @@ int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTex
 #endif
 UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge, HICON *phiconSmall, UINT nIcons)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_ExtractIconExWPtr)
+      return WideGlobal_ExtractIconExWPtr(wpFile, nIconIndex, phiconLarge, phiconSmall, nIcons);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (WideGlobal_ExtractIconExAPtr)
     {
@@ -2125,11 +2149,6 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
       FreeAnsi(pFile);
       return uResult;
     }
-  }
-  else if (WideGlobal_bOldWindows == FALSE)
-  {
-    if (WideGlobal_ExtractIconExWPtr)
-      return WideGlobal_ExtractIconExWPtr(wpFile, nIconIndex, phiconLarge, phiconSmall, nIcons);
   }
   else WideNotInitialized();
 
@@ -2147,7 +2166,9 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
 #endif
 int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax, UINT uFlag)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetMenuStringW(hMenu, uIDItem, wszText, nTextMax, uFlag);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen=0;
@@ -2161,8 +2182,6 @@ int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax,
     }
     return nTextLen;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetMenuStringW(hMenu, uIDItem, wszText, nTextMax, uFlag);
 
   WideNotInitialized();
   return FALSE;
@@ -2177,7 +2196,9 @@ int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax,
 #endif
 BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return AppendMenuW(hMenu, uFlags, uIDNewItem, wpNewItem);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if ((uFlags & MF_BITMAP) || (uFlags & MF_OWNERDRAW))
       return AppendMenuA(hMenu, uFlags, uIDNewItem, (char *)wpNewItem);
@@ -2192,8 +2213,6 @@ BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t
       return bResult;
     }
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return AppendMenuW(hMenu, uFlags, uIDNewItem, wpNewItem);
 
   WideNotInitialized();
   return FALSE;
@@ -2208,7 +2227,9 @@ BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t
 #endif
 BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return InsertMenuW(hMenu, uPosition, uFlags, uIDNewItem, wpNewItem);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if ((uFlags & MF_BITMAP) || (uFlags & MF_OWNERDRAW))
       return InsertMenuA(hMenu, uPosition, uFlags, uIDNewItem, (char *)wpNewItem);
@@ -2223,8 +2244,6 @@ BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
       return bResult;
     }
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return InsertMenuW(hMenu, uPosition, uFlags, uIDNewItem, wpNewItem);
 
   WideNotInitialized();
   return FALSE;
@@ -2239,7 +2258,9 @@ BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
 #endif
 BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return ModifyMenuW(hMenu, uPosition, uFlags, uIDNewItem, wpNewItem);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if ((uFlags & MF_BITMAP) || (uFlags & MF_OWNERDRAW))
       return ModifyMenuA(hMenu, uPosition, uFlags, uIDNewItem, (char *)wpNewItem);
@@ -2254,8 +2275,6 @@ BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
       return bResult;
     }
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return ModifyMenuW(hMenu, uPosition, uFlags, uIDNewItem, wpNewItem);
 
   WideNotInitialized();
   return FALSE;
@@ -2272,7 +2291,9 @@ BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
 #endif
 int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (lvcW->mask & LVCF_TEXT)
     {
@@ -2288,8 +2309,6 @@ int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
     }
     return (int)SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
 
   WideNotInitialized();
   return -1;
@@ -2304,7 +2323,9 @@ int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
 #endif
 BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (lviW->mask & LVIF_TEXT)
     {
@@ -2325,8 +2346,6 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
     }
     return (BOOL)SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2341,7 +2360,9 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
 #endif
 int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (lviW->mask & LVIF_TEXT)
     {
@@ -2357,8 +2378,6 @@ int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW)
     }
     return (int)SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)lviW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return -1;
@@ -2373,7 +2392,9 @@ int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW)
 #endif
 BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (lviW->mask & LVIF_TEXT)
     {
@@ -2389,8 +2410,6 @@ BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW)
     }
     return (int)SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)lviW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2405,7 +2424,9 @@ BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW)
 #endif
 BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tviW->mask & TVIF_TEXT)
     {
@@ -2426,8 +2447,6 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
     }
     return (BOOL)SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2442,7 +2461,9 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
 #endif
 HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)tvisW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tvisW->item.mask & TVIF_TEXT)
     {
@@ -2458,8 +2479,6 @@ HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
     }
     return (HTREEITEM)SendMessageA(hWnd, TVM_INSERTITEMA, 0, (LPARAM)tvisW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)tvisW);
 
   WideNotInitialized();
   return 0;
@@ -2474,7 +2493,9 @@ HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
 #endif
 BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tviW->mask & TVIF_TEXT)
     {
@@ -2490,8 +2511,6 @@ BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
     }
     return (BOOL)SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)tviW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2506,7 +2525,9 @@ BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
 #endif
 int ComboBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, CB_ADDSTRING, 0, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2516,8 +2537,6 @@ int ComboBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, CB_ADDSTRING, 0, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2532,7 +2551,9 @@ int ComboBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
 #endif
 int ComboBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2542,8 +2563,6 @@ int ComboBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, CB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2558,7 +2577,9 @@ int ComboBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ComboBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2568,8 +2589,6 @@ int ComboBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, CB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2584,7 +2603,9 @@ int ComboBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ComboBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2594,8 +2615,6 @@ int ComboBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, CB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2610,10 +2629,10 @@ int ComboBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ComboBox_GetLBTextLenWide(HWND hWnd, int nIndex)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return (int)SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
-  else if (WideGlobal_bOldWindows == FALSE)
+  if (WideGlobal_bOldWindows == FALSE)
     return (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return (int)SendMessageA(hWnd, CB_GETLBTEXTLEN, (WPARAM)nIndex, 0);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2628,7 +2647,9 @@ int ComboBox_GetLBTextLenWide(HWND hWnd, int nIndex)
 #endif
 int ComboBox_GetLBTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)wszText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen;
@@ -2648,8 +2669,6 @@ int ComboBox_GetLBTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     }
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, CB_GETLBTEXT, (WPARAM)nIndex, (LPARAM)wszText);
 
   WideNotInitialized();
   return CB_ERR;
@@ -2664,7 +2683,9 @@ int ComboBox_GetLBTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
 #endif
 int ListBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2674,8 +2695,6 @@ int ListBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2690,7 +2709,9 @@ int ListBox_AddStringWide(HWND hWnd, const wchar_t *wpString)
 #endif
 int ListBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2700,8 +2721,6 @@ int ListBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LB_INSERTSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2716,7 +2735,9 @@ int ListBox_InsertStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ListBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2726,8 +2747,6 @@ int ListBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LB_FINDSTRINGEXACT, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2742,7 +2761,9 @@ int ListBox_FindStringExactWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ListBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pString=AllocAnsi(wpString);
     int nResult;
@@ -2752,8 +2773,6 @@ int ListBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
     FreeAnsi(pString);
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LB_FINDSTRING, (WPARAM)nIndex, (LPARAM)wpString);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2768,7 +2787,9 @@ int ListBox_FindStringWide(HWND hWnd, int nIndex, const wchar_t *wpString)
 #endif
 int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)wszText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen;
@@ -2788,8 +2809,6 @@ int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
     }
     return nResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, LB_GETTEXT, (WPARAM)nIndex, (LPARAM)wszText);
 
   WideNotInitialized();
   return LB_ERR;
@@ -2804,7 +2823,9 @@ int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText)
 #endif
 BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tciW->mask & TCIF_TEXT)
     {
@@ -2825,8 +2846,6 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
     }
     return (BOOL)SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return FALSE;
@@ -2841,7 +2860,9 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
 #endif
 int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tciW->mask & TCIF_TEXT)
     {
@@ -2857,8 +2878,6 @@ int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
     }
     return (int)SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (int)SendMessageW(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return -1;
@@ -2873,7 +2892,9 @@ int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 #endif
 BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     if (tciW->mask & TCIF_TEXT)
     {
@@ -2889,8 +2910,6 @@ BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
     }
     return (BOOL)SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return FALSE;
@@ -2905,7 +2924,9 @@ BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
 #endif
 DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (DWORD)SendMessageW(hWnd, SB_GETTEXTW, (WPARAM)iPart, (LPARAM)wszText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
     int nTextLen;
@@ -2922,8 +2943,6 @@ DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText)
     }
     return dwResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (DWORD)SendMessageW(hWnd, SB_GETTEXTW, (WPARAM)iPart, (LPARAM)wszText);
 
   WideNotInitialized();
   return 0;
@@ -2938,7 +2957,9 @@ DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText)
 #endif
 BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText)
 {
-  if (WideGlobal_bOldWindows == TRUE)
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, SB_SETTEXTW, (WPARAM)iPart, (LPARAM)wpText);
+  else if (WideGlobal_bOldWindows == TRUE)
   {
     char *pText=AllocAnsi(wpText);
     BOOL bResult;
@@ -2948,8 +2969,6 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText)
     FreeAnsi(pText);
     return bResult;
   }
-  else if (WideGlobal_bOldWindows == FALSE)
-    return (BOOL)SendMessageW(hWnd, SB_SETTEXTW, (WPARAM)iPart, (LPARAM)wpText);
 
   WideNotInitialized();
   return FALSE;
