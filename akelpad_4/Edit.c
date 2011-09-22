@@ -12300,33 +12300,33 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
   return UD_FAILED;
 }
 
-int TranslateMessageAll(LPMSG lpMsg)
+DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
 {
-  int nHotkeyStatus;
+  int nHotkeyStatus=0;
 
-  if (!TranslateMessageGlobal(lpMsg))
+  if ((dwType & TMSG_GLOBAL) && TranslateMessageGlobal(lpMsg))
+    return TMSG_GLOBAL;
+
+  if ((dwType & TMSG_DIALOG) && TranslateMessageDialog(&hDocksStack, lpMsg))
+    return TMSG_DIALOG;
+
+  if ((dwType & TMSG_PLUGIN) && TranslateMessagePlugin(lpMsg))
+    return TMSG_PLUGIN;
+
+  if ((dwType & TMSG_HOTKEY) && (nHotkeyStatus=TranslateMessageHotkey(&hPluginsStack, lpMsg)) > 0)
+    return TMSG_HOTKEY;
+
+  if ((dwType & TMSG_ACCELERATOR) && nHotkeyStatus == 0 && TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
+    return TMSG_ACCELERATOR;
+
+  if (dwType & TMSG_DEFAULT)
   {
-    if (!TranslateMessageDialog(&hDocksStack, lpMsg))
-    {
-      if (!TranslateMessagePlugin(lpMsg))
-      {
-        if ((nHotkeyStatus=TranslateMessageHotkey(&hPluginsStack, lpMsg)) <= 0)
-        {
-          if (nHotkeyStatus < 0 || !TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
-          {
-            TranslateMessage(lpMsg);
-            DispatchMessageWide(lpMsg);
-            return TMSG_DEFAULT;
-          }
-          else return TMSG_ACCELERATOR;
-        }
-        else return TMSG_HOTKEY;
-      }
-      else return TMSG_PLUGIN;
-    }
-    else return TMSG_DIALOG;
+    TranslateMessage(lpMsg);
+    DispatchMessageWide(lpMsg);
+    return TMSG_DEFAULT;
   }
-  else return TMSG_GLOBAL;
+
+  return 0;
 }
 
 BOOL TranslateMessageGlobal(LPMSG lpMsg)
@@ -17352,7 +17352,7 @@ BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
   {
     if (!hWnd || IsEditActive(hWnd))
     {
-      xmemcpy(ei, &lpFrameCurrent->ei, sizeof(EDITINFO));
+      if (ei) xmemcpy(ei, &lpFrameCurrent->ei, sizeof(EDITINFO));
       return TRUE;
     }
     else
@@ -17361,7 +17361,7 @@ BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
 
       if (lpFrame=GetFrameDataFromEditWindow(hWnd))
       {
-        xmemcpy(ei, &lpFrame->ei, sizeof(EDITINFO));
+        if (ei) xmemcpy(ei, &lpFrame->ei, sizeof(EDITINFO));
         return TRUE;
       }
     }

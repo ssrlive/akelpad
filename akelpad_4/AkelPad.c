@@ -1019,7 +1019,7 @@ void _WinMain()
 
   while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
   {
-    TranslateMessageAll(&msg);
+    TranslateMessageAll(TMSG_ALL, &msg);
 
     if (bMainOnStart)
     {
@@ -2519,7 +2519,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             while (PeekMessageWide(&msg, NULL, 0, 0, PM_REMOVE))
             {
-              TranslateMessageAll(&msg);
+              TranslateMessageAll(TMSG_ALL, &msg);
             }
             goto Loop;
           }
@@ -2533,7 +2533,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_TRANSLATEMESSAGE)
     {
-      return TranslateMessageAll((LPMSG)lParam);
+      return TranslateMessageAll(wParam, (LPMSG)lParam);
     }
 
     //Plugin options

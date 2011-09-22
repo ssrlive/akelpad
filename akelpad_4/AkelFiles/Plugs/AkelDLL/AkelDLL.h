@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 6)
 
 
 //// Defines
@@ -287,13 +287,20 @@
 #define DLLSF_NOW     0x1  //Save plugins stack immediately.
 #define DLLSF_ONEXIT  0x2  //Save plugins stack on program exit.
 
-//AKD_TRANSLATEMESSAGE return type
-#define TMSG_GLOBAL       1  //Hotkey from global accelerator table (PLUGINDATA.hGlobalAccel) is translated.
-#define TMSG_DIALOG       2  //Message from modeless (see AKD_SETMODELESS) or dockable dialog (see AKD_DOCK) is translated.
-#define TMSG_PLUGIN       3  //Plugin message (see AKD_DLL*, AKD_CALLPROC, AKD_POSTMESSAGE) is translated.
-#define TMSG_HOTKEY       4  //Plugin hotkey is translated.
-#define TMSG_ACCELERATOR  5  //Hotkey from main accelerator table (PLUGINDATA.hMainAccel) is translated.
-#define TMSG_DEFAULT      6  //Default message processing.
+//AKD_TRANSLATEMESSAGE types
+#define TMSG_GLOBAL       0x01  //Translate hotkey from global accelerator table (PLUGINDATA.hGlobalAccel).
+#define TMSG_DIALOG       0x02  //Translate message from modeless (see AKD_SETMODELESS) or dockable dialog (see AKD_DOCK).
+#define TMSG_PLUGIN       0x04  //Translate plugin message (see AKD_DLL*, AKD_CALLPROC, AKD_POSTMESSAGE).
+#define TMSG_HOTKEY       0x08  //Translate plugin hotkey.
+#define TMSG_ACCELERATOR  0x10  //Translate hotkey from main accelerator table (PLUGINDATA.hMainAccel).
+#define TMSG_DEFAULT      0x20  //Default message processing.
+
+#define TMSG_ALL  (TMSG_GLOBAL      |\
+                   TMSG_DIALOG      |\
+                   TMSG_PLUGIN      |\
+                   TMSG_HOTKEY      |\
+                   TMSG_ACCELERATOR |\
+                   TMSG_DEFAULT)
 
 //Context menu owner
 #define NCM_EDIT     1  //Edit control.
@@ -2713,7 +2720,7 @@ _______________
 Get edit window info.
 
 (HWND)wParam       == edit window, NULL for current edit window.
-(EDITINFO *)lParam == pointer to a EDITINFO structure.
+(EDITINFO *)lParam == pointer to a EDITINFO structure. Can be NULL.
 
 Return Value
  TRUE   success.
@@ -3439,11 +3446,11 @@ ____________________
 
 Process window message.
 
-wParam        == not used.
+(DWORD)wParam == see TMSG_* defines.
 (MSG *)lParam == pointer to an MSG structure that contains message information.
 
 Return Value
- See TMSG_* defines.
+ One of the TMSG_* defines, that was last processed.
 
 Example:
  MSG msg;
@@ -3456,7 +3463,7 @@ Example:
      if (msg.message == WM_QUIT)
        bExitLoop=TRUE;
      else
-       SendMessage(pd->hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)&msg);
+       SendMessage(pd->hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
    }
    if (bExitLoop)
      break;
