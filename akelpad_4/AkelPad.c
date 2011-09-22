@@ -2533,7 +2533,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_TRANSLATEMESSAGE)
     {
-      return TranslateMessageAll(wParam, (LPMSG)lParam);
+      return TranslateMessageAll((DWORD)wParam, (LPMSG)lParam);
     }
 
     //Plugin options

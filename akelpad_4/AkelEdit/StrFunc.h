@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.9                     *
+ *              String functions header v5.0                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1465,14 +1465,14 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc && pDest)
-  {
-    while (*pSrc)
-      *pDest++=*pSrc++;
-    *pDest=L'\0';
-  }
-  else return xstrlenA(pSrc);
+  if (!pDest)
+    return xstrlenA(pSrc) + 1;
+  if (pDest == pSrc)
+    return xstrlenA(pSrc);
 
+  while (*pSrc)
+    *pDest++=*pSrc++;
+  *pDest='\0';
   return pDest - pString1;
 }
 #endif
@@ -1501,14 +1501,14 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc && wpDest)
-  {
-    while (*wpSrc)
-      *wpDest++=*wpSrc++;
-    *wpDest=L'\0';
-  }
-  else return xstrlenW(wpSrc);
+  if (!wpDest)
+    return xstrlenW(wpSrc) + 1;
+  if (wpDest == wpSrc)
+    return xstrlenW(wpSrc);
 
+  while (*wpSrc)
+    *wpDest++=*wpSrc++;
+  *wpDest=L'\0';
   return wpDest - wpString1;
 }
 #endif
@@ -1521,7 +1521,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *
  *[in] char *pString1        Pointer to a buffer into which the function copies characters.
  *                            The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                            including room for a terminating null character. Can be NULL.
+ *                            including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero.
  *[in] char *pString2        Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                            including a terminating null character.
@@ -1539,18 +1539,14 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc && pDest)
-  {
-    while (*pSrc && --dwMaxLength)
-      *pDest++=*pSrc++;
-    *pDest=L'\0';
-  }
-  else
-  {
-    UINT_PTR dwLen=xstrlenA(pSrc);
+  if (!pDest)
+    return xstrlenA(pSrc) + 1;
+  if (pDest == pSrc)
+    return xstrlenA(pSrc);
 
-    return min(dwLen, dwMaxLength);
-  }
+  while (*pSrc && --dwMaxLength)
+    *pDest++=*pSrc++;
+  *pDest='\0';
   return pDest - pString1;
 }
 #endif
@@ -1563,7 +1559,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
  *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                           including room for a terminating null character. Can be NULL.
+ *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero. 
  *[in] wchar_t *wpString2   Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
@@ -1581,18 +1577,14 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc && wpDest)
-  {
-    while (*wpSrc && --dwMaxLength)
-      *wpDest++=*wpSrc++;
-    *wpDest=L'\0';
-  }
-  else
-  {
-    UINT_PTR dwLen=xstrlenW(wpSrc);
+  if (!wpDest)
+    return xstrlenW(wpSrc) + 1;
+  if (wpDest == wpSrc)
+    return xstrlenW(wpSrc);
 
-    return min(dwLen, dwMaxLength);
-  }
+  while (*wpSrc && --dwMaxLength)
+    *wpDest++=*wpSrc++;
+  *wpDest=L'\0';
   return wpDest - wpString1;
 }
 #endif

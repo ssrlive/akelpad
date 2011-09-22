@@ -17041,125 +17041,100 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
   EXTPARAM *lpParameter;
-  wchar_t wszFileDir[MAX_PATH];
-  wchar_t *wszString;
-  wchar_t *wpCount;
-  wchar_t *wpExpandStr;
-  int nFileLen;
-  int nFileDirLen;
-  int nExeDirLen;
-  int nExpandStrLen;
-  int nEnvironmentLen;
-
-  nFileLen=lstrlenW(wpFile);
-  nFileDirLen=GetFileDir(wpFile, wszFileDir, MAX_PATH);
-  nExeDirLen=lstrlenW(wpExeDir);
-  nExpandStrLen=0;
+  wchar_t *wszSource;
+  wchar_t *wpSource;
+  wchar_t *wszTarget;
+  wchar_t *wpTarget;
+  int nStringLen;
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
     if (lpParameter->dwType == EXTPARAM_CHAR)
     {
-      nEnvironmentLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
+      //Expand environment strings
+      nStringLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
 
-      if (wszString=(wchar_t *)GlobalAlloc(GPTR, nEnvironmentLen * sizeof(wchar_t)))
+      if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
       {
-        //Expand environment strings
-        ExpandEnvironmentStringsWide(lpParameter->wpString, wszString, nEnvironmentLen);
+        ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nStringLen);
 
-        //Calculate expanded size
-        for (wpCount=wszString; *wpCount; ++wpCount)
+        //Expand plugin variables
+        wszTarget=NULL;
+        wpTarget=NULL;
+
+        for (;;)
         {
-          if (*wpCount == '%')
+          for (wpSource=wszSource; *wpSource;)
           {
-            if (*(wpCount + 1) == '%')
+            if (*wpSource == '%')
             {
-              ++wpCount;
-              ++nExpandStrLen;
-              continue;
+              if (*++wpSource == '%')
+              {
+                ++wpSource;
+                if (wszTarget) *wpTarget='%';
+                ++wpTarget;
+              }
+              else if (*wpSource == 'f' || *wpSource == 'F')
+              {
+                ++wpSource;
+                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
+              }
+              else if (*wpSource == 'd' || *wpSource == 'D')
+              {
+                ++wpSource;
+                wpTarget+=GetFileDir(wpFile, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
+              }
+              else if (*wpSource == 'a' || *wpSource == 'A')
+              {
+                ++wpSource;
+                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
+              }
             }
-            if (*(wpCount + 1) == 'f' || *(wpCount + 1) == 'F')
+            else
             {
-              ++wpCount;
-              nExpandStrLen+=nFileLen;
-              continue;
-            }
-            if (*(wpCount + 1) == 'd' || *(wpCount + 1) == 'D')
-            {
-              ++wpCount;
-              nExpandStrLen+=nFileDirLen;
-              continue;
-            }
-            if (*(wpCount + 1) == 'a' || *(wpCount + 1) == 'A')
-            {
-              ++wpCount;
-              nExpandStrLen+=nExeDirLen;
-              continue;
+              if (wszTarget) *wpTarget=*wpSource;
+              ++wpTarget;
+              ++wpSource;
             }
           }
-          else ++nExpandStrLen;
-        }
 
-        //Expand string
-        if (lpParameter->pExpanded)
-        {
-          GlobalFree((HGLOBAL)lpParameter->pExpanded);
-          lpParameter->pExpanded=NULL;
-        }
-        if (lpParameter->wpExpanded)
-        {
-          GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-          lpParameter->wpExpanded=NULL;
-        }
-
-        if (lpParameter->wpExpanded=(wchar_t *)GlobalAlloc(GPTR, (nExpandStrLen + 1) * sizeof(wchar_t)))
-        {
-          wpExpandStr=lpParameter->wpExpanded;
-
-          for (wpCount=wszString; *wpCount; ++wpCount)
+          if (!wszTarget)
           {
-            if (*wpCount == '%')
-            {
-              if (*(wpCount + 1) == '%')
-              {
-                ++wpCount;
-                *wpExpandStr++='%';
-                continue;
-              }
-              if (*(wpCount + 1) == 'f' || *(wpCount + 1) == 'F')
-              {
-                ++wpCount;
-                xstrcpyW(wpExpandStr, wpFile);
-                wpExpandStr+=nFileLen;
-                continue;
-              }
-              if (*(wpCount + 1) == 'd' || *(wpCount + 1) == 'D')
-              {
-                ++wpCount;
-                xstrcpyW(wpExpandStr, wszFileDir);
-                wpExpandStr+=nFileDirLen;
-                continue;
-              }
-              if (*(wpCount + 1) == 'a' || *(wpCount + 1) == 'A')
-              {
-                ++wpCount;
-                xstrcpyW(wpExpandStr, wpExeDir);
-                wpExpandStr+=nExeDirLen;
-                continue;
-              }
-            }
-            else *wpExpandStr++=*wpCount;
+            //Allocate wszTarget and loop again
+            if (wszTarget=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpTarget + 1)))
+              wpTarget=wszTarget;
+            else
+              break;
           }
-          *wpExpandStr='\0';
+          else
+          {
+            *wpTarget='\0';
+            break;
+          }
+        }
+
+        if (wszTarget)
+        {
+          if (lpParameter->pExpanded)
+          {
+            GlobalFree((HGLOBAL)lpParameter->pExpanded);
+            lpParameter->pExpanded=NULL;
+          }
+          if (lpParameter->wpExpanded)
+          {
+            GlobalFree((HGLOBAL)lpParameter->wpExpanded);
+            lpParameter->wpExpanded=NULL;
+          }
+          lpParameter->wpExpanded=wszTarget;
 
           if (bOldWindows)
           {
-            nExpandStrLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, nExpandStrLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, nExpandStrLen, NULL, NULL);
+            nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
+            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, nStringLen))
+              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, nStringLen, NULL, NULL);
           }
         }
-        GlobalFree((HGLOBAL)wszString);
+        GlobalFree((HGLOBAL)wszSource);
       }
     }
   }
@@ -17827,21 +17802,16 @@ int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
   return nLen;
 }
 
-int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen)
+int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, DWORD dwFileDirLen)
 {
-  int i;
+  DWORD i;
 
-  if (!nFileDirLen) return 0;
-  wszFileDir[0]='\0';
+  if (wszFileDir) wszFileDir[0]=L'\0';
 
   for (i=lstrlenW(wpFile) - 1; i > 0; --i)
   {
     if (wpFile[i] == '\\')
-    {
-      i=min(nFileDirLen, i + 1);
-      xstrcpynW(wszFileDir, wpFile, i);
-      return (i - 1);
-    }
+      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, i + 1));
   }
   return 0;
 }
@@ -18093,73 +18063,68 @@ int VersionCompare(DWORD dwVersion1, DWORD dwVersion2)
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
-  wchar_t wszFileDir[MAX_PATH];
   wchar_t *wpFile=lpFrameCurrent->wszFile;
   wchar_t *wpExeDir=wszExeDir;
-  wchar_t *wszExpanded;
-  int nFileLen;
-  int nFileDirLen;
-  int nExeDirLen;
-  int nEnvironmentLen;
-  int a;
-  int b;
+  wchar_t *wszSource;
+  wchar_t *wpSource;
+  wchar_t *wpTarget;
+  wchar_t *wpTargetMax;
+  int nStringLen;
 
-  nFileLen=lstrlenW(wpFile);
-  nFileDirLen=GetFileDir(wpFile, wszFileDir, MAX_PATH);
-  nExeDirLen=lstrlenW(wpExeDir);
-  nEnvironmentLen=ExpandEnvironmentStringsWide(wpString, NULL, 0);
+  //Expand environment strings
+  nStringLen=ExpandEnvironmentStringsWide(wpString, NULL, 0);
 
-  if (wszExpanded=(wchar_t *)GlobalAlloc(GPTR, nEnvironmentLen * sizeof(wchar_t)))
+  if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
   {
-    //Expand environment strings
-    ExpandEnvironmentStringsWide(wpString, wszExpanded, nEnvironmentLen);
-    wpString=wszExpanded;
-  }
-  else return 0;
+    ExpandEnvironmentStringsWide(wpString, wszSource, nStringLen);
 
-  for (a=0, b=0; wpString[a] && (!wszBuffer || b < nBufferSize); ++a, ++b)
-  {
-    if (wpString[a] == '%')
+    //Expand plugin variables
+    wpTarget=wszBuffer;
+    wpTargetMax=wszBuffer + (wszBuffer?nBufferSize:0x7FFFFFFF);
+
+    for (wpSource=wszSource; *wpSource && wpTarget < wpTargetMax;)
     {
-      if (wpString[++a] == '%')
+      if (*wpSource == '%')
       {
-        if (wszBuffer) wszBuffer[b]='%';
-      }
-      else if (wpString[a] == 'f' || wpString[a] == 'F')
-      {
-        if (!wszBuffer || b + nFileLen <= nBufferSize)
+        if (*++wpSource == '%')
         {
-          if (wszBuffer) xstrcpyW(wszBuffer + b, wpFile);
-          b+=nFileLen - 1;
+          ++wpSource;
+          if (wszBuffer) *wpTarget='%';
+          ++wpTarget;
         }
-        else break;
-      }
-      else if (wpString[a] == 'd' || wpString[a] == 'D')
-      {
-        if (!wszBuffer || b + nFileDirLen <= nBufferSize)
+        else if (*wpSource == 'f' || *wpSource == 'F')
         {
-          if (wszBuffer) xstrcpyW(wszBuffer + b, wszFileDir);
-          b+=nFileDirLen - 1;
+          ++wpSource;
+          wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpFile, wpTargetMax - wpTarget) - !wszBuffer;
         }
-        else break;
-      }
-      else if (wpString[a] == 'a' || wpString[a] == 'A')
-      {
-        if (!wszBuffer || b + nExeDirLen <= nBufferSize)
+        else if (*wpSource == 'd' || *wpSource == 'D')
         {
-          if (wszBuffer) xstrcpyW(wszBuffer + b, wpExeDir);
-          b+=nExeDirLen - 1;
+          ++wpSource;
+          wpTarget+=GetFileDir(wpFile, wszBuffer?wpTarget:NULL, wpTargetMax - wpTarget) - !wszBuffer;
         }
-        else break;
+        else if (*wpSource == 'a' || *wpSource == 'A')
+        {
+          ++wpSource;
+          wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpExeDir, wpTargetMax - wpTarget) - !wszBuffer;
+        }
       }
-      else break;
+      else
+      {
+        if (wszBuffer) *wpTarget=*wpSource;
+        ++wpTarget;
+        ++wpSource;
+      }
     }
-    else if (wszBuffer) wszBuffer[b]=wpString[a];
+    if (wpTarget < wpTargetMax)
+    {
+      if (wszBuffer)
+        *wpTarget='\0';
+      else
+        ++wpTarget;
+    }
+    GlobalFree((HGLOBAL)wszSource);
   }
-  if (wszBuffer && b < nBufferSize) wszBuffer[b]='\0';
-
-  GlobalFree((HGLOBAL)wszExpanded);
-  return b;
+  return (int)(wpTarget - wszBuffer);
 }
 
 void SetMouseCapture(HWND hWnd, DWORD dwType)

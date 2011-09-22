@@ -1080,7 +1080,7 @@ BOOL IsReadOnly(HWND hWnd);
 int IsFile(const wchar_t *wpFile);
 BOOL IsPathFull(const wchar_t *wpPath);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
-int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen);
+int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, DWORD dwFileDirLen);
 BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax);
 const wchar_t* GetFileName(const wchar_t *wpFile);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);

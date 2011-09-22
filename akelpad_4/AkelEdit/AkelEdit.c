@@ -13469,7 +13469,7 @@ void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 
         nTop=max(ae->rcDraw.top, nTop);
         nBottom=min(ae->rcDraw.bottom, nBottom);
-        nTop+=(ae->nVScrollPos + (nTop - ae->rcDraw.top)) % 2;
+        nTop+=(int)((ae->nVScrollPos + (nTop - ae->rcDraw.top)) % 2);
 
         for (i=nTop; i < nBottom; i+=2)
         {
@@ -13477,7 +13477,7 @@ void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
           {
             //Skip caret height
             i=ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight;
-            i+=(ae->nVScrollPos + (i - ae->rcDraw.top)) % 2;
+            i+=(int)((ae->nVScrollPos + (i - ae->rcDraw.top)) % 2);
           }
 
           //Draw dot
