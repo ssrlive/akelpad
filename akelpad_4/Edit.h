@@ -947,7 +947,7 @@ void StackPluginFree(HSTACK *hStack);
 void CallPluginsOnStart(HSTACK *hStack);
 int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFlags);
 int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags);
-int TranslateMessageAll(LPMSG lpMsg);
+DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg);
 BOOL TranslateMessageGlobal(LPMSG lpMsg);
 BOOL TranslateMessagePlugin(LPMSG lpMsg);
 int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg);
