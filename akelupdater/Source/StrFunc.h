@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.8                     *
+ *              String functions header v5.0                     *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1465,14 +1465,14 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc && pDest)
-  {
-    while (*pSrc)
-      *pDest++=*pSrc++;
-    *pDest=L'\0';
-  }
-  else return xstrlenA(pSrc);
+  if (!pDest)
+    return xstrlenA(pSrc) + 1;
+  if (pDest == pSrc)
+    return xstrlenA(pSrc);
 
+  while (*pSrc)
+    *pDest++=*pSrc++;
+  *pDest='\0';
   return pDest - pString1;
 }
 #endif
@@ -1501,14 +1501,14 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc && wpDest)
-  {
-    while (*wpSrc)
-      *wpDest++=*wpSrc++;
-    *wpDest=L'\0';
-  }
-  else return xstrlenW(wpSrc);
+  if (!wpDest)
+    return xstrlenW(wpSrc) + 1;
+  if (wpDest == wpSrc)
+    return xstrlenW(wpSrc);
 
+  while (*wpSrc)
+    *wpDest++=*wpSrc++;
+  *wpDest=L'\0';
   return wpDest - wpString1;
 }
 #endif
@@ -1521,7 +1521,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *
  *[in] char *pString1        Pointer to a buffer into which the function copies characters.
  *                            The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                            including room for a terminating null character. Can be NULL.
+ *                            including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero.
  *[in] char *pString2        Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                            including a terminating null character.
@@ -1539,18 +1539,14 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
-  if (pDest != pSrc && pDest)
-  {
-    while (*pSrc && --dwMaxLength)
-      *pDest++=*pSrc++;
-    *pDest=L'\0';
-  }
-  else
-  {
-    UINT_PTR dwLen=xstrlenA(pSrc);
+  if (!pDest)
+    return xstrlenA(pSrc) + 1;
+  if (pDest == pSrc)
+    return xstrlenA(pSrc);
 
-    return min(dwLen, dwMaxLength);
-  }
+  while (*pSrc && --dwMaxLength)
+    *pDest++=*pSrc++;
+  *pDest='\0';
   return pDest - pString1;
 }
 #endif
@@ -1563,7 +1559,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
  *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                           including room for a terminating null character. Can be NULL.
+ *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero. 
  *[in] wchar_t *wpString2   Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
@@ -1581,18 +1577,14 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
-  if (wpDest != wpSrc && wpDest)
-  {
-    while (*wpSrc && --dwMaxLength)
-      *wpDest++=*wpSrc++;
-    *wpDest=L'\0';
-  }
-  else
-  {
-    UINT_PTR dwLen=xstrlenW(wpSrc);
+  if (!wpDest)
+    return xstrlenW(wpSrc) + 1;
+  if (wpDest == wpSrc)
+    return xstrlenW(wpSrc);
 
-    return min(dwLen, dwMaxLength);
-  }
+  while (*wpSrc && --dwMaxLength)
+    *wpDest++=*wpSrc++;
+  *wpDest=L'\0';
   return wpDest - wpString1;
 }
 #endif
@@ -1620,7 +1612,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *          FALSE pStr isn't founded.
  *
  *Note:
- *  - xstrstrA uses xstrlenA.
+ *  xstrstrA uses xstrlenA.
  ********************************************************************/
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
@@ -1716,7 +1708,7 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
            #elif defined WideCharUpper_INCLUDED
              (!bSensitive && WideCharUpper(*wpMatchCount) == WideCharUpper(*wpStrCount)))
            #else
-             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrrepW will not work on Win95/98/Me.")
+             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrstrW will not work on Win95/98/Me.")
              (!bSensitive && (UINT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpMatchCount) == (UINT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpStrCount)))
            #endif
     {
@@ -2596,11 +2588,11 @@ int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLower
  *
  *Returns: copied chars.
  *
- *Note:
- *  bin2hexA uses dec2hexA.
- *
  *Examples:
  *  bin2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
+ *
+ *Note:
+ *  bin2hexA uses dec2hexA.
  ********************************************************************/
 #if defined bin2hexA || defined ALLSTRFUNC
 #define bin2hexA_INCLUDED
@@ -2787,11 +2779,11 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
  *
  *Returns:  number of characters copied, not including the terminating null character.
  *
- *Examples:
- *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
- *
  *Note:
  *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
+ *
+ *Examples:
+ *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
 #if defined xprintfA || defined ALLSTRFUNC
 #define xprintfA_INCLUDED
@@ -3049,11 +3041,11 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *
  *Returns:  number of characters copied, not including the terminating null character.
  *
- *Examples:
- *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
- *
  *Note:
  *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *
+ *Examples:
+ *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
 #if defined xprintfW || defined ALLSTRFUNC
 #define xprintfW_INCLUDED
