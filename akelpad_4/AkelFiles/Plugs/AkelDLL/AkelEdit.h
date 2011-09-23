@@ -351,6 +351,9 @@
 #define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
 #define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
 #define AECLR_URLCURSORTEXT  0x00000800  //Sets active hyperlink text color. crUrlCursorText member is valid.
+#define AECLR_ALTLINETEXT    0x00001000  //Sets alternating line text color. crBasicAltLineText member is valid.
+#define AECLR_ALTLINEBK      0x00002000  //Sets alternating line background color. crBasicAltLineBk member is valid.
+#define AECLR_ALTLINEBORDER  0x00004000  //Sets alternating line border color. crBasicAltLineBorder member is valid.
 
 #define AECLR_ALL  (AECLR_CARET          |\
                     AECLR_BASICTEXT      |\
@@ -362,7 +365,10 @@
                     AECLR_URLTEXT        |\
                     AECLR_ACTIVECOLUMN   |\
                     AECLR_COLUMNMARKER   |\
-                    AECLR_URLCURSORTEXT)
+                    AECLR_URLCURSORTEXT  |\
+                    AECLR_ALTLINETEXT    |\
+                    AECLR_ALTLINEBK      |\
+                    AECLR_ALTLINEBORDER)
 
 //Print
 #define AEPRN_TEST                      0x001  //Calculate data without painting.
@@ -899,18 +905,24 @@ typedef struct {
 } AEFINDTEXTW;
 
 typedef struct {
-  DWORD dwFlags;             //[in] See AECLR_* defines.
-  COLORREF crCaret;          //[in] Caret color.
-  COLORREF crBasicText;      //[in] Basic text color.
-  COLORREF crBasicBk;        //[in] Basic background color.
-  COLORREF crSelText;        //[in] Text color in selection.
-  COLORREF crSelBk;          //[in] Background color in selection.
-  COLORREF crActiveLineText; //[in] Text color in active line.
-  COLORREF crActiveLineBk;   //[in] Background color in active line.
-  COLORREF crUrlText;        //[in] Hyperlink text color.
-  COLORREF crActiveColumn;   //[in] Active column color.
-  COLORREF crColumnMarker;   //[in] Column marker color.
-  COLORREF crUrlCursorText;  //[in] Active hyperlink text color.
+  DWORD dwFlags;                  //[in] See AECLR_* defines.
+  COLORREF crCaret;               //[in] Caret color.
+  COLORREF crBasicText;           //[in] Basic text color.
+  COLORREF crBasicBk;             //[in] Basic background color.
+  COLORREF crSelText;             //[in] Text color in selection.
+  COLORREF crSelBk;               //[in] Background color in selection.
+  COLORREF crActiveLineText;      //[in] Text color in active line.
+  COLORREF crActiveLineBk;        //[in] Background color in active line.
+  COLORREF crUrlText;             //[in] Hyperlink text color.
+  COLORREF crActiveColumn;        //[in] Active column color.
+  COLORREF crColumnMarker;        //[in] Column marker color.
+  COLORREF crUrlCursorText;       //[in] Active hyperlink text color.
+  COLORREF crBasicAltLineText;    //[in] Basic text color in alternating line.
+  COLORREF crBasicAltLineBk;      //[in] Basic background color in alternating line.
+  COLORREF crBasicAltLineBorder;  //[in] Basic border color in alternating line.
+  COLORREF crActiveAltLineText;   //[in] Text color in active alternating line (read-only).
+  COLORREF crActiveAltLineBk;     //[in] Background color in active alternating line (read-only).
+  COLORREF crActiveAltLineBorder; //[in] Border color in active alternating line (read-only).
 } AECOLORS;
 
 typedef struct {
@@ -1484,6 +1496,8 @@ typedef struct {
 #define AEM_GETTEXTLIMIT          (WM_USER + 2237)
 #define AEM_SETTEXTLIMIT          (WM_USER + 2238)
 #define AEM_GETFONT               (WM_USER + 2239)
+#define AEM_GETALTLINE            (WM_USER + 2240)
+#define AEM_SETALTLINE            (WM_USER + 2241)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -4582,6 +4596,41 @@ Return Value
 
 Example:
  HFONT hFontItalic=(HFONT)SendMessage(hWndEdit, AEM_GETFONT, AEGF_ITALIC, 0);
+
+
+AEM_GETALTLINE
+______________
+
+Retrieve alternating lines intervals.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The low-order word contains the skip interval in lines.
+ The high-order word contains the fill interval in lines.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETALTLINE, 0, 0);
+
+
+AEM_SETALTLINE
+______________
+
+Set alternating lines intervals.
+
+(DWORD)wParam == the low-order word contains the skip interval in lines.
+                 the high-order word contains the fill interval in lines.
+lParam        == not used.
+
+Return Value
+ Zero.
+
+Remarks
+ If wParam is zero, even lines drawing is off.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETALTLINE, MAKELONG(1, 1), 0);
 
 
 AEM_SHOWSCROLLBAR

@@ -72,6 +72,12 @@
 #define AELS_FULL     2
 #define AELS_PARTLY   3
 
+//Even line draw
+#define AEALD_NONE             0x0
+#define AEALD_DRAWLINE         0x1
+#define AEALD_DRAWBORDERTOP    0x2
+#define AEALD_DRAWBORDERBOTTOM 0x4
+
 //AE_CalcLinesWidth flags
 #define AECLW_FRESH              0x00000001
 #define AECLW_LOCKUPDATEHSCROLL  0x00000002
@@ -509,6 +515,12 @@ typedef struct {
   COLORREF crActiveColumn;
   COLORREF crColumnMarker;
   COLORREF crUrlCursorText;
+  COLORREF crBasicAltLineText;
+  COLORREF crBasicAltLineBk;
+  COLORREF crBasicAltLineBorder;
+  COLORREF crActiveAltLineText;
+  COLORREF crActiveAltLineBk;
+  COLORREF crActiveAltLineBorder;
   COLORREF crEnableBasicBk;
   COLORREF crEnableSelBk;
   COLORREF crEnableActiveLineBk;
@@ -522,6 +534,8 @@ typedef struct {
   HPEN hColumnMarkerPen;
   DWORD dwColumnMarkerType;
   DWORD dwColumnMarkerPos;
+  DWORD dwAltLineSkip;
+  DWORD dwAltLineFill;
   wchar_t wszWordDelimiters[128];
   DWORD dwWordBreak;
   wchar_t wszUrlLeftDelimiters[128];
@@ -924,6 +938,9 @@ INT_PTR AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
+COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2);
+COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent);
+COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent);
 void AE_NotifyErrSpace(AKELEDIT *ae, SIZE_T dwBytes);
 void AE_NotifySetFocus(AKELEDIT *ae, HWND hWndLost);
 void AE_NotifyKillFocus(AKELEDIT *ae, HWND hWndReceive);

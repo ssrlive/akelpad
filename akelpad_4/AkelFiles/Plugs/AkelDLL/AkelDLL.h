@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 5, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 0)
 
 
 //// Defines
@@ -472,7 +472,9 @@ typedef struct {
     struct _AELINEDATA *prev;
     wchar_t *wpLine;
     int nLineLen;
-    int nLineBreak;
+    BYTE nLineBreak;
+    BYTE nLineFlags;
+    WORD nReserved;
     int nLineWidth;
     int nSelStart;
     int nSelEnd;
@@ -507,6 +509,12 @@ typedef struct {
     COLORREF crActiveColumn;
     COLORREF crColumnMarker;
     COLORREF crUrlCursorText;
+    COLORREF crBasicAltLineText;
+    COLORREF crBasicAltLineBk;
+    COLORREF crBasicAltLineBorder;
+    COLORREF crActiveAltLineText;
+    COLORREF crActiveAltLineBk;
+    COLORREF crActiveAltLineBorder;
   } AECOLORS;
 
   DECLARE_HANDLE (AEHDOC);
@@ -684,7 +692,7 @@ typedef struct {
 
 typedef struct {
   HWND hWndEdit;           //Edit window.
-  AEHDOC hDocEdit;         //Edit document (4.x only).
+  AEHDOC hDocEdit;         //Edit document.
   const BYTE *pFile;       //Current editing file.
                            //  const char *pFile         if bOldWindows == TRUE
                            //  const wchar_t *pFile      if bOldWindows == FALSE
@@ -697,14 +705,14 @@ typedef struct {
   BOOL bReadOnly;          //Read only.
   BOOL bWordWrap;          //Word wrap.
   BOOL bOvertypeMode;      //Overtype mode.
-  HWND hWndMaster;         //Master window (4.x only).
-  AEHDOC hDocMaster;       //Master document (4.x only).
-  HWND hWndClone1;         //First clone window (4.x only).
-  AEHDOC hDocClone1;       //First clone document (4.x only).
-  HWND hWndClone2;         //Second clone window (4.x only).
-  AEHDOC hDocClone2;       //Second clone document (4.x only).
-  HWND hWndClone3;         //Third clone window (4.x only).
-  AEHDOC hDocClone3;       //Third clone document (4.x only).
+  HWND hWndMaster;         //Master window.
+  AEHDOC hDocMaster;       //Master document.
+  HWND hWndClone1;         //First clone window.
+  AEHDOC hDocClone1;       //First clone document.
+  HWND hWndClone2;         //Second clone window.
+  AEHDOC hDocClone2;       //Second clone document.
+  HWND hWndClone3;         //Third clone window.
+  AEHDOC hDocClone3;       //Third clone document.
 } EDITINFO;
 
 typedef struct _FRAMEDATA {
@@ -720,40 +728,42 @@ typedef struct _FRAMEDATA {
   HICON hIcon;                                        //Frame icon.
   int nIconIndex;                                     //Frame ImageList icon index.
   RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
-  RECT rcMasterWindow;                                //Master window RECT (4.x only). rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
+  RECT rcMasterWindow;                                //Master window RECT. rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
 
-  //Edit settings
+  //Edit settings (AkelPad)
   LOGFONTW lf;                                        //Edit font.
-  AECOLORS aec;                                       //Edit colors.
+  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces.
+  DWORD dwCaretOptions;                               //See CO_* defines.
+  DWORD dwMouseOptions;                               //See MO_* defines.
+  int nClickURL;                                      //Number of clicks to open URL.
+  BOOL bUrlPrefixesEnable;                            //URL prefixes enable.
+  BOOL bUrlDelimitersEnable;                          //URL delimiters enable.
+  BOOL bWordDelimitersEnable;                         //Word delimiters enabled.
+  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled.
+  DWORD dwMappedPrintWidth;                           //Mapped print page width.
+
+  //Edit settings (AkelEdit)
   DWORD dwEditMargins;                                //Edit margins.
   int nTabStopSize;                                   //Tab stop size.
-  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces.
   int nUndoLimit;                                     //Undo limit.
   BOOL bDetailedUndo;                                 //Detailed undo.
-  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only).
-  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only).
-  DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only).
-  DWORD dwMappedPrintWidth;                           //Mapped print page width (4.x only).
-  DWORD dwCaretOptions;                               //See CO_* defines (4.x only).
-  int nCaretWidth;                                    //Caret width (4.x only).
-  DWORD dwMouseOptions;                               //See MO_* defines (4.x only).
-  DWORD dwLineGap;                                    //Line gap (4.x only).
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL.
+  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge.
+  DWORD dwMarker;                                     //Vertical marker, zero if no marker set.
+  int nCaretWidth;                                    //Caret width.
+  DWORD dwLineGap;                                    //Line gap.
   BOOL bShowURL;                                      //Show URL.
-  int nClickURL;                                      //Number of clicks to open URL.
-  BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only).
-  BOOL bUrlDelimitersEnable;                          //URL delimiters enable (4.x only).
-  BOOL bWordDelimitersEnable;                         //Word delimiters enabled.
-  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled (4.x only).
-  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes (4.x only).
-  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters (4.x only).
-  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only).
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes.
+  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters.
+  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters.
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
-  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters (4.x only).
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
+  AECOLORS aec;                                       //Edit colors.
 
   //Edit state internal
-  AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
+  AEEditProc lpEditProc;                              //Edit window procedure.
   FILETIME ft;                                        //File time.
-  HKL dwInputLocale;                                  //Keyboard layout (4.x only).
+  HKL dwInputLocale;                                  //Keyboard layout.
   DWORD dwLockInherit;                                //See LI_* defines.
 
   //Substract selection
@@ -914,21 +924,21 @@ typedef struct {
 typedef struct {
   DWORD dwFlags;            //See FR_* defines.
   const char *pFindIt;      //Find string.
-  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 } TEXTFINDA;
 
 typedef struct {
   DWORD dwFlags;            //See FR_* defines.
   const wchar_t *pFindIt;   //Find string.
-  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 } TEXTFINDW;
 
 typedef struct {
   DWORD dwFlags;               //See FR_* defines.
   const char *pFindIt;         //Find string.
-  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const char *pReplaceWith;    //Replace string.
-  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bAll;                   //Replace all.
   INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEA;
@@ -936,9 +946,9 @@ typedef struct {
 typedef struct {
   DWORD dwFlags;               //See FR_* defines.
   const wchar_t *pFindIt;      //Find string.
-  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const wchar_t *pReplaceWith; //Replace string.
-  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bAll;                   //Replace all.
   INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEW;

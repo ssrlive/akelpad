@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.6.6                               *
+ *                      AkelEdit text control v1.7.0                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1564,6 +1564,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return (LRESULT)ae->ptxt->hFontBoldItalic;
       else if (wParam == AEGF_URL)
         return (LRESULT)ae->ptxt->hFontUrl;
+      return 0;
+    }
+    if (uMsg == AEM_GETALTLINE)
+    {
+      return MAKELONG(ae->popt->dwAltLineSkip, ae->popt->dwAltLineFill);
+    }
+    if (uMsg == AEM_SETALTLINE)
+    {
+      if (ae->popt->dwAltLineSkip != LOWORD(wParam) &&
+          ae->popt->dwAltLineFill != HIWORD(wParam))
+      {
+        ae->popt->dwAltLineSkip=LOWORD(wParam);
+        ae->popt->dwAltLineFill=HIWORD(wParam);
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+        AE_StackCloneUpdate(ae);
+      }
       return 0;
     }
 
@@ -4590,6 +4606,12 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->popt->crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
     ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
     ae->popt->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
+    ae->popt->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
+    ae->popt->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
+    ae->popt->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
+    ae->popt->crActiveAltLineText=AE_ColorCombine(ae->popt->crBasicAltLineText, ae->popt->crActiveLineText);
+    ae->popt->crActiveAltLineBk=AE_ColorCombine(ae->popt->crBasicAltLineBk, ae->popt->crActiveLineBk);
+    ae->popt->crActiveAltLineBorder=AE_ColorCombine(ae->popt->crBasicAltLineBorder, ae->popt->crActiveLineBk);
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
@@ -12195,8 +12217,13 @@ void AE_Paint(AKELEDIT *ae)
     AEFOLD *lpCollapsed;
     HBRUSH hbrDefaultBk;
     HBRUSH hbrBasicBk;
-    HBRUSH hbrActiveLineBk;
     HBRUSH hbrSelBk;
+    HBRUSH hbrActiveLineBk;
+    HBRUSH hbrBasicAltLineBk=NULL;
+    HBRUSH hbrBasicAltLineBorder=NULL;
+    HBRUSH hbrActiveAltLineBk=NULL;
+    HBRUSH hbrActiveAltLineBorder=NULL;
+    HBRUSH hbrBorderBk;
     HBRUSH hbrTab;
     HBITMAP hBitmap;
     HBITMAP hBitmapOld=NULL;
@@ -12210,7 +12237,9 @@ void AE_Paint(AKELEDIT *ae)
     INT_PTR nMaxPaintWidth=0;
     int nCharWidth=0;
     int nLastDrawLine=0;
+    DWORD dwEvenModule=0;
     BOOL bUseBufferDC=TRUE;
+    DWORD dwAltLineDraw=AEALD_NONE;
 
     //Initialize
     xmemset(&hlp, 0, sizeof(AEHLPAINT));
@@ -12221,8 +12250,15 @@ void AE_Paint(AKELEDIT *ae)
     hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
     hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
     hbrBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-    hbrActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
     hbrSelBk=CreateSolidBrush(ae->popt->crSelBk);
+    hbrActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+    if (ae->popt->dwAltLineSkip && ae->popt->dwAltLineFill)
+    {
+      hbrBasicAltLineBk=CreateSolidBrush(ae->popt->crBasicAltLineBk);
+      hbrBasicAltLineBorder=CreateSolidBrush(ae->popt->crBasicAltLineBorder);
+      hbrActiveAltLineBk=CreateSolidBrush(ae->popt->crActiveAltLineBk);
+      hbrActiveAltLineBorder=CreateSolidBrush(ae->popt->crActiveAltLineBorder);
+    }
 
     //Set DCs
     to.hDC=ps.hdc;
@@ -12302,12 +12338,45 @@ void AE_Paint(AKELEDIT *ae)
         pntNotify.ptMinDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
         pntNotify.ptMinDraw.y=(int)to.ptFirstCharInLine.y;
 
+        //Is line even
+        if (ae->popt->dwAltLineSkip && ae->popt->dwAltLineFill)
+        {
+          dwEvenModule=to.ciDrawLine.nLine % (ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill);
+
+          if (dwEvenModule >= ae->popt->dwAltLineSkip)
+          {
+            dwAltLineDraw=AEALD_DRAWLINE;
+            if (dwEvenModule == ae->popt->dwAltLineSkip)
+              dwAltLineDraw|=AEALD_DRAWBORDERTOP;
+            if (dwEvenModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
+              dwAltLineDraw|=AEALD_DRAWBORDERBOTTOM;
+          }
+          else dwAltLineDraw=AEALD_NONE;
+        }
+
         //Set initial colors
         if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
         {
-          hlp.dwDefaultText=ae->popt->crActiveLineText;
-          hlp.dwDefaultBk=ae->popt->crActiveLineBk;
-          hbrDefaultBk=hbrActiveLineBk;
+          if (dwAltLineDraw)
+          {
+            hlp.dwDefaultText=ae->popt->crActiveAltLineText;
+            hlp.dwDefaultBk=ae->popt->crActiveAltLineBk;
+            hbrDefaultBk=hbrActiveAltLineBk;
+            hbrBorderBk=hbrActiveAltLineBorder;
+          }
+          else
+          {
+            hlp.dwDefaultText=ae->popt->crActiveLineText;
+            hlp.dwDefaultBk=ae->popt->crActiveLineBk;
+            hbrDefaultBk=hbrActiveLineBk;
+          }
+        }
+        else if (dwAltLineDraw)
+        {
+          hlp.dwDefaultText=ae->popt->crBasicAltLineText;
+          hlp.dwDefaultBk=ae->popt->crBasicAltLineBk;
+          hbrDefaultBk=hbrBasicAltLineBk;
+          hbrBorderBk=hbrBasicAltLineBorder;
         }
         else
         {
@@ -12324,8 +12393,24 @@ void AE_Paint(AKELEDIT *ae)
         rcSpace.left=rcDraw.left;
         rcSpace.top=(int)to.ptFirstCharInLine.y;
         rcSpace.right=rcDraw.right;
-        rcSpace.bottom=(int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight);
+        rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
         FillRect(to.hDC, &rcSpace, hbrDefaultBk);
+
+        if (dwAltLineDraw)
+        {
+          if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
+          {
+            rcSpace.top=(int)to.ptFirstCharInLine.y;
+            rcSpace.bottom=rcSpace.top + 1;
+            FillRect(to.hDC, &rcSpace, hbrBorderBk);
+          }
+          if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
+          {
+            rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+            rcSpace.bottom=rcSpace.top + 1;
+            FillRect(to.hDC, &rcSpace, hbrBorderBk);
+          }
+        }
 
         //Fill space after line end, before text line is drawn.
         if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
@@ -12346,6 +12431,22 @@ void AE_Paint(AKELEDIT *ae)
                   rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                   FillRect(to.hDC, &rcSpace, hbrDefaultBk);
+
+                  if (dwAltLineDraw)
+                  {
+                    if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
+                    {
+                      rcSpace.top=(int)to.ptFirstCharInLine.y;
+                      rcSpace.bottom=rcSpace.top + 1;
+                      FillRect(to.hDC, &rcSpace, hbrBorderBk);
+                    }
+                    if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
+                    {
+                      rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+                      rcSpace.bottom=rcSpace.top + 1;
+                      FillRect(to.hDC, &rcSpace, hbrBorderBk);
+                    }
+                  }
                 }
                 if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
                 {
@@ -12402,6 +12503,22 @@ void AE_Paint(AKELEDIT *ae)
             rcSpace.right=ae->rcDraw.right;
             rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
             FillRect(to.hDC, &rcSpace, hbrDefaultBk);
+
+            if (dwAltLineDraw)
+            {
+              if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
+              {
+                rcSpace.top=(int)to.ptFirstCharInLine.y;
+                rcSpace.bottom=rcSpace.top + 1;
+                FillRect(to.hDC, &rcSpace, hbrBorderBk);
+              }
+              if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
+              {
+                rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+                rcSpace.bottom=rcSpace.top + 1;
+                FillRect(to.hDC, &rcSpace, hbrBorderBk);
+              }
+            }
           }
         }
 
@@ -12524,8 +12641,12 @@ void AE_Paint(AKELEDIT *ae)
     }
     if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
     DeleteObject(hDrawRgn);
-    DeleteObject(hbrSelBk);
+    if (hbrActiveAltLineBorder) DeleteObject(hbrActiveAltLineBorder);
+    if (hbrActiveAltLineBk) DeleteObject(hbrActiveAltLineBk);
+    if (hbrBasicAltLineBorder) DeleteObject(hbrBasicAltLineBorder);
+    if (hbrBasicAltLineBk) DeleteObject(hbrBasicAltLineBk);
     DeleteObject(hbrActiveLineBk);
+    DeleteObject(hbrSelBk);
     DeleteObject(hbrBasicBk);
 
     EndPaint(ae->hWndEdit, &ps);
@@ -19081,6 +19202,30 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     else
       aec->crActiveLineBk=ae->popt->crActiveLineBk;
   }
+  if (aec->dwFlags & AECLR_ALTLINETEXT)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
+    else
+      aec->crBasicAltLineText=ae->popt->crBasicAltLineText;
+    aec->crActiveAltLineText=AE_ColorCombine(aec->crBasicAltLineText, (aec->dwFlags & AECLR_ACTIVELINETEXT)?aec->crActiveLineText:ae->popt->crActiveLineText);
+  }
+  if (aec->dwFlags & AECLR_ALTLINEBK)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
+    else
+      aec->crBasicAltLineBk=ae->popt->crBasicAltLineBk;
+    aec->crActiveAltLineBk=AE_ColorCombine(aec->crBasicAltLineBk, (aec->dwFlags & AECLR_ACTIVELINEBK)?aec->crActiveLineBk:ae->popt->crActiveLineBk);
+  }
+  if (aec->dwFlags & AECLR_ALTLINEBORDER)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
+    else
+      aec->crBasicAltLineBorder=ae->popt->crBasicAltLineBorder;
+    aec->crActiveAltLineBorder=AE_ColorCombine(aec->crBasicAltLineBorder, (aec->dwFlags & AECLR_ACTIVELINEBK)?aec->crActiveLineBk:ae->popt->crActiveLineBk);
+  }
   if (aec->dwFlags & AECLR_ACTIVECOLUMN)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
@@ -19209,6 +19354,48 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
 
       AE_UpdateCaret(ae, ae->bFocus);
     }
+    if (aec->dwFlags & AECLR_ALTLINETEXT)
+    {
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
+      }
+      else
+      {
+        ae->popt->crBasicAltLineText=aec->crBasicAltLineText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      ae->popt->crActiveAltLineText=AE_ColorCombine(ae->popt->crBasicAltLineText, ae->popt->crActiveLineText);
+      bUpdateDrawRect=TRUE;
+    }
+    if (aec->dwFlags & AECLR_ALTLINEBK)
+    {
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
+      }
+      else
+      {
+        ae->popt->crBasicAltLineBk=aec->crBasicAltLineBk;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      ae->popt->crActiveAltLineBk=AE_ColorCombine(ae->popt->crBasicAltLineBk, ae->popt->crActiveLineBk);
+      bUpdateDrawRect=TRUE;
+    }
+    if (aec->dwFlags & AECLR_ALTLINEBORDER)
+    {
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
+      }
+      else
+      {
+        ae->popt->crBasicAltLineBorder=aec->crBasicAltLineBorder;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      ae->popt->crActiveAltLineBorder=AE_ColorCombine(ae->popt->crBasicAltLineBorder, ae->popt->crActiveLineBk);
+      bUpdateDrawRect=TRUE;
+    }
     if (aec->dwFlags & AECLR_ACTIVECOLUMN)
     {
       if (aec->dwFlags & AECLR_DEFAULT)
@@ -19302,6 +19489,49 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
     AE_StackCloneUpdate(ae);
   }
+}
+
+COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2)
+{
+  int r=GetRValue(crColor1) + GetRValue(crColor2);
+  int g=GetGValue(crColor1) + GetGValue(crColor2);
+  int b=GetBValue(crColor1) + GetBValue(crColor2);
+
+  if (r > 0xFF) r-=0xFF;
+  if (g > 0xFF) g-=0xFF;
+  if (b > 0xFF) b-=0xFF;
+  return RGB(r, g, b);
+}
+
+COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent)
+{
+  //From 0% to 100%
+  if (GetRValue(crColor) + GetGValue(crColor) + GetBValue(crColor) > 0xC0)
+    return AE_ColorBrightness(crColor, -nPercent);
+  else
+    return AE_ColorBrightness(crColor, +nPercent * 8);
+}
+
+COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
+{
+  //From -100% to 0% - to dark, from 0% to 100% - to light
+  BYTE r=GetRValue(crColor);
+  BYTE g=GetGValue(crColor);
+  BYTE b=GetBValue(crColor);
+
+  if  (nPercent > 0 && nPercent <= 100)
+  {
+    r=(BYTE)(r + (nPercent * (255 - r) / 100));
+    g=(BYTE)(g + (nPercent * (255 - g) / 100));
+    b=(BYTE)(b + (nPercent * (255 - b) / 100));
+  }
+  else if (nPercent >= -100 && nPercent < 0)
+  {
+    r=(BYTE)(r + (nPercent * r / 100));
+    g=(BYTE)(g + (nPercent * g / 100));
+    b=(BYTE)(b + (nPercent * b / 100));
+  }
+  return RGB(r, g, b);
 }
 
 void AE_NotifyErrSpace(AKELEDIT *ae, SIZE_T dwBytes)
