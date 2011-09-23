@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.3                  *
+ *                 AkelUpdater NSIS plugin v3.5                  *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -886,9 +886,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDCANCEL)
     {
       pushstring("0|0", MAX_PATH);
+      EndDialog(hDlg, 0);
 
       StackPluginsFree(&hDllsStack);
-      EndDialog(hDlg, 0);
       return TRUE;
     }
   }
