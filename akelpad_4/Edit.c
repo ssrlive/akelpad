@@ -208,6 +208,7 @@ extern HSTACK hFontsStack;
 extern HSTACK hThemesStack;
 extern COLORREF crCustColors[16];
 extern RECT rcColorsMinMaxDialog;
+extern AECOLORS aecDefault;
 
 //Print
 extern HWND hWndPreviewEdit;
@@ -328,6 +329,40 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   {
     if (hResult=(HANDLE)CreateWindowExWide(cs.dwExStyle, cs.lpszClass, cs.lpszName, cs.style, cs.x, cs.y, cs.cx, cs.cy, cs.hwndParent, cs.hMenu, cs.hInstance, cs.lpCreateParams))
     {
+      if (!aecDefault.dwFlags)
+      {
+        AECOLORS aec;
+
+        //Get default colors
+        aecDefault.dwFlags=AECLR_ALL;
+        SendMessage((HWND)hResult, AEM_GETCOLORS, 0, (LPARAM)&aecDefault);
+        if (!fdInit.aec.dwFlags)
+          xmemcpy(&fdInit.aec, &aecDefault, sizeof(AECOLORS));
+
+        //Standard theme
+        API_LoadStringW(hLangLib, STR_STANDARDTHEME, wbuf, BUFFER_SIZE);
+        StackThemeAdd(&hThemesStack, wbuf, &aecDefault, 1);
+
+        if (hThemesStack.first == hThemesStack.last)
+        {
+          //Notepad++ theme
+          aec.crCaret=RGB(0x80, 0x00, 0xFF);
+          aec.crBasicText=RGB(0x00, 0x00, 0x00);
+          aec.crBasicBk=RGB(0xFF, 0xFF, 0xFF);
+          aec.crSelText=RGB(0x00, 0x00, 0x00);
+          aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
+          aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
+          aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
+          aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+          aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
+          aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
+          aec.crUrlCursorText=RGB(0x00, 0x00, 0x98);
+          aec.crBasicAltLineText=RGB(0x00, 0x00, 0x00);
+          aec.crBasicAltLineBk=RGB(0xF9, 0xF9, 0xF9);
+          aec.crBasicAltLineBorder=RGB(0xEF, 0xEF, 0xEF);
+          StackThemeAdd(&hThemesStack, L"Notepad++", &aec, -1);
+        }
+      }
       OldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
       SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (UINT_PTR)CommonEditProc);
     }
@@ -11531,7 +11566,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-          StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg);
+          StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg, -1);
           ComboBox_AddStringWide(hWndThemeName, wszThemeName);
         }
 
@@ -11602,11 +11637,11 @@ void FillComboboxThemes(HWND hWnd)
   }
 }
 
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec)
+COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, int nIndex)
 {
   COLORTHEME *ctElement;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, -1, sizeof(COLORTHEME)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, nIndex, sizeof(COLORTHEME)))
   {
     xstrcpynW(ctElement->wszName, wpName, MAX_PATH);
     ctElement->nNameLen=lstrlenW(ctElement->wszName);
@@ -11664,24 +11699,6 @@ void ReadThemes(MAINOPTIONS *mo)
   DWORD dwSizeString;
   DWORD dwIndex=0;
 
-  //Standard theme
-  API_LoadStringW(hLangLib, STR_STANDARDTHEME, wbuf, BUFFER_SIZE);
-  aec.crCaret=RGB(0x00, 0x00, 0x00);
-  aec.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
-  aec.crBasicBk=GetSysColor(COLOR_WINDOW);
-  aec.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-  aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-  aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
-  aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
-  if (GetSysColorBrush(COLOR_HOTLIGHT))
-    aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
-  else
-    aec.crUrlText=RGB(0x00, 0x00, 0xFF);
-  aec.crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
-  aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
-  aec.crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
-  StackThemeAdd(&hThemesStack, wbuf, &aec);
-
   if (mo->nSaveSettings == SS_REGISTRY)
   {
     wchar_t wszRegKey[MAX_PATH];
@@ -11696,7 +11713,7 @@ void ReadThemes(MAINOPTIONS *mo)
         if (RegEnumValueWide(hKey, dwIndex, wbuf, &dwSizeValue, NULL, &dwType, (LPBYTE)&aec, &dwSizeString) != ERROR_SUCCESS)
           break;
 
-        StackThemeAdd(&hThemesStack, wbuf, &aec);
+        StackThemeAdd(&hThemesStack, wbuf, &aec, -1);
         ++dwIndex;
       }
       RegCloseKey(hKey);
@@ -11714,29 +11731,12 @@ void ReadThemes(MAINOPTIONS *mo)
       while (lpIniKey)
       {
         StackGetIniData(lpIniKey, INI_BINARY, (LPBYTE)&aec, sizeof(AECOLORS));
-        StackThemeAdd(&hThemesStack, lpIniKey->wszKey, &aec);
+        StackThemeAdd(&hThemesStack, lpIniKey->wszKey, &aec, -1);
         ++dwIndex;
 
         lpIniKey=lpIniKey->next;
       }
     }
-  }
-
-  if (!dwIndex)
-  {
-    //Notepad++ theme
-    aec.crCaret=RGB(0x80, 0x00, 0xFF);
-    aec.crBasicText=RGB(0x00, 0x00, 0x00);
-    aec.crBasicBk=RGB(0xFF, 0xFF, 0xFF);
-    aec.crSelText=RGB(0x00, 0x00, 0x00);
-    aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
-    aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
-    aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
-    aec.crUrlText=RGB(0x00, 0x00, 0xFF);
-    aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
-    aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
-    aec.crUrlCursorText=RGB(0x00, 0x00, 0x98);
-    StackThemeAdd(&hThemesStack, L"Notepad++", &aec);
   }
 }
 
@@ -18067,8 +18067,8 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
   wchar_t *wpExeDir=wszExeDir;
   wchar_t *wszSource;
   wchar_t *wpSource;
-  wchar_t *wpTarget;
-  wchar_t *wpTargetMax;
+  wchar_t *wpTarget=wszBuffer;
+  wchar_t *wpTargetMax=wszBuffer + (wszBuffer?nBufferSize:0x7FFFFFFF);
   int nStringLen;
 
   //Expand environment strings
@@ -18079,9 +18079,6 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
     ExpandEnvironmentStringsWide(wpString, wszSource, nStringLen);
 
     //Expand plugin variables
-    wpTarget=wszBuffer;
-    wpTargetMax=wszBuffer + (wszBuffer?nBufferSize:0x7FFFFFFF);
-
     for (wpSource=wszSource; *wpSource && wpTarget < wpTargetMax;)
     {
       if (*wpSource == '%')

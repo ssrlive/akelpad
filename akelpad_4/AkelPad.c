@@ -375,6 +375,7 @@ HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
 COLORREF crCustColors[16]={0};
 RECT rcColorsMinMaxDialog={362, 284, 0, 0};
+AECOLORS aecDefault;
 
 //Print
 HWND hWndPreviewEdit=NULL;
@@ -519,6 +520,7 @@ void _WinMain()
   xmemset(&moInit, 0, sizeof(MAINOPTIONS));
   xmemset(&fdInit, 0, sizeof(FRAMEDATA));
   xmemset(&fdLast, 0, sizeof(FRAMEDATA));
+  xmemset(&aecDefault, 0, sizeof(AECOLORS));
 
   //System default codepages
   nAnsiCodePage=GetACP();
@@ -596,21 +598,6 @@ void _WinMain()
   fdInit.dwInputLocale=(HKL)(UINT_PTR)-1;
 
   //--Edit settings--
-  fdInit.aec.dwFlags=AECLR_ALL;
-  fdInit.aec.crCaret=RGB(0x00, 0x00, 0x00);
-  fdInit.aec.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
-  fdInit.aec.crBasicBk=GetSysColor(COLOR_WINDOW);
-  fdInit.aec.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-  fdInit.aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-  fdInit.aec.crActiveLineText=fdInit.aec.crBasicText;
-  fdInit.aec.crActiveLineBk=fdInit.aec.crBasicBk;
-  if (GetSysColorBrush(COLOR_HOTLIGHT))
-    fdInit.aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
-  else
-    fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
-  fdInit.aec.crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
-  fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
-  fdInit.aec.crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
   fdInit.dwEditMargins=EDIT_MARGINS;
   fdInit.nTabStopSize=EDIT_TABSTOPS;
   fdInit.bTabStopAsSpaces=FALSE;

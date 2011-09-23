@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.6.6 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.0 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.6.6 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.0 (x86)"
 #endif
 #define APP_MAIN_TITLEW             L"AkelPad"
 #define APP_MAIN_CLASSA              "AkelPad4"
@@ -928,7 +928,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxThemes(HWND hWnd);
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec);
+COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, int nIndex);
 COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName);
 COLORTHEME* StackThemeGetByColors(HSTACK *hStack, AECOLORS *aec);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
