@@ -1038,6 +1038,8 @@ BEGIN
     STR_BASIC               "Couleur de base"
     STR_SELECTION           "Sélection"
     STR_ACTIVELINE          "Ligne active"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Colonne active"
     STR_COLUMNMARKER        "Marqueur de colonne"
     STR_CARET               "Curseur"

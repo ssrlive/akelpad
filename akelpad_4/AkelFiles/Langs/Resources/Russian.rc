@@ -1048,6 +1048,8 @@ BEGIN
     STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
+    STR_ALTLINE             "Полоса ""зебры"""
+    STR_ALTLINEBORDER       "Граница ""зебры"""
     STR_ACTIVECOLUMN        "Активный столбец"
     STR_COLUMNMARKER        "Маркер"
     STR_CARET               "Каретка"
