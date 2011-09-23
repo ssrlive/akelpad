@@ -11227,7 +11227,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Set "Sample" text
       API_LoadStringW(hLangLib, STR_SAMPLE, wbuf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_ACTIVELINE; ++i)
+      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_ALTLINE; ++i)
       {
         lviW.mask=LVIF_TEXT;
         lviW.pszText=wbuf;
@@ -11334,6 +11334,37 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crActiveLineBk;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_ALTLINE)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineBk;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrText=aecColorsDlg.crBasicAltLineText;
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineBk;
+            }
+          }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_ALTLINEBORDER)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineBorder;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineBorder;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crBasicAltLineBorder;
+            }
+          }
           else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_ACTIVECOLUMN)
           {
             if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
@@ -11435,6 +11466,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crSelText);
             else if (lvhti.iItem == LVI_COLOR_ACTIVELINE)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crActiveLineText);
+            else if (lvhti.iItem == LVI_COLOR_ALTLINE)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crBasicAltLineText);
+            else if (lvhti.iItem == LVI_COLOR_ALTLINEBORDER)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crBasicAltLineBorder);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crActiveColumn);
             else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)
@@ -11454,6 +11489,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crSelBk);
             else if (lvhti.iItem == LVI_COLOR_ACTIVELINE)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crActiveLineBk);
+            else if (lvhti.iItem == LVI_COLOR_ALTLINE)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crBasicAltLineBk);
+            else if (lvhti.iItem == LVI_COLOR_ALTLINEBORDER)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crBasicAltLineBorder);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crActiveColumn);
             else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)

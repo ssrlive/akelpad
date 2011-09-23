@@ -1035,6 +1035,8 @@ BEGIN
     STR_BASIC               "Perusväri"
     STR_SELECTION           "Valinta"
     STR_ACTIVELINE          "Aktiivinen rivi"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Aktiivinen sarake"
     STR_COLUMNMARKER        "Sarakemerkki"
     STR_CARET               "Kohdistin"

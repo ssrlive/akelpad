@@ -1048,6 +1048,8 @@ BEGIN
     STR_BASIC               "Асноўны колер"
     STR_SELECTION           "Вылучэнне"
     STR_ACTIVELINE          "Актыўны радок"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Актыўны слупок"
     STR_COLUMNMARKER        "Маркер"
     STR_CARET               "Карэтка"

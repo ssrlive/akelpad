@@ -347,11 +347,13 @@
 #define LVI_COLOR_BASIC         0
 #define LVI_COLOR_SELECTION     1
 #define LVI_COLOR_ACTIVELINE    2
-#define LVI_COLOR_ACTIVECOLUMN  3
-#define LVI_COLOR_COLUMNMARKER  4
-#define LVI_COLOR_CARET         5
-#define LVI_COLOR_URL           6
-#define LVI_COLOR_ACTIVEURL     7
+#define LVI_COLOR_ALTLINE       3
+#define LVI_COLOR_ALTLINEBORDER 4
+#define LVI_COLOR_ACTIVECOLUMN  5
+#define LVI_COLOR_COLUMNMARKER  6
+#define LVI_COLOR_CARET         7
+#define LVI_COLOR_URL           8
+#define LVI_COLOR_ACTIVEURL     9
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1

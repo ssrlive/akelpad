@@ -19493,13 +19493,10 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
 
 COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2)
 {
-  int r=GetRValue(crColor1) + GetRValue(crColor2);
-  int g=GetGValue(crColor1) + GetGValue(crColor2);
-  int b=GetBValue(crColor1) + GetBValue(crColor2);
+  int r=(GetRValue(crColor1) + GetRValue(crColor2)) / 2;
+  int g=(GetGValue(crColor1) + GetGValue(crColor2)) / 2;
+  int b=(GetBValue(crColor1) + GetBValue(crColor2)) / 2;
 
-  if (r > 0xFF) r-=0xFF;
-  if (g > 0xFF) g-=0xFF;
-  if (b > 0xFF) b-=0xFF;
   return RGB(r, g, b);
 }
 

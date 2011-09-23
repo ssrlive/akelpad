@@ -1022,6 +1022,8 @@ BEGIN
     STR_BASIC               "기본 색상"
     STR_SELECTION           "선택영역"
     STR_ACTIVELINE          "현재 줄"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "활성열"
     STR_COLUMNMARKER        "열 표식"
     STR_CARET               "캐럿"

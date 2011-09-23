@@ -1028,6 +1028,8 @@ BEGIN
     STR_BASIC               "Alapszín"
     STR_SELECTION           "Kijelölés"
     STR_ACTIVELINE          "Aktív sor"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Aktív oszlop"
     STR_COLUMNMARKER        "Oszlopjelzõ"
     STR_CARET               "Kurzor"

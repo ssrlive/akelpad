@@ -1027,6 +1027,8 @@ BEGIN
     STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "アクティブな列"
     STR_COLUMNMARKER        "列マーカー"
     STR_CARET               "キャレット"

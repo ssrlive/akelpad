@@ -1028,6 +1028,8 @@ BEGIN
     STR_BASIC               "Základní barva"
     STR_SELECTION           "Výbìr"
     STR_ACTIVELINE          "Aktivní øádek"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Aktivní sloupec"
     STR_COLUMNMARKER        "Hlavièka sloupce"
     STR_CARET               "Kurzor"

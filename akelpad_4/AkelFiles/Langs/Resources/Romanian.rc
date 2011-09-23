@@ -1034,6 +1034,8 @@ BEGIN
     STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Coloanã Activã"
     STR_COLUMNMARKER        "Marcajul Coloanei"
     STR_CARET               "Cursor"

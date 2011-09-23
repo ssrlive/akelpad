@@ -1014,6 +1014,8 @@ BEGIN
     STR_BASIC               "基本颜色"
     STR_SELECTION           "选定区域"
     STR_ACTIVELINE          "当前行"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "当前列"
     STR_COLUMNMARKER        "列标尺线"
     STR_CARET               "插入点"
