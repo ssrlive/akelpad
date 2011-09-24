@@ -1220,8 +1220,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crActiveColumn)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crActiveColumn);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn);
         ae->popt->hActiveColumnPen=lpPenItem->hPen;
 
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -1499,8 +1499,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AEPENITEM *lpPenItem;
 
-      if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crColumnMarker)))
-        lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crColumnMarker);
+      if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker)))
+        lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker);
       ae->popt->hColumnMarkerPen=lpPenItem->hPen;
 
       return AE_ColumnMarkerSet(ae, (DWORD)wParam, (int)lParam, FALSE);
@@ -3243,14 +3243,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     AECOLORS aec;
 
-    aec.dwFlags=AECLR_BASICBK|AECLR_ACTIVELINEBK;
-
+    aec.dwFlags=AECLR_BASICBK;
     if (!wParam)
-    {
       aec.crBasicBk=(COLORREF)lParam;
-      aec.crActiveLineBk=(COLORREF)lParam;
-    }
-    else aec.dwFlags|=AECLR_DEFAULT;
+    else
+      aec.dwFlags|=AECLR_DEFAULT;
 
     AE_SetColors(ae, &aec);
     return 0;
@@ -4376,10 +4373,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (ae->popt->bDefaultColors)
     {
-      AECOLORS aec;
+      AECOLORS aecDefault;
 
-      aec.dwFlags=AECLR_DEFAULT|AECLR_ALL;
-      AE_SetColors(ae, &aec);
+      aecDefault.dwFlags=AECLR_DEFAULT|AECLR_ALL;
+      AE_SetColors(ae, &aecDefault);
       ae->popt->bDefaultColors=TRUE;
     }
   }
@@ -4387,29 +4384,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (wParam)
     {
-      AECOLORS aec;
-
-      aec.dwFlags=AECLR_BASICBK|AECLR_SELBK|AECLR_ACTIVELINEBK;
-      aec.crBasicBk=ae->popt->crEnableBasicBk;
-      aec.crSelBk=ae->popt->crEnableSelBk;
-      aec.crActiveLineBk=ae->popt->crEnableActiveLineBk;
-      AE_SetColors(ae, &aec);
+      AE_SetColors(ae, &ae->popt->aecEnable);
     }
     else
     {
-      AECOLORS aec;
+      AECOLORS aecDisable;
+      COLORREF *lpColorCount=(COLORREF *)((BYTE *)&aecDisable + sizeof(DWORD));
+      COLORREF *lpColorMax=(COLORREF *)((BYTE *)&aecDisable + sizeof(AECOLORS));
+      COLORREF crDisable=GetSysColor(COLOR_BTNFACE);
 
-      aec.dwFlags=AECLR_BASICBK|AECLR_SELBK|AECLR_ACTIVELINEBK;
-      AE_GetColors(ae, &aec);
-      ae->popt->crEnableBasicBk=aec.crBasicBk;
-      ae->popt->crEnableSelBk=aec.crSelBk;
-      ae->popt->crEnableActiveLineBk=aec.crActiveLineBk;
+      //Backup colors
+      xmemcpy(&ae->popt->aecEnable, &ae->popt->aec, sizeof(AECOLORS));
+      ae->popt->aecEnable.dwFlags=AECLR_BASICBK|AECLR_SELBK|AECLR_ACTIVELINEBK|AECLR_ALTLINEBORDER|AECLR_ALTLINEBK|AECLR_ACTIVELINEBORDER;
 
-      aec.dwFlags=AECLR_BASICBK|AECLR_SELBK|AECLR_ACTIVELINEBK;
-      aec.crBasicBk=GetSysColor(COLOR_BTNFACE);
-      aec.crSelBk=GetSysColor(COLOR_BTNFACE);
-      aec.crActiveLineBk=GetSysColor(COLOR_BTNFACE);
-      AE_SetColors(ae, &aec);
+      //Set COLOR_BTNFACE colors
+      aecDisable.dwFlags=ae->popt->aecEnable.dwFlags;
+      while (lpColorCount < lpColorMax)
+      {
+        *lpColorCount=crDisable;
+        ++lpColorCount;
+      }
+      AE_SetColors(ae, &aecDisable);
+      SetFocus(NULL);
     }
     return 0;
   }
@@ -4420,7 +4416,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
     AEERASE *lpEraseNext;
 
-    hbrBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
+    hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
 
     //Message came not from WM_PAINT - use all edit area
     if (!lpErase)
@@ -4592,26 +4588,9 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->ptxt->dwUndoLimit=(DWORD)-1;
     ae->ptxt->nHideMinLineOffset=1;
     ae->ptxt->nHideMaxLineOffset=-1;
-    ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
-    ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
-    ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
-    ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-    ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-    ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
-    ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-    if (GetSysColorBrush(COLOR_HOTLIGHT))
-      ae->popt->crUrlText=GetSysColor(COLOR_HOTLIGHT);
-    else
-      ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
-    ae->popt->crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
-    ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
-    ae->popt->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
-    ae->popt->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
-    ae->popt->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
-    ae->popt->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
-    ae->popt->crActiveAltLineText=AE_ColorCombine(ae->popt->crBasicAltLineText, ae->popt->crActiveLineText);
-    ae->popt->crActiveAltLineBk=AE_ColorCombine(ae->popt->crBasicAltLineBk, ae->popt->crActiveLineBk);
-    ae->popt->crActiveAltLineBorder=AE_ColorCombine(ae->popt->crBasicAltLineBorder, ae->popt->crActiveLineBk);
+
+    ae->popt->aec.dwFlags=AECLR_DEFAULT|AECLR_ALL;
+    AE_GetColors(ae, &ae->popt->aec);
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
@@ -9507,21 +9486,21 @@ int AE_SetCursor(AKELEDIT *ae)
         //Mouse moved from one URL to another - remove highlight of first URL.
         if (ae->nCurrentCursor == AECC_URL)
         {
-          if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+          if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
             AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
         }
 
         //Highlight current URL.
         xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
 
-        if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+        if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
           AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
       }
     }
     else
     {
       //Remove URL highlight.
-      if (ae->popt->crUrlText != ae->popt->crUrlCursorText)
+      if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
         AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
 
       xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
@@ -11009,12 +10988,12 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       nCaretHeight=ae->popt->nCaretOvertypeHeight;
     }
 
-    if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
+    if (ae->popt->aec.crCaret != RGB(0x00, 0x00, 0x00))
     {
       bd.nWidth=nCaretWidth;
       bd.nHeight=nCaretHeight;
-      bd.crBasic=ae->popt->crCaret;
-      bd.crInvert=ae->popt->crActiveLineBk;
+      bd.crBasic=ae->popt->aec.crCaret;
+      bd.crInvert=ae->popt->aec.crActiveLineBk;
 
       if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
         bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
@@ -11968,9 +11947,9 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
-  hbrBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-  hlp.dwDefaultText=ae->popt->crBasicText;
-  hlp.dwDefaultBk=ae->popt->crBasicBk;
+  hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+  hlp.dwDefaultText=ae->popt->aec.crBasicText;
+  hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
   hlp.dwActiveText=hlp.dwDefaultText;
   hlp.dwActiveBk=hlp.dwDefaultBk;
   hlp.dwPaintType=0;
@@ -12219,11 +12198,14 @@ void AE_Paint(AKELEDIT *ae)
     HBRUSH hbrBasicBk;
     HBRUSH hbrSelBk;
     HBRUSH hbrActiveLineBk;
-    HBRUSH hbrBasicAltLineBk=NULL;
-    HBRUSH hbrBasicAltLineBorder=NULL;
-    HBRUSH hbrActiveAltLineBk=NULL;
-    HBRUSH hbrActiveAltLineBorder=NULL;
-    HBRUSH hbrBorderBk;
+    HBRUSH hbrActiveLineBorder;
+    HBRUSH hbrAltLineBk=NULL;
+    HBRUSH hbrAltLineBorder=NULL;
+    HBRUSH hbrActiveLineBkWithAltBk=NULL;
+    HBRUSH hbrActiveLineBorderWithAltBk=NULL;
+    HBRUSH hbrActiveLineBorderWithAltBorder=NULL;
+    HBRUSH hbrBorderTop;
+    HBRUSH hbrBorderBottom;
     HBRUSH hbrTab;
     HBITMAP hBitmap;
     HBITMAP hBitmapOld=NULL;
@@ -12237,9 +12219,8 @@ void AE_Paint(AKELEDIT *ae)
     INT_PTR nMaxPaintWidth=0;
     int nCharWidth=0;
     int nLastDrawLine=0;
-    DWORD dwEvenModule=0;
+    DWORD dwAltModule=0;
     BOOL bUseBufferDC=TRUE;
-    DWORD dwAltLineDraw=AEALD_NONE;
 
     //Initialize
     xmemset(&hlp, 0, sizeof(AEHLPAINT));
@@ -12249,15 +12230,17 @@ void AE_Paint(AKELEDIT *ae)
     //Create GDI objects
     hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
     hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
-    hbrBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-    hbrSelBk=CreateSolidBrush(ae->popt->crSelBk);
-    hbrActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+    hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+    hbrSelBk=CreateSolidBrush(ae->popt->aec.crSelBk);
+    hbrActiveLineBk=CreateSolidBrush(ae->popt->aec.crActiveLineBk);
+    hbrActiveLineBorder=CreateSolidBrush(ae->popt->aec.crActiveLineBorder);
     if (ae->popt->dwAltLineSkip && ae->popt->dwAltLineFill)
     {
-      hbrBasicAltLineBk=CreateSolidBrush(ae->popt->crBasicAltLineBk);
-      hbrBasicAltLineBorder=CreateSolidBrush(ae->popt->crBasicAltLineBorder);
-      hbrActiveAltLineBk=CreateSolidBrush(ae->popt->crActiveAltLineBk);
-      hbrActiveAltLineBorder=CreateSolidBrush(ae->popt->crActiveAltLineBorder);
+      hbrAltLineBk=CreateSolidBrush(ae->popt->aec.crAltLineBk);
+      hbrAltLineBorder=CreateSolidBrush(ae->popt->aec.crAltLineBorder);
+      hbrActiveLineBkWithAltBk=CreateSolidBrush(ae->popt->crActiveLineBkWithAltBk);
+      hbrActiveLineBorderWithAltBk=CreateSolidBrush(ae->popt->crActiveLineBorderWithAltBk);
+      hbrActiveLineBorderWithAltBorder=CreateSolidBrush(ae->popt->crActiveLineBorderWithAltBorder);
     }
 
     //Set DCs
@@ -12338,50 +12321,60 @@ void AE_Paint(AKELEDIT *ae)
         pntNotify.ptMinDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
         pntNotify.ptMinDraw.y=(int)to.ptFirstCharInLine.y;
 
-        //Is line even
+        //Is line alternating
+        hbrBorderTop=NULL;
+        hbrBorderBottom=NULL;
+
         if (ae->popt->dwAltLineSkip && ae->popt->dwAltLineFill)
         {
-          dwEvenModule=to.ciDrawLine.nLine % (ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill);
+          dwAltModule=to.ciDrawLine.nLine % (ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill);
 
-          if (dwEvenModule >= ae->popt->dwAltLineSkip)
+          if (dwAltModule >= ae->popt->dwAltLineSkip)
           {
-            dwAltLineDraw=AEALD_DRAWLINE;
-            if (dwEvenModule == ae->popt->dwAltLineSkip)
-              dwAltLineDraw|=AEALD_DRAWBORDERTOP;
-            if (dwEvenModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
-              dwAltLineDraw|=AEALD_DRAWBORDERBOTTOM;
+            if (dwAltModule == ae->popt->dwAltLineSkip)
+              hbrBorderTop=hbrAltLineBorder;
+            if (dwAltModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
+              hbrBorderBottom=hbrAltLineBorder;
           }
-          else dwAltLineDraw=AEALD_NONE;
+          else dwAltModule=0;
         }
 
         //Set initial colors
         if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
         {
-          if (dwAltLineDraw)
+          if (dwAltModule)
           {
-            hlp.dwDefaultText=ae->popt->crActiveAltLineText;
-            hlp.dwDefaultBk=ae->popt->crActiveAltLineBk;
-            hbrDefaultBk=hbrActiveAltLineBk;
-            hbrBorderBk=hbrActiveAltLineBorder;
+            hlp.dwDefaultText=ae->popt->crActiveLineTextWithAltText;
+            hlp.dwDefaultBk=ae->popt->crActiveLineBkWithAltBk;
+            hbrDefaultBk=hbrActiveLineBkWithAltBk;
+            if (hbrBorderTop)
+              hbrBorderTop=hbrActiveLineBorderWithAltBorder;
+            else
+              hbrBorderTop=hbrActiveLineBorderWithAltBk;
+            if (hbrBorderBottom)
+              hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
+            else
+              hbrBorderBottom=hbrActiveLineBorderWithAltBk;
           }
           else
           {
-            hlp.dwDefaultText=ae->popt->crActiveLineText;
-            hlp.dwDefaultBk=ae->popt->crActiveLineBk;
+            hlp.dwDefaultText=ae->popt->aec.crActiveLineText;
+            hlp.dwDefaultBk=ae->popt->aec.crActiveLineBk;
             hbrDefaultBk=hbrActiveLineBk;
+            hbrBorderTop=hbrActiveLineBorder;
+            hbrBorderBottom=hbrActiveLineBorder;
           }
         }
-        else if (dwAltLineDraw)
+        else if (dwAltModule)
         {
-          hlp.dwDefaultText=ae->popt->crBasicAltLineText;
-          hlp.dwDefaultBk=ae->popt->crBasicAltLineBk;
-          hbrDefaultBk=hbrBasicAltLineBk;
-          hbrBorderBk=hbrBasicAltLineBorder;
+          hlp.dwDefaultText=ae->popt->aec.crAltLineText;
+          hlp.dwDefaultBk=ae->popt->aec.crAltLineBk;
+          hbrDefaultBk=hbrAltLineBk;
         }
         else
         {
-          hlp.dwDefaultText=ae->popt->crBasicText;
-          hlp.dwDefaultBk=ae->popt->crBasicBk;
+          hlp.dwDefaultText=ae->popt->aec.crBasicText;
+          hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
           hbrDefaultBk=hbrBasicBk;
         }
         hlp.dwActiveText=hlp.dwDefaultText;
@@ -12396,20 +12389,17 @@ void AE_Paint(AKELEDIT *ae)
         rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
         FillRect(to.hDC, &rcSpace, hbrDefaultBk);
 
-        if (dwAltLineDraw)
+        if (hbrBorderTop)
         {
-          if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
-          {
-            rcSpace.top=(int)to.ptFirstCharInLine.y;
-            rcSpace.bottom=rcSpace.top + 1;
-            FillRect(to.hDC, &rcSpace, hbrBorderBk);
-          }
-          if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
-          {
-            rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-            rcSpace.bottom=rcSpace.top + 1;
-            FillRect(to.hDC, &rcSpace, hbrBorderBk);
-          }
+          rcSpace.top=(int)to.ptFirstCharInLine.y;
+          rcSpace.bottom=rcSpace.top + 1;
+          FillRect(to.hDC, &rcSpace, hbrBorderTop);
+        }
+        if (hbrBorderBottom)
+        {
+          rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+          rcSpace.bottom=rcSpace.top + 1;
+          FillRect(to.hDC, &rcSpace, hbrBorderBottom);
         }
 
         //Fill space after line end, before text line is drawn.
@@ -12432,20 +12422,17 @@ void AE_Paint(AKELEDIT *ae)
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                   FillRect(to.hDC, &rcSpace, hbrDefaultBk);
 
-                  if (dwAltLineDraw)
+                  if (hbrBorderTop)
                   {
-                    if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
-                    {
-                      rcSpace.top=(int)to.ptFirstCharInLine.y;
-                      rcSpace.bottom=rcSpace.top + 1;
-                      FillRect(to.hDC, &rcSpace, hbrBorderBk);
-                    }
-                    if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
-                    {
-                      rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-                      rcSpace.bottom=rcSpace.top + 1;
-                      FillRect(to.hDC, &rcSpace, hbrBorderBk);
-                    }
+                    rcSpace.top=(int)to.ptFirstCharInLine.y;
+                    rcSpace.bottom=rcSpace.top + 1;
+                    FillRect(to.hDC, &rcSpace, hbrBorderTop);
+                  }
+                  if (hbrBorderBottom)
+                  {
+                    rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+                    rcSpace.bottom=rcSpace.top + 1;
+                    FillRect(to.hDC, &rcSpace, hbrBorderBottom);
                   }
                 }
                 if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
@@ -12504,20 +12491,17 @@ void AE_Paint(AKELEDIT *ae)
             rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
             FillRect(to.hDC, &rcSpace, hbrDefaultBk);
 
-            if (dwAltLineDraw)
+            if (hbrBorderTop)
             {
-              if (dwAltLineDraw & AEALD_DRAWBORDERTOP)
-              {
-                rcSpace.top=(int)to.ptFirstCharInLine.y;
-                rcSpace.bottom=rcSpace.top + 1;
-                FillRect(to.hDC, &rcSpace, hbrBorderBk);
-              }
-              if (dwAltLineDraw & AEALD_DRAWBORDERBOTTOM)
-              {
-                rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-                rcSpace.bottom=rcSpace.top + 1;
-                FillRect(to.hDC, &rcSpace, hbrBorderBk);
-              }
+              rcSpace.top=(int)to.ptFirstCharInLine.y;
+              rcSpace.bottom=rcSpace.top + 1;
+              FillRect(to.hDC, &rcSpace, hbrBorderTop);
+            }
+            if (hbrBorderBottom)
+            {
+              rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
+              rcSpace.bottom=rcSpace.top + 1;
+              FillRect(to.hDC, &rcSpace, hbrBorderBottom);
             }
           }
         }
@@ -12641,10 +12625,12 @@ void AE_Paint(AKELEDIT *ae)
     }
     if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
     DeleteObject(hDrawRgn);
-    if (hbrActiveAltLineBorder) DeleteObject(hbrActiveAltLineBorder);
-    if (hbrActiveAltLineBk) DeleteObject(hbrActiveAltLineBk);
-    if (hbrBasicAltLineBorder) DeleteObject(hbrBasicAltLineBorder);
-    if (hbrBasicAltLineBk) DeleteObject(hbrBasicAltLineBk);
+    if (hbrActiveLineBorderWithAltBorder) DeleteObject(hbrActiveLineBorderWithAltBorder);
+    if (hbrActiveLineBorderWithAltBk) DeleteObject(hbrActiveLineBorderWithAltBk);
+    if (hbrActiveLineBkWithAltBk) DeleteObject(hbrActiveLineBkWithAltBk);
+    if (hbrAltLineBorder) DeleteObject(hbrAltLineBorder);
+    if (hbrAltLineBk) DeleteObject(hbrAltLineBk);
+    DeleteObject(hbrActiveLineBorder);
     DeleteObject(hbrActiveLineBk);
     DeleteObject(hbrSelBk);
     DeleteObject(hbrBasicBk);
@@ -12815,8 +12801,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         AE_PaintTextOut(ae, to, hlp);
         hlp->dwPaintType|=AEHPT_SELECTION;
       }
-      hlp->dwActiveText=ae->popt->crSelText;
-      hlp->dwActiveBk=ae->popt->crSelBk;
+      hlp->dwActiveText=ae->popt->aec.crSelText;
+      hlp->dwActiveBk=ae->popt->aec.crSelBk;
       hlp->dwPaintType|=AEHPT_SELECTION;
       hlp->dwFontStyle=AEHLS_NONE;
     }
@@ -12859,9 +12845,9 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       {
         //Is cursor on URL
         if (ae->nCurrentCursor == AECC_URL && !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
-          hlp->dwActiveText=ae->popt->crUrlCursorText;
+          hlp->dwActiveText=ae->popt->aec.crUrlCursorText;
         else
-          hlp->dwActiveText=ae->popt->crUrlText;
+          hlp->dwActiveText=ae->popt->aec.crUrlText;
         hlp->dwActiveBk=hlp->dwDefaultBk;
         hlp->dwFontStyle=AEHLS_NONE;
       }
@@ -13477,14 +13463,14 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
     hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
     //Default colors
-    hlp.dwDefaultText=ae->popt->crBasicText;
-    hlp.dwDefaultBk=ae->popt->crBasicBk;
+    hlp.dwDefaultText=ae->popt->aec.crBasicText;
+    hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
     if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
     {
       if (!(gh->dwFlags & AEGHF_NOACTIVELINETEXT))
-        hlp.dwDefaultText=ae->popt->crActiveLineText;
+        hlp.dwDefaultText=ae->popt->aec.crActiveLineText;
       if (!(gh->dwFlags & AEGHF_NOACTIVELINEBK))
-        hlp.dwDefaultBk=ae->popt->crActiveLineBk;
+        hlp.dwDefaultBk=ae->popt->aec.crActiveLineBk;
     }
     hlp.dwActiveText=hlp.dwDefaultText;
     hlp.dwActiveBk=hlp.dwDefaultBk;
@@ -19165,87 +19151,95 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     else
-      aec->crBasicText=ae->popt->crBasicText;
+      aec->crBasicText=ae->popt->aec.crBasicText;
   }
   if (aec->dwFlags & AECLR_BASICBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crBasicBk=GetSysColor(COLOR_WINDOW);
     else
-      aec->crBasicBk=ae->popt->crBasicBk;
+      aec->crBasicBk=ae->popt->aec.crBasicBk;
   }
   if (aec->dwFlags & AECLR_SELTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
     else
-      aec->crSelText=ae->popt->crSelText;
+      aec->crSelText=ae->popt->aec.crSelText;
   }
   if (aec->dwFlags & AECLR_SELBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
     else
-      aec->crSelBk=ae->popt->crSelBk;
+      aec->crSelBk=ae->popt->aec.crSelBk;
   }
   if (aec->dwFlags & AECLR_ACTIVELINETEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
     else
-      aec->crActiveLineText=ae->popt->crActiveLineText;
+      aec->crActiveLineText=ae->popt->aec.crActiveLineText;
   }
   if (aec->dwFlags & AECLR_ACTIVELINEBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-    else
-      aec->crActiveLineBk=ae->popt->crActiveLineBk;
+    {
+      aec->crActiveLineBk=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 94);
+      aec->crActiveLineBk=AE_ColorCombine(aec->crActiveLineBk, GetSysColor(COLOR_WINDOW));
+    }
+    else aec->crActiveLineBk=ae->popt->aec.crActiveLineBk;
+  }
+  if (aec->dwFlags & AECLR_ACTIVELINEBORDER)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+    {
+      aec->crActiveLineBorder=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 90);
+      aec->crActiveLineBorder=AE_ColorCombine(aec->crActiveLineBorder, GetSysColor(COLOR_WINDOW));
+    }
+    else aec->crActiveLineBorder=ae->popt->aec.crActiveLineBorder;
   }
   if (aec->dwFlags & AECLR_ALTLINETEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
+      aec->crAltLineText=GetSysColor(COLOR_WINDOWTEXT);
     else
-      aec->crBasicAltLineText=ae->popt->crBasicAltLineText;
-    aec->crActiveAltLineText=AE_ColorCombine(aec->crBasicAltLineText, (aec->dwFlags & AECLR_ACTIVELINETEXT)?aec->crActiveLineText:ae->popt->crActiveLineText);
+      aec->crAltLineText=ae->popt->aec.crAltLineText;
   }
   if (aec->dwFlags & AECLR_ALTLINEBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
+      aec->crAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
     else
-      aec->crBasicAltLineBk=ae->popt->crBasicAltLineBk;
-    aec->crActiveAltLineBk=AE_ColorCombine(aec->crBasicAltLineBk, (aec->dwFlags & AECLR_ACTIVELINEBK)?aec->crActiveLineBk:ae->popt->crActiveLineBk);
+      aec->crAltLineBk=ae->popt->aec.crAltLineBk;
   }
   if (aec->dwFlags & AECLR_ALTLINEBORDER)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
+      aec->crAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
     else
-      aec->crBasicAltLineBorder=ae->popt->crBasicAltLineBorder;
-    aec->crActiveAltLineBorder=AE_ColorCombine(aec->crBasicAltLineBorder, (aec->dwFlags & AECLR_ACTIVELINEBK)?aec->crActiveLineBk:ae->popt->crActiveLineBk);
+      aec->crAltLineBorder=ae->popt->aec.crAltLineBorder;
   }
   if (aec->dwFlags & AECLR_ACTIVECOLUMN)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
     else
-      aec->crActiveColumn=ae->popt->crActiveColumn;
+      aec->crActiveColumn=ae->popt->aec.crActiveColumn;
   }
   if (aec->dwFlags & AECLR_COLUMNMARKER)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crColumnMarker=GetSysColor(COLOR_BTNFACE);
     else
-      aec->crColumnMarker=ae->popt->crColumnMarker;
+      aec->crColumnMarker=ae->popt->aec.crColumnMarker;
   }
   if (aec->dwFlags & AECLR_CARET)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crCaret=RGB(0x00, 0x00, 0x00);
     else
-      aec->crCaret=ae->popt->crCaret;
+      aec->crCaret=ae->popt->aec.crCaret;
   }
   if (aec->dwFlags & AECLR_URLTEXT)
   {
@@ -19256,238 +19250,126 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
       else
         aec->crUrlText=RGB(0x00, 0x00, 0xFF);
     }
-    else aec->crUrlText=ae->popt->crUrlText;
+    else aec->crUrlText=ae->popt->aec.crUrlText;
   }
   if (aec->dwFlags & AECLR_URLCURSORTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
       aec->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
     else
-      aec->crUrlCursorText=ae->popt->crUrlCursorText;
+      aec->crUrlCursorText=ae->popt->aec.crUrlCursorText;
   }
 }
 
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
 {
-  BOOL bUpdateDrawRect=FALSE;
-  BOOL bUpdateEditRect=FALSE;
-
   if (aec->dwFlags)
   {
+    AECOLORS aecDefault;
+
+    if (aec->dwFlags & AECLR_DEFAULT)
+    {
+      aecDefault.dwFlags=aec->dwFlags;
+      AE_GetColors(ae, &aecDefault);
+      aec=&aecDefault;
+    }
+    else ae->popt->bDefaultColors=FALSE;
+
     if (aec->dwFlags & AECLR_BASICTEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
-      }
-      else
-      {
-        ae->popt->crBasicText=aec->crBasicText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crBasicText=aec->crBasicText;
     }
     if (aec->dwFlags & AECLR_BASICBK)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
-      }
-      else
-      {
-        ae->popt->crBasicBk=aec->crBasicBk;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateEditRect=TRUE;
+      ae->popt->aec.crBasicBk=aec->crBasicBk;
     }
     if (aec->dwFlags & AECLR_SELTEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-      }
-      else
-      {
-        ae->popt->crSelText=aec->crSelText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crSelText=aec->crSelText;
     }
     if (aec->dwFlags & AECLR_SELBK)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-      }
-      else
-      {
-        ae->popt->crSelBk=aec->crSelBk;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crSelBk=aec->crSelBk;
     }
     if (aec->dwFlags & AECLR_ACTIVELINETEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
-      }
-      else
-      {
-        ae->popt->crActiveLineText=aec->crActiveLineText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crActiveLineText=aec->crActiveLineText;
     }
     if (aec->dwFlags & AECLR_ACTIVELINEBK)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-      }
-      else
-      {
-        ae->popt->crActiveLineBk=aec->crActiveLineBk;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
-
-      AE_UpdateCaret(ae, ae->bFocus);
+      ae->popt->aec.crActiveLineBk=aec->crActiveLineBk;
+    }
+    if (aec->dwFlags & AECLR_ACTIVELINEBORDER)
+    {
+      ae->popt->aec.crActiveLineBorder=aec->crActiveLineBorder;
     }
     if (aec->dwFlags & AECLR_ALTLINETEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crBasicAltLineText=GetSysColor(COLOR_WINDOWTEXT);
-      }
-      else
-      {
-        ae->popt->crBasicAltLineText=aec->crBasicAltLineText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      ae->popt->crActiveAltLineText=AE_ColorCombine(ae->popt->crBasicAltLineText, ae->popt->crActiveLineText);
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crAltLineText=aec->crAltLineText;
     }
     if (aec->dwFlags & AECLR_ALTLINEBK)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crBasicAltLineBk=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 3);
-      }
-      else
-      {
-        ae->popt->crBasicAltLineBk=aec->crBasicAltLineBk;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      ae->popt->crActiveAltLineBk=AE_ColorCombine(ae->popt->crBasicAltLineBk, ae->popt->crActiveLineBk);
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crAltLineBk=aec->crAltLineBk;
     }
     if (aec->dwFlags & AECLR_ALTLINEBORDER)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crBasicAltLineBorder=AE_ColorSmooth(GetSysColor(COLOR_WINDOW), 7);
-      }
-      else
-      {
-        ae->popt->crBasicAltLineBorder=aec->crBasicAltLineBorder;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      ae->popt->crActiveAltLineBorder=AE_ColorCombine(ae->popt->crBasicAltLineBorder, ae->popt->crActiveLineBk);
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crAltLineBorder=aec->crAltLineBorder;
     }
     if (aec->dwFlags & AECLR_ACTIVECOLUMN)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crActiveColumn=GetSysColor(COLOR_GRAYTEXT);
-      }
-      else
-      {
-        ae->popt->crActiveColumn=aec->crActiveColumn;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crActiveColumn=aec->crActiveColumn;
 
       if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crActiveColumn)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crActiveColumn);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn);
         ae->popt->hActiveColumnPen=lpPenItem->hPen;
       }
     }
     if (aec->dwFlags & AECLR_COLUMNMARKER)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
-      }
-      else
-      {
-        ae->popt->crColumnMarker=aec->crColumnMarker;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crColumnMarker=aec->crColumnMarker;
 
       if (ae->popt->dwColumnMarkerPos)
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->crColumnMarker)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->crColumnMarker);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker);
         ae->popt->hColumnMarkerPen=lpPenItem->hPen;
       }
     }
     if (aec->dwFlags & AECLR_CARET)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
-      }
-      else
-      {
-        ae->popt->crCaret=aec->crCaret;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      AE_UpdateCaret(ae, ae->bFocus);
+      ae->popt->aec.crCaret=aec->crCaret;
     }
     if (aec->dwFlags & AECLR_URLTEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        if (GetSysColorBrush(COLOR_HOTLIGHT))
-          ae->popt->crUrlText=GetSysColor(COLOR_HOTLIGHT);
-        else
-          ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
-      }
-      else
-      {
-        ae->popt->crUrlText=aec->crUrlText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crUrlText=aec->crUrlText;
     }
     if (aec->dwFlags & AECLR_URLCURSORTEXT)
     {
-      if (aec->dwFlags & AECLR_DEFAULT)
-      {
-        ae->popt->crUrlCursorText=GetSysColor(COLOR_HIGHLIGHT);
-      }
-      else
-      {
-        ae->popt->crUrlCursorText=aec->crUrlCursorText;
-        ae->popt->bDefaultColors=FALSE;
-      }
-      bUpdateDrawRect=TRUE;
+      ae->popt->aec.crUrlCursorText=aec->crUrlCursorText;
     }
+    ae->popt->crActiveLineTextWithAltText=AE_ColorCombine(ae->popt->aec.crActiveLineText, ae->popt->aec.crAltLineText);
+    ae->popt->crActiveLineBkWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBk, ae->popt->aec.crAltLineBk);
+    ae->popt->crActiveLineBorderWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBk);
+    ae->popt->crActiveLineBorderWithAltBorder=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBorder);
 
-    if (bUpdateEditRect)
-      InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
-    else if (bUpdateDrawRect)
-      InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-    AE_StackCloneUpdate(ae);
+    if ((aec->dwFlags & AECLR_CARET) || (aec->dwFlags & AECLR_ACTIVELINEBK))
+    {
+      AE_UpdateCaret(ae, ae->bFocus);
+    }
+    if (aec->dwFlags & ~AECLR_CARET)
+    {
+      if (aec->dwFlags & AECLR_BASICBK)
+        InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
+      else
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+      AE_StackCloneUpdate(ae);
+    }
   }
 }
 
@@ -19513,15 +19395,6 @@ COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2)
   return RGB(r, g, b);
 }
 
-COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent)
-{
-  //From 0% to 100%
-  if (GetRValue(crColor) + GetGValue(crColor) + GetBValue(crColor) > 0xC0)
-    return AE_ColorBrightness(crColor, -nPercent);
-  else
-    return AE_ColorBrightness(crColor, +nPercent * 8);
-}
-
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
 {
   //From -100% to 0% - to dark, from 0% to 100% - to light
@@ -19542,6 +19415,15 @@ COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
     b=(BYTE)(b + (nPercent * b / 100));
   }
   return RGB(r, g, b);
+}
+
+COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent)
+{
+  //From 0% to 100%
+  if (GetRValue(crColor) + GetGValue(crColor) + GetBValue(crColor) > 0xC0)
+    return AE_ColorBrightness(crColor, -nPercent);
+  else
+    return AE_ColorBrightness(crColor, +nPercent * 8);
 }
 
 void AE_NotifyErrSpace(AKELEDIT *ae, SIZE_T dwBytes)

@@ -4,6 +4,7 @@ AkelPad 4.6.6 ()
 Changed: active column flashing minimized.
 
 Added: ability to display alternating lines in different colors.
+Added: ability to set color for border of active line.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 
 Fixed: file could be saved in virtual store (UAC).

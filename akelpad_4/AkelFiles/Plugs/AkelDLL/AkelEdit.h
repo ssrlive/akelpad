@@ -339,35 +339,37 @@
 #define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
 
 //AEM_SETCOLORS flags
-#define AECLR_DEFAULT        0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
-#define AECLR_CARET          0x00000002  //Sets caret color. crCaret member is valid.
-#define AECLR_BASICTEXT      0x00000004  //Sets basic text color. crBasicText member is valid.
-#define AECLR_BASICBK        0x00000008  //Sets basic background color. crBasicBk member is valid.
-#define AECLR_SELTEXT        0x00000010  //Sets text in selection color. crSelText member is valid.
-#define AECLR_SELBK          0x00000020  //Sets background in selection color. crSelBk member is valid.
-#define AECLR_ACTIVELINETEXT 0x00000040  //Sets active line text color. crActiveLineText member is valid.
-#define AECLR_ACTIVELINEBK   0x00000080  //Sets active line background color. crActiveLineBk member is valid.
-#define AECLR_URLTEXT        0x00000100  //Sets hyperlink text color. crUrlText member is valid.
-#define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
-#define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
-#define AECLR_URLCURSORTEXT  0x00000800  //Sets active hyperlink text color. crUrlCursorText member is valid.
-#define AECLR_ALTLINETEXT    0x00001000  //Sets alternating line text color. crBasicAltLineText member is valid.
-#define AECLR_ALTLINEBK      0x00002000  //Sets alternating line background color. crBasicAltLineBk member is valid.
-#define AECLR_ALTLINEBORDER  0x00004000  //Sets alternating line border color. crBasicAltLineBorder member is valid.
+#define AECLR_DEFAULT          0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
+#define AECLR_CARET            0x00000002  //Sets caret color. crCaret member is valid.
+#define AECLR_BASICTEXT        0x00000004  //Sets basic text color. crBasicText member is valid.
+#define AECLR_BASICBK          0x00000008  //Sets basic background color. crBasicBk member is valid.
+#define AECLR_SELTEXT          0x00000010  //Sets text in selection color. crSelText member is valid.
+#define AECLR_SELBK            0x00000020  //Sets background in selection color. crSelBk member is valid.
+#define AECLR_ACTIVELINETEXT   0x00000040  //Sets active line text color. crActiveLineText member is valid.
+#define AECLR_ACTIVELINEBK     0x00000080  //Sets active line background color. crActiveLineBk member is valid.
+#define AECLR_URLTEXT          0x00000100  //Sets hyperlink text color. crUrlText member is valid.
+#define AECLR_ACTIVECOLUMN     0x00000200  //Sets active column color. crActiveColumn member is valid.
+#define AECLR_COLUMNMARKER     0x00000400  //Sets column marker color. crColumnMarker member is valid.
+#define AECLR_URLCURSORTEXT    0x00000800  //Sets active hyperlink text color. crUrlCursorText member is valid.
+#define AECLR_ACTIVELINEBORDER 0x00001000  //Sets active line border color. crActiveLineBorder member is valid.
+#define AECLR_ALTLINETEXT      0x00002000  //Sets alternating line text color. crAltLineText member is valid.
+#define AECLR_ALTLINEBK        0x00004000  //Sets alternating line background color. crAltLineBk member is valid.
+#define AECLR_ALTLINEBORDER    0x00008000  //Sets alternating line border color. crAltLineBorder member is valid.
 
-#define AECLR_ALL  (AECLR_CARET          |\
-                    AECLR_BASICTEXT      |\
-                    AECLR_BASICBK        |\
-                    AECLR_SELTEXT        |\
-                    AECLR_SELBK          |\
-                    AECLR_ACTIVELINETEXT |\
-                    AECLR_ACTIVELINEBK   |\
-                    AECLR_URLTEXT        |\
-                    AECLR_ACTIVECOLUMN   |\
-                    AECLR_COLUMNMARKER   |\
-                    AECLR_URLCURSORTEXT  |\
-                    AECLR_ALTLINETEXT    |\
-                    AECLR_ALTLINEBK      |\
+#define AECLR_ALL  (AECLR_CARET            |\
+                    AECLR_BASICTEXT        |\
+                    AECLR_BASICBK          |\
+                    AECLR_SELTEXT          |\
+                    AECLR_SELBK            |\
+                    AECLR_ACTIVELINETEXT   |\
+                    AECLR_ACTIVELINEBK     |\
+                    AECLR_URLTEXT          |\
+                    AECLR_ACTIVECOLUMN     |\
+                    AECLR_COLUMNMARKER     |\
+                    AECLR_URLCURSORTEXT    |\
+                    AECLR_ACTIVELINEBORDER |\
+                    AECLR_ALTLINETEXT      |\
+                    AECLR_ALTLINEBK        |\
                     AECLR_ALTLINEBORDER)
 
 //Print
@@ -917,12 +919,10 @@ typedef struct {
   COLORREF crActiveColumn;        //[in] Active column color.
   COLORREF crColumnMarker;        //[in] Column marker color.
   COLORREF crUrlCursorText;       //[in] Active hyperlink text color.
-  COLORREF crBasicAltLineText;    //[in] Basic text color in alternating line.
-  COLORREF crBasicAltLineBk;      //[in] Basic background color in alternating line.
-  COLORREF crBasicAltLineBorder;  //[in] Basic border color in alternating line.
-  COLORREF crActiveAltLineText;   //[in] Text color in active alternating line (read-only).
-  COLORREF crActiveAltLineBk;     //[in] Background color in active alternating line (read-only).
-  COLORREF crActiveAltLineBorder; //[in] Border color in active alternating line (read-only).
+  COLORREF crActiveLineBorder;    //[in] Border color in active line.
+  COLORREF crAltLineText;         //[in] Text color in alternating line.
+  COLORREF crAltLineBk;           //[in] Background color in alternating line.
+  COLORREF crAltLineBorder;       //[in] Border color in alternating line.
 } AECOLORS;
 
 typedef struct {
