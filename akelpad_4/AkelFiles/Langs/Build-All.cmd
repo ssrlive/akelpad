@@ -68,9 +68,6 @@ if not %ERRORLEVEL% == 0 goto END
 call :COMPILE "Russian" 0x419
 if not %ERRORLEVEL% == 0 goto END
 
-call :COMPILE "Russian" 0x419
-if not %ERRORLEVEL% == 0 goto END
-
 call :COMPILE "Slovak" 0x41B
 if not %ERRORLEVEL% == 0 goto END
 
