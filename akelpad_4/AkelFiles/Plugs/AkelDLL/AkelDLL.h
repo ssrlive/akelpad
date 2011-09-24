@@ -509,12 +509,10 @@ typedef struct {
     COLORREF crActiveColumn;
     COLORREF crColumnMarker;
     COLORREF crUrlCursorText;
-    COLORREF crBasicAltLineText;
-    COLORREF crBasicAltLineBk;
-    COLORREF crBasicAltLineBorder;
-    COLORREF crActiveAltLineText;
-    COLORREF crActiveAltLineBk;
-    COLORREF crActiveAltLineBorder;
+    COLORREF crActiveLineBorder;
+    COLORREF crAltLineText;
+    COLORREF crAltLineBk;
+    COLORREF crAltLineBorder;
   } AECOLORS;
 
   DECLARE_HANDLE (AEHDOC);

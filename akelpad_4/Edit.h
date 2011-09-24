@@ -344,16 +344,17 @@
 #define AE_PRINT         0x00000010
 
 //Colors list
-#define LVI_COLOR_BASIC         0
-#define LVI_COLOR_SELECTION     1
-#define LVI_COLOR_ACTIVELINE    2
-#define LVI_COLOR_ALTLINE       3
-#define LVI_COLOR_ALTLINEBORDER 4
-#define LVI_COLOR_ACTIVECOLUMN  5
-#define LVI_COLOR_COLUMNMARKER  6
-#define LVI_COLOR_CARET         7
-#define LVI_COLOR_URL           8
-#define LVI_COLOR_ACTIVEURL     9
+#define LVI_COLOR_BASIC            0
+#define LVI_COLOR_SELECTION        1
+#define LVI_COLOR_ACTIVELINE       2
+#define LVI_COLOR_ACTIVELINEBORDER 3
+#define LVI_COLOR_ALTLINE          4
+#define LVI_COLOR_ALTLINEBORDER    5
+#define LVI_COLOR_ACTIVECOLUMN     6
+#define LVI_COLOR_COLUMNMARKER     7
+#define LVI_COLOR_CARET            8
+#define LVI_COLOR_URL              9
+#define LVI_COLOR_ACTIVEURL        10
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1
