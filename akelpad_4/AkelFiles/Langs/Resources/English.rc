@@ -563,7 +563,7 @@ IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Recode"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     RTEXT           "From:",IDC_STATIC,6,11,35,8
     COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
@@ -571,8 +571,8 @@ BEGIN
     RTEXT           "To:",IDC_STATIC,6,29,35,8
     COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,207,19,65,12
+    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,207,19,65,12
     CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
                     WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
                     WS_EX_CLIENTEDGE
@@ -580,22 +580,22 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,219,193,50,14,BS_CENTER
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 171
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 260, 201
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
 CAPTION "Colors"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
-    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
+    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,129,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,145,16,50,14
+    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,197,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,101
-    PUSHBUTTON      "OK",IDOK,123,151,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,151,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,239,131
+    PUSHBUTTON      "OK",IDOK,145,181,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,198,181,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
@@ -1021,26 +1021,27 @@ BEGIN
     STR_BASIC               "Basic color"
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
+    STR_ACTIVELINEBORDER    "Active line border"
+    STR_ALTLINE             "Alt line"
+    STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Active column"
     STR_COLUMNMARKER        "Column marker"
     STR_CARET               "Caret"
     STR_URL                 "Hyperlink"
     STR_ACTIVEURL           "Active hyperlink"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
     STR_PAGEFIT             "Fit page"
     STR_PAGEWIDTH           "Page width"
     STR_ALLFILES            "All files"
     STR_ONLYMODIFIED        "Modified"
     STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
-    STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_INVERTSELECTION     "Invert selection"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Yes"
+    STR_MESSAGEBOX_NO       "&No"
     STR_MESSAGEBOX_CANCEL   "Cancel"
     STR_MESSAGEBOX_YESTOALL "Yes to all"
     STR_MESSAGEBOX_NOTOALL  "No to all"

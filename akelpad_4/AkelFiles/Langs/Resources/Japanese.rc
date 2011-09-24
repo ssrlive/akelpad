@@ -188,7 +188,7 @@ BEGIN
     END
     POPUP "ヘルプ(&H)"
     BEGIN
-        MENUITEM "マニュアル(&M)",                     IDM_MANUAL
+        MENUITEM "マニュアル(&M)",              IDM_MANUAL
         MENUITEM SEPARATOR
         MENUITEM "バージョン情報(&A)",          IDM_ABOUT
     END
@@ -567,7 +567,7 @@ IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "再コード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     RTEXT           "コード元:",IDC_STATIC,6,11,35,8
     COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
@@ -575,8 +575,8 @@ BEGIN
     RTEXT           "コード先:",IDC_STATIC,6,29,35,8
     COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,207,19,65,12
+    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,207,19,65,12
     CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
                     WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
                     WS_EX_CLIENTEDGE
@@ -584,22 +584,22 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,219,193,50,14,BS_CENTER
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 171
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 260, 201
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
 CAPTION "カラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "カラー テーマ:",IDC_STATIC,11,6,103,8
-    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
+    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,129,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "保存",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "削除",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "保存",IDC_COLORS_THEME_SAVE,145,16,50,14
+    PUSHBUTTON      "削除",IDC_COLORS_THEME_DELETE,197,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,101
-    PUSHBUTTON      "OK",IDOK,123,151,50,14,BS_CENTER
-    PUSHBUTTON      "キャンセル",IDCANCEL,176,151,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,239,131
+    PUSHBUTTON      "OK",IDOK,145,181,50,14,BS_CENTER
+    PUSHBUTTON      "キャンセル",IDCANCEL,198,181,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
@@ -854,15 +854,15 @@ BEGIN
     CONTROL         "範囲が選択されていれば ""選択範囲から"" をチェックする",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
-    CONTROL         "最初に戻って検索を続ける",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
+    CONTROL         "最初に戻って検索を続ける",IDC_OPTIONS_CYCLESEARCH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "バージョン情報"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
@@ -940,7 +940,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "メッセージ キューのエラーです。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY "Critical error: not enough memory. It is recommended to terminate the program."
+    MSG_ERROR_NOT_ENOUGH_MEMORY 
+                            "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" はバイナリ ファイルです。続行しますか?"
     MSG_ERROR_IO            "入力/出力エラーです。"
     MSG_ERROR_SYNTAX        "構文エラーです。"
@@ -1027,6 +1028,7 @@ BEGIN
     STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
+    STR_ACTIVELINEBORDER    "Active line border"
     STR_ALTLINE             "Alt line"
     STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "アクティブな列"
@@ -1039,14 +1041,14 @@ BEGIN
     STR_ALLFILES            "すべてのファイル"
     STR_ONLYMODIFIED        "変更あり"
     STR_ONLYUNMODIFIED      "変更なし"
-    STR_INVERTSELECTION     "選択を反転"
-    STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "はい(&Y)"
-    STR_MESSAGEBOX_NO       "いいえ(&N)"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_INVERTSELECTION     "選択を反転"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "はい(&Y)"
+    STR_MESSAGEBOX_NO       "いいえ(&N)"
     STR_MESSAGEBOX_CANCEL   "キャンセル"
     STR_MESSAGEBOX_YESTOALL "すべて はい"
     STR_MESSAGEBOX_NOTOALL  "すべて いいえ"

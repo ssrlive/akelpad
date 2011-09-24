@@ -566,7 +566,7 @@ IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Przekoduj"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     RTEXT           "Z:",IDC_STATIC,6,11,35,8
     COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
@@ -574,8 +574,8 @@ BEGIN
     RTEXT           "Na:",IDC_STATIC,6,29,35,8
     COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,207,19,65,12
+    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,207,19,65,12
     CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
                     WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
                     WS_EX_CLIENTEDGE
@@ -583,22 +583,22 @@ BEGIN
     PUSHBUTTON      "Anuluj",IDCANCEL,219,193,50,14,BS_CENTER
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 171
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 260, 201
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
 CAPTION "Kolory"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Schemat kolorów:",IDC_STATIC,11,6,103,8
-    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
+    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,129,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Zapisz",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Usuñ",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Zapisz",IDC_COLORS_THEME_SAVE,145,16,50,14
+    PUSHBUTTON      "Usuñ",IDC_COLORS_THEME_DELETE,197,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,101
-    PUSHBUTTON      "OK",IDOK,123,151,50,14,BS_CENTER
-    PUSHBUTTON      "Anuluj",IDCANCEL,176,151,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,239,131
+    PUSHBUTTON      "OK",IDOK,145,181,50,14,BS_CENTER
+    PUSHBUTTON      "Anuluj",IDCANCEL,198,181,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
@@ -863,7 +863,7 @@ IDD_ABOUT DIALOGEX 0, 0, 220, 207
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "O programie"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
@@ -941,7 +941,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "B³¹d w kolejce wiadomoœci."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "B³¹d krytyczny: za ma³o pamiêci. Zaleca siê zakoñczenie programu."
+    MSG_ERROR_NOT_ENOUGH_MEMORY 
+                            "B³¹d krytyczny: za ma³o pamiêci. Zaleca siê zakoñczenie programu."
     MSG_ERROR_BINARY        """%s"" jest plikiem binarnym. Kontynuowaæ?"
     MSG_ERROR_IO            "B³¹d wejœcia/wyjœcia."
     MSG_ERROR_SYNTAX        "B³¹d sk³adni."
@@ -1028,6 +1029,7 @@ BEGIN
     STR_BASIC               "Podstawowy kolor"
     STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
+    STR_ACTIVELINEBORDER    "Active line border"
     STR_ALTLINE             "Alt line"
     STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Bie¿¹ca kolumna"
@@ -1040,14 +1042,14 @@ BEGIN
     STR_ALLFILES            "Wszystkie pliki"
     STR_ONLYMODIFIED        "Zmienione"
     STR_ONLYUNMODIFIED      "Niezmienione"
-    STR_INVERTSELECTION     "Odwróæ zaznaczenie"
-    STR_MESSAGEBOX_OK       "OK"
-    STR_MESSAGEBOX_YES      "&Tak"
-    STR_MESSAGEBOX_NO       "&Nie"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_INVERTSELECTION     "Odwróæ zaznaczenie"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Tak"
+    STR_MESSAGEBOX_NO       "&Nie"
     STR_MESSAGEBOX_CANCEL   "Anuluj"
     STR_MESSAGEBOX_YESTOALL "Tak na wszystkie"
     STR_MESSAGEBOX_NOTOALL  "Nie na wszystkie"
