@@ -795,10 +795,10 @@ typedef struct _AEFOLD {
 } AEFOLD;
 
 typedef struct {
-  DWORD dwFlags;         //[in]     See AEFF_* defines.
-  UINT_PTR dwFindIt;     //[in]     Depend on AEFF_FIND* define.
-  AEFOLD *lpParent;      //[out]    Parent fold.
-  AEFOLD *lpPrevSubling; //[out]    Previous subling fold.
+  DWORD dwFlags;         //[in]  See AEFF_* defines.
+  UINT_PTR dwFindIt;     //[in]  Depend on AEFF_FIND* define.
+  AEFOLD *lpParent;      //[out] Parent fold.
+  AEFOLD *lpPrevSubling; //[out] Previous subling fold.
 } AEFINDFOLD;
 
 typedef struct {
@@ -821,7 +821,7 @@ typedef struct {
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
-  int nCodePage;               //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+  int nCodePage;               //[in]  Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
 } AEREPLACESELA;
 
 typedef struct {
