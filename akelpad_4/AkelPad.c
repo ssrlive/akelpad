@@ -335,6 +335,7 @@ POINT64 ptDocumentPos;
 WNDPROC OldFilePreviewProc;
 
 //AkelAdmin
+wchar_t wszAkelAdminExe[MAX_PATH];
 wchar_t wszAkelAdminPipe[32];
 BOOL bPipeInitAkelAdmin=FALSE;
 HICON hIconShieldAkelAdmin=NULL;
@@ -513,8 +514,9 @@ void _WinMain()
   GetExeDir(hInstance, wszExeDir, MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
 
-  //Zero AkelAdmin pipe name
+  //Zero AkelAdmin variables
   wszAkelAdminPipe[0]=L'\0';
+  wszAkelAdminExe[0]=L'\0';
 
   //Set default options before reading from registry/ini
   xmemset(&moInit, 0, sizeof(MAINOPTIONS));

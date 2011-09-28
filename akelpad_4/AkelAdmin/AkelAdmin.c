@@ -18,15 +18,23 @@
 
 
 //Defines
-#define STRID_ERRORWIN           1
-#define STRID_ERRORDIR           2
-#define STRID_ERRORCALL          3
-#define STRID_ERRORFILESECURITY  4
-#define STRID_ERRORPIPESECURITY  5
-#define STRID_ERRORDELETE        6
-#define STRID_ERRORMOVE          7
+#define STRID_ERRORWIN              1
+#define STRID_ERRORDIR              2
+#define STRID_ERRORCALL             3
+#define STRID_ERRORSETPIPESECURITY  4
+#define STRID_ERRORGETFILESECURITY  5
+#define STRID_ERRORSETFILESECURITY  6
 
 #define BUFFER_SIZE      1024
+
+//AkelAdmin action
+#define AAA_INIT             11
+#define AAA_SECURITYSAVE     21  //Retrieve file security.
+#define AAA_SECURITYEVERYONE 22  //Add all access for the file.
+#define AAA_SECURITYRESTORE  23  //Restore saved security for the file.
+#define AAA_SECURITYFREE     24  //Free saved security.
+
+#define STR_AKELADMIN L"AkelAdmin"
 
 #ifndef INVALID_FILE_ATTRIBUTES
   #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
@@ -44,13 +52,10 @@
   #define OWNER_SECURITY_INFORMATION (0x00000001L)
 #endif
 
-#define STR_AKELADMIN L"AkelAdmin"
-
 typedef struct {
-  int nAction;
   DWORD dwExitCode;
-  wchar_t wszSourceFile[MAX_PATH];
-  wchar_t wszTargetFile[MAX_PATH];
+  int nAction;
+  wchar_t wszFile[MAX_PATH];
   DWORD dwLangModule;
 } ADMINPIPE;
 
@@ -112,7 +117,7 @@ void _WinMain()
         nAction=(int)xatoiW(wszBuffer, NULL);
 
         //Initialize pipe server
-        if (nAction == 10)
+        if (nAction == AAA_INIT)
         {
           //Second argument is caller process id.
           if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
@@ -144,6 +149,7 @@ void _WinMain()
                 EXPLICIT_ACCESSW eal[1];
                 SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
                 SID *pSIDEveryone=NULL;
+                SECURITY_DESCRIPTOR *psd=NULL;
                 BOOL bChangeAccessResult=FALSE;
 
                 //Specify the DACL to use. Create a SID for the Everyone group.
@@ -164,10 +170,9 @@ void _WinMain()
                       bChangeAccessResult=TRUE;
                     LocalFree(pNewACL);
                   }
-                  FreeSid(pSIDEveryone);
                 }
                 if (!bChangeAccessResult)
-                  MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORPIPESECURITY), STR_AKELADMIN, MB_ICONERROR);
+                  MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORSETPIPESECURITY), STR_AKELADMIN, MB_ICONERROR);
 
                 //Signal mutex
                 SetEvent(hMutex);
@@ -176,8 +181,6 @@ void _WinMain()
                 while (ConnectNamedPipe(hPipeAkelAdmin, NULL))
                 {
                   ADMINPIPE apipe;
-                  DWORD dwSourceAttr;
-                  DWORD dwTargetAttr;
                   DWORD dwBytesRead;
                   DWORD dwBytesWritten;
                   BOOL bBreak=FALSE;
@@ -186,84 +189,101 @@ void _WinMain()
                   if (!GetNamedPipeClientProcessIdPtr || ((*GetNamedPipeClientProcessIdPtr)(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
                   {
                     //Wait for client WriteFile
-                    if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(apipe), &dwBytesRead, NULL))
+                    if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
                     {
+                      apipe.dwExitCode=0;
+
                       if (apipe.nAction == 0)
                       {
                         //Unload process
-                        apipe.dwExitCode=0;
                         bBreak=TRUE;
                       }
-                      else if (apipe.nAction == 1)
+                      else if (apipe.nAction == AAA_SECURITYSAVE)
                       {
-                        //Move file action
-                        apipe.dwExitCode=1;
+                        SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                                 GROUP_SECURITY_INFORMATION|
+                                                 LABEL_SECURITY_INFORMATION|
+                                                 OWNER_SECURITY_INFORMATION;
+                        DWORD dwSize=0;
+
                         wLangModule=PRIMARYLANGID(apipe.dwLangModule);
 
-                        if ((dwSourceAttr=GetFileAttributesW(apipe.wszSourceFile)) != INVALID_FILE_ATTRIBUTES &&
-                            (dwTargetAttr=GetFileAttributesW(apipe.wszTargetFile)) != INVALID_FILE_ATTRIBUTES)
+                        //Retrieve file security
+                        GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
+
+                        if (dwSize)
                         {
-                          SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                                   GROUP_SECURITY_INFORMATION|
-                                                   LABEL_SECURITY_INFORMATION|
-                                                   OWNER_SECURITY_INFORMATION;
-                          SECURITY_DESCRIPTOR *psd=NULL;
-                          DWORD dwSize=0;
-
-                          //Retrive file security
-                          GetFileSecurityW(apipe.wszTargetFile, ssi, NULL, 0, &dwSize);
-
-                          if (dwSize)
+                          if (psd=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
                           {
-                            if (psd=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                            if (!GetFileSecurityW(apipe.wszFile, ssi, psd, dwSize, &dwSize))
                             {
-                              if (!GetFileSecurityW(apipe.wszTargetFile, ssi, psd, dwSize, &dwSize))
-                              {
-                                GlobalFree(psd);
-                                psd=NULL;
-                              }
-                            }
-                          }
-
-                          //Replace protected file
-                          if (DeleteFileW(apipe.wszTargetFile))
-                          {
-                            if (MoveFileW(apipe.wszSourceFile, apipe.wszTargetFile))
-                            {
-                              //Copy attributes and security
-                              SetFileAttributesW(apipe.wszTargetFile, dwTargetAttr);
-
-                              if (psd)
-                              {
-                                if (!SetFileSecurityW(apipe.wszTargetFile, ssi, psd))
-                                {
-                                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORFILESECURITY), apipe.wszTargetFile);
-                                  MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                                }
-                              }
-                              apipe.dwExitCode=0;
-                            }
-                            else
-                            {
-                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORMOVE), apipe.wszSourceFile, apipe.wszTargetFile);
+                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
                               MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                              apipe.dwExitCode=1;
                             }
                           }
-                          else
-                          {
-                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORDELETE), apipe.wszTargetFile);
-                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                          }
+                        }
 
-                          //Free security buffer
-                          if (psd)
+                        if (apipe.dwExitCode)
+                        {
+                          GlobalFree(psd);
+                          psd=NULL;
+                        }
+                      }
+                      else if (apipe.nAction == AAA_SECURITYEVERYONE)
+                      {
+                        SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                                 GROUP_SECURITY_INFORMATION|
+                                                 LABEL_SECURITY_INFORMATION|
+                                                 OWNER_SECURITY_INFORMATION;
+
+                        wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                        //Decrease file security
+                        if (psd)
+                        {
+                          SetSecurityDescriptorDacl(psd, FALSE, NULL, TRUE);
+  
+                          if (!SetFileSecurityW(apipe.wszFile, ssi, psd))
                           {
-                            GlobalFree(psd);
-                            psd=NULL;
+                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
+                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                            apipe.dwExitCode=1;
                           }
                         }
                       }
-                      WriteFile(hPipeAkelAdmin, &apipe, sizeof(apipe), &dwBytesWritten, NULL);
+                      else if (apipe.nAction == AAA_SECURITYRESTORE)
+                      {
+                        SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                                 GROUP_SECURITY_INFORMATION|
+                                                 LABEL_SECURITY_INFORMATION|
+                                                 OWNER_SECURITY_INFORMATION;
+
+                        wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                        //Restore file security
+                        if (psd)
+                        {
+                          if (!SetFileSecurityW(apipe.wszFile, ssi, psd))
+                          {
+                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
+                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                            apipe.dwExitCode=1;
+                          }
+                        }
+                        else apipe.dwExitCode=1;
+                      }
+                      else if (apipe.nAction == AAA_SECURITYFREE)
+                      {
+                        //Free security buffer
+                        if (psd)
+                        {
+                          GlobalFree(psd);
+                          psd=NULL;
+                        }
+                        else apipe.dwExitCode=1;
+                      }
+                      WriteFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
                       FlushFileBuffers(hPipeAkelAdmin);
                     }
                   }
@@ -271,6 +291,9 @@ void _WinMain()
                   if (bBreak) break;
                 }
                 dwExitCode=0;
+
+                if (psd) GlobalFree(psd);
+                if (pSIDEveryone) FreeSid(pSIDEveryone);
                 CloseHandle(hPipeAkelAdmin);
               }
             }
@@ -367,14 +390,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"AkelAdmin \x0434\x043E\x043B\x0436\x0435\x043D\x0020\x043D\x0430\x0445\x043E\x0434\x0438\x0442\x044C\x0441\x044F\x0020\x0432\x0020\x043F\x0430\x043F\x043A\x0435 AkelFiles.";
     if (nStringID == STRID_ERRORCALL)
       return L"\x0414\x0430\x043D\x043D\x0430\x044F\x0020\x043F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0430\x0020\x043F\x0440\x0435\x0434\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x043D\x0443\x0442\x0440\x0435\x043D\x043D\x0435\x0433\x043E\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x043D\x0438\x044F AkelPad'\x043E\x043C. \x041D\x0435\x0020\x0432\x044B\x0437\x044B\x0432\x0430\x0439\x0442\x0435\x0020\x0435\x0435\x0020\x043D\x0430\x043F\x0440\x044F\x043C\x0443\x044E.";
-    if (nStringID == STRID_ERRORPIPESECURITY)
+    if (nStringID == STRID_ERRORSETPIPESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x043A\x0430\x043D\x0430\x043B\x0430.";
-    if (nStringID == STRID_ERRORFILESECURITY)
+    if (nStringID == STRID_ERRORGETFILESECURITY)
+      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x043E\x043B\x0443\x0447\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
+    if (nStringID == STRID_ERRORSETFILESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
-    if (nStringID == STRID_ERRORDELETE)
-      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0437\x0430\x043C\x0435\x043D\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B \"%s\"";
-    if (nStringID == STRID_ERRORMOVE)
-      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x0435\x0440\x0435\x043C\x0435\x0441\x0442\x0438\x0442\x044C\x0020\x0444\x0430\x0439\x043B.\n\x0418\x0437:\"%s\"\n\x0432: \"%s\"";
   }
   else
   {
@@ -384,14 +405,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"AkelAdmin should be in AkelFiles folder.";
     if (nStringID == STRID_ERRORCALL)
       return L"This program is internal for AkelPad. Don't call it directly.";
-    if (nStringID == STRID_ERRORPIPESECURITY)
+    if (nStringID == STRID_ERRORSETPIPESECURITY)
       return L"Can't set security options for pipe.";
-    if (nStringID == STRID_ERRORFILESECURITY)
+    if (nStringID == STRID_ERRORGETFILESECURITY)
+      return L"Can't get security options of file \"%s\"";
+    if (nStringID == STRID_ERRORSETFILESECURITY)
       return L"Can't set security options for file \"%s\"";
-    if (nStringID == STRID_ERRORDELETE)
-      return L"Can't replace file \"%s\"";
-    if (nStringID == STRID_ERRORMOVE)
-      return L"Can't move file.\nFrom: \"%s\"\nto: \"%s\"";
   }
   return L"";
 }
