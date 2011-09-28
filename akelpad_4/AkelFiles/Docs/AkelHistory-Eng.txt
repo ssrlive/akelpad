@@ -6,6 +6,7 @@ Changed: active column flashing minimized.
 Added: ability to display alternating lines in different colors.
 Added: ability to set color for border of active line.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
+Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
 
 Fixed: file could be saved in virtual store (UAC).
 Fixed: opening a system file under a limited user using the x86 version of program

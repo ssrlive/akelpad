@@ -168,6 +168,7 @@ extern POINT64 ptDocumentPos;
 extern WNDPROC OldFilePreviewProc;
 
 //AkelAdmin
+extern wchar_t wszAkelAdminExe[MAX_PATH];
 extern wchar_t wszAkelAdminPipe[32];
 extern BOOL bPipeInitAkelAdmin;
 extern HICON hIconShieldAkelAdmin;
@@ -4060,6 +4061,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   int nResult=EOD_SUCCESS;
   int nDetect;
   int nFileCmp;
+  BOOL bSetSecurity=FALSE;
   BOOL bFileExist;
 
   if (!hWnd)
@@ -4094,6 +4096,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       goto End;
     }
   }
+  fsd.bResult=-1;
 
   if (nDocumentsCount > MDI_MAXDOCUMENTS && nMDI == WMD_MDI)
   {
@@ -4211,11 +4214,42 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     goto End;
   }
 
-  //Open file
-  if ((hFile=API_CreateFileW(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
+  OpenFile:
+  hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
+  if (hFile == INVALID_HANDLE_VALUE)
   {
-    nResult=EOD_OPEN;
-    goto End;
+    if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+    {
+      //Allow all access to the file (UAC).
+      if (AkelAdminInit(wszFile))
+      {
+        if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
+            !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
+        {
+          //Reset AkelAdmin
+          AkelAdminExit();
+
+          nResult=ESD_OPEN;
+          goto BackAttr;
+        }
+        else
+        {
+          bSetSecurity=TRUE;
+          goto OpenFile;
+        }
+      }
+    }
+
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+      API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, wszFile);
+      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+
+      nResult=EOD_OPEN;
+      goto End;
+    }
   }
 
   //Offset BOM
@@ -4269,7 +4303,20 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
-  if (IsEditActive(hWnd))
+  BackAttr:
+  //Change back file security (UAC).
+  if (bSetSecurity)
+  {
+    if (!AkelAdminSend(AAA_SECURITYRESTORE, wszFile) ||
+        !AkelAdminSend(AAA_SECURITYFREE, wszFile))
+    {
+      //Reset AkelAdmin
+      AkelAdminExit();
+    }
+    bSetSecurity=FALSE;
+  }
+
+  if (fsd.bResult != -1 && IsEditActive(hWnd))
   {
     if (fsd.bResult)
     {
@@ -4692,13 +4739,10 @@ BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   wchar_t wszFile[MAX_PATH];
-  wchar_t wszAdminExe[MAX_PATH];
-  wchar_t wszTempFile[MAX_PATH];
   WIN32_FIND_DATAW wfdW;
   HANDLE hFile;
   FILESTREAMDATA fsd;
   DWORD dwAttr;
-  UINT_PTR dwBytesRead;
   UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
   int nWrite=0;
@@ -4706,6 +4750,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nCodePageCmp;
   int nLostLine=0;
   int nLostCharInLine;
+  BOOL bSetSecurity=FALSE;
 
   if (!wpFile[0])
   {
@@ -4715,8 +4760,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
   GetFullName(wpFile, wszFile, MAX_PATH);
-  wszAdminExe[0]=L'\0';
-  wszTempFile[0]=L'\0';
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4739,6 +4782,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       goto End;
     }
   }
+  fsd.bResult=-1;
 
   //Check code page
   if (!IsCodePageValid(nCodePage))
@@ -4833,125 +4877,29 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     }
   }
 
+  OpenFile:
   hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE)
   {
-    //User Account Control (UAC). Part 1.
-    if (!bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+    if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
     {
-      xprintfW(wszAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
-
-      if (FileExistsWide(wszAdminExe))
+      //Allow all access to the file (UAC).
+      if (AkelAdminInit(wszFile))
       {
-        //Custom MessageBox
-        BUTTONMESSAGEBOX bmb[]={{IDOK,     STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
-                                {IDCANCEL, STR_MESSAGEBOX_CANCEL,   0},
-                                {0, 0, 0}};
-        SHELLEXECUTEINFOW sei;
-        HANDLE lpHandles[2];
-        HANDLE hMutex;
-        HMODULE hAdvApi32;
-        HMODULE hShell32;
-
-        if (!wszAkelAdminPipe[0])
-          xprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMINW, dwProcessId);
-        if (!hIconShieldAkelAdmin)
-          ExtractIconExWide(wszAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
-
-        //Get functions addresses
-        if (!SetSecurityInfoPtr || !SetEntriesInAclWPtr)
+        if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
+            !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
         {
-          hAdvApi32=GetModuleHandleA("advapi32.dll");
-          SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
-          SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
+          //Reset AkelAdmin
+          AkelAdminExit();
+
+          nResult=ESD_OPEN;
+          goto BackAttr;
         }
-        if (!ShellExecuteExWPtr)
+        else
         {
-          hShell32=GetModuleHandleA("shell32.dll");
-          ShellExecuteExWPtr=(BOOL (WINAPI *)(LPSHELLEXECUTEINFOW))GetProcAddress(hShell32, "ShellExecuteExW");
-        }
-
-        API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
-        xprintfW(wszMsg, wbuf, wszFile);
-        if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShieldAkelAdmin, &bmb[0]) == IDOK)
-        {
-          if (!bPipeInitAkelAdmin)
-          {
-            //Pipe server doesn't exist
-            if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
-            {
-              //Set security for hMutex. It required under limited user of WinXP.
-              if (SetSecurityInfoPtr && SetEntriesInAclWPtr)
-              {
-                ACL *pNewACL=NULL;
-                EXPLICIT_ACCESSW eal[1];
-                SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
-                SID *pSIDEveryone=NULL;
-
-                //Specify the DACL to use. Create a SID for the Everyone group.
-                if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
-                {
-                  eal[0].grfAccessPermissions=GENERIC_ALL;
-                  eal[0].grfAccessMode=SET_ACCESS;
-                  eal[0].grfInheritance=NO_INHERITANCE;
-                  eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
-                  eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
-                  eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
-                  eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
-                  eal[0].Trustee.pMultipleTrustee=NULL;
-
-                  if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
-                  {
-                    (*SetSecurityInfoPtr)(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
-                    LocalFree(pNewACL);
-                  }
-                  FreeSid(pSIDEveryone);
-                }
-              }
-
-              //Code 10 initialize AkelAdmin process
-              if (ShellExecuteExWPtr)
-              {
-                xprintfW(wbuf, L"\"%d\" \"%d\"", 10, dwProcessId);
-                sei.cbSize=sizeof(SHELLEXECUTEINFOW);
-                sei.fMask=SEE_MASK_NOCLOSEPROCESS;
-                sei.hwnd=hMainWnd;
-                sei.lpVerb=L"runas";
-                sei.lpFile=wszAdminExe;
-                sei.lpParameters=wbuf;
-                sei.lpDirectory=NULL;
-                sei.nShow=SW_SHOWDEFAULT;
-
-                if ((*ShellExecuteExWPtr)(&sei))
-                {
-                  lpHandles[0]=hMutex;
-                  lpHandles[1]=sei.hProcess;
-
-                  //Wait for mutex signal or process exit
-                  if (WaitForMultipleObjects(2, lpHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
-                  {
-                    bPipeInitAkelAdmin=TRUE;
-
-                    //Return focus if needed
-                    if (lpFrameCurrent->ei.hWndEdit && GetFocus() != lpFrameCurrent->ei.hWndEdit)
-                      SetFocus(lpFrameCurrent->ei.hWndEdit);
-                  }
-                  CloseHandle(sei.hProcess);
-                }
-              }
-              CloseHandle(hMutex);
-            }
-          }
-          if (bPipeInitAkelAdmin)
-          {
-            if (GetTempPathW(MAX_PATH, wbuf))
-            {
-              TrimPathBackslash(wbuf);
-              xprintfW(wszTempFile, L"%s\\%s", wbuf, GetFileName(wszFile));
-              hFile=CreateFileWide(wszTempFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-            }
-          }
+          bSetSecurity=TRUE;
+          goto OpenFile;
         }
       }
     }
@@ -4959,7 +4907,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (hFile == INVALID_HANDLE_VALUE)
     {
       API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-      xprintfW(wszMsg, wbuf, wszTempFile[0]?wszTempFile:wszFile);
+      xprintfW(wszMsg, wbuf, wszFile);
       API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
 
       nResult=ESD_OPEN;
@@ -4999,121 +4947,95 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   FileStreamOut(&fsd);
   CloseHandle(hFile);
 
-  if (fsd.bResult)
+  BackAttr:
+  //Change back file attributes
+  if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
-    //Change back file attributes
-    if (dwAttr != INVALID_FILE_ATTRIBUTES)
+    if ((!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) && fsd.bResult == TRUE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
+      SetFileAttributesWide(wszFile, dwAttr|(fsd.bResult == TRUE?FILE_ATTRIBUTE_ARCHIVE:0));
+  }
+
+  //Change back file security (UAC).
+  if (bSetSecurity)
+  {
+    if (!AkelAdminSend(AAA_SECURITYRESTORE, wszFile) ||
+        !AkelAdminSend(AAA_SECURITYFREE, wszFile))
     {
-      if (!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-        SetFileAttributesWide(wszTempFile[0]?wszTempFile:wszFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
+      //Reset AkelAdmin
+      AkelAdminExit();
+    }
+    bSetSecurity=FALSE;
+  }
+
+  if (fsd.bResult != -1)
+  {
+    if (fsd.bResult)
+    {
+      //Restore last write time
       if (moCur.bSaveTime)
       {
-        if ((hFile=API_CreateFileW(wszTempFile[0]?wszTempFile:wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
+        if ((hFile=API_CreateFileW(wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
         {
           SetFileTime(hFile, NULL, NULL, &wfdW.ftLastWriteTime);
           CloseHandle(hFile);
         }
       }
-    }
-
-    //User Account Control (UAC). Part 2.
-    if (bPipeInitAkelAdmin && wszTempFile[0])
-    {
-      ADMINPIPE apipe;
-      HANDLE hFilePipe;
-
-      //Action 1 for move file
-      apipe.nAction=1;
-      apipe.dwExitCode=1;
-      xstrcpynW(apipe.wszSourceFile, wszTempFile, MAX_PATH);
-      xstrcpynW(apipe.wszTargetFile, wszFile, MAX_PATH);
-      apipe.dwLangModule=dwLangModule;
-
-      //Connect to pipe server, send and receive data.
-      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+  
+      //Update file info
+      if (dwFlags & SD_UPDATE)
       {
-        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-        CloseHandle(hFilePipe);
-      }
-
-      if (apipe.dwExitCode)
-      {
-        //Reset AkelAdmin
-        AkelAdminExit();
-
-        DeleteFileWide(wszTempFile);
-        nResult=ESD_OPEN;
-        goto BackAttr;
-      }
-    }
-
-    //Update file info
-    if (dwFlags & SD_UPDATE)
-    {
-      if (IsEditActive(hWnd))
-      {
-        //Compare
-        nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
-        nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
-
-        GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
-        SetModifyStatus(lpFrameCurrent, FALSE);
-        SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
-
-        if (nFileCmp)
-        {
-          UpdateTitle(lpFrameCurrent, wszFile);
-          xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
-          lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
-          WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
-        }
-        if (nFileCmp || nCodePageCmp)
-          RecentFilesSaveFile(lpFrameCurrent);
-
-        if ((dwFlags & SD_SELECTION) || nLostLine ||
-            //Is output new line format is changed?
-            HIWORD(SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETNEWLINE, 0, 0)) != AELB_ASIS)
-        {
-          OpenDocument(hWnd, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
-        }
-      }
-      else
-      {
-        FILETIME ft;
-        FRAMEDATA *lpFrame;
-
-        if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+        if (IsEditActive(hWnd))
         {
           //Compare
-          nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
-
-          GetFileWriteTimeWide(wszFile, &ft);
-          SetModifyStatus(lpFrame, FALSE);
-          lpFrame->ei.nCodePage=nCodePage;
-          lpFrame->ei.bBOM=bBOM;
-          lpFrame->ft=ft;
-
+          nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
+          nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
+  
+          GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
+          SetModifyStatus(lpFrameCurrent, FALSE);
+          SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
+  
           if (nFileCmp)
           {
-            UpdateTitle(lpFrame, wszFile);
+            UpdateTitle(lpFrameCurrent, wszFile);
+            xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
+            lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
+            WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
+          }
+          if (nFileCmp || nCodePageCmp)
+            RecentFilesSaveFile(lpFrameCurrent);
+  
+          if ((dwFlags & SD_SELECTION) || nLostLine ||
+              //Is output new line format is changed?
+              HIWORD(SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETNEWLINE, 0, 0)) != AELB_ASIS)
+          {
+            OpenDocument(hWnd, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+          }
+        }
+        else
+        {
+          FILETIME ft;
+          FRAMEDATA *lpFrame;
+  
+          if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+          {
+            //Compare
+            nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
+  
+            GetFileWriteTimeWide(wszFile, &ft);
+            SetModifyStatus(lpFrame, FALSE);
+            lpFrame->ei.nCodePage=nCodePage;
+            lpFrame->ei.bBOM=bBOM;
+            lpFrame->ft=ft;
+  
+            if (nFileCmp)
+            {
+              UpdateTitle(lpFrame, wszFile);
+            }
           }
         }
       }
     }
-    goto End;
-  }
-  else
-  {
-    nResult=ESD_STREAMOUT;
-    goto BackAttr;
-  }
-
-  BackAttr:
-  if (dwAttr != INVALID_FILE_ATTRIBUTES)
-  {
-    if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-      SetFileAttributesWide(wszFile, dwAttr);
+    else nResult=ESD_STREAMOUT;
   }
 
   End:
@@ -5178,6 +5100,142 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
     return 0;
   }
   return 1;
+}
+
+BOOL AkelAdminInit(const wchar_t *wpFile)
+{
+  if (!wszAkelAdminPipe[0])
+    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
+
+  if (FileExistsWide(wszAkelAdminExe))
+  {
+    //Custom MessageBox
+    BUTTONMESSAGEBOX bmb[]={{IDOK,     STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
+                            {IDCANCEL, STR_MESSAGEBOX_CANCEL,   0},
+                            {0, 0, 0}};
+    HMODULE hAdvApi32;
+    HMODULE hShell32;
+
+    if (!wszAkelAdminPipe[0])
+      xprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMINW, dwProcessId);
+    if (!hIconShieldAkelAdmin)
+      ExtractIconExWide(wszAkelAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
+
+    //Get functions addresses
+    if (!SetSecurityInfoPtr || !SetEntriesInAclWPtr)
+    {
+      hAdvApi32=GetModuleHandleA("advapi32.dll");
+      SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
+      SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
+    }
+    if (!ShellExecuteExWPtr)
+    {
+      hShell32=GetModuleHandleA("shell32.dll");
+      ShellExecuteExWPtr=(BOOL (WINAPI *)(LPSHELLEXECUTEINFOW))GetProcAddress(hShell32, "ShellExecuteExW");
+    }
+
+    API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
+    xprintfW(wszMsg, wbuf, wpFile);
+    if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShieldAkelAdmin, &bmb[0]) == IDOK)
+    {
+      if (!bPipeInitAkelAdmin)
+      {
+        wchar_t wszParams[MAX_PATH];
+        SHELLEXECUTEINFOW sei;
+        HANDLE lpHandles[2];
+        HANDLE hMutex;
+
+        //Pipe server doesn't exist
+        if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
+        {
+          //Set security for hMutex. It required under limited user of WinXP.
+          if (SetSecurityInfoPtr && SetEntriesInAclWPtr)
+          {
+            ACL *pNewACL=NULL;
+            EXPLICIT_ACCESSW eal[1];
+            SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
+            SID *pSIDEveryone=NULL;
+
+            //Specify the DACL to use. Create a SID for the Everyone group.
+            if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
+            {
+              eal[0].grfAccessPermissions=GENERIC_ALL;
+              eal[0].grfAccessMode=SET_ACCESS;
+              eal[0].grfInheritance=NO_INHERITANCE;
+              eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
+              eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
+              eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
+              eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
+              eal[0].Trustee.pMultipleTrustee=NULL;
+
+              if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
+              {
+                (*SetSecurityInfoPtr)(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
+                LocalFree(pNewACL);
+              }
+              FreeSid(pSIDEveryone);
+            }
+          }
+
+          //Initialize AkelAdmin process
+          if (ShellExecuteExWPtr)
+          {
+            xprintfW(wszParams, L"\"%d\" \"%d\"", AAA_INIT, dwProcessId);
+            sei.cbSize=sizeof(SHELLEXECUTEINFOW);
+            sei.fMask=SEE_MASK_NOCLOSEPROCESS;
+            sei.hwnd=hMainWnd;
+            sei.lpVerb=L"runas";
+            sei.lpFile=wszAkelAdminExe;
+            sei.lpParameters=wszParams;
+            sei.lpDirectory=NULL;
+            sei.nShow=SW_SHOWDEFAULT;
+
+            if ((*ShellExecuteExWPtr)(&sei))
+            {
+              lpHandles[0]=hMutex;
+              lpHandles[1]=sei.hProcess;
+
+              //Wait for mutex signal or process exit
+              if (WaitForMultipleObjects(2, lpHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
+              {
+                bPipeInitAkelAdmin=TRUE;
+
+                //Return focus if needed
+                if (lpFrameCurrent->ei.hWndEdit && GetFocus() != lpFrameCurrent->ei.hWndEdit)
+                  SetFocus(lpFrameCurrent->ei.hWndEdit);
+              }
+              CloseHandle(sei.hProcess);
+            }
+          }
+          CloseHandle(hMutex);
+        }
+      }
+      return bPipeInitAkelAdmin;
+    }
+  }
+  return FALSE;
+}
+
+BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
+{
+  ADMINPIPE apipe;
+  HANDLE hFilePipe;
+  UINT_PTR dwBytesRead;
+  UINT_PTR dwBytesWritten;
+
+  apipe.dwExitCode=1;
+  apipe.nAction=nAction;
+  xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
+  apipe.dwLangModule=dwLangModule;
+
+  //Connect to pipe server, send and receive data.
+  if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+  {
+    API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+    ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+    CloseHandle(hFilePipe);
+  }
+  return !apipe.dwExitCode;
 }
 
 void AkelAdminExit()

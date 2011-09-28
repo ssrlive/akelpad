@@ -259,6 +259,13 @@
 #define MOT_FRAMEOFFSET 0x20  //lpData specifies offset of FRAMEDATA structure.
 #define MOT_MANUAL      0x40  //lpData specifies manual parameter.
 
+//AkelAdmin action
+#define AAA_INIT             11
+#define AAA_SECURITYSAVE     21  //Retrieve file security.
+#define AAA_SECURITYEVERYONE 22  //Add all access for the file.
+#define AAA_SECURITYRESTORE  23  //Restore saved security for the file.
+#define AAA_SECURITYFREE     24  //Free saved security.
+
 //Search options
 //#define AEFR_DOWN               0x00000001
 //#define AEFR_WHOLEWORD          0x00000002
@@ -677,10 +684,9 @@ typedef struct {
 } DIALOGMESSAGEBOX;
 
 typedef struct {
-  int nAction;
   DWORD dwExitCode;
-  wchar_t wszSourceFile[MAX_PATH];
-  wchar_t wszTargetFile[MAX_PATH];
+  int nAction;
+  wchar_t wszFile[MAX_PATH];
   DWORD dwLangModule;
 } ADMINPIPE;
 
@@ -810,6 +816,8 @@ BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
+BOOL AkelAdminInit(const wchar_t *wpFile);
+BOOL AkelAdminSend(int nAction, const wchar_t *wpFile);
 void AkelAdminExit();
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir);
 void DropFiles(HDROP hDrop);
