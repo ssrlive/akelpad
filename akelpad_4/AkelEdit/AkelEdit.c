@@ -4389,21 +4389,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else
     {
       AECOLORS aecDisable;
-      COLORREF *lpColorCount=(COLORREF *)((BYTE *)&aecDisable + sizeof(DWORD));
-      COLORREF *lpColorMax=(COLORREF *)((BYTE *)&aecDisable + sizeof(AECOLORS));
-      COLORREF crDisable=GetSysColor(COLOR_BTNFACE);
+      COLORREF crDisableText=GetSysColor(COLOR_BTNTEXT);
+      COLORREF crDisableBk=GetSysColor(COLOR_BTNFACE);
 
       //Backup colors
       xmemcpy(&ae->popt->aecEnable, &ae->popt->aec, sizeof(AECOLORS));
-      ae->popt->aecEnable.dwFlags=AECLR_BASICBK|AECLR_SELBK|AECLR_ACTIVELINEBK|AECLR_ALTLINEBORDER|AECLR_ALTLINEBK|AECLR_ACTIVELINEBORDER;
+      ae->popt->aecEnable.dwFlags=AECLR_BASICTEXT|AECLR_BASICBK|AECLR_SELTEXT|AECLR_SELBK|AECLR_ACTIVELINETEXT|AECLR_ACTIVELINEBK;
 
-      //Set COLOR_BTNFACE colors
+      //Set disabled colors
       aecDisable.dwFlags=ae->popt->aecEnable.dwFlags;
-      while (lpColorCount < lpColorMax)
-      {
-        *lpColorCount=crDisable;
-        ++lpColorCount;
-      }
+      aecDisable.crBasicText=crDisableText;
+      aecDisable.crBasicBk=crDisableBk;
+      aecDisable.crSelText=crDisableText;
+      aecDisable.crSelBk=crDisableBk;
+      aecDisable.crActiveLineText=crDisableText;
+      aecDisable.crActiveLineBk=crDisableBk;
       AE_SetColors(ae, &aecDisable);
       SetFocus(NULL);
     }
