@@ -18157,7 +18157,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
         else if (*wpSource == 'd' || *wpSource == 'D')
         {
           ++wpSource;
-          wpTarget+=GetFileDir(wpFile, wszBuffer?wpTarget:NULL, wpTargetMax - wpTarget) - !wszBuffer;
+          wpTarget+=GetFileDir(wpFile, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
         }
         else if (*wpSource == 'a' || *wpSource == 'A')
         {
