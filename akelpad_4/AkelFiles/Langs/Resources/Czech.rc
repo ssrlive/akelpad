@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Jen ke ètení",               IDM_VIEW_READONLY
         MENUITEM "&Zalamování øádkù\tCtrl+U",   IDM_VIEW_WORDWRAP
-        MENUITEM "Ro&zdìlení oken",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Ro&zdìlení oken",             IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Vždy nahoøe\tCtrl+T",        IDM_VIEW_ONTOP
         MENUITEM "&Stavový øádek",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

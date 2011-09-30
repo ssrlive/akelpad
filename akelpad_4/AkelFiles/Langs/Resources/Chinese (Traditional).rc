@@ -122,7 +122,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "唯讀(&R)",                    IDM_VIEW_READONLY
         MENUITEM "自動換行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "分割視窗(&p)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "分割視窗(&p)",                IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "最上層顯示(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "狀態列(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

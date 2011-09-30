@@ -120,7 +120,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Только чтение",              IDM_VIEW_READONLY
         MENUITEM "П&еренос по словам\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Поверх всех окон\tCtrl+T",   IDM_VIEW_ONTOP
         MENUITEM "&Строка состояния",           IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

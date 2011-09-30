@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Somente leitura",            IDM_VIEW_READONLY
         MENUITEM "&Quebrar linhas grandes\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "&Dividir janela",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Dividir janela",             IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Sempre visível\tCtrl+T",     IDM_VIEW_ONTOP
         MENUITEM "&Barra de status",            IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

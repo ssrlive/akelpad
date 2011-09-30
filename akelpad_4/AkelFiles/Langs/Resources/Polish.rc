@@ -123,7 +123,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Tylko do odczytu",           IDM_VIEW_READONLY
         MENUITEM "Za&wijanie wierszy\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "&Podziel okno na cztery",     IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Podziel okno na cztery",     IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "Zawsze n&a wierzchu\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "Pasek &stanu",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Fichiers en &lecture seule modifiables", IDM_VIEW_READONLY
         MENUITEM "&Renvoyer les mots à la ligne\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "Partager la fenêtre",         IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Partager la fenêtre",         IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Toujours au dessus\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Barre d'état",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
