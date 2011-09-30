@@ -1344,16 +1344,16 @@ typedef struct {
 #define IDM_VIEW_SHOW_STATUSBAR         4211  //Show statusbar (on\off).
                                               //Return Value: zero.
                                               //
-#define IDM_VIEW_SPLIT_WINDOW_ALL       4212  //Split window into four panes.
+#define IDM_VIEW_SPLIT_WINDOW_ALL       4212  //Split window into four panes. Turn off, if window already split into four panes.
                                               //Return Value: zero.
                                               //
-#define IDM_VIEW_SPLIT_WINDOW_WE        4213  //Split window into two vertical panes.
+#define IDM_VIEW_SPLIT_WINDOW_WE        4213  //Split window into two vertical panes. Turn off, if window already split into two vertical panes.
                                               //Return Value: zero.
                                               //
-#define IDM_VIEW_SPLIT_WINDOW_NS        4214  //Split window into two horizontal panes.
+#define IDM_VIEW_SPLIT_WINDOW_NS        4214  //Split window into two horizontal panes. Turn off, if window already split into two horizontal panes.
                                               //Return Value: zero.
                                               //
-#define IDM_VIEW_SPLIT_WINDOW_OFF       4215  //Reserved.
+#define IDM_VIEW_SPLIT_WINDOW_ONOFF     4215  //Split window into four panes. Turn off, if window already split.
                                               //Return Value: zero.
                                               //
 #define IDM_VIEW_READONLY               4216  //Read only (on\off).

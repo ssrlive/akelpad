@@ -121,7 +121,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "N&ur lesen",                  IDM_VIEW_READONLY
         MENUITEM "&Zeilenumbruch\tCtrl+U",      IDM_VIEW_WORDWRAP
-        MENUITEM "Fenster &aufteilen",          IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Fenster &aufteilen",          IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "Immer im &Vordergrund\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "Status&leiste",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

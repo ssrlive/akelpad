@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Len na ËÌtanie",             IDM_VIEW_READONLY
         MENUITEM "&Zalomiù text\tCtrl+U",       IDM_VIEW_WORDWRAP
-        MENUITEM "&Rozdeliù okno",              IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Rozdeliù okno",              IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "&Stavov˝ riadok",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

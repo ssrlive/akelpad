@@ -135,6 +135,7 @@ extern HCURSOR hCursorSizeWE;
 extern HCURSOR hCursorSizeNS;
 extern HCURSOR hCursorSizeALL;
 extern HCURSOR hCursorClone;
+extern int nLastSplit;
 
 //Docks
 extern HDOCK hDocksStack;
@@ -2507,7 +2508,7 @@ void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
 
 void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 {
-  CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, bState?MF_CHECKED:MF_UNCHECKED);
+  CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ONOFF, bState?MF_CHECKED:MF_UNCHECKED);
 
   if (bState)
   {

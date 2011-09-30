@@ -123,7 +123,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Í&rásvédett",                 IDM_VIEW_READONLY
         MENUITEM "Sortörés\tCtrl+U",            IDM_VIEW_WORDWRAP
-        MENUITEM "Ablak felosztás",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Ablak felosztás",             IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "Mindig látható\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "Állapotsor",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

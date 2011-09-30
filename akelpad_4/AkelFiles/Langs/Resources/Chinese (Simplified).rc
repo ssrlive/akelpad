@@ -120,7 +120,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "只读(&R)",                    IDM_VIEW_READONLY
         MENUITEM "自动换行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "拆分窗格(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "拆分窗格(&P)",                IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "总在最前(&A)\tCtrl+T",        IDM_VIEW_ONTOP
         MENUITEM "状态栏(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

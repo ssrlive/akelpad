@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Vain luku",                  IDM_VIEW_READONLY
         MENUITEM "&Automaattinen rivitys\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "&Jaa ikkuna",                 IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Jaa ikkuna",                 IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "Aina &p‰‰llimm‰isen‰\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Tilapalkki",                 IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

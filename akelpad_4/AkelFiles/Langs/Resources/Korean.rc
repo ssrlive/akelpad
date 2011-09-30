@@ -124,7 +124,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "읽기 전용(&R)",               IDM_VIEW_READONLY
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
-        MENUITEM "창 나누기(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "창 나누기(&P)",               IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "상태표시줄(&S)",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

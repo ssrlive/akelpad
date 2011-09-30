@@ -302,6 +302,7 @@ HCURSOR hCursorSizeWE;
 HCURSOR hCursorSizeNS;
 HCURSOR hCursorSizeALL;
 HCURSOR hCursorClone=NULL;
+int nLastSplit=0;
 
 //Docks
 HDOCK hDocksStack={0};
@@ -3024,7 +3025,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_VIEW_READONLY, lpFrameCurrent->ei.bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, lpFrameCurrent->ei.bWordWrap?MF_CHECKED:MF_UNCHECKED);
-      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, lpFrameCurrent->ei.hWndMaster?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ONOFF, lpFrameCurrent->ei.hWndMaster?MF_CHECKED:MF_UNCHECKED);
     }
     bMenuLanguage=TRUE;
     if (lParam) return TRUE;
@@ -3543,9 +3544,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_ALL ||
              LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_WE ||
-             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_NS)
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_NS ||
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_ONOFF)
     {
-      DoViewSplitWindow(!lpFrameCurrent->ei.hWndMaster, LOWORD(wParam));
+      int nNewSplit=LOWORD(wParam);
+
+      if (nNewSplit == IDM_VIEW_SPLIT_WINDOW_ONOFF)
+      {
+        nNewSplit=IDM_VIEW_SPLIT_WINDOW_ALL;
+      }
+      else if (lpFrameCurrent->ei.hWndMaster)
+      {
+        if (nLastSplit != nNewSplit)
+          DoViewSplitWindow(!lpFrameCurrent->ei.hWndMaster, nNewSplit);
+      }
+      nLastSplit=nNewSplit;
+
+      DoViewSplitWindow(!lpFrameCurrent->ei.hWndMaster, nNewSplit);
     }
     else if (LOWORD(wParam) == IDM_VIEW_ONTOP)
     {
@@ -4538,7 +4553,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_VIEW_COLORS,
                      IDM_VIEW_READONLY,
                      IDM_VIEW_WORDWRAP,
-                     IDM_VIEW_SPLIT_WINDOW_ALL,
+                     IDM_VIEW_SPLIT_WINDOW_ONOFF,
                      IDM_WINDOW_TILEHORIZONTAL,
                      IDM_WINDOW_TILEVERTICAL,
                      IDM_WINDOW_CASCADE,
@@ -4822,6 +4837,10 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
       else DoViewSplitWindow(FALSE, 0);
 
+      if (lpFrameCurrent->ei.hWndClone1)
+        nLastSplit=IDM_VIEW_SPLIT_WINDOW_WE;
+      else if (lpFrameCurrent->ei.hWndClone2)
+        nLastSplit=IDM_VIEW_SPLIT_WINDOW_NS;
       return TRUE;
     }
   }

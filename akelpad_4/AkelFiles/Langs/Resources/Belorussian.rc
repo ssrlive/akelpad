@@ -121,7 +121,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Толькі чытанне",             IDM_VIEW_READONLY
         MENUITEM "П&еранос па словах\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "Падзяліць &акно",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Падзяліць &акно",             IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Па-над усімі вокнамі\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Радок стану",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
