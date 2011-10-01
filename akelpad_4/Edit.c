@@ -172,6 +172,7 @@ extern WNDPROC OldFilePreviewProc;
 extern wchar_t wszAkelAdminExe[MAX_PATH];
 extern wchar_t wszAkelAdminPipe[32];
 extern BOOL bPipeInitAkelAdmin;
+extern BOOL bSetSecurity;
 extern HICON hIconShieldAkelAdmin;
 
 //MessageBox dialog
@@ -2919,16 +2920,19 @@ void DoNonMenuDelLine(HWND hWnd)
 
 BOOL OpenIniA(INIFILE *hIniFile, const char *pFile, BOOL bCreate)
 {
-  HANDLE hFile=INVALID_HANDLE_VALUE;
+  HANDLE hFile;
+  DWORD dwFlags=0;
 
   if (!bCreate)
   {
     if (FileExistsAnsi(pFile))
-      hFile=API_CreateFileA(pFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+      dwFlags=OPEN_EXISTING;
+    else
+      return FALSE;
   }
-  else hFile=API_CreateFileA(pFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+  else dwFlags=OPEN_ALWAYS;
 
-  if (hFile != INVALID_HANDLE_VALUE)
+  if ((hFile=API_CreateFileA(pFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, dwFlags, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
   {
     ReadIni(hIniFile, hFile);
     CloseHandle(hFile);
@@ -2939,16 +2943,19 @@ BOOL OpenIniA(INIFILE *hIniFile, const char *pFile, BOOL bCreate)
 
 BOOL OpenIniW(INIFILE *hIniFile, const wchar_t *wpFile, BOOL bCreate)
 {
-  HANDLE hFile=INVALID_HANDLE_VALUE;
+  HANDLE hFile;
+  DWORD dwFlags=0;
 
   if (!bCreate)
   {
     if (FileExistsWide(wpFile))
-      hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+      dwFlags=OPEN_EXISTING;
+    else
+      return FALSE;
   }
-  else hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+  else dwFlags=OPEN_ALWAYS;
 
-  if (hFile != INVALID_HANDLE_VALUE)
+  if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, dwFlags, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
   {
     ReadIni(hIniFile, hFile);
     CloseHandle(hFile);
@@ -4169,7 +4176,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         SendMessage(hWnd, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
       }
     }
+  }
 
+  if (bFileExist)
+  {
     //Autodetect code page
     if ((nDetect=AutodetectCodePage(wszFile, moCur.dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
@@ -4215,42 +4225,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     goto End;
   }
 
-  OpenFile:
-  hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-  if (hFile == INVALID_HANDLE_VALUE)
+  if ((hFile=API_CreateFileW(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
   {
-    if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
-    {
-      //Allow all access to the file (UAC).
-      if (AkelAdminInit(wszFile))
-      {
-        if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
-            !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
-        {
-          //Reset AkelAdmin
-          AkelAdminExit();
-
-          nResult=ESD_OPEN;
-          goto BackAttr;
-        }
-        else
-        {
-          bSetSecurity=TRUE;
-          goto OpenFile;
-        }
-      }
-    }
-
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
-      API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-      xprintfW(wszMsg, wbuf, wszFile);
-      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-
-      nResult=EOD_OPEN;
-      goto End;
-    }
+    nResult=EOD_OPEN;
+    goto End;
   }
 
   //Offset BOM
@@ -4303,19 +4281,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
-
-  BackAttr:
-  //Change back file security (UAC).
-  if (bSetSecurity)
-  {
-    if (!AkelAdminSend(AAA_SECURITYRESTORE, wszFile) ||
-        !AkelAdminSend(AAA_SECURITYFREE, wszFile))
-    {
-      //Reset AkelAdmin
-      AkelAdminExit();
-    }
-    bSetSecurity=FALSE;
-  }
 
   if (fsd.bResult != -1 && IsEditActive(hWnd))
   {
@@ -4740,10 +4705,9 @@ BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   wchar_t wszFile[MAX_PATH];
-  WIN32_FIND_DATAW wfdW;
+  WIN32_FIND_DATAW wfd;
   HANDLE hFile;
   FILESTREAMDATA fsd;
-  DWORD dwAttr;
   UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
   int nWrite=0;
@@ -4853,11 +4817,12 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     }
   }
 
-  dwAttr=GetFileAttributesWide(wszFile);
-
-  if (dwAttr != INVALID_FILE_ATTRIBUTES)
+  //File attributes
+  if ((hFile=FindFirstFileWide(wszFile, &wfd)) != INVALID_HANDLE_VALUE)
   {
-    if (moCur.bSaveInReadOnlyMsg && (dwAttr & FILE_ATTRIBUTE_READONLY))
+    FindClose(hFile);
+
+    if (moCur.bSaveInReadOnlyMsg && (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
     {
       if (!IsEditActive(hWnd))
         SetFocus(hWnd);
@@ -4869,98 +4834,96 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         goto End;
       }
     }
-    if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-      SetFileAttributesWide(wszFile, dwAttr & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
-    if (moCur.bSaveTime)
-    {
-      if ((hFile=FindFirstFileWide(wszFile, &wfdW)) != INVALID_HANDLE_VALUE)
-        FindClose(hFile);
-    }
+    if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
+      SetFileAttributesWide(wszFile, wfd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
   }
+  else wfd.dwFileAttributes=INVALID_FILE_ATTRIBUTES;
 
-  OpenFile:
-  hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-
-  if (hFile == INVALID_HANDLE_VALUE)
+  //Write to file
+  for (;;)
   {
-    if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+    if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
-      //Allow all access to the file (UAC).
-      if (AkelAdminInit(wszFile))
+      if (!bSetSecurity && !bOldWindows && wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES && GetLastError() == ERROR_ACCESS_DENIED)
       {
-        if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
-            !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
+        //Allow all access to the file (UAC).
+        if (AkelAdminInit(wszFile))
         {
-          //Reset AkelAdmin
-          AkelAdminExit();
-
-          nResult=ESD_OPEN;
-          goto BackAttr;
-        }
-        else
-        {
-          bSetSecurity=TRUE;
-          goto OpenFile;
+          if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
+              !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
+          {
+            //Reset AkelAdmin
+            AkelAdminExit();
+          }
+          else
+          {
+            bSetSecurity=TRUE;
+            continue;
+          }
         }
       }
-    }
-
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
       API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, wszFile);
       API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
 
       nResult=ESD_OPEN;
-      goto BackAttr;
+      break;
     }
-  }
 
-  if (bBOM)
-  {
-    if (IsCodePageUnicode(nCodePage))
+    if (bBOM)
     {
-      if (nCodePage == CP_UNICODE_UTF16LE)
-        nWrite=API_WriteFile(hFile, "\xFF\xFE", 2, &dwBytesWritten, NULL);
-      else if (nCodePage == CP_UNICODE_UTF16BE)
-        nWrite=API_WriteFile(hFile, "\xFE\xFF", 2, &dwBytesWritten, NULL);
-      else if (nCodePage == CP_UNICODE_UTF32LE)
-        nWrite=API_WriteFile(hFile, "\xFF\xFE\x00\x00", 4, &dwBytesWritten, NULL);
-      else if (nCodePage == CP_UNICODE_UTF32BE)
-        nWrite=API_WriteFile(hFile, "\x00\x00\xFE\xFF", 4, &dwBytesWritten, NULL);
-      else if (nCodePage == CP_UNICODE_UTF8)
-        nWrite=API_WriteFile(hFile, "\xEF\xBB\xBF", 3, &dwBytesWritten, NULL);
-
-      if (!nWrite)
+      if (IsCodePageUnicode(nCodePage))
       {
-        nResult=ESD_WRITE;
-        goto BackAttr;
+        if (nCodePage == CP_UNICODE_UTF16LE)
+          nWrite=API_WriteFile(hFile, "\xFF\xFE", 2, &dwBytesWritten, NULL);
+        else if (nCodePage == CP_UNICODE_UTF16BE)
+          nWrite=API_WriteFile(hFile, "\xFE\xFF", 2, &dwBytesWritten, NULL);
+        else if (nCodePage == CP_UNICODE_UTF32LE)
+          nWrite=API_WriteFile(hFile, "\xFF\xFE\x00\x00", 4, &dwBytesWritten, NULL);
+        else if (nCodePage == CP_UNICODE_UTF32BE)
+          nWrite=API_WriteFile(hFile, "\x00\x00\xFE\xFF", 4, &dwBytesWritten, NULL);
+        else if (nCodePage == CP_UNICODE_UTF8)
+          nWrite=API_WriteFile(hFile, "\xEF\xBB\xBF", 3, &dwBytesWritten, NULL);
+
+        if (!nWrite)
+        {
+          nResult=ESD_WRITE;
+          break;
+        }
       }
+      else bBOM=FALSE;
     }
-    else bBOM=FALSE;
+
+    fsd.hWnd=hWnd;
+    fsd.hFile=hFile;
+    fsd.nCodePage=nCodePage;
+    fsd.dwFlags=dwFlags;
+    fsd.bResult=TRUE;
+    FileStreamOut(&fsd);
+
+    if (fsd.bResult == TRUE)
+    {
+      //Restore last write time
+      if (moCur.bSaveTime)
+        SetFileTime(hFile, NULL, NULL, &wfd.ftLastWriteTime);
+    }
+    break;
   }
+  if (hFile != INVALID_HANDLE_VALUE)
+    CloseHandle(hFile);
 
-  fsd.hWnd=hWnd;
-  fsd.hFile=hFile;
-  fsd.nCodePage=nCodePage;
-  fsd.dwFlags=dwFlags;
-  fsd.bResult=TRUE;
-  FileStreamOut(&fsd);
-  CloseHandle(hFile);
-
-  BackAttr:
   //Change back file attributes
-  if (dwAttr != INVALID_FILE_ATTRIBUTES)
+  if (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
   {
-    if ((!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) && fsd.bResult == TRUE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-      SetFileAttributesWide(wszFile, dwAttr|(fsd.bResult == TRUE?FILE_ATTRIBUTE_ARCHIVE:0));
+    if ((!(wfd.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) && fsd.bResult == TRUE) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
+      SetFileAttributesWide(wszFile, wfd.dwFileAttributes|(fsd.bResult == TRUE?FILE_ATTRIBUTE_ARCHIVE:0));
   }
 
   //Change back file security (UAC).
   if (bSetSecurity)
   {
-    if (!AkelAdminSend(AAA_SECURITYRESTORE, wszFile) ||
-        !AkelAdminSend(AAA_SECURITYFREE, wszFile))
+    if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
+        !AkelAdminSend(AAA_SECURITYFREE, L""))
     {
       //Reset AkelAdmin
       AkelAdminExit();
@@ -4972,16 +4935,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if (fsd.bResult)
     {
-      //Restore last write time
-      if (moCur.bSaveTime)
-      {
-        if ((hFile=API_CreateFileW(wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
-        {
-          SetFileTime(hFile, NULL, NULL, &wfdW.ftLastWriteTime);
-          CloseHandle(hFile);
-        }
-      }
-  
       //Update file info
       if (dwFlags & SD_UPDATE)
       {
@@ -4990,11 +4943,11 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           //Compare
           nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
           nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
-  
+
           GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
           SetModifyStatus(lpFrameCurrent, FALSE);
           SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
-  
+
           if (nFileCmp)
           {
             UpdateTitle(lpFrameCurrent, wszFile);
@@ -5004,7 +4957,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           }
           if (nFileCmp || nCodePageCmp)
             RecentFilesSaveFile(lpFrameCurrent);
-  
+
           if ((dwFlags & SD_SELECTION) || nLostLine ||
               //Is output new line format is changed?
               HIWORD(SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETNEWLINE, 0, 0)) != AELB_ASIS)
@@ -5016,18 +4969,18 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         {
           FILETIME ft;
           FRAMEDATA *lpFrame;
-  
+
           if (lpFrame=GetFrameDataFromEditWindow(hWnd))
           {
             //Compare
             nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
-  
+
             GetFileWriteTimeWide(wszFile, &ft);
             SetModifyStatus(lpFrame, FALSE);
             lpFrame->ei.nCodePage=nCodePage;
             lpFrame->ei.bBOM=bBOM;
             lpFrame->ft=ft;
-  
+
             if (nFileCmp)
             {
               UpdateTitle(lpFrame, wszFile);
@@ -5181,7 +5134,7 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
           //Initialize AkelAdmin process
           if (ShellExecuteExWPtr)
           {
-            xprintfW(wszParams, L"\"%d\" \"%d\"", AAA_INIT, dwProcessId);
+            xprintfW(wszParams, L"\"%d\" \"%d\"", AAA_CMDINIT, dwProcessId);
             sei.cbSize=sizeof(SHELLEXECUTEINFOW);
             sei.fMask=SEE_MASK_NOCLOSEPROCESS;
             sei.hwnd=hMainWnd;
@@ -5219,24 +5172,28 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
 
 BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
 {
-  ADMINPIPE apipe;
-  HANDLE hFilePipe;
-  UINT_PTR dwBytesRead;
-  UINT_PTR dwBytesWritten;
-
-  apipe.dwExitCode=1;
-  apipe.nAction=nAction;
-  xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
-  apipe.dwLangModule=dwLangModule;
-
-  //Connect to pipe server, send and receive data.
-  if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+  if (bPipeInitAkelAdmin)
   {
-    API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-    ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-    CloseHandle(hFilePipe);
+    ADMINPIPE apipe;
+    HANDLE hFilePipe;
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwBytesWritten;
+
+    apipe.dwExitCode=1;
+    apipe.nAction=nAction;
+    xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
+    apipe.dwLangModule=dwLangModule;
+
+    //Connect to pipe server, send and receive data.
+    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+    {
+      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+      CloseHandle(hFilePipe);
+    }
+    return !apipe.dwExitCode;
   }
-  return !apipe.dwExitCode;
+  return FALSE;
 }
 
 void AkelAdminExit()
@@ -5252,34 +5209,36 @@ void AkelAdminExit()
     {
       //Unload AkelAdmin.
       xmemset(&apipe, 0, sizeof(ADMINPIPE));
-      apipe.nAction=0;
+      apipe.nAction=AAA_EXIT;
       API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
       ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
       CloseHandle(hFilePipe);
+
+      bPipeInitAkelAdmin=FALSE;
     }
-    bPipeInitAkelAdmin=FALSE;
+    else MessageBox(NULL, "ERR", NULL, 0);
   }
 }
 
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
 {
   wchar_t wszName[MAX_PATH];
-  WIN32_FIND_DATAW wfdW;
+  WIN32_FIND_DATAW wfd;
   HANDLE hSearch;
   int nOpen;
   BOOL bResult=TRUE;
 
   xprintfW(wszName, L"%s\\*.*", wpPath);
 
-  if ((hSearch=FindFirstFileWide(wszName, &wfdW)) != INVALID_HANDLE_VALUE)
+  if ((hSearch=FindFirstFileWide(wszName, &wfd)) != INVALID_HANDLE_VALUE)
   {
     do
     {
-      if (wfdW.cFileName[0] == '.' && (wfdW.cFileName[1] == '\0' || (wfdW.cFileName[1] == '.' && wfdW.cFileName[2] == '\0'))) continue;
+      if (wfd.cFileName[0] == '.' && (wfd.cFileName[1] == '\0' || (wfd.cFileName[1] == '.' && wfd.cFileName[2] == '\0'))) continue;
 
-      xprintfW(wszName, L"%s\\%s", wpPath, wfdW.cFileName);
+      xprintfW(wszName, L"%s\\%s", wpPath, wfd.cFileName);
 
-      if (wfdW.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       {
         if (bSubDir)
         {
@@ -5297,7 +5256,7 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
         }
       }
     }
-    while (FindNextFileWide(hSearch, &wfdW));
+    while (FindNextFileWide(hSearch, &wfd));
 
     FindClose(hSearch);
   }
@@ -7985,6 +7944,7 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   int nANSIrate=5;
   int nUTF16LErate=0;
   int nUTF16BErate=0;
+  int nResult=EDT_SUCCESS;
 
   //Remembered code page from registry
   if (dwFlags & ADT_REG_CODEPAGE)
@@ -8023,23 +7983,23 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
     else
       hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
-    if (hFile == INVALID_HANDLE_VALUE)
-      return EDT_OPEN;
-
-    if (!(pBuffer=(unsigned char *)API_HeapAlloc(hHeap, 0, dwBytesToCheck + 1)))
+    if (hFile != INVALID_HANDLE_VALUE)
     {
-      CloseHandle(hFile);
-      return EDT_ALLOC;
+      if (pBuffer=(unsigned char *)API_HeapAlloc(hHeap, 0, dwBytesToCheck + 1))
+      {
+        if (!ReadFile64(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
+        {
+          SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
+          API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
+          nResult=EDT_READ;
+        }
+      }
+      else nResult=EDT_ALLOC;
     }
+    else nResult=EDT_OPEN;
 
-    if (!ReadFile64(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
-    {
-      SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
-      API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
-      CloseHandle(hFile);
-      return EDT_READ;
-    }
     CloseHandle(hFile);
+    if (nResult) return nResult;
   }
 
   //Detect Unicode BOM
@@ -10830,7 +10790,7 @@ int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax)
 
 void LanguageMenu()
 {
-  WIN32_FIND_DATAW wfdW;
+  WIN32_FIND_DATAW wfd;
   HANDLE hFind;
   int nCommand=0;
   int i;
@@ -10840,19 +10800,19 @@ void LanguageMenu()
 
   xprintfW(wbuf, L"%s\\AkelFiles\\Langs\\*.dll", wszExeDir);
 
-  if ((hFind=FindFirstFileWide(wbuf, &wfdW)) != INVALID_HANDLE_VALUE)
+  if ((hFind=FindFirstFileWide(wbuf, &wfd)) != INVALID_HANDLE_VALUE)
   {
     i=1;
 
     do
     {
-      if (!xstrcmpiW(moCur.wszLangModule, wfdW.cFileName))
+      if (!xstrcmpiW(moCur.wszLangModule, wfd.cFileName))
         nCommand=IDM_LANGUAGE + i;
-      GetBaseName(wfdW.cFileName, wbuf, BUFFER_SIZE);
+      GetBaseName(wfd.cFileName, wbuf, BUFFER_SIZE);
       InsertMenuWide(hMainMenu, IDM_LANGUAGE, MF_BYCOMMAND|MF_STRING, IDM_LANGUAGE + i, wbuf);
       ++i;
     }
-    while (FindNextFileWide(hFind, &wfdW));
+    while (FindNextFileWide(hFind, &wfd));
 
     nLangModuleCount=i - 1;
     InsertMenuWide(hMainMenu, IDM_LANGUAGE, MF_BYCOMMAND|MF_SEPARATOR, IDM_LANGUAGE + i, NULL);
@@ -12920,7 +12880,7 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 
 void FillPluginList(HWND hWnd)
 {
-  WIN32_FIND_DATAW wfdW;
+  WIN32_FIND_DATAW wfd;
   PLUGINLISTDATA pld={0};
   LVITEMW lvi;
   HANDLE hFind;
@@ -12932,28 +12892,28 @@ void FillPluginList(HWND hWnd)
   pld.hWndList=hWnd;
   xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\*.%s", wszExeDir, wpPluginExt);
 
-  if ((hFind=FindFirstFileWide(wbuf, &wfdW)) != INVALID_HANDLE_VALUE)
+  if ((hFind=FindFirstFileWide(wbuf, &wfd)) != INVALID_HANDLE_VALUE)
   {
     do
     {
       //Avoid FindFirstFile/FindNextFile bug: "*.dll_ANYSYMBOLS" is also matched
-      if (xstrcmpiW(wpPluginExt, GetFileExt(wfdW.cFileName)))
+      if (xstrcmpiW(wpPluginExt, GetFileExt(wfd.cFileName)))
         continue;
 
-      xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\%s", wszExeDir, wfdW.cFileName);
+      xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\%s", wszExeDir, wfd.cFileName);
 
       if (hInstance=LoadLibraryWide(wbuf))
       {
         if (GetProcAddress(hInstance, "DllAkelPadID"))
         {
-          GetBaseName(wfdW.cFileName, wszBaseName, MAX_PATH);
+          GetBaseName(wfd.cFileName, wszBaseName, MAX_PATH);
           pld.pBaseName=(unsigned char *)wszBaseName;
           GetExportNames(hInstance, FillPluginListProc, (LPARAM)&pld);
         }
         FreeLibrary(hInstance);
       }
     }
-    while (FindNextFileWide(hFind, &wfdW));
+    while (FindNextFileWide(hFind, &wfd));
 
     FindClose(hFind);
   }
@@ -18068,12 +18028,13 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
 {
   HANDLE hFile;
 
-  if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
-    return FALSE;
-
-  GetFileTime(hFile, NULL, NULL, ft);
-  CloseHandle(hFile);
-  return TRUE;
+  if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+  {
+    GetFileTime(hFile, NULL, NULL, ft);
+    CloseHandle(hFile);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
