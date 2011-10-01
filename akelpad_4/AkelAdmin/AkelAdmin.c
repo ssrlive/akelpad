@@ -150,7 +150,8 @@ void _WinMain()
                 EXPLICIT_ACCESSW eal[1];
                 SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
                 SID *pSIDEveryone=NULL;
-                SECURITY_DESCRIPTOR *psdCurrent=NULL;
+                SECURITY_DESCRIPTOR *psdCurrentFile=NULL;
+                wchar_t wszCurrentFile[MAX_PATH];
                 BOOL bChangeAccessResult=FALSE;
 
                 //Specify the DACL to use. Create a SID for the Everyone group.
@@ -209,15 +210,15 @@ void _WinMain()
                         wLangModule=PRIMARYLANGID(apipe.dwLangModule);
 
                         //Retrieve file security
-                        if (!psdCurrent)
+                        if (!psdCurrentFile)
                         {
                           GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
 
                           if (dwSize)
                           {
-                            if (psdCurrent=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                            if (psdCurrentFile=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
                             {
-                              if (!GetFileSecurityW(apipe.wszFile, ssi, psdCurrent, dwSize, &dwSize))
+                              if (!GetFileSecurityW(apipe.wszFile, ssi, psdCurrentFile, dwSize, &dwSize))
                               {
                                 wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
                                 MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
@@ -228,9 +229,10 @@ void _WinMain()
 
                           if (apipe.dwExitCode)
                           {
-                            GlobalFree(psdCurrent);
-                            psdCurrent=NULL;
+                            GlobalFree(psdCurrentFile);
+                            psdCurrentFile=NULL;
                           }
+                          else lstrcpynW(wszCurrentFile, apipe.wszFile, MAX_PATH);
                         }
                         else apipe.dwExitCode=1;
                       }
@@ -239,7 +241,7 @@ void _WinMain()
                         wLangModule=PRIMARYLANGID(apipe.dwLangModule);
 
                         //Decrease file security
-                        if (psdCurrent)
+                        if (psdCurrentFile)
                         {
                           if (SetNamedSecurityInfoW(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) != ERROR_SUCCESS)
                           {
@@ -259,11 +261,11 @@ void _WinMain()
                         wLangModule=PRIMARYLANGID(apipe.dwLangModule);
 
                         //Restore file security
-                        if (psdCurrent)
+                        if (psdCurrentFile)
                         {
-                          if (!SetFileSecurityW(apipe.wszFile, ssi, psdCurrent))
+                          if (!SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
                           {
-                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
+                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
                             MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
                             apipe.dwExitCode=1;
                           }
@@ -273,10 +275,10 @@ void _WinMain()
                       else if (apipe.nAction == AAA_SECURITYFREE)
                       {
                         //Free security buffer
-                        if (psdCurrent)
+                        if (psdCurrentFile)
                         {
-                          GlobalFree(psdCurrent);
-                          psdCurrent=NULL;
+                          GlobalFree(psdCurrentFile);
+                          psdCurrentFile=NULL;
                         }
                         else apipe.dwExitCode=1;
                       }
@@ -289,7 +291,7 @@ void _WinMain()
                 }
                 dwExitCode=0;
 
-                if (psdCurrent) GlobalFree(psdCurrent);
+                if (psdCurrentFile) GlobalFree(psdCurrentFile);
                 if (pEveryoneACL) LocalFree(pEveryoneACL);
                 if (pSIDEveryone) FreeSid(pSIDEveryone);
                 CloseHandle(hPipeAkelAdmin);
