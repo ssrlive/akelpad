@@ -250,7 +250,7 @@ HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
 RECT rcPluginsMinMaxDialog={274, 192, 0, 0};
 BOOL bSavePluginsStackOnExit=FALSE;
-WNDPROC OldHotkeyInputProc=NULL;
+WNDPROC lpOldHotkeyInputProc=NULL;
 wchar_t wszLastFunction[MAX_PATH]=L"";
 int nLastFunctionIndex;
 
@@ -308,7 +308,7 @@ int nLastSplit=0;
 //Docks
 HDOCK hDocksStack={0};
 NSIZE nsSize;
-WNDPROC OldCloseButtonProc=NULL;
+WNDPROC lpOldCloseButtonProc=NULL;
 
 //Owner-drawn buttons
 HSTACK hButtonDrawStack={0};
@@ -334,7 +334,7 @@ DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 POINT64 ptDocumentPos;
-WNDPROC OldFilePreviewProc;
+WNDPROC lpOldFilePreviewProc;
 
 //AkelAdmin
 wchar_t wszAkelAdminExe[MAX_PATH];
@@ -361,7 +361,7 @@ wchar_t *wszFindText=NULL;
 wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
 int nReplaceTextLen=0;
-WNDPROC OldComboboxEdit;
+WNDPROC lpOldComboboxEdit;
 
 //Go to line dialog
 RECT rcGotoDlg={0};
@@ -417,7 +417,7 @@ AECHARINDEX ciCurCaret={0};
 int nLoopCase=0;
 DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bReopenMsg=FALSE;
-WNDPROC OldEditProc;
+WNDPROC lpOldEditProc;
 
 //Execute
 char szExeDir[MAX_PATH]="";
@@ -447,8 +447,8 @@ BOOL bTabPressing=FALSE;
 BOOL bFrameActivating=FALSE;
 DWORD dwMdiFrameActivating=0;
 RECT rcMdiListMinMaxDialog={221, 463, 0, 0};
-WNDPROC OldMdiClientProc;
-WNDPROC OldTabProc;
+WNDPROC lpOldMdiClientProc;
+WNDPROC lpOldTabProc;
 FRAMEDATA *lpFrame;
 
 //GetProcAddress
@@ -1492,7 +1492,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwClassStyle=(DWORD)GetClassLongPtrWide(hMdiClient, GCL_STYLE);
         SetClassLongPtrWide(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
 
-        OldMdiClientProc=(WNDPROC)GetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC);
+        lpOldMdiClientProc=(WNDPROC)GetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC);
         SetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC, (UINT_PTR)NewMdiClientProc);
 
         InsertMenuWide(hMainMenu, IDM_WINDOW_FRAMECLOSE, MF_BYCOMMAND|MF_SEPARATOR, 0, NULL);
@@ -1522,7 +1522,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                               hInstance,
                               0);
 
-      OldTabProc=(WNDPROC)GetWindowLongPtrWide(hTab, GWLP_WNDPROC);
+      lpOldTabProc=(WNDPROC)GetWindowLongPtrWide(hTab, GWLP_WNDPROC);
       SetWindowLongPtrWide(hTab, GWLP_WNDPROC, (UINT_PTR)NewTabProc);
 
       SendMessage(hTab, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
@@ -2528,7 +2528,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_SETHOTKEYINPUT)
     {
       SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, lParam);
-      OldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
+      lpOldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
       SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewHotkeyInputProc);
 
       //Update cursor
@@ -4922,7 +4922,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return lResult;
   }
 
-  return CallWindowProcWide(OldEditProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(lpOldEditProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5207,7 +5207,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     }
   }
 
-  return CallWindowProcWide(OldMdiClientProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(lpOldMdiClientProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5373,7 +5373,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
   }
 
-  return CallWindowProcWide(OldTabProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(lpOldTabProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -6002,9 +6002,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
           //Reset to initial hotkey
           if (!IsWindowUnicode(msg.hwnd))
-            CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
+            CallWindowProcA(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
           else
-            CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
+            CallWindowProcW(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
           SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
           bOwnKey=TRUE;
         }
@@ -6018,9 +6018,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
           //If hotkey window already empty assign Backspace or Delete
           if (!IsWindowUnicode(msg.hwnd))
-            CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+            CallWindowProcA(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
           else
-            CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+            CallWindowProcW(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
           SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
           bOwnKey=TRUE;
         }
@@ -6037,9 +6037,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           return DLGC_WANTMESSAGE;
 
         if (!IsWindowUnicode(msg.hwnd))
-          CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+          CallWindowProcA(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
         else
-          CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+          CallWindowProcW(lpOldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
         SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
         bOwnKey=TRUE;
       }
@@ -6048,9 +6048,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     if (!bOwnKey)
     {
       if (!IsWindowUnicode(msg.hwnd))
-        lResult=CallWindowProcA(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+        lResult=CallWindowProcA(lpOldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
       else
-        lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+        lResult=CallWindowProcW(lpOldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
     }
     if (uMsg == WM_GETDLGCODE)
       return lResult;
@@ -6131,9 +6131,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   }
 
   if (!IsWindowUnicode(hWnd))
-    lResult=CallWindowProcA(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+    lResult=CallWindowProcA(lpOldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
   else
-    lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+    lResult=CallWindowProcW(lpOldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
 
   //Draw color rectangle if hotkey already exist
   if (uMsg == WM_PAINT)
