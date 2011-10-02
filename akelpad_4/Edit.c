@@ -27,6 +27,7 @@ extern HANDLE hMutex;
 extern DWORD dwProcessId;
 
 //WinMain
+extern MAINCREATE mc;
 extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
 extern DWORD dwCmdLineOptions;
@@ -4069,7 +4070,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   int nResult=EOD_SUCCESS;
   int nDetect;
   int nFileCmp;
-  BOOL bSetSecurity=FALSE;
   BOOL bFileExist;
 
   if (!hWnd)
@@ -4715,7 +4715,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nCodePageCmp;
   int nLostLine=0;
   int nLostCharInLine;
-  BOOL bSetSecurity=FALSE;
 
   if (!wpFile[0])
   {
@@ -16499,12 +16498,12 @@ void StackFontItemsFree(HSTACK *hStack)
 
 //// Command line functions
 
-wchar_t* GetCommandLineParamsWide(void)
+wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
 {
   if (bOldWindows)
-    xprintfW(wszCmdLine, L"%s %.%dS %s", wszCmdLineBegin, COMMANDLINE_SIZE, GetCommandLineParamsA(), wszCmdLineEnd);
+    xprintfW(wszCmdLine, L"%s %.%dS %s", wszCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wszCmdLineEnd);
   else
-    xprintfW(wszCmdLine, L"%s %.%ds %s", wszCmdLineBegin, COMMANDLINE_SIZE, GetCommandLineParamsW(), wszCmdLineEnd);
+    xprintfW(wszCmdLine, L"%s %.%ds %s", wszCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wszCmdLineEnd);
   return wszCmdLine;
 }
 

@@ -17,6 +17,7 @@ CFG=AkelPad - Win32 Debug English
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
+!MESSAGE "AkelPad - Win32 Library Debug English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelPad - Win32 Dinamic Release English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelPad - Win32 Release English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelPad - Win32 Debug English" (based on "Win32 (x86) Dynamic-Link Library")
@@ -30,7 +31,36 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+!IF  "$(CFG)" == "AkelPad - Win32 Library Debug English"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "AkelPad___Win32_DLL_Debug_English"
+# PROP BASE Intermediate_Dir "AkelPad___Win32_DLL_Debug_English"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "Debug"
+# PROP Intermediate_Dir "Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "_USRDLL" /D "AKELPAD_DLL" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /debug /machine:I386 /nodefaultlib /pdbtype:sept
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib libc.lib /nologo /entry:"DllMain" /dll /debug /machine:I386 /nodefaultlib /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
+
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -47,8 +77,8 @@ RSC=rc.exe
 # ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D RC_VERSIONLANGID=0x409 /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
-# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
-# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "RC_EXEVERSION"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -76,7 +106,7 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -103,7 +133,7 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -116,6 +146,7 @@ LINK32=link.exe
 
 # Begin Target
 
+# Name "AkelPad - Win32 Library Debug English"
 # Name "AkelPad - Win32 Dinamic Release English"
 # Name "AkelPad - Win32 Release English"
 # Name "AkelPad - Win32 Debug English"
@@ -126,7 +157,9 @@ LINK32=link.exe
 
 SOURCE=.\AkelEdit\AkelEdit.c
 
-!IF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+!IF  "$(CFG)" == "AkelPad - Win32 Library Debug English"
+
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
 
 # PROP Exclude_From_Build 1
 

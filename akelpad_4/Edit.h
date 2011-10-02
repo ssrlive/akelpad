@@ -388,6 +388,21 @@
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 
 typedef struct {
+  unsigned char *pCmdLine;
+  DWORD dwStyle;
+  int x;
+  int y;
+  int nWidth;
+  int nHeight;
+  HWND hWndParent;
+  HMENU hMenu;
+
+  //For AKELPAD_DLLBUILD
+  HANDLE hThread;
+  HANDLE hMutex;
+} MAINCREATE;
+
+typedef struct {
   //Save place
   int nSaveSettings;
 
@@ -1058,7 +1073,7 @@ FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);
 
-wchar_t* GetCommandLineParamsWide(void);
+wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams);
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
