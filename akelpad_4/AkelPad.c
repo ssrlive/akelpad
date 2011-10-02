@@ -1547,7 +1547,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hStatus=CreateWindowExWide(0,
                                L"msctls_statusbar32",
                                NULL,
-                               WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|SBARS_SIZEGRIP,
+                               WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|((mc.dwStyle & WS_CHILD)?0:SBARS_SIZEGRIP),
                                0, 0, 0, 0,
                                hWnd,
                                (HMENU)(UINT_PTR)ID_STATUS,
