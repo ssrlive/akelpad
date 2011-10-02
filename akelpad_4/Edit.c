@@ -7243,6 +7243,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 {
   static HWND hDlgParent;
   static HWND hDlgList;
+  static HWND hDlgEdit;
   static HWND hDlgComboboxLabel;
   static HWND hDlgCombobox;
   static HWND hDlgPlacesBar;
@@ -7269,6 +7270,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
+    hDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_EDIT);
     hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX_LABEL);
     hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX);
     hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
@@ -7481,7 +7483,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         if (nMDI)
         {
-          if (GetWindowTextLengthWide(GetDlgItem(hDlgParent, IDC_OFN_EDIT)) > OPENFILELIST_SIZE)
+          if (GetWindowTextLengthWide(hDlgEdit) > OPENFILELIST_SIZE)
           {
             API_LoadStringW(hLangLib, MSG_LONG_FILELIST, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
