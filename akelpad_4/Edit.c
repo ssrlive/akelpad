@@ -83,7 +83,7 @@ extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
 extern RECT rcPluginsMinMaxDialog;
 extern BOOL bSavePluginsStackOnExit;
-extern WNDPROC OldHotkeyInputProc;
+extern WNDPROC lpOldHotkeyInputProc;
 extern wchar_t wszLastFunction[MAX_PATH];
 extern int nLastFunctionIndex;
 
@@ -141,7 +141,7 @@ extern int nLastSplit;
 //Docks
 extern HDOCK hDocksStack;
 extern NSIZE nsSize;
-extern WNDPROC OldCloseButtonProc;
+extern WNDPROC lpOldCloseButtonProc;
 
 //Owner-drawn buttons
 extern HSTACK hButtonDrawStack;
@@ -167,7 +167,7 @@ extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
 extern POINT64 ptDocumentPos;
-extern WNDPROC OldFilePreviewProc;
+extern WNDPROC lpOldFilePreviewProc;
 
 //AkelAdmin
 extern wchar_t wszAkelAdminExe[MAX_PATH];
@@ -194,7 +194,7 @@ extern wchar_t *wszFindText;
 extern wchar_t *wszReplaceText;
 extern int nFindTextLen;
 extern int nReplaceTextLen;
-extern WNDPROC OldComboboxEdit;
+extern WNDPROC lpOldComboboxEdit;
 
 //Go to line dialog
 extern RECT rcGotoDlg;
@@ -250,7 +250,7 @@ extern AECHARINDEX ciCurCaret;
 extern int nLoopCase;
 extern DWORD dwWordBreakDefault;
 extern BOOL bReopenMsg;
-extern WNDPROC OldEditProc;
+extern WNDPROC lpOldEditProc;
 
 //Execute
 extern char szExeDir[MAX_PATH];
@@ -280,8 +280,8 @@ extern BOOL bTabPressing;
 extern BOOL bFrameActivating;
 extern DWORD dwMdiFrameActivating;
 extern RECT rcMdiListMinMaxDialog;
-extern WNDPROC OldMdiClientProc;
-extern WNDPROC OldTabProc;
+extern WNDPROC lpOldMdiClientProc;
+extern WNDPROC lpOldTabProc;
 extern FRAMEDATA *lpWndFrame;
 
 //GetProcAddress
@@ -368,7 +368,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
           StackThemeAdd(&hThemesStack, L"Notepad++", &aec, -1);
         }
       }
-      OldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
+      lpOldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
       SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (UINT_PTR)CommonEditProc);
     }
   }
@@ -7406,7 +7406,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
       SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
 
-      OldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
+      lpOldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
     }
   }
@@ -7577,7 +7577,7 @@ LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
   }
 
-  return CallWindowProcWide(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(lpOldFilePreviewProc, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)
@@ -8721,7 +8721,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       SendMessage(hWndComboboxEdit, EM_LIMITTEXT, PUTFIND_MAXSEL, 0);
 
-      OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
+      lpOldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
     }
     if (nModelessType == MLT_REPLACE)
@@ -8730,7 +8730,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         SendMessage(hWndComboboxEdit, EM_LIMITTEXT, PUTFIND_MAXSEL, 0);
 
-        OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
+        lpOldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
         SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
       }
     }
@@ -9094,7 +9094,7 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     return TRUE;
   }
 
-  return CallWindowProcWide(OldComboboxEdit, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcWide(lpOldComboboxEdit, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace)
