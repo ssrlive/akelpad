@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#ifndef EXE_VERSION
+#ifndef RC_EXEVERSION
   #if (RC_VERSIONBIT == 64)
     #define RC_VERSIONDESCRIPTION "AkelPad (x64) language module"
   #else
@@ -922,7 +922,7 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#ifndef EXE_VERSION\r\n"
+    "#ifndef RC_EXEVERSION\r\n"
     "  #if (RC_VERSIONBIT == 64)\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x64) language module""\r\n"
     "  #else\r\n"

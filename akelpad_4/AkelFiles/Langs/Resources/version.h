@@ -1,7 +1,7 @@
 #define RC_AKELPADID 4,7,0,0
 
-#if !defined(EXE_VERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
-  #if defined(EXE_VERSION)
+#if !defined(RC_EXEVERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
+  #if defined(RC_EXEVERSION)
     #if (RC_VERSIONBIT == 64)
       #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor"
     #else
@@ -12,7 +12,7 @@
     #undef _MAC
     #include "Version.rc"
     #define _MAC
-    #define EXE_VERSION_INCLUDED
+    #define RC_EXEVERSION_INCLUDED
   #elif defined(DLL_VERSION)
     #undef _MAC
     #include "Version.rc"

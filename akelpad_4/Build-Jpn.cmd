@@ -23,7 +23,7 @@ if "%BIT%" == "32" (
 if "%VCDIR%" == "%VCDIR:2003=%" (
   if "%VCDIR%" == "%VCDIR:VC98=%" set CLFLAGS=%CLFLAGS% /GS-
 )
-rc /R /DAKELEDIT_STATICBUILD /DEXE_VERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /I "AkelEdit\Resources" /Fo"AkelPad.res" "AkelFiles\Langs\Resources\%LANGNAME%.rc"
+rc /R /DAKELEDIT_STATICBUILD /DRC_EXEVERSION /DRC_VERSIONLANGID=%LANGID% /DRC_VERSIONBIT=%BIT% /I "AkelEdit\Resources" /Fo"AkelPad.res" "AkelFiles\Langs\Resources\%LANGNAME%.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 cl /O1 %CLFLAGS% /DAKELEDIT_STATICBUILD /DRC_VERSIONLANGID=%LANGID% AkelPad.c Edit.c AkelEdit\AkelEdit.c AkelPad.res /link kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib /SUBSYSTEM:WINDOWS /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:_WinMain /OUT:AkelPad.exe
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
