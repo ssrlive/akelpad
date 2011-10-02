@@ -3,7 +3,7 @@
 // Manifest
 //
 
-#ifdef EXE_VERSION
+#ifdef RC_EXEVERSION
   #if (RC_VERSIONBIT == 64)
     1                       24      MOVEABLE PURE   "AkelPad-x64.exe.manifest"
   #else

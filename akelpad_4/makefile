@@ -45,7 +45,7 @@ AkelEdit.o:
 	$(CC) $(CFLAGS) $(DEFINES) -c -xc AkelEdit/AkelEdit.c
 
 Resource.o:
-	$(RES) --use-temp-file -D AKELEDIT_STATICBUILD -D EXE_VERSION -D RC_VERSIONLANGID=$(LANGID) -D RC_VERSIONBIT=$(BIT) -I AkelEdit/Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANGNAME).rc" -o Resource.o
+	$(RES) --use-temp-file -D AKELEDIT_STATICBUILD -D RC_EXEVERSION -D RC_VERSIONLANGID=$(LANGID) -D RC_VERSIONBIT=$(BIT) -I AkelEdit/Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANGNAME).rc" -o Resource.o
 
 clean:
 	$(DEL) AkelPad.o
