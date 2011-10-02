@@ -30,6 +30,8 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
 if exist AkelPad.obj del AkelPad.obj
+if exist AkelPad.lib del AkelPad.lib
+if exist AkelPad.exp del AkelPad.exp
 if exist Edit.obj del Edit.obj
 if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelPad.res del AkelPad.res

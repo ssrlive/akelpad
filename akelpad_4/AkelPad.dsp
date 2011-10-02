@@ -35,8 +35,8 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "AkelPad___Win32_DLL_Debug_English"
-# PROP BASE Intermediate_Dir "AkelPad___Win32_DLL_Debug_English"
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
 # PROP BASE Ignore_Export_Lib 0
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
@@ -46,7 +46,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "_USRDLL" /D "AKELPAD_DLL" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "AKELPAD_DLLBUILD" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "RC_EXEVERSION" /d RC_VERSIONLANGID=0x409 /d RC_VERSIONBIT=32

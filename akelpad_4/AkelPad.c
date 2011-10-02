@@ -930,7 +930,6 @@ void _WinMain()
       }
     }
   }
-  #endif
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
@@ -957,6 +956,7 @@ void _WinMain()
       goto Quit;
     }
   }
+  #endif
 
   //Parse commmand line on load
   if (wpCmdLine)
