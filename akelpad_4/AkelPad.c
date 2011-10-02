@@ -194,8 +194,9 @@ HANDLE hMutex=0;
 DWORD dwProcessId;
 
 //WinMain
+MAINCREATE mc;
 HINSTANCE hInstance;
-DWORD dwCmdShow;
+DWORD dwCmdShow=SW_SHOWNORMAL;
 DWORD dwCmdLineOptions=0;
 const wchar_t *wpCmdLine=NULL;
 
@@ -457,7 +458,6 @@ DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION,
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *)=NULL;
 BOOL (WINAPI *ShellExecuteExWPtr)(LPSHELLEXECUTEINFOW)=NULL;
 
-
 //GCC
 #ifdef __GNUC__
 int main()
@@ -466,15 +466,137 @@ int main()
 }
 #endif
 
+//DLL build
+#ifdef AKELPAD_DLLBUILD
+HWND __declspec(dllexport) Create(unsigned char *pCmdLine, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu)
+{
+  DWORD dwExecThreadId=0;
+
+  //Initialize WideFunc.h header
+  WideInitialize();
+
+  mc.pCmdLine=pCmdLine;
+  mc.dwStyle=dwStyle;
+  mc.x=x;
+  mc.y=y;
+  mc.nWidth=nWidth;
+  mc.nHeight=nHeight;
+  mc.hWndParent=hWndParent;
+  mc.hMenu=hMenu;
+
+  if (mc.hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
+  {
+    if (mc.hThread=CreateThread(NULL, 0, MainThreadProc, &mc, 0, &dwExecThreadId))
+    {
+      //Wait for mc.hMutex and process messages.
+      MSG msg;
+      BOOL bExitLoop=FALSE;
+
+      for (;;)
+      {
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+          if (msg.message == WM_QUIT)
+            bExitLoop=TRUE;
+          else
+            TranslateMessageAll(TMSG_DEFAULT, &msg);
+        }
+        if (bExitLoop)
+          break;
+        if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+          break;
+      }
+    }
+    CloseHandle(mc.hMutex);
+  }
+  return hMainWnd;
+}
+
+BOOL __declspec(dllexport) Close()
+{
+  BOOL bResult=FALSE;
+
+  if (hMainWnd)
+  {
+    if (mc.hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
+    {
+      SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+
+      if (nMainOnFinish)
+      {
+        //Wait for mc.hMutex and process messages.
+        MSG msg;
+        BOOL bExitLoop=FALSE;
+
+        for (;;)
+        {
+          while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+          {
+            if (msg.message == WM_QUIT)
+              bExitLoop=TRUE;
+            else
+              TranslateMessageAll(TMSG_DEFAULT, &msg);
+          }
+          if (bExitLoop)
+            break;
+          if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+            break;
+        }
+        bResult=TRUE;
+      }
+      CloseHandle(mc.hMutex);
+    }
+  }
+  else bResult=TRUE;
+
+  return bResult;
+}
+
+DWORD WINAPI MainThreadProc(LPVOID lpParameter)
+{
+  MAINCREATE *mc=(MAINCREATE *)lpParameter;
+  HANDLE hThread=mc->hThread;
+
+  _WinMain();
+
+  //Free thread handle
+  if (hThread)
+  {
+    CloseHandle(hThread);
+    hThread=NULL;
+  }
+  return 0;
+}
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+  if (fdwReason == DLL_PROCESS_ATTACH)
+  {
+    hInstance=hinstDLL;
+  }
+  else if (fdwReason == DLL_THREAD_ATTACH)
+  {
+  }
+  else if (fdwReason == DLL_THREAD_DETACH)
+  {
+  }
+  else if (fdwReason == DLL_PROCESS_DETACH)
+  {
+
+  }
+  return TRUE;
+}
+#endif
+
 //Entry point
 void _WinMain()
 {
+  #ifndef AKELEDIT_STATICBUILD
+    HMODULE hAkelLib=NULL;
+  #endif
   WNDCLASSW wndclassW;
   MSG msg;
   HMODULE hUser32;
-#ifndef AKELEDIT_STATICBUILD
-  HMODULE hAkelLib=NULL;
-#endif
   BOOL bMsgStatus;
   int nMajor;
   int nMinor;
@@ -509,8 +631,21 @@ void _WinMain()
   //Initialize WideFunc.h header
   WideInitialize();
 
+  //Get command line
+  #ifndef AKELPAD_DLLBUILD
+    if (bOldWindows)
+      mc.pCmdLine=(BYTE *)GetCommandLineParamsA();
+    else
+      mc.pCmdLine=(BYTE *)GetCommandLineParamsW();
+    mc.hWndParent=NULL;
+    mc.dwStyle=WS_OVERLAPPEDWINDOW;
+  #endif
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
+
   //Get program HINSTANCE
-  hInstance=GetModuleHandleWide(NULL);
+  #ifndef AKELPAD_DLLBUILD
+    hInstance=GetModuleHandleWide(NULL);
+  #endif
 
   //Get program directory
   GetExeDir(hInstance, wszExeDir, MAX_PATH);
@@ -776,6 +911,7 @@ void _WinMain()
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
   //Get startup info
+  #ifndef AKELPAD_DLLBUILD
   {
     STARTUPINFOA lpStartupInfoA;
 
@@ -794,9 +930,7 @@ void _WinMain()
       }
     }
   }
-
-  //Get command line
-  wpCmdLine=GetCommandLineParamsWide();
+  #endif
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
@@ -883,19 +1017,19 @@ void _WinMain()
     }
   }
 
-#ifdef AKELEDIT_STATICBUILD
-  OleInitialize(0);
-  AE_RegisterClassA(hInstance, TRUE);
-  AE_RegisterClassW(hInstance, TRUE);
-#else
-  if (!(hAkelLib=LoadLibraryWide(L"AkelEdit.dll")))
-  {
-    API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
-    xprintfW(wszMsg, wbuf, L"AkelEdit.dll");
-    API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    goto Quit;
-  }
-#endif
+  #ifdef AKELEDIT_STATICBUILD
+    OleInitialize(0);
+    AE_RegisterClassA(hInstance, TRUE);
+    AE_RegisterClassW(hInstance, TRUE);
+  #else
+    if (!(hAkelLib=LoadLibraryWide(L"AkelEdit.dll")))
+    {
+      API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, L"AkelEdit.dll");
+      API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      goto Quit;
+    }
+  #endif
 
   //GetOpenFileName dialog file filter
   API_LoadStringW(hLangLib, STR_FILE_FILTER, wszFilter, MAX_PATH);
@@ -992,20 +1126,31 @@ void _WinMain()
     wndclassW.lpszClassName=APP_SDI_CLASSW;
     if (!RegisterClassWide(&wndclassW)) goto Quit;
   }
-  EnsureWindowInMonitor(&moCur.rcMainWindowRestored);
+  #ifndef AKELPAD_DLLBUILD
+    EnsureWindowInMonitor(&moCur.rcMainWindowRestored);
+    mc.x=moCur.rcMainWindowRestored.left;
+    mc.y=moCur.rcMainWindowRestored.top;
+    mc.nWidth=moCur.rcMainWindowRestored.right;
+    mc.nHeight=moCur.rcMainWindowRestored.bottom;
+    mc.hMenu=hMainMenu;
+  #endif
 
   hMainWnd=CreateWindowExWide(0,
-                              APP_MAIN_CLASSW,                    // window class name
-                              APP_MAIN_TITLEW,                    // window caption
-                              WS_OVERLAPPEDWINDOW,                // window style
-                              moCur.rcMainWindowRestored.left,    // initial x position
-                              moCur.rcMainWindowRestored.top,     // initial y position
-                              moCur.rcMainWindowRestored.right,   // initial x size
-                              moCur.rcMainWindowRestored.bottom,  // initial y size
-                              NULL,                               // parent window handle
-                              hMainMenu,                          // window menu handle
-                              hInstance,                          // program instance handle
-                              NULL);                              // creation parameters
+                              APP_MAIN_CLASSW, // window class name
+                              APP_MAIN_TITLEW, // window caption
+                              mc.dwStyle,      // window style
+                              mc.x,            // initial x position
+                              mc.y,            // initial y position
+                              mc.nWidth,       // initial x size
+                              mc.nHeight,      // initial y size
+                              mc.hWndParent,   // parent window handle
+                              mc.hMenu,        // window menu handle
+                              hInstance,       // program instance handle
+                              NULL);           // creation parameters
+  #ifdef AKELPAD_DLLBUILD
+    //Unlock caller thread
+    SetEvent(mc.hMutex);
+  #endif
   if (!hMainWnd) goto Quit;
 
   while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
@@ -1029,12 +1174,14 @@ void _WinMain()
 
 
   Quit:
-  if (hMutex)
-  {
-    SetEvent(hMutex);
-    CloseHandle(hMutex);
-    hMutex=0;
-  }
+  #ifndef AKELPAD_DLLBUILD
+    if (hMutex)
+    {
+      SetEvent(hMutex);
+      CloseHandle(hMutex);
+      hMutex=0;
+    }
+  #endif
   if (wszCmdLineBegin)
   {
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineBegin);
@@ -1066,14 +1213,20 @@ void _WinMain()
   StackProcFree(&hFrameProcStack);
   StackProcFree(&hFrameProcRetStack);
   if (hLangLib && hLangLib != hInstance) FreeLibrary(hLangLib);
-#ifdef AKELEDIT_STATICBUILD
-  AE_UnregisterClassA(hInstance);
-  AE_UnregisterClassW(hInstance);
-  OleUninitialize();
-#else
-  if (hAkelLib) FreeLibrary(hAkelLib);
-#endif
-  ExitProcess(0);
+  #ifdef AKELEDIT_STATICBUILD
+    AE_UnregisterClassA(hInstance);
+    AE_UnregisterClassW(hInstance);
+    OleUninitialize();
+  #else
+    if (hAkelLib) FreeLibrary(hAkelLib);
+  #endif
+
+  #ifdef AKELPAD_DLLBUILD
+    //Unlock caller thread
+    SetEvent(mc.hMutex);
+  #else
+    ExitProcess(0);
+  #endif
 }
 
 LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1279,6 +1432,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     RECT rcRect;
     HMENU hMenu;
 
+    hMainWnd=hWnd;
     hPopupEdit=GetSubMenu(hPopupMenu, MENU_POPUP_EDIT);
     hPopupView=GetSubMenu(hPopupMenu, MENU_POPUP_VIEW);
     hPopupCodepage=GetSubMenu(hPopupMenu, MENU_POPUP_CODEPAGE);
@@ -1560,12 +1714,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_PRESHOW, 0, (LPARAM)&nms);
       if (nms.bProcess)
       {
-        //Show main window
-        ShowWindow(hMainWnd, (moCur.dwMainStyle == WS_MAXIMIZE)?SW_SHOWMAXIMIZED:SW_SHOW);
+        if (!(mc.dwStyle & WS_VISIBLE))
+        {
+          //Show main window
+          ShowWindow(hMainWnd, (moCur.dwMainStyle == WS_MAXIMIZE)?SW_SHOWMAXIMIZED:SW_SHOW);
 
-        //Shortcut
-        if (dwCmdShow != SW_SHOWNORMAL)
-          ShowWindow(hMainWnd, dwCmdShow);
+          //Shortcut
+          if (dwCmdShow != SW_SHOWNORMAL)
+            ShowWindow(hMainWnd, dwCmdShow);
+        }
+        if (mc.dwStyle & WS_CHILD)
+          UpdateSize();
 
         //Update main window
         UpdateWindow(hMainWnd);
@@ -1583,12 +1742,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       SetCurrentDirectoryWide(wszExeDir);
 
-      if (hMutex)
-      {
-        SetEvent(hMutex);
-        CloseHandle(hMutex);
-        hMutex=0;
-      }
+      #ifndef AKELPAD_DLLBUILD
+        if (hMutex)
+        {
+          SetEvent(hMutex);
+          CloseHandle(hMutex);
+          hMutex=0;
+        }
+      #endif
 
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
       bMainOnStart=TRUE;
@@ -3304,7 +3465,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
-      PostMessage(hWnd, WM_CLOSE, 0, 0);
+      #ifndef AKELPAD_DLLBUILD
+        PostMessage(hWnd, WM_CLOSE, 0, 0);
+      #endif
     }
     else if (LOWORD(wParam) == IDM_EDIT_UNDO)
     {
