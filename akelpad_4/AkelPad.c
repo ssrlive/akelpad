@@ -520,29 +520,30 @@ BOOL __declspec(dllexport) Close()
   {
     if (mc.hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
     {
-      SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+      MSG msg;
+      BOOL bExitLoop=FALSE;
 
-      if (nMainOnFinish)
+      //Send exit command
+      nMainOnFinish=MOF_QUERYEND;
+      PostMessage(hMainWnd, WM_CLOSE, 0, 0);
+
+      while (nMainOnFinish)
       {
         //Wait for mc.hMutex and process messages.
-        MSG msg;
-        BOOL bExitLoop=FALSE;
-
-        for (;;)
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
-          while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-          {
-            if (msg.message == WM_QUIT)
-              bExitLoop=TRUE;
-            else
-              TranslateMessageAll(TMSG_DEFAULT, &msg);
-          }
-          if (bExitLoop)
-            break;
-          if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
-            break;
+          if (msg.message == WM_QUIT)
+            bExitLoop=TRUE;
+          else
+            TranslateMessageAll(TMSG_DEFAULT, &msg);
         }
-        bResult=TRUE;
+        if (bExitLoop)
+          break;
+        if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+        {
+          bResult=TRUE;
+          break;
+        }
       }
       CloseHandle(mc.hMutex);
     }
