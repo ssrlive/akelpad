@@ -19368,14 +19368,17 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
   DWORD dwStyle;
   int nResult;
 
-  SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
+  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, 0);
 
-  dwStyle=(DWORD)GetWindowLongPtrWide(hWnd, GWL_STYLE);
-  if (/*(dwStyle & WS_DISABLED) || */!(dwStyle & WS_VISIBLE))
-    hWndParent=NULL;
+  if (hWnd)
+  {
+    dwStyle=(DWORD)GetWindowLongPtrWide(hWnd, GWL_STYLE);
+    if (/*(dwStyle & WS_DISABLED) || */!(dwStyle & WS_VISIBLE))
+      hWndParent=NULL;
+  }
   nResult=MessageBoxW(hWndParent, lpText, lpCaption, uType);
 
-  SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
+  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWnd, 0);
 
   return nResult;
 }
