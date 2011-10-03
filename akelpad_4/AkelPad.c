@@ -470,11 +470,6 @@ int main()
 #ifdef AKELPAD_DLLBUILD
 HWND __declspec(dllexport) Create(unsigned char *pCmdLine, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu)
 {
-  DWORD dwExecThreadId=0;
-
-  //Initialize WideFunc.h header
-  WideInitialize();
-
   mc.pCmdLine=pCmdLine;
   mc.dwStyle=dwStyle;
   mc.x=x;
@@ -484,32 +479,24 @@ HWND __declspec(dllexport) Create(unsigned char *pCmdLine, DWORD dwStyle, int x,
   mc.hWndParent=hWndParent;
   mc.hMenu=hMenu;
 
-  if (mc.hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
-  {
-    if (mc.hThread=CreateThread(NULL, 0, MainThreadProc, &mc, 0, &dwExecThreadId))
-    {
-      //Wait for mc.hMutex and process messages.
-      MSG msg;
-      BOOL bExitLoop=FALSE;
+  _WinMain();
 
-      for (;;)
-      {
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-          if (msg.message == WM_QUIT)
-            bExitLoop=TRUE;
-          else
-            TranslateMessageAll(TMSG_DEFAULT, &msg);
-        }
-        if (bExitLoop)
-          break;
-        if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
-          break;
-      }
-    }
-    CloseHandle(mc.hMutex);
-  }
   return hMainWnd;
+}
+
+DWORD __declspec(dllexport) Translate(MSG *lpMsg)
+{
+  DWORD dwResult=TranslateMessageAll(TMSG_ALL, lpMsg);
+
+  if (bMainOnStart)
+  {
+    if (GetQueueStatus(QS_ALLINPUT) == 0)
+    {
+      bMainOnStart=FALSE;
+      SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+    }
+  }
+  return dwResult;
 }
 
 BOOL __declspec(dllexport) Close()
@@ -518,55 +505,21 @@ BOOL __declspec(dllexport) Close()
 
   if (hMainWnd)
   {
-    if (mc.hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
+    //Send exit command
+    SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+
+    if (nMainOnFinish)
     {
-      MSG msg;
-      BOOL bExitLoop=FALSE;
+      bResult=TRUE;
 
-      //Send exit command
-      nMainOnFinish=MOF_QUERYEND;
-      PostMessage(hMainWnd, WM_CLOSE, 0, 0);
-
-      while (nMainOnFinish)
-      {
-        //Wait for mc.hMutex and process messages.
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-          if (msg.message == WM_QUIT)
-            bExitLoop=TRUE;
-          else
-            TranslateMessageAll(TMSG_DEFAULT, &msg);
-        }
-        if (bExitLoop)
-          break;
-        if (MsgWaitForMultipleObjects(1, &mc.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
-        {
-          bResult=TRUE;
-          break;
-        }
-      }
-      CloseHandle(mc.hMutex);
+      //Destroy main window
+      SendMessage(hMainWnd, AKDN_MAIN_ONFINISH, 0, 0);
+      WinMainCleanUp();
     }
   }
   else bResult=TRUE;
 
   return bResult;
-}
-
-DWORD WINAPI MainThreadProc(LPVOID lpParameter)
-{
-  MAINCREATE *mc=(MAINCREATE *)lpParameter;
-  HANDLE hThread=mc->hThread;
-
-  _WinMain();
-
-  //Free thread handle
-  if (hThread)
-  {
-    CloseHandle(hThread);
-    hThread=NULL;
-  }
-  return 0;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
@@ -596,9 +549,7 @@ void _WinMain()
     HMODULE hAkelLib=NULL;
   #endif
   WNDCLASSW wndclassW;
-  MSG msg;
   HMODULE hUser32;
-  BOOL bMsgStatus;
   int nMajor;
   int nMinor;
   int nRelease;
@@ -1148,41 +1099,54 @@ void _WinMain()
                               mc.hMenu,        // window menu handle
                               hInstance,       // program instance handle
                               NULL);           // creation parameters
-  #ifdef AKELPAD_DLLBUILD
-    //Unlock caller thread
-    SetEvent(mc.hMutex);
-  #endif
   if (!hMainWnd) goto Quit;
 
-  while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
+  #ifndef AKELPAD_DLLBUILD
   {
-    TranslateMessageAll(TMSG_ALL, &msg);
+    //Message loop
+    MSG msg;
+    BOOL bMsgStatus;
 
-    if (bMainOnStart)
+    while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
     {
-      if (GetQueueStatus(QS_ALLINPUT) == 0)
+      TranslateMessageAll(TMSG_ALL, &msg);
+
+      if (bMainOnStart)
       {
-        bMainOnStart=FALSE;
-        SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+        if (GetQueueStatus(QS_ALLINPUT) == 0)
+        {
+          bMainOnStart=FALSE;
+          SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+        }
       }
     }
+    if (bMsgStatus == -1)
+    {
+      API_LoadStringW(hLangLib, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
+      API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    }
   }
-  if (bMsgStatus == -1)
-  {
-    API_LoadStringW(hLangLib, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
-    API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-  }
-
+  #endif
 
   Quit:
   #ifndef AKELPAD_DLLBUILD
+    WinMainCleanUp();
+
     if (hMutex)
     {
       SetEvent(hMutex);
       CloseHandle(hMutex);
       hMutex=0;
     }
+
+    ExitProcess(0);
   #endif
+
+  return;
+}
+
+void WinMainCleanUp()
+{
   if (wszCmdLineBegin)
   {
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineBegin);
@@ -1220,13 +1184,6 @@ void _WinMain()
     OleUninitialize();
   #else
     if (hAkelLib) FreeLibrary(hAkelLib);
-  #endif
-
-  #ifdef AKELPAD_DLLBUILD
-    //Unlock caller thread
-    SetEvent(mc.hMutex);
-  #else
-    ExitProcess(0);
   #endif
 }
 
@@ -4201,8 +4158,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (hDlgModeless)
       SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
-    //Main window will be destroyed
-    PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
+    #ifndef AKELPAD_DLLBUILD
+      //Main window will be destroyed
+      PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
+    #endif
 
     return bEndSession?1:0;
   }
@@ -4232,7 +4191,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyMenu(hPopupMenu);
     StackButtonDrawFree(&hButtonDrawStack);
 
-    PostQuitMessage(0);
+    #ifndef AKELPAD_DLLBUILD
+      PostQuitMessage(0);
+    #endif
     return 0;
   }
 
