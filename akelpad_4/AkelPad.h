@@ -21,10 +21,8 @@
 
 //// Functions prototype
 
-#ifdef AKELPAD_DLLBUILD
-  DWORD WINAPI MainThreadProc(LPVOID lpParameter);
-#endif
 void _WinMain();
+void WinMainCleanUp();
 LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
