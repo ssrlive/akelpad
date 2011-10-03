@@ -1046,7 +1046,7 @@ void _WinMain()
   wndclassW.hIcon        =hMainIcon;
   wndclassW.hCursor      =LoadCursor(NULL, IDC_ARROW);
   wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
-  wndclassW.lpszMenuName =MAKEINTRESOURCEW(IDM_MENU_MAIN);
+  wndclassW.lpszMenuName =NULL;
   wndclassW.lpszClassName=APP_MAIN_CLASSW;
   if (!RegisterClassWide(&wndclassW)) goto Quit;
 
@@ -1621,18 +1621,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else if (nMDI == WMD_MDI)
       {
         //Create MDI client frame window. In WM_CREATE of the frame procedure edit window will be created.
-        if (moCur.dwMainStyle == WS_MAXIMIZE)
+        if (moCur.dwMainStyle == WS_MAXIMIZE && !(mc.dwStyle & WS_CHILD))
         {
+          rcRect.left=0;
+          rcRect.top=0;
           rcRect.right=GetSystemMetrics(SM_CXMAXIMIZED);
           rcRect.bottom=GetSystemMetrics(SM_CYMAXIMIZED);
         }
         else GetClientRect(hMdiClient, &rcRect);
 
-        i=MulDiv(rcRect.bottom, 30, 100);
-        rcRect.left=0;
-        rcRect.top=0;
-        rcRect.right-=i;
-        rcRect.bottom-=i;
+        rcRect.right-=(rcRect.right * 14 / 100);
+        rcRect.bottom-=(rcRect.bottom * 45 / 100);
         CreateMdiFrameWindow(&rcRect);
       }
 
@@ -4209,7 +4208,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     LRESULT lResult;
 
-    if (lResult=EditParentMessages(hWnd, uMsg, wParam, lParam))
+    if (EditParentMessages(hWnd, uMsg, wParam, lParam, &lResult))
       return lResult;
   }
 
@@ -4229,7 +4228,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
 }
 
-LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
   if (uMsg == WM_SETFOCUS)
   {
@@ -4453,6 +4452,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                   ShellExecuteWide(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
                   FreeText(wszURL);
                 }
+                *lResult=1;
                 return TRUE;
               }
             }
@@ -4555,7 +4555,8 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
               if (bStop)
               {
                 PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
-                return 1;
+                *lResult=1;
+                return TRUE;
               }
             }
           }
@@ -4791,7 +4792,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     LRESULT lResult;
 
-    if (lResult=EditParentMessages(hWnd, uMsg, wParam, lParam))
+    if (EditParentMessages(hWnd, uMsg, wParam, lParam, &lResult))
       return lResult;
   }
 
@@ -4879,18 +4880,17 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     LRESULT lResult;
 
-    if (lResult=CloneDragAndDropMessages(hWnd, uMsg, wParam, lParam))
+    if (CloneDragAndDropMessages(hWnd, uMsg, wParam, lParam, &lResult))
       return lResult;
   }
 
   return CallWindowProcWide(lpOldEditProc, hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
   static POINT ptMouseDown;
   static int nMouseMove;
-  LRESULT lResult=0;
 
   if (uMsg == WM_SETCURSOR)
   {
@@ -4918,6 +4918,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         SetCursor(hCursorSizeWE);
         hCursorClone=hCursorSizeWE;
+        *lResult=1;
         return TRUE;
       }
       else if ((hWnd == lpFrameCurrent->ei.hWndMaster && dwSide == SIDE_BOTTOM && lpFrameCurrent->ei.hWndClone2) ||
@@ -4927,6 +4928,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         SetCursor(hCursorSizeNS);
         hCursorClone=hCursorSizeNS;
+        *lResult=1;
         return TRUE;
       }
       else if (lpFrameCurrent->ei.hWndMaster && lpFrameCurrent->ei.hWndClone1 && lpFrameCurrent->ei.hWndClone2 && lpFrameCurrent->ei.hWndClone3 &&
@@ -4937,6 +4939,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         SetCursor(hCursorSizeALL);
         hCursorClone=hCursorSizeALL;
+        *lResult=1;
         return TRUE;
       }
     }
@@ -4967,6 +4970,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
         nLastSplit=IDM_VIEW_SPLIT_WINDOW_WE;
       else if (lpFrameCurrent->ei.hWndClone2)
         nLastSplit=IDM_VIEW_SPLIT_WINDOW_NS;
+      *lResult=0;
       return TRUE;
     }
   }
@@ -4998,6 +5002,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
           ResizeEditWindow(lpFrameCurrent, 0);
         }
         DestroyMenu(hPopupSize);
+        *lResult=0;
         return TRUE;
       }
     }
@@ -5012,6 +5017,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
         GetCursorPos(&ptMouseDown);
         nMouseMove=1;
         SetMouseCapture(hWnd, MSC_SPLITSIZE);
+        *lResult=0;
         return TRUE;
       }
     }
@@ -5043,6 +5049,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
         ptMouseDown.x+=(lpFrameCurrent->rcMasterWindow.right - rcMasterInitial.right);
         ptMouseDown.y+=(lpFrameCurrent->rcMasterWindow.bottom - rcMasterInitial.bottom);
       }
+      *lResult=0;
       return TRUE;
     }
   }
@@ -5056,6 +5063,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         ResizeEditWindow(lpFrameCurrent, REW_TEST);
         ResizeEditWindow(lpFrameCurrent, 0);
+        *lResult=0;
         return TRUE;
       }
     }
@@ -5072,7 +5080,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
     }
   }
-  return lResult;
+  return FALSE;
 }
 
 LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5342,7 +5350,7 @@ LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   DOCK *lpDock;
   LRESULT lResult;
 
-  if (lResult=DockMessages(hWnd, uMsg, wParam, lParam))
+  if (DockMessages(hWnd, uMsg, wParam, lParam, &lResult))
     return lResult;
 
   if (lpDock=StackDockFindWindow(&hDocksStack, hWnd, FALSE))
@@ -5352,7 +5360,7 @@ LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return 0;
 }
 
-LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
   static MINMAXINFO mmi;
   static RECT rcEdge;
@@ -5613,7 +5621,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  return 0;
+  return FALSE;
 }
 
 LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
