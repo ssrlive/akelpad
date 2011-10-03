@@ -1805,7 +1805,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpFile, L"%S", (char *)dc->pFile);
       else
         xprintfW(wpFile, L"%s", (wchar_t *)dc->pFile);
-      nResult=AutodetectCodePage(wpFile, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
+      nResult=AutodetectCodePage(wpFile, NULL, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
 
       FreeWideStr(wpFile);
       return nResult;

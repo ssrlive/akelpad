@@ -888,7 +888,7 @@ int CodepageListFind(int *lpCodepageList, int nCodePage);
 void CodepageListFree(int **lpCodepageList);
 void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
-int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
+int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage);
 int GetDetectionIndex(DWORD dwLangID);
 BOOL IsLangEasternEurope(DWORD dwLangID);

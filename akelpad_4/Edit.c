@@ -4178,109 +4178,147 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     }
   }
 
-  if (bFileExist)
+  //Read from file
+  for (;;)
   {
-    //Autodetect code page
-    if ((nDetect=AutodetectCodePage(wszFile, moCur.dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
+    if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
     {
-      if (!(dwFlags & OD_REOPEN))
+      if (!bSetSecurity && !bOldWindows && bFileExist && GetLastError() == ERROR_ACCESS_DENIED)
       {
-        if (nDetect == EDT_BINARY)
+        //Allow all access to the file (UAC).
+        if (AkelAdminInit(wszFile))
         {
-          if (dwCmdLineOptions & CLO_MSGOPENBINARYYES)
+          if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
+              !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
           {
-          }
-          else if (dwCmdLineOptions & CLO_MSGOPENBINARYNO)
-          {
-            nResult=EOD_MSGNO;
-            goto End;
+            //Reset AkelAdmin
+            AkelAdminExit();
           }
           else
           {
-            API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
-            xprintfW(wszMsg, wbuf, wszFile);
-            if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
-            {
-              nResult=EOD_MSGCANCEL;
-              goto End;
-            }
+            bSetSecurity=TRUE;
+            continue;
           }
         }
-        else
+      }
+      API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, wszFile);
+      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+
+      nResult=EOD_OPEN;
+      break;
+    }
+
+    if (bFileExist)
+    {
+      //Autodetect code page
+      if ((nDetect=AutodetectCodePage(wszFile, hFile, moCur.dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
+      {
+        if (!(dwFlags & OD_REOPEN))
         {
-          nResult=nDetect;
-          goto End;
+          if (nDetect == EDT_BINARY)
+          {
+            if (dwCmdLineOptions & CLO_MSGOPENBINARYYES)
+            {
+            }
+            else if (dwCmdLineOptions & CLO_MSGOPENBINARYNO)
+            {
+              nResult=EOD_MSGNO;
+              break;
+            }
+            else
+            {
+              API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
+              xprintfW(wszMsg, wbuf, wszFile);
+              if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+              {
+                nResult=EOD_MSGCANCEL;
+                break;
+              }
+            }
+          }
+          else
+          {
+            nResult=nDetect;
+            break;
+          }
         }
       }
     }
-  }
 
-  //Check code page
-  if (!IsCodePageValid(nCodePage))
-  {
-    API_LoadStringW(hLangLib, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
-    xprintfW(wszMsg, wbuf, nCodePage);
-    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    nResult=EOD_CODEPAGE_ERROR;
-    goto End;
-  }
-
-  if ((hFile=API_CreateFileW(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
-  {
-    nResult=EOD_OPEN;
-    goto End;
-  }
-
-  //Offset BOM
-  fsd.dwBytesCurrent=0;
-
-  if (bBOM)
-  {
-    if (nCodePage == CP_UNICODE_UTF16LE ||
-        nCodePage == CP_UNICODE_UTF16BE)
+    //Check code page
+    if (!IsCodePageValid(nCodePage))
     {
-      SetFilePointer64(hFile, 2, FILE_BEGIN);
-      fsd.dwBytesCurrent=2;
-    }
-    else if (nCodePage == CP_UNICODE_UTF32LE ||
-             nCodePage == CP_UNICODE_UTF32BE)
-    {
-      SetFilePointer64(hFile, 4, FILE_BEGIN);
-      fsd.dwBytesCurrent=4;
-    }
-    else if (nCodePage == CP_UNICODE_UTF8)
-    {
-      SetFilePointer64(hFile, 3, FILE_BEGIN);
-      fsd.dwBytesCurrent=3;
-    }
-  }
-
-  if (IsEditActive(hWnd))
-  {
-    //Save position of the previous file before load new document
-    RecentFilesSaveFile(lpFrameCurrent);
-
-    //Create edit window if necessary
-    if (nMDI && !(dwFlags & OD_REOPEN) && (!lpFrameCurrent->hWndEditParent || lpFrameCurrent->ei.bModified || lpFrameCurrent->wszFile[0]))
-    {
-      DoFileNew();
-      hWnd=lpFrameCurrent->ei.hWndEdit;
+      API_LoadStringW(hLangLib, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, nCodePage);
+      API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      nResult=EOD_CODEPAGE_ERROR;
+      break;
     }
 
-    //Get file write time
-    GetFileTime(hFile, NULL, NULL, &lpFrameCurrent->ft);
-  }
+    //Offset BOM
+    fsd.dwBytesCurrent=0;
 
-  //Load text
-  fsd.hWnd=hWnd;
-  fsd.hFile=hFile;
-  fsd.nCodePage=nCodePage;
-  fsd.dwFlags=dwFlags;
-  fsd.nNewLine=moCur.nDefaultNewLine;
-  fsd.dwBytesMax=(UINT_PTR)-1;
-  fsd.bResult=TRUE;
-  FileStreamIn(&fsd);
-  CloseHandle(hFile);
+    if (bBOM)
+    {
+      if (nCodePage == CP_UNICODE_UTF16LE ||
+          nCodePage == CP_UNICODE_UTF16BE)
+      {
+        fsd.dwBytesCurrent=2;
+      }
+      else if (nCodePage == CP_UNICODE_UTF32LE ||
+               nCodePage == CP_UNICODE_UTF32BE)
+      {
+        fsd.dwBytesCurrent=4;
+      }
+      else if (nCodePage == CP_UNICODE_UTF8)
+      {
+        fsd.dwBytesCurrent=3;
+      }
+    }
+    SetFilePointer64(hFile, fsd.dwBytesCurrent, FILE_BEGIN);
+
+    if (IsEditActive(hWnd))
+    {
+      //Save position of the previous file before load new document
+      RecentFilesSaveFile(lpFrameCurrent);
+
+      //Create edit window if necessary
+      if (nMDI && !(dwFlags & OD_REOPEN) && (!lpFrameCurrent->hWndEditParent || lpFrameCurrent->ei.bModified || lpFrameCurrent->wszFile[0]))
+      {
+        DoFileNew();
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+      }
+
+      //Get file write time
+      GetFileTime(hFile, NULL, NULL, &lpFrameCurrent->ft);
+    }
+
+    //Load text
+    fsd.hWnd=hWnd;
+    fsd.hFile=hFile;
+    fsd.nCodePage=nCodePage;
+    fsd.dwFlags=dwFlags;
+    fsd.nNewLine=moCur.nDefaultNewLine;
+    fsd.dwBytesMax=(UINT_PTR)-1;
+    fsd.bResult=TRUE;
+    FileStreamIn(&fsd);
+    break;
+  }
+  if (hFile != INVALID_HANDLE_VALUE)
+    CloseHandle(hFile);
+
+  //Change back file security (UAC).
+  if (bSetSecurity)
+  {
+    if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
+        !AkelAdminSend(AAA_SECURITYFREE, L""))
+    {
+      //Reset AkelAdmin
+      AkelAdminExit();
+    }
+    bSetSecurity=FALSE;
+  }
 
   if (fsd.bResult != -1 && IsEditActive(hWnd))
   {
@@ -7885,7 +7923,8 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
 {
   HANDLE hFile;
   FILESTREAMDATA fsd;
-  int i;
+  int nDetect;
+  int nResult=EOD_SUCCESS;
 
   if (!(dwFlags & ADT_REG_CODEPAGE) && !(dwFlags & ADT_DETECT_CODEPAGE))
     if (!*nCodePage) return EOD_OPEN;
@@ -7893,50 +7932,57 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
   if (IsFile(wpFile) != ERROR_SUCCESS)
     return EOD_OPEN;
 
-  if ((i=AutodetectCodePage(wpFile, moCur.dwCodepageRecognitionBuffer, dwFlags, nCodePage, bBOM)) < 0)
-    return i;
-
-  if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
-    return EOD_OPEN;
-
-  //Offset BOM
-  fsd.dwBytesCurrent=0;
-
-  if (*bBOM)
+  //Read from file
+  for (;;)
   {
-    if (*nCodePage == CP_UNICODE_UTF16LE ||
-        *nCodePage == CP_UNICODE_UTF16BE)
+    if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
+      return EOD_OPEN;
+
+    if ((nDetect=AutodetectCodePage(wpFile, hFile, moCur.dwCodepageRecognitionBuffer, dwFlags, nCodePage, bBOM)) < 0)
     {
-      SetFilePointer64(hFile, 2, FILE_BEGIN);
-      fsd.dwBytesCurrent=2;
+      nResult=nDetect;
+      break;
     }
-    else if (*nCodePage == CP_UNICODE_UTF32LE ||
-             *nCodePage == CP_UNICODE_UTF32BE)
+
+    //Offset BOM
+    fsd.dwBytesCurrent=0;
+
+    if (*bBOM)
     {
-      SetFilePointer64(hFile, 4, FILE_BEGIN);
-      fsd.dwBytesCurrent=4;
+      if (*nCodePage == CP_UNICODE_UTF16LE ||
+          *nCodePage == CP_UNICODE_UTF16BE)
+      {
+        fsd.dwBytesCurrent=2;
+      }
+      else if (*nCodePage == CP_UNICODE_UTF32LE ||
+               *nCodePage == CP_UNICODE_UTF32BE)
+      {
+        fsd.dwBytesCurrent=4;
+      }
+      else if (*nCodePage == CP_UNICODE_UTF8)
+      {
+        fsd.dwBytesCurrent=3;
+      }
     }
-    else if (*nCodePage == CP_UNICODE_UTF8)
-    {
-      SetFilePointer64(hFile, 3, FILE_BEGIN);
-      fsd.dwBytesCurrent=3;
-    }
+    SetFilePointer64(hFile, fsd.dwBytesCurrent, FILE_BEGIN);
+
+    fsd.hWnd=hWnd;
+    fsd.hFile=hFile;
+    fsd.nCodePage=*nCodePage;
+    fsd.dwBytesMax=dwPreviewBytes;
+    FileStreamIn(&fsd);
+    break;
   }
+  if (hFile != INVALID_HANDLE_VALUE)
+    CloseHandle(hFile);
 
-  fsd.hWnd=hWnd;
-  fsd.hFile=hFile;
-  fsd.nCodePage=*nCodePage;
-  fsd.dwBytesMax=dwPreviewBytes;
-  FileStreamIn(&fsd);
-  CloseHandle(hFile);
-
-  return 0;
+  return nResult;
 }
 
-int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
+int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
 {
+  HANDLE hFileInput=hFile;
   RECENTFILE *lpRecentFile;
-  HANDLE hFile;
   UINT_PTR dwBytesRead=0;
   unsigned char *pBuffer=NULL;
   int nRegCodePage=0;
@@ -7979,10 +8025,13 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
   //Read file
   if (dwFlags & ADT_BINARY_ERROR || dwFlags & ADT_DETECT_CODEPAGE || dwFlags & ADT_DETECT_BOM)
   {
-    if (dwFlags & ADT_NOMESSAGES)
-      hFile=CreateFileWide(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-    else
-      hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    if (!hFile)
+    {
+      if (dwFlags & ADT_NOMESSAGES)
+        hFile=CreateFileWide(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+      else
+        hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    }
 
     if (hFile != INVALID_HANDLE_VALUE)
     {
@@ -7999,7 +8048,8 @@ int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwF
     }
     else nResult=EDT_OPEN;
 
-    CloseHandle(hFile);
+    if (hFileInput != hFile && hFile != INVALID_HANDLE_VALUE)
+      CloseHandle(hFile);
     if (nResult) return nResult;
   }
 
