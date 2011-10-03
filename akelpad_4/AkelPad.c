@@ -4775,7 +4775,14 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(hMdiClient, WM_SETREDRAW, TRUE, 0);
           InvalidateRect(lpFrameCurrent->hWndEditParent, NULL, FALSE);
         }
-
+        else
+        {
+          if (mc.dwStyle & WS_CHILD)
+          {
+            SetFocus((HWND)lParam);
+            RedrawWindow((HWND)lParam, NULL, NULL, RDW_FRAME|RDW_INVALIDATE|RDW_NOCHILDREN);
+          }
+        }
         SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, dwMdiFrameActivating, (LPARAM)lpFrameCurrent);
         dwMdiFrameActivating=0;
       }
