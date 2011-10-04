@@ -5221,12 +5221,21 @@ BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
     xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
     apipe.dwLangModule=dwLangModule;
 
-    //Connect to pipe server, send and receive data.
-    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+    for (;;)
     {
-      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-      CloseHandle(hFilePipe);
+      //Connect to pipe server, send and receive data.
+      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+      {
+        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+        CloseHandle(hFilePipe);
+        break;
+      }
+      else if (GetLastError() == ERROR_PIPE_BUSY)
+      {
+        //Wait until pipe server became free.
+        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
+      }
     }
     return !apipe.dwExitCode;
   }
@@ -18077,12 +18086,13 @@ void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSec
 
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
 {
+  WIN32_FIND_DATAW wfd;
   HANDLE hFile;
 
-  if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
   {
-    GetFileTime(hFile, NULL, NULL, ft);
-    CloseHandle(hFile);
+    *ft=wfd.ftLastWriteTime;
+    FindClose(hFile);
     return TRUE;
   }
   return FALSE;
