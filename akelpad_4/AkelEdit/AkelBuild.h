@@ -176,6 +176,15 @@ typedef struct {
   __int64 dwUnicodeLen64;
 } AECLIPBOARDINFO;
 
+//Visited URLs
+typedef struct _AEURLITEM {
+  struct _AEURLITEM *next;
+  struct _AEURLITEM *prev;
+  wchar_t *pUrlText;
+  INT_PTR nUrlTextLen;
+  int nVisitCount;
+} AEURLITEM;
+
 
 //// OLE Drag'n'Drop
 
@@ -407,6 +416,11 @@ typedef struct {
 } AESTACKUNDO;
 
 typedef struct {
+  AEURLITEM *first;
+  AEURLITEM *last;
+} AESTACKURL;
+
+typedef struct {
   AEERASE *first;
   AEERASE *last;
 } AESTACKERASE;
@@ -466,6 +480,9 @@ typedef struct {
   BOOL bLockCollectUndo;
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
+
+  //Visited URLs
+  AESTACKURL hUrlStack;
 
   //Highlight (default window theme)
   AESTACKDELIM hDelimiterStack;
@@ -784,6 +801,10 @@ DWORD AE_IsPointOnMargin(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
 BOOL AE_IsPointOnSelection(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
 DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRANGE *crLink);
 BOOL AE_IsPointOnMarker(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY);
+AEURLITEM* AE_UrlVisitInsert(AKELEDIT *ae, const AECHARRANGE *crUrl);
+AEURLITEM* AE_UrlVisitGet(AKELEDIT *ae, const AECHARRANGE *crUrl);
+void AE_UrlVisitDelete(AKELEDIT *ae, AEURLITEM *lpUrlItem);
+void AE_UrlVisitFree(AKELEDIT *ae);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);

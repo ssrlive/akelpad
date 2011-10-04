@@ -1041,6 +1041,7 @@ BEGIN
     STR_CARET               "Kursor"
     STR_URL                 "Link"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Einpassen"
     STR_PAGEWIDTH           "Breite einpassen"
     STR_ALLFILES            "Alle Dateien"

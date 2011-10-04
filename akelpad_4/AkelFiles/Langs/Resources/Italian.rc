@@ -1049,6 +1049,7 @@ BEGIN
     STR_CARET               "Segno d'omissione"
     STR_URL                 "Hyperlink"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Adatta alla pagina"
     STR_PAGEWIDTH           "Larghezza pagina"
     STR_ALLFILES            "Tutti i files"

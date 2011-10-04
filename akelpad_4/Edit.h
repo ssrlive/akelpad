@@ -368,6 +368,7 @@
 #define LVI_COLOR_CARET            8
 #define LVI_COLOR_URL              9
 #define LVI_COLOR_ACTIVEURL        10
+#define LVI_COLOR_VISITURL         11
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1

@@ -351,10 +351,11 @@
 #define AECLR_ACTIVECOLUMN     0x00000200  //Sets active column color. crActiveColumn member is valid.
 #define AECLR_COLUMNMARKER     0x00000400  //Sets column marker color. crColumnMarker member is valid.
 #define AECLR_URLCURSORTEXT    0x00000800  //Sets active hyperlink text color. crUrlCursorText member is valid.
-#define AECLR_ACTIVELINEBORDER 0x00001000  //Sets active line border color. crActiveLineBorder member is valid.
-#define AECLR_ALTLINETEXT      0x00002000  //Sets alternating line text color. crAltLineText member is valid.
-#define AECLR_ALTLINEBK        0x00004000  //Sets alternating line background color. crAltLineBk member is valid.
-#define AECLR_ALTLINEBORDER    0x00008000  //Sets alternating line border color. crAltLineBorder member is valid.
+#define AECLR_URLVISITTEXT     0x00001000  //Sets visited hyperlink text color. crUrlVisitText member is valid.
+#define AECLR_ACTIVELINEBORDER 0x00002000  //Sets active line border color. crActiveLineBorder member is valid.
+#define AECLR_ALTLINETEXT      0x00004000  //Sets alternating line text color. crAltLineText member is valid.
+#define AECLR_ALTLINEBK        0x00008000  //Sets alternating line background color. crAltLineBk member is valid.
+#define AECLR_ALTLINEBORDER    0x00010000  //Sets alternating line border color. crAltLineBorder member is valid.
 
 #define AECLR_ALL  (AECLR_CARET            |\
                     AECLR_BASICTEXT        |\
@@ -367,6 +368,7 @@
                     AECLR_ACTIVECOLUMN     |\
                     AECLR_COLUMNMARKER     |\
                     AECLR_URLCURSORTEXT    |\
+                    AECLR_URLVISITTEXT     |\
                     AECLR_ACTIVELINEBORDER |\
                     AECLR_ALTLINETEXT      |\
                     AECLR_ALTLINEBK        |\
@@ -919,6 +921,7 @@ typedef struct {
   COLORREF crActiveColumn;        //[in] Active column color.
   COLORREF crColumnMarker;        //[in] Column marker color.
   COLORREF crUrlCursorText;       //[in] Active hyperlink text color.
+  COLORREF crUrlVisitText;        //[in] Visited hyperlink text color.
   COLORREF crActiveLineBorder;    //[in] Border color in active line.
   COLORREF crAltLineText;         //[in] Text color in alternating line.
   COLORREF crAltLineBk;           //[in] Background color in alternating line.
@@ -1293,6 +1296,7 @@ typedef struct {
   WPARAM wParam;       //First parameter of a message.
   LPARAM lParam;       //Second parameter of a message.
   AECHARRANGE crLink;  //Range of characters which contain URL text.
+  int nVisitCount;     //URL visit count. Variable must be incremented, if URL is opened.
 } AENLINK;
 
 typedef struct {

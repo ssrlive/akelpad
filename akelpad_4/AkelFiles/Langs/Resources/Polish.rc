@@ -1037,6 +1037,7 @@ BEGIN
     STR_CARET               "Kursor"
     STR_URL                 "Hiper³¹cze"
     STR_ACTIVEURL           "Aktywne hiper³¹cze"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Wpasuj stronê"
     STR_PAGEWIDTH           "Na szerokoœæ"
     STR_ALLFILES            "Wszystkie pliki"

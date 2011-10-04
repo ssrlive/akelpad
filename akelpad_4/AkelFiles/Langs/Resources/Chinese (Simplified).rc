@@ -1021,6 +1021,7 @@ BEGIN
     STR_CARET               "插入点"
     STR_URL                 "超链接"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "适合页面"
     STR_PAGEWIDTH           "页面宽度"
     STR_ALLFILES            "所有文件"

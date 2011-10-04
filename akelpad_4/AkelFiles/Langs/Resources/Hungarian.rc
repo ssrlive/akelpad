@@ -1037,6 +1037,7 @@ BEGIN
     STR_CARET               "Kurzor"
     STR_URL                 "Hiperhivatkozás"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Oldalhoz igazítás"
     STR_PAGEWIDTH           "O&ldalszélesség"
     STR_ALLFILES            "Összes fájl"

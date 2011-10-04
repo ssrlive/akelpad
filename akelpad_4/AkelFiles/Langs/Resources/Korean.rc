@@ -1031,6 +1031,7 @@ BEGIN
     STR_CARET               "캐럿"
     STR_URL                 "하이퍼링크"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "페이지 맞추기"
     STR_PAGEWIDTH           "페이지 폭"
     STR_ALLFILES            "All files"

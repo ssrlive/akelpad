@@ -1044,6 +1044,7 @@ BEGIN
     STR_CARET               "Kohdistin"
     STR_URL                 "Hyperlinkki"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Sovita sivu"
     STR_PAGEWIDTH           "Sivun leveys"
     STR_ALLFILES            "Kaikki tiedostot"
