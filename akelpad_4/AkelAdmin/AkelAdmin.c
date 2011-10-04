@@ -76,6 +76,7 @@ LANGID wLangModule=0;
 
 //GetProcAddress
 BOOL (WINAPI *GetNamedPipeClientProcessIdPtr)(HANDLE, ULONG *);
+DWORD (WINAPI *SetNamedSecurityInfoWPtr)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
 DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
 
@@ -141,6 +142,7 @@ void _WinMain()
               GetNamedPipeClientProcessIdPtr=(BOOL (WINAPI *)(HANDLE, ULONG *))GetProcAddress(hKernel32, "GetNamedPipeClientProcessId");
 
               hAdvApi32=GetModuleHandleW(L"advapi32.dll");
+              SetNamedSecurityInfoWPtr=(DWORD (WINAPI *)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetNamedSecurityInfoW");
               SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
               SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
 
@@ -166,9 +168,9 @@ void _WinMain()
                   eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
                   eal[0].Trustee.pMultipleTrustee=NULL;
 
-                  if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pEveryoneACL) == ERROR_SUCCESS)
+                  if (SetEntriesInAclWPtr(1, eal, NULL, &pEveryoneACL) == ERROR_SUCCESS)
                   {
-                    if ((*SetSecurityInfoPtr)(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) == ERROR_SUCCESS)
+                    if (SetSecurityInfoPtr(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) == ERROR_SUCCESS)
                       bChangeAccessResult=TRUE;
                   }
                 }
@@ -187,7 +189,7 @@ void _WinMain()
                   BOOL bBreak=FALSE;
 
                   //Accept connection only from initial caller that runs this process
-                  if (!GetNamedPipeClientProcessIdPtr || ((*GetNamedPipeClientProcessIdPtr)(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
+                  if (!GetNamedPipeClientProcessIdPtr || (GetNamedPipeClientProcessIdPtr(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
                   {
                     //Wait for client WriteFile
                     if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
@@ -243,7 +245,7 @@ void _WinMain()
                         //Decrease file security
                         if (psdCurrentFile)
                         {
-                          if (SetNamedSecurityInfoW(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) != ERROR_SUCCESS)
+                          if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) != ERROR_SUCCESS)
                           {
                             wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
                             MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
