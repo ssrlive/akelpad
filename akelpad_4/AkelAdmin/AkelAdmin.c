@@ -181,115 +181,118 @@ void _WinMain()
                 SetEvent(hMutex);
 
                 //Wait for client connect with CreateFile
-                while (ConnectNamedPipe(hPipeAkelAdmin, NULL))
+                for (;;)
                 {
                   ADMINPIPE apipe;
                   DWORD dwBytesRead;
                   DWORD dwBytesWritten;
                   BOOL bBreak=FALSE;
 
-                  //Accept connection only from initial caller that runs this process
-                  if (!GetNamedPipeClientProcessIdPtr || (GetNamedPipeClientProcessIdPtr(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
+                  if (ConnectNamedPipe(hPipeAkelAdmin, NULL))
                   {
-                    //Wait for client WriteFile
-                    if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
+                    //Accept connection only from initial caller that runs this process
+                    if (!GetNamedPipeClientProcessIdPtr || (GetNamedPipeClientProcessIdPtr(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
                     {
-                      apipe.dwExitCode=0;
-
-                      if (apipe.nAction == AAA_EXIT)
+                      //Wait for client WriteFile
+                      if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
                       {
-                        //Unload process
-                        bBreak=TRUE;
-                      }
-                      else if (apipe.nAction == AAA_SECURITYSAVE)
-                      {
-                        SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                                 GROUP_SECURITY_INFORMATION|
-                                                 LABEL_SECURITY_INFORMATION|
-                                                 OWNER_SECURITY_INFORMATION;
-                        DWORD dwSize=0;
+                        apipe.dwExitCode=0;
 
-                        wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                        //Retrieve file security
-                        if (!psdCurrentFile)
+                        if (apipe.nAction == AAA_EXIT)
                         {
-                          GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
+                          //Unload process
+                          bBreak=TRUE;
+                        }
+                        else if (apipe.nAction == AAA_SECURITYSAVE)
+                        {
+                          SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                                   GROUP_SECURITY_INFORMATION|
+                                                   LABEL_SECURITY_INFORMATION|
+                                                   OWNER_SECURITY_INFORMATION;
+                          DWORD dwSize=0;
 
-                          if (dwSize)
+                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                          //Retrieve file security
+                          if (!psdCurrentFile)
                           {
-                            if (psdCurrentFile=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                            GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
+
+                            if (dwSize)
                             {
-                              if (!GetFileSecurityW(apipe.wszFile, ssi, psdCurrentFile, dwSize, &dwSize))
+                              if (psdCurrentFile=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
                               {
-                                wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
-                                MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                                apipe.dwExitCode=1;
+                                if (!GetFileSecurityW(apipe.wszFile, ssi, psdCurrentFile, dwSize, &dwSize))
+                                {
+                                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
+                                  MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                                  apipe.dwExitCode=1;
+                                }
                               }
                             }
-                          }
 
-                          if (apipe.dwExitCode)
+                            if (apipe.dwExitCode)
+                            {
+                              GlobalFree(psdCurrentFile);
+                              psdCurrentFile=NULL;
+                            }
+                            else lstrcpynW(wszCurrentFile, apipe.wszFile, MAX_PATH);
+                          }
+                          else apipe.dwExitCode=1;
+                        }
+                        else if (apipe.nAction == AAA_SECURITYEVERYONE)
+                        {
+                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                          //Decrease file security
+                          if (psdCurrentFile)
+                          {
+                            if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) != ERROR_SUCCESS)
+                            {
+                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
+                              MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                              apipe.dwExitCode=1;
+                            }
+                          }
+                        }
+                        else if (apipe.nAction == AAA_SECURITYRESTORE)
+                        {
+                          SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                                   GROUP_SECURITY_INFORMATION|
+                                                   LABEL_SECURITY_INFORMATION|
+                                                   OWNER_SECURITY_INFORMATION;
+
+                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                          //Restore file security
+                          if (psdCurrentFile)
+                          {
+                            if (!SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
+                            {
+                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
+                              MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                              apipe.dwExitCode=1;
+                            }
+                          }
+                          else apipe.dwExitCode=1;
+                        }
+                        else if (apipe.nAction == AAA_SECURITYFREE)
+                        {
+                          //Free security buffer
+                          if (psdCurrentFile)
                           {
                             GlobalFree(psdCurrentFile);
                             psdCurrentFile=NULL;
                           }
-                          else lstrcpynW(wszCurrentFile, apipe.wszFile, MAX_PATH);
+                          else apipe.dwExitCode=1;
                         }
-                        else apipe.dwExitCode=1;
+                        WriteFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+                        FlushFileBuffers(hPipeAkelAdmin);
                       }
-                      else if (apipe.nAction == AAA_SECURITYEVERYONE)
-                      {
-                        wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                        //Decrease file security
-                        if (psdCurrentFile)
-                        {
-                          if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) != ERROR_SUCCESS)
-                          {
-                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
-                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                            apipe.dwExitCode=1;
-                          }
-                        }
-                      }
-                      else if (apipe.nAction == AAA_SECURITYRESTORE)
-                      {
-                        SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                                 GROUP_SECURITY_INFORMATION|
-                                                 LABEL_SECURITY_INFORMATION|
-                                                 OWNER_SECURITY_INFORMATION;
-
-                        wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                        //Restore file security
-                        if (psdCurrentFile)
-                        {
-                          if (!SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
-                          {
-                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
-                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                            apipe.dwExitCode=1;
-                          }
-                        }
-                        else apipe.dwExitCode=1;
-                      }
-                      else if (apipe.nAction == AAA_SECURITYFREE)
-                      {
-                        //Free security buffer
-                        if (psdCurrentFile)
-                        {
-                          GlobalFree(psdCurrentFile);
-                          psdCurrentFile=NULL;
-                        }
-                        else apipe.dwExitCode=1;
-                      }
-                      WriteFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-                      FlushFileBuffers(hPipeAkelAdmin);
                     }
+                    DisconnectNamedPipe(hPipeAkelAdmin);
+                    if (bBreak) break;
                   }
-                  DisconnectNamedPipe(hPipeAkelAdmin);
-                  if (bBreak) break;
                 }
                 dwExitCode=0;
 
