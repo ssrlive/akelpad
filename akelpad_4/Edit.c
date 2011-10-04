@@ -5236,6 +5236,7 @@ BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
         //Wait until pipe server became free.
         WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
       }
+      else break;
     }
     return !apipe.dwExitCode;
   }
@@ -5251,18 +5252,27 @@ void AkelAdminExit()
     UINT_PTR dwBytesRead;
     UINT_PTR dwBytesWritten;
 
-    if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+    for (;;)
     {
-      //Unload AkelAdmin.
-      xmemset(&apipe, 0, sizeof(ADMINPIPE));
-      apipe.nAction=AAA_EXIT;
-      API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-      ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-      CloseHandle(hFilePipe);
-
-      bPipeInitAkelAdmin=FALSE;
+      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+      {
+        //Unload AkelAdmin.
+        xmemset(&apipe, 0, sizeof(ADMINPIPE));
+        apipe.nAction=AAA_EXIT;
+        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+        CloseHandle(hFilePipe);
+  
+        bPipeInitAkelAdmin=FALSE;
+        break;
+      }
+      else if (GetLastError() == ERROR_PIPE_BUSY)
+      {
+        //Wait until pipe server became free.
+        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
+      }
+      else break;
     }
-    else MessageBox(NULL, "ERR", NULL, 0);
   }
 }
 
