@@ -4801,6 +4801,8 @@ void AE_DestroyWindowData(AKELEDIT *ae)
   else
   {
     AE_StackLineFree(ae);
+    AE_EmptyUndoBuffer(ae);
+    AE_UrlVisitFree(ae);
     AE_HighlightDeleteTheme(ae, NULL);
   }
 
@@ -4825,6 +4827,8 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   else
   {
     AE_StackLineFree(ae);
+    AE_EmptyUndoBuffer(ae);
+    AE_UrlVisitFree(ae);
     AE_HighlightDeleteTheme(ae, NULL);
   }
 
@@ -4837,6 +4841,8 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->ptxt->lpSavePoint=NULL;
   ae->ptxt->bSavePointExist=TRUE;
   ae->ptxt->dwUndoCount=0;
+  ae->ptxt->hUrlStack.first=0;
+  ae->ptxt->hUrlStack.last=0;
   ae->ptxt->liMaxWidthLine.nLine=0;
   ae->ptxt->liMaxWidthLine.lpLine=NULL;
   ae->ptxt->liLineUnwrapLastCall.nLine=0;
@@ -9485,24 +9491,17 @@ int AE_SetCursor(AKELEDIT *ae)
       {
         //Mouse moved from one URL to another - remove highlight of first URL.
         if (ae->nCurrentCursor == AECC_URL)
-        {
-          if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
-            AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
-        }
+          AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
 
         //Highlight current URL.
         xmemcpy(&ae->crMouseOnLink, &crLink, sizeof(AECHARRANGE));
-
-        if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
-          AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
+        AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
       }
     }
     else
     {
       //Remove URL highlight.
-      if (ae->popt->aec.crUrlText != ae->popt->aec.crUrlCursorText)
-        AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
-
+      AE_RedrawLineRange(ae, ae->crMouseOnLink.ciMin.nLine, ae->crMouseOnLink.ciMax.nLine, TRUE);
       xmemset(&ae->crMouseOnLink, 0, sizeof(AECHARRANGE));
     }
   }
@@ -9624,6 +9623,74 @@ BOOL AE_IsPointOnMarker(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
     }
   }
   return FALSE;
+}
+
+AEURLITEM* AE_UrlVisitInsert(AKELEDIT *ae, const AECHARRANGE *crUrl)
+{
+  AEURLITEM *lpUrlItem=NULL;
+  wchar_t *wpUrlText;
+  INT_PTR nUrlTextLen;
+
+  if (nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, NULL, 0, AELB_ASIS, FALSE, FALSE))
+  {
+    if (wpUrlText=(wchar_t *)AE_HeapAlloc(ae, 0, nUrlTextLen * sizeof(wchar_t)))
+    {
+      nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, wpUrlText, (UINT_PTR)-1, AELB_ASIS, FALSE, FALSE);
+
+      if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUrlStack.first, (stack **)&ae->ptxt->hUrlStack.last, (stack **)&lpUrlItem, -1, sizeof(AEURLITEM)))
+      {
+        lpUrlItem->pUrlText=wpUrlText;
+        lpUrlItem->nUrlTextLen=nUrlTextLen;
+        lpUrlItem->nVisitCount=0;
+      }
+    }
+  }
+  return lpUrlItem;
+}
+
+AEURLITEM* AE_UrlVisitGet(AKELEDIT *ae, const AECHARRANGE *crUrl)
+{
+  AEFINDTEXTW ft;
+  AEURLITEM *lpUrlItem;
+  INT_PTR nUrlTextLen=0;
+
+  for (lpUrlItem=ae->ptxt->hUrlStack.first; lpUrlItem; lpUrlItem=lpUrlItem->next)
+  {
+    if (!nUrlTextLen)
+    {
+      if (!(nUrlTextLen=AE_IndexSubtract(ae, &crUrl->ciMax, &crUrl->ciMin, AELB_R, FALSE, FALSE)))
+        break;
+    }
+
+    if (lpUrlItem->nUrlTextLen == nUrlTextLen)
+    {
+      ft.pText=lpUrlItem->pUrlText;
+      ft.dwTextLen=lpUrlItem->nUrlTextLen;
+      ft.dwFlags=0;
+      ft.nNewLine=AELB_R;
+
+      if (AE_IsMatch(ae, &ft, &crUrl->ciMin))
+        return lpUrlItem;
+    }
+  }
+  return NULL;
+}
+
+void AE_UrlVisitDelete(AKELEDIT *ae, AEURLITEM *lpUrlItem)
+{
+  if (lpUrlItem->pUrlText) AE_HeapFree(NULL, 0, (LPVOID)lpUrlItem->pUrlText);
+  AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hUrlStack.first, (stack **)&ae->ptxt->hUrlStack.last, (stack *)lpUrlItem);
+}
+
+void AE_UrlVisitFree(AKELEDIT *ae)
+{
+  AEURLITEM *lpUrlItem;
+
+  for (lpUrlItem=ae->ptxt->hUrlStack.first; lpUrlItem; lpUrlItem=lpUrlItem->next)
+  {
+    if (lpUrlItem->pUrlText) AE_HeapFree(NULL, 0, (LPVOID)lpUrlItem->pUrlText);
+  }
+  AE_HeapStackClear(ae, (stack **)&ae->ptxt->hUrlStack.first, (stack **)&ae->ptxt->hUrlStack.last);
 }
 
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crRange)
@@ -12852,6 +12919,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         //Is cursor on URL
         if (ae->nCurrentCursor == AECC_URL && !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
           hlp->dwActiveText=ae->popt->aec.crUrlCursorText;
+        else if (AE_UrlVisitGet(ae, &hlp->crLink))
+          hlp->dwActiveText=ae->popt->aec.crUrlVisitText;
         else
           hlp->dwActiveText=ae->popt->aec.crUrlText;
         hlp->dwActiveBk=hlp->dwDefaultBk;
@@ -19265,6 +19334,13 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     else
       aec->crUrlCursorText=ae->popt->aec.crUrlCursorText;
   }
+  if (aec->dwFlags & AECLR_URLVISITTEXT)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crUrlVisitText=GetSysColor(COLOR_HIGHLIGHT);
+    else
+      aec->crUrlVisitText=ae->popt->aec.crUrlVisitText;
+  }
 }
 
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
@@ -19358,6 +19434,10 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
     if (aec->dwFlags & AECLR_URLCURSORTEXT)
     {
       ae->popt->aec.crUrlCursorText=aec->crUrlCursorText;
+    }
+    if (aec->dwFlags & AECLR_URLVISITTEXT)
+    {
+      ae->popt->aec.crUrlVisitText=aec->crUrlVisitText;
     }
     ae->popt->crActiveLineTextWithAltText=AE_ColorCombine(ae->popt->aec.crActiveLineText, ae->popt->aec.crAltLineText);
     ae->popt->crActiveLineBkWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBk, ae->popt->aec.crAltLineBk);
@@ -19940,6 +20020,7 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
   if (ae->popt->dwEventMask & AENM_LINK)
   {
     AENLINK lnk;
+    AEURLITEM *lpUrlItem;
 
     lnk.hdr.hwndFrom=ae->hWndEdit;
     lnk.hdr.idFrom=ae->nEditCtrlID;
@@ -19950,7 +20031,24 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     lnk.lParam=lParam;
     lnk.crLink.ciMin=crText.ciMin;
     lnk.crLink.ciMax=crText.ciMax;
+    if (lpUrlItem=AE_UrlVisitGet(ae, &crText))
+      lnk.nVisitCount=lpUrlItem->nVisitCount;
+    else
+      lnk.nVisitCount=0;
     lResult1=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&lnk);
+
+    if (lpUrlItem)
+    {
+      if (lnk.nVisitCount)
+        lpUrlItem->nVisitCount=lnk.nVisitCount;
+      else
+        AE_UrlVisitDelete(ae, lpUrlItem);
+    }
+    else if (lnk.nVisitCount)
+    {
+      if (lpUrlItem=AE_UrlVisitInsert(ae, &crText))
+        lpUrlItem->nVisitCount=lnk.nVisitCount;
+    }
   }
 
   //Send EN_LINK

@@ -1057,6 +1057,7 @@ BEGIN
     STR_CARET               "Каретка"
     STR_URL                 "Ссылка"
     STR_ACTIVEURL           "Активная ссылка"
+    STR_VISITURL            "Посещенная ссылка"
     STR_PAGEFIT             "Целиком"
     STR_PAGEWIDTH           "По ширине"
     STR_ALLFILES            "Все файлы"

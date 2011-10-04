@@ -509,6 +509,7 @@ typedef struct {
     COLORREF crActiveColumn;
     COLORREF crColumnMarker;
     COLORREF crUrlCursorText;
+    COLORREF crUrlVisitText;
     COLORREF crActiveLineBorder;
     COLORREF crAltLineText;
     COLORREF crAltLineBk;

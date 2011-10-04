@@ -1029,6 +1029,7 @@ BEGIN
     STR_CARET               "Caret"
     STR_URL                 "Hyperlink"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Fit page"
     STR_PAGEWIDTH           "Page width"
     STR_ALLFILES            "All files"

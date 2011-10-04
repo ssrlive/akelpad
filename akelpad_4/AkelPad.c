@@ -4452,6 +4452,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                   ShellExecuteWide(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
                   FreeText(wszURL);
                 }
+                ++aenl->nVisitCount;
                 *lResult=1;
                 return TRUE;
               }

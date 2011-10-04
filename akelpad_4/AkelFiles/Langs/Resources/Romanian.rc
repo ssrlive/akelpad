@@ -1043,6 +1043,7 @@ BEGIN
     STR_CARET               "Cursor"
     STR_URL                 "Legãturã"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Încadreazã Toatã Pagina"
     STR_PAGEWIDTH           "Încadreazã pe Lãþime"
     STR_ALLFILES            "Toate Filele"

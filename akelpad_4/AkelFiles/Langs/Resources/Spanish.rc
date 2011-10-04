@@ -1045,6 +1045,7 @@ BEGIN
     STR_CARET               "Caret"
     STR_URL                 "Hipervínculo"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Ajustar a la página"
     STR_PAGEWIDTH           "Ancho de página"
     STR_ALLFILES            "Todos los archivos"

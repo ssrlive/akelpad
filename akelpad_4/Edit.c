@@ -361,6 +361,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
           aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
           aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
           aec.crUrlCursorText=RGB(0x00, 0x00, 0x98);
+          aec.crUrlVisitText=RGB(0x00, 0x00, 0x98);
           aec.crActiveLineBorder=RGB(0xDF, 0xDF, 0xF5);
           aec.crAltLineText=RGB(0x00, 0x00, 0x00);
           aec.crAltLineBk=RGB(0xF9, 0xF9, 0xF9);
@@ -11304,7 +11305,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       LVITEMW lviW;
       int i;
 
-      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_ACTIVEURL; ++i)
+      for (i=LVI_COLOR_BASIC; i <= LVI_COLOR_VISITURL; ++i)
       {
         API_LoadStringW(hLangLib, STR_BASIC + i, wbuf, BUFFER_SIZE);
         lviW.mask=LVIF_TEXT;
@@ -11546,6 +11547,21 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crUrlCursorText;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_VISITURL)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlVisitText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlVisitText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlVisitText;
+            }
+          }
           lResult=CDRF_DODEFAULT;
         }
         else lResult=CDRF_DODEFAULT;
@@ -11588,6 +11604,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlText);
             else if (lvhti.iItem == LVI_COLOR_ACTIVEURL)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlCursorText);
+            else if (lvhti.iItem == LVI_COLOR_VISITURL)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlVisitText);
           }
           else if (lvhti.iSubItem == LVSI_COLOR_BACKGROUND)
           {
@@ -11613,6 +11631,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlText);
             else if (lvhti.iItem == LVI_COLOR_ACTIVEURL)
               bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlCursorText);
+            else if (lvhti.iItem == LVI_COLOR_VISITURL)
+              bResult=SelectColorDialog(hDlg, &aecColorsDlg.crUrlVisitText);
           }
           if (bResult)
           {

@@ -1036,6 +1036,7 @@ BEGIN
     STR_CARET               "キャレット"
     STR_URL                 "ハイパーリンク"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "ページに合わせる"
     STR_PAGEWIDTH           "ページ幅"
     STR_ALLFILES            "すべてのファイル"

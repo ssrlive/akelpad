@@ -1026,6 +1026,7 @@ BEGIN
     STR_CARET               "插入點"
     STR_URL                 "超連結"
     STR_ACTIVEURL           "Active hyperlink"
+    STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "符合頁面"
     STR_PAGEWIDTH           "頁寬"
     STR_ALLFILES            "所有檔案"
