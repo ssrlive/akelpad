@@ -401,10 +401,6 @@ typedef struct {
   int nHeight;
   HWND hWndParent;
   HMENU hMenu;
-
-  //For AKELPAD_DLLBUILD
-  HANDLE hThread;
-  HANDLE hMutex;
 } MAINCREATE;
 
 typedef struct {
