@@ -378,7 +378,7 @@ BOOL bOptionsRestart;
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
 COLORREF crCustColors[16]={0};
-RECT rcColorsMinMaxDialog={362, 323, 0, 0};
+RECT rcColorsMinMaxDialog={362, 333, 0, 0};
 AECOLORS aecDefault;
 
 //Print
