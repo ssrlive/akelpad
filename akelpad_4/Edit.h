@@ -102,7 +102,6 @@
 #define SEARCHSTRINGS_AMOUNT       10
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
-#define EDIT_MARGINS               MAKELONG(3, 4)
 
 //ParseCmdLine flags
 #define PCL_ONLOAD          0
@@ -1099,7 +1098,7 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor);
 BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc);
 void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos);
 void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit);
-void SetMargins(HWND hWnd, DWORD dwNewMargins, DWORD dwOldMargins);
+void SetMargins(HWND hWnd, const RECT *lprcNewMargins, const RECT *lprcOldMargins);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStop(HWND hWnd);
 BOOL IndentTabStop(HWND hWnd, int nAction);

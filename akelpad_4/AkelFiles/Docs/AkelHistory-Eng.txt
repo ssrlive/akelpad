@@ -9,6 +9,7 @@ Added: ability to set color for border of active line.
 Added: local storage of open links in a document and marking them with selected color.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
+Added: settings for top and bottom edit window margins.
 
 Fixed: file could be saved in virtual store (UAC).
 Fixed: opening a system file under a limited user using the x86 version of program

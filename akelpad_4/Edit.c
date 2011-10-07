@@ -427,7 +427,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrame->aec);
-  SetMargins(lpFrame->ei.hWndEdit, lpFrame->dwEditMargins, 0);
+  SetMargins(lpFrame->ei.hWndEdit, &lpFrame->rcEditMargins, NULL);
   SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
   DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
   SetNewLineStatus(lpFrame, lpFrame->ei.nNewLine, AENL_INPUT);
@@ -691,7 +691,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
 
   //xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, sizeof(LOGFONTW));
   //xmemcpy(&lpFrameTarget->aec, &lpFrameSource->aec, sizeof(AECOLORS));
-  //lpFrameTarget->dwEditMargins=lpFrameSource->dwEditMargins;
+  //lpFrameTarget->rcEditMargins=lpFrameSource->rcEditMargins;
   //lpFrameTarget->nTabStopSize=lpFrameSource->nTabStopSize;
   //lpFrameTarget->bTabStopAsSpaces=lpFrameSource->bTabStopAsSpaces;
   //lpFrameTarget->nUndoLimit=lpFrameSource->nUndoLimit;
@@ -1096,7 +1096,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone1=(AEHDOC)SendMessage(lpFrame->ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
-      SetMargins(lpFrame->ei.hWndClone1, lpFrame->dwEditMargins, 0);
+      SetMargins(lpFrame->ei.hWndClone1, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDocClone1);
     }
     if (dwFlags & CN_CLONE2)
@@ -1128,7 +1128,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone2=(AEHDOC)SendMessage(lpFrame->ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
-      SetMargins(lpFrame->ei.hWndClone2, lpFrame->dwEditMargins, 0);
+      SetMargins(lpFrame->ei.hWndClone2, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDocClone2);
     }
     if (dwFlags & CN_CLONE3)
@@ -1160,7 +1160,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone3=(AEHDOC)SendMessage(lpFrame->ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
-      SetMargins(lpFrame->ei.hWndClone3, lpFrame->dwEditMargins, 0);
+      SetMargins(lpFrame->ei.hWndClone3, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
     }
     SplitVisUpdate(lpFrame);
@@ -3644,7 +3644,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"LineGap", MOT_DWORD, &fd->dwLineGap, sizeof(DWORD));
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
     ReadOption(&oh, L"TabStopAsSpaces", MOT_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD));
-    ReadOption(&oh, L"MarginsEdit", MOT_DWORD, &fd->dwEditMargins, sizeof(DWORD));
+    ReadOption(&oh, L"MarginsEditRect", MOT_BINARY, &fd->rcEditMargins, sizeof(RECT));
     ReadOption(&oh, L"ShowURL", MOT_DWORD, &fd->bShowURL, sizeof(DWORD));
     ReadOption(&oh, L"ClickURL", MOT_DWORD, &fd->nClickURL, sizeof(DWORD));
     ReadOption(&oh, L"UrlPrefixesEnable", MOT_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
@@ -3869,7 +3869,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"TabStopAsSpaces", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bTabStopAsSpaces), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"MarginsEdit", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, dwEditMargins), sizeof(DWORD)))
+  if (!SaveOption(&oh, L"MarginsEditRect", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, rcEditMargins), sizeof(RECT)))
     goto Error;
   if (!SaveOption(&oh, L"ShowURL", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bShowURL), sizeof(DWORD)))
     goto Error;
@@ -5263,7 +5263,7 @@ void AkelAdminExit()
         API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
         ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
         CloseHandle(hFilePipe);
-  
+
         bPipeInitAkelAdmin=FALSE;
         break;
       }
@@ -13772,11 +13772,6 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndMarginLeft;
-  static HWND hWndMarginLeftSpin;
-  static HWND hWndMarginSelection;
-  static HWND hWndMarginRight;
-  static HWND hWndMarginRightSpin;
   static HWND hWndTabSize;
   static HWND hWndTabSizeSpin;
   static HWND hWndTabSizeSpaces;
@@ -13793,19 +13788,19 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
-  static HWND hWndRichEditMouse;
-  static HWND hWndMouseDragging;
-  static HWND hWndRClickMoveCaret;
+  static HWND hWndMarginLeft;
+  static HWND hWndMarginLeftSpin;
+  static HWND hWndMarginRight;
+  static HWND hWndMarginRightSpin;
+  static HWND hWndMarginTop;
+  static HWND hWndMarginTopSpin;
+  static HWND hWndMarginBottom;
+  static HWND hWndMarginBottomSpin;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
 
   if (uMsg == WM_INITDIALOG)
   {
-    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
-    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
-    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_MOUSELEFTMARGIN);
-    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
-    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
     hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
     hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
     hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
@@ -13822,16 +13817,17 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
-    hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_MOUSERICHEDIT);
-    hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
-    hWndRClickMoveCaret=GetDlgItem(hDlg, IDC_OPTIONS_RCLICKMOVECARET);
+    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
+    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
+    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
+    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
+    hWndMarginTop=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_TOP);
+    hWndMarginTopSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_TOP_SPIN);
+    hWndMarginBottom=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM);
+    hWndMarginBottomSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
-    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
-    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
-    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
-    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
     SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
     SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
@@ -13842,16 +13838,26 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
+    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
+    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
+    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
+    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
+    SendMessage(hWndMarginTopSpin, UDM_SETBUDDY, (WPARAM)hWndMarginTop, 0);
+    SendMessage(hWndMarginTopSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
+    SendMessage(hWndMarginBottomSpin, UDM_SETBUDDY, (WPARAM)hWndMarginBottom, 0);
+    SendMessage(hWndMarginBottomSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
     SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, MAKELONG(100, 0));
 
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(lpFrameCurrent->dwEditMargins), FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(lpFrameCurrent->dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, lpFrameCurrent->nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, lpFrameCurrent->nUndoLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, lpFrameCurrent->dwWrapLimit, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, lpFrameCurrent->dwMarker, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, lpFrameCurrent->nCaretWidth, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, lpFrameCurrent->rcEditMargins.left, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, lpFrameCurrent->rcEditMargins.right, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_TOP, lpFrameCurrent->rcEditMargins.top, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM, lpFrameCurrent->rcEditMargins.bottom, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, lpFrameCurrent->dwLineGap, FALSE);
 
     if (lpFrameCurrent->bTabStopAsSpaces)
@@ -13866,14 +13872,6 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (lpFrameCurrent->dwCaretOptions & CO_CARETVERTLINE)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (lpFrameCurrent->dwMouseOptions & MO_LEFTMARGINSELECTION)
-      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
-    if (lpFrameCurrent->dwMouseOptions & MO_RICHEDITMOUSE)
-      SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
-    if (lpFrameCurrent->dwMouseOptions & MO_MOUSEDRAGGING)
-      SendMessage(hWndMouseDragging, BM_SETCHECK, BST_CHECKED, 0);
-    if (lpFrameCurrent->dwMouseOptions & MO_RCLICKMOVECARET)
-      SendMessage(hWndRClickMoveCaret, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -13883,13 +13881,9 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
+      RECT rcEditMargins;
       int a;
       int b;
-
-      //Margins
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
-      b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
-      SetCurEditOption(EO_TEXTMARGINS, MAKELONG(a, b));
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
@@ -13939,23 +13933,12 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
       SetCurEditOption(EO_CARETWIDTH, a);
 
-      //Mouse options
-      lpFrameCurrent->dwMouseOptions&=~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
-      if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        lpFrameCurrent->dwMouseOptions|=MO_LEFTMARGINSELECTION;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
-
-      if (SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        lpFrameCurrent->dwMouseOptions|=MO_RICHEDITMOUSE;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
-
-      if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        lpFrameCurrent->dwMouseOptions|=MO_MOUSEDRAGGING;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, !(lpFrameCurrent->dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
-
-      if (SendMessage(hWndRClickMoveCaret, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        lpFrameCurrent->dwMouseOptions|=MO_RCLICKMOVECARET;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_RCLICKMOVECARET)?AECOOP_OR:AECOOP_XOR, AECO_RBUTTONDOWNMOVECARET);
+      //Margins
+      rcEditMargins.left=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
+      rcEditMargins.right=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
+      rcEditMargins.top=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_TOP, NULL, FALSE);
+      rcEditMargins.bottom=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM, NULL, FALSE);
+      SetCurEditOption(EO_TEXTMARGINS, (UINT_PTR)&rcEditMargins);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
@@ -13967,6 +13950,10 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndMarginSelection;
+  static HWND hWndMouseRichEdit;
+  static HWND hWndMouseDragging;
+  static HWND hWndRClickMoveCaret;
   static HWND hWndShowURL;
   static HWND hWndSingleClickURL;
   static HWND hWndDoubleClickURL;
@@ -13983,6 +13970,10 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_MOUSELEFTMARGIN);
+    hWndMouseRichEdit=GetDlgItem(hDlg, IDC_OPTIONS_MOUSERICHEDIT);
+    hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
+    hWndRClickMoveCaret=GetDlgItem(hDlg, IDC_OPTIONS_RCLICKMOVECARET);
     hWndShowURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SHOW);
     hWndSingleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SINGLECLICK);
     hWndDoubleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_DOUBLECLICK);
@@ -13996,6 +13987,14 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWrapDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS_ENABLE);
     hWndWrapDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS);
 
+    if (lpFrameCurrent->dwMouseOptions & MO_LEFTMARGINSELECTION)
+      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
+    if (lpFrameCurrent->dwMouseOptions & MO_RICHEDITMOUSE)
+      SendMessage(hWndMouseRichEdit, BM_SETCHECK, BST_CHECKED, 0);
+    if (lpFrameCurrent->dwMouseOptions & MO_MOUSEDRAGGING)
+      SendMessage(hWndMouseDragging, BM_SETCHECK, BST_CHECKED, 0);
+    if (lpFrameCurrent->dwMouseOptions & MO_RCLICKMOVECARET)
+      SendMessage(hWndRClickMoveCaret, BM_SETCHECK, BST_CHECKED, 0);
     if (lpFrameCurrent->bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
     if (lpFrameCurrent->nClickURL == 1)
@@ -14110,6 +14109,24 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       int a;
+
+      //Mouse options
+      lpFrameCurrent->dwMouseOptions&=~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
+      if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwMouseOptions|=MO_LEFTMARGINSELECTION;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
+
+      if (SendMessage(hWndMouseRichEdit, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwMouseOptions|=MO_RICHEDITMOUSE;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+
+      if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwMouseOptions|=MO_MOUSEDRAGGING;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, !(lpFrameCurrent->dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
+
+      if (SendMessage(hWndRClickMoveCaret, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwMouseOptions|=MO_RCLICKMOVECARET;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwMouseOptions & MO_RCLICKMOVECARET)?AECOOP_OR:AECOOP_XOR, AECO_RBUTTONDOWNMOVECARET);
 
       //HyperLinks
       a=(int)SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
@@ -17517,22 +17534,21 @@ BOOL SetCurEditOption(int nType, UINT_PTR dwData)
 {
   if (nType == EO_TEXTMARGINS)
   {
-    if (lpFrameCurrent->dwEditMargins != dwData)
+    if (xmemcmp(&lpFrameCurrent->rcEditMargins, (RECT *)dwData, sizeof(RECT)))
     {
       if (lpFrameCurrent->ei.hWndMaster)
       {
-        SetMargins(lpFrameCurrent->ei.hWndMaster, (DWORD)dwData, lpFrameCurrent->dwEditMargins);
+        SetMargins(lpFrameCurrent->ei.hWndMaster, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
         if (lpFrameCurrent->ei.hWndClone1)
-          SetMargins(lpFrameCurrent->ei.hWndClone1, (DWORD)dwData, lpFrameCurrent->dwEditMargins);
+          SetMargins(lpFrameCurrent->ei.hWndClone1, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
         if (lpFrameCurrent->ei.hWndClone2)
-          SetMargins(lpFrameCurrent->ei.hWndClone2, (DWORD)dwData, lpFrameCurrent->dwEditMargins);
+          SetMargins(lpFrameCurrent->ei.hWndClone2, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
         if (lpFrameCurrent->ei.hWndClone3)
-          SetMargins(lpFrameCurrent->ei.hWndClone3, (DWORD)dwData, lpFrameCurrent->dwEditMargins);
+          SetMargins(lpFrameCurrent->ei.hWndClone3, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
       }
-      else SetMargins(lpFrameCurrent->ei.hWndEdit, (DWORD)dwData, lpFrameCurrent->dwEditMargins);
+      else SetMargins(lpFrameCurrent->ei.hWndEdit, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
 
-      lpFrameCurrent->dwEditMargins=(DWORD)dwData;
-      InvalidateRect(lpFrameCurrent->ei.hWndEdit, NULL, TRUE);
+      lpFrameCurrent->rcEditMargins=*(RECT *)dwData;
       return TRUE;
     }
   }
@@ -17788,14 +17804,17 @@ void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit)
   else SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDWRAP, dwType|AEWW_LIMITSYMBOL, dwLimit);
 }
 
-void SetMargins(HWND hWnd, DWORD dwNewMargins, DWORD dwOldMargins)
+void SetMargins(HWND hWnd, const RECT *lprcNewMargins, const RECT *lprcOldMargins)
 {
-  DWORD dwMargins;
-  DWORD dwCurMargins;
+  RECT rcEditMargins;
+  RECT rcCurMargins;
 
-  dwCurMargins=(DWORD)SendMessage(hWnd, EM_GETMARGINS, 0, 0);
-  dwMargins=MAKELONG(LOWORD(dwCurMargins) - LOWORD(dwOldMargins) + LOWORD(dwNewMargins), HIWORD(dwCurMargins) - HIWORD(dwOldMargins) + HIWORD(dwNewMargins));
-  SendMessage(hWnd, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwMargins);
+  SendMessage(hWnd, AEM_GETRECT, AERC_MARGINS, (LPARAM)&rcCurMargins);
+  rcEditMargins.left=rcCurMargins.left - (lprcOldMargins?lprcOldMargins->left:0) + lprcNewMargins->left;
+  rcEditMargins.top=rcCurMargins.top - (lprcOldMargins?lprcOldMargins->top:0) + lprcNewMargins->top;
+  rcEditMargins.right=rcCurMargins.right - (lprcOldMargins?lprcOldMargins->right:0) + lprcNewMargins->right;
+  rcEditMargins.bottom=rcCurMargins.bottom - (lprcOldMargins?lprcOldMargins->bottom:0) + lprcNewMargins->bottom;
+  SendMessage(hWnd, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&rcEditMargins);
 }
 
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)

@@ -689,7 +689,10 @@ void _WinMain()
   fdInit.dwInputLocale=(HKL)(UINT_PTR)-1;
 
   //--Edit settings--
-  fdInit.dwEditMargins=EDIT_MARGINS;
+  fdInit.rcEditMargins.left=3;
+  fdInit.rcEditMargins.top=0;
+  fdInit.rcEditMargins.right=4;
+  fdInit.rcEditMargins.bottom=0;
   fdInit.nTabStopSize=EDIT_TABSTOPS;
   fdInit.bTabStopAsSpaces=FALSE;
   fdInit.nUndoLimit=EDIT_UNDOLIMIT;
@@ -2292,7 +2295,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == EO_TEXTMARGINS)
       {
-        return lpFrameCurrent->dwEditMargins;
+        return (LRESULT)&lpFrameCurrent->rcEditMargins;
       }
       if (wParam == EO_TABSIZE)
       {
