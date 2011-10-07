@@ -996,7 +996,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wParam & AERC_NOBOTTOM)
         rcDraw.bottom=ae->rcDraw.bottom;
 
-      AE_SetDrawRect(ae, &rcDraw, (wParam & AERC_UPDATE));
+      AE_SetDrawRect(ae, &rcDraw, (BOOL)(wParam & AERC_UPDATE));
       if (ae->ptxt->dwWordWrap)
       {
         AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
