@@ -1,11 +1,13 @@
 
 AkelPad 4.7.0 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
 Changed: active column flashing minimized.
 Changed: switch between commands 4212, 4213, 4214 without window split off.
 
 Added: ability to display alternating lines in different colors.
-Added: ability to set color for border of active line.
+Added: border draw of active line.
+Added: ability to turn off active line painting.
 Added: local storage of open links in a document and marking them with selected color.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
@@ -19,7 +21,7 @@ Fixed: error in the program when exiting, if the last closed document has split 
        which was switched off earlier in this document, and the caret is not in the first
        window (PMDI).
 Fixed: scrolling after window resplit (PMDI).
-Fixed: caret updating with using flag 256 in the manual parameter "PaintOptions".
+Fixed: caret updating with using flag 256 of manual parameter "PaintOptions".
 
 
 AkelPad 4.6.5 (Aug 31, 2011)
