@@ -505,6 +505,14 @@
 #define AECT_GLOBAL 0  //Position in the virtual text space coordinates.
 #define AECT_CLIENT 1  //Position in the client area coordinates.
 
+//AEM_GETRECT and AEM_SETRECT flags
+#define AERC_UPDATE    0x01  //Redraw edit window. Only for AEM_SETRECT.
+#define AERC_MARGINS   0x02  //Rectangle contain edit area margins instead of edit area coordinates.
+#define AERC_NOLEFT    0x04  //Don't set/retrieve left side.
+#define AERC_NOTOP     0x08  //Don't set/retrieve top side.
+#define AERC_NORIGHT   0x10  //Don't set/retrieve right side.
+#define AERC_NOBOTTOM  0x20  //Don't set/retrieve bottom side.
+
 //AEM_POINTONMARGIN sides
 #define AESIDE_LEFT          0x00000001
 #define AESIDE_TOP           0x00000002
@@ -3547,7 +3555,7 @@ ___________
 
 Retrieve the formatting rectangle of an edit control. The formatting rectangle is the limiting rectangle into which the control draws the text.
 
-wParam         == not used.
+(DWORD)wParam  == see AERC_* defines.
 (RECT *)lParam == pointer to a RECT structure that receives the formatting rectangle.
 
 Return Value
@@ -3564,8 +3572,7 @@ ___________
 
 Set the formatting rectangle of an edit control. The formatting rectangle is the limiting rectangle into which the control draws the text.
 
-(BOOL)wParam   == TRUE   redraw edit window.
-                  FALSE  don't redraw edit window.
+(DWORD)wParam  == see AERC_* defines.
 (RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the formatting rectangle is set to its default values.
 
 Return Value
@@ -3578,7 +3585,7 @@ Example:
  rc.top=10;
  rc.right=200;
  rc.bottom=200;
- SendMessage(hWndEdit, AEM_SETRECT, TRUE, (LPARAM)&rc);
+ SendMessage(hWndEdit, AEM_SETRECT, AERC_UPDATE, (LPARAM)&rc);
 
 
 AEM_GETSCROLLPOS

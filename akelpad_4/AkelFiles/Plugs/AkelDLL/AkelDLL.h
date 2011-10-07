@@ -160,7 +160,7 @@
 #define SH_CLEAR  2  //Clear search history.
 
 //AKD_SETEDITOPTION flags
-#define EO_TEXTMARGINS 1  //The low-order word specifies the new width of the left margin, in pixels. The high-order word specifies the new width of the right margin, in pixels.
+#define EO_TEXTMARGINS 1  //Edit margins. lParam is a pointer to a RECT structure, that contain left, top, right, bottom margins in pixels.
 #define EO_TABSIZE     2  //Tabulation size.
 #define EO_UNDOLIMIT   3  //Undo limit.
 #define EO_WRAPLIMIT   4  //Wrap limit.
@@ -742,7 +742,7 @@ typedef struct _FRAMEDATA {
   DWORD dwMappedPrintWidth;                           //Mapped print page width.
 
   //Edit settings (AkelEdit)
-  DWORD dwEditMargins;                                //Edit margins.
+  RECT rcEditMargins;                                 //Edit margins.
   int nTabStopSize;                                   //Tab stop size.
   int nUndoLimit;                                     //Undo limit.
   BOOL bDetailedUndo;                                 //Detailed undo.
@@ -2894,7 +2894,13 @@ Return Value
  FALSE error.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETEDITOPTION, EO_TEXTMARGINS, MAKELONG(4, 4));
+ RECT rcMargins;
+
+ rcMargins.left=4;
+ rcMargins.top=0;
+ rcMargins.right=4;
+ rcMargins.bottom=0;
+ SendMessage(pd->hMainWnd, AKD_SETEDITOPTION, EO_TEXTMARGINS, (LPARAM)&rcMargins);
 
 
 AKD_GETCOLORS
