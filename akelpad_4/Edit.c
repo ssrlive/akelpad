@@ -13803,7 +13803,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
-    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_SELECTION);
+    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_MOUSELEFTMARGIN);
     hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
     hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
     hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
@@ -13822,7 +13822,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
-    hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_RICHEDITMOUSE);
+    hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_MOUSERICHEDIT);
     hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
     hWndRClickMoveCaret=GetDlgItem(hDlg, IDC_OPTIONS_RCLICKMOVECARET);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
