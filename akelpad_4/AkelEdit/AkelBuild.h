@@ -938,7 +938,7 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
 INT_PTR AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
-void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
+void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate);
 COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2);
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent);
 COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent);

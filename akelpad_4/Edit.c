@@ -454,9 +454,9 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     pt.x=lpFrame->nCaretWidth;
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
   }
-  if (lpFrame->dwAltLineFill && lpFrame->dwAltLineSkip)
+  if (lpFrame->dwAltLineSkip && lpFrame->dwAltLineFill)
   {
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineFill, lpFrame->dwAltLineSkip), 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineSkip, lpFrame->dwAltLineFill), 0);
   }
   if (lpFrame->bShowURL)
   {
@@ -3652,8 +3652,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"Marker", MOT_DWORD, &fd->dwMarker, sizeof(DWORD));
     ReadOption(&oh, L"CaretOptions", MOT_DWORD, &fd->dwCaretOptions, sizeof(DWORD));
     ReadOption(&oh, L"CaretWidth", MOT_DWORD, &fd->nCaretWidth, sizeof(DWORD));
-    ReadOption(&oh, L"AltLineFill", MOT_DWORD, &fd->dwAltLineFill, sizeof(DWORD));
     ReadOption(&oh, L"AltLineSkip", MOT_DWORD, &fd->dwAltLineSkip, sizeof(DWORD));
+    ReadOption(&oh, L"AltLineFill", MOT_DWORD, &fd->dwAltLineFill, sizeof(DWORD));
     ReadOption(&oh, L"AltLineBorder", MOT_DWORD, &fd->bAltLineBorder, sizeof(DWORD));
     ReadOption(&oh, L"MarginsEditRect", MOT_BINARY, &fd->rcEditMargins, sizeof(RECT));
     ReadOption(&oh, L"LineGap", MOT_DWORD, &fd->dwLineGap, sizeof(DWORD));
@@ -3878,9 +3878,9 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"CaretWidth", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, nCaretWidth), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"AltLineFill", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, dwAltLineFill), sizeof(DWORD)))
-    goto Error;
   if (!SaveOption(&oh, L"AltLineSkip", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, dwAltLineSkip), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"AltLineFill", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, dwAltLineFill), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"AltLineBorder", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bAltLineBorder), sizeof(DWORD)))
     goto Error;
@@ -13809,10 +13809,10 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretActiveLineBorder;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
-  static HWND hWndAltLineFill;
-  static HWND hWndAltLineFillSpin;
   static HWND hWndAltLineSkip;
   static HWND hWndAltLineSkipSpin;
+  static HWND hWndAltLineFill;
+  static HWND hWndAltLineFillSpin;
   static HWND hWndAltLineBorder;
   static HWND hWndMarginLeft;
   static HWND hWndMarginLeftSpin;
@@ -13846,10 +13846,10 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretActiveLineBorder=GetDlgItem(hDlg, IDC_OPTIONS_CARETACTIVELINEBORDER);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
-    hWndAltLineFill=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINEFILL);
-    hWndAltLineFillSpin=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINEFILL_SPIN);
     hWndAltLineSkip=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINESKIP);
     hWndAltLineSkipSpin=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINESKIP_SPIN);
+    hWndAltLineFill=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINEFILL);
+    hWndAltLineFillSpin=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINEFILL_SPIN);
     hWndAltLineBorder=GetDlgItem(hDlg, IDC_OPTIONS_ALTLINEBORDER);
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
@@ -13872,10 +13872,10 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
-    SendMessage(hWndAltLineFillSpin, UDM_SETBUDDY, (WPARAM)hWndAltLineFill, 0);
-    SendMessage(hWndAltLineFillSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndAltLineSkipSpin, UDM_SETBUDDY, (WPARAM)hWndAltLineSkip, 0);
     SendMessage(hWndAltLineSkipSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
+    SendMessage(hWndAltLineFillSpin, UDM_SETBUDDY, (WPARAM)hWndAltLineFill, 0);
+    SendMessage(hWndAltLineFillSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
     SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
@@ -13892,8 +13892,8 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, lpFrameCurrent->dwWrapLimit, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, lpFrameCurrent->dwMarker, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, lpFrameCurrent->nCaretWidth, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, lpFrameCurrent->dwAltLineFill, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINESKIP, lpFrameCurrent->dwAltLineSkip, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, lpFrameCurrent->dwAltLineFill, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, lpFrameCurrent->rcEditMargins.left, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, lpFrameCurrent->rcEditMargins.right, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_TOP, lpFrameCurrent->rcEditMargins.top, FALSE);
@@ -14010,9 +14010,9 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SetCurEditOption(EO_CARETWIDTH, a);
 
       //Alternating lines
-      lpFrameCurrent->dwAltLineFill=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, NULL, FALSE);
       lpFrameCurrent->dwAltLineSkip=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINESKIP, NULL, FALSE);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrameCurrent->dwAltLineFill, lpFrameCurrent->dwAltLineSkip), 0);
+      lpFrameCurrent->dwAltLineFill=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, NULL, FALSE);
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill), 0);
 
       lpFrameCurrent->bAltLineBorder=(BOOL)SendMessage(hWndAltLineBorder, BM_GETCHECK, 0, 0);
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->bAltLineBorder?AECOOP_OR:AECOOP_XOR, AECO_ALTLINEBORDER);
