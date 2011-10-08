@@ -194,6 +194,7 @@
 #define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
 #define AECO_ACTIVELINE               0x00000800  //Draw active line.
 #define AECO_ACTIVELINEBORDER         0x00001000  //Draw active line border.
+#define AECO_ALTLINEBORDER            0x00002000  //Draw alternating lines border.
 #define AECO_NONEWLINEDRAW            0x00004000  //Disables drawing new line selection as space character.
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
 #define AECO_NONEWLINEMOUSESELECT     0x00010000  //Triple click and left margin click selects only line contents without new line.
