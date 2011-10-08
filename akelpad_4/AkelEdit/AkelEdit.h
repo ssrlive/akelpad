@@ -192,9 +192,8 @@
 #define AECO_DISABLEDROP              0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE             0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
-#define AECO_NOMARKERAFTERLASTLINE    0x00000800  //Disables marker painting after last line.
-#define AECO_NOMARKERMOVE             0x00001000  //Disables changing position of column marker with mouse and shift button.
-#define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
+#define AECO_ACTIVELINE               0x00000800  //Draw active line.
+#define AECO_ACTIVELINEBORDER         0x00001000  //Draw active line border.
 #define AECO_NONEWLINEDRAW            0x00004000  //Disables drawing new line selection as space character.
 #define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
 #define AECO_NONEWLINEMOUSESELECT     0x00010000  //Triple click and left margin click selects only line contents without new line.
@@ -202,11 +201,14 @@
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
 #define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
-#define AECO_DISABLEBEEP              0x01000000  //Disables sound beep, when unallowable action occur.
-#define AECO_ALTDECINPUT              0x02000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
-#define AECO_PAINTGROUP               0x04000000  //Paint text by group of characters (default is character by character).
+#define AECO_NOMARGINSEL              0x00200000  //Disables left margin line selection with mouse.
+#define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
+#define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
+#define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
+#define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-#define AECO_NOPRINTCOLLAPSED         0x08000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+#define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.

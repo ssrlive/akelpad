@@ -759,9 +759,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,152,10
     CONTROL         "Показывать активный столбец",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,152,10
-    CONTROL         "Показывать активную строку (",IDC_OPTIONS_ACTIVELINE,
+    CONTROL         "Показывать активную строку (",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,118,10
-    CONTROL         "граница)",IDC_OPTIONS_ACTIVELINEBORDER,"Button",
+    CONTROL         "граница)",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,135,122,66,10
     LTEXT           "Ширина:",IDC_STATIC,171,95,36,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,171,106,21,13,ES_NUMBER
