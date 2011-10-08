@@ -186,6 +186,7 @@
 #define CO_CARETVERTLINE         0x00000002  //Draw caret vertical line.
 #define CO_CARETACTIVELINE       0x00000004  //Draw active line.
 #define CO_CARETACTIVELINEBORDER 0x00000008  //Draw active line border.
+#define CO_ALTLINEBORDER         0x00000010  //Draw alternating lines border.
 
 //Mouse options
 #define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.
@@ -752,6 +753,8 @@ typedef struct _FRAMEDATA {
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge.
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set.
   int nCaretWidth;                                    //Caret width.
+  int nAltLineFill;                                   //Alternating lines fill interval.
+  int nAltLineSkip;                                   //Alternating lines skip interval.
   DWORD dwLineGap;                                    //Line gap.
   BOOL bShowURL;                                      //Show URL.
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes.

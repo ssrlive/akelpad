@@ -12443,10 +12443,13 @@ void AE_Paint(AKELEDIT *ae)
 
           if (dwAltModule >= ae->popt->dwAltLineSkip)
           {
-            if (dwAltModule == ae->popt->dwAltLineSkip)
-              hbrBorderTop=hbrAltLineBorder;
-            if (dwAltModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
-              hbrBorderBottom=hbrAltLineBorder;
+            if (ae->popt->dwOptions & AECO_ALTLINEBORDER)
+            {
+              if (dwAltModule == ae->popt->dwAltLineSkip)
+                hbrBorderTop=hbrAltLineBorder;
+              if (dwAltModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
+                hbrBorderBottom=hbrAltLineBorder;
+            }
           }
           else dwAltModule=0;
         }
