@@ -7,7 +7,7 @@ Changed: switch between commands 4212, 4213, 4214 without window split off.
 
 Added: ability to display alternating lines in different colors.
 Added: border draw of active line.
-Added: ability to turn off active line painting.
+Added: ability to turn off active line painting without color change.
 Added: local storage of open links in a document and marking them with selected color.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
