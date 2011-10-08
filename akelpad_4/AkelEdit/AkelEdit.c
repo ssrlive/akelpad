@@ -1305,7 +1305,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETCOLORS)
     {
-      AE_SetColors(ae, (AECOLORS *)lParam);
+      AE_SetColors(ae, (AECOLORS *)lParam, TRUE);
       return 0;
     }
     if (uMsg == AEM_GETDETECTURL)
@@ -3289,7 +3289,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else
       aec.dwFlags|=AECLR_DEFAULT;
 
-    AE_SetColors(ae, &aec);
+    AE_SetColors(ae, &aec, TRUE);
     return 0;
   }
   if (uMsg == EM_GETAUTOURLDETECT)
@@ -4416,7 +4416,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECOLORS aecDefault;
 
       aecDefault.dwFlags=AECLR_DEFAULT|AECLR_ALL;
-      AE_SetColors(ae, &aecDefault);
+      AE_SetColors(ae, &aecDefault, TRUE);
       ae->popt->bDefaultColors=TRUE;
     }
   }
@@ -4424,7 +4424,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (wParam)
     {
-      AE_SetColors(ae, &ae->popt->aecEnable);
+      AE_SetColors(ae, &ae->popt->aecEnable, TRUE);
     }
     else
     {
@@ -4444,7 +4444,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       aecDisable.crSelBk=crDisableBk;
       aecDisable.crActiveLineText=crDisableText;
       aecDisable.crActiveLineBk=crDisableBk;
-      AE_SetColors(ae, &aecDisable);
+      AE_SetColors(ae, &aecDisable, TRUE);
       SetFocus(NULL);
     }
     return 0;
@@ -4631,6 +4631,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
 
     ae->popt->aec.dwFlags=AECLR_DEFAULT|AECLR_ALL;
     AE_GetColors(ae, &ae->popt->aec);
+    AE_SetColors(ae, &ae->popt->aec, FALSE);
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
@@ -19389,7 +19390,7 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
   }
 }
 
-void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
+void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate)
 {
   if (aec->dwFlags)
   {
