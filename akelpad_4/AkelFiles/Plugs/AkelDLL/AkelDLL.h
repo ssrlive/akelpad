@@ -182,8 +182,10 @@
 #define GT_OFFSET  0x2
 
 //Caret options
-#define CO_CARETOUTEDGE  0x00000001  //Allow caret moving out of the line edge.
-#define CO_CARETVERTLINE 0x00000002  //Draw caret vertical line.
+#define CO_CARETOUTEDGE          0x00000001  //Allow caret moving out of the line edge.
+#define CO_CARETVERTLINE         0x00000002  //Draw caret vertical line.
+#define CO_CARETACTIVELINE       0x00000004  //Draw active line.
+#define CO_CARETACTIVELINEBORDER 0x00000008  //Draw active line border.
 
 //Mouse options
 #define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.

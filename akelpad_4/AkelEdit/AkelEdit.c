@@ -1274,7 +1274,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
       }
-      if (!(dwOptionsOld & AECO_PAINTGROUP) != !(dwOptionsNew & AECO_PAINTGROUP))
+      if ((!(dwOptionsOld & AECO_ACTIVELINE) != !(dwOptionsNew & AECO_ACTIVELINE)) ||
+          (!(dwOptionsOld & AECO_ACTIVELINEBORDER) != !(dwOptionsNew & AECO_ACTIVELINEBORDER)) ||
+          (!(dwOptionsOld & AECO_PAINTGROUP) != !(dwOptionsNew & AECO_PAINTGROUP)))
       {
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackCloneUpdate(ae);
@@ -11097,7 +11099,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       bd.nWidth=nCaretWidth;
       bd.nHeight=nCaretHeight;
       bd.crBasic=ae->popt->aec.crCaret;
-      bd.crInvert=ae->popt->aec.crActiveLineBk;
+      bd.crInvert=(ae->popt->dwOptions & AECO_ACTIVELINE)?ae->popt->aec.crActiveLineBk:ae->popt->aec.crBasicBk;
 
       if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
         bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
@@ -12450,7 +12452,7 @@ void AE_Paint(AKELEDIT *ae)
         }
 
         //Set initial colors
-        if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+        if ((ae->popt->dwOptions & AECO_ACTIVELINE) && to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
         {
           if (dwAltModule)
           {
@@ -12471,8 +12473,11 @@ void AE_Paint(AKELEDIT *ae)
             hlp.dwDefaultText=ae->popt->aec.crActiveLineText;
             hlp.dwDefaultBk=ae->popt->aec.crActiveLineBk;
             hbrDefaultBk=hbrActiveLineBk;
-            hbrBorderTop=hbrActiveLineBorder;
-            hbrBorderBottom=hbrActiveLineBorder;
+            if (ae->popt->dwOptions & AECO_ACTIVELINEBORDER)
+            {
+              hbrBorderTop=hbrActiveLineBorder;
+              hbrBorderBottom=hbrActiveLineBorder;
+            }
           }
         }
         else if (dwAltModule)
@@ -13577,7 +13582,7 @@ void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
     //Default colors
     hlp.dwDefaultText=ae->popt->aec.crBasicText;
     hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
-    if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+    if ((ae->popt->dwOptions & AECO_ACTIVELINE) && to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
     {
       if (!(gh->dwFlags & AEGHF_NOACTIVELINETEXT))
         hlp.dwDefaultText=ae->popt->aec.crActiveLineText;

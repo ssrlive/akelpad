@@ -701,7 +701,7 @@ void _WinMain()
   //fdInit.dwWrapLimit=0;
   //fdInit.dwMarker=0;
   //fdInit.dwMappedPrintWidth=0;
-  //fdInit.dwCaretOptions=0;
+  fdInit.dwCaretOptions=CO_CARETACTIVELINE|CO_CARETACTIVELINEBORDER;
   fdInit.nCaretWidth=1;
   fdInit.dwMouseOptions=MO_LEFTMARGINSELECTION|MO_RICHEDITMOUSE|MO_MOUSEDRAGGING;
   fdInit.dwLineGap=1;

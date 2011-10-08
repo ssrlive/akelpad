@@ -401,6 +401,10 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_CARETOUTEDGE;
   if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
     dwOptions|=AECO_ACTIVECOLUMN;
+  if (lpFrame->dwCaretOptions & CO_CARETACTIVELINE)
+    dwOptions|=AECO_ACTIVELINE;
+  if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
+    dwOptions|=AECO_ACTIVELINEBORDER;
   if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
     dwOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
   if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
@@ -13786,6 +13790,8 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndMarkerSpin;
   static HWND hWndCaretOutEdge;
   static HWND hWndCaretVertLine;
+  static HWND hWndCaretActiveLine;
+  static HWND hWndCaretActiveLineBorder;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
   static HWND hWndMarginLeft;
@@ -13798,6 +13804,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndMarginBottomSpin;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
+  BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13815,6 +13822,8 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndMarkerSpin=GetDlgItem(hDlg, IDC_OPTIONS_MARKER_SPIN);
     hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
+    hWndCaretActiveLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETACTIVELINE);
+    hWndCaretActiveLineBorder=GetDlgItem(hDlg, IDC_OPTIONS_CARETACTIVELINEBORDER);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
@@ -13872,6 +13881,19 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (lpFrameCurrent->dwCaretOptions & CO_CARETVERTLINE)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (lpFrameCurrent->dwCaretOptions & CO_CARETACTIVELINE)
+      SendMessage(hWndCaretActiveLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (lpFrameCurrent->dwCaretOptions & CO_CARETACTIVELINEBORDER)
+      SendMessage(hWndCaretActiveLineBorder, BM_SETCHECK, BST_CHECKED, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_OPTIONS_CARETACTIVELINE)
+    {
+      bState=(BOOL)SendMessage(hWndCaretActiveLine, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndCaretActiveLineBorder, bState);
+      return TRUE;
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -13928,6 +13950,14 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
         lpFrameCurrent->dwCaretOptions|=CO_CARETVERTLINE;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+
+      if (SendMessage(hWndCaretActiveLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwCaretOptions|=CO_CARETACTIVELINE;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwCaretOptions & CO_CARETACTIVELINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVELINE);
+
+      if (SendMessage(hWndCaretActiveLineBorder, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        lpFrameCurrent->dwCaretOptions|=CO_CARETACTIVELINEBORDER;
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, (lpFrameCurrent->dwCaretOptions & CO_CARETACTIVELINEBORDER)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVELINEBORDER);
 
       //Caret width
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
