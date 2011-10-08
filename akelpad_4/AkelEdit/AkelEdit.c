@@ -1276,6 +1276,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       if ((!(dwOptionsOld & AECO_ACTIVELINE) != !(dwOptionsNew & AECO_ACTIVELINE)) ||
           (!(dwOptionsOld & AECO_ACTIVELINEBORDER) != !(dwOptionsNew & AECO_ACTIVELINEBORDER)) ||
+          (!(dwOptionsOld & AECO_ALTLINEBORDER) != !(dwOptionsNew & AECO_ALTLINEBORDER)) ||
           (!(dwOptionsOld & AECO_PAINTGROUP) != !(dwOptionsNew & AECO_PAINTGROUP)))
       {
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
