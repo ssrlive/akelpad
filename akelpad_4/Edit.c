@@ -13929,6 +13929,19 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       EnableWindow(hWndCaretActiveLineBorder, bState);
       return TRUE;
     }
+    else if (LOWORD(wParam) == IDC_OPTIONS_ALTLINESKIP ||
+             LOWORD(wParam) == IDC_OPTIONS_ALTLINEFILL)
+    {
+      if (GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINESKIP, NULL, FALSE) &&
+          GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, NULL, FALSE))
+      {
+        bState=TRUE;
+      }
+      else bState=FALSE;
+
+      EnableWindow(hWndAltLineBorder, bState);
+      return TRUE;
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
