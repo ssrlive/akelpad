@@ -10,11 +10,11 @@
   #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.0 (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
-  #define APP_MAIN_CLASSA              "AkelPad4 Library"
-  #define APP_MAIN_CLASSW             L"AkelPad4 Library"
+  #define APP_MAIN_CLASSA            "AkelPad4 Library"
+  #define APP_MAIN_CLASSW           L"AkelPad4 Library"
 #else
-  #define APP_MAIN_CLASSA              "AkelPad4"
-  #define APP_MAIN_CLASSW             L"AkelPad4"
+  #define APP_MAIN_CLASSA            "AkelPad4"
+  #define APP_MAIN_CLASSW           L"AkelPad4"
 #endif
 #define APP_MAIN_TITLEW             L"AkelPad"
 #define APP_SDI_TITLEW              L""

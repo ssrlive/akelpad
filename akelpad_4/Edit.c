@@ -18175,10 +18175,10 @@ const wchar_t* GetFileExt(const wchar_t *wpFile)
 {
   int i;
 
-  for (i=lstrlenW(wpFile) - 1; i >= 0; --i)
+  for (i=xstrlenW(wpFile) - 1; i >= 0; --i)
   {
-    if (wpFile[i] == '.') return (wchar_t *)(wpFile + i + 1);
-    else if (wpFile[i] == '\\') break;
+    if (wpFile[i] == L'.') return (wchar_t *)(wpFile + i + 1);
+    else if (wpFile[i] == L'\\') break;
   }
   return NULL;
 }
@@ -18187,10 +18187,10 @@ void TrimPathBackslash(wchar_t *wszPath)
 {
   int i;
 
-  for (i=lstrlenW(wszPath) - 1; i >= 0; --i)
+  for (i=xstrlenW(wszPath) - 1; i >= 0; --i)
   {
-    if (wszPath[i] == '\\')
-      wszPath[i]='\0';
+    if (wszPath[i] == L'\\')
+      wszPath[i]=L'\0';
     else
       break;
   }
