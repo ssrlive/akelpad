@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.4                    *
+ *                  Wide functions header v1.5                    *
  *                                                                *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -51,6 +51,7 @@ LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 
 //File and directories (FILEWIDEFUNC). Kernel32.lib.
 BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
+BOOL RemoveDirectoryWide(const wchar_t *wpPathName);
 HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 BOOL CopyFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName, BOOL bFailIfExists);
 BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName);
@@ -191,6 +192,32 @@ BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityA
     bResult=CreateDirectoryA(pDir, lpSecurityAttributes);
 
     FreeAnsi(pDir);
+    return bResult;
+  }
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
+
+#if defined RemoveDirectoryWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define RemoveDirectoryWide_INCLUDED
+#undef RemoveDirectoryWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL RemoveDirectoryWide(const wchar_t *wpPathName)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return RemoveDirectoryW(wpPathName);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pPathName=AllocAnsi(wpPathName);
+    BOOL bResult;
+
+    bResult=RemoveDirectoryA(pPathName);
+
+    FreeAnsi(pPathName);
     return bResult;
   }
 
