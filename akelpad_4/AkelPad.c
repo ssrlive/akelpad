@@ -1562,7 +1562,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       NMAINSHOW nms;
       RECT rcRect;
       wchar_t *wpFileName;
-      UINT_PTR dwStyle;
       int i=0;
 
       //Allocate and read search string
@@ -1686,10 +1685,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else
           {
             //Shortcut
-            if (moCur.dwMainStyle == WS_MAXIMIZE && dwCmdShow == SW_SHOWMINIMIZED)
+            if (moCur.dwMainStyle == WS_MAXIMIZE)
             {
+              //Maximize window without showing it
+              WINDOWPLACEMENT wp;
+              UINT_PTR dwStyle;
+
+              wp.length=sizeof(WINDOWPLACEMENT);
+              GetWindowPlacement(hMainWnd, &wp);
               dwStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
               SetWindowLongPtrWide(hMainWnd, GWL_STYLE, dwStyle|WS_MAXIMIZE);
+              wp.showCmd=WS_MAXIMIZE;
+              SetWindowPos(hMainWnd, NULL, 0, 0, GetSystemMetrics(SM_CXMAXIMIZED), GetSystemMetrics(SM_CYMAXIMIZED), SWP_NOZORDER|SWP_NOACTIVATE);
+              SetWindowPlacement(hMainWnd, &wp);
             }
             ShowWindow(hMainWnd, dwCmdShow);
           }
