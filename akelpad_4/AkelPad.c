@@ -873,7 +873,6 @@ void _WinMain()
     lpStartupInfoA.cb=sizeof(STARTUPINFOA);
     GetStartupInfoA(&lpStartupInfoA);
     dwCmdShow=lpStartupInfoA.wShowWindow;
-    if (!dwCmdShow) dwCmdShow=SW_SHOWNORMAL;
 
     //Mutex
     if (!(lpStartupInfoA.dwFlags & STARTF_NOMUTEX))
@@ -1563,6 +1562,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       NMAINSHOW nms;
       RECT rcRect;
       wchar_t *wpFileName;
+      UINT_PTR dwStyle;
       int i=0;
 
       //Allocate and read search string
@@ -1676,12 +1676,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!(mc.dwStyle & WS_VISIBLE))
         {
-          //Show main window
-          ShowWindow(hMainWnd, (moCur.dwMainStyle == WS_MAXIMIZE)?SW_SHOWMAXIMIZED:SW_SHOW);
-
-          //Shortcut
-          if (dwCmdShow != SW_SHOWNORMAL)
+          if (dwCmdShow == SW_SHOWNORMAL || dwCmdShow == SW_SHOWMAXIMIZED)
+          {
+            if (moCur.dwMainStyle == WS_MAXIMIZE || dwCmdShow == SW_SHOWMAXIMIZED)
+              ShowWindow(hMainWnd, SW_SHOWMAXIMIZED);
+            else
+              ShowWindow(hMainWnd, SW_SHOW);
+          }
+          else
+          {
+            //Shortcut
+            if (moCur.dwMainStyle == WS_MAXIMIZE && dwCmdShow == SW_SHOWMINIMIZED)
+            {
+              dwStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
+              SetWindowLongPtrWide(hMainWnd, GWL_STYLE, dwStyle|WS_MAXIMIZE);
+            }
             ShowWindow(hMainWnd, dwCmdShow);
+          }
         }
         if (mc.dwStyle & WS_CHILD)
           UpdateSize();
