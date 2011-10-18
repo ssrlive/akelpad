@@ -4,6 +4,7 @@ AkelPad 4.7.0 ()
 Changed: plugin architecture. Update plugins.
 Changed: active column flashing minimized.
 Changed: switch between commands 4212, 4213, 4214 without window split off.
+Changed: command line parameter /quit terminates only own process.
 
 Added: ability to display alternating lines in different colors.
 Added: border draw of active line.

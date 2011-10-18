@@ -197,8 +197,6 @@ DWORD dwProcessId;
 MAINCREATE mc;
 HINSTANCE hInstance;
 DWORD dwCmdShow=SW_SHOWNORMAL;
-DWORD dwCmdLineOptions=0;
-const wchar_t *wpCmdLine=NULL;
 
 //Identification
 DWORD dwExeVersion=0;
@@ -223,6 +221,9 @@ wchar_t *wszCmdLineBegin=NULL;
 int nCmdLineBeginLen=0;
 wchar_t *wszCmdLineEnd=NULL;
 int nCmdLineEndLen=0;
+const wchar_t *wpCmdLine=NULL;
+DWORD dwCmdLineOptions=0;
+BOOL bCmdLineQuitAsEnd=FALSE;
 
 //Language
 HMODULE hLangLib;
@@ -907,7 +908,7 @@ void _WinMain()
           goto Quit;
       }
 
-      SendCmdLine(hWndFriend, wpCmdLine, TRUE);
+      SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
       goto Quit;
     }
   }
@@ -1765,8 +1766,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONSHOW);
       if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(wszExeDir);
-      if (nResult == PCLE_QUIT)
+      if (!bCmdLineQuitAsEnd && nResult == PCLE_QUIT)
         PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+      bCmdLineQuitAsEnd=FALSE;
 
       return nResult;
     }
@@ -3111,6 +3113,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pmpcl->pcls.pWorkDir=(wchar_t *)((unsigned char *)pmpcl->pcls.pCmdLine + (pclp->nCmdLineLen + 1) * sizeof(wchar_t));
         xstrcpynW((wchar_t *)pmpcl->pcls.pWorkDir, pclp->szWorkDir, pclp->nWorkDirLen + 1);
       }
+      bCmdLineQuitAsEnd=pclp->bQuitAsEnd;
 
       if (pclp->bPostMessage)
       {

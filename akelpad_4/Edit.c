@@ -30,8 +30,6 @@ extern DWORD dwProcessId;
 extern MAINCREATE mc;
 extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
-extern DWORD dwCmdLineOptions;
-extern const wchar_t *wpCmdLine;
 
 //Identification
 extern DWORD dwExeVersion;
@@ -56,6 +54,9 @@ extern wchar_t *wszCmdLineBegin;
 extern int nCmdLineBeginLen;
 extern wchar_t *wszCmdLineEnd;
 extern int nCmdLineEndLen;
+extern const wchar_t *wpCmdLine;
+extern DWORD dwCmdLineOptions;
+extern BOOL bCmdLineQuitAsEnd;
 
 //Language
 extern HMODULE hLangLib;
@@ -17206,7 +17207,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
               {
                 ActivateWindow(hWndFriend);
                 SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
-                SendCmdLine(hWndFriend, wpCmdLine, TRUE);
+                SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
                 return PCLE_QUIT;
               }
             }
@@ -17226,7 +17227,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         }
         hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
         SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
-        SendCmdLine(hWndFriend, wpCmdLine, TRUE);
+        SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
         return PCLE_END;
       }
       if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
@@ -17240,7 +17241,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
   return PCLE_END;
 }
 
-void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost)
+void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd)
 {
   COPYDATASTRUCT cds;
   PARSECMDLINEPOSTW *pclp;
@@ -17250,6 +17251,7 @@ void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost)
     pclp->bPostMessage=bPost;
     pclp->nCmdLineLen=(int)xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
     pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
+    pclp->bQuitAsEnd=bQuitAsEnd;
 
     cds.dwData=CD_PARSECMDLINEW;
     cds.cbData=sizeof(PARSECMDLINEPOSTW);
