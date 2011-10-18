@@ -1047,6 +1047,7 @@ typedef struct {
   int nCmdLineLen;                     //Command line length, not including the terminating null character.
   wchar_t szWorkDir[MAX_PATH];         //Working directory string.
   int nWorkDirLen;                     //Working directory length, not including the terminating null character.
+  BOOL bQuitAsEnd;                     //Internal variable - "/quit" stops parsing command line parameters, but not closes program.
 } PARSECMDLINEPOSTW;
 
 typedef struct {

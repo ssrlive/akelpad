@@ -1079,7 +1079,7 @@ char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
-void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost);
+void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct);
