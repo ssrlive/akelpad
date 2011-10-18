@@ -263,7 +263,8 @@ MAINOPTIONS moInit;
 MAINOPTIONS moCur;
 HWND hMainWnd=NULL;
 HWND hDummyWindow;
-DWORD dwLastMainSize=0;
+DWORD dwLastMainSizeType=0;
+DWORD dwLastMainSizeClient=0;
 DWORD dwMouseCapture=0;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
@@ -3221,16 +3222,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    if (wParam != SIZE_MINIMIZED)
+    //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
+    if (dwLastMainSizeClient != (DWORD)lParam)
     {
-      if (wParam != SIZE_MAXIMIZED)
+      if (wParam != SIZE_MINIMIZED)
       {
-        GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+        if (wParam != SIZE_MAXIMIZED)
+        {
+          GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+        }
+        dwLastMainSizeType=(DWORD)wParam;
+        dwLastMainSizeClient=(DWORD)lParam;
+        SendMessage(hStatus, WM_SIZE, wParam, lParam);
+        UpdateSize();
+        return TRUE;
       }
-      dwLastMainSize=(DWORD)wParam;
-      SendMessage(hStatus, WM_SIZE, wParam, lParam);
-      UpdateSize();
-      return TRUE;
     }
   }
   else if (uMsg == WM_DROPFILES)

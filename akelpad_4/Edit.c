@@ -96,7 +96,8 @@ extern MAINOPTIONS moInit;
 extern MAINOPTIONS moCur;
 extern HWND hMainWnd;
 extern HWND hDummyWindow;
-extern DWORD dwLastMainSize;
+extern DWORD dwLastMainSizeType;
+extern DWORD dwLastMainSizeClient;
 extern DWORD dwMouseCapture;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
@@ -3785,7 +3786,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
   //Main window style
   mo->dwMainStyle=(DWORD)GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
-  mo->dwMainStyle=((mo->dwMainStyle & WS_MAXIMIZE) || ((mo->dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
+  mo->dwMainStyle=((mo->dwMainStyle & WS_MAXIMIZE) || ((mo->dwMainStyle & WS_MINIMIZE) && dwLastMainSizeType == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
 
   //MDI frame style
   if (nMDI == WMD_MDI)
@@ -14422,7 +14423,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndFilesGroup;
   static HWND hWndSave;
   static HWND hWndClose;
-  static HWND hWndModified;
   static HWND hWndNames;
   static HWND hWndCancel;
   static HMENU hMenuList;
@@ -14445,7 +14445,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
                              {&hWndSave,         DRS_MOVE|DRS_X, 0},
                              {&hWndClose,        DRS_MOVE|DRS_X, 0},
-                             {&hWndModified,     DRS_MOVE|DRS_X, 0},
                              {&hWndNames,        DRS_MOVE|DRS_X, 0},
                              {&hWndCancel,       DRS_MOVE|DRS_X, 0},
                              {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
@@ -14485,7 +14484,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
     hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
     hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
-    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
     hWndNames=GetDlgItem(hDlg, IDC_MDILIST_ONLYNAMES);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
@@ -14701,7 +14699,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableWindow(hWndSort, !nModifyFilter);
         EnableWindow(hWndSave, nSelCount > 0);
         EnableWindow(hWndClose, nSelCount > 0);
-        EnableWindow(hWndModified, !bListChanged);
 
         xprintfW(wbuf, L"%d / %d", nSelCount, nCount);
         SetWindowTextWide(hWndStats, wbuf);
