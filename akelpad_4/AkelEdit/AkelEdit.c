@@ -12298,6 +12298,30 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AE_HeapFree(ae, 0, (LPVOID)ph);
 }
 
+void AE_FillRect(HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom)
+{
+  RECT rcBorder;
+
+  FillRect(hDC, lpRect, hbrDefaultBk);
+
+  //Draw top and bottom borders
+  rcBorder.left=lpRect->left;
+  rcBorder.right=lpRect->right;
+
+  if (hbrBorderTop)
+  {
+    rcBorder.top=lpRect->top;
+    rcBorder.bottom=lpRect->top + 1;
+    FillRect(hDC, &rcBorder, hbrBorderTop);
+  }
+  if (hbrBorderBottom)
+  {
+    rcBorder.top=lpRect->bottom - 1;
+    rcBorder.bottom=lpRect->bottom;
+    FillRect(hDC, &rcBorder, hbrBorderBottom);
+  }
+}
+
 void AE_Paint(AKELEDIT *ae)
 {
   PAINTSTRUCT ps;
@@ -12507,20 +12531,7 @@ void AE_Paint(AKELEDIT *ae)
         rcSpace.top=(int)to.ptFirstCharInLine.y;
         rcSpace.right=rcDraw.right;
         rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-        FillRect(to.hDC, &rcSpace, hbrDefaultBk);
-
-        if (hbrBorderTop)
-        {
-          rcSpace.top=(int)to.ptFirstCharInLine.y;
-          rcSpace.bottom=rcSpace.top + 1;
-          FillRect(to.hDC, &rcSpace, hbrBorderTop);
-        }
-        if (hbrBorderBottom)
-        {
-          rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-          rcSpace.bottom=rcSpace.top + 1;
-          FillRect(to.hDC, &rcSpace, hbrBorderBottom);
-        }
+        AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
 
         //Fill space after line end, before text line is drawn.
         if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
@@ -12540,20 +12551,7 @@ void AE_Paint(AKELEDIT *ae)
                   rcSpace.top=(int)to.ptFirstCharInLine.y;
                   rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                  FillRect(to.hDC, &rcSpace, hbrDefaultBk);
-
-                  if (hbrBorderTop)
-                  {
-                    rcSpace.top=(int)to.ptFirstCharInLine.y;
-                    rcSpace.bottom=rcSpace.top + 1;
-                    FillRect(to.hDC, &rcSpace, hbrBorderTop);
-                  }
-                  if (hbrBorderBottom)
-                  {
-                    rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-                    rcSpace.bottom=rcSpace.top + 1;
-                    FillRect(to.hDC, &rcSpace, hbrBorderBottom);
-                  }
+                  AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
                 }
                 if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
                 {
@@ -12609,20 +12607,7 @@ void AE_Paint(AKELEDIT *ae)
             rcSpace.top=(int)to.ptFirstCharInLine.y;
             rcSpace.right=ae->rcDraw.right;
             rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-            FillRect(to.hDC, &rcSpace, hbrDefaultBk);
-
-            if (hbrBorderTop)
-            {
-              rcSpace.top=(int)to.ptFirstCharInLine.y;
-              rcSpace.bottom=rcSpace.top + 1;
-              FillRect(to.hDC, &rcSpace, hbrBorderTop);
-            }
-            if (hbrBorderBottom)
-            {
-              rcSpace.top=rcSpace.top + ae->ptxt->nCharHeight - 1;
-              rcSpace.bottom=rcSpace.top + 1;
-              FillRect(to.hDC, &rcSpace, hbrBorderBottom);
-            }
+            AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
           }
         }
 
@@ -12645,16 +12630,19 @@ void AE_Paint(AKELEDIT *ae)
           //Draw text up to tab character
           if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
           {
-            //Fill tab space
-            rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nDrawLineWidth);
-            rcSpace.top=(int)to.ptFirstCharInLine.y;
-            rcSpace.right=rcSpace.left + nCharWidth;
-            rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-
-            if (hbrTab=CreateSolidBrush(hlp.dwActiveBk))
+            if (hlp.dwActiveBk != hlp.dwDefaultBk)
             {
-              FillRect(to.hDC, &rcSpace, hbrTab);
-              DeleteObject(hbrTab);
+              //Fill tab space
+              rcSpace.left=(int)(to.ptFirstCharInLine.x + to.nDrawLineWidth);
+              rcSpace.top=(int)to.ptFirstCharInLine.y;
+              rcSpace.right=rcSpace.left + nCharWidth;
+              rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+
+              if (hbrTab=CreateSolidBrush(hlp.dwActiveBk))
+              {
+                FillRect(to.hDC, &rcSpace, hbrTab);
+                DeleteObject(hbrTab);
+              }
             }
 
             //Draw text up to tab character
