@@ -12302,7 +12302,10 @@ void AE_FillRect(HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBor
 {
   RECT rcBorder;
 
-  FillRect(hDC, lpRect, hbrDefaultBk);
+  if (hbrDefaultBk)
+  {
+    FillRect(hDC, lpRect, hbrDefaultBk);
+  }
 
   //Draw top and bottom borders
   rcBorder.left=lpRect->left;
@@ -12488,14 +12491,17 @@ void AE_Paint(AKELEDIT *ae)
             hlp.dwDefaultText=ae->popt->crActiveLineTextWithAltText;
             hlp.dwDefaultBk=ae->popt->crActiveLineBkWithAltBk;
             hbrDefaultBk=hbrActiveLineBkWithAltBk;
-            if (hbrBorderTop)
-              hbrBorderTop=hbrActiveLineBorderWithAltBorder;
-            else
-              hbrBorderTop=hbrActiveLineBorderWithAltBk;
-            if (hbrBorderBottom)
-              hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
-            else
-              hbrBorderBottom=hbrActiveLineBorderWithAltBk;
+            if (ae->popt->dwOptions & AECO_ALTLINEBORDER)
+            {
+              if (hbrBorderTop)
+                hbrBorderTop=hbrActiveLineBorderWithAltBorder;
+              else
+                hbrBorderTop=hbrActiveLineBorderWithAltBk;
+              if (hbrBorderBottom)
+                hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
+              else
+                hbrBorderBottom=hbrActiveLineBorderWithAltBk;
+            }
           }
           else
           {
@@ -12675,11 +12681,17 @@ void AE_Paint(AKELEDIT *ae)
         //Draw text line
         AE_PaintTextOut(ae, &to, &hlp);
 
+        //Line rectangle
+        rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
+        rcSpace.top=(int)to.ptFirstCharInLine.y;
+        rcSpace.right=rcSpace.left + min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
+        rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+
         //Draw column marker
-        AE_ColumnMarkerDraw(ae, to.hDC, (int)to.ptFirstCharInLine.y, (int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight));
+        AE_ColumnMarkerDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
 
         //Draw active column
-        AE_ActiveColumnDraw(ae, to.hDC, (int)to.ptFirstCharInLine.y, (int)(to.ptFirstCharInLine.y + ae->ptxt->nCharHeight));
+        AE_ActiveColumnDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
 
         //Copy line from buffer DC
         if (bUseBufferDC)
@@ -12693,12 +12705,7 @@ void AE_Paint(AKELEDIT *ae)
             pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
             AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
           }
-
-          rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
-          rcSpace.top=(int)to.ptFirstCharInLine.y;
-          rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
-          rcSpace.bottom=ae->ptxt->nCharHeight;
-          BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
+          BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right - rcSpace.left, rcSpace.bottom - rcSpace.top, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
         }
 
         //Next line
