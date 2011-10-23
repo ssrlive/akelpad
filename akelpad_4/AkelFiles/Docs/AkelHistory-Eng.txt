@@ -7,9 +7,9 @@ Changed: switch between commands 4212, 4213, 4214 without window split off.
 Changed: command line parameter /quit terminates only own process.
 
 Added: ability to display alternating lines in different colors.
+Added: local storage of open links in a document and marking them with selected color.
 Added: border draw of active line.
 Added: ability to turn off active line painting without color change.
-Added: local storage of open links in a document and marking them with selected color.
 Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
 Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
 Added: settings for top and bottom edit window margins.
@@ -22,6 +22,8 @@ Fixed: error in the program when exiting, if the last closed document has split 
        which was switched off earlier in this document, and the caret is not in the first
        window (PMDI).
 Fixed: scrolling after window resplit (PMDI).
+Fixed: on windows split enabled error may appear at program exit, if flag 256 of manual
+       parameter "PaintOptions" is used.
 Fixed: caret updating with using flag 256 of manual parameter "PaintOptions".
 
 

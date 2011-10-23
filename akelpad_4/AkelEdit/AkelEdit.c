@@ -6552,17 +6552,15 @@ INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
 {
-  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.last;
+  AEPOINT *lpElement;
   AEPOINT *lpNewElement=NULL;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hPointsStack.last; lpElement; lpElement=lpElement->prev)
   {
     if (ciPoint->nLine > lpElement->ciPoint.nLine)
       break;
     if (ciPoint->nLine == lpElement->ciPoint.nLine && ciPoint->nCharInLine >= lpElement->ciPoint.nCharInLine)
       break;
-
-    lpElement=lpElement->prev;
   }
   AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hPointsStack.first, (stack **)&ae->ptxt->hPointsStack.last, (stack *)lpElement, (stack **)&lpNewElement, sizeof(AEPOINT));
 
@@ -6579,21 +6577,19 @@ AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
 
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags)
 {
-  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
+  AEPOINT *lpElement;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hPointsStack.first; lpElement; lpElement=lpElement->next)
   {
     lpElement->dwFlags&=~dwFlags;
-
-    lpElement=lpElement->next;
   }
 }
 
 void AE_StackPointUnreserve(AKELEDIT *ae)
 {
-  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
+  AEPOINT *lpElement;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hPointsStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->nTmpPointOffset >= 0)
     {
@@ -6615,15 +6611,14 @@ void AE_StackPointUnreserve(AKELEDIT *ae)
       lpElement->dwFlags&=~AEPTF_NOTIFYINSERT;
       AE_NotifyPoint(ae, AEPTT_INSERT, lpElement);
     }
-    lpElement=lpElement->next;
   }
 }
 
 void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
 {
-  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
+  AEPOINT *lpElement;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hPointsStack.first; lpElement; lpElement=lpElement->next)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint);
     lpElement->nPointOffset=0;
@@ -6631,8 +6626,6 @@ void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
     lpElement->nTmpPointOffset=AEPTO_CALC;
     lpElement->nTmpPointLen=AEPTO_CALC;
     lpElement->dwFlags|=AEPTF_MOVED|AEPTF_MODIFY|AEPTF_DELETE;
-
-    lpElement=lpElement->next;
   }
   AE_NotifyPoint(ae, dwType, NULL);
 }
@@ -15220,9 +15213,13 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
       }
+      AE_StackPointReset(ae, AEPTT_SETTEXT);
       AE_UpdateScrollBars(ae, SB_VERT);
       AE_CalcLinesWidth(ae, NULL, NULL, 0);
       if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+
+      ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
+      ae->dwNotifyTextChange|=AETCT_DELETEALL;
     }
 
     //Set caret position
@@ -15236,13 +15233,6 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
       ae->hDC=NULL;
     }
     //ae->bSkipMessages=FALSE;
-
-    if (!bOnInitWindow)
-    {
-      AE_StackPointReset(ae, AEPTT_SETTEXT);
-      ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
-      ae->dwNotifyTextChange|=AETCT_DELETEALL;
-    }
   }
   //ae->bSkipMessages=FALSE;
 
@@ -15549,9 +15539,13 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           ae->ciSelStartIndex=ciCaretChar;
           ae->ciSelEndIndex=ciCaretChar;
         }
+        AE_StackPointReset(ae, AEPTT_STREAMIN);
         AE_UpdateScrollBars(ae, SB_VERT);
         AE_CalcLinesWidth(ae, NULL, NULL, 0);
         if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+
+        ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
+        ae->dwNotifyTextChange|=AETCT_DELETEALL;
 
         //Set caret position
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
@@ -15564,10 +15558,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           ae->hDC=NULL;
         }
         //ae->bSkipMessages=FALSE;
-
-        AE_StackPointReset(ae, AEPTT_STREAMIN);
-        ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
-        ae->dwNotifyTextChange|=AETCT_DELETEALL;
       }
     }
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
