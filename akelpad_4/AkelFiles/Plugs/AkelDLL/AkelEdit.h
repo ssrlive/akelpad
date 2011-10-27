@@ -205,7 +205,7 @@
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
 #define AECO_VSCROLLBYLINE            0x01000000  //Unit of vertical scrolling is line (default is pixel).
-#define AECO_NOSCROLLDELETEALL        0x02000000  //Turn off scrolling to caret, when replace/undo/redo operations replace all text.
+#define AECO_NOSCROLLDELETEALL        0x02000000  //Turn off scrolling to caret, when undo/redo operations replace all text.
 #define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
 #define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
