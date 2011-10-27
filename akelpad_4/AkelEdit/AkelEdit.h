@@ -200,11 +200,13 @@
 #define AECO_NONEWLINEMOUSESELECT     0x00010000  //Triple click and left margin click selects only line contents without new line.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
-#define AECO_VSCROLLBYLINE            0x00080000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
 #define AECO_NOMARGINSEL              0x00200000  //Disables left margin line selection with mouse.
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
+#define AECO_VSCROLLBYLINE            0x01000000  //Unit of vertical scrolling is line (default is pixel).
+#define AECO_NOSCROLLUNDODELETEALL    0x02000000  //Turn off scrolling to caret, when undo/redo operation replace all text.
+#define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected via hotkey (Ctrl+A) or triple margin click.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
 #define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
@@ -3706,6 +3708,9 @@ Lock scrolling of an edit control.
 
 Return Value
  Previous SB_* lock or -1 if no locking information defined.
+
+Remarks
+ Locking is cumulative. If your application locks scroll five times in a row, it must also unlock scroll five times before the scroll unlocks.
 
 Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);

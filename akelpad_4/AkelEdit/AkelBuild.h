@@ -510,8 +510,8 @@ typedef struct {
   DWORD dwOptions;
   int nInputNewLine;
   int nOutputNewLine;
-  BOOL bVScrollLock;
-  BOOL bHScrollLock;
+  int nVScrollLock;
+  int nHScrollLock;
   BOOL bHideSelection;
   DWORD dwLockUpdate;
   BOOL bHeapSerialize;
