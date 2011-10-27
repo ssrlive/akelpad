@@ -1899,9 +1899,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
-        ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, -1, NULL, NULL);
+        ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
       else
-        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, -1, NULL, NULL);
+        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_PASTE)
@@ -3626,7 +3626,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bResult;
 
       if (!(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crCurSel)))
-        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, AELB_ASINPUT, FALSE, NULL, NULL);
+        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, AELB_ASINPUT, 0, NULL, NULL);
       return bResult;
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELLINE)
