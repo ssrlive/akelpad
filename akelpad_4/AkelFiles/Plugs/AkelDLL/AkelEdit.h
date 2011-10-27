@@ -205,8 +205,8 @@
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
 #define AECO_VSCROLLBYLINE            0x01000000  //Unit of vertical scrolling is line (default is pixel).
-#define AECO_NOSCROLLUNDODELETEALL    0x02000000  //Turn off scrolling to caret, when undo/redo operation replace all text.
-#define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected via hotkey (Ctrl+A) or triple margin click.
+#define AECO_NOSCROLLDELETEALL        0x02000000  //Turn off scrolling to caret, when replace/undo/redo operations replace all text.
+#define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
 #define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
@@ -293,6 +293,11 @@
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 #define AESELT_INDEXUPDATE         0x00000800  //Update lpLine member of the AEM_SETSEL message structures, to avoid dangling of a pointer after text change.
+
+//AEM_REPLACESEL flags
+#define AEREPT_COLUMNON            0x00000001  //Make column selection ON.
+#define AEREPT_COLUMNASIS          0x00000002  //Leave column selection as is.
+#define AEREPT_LOCKSCROLL          0x00000004  //Lock edit window scroll. However edit window can be scrolled during window resize when AECO_DISABLENOSCROLL option not set.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -833,7 +838,7 @@ typedef struct {
   const char *pText;           //[in]  Text to replace with.
   UINT_PTR dwTextLen;          //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;                //[in]  See AELB_* defines.
-  BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
+  DWORD dwFlags;               //[in]  See AEREPT_* defines.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
   int nCodePage;               //[in]  Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
@@ -843,7 +848,7 @@ typedef struct {
   const wchar_t *pText;        //[in]  Text to replace with.
   UINT_PTR dwTextLen;          //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;                //[in]  See AELB_* defines.
-  BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
+  DWORD dwFlags;               //[in]  See AEREPT_* defines.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELW;
@@ -2181,7 +2186,7 @@ Example:
  rs.pText="SomeText";
  rs.dwTextLen=(UINT_PTR)-1;
  rs.nNewLine=AELB_ASINPUT;
- rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+ rs.dwFlags=AEREPT_COLUMNASIS;
  rs.ciInsertStart=NULL;
  rs.ciInsertEnd=NULL;
  rs.nCodePage=CP_ACP;
@@ -2208,7 +2213,7 @@ Example:
  rs.pText=L"SomeText";
  rs.dwTextLen=(UINT_PTR)-1;
  rs.nNewLine=AELB_ASINPUT;
- rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+ rs.dwFlags=AEREPT_COLUMNASIS;
  rs.ciInsertStart=NULL;
  rs.ciInsertEnd=NULL;
  SendMessage(hWndEdit, AEM_REPLACESELW, 0, (LPARAM)&rs);
