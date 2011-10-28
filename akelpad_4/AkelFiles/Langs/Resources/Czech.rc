@@ -434,9 +434,9 @@ BEGIN
     RTEXT           "",IDC_MDILIST_STATS,92,232,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
-    GROUPBOX        "Seøazení",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Horizontální",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "Vertikální",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Seøadit",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Horizontálnì",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Vertikálnì",IDC_MDILIST_VERT,198,60,50,14
     GROUPBOX        "Záložky",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "Nahoøe",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "Dole",IDC_MDILIST_DOWN,198,115,50,14
@@ -733,17 +733,17 @@ BEGIN
                     11,13
     CONTROL         "Mezer",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
-    GROUPBOX        "Limit pro Zpìt",IDC_STATIC,9,46,105,34
+    GROUPBOX        "Limit pro zpšt",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
                     11,13
     CONTROL         "Podrobný",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,61,50,10
-    GROUPBOX        "Zalomit",IDC_STATIC,124,6,87,74
+    GROUPBOX        "Zalamovat",IDC_STATIC,124,6,87,74
     CONTROL         "Po slovech",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,19,72,10
-    CONTROL         "Po symbolech",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+    CONTROL         "Po znacích",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,31,72,10
     LTEXT           "Limit:",IDC_STATIC,131,49,36,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,131,60,21,13,ES_NUMBER
@@ -757,32 +757,32 @@ BEGIN
                     11,13
     GROUPBOX        "Kurzor",IDC_STATIC,9,86,202,51
     CONTROL         "Povolit pøesunutí kurzoru za hranice øádku",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,152,10
-    CONTROL         "Zobrazit aktivní sloupce",IDC_OPTIONS_CARETVERTLINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,152,10
-    CONTROL         "Show active line (",IDC_OPTIONS_CARETACTIVELINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,69,10
-    CONTROL         "border)",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,86,122,66,10
-    LTEXT           "Šíøka:",IDC_STATIC,171,95,36,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,171,106,21,13,ES_NUMBER
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Zobrazit aktivní sloupec",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Zobrazit aktivní øádek",IDC_OPTIONS_CARETACTIVELINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "okraj",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
+    LTEXT           "Šíøka:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,
-                    106,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    105,11,13
+    GROUPBOX        "Støídání øádkù",IDC_STATIC,9,144,105,62
+    LTEXT           "Pøeskoèit:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Doplnit:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Ohranièení",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
-    GROUPBOX        "Okraje textu",IDC_STATIC,124,144,87,62
+    GROUPBOX        "Okraj textu",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,
@@ -792,9 +792,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -812,18 +812,19 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Výbìr",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "Myš jako RichEdit",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+    CONTROL         "Kliknutí na levý okraj vybere celý øádek",
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "Myš jako RichEdit",IDC_OPTIONS_MOUSERICHEDIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Pøetahovat myší",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Pravým kliknutím pøesunout symbol",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "Pravým kliknutím pøesunout kurzor",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "Hyperodkazy",IDC_STATIC,9,60,200,100
-    CONTROL         "Zobrazit je:",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,76,90,10
+    CONTROL         "Zobrazit je:",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Jedním kliknutím",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Dvojklikem",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -840,13 +841,14 @@ BEGIN
     CONTROL         "Oddìlovaèe slov:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Obnovit",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Oddìlovaèe pro zalomení øádkù:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Obnovit",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Oddìlovaèe pro zalomení øádkù:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Obnovit",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Obnovit",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -966,7 +968,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Chyba ve frontì zpráv."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Kritická chyba: nnedostatek pamìti. Doporuèujeme ukonèit program."
+                            "Kritická chyba: nedostatek pamìti. Doporuèujeme ukonèit program."
     MSG_ERROR_BINARY        """%s"" je binární soubor. Pokraèovat?"
     MSG_ERROR_IO            "Vstupní/Výstupní chyba."
     MSG_ERROR_SYNTAX        "Chyba syntaxe."
@@ -1004,7 +1006,7 @@ BEGIN
     MSG_FILE_CHANGED        "Soubor ""%s"" byl zmìnìn jinou aplikací.\n\nChcete ho znovu otevøít?"
     MSG_CP_UNIMPLEMENTED    "Kódování ""%d"" není podporováno."
     MSG_CP_MISMATCH         "Øádek ""%d"" obsahuje znaky, které nelze uložit v tomto kódování. Pokraèovat?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Je nitné mít práva Administrátora.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Zmìny budou aplikovány pøi pøíštím spuštìní programu."
     MSG_SAVEIN_READONLY     "Soubor ""%s"" je v režimu jen ke ètení. Pokraèovat?"
     MSG_OVERWRITEPROMPT     """%s"" již existuje. Chcete ho pøepsat?"
@@ -1013,7 +1015,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_DOCNAME             "AkelPad dokument"
+    STR_DOCNAME             "Dokument AkelPad"
     STR_MODIFIED            "Upraven"
     STR_READONLY            "Jen ke ètení"
     STR_COUNT               "%d z %d"
@@ -1051,24 +1053,24 @@ BEGIN
     STR_BASIC               "Základní barva"
     STR_SELECTION           "Výbìr"
     STR_ACTIVELINE          "Aktivní øádek"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Aktivní okraj øádku"
+    STR_ALTLINE             "Alt øádek"
+    STR_ALTLINEBORDER       "Okraj Alt øádku"
     STR_ACTIVECOLUMN        "Aktivní sloupec"
     STR_COLUMNMARKER        "Hlavièka sloupce"
     STR_CARET               "Kurzor"
     STR_URL                 "Hyperodkaz"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Aktivní hyperodkaz"
+    STR_VISITURL            "Otevøít hyperodkaz"
     STR_PAGEFIT             "Pøizpùsobit stránce"
     STR_PAGEWIDTH           "Šíøka stránky"
     STR_ALLFILES            "Všechny soubory"
     STR_ONLYMODIFIED        "Upraven"
-    STR_ONLYUNMODIFIED      "Neupraven"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYUNMODIFIED      "Neupraven"
     STR_INVERTSELECTION     "Otoèit výbìr"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "&Ano"
