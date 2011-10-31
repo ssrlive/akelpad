@@ -756,7 +756,7 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kurzor",IDC_STATIC,9,86,202,51
-    CONTROL         "Povolit pøesunutí kurzoru za hranice øádku",IDC_OPTIONS_CARETOUTEDGE,
+    CONTROL         "Pøesouvat kurzor i za okraj øádku",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Zobrazit aktivní sloupec",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
