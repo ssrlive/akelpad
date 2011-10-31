@@ -759,32 +759,32 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
-    GROUPBOX        "Cursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Permite plasarea cursorului dincolo de limita textului",IDC_OPTIONS_CARETOUTEDGE,
+    GROUPBOX        "Cursorul",IDC_STATIC,9,86,202,51
+    CONTROL         "Poate fi pus dupã limita textului",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Aratã coloana activã",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Aratã linia activã",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "margine",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Lãþime:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Linii alternante",IDC_STATIC,9,144,105,62
+    LTEXT           "Sari:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Umple:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Margine",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Marginea Textului",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -816,7 +816,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Clicul-stînga pe margine selecteazã linia",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "Selectare RichEdit cu mausul",IDC_OPTIONS_MOUSERICHEDIT,
@@ -970,7 +970,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Eroare în coada de mesaje."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "Eroare criticã: memorie insuficientã. Este recomandat sã închizi programul."
     MSG_ERROR_BINARY        """%s"" e o filã binarã. Continui?"
     MSG_ERROR_IO            "Eroare de intrare/ieºire (I/O)."
     MSG_ERROR_SYNTAX        "Eroare de sintaxã."
@@ -1009,7 +1009,7 @@ BEGIN
     MSG_FILE_CHANGED        "Fila ""%s"" a fost modificatã cu un alt program.\n\nVrei s-o redeschizi?"
     MSG_CP_UNIMPLEMENTED    "Codpagina ""%d"" nu e implementatã."
     MSG_CP_MISMATCH         "Linia ""%d"" conþine simboluri care vor fi pierdute la salvarea în aceastã codare. Continui?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Este necesarã permisiunea Administratorului.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Modificãrile vor deveni efective la repornirea programului."
     MSG_SAVEIN_READONLY     "Fila ""%s"" e nemodificabilã (doar-citire). Continui?"
     MSG_OVERWRITEPROMPT     "Fila ""%s"" existã deja. O suprascriu?"
@@ -1056,15 +1056,15 @@ BEGIN
     STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Marginea liniei active"
+    STR_ALTLINE             "Linie Altern."
+    STR_ALTLINEBORDER       "Marginea liniei altern."
     STR_ACTIVECOLUMN        "Coloanã Activã"
     STR_COLUMNMARKER        "Marcajul Coloanei"
     STR_CARET               "Cursor"
     STR_URL                 "Legãturã"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Legãturã Activã"
+    STR_VISITURL            "Viziteazã Legãtura"
     STR_PAGEFIT             "Încadreazã Toatã Pagina"
     STR_PAGEWIDTH           "Încadreazã pe Lãþime"
     STR_ALLFILES            "Toate Filele"
@@ -1082,8 +1082,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Da la Tot"
     STR_MESSAGEBOX_NOTOALL  "Nu la Tot"
     STR_MESSAGEBOX_GOTO     "Mergi La"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "Închide"
+    STR_MESSAGEBOX_CONTINUE "Continuã"
 END
 
 STRINGTABLE DISCARDABLE 
