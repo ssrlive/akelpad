@@ -758,13 +758,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Den Kursor über den Zeilenrand hinausgehen lassen",IDC_OPTIONS_CARETOUTEDGE,
+    CONTROL         "Freier Kursor",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Aktive Spalte zeigen",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Aktive Zeile anzeigen",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "grenze",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Breite:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
@@ -777,12 +777,12 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Fullung:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Grenze",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Textrand",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -814,7 +814,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Linksklick in Einschub markiert Zeile",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit Mausauswahl",IDC_OPTIONS_MOUSERICHEDIT,
@@ -969,7 +969,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fehler in der Nachrichtenfolge."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "Schwerwiegender Fehler: nicht genügend Speicher. Es wird empfohlen, das Programm zu beenden."
     MSG_ERROR_BINARY        """%s"" ist eine binäre Datei. Weitermachen?"
     MSG_ERROR_IO            "Eingabe-/Ausgabefehler."
     MSG_ERROR_SYNTAX        "Syntaxfehler."
@@ -1009,7 +1009,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" wurde von außen verändert.\n\nWollen Sie diese Datei neu öffnen?"
     MSG_CP_UNIMPLEMENTED    """%d"" Zeichensatz wird nicht unterstützt."
     MSG_CP_MISMATCH         "Die Zeile ""%d"" enthält Symbole, die verloren gehen, wenn in dieser Kodierung gespeichert wird. Fortsetzen?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Administrator-Rechte erforderlich.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
     MSG_OVERWRITEPROMPT     """%s"" existiert schon. Überschreiben?"
@@ -1056,15 +1056,15 @@ BEGIN
     STR_BASIC               "Hauptfarbe"
     STR_SELECTION           "Auswahl"
     STR_ACTIVELINE          "Aktive Zeile"
-    STR_ACTIVELINEBORDER    "Active line border"
+    STR_ACTIVELINEBORDER    "Grenze der aktiven Zeile"
     STR_ALTLINE             "Alt line"
     STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Aktive Spalte"
     STR_COLUMNMARKER        "Filzstift"
     STR_CARET               "Kursor"
     STR_URL                 "Link"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Aktiver Link"
+    STR_VISITURL            "Besuchter Link"
     STR_PAGEFIT             "Einpassen"
     STR_PAGEWIDTH           "Breite einpassen"
     STR_ALLFILES            "Alle Dateien"
@@ -1082,8 +1082,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Ja für &alle"
     STR_MESSAGEBOX_NOTOALL  "Nein für a&lle"
     STR_MESSAGEBOX_GOTO     "&Wechseln zu"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "Beenden"
+    STR_MESSAGEBOX_CONTINUE "Fortsetzen"
 END
 
 STRINGTABLE DISCARDABLE 
