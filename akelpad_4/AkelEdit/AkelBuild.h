@@ -845,6 +845,7 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT64 *ptPosition);
 DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int nOffsetX, int nOffsetY);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos);
+void AE_SetScrollPos(AKELEDIT *ae, INT_PTR nHPos, INT_PTR nVPos);
 INT_PTR AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
 INT_PTR AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
 INT_PTR AE_HScrollChar(AKELEDIT *ae, int nChar, DWORD dwAlign);
