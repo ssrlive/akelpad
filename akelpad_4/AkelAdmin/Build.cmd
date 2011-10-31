@@ -29,8 +29,6 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 ::### Clean up ###::
 if exist AkelAdmin.res del AkelAdmin.res
 if exist AkelAdmin.obj del AkelAdmin.obj
-if exist AkelAdmin.lib del AkelAdmin.lib
-if exist AkelAdmin.exp del AkelAdmin.exp
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

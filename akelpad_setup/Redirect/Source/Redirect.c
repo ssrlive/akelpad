@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define WINBASE_DECLARE_GET_SYSTEM_WOW64_DIRECTORY
 #include <windows.h>
 #include <commdlg.h>
 #include "StrFunc.h"
@@ -56,11 +57,8 @@ void _WinMain()
     }
     if (dwResult != ERROR_SUCCESS)
     {
-      #ifdef _WIN64
-        GetSystemWow64DirectoryA(szCmdLine, MAX_PATH);
-      #else
-        GetSystemDirectoryA(szCmdLine, MAX_PATH);
-      #endif
+      //GetSystemWow64DirectoryA(szCmdLine, MAX_PATH);
+      GetSystemDirectoryA(szCmdLine, MAX_PATH);
       wsprintfA(szPath, "%s\\notepad.exe", szCmdLine);
     }
     GetModuleFileNameA(NULL, szModule, MAX_PATH);
@@ -130,11 +128,8 @@ void _WinMain()
     }
     if (dwResult != ERROR_SUCCESS)
     {
-      #ifdef _WIN64
-        GetSystemWow64DirectoryW(wszCmdLine, MAX_PATH);
-      #else
-        GetSystemDirectoryW(wszCmdLine, MAX_PATH);
-      #endif
+      //GetSystemWow64DirectoryW(wszCmdLine, MAX_PATH);
+      GetSystemDirectoryW(wszCmdLine, MAX_PATH);
       wsprintfW(wszPath, L"%s\\notepad.exe", wszCmdLine);
     }
     GetModuleFileNameW(NULL, wszModule, MAX_PATH);
