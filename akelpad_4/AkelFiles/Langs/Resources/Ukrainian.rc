@@ -761,27 +761,27 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Показувати активний стовпчик",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Показувати активне посилання",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "межа",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Ширина:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Зебра",IDC_STATIC,9,144,105,62
+    LTEXT           "Пропуск:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Заливка:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Межа",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Відступ тексту",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -813,7 +813,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Редактор 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Лівий клік в відступ виділяє рядок",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit виділення мишею",IDC_OPTIONS_MOUSERICHEDIT,
@@ -1027,7 +1027,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" був змінений іззовні.\n\nПеревідкрити його?"
     MSG_CP_UNIMPLEMENTED    "Кодова сторінка ""%d"" не підтримується."
     MSG_CP_MISMATCH         "Рядок ""%d"" містить символи, які будуть втрачені при збереженні в цьому кодуванні. Продовжити?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Необхідні права адміністратора.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
@@ -1074,15 +1074,15 @@ BEGIN
     STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Межа активного посилання"
+    STR_ALTLINE             "Зебра"
+    STR_ALTLINEBORDER       "Межа зебри"
     STR_ACTIVECOLUMN        "Активний стовпчик"
     STR_COLUMNMARKER        "Маркер"
     STR_CARET               "Каретка"
     STR_URL                 "Посилання"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Активне посилання"
+    STR_VISITURL            "Відвідане посилання"
     STR_PAGEFIT             "Повністю"
     STR_PAGEWIDTH           "За шириною"
     STR_ALLFILES            "Усі файли"
