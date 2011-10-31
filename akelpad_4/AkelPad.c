@@ -1740,6 +1740,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!bEditOnFinish)
       {
+        if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
+
         //Check modification time
         CheckModificationTime(lpFrameCurrent);
       }
@@ -3688,7 +3690,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_VIEW_READONLY)
     {
       DoViewReadOnly(lpFrameCurrent, !lpFrameCurrent->ei.bReadOnly, FALSE);
-      if (hDlgModeless) PostMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
+      if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
     }
     else if (LOWORD(wParam) == IDM_VIEW_WORDWRAP)
     {
