@@ -758,31 +758,31 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Cursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Deixar cursor mover-se além do fim da linha",IDC_OPTIONS_CARETOUTEDGE,
+    CONTROL         "Deixar cursor passar do fim da linha",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Mostrar coluna ativa",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Mostrar linha ativa",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "borda",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Largura:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Alternando linhas",IDC_STATIC,9,144,105,62
+    LTEXT           "Pular:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Preencher:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Borda",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Margem do texto",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -814,7 +814,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Clique esquerdo na margem seleciona linha",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "Seleção de mouse RichEdit",IDC_OPTIONS_MOUSERICHEDIT,
@@ -968,7 +968,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Erro na fila de mensagens."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "Erro crítico: memória insuficiente. Recomenda-se encerrar este programa."
     MSG_ERROR_BINARY        """%s"" é um arquivo binário. Continuar ?"
     MSG_ERROR_IO            "Erro de entrada e saída."
     MSG_ERROR_SYNTAX        "Erro de sintaxe."
@@ -1009,7 +1009,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" foi modificado por outro programa.\n\nQuer reabri-lo ?"
     MSG_CP_UNIMPLEMENTED    "O código de página ""%d"" não está implementado."
     MSG_CP_MISMATCH         "A linha ""%d"" contém caracteres que serão perdidos se salvar nesta codificação. Continuar ?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Permissão de administrador exigida.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
     MSG_OVERWRITEPROMPT     """%s"" já existe; sobrescrevê-lo ?"
@@ -1056,15 +1056,15 @@ BEGIN
     STR_BASIC               "Cor básica"
     STR_SELECTION           "Seleção"
     STR_ACTIVELINE          "Linha atual"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Ativar borda de linha"
+    STR_ALTLINE             "Linha alternativa"
+    STR_ALTLINEBORDER       "Borda da linha alternativa"
     STR_ACTIVECOLUMN        "Coluna ativa"
     STR_COLUMNMARKER        "Marcador"
     STR_CARET               "Cursor"
     STR_URL                 "Mostrar"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Ativar hiperlinque"
+    STR_VISITURL            "Visitar hiperlinque"
     STR_PAGEFIT             "Dimenções da página"
     STR_PAGEWIDTH           "Largura da página"
     STR_ALLFILES            "Todos os arquivos"
@@ -1082,8 +1082,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Sim para todos"
     STR_MESSAGEBOX_NOTOALL  "Não para todos"
     STR_MESSAGEBOX_GOTO     "Ir para"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "Encerrar"
+    STR_MESSAGEBOX_CONTINUE "Continuar"
 END
 
 STRINGTABLE DISCARDABLE 
