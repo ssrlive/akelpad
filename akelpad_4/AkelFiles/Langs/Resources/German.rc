@@ -771,13 +771,13 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Zebrastreifen",IDC_STATIC,9,144,105,62
+    LTEXT           "Ungefärbt:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fullung:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Gefärbt:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
@@ -1057,7 +1057,7 @@ BEGIN
     STR_SELECTION           "Auswahl"
     STR_ACTIVELINE          "Aktive Zeile"
     STR_ACTIVELINEBORDER    "Grenze der aktiven Zeile"
-    STR_ALTLINE             "Alt line"
+    STR_ALTLINE             "Zebra"
     STR_ALTLINEBORDER       "Alt line border"
     STR_ACTIVECOLUMN        "Aktive Spalte"
     STR_COLUMNMARKER        "Filzstift"

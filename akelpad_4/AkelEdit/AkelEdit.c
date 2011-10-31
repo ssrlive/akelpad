@@ -1027,10 +1027,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       POINT64 *pt=(POINT64 *)lParam;
 
-      if (pt->x != ae->nHScrollPos)
-        AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
-      if (pt->y != ae->nVScrollPos)
-        AE_ScrollEditWindow(ae, SB_VERT, pt->y);
+      AE_SetScrollPos(ae, pt->x, pt->y);
       return 0;
     }
     if (uMsg == AEM_SCROLL)
@@ -3147,10 +3144,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     POINT *pt=(POINT *)lParam;
 
-    if (pt->x != ae->nHScrollPos)
-      AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
-    if (pt->y != ae->nVScrollPos)
-      AE_ScrollEditWindow(ae, SB_VERT, pt->y);
+    AE_SetScrollPos(ae, pt->x, pt->y);
     return 1;
   }
   if (uMsg == EM_SCROLL)
@@ -11688,6 +11682,14 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
   return nScrollPos;
 }
 
+void AE_SetScrollPos(AKELEDIT *ae, INT_PTR nHPos, INT_PTR nVPos)
+{
+  if (nHPos != ae->nHScrollPos)
+    AE_ScrollEditWindow(ae, SB_HORZ, nHPos);
+  if (nVPos != ae->nVScrollPos)
+    AE_ScrollEditWindow(ae, SB_VERT, nVPos);
+}
+
 INT_PTR AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
 {
   SCROLLINFO si;
@@ -15979,6 +15981,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
+  INT_PTR nHScrollPos;
   INT_PTR nVScrollPos;
   INT_PTR nVScrollMax;
   BOOL bColumnSel=FALSE;
@@ -15992,9 +15995,10 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
     bColumnSel=TRUE;
   else if (dwFlags & AEREPT_COLUMNASIS)
     bColumnSel=ae->bColumnSel;
+  nHScrollPos=ae->nHScrollPos;
   nVScrollPos=ae->nVScrollPos;
   nVScrollMax=ae->ptxt->nVScrollMax;
-  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET))
+  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATEVSCROLL))
   {
     if (nVScrollMax != ae->ptxt->nVScrollMax)
     {
@@ -16004,16 +16008,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
     }
     bUpdateCaret=TRUE;
   }
-  if (AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, AEINST_LOCKSCROLL|AEDELT_LOCKUPDATECARET, &ciStart, &ciEnd))
+  if (AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, AEINST_LOCKSCROLL|AEINST_LOCKUPDATECARET, &ciStart, &ciEnd))
     bUpdateCaret=TRUE;
-
-  if (bUpdateCaret)
-  {
-    if (!(dwFlags & AEREPT_LOCKSCROLL))
-      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
-    ae->nCaretHorzIndent=ae->ptCaret.x;
-    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-  }
 
   if (bUpdateVScroll && nVScrollMax == ae->ptxt->nVScrollMax)
   {
@@ -16021,6 +16017,15 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
     AE_UpdateScrollBars(ae, SB_VERT);
     if (nVScrollPos != ae->nVScrollPos)
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+  }
+  if (bUpdateCaret)
+  {
+    if (!(dwFlags & AEREPT_LOCKSCROLL))
+      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+    else
+      AE_SetScrollPos(ae, nHScrollPos, nVScrollPos);
+    ae->nCaretHorzIndent=ae->ptCaret.x;
+    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
   }
   AE_StackUndoGroupStop(ae);
 
