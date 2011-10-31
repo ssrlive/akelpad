@@ -29,8 +29,6 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 ::### Clean up ###::
 if exist AkelUpdaterHelp.res del AkelUpdaterHelp.res
 if exist AkelUpdaterHelp.obj del AkelUpdaterHelp.obj
-if exist AkelUpdaterHelp.lib del AkelUpdaterHelp.lib
-if exist AkelUpdaterHelp.exp del AkelUpdaterHelp.exp
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE
