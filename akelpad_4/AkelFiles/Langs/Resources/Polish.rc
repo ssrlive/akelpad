@@ -755,31 +755,31 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Pozwól przesuwaæ kursor poza koniec wiersza",IDC_OPTIONS_CARETOUTEDGE,
+    CONTROL         "Przesuwaj kursor poza koniec wiersza",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Wyró¿nij bie¿¹cy wiersz",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "obramowanie",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Szerokoœæ:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Paski zebry",IDC_STATIC,9,144,105,62
+    LTEXT           "Odstêp:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Wype³nienie:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Obramowanie",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Margines tekstu",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -811,7 +811,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Edytor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Lewy klik na marginesie zaznacza wiersz",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit zaznaczanie mysz¹",IDC_OPTIONS_MOUSERICHEDIT,
@@ -1053,15 +1053,15 @@ BEGIN
     STR_BASIC               "Podstawowy kolor"
     STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Obramowanie bie¿¹cego wiersza"
+    STR_ALTLINE             "Pasek zebry"
+    STR_ALTLINEBORDER       "Obramowanie paska zebry"
     STR_ACTIVECOLUMN        "Bie¿¹ca kolumna"
     STR_COLUMNMARKER        "Znacznik kolumny"
     STR_CARET               "Kursor"
     STR_URL                 "Hiper³¹cze"
     STR_ACTIVEURL           "Aktywne hiper³¹cze"
-    STR_VISITURL            "Visit hyperlink"
+    STR_VISITURL            "Odwiedzone hiper³¹cze"
     STR_PAGEFIT             "Wpasuj stronê"
     STR_PAGEWIDTH           "Na szerokoœæ"
     STR_ALLFILES            "Wszystkie pliki"
