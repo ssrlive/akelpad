@@ -1622,7 +1622,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETALTLINE)
     {
-      if (ae->popt->dwAltLineSkip != LOWORD(wParam) &&
+      if (ae->popt->dwAltLineSkip != LOWORD(wParam) ||
           ae->popt->dwAltLineFill != HIWORD(wParam))
       {
         ae->popt->dwAltLineSkip=LOWORD(wParam);
