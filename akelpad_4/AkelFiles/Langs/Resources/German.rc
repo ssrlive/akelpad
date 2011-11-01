@@ -1058,7 +1058,7 @@ BEGIN
     STR_ACTIVELINE          "Aktive Zeile"
     STR_ACTIVELINEBORDER    "Grenze der aktiven Zeile"
     STR_ALTLINE             "Zebra"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ALTLINEBORDER       "Zebrastreifen-Grenze"
     STR_ACTIVECOLUMN        "Aktive Spalte"
     STR_COLUMNMARKER        "Filzstift"
     STR_CARET               "Kursor"
