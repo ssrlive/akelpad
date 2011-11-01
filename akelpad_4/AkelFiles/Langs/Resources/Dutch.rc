@@ -1064,7 +1064,7 @@ BEGIN
     STR_CARET               "Cursor"
     STR_URL                 "Link"
     STR_ACTIVEURL           "Actieve hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_VISITURL            "Bezoek hyperlink"
     STR_PAGEFIT             "Passend op pagina"
     STR_PAGEWIDTH           "Pagina breedte"
     STR_ALLFILES            "Alle bestanden"
