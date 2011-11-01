@@ -759,31 +759,31 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Knipperende cursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Cursor mag buiten regelgebied bewogen worden",IDC_OPTIONS_CARETOUTEDGE,
+    CONTROL         "Cursor binnen regelgrens houden",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Toon actieve kolom",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "Toon actieve regel",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "grens",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Breedte:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Afwisselende regels",IDC_STATIC,9,144,105,62
+    LTEXT           "Overslaan:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "Vullen:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Grens",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
     GROUPBOX        "Tekst marge",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
@@ -815,7 +815,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Links klik op marge selecteert regel",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit Muisselectie",IDC_OPTIONS_MOUSERICHEDIT,
@@ -969,7 +969,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fout in de berichtenwachtrij."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "Kritieke fout: niet genoeg geheugen. Het wordt aanbevolen het programma te beëindigen."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"
     MSG_ERROR_IO            "Invoer/uitvoer fout."
     MSG_ERROR_SYNTAX        "Syntaxis fout."
@@ -1009,7 +1009,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" is gewijzigd van buitenaf.\n\nWilt u het weer openen?"
     MSG_CP_UNIMPLEMENTED    """%d"" tekenreeks pagina is niet geïmplementeerd."
     MSG_CP_MISMATCH         "Regel ""%d"" bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks.  \nDoorgaan?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Vereist Beheerdersmachtiging.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
     MSG_OVERWRITEPROMPT     """%s"" bestaat al. Overschrijven?"
@@ -1056,14 +1056,14 @@ BEGIN
     STR_BASIC               "Basis kleur"
     STR_SELECTION           "Selectie"
     STR_ACTIVELINE          "Actieve regel"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Actieve regelgrens"
+    STR_ALTLINE             "Afwisselende regel"
+    STR_ALTLINEBORDER       "Afwisselende regelgrens"
     STR_ACTIVECOLUMN        "Actieve kolom"
     STR_COLUMNMARKER        "Markeerlijn"
     STR_CARET               "Cursor"
     STR_URL                 "Link"
-    STR_ACTIVEURL           "Active hyperlink"
+    STR_ACTIVEURL           "Actieve hyperlink"
     STR_VISITURL            "Visit hyperlink"
     STR_PAGEFIT             "Passend op pagina"
     STR_PAGEWIDTH           "Pagina breedte"
@@ -1082,8 +1082,8 @@ BEGIN
     STR_MESSAGEBOX_YESTOALL "Ja op alles"
     STR_MESSAGEBOX_NOTOALL  "Nee op alles"
     STR_MESSAGEBOX_GOTO     "Ga naar"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "Beëindigen"
+    STR_MESSAGEBOX_CONTINUE "Doorgaan"
 END
 
 STRINGTABLE DISCARDABLE 
