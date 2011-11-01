@@ -16806,7 +16806,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
           bIgnoreNextArg=TRUE;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
+        if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
         {
           if (moCur.dwFileTypesAssociated & AE_OPEN)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
@@ -16817,7 +16817,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/DEASSOC"))
+        if (!xstrcmpiW(wszCmdArg, L"/DEASSOC"))
         {
           if (moCur.dwFileTypesAssociated & AE_OPEN)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
@@ -16828,73 +16828,80 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/QUIT"))
+        if (!xstrcmpiW(wszCmdArg, L"/QUIT"))
         {
           return PCLE_QUIT;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/END"))
+        if (!xstrcmpiW(wszCmdArg, L"/END"))
         {
           return PCLE_END;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/P"))
+        if (!xstrcmpiW(wszCmdArg, L"/P"))
         {
           dwCmdLineOptions|=CLO_GLOBALPRINT;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/C+"))
+        if (!xstrcmpiW(wszCmdArg, L"/C+"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENCREATENO;
           dwCmdLineOptions|=CLO_MSGOPENCREATEYES;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/C-"))
+        if (!xstrcmpiW(wszCmdArg, L"/C-"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENCREATEYES;
           dwCmdLineOptions|=CLO_MSGOPENCREATENO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/C"))
+        if (!xstrcmpiW(wszCmdArg, L"/C"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENCREATEYES & ~CLO_MSGOPENCREATENO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/B+"))
+        if (!xstrcmpiW(wszCmdArg, L"/B+"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENBINARYNO;
           dwCmdLineOptions|=CLO_MSGOPENBINARYYES;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/B-"))
+        if (!xstrcmpiW(wszCmdArg, L"/B-"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENBINARYYES;
           dwCmdLineOptions|=CLO_MSGOPENBINARYNO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/B"))
+        if (!xstrcmpiW(wszCmdArg, L"/B"))
         {
           dwCmdLineOptions&=~CLO_MSGOPENBINARYYES & ~CLO_MSGOPENBINARYNO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/L+"))
+        if (!xstrcmpiW(wszCmdArg, L"/L+"))
         {
           dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSNO;
           dwCmdLineOptions|=CLO_MSGSAVELOSTSYMBOLSYES;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/L-"))
+        if (!xstrcmpiW(wszCmdArg, L"/L-"))
         {
           dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES;
           dwCmdLineOptions|=CLO_MSGSAVELOSTSYMBOLSNO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/L"))
+        if (!xstrcmpiW(wszCmdArg, L"/L"))
         {
           dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES & ~CLO_MSGSAVELOSTSYMBOLSNO;
           continue;
         }
-        else if (!xstrcmpiW(wszCmdArg, L"/X"))
+        if (!xstrcmpiW(wszCmdArg, L"/X"))
         {
           dwCmdLineOptions|=CLO_NONOTEPADCMD;
+          continue;
+        }
+        if (!xstrcmpinW(L"/Show(", wszCmdArg, (UINT_PTR)-1))
+        {
+          dwCmdShow=(DWORD)xatoiW(wszCmdArg + 6, NULL);
+          if (nType != PCL_ONLOAD)
+            ShowWindow(hMainWnd, dwCmdShow);
           continue;
         }
         if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
