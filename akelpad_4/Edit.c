@@ -1442,7 +1442,7 @@ BOOL DoFileOpen()
       {
         wchar_t wszFile[MAX_PATH];
         wchar_t wszString[MAX_PATH];
-        wchar_t *wpFile=wszFileList + lstrlenW(wszFileList) + 1;
+        wchar_t *wpFile=wszFileList + xstrlenW(wszFileList) + 1;
         MSG msg;
         int nFiles=0;
         int nFileCount=0;
@@ -1492,7 +1492,7 @@ BOOL DoFileOpen()
             //Win7: prevent system from mark program as hanged
             PeekMessageWide(&msg, hMainWnd, 0, 0, PM_NOREMOVE);
           }
-          while (*(wpFile+=lstrlenW(wpFile) + 1));
+          while (*(wpFile+=xstrlenW(wpFile) + 1));
 
           if (moCur.bStatusBar)
             StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
@@ -1868,7 +1868,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
 
     if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, bColumnSel))
     {
-      nStringLen=lstrlenW(wpString);
+      nStringLen=(int)xstrlenW(wpString);
       nStringBytes=nStringLen * sizeof(wchar_t);
 
       //Save scroll
@@ -3404,11 +3404,11 @@ INIKEY* IniOpenKeyW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *
 {
   INISECTION *lpIniSection;
 
-  if (!(lpIniSection=StackOpenIniSectionW(hIniFile, wpSection, lstrlenW(wpSection), bCreate)))
+  if (!(lpIniSection=StackOpenIniSectionW(hIniFile, wpSection, (int)xstrlenW(wpSection), bCreate)))
     return 0;
   if (lppIniSection)
     *lppIniSection=lpIniSection;
-  return StackOpenIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey), bCreate);
+  return StackOpenIniKeyW(lpIniSection, wpKey, (int)xstrlenW(wpKey), bCreate);
 }
 
 int IniGetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
@@ -3495,7 +3495,7 @@ DWORD ReadOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     else if (dwType & MOT_BINARY) dwType=INI_BINARY;
     else if (dwType & MOT_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKeyW((INISECTION *)oh->hHandle, wpParam, lstrlenW(wpParam), FALSE))
+    if (lpIniKey=StackOpenIniKeyW((INISECTION *)oh->hHandle, wpParam, (int)xstrlenW(wpParam), FALSE))
       return StackGetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
     else
       return 0;
@@ -3541,7 +3541,7 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     else if (dwType & MOT_BINARY) dwType=INI_BINARY;
     else if (dwType & MOT_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKeyW((INISECTION *)oh->hHandle, wpParam, lstrlenW(wpParam), TRUE))
+    if (lpIniKey=StackOpenIniKeyW((INISECTION *)oh->hHandle, wpParam, (int)xstrlenW(wpParam), TRUE))
     {
       StackSetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
       return dwSize;
@@ -3572,7 +3572,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   }
   else
   {
-    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniFile, L"Options", lstrlenW(L"Options"), FALSE)))
+    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE)))
       oh.hHandle=NULL;
   }
 
@@ -3791,7 +3791,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   {
     if (!OpenIniW(&hIniFile, wszIniFile, TRUE))
       return FALSE;
-    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniFile, L"Options", lstrlenW(L"Options"), TRUE)))
+    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniFile, L"Options", (int)xstrlenW(L"Options"), TRUE)))
       goto Error;
 
     if (!SaveOption(&oh, L"SaveSettings", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nSaveSettings), sizeof(DWORD)))
@@ -4332,7 +4332,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       {
         UpdateTitle(lpFrameCurrent, wszFile);
         xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
-        lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
+        lpFrameCurrent->nFileLen=(int)xstrlenW(lpFrameCurrent->wszFile);
         WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
       }
 
@@ -4972,7 +4972,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           {
             UpdateTitle(lpFrameCurrent, wszFile);
             xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
-            lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
+            lpFrameCurrent->nFileLen=(int)xstrlenW(lpFrameCurrent->wszFile);
             WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
           }
           if (nFileCmp || nCodePageCmp)
@@ -6291,7 +6291,7 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   BOOL bResult=TRUE;
 
   wpFile=GetFileName(lpFrameCurrent->wszFile);
-  nFileLen=lstrlenW(wpFile);
+  nFileLen=(int)xstrlenW(wpFile);
   nFileDirLen=GetFileDir(lpFrameCurrent->wszFile, wszFileDir, MAX_PATH);
 
   for (a=0; wpHeadline[a] && nCount < MAX_PATH; ++a)
@@ -9395,9 +9395,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   crInitialSel.ciMin=crCurSel.ciMin;
   crInitialSel.ciMax=crCurSel.ciMax;
   if (nFindItLen == -1)
-    nFindItLen=lstrlenW(wpFindIt);
+    nFindItLen=(int)xstrlenW(wpFindIt);
   if (nReplaceWithLen == -1)
-    nReplaceWithLen=lstrlenW(wpReplaceWith);
+    nReplaceWithLen=(int)xstrlenW(wpReplaceWith);
 
   if (bAll)
   {
@@ -9663,11 +9663,11 @@ INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt
   int nDiff;
 
   if (nTextLen == -1)
-    nTextLen=lstrlenW(wpText) + 1;
+    nTextLen=xstrlenW(wpText) + 1;
   if (nItLen == -1)
-    nItLen=lstrlenW(wpIt);
+    nItLen=(int)xstrlenW(wpIt);
   if (nWithLen == -1)
-    nWithLen=lstrlenW(wpWith);
+    nWithLen=(int)xstrlenW(wpWith);
   wpTextMax=wpText + nTextLen;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
@@ -10083,9 +10083,9 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
         wchar_t *wpTarget;
         wchar_t *wpSourceCount;
         wchar_t *wpTargetCount;
-        int nTargetLen;
+        INT_PTR nTargetLen;
 
-        nTargetLen=lstrlenW(wpSource);
+        nTargetLen=xstrlenW(wpSource);
         if (nMaxLenght > 0)
         {
           if (nTargetLen > nMaxLenght)
@@ -10788,7 +10788,7 @@ void StackRecentFileParamFree(RECENTFILE *lpRecentFile)
 int TrimPathW(wchar_t *wszResult, const wchar_t *wpPath, int nMax)
 {
   int nFileLen;
-  int nLen=lstrlenW(wpPath);
+  int nLen=(int)xstrlenW(wpPath);
   const wchar_t *wpEnd=wpPath + nLen;
   const wchar_t *wpFile=wpEnd - 1;
 
@@ -11780,7 +11780,7 @@ COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, nIndex, sizeof(COLORTHEME)))
   {
     xstrcpynW(ctElement->wszName, wpName, MAX_PATH);
-    ctElement->nNameLen=lstrlenW(ctElement->wszName);
+    ctElement->nNameLen=(int)xstrlenW(ctElement->wszName);
     if (aec) xmemcpy(&ctElement->aec, aec, sizeof(AECOLORS));
   }
   return ctElement;
@@ -11789,7 +11789,7 @@ COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, 
 COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName)
 {
   COLORTHEME *ctElement=(COLORTHEME *)hStack->first;
-  int nNameLen=lstrlenW(wpName);
+  int nNameLen=(int)xstrlenW(wpName);
 
   while (ctElement)
   {
@@ -11860,7 +11860,7 @@ void ReadThemes(MAINOPTIONS *mo)
     INISECTION *lpIniSection;
     INIKEY *lpIniKey;
 
-    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Themes", lstrlenW(L"Themes"), FALSE))
+    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Themes", (int)xstrlenW(L"Themes"), FALSE))
     {
       lpIniKey=(INIKEY *)lpIniSection->first;
 
@@ -11899,7 +11899,7 @@ BOOL SaveThemes(int nSaveSettings)
       return FALSE;
 
     //Clean old
-    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Themes", lstrlenW(L"Themes"), FALSE))
+    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Themes", (int)xstrlenW(L"Themes"), FALSE))
       StackDeleteIniSection(&hIniFile, lpIniSection, TRUE);
   }
 
@@ -11961,7 +11961,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo)
 
         if (dwHotkey)
         {
-          StackPluginAdd(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), NULL, NULL);
+          StackPluginAdd(&hPluginsStack, wbuf, (int)xstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), NULL, NULL);
         }
       }
       RegCloseKey(hKey);
@@ -11973,7 +11973,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo)
     INIKEY *lpIniKey;
     DWORD dwHotkey=0;
 
-    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Plugs", lstrlenW(L"Plugs"), FALSE))
+    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Plugs", (int)xstrlenW(L"Plugs"), FALSE))
     {
       lpIniKey=(INIKEY *)lpIniSection->first;
 
@@ -11995,7 +11995,7 @@ PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction,
 
   if (!wpPluginFunction) return NULL;
   if (nPluginFunctionLen == -1)
-    nPluginFunctionLen=lstrlenW(wpPluginFunction);
+    nPluginFunctionLen=(int)xstrlenW(wpPluginFunction);
 
   while (pfElement)
   {
@@ -12036,7 +12036,7 @@ PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, 
     pfElement->lpParameter=lpParameter;
 
     if (nPluginFunctionLen == -1)
-      pfElement->nFunctionLen=lstrlenW(wpPluginFunction);
+      pfElement->nFunctionLen=(int)xstrlenW(wpPluginFunction);
     else
       pfElement->nFunctionLen=nPluginFunctionLen;
     pfElement->pFunction=bOldWindows?(LPBYTE)pfElement->szFunction:(LPBYTE)pfElement->wszFunction;
@@ -12075,7 +12075,7 @@ BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
       return FALSE;
 
     //Clean old
-    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Plugs", lstrlenW(L"Plugs"), FALSE))
+    if (lpIniSection=StackOpenIniSectionW(&hIniFile, L"Plugs", (int)xstrlenW(L"Plugs"), FALSE))
       StackDeleteIniSection(&hIniFile, lpIniSection, TRUE);
   }
 
@@ -12187,7 +12187,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
     if (!pfElement)
     {
       if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
-        if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
+        if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, (int)xstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
           return UD_FAILED;
     }
 
@@ -15705,7 +15705,7 @@ FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nF
   FRAMEDATA *lpFrame=(FRAMEDATA *)hStack->first;
 
   if (nFileNameLen == -1)
-    nFileNameLen=lstrlenW(wpFileName);
+    nFileNameLen=(int)xstrlenW(wpFileName);
 
   if (lpFrameCurrent->ei.hWndEdit)
   {
@@ -16347,7 +16347,7 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
         }
 
         //Extract icons
-        for (i=lstrlenW(wszValue) - 1; i > 0; --i)
+        for (i=(int)xstrlenW(wszValue) - 1; i > 0; --i)
         {
           if (wszValue[i] == ',')
           {
@@ -16542,7 +16542,7 @@ ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nF
   ASSOCICON *lpElement=NULL;
 
   if (nFileLen == -1)
-    nFileLen=lstrlenW(wpFile);
+    nFileLen=(int)xstrlenW(wpFile);
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICON)))
   {
@@ -16567,7 +16567,7 @@ ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFile
   ASSOCICON *lpElement=hStack->first->next;
 
   if (nFileLen == -1)
-    nFileLen=lstrlenW(wpFile);
+    nFileLen=(int)xstrlenW(wpFile);
 
   while (lpElement)
   {
@@ -17736,6 +17736,7 @@ void RestoreLineScroll(HWND hWnd, int nBeforeLine)
   if (nBeforeLine != nAfterLine)
     SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, nBeforeLine - nAfterLine);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+  //SendMessage(hWnd, AEM_UPDATECARET, 0, 0);
   InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -18052,7 +18053,7 @@ int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, DWORD dwFileDirLen)
 
   if (wszFileDir) wszFileDir[0]=L'\0';
 
-  for (i=lstrlenW(wpFile) - 1; i > 0; --i)
+  for (i=(DWORD)xstrlenW(wpFile) - 1; i > 0; --i)
   {
     if (wpFile[i] == '\\')
       return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, i + 1));
@@ -18086,7 +18087,7 @@ const wchar_t* GetFileName(const wchar_t *wpFile)
 {
   int i;
 
-  for (i=lstrlenW(wpFile) - 1; i >= 0; --i)
+  for (i=(int)xstrlenW(wpFile) - 1; i >= 0; --i)
   {
     if (wpFile[i] == '\\')
       return (wpFile + i + 1);
@@ -18096,7 +18097,7 @@ const wchar_t* GetFileName(const wchar_t *wpFile)
 
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
 {
-  int nFileLen=lstrlenW(wpFile);
+  int nFileLen=(int)xstrlenW(wpFile);
   int nEndOffset=-1;
   int i;
 
@@ -18123,7 +18124,7 @@ const wchar_t* GetFileExt(const wchar_t *wpFile)
 {
   int i;
 
-  for (i=xstrlenW(wpFile) - 1; i >= 0; --i)
+  for (i=(int)xstrlenW(wpFile) - 1; i >= 0; --i)
   {
     if (wpFile[i] == L'.') return (wchar_t *)(wpFile + i + 1);
     else if (wpFile[i] == L'\\') break;
@@ -18135,7 +18136,7 @@ void TrimPathBackslash(wchar_t *wszPath)
 {
   int i;
 
-  for (i=xstrlenW(wszPath) - 1; i >= 0; --i)
+  for (i=(int)xstrlenW(wszPath) - 1; i >= 0; --i)
   {
     if (wszPath[i] == L'\\')
       wszPath[i]=L'\0';
@@ -18148,7 +18149,7 @@ void TrimModifyState(wchar_t *wszFile)
 {
   int i;
 
-  for (i=lstrlenW(wszFile) - 1; i >= 0; --i)
+  for (i=(int)xstrlenW(wszFile) - 1; i >= 0; --i)
   {
     if (wszFile[i] == '*' || wszFile[i] == ' ')
       wszFile[i]='\0';
@@ -19060,7 +19061,7 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
 void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
 {
   const wchar_t *wpFileName;
-  int nFileLen=lstrlenW(wszFile);
+  int nFileLen=(int)xstrlenW(wszFile);
 
   //Get file name without path
   wpFileName=GetFileName(wszFile);
@@ -19136,7 +19137,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
 
     //Set frame info
     xstrcpynW(lpFrame->wszFile, wszFile, MAX_PATH);
-    lpFrame->nFileLen=lstrlenW(lpFrame->wszFile);
+    lpFrame->nFileLen=(int)xstrlenW(lpFrame->wszFile);
     WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
     lpFrame->hIcon=hIcon;
     lpFrame->nIconIndex=nIconIndex;
@@ -19371,7 +19372,7 @@ void FreeMemorySearch()
 
 int BytesInString(const wchar_t *wpString)
 {
-  return (lstrlenW(wpString) + 1) * sizeof(wchar_t);
+  return (int)(xstrlenW(wpString) + 1) * sizeof(wchar_t);
 }
 
 char* AKD_strchr(const char *s, int c)
