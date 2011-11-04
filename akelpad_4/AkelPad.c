@@ -1677,7 +1677,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!(mc.dwStyle & WS_VISIBLE))
         {
-          if (dwCmdShow == SW_SHOWNORMAL || dwCmdShow == SW_SHOWMAXIMIZED)
+          if (dwCmdShow == SW_SHOWNORMAL || dwCmdShow == SW_SHOW || dwCmdShow == SW_SHOWMAXIMIZED)
           {
             if (moCur.dwMainStyle == WS_MAXIMIZE || dwCmdShow == SW_SHOWMAXIMIZED)
               ShowWindow(hMainWnd, SW_SHOWMAXIMIZED);
@@ -1698,8 +1698,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               dwStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
               SetWindowLongPtrWide(hMainWnd, GWL_STYLE, dwStyle|WS_MAXIMIZE);
               wp.showCmd=WS_MAXIMIZE;
-              SetWindowPos(hMainWnd, NULL, 0, 0, GetSystemMetrics(SM_CXMAXIMIZED), GetSystemMetrics(SM_CYMAXIMIZED), SWP_NOZORDER|SWP_NOACTIVATE);
               SetWindowPlacement(hMainWnd, &wp);
+              SetWindowPos(hMainWnd, NULL, 0, 0, GetSystemMetrics(SM_CXMAXIMIZED), GetSystemMetrics(SM_CYMAXIMIZED), SWP_NOZORDER|SWP_NOACTIVATE);
             }
             ShowWindow(hMainWnd, dwCmdShow);
           }
@@ -3230,14 +3230,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
     if (dwLastMainSizeClient != (DWORD)lParam)
     {
-      if (wParam != SIZE_MINIMIZED)
+      dwLastMainSizeType=(DWORD)wParam;
+      dwLastMainSizeClient=(DWORD)lParam;
+
+      if (lParam)
       {
         if (wParam != SIZE_MAXIMIZED)
         {
           GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
         }
-        dwLastMainSizeType=(DWORD)wParam;
-        dwLastMainSizeClient=(DWORD)lParam;
         SendMessage(hStatus, WM_SIZE, wParam, lParam);
         UpdateSize();
         return TRUE;
