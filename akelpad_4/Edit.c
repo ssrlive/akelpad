@@ -17737,13 +17737,16 @@ int SaveLineScroll(HWND hWnd)
 
 void RestoreLineScroll(HWND hWnd, int nBeforeLine)
 {
-  int nAfterLine;
+  POINT64 ptScrollPos;
 
-  nAfterLine=(int)SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
-  if (nBeforeLine != nAfterLine)
-    SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, nBeforeLine - nAfterLine);
+  if ((int)SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != nBeforeLine)
+  {
+    ptScrollPos.x=-1;
+    ptScrollPos.y=SendMessage(hWnd, AEM_VPOSFROMLINE, AECT_GLOBAL, nBeforeLine);
+    SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
+  }
+  SendMessage(hWnd, AEM_UPDATECARET, 0, 0);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  //SendMessage(hWnd, AEM_UPDATECARET, 0, 0);
   InvalidateRect(hWnd, NULL, TRUE);
 }
 
