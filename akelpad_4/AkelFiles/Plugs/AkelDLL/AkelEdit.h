@@ -3623,6 +3623,8 @@ Scroll an edit control to a particular point.
 
 wParam            == not used.
 (POINT64 *)lParam == pointer to a POINT64 structure which specifies a point in the virtual text space of the document, expressed in pixels.
+                     If POINT64.x equal to -1, then horizontal scroll is not changed.
+                     If POINT64.y equal to -1, then vertical scroll is not changed.
 
 Return Value
  Zero.

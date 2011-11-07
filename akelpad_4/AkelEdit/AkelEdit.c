@@ -1027,7 +1027,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       POINT64 *pt=(POINT64 *)lParam;
 
-      AE_SetScrollPos(ae, pt->x, pt->y);
+      AE_SetScrollPos(ae, (pt->x == -1?ae->nHScrollPos:pt->x), (pt->y == -1?ae->nVScrollPos:pt->y));
       return 0;
     }
     if (uMsg == AEM_SCROLL)
