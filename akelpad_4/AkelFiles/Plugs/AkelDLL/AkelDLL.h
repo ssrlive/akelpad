@@ -1079,7 +1079,7 @@ typedef struct {
   const wchar_t *wszFile; //Opening file (Unicode).
   int *nCodePage;         //Pointer to a code page variable.
   BOOL *bBOM;             //Pointer to a BOM variable.
-  DWORD *dwFlags;         //Pointer to a open flags variable.
+  DWORD *dwFlags;         //Pointer to a open flags variable. See OD_* defines.
   BOOL bProcess;          //TRUE   open file.
                           //FALSE  do not open file.
 } NOPENDOCUMENT;
@@ -3578,14 +3578,14 @@ Example add plugin hotkey (Unicode):
  {
    return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing.
  }
- PLUGINADDW pf;
+ PLUGINADDW pa;
 
- pf.pFunction=L"MyDLL::MyFunction";
- pf.wHotkey=589;       //Ctrl+M
- pf.bAutoLoad=FALSE;
- pf.PluginProc=(PLUGINPROC)PluginProc;
- pf.lpParameter=NULL;
- SendMessage(pd->hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pf);
+ pa.pFunction=L"MyDLL::MyFunction";
+ pa.wHotkey=589;       //Ctrl+M
+ pa.bAutoLoad=FALSE;
+ pa.PluginProc=(PLUGINPROC)PluginProc;
+ pa.lpParameter=NULL;
+ SendMessage(pd->hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
 
 
 AKD_DLLDELETE
