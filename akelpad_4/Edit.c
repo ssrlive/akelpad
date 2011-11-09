@@ -12336,6 +12336,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.wszAkelDir=wszExeDir;
                   pd.hInstanceEXE=hInstance;
                   pd.hPluginsStack=&hPluginsStack;
+                  pd.nSaveSettings=moCur.nSaveSettings;
                   pd.hMainWnd=hMainWnd;
                   pd.hWndEdit=lpFrameCurrent->ei.hWndEdit;
                   pd.hDocEdit=lpFrameCurrent->ei.hDocEdit;
@@ -12354,7 +12355,6 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.bOldComctl32=bOldComctl32;
                   pd.bAkelEdit=bAkelEdit;
                   pd.nMDI=nMDI;
-                  pd.nSaveSettings=moCur.nSaveSettings;
                   pd.pLangModule=bOldWindows?(LPBYTE)moCur.szLangModule:(LPBYTE)moCur.wszLangModule;
                   pd.szLangModule=moCur.szLangModule;
                   pd.wszLangModule=moCur.wszLangModule;
