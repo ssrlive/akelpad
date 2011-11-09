@@ -2057,48 +2057,140 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETMAININFO)
     {
-      PLUGINDATA *pd=(PLUGINDATA *)lParam;
+      if (lParam == MI_AKELDIRA)
+        return (LRESULT)szExeDir;
+      if (lParam == MI_AKELDIRW)
+        return (LRESULT)wszExeDir;
+      if (lParam == MI_INSTANCEEXE)
+        return (LRESULT)hInstance;
+      if (lParam == MI_PLUGINSSTACK)
+        return (LRESULT)&hPluginsStack;
+      if (lParam == MI_SAVESETTINGS)
+        return (LRESULT)moCur.nSaveSettings;
+      if (lParam == MI_WNDSTATUS)
+        return (LRESULT)hStatus;
+      if (lParam == MI_WNDMDICLIENT)
+        return (LRESULT)hMdiClient;
+      if (lParam == MI_WNDTAB)
+        return (LRESULT)hTab;
+      if (lParam == MI_MENUMAIN)
+        return (LRESULT)hMainMenu;
+      if (lParam == MI_MENURECENTFILES)
+        return (LRESULT)hMenuRecentFiles;
+      if (lParam == MI_MENULANGUAGE)
+        return (LRESULT)hMenuLanguage;
+      if (lParam == MI_MENUPOPUP)
+        return (LRESULT)hPopupMenu;
+      if (lParam == MI_ICONMAIN)
+        return (LRESULT)hMainIcon;
+      if (lParam == MI_ACCELGLOBAL)
+        return (LRESULT)hGlobalAccel;
+      if (lParam == MI_ACCELMAIN)
+        return (LRESULT)hMainAccel;
+      if (lParam == MI_OLDWINDOWS)
+        return (LRESULT)bOldWindows;
+      if (lParam == MI_OLDRICHEDIT)
+        return (LRESULT)bOldRichEdit;
+      if (lParam == MI_OLDCOMCTL32)
+        return (LRESULT)bOldComctl32;
+      if (lParam == MI_AKELEDIT)
+        return (LRESULT)bAkelEdit;
+      if (lParam == MI_MDI)
+        return (LRESULT)nMDI;
+      if (lParam == MI_LANGMODULEA)
+        return (LRESULT)moCur.szLangModule;
+      if (lParam == MI_LANGMODULEW)
+        return (LRESULT)moCur.wszLangModule;
+      if (lParam == MI_LANGIDSYSTEM)
+        return (LRESULT)dwLangSystem;
+      if (lParam == MI_LANGIDMODULE)
+        return (LRESULT)dwLangModule;
 
-      pd->cb=sizeof(PLUGINDATA);
-      pd->pFunction=NULL;
-      pd->szFunction=NULL;
-      pd->wszFunction=NULL;
-      pd->hInstanceDLL=NULL;
-      pd->lpPluginFunction=NULL;
-      pd->dwSupport=0;
-      pd->nUnload=0;
-      pd->bInMemory=0;
-      pd->lParam=0;
-      pd->pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
-      pd->szAkelDir=szExeDir;
-      pd->wszAkelDir=wszExeDir;
-      pd->hInstanceEXE=hInstance;
-      pd->hPluginsStack=&hPluginsStack;
-      pd->hMainWnd=hMainWnd;
-      pd->hWndEdit=lpFrameCurrent->ei.hWndEdit;
-      pd->hDocEdit=lpFrameCurrent->ei.hDocEdit;
-      pd->hStatus=hStatus;
-      pd->hMdiClient=hMdiClient;
-      pd->hTab=hTab;
-      pd->hMainMenu=hMainMenu;
-      pd->hMenuRecentFiles=hMenuRecentFiles;
-      pd->hMenuLanguage=hMenuLanguage;
-      pd->hPopupMenu=hPopupMenu;
-      pd->hMainIcon=hMainIcon;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->hMainAccel=hMainAccel;
-      pd->bOldWindows=bOldWindows;
-      pd->bOldRichEdit=bOldRichEdit;
-      pd->bOldComctl32=bOldComctl32;
-      pd->bAkelEdit=bAkelEdit;
-      pd->nMDI=nMDI;
-      pd->nSaveSettings=moCur.nSaveSettings;
-      pd->pLangModule=bOldWindows?(LPBYTE)moCur.szLangModule:(LPBYTE)moCur.wszLangModule;
-      pd->szLangModule=moCur.szLangModule;
-      pd->wszLangModule=moCur.wszLangModule;
-      pd->wLangSystem=(WORD)dwLangSystem;
-      pd->wLangModule=(WORD)dwLangModule;
+      return 0;
+    }
+    if (uMsg == AKD_GETFRAMEINFO)
+    {
+      FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
+      if (!lpFrame)
+      {
+        if (lpFrameCurrent->hWndEditParent)
+          lpFrame=lpFrameCurrent;
+      }
+
+      if (lpFrame)
+      {
+        if (lParam == FI_WNDEDITPARENT)
+          return (LRESULT)lpFrame->hWndEditParent;
+        if (lParam == FI_WNDEDIT)
+          return (LRESULT)lpFrame->ei.hWndEdit;
+        if (lParam == FI_DOCEDIT)
+          return (LRESULT)lpFrame->ei.hDocEdit;
+        if (lParam == FI_WNDMASTER)
+          return (LRESULT)lpFrame->ei.hWndMaster;
+        if (lParam == FI_DOCMASTER)
+          return (LRESULT)lpFrame->ei.hDocMaster;
+        if (lParam == FI_WNDCLONE1)
+          return (LRESULT)lpFrame->ei.hWndClone1;
+        if (lParam == FI_DOCCLONE1)
+          return (LRESULT)lpFrame->ei.hDocClone1;
+        if (lParam == FI_WNDCLONE2)
+          return (LRESULT)lpFrame->ei.hWndClone2;
+        if (lParam == FI_DOCCLONE2)
+          return (LRESULT)lpFrame->ei.hDocClone2;
+        if (lParam == FI_WNDCLONE3)
+          return (LRESULT)lpFrame->ei.hWndClone3;
+        if (lParam == FI_DOCCLONE3)
+          return (LRESULT)lpFrame->ei.hDocClone3;
+        if (lParam == FI_CODEPAGE)
+          return (LRESULT)lpFrame->ei.nCodePage;
+        if (lParam == FI_BOM)
+          return (LRESULT)lpFrame->ei.bBOM;
+        if (lParam == FI_NEWLINE)
+          return (LRESULT)lpFrame->ei.nNewLine;
+        if (lParam == FI_MODIFIED)
+          return (LRESULT)lpFrame->ei.bModified;
+        if (lParam == FI_READONLY)
+          return (LRESULT)lpFrame->ei.bReadOnly;
+        if (lParam == FI_WORDWRAP)
+          return (LRESULT)lpFrame->ei.bWordWrap;
+        if (lParam == FI_OVERTYPE)
+          return (LRESULT)lpFrame->ei.bOvertypeMode;
+        if (lParam == FI_FILEA)
+          return (LRESULT)lpFrame->szFile;
+        if (lParam == FI_FILEW)
+          return (LRESULT)lpFrame->wszFile;
+        if (lParam == FI_FILELEN)
+          return (LRESULT)lpFrame->nFileLen;
+        if (lParam == FI_ICONHANDLE)
+          return (LRESULT)lpFrame->hIcon;
+        if (lParam == FI_ICONINDEX)
+          return (LRESULT)lpFrame->nIconIndex;
+        if (lParam == FI_RECTEDIT)
+          return (LRESULT)&lpFrame->rcEditWindow;
+        if (lParam == FI_RECTMASTER)
+          return (LRESULT)&lpFrame->rcMasterWindow;
+        if (lParam == FI_LOGFONTW)
+          return (LRESULT)&lpFrame->lf;
+        if (lParam == FI_TABSTOPASSPACES)
+          return (LRESULT)lpFrame->bTabStopAsSpaces;
+        if (lParam == FI_CARETOPTIONS)
+          return (LRESULT)lpFrame->dwCaretOptions;
+        if (lParam == FI_MOUSEOPTIONS)
+          return (LRESULT)lpFrame->dwMouseOptions;
+        if (lParam == FI_CLICKURL)
+          return (LRESULT)lpFrame->nClickURL;
+        if (lParam == FI_URLPREFIXESENABLE)
+          return (LRESULT)lpFrame->bUrlPrefixesEnable;
+        if (lParam == FI_URLDELIMITERSENABLE)
+          return (LRESULT)lpFrame->bUrlDelimitersEnable;
+        if (lParam == FI_WORDDELIMITERSENABLE)
+          return (LRESULT)lpFrame->bWordDelimitersEnable;
+        if (lParam == FI_WRAPDELIMITERSENABLE)
+          return (LRESULT)lpFrame->bWrapDelimitersEnable;
+        if (lParam == FI_MAPPEDPRINTWIDTH)
+          return (LRESULT)lpFrame->dwMappedPrintWidth;
+      }
       return 0;
     }
     if (uMsg == AKD_GETEDITINFO)

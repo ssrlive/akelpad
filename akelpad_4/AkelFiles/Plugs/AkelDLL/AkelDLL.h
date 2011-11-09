@@ -159,6 +159,69 @@
 #define SH_GET    1  //Retrieve search strings count.
 #define SH_CLEAR  2  //Clear search history.
 
+//AKD_GETMAININFO type. See PLUGINDATA members description.
+#define MI_AKELDIRA        1
+#define MI_AKELDIRW        2
+#define MI_INSTANCEEXE     3
+#define MI_PLUGINSSTACK    4
+#define MI_SAVESETTINGS    5
+#define MI_WNDSTATUS       11
+#define MI_WNDMDICLIENT    12
+#define MI_WNDTAB          13
+#define MI_MENUMAIN        21
+#define MI_MENURECENTFILES 22
+#define MI_MENULANGUAGE    23
+#define MI_MENUPOPUP       24
+#define MI_ICONMAIN        31
+#define MI_ACCELGLOBAL     32
+#define MI_ACCELMAIN       33
+#define MI_OLDWINDOWS      41
+#define MI_OLDRICHEDIT     42
+#define MI_OLDCOMCTL32     43
+#define MI_AKELEDIT        44
+#define MI_MDI             45
+#define MI_LANGMODULEA     51
+#define MI_LANGMODULEW     52
+#define MI_LANGIDSYSTEM    53
+#define MI_LANGIDMODULE    54
+
+//AKD_GETFRAMEINFO type. See FRAMEDATA members description.
+#define FI_WNDEDITPARENT        1
+#define FI_WNDEDIT              2
+#define FI_DOCEDIT              3
+#define FI_WNDMASTER            4
+#define FI_DOCMASTER            5
+#define FI_WNDCLONE1            6
+#define FI_DOCCLONE1            7
+#define FI_WNDCLONE2            8
+#define FI_DOCCLONE2            9
+#define FI_WNDCLONE3            10
+#define FI_DOCCLONE3            11
+#define FI_CODEPAGE             12
+#define FI_BOM                  13
+#define FI_NEWLINE              14
+#define FI_MODIFIED             15
+#define FI_READONLY             16
+#define FI_WORDWRAP             17
+#define FI_OVERTYPE             18
+#define FI_FILEA                31
+#define FI_FILEW                32
+#define FI_FILELEN              33
+#define FI_ICONHANDLE           34
+#define FI_ICONINDEX            35
+#define FI_RECTEDIT             36
+#define FI_RECTMASTER           37
+#define FI_LOGFONTW             51
+#define FI_TABSTOPASSPACES      52
+#define FI_CARETOPTIONS         53
+#define FI_MOUSEOPTIONS         54
+#define FI_CLICKURL             55
+#define FI_URLPREFIXESENABLE    56
+#define FI_URLDELIMITERSENABLE  57
+#define FI_WORDDELIMITERSENABLE 58
+#define FI_WRAPDELIMITERSENABLE 59
+#define FI_MAPPEDPRINTWIDTH     61
+
 //AKD_SETEDITOPTION flags
 #define EO_TEXTMARGINS 1  //Edit margins. lParam is a pointer to a RECT structure, that contain left, top, right, bottom margins in pixels.
 #define EO_TABSIZE     2  //Tabulation size.
@@ -583,6 +646,7 @@ typedef struct _PLUGINDATA {
   const wchar_t *wszAkelDir;        //AkelPad directory (Unicode).
   HINSTANCE hInstanceEXE;           //EXE instance.
   HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
+  int nSaveSettings;                //See SS_* defines.
   HWND hMainWnd;                    //Main window.
   HWND hWndEdit;                    //Edit window.
   AEHDOC hDocEdit;                  //Edit document.
@@ -601,7 +665,6 @@ typedef struct _PLUGINDATA {
   BOOL bOldComctl32;                //Comctl32.dll lower then 4.71.
   BOOL bAkelEdit;                   //AkelEdit control is used.
   int nMDI;                         //Window mode, see WMD_* defines.
-  int nSaveSettings;                //See SS_* defines.
   const BYTE *pLangModule;          //Language module.
                                     //  const char *pLangModule      if bOldWindows == TRUE
                                     //  const wchar_t *pLangModule   if bOldWindows == FALSE
@@ -1611,10 +1674,11 @@ typedef struct {
 #define AKD_SETPRINTINFO           (WM_USER + 192)
 
 //Options
+#define AKD_GETMAININFO            (WM_USER + 198)
+#define AKD_GETFRAMEINFO           (WM_USER + 199)
+#define AKD_GETEDITINFO            (WM_USER + 200)
 #define AKD_PROGRAMVERSION         (WM_USER + 201)
 #define AKD_PROGRAMARCHITECTURE    (WM_USER + 202)
-#define AKD_GETMAININFO            (WM_USER + 203)
-#define AKD_GETEDITINFO            (WM_USER + 204)
 #define AKD_SETMODIFY              (WM_USER + 205)
 #define AKD_SETNEWLINE             (WM_USER + 206)
 #define AKD_GETFONT                (WM_USER + 207)
@@ -2717,16 +2781,32 @@ _______________
 
 Get main AkelPad data.
 
-wParam               == not used.
-(PLUGINDATA *)lParam == pointer to a PLUGINDATA structure.
+(int)wParam  == see MI_* defines.
+lParam       == not used.
 
 Return Value
- Zero.
+ Depend on MI_* define.
 
 Example:
- PLUGINDATA pd;
+ HWND hWndStatus=(HWND)SendMessage(pd->hMainWnd, AKD_GETMAININFO, MI_WNDSTATUS, 0);
 
- SendMessage(pd->hMainWnd, AKD_GETMAININFO, 0, (LPARAM)&pd);
+
+AKD_GETFRAMEINFO
+________________
+
+Get frame data info.
+
+(int)wParam         == see FI_* defines.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
+
+Return Value
+ Depend on FI_* define.
+
+Remarks
+ Message can be used for SDI mode, if lParam is NULL.
+
+Example:
+ HWND hWndEdit=(HWND)SendMessage(pd->hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
 
 
 AKD_GETEDITINFO
@@ -3006,7 +3086,7 @@ lParam       == not used.
 Return Value
  Zero.
 
-Note
+Remarks
  Only one dialog can be registered as modeless. Application should unregister dialog before closing, passing NULL in wParam.
 
 Example:
