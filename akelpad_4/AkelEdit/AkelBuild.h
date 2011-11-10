@@ -67,11 +67,6 @@
 #define AEVPF_LINEFROMVPOS     0x00000001
 #define AEVPF_VPOSFROMLINE     0x00000002
 
-//Line selection
-#define AELS_EMPTY    1
-#define AELS_FULL     2
-#define AELS_PARTLY   3
-
 //AE_CalcLinesWidth flags
 #define AECLW_FRESH              0x00000001
 #define AECLW_LOCKUPDATEHSCROLL  0x00000002
@@ -785,7 +780,7 @@ int AE_CheckCodepage(AKELEDIT *ae, int nCodePage, int *lpdwCharInLine);
 void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
-int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
+void AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
 void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, BOOL bColumnSel);
 void AE_ClearSelLines(const AECHARINDEX *ciMin, const AECHARINDEX *ciMax);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags, DWORD dwSelType);
