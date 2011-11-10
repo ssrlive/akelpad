@@ -16003,7 +16003,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   {
     bUpdateCaret=TRUE;
   }
-  else
+  else if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
     //Reset saved selection after AEDELT_SAVECOLUMNSEL
     AE_SetSelectionPos(ae, &ae->ciCaretIndex, &ae->ciCaretIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
