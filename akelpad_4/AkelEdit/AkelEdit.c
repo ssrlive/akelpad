@@ -16164,6 +16164,8 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
           lpNewElement->nLineWidth=-1;
           lpNewElement->nLineBreak=lpElement->nLineBreak;
           lpNewElement->nLineLen=lpElement->nLineLen - nLineDelLength;
+          lpNewElement->nSelStart=lpElement->nSelStart;
+          lpNewElement->nSelEnd=lpElement->nSelStart;
           nRichTextCount+=nLineDelLength;
 
           if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
@@ -16337,8 +16339,8 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartCharOffset=nStartOffset;
       ae->ciSelStartIndex=ciFirstChar;
-      ae->nSelEndCharOffset=nStartOffset;
-      ae->ciSelEndIndex=ciFirstChar;
+      ae->nSelEndCharOffset=nEndOffset - nRichTextCount;
+      ae->ciSelEndIndex=ciLastChar;
 
       //Post processing
       lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
@@ -16366,8 +16368,8 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartCharOffset=nStartOffset;
         ae->ciSelStartIndex=ciFirstChar;
-        ae->nSelEndCharOffset=nStartOffset;
-        ae->ciSelEndIndex=ciFirstChar;
+        ae->nSelEndCharOffset=nEndOffset - nRichTextCount;
+        ae->ciSelEndIndex=ciLastChar;
 
         //Update scroll bars
         ae->ptxt->nLineCount+=nWrapCount;
@@ -16768,7 +16770,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   INT_PTR nHScrollPos=0;
   INT_PTR nVScrollPos=0;
   INT_PTR nInsertOffset;
-  INT_PTR nInsertInLineOffset;
+  INT_PTR nInsertCharInLine;
+  INT_PTR nInsertOffsetInLine;
   INT_PTR nStartOffset;
   INT_PTR nEndOffset;
   INT_PTR nLineOffsetNew;
@@ -16815,9 +16818,10 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
         dwCalcLinesWidthFlags=AECLW_LOCKUPDATEHSCROLL;
 
       nInsertOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom);
-      nLineOffsetNew=nInsertOffset - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nInsertCharInLine=ciInsertFrom.nCharInLine;
+      nLineOffsetNew=nInsertOffset - min(nInsertCharInLine, ciInsertFrom.lpLine->nLineLen);
       nLineOffsetOld=nLineOffsetNew;
-      nStartOffset=nLineOffsetNew + ciInsertFrom.nCharInLine;
+      nStartOffset=nLineOffsetNew + nInsertCharInLine;
       nEndOffset=nStartOffset;
 
       //Send AEN_TEXTINSERTBEGIN
@@ -16847,10 +16851,10 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
         AE_GetPosFromChar(ae, &ciInsertFrom, &ptInsertFrom, NULL);
         ciFirstChar.nLine=ciInsertFrom.nLine;
         ciFirstChar.lpLine=NULL;
-        ciFirstChar.nCharInLine=ciInsertFrom.nCharInLine;
+        ciFirstChar.nCharInLine=nInsertCharInLine;
         ciLastChar.nLine=ciInsertFrom.nLine;
         ciLastChar.lpLine=NULL;
-        ciLastChar.nCharInLine=ciInsertFrom.nCharInLine;
+        ciLastChar.nCharInLine=nInsertCharInLine;
         lpElement=ciInsertFrom.lpLine;
         lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first;
 
@@ -16870,37 +16874,45 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
             if (lpElement)
             {
-              //First insert line
               if (!ciFirstChar.lpLine)
+              {
+                //First insert line
                 ciFirstChar.lpLine=lpNewElement;
+              }
               else
-                AE_GetCharInLine(ae, lpElement, ptInsertFrom.x, AECIL_HALFFIT|AECIL_ALLPOS, &ciInsertFrom.nCharInLine, NULL, bColumnSel);
-              nInsertInLineOffset=nLineOffsetOld + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+              {
+                //Second and next lines
+                if (ciLastChar.nLine <= ae->ciSelEndIndex.nLine)
+                  nInsertCharInLine=lpElement->nSelStart;
+                else
+                  AE_GetCharInLine(ae, lpElement, ptInsertFrom.x, AECIL_HALFFIT|AECIL_ALLPOS, &nInsertCharInLine, NULL, bColumnSel);
+              }
+              nInsertOffsetInLine=nLineOffsetOld + min(nInsertCharInLine, lpElement->nLineLen);
 
               lpNewElement->nLineWidth=-1;
               if (lpElement->nLineBreak != AELB_EOF)
                 lpNewElement->nLineBreak=lpElement->nLineBreak;
               else
                 lpNewElement->nLineBreak=nLineBreak;
-              lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
-              nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+              lpNewElement->nLineLen=lpElement->nLineLen + max(nInsertCharInLine - lpElement->nLineLen, 0) + nLineLen;
+              nCaretIndexInLine=nInsertCharInLine + nLineLen;
 
               if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
-                xmemcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
+                xmemcpy(lpNewElement->wpLine, lpElement->wpLine, min(nInsertCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
 
-                if (ciInsertFrom.nCharInLine > lpElement->nLineLen)
+                if (nInsertCharInLine > lpElement->nLineLen)
                 {
-                  dwRichTextCount+=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+                  dwRichTextCount+=nInsertCharInLine - lpElement->nLineLen;
 
-                  for (i=lpElement->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
+                  for (i=lpElement->nLineLen; i < nInsertCharInLine; ++i)
                     lpNewElement->wpLine[i]=L' ';
-                  xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  xmemcpy(lpNewElement->wpLine + nInsertCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
                 }
                 else
                 {
-                  xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                  xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, lpElement->wpLine + ciInsertFrom.nCharInLine, (lpElement->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                  xmemcpy(lpNewElement->wpLine + nInsertCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  xmemcpy(lpNewElement->wpLine + nInsertCharInLine + nLineLen, lpElement->wpLine + nInsertCharInLine, (lpElement->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                 }
 
                 //Update points
@@ -16912,7 +16924,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                   if (lpPoint->ciPoint.nLine == ciLastChar.nLine)
                   {
                     lpPoint->ciPoint.lpLine=lpNewElement;
-                    if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
+                    if (lpPoint->ciPoint.nCharInLine >= nInsertCharInLine)
                       lpPoint->ciPoint.nCharInLine+=nLineLen;
                     lpPoint->dwFlags|=AEPTF_MOVED;
                   }
@@ -16920,12 +16932,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                   //Offsets
                   if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineOffsetOld)
                   {
-                    if (lpPoint->nPointOffset < nInsertInLineOffset)
+                    if (lpPoint->nPointOffset < nInsertOffsetInLine)
                     {
                       if (lpPoint->nTmpPointOffset == AEPTO_CALC)
                         lpPoint->nTmpPointOffset=lpPoint->nPointOffset + dwRichTextCount - (lpNewElement->nLineLen - lpElement->nLineLen);
 
-                      if (lpPoint->nPointOffset + lpPoint->nPointLen <= nInsertInLineOffset)
+                      if (lpPoint->nPointOffset + lpPoint->nPointLen <= nInsertOffsetInLine)
                       {
                         //--<--->--|--
                       }
@@ -16965,11 +16977,11 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                     {
                       AEUNDOITEM *lpUndoElement;
                       wchar_t *wpUndoText;
-                      UINT_PTR dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
+                      UINT_PTR dwUndoTextLen=max(nInsertCharInLine - lpElement->nLineLen, 0) + nLineLen;
 
                       if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                       {
-                        nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+                        nSpaces=nInsertCharInLine - lpElement->nLineLen;
 
                         for (i=0; i < nSpaces; ++i)
                           wpUndoText[i]=L' ';
@@ -16979,8 +16991,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                         if (lpUndoElement=AE_StackUndoItemInsert(ae))
                         {
                           lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffsetNew + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
-                          lpUndoElement->nActionEndOffset=nLineOffsetNew + ciInsertFrom.nCharInLine + nLineLen;
+                          lpUndoElement->nActionStartOffset=nLineOffsetNew + min(nInsertCharInLine, lpElement->nLineLen);
+                          lpUndoElement->nActionEndOffset=nLineOffsetNew + nInsertCharInLine + nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
                         }
@@ -17044,22 +17056,22 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             }
             else
             {
-              ciInsertFrom.nCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nSpaceCharWidth);
+              nInsertCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nSpaceCharWidth);
 
               lpNewElement->nLineWidth=-1;
               lpNewElement->nLineBreak=nLineBreak;
-              lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
-              nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+              lpNewElement->nLineLen=nInsertCharInLine + nLineLen;
+              nCaretIndexInLine=nInsertCharInLine + nLineLen;
 
               if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
-                dwRichTextCount+=ciInsertFrom.nCharInLine;
+                dwRichTextCount+=nInsertCharInLine;
                 if (nLineBreak != AELB_EOF)
                   ++dwRichTextCount;
 
-                for (i=0; i < ciInsertFrom.nCharInLine; ++i)
+                for (i=0; i < nInsertCharInLine; ++i)
                   lpNewElement->wpLine[i]=L' ';
-                xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                xmemcpy(lpNewElement->wpLine + nInsertCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
 
                 //Add undo
                 if (!(dwInsertFlags & AEINST_LOCKUNDO))
@@ -17077,7 +17089,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
                       if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                       {
-                        nSpaces=ciInsertFrom.nCharInLine;
+                        nSpaces=nInsertCharInLine;
 
                         for (i=0; i < nSpaces; ++i)
                           wpUndoText[i]=L' ';
@@ -17162,7 +17174,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           ae->ciSelStartIndex=ciFirstChar;
           ae->nSelEndCharOffset=nStartOffset;
           ae->ciSelEndIndex=ciFirstChar;
-          nEndOffset=nLineOffsetNew + ciInsertFrom.nCharInLine + nLineLen;
+          nEndOffset=nLineOffsetNew + nInsertCharInLine + nLineLen;
 
           //Post processing
           lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
@@ -17284,47 +17296,47 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
               //Start index
               ciFirstChar.nLine=ciInsertFrom.nLine;
               ciFirstChar.lpLine=lpNewElement;
-              ciFirstChar.nCharInLine=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+              ciFirstChar.nCharInLine=min(nInsertCharInLine, ciInsertFrom.lpLine->nLineLen);
 
               if (nLineBreak == AELB_EOF)
               {
                 lpNewElement->nLineWidth=-1;
                 lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                lpNewElement->nLineLen=ciInsertFrom.lpLine->nLineLen + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
-                nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+                lpNewElement->nLineLen=ciInsertFrom.lpLine->nLineLen + max(nInsertCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
+                nCaretIndexInLine=nInsertCharInLine + nLineLen;
               }
               else
               {
                 lpNewElement->nLineWidth=-1;
                 lpNewElement->nLineBreak=nLineBreak;
-                lpNewElement->nLineLen=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
+                lpNewElement->nLineLen=min(nInsertCharInLine, ciInsertFrom.lpLine->nLineLen) + max(nInsertCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
                 nCaretIndexInLine=0;
               }
 
               if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
-                xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine, min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) * sizeof(wchar_t));
+                xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine, min(nInsertCharInLine, ciInsertFrom.lpLine->nLineLen) * sizeof(wchar_t));
 
-                if (ciInsertFrom.nCharInLine > ciInsertFrom.lpLine->nLineLen)
+                if (nInsertCharInLine > ciInsertFrom.lpLine->nLineLen)
                 {
-                  dwRichTextCount+=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
-                  nSpaces=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
+                  dwRichTextCount+=nInsertCharInLine - ciInsertFrom.lpLine->nLineLen;
+                  nSpaces=nInsertCharInLine - ciInsertFrom.lpLine->nLineLen;
 
-                  for (i=ciInsertFrom.lpLine->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
+                  for (i=ciInsertFrom.lpLine->nLineLen; i < nInsertCharInLine; ++i)
                     lpNewElement->wpLine[i]=L' ';
                 }
 
                 if (nLineBreak == AELB_EOF)
                 {
                   //wpText - one line
-                  xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                  if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                    xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                  xmemcpy(lpNewElement->wpLine + nInsertCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  if (nInsertCharInLine < ciInsertFrom.lpLine->nLineLen)
+                    xmemcpy(lpNewElement->wpLine + nInsertCharInLine + nLineLen, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                   lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                 }
                 else
                 {
-                  xmemcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  xmemcpy(lpNewElement->wpLine + nInsertCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
                   lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
 
                   if (dwTextCount >= dwTextLen)
@@ -17334,13 +17346,13 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                     {
                       lpNewElement->nLineWidth=-1;
                       lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                      lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
+                      lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - nInsertCharInLine, 0);
                       nCaretIndexInLine=0;
 
                       if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                       {
-                        if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                          xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                        if (nInsertCharInLine < ciInsertFrom.lpLine->nLineLen)
+                          xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                         lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                       }
                       else break;
@@ -17364,14 +17376,14 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
               {
                 lpNewElement->nLineWidth=-1;
                 lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0) + nLineLen;
+                lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - nInsertCharInLine, 0) + nLineLen;
                 nCaretIndexInLine=nLineLen;
 
                 if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                 {
                   xmemcpy(lpNewElement->wpLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                  if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                    xmemcpy(lpNewElement->wpLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                  if (nInsertCharInLine < ciInsertFrom.lpLine->nLineLen)
+                    xmemcpy(lpNewElement->wpLine + nLineLen, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                   lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                 }
                 else break;
@@ -17397,13 +17409,13 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                 {
                   lpNewElement->nLineWidth=-1;
                   lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                  lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
+                  lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - nInsertCharInLine, 0);
                   nCaretIndexInLine=0;
 
                   if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                   {
-                    if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                      xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                    if (nInsertCharInLine < ciInsertFrom.lpLine->nLineLen)
+                      xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                     lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                   }
                   else break;
@@ -17450,7 +17462,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             }
             else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
             {
-              if (lpPoint->ciPoint.nCharInLine < ciInsertFrom.nCharInLine)
+              if (lpPoint->ciPoint.nCharInLine < nInsertCharInLine)
               {
                 lpPoint->ciPoint.lpLine=ciFirstChar.lpLine;
               }
@@ -17458,7 +17470,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
               {
                 lpPoint->ciPoint.nLine+=nLineCount;
                 lpPoint->ciPoint.lpLine=lpNewElement;
-                lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
+                lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - nInsertCharInLine);
               }
               lpPoint->dwFlags|=AEPTF_MOVED;
             }
