@@ -8774,7 +8774,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
 void AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
 {
-  if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine || ciSelEnd->nCharInLine == 0)
+  if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine)
   {
     *nSelStartIndexInLine=0;
     *nSelEndIndexInLine=0;
