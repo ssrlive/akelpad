@@ -126,6 +126,7 @@
 #define AEDELT_LOCKUPDATEVSCROLL 0x00000008
 #define AEDELT_LOCKUPDATECARET   0x00000010
 #define AEDELT_LOCKUPDATETEXT    0x00000020
+#define AEDELT_SAVECOLUMNSEL     0x00000040
 #define AEDELT_LOCKUPDATEALL    (AEDELT_LOCKUPDATEHSCROLL |\
                                  AEDELT_LOCKUPDATEVSCROLL |\
                                  AEDELT_LOCKUPDATECARET   |\
@@ -1277,7 +1278,7 @@ typedef struct {
   AECHARINDEX ciCaret;     //Caret character index position.
   DWORD dwType;            //See AETCT_* defines.
   BOOL bColumnSel;         //Column selection.
-  DWORD dwDeleteFlags;     //See AEINST_* defines.
+  DWORD dwDeleteFlags;     //See AEDELT_* defines.
   AECHARRANGE crAkelRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
   CHARRANGE64 crRichRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
 } AENTEXTDELETE;

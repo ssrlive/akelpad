@@ -15989,7 +15989,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   nHScrollPos=ae->nHScrollPos;
   nVScrollPos=ae->nVScrollPos;
   nVScrollMax=ae->ptxt->nVScrollMax;
-  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATEVSCROLL))
+  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_SAVECOLUMNSEL|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATEVSCROLL))
   {
     if (nVScrollMax != ae->ptxt->nVScrollMax)
     {
@@ -16000,7 +16000,14 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
     bUpdateCaret=TRUE;
   }
   if (AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, nNewLine, bColumnSel, AEINST_LOCKSCROLL|AEINST_LOCKUPDATECARET, &ciStart, &ciEnd))
+  {
     bUpdateCaret=TRUE;
+  }
+  else
+  {
+    //Reset saved selection after AEDELT_SAVECOLUMNSEL
+    AE_SetSelectionPos(ae, &ae->ciCaretIndex, &ae->ciCaretIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
+  }
 
   if (bUpdateVScroll && nVScrollMax == ae->ptxt->nVScrollMax)
   {
@@ -16155,8 +16162,11 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
           lpNewElement->nLineWidth=-1;
           lpNewElement->nLineBreak=lpElement->nLineBreak;
           lpNewElement->nLineLen=lpElement->nLineLen - nLineDelLength;
-          lpNewElement->nSelStart=lpElement->nSelStart;
-          lpNewElement->nSelEnd=lpElement->nSelStart;
+          if (dwDeleteFlags & AEDELT_SAVECOLUMNSEL)
+          {
+            lpNewElement->nSelStart=lpElement->nSelStart;
+            lpNewElement->nSelEnd=lpElement->nSelStart;
+          }
           nRichTextCount+=nLineDelLength;
 
           if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
@@ -16435,6 +16445,12 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
             }
           }
         }
+      }
+
+      if (!(dwDeleteFlags & AEDELT_SAVECOLUMNSEL))
+      {
+        ae->nSelEndCharOffset=ae->nSelStartCharOffset;
+        ae->ciSelEndIndex=ae->ciSelStartIndex;
       }
 
       //Update end offset
