@@ -9370,7 +9370,6 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   AECHARRANGE crRange;
   AECHARRANGE crInsert;
   AECHARINDEX ciFirstVisibleBefore;
-  AECHARINDEX ciFirstVisibleAfter;
   CHARRANGE64 crInitialRE;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
@@ -9612,8 +9611,14 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
             }
             else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
 
-            SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
-            SendMessage(lpFrame->ei.hWndEdit, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+            if ((int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != ciFirstVisibleBefore.nLine)
+            {
+              POINT64 ptScrollPos;
+
+              ptScrollPos.x=-1;
+              ptScrollPos.y=SendMessage(lpFrame->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, ciFirstVisibleBefore.nLine);
+              SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
+            }
           }
         }
 
@@ -17737,10 +17742,10 @@ int SaveLineScroll(HWND hWnd)
 
 void RestoreLineScroll(HWND hWnd, int nBeforeLine)
 {
-  POINT64 ptScrollPos;
-
   if ((int)SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != nBeforeLine)
   {
+    POINT64 ptScrollPos;
+
     ptScrollPos.x=-1;
     ptScrollPos.y=SendMessage(hWnd, AEM_VPOSFROMLINE, AECT_GLOBAL, nBeforeLine);
     SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
