@@ -16888,8 +16888,8 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
               }
               else
               {
-                //Second and next lines
-                if (ciLastChar.nLine <= ae->ciSelEndIndex.nLine)
+                //Second and next lines. AE_WrapLines called in AE_DeleteTextRange sets nSelStart to zero, so check is line wrapped.
+                if (ciLastChar.nLine <= ae->ciSelEndIndex.nLine && (lpElement->nSelStart || lpElement->prev->nLineBreak != AELB_WRAP))
                   nInsertCharInLine=lpElement->nSelStart;
                 else
                   AE_GetCharInLine(ae, lpElement, ptInsertFrom.x, AECIL_HALFFIT|AECIL_ALLPOS, &nInsertCharInLine, NULL, bColumnSel);
