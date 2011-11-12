@@ -15,11 +15,12 @@ Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
 Added: settings for top and bottom edit window margins.
 Added: command line method /Show() to show main window in specified style.
 
+Fixed: text replacement in columnar selection.
+Fixed: turn on word wrap when collapsed folds exist.
+Fixed: highlight link under cursor.
 Fixed: file could be saved in virtual store (UAC).
 Fixed: opening a system file under a limited user using the x86 version of program
        (Windows x64).
-Fixed: text replacement in columnar selection.
-Fixed: highlight link under cursor.
 Fixed: error in the program when exiting, if the last closed document has split windows,
        which was switched off earlier in this document, and the caret is not in the first
        window (PMDI).
