@@ -8288,6 +8288,8 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       ae->nLastCallOffset=0;
     }
   }
+  if (nLineCount)
+    ae->ptxt->lpVPosFold=NULL;
   return nLineCount;
 }
 
