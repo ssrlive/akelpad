@@ -252,6 +252,7 @@ extern AECHARINDEX ciCurCaret;
 extern int nLoopCase;
 extern DWORD dwWordBreakDefault;
 extern BOOL bReopenMsg;
+extern BOOL bLockWatchFile;
 extern WNDPROC lpOldEditProc;
 
 //Execute
@@ -813,7 +814,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   }
 }
 
-BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
+BOOL CreateFrameWindow(RECT *rcRectMDI)
 {
   BOOL bResult=FALSE;
 
@@ -844,7 +845,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
 
       AddTabItem(hTab, (LPARAM)lpFrame);
 
-      ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_CREATE);
+      ActivateFrameWindow(lpFrame, FWA_NOTIFY_CREATE);
       SetEditWindowSettings(lpFrameCurrent);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
@@ -858,7 +859,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
   return bResult;
 }
 
-FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
+FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
 
@@ -911,44 +912,47 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
   return lpFrameLostFocus;
 }
 
-FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
+FRAMEDATA* ActivateNextFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
 {
   if (moCur.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
-  {
-    int nTabItem;
-    int nItemCount;
-
-    if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
-    {
-      nItemCount=nDocumentsCount - 1;
-
-      if (bPrev)
-      {
-        if (nTabItem - 1 < 0)
-          SelectTabItem(hTab, nItemCount);
-        else
-          SelectTabItem(hTab, nTabItem - 1);
-      }
-      else
-      {
-        if (nTabItem + 1 > nItemCount)
-          SelectTabItem(hTab, 0);
-        else
-          SelectTabItem(hTab, nTabItem + 1);
-      }
-    }
-  }
+    lpFrame=GetNextTabFrame(lpFrame, bPrev);
   else if (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
-  {
-    FRAMEDATA *lpFrameNext=StackFrameGetNext(&hFramesStack, lpFrame, bPrev);
+    lpFrame=StackFrameGetNext(&hFramesStack, lpFrame, bPrev);
 
-    if (lpFrameNext != lpFrame)
-      ActivateMdiFrameWindow(lpFrameNext, FWA_NOUPDATEORDER);
-  }
+  if (lpFrame)
+    ActivateFrameWindow(lpFrame, FWA_NOUPDATEORDER);
   return lpFrameCurrent;
 }
 
-int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
+FRAMEDATA* GetNextTabFrame(FRAMEDATA *lpFrame, BOOL bPrev)
+{
+  int nTabItem;
+  int nItemCount;
+
+  if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
+  {
+    nItemCount=nDocumentsCount - 1;
+
+    if (bPrev)
+    {
+      if (nTabItem - 1 < 0)
+        nTabItem=nItemCount;
+      else
+        --nTabItem;
+    }
+    else
+    {
+      if (nTabItem + 1 > nItemCount)
+        nTabItem=0;
+      else
+        ++nTabItem;
+    }
+    return (FRAMEDATA *)GetTabParamFromItem(hTab, nTabItem);
+  }
+  return NULL;
+}
+
+int DestroyFrameWindow(FRAMEDATA *lpFrame)
 {
   if (lpFrame->ei.hWndEdit)
   {
@@ -981,10 +985,10 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       if (dwPrompt & PROMPT_NONE)
       {
         bEditOnFinish=TRUE;
-        ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY|FWA_NOVISUPDATE);
+        ActivateFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY|FWA_NOVISUPDATE);
         bEditOnFinish=FALSE;
       }
-      else ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
+      else ActivateFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
 
       if (lpFrame == lpFrameToActivate)
       {
@@ -1038,7 +1042,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 
         //Activate previous window
         if (lpFrameToActivate)
-          ActivateMdiFrameWindow(lpFrameToActivate, FWA_NOTIFY_AFTERDESTROY);
+          ActivateFrameWindow(lpFrameToActivate, FWA_NOTIFY_AFTERDESTROY);
       }
     }
     return FWDE_SUCCESS;
@@ -1314,7 +1318,7 @@ void SplitVisUpdate(FRAMEDATA *lpFrame)
 BOOL DoFileNew()
 {
   if (nMDI)
-    return CreateMdiFrameWindow(NULL);
+    return CreateFrameWindow(NULL);
   else
     return CloseDocument(0);
 }
@@ -4142,7 +4146,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           if (lpFrame=StackFrameGetByName(&hFramesStack, wszFile, -1))
           {
-            ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_REOPEN);
+            ActivateFrameWindow(lpFrame, FWA_NOTIFY_REOPEN);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
             if (SaveChanged(0))
@@ -4390,7 +4394,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         }
         else
         {
-          DestroyMdiFrameWindow(lpFrameCurrent);
+          DestroyFrameWindow(lpFrameCurrent);
           //if (FrameNoWindows())
           //  PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
@@ -5532,7 +5536,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
           }
           if (!nMDI) break;
 
-          lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
         }
         while (lpFrameCurrent != lpFrameInit);
       }
@@ -8974,7 +8978,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
               ++nChangedFiles;
               nChanges+=nReplaceCount;
             }
-            lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
           }
           while (lpFrameCurrent != lpFrameInit);
 
@@ -9011,7 +9015,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 moCur.dwSearchOptions|=AEFR_BEGINNING;
                 SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
               }
-              lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+              lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
             }
             else
             {
@@ -14920,7 +14924,7 @@ BOOL CloseListBoxSelItems(HWND hWnd)
     {
       if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
-        if (DestroyMdiFrameWindow(lpFrame) != FWDE_SUCCESS)
+        if (DestroyFrameWindow(lpFrame) != FWDE_SUCCESS)
         {
           bResult=FALSE;
           break;

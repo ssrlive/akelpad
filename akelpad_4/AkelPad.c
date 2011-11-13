@@ -419,6 +419,7 @@ AECHARINDEX ciCurCaret={0};
 int nLoopCase=0;
 DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bReopenMsg=FALSE;
+BOOL bLockWatchFile=FALSE;
 WNDPROC lpOldEditProc;
 
 //Execute
@@ -1619,7 +1620,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (nMDI == WMD_PMDI)
         {
-          CreateMdiFrameWindow(NULL);
+          CreateFrameWindow(NULL);
         }
       }
       else if (nMDI == WMD_MDI)
@@ -1636,7 +1637,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         rcRect.right-=(rcRect.right * 14 / 100);
         rcRect.bottom-=(rcRect.bottom * 45 / 100);
-        CreateMdiFrameWindow(&rcRect);
+        CreateFrameWindow(&rcRect);
       }
 
       //Apply settings
@@ -1742,7 +1743,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
 
-        if (!(wParam & FWA_NOTIFY_BEFOREDESTROY))
+        if (!bLockWatchFile)
         {
           //Check modification time
           CheckModificationTime(lpFrameCurrent);
@@ -2623,15 +2624,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Frames
     if (uMsg == AKD_FRAMEACTIVATE)
     {
-      return (LRESULT)ActivateMdiFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
+      return (LRESULT)ActivateFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
     }
     if (uMsg == AKD_FRAMENEXT)
     {
-      return (LRESULT)NextMdiFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
+      return (LRESULT)ActivateNextFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
     }
     if (uMsg == AKD_FRAMEDESTROY)
     {
-      return DestroyMdiFrameWindow((FRAMEDATA *)lParam);
+      return DestroyFrameWindow((FRAMEDATA *)lParam);
     }
     if (uMsg == AKD_FRAMEFIND ||
         uMsg == AKD_FRAMEFINDA ||
@@ -2677,6 +2678,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
       if (wParam == FWF_BYTABINDEX)
         return (LRESULT)GetTabParamFromItem(hTab, (int)lParam);
+      if (wParam == FWF_TABNEXT)
+        return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, FALSE);
+      if (wParam == FWF_TABPREV)
+        return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, TRUE);
       return 0;
     }
     if (uMsg == AKD_FRAMESTATS)
@@ -3453,7 +3458,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         do
         {
           if (!DoFileSave()) return FALSE;
-          lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
         }
         while (lpFrameCurrent != lpFrameInit);
 
@@ -3892,7 +3897,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!nMDI)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         else
-          DestroyMdiFrameWindow(lpFrameCurrent);
+          DestroyFrameWindow(lpFrameCurrent);
         return TRUE;
       }
       return FALSE;
@@ -4055,15 +4060,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDM_WINDOW_FRAMENEXT)
       {
-        return (LRESULT)NextMdiFrameWindow(lpFrameCurrent, FALSE);
+        return (LRESULT)ActivateNextFrameWindow(lpFrameCurrent, FALSE);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMEPREV)
       {
-        return (LRESULT)NextMdiFrameWindow(lpFrameCurrent, TRUE);
+        return (LRESULT)ActivateNextFrameWindow(lpFrameCurrent, TRUE);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSE)
       {
-        return !DestroyMdiFrameWindow(lpFrameCurrent);
+        return !DestroyFrameWindow(lpFrameCurrent);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSEALL)
       {
@@ -4078,16 +4083,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
             dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+          bLockWatchFile=TRUE;
 
           while (lpFrameCurrent->hWndEditParent)
           {
-            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+            if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
           }
           dwChangedPrompt=0;
+          bLockWatchFile=FALSE;
 
           return bResult;
         }
@@ -4102,19 +4109,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Show "No to all" button if necessary
           if (nDocumentsModified > 1)
             dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+          bLockWatchFile=TRUE;
 
           for (;;)
           {
-            lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit) break;
 
-            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+            if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
             {
               bResult=FALSE;
               break;
             }
           }
           dwChangedPrompt=0;
+          bLockWatchFile=FALSE;
 
           return bResult;
         }
@@ -4127,21 +4136,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           BOOL bBreak=FALSE;
           BOOL bResult=TRUE;
 
+          bLockWatchFile=TRUE;
+
           while (!bBreak)
           {
-            lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit)
               bBreak=TRUE;
 
             if (!lpFrameCurrent->ei.bModified)
             {
-              if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+              if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
               {
                 bResult=FALSE;
                 break;
               }
             }
           }
+          bLockWatchFile=FALSE;
 
           return bResult;
         }
@@ -4224,7 +4236,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bTabPressing=TRUE;
           nDocumentIndex=(int)SendMessage(hTab, TCM_GETCURSEL, 0, 0);
           lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nDocumentIndex);
-          ActivateMdiFrameWindow(lpFrame, 0);
+          ActivateFrameWindow(lpFrame, 0);
           bTabPressing=FALSE;
         }
       }
@@ -4270,10 +4282,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Show "No to all" button if necessary
       if (nDocumentsModified > 1)
         dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+      bLockWatchFile=TRUE;
 
       while (lpFrameCurrent->hWndEditParent)
       {
-        nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent);
+        nDestroyResult=DestroyFrameWindow(lpFrameCurrent);
 
         if (nDestroyResult == FWDE_ABORT)
         {
@@ -4284,6 +4297,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           break;
       }
       dwChangedPrompt=0;
+      bLockWatchFile=FALSE;
 
       if (!nMainOnFinish)
         return bEndSession?0:1;
@@ -4337,7 +4351,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
     {
-      CreateMdiFrameWindow(NULL);
+      CreateFrameWindow(NULL);
     }
   }
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
@@ -4373,7 +4387,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       if (lpFrameCurrent->ei.hWndEdit)
         SetFocus(lpFrameCurrent->ei.hWndEdit);
 
-      if (!bFrameActivating)
+      if (!bFrameActivating && !bLockWatchFile)
       {
         //Check modification time
         CheckModificationTime(lpFrameCurrent);
@@ -4977,7 +4991,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         FRAMEDATA *lpFrame;
 
         if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-          ActivateMdiFrameWindow(lpFrame, 0);
+          ActivateFrameWindow(lpFrame, 0);
       }
 
       //Assign current window. Need for split windows.
@@ -5241,16 +5255,16 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
   {
-    CreateMdiFrameWindow(NULL);
+    CreateFrameWindow(NULL);
   }
   else if (uMsg == WM_MDINEXT)
   {
-    NextMdiFrameWindow(lpFrameCurrent, (BOOL)lParam);
+    ActivateNextFrameWindow(lpFrameCurrent, (BOOL)lParam);
     return TRUE;
   }
   else if (uMsg == WM_MDIDESTROY)
   {
-    //WM_MDIDESTROY should not be called directly. Use DestroyMdiFrameWindow function.
+    //WM_MDIDESTROY should not be called directly. Use DestroyFrameWindow function.
     if ((HWND)wParam)
     {
       FRAMEDATA *lpFrame;
@@ -5265,7 +5279,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         //Activate frame
         if (!(dwPrompt & PROMPT_NONE))
-          ActivateMdiFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
+          ActivateFrameWindow(lpFrame, FWA_NOTIFY_BEFOREDESTROY);
 
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
@@ -5381,13 +5395,13 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if ((nItem=GetTabItemFromCursorPos(hTab)) != -1)
     {
       lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nItem);
-      DestroyMdiFrameWindow(lpFrame);
+      DestroyFrameWindow(lpFrame);
       return TRUE;
     }
   }
   else if (uMsg == WM_LBUTTONDBLCLK)
   {
-    DestroyMdiFrameWindow(lpFrameCurrent);
+    DestroyFrameWindow(lpFrameCurrent);
     return TRUE;
   }
   else if (uMsg == WM_TIMER)
