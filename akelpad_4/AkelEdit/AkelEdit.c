@@ -18624,12 +18624,20 @@ void AE_EditUndo(AKELEDIT *ae)
   AECHARINDEX ciActionEnd;
   AECHARINDEX ciInsertStart;
   AECHARINDEX ciInsertEnd;
+  POINT64 ptFirstVisLine;
+  int nFirstVisibleLine=0;
   BOOL bColumnSel;
 
   if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_UNDO);
   AE_StackUndoGroupStop(ae);
   lpCurElement=ae->ptxt->lpCurrentUndo;
+
+  if (ae->popt->dwOptions & AECO_NOSCROLLDELETEALL)
+  {
+    if (!ae->popt->nVScrollLock)
+      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+  }
 
   while (lpCurElement)
   {
@@ -18717,6 +18725,15 @@ void AE_EditUndo(AKELEDIT *ae)
         break;
   }
 
+  if ((ae->popt->dwOptions & AECO_NOSCROLLDELETEALL) && (ae->dwNotifyTextChange & AETCT_DELETEALL))
+  {
+    if (!ae->popt->nVScrollLock)
+    {
+      ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
+      AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+    }
+  }
+
   AE_NotifyChanged(ae); //AETCT_UNDO
 }
 
@@ -18728,6 +18745,8 @@ void AE_EditRedo(AKELEDIT *ae)
   AECHARINDEX ciActionEnd;
   AECHARINDEX ciInsertStart;
   AECHARINDEX ciInsertEnd;
+  POINT64 ptFirstVisLine;
+  int nFirstVisibleLine=0;
   BOOL bColumnSel;
 
   if (AE_IsReadOnly(ae)) return;
@@ -18737,6 +18756,12 @@ void AE_EditRedo(AKELEDIT *ae)
     lpCurElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
   else
     lpCurElement=lpCurElement->next;
+
+  if (ae->popt->dwOptions & AECO_NOSCROLLDELETEALL)
+  {
+    if (!ae->popt->nVScrollLock)
+      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+  }
 
   while (lpCurElement)
   {
@@ -18813,6 +18838,15 @@ void AE_EditRedo(AKELEDIT *ae)
       break;
 
     lpCurElement=lpNextElement;
+  }
+
+  if ((ae->popt->dwOptions & AECO_NOSCROLLDELETEALL) && (ae->dwNotifyTextChange & AETCT_DELETEALL))
+  {
+    if (!ae->popt->nVScrollLock)
+    {
+      ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
+      AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+    }
   }
 
   AE_NotifyChanged(ae); //AETCT_REDO
