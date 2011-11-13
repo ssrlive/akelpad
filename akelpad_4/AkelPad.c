@@ -1742,8 +1742,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
 
-        //Check modification time
-        CheckModificationTime(lpFrameCurrent);
+        if (!(wParam & FWA_NOTIFY_BEFOREDESTROY))
+        {
+          //Check modification time
+          CheckModificationTime(lpFrameCurrent);
+        }
       }
       return 0;
     }
@@ -2695,6 +2698,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_FRAMEISVALID)
     {
       return (LRESULT)StackFrameIsValid(&hFramesStack, (FRAMEDATA *)lParam);
+    }
+    if (uMsg == AKD_FRAMEINDEX)
+    {
+      if (wParam)
+        return StackFrameGetIndex(&hFramesStack, (FRAMEDATA *)lParam);
+      else
+        return GetTabItemFromParam(hTab, lParam);
     }
 
     //Thread
