@@ -374,8 +374,8 @@
 
 //AKD_FRAMEFIND flags
 #define FWF_CURRENT        1  //Retrieve current frame data pointer. lParam not used.
-#define FWF_NEXT           2  //Retrieve next frame data pointer. lParam is a frame data pointer.
-#define FWF_PREV           3  //Retrieve previous frame data pointer. lParam is a frame data pointer.
+#define FWF_NEXT           2  //Retrieve next frame data pointer in frame stack. lParam is a frame data pointer.
+#define FWF_PREV           3  //Retrieve previous frame data pointer in frame stack. lParam is a frame data pointer.
 #define FWF_BYINDEX        4  //Retrieve frame data by index in frame stack. lParam is frame index. First frame has index 1.
 #define FWF_BYFILENAME     5  //Retrieve frame data by full file name. lParam is full file name string.
                               // For AKD_FRAMEFINDA string is ansi.
@@ -383,6 +383,8 @@
 #define FWF_BYEDITWINDOW   6  //Retrieve frame data by edit window handle. lParam is edit window handle.
 #define FWF_BYEDITDOCUMENT 7  //Retrieve frame data by edit document handle. lParam is edit document handle.
 #define FWF_BYTABINDEX     8  //Retrieve frame data by tab item index. lParam is tab item index.
+#define FWF_TABNEXT        9  //Retrieve next tab item frame data. lParam is a frame data pointer.
+#define FWF_TABPREV        10 //Retrieve previous tab item frame data. lParam is a frame data pointer.
 
 //AKD_FRAMEACTIVATE and AKDN_FRAME_ACTIVATE flags
 #define FWA_NOUPDATEORDER         0x00000001  //Don't update access order during activating.
