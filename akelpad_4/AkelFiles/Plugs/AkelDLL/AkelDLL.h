@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 1)
 
 
 //// Defines
@@ -1716,6 +1716,7 @@ typedef struct {
 #define AKD_FRAMESTATS             (WM_USER + 267)
 #define AKD_FRAMENOWINDOWS         (WM_USER + 268)
 #define AKD_FRAMEISVALID           (WM_USER + 269)
+#define AKD_FRAMEINDEX             (WM_USER + 270)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -3327,6 +3328,22 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMEISVALID, 0, (LPARAM)lpFrame);
+
+
+AKD_FRAMEINDEX
+______________
+
+Retrieve index of the frame.
+
+(BOOL)wParam        == TRUE   Retrieve frame index in frame stack. First frame has index 1.
+                       FALSE  Retrieve frame index in tab item. First frame has index 0.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ Frame index. If frame not found then index will be 0 (wParam == TRUE) or -1 (wParam == FALSE).
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMEINDEX, FALSE, (LPARAM)lpFrame);
 
 
 AKD_GLOBALALLOC

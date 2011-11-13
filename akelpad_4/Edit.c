@@ -15693,21 +15693,19 @@ FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex)
 
 FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDocEdit)
 {
-  FRAMEDATA *lpFrame=(FRAMEDATA *)hStack->last;
+  FRAMEDATA *lpFrame;
 
-  while (lpFrame)
+  for (lpFrame=(FRAMEDATA *)hStack->last; lpFrame; lpFrame=lpFrame->prev)
   {
     if (lpFrame->ei.hDocEdit == hDocEdit)
       return lpFrame;
-
-    lpFrame=lpFrame->prev;
   }
   return NULL;
 }
 
 FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen)
 {
-  FRAMEDATA *lpFrame=(FRAMEDATA *)hStack->first;
+  FRAMEDATA *lpFrame;
 
   if (nFileNameLen == -1)
     nFileNameLen=(int)xstrlenW(wpFileName);
@@ -15721,14 +15719,13 @@ FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nF
     }
   }
 
-  while (lpFrame)
+  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
   {
     if (lpFrame->nFileLen == nFileNameLen)
     {
       if (!xstrcmpiW(lpFrame->wszFile, wpFileName))
         return lpFrame;
     }
-    lpFrame=lpFrame->next;
   }
   return NULL;
 }
@@ -15758,16 +15755,28 @@ FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev)
   return NULL;
 }
 
+DWORD StackFrameGetIndex(HSTACK *hStack, FRAMEDATA *lpFramePointer)
+{
+  FRAMEDATA *lpFrame;
+  DWORD dwIndex=1;
+
+  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
+  {
+    if (lpFrame == lpFramePointer)
+      return dwIndex;
+    ++dwIndex;
+  }
+  return 0;
+}
+
 FRAMEDATA* StackFrameIsValid(HSTACK *hStack, FRAMEDATA *lpFramePointer)
 {
-  FRAMEDATA *lpFrame=(FRAMEDATA *)hStack->first;
+  FRAMEDATA *lpFrame;
 
-  while (lpFrame)
+  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
   {
     if (lpFrame == lpFramePointer)
       return lpFrame;
-
-    lpFrame=lpFrame->next;
   }
   return NULL;
 }
