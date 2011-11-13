@@ -376,7 +376,7 @@
 #define FWF_CURRENT        1  //Retrieve current frame data pointer. lParam not used.
 #define FWF_NEXT           2  //Retrieve next frame data pointer. lParam is a frame data pointer.
 #define FWF_PREV           3  //Retrieve previous frame data pointer. lParam is a frame data pointer.
-#define FWF_BYINDEX        4  //Retrieve frame data by index. lParam is frame index. First frame has index 1.
+#define FWF_BYINDEX        4  //Retrieve frame data by index in frame stack. lParam is frame index. First frame has index 1.
 #define FWF_BYFILENAME     5  //Retrieve frame data by full file name. lParam is full file name string.
                               // For AKD_FRAMEFINDA string is ansi.
                               // For AKD_FRAMEFINDW string is unicode.
