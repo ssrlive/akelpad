@@ -1588,6 +1588,7 @@ typedef struct {
 #define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
 #define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
 #define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
+#define AKDN_MAIN_ONDESTROY        (WM_USER + 7)   //0x407
 
 #define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
 #define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
@@ -1846,7 +1847,19 @@ Return Value
 AKDN_MAIN_ONFINISH
 __________________
 
-Notification message, sends to the main procedure before destroying main window.
+Notification message, sends to the main procedure before destroying main window and its children.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+
+AKDN_MAIN_ONDESTROY
+___________________
+
+Notification message, sends to the main procedure after children destroyed, but before destroying main window.
 
 wParam == not used.
 lParam == not used.
