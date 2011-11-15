@@ -16779,7 +16779,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   INT_PTR nHScrollPos=0;
   INT_PTR nVScrollPos=0;
   INT_PTR nInsertOffset;
-  INT_PTR nInsertCharInLine;
+  int nInsertCharInLine;
   INT_PTR nInsertOffsetInLine;
   INT_PTR nStartOffset;
   INT_PTR nEndOffset;

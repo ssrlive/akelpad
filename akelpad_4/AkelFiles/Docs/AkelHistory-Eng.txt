@@ -1,5 +1,5 @@
 
-AkelPad 4.7.0 ()
+AkelPad 4.7.0 (Nov 15, 2011)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: active column flashing minimized.
