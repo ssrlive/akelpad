@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.0                               *
+ *                      AkelEdit text control v1.7.1                               *
  *                                                                                 *
  * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -12506,17 +12506,14 @@ void AE_Paint(AKELEDIT *ae)
             hlp.dwDefaultText=ae->popt->crActiveLineTextWithAltText;
             hlp.dwDefaultBk=ae->popt->crActiveLineBkWithAltBk;
             hbrDefaultBk=hbrActiveLineBkWithAltBk;
-            if (ae->popt->dwOptions & AECO_ALTLINEBORDER)
-            {
-              if (hbrBorderTop)
-                hbrBorderTop=hbrActiveLineBorderWithAltBorder;
-              else
-                hbrBorderTop=hbrActiveLineBorderWithAltBk;
-              if (hbrBorderBottom)
-                hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
-              else
-                hbrBorderBottom=hbrActiveLineBorderWithAltBk;
-            }
+            if (hbrBorderTop)
+              hbrBorderTop=hbrActiveLineBorderWithAltBorder;
+            else
+              hbrBorderTop=hbrActiveLineBorderWithAltBk;
+            if (hbrBorderBottom)
+              hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
+            else
+              hbrBorderBottom=hbrActiveLineBorderWithAltBk;
           }
           else
           {
