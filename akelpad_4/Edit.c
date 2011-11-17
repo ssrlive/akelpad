@@ -17835,34 +17835,15 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
 {
-  AECHARRANGE crCurSel;
-  AECHARINDEX ciCaretIndex;
+  AECHARCOLORS aecc;
   AECHARINDEX ciCharIndex;
-  BOOL bColumnSel;
+  BOOL bResult;
 
-  GetSel(lpFrame->ei.hWndEdit, &crCurSel, &bColumnSel, &ciCaretIndex);
-  SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, cc->nCharPos, (LPARAM)&ciCharIndex);
-
-  if (bColumnSel ?
-       AEC_IsCharInSelection(&ciCharIndex) :
-       (AEC_IndexCompare(&ciCharIndex, &crCurSel.ciMin) >= 0 &&
-        AEC_IndexCompare(&ciCharIndex, &crCurSel.ciMax) < 0))
-  {
-    cc->crText=lpFrame->aec.crSelText;
-    cc->crBk=lpFrame->aec.crSelBk;
-    return TRUE;
-  }
-  else if (ciCharIndex.nLine == ciCaretIndex.nLine)
-  {
-    cc->crText=lpFrame->aec.crActiveLineText;
-    cc->crBk=lpFrame->aec.crActiveLineBk;
-  }
-  else
-  {
-    cc->crText=lpFrame->aec.crBasicText;
-    cc->crBk=lpFrame->aec.crBasicBk;
-  }
-  return FALSE;
+  SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)cc->nCharPos, (LPARAM)&ciCharIndex);
+  bResult=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCharIndex, (LPARAM)&aecc);
+  cc->crText=aecc.crText;
+  cc->crBk=aecc.crBk;
+  return bResult;
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent

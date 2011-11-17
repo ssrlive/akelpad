@@ -15,8 +15,8 @@
  * - Unlimited undo/redo.                                                          *
  * - Column text selection.                                                        *
  * - Editing and correct saving of binary files.                                   *
- * - Syntax highlighing.                                                           *
- * - URL detection and highlighing.                                                *
+ * - Syntax highlighting.                                                          *
+ * - URL detection and highlighting.                                               *
  * - Code folding.                                                                 *
  * - Split edit window.                                                            *
  * - Color printing.                                                               *
@@ -1629,6 +1629,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
+    if (uMsg == AEM_GETCHARCOLORS)
+    {
+      return AE_GetCharColors(ae, (const AECHARINDEX *)wParam, (AECHARCOLORS *)lParam);
+    }
 
     //Draw
     ShowScrollbar:
@@ -2415,7 +2419,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AEGETHIGHLIGHT *aegh=(AEGETHIGHLIGHT *)lParam;
 
-      AE_GetHightLight(ae, aegh);
+      AE_GetHighLight(ae, aegh);
       return 0;
     }
   }
@@ -13001,7 +13005,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->fm.lpFold->crText != (DWORD)-1 ||
               hlp->fm.lpFold->crBk != (DWORD)-1)
           {
-            //Fold has highlighing information
+            //Fold has highlighting information
             lpColored=hlp->fm.lpFold;
           }
           if (hlp->fm.lpFold->parent)
@@ -13565,7 +13569,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
   }
 }
 
-void AE_GetHightLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
+void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
 {
   AEHLPAINT hlp;
   AETEXTOUT to;
@@ -19344,6 +19348,106 @@ void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax)
   AE_RichOffsetToAkelIndex(ae, nMin, &cr.ciMin);
   AE_RichOffsetToAkelIndex(ae, nMax, &cr.ciMax);
   AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0, AESCT_SETSELMESSAGE);
+}
+
+BOOL AE_GetCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCOLORS *aecc)
+{
+  aecc->dwFontStyle=AEHLS_NONE;
+  aecc->crBorderTop=(DWORD)-1;
+  aecc->crBorderBottom=(DWORD)-1;
+
+  if (AEC_IsCharInSelection(ciChar))
+  {
+    aecc->crText=ae->popt->aec.crSelText;
+    aecc->crBk=ae->popt->aec.crSelBk;
+    aecc->crBorderTop=ae->popt->aec.crSelBk;
+    aecc->crBorderBottom=ae->popt->aec.crSelBk;
+    return TRUE;
+  }
+  else
+  {
+    DWORD dwAltModule=0;
+
+    //Is line alternating
+    if (ae->popt->dwAltLineSkip && ae->popt->dwAltLineFill)
+    {
+      dwAltModule=ciChar->nLine % (ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill);
+
+      if (dwAltModule >= ae->popt->dwAltLineSkip)
+      {
+        if (ae->popt->dwOptions & AECO_ALTLINEBORDER)
+        {
+          if (dwAltModule == ae->popt->dwAltLineSkip)
+            aecc->crBorderTop=ae->popt->aec.crAltLineBorder;
+          if (dwAltModule == ae->popt->dwAltLineSkip + ae->popt->dwAltLineFill - 1)
+            aecc->crBorderBottom=ae->popt->aec.crAltLineBorder;
+        }
+      }
+      else dwAltModule=0;
+    }
+
+    //Set initial colors
+    if ((ae->popt->dwOptions & AECO_ACTIVELINE) && ciChar->nLine == ae->ciCaretIndex.nLine)
+    {
+      if (dwAltModule)
+      {
+        aecc->crText=ae->popt->crActiveLineTextWithAltText;
+        aecc->crBk=ae->popt->crActiveLineBkWithAltBk;
+        if (aecc->crBorderTop != (DWORD)-1)
+          aecc->crBorderTop=ae->popt->crActiveLineBorderWithAltBorder;
+        else
+          aecc->crBorderTop=ae->popt->crActiveLineBorderWithAltBk;
+        if (aecc->crBorderBottom != (DWORD)-1)
+          aecc->crBorderBottom=ae->popt->crActiveLineBorderWithAltBorder;
+        else
+          aecc->crBorderBottom=ae->popt->crActiveLineBorderWithAltBk;
+      }
+      else
+      {
+        aecc->crText=ae->popt->aec.crActiveLineText;
+        aecc->crBk=ae->popt->aec.crActiveLineBk;
+        if (ae->popt->dwOptions & AECO_ACTIVELINEBORDER)
+        {
+          aecc->crBorderTop=ae->popt->aec.crActiveLineBorder;
+          aecc->crBorderBottom=ae->popt->aec.crActiveLineBorder;
+        }
+      }
+    }
+    else if (dwAltModule)
+    {
+      aecc->crText=ae->popt->aec.crAltLineText;
+      aecc->crBk=ae->popt->aec.crAltLineBk;
+    }
+    else
+    {
+      aecc->crText=ae->popt->aec.crBasicText;
+      aecc->crBk=ae->popt->aec.crBasicBk;
+    }
+
+    //Get char highlighting
+    {
+      AEGETHIGHLIGHT aegh;
+
+      aegh.dwCookie=(UINT_PTR)aecc;
+      aegh.lpCallback=AE_GetCharColorCallback;
+      aegh.crText.ciMin=*ciChar;
+      AEC_NextCharEx(&aegh.crText.ciMin, &aegh.crText.ciMax);
+      aegh.dwFlags=0;
+      AE_GetHighLight(ae, &aegh);
+    }
+    return FALSE;
+  }
+}
+
+DWORD CALLBACK AE_GetCharColorCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
+{
+  AECHARCOLORS *aecc=(AECHARCOLORS *)dwCookie;
+
+  aecc->dwFontStyle=hlp->dwFontStyle;
+  aecc->crText=hlp->dwActiveText;
+  aecc->crBk=hlp->dwActiveBk;
+
+  return 0;
 }
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
