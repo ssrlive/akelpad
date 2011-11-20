@@ -1115,6 +1115,7 @@ BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, 
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
+int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen);
 void TrimModifyState(wchar_t *wszFile, int nFileLen);
 void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSeconds);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
