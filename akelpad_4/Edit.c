@@ -1334,6 +1334,7 @@ BOOL CloseDocument(DWORD dwPrompt)
   lpFrameCurrent->szFile[0]='\0';
   lpFrameCurrent->wszFile[0]=L'\0';
   lpFrameCurrent->nFileLen=0;
+  lpFrameCurrent->nStreamOffset=0;
   SetNewLineStatus(lpFrameCurrent, moCur.nDefaultNewLine, AENL_INPUT);
   SetModifyStatus(lpFrameCurrent, FALSE);
   SetCodePageStatus(lpFrameCurrent, moCur.nDefaultCodePage, moCur.bDefaultBOM);
@@ -4070,23 +4071,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
   bFileExist=GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
-
-  //Get stream offset
-  for (nStreamOffset=nFileLen - 1; nStreamOffset > 0; --nStreamOffset)
-  {
-    if (wszFile[nStreamOffset] == L':')
-    {
-      //wszFile[nStreamOffset++]=L'\0';
-      ++nStreamOffset;
-      break;
-    }
-    if (wszFile[nStreamOffset] == L'\\')
-    {
-      nStreamOffset=0;
-      break;
-    }
-  }
-  if (nStreamOffset < 0) nStreamOffset=0;
+  nStreamOffset=GetFileStreamOffset(wszFile, nFileLen);
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4761,6 +4746,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nCodePageCmp;
   int nLostLine=0;
   int nLostCharInLine;
+  int nFileLen;
+  int nStreamOffset;
 
   if (!wpFile[0])
   {
@@ -4769,7 +4756,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
-  GetFullName(wpFile, wszFile, MAX_PATH, NULL);
+  GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
+  nStreamOffset=GetFileStreamOffset(wszFile, nFileLen);
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4863,6 +4851,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
 
   //File attributes
+  if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
+
   if ((hFile=FindFirstFileWide(wszFile, &wfd)) != INVALID_HANDLE_VALUE)
   {
     FindClose(hFile);
@@ -4883,6 +4873,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       SetFileAttributesWide(wszFile, wfd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
   }
   else wfd.dwFileAttributes=INVALID_FILE_ATTRIBUTES;
+
+  if (nStreamOffset) wszFile[nStreamOffset]=L':';
 
   //Write to file
   for (;;)
@@ -4995,6 +4987,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
           if (nFileCmp)
           {
+            lpFrameCurrent->nStreamOffset=nStreamOffset;
             lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
             WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
             UpdateTitle(lpFrameCurrent);
@@ -5027,6 +5020,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
             if (nFileCmp)
             {
+              lpFrame->nStreamOffset=nStreamOffset;
               lpFrame->nFileLen=(int)xstrcpynW(lpFrame->wszFile, wszFile, MAX_PATH);
               WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
               UpdateTitle(lpFrame);
@@ -18167,9 +18161,23 @@ const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
   for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
     if (*wpCount == L'.') return wpCount + 1;
-    else if (*wpCount == L'\\') break;
+    if (*wpCount == L'\\') break;
   }
   return NULL;
+}
+
+int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen)
+{
+  const wchar_t *wpCount;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount > wpFile; --wpCount)
+  {
+    if (*wpCount == L':') return (int)(wpCount - wpFile);
+    if (*wpCount == L'\\') break;
+  }
+  return 0;
 }
 
 void TrimModifyState(wchar_t *wszFile, int nFileLen)
@@ -19139,10 +19147,9 @@ void UpdateTitle(FRAMEDATA *lpFrame)
     nFileLen=lpFrame->nFileLen;
     if (lpFrame->nStreamOffset)
     {
-      lpFrame->wszFile[lpFrame->nStreamOffset - 1]=L'\0';
-      nFileLen=lpFrame->nStreamOffset - 1;
+      lpFrame->wszFile[lpFrame->nStreamOffset]=L'\0';
+      nFileLen=lpFrame->nStreamOffset;
     }
-
     if (wpExt=GetFileExt(lpFrame->wszFile, nFileLen))
     {
       if (!(ai=StackIconGet(&hIconsStack, lpFrame->wszFile, nFileLen, wpExt)))
@@ -19156,7 +19163,7 @@ void UpdateTitle(FRAMEDATA *lpFrame)
       hIcon=hIconEmpty;
       nIconIndex=0;
     }
-    if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset - 1]=L':';
+    if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset]=L':';
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
     {
