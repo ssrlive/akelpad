@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 2)
 
 
 //// Defines
@@ -79,6 +79,7 @@
 #define OD_ADT_DETECT_BOM        ADT_DETECT_BOM       //See ADT_DETECT_BOM.
 #define OD_ADT_NOMESSAGES        ADT_NOMESSAGES       //See ADT_NOMESSAGES.
 #define OD_REOPEN                0x00000100           //Don't create new MDI window, use the exited one.
+#define OD_NOSCROLL              0x00000200           //Don't restore scroll position.
 
 //Open document errors
 #define EOD_SUCCESS              0          //Success.
@@ -834,6 +835,7 @@ typedef struct _FRAMEDATA {
   FILETIME ft;                                        //File time.
   HKL dwInputLocale;                                  //Keyboard layout.
   DWORD dwLockInherit;                                //See LI_* defines.
+  int nStreamOffset;
 
   //Substract selection
   AECHARRANGE crPrevSel;
