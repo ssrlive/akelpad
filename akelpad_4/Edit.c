@@ -4952,8 +4952,12 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   //Change back file attributes
   if (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
   {
+    if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
+
     if ((!(wfd.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) && fsd.bResult == TRUE) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
       SetFileAttributesWide(wszFile, wfd.dwFileAttributes|(fsd.bResult == TRUE?FILE_ATTRIBUTE_ARCHIVE:0));
+
+    if (nStreamOffset) wszFile[nStreamOffset]=L':';
   }
 
   //Change back file security (UAC).
