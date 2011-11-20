@@ -948,6 +948,14 @@ typedef struct {
 } AECOLORS;
 
 typedef struct {
+  DWORD dwFontStyle;       //[in] See AEHLS_* defines.
+  COLORREF crText;         //[in] Text color in line.
+  COLORREF crBk;           //[in] Background color in line.
+  COLORREF crBorderTop;    //[in] Top border color of the line.
+  COLORREF crBorderBottom; //[in] Bottom border color of the line.
+} AECHARCOLORS;
+
+typedef struct {
   AECHARINDEX *ciCharIn;   //[in]  Input character index.
   AECHARINDEX *ciCharOut;  //[out] Output character index (result).
   INT_PTR nOffset;         //[in]  Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
@@ -1521,6 +1529,7 @@ typedef struct {
 #define AEM_GETFONT               (WM_USER + 2239)
 #define AEM_GETALTLINE            (WM_USER + 2240)
 #define AEM_SETALTLINE            (WM_USER + 2241)
+#define AEM_GETCHARCOLORS         (WM_USER + 2242)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -4658,6 +4667,26 @@ Remarks
 
 Example:
  SendMessage(hWndEdit, AEM_SETALTLINE, MAKELONG(1, 1), 0);
+
+
+AEM_GETCHARCOLORS
+_________________
+
+Retrieve character colors.
+
+(AECHARINDEX *)wParam  == character index.
+(AECHARCOLORS *)lParam == pointer to a AECHARCOLORS structure.
+
+Return Value
+ TRUE  character in selection.
+ FALSE character not in selection.
+
+Example:
+ AECHARINDEX ciCaret;
+ AECHARCOLORS aelc;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
 
 
 AEM_SHOWSCROLLBAR
