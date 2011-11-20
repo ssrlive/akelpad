@@ -1,7 +1,7 @@
 
 AkelPad 4.7.1 ()
 ----------------------------
-Changed: line deletion when end-of-file reached.
+Changed: line deletion command continues to work when end-of-file reached.
 
 Fixed: active line border didn't displayed on alternating lines without border.
 Fixed: focus loss in open file dialog.
