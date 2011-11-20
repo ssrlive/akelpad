@@ -4523,7 +4523,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           {
             wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
 
-            xprintfW(wpTitle, L"%s%s - %s", aenm->bModified?L"* ":L"", GetFileName(lpFrame->wszFile), APP_MAIN_TITLEW);
+            xprintfW(wpTitle, L"%s%s - %s", aenm->bModified?L"* ":L"", GetFileName(lpFrame->wszFile, lpFrame->nFileLen), APP_MAIN_TITLEW);
             SetWindowTextWide(hMainWnd, wpTitle);
 
             FreeWideStr(wpTitle);
@@ -4548,7 +4548,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
               if (aenm->bModified)
                 xprintfW(wpTitle, L"%s *", wpTitle);
               else
-                TrimModifyState(wpTitle);
+                TrimModifyState(wpTitle, -1);
               TabCtrl_SetItemWide(hTab, nItem, &tcItem);
 
               FreeWideStr(wpTitle);

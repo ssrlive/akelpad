@@ -898,7 +898,7 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       //Set caption of main window
       if (lpFrameCurrent->wszFile[0])
       {
-        //xprintfW(wbuf, L"%s - %s", GetFileName(lpFrameCurrent->wszFile), APP_MAIN_TITLEW);
+        //xprintfW(wbuf, L"%s - %s", GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen), APP_MAIN_TITLEW);
         xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, lpFrameCurrent->wszFile);
         SetWindowTextWide(hMainWnd, wbuf);
       }
@@ -1337,7 +1337,7 @@ BOOL CloseDocument(DWORD dwPrompt)
   SetNewLineStatus(lpFrameCurrent, moCur.nDefaultNewLine, AENL_INPUT);
   SetModifyStatus(lpFrameCurrent, FALSE);
   SetCodePageStatus(lpFrameCurrent, moCur.nDefaultCodePage, moCur.bDefaultBOM);
-  UpdateTitle(lpFrameCurrent, L"");
+  UpdateTitle(lpFrameCurrent);
 
   return TRUE;
 }
@@ -1437,7 +1437,7 @@ BOOL DoFileOpen()
 
       if (!nMDI)
       {
-        GetFileDir(wszFileList, moCur.wszLastDir, MAX_PATH);
+        GetFileDir(wszFileList, -1, moCur.wszLastDir, MAX_PATH);
         nOpen=OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
           bResult=FALSE;
@@ -1504,7 +1504,7 @@ BOOL DoFileOpen()
         else
         {
           //One file selected
-          GetFileDir(wszFileList, moCur.wszLastDir, MAX_PATH);
+          GetFileDir(wszFileList, -1, moCur.wszLastDir, MAX_PATH);
           nOpen=OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
             bResult=FALSE;
@@ -4057,7 +4057,9 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   int nResult=EOD_SUCCESS;
   int nDetect;
   int nFileCmp;
-  BOOL bFileExist;
+  int nFileLen;
+  int nStreamOffset;
+  BOOL bFileExist=FALSE;
 
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
@@ -4067,8 +4069,24 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
-  wszFile[0]=L'\0';
-  bFileExist=GetFullName(wpFile, wszFile, MAX_PATH);
+  bFileExist=GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
+
+  //Get stream offset
+  for (nStreamOffset=nFileLen - 1; nStreamOffset > 0; --nStreamOffset)
+  {
+    if (wszFile[nStreamOffset] == L':')
+    {
+      //wszFile[nStreamOffset++]=L'\0';
+      ++nStreamOffset;
+      break;
+    }
+    if (wszFile[nStreamOffset] == L'\\')
+    {
+      nStreamOffset=0;
+      break;
+    }
+  }
+  if (nStreamOffset < 0) nStreamOffset=0;
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4334,10 +4352,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
       if (nFileCmp)
       {
-        UpdateTitle(lpFrameCurrent, wszFile);
-        xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
-        lpFrameCurrent->nFileLen=(int)xstrlenW(lpFrameCurrent->wszFile);
+        lpFrameCurrent->nStreamOffset=nStreamOffset;
+        lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
         WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
+        UpdateTitle(lpFrameCurrent);
       }
 
       //.LOG
@@ -4374,10 +4392,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-          if ((dwFlags & OD_REOPEN))
-            SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
-          else
-            ScrollCaret(hWnd);
+          if (!(dwFlags & OD_NOSCROLL))
+          {
+            if ((dwFlags & OD_REOPEN))
+              SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+            else
+              ScrollCaret(hWnd);
+          }
         }
       }
 
@@ -4748,7 +4769,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
-  GetFullName(wpFile, wszFile, MAX_PATH);
+  GetFullName(wpFile, wszFile, MAX_PATH, NULL);
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4974,10 +4995,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
           if (nFileCmp)
           {
-            UpdateTitle(lpFrameCurrent, wszFile);
-            xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
-            lpFrameCurrent->nFileLen=(int)xstrlenW(lpFrameCurrent->wszFile);
+            lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
             WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
+            UpdateTitle(lpFrameCurrent);
           }
           if (nFileCmp || nCodePageCmp)
             RecentFilesSaveFile(lpFrameCurrent);
@@ -5007,7 +5027,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
             if (nFileCmp)
             {
-              UpdateTitle(lpFrame, wszFile);
+              lpFrame->nFileLen=(int)xstrcpynW(lpFrame->wszFile, wszFile, MAX_PATH);
+              WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
+              UpdateTitle(lpFrame);
             }
           }
         }
@@ -6294,9 +6316,9 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   int a;
   BOOL bResult=TRUE;
 
-  wpFile=GetFileName(lpFrameCurrent->wszFile);
-  nFileLen=(int)xstrlenW(wpFile);
-  nFileDirLen=GetFileDir(lpFrameCurrent->wszFile, wszFileDir, MAX_PATH);
+  wpFile=GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
+  nFileLen=lpFrameCurrent->nFileLen - (int)(wpFile - lpFrameCurrent->wszFile);
+  nFileDirLen=GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wszFileDir, MAX_PATH);
 
   for (a=0; wpHeadline[a] && nCount < MAX_PATH; ++a)
   {
@@ -12963,7 +12985,7 @@ void FillPluginList(HWND hWnd)
     do
     {
       //Avoid FindFirstFile/FindNextFile bug: "*.dll_ANYSYMBOLS" is also matched
-      if (xstrcmpiW(wpPluginExt, GetFileExt(wfd.cFileName)))
+      if (xstrcmpiW(wpPluginExt, GetFileExt(wfd.cFileName, -1)))
         continue;
 
       xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\%s", wszExeDir, wfd.cFileName);
@@ -14593,7 +14615,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWndList, LB_GETITEMDATA, nListBoxItem, 0)) != LB_ERR)
       {
-        xprintfW(wbuf, L"%s%s", (moCur.dwMdiListOptions & MLO_ONLYNAMES)?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
+        xprintfW(wbuf, L"%s%s", (moCur.dwMdiListOptions & MLO_ONLYNAMES)?GetFileName(lpFrame->wszFile, lpFrame->nFileLen):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
         bSelected=(BOOL)SendMessage(hWndList, LB_GETSEL, nListBoxItem, 0);
         SendMessage(hWndList, LB_DELETESTRING, nListBoxItem, 0);
         ListBox_InsertStringWide(hWndList, nListBoxItem, wbuf);
@@ -14724,7 +14746,7 @@ void FillMdiListListBox(HWND hWnd, BOOL bSort, int nModifyFilter, BOOL bOnlyName
         (nModifyFilter == MLMF_ONLYMODIFIED && lpFrame->ei.bModified) ||
         (nModifyFilter == MLMF_ONLYUNMODIFIED && !lpFrame->ei.bModified))
     {
-      xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
+      xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile, lpFrame->nFileLen):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
 
       if (bSort)
         nNew=ListBox_AddStringWide(hWnd, wbuf);
@@ -16308,7 +16330,7 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   int i;
   int j;
 
-  if (wpExt=GetFileExt(wpFile))
+  if (wpExt=GetFileExt(wpFile, -1))
   {
     if (RegOpenKeyExWide(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
@@ -17169,7 +17191,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
       {
         if (moCur.bSingleOpenFile)
         {
-          if (GetFullName(wszCmdArg, wszCmdArg, MAX_PATH))
+          if (GetFullName(wszCmdArg, wszCmdArg, MAX_PATH, NULL))
           {
             if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdArg)) &&
                 (hWndFriend=GetParent(hWndFriend)))
@@ -17346,7 +17368,7 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
               else if (*wpSource == 'd' || *wpSource == 'D')
               {
                 ++wpSource;
-                wpTarget+=GetFileDir(wpFile, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
+                wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
               }
               else if (*wpSource == 'a' || *wpSource == 'A')
               {
@@ -18056,50 +18078,57 @@ int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
   return nLen;
 }
 
-int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, DWORD dwFileDirLen)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen)
 {
-  DWORD i;
+  const wchar_t *wpCount;
 
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
   if (wszFileDir) wszFileDir[0]=L'\0';
 
-  for (i=(DWORD)xstrlenW(wpFile) - 1; i > 0; --i)
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == '\\')
-      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, i + 1));
+    if (*wpCount == L'\\')
+      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, (DWORD)(wpCount - wpFile) + 1));
   }
   return 0;
 }
 
-BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax)
+BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, int *lpnFileLen)
 {
   wchar_t wszFileBuf[MAX_PATH];
   wchar_t *wpFileName;
+  int nFileLen=0;
   BOOL bResult=FALSE;
 
   if (GetFullPathNameWide(wpFile, MAX_PATH, wszFileBuf, &wpFileName))
   {
-    if (FileExistsWide(wszFileBuf))
+    if (bResult=FileExistsWide(wszFileBuf))
     {
-      if (GetLongPathNameWide(wszFileBuf, wszFileFullName, nFileMax))
-        return TRUE;
+      if (nFileLen=GetLongPathNameWide(wszFileBuf, wszFileFullName, nFileMax))
+        goto End;
 
       //GetLongPathName can fail on x86 build when open system file on x64,
       //but we return TRUE to allow AkelAdmin.exe execution.
-      bResult=TRUE;
     }
-    xstrcpynW(wszFileFullName, wszFileBuf, nFileMax);
+    nFileLen=(int)xstrcpynW(wszFileFullName, wszFileBuf, nFileMax);
   }
+  else wszFileFullName[0]=L'\0';
+
+  End:
+  if (lpnFileLen) *lpnFileLen=nFileLen;
   return bResult;
 }
 
-const wchar_t* GetFileName(const wchar_t *wpFile)
+const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
 {
-  int i;
+  const wchar_t *wpCount;
 
-  for (i=(int)xstrlenW(wpFile) - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == '\\')
-      return (wpFile + i + 1);
+    if (*wpCount == L'\\')
+      return wpCount + 1;
   }
   return wpFile;
 }
@@ -18129,39 +18158,30 @@ int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen
   return nBaseNameMaxLen;
 }
 
-const wchar_t* GetFileExt(const wchar_t *wpFile)
+const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
 {
-  int i;
+  const wchar_t *wpCount;
 
-  for (i=(int)xstrlenW(wpFile) - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == L'.') return (wchar_t *)(wpFile + i + 1);
-    else if (wpFile[i] == L'\\') break;
+    if (*wpCount == L'.') return wpCount + 1;
+    else if (*wpCount == L'\\') break;
   }
   return NULL;
 }
 
-void TrimPathBackslash(wchar_t *wszPath)
+void TrimModifyState(wchar_t *wszFile, int nFileLen)
 {
-  int i;
+  wchar_t *wpCount;
 
-  for (i=(int)xstrlenW(wszPath) - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wszFile);
+
+  for (wpCount=wszFile + nFileLen - 1; wpCount >= wszFile; --wpCount)
   {
-    if (wszPath[i] == L'\\')
-      wszPath[i]=L'\0';
-    else
-      break;
-  }
-}
-
-void TrimModifyState(wchar_t *wszFile)
-{
-  int i;
-
-  for (i=(int)xstrlenW(wszFile) - 1; i >= 0; --i)
-  {
-    if (wszFile[i] == '*' || wszFile[i] == ' ')
-      wszFile[i]='\0';
+    if (*wpCount == L'*' || *wpCount == L' ')
+      *wpCount=L'\0';
     else
       break;
   }
@@ -18353,7 +18373,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
         else if (*wpSource == 'd' || *wpSource == 'D')
         {
           ++wpSource;
-          wpTarget+=GetFileDir(wpFile, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
+          wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
         }
         else if (*wpSource == 'a' || *wpSource == 'A')
         {
@@ -19067,20 +19087,20 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
+void UpdateTitle(FRAMEDATA *lpFrame)
 {
   const wchar_t *wpFileName;
-  int nFileLen=(int)xstrlenW(wszFile);
+  int nFileLen;
 
   //Get file name without path
-  wpFileName=GetFileName(wszFile);
+  wpFileName=GetFileName(lpFrame->wszFile, lpFrame->nFileLen);
 
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
   {
     if (nMDI == WMD_SDI)
     {
       //Set caption of synchronizing window
-      SetWindowTextWide(hDummyWindow, wszFile);
+      SetWindowTextWide(hDummyWindow, lpFrame->wszFile);
     }
 
     //Set caption of main window
@@ -19093,7 +19113,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
       }
       else if (nMDI == WMD_PMDI)
       {
-        xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, wszFile);
+        xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, lpFrame->wszFile);
         SetWindowTextWide(hMainWnd, wbuf);
       }
     }
@@ -19112,14 +19132,21 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     if (nMDI == WMD_MDI)
     {
       //Set caption of frame window
-      SetWindowTextWide(lpFrame->hWndEditParent, wszFile);
+      SetWindowTextWide(lpFrame->hWndEditParent, lpFrame->wszFile);
     }
 
     //Find file icon
-    if (wpExt=GetFileExt(wpFileName))
+    nFileLen=lpFrame->nFileLen;
+    if (lpFrame->nStreamOffset)
     {
-      if (!(ai=StackIconGet(&hIconsStack, wszFile, nFileLen, wpExt)))
-        if (ai=StackIconInsert(&hIconsStack, wszFile, nFileLen))
+      lpFrame->wszFile[lpFrame->nStreamOffset - 1]=L'\0';
+      nFileLen=lpFrame->nStreamOffset - 1;
+    }
+
+    if (wpExt=GetFileExt(lpFrame->wszFile, nFileLen))
+    {
+      if (!(ai=StackIconGet(&hIconsStack, lpFrame->wszFile, nFileLen, wpExt)))
+        if (ai=StackIconInsert(&hIconsStack, lpFrame->wszFile, nFileLen))
           if (ai->hIcon) ImageList_AddIcon(hImageList, ai->hIcon);
       hIcon=ai->hIcon;
       nIconIndex=ai->nIconIndex;
@@ -19129,6 +19156,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
       hIcon=hIconEmpty;
       nIconIndex=0;
     }
+    if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset - 1]=L':';
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
     {
@@ -19145,9 +19173,6 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     }
 
     //Set frame info
-    xstrcpynW(lpFrame->wszFile, wszFile, MAX_PATH);
-    lpFrame->nFileLen=(int)xstrlenW(lpFrame->wszFile);
-    WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
     lpFrame->hIcon=hIcon;
     lpFrame->nIconIndex=nIconIndex;
 
