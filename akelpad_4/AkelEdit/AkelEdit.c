@@ -4453,7 +4453,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       aecDisable.crActiveLineText=crDisableText;
       aecDisable.crActiveLineBk=crDisableBk;
       AE_SetColors(ae, &aecDisable, TRUE);
-      SetFocus(NULL);
+      if (ae->bFocus) SetFocus(NULL);
     }
     return 0;
   }

@@ -2,6 +2,7 @@
 AkelPad 4.7.1 ()
 ----------------------------
 Fixed: active line border didn't displayed on alternating lines without border.
+Fixed: focus loss in open file dialog.
 
 
 AkelPad 4.7.0 (Nov 15, 2011)
