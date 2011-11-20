@@ -63,7 +63,7 @@ typedef struct {
 
 //Functions prototypes
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
-const wchar_t* GetFileName(const wchar_t *wpFile);
+const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetCommandLineArgW(wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, wchar_t **wpNextArg);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
 
@@ -95,6 +95,7 @@ void _WinMain()
   wchar_t *wpCmdLine=GetCommandLineW();
   wchar_t *pArguments=wpCmdLine;
   int nAction=0;
+  int nExeDirLen;
   DWORD dwExitCode=1;
 
   //Get program HINSTANCE
@@ -106,9 +107,9 @@ void _WinMain()
   if (hInstance)
   {
     //Get program directory
-    GetExeDir(hInstance, wszBuffer, BUFFER_SIZE);
+    nExeDirLen=GetExeDir(hInstance, wszBuffer, BUFFER_SIZE);
 
-    if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer)))
+    if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer, nExeDirLen)))
     {
       //Skip executable
       GetCommandLineArgW(pArguments, NULL, 0, &pArguments);
@@ -325,14 +326,16 @@ int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
   return nLen;
 }
 
-const wchar_t* GetFileName(const wchar_t *wpFile)
+const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
 {
-  int i;
+  const wchar_t *wpCount;
 
-  for (i=lstrlenW(wpFile) - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == '\\')
-      return (wpFile + i + 1);
+    if (*wpCount == L'\\')
+      return wpCount + 1;
   }
   return wpFile;
 }
