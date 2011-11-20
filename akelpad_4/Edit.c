@@ -2882,17 +2882,31 @@ void DoHelpAbout()
 void DoNonMenuDelLine(HWND hWnd)
 {
   AECHARRANGE cr;
+  BOOL bLastLine=FALSE;
 
   if (IsReadOnly(hWnd)) return;
 
   cr.ciMin=crCurSel.ciMin;
   cr.ciMax=crCurSel.ciMax;
   cr.ciMin.nCharInLine=0;
-  if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&cr.ciMax))
+  if (!AEC_NextLineEx(&cr.ciMax, &cr.ciMax))
+  {
     cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
-  SetSel(hWnd, &cr, AESELT_LOCKSCROLL, NULL);
+    AEC_PrevLineEx(&cr.ciMin, &cr.ciMin);
+    bLastLine=TRUE;
+  }
+  SetSel(hWnd, &cr, AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET, NULL);
 
   ReplaceSelW(hWnd, L"", -1, AELB_ASINPUT, 0, NULL, NULL);
+
+  if (bLastLine && crCurSel.ciMin.nCharInLine)
+  {
+    cr.ciMin=crCurSel.ciMin;
+    cr.ciMax=crCurSel.ciMax;
+    cr.ciMin.nCharInLine=0;
+    cr.ciMax.nCharInLine=0;
+    SetSel(hWnd, &cr, 0, NULL);
+  }
 }
 
 
