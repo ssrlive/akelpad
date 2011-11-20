@@ -4985,7 +4985,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
           nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
 
+          if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
           GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
+          if (nStreamOffset) wszFile[nStreamOffset]=L':';
+
           SetModifyStatus(lpFrameCurrent, FALSE);
           SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
@@ -5016,7 +5019,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             //Compare
             nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
 
+            if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
             GetFileWriteTimeWide(wszFile, &ft);
+            if (nStreamOffset) wszFile[nStreamOffset]=L':';
+
             SetModifyStatus(lpFrame, FALSE);
             lpFrame->ei.nCodePage=nCodePage;
             lpFrame->ei.bBOM=bBOM;
@@ -5387,6 +5393,7 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
   if (moCur.bWatchFile && lpFrame->wszFile[0] && (lpFrame->ft.dwLowDateTime || lpFrame->ft.dwHighDateTime))
   {
     FILETIME ftTmp;
+    BOOL bWriteTime;
 
     if (!FileExistsWide(lpFrame->wszFile))
     {
@@ -5399,26 +5406,33 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
 
       SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame);
     }
-    else if (GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp))
+    else
     {
-      if (CompareFileTime(&lpFrame->ft, &ftTmp))
+      if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset]=L'\0';
+      bWriteTime=GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp);
+      if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset]=L':';
+
+      if (bWriteTime)
       {
-        lpFrame->ft=ftTmp;
-
-        if (!bReopenMsg)
+        if (CompareFileTime(&lpFrame->ft, &ftTmp))
         {
-          bReopenMsg=TRUE;
-
-          //Free mouse
-          if (GetCapture())
-            ReleaseCapture();
-          SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-
-          SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
+          lpFrame->ft=ftTmp;
+  
+          if (!bReopenMsg)
+          {
+            bReopenMsg=TRUE;
+  
+            //Free mouse
+            if (GetCapture())
+              ReleaseCapture();
+            SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+  
+            SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
+          }
         }
       }
+      else xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
     }
-    else xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
   }
 }
 
