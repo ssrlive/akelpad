@@ -3336,21 +3336,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_SIZE)
   {
     //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
-    if (dwLastMainSizeClient != (DWORD)lParam)
-    {
-      dwLastMainSizeType=(DWORD)wParam;
-      dwLastMainSizeClient=(DWORD)lParam;
+    if (dwLastMainSizeClient == (DWORD)lParam)
+      return TRUE;
 
-      if (lParam)
+    dwLastMainSizeType=(DWORD)wParam;
+    dwLastMainSizeClient=(DWORD)lParam;
+
+    if (lParam)
+    {
+      if (wParam != SIZE_MAXIMIZED)
       {
-        if (wParam != SIZE_MAXIMIZED)
-        {
-          GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
-        }
-        SendMessage(hStatus, WM_SIZE, wParam, lParam);
-        UpdateSize();
-        return TRUE;
+        GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
       }
+      SendMessage(hStatus, WM_SIZE, wParam, lParam);
+      UpdateSize();
+      return TRUE;
     }
   }
   else if (uMsg == WM_DROPFILES)
@@ -4775,7 +4775,11 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    if (wParam != SIZE_MINIMIZED)
+    //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
+    if (dwLastMainSizeClient == (DWORD)lParam)
+      return TRUE;
+
+    if (lParam)
     {
       FRAMEDATA *lpFrame;
 
@@ -5244,12 +5248,7 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_SIZE)
-  {
-    if (GetWindowLongPtrWide(hMainWnd, GWL_STYLE) & WS_MINIMIZE)
-      return TRUE;
-  }
-  else if (uMsg == WM_DROPFILES)
+  if (uMsg == WM_DROPFILES)
   {
     DropFiles((HDROP)wParam);
     return TRUE;
