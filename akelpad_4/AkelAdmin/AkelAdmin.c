@@ -13,6 +13,7 @@
 #include "..\AkelEdit\StrFunc.h"
 
 //Include string functions
+#define xstrlenW
 #define xatoiW
 #include "..\AkelEdit\StrFunc.h"
 
@@ -21,19 +22,21 @@
 #define STRID_ERRORWIN              1
 #define STRID_ERRORDIR              2
 #define STRID_ERRORCALL             3
-#define STRID_ERRORSETPIPESECURITY  4
-#define STRID_ERRORGETFILESECURITY  5
-#define STRID_ERRORSETFILESECURITY  6
+#define STRID_ERRORCREATEFILE       4
+#define STRID_ERRORSETPIPESECURITY  5
+#define STRID_ERRORGETFILESECURITY  6
+#define STRID_ERRORSETFILESECURITY  7
 
 #define BUFFER_SIZE      1024
 
 //AkelAdmin action
-#define AAA_CMDINIT          11
-#define AAA_EXIT             20  //Exit from pipe server.
-#define AAA_SECURITYSAVE     21  //Retrieve file security.
-#define AAA_SECURITYEVERYONE 22  //Add all access for the file.
-#define AAA_SECURITYRESTORE  23  //Restore saved security for the file.
-#define AAA_SECURITYFREE     24  //Free saved security.
+#define AAA_CMDINIT             11
+#define AAA_EXIT                20  //Exit from pipe server.
+#define AAA_SECURITYGET         21  //Retrieve file security.
+#define AAA_SECURITYSETEVERYONE 22  //Add all access for the file.
+#define AAA_SECURITYRESTORE     23  //Restore saved security for the file.
+#define AAA_SECURITYFREE        24  //Free saved security.
+#define AAA_CREATEFILE          25  //Create new file.
 
 #define STR_AKELADMIN L"AkelAdmin"
 
@@ -204,7 +207,22 @@ void _WinMain()
                           //Unload process
                           bBreak=TRUE;
                         }
-                        else if (apipe.nAction == AAA_SECURITYSAVE)
+                        else if (apipe.nAction == AAA_CREATEFILE)
+                        {
+                          HANDLE hFile;
+
+                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                          //Create new file
+                          if ((hFile=CreateFileW(apipe.wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+                          {
+                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORCREATEFILE), apipe.wszFile);
+                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                            apipe.dwExitCode=1;
+                          }
+                          else CloseHandle(hFile);
+                        }
+                        else if (apipe.nAction == AAA_SECURITYGET)
                         {
                           SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
                                                    GROUP_SECURITY_INFORMATION|
@@ -241,7 +259,7 @@ void _WinMain()
                           }
                           else apipe.dwExitCode=1;
                         }
-                        else if (apipe.nAction == AAA_SECURITYEVERYONE)
+                        else if (apipe.nAction == AAA_SECURITYSETEVERYONE)
                         {
                           wLangModule=PRIMARYLANGID(apipe.dwLangModule);
 
@@ -398,6 +416,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"AkelAdmin \x0434\x043E\x043B\x0436\x0435\x043D\x0020\x043D\x0430\x0445\x043E\x0434\x0438\x0442\x044C\x0441\x044F\x0020\x0432\x0020\x043F\x0430\x043F\x043A\x0435 AkelFiles.";
     if (nStringID == STRID_ERRORCALL)
       return L"\x0414\x0430\x043D\x043D\x0430\x044F\x0020\x043F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0430\x0020\x043F\x0440\x0435\x0434\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x043D\x0443\x0442\x0440\x0435\x043D\x043D\x0435\x0433\x043E\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x043D\x0438\x044F AkelPad'\x043E\x043C. \x041D\x0435\x0020\x0432\x044B\x0437\x044B\x0432\x0430\x0439\x0442\x0435\x0020\x0435\x0435\x0020\x043D\x0430\x043F\x0440\x044F\x043C\x0443\x044E.";
+    if (nStringID == STRID_ERRORCREATEFILE)
+      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0441\x043E\x0437\x0434\x0430\x0442\x044C\x0020\x0444\x0430\x0439\x043B \"%s\"";
     if (nStringID == STRID_ERRORSETPIPESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x043A\x0430\x043D\x0430\x043B\x0430.";
     if (nStringID == STRID_ERRORGETFILESECURITY)
@@ -413,6 +433,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"AkelAdmin should be in AkelFiles folder.";
     if (nStringID == STRID_ERRORCALL)
       return L"This program is internal for AkelPad. Don't call it directly.";
+    if (nStringID == STRID_ERRORCREATEFILE)
+      return L"Can't create file \"%s\"";
     if (nStringID == STRID_ERRORSETPIPESECURITY)
       return L"Can't set security options for pipe.";
     if (nStringID == STRID_ERRORGETFILESECURITY)

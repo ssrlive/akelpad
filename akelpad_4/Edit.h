@@ -264,12 +264,13 @@
 #define MOT_MANUAL      0x40  //lpData specifies manual parameter.
 
 //AkelAdmin action
-#define AAA_CMDINIT          11
-#define AAA_EXIT             20  //Exit from pipe server.
-#define AAA_SECURITYSAVE     21  //Retrieve file security.
-#define AAA_SECURITYEVERYONE 22  //Add all access for the file.
-#define AAA_SECURITYRESTORE  23  //Restore saved security for the file.
-#define AAA_SECURITYFREE     24  //Free saved security.
+#define AAA_CMDINIT             11
+#define AAA_EXIT                20  //Exit from pipe server.
+#define AAA_SECURITYGET         21  //Retrieve file security.
+#define AAA_SECURITYSETEVERYONE 22  //Add all access for the file.
+#define AAA_SECURITYRESTORE     23  //Restore saved security for the file.
+#define AAA_SECURITYFREE        24  //Free saved security.
+#define AAA_CREATEFILE          25  //Create new file.
 
 //Search options
 //#define AEFR_DOWN               0x00000001
