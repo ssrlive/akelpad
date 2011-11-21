@@ -4192,8 +4192,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
         {
-          if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
-              !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
+          if (!AkelAdminSend(AAA_SECURITYGET, wszFile) ||
+              !AkelAdminSend(AAA_SECURITYSETEVERYONE, wszFile))
           {
             //Reset AkelAdmin
             AkelAdminExit();
@@ -4900,8 +4900,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
         {
-          if (!AkelAdminSend(AAA_SECURITYSAVE, wszFile) ||
-              !AkelAdminSend(AAA_SECURITYEVERYONE, wszFile))
+          if ((wfd.dwFileAttributes == INVALID_FILE_ATTRIBUTES && !AkelAdminSend(AAA_CREATEFILE, wszFile)) ||
+              !AkelAdminSend(AAA_SECURITYGET, wszFile) ||
+              !AkelAdminSend(AAA_SECURITYSETEVERYONE, wszFile))
           {
             //Reset AkelAdmin
             AkelAdminExit();
