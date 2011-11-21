@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.6.1"
+  !define PRODUCT_VERSION "4.7.1"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -406,13 +406,15 @@ FunctionEnd
 Function .onVerifyInstDir
   ${If} $INSTTYPE == ${INSTTYPE_TOTALCMD}
     StrCpy $TCDIR $INSTDIR
-    IfFileExists "$TCDIR\totalcmd.exe" end
-    ${GetParent} "$INSTDIR" $TCDIR
-    IfFileExists "$TCDIR\totalcmd.exe" end
-    Abort
+    ${IfNot} ${FileExists} "$TCDIR\TotalCmd.exe"
+    ${AndIfNot} ${FileExists} "$TCDIR\TotalCmd64.exe"
+      ${GetParent} "$INSTDIR" $TCDIR
+      ${IfNot} ${FileExists} "$TCDIR\TotalCmd.exe"
+      ${AndIfNot} ${FileExists} "$TCDIR\TotalCmd64.exe"
+        Abort
+      ${EndIf}
+    ${EndIf}
   ${EndIf}
-
-  end:
 FunctionEnd
 
 Function DirectoryLeave
@@ -459,6 +461,7 @@ Function GetInstallDirectory
       ${GetParent} "$0" $0
       ${GetParent} "$0" $0
       ${If} ${FileExists} "$0\TotalCmd.exe"
+      ${OrIf} ${FileExists} "$0\TotalCmd64.exe"
         StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
         goto end
       ${EndIf}
@@ -467,15 +470,18 @@ Function GetInstallDirectory
     ReadRegStr $0 HKCU "SOFTWARE\Ghisler\Total Commander" "InstallDir"
     ${If} $0 != ''
       ${If} ${FileExists} "$0\TotalCmd.exe"
+      ${OrIf} ${FileExists} "$0\TotalCmd64.exe"
         StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
         goto end
       ${EndIf}
     ${EndIf}
     ${If} ${FileExists} "C:\TotalCmd\TotalCmd.exe"
+    ${OrIf} ${FileExists} "C:\TotalCmd\TotalCmd64.exe"
       StrCpy $INSTDIR "C:\TotalCmd\${PRODUCT_NAME}"
       goto end
     ${EndIf}
     ${If} ${FileExists} "C:\TC\TotalCmd.exe"
+    ${OrIf} ${FileExists} "C:\TC\TotalCmd64.exe"
       StrCpy $INSTDIR "C:\TC\${PRODUCT_NAME}"
       goto end
     ${EndIf}
@@ -844,9 +850,11 @@ Section un.install
 
   _totalcmd:
   StrCpy $TCDIR $SETUPDIR
-  ${IfNot} ${FileExists} "$TCDIR\totalcmd.exe"
+  ${IfNot} ${FileExists} "$TCDIR\TotalCmd.exe"
+  ${AndIfNot} ${FileExists} "$TCDIR\TotalCmd64.exe"
     ${un.GetParent} "$SETUPDIR" $TCDIR
-    ${IfNot} ${FileExists} "$TCDIR\totalcmd.exe"
+    ${IfNot} ${FileExists} "$TCDIR\TotalCmd.exe"
+    ${AndIfNot} ${FileExists} "$TCDIR\TotalCmd64.exe"
       goto _standard
     ${EndIf}
   ${EndIf}
