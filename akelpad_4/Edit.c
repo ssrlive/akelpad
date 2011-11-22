@@ -4905,7 +4905,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           }
           else
           {
-            //File created - fill "wfd".
+            //File created - refill "wfd".
             if (wfd.dwFileAttributes == INVALID_FILE_ATTRIBUTES)
               GetFileWin32Data(wszFile, &wfd);
 
