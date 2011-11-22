@@ -1622,7 +1622,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   ofnW.nMaxFile       =MAX_PATH;
   ofnW.lpstrInitialDir=moCur.wszLastDir;
   ofnW.lpstrDefExt    =moCur.wszDefaultSaveExt;
-  ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
+  ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
   ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
   ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
@@ -4867,10 +4867,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   //File attributes
   if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
 
-  if ((hFile=FindFirstFileWide(wszFile, &wfd)) != INVALID_HANDLE_VALUE)
+  if (GetFileWin32Data(wszFile, &wfd))
   {
-    FindClose(hFile);
-
     if (moCur.bSaveInReadOnlyMsg && (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
     {
       if (!IsEditActive(hWnd))
@@ -4886,8 +4884,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
       SetFileAttributesWide(wszFile, wfd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
   }
-  else wfd.dwFileAttributes=INVALID_FILE_ATTRIBUTES;
-
   if (nStreamOffset) wszFile[nStreamOffset]=L':';
 
   //Write to file
@@ -4895,7 +4891,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
-      if (!bSetSecurity && !bOldWindows && wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES && GetLastError() == ERROR_ACCESS_DENIED)
+      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
       {
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
@@ -4909,6 +4905,11 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           }
           else
           {
+            //File created - fill "wfd".
+            if (wfd.dwFileAttributes == INVALID_FILE_ATTRIBUTES)
+              GetFileWin32Data(wszFile, &wfd);
+
+            //Security successfully set - try to open file again.
             bSetSecurity=TRUE;
             continue;
           }
@@ -5432,16 +5433,16 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
         if (CompareFileTime(&lpFrame->ft, &ftTmp))
         {
           lpFrame->ft=ftTmp;
-  
+
           if (!bReopenMsg)
           {
             bReopenMsg=TRUE;
-  
+
             //Free mouse
             if (GetCapture())
               ReleaseCapture();
             SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-  
+
             SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
           }
         }
@@ -18092,6 +18093,19 @@ BOOL IsPathFull(const wchar_t *wpPath)
 {
   if (wpPath[0] == '\\' && wpPath[1] == '\\') return TRUE;
   if (wpPath[0] != '\0' && wpPath[1] == ':') return TRUE;
+  return FALSE;
+}
+
+BOOL GetFileWin32Data(const wchar_t *wpFile, WIN32_FIND_DATAW *wfd)
+{
+  HANDLE hFile;
+
+  if ((hFile=FindFirstFileWide(wpFile, wfd)) != INVALID_HANDLE_VALUE)
+  {
+    FindClose(hFile);
+    return TRUE;
+  }
+  wfd->dwFileAttributes=INVALID_FILE_ATTRIBUTES;
   return FALSE;
 }
 
