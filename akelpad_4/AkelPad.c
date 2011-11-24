@@ -858,6 +858,14 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |
           (moInit.dwSearchOptions & AEFR_CYCLESEARCH);
 
+  //Normalize tab flags
+  if (!(moInit.dwTabOptionsMDI & TAB_VIEW_NONE) && !(moInit.dwTabOptionsMDI & TAB_VIEW_TOP) && !(moInit.dwTabOptionsMDI & TAB_VIEW_BOTTOM))
+    moInit.dwTabOptionsMDI|=TAB_VIEW_TOP;
+  if (!(moInit.dwTabOptionsMDI & TAB_TYPE_STANDARD) && !(moInit.dwTabOptionsMDI & TAB_TYPE_BUTTONS) && !(moInit.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS))
+    moInit.dwTabOptionsMDI|=TAB_TYPE_STANDARD;
+  if (!(moInit.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV) && !(moInit.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT))
+    moInit.dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
+
   //Get status bar user flags
   if (moInit.wszStatusUserFormat[0])
     moInit.dwStatusUserFlags=TranslateStatusUser(NULL, moInit.wszStatusUserFormat, NULL, 0);
@@ -4762,7 +4770,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
       lpFrame->ei.hDocEdit=(AEHDOC)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
-      AddTabItem(hTab, (LPARAM)lpFrame);
+      InsertTabItem(hTab, (moCur.dwTabOptionsMDI & TAB_ADD_AFTERCURRENT)?nDocumentIndex + 1:-1, (LPARAM)lpFrame);
 
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);
@@ -5253,9 +5261,19 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     DropFiles((HDROP)wParam);
     return TRUE;
   }
-  else if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
+  else if (uMsg == WM_LBUTTONDBLCLK)
   {
-    CreateFrameWindow(NULL);
+    if (!(moCur.dwTabOptionsMDI & TAB_NOADD_LBUTTONDBLCLK))
+    {
+      CreateFrameWindow(NULL);
+    }
+  }
+  else if (uMsg == WM_MBUTTONDOWN)
+  {
+    if (!(moCur.dwTabOptionsMDI & TAB_NOADD_MBUTTONDOWN))
+    {
+      CreateFrameWindow(NULL);
+    }
   }
   else if (uMsg == WM_MDINEXT)
   {
@@ -5387,6 +5405,14 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return TRUE;
   }
+  else if (uMsg == WM_LBUTTONDBLCLK)
+  {
+    if (!(moCur.dwTabOptionsMDI & TAB_NODEL_LBUTTONDBLCLK))
+    {
+      DestroyFrameWindow(lpFrameCurrent);
+      return TRUE;
+    }
+  }
   else if (uMsg == WM_MBUTTONDOWN)
   {
     FRAMEDATA *lpFrame;
@@ -5394,15 +5420,13 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if ((nItem=GetTabItemFromCursorPos(hTab)) != -1)
     {
-      lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nItem);
-      DestroyFrameWindow(lpFrame);
+      if (!(moCur.dwTabOptionsMDI & TAB_NODEL_MBUTTONDOWN))
+      {
+        lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nItem);
+        DestroyFrameWindow(lpFrame);
+      }
       return TRUE;
     }
-  }
-  else if (uMsg == WM_LBUTTONDBLCLK)
-  {
-    DestroyFrameWindow(lpFrameCurrent);
-    return TRUE;
   }
   else if (uMsg == WM_TIMER)
   {

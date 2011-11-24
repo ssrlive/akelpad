@@ -843,7 +843,7 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
       lpFrame->lpEditProc=fdInit.lpEditProc;
       lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
-      AddTabItem(hTab, (LPARAM)lpFrame);
+      InsertTabItem(hTab, (moCur.dwTabOptionsMDI & TAB_ADD_AFTERCURRENT)?nDocumentIndex + 1:-1, (LPARAM)lpFrame);
 
       ActivateFrameWindow(lpFrame, FWA_NOTIFY_CREATE);
       SetEditWindowSettings(lpFrameCurrent);
@@ -19261,7 +19261,7 @@ void UpdateTabs(HWND hWnd)
   }
 }
 
-int AddTabItem(HWND hWnd, LPARAM lParam)
+int InsertTabItem(HWND hWnd, int nIndex, LPARAM lParam)
 {
   TCITEMW tcItem;
   int nItemCount;
@@ -19270,13 +19270,15 @@ int AddTabItem(HWND hWnd, LPARAM lParam)
   if (hWnd)
   {
     nItemCount=(int)SendMessage(hWnd, TCM_GETITEMCOUNT, 0, 0);
+    if (nIndex == -1) nIndex=nItemCount;
+
     tcItem.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
     tcItem.pszText=(wchar_t *)L"";
     tcItem.iImage=0;
     tcItem.lParam=lParam;
-    nResult=TabCtrl_InsertItemWide(hWnd, nItemCount, &tcItem);
+    nResult=TabCtrl_InsertItemWide(hWnd, nIndex, &tcItem);
 
-    if (!nItemCount) InvalidateRect(hWnd, NULL, TRUE);
+    if (!nItemCount || nIndex < nItemCount) InvalidateRect(hWnd, NULL, TRUE);
   }
   return nResult;
 }

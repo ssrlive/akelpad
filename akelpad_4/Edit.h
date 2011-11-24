@@ -1148,7 +1148,7 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
 BOOL EnsureWindowInMonitor(RECT *rcWindow);
 void UpdateTitle(FRAMEDATA *lpFrame);
 void UpdateTabs(HWND hWnd);
-int AddTabItem(HWND hWnd, LPARAM lParam);
+int InsertTabItem(HWND hWnd, int nIndex, LPARAM lParam);
 LPARAM GetTabParamFromItem(HWND hWnd, int nItem);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
 int GetTabItemFromCursorPos(HWND hWnd);
