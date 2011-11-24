@@ -17033,20 +17033,25 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
             {
               PLUGINCALLSENDW pcs;
               unsigned char *lpStruct=NULL;
+              int nStructSize;
 
               ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
 
-              if (StructMethodParameters(&hParamStack, &lpStruct))
+              if (nStructSize=StructMethodParameters(&hParamStack, NULL))
               {
-                pcs.pFunction=(wchar_t *)*(INT_PTR *)lpStruct;
-                if (*(INT_PTR *)(lpStruct + sizeof(INT_PTR)) > (INT_PTR)sizeof(INT_PTR))
-                  pcs.lParam=(LPARAM)(lpStruct + sizeof(INT_PTR));
-                else
-                  pcs.lParam=0;
-                //pcs.dwSupport=0;
-                CallPluginSend(NULL, &pcs, 0);
+                if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+                {
+                  pcs.pFunction=hParamStack.first->wpString;
+                  if (nStructSize > (INT_PTR)sizeof(INT_PTR))
+                  {
+                    pcs.lParam=(LPARAM)lpStruct;
+                    StructMethodParameters(&hParamStack, lpStruct);
+                  }
+                  else pcs.lParam=0;
 
-                GlobalFree((HGLOBAL)lpStruct);
+                  CallPluginSend(NULL, &pcs, 0);
+                  GlobalFree((HGLOBAL)lpStruct);
+                }
               }
             }
             else if (dwAction == EXTACT_EXEC)
@@ -17360,6 +17365,7 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
   wchar_t *wszTarget;
   wchar_t *wpTarget;
   int nStringLen;
+  int nTargetLen=0;
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
@@ -17416,9 +17422,11 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
           {
             //Allocate wszTarget and loop again
             if (wszTarget=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpTarget + 1)))
+            {
+              nTargetLen=(int)((INT_PTR)wpTarget / sizeof(wchar_t));
               wpTarget=wszTarget;
-            else
-              break;
+            }
+            else break;
           }
           else
           {
@@ -17440,12 +17448,14 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
             lpParameter->wpExpanded=NULL;
           }
           lpParameter->wpExpanded=wszTarget;
+          lpParameter->nExpandedUnicodeLen=nTargetLen;
 
           if (bOldWindows)
           {
-            nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, nStringLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, nStringLen, NULL, NULL);
+            lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
+            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
+              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
+            if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
           }
         }
         GlobalFree((HGLOBAL)wszSource);
@@ -17454,47 +17464,49 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
   }
 }
 
-int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct)
+int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
 {
   EXTPARAM *lpParameter;
-  unsigned char *lpStruct=NULL;
-  int nStructSize=0;
-  int nOffset=0;
-  int nIndex=0;
+  int nElementOffset;
+  int nStringOffset=0;
 
   if (hParamStack->nElements)
   {
-    nStructSize=(hParamStack->nElements + 1) * sizeof(INT_PTR);
+    //nStringOffset is pointer to memory where first string will be copied
+    nElementOffset=0;
+    nStringOffset=hParamStack->nElements * sizeof(INT_PTR);
 
-    if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+    //First element in structure is the size of the call parameters structure
+    if (lpStruct) *((INT_PTR *)(lpStruct + nElementOffset))=nStringOffset;
+    nElementOffset+=sizeof(INT_PTR);
+
+    //Skip hParamStack->first equal to "Plugin::Function".
+    for (lpParameter=hParamStack->first->next; lpParameter; lpParameter=lpParameter->next)
     {
-      for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
+      if (lpParameter->dwType == EXTPARAM_CHAR)
       {
-        if (nIndex == 1)
-        {
-          //nIndex == 1 is the size of the call parameters structure
-          *((INT_PTR *)(lpStruct + nOffset))=hParamStack->nElements * sizeof(INT_PTR);
-          nOffset+=sizeof(INT_PTR);
-          ++nIndex;
-        }
+        //Strings located after call parameters structure
+        if (lpStruct) *((INT_PTR *)(lpStruct + nElementOffset))=(INT_PTR)(lpStruct + nStringOffset);
 
-        //nIndex == 0 is function name, nIndex >= 2 is call parameters
-        if (lpParameter->dwType == EXTPARAM_CHAR)
+        if (bOldWindows)
         {
-          if (bOldWindows && nIndex > 0)
-            *((INT_PTR *)(lpStruct + nOffset))=(INT_PTR)lpParameter->pExpanded;
-          else
-            *((INT_PTR *)(lpStruct + nOffset))=(INT_PTR)lpParameter->wpExpanded;
+          if (lpStruct) xmemcpy(lpStruct + nStringOffset, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen + 1);
+          nStringOffset+=(lpParameter->nExpandedAnsiLen + 1);
         }
-        else *((INT_PTR *)(lpStruct + nOffset))=lpParameter->nNumber;
-
-        nOffset+=sizeof(INT_PTR);
-        ++nIndex;
+        else
+        {
+          if (lpStruct) xmemcpy(lpStruct + nStringOffset, lpParameter->wpExpanded, (lpParameter->nExpandedUnicodeLen + 1) * sizeof(wchar_t));
+          nStringOffset+=(lpParameter->nExpandedUnicodeLen + 1) * sizeof(wchar_t);
+        }
       }
+      else
+      {
+        if (lpStruct) *((INT_PTR *)(lpStruct + nElementOffset))=lpParameter->nNumber;
+      }
+      nElementOffset+=sizeof(INT_PTR);
     }
   }
-  *lppStruct=lpStruct;
-  return nStructSize;
+  return nStringOffset;
 }
 
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
