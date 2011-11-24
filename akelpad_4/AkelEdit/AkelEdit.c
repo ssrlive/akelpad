@@ -6681,7 +6681,7 @@ void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem)
   AEUNDOITEM *lpTmp;
 
   if (!lpElement)
-    lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+    lpElement=ae->ptxt->hUndoStack.first;
   else
     lpElement=lpElement->next;
 
@@ -6698,7 +6698,7 @@ void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem)
 
 UINT_PTR AE_StackUndoSize(AKELEDIT *ae)
 {
-  AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+  AEUNDOITEM *lpElement=ae->ptxt->hUndoStack.first;
   UINT_PTR dwSize=0;
 
   while (lpElement)
@@ -6757,7 +6757,7 @@ int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
 
 void AE_StackUndoGroupStop(AKELEDIT *ae)
 {
-  AEUNDOITEM *lpStopElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.last;
+  AEUNDOITEM *lpStopElement=ae->ptxt->hUndoStack.last;
 
   if (lpStopElement)
   {
@@ -6796,7 +6796,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
           }
           lpElement=lpElement->prev;
         }
-        lpStopElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.last;
+        lpStopElement=ae->ptxt->hUndoStack.last;
         ae->ptxt->lpCurrentUndo=lpStopElement;
       }
     }
@@ -6815,13 +6815,13 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
         INT_PTR nDeleteEnd=0;
         wchar_t *wpUndoText;
         UINT_PTR dwUndoTextLen=0;
-        UINT_PTR i;
+        INT_PTR nCount;
 
         //Get count of typing characters
         while (lpElement)
         {
           if (lpElement->dwFlags & AEUN_SINGLECHAR)
-            ++dwUndoTextLen;
+            dwUndoTextLen+=lpElement->dwTextLen;
           else
             break;
 
@@ -6846,16 +6846,18 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
 
             //Get string
             wpUndoText[dwUndoTextLen]=L'\0';
-            i=dwUndoTextLen;
+            nCount=dwUndoTextLen;
 
             while (lpElement)
             {
               if (lpElement->dwFlags & AEUN_SINGLECHAR)
               {
-                if (i > 0)
-                  wpUndoText[--i]=lpElement->wpText[0];
-                else
-                  break;
+                if (nCount > 0)
+                {
+                  nCount-=lpElement->dwTextLen;
+                  xmemcpy(wpUndoText + nCount, lpElement->wpText, lpElement->dwTextLen * sizeof(wchar_t));
+                }
+                else break;
               }
               else break;
 
@@ -6869,7 +6871,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
 
             //First index
             if (!lpElement)
-              lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+              lpElement=ae->ptxt->hUndoStack.first;
             else
               lpElement=lpElement->next;
             if (lpElement) nDeleteStart=lpElement->nActionStartOffset;
@@ -6906,7 +6908,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
 
       while (ae->ptxt->dwUndoCount > ae->ptxt->dwUndoLimit)
       {
-        AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+        AEUNDOITEM *lpElement=ae->ptxt->hUndoStack.first;
         AEUNDOITEM *lpTmp;
 
         //Delete first undo group
@@ -18597,7 +18599,7 @@ BOOL AE_EditCanPaste(AKELEDIT *ae)
 
 BOOL AE_EditCanRedo(AKELEDIT *ae)
 {
-  if (ae->ptxt->lpCurrentUndo != (AEUNDOITEM *)ae->ptxt->hUndoStack.last)
+  if (ae->ptxt->lpCurrentUndo != ae->ptxt->hUndoStack.last)
   {
     if (!ae->ptxt->lpCurrentUndo)
     {
@@ -18754,7 +18756,7 @@ void AE_EditRedo(AKELEDIT *ae)
   AE_NotifyChanging(ae, AETCT_REDO);
 
   if (!lpCurElement)
-    lpCurElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+    lpCurElement=ae->ptxt->hUndoStack.first;
   else
     lpCurElement=lpCurElement->next;
 
@@ -19155,16 +19157,16 @@ void AE_EditKeyReturn(AKELEDIT *ae)
 {
   AECHARINDEX ciCharIndex;
   const wchar_t *wpNewLine;
-  int nNewLine;
+  int nLineBreakLen;
 
   if (AE_IsReadOnly(ae)) return;
   AE_NotifyChanging(ae, AETCT_KEYRETURN);
 
-  nNewLine=AE_GetNewLineString(AELB_ASOUTPUT, &wpNewLine);
+  nLineBreakLen=AE_GetNewLineString(ae->popt->nInputNewLine, &wpNewLine);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
   ciCharIndex=ae->ciCaretIndex;
   ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
-  if (AE_InsertText(ae, &ciCharIndex, wpNewLine, nNewLine, AELB_ASINPUT, FALSE, 0, NULL, NULL))
+  if (AE_InsertText(ae, &ciCharIndex, wpNewLine, nLineBreakLen, AELB_ASINPUT, FALSE, 0, NULL, NULL))
   {
     if (!ae->ptxt->bLockCollectUndo)
     {
