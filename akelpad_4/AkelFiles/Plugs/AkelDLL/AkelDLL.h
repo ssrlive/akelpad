@@ -231,6 +231,7 @@
 #define EO_MARKERPOS   5  //Column marker position.
 #define EO_CARETWIDTH  6  //Caret width.
 #define EO_LINEGAP     7  //Gap between lines.
+#define EO_ALTLINES    8  //Alternating lines. The low-order word of lParam contains the skip interval in lines. The high-order word of lParam contains the fill interval in lines.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
