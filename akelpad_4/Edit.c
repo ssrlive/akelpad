@@ -17749,6 +17749,16 @@ BOOL SetCurEditOption(int nType, UINT_PTR dwData)
       return TRUE;
     }
   }
+  else if (nType == EO_ALTLINES)
+  {
+    if (lpFrameCurrent->dwAltLineFill != LOWORD(dwData) || lpFrameCurrent->dwAltLineSkip != HIWORD(dwData))
+    {
+      lpFrameCurrent->dwAltLineFill=LOWORD(dwData);
+      lpFrameCurrent->dwAltLineSkip=HIWORD(dwData);
+      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill), 0);
+      return TRUE;
+    }
+  }
   return FALSE;
 }
 

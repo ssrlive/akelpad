@@ -2450,6 +2450,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return lpFrameCurrent->dwLineGap;
       }
+      if (wParam == EO_ALTLINES)
+      {
+        return MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill);
+      }
       return 0;
     }
     if (uMsg == AKD_SETEDITOPTION)
