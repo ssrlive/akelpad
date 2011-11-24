@@ -502,12 +502,14 @@ typedef struct {
 typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
   struct _EXTPARAM *prev;
-  DWORD dwType;        //See EXTPARAM_* defines.
-  int nNumber;         //External parameter number.
-  char *pString;       //External parameter string (Ansi).
-  wchar_t *wpString;   //External parameter string (Unicode).
-  char *pExpanded;     //External parameter expanded string - without %variables% (Ansi).
-  wchar_t *wpExpanded; //External parameter expanded string - without %variables% (Unicode).
+  DWORD dwType;            //See EXTPARAM_* defines.
+  int nNumber;             //External parameter number.
+  char *pString;           //External parameter string (Ansi).
+  wchar_t *wpString;       //External parameter string (Unicode).
+  char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).
+  int nExpandedAnsiLen;    //External parameter expanded ansi string length.
+  wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
+  int nExpandedUnicodeLen; //External parameter expanded unicode string length.
 } EXTPARAM;
 
 typedef struct {
@@ -1085,7 +1087,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir);
-int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char **lppStruct);
+int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
