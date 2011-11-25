@@ -883,7 +883,8 @@ void _WinMain()
 
     lpStartupInfoA.cb=sizeof(STARTUPINFOA);
     GetStartupInfoA(&lpStartupInfoA);
-    dwCmdShow=lpStartupInfoA.wShowWindow;
+    if (lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW)
+      dwCmdShow=lpStartupInfoA.wShowWindow;
 
     //Mutex
     if (!(lpStartupInfoA.dwFlags & STARTF_NOMUTEX))
