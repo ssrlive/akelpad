@@ -433,8 +433,8 @@
 
 //Highlight AEM_HLGETHIGHLIGHT flags
 #define AEGHF_NOSELECTION            0x00000001 //Ignore text selection coloring.
-#define AEGHF_NOACTIVELINETEXT       0x00000002 //Ignore active line text color.
-#define AEGHF_NOACTIVELINEBK         0x00000004 //Ignore active line background color.
+#define AEGHF_NOACTIVELINE           0x00000002 //Ignore active line colors.
+#define AEGHF_NOALTLINE              0x00000004 //Ignore alternating line colors.
 
 //Highlight paint type
 #define AEHPT_SELECTION              0x00000001
@@ -948,6 +948,7 @@ typedef struct {
 } AECOLORS;
 
 typedef struct {
+  DWORD dwFlags;           //[in] See AEGHF_* defines.
   DWORD dwFontStyle;       //[in] See AEHLS_* defines.
   COLORREF crText;         //[in] Text color in line.
   COLORREF crBk;           //[in] Background color in line.
