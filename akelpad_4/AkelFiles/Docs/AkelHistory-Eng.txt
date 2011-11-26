@@ -5,6 +5,7 @@ Changed: line deletion command continues to work when end-of-file reached.
 
 Added: now "AkelAdmin.exe" provides the ability to save to a protected folder (UAC).
 
+Fixed: program execution from third-party applications.
 Fixed: active line border didn't displayed on alternating lines without border.
 Fixed: focus loss in open file dialog.
 Fixed: NTFS file stream didn't saved.
