@@ -16878,9 +16878,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         {
           if (moCur.dwFileTypesAssociated & AE_OPEN)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
-          else if (moCur.dwFileTypesAssociated & AE_EDIT)
+          if (moCur.dwFileTypesAssociated & AE_EDIT)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_ASSOCIATE);
-          else if (moCur.dwFileTypesAssociated & AE_PRINT)
+          if (moCur.dwFileTypesAssociated & AE_PRINT)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_ASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
@@ -16889,9 +16889,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         {
           if (moCur.dwFileTypesAssociated & AE_OPEN)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
-          else if (moCur.dwFileTypesAssociated & AE_EDIT)
+          if (moCur.dwFileTypesAssociated & AE_EDIT)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
-          else if (moCur.dwFileTypesAssociated & AE_PRINT)
+          if (moCur.dwFileTypesAssociated & AE_PRINT)
             AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;

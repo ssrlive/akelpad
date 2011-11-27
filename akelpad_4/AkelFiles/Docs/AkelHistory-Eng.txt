@@ -9,6 +9,8 @@ Fixed: program execution from third-party applications.
 Fixed: active line border didn't displayed on alternating lines without border.
 Fixed: focus loss in open file dialog.
 Fixed: NTFS file stream didn't saved.
+Fixed: command line parameters /reassoc and /deassoc processed only one group of three
+       possible Open/Edit/Print.
 
 
 AkelPad 4.7.0 (Nov 15, 2011)
