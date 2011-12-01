@@ -205,6 +205,7 @@
 #define FI_READONLY             16
 #define FI_WORDWRAP             17
 #define FI_OVERTYPE             18
+#define FI_STREAMOFFSET         30
 #define FI_FILEA                31
 #define FI_FILEW                32
 #define FI_FILELEN              33
@@ -222,6 +223,28 @@
 #define FI_WORDDELIMITERSENABLE 58
 #define FI_WRAPDELIMITERSENABLE 59
 #define FI_MAPPEDPRINTWIDTH     61
+#define FI_RECTMARGINS          71
+#define FI_TABSTOPSIZE          72
+#define FI_UNDOLIMIT            75
+#define FI_DETAILEDUNDO         76
+#define FI_WRAPTYPE             79
+#define FI_WRAPLIMIT            80
+#define FI_MARKER               81
+#define FI_CARETWIDTH           84
+#define FI_ALTLINEFILL          85
+#define FI_ALTLINESKIP          86
+#define FI_ALTLINEBORDER        87
+#define FI_LINEGAP              90
+#define FI_SHOWURL              93
+#define FI_URLPREFIXES          94
+#define FI_URLLEFTDELIMITERS    95
+#define FI_URLRIGHTDELIMITERS   96
+#define FI_WORDDELIMITERS       97
+#define FI_WRAPDELIMITERS       98
+#define FI_COLORS               101
+#define FI_FILETIME             111
+#define FI_INPUTLOCALE          112
+#define FI_LOCKINHERIT          113
 
 //AKD_SETEDITOPTION flags
 #define EO_TEXTMARGINS 1  //Edit margins. lParam is a pointer to a RECT structure, that contain left, top, right, bottom margins in pixels.
@@ -841,7 +864,7 @@ typedef struct _FRAMEDATA {
   FILETIME ft;                                        //File time.
   HKL dwInputLocale;                                  //Keyboard layout.
   DWORD dwLockInherit;                                //See LI_* defines.
-  int nStreamOffset;
+  int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
 
   //Substract selection
   AECHARRANGE crPrevSel;
