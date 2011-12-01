@@ -2176,6 +2176,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)lpFrame->wszFile;
         if (wParam == FI_FILELEN)
           return (LRESULT)lpFrame->nFileLen;
+        if (wParam == FI_STREAMOFFSET)
+          return (LRESULT)lpFrame->nStreamOffset;
         if (wParam == FI_ICONHANDLE)
           return (LRESULT)lpFrame->hIcon;
         if (wParam == FI_ICONINDEX)
@@ -2204,6 +2206,50 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)lpFrame->bWrapDelimitersEnable;
         if (wParam == FI_MAPPEDPRINTWIDTH)
           return (LRESULT)lpFrame->dwMappedPrintWidth;
+        if (wParam == FI_RECTMARGINS)
+          return (LRESULT)&lpFrame->rcEditMargins;
+        if (wParam == FI_TABSTOPSIZE)
+          return (LRESULT)lpFrame->nTabStopSize;
+        if (wParam == FI_UNDOLIMIT)
+          return (LRESULT)lpFrame->nUndoLimit;
+        if (wParam == FI_DETAILEDUNDO)
+          return (LRESULT)lpFrame->bDetailedUndo;
+        if (wParam == FI_WRAPTYPE)
+          return (LRESULT)lpFrame->dwWrapType;
+        if (wParam == FI_WRAPLIMIT)
+          return (LRESULT)lpFrame->dwWrapLimit;
+        if (wParam == FI_MARKER)
+          return (LRESULT)lpFrame->dwMarker;
+        if (wParam == FI_CARETWIDTH)
+          return (LRESULT)lpFrame->nCaretWidth;
+        if (wParam == FI_ALTLINEFILL)
+          return (LRESULT)lpFrame->dwAltLineFill;
+        if (wParam == FI_ALTLINESKIP)
+          return (LRESULT)lpFrame->dwAltLineSkip;
+        if (wParam == FI_ALTLINEBORDER)
+          return (LRESULT)lpFrame->bAltLineBorder;
+        if (wParam == FI_LINEGAP)
+          return (LRESULT)lpFrame->dwLineGap;
+        if (wParam == FI_SHOWURL)
+          return (LRESULT)lpFrame->bShowURL;
+        if (wParam == FI_URLPREFIXES)
+          return (LRESULT)lpFrame->wszUrlPrefixes;
+        if (wParam == FI_URLLEFTDELIMITERS)
+          return (LRESULT)lpFrame->wszUrlLeftDelimiters;
+        if (wParam == FI_URLRIGHTDELIMITERS)
+          return (LRESULT)lpFrame->wszUrlRightDelimiters;
+        if (wParam == FI_WORDDELIMITERS)
+          return (LRESULT)lpFrame->wszWordDelimiters;
+        if (wParam == FI_WRAPDELIMITERS)
+          return (LRESULT)lpFrame->wszWrapDelimiters;
+        if (wParam == FI_COLORS)
+          return (LRESULT)&lpFrame->aec;
+        if (wParam == FI_FILETIME)
+          return (LRESULT)&lpFrame->ft;
+        if (wParam == FI_INPUTLOCALE)
+          return (LRESULT)lpFrame->dwInputLocale;
+        if (wParam == FI_LOCKINHERIT)
+          return (LRESULT)lpFrame->dwLockInherit;
       }
       return 0;
     }
