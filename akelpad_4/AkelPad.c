@@ -197,6 +197,9 @@ DWORD dwProcessId;
 MAINCREATE mc;
 HINSTANCE hInstance;
 DWORD dwCmdShow=SW_SHOWNORMAL;
+#ifndef AKELEDIT_STATICBUILD
+  HMODULE hAkelLib=NULL;
+#endif
 
 //Identification
 DWORD dwExeVersion=0;
@@ -548,9 +551,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 //Entry point
 void _WinMain()
 {
-  #ifndef AKELEDIT_STATICBUILD
-    HMODULE hAkelLib=NULL;
-  #endif
   WNDCLASSW wndclassW;
   HMODULE hUser32;
   int nMajor;
