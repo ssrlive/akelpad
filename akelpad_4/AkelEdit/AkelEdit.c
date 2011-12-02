@@ -12361,11 +12361,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
     hBitmap=CreateCompatibleBitmap(ae->hDC, ae->rcEdit.right, ae->rcEdit.bottom);
     hBitmapOld=(HBITMAP)SelectObject(to.hDC, hBitmap);
   }
-  else
-  {
-    hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-    hDrawRgnOld=(HRGN)SelectObject(ae->hDC, hDrawRgn);
-  }
   if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(to.hDC, ae->ptxt->hFont);
 
   //Send AEN_PAINT
@@ -12415,6 +12410,10 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       int nCharWidth=0;
       int nLastDrawLine=0;
       DWORD dwAltModule=0;
+
+      //Avoid graphic rudiments
+      hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
+      hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
 
       //Create GDI objects
       hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
@@ -12746,6 +12745,9 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       }
 
       //Clean-up
+      if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
+      DeleteObject(hDrawRgn);
+
       if (hbrActiveLineBorderWithAltBorder) DeleteObject(hbrActiveLineBorderWithAltBorder);
       if (hbrActiveLineBorderWithAltBk) DeleteObject(hbrActiveLineBorderWithAltBk);
       if (hbrActiveLineBkWithAltBk) DeleteObject(hbrActiveLineBkWithAltBk);
@@ -12786,11 +12788,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
     if (hBitmapOld) SelectObject(to.hDC, hBitmapOld);
     DeleteObject(hBitmap);
     DeleteDC(to.hDC);
-  }
-  else
-  {
-    if (hDrawRgnOld) SelectObject(ae->hDC, hDrawRgnOld);
-    DeleteObject(hDrawRgn);
   }
 }
 
