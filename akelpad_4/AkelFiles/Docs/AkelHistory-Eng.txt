@@ -8,6 +8,7 @@ Added: now "AkelAdmin.exe" provides the ability to save to a protected folder (U
 Fixed: program execution from third-party applications.
 Fixed: slow active column painting on Win7 with Aero.
 Fixed: active line border didn't displayed on alternating lines without border.
+Fixed: option "Mouse dragging" was set to the opposite meaning.
 Fixed: focus loss in open file dialog.
 Fixed: NTFS file stream didn't saved.
 Fixed: command line parameters /reassoc and /deassoc processed only one group of three
