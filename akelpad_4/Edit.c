@@ -14218,7 +14218,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Mouse options
       lpFrameCurrent->dwMouseOptions&=~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
-      dwAddOptions=AECO_NOMARGINSEL;
+      dwAddOptions=AECO_NOMARGINSEL|AECO_DISABLEDRAG;
       if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
       {
         lpFrameCurrent->dwMouseOptions|=MO_LEFTMARGINSELECTION;
@@ -14232,7 +14232,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
       {
         lpFrameCurrent->dwMouseOptions|=MO_MOUSEDRAGGING;
-        dwAddOptions|=AECO_DISABLEDRAG;
+        dwAddOptions&=~AECO_DISABLEDRAG;
       }
       if (SendMessage(hWndRClickMoveCaret, BM_GETCHECK, 0, 0) == BST_CHECKED)
       {
