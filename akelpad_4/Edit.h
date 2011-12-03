@@ -1092,8 +1092,8 @@ EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
+BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData);
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
-BOOL SetCurEditOption(int nType, UINT_PTR dwData);
 DWORD IsEditActive(HWND hWnd);
 void UpdateShowHScroll(FRAMEDATA *lpFrame);
 int SaveLineScroll(HWND hWnd);

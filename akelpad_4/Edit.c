@@ -11383,6 +11383,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableWindow(hWndThemeDelete, TRUE);
       }
     }
+
+    //Colors inheriting is locked. Don't let user press OK, but allow to save as new theme.
+    if (lpFrameCurrent->dwLockInherit & LI_COLORS)
+      EnableWindow(hWndOK, FALSE);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -11801,10 +11805,6 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
       }
       SaveThemes(moCur.nSaveSettings);
-
-      //User pressed OK, so unlock colors inheriting.
-      if (lpFrameCurrent->dwLockInherit & LI_COLORS)
-        lpFrameCurrent->dwLockInherit&=~LI_COLORS;
 
       EndDialog(hDlg, 0);
       return TRUE;
@@ -13959,94 +13959,68 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       RECT rcEditMargins;
-      DWORD dwAddOptions;
-      DWORD dwCurOptions;
       int a;
       int b;
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
-      SetCurEditOption(EO_TABSIZE, a);
-      lpFrameCurrent->bTabStopAsSpaces=(int)SendMessage(hWndTabSizeSpaces, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_TABSTOPSIZE, a);
+      a=(int)SendMessage(hWndTabSizeSpaces, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_TABSTOPSIZE, a);
 
       //Undo
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, NULL, FALSE);
-      SetCurEditOption(EO_UNDOLIMIT, a);
-      lpFrameCurrent->bDetailedUndo=(BOOL)SendMessage(hWndDetailedUndo, BM_GETCHECK, 0, 0);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
+      SetFrameInfo(lpFrameCurrent, FIS_UNDOLIMIT, a);
+      a=(BOOL)SendMessage(hWndDetailedUndo, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_DETAILEDUNDO, a);
 
-      //Wrap
+      //Wrap limit
       if (SendMessage(hWndWrapByWords, BM_GETCHECK, 0, 0) == BST_CHECKED)
         a=AEWW_WORD;
       else
         a=AEWW_SYMBOL;
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, TRUE);
-
-      if ((int)lpFrameCurrent->dwWrapType != a || (int)lpFrameCurrent->dwWrapLimit != b)
-      {
-        lpFrameCurrent->dwWrapType=a;
-        lpFrameCurrent->dwWrapLimit=b;
-
-        if (lpFrameCurrent->ei.bWordWrap)
-        {
-          UpdateShowHScroll(lpFrameCurrent);
-          SetWordWrap(lpFrameCurrent, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
-        }
-      }
+      SetFrameInfo(lpFrameCurrent, FIS_WRAP, MAKELONG(a, b));
 
       //Marker
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, TRUE);
-      SetCurEditOption(EO_MARKERPOS, a);
+      SetFrameInfo(lpFrameCurrent, FIS_MARKER, a);
 
       //Caret options
-      lpFrameCurrent->dwCaretOptions=0;
-      dwAddOptions=0;
+      a=0;
       if (SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwCaretOptions|=CO_CARETOUTEDGE;
-        dwAddOptions|=AECO_CARETOUTEDGE;
-      }
+        a|=CO_CARETOUTEDGE;
       if (SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwCaretOptions|=CO_CARETVERTLINE;
-        dwAddOptions|=AECO_ACTIVECOLUMN;
-      }
+        a|=CO_CARETVERTLINE;
       if (SendMessage(hWndCaretActiveLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwCaretOptions|=CO_CARETACTIVELINE;
-        dwAddOptions|=AECO_ACTIVELINE;
-      }
+        a|=CO_CARETACTIVELINE;
       if (SendMessage(hWndCaretActiveLineBorder, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwCaretOptions|=CO_CARETACTIVELINEBORDER;
-        dwAddOptions|=AECO_ACTIVELINEBORDER;
-      }
-      dwCurOptions=(DWORD)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
-      dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+        a|=CO_CARETACTIVELINEBORDER;
+      SetFrameInfo(lpFrameCurrent, FIS_CARETOPTIONS, a);
 
       //Caret width
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
-      SetCurEditOption(EO_CARETWIDTH, a);
+      SetFrameInfo(lpFrameCurrent, FIS_CARETWIDTH, a);
 
       //Alternating lines
-      lpFrameCurrent->dwAltLineSkip=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINESKIP, NULL, FALSE);
-      lpFrameCurrent->dwAltLineFill=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, NULL, FALSE);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill), 0);
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINESKIP, NULL, FALSE);
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_ALTLINEFILL, NULL, FALSE);
+      SetFrameInfo(lpFrameCurrent, FIS_ALTLINES, MAKELONG(a, b));
 
-      lpFrameCurrent->bAltLineBorder=(BOOL)SendMessage(hWndAltLineBorder, BM_GETCHECK, 0, 0);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->bAltLineBorder?AECOOP_OR:AECOOP_XOR, AECO_ALTLINEBORDER);
+      //Alternating line border
+      a=(BOOL)SendMessage(hWndAltLineBorder, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_ALTLINEBORDER, a);
 
       //Margins
       rcEditMargins.left=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
       rcEditMargins.right=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
       rcEditMargins.top=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_TOP, NULL, FALSE);
       rcEditMargins.bottom=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM, NULL, FALSE);
-      SetCurEditOption(EO_TEXTMARGINS, (UINT_PTR)&rcEditMargins);
+      SetFrameInfo(lpFrameCurrent, FIS_RECTMARGINS, (UINT_PTR)&rcEditMargins);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
-      SetCurEditOption(EO_LINEGAP, a);
+      SetFrameInfo(lpFrameCurrent, FIS_LINEGAP, a);
     }
   }
   return FALSE;
@@ -14212,48 +14186,29 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
-      DWORD dwAddOptions;
-      DWORD dwCurOptions;
       int a;
 
       //Mouse options
-      lpFrameCurrent->dwMouseOptions&=~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
-      dwAddOptions=AECO_NOMARGINSEL|AECO_DISABLEDRAG;
+      a=lpFrameCurrent->dwMouseOptions & ~MO_LEFTMARGINSELECTION & ~MO_RICHEDITMOUSE & ~MO_MOUSEDRAGGING & ~MO_RCLICKMOVECARET;
       if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwMouseOptions|=MO_LEFTMARGINSELECTION;
-        dwAddOptions&=~AECO_NOMARGINSEL;
-      }
+        a|=MO_LEFTMARGINSELECTION;
       if (SendMessage(hWndMouseRichEdit, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwMouseOptions|=MO_RICHEDITMOUSE;
-        dwAddOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
-      }
+        a|=MO_RICHEDITMOUSE;
       if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwMouseOptions|=MO_MOUSEDRAGGING;
-        dwAddOptions&=~AECO_DISABLEDRAG;
-      }
+        a|=MO_MOUSEDRAGGING;
       if (SendMessage(hWndRClickMoveCaret, BM_GETCHECK, 0, 0) == BST_CHECKED)
-      {
-        lpFrameCurrent->dwMouseOptions|=MO_RCLICKMOVECARET;
-        dwAddOptions|=AECO_RBUTTONDOWNMOVECARET;
-      }
-      dwCurOptions=(DWORD)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
-      dwCurOptions&=~AECO_NOMARGINSEL & ~AECO_LBUTTONUPCONTINUECAPTURE & ~AECO_DISABLEDRAG & ~AECO_RBUTTONDOWNMOVECARET;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+        a|=MO_RCLICKMOVECARET;
+      SetFrameInfo(lpFrameCurrent, FIS_MOUSEOPTIONS, a);
 
       //HyperLinks
       a=(int)SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
-      if (a != lpFrameCurrent->bShowURL)
-      {
-        lpFrameCurrent->bShowURL=a;
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETDETECTURL, lpFrameCurrent->bShowURL, 0);
-      }
+      SetFrameInfo(lpFrameCurrent, FIS_SHOWURL, a);
+
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        lpFrameCurrent->nClickURL=1;
+        a=1;
       else
-        lpFrameCurrent->nClickURL=2;
+        a=2;
+      SetFrameInfo(lpFrameCurrent, FIS_CLICKURL, a);
 
       //Url prefixes
       GetWindowTextWide(hWndUrlPrefixes, lpFrameCurrent->wszUrlPrefixes, URL_PREFIXES_SIZE);
@@ -17647,6 +17602,232 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 
 //// Other functions
 
+BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
+{
+  if (!lpFrame)
+  {
+    if (lpFrameCurrent->hWndEditParent)
+      lpFrame=lpFrameCurrent;
+  }
+
+  if (nType == FIS_TABSTOPSIZE)
+  {
+    if (lpFrame->nTabStopSize != (int)dwData && (int)dwData > 0)
+    {
+      lpFrame->nTabStopSize=(int)dwData;
+      SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, TRUE);
+      UpdateStatusUser(lpFrame, CSB_TABSIZE);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_TABSTOPASSPACES)
+  {
+    if (lpFrame->bTabStopAsSpaces != (BOOL)dwData)
+    {
+      lpFrame->bTabStopAsSpaces=(BOOL)dwData;
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_UNDOLIMIT)
+  {
+    if (lpFrame->nUndoLimit != (int)dwData && (int)dwData >= 0)
+    {
+      lpFrame->nUndoLimit=(int)dwData;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_DETAILEDUNDO)
+  {
+    if (lpFrame->bDetailedUndo != (BOOL)dwData)
+    {
+      lpFrame->bDetailedUndo=(BOOL)dwData;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_WRAP)
+  {
+    if (lpFrame->dwWrapType != LOWORD(dwData) || lpFrame->dwWrapLimit != HIWORD(dwData))
+    {
+      lpFrame->dwWrapType=LOWORD(dwData);
+      lpFrame->dwWrapLimit=HIWORD(dwData);
+
+      if (lpFrame->ei.bWordWrap)
+      {
+        UpdateShowHScroll(lpFrame);
+        SetWordWrap(lpFrame, lpFrame->dwWrapType, lpFrame->dwWrapLimit);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_MARKER)
+  {
+    if (lpFrame->dwMarker != dwData && (int)dwData >= -1)
+    {
+      lpFrame->dwMarker=(DWORD)dwData;
+      SetMarker(lpFrame, lpFrame->dwMarker);
+      UpdateStatusUser(lpFrame, CSB_MARKER);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_CARETWIDTH)
+  {
+    if (lpFrame->nCaretWidth != (int)dwData && (int)dwData >= 0)
+    {
+      lpFrame->nCaretWidth=(int)dwData;
+
+      //Update width
+      {
+        POINT pt;
+
+        SendMessage(lpFrame->ei.hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+        pt.x=lpFrame->nCaretWidth;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+        return TRUE;
+      }
+    }
+  }
+  else if (nType == FIS_CARETOPTIONS)
+  {
+    if (lpFrame->dwCaretOptions != (DWORD)dwData)
+    {
+      DWORD dwAddOptions;
+      DWORD dwCurOptions;
+
+      lpFrame->dwCaretOptions=(DWORD)dwData;
+
+      dwAddOptions=0;
+      if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
+        dwAddOptions|=AECO_CARETOUTEDGE;
+      if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
+        dwAddOptions|=AECO_ACTIVECOLUMN;
+      if (lpFrame->dwCaretOptions & CO_CARETACTIVELINE)
+        dwAddOptions|=AECO_ACTIVELINE;
+      if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
+        dwAddOptions|=AECO_ACTIVELINEBORDER;
+      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
+      dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_ALTLINES)
+  {
+    if (lpFrame->dwAltLineFill != LOWORD(dwData) || lpFrame->dwAltLineSkip != HIWORD(dwData))
+    {
+      lpFrame->dwAltLineFill=LOWORD(dwData);
+      lpFrame->dwAltLineSkip=HIWORD(dwData);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineSkip, lpFrame->dwAltLineFill), 0);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_ALTLINEBORDER)
+  {
+    if (lpFrame->bAltLineBorder != (BOOL)dwData)
+    {
+      lpFrame->bAltLineBorder=(BOOL)dwData;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bAltLineBorder?AECOOP_OR:AECOOP_XOR, AECO_ALTLINEBORDER);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_RECTMARGINS)
+  {
+    if (xmemcmp(&lpFrame->rcEditMargins, (RECT *)dwData, sizeof(RECT)))
+    {
+      if (lpFrame->ei.hWndMaster)
+      {
+        SetMargins(lpFrame->ei.hWndMaster, (RECT *)dwData, &lpFrame->rcEditMargins);
+        if (lpFrame->ei.hWndClone1)
+          SetMargins(lpFrame->ei.hWndClone1, (RECT *)dwData, &lpFrame->rcEditMargins);
+        if (lpFrame->ei.hWndClone2)
+          SetMargins(lpFrame->ei.hWndClone2, (RECT *)dwData, &lpFrame->rcEditMargins);
+        if (lpFrame->ei.hWndClone3)
+          SetMargins(lpFrame->ei.hWndClone3, (RECT *)dwData, &lpFrame->rcEditMargins);
+      }
+      else SetMargins(lpFrame->ei.hWndEdit, (RECT *)dwData, &lpFrame->rcEditMargins);
+
+      lpFrame->rcEditMargins=*(RECT *)dwData;
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_LINEGAP)
+  {
+    if (lpFrame->dwLineGap != (DWORD)dwData && (int)dwData >= 0)
+    {
+      lpFrame->dwLineGap=(DWORD)dwData;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETLINEGAP, lpFrame->dwLineGap, 0);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_MOUSEOPTIONS)
+  {
+    if (lpFrame->dwMouseOptions != (DWORD)dwData)
+    {
+      DWORD dwAddOptions;
+      DWORD dwCurOptions;
+
+      lpFrame->dwMouseOptions=(DWORD)dwData;
+
+      dwAddOptions=AECO_NOMARGINSEL|AECO_DISABLEDRAG;
+      if (lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION)
+        dwAddOptions&=~AECO_NOMARGINSEL;
+      if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
+        dwAddOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
+      if (lpFrame->dwMouseOptions & MO_MOUSEDRAGGING)
+        dwAddOptions&=~AECO_DISABLEDRAG;
+      if (lpFrame->dwMouseOptions & MO_RCLICKMOVECARET)
+        dwAddOptions|=AECO_RBUTTONDOWNMOVECARET;
+      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
+      dwCurOptions&=~AECO_NOMARGINSEL & ~AECO_LBUTTONUPCONTINUECAPTURE & ~AECO_DISABLEDRAG & ~AECO_RBUTTONDOWNMOVECARET;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_SHOWURL)
+  {
+    if (lpFrame->bShowURL != (BOOL)dwData)
+    {
+      lpFrame->bShowURL=(BOOL)dwData;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETDETECTURL, lpFrame->bShowURL, 0);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_CLICKURL)
+  {
+    if (lpFrame->nClickURL != (int)dwData)
+    {
+      lpFrame->nClickURL=(int)dwData;
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_LOCKINHERIT)
+  {
+    if (lpFrame->dwLockInherit != (DWORD)dwData)
+    {
+      lpFrame->dwLockInherit=(DWORD)dwData;
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_COLORS)
+  {
+    if (xmemcmp(&lpFrame->aec, (AECOLORS *)dwData, sizeof(AECOLORS)))
+    {
+      AECOLORS *aec=(AECOLORS *)dwData;
+
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
+      lpFrame->aec.dwFlags=aec->dwFlags;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
+      lpFrame->aec.dwFlags=AECLR_ALL;
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
 {
   if (lpFrameCurrent->ei.hWndEdit)
@@ -17665,110 +17846,6 @@ BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
         if (ei) xmemcpy(ei, &lpFrame->ei, sizeof(EDITINFO));
         return TRUE;
       }
-    }
-  }
-  return FALSE;
-}
-
-BOOL SetCurEditOption(int nType, UINT_PTR dwData)
-{
-  if (nType == EO_TEXTMARGINS)
-  {
-    if (xmemcmp(&lpFrameCurrent->rcEditMargins, (RECT *)dwData, sizeof(RECT)))
-    {
-      if (lpFrameCurrent->ei.hWndMaster)
-      {
-        SetMargins(lpFrameCurrent->ei.hWndMaster, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
-        if (lpFrameCurrent->ei.hWndClone1)
-          SetMargins(lpFrameCurrent->ei.hWndClone1, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
-        if (lpFrameCurrent->ei.hWndClone2)
-          SetMargins(lpFrameCurrent->ei.hWndClone2, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
-        if (lpFrameCurrent->ei.hWndClone3)
-          SetMargins(lpFrameCurrent->ei.hWndClone3, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
-      }
-      else SetMargins(lpFrameCurrent->ei.hWndEdit, (RECT *)dwData, &lpFrameCurrent->rcEditMargins);
-
-      lpFrameCurrent->rcEditMargins=*(RECT *)dwData;
-      return TRUE;
-    }
-  }
-  else if (nType == EO_TABSIZE)
-  {
-    if (lpFrameCurrent->nTabStopSize != (INT_PTR)dwData && (INT_PTR)dwData > 0)
-    {
-      lpFrameCurrent->nTabStopSize=(int)dwData;
-      SetTabStops(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->nTabStopSize, TRUE);
-      UpdateStatusUser(lpFrameCurrent, CSB_TABSIZE);
-      return TRUE;
-    }
-  }
-  else if (nType == EO_UNDOLIMIT)
-  {
-    if (lpFrameCurrent->nUndoLimit != (INT_PTR)dwData && (INT_PTR)dwData >= 0)
-    {
-      lpFrameCurrent->nUndoLimit=(int)dwData;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrameCurrent->nUndoLimit, 0);
-      return TRUE;
-    }
-  }
-  else if (nType == EO_WRAPLIMIT)
-  {
-    if (lpFrameCurrent->dwWrapLimit != dwData && (INT_PTR)dwData >= -1)
-    {
-      lpFrameCurrent->dwWrapLimit=(DWORD)dwData;
-
-      if (lpFrameCurrent->ei.bWordWrap)
-      {
-        UpdateShowHScroll(lpFrameCurrent);
-        SetWordWrap(lpFrameCurrent, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
-      }
-      return TRUE;
-    }
-  }
-  else if (nType == EO_MARKERPOS)
-  {
-    if (lpFrameCurrent->dwMarker != dwData && (INT_PTR)dwData >= -1)
-    {
-      lpFrameCurrent->dwMarker=(DWORD)dwData;
-      SetMarker(lpFrameCurrent, lpFrameCurrent->dwMarker);
-      UpdateStatusUser(lpFrameCurrent, CSB_MARKER);
-      return TRUE;
-    }
-  }
-  else if (nType == EO_CARETWIDTH)
-  {
-    if (lpFrameCurrent->nCaretWidth != (INT_PTR)dwData && (INT_PTR)dwData >= 0)
-    {
-      lpFrameCurrent->nCaretWidth=(int)dwData;
-
-      //Update width
-      {
-        POINT pt;
-
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
-        pt.x=lpFrameCurrent->nCaretWidth;
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
-        return TRUE;
-      }
-    }
-  }
-  else if (nType == EO_LINEGAP)
-  {
-    if (lpFrameCurrent->dwLineGap != dwData && (INT_PTR)dwData >= 0)
-    {
-      lpFrameCurrent->dwLineGap=(DWORD)dwData;
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETLINEGAP, lpFrameCurrent->dwLineGap, 0);
-      return TRUE;
-    }
-  }
-  else if (nType == EO_ALTLINES)
-  {
-    if (lpFrameCurrent->dwAltLineFill != LOWORD(dwData) || lpFrameCurrent->dwAltLineSkip != HIWORD(dwData))
-    {
-      lpFrameCurrent->dwAltLineFill=LOWORD(dwData);
-      lpFrameCurrent->dwAltLineSkip=HIWORD(dwData);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill), 0);
-      return TRUE;
     }
   }
   return FALSE;
