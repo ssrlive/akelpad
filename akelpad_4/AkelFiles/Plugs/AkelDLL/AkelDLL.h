@@ -205,56 +205,74 @@
 #define FI_READONLY             16
 #define FI_WORDWRAP             17
 #define FI_OVERTYPE             18
-#define FI_STREAMOFFSET         30
 #define FI_FILEA                31
 #define FI_FILEW                32
 #define FI_FILELEN              33
-#define FI_ICONHANDLE           34
-#define FI_ICONINDEX            35
-#define FI_RECTEDIT             36
-#define FI_RECTMASTER           37
-#define FI_LOGFONTW             51
-#define FI_TABSTOPASSPACES      52
-#define FI_CARETOPTIONS         53
-#define FI_MOUSEOPTIONS         54
-#define FI_CLICKURL             55
-#define FI_URLPREFIXESENABLE    56
-#define FI_URLDELIMITERSENABLE  57
-#define FI_WORDDELIMITERSENABLE 58
-#define FI_WRAPDELIMITERSENABLE 59
-#define FI_MAPPEDPRINTWIDTH     61
-#define FI_RECTMARGINS          71
-#define FI_TABSTOPSIZE          72
-#define FI_UNDOLIMIT            75
-#define FI_DETAILEDUNDO         76
-#define FI_WRAPTYPE             79
-#define FI_WRAPLIMIT            80
-#define FI_MARKER               81
-#define FI_CARETWIDTH           84
-#define FI_ALTLINEFILL          85
-#define FI_ALTLINESKIP          86
-#define FI_ALTLINEBORDER        87
-#define FI_LINEGAP              90
-#define FI_SHOWURL              93
+#define FI_STREAMOFFSET         34
+#define FI_ICONHANDLE           38
+#define FI_ICONINDEX            39
+#define FI_RECTEDIT             43
+#define FI_RECTMASTER           44
+#define FI_LOGFONTW             48
+#define FI_TABSTOPSIZE          52
+#define FI_TABSTOPASSPACES      53
+#define FI_UNDOLIMIT            57
+#define FI_DETAILEDUNDO         58
+#define FI_WRAPTYPE             62
+#define FI_WRAPLIMIT            63
+#define FI_MARKER               64
+#define FI_CARETWIDTH           68
+#define FI_CARETOPTIONS         69
+#define FI_ALTLINEFILL          73
+#define FI_ALTLINESKIP          74
+#define FI_ALTLINEBORDER        75
+#define FI_RECTMARGINS          79
+#define FI_LINEGAP              83
+#define FI_MOUSEOPTIONS         87
+#define FI_CLICKURL             88
+#define FI_SHOWURL              89
+#define FI_URLPREFIXESENABLE    93
 #define FI_URLPREFIXES          94
-#define FI_URLLEFTDELIMITERS    95
-#define FI_URLRIGHTDELIMITERS   96
-#define FI_WORDDELIMITERS       97
-#define FI_WRAPDELIMITERS       98
-#define FI_COLORS               101
-#define FI_FILETIME             111
-#define FI_INPUTLOCALE          112
-#define FI_LOCKINHERIT          113
+#define FI_URLDELIMITERSENABLE  98
+#define FI_URLLEFTDELIMITERS    99
+#define FI_URLRIGHTDELIMITERS   103
+#define FI_WORDDELIMITERSENABLE 107
+#define FI_WORDDELIMITERS       108
+#define FI_WRAPDELIMITERSENABLE 112
+#define FI_WRAPDELIMITERS       113
+#define FI_MAPPEDPRINTWIDTH     121
+#define FI_INPUTLOCALE          125
+#define FI_LOCKINHERIT          129
+#define FI_FILETIME             133
+#define FI_COLORS               137
 
-//AKD_SETEDITOPTION flags
-#define EO_TEXTMARGINS 1  //Edit margins. lParam is a pointer to a RECT structure, that contain left, top, right, bottom margins in pixels.
-#define EO_TABSIZE     2  //Tabulation size.
-#define EO_UNDOLIMIT   3  //Undo limit.
-#define EO_WRAPLIMIT   4  //Wrap limit.
-#define EO_MARKERPOS   5  //Column marker position.
-#define EO_CARETWIDTH  6  //Caret width.
-#define EO_LINEGAP     7  //Gap between lines.
-#define EO_ALTLINES    8  //Alternating lines. The low-order word of lParam contains the skip interval in lines. The high-order word of lParam contains the fill interval in lines.
+//AKD_SETFRAMEINFO type.
+#define FIS_TABSTOPSIZE          1   //(int)FRAMEINFO.dwData - tabulation size in characters.
+#define FIS_TABSTOPASSPACES      2   //(DWORD)FRAMEINFO.dwData - undo limit.
+#define FIS_UNDOLIMIT            6   //(int)FRAMEINFO.dwData - wrap limit.
+#define FIS_DETAILEDUNDO         7   //(BOOL)FRAMEINFO.dwData - detailed undo.
+#define FIS_WRAP                 11  //(DWORD)FRAMEINFO.dwData - the low-order word contains the wrap type (see AEWW_* defines in AkelEdit.h). The high-order word contains the wrap limit in characters.
+#define FIS_MARKER               12  //(int)FRAMEINFO.dwData - column marker position.
+#define FIS_CARETWIDTH           16  //(int)FRAMEINFO.dwData - caret width.
+#define FIS_CARETOPTIONS         17  //(DWORD)FRAMEINFO.dwData - caret options, see CO_* defines.
+#define FIS_ALTLINES             21  //(DWORD)FRAMEINFO.dwData - alternating lines. The low-order word of FRAMEINFO.dwData contains the skip interval in lines. The high-order word of FRAMEINFO.dwData contains the fill interval in lines.
+#define FIS_ALTLINEBORDER        22  //(BOOL)FRAMEINFO.dwData - draw alternating lines border.
+#define FIS_RECTMARGINS          26  //(RECT *)FRAMEINFO.dwData - edit margins. FRAMEINFO.dwData contain left, top, right, bottom margins in pixels.
+#define FIS_LINEGAP              30  //(int)FRAMEINFO.dwData - gap between lines.
+#define FIS_MOUSEOPTIONS         34  //(DWORD)FRAMEINFO.dwData - mouse options, see MO_* defines.
+#define FIS_SHOWURL              35  //(BOOL)FRAMEINFO.dwData - show URL.
+#define FIS_CLICKURL             36  //(int)FRAMEINFO.dwData - number of clicks to open URL.
+#define FIS_URLPREFIXESENABLE    40  //(BOOL)FRAMEINFO.dwData - URL prefixes enable.
+#define FIS_URLPREFIXES          41  //(wchar_t *)FRAMEINFO.dwData - URL prefixes.
+#define FIS_URLDELIMITERSENABLE  45  //(BOOL)FRAMEINFO.dwData - URL delimiters enable.
+#define FIS_URLLEFTDELIMITERS    46  //(wchar_t *)FRAMEINFO.dwData - URL left delimiters.
+#define FIS_URLRIGHTDELIMITERS   50  //(wchar_t *)FRAMEINFO.dwData - URL right delimiters.
+#define FIS_WORDDELIMITERSENABLE 54  //(BOOL)FRAMEINFO.dwData - word delimiters enabled.
+#define FIS_WORDDELIMITERS       55  //(wchar_t *)FRAMEINFO.dwData - word delimiters.
+#define FIS_WRAPDELIMITERSENABLE 59  //(BOOL)FRAMEINFO.dwData - wrap delimiters enabled.
+#define FIS_WRAPDELIMITERS       60  //(wchar_t *)FRAMEINFO.dwData - wrap delimiters.
+#define FIS_LOCKINHERIT          68  //(DWORD)FRAMEINFO.dwData - lock inherit new document settings from current document. FRAMEINFO.dwData contain lock inherit flags, see LI_* defines.
+#define FIS_COLORS               72  //(AECOLORS *)FRAMEINFO.dwData - set colors.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
@@ -880,6 +898,12 @@ typedef struct _FRAMEDATA {
   BOOL bReachedEOF;
   INT_PTR nReplaceCount;
 } FRAMEDATA;
+
+//AKD_SETFRAMEINFO
+typedef struct {
+  int nType;        //See FIS_* defines.
+  UINT_PTR dwData;  //Depend on FIS_* define.
+} FRAMEINFO;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;
@@ -1708,6 +1732,7 @@ typedef struct {
 #define AKD_SETPRINTINFO           (WM_USER + 192)
 
 //Options
+#define AKD_SETFRAMEINFO           (WM_USER + 196)
 #define AKD_GETMAININFO            (WM_USER + 198)
 #define AKD_GETFRAMEINFO           (WM_USER + 199)
 #define AKD_GETEDITINFO            (WM_USER + 200)
@@ -1724,12 +1749,6 @@ typedef struct {
 #define AKD_GETCODEPAGELIST        (WM_USER + 213)
 #define AKD_RECENTFILES            (WM_USER + 214)
 #define AKD_SEARCHHISTORY          (WM_USER + 215)
-#define AKD_GETEDITOPTION          (WM_USER + 216)
-#define AKD_SETEDITOPTION          (WM_USER + 217)
-#define AKD_GETCOLORS              (WM_USER + 218)
-#define AKD_SETCOLORS              (WM_USER + 219)
-#define AKD_GETLOCKINHERIT         (WM_USER + 220)
-#define AKD_SETLOCKINHERIT         (WM_USER + 221)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -2843,17 +2862,47 @@ ________________
 
 Get frame data info.
 
-(int)wParam         == see FI_* defines.
+(void)wParam        == can be combination of FI_* defines or pointer to a FRAMEINFO structure.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
 
 Return Value
- Depend on FI_* define.
+ If wParam is combination of FI_* defines, then return value is the requested data.
+ If wParam is a pointer to a FRAMEINFO structure, then return value is the size copied to FRAMEINFO.dwData member or zero if error.
 
-Remarks
- Message can be used for SDI mode, if lParam is NULL.
+Example (current edit window):
+ HWND hWndEdit=(HWND)SendMessage(pd->hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
+
+Example (colors):
+ FRAMEINFO fi;
+ AECOLORS aec;
+
+ fi.nType=FI_COLORS;
+ fi.dwData=(UINT_PTR)&aec;
+ SendMessage(pd->hMainWnd, AKD_GETFRAMEINFO, (WPARAM)&fi, (LPARAM)NULL);
+
+
+AKD_SETFRAMEINFO
+________________
+
+Set frame data info.
+
+(FRAMEINFO *)wParam == pointer to a FRAMEINFO structure.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
+
+Return Value
+ TRUE  success.
+ FALSE error.
 
 Example:
- HWND hWndEdit=(HWND)SendMessage(pd->hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
+ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
+ {
+   FRAMEINFO fi;
+
+   fi.nType=nType;
+   fi.dwData=dwData;
+   return (BOOL)SendMessage(hMainWnd, AKD_SETFRAMEINFO, (WPARAM)&fi, (LPARAM)lpFrame);
+ }
+ SetFrameInfo(NULL, FIS_TABSTOPSIZE, 4);
 
 
 AKD_GETEDITINFO
@@ -2999,91 +3048,30 @@ Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
 
 
-AKD_GETEDITOPTION
-_________________
+AKD_SETFRAMEINFO
+________________
 
-Get option from current edit window.
+Set frame data info.
 
-(int)wParam  == see EO_* defines.
-lParam       == not used.
-
-Return Value
- Depend of EO_* define.
-
-Example:
- int nTabSize=SendMessage(pd->hMainWnd, AKD_GETEDITOPTION, EO_TABSIZE, 0);
-
-
-AKD_SETEDITOPTION
-_________________
-
-Set option for current edit window.
-
-(int)wParam  == see EO_* defines.
-(void)lParam == depend of EO_* define.
+(FRAMEINFO *)wParam == pointer to a FRAMEINFO structure.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
 
 Return Value
- TRUE  success.
- FALSE error.
+ TRUE  info is changed.
+ FALSE info isn't changed.
 
 Example:
+ FRAMEINFO fi;
  RECT rcMargins;
 
  rcMargins.left=4;
  rcMargins.top=0;
  rcMargins.right=4;
  rcMargins.bottom=0;
- SendMessage(pd->hMainWnd, AKD_SETEDITOPTION, EO_TEXTMARGINS, (LPARAM)&rcMargins);
 
-
-AKD_GETCOLORS
-_____________
-
-Get colors.
-
-(HWND)wParam       == edit window, NULL for current edit window.
-(AECOLORS *)lParam == pointer to a AECOLORS structure.
-
-Return Value
- Pointer to a AECOLORS structure.
-
-Example:
- See AKD_SETCOLORS example.
-
-
-AKD_SETCOLORS
-_____________
-
-Set colors.
-
-(HWND)wParam       == edit window, NULL for current edit window.
-(AECOLORS *)lParam == pointer to a AECOLORS structure.
-
-Return Value
- TRUE   success.
- FALSE  failed.
-
-Example:
- AECOLORS aec;
-
- SendMessage(pd->hMainWnd, AKD_GETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
- aec.crBasicBk=RGB(0x00, 0xFF, 0x00);
- SendMessage(pd->hMainWnd, AKD_SETCOLORS, (WPARAM)NULL, (LPARAM)&aec);
-
-
-AKD_GETLOCKINHERIT
-__________________
-
-Get lock inherit flags.
-
-(HWND)wParam == edit window, NULL for current edit window.
-lParam       == not used.
-
-Return Value
- Lock inherit flags, see LI_* defines. If error -1 is returned.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_GETLOCKINHERIT, (WPARAM)NULL, 0);
+ fi.nType=FIS_RECTMARGINS;
+ fi.dwData=(UINT_PTR)&rcMargins;
+ SendMessage(pd->hMainWnd, AKD_SETFRAMEINFO, (WPARAM)&fi, (LPARAM)NULL);
 
 
 AKD_SETLOCKINHERIT

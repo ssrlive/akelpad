@@ -2125,133 +2125,230 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETFRAMEINFO)
     {
       FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
+      int nType;
+      UINT_PTR dwData=0;
+      UINT_PTR *lpdwData;
+      UINT_PTR dwSize=sizeof(UINT_PTR);
 
       if (!lpFrame)
       {
         if (lpFrameCurrent->hWndEditParent)
           lpFrame=lpFrameCurrent;
       }
+      if (wParam > 0xFFFF)
+      {
+        FRAMEINFO *fi=(FRAMEINFO *)wParam;
+
+        nType=fi->nType;
+        lpdwData=&fi->dwData;
+      }
+      else
+      {
+        nType=wParam;
+        lpdwData=&dwData;
+      }
 
       if (lpFrame)
       {
-        if (wParam == FI_WNDEDITPARENT)
-          return (LRESULT)lpFrame->hWndEditParent;
-        if (wParam == FI_WNDEDIT)
-          return (LRESULT)lpFrame->ei.hWndEdit;
-        if (wParam == FI_DOCEDIT)
-          return (LRESULT)lpFrame->ei.hDocEdit;
-        if (wParam == FI_WNDMASTER)
-          return (LRESULT)lpFrame->ei.hWndMaster;
-        if (wParam == FI_DOCMASTER)
-          return (LRESULT)lpFrame->ei.hDocMaster;
-        if (wParam == FI_WNDCLONE1)
-          return (LRESULT)lpFrame->ei.hWndClone1;
-        if (wParam == FI_DOCCLONE1)
-          return (LRESULT)lpFrame->ei.hDocClone1;
-        if (wParam == FI_WNDCLONE2)
-          return (LRESULT)lpFrame->ei.hWndClone2;
-        if (wParam == FI_DOCCLONE2)
-          return (LRESULT)lpFrame->ei.hDocClone2;
-        if (wParam == FI_WNDCLONE3)
-          return (LRESULT)lpFrame->ei.hWndClone3;
-        if (wParam == FI_DOCCLONE3)
-          return (LRESULT)lpFrame->ei.hDocClone3;
-        if (wParam == FI_CODEPAGE)
-          return (LRESULT)lpFrame->ei.nCodePage;
-        if (wParam == FI_BOM)
-          return (LRESULT)lpFrame->ei.bBOM;
-        if (wParam == FI_NEWLINE)
-          return (LRESULT)lpFrame->ei.nNewLine;
-        if (wParam == FI_MODIFIED)
-          return (LRESULT)lpFrame->ei.bModified;
-        if (wParam == FI_READONLY)
-          return (LRESULT)lpFrame->ei.bReadOnly;
-        if (wParam == FI_WORDWRAP)
-          return (LRESULT)lpFrame->ei.bWordWrap;
-        if (wParam == FI_OVERTYPE)
-          return (LRESULT)lpFrame->ei.bOvertypeMode;
-        if (wParam == FI_FILEA)
-          return (LRESULT)lpFrame->szFile;
-        if (wParam == FI_FILEW)
-          return (LRESULT)lpFrame->wszFile;
-        if (wParam == FI_FILELEN)
-          return (LRESULT)lpFrame->nFileLen;
-        if (wParam == FI_STREAMOFFSET)
-          return (LRESULT)lpFrame->nStreamOffset;
-        if (wParam == FI_ICONHANDLE)
-          return (LRESULT)lpFrame->hIcon;
-        if (wParam == FI_ICONINDEX)
-          return (LRESULT)lpFrame->nIconIndex;
-        if (wParam == FI_RECTEDIT)
-          return (LRESULT)&lpFrame->rcEditWindow;
-        if (wParam == FI_RECTMASTER)
-          return (LRESULT)&lpFrame->rcMasterWindow;
-        if (wParam == FI_LOGFONTW)
-          return (LRESULT)&lpFrame->lf;
-        if (wParam == FI_TABSTOPASSPACES)
-          return (LRESULT)lpFrame->bTabStopAsSpaces;
-        if (wParam == FI_CARETOPTIONS)
-          return (LRESULT)lpFrame->dwCaretOptions;
-        if (wParam == FI_MOUSEOPTIONS)
-          return (LRESULT)lpFrame->dwMouseOptions;
-        if (wParam == FI_CLICKURL)
-          return (LRESULT)lpFrame->nClickURL;
-        if (wParam == FI_URLPREFIXESENABLE)
-          return (LRESULT)lpFrame->bUrlPrefixesEnable;
-        if (wParam == FI_URLDELIMITERSENABLE)
-          return (LRESULT)lpFrame->bUrlDelimitersEnable;
-        if (wParam == FI_WORDDELIMITERSENABLE)
-          return (LRESULT)lpFrame->bWordDelimitersEnable;
-        if (wParam == FI_WRAPDELIMITERSENABLE)
-          return (LRESULT)lpFrame->bWrapDelimitersEnable;
-        if (wParam == FI_MAPPEDPRINTWIDTH)
-          return (LRESULT)lpFrame->dwMappedPrintWidth;
-        if (wParam == FI_RECTMARGINS)
-          return (LRESULT)&lpFrame->rcEditMargins;
-        if (wParam == FI_TABSTOPSIZE)
-          return (LRESULT)lpFrame->nTabStopSize;
-        if (wParam == FI_UNDOLIMIT)
-          return (LRESULT)lpFrame->nUndoLimit;
-        if (wParam == FI_DETAILEDUNDO)
-          return (LRESULT)lpFrame->bDetailedUndo;
-        if (wParam == FI_WRAPTYPE)
-          return (LRESULT)lpFrame->dwWrapType;
-        if (wParam == FI_WRAPLIMIT)
-          return (LRESULT)lpFrame->dwWrapLimit;
-        if (wParam == FI_MARKER)
-          return (LRESULT)lpFrame->dwMarker;
-        if (wParam == FI_CARETWIDTH)
-          return (LRESULT)lpFrame->nCaretWidth;
-        if (wParam == FI_ALTLINEFILL)
-          return (LRESULT)lpFrame->dwAltLineFill;
-        if (wParam == FI_ALTLINESKIP)
-          return (LRESULT)lpFrame->dwAltLineSkip;
-        if (wParam == FI_ALTLINEBORDER)
-          return (LRESULT)lpFrame->bAltLineBorder;
-        if (wParam == FI_LINEGAP)
-          return (LRESULT)lpFrame->dwLineGap;
-        if (wParam == FI_SHOWURL)
-          return (LRESULT)lpFrame->bShowURL;
-        if (wParam == FI_URLPREFIXES)
-          return (LRESULT)lpFrame->wszUrlPrefixes;
-        if (wParam == FI_URLLEFTDELIMITERS)
-          return (LRESULT)lpFrame->wszUrlLeftDelimiters;
-        if (wParam == FI_URLRIGHTDELIMITERS)
-          return (LRESULT)lpFrame->wszUrlRightDelimiters;
-        if (wParam == FI_WORDDELIMITERS)
-          return (LRESULT)lpFrame->wszWordDelimiters;
-        if (wParam == FI_WRAPDELIMITERS)
-          return (LRESULT)lpFrame->wszWrapDelimiters;
-        if (wParam == FI_COLORS)
-          return (LRESULT)&lpFrame->aec;
-        if (wParam == FI_FILETIME)
-          return (LRESULT)&lpFrame->ft;
-        if (wParam == FI_INPUTLOCALE)
-          return (LRESULT)lpFrame->dwInputLocale;
-        if (wParam == FI_LOCKINHERIT)
-          return (LRESULT)lpFrame->dwLockInherit;
+        if (nType == FI_WNDEDITPARENT)
+          *lpdwData=(UINT_PTR)lpFrame->hWndEditParent;
+        else if (nType == FI_WNDEDIT)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hWndEdit;
+        else if (nType == FI_DOCEDIT)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hDocEdit;
+        else if (nType == FI_WNDMASTER)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hWndMaster;
+        else if (nType == FI_DOCMASTER)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hDocMaster;
+        else if (nType == FI_WNDCLONE1)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone1;
+        else if (nType == FI_DOCCLONE1)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone1;
+        else if (nType == FI_WNDCLONE2)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone2;
+        else if (nType == FI_DOCCLONE2)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone2;
+        else if (nType == FI_WNDCLONE3)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone3;
+        else if (nType == FI_DOCCLONE3)
+          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone3;
+        else if (nType == FI_CODEPAGE)
+          *lpdwData=(UINT_PTR)lpFrame->ei.nCodePage;
+        else if (nType == FI_BOM)
+          *lpdwData=(UINT_PTR)lpFrame->ei.bBOM;
+        else if (nType == FI_NEWLINE)
+          *lpdwData=(UINT_PTR)lpFrame->ei.nNewLine;
+        if (nType == FI_MODIFIED)
+          *lpdwData=(UINT_PTR)lpFrame->ei.bModified;
+        else if (nType == FI_READONLY)
+          *lpdwData=(UINT_PTR)lpFrame->ei.bReadOnly;
+        else if (nType == FI_WORDWRAP)
+          *lpdwData=(UINT_PTR)lpFrame->ei.bWordWrap;
+        else if (nType == FI_OVERTYPE)
+          *lpdwData=(UINT_PTR)lpFrame->ei.bOvertypeMode;
+        else if (nType == FI_FILEA)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynA((void *)*lpdwData, lpFrame->szFile, MAX_PATH) + sizeof(char);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->szFile;
+        }
+        else if (nType == FI_FILEW)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFile, MAX_PATH) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszFile;
+        }
+        else if (nType == FI_FILELEN)
+          *lpdwData=(UINT_PTR)lpFrame->nFileLen;
+        else if (nType == FI_STREAMOFFSET)
+          *lpdwData=(UINT_PTR)lpFrame->nStreamOffset;
+        else if (nType == FI_ICONHANDLE)
+          *lpdwData=(UINT_PTR)lpFrame->hIcon;
+        else if (nType == FI_ICONINDEX)
+          *lpdwData=(UINT_PTR)lpFrame->nIconIndex;
+        else if (nType == FI_RECTEDIT)
+        {
+          if (wParam > 0xFFFF)
+          {
+            dwSize=sizeof(RECT);
+            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcEditWindow, dwSize);
+          }
+          else *lpdwData=(UINT_PTR)&lpFrame->rcEditWindow;
+        }
+        else if (nType == FI_RECTMASTER)
+        {
+          if (wParam > 0xFFFF)
+          {
+            dwSize=sizeof(RECT);
+            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcMasterWindow, dwSize);
+          }
+          else *lpdwData=(UINT_PTR)&lpFrame->rcMasterWindow;
+        }
+        else if (nType == FI_LOGFONTW)
+        {
+          if (wParam > 0xFFFF)
+          {
+            dwSize=sizeof(LOGFONTW);
+            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->lf, dwSize);
+          }
+          else *lpdwData=(UINT_PTR)&lpFrame->lf;
+        }
+        else if (nType == FI_TABSTOPSIZE)
+          *lpdwData=(UINT_PTR)lpFrame->nTabStopSize;
+        else if (nType == FI_TABSTOPASSPACES)
+          *lpdwData=(UINT_PTR)lpFrame->bTabStopAsSpaces;
+        else if (nType == FI_UNDOLIMIT)
+          *lpdwData=(UINT_PTR)lpFrame->nUndoLimit;
+        else if (nType == FI_DETAILEDUNDO)
+          *lpdwData=(UINT_PTR)lpFrame->bDetailedUndo;
+        else if (nType == FI_WRAPTYPE)
+          *lpdwData=(UINT_PTR)lpFrame->dwWrapType;
+        else if (nType == FI_WRAPLIMIT)
+          *lpdwData=(UINT_PTR)lpFrame->dwWrapLimit;
+        else if (nType == FI_MARKER)
+          *lpdwData=(UINT_PTR)lpFrame->dwMarker;
+        else if (nType == FI_CARETWIDTH)
+          *lpdwData=(UINT_PTR)lpFrame->nCaretWidth;
+        else if (nType == FI_CARETOPTIONS)
+          *lpdwData=(UINT_PTR)lpFrame->dwCaretOptions;
+        else if (nType == FI_ALTLINEFILL)
+          *lpdwData=(UINT_PTR)lpFrame->dwAltLineFill;
+        else if (nType == FI_ALTLINESKIP)
+          *lpdwData=(UINT_PTR)lpFrame->dwAltLineSkip;
+        else if (nType == FI_ALTLINEBORDER)
+          *lpdwData=(UINT_PTR)lpFrame->bAltLineBorder;
+        else if (nType == FI_RECTMARGINS)
+          *lpdwData=(UINT_PTR)&lpFrame->rcEditMargins;
+        else if (nType == FI_LINEGAP)
+          *lpdwData=(UINT_PTR)lpFrame->dwLineGap;
+        else if (nType == FI_MOUSEOPTIONS)
+          *lpdwData=(UINT_PTR)lpFrame->dwMouseOptions;
+        else if (nType == FI_CLICKURL)
+          *lpdwData=(UINT_PTR)lpFrame->nClickURL;
+        else if (nType == FI_SHOWURL)
+          *lpdwData=(UINT_PTR)lpFrame->bShowURL;
+        else if (nType == FI_URLPREFIXESENABLE)
+          *lpdwData=(UINT_PTR)lpFrame->bUrlPrefixesEnable;
+        else if (nType == FI_URLPREFIXES)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlPrefixes, URL_PREFIXES_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszUrlPrefixes;
+        }
+        else if (nType == FI_URLDELIMITERSENABLE)
+          *lpdwData=(UINT_PTR)lpFrame->bUrlDelimitersEnable;
+        else if (nType == FI_URLLEFTDELIMITERS)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszUrlLeftDelimiters;
+        }
+        else if (nType == FI_URLRIGHTDELIMITERS)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszUrlRightDelimiters;
+        }
+        else if (nType == FI_WORDDELIMITERSENABLE)
+          *lpdwData=(UINT_PTR)lpFrame->bWordDelimitersEnable;
+        else if (nType == FI_WORDDELIMITERS)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszWordDelimiters;
+        }
+        else if (nType == FI_WRAPDELIMITERSENABLE)
+          *lpdwData=(UINT_PTR)lpFrame->bWrapDelimitersEnable;
+        else if (nType == FI_WRAPDELIMITERS)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszWrapDelimiters;
+        }
+        else if (nType == FI_MAPPEDPRINTWIDTH)
+          *lpdwData=(UINT_PTR)lpFrame->dwMappedPrintWidth;
+        else if (nType == FI_INPUTLOCALE)
+          *lpdwData=(UINT_PTR)lpFrame->dwInputLocale;
+        else if (nType == FI_LOCKINHERIT)
+          *lpdwData=(UINT_PTR)lpFrame->dwLockInherit;
+        else if (nType == FI_FILETIME)
+        {
+          if (wParam > 0xFFFF)
+          {
+            dwSize=sizeof(FILETIME);
+            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->ft, dwSize);
+          }
+          else *lpdwData=(UINT_PTR)&lpFrame->ft;
+        }
+        else if (nType == FI_COLORS)
+        {
+          if (wParam > 0xFFFF)
+          {
+            dwSize=sizeof(AECOLORS);
+            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->aec, dwSize);
+          }
+          else *lpdwData=(UINT_PTR)&lpFrame->aec;
+        }
+
+        if (wParam > 0xFFFF)
+          return dwSize;
+        else
+          return *lpdwData;
       }
       return 0;
+    }
+    if (uMsg == AKD_SETFRAMEINFO)
+    {
+      FRAMEINFO *fi=(FRAMEINFO *)wParam;
+
+      return SetFrameInfo((FRAMEDATA *)lParam, fi->nType, fi->dwData);
     }
     if (uMsg == AKD_GETEDITINFO)
     {
@@ -2466,98 +2563,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return moCur.nSearchStrings;
       }
       return 0;
-    }
-    if (uMsg == AKD_GETEDITOPTION)
-    {
-      if (wParam == EO_TEXTMARGINS)
-      {
-        return (LRESULT)&lpFrameCurrent->rcEditMargins;
-      }
-      if (wParam == EO_TABSIZE)
-      {
-        return lpFrameCurrent->nTabStopSize;
-      }
-      if (wParam == EO_UNDOLIMIT)
-      {
-        return lpFrameCurrent->nUndoLimit;
-      }
-      if (wParam == EO_WRAPLIMIT)
-      {
-        return lpFrameCurrent->dwWrapLimit;
-      }
-      if (wParam == EO_MARKERPOS)
-      {
-        return lpFrameCurrent->dwMarker;
-      }
-      if (wParam == EO_CARETWIDTH)
-      {
-        return lpFrameCurrent->nCaretWidth;
-      }
-      if (wParam == EO_LINEGAP)
-      {
-        return lpFrameCurrent->dwLineGap;
-      }
-      if (wParam == EO_ALTLINES)
-      {
-        return MAKELONG(lpFrameCurrent->dwAltLineSkip, lpFrameCurrent->dwAltLineFill);
-      }
-      return 0;
-    }
-    if (uMsg == AKD_SETEDITOPTION)
-    {
-      return SetCurEditOption((int)wParam, (DWORD)lParam);
-    }
-    if (uMsg == AKD_GETCOLORS)
-    {
-      FRAMEDATA *lpFrame;
-      AECOLORS *aec=(AECOLORS *)lParam;
-
-      if (aec)
-      {
-        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        {
-          xmemcpy(aec, &lpFrame->aec, sizeof(AECOLORS));
-          return (LRESULT)aec;
-        }
-      }
-      return (LRESULT)NULL;
-    }
-    if (uMsg == AKD_SETCOLORS)
-    {
-      FRAMEDATA *lpFrame;
-      AECOLORS *aec=(AECOLORS *)lParam;
-
-      if (aec)
-      {
-        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
-          lpFrame->aec.dwFlags=aec->dwFlags;
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
-          lpFrame->aec.dwFlags=AECLR_ALL;
-          return TRUE;
-        }
-      }
-      return FALSE;
-    }
-    if (uMsg == AKD_GETLOCKINHERIT)
-    {
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        return (LRESULT)lpFrame->dwLockInherit;
-      return (LRESULT)-1;
-    }
-    if (uMsg == AKD_SETLOCKINHERIT)
-    {
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-      {
-        lpFrame->dwLockInherit=(DWORD)lParam;
-        return TRUE;
-      }
-      return FALSE;
     }
 
     //Windows
@@ -4685,10 +4690,10 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
           if (lpFrameCurrent->dwMarker == lpFrameCurrent->dwWrapLimit)
           {
-            SetCurEditOption(EO_MARKERPOS, dwNewPos);
-            SetCurEditOption(EO_WRAPLIMIT, dwNewPos);
+            SetFrameInfo(lpFrameCurrent, FIS_MARKER, dwNewPos);
+            SetFrameInfo(lpFrameCurrent, FIS_WRAP, MAKELONG(lpFrameCurrent->dwWrapType, dwNewPos));
           }
-          else SetCurEditOption(EO_MARKERPOS, dwNewPos);
+          else SetFrameInfo(lpFrameCurrent, FIS_MARKER, dwNewPos);
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
