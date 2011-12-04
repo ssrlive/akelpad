@@ -3373,10 +3373,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         return ExGetRangeTextW(hWnd, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
-    if (uMsg == AKD_GETSTATUSPOSTYPE)
-    {
-      return moCur.dwStatusPosType;
-    }
   }
 
   if (uMsg == WM_COPYDATA)
