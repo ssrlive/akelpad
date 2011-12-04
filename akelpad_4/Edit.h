@@ -177,11 +177,6 @@
 #define IDC_PSD_HEADLINE_FOOTER_EDIT   10012
 #define IDC_PSD_HEADLINE_FOOTER_HELP   10013
 
-//Color printing
-#define PRNC_TEXT                  0x01  //Print colored text.
-#define PRNC_BACKGROUND            0x02  //Print on colored background.
-#define PRNC_SELECTION             0x04  //Print text selection.
-
 //Language identifiers
 #define LANGID_RUSSIAN    0x0419
 #define LANGID_ENGLISH    0x0409
@@ -272,25 +267,6 @@
 #define AAA_SECURITYFREE        24  //Free saved security.
 #define AAA_CREATEFILE          25  //Create new file.
 
-//Search options
-//#define AEFR_DOWN               0x00000001
-//#define AEFR_WHOLEWORD          0x00000002
-//#define AEFR_MATCHCASE          0x00000004
-#define AEFR_UP                 0x00100000
-#define AEFR_BEGINNING          0x00200000
-#define AEFR_SELECTION          0x00400000
-#define AEFR_ESCAPESEQ          0x00800000
-#define AEFR_ALLFILES           0x01000000
-
-//Find/Replace dialog options
-#define AEFR_REPLACEALLANDCLOSE 0x02000000
-#define AEFR_CHECKINSELIFSEL    0x04000000
-#define AEFR_CYCLESEARCH        0x08000000
-
-//StrReplace options
-#define AEFR_WHOLEWORDGOODSTART 0x10000000
-#define AEFR_WHOLEWORDGOODEND   0x20000000
-
 //Find/Replace dialog message
 #define AKDLG_PUTFIND           (WM_USER + 1)
 
@@ -324,13 +300,6 @@
 #define PROMPT_NONE           0x001  //Don't prompt, answering "No".
 #define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
 
-//Show modify
-#define SM_NONE           0x00000000
-#define SM_STATUSBAR      0x00000001
-#define SM_MAINTITLE_SDI  0x00000002
-#define SM_FRAMETITLE_MDI 0x00000004
-#define SM_TABTITLE_MDI   0x00000008
-
 //Custom statusbar
 #define CSB_CHARHEX           0x0001
 #define CSB_CHARDEC           0x0002
@@ -348,13 +317,6 @@
 #define CSB_DOCUMENTSMODIFIED 0x2000
 #define CSB_DOCUMENTSSAVED    0x4000
 #define CSB_DOCUMENTINDEX     0x8000
-
-//File types association
-#define AE_ASSOCIATE     0x00000001
-#define AE_DEASSOCIATE   0x00000002
-#define AE_OPEN          0x00000004
-#define AE_EDIT          0x00000008
-#define AE_PRINT         0x00000010
 
 //Colors list
 #define LVI_COLOR_BASIC            0
@@ -429,12 +391,12 @@ typedef struct {
   BOOL bSaveTime;
   BOOL bSingleOpenFile;
   BOOL bSingleOpenProgram;
-  BOOL nMDI;
+  int nMDI;
   DWORD dwTabOptionsMDI;
 
   //Settings dialog
-  wchar_t wszCommand[BUFFER_SIZE];
-  wchar_t wszWorkDir[MAX_PATH];
+  wchar_t wszExecuteCommand[BUFFER_SIZE];
+  wchar_t wszExecuteDirectory[MAX_PATH];
   int nDefaultCodePage;
   int bDefaultBOM;
   int nDefaultNewLine;
