@@ -1,5 +1,5 @@
 
-AkelPad 4.7.1 ()
+AkelPad 4.7.1 (Dec 04, 2011)
 ----------------------------
 Changed: line deletion command continues to work when end-of-file reached.
 
