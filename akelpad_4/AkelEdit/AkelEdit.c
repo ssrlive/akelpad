@@ -4096,13 +4096,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (ae->popt->dwOptions & AECO_RBUTTONDOWNMOVECARET)
       {
-        if (ae->nCurrentCursor != AECC_SELECTION)
+        POINT ptPos;
+
+        GetCursorPos(&ptPos);
+        ScreenToClient(ae->hWndEdit, &ptPos);
+
+        if (!(ae->popt->dwOptions & AECO_DISABLEDRAG) ?
+            ae->nCurrentCursor != AECC_SELECTION :
+            !AE_IsPointOnSelection(ae, ptPos.x, ptPos.y))
         {
-          POINT ptPos;
-
-          GetCursorPos(&ptPos);
-          ScreenToClient(ae->hWndEdit, &ptPos);
-
           ae->dwMouseSelType=AEMSS_CHARS;
           AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
         }

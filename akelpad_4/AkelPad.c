@@ -747,8 +747,8 @@ void _WinMain()
   moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
   //--Settings dialog--
-  //moInit.wszCommand[0]='\0';
-  //moInit.wszWorkDir[0]='\0';
+  //moInit.wszExecuteCommand[0]='\0';
+  //moInit.wszExecuteDirectory[0]='\0';
   //lpCodepageList=NULL;
   moInit.dwLangCodepageRecognition=dwLangSystem;
   moInit.dwCodepageRecognitionBuffer=DETECT_CODEPAGE_SIZE;
@@ -2071,61 +2071,195 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETMAININFO)
     {
-      if (wParam == MI_AKELDIRA)
-        return (LRESULT)szExeDir;
-      if (wParam == MI_AKELDIRW)
-        return (LRESULT)wszExeDir;
-      if (wParam == MI_INSTANCEEXE)
-        return (LRESULT)hInstance;
-      if (wParam == MI_PLUGINSSTACK)
-        return (LRESULT)&hPluginsStack;
-      if (wParam == MI_SAVESETTINGS)
-        return (LRESULT)moCur.nSaveSettings;
-      if (wParam == MI_WNDSTATUS)
-        return (LRESULT)hStatus;
-      if (wParam == MI_WNDMDICLIENT)
-        return (LRESULT)hMdiClient;
-      if (wParam == MI_WNDTAB)
-        return (LRESULT)hTab;
-      if (wParam == MI_MENUMAIN)
-        return (LRESULT)hMainMenu;
-      if (wParam == MI_MENURECENTFILES)
-        return (LRESULT)hMenuRecentFiles;
-      if (wParam == MI_MENULANGUAGE)
-        return (LRESULT)hMenuLanguage;
-      if (wParam == MI_MENUPOPUP)
-        return (LRESULT)hPopupMenu;
-      if (wParam == MI_ICONMAIN)
-        return (LRESULT)hMainIcon;
-      if (wParam == MI_ACCELGLOBAL)
-        return (LRESULT)hGlobalAccel;
-      if (wParam == MI_ACCELMAIN)
-        return (LRESULT)hMainAccel;
-      if (wParam == MI_OLDWINDOWS)
-        return (LRESULT)bOldWindows;
-      if (wParam == MI_OLDRICHEDIT)
-        return (LRESULT)bOldRichEdit;
-      if (wParam == MI_OLDCOMCTL32)
-        return (LRESULT)bOldComctl32;
-      if (wParam == MI_AKELEDIT)
-        return (LRESULT)bAkelEdit;
-      if (wParam == MI_MDI)
-        return (LRESULT)nMDI;
-      if (wParam == MI_LANGMODULEA)
-        return (LRESULT)moCur.szLangModule;
-      if (wParam == MI_LANGMODULEW)
-        return (LRESULT)moCur.wszLangModule;
-      if (wParam == MI_LANGIDSYSTEM)
-        return (LRESULT)dwLangSystem;
-      if (wParam == MI_LANGIDMODULE)
-        return (LRESULT)dwLangModule;
-      if (wParam == MI_X64)
+      if (wParam < MI_X64)
       {
-        #ifdef _WIN64
-          return TRUE;
-        #else
-          return FALSE;
-        #endif
+        if (wParam == MI_AKELDIRA)
+          return xstrcpynA((void *)lParam, szExeDir, MAX_PATH);
+        if (wParam == MI_AKELDIRW)
+          return xstrcpynW((void *)lParam, wszExeDir, MAX_PATH);
+        if (wParam == MI_INSTANCEEXE)
+          return (LRESULT)hInstance;
+        if (wParam == MI_PLUGINSSTACK)
+        {
+          if (lParam) xmemcpy((void *)lParam, &hPluginsStack, sizeof(HSTACK));
+          return sizeof(HSTACK);
+        }
+        if (wParam == MI_SAVESETTINGS)
+          return (LRESULT)moCur.nSaveSettings;
+        if (wParam == MI_WNDSTATUS)
+          return (LRESULT)hStatus;
+        if (wParam == MI_WNDMDICLIENT)
+          return (LRESULT)hMdiClient;
+        if (wParam == MI_WNDTAB)
+          return (LRESULT)hTab;
+        if (wParam == MI_MENUMAIN)
+          return (LRESULT)hMainMenu;
+        if (wParam == MI_MENURECENTFILES)
+          return (LRESULT)hMenuRecentFiles;
+        if (wParam == MI_MENULANGUAGE)
+          return (LRESULT)hMenuLanguage;
+        if (wParam == MI_MENUPOPUP)
+          return (LRESULT)hPopupMenu;
+        if (wParam == MI_ICONMAIN)
+          return (LRESULT)hMainIcon;
+        if (wParam == MI_ACCELGLOBAL)
+          return (LRESULT)hGlobalAccel;
+        if (wParam == MI_ACCELMAIN)
+          return (LRESULT)hMainAccel;
+        if (wParam == MI_OLDWINDOWS)
+          return (LRESULT)bOldWindows;
+        if (wParam == MI_OLDRICHEDIT)
+          return (LRESULT)bOldRichEdit;
+        if (wParam == MI_OLDCOMCTL32)
+          return (LRESULT)bOldComctl32;
+        if (wParam == MI_AKELEDIT)
+          return (LRESULT)bAkelEdit;
+        if (wParam == MI_MDI)
+          return (LRESULT)nMDI;
+        if (wParam == MI_LANGMODULEA)
+          return xstrcpynA((void *)lParam, moCur.szLangModule, MAX_PATH);
+        if (wParam == MI_LANGMODULEW)
+          return xstrcpynW((void *)lParam, moCur.wszLangModule, MAX_PATH);
+        if (wParam == MI_LANGIDSYSTEM)
+          return (LRESULT)dwLangSystem;
+        if (wParam == MI_LANGIDMODULE)
+          return (LRESULT)dwLangModule;
+      }
+      else
+      {
+        if (wParam == MI_X64)
+        {
+          #ifdef _WIN64
+            return TRUE;
+          #else
+            return FALSE;
+          #endif
+        }
+        if (wParam == MI_AKELEDITSTATICBUILD)
+        {
+          #ifdef AKELEDIT_STATICBUILD
+            return TRUE;
+          #else
+            return FALSE;
+          #endif
+        }
+        if (wParam == MI_AKELPADDLLBUILD)
+        {
+          #ifdef AKELPAD_DLLBUILD
+            return TRUE;
+          #else
+            return FALSE;
+          #endif
+        }
+        if (wParam == MI_CMDLINEBEGIN)
+          return xstrcpyW((void *)lParam, wszCmdLineBegin);
+        if (wParam == MI_CMDLINEBEGIN)
+          return xstrcpyW((void *)lParam, wszCmdLineEnd);
+        if (wParam == MI_SHOWMODIFY)
+          return moCur.dwShowModify;
+        if (wParam == MI_STATUSPOSTYPE)
+          return moCur.dwStatusPosType;
+        if (wParam == MI_STATUSUSERFORMAT)
+          return xstrcpynW((void *)lParam, moCur.wszStatusUserFormat, MAX_PATH);
+        if (wParam == MI_WORDBREAKCUSTOM)
+          return moCur.dwWordBreakCustom;
+        if (wParam == MI_PAINTOPTIONS)
+          return moCur.dwPaintOptions;
+        if (wParam == MI_RICHEDITCLASS)
+          return moCur.bRichEditClass;
+        if (wParam == MI_DATELOGFORMAT)
+          return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
+        if (wParam == MI_DATEINSERTFORMAT)
+          return xstrcpynW((void *)lParam, moCur.wszDateInsertFormat, 128);
+        if (wParam == MI_ONTOP)
+          return moCur.bOnTop;
+        if (wParam == MI_STATUSBAR)
+          return moCur.bStatusBar;
+        if (wParam == MI_KEEPSPACE)
+          return moCur.bKeepSpace;
+        if (wParam == MI_WATCHFILE)
+          return moCur.bWatchFile;
+        if (wParam == MI_SAVETIME)
+          return moCur.bSaveTime;
+        if (wParam == MI_SINGLEOPENFILE)
+          return moCur.bSingleOpenFile;
+        if (wParam == MI_SINGLEOPENPROGRAM)
+          return moCur.bSingleOpenProgram;
+        if (wParam == MI_TABOPTIONSMDI)
+          return moCur.dwTabOptionsMDI;
+        if (wParam == MI_EXECUTECOMMAND)
+          return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, BUFFER_SIZE);
+        if (wParam == MI_EXECUTEDIRECTORY)
+          return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, MAX_PATH);
+        if (wParam == MI_CODEPAGELIST)
+        {
+          if (lParam) xmemcpy((void *)lParam, lpCodepageList, nCodepageListLen * sizeof(int));
+          return nCodepageListLen * sizeof(int);
+        }
+        if (wParam == MI_DEFAULTCODEPAGE)
+          return moCur.nDefaultCodePage;
+        if (wParam == MI_DEFAULTBOM)
+          return moCur.bDefaultBOM;
+        if (wParam == MI_DEFAULTNEWLINE)
+          return moCur.nDefaultNewLine;
+        if (wParam == MI_LANGCODEPAGERECOGNITION)
+          return moCur.dwLangCodepageRecognition;
+        if (wParam == MI_CODEPAGERECOGNITIONBUFFER)
+          return moCur.dwCodepageRecognitionBuffer;
+        if (wParam == MI_SAVEPOSITIONS)
+          return moCur.bSavePositions;
+        if (wParam == MI_SAVECODEPAGES)
+          return moCur.bSaveCodepages;
+        if (wParam == MI_RECENTFILES)
+          return moCur.nRecentFiles;
+        if (wParam == MI_SEARCHSTRINGS)
+          return moCur.nSearchStrings;
+        if (wParam == MI_FILETYPESOPEN)
+          return xstrcpynW((void *)lParam, moCur.wszFileTypesOpen, MAX_PATH);
+        if (wParam == MI_FILETYPESEDIT)
+          return xstrcpynW((void *)lParam, moCur.wszFileTypesEdit, MAX_PATH);
+        if (wParam == MI_FILETYPESPRINT)
+          return xstrcpynW((void *)lParam, moCur.wszFileTypesPrint, MAX_PATH);
+        if (wParam == MI_FILETYPESASSOCIATED)
+          return moCur.dwFileTypesAssociated;
+        if (wParam == MI_KEYBLAYOUTOPTIONS)
+          return moCur.dwKeybLayoutOptions;
+        if (wParam == MI_SILENTCLOSEEMPTYMDI)
+          return moCur.bSilentCloseEmptyMDI;
+        if (wParam == MI_DATELOG)
+          return moCur.bDateLog;
+        if (wParam == MI_SAVEINREADONLYMSG)
+          return moCur.bSaveInReadOnlyMsg;
+        if (wParam == MI_DEFAULTSAVEEXT)
+          return xstrcpynW((void *)lParam, moCur.wszDefaultSaveExt, MAX_PATH);
+        if (wParam == MI_SEARCHOPTIONS)
+          return moCur.dwSearchOptions;
+        if (wParam == MI_PRINTMARGINS)
+        {
+          if (lParam) xmemcpy((void *)lParam, &moCur.rcPrintMargins, sizeof(RECT));
+          return sizeof(RECT);
+        }
+        if (wParam == MI_PRINTCOLOR)
+          return moCur.dwPrintColor;
+        if (wParam == MI_PRINTHEADERENABLE)
+          return moCur.bPrintHeaderEnable;
+        if (wParam == MI_PRINTHEADER)
+          return xstrcpynW((void *)lParam, moCur.wszPrintHeader, MAX_PATH);
+        if (wParam == MI_PRINTFOOTERENABLE)
+          return moCur.bPrintFooterEnable;
+        if (wParam == MI_PRINTFOOTER)
+          return xstrcpynW((void *)lParam, moCur.wszPrintFooter, MAX_PATH);
+        if (wParam == MI_PRINTFONTENABLE)
+          return moCur.bPrintFontEnable;
+        if (wParam == MI_PRINTFONTW)
+        {
+          if (lParam) xmemcpy((void *)lParam, &moCur.lfPrintFont, sizeof(LOGFONTW));
+          return sizeof(LOGFONTW);
+        }
+        if (wParam == MI_LASTDIR)
+          return xstrcpynW((void *)lParam, moCur.wszLastDir, MAX_PATH);
+        if (wParam == MI_SHOWPLACESBAR)
+          return moCur.bShowPlacesBar;
       }
       return 0;
     }
@@ -2196,14 +2330,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (nType == FI_FILEA)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynA((void *)*lpdwData, lpFrame->szFile, MAX_PATH) + sizeof(char);
+            dwSize=xstrcpynA((void *)*lpdwData, lpFrame->szFile, MAX_PATH);
           else
             *lpdwData=(UINT_PTR)lpFrame->szFile;
         }
         else if (nType == FI_FILEW)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFile, MAX_PATH) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFile, MAX_PATH);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszFile;
         }
@@ -2233,7 +2367,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else *lpdwData=(UINT_PTR)&lpFrame->rcMasterWindow;
         }
-        else if (nType == FI_LOGFONTW)
+        else if (nType == FI_EDITFONTW)
         {
           if (wParam > 0xFFFF)
           {
@@ -2281,7 +2415,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (nType == FI_URLPREFIXES)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlPrefixes, URL_PREFIXES_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlPrefixes, URL_PREFIXES_SIZE);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszUrlPrefixes;
         }
@@ -2290,14 +2424,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (nType == FI_URLLEFTDELIMITERS)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszUrlLeftDelimiters;
         }
         else if (nType == FI_URLRIGHTDELIMITERS)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszUrlRightDelimiters;
         }
@@ -2306,7 +2440,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (nType == FI_WORDDELIMITERS)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszWordDelimiters;
         }
@@ -2315,7 +2449,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (nType == FI_WRAPDELIMITERS)
         {
           if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE) * sizeof(wchar_t) + sizeof(wchar_t);
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE);
           else
             *lpdwData=(UINT_PTR)lpFrame->wszWrapDelimiters;
         }
@@ -3338,7 +3472,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_SPACE_MENU, nMenuState);
         EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_SPACE_MENU, nMenuState);
       }
-      EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszCommand)?MF_ENABLED:MF_GRAYED);
+      EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszExecuteCommand)?MF_ENABLED:MF_GRAYED);
       EnableMenuItem(hMainMenu, IDM_MANUAL, GetUserManual(NULL, BUFFER_SIZE)?MF_ENABLED:MF_GRAYED);
     }
     if (!lParam || (lParam & IMENU_CHECKS))

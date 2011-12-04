@@ -2555,27 +2555,27 @@ BOOL DoSettingsExec()
 {
   STARTUPINFOW si;
   PROCESS_INFORMATION pi;
-  wchar_t *wszCommandExp;
-  wchar_t *wszWorkDirExp;
+  wchar_t *wszExecuteCommandExp;
+  wchar_t *wszExecuteDirectoryExp;
   int nCommandLen;
   int nWorkDirLen;
   BOOL bResult=FALSE;
 
-  nCommandLen=TranslateFileString(moCur.wszCommand, NULL, 0);
-  nWorkDirLen=TranslateFileString(moCur.wszWorkDir, NULL, 0);
+  nCommandLen=TranslateFileString(moCur.wszExecuteCommand, NULL, 0);
+  nWorkDirLen=TranslateFileString(moCur.wszExecuteDirectory, NULL, 0);
 
-  if (wszCommandExp=AllocWideStr(nCommandLen + 1))
+  if (wszExecuteCommandExp=AllocWideStr(nCommandLen + 1))
   {
-    if (wszWorkDirExp=AllocWideStr(nWorkDirLen + 1))
+    if (wszExecuteDirectoryExp=AllocWideStr(nWorkDirLen + 1))
     {
-      TranslateFileString(moCur.wszCommand, wszCommandExp, nCommandLen + 1);
-      TranslateFileString(moCur.wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
+      TranslateFileString(moCur.wszExecuteCommand, wszExecuteCommandExp, nCommandLen + 1);
+      TranslateFileString(moCur.wszExecuteDirectory, wszExecuteDirectoryExp, nWorkDirLen + 1);
 
-      if (*wszCommandExp)
+      if (*wszExecuteCommandExp)
       {
         xmemset(&si, 0, sizeof(STARTUPINFOW));
         si.cb=sizeof(STARTUPINFOW);
-        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, (wszWorkDirExp && *wszWorkDirExp)?wszWorkDirExp:NULL, &si, &pi))
+        if (CreateProcessWide(NULL, wszExecuteCommandExp, NULL, NULL, FALSE, 0, NULL, (wszExecuteDirectoryExp && *wszExecuteDirectoryExp)?wszExecuteDirectoryExp:NULL, &si, &pi))
         {
           bResult=TRUE;
           CloseHandle(pi.hProcess);
@@ -2587,9 +2587,9 @@ BOOL DoSettingsExec()
           API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         }
       }
-      FreeWideStr(wszWorkDirExp);
+      FreeWideStr(wszExecuteDirectoryExp);
     }
-    FreeWideStr(wszCommandExp);
+    FreeWideStr(wszExecuteCommandExp);
   }
   return bResult;
 }
@@ -3679,8 +3679,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
         nCodepageListLen=CodepageListLen(lpCodepageList);
       }
     }
-    ReadOption(&oh, L"ExecuteCommand", MOT_STRING, mo->wszCommand, sizeof(mo->wszCommand));
-    ReadOption(&oh, L"ExecuteDirectory", MOT_STRING, mo->wszWorkDir, sizeof(mo->wszWorkDir));
+    ReadOption(&oh, L"ExecuteCommand", MOT_STRING, mo->wszExecuteCommand, sizeof(mo->wszExecuteCommand));
+    ReadOption(&oh, L"ExecuteDirectory", MOT_STRING, mo->wszExecuteDirectory, sizeof(mo->wszExecuteDirectory));
     ReadOption(&oh, L"DefaultCodepage", MOT_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
     ReadOption(&oh, L"DefaultNewLine", MOT_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
     ReadOption(&oh, L"CodepageRecognition", MOT_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
@@ -3933,9 +3933,9 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     if (!SaveOption(&oh, L"CodepageList", MOT_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
       goto Error;
   }
-  if (!SaveOption(&oh, L"ExecuteCommand", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszCommand), BytesInString(mo->wszCommand)))
+  if (!SaveOption(&oh, L"ExecuteCommand", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszExecuteCommand), BytesInString(mo->wszExecuteCommand)))
     goto Error;
-  if (!SaveOption(&oh, L"ExecuteDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszWorkDir), BytesInString(mo->wszWorkDir)))
+  if (!SaveOption(&oh, L"ExecuteDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszExecuteDirectory), BytesInString(mo->wszExecuteDirectory)))
     goto Error;
   if (!SaveOption(&oh, L"DefaultCodepage", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nDefaultCodePage), sizeof(DWORD)))
     goto Error;
@@ -13260,8 +13260,8 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
 
-    SetWindowTextWide(hWndCommand, moCur.wszCommand);
-    SetWindowTextWide(hWndDirectory, moCur.wszWorkDir);
+    SetWindowTextWide(hWndCommand, moCur.wszExecuteCommand);
+    SetWindowTextWide(hWndDirectory, moCur.wszExecuteDirectory);
 
     API_LoadStringW(hLangLib, STR_NONE, wbuf, BUFFER_SIZE);
     ComboBox_AddStringWide(hWndAutodetectCP, wbuf);
@@ -13367,8 +13367,8 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       //Execute
-      GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECCOM, moCur.wszCommand, BUFFER_SIZE);
-      GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECDIR, moCur.wszWorkDir, MAX_PATH);
+      GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECCOM, moCur.wszExecuteCommand, BUFFER_SIZE);
+      GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECDIR, moCur.wszExecuteDirectory, MAX_PATH);
 
       //Autodetect codepage
       i=(int)SendMessage(hWndAutodetectCP, CB_GETCURSEL, 0, 0);
@@ -13583,12 +13583,12 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
     SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
 
-    if (moCur.dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwFileTypesAssociated & AE_PRINT) SendMessage(hWndAssociatePrint, BM_SETCHECK, BST_CHECKED, 0);
-    if (!(moCur.dwFileTypesAssociated & AE_OPEN)) EnableWindow(hWndFileTypesOpen, FALSE);
-    if (!(moCur.dwFileTypesAssociated & AE_EDIT)) EnableWindow(hWndFileTypesEdit, FALSE);
-    if (!(moCur.dwFileTypesAssociated & AE_PRINT)) EnableWindow(hWndFileTypesPrint, FALSE);
+    if (moCur.dwFileTypesAssociated & FTA_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwFileTypesAssociated & FTA_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwFileTypesAssociated & FTA_PRINT) SendMessage(hWndAssociatePrint, BM_SETCHECK, BST_CHECKED, 0);
+    if (!(moCur.dwFileTypesAssociated & FTA_OPEN)) EnableWindow(hWndFileTypesOpen, FALSE);
+    if (!(moCur.dwFileTypesAssociated & FTA_EDIT)) EnableWindow(hWndFileTypesEdit, FALSE);
+    if (!(moCur.dwFileTypesAssociated & FTA_PRINT)) EnableWindow(hWndFileTypesPrint, FALSE);
     SendMessage(hWndFileTypesOpen, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesEdit, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesPrint, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
@@ -13714,80 +13714,80 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       //Associations
       bState=(BOOL)SendMessage(hWndAssociateOpen, BM_GETCHECK, 0, 0);
-      if (bState && !(moCur.dwFileTypesAssociated & AE_OPEN))
+      if (bState && !(moCur.dwFileTypesAssociated & FTA_OPEN))
       {
         GetWindowTextWide(hWndFileTypesOpen, moCur.wszFileTypesOpen, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
-        moCur.dwFileTypesAssociated|=AE_OPEN;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+        moCur.dwFileTypesAssociated|=FTA_OPEN;
         bShellRefresh=TRUE;
       }
-      else if (bState && (moCur.dwFileTypesAssociated & AE_OPEN))
+      else if (bState && (moCur.dwFileTypesAssociated & FTA_OPEN))
       {
         GetWindowTextWide(hWndFileTypesOpen, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesOpen))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, AE_OPEN|AE_ASSOCIATE);
+          AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+          AssociateFileTypesW(hInstance, wszWindowText, FTA_OPEN|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesOpen, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
-      else if (!bState && (moCur.dwFileTypesAssociated & AE_OPEN))
+      else if (!bState && (moCur.dwFileTypesAssociated & FTA_OPEN))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
-        moCur.dwFileTypesAssociated&=~AE_OPEN;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+        moCur.dwFileTypesAssociated&=~FTA_OPEN;
         bShellRefresh=TRUE;
       }
 
       bState=(BOOL)SendMessage(hWndAssociateEdit, BM_GETCHECK, 0, 0);
-      if (bState && !(moCur.dwFileTypesAssociated & AE_EDIT))
+      if (bState && !(moCur.dwFileTypesAssociated & FTA_EDIT))
       {
         GetWindowTextWide(hWndFileTypesEdit, moCur.wszFileTypesEdit, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_ASSOCIATE);
-        moCur.dwFileTypesAssociated|=AE_EDIT;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+        moCur.dwFileTypesAssociated|=FTA_EDIT;
         bShellRefresh=TRUE;
       }
-      else if (bState && (moCur.dwFileTypesAssociated & AE_EDIT))
+      else if (bState && (moCur.dwFileTypesAssociated & FTA_EDIT))
       {
         GetWindowTextWide(hWndFileTypesEdit, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesEdit))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, AE_EDIT|AE_ASSOCIATE);
+          AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+          AssociateFileTypesW(hInstance, wszWindowText, FTA_EDIT|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesEdit, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
-      else if (!bState && (moCur.dwFileTypesAssociated & AE_EDIT))
+      else if (!bState && (moCur.dwFileTypesAssociated & FTA_EDIT))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
-        moCur.dwFileTypesAssociated&=~AE_EDIT;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+        moCur.dwFileTypesAssociated&=~FTA_EDIT;
         bShellRefresh=TRUE;
       }
 
       bState=(BOOL)SendMessage(hWndAssociatePrint, BM_GETCHECK, 0, 0);
-      if (bState && !(moCur.dwFileTypesAssociated & AE_PRINT))
+      if (bState && !(moCur.dwFileTypesAssociated & FTA_PRINT))
       {
         GetWindowTextWide(hWndFileTypesPrint, moCur.wszFileTypesPrint, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_ASSOCIATE);
-        moCur.dwFileTypesAssociated|=AE_PRINT;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
+        moCur.dwFileTypesAssociated|=FTA_PRINT;
         bShellRefresh=TRUE;
       }
-      else if (bState && (moCur.dwFileTypesAssociated & AE_PRINT))
+      else if (bState && (moCur.dwFileTypesAssociated & FTA_PRINT))
       {
         GetWindowTextWide(hWndFileTypesPrint, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesPrint))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, AE_PRINT|AE_ASSOCIATE);
+          AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+          AssociateFileTypesW(hInstance, wszWindowText, FTA_PRINT|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesPrint, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
-      else if (!bState && (moCur.dwFileTypesAssociated & AE_PRINT))
+      else if (!bState && (moCur.dwFileTypesAssociated & FTA_PRINT))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
-        moCur.dwFileTypesAssociated&=~AE_PRINT;
+        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+        moCur.dwFileTypesAssociated&=~FTA_PRINT;
         bShellRefresh=TRUE;
       }
       if (bShellRefresh) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
@@ -16416,9 +16416,9 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
 
   GetModuleFileNameWide(hInstance, wszModule, MAX_PATH);
 
-  if (dwFlags & AE_OPEN) xstrcpyW(wszTypeKey, L"Open");
-  else if (dwFlags & AE_EDIT) xstrcpyW(wszTypeKey, L"Edit");
-  else if (dwFlags & AE_PRINT) xstrcpyW(wszTypeKey, L"Print");
+  if (dwFlags & FTA_OPEN) xstrcpyW(wszTypeKey, L"Open");
+  else if (dwFlags & FTA_EDIT) xstrcpyW(wszTypeKey, L"Edit");
+  else if (dwFlags & FTA_PRINT) xstrcpyW(wszTypeKey, L"Print");
 
   for (;;)
   {
@@ -16434,12 +16434,12 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
       dwSize=MAX_PATH * sizeof(wchar_t);
       if (RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wszAssocKey, &dwSize) != ERROR_SUCCESS || !*wszAssocKey)
       {
-        if (dwFlags & AE_ASSOCIATE)
+        if (dwFlags & FTA_ASSOCIATE)
         {
           xprintfW(wszAssocKey, L"%sfile", wszExt + 1);
           RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszAssocKey, BytesInString(wszAssocKey));
         }
-        else if (dwFlags & AE_DEASSOCIATE)
+        else if (dwFlags & FTA_DEASSOCIATE)
         {
           RegCloseKey(hKey);
           return;
@@ -16448,7 +16448,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
       RegCloseKey(hKey);
 
       //Associate icon
-      if (dwFlags & AE_OPEN)
+      if (dwFlags & FTA_OPEN)
       {
         xprintfW(wbuf2, L"%s\\DefaultIcon", wszAssocKey);
 
@@ -16457,9 +16457,9 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) != ERROR_SUCCESS || !*wbuf2)
           {
-            if (dwFlags & AE_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, BytesInString(wszModule));
+            if (dwFlags & FTA_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, BytesInString(wszModule));
           }
-          else if (dwFlags & AE_DEASSOCIATE)
+          else if (dwFlags & FTA_DEASSOCIATE)
           {
             if (!xstrcmpiW(wbuf2, wszModule)) RegDeleteValueWide(hKey, L"");
           }
@@ -16469,11 +16469,11 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
 
       //Associate command
       xprintfW(wbuf2, L"%s\\Shell\\%s\\Command", wszAssocKey, wszTypeKey);
-      xprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszModule, (dwFlags & AE_PRINT)?L" /p":L"");
+      xprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszModule, (dwFlags & FTA_PRINT)?L" /p":L"");
 
       if (RegCreateKeyExWide(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
       {
-        if (dwFlags & AE_ASSOCIATE)
+        if (dwFlags & FTA_ASSOCIATE)
         {
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
@@ -16486,7 +16486,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
           }
           RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wbuf, BytesInString(wbuf));
         }
-        else if (dwFlags & AE_DEASSOCIATE)
+        else if (dwFlags & FTA_DEASSOCIATE)
         {
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
@@ -16526,13 +16526,13 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
     }
 
     //Check off "Always open with this program"
-    if (dwFlags & AE_OPEN)
+    if (dwFlags & FTA_OPEN)
     {
       xprintfW(wbuf, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", wszExt);
 
       if (RegOpenKeyExWide(HKEY_CURRENT_USER, wbuf, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
       {
-        if (dwFlags & AE_ASSOCIATE)
+        if (dwFlags & FTA_ASSOCIATE)
         {
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"Application", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
@@ -16541,7 +16541,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
             RegDeleteValueWide(hKey, L"Application");
           }
         }
-        else if (dwFlags & AE_DEASSOCIATE)
+        else if (dwFlags & FTA_DEASSOCIATE)
         {
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
@@ -16831,23 +16831,23 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         }
         if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
         {
-          if (moCur.dwFileTypesAssociated & AE_OPEN)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
-          if (moCur.dwFileTypesAssociated & AE_EDIT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_ASSOCIATE);
-          if (moCur.dwFileTypesAssociated & AE_PRINT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_ASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_OPEN)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_EDIT)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_PRINT)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }
         if (!xstrcmpiW(wszCmdArg, L"/DEASSOC"))
         {
-          if (moCur.dwFileTypesAssociated & AE_OPEN)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
-          if (moCur.dwFileTypesAssociated & AE_EDIT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
-          if (moCur.dwFileTypesAssociated & AE_PRINT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_OPEN)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_EDIT)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+          if (moCur.dwFileTypesAssociated & FTA_PRINT)
+            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }

@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 5)
 
 
 //// Defines
@@ -160,32 +160,93 @@
 #define SH_GET    1  //Retrieve search strings count.
 #define SH_CLEAR  2  //Clear search history.
 
-//AKD_GETMAININFO type. See PLUGINDATA members description.
-#define MI_AKELDIRA        1
-#define MI_AKELDIRW        2
-#define MI_INSTANCEEXE     3
-#define MI_PLUGINSSTACK    4
-#define MI_SAVESETTINGS    5
-#define MI_WNDSTATUS       11
-#define MI_WNDMDICLIENT    12
-#define MI_WNDTAB          13
-#define MI_MENUMAIN        21
-#define MI_MENURECENTFILES 22
-#define MI_MENULANGUAGE    23
-#define MI_MENUPOPUP       24
-#define MI_ICONMAIN        31
-#define MI_ACCELGLOBAL     32
-#define MI_ACCELMAIN       33
-#define MI_OLDWINDOWS      41
-#define MI_OLDRICHEDIT     42
-#define MI_OLDCOMCTL32     43
-#define MI_AKELEDIT        44
-#define MI_MDI             45
-#define MI_LANGMODULEA     51
-#define MI_LANGMODULEW     52
-#define MI_LANGIDSYSTEM    53
-#define MI_LANGIDMODULE    54
-#define MI_X64             101  //Return Value: TRUE - x64 version, FALSE - x86 version.
+//AKD_GETMAININFO type
+
+//PLUGINDATA
+#define MI_AKELDIRA                  1    //Return: copied chars. (char *)lParam - buffer that receives AkelPad directory string.
+#define MI_AKELDIRW                  2    //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad directory string.
+#define MI_INSTANCEEXE               3    //Return: EXE instance.
+#define MI_PLUGINSSTACK              4    //Return: copied bytes. (HSTACK *)lParam - buffer that receives plugin stack.
+#define MI_SAVESETTINGS              5    //Return: see SS_* defines.
+#define MI_WNDSTATUS                 11   //Return: statusBar window handle.
+#define MI_WNDMDICLIENT              12   //Return: MDI client window handle.
+#define MI_WNDTAB                    13   //Return: tab window handle.
+#define MI_MENUMAIN                  21   //Return: main menu handle.
+#define MI_MENURECENTFILES           22   //Return: recent files menu handle.
+#define MI_MENULANGUAGE              23   //Return: language menu handle.
+#define MI_MENUPOPUP                 24   //Return: right click menu handle.
+#define MI_ICONMAIN                  31   //Return: main window icon handle.
+#define MI_ACCELGLOBAL               32   //Return: global accelerator table (highest priority).
+#define MI_ACCELMAIN                 33   //Return: main accelerator table (lowest priority).
+#define MI_OLDWINDOWS                41   //Return: non-Unicode Windows.
+#define MI_OLDRICHEDIT               42   //Return: riched20.dll lower then 5.30 (v3.0).
+#define MI_OLDCOMCTL32               43   //Return: comctl32.dll lower then 4.71.
+#define MI_AKELEDIT                  44   //Return: AkelEdit control is used.
+#define MI_MDI                       45   //Return: window mode, see WMD_* defines.
+#define MI_LANGMODULEA               51   //Return: copied chars. (char *)lParam - buffer that receives language module string.
+#define MI_LANGMODULEW               52   //Return: copied chars. (wchar_t *)lParam - buffer that receives language module string.
+#define MI_LANGIDSYSTEM              53   //Return: system language ID.
+#define MI_LANGIDMODULE              54   //Return: language module language ID.
+//Compile
+#define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
+#define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.
+#define MI_AKELPADDLLBUILD           103  //Return: TRUE - AkelPad is compiled as library, FALSE - AkelPad is compiled as executable.
+//Manual
+#define MI_CMDLINEBEGIN              105  //Return: copied chars. (wchar_t *)lParam - buffer that receives "CmdLineBegin" string.
+#define MI_CMDLINEEND                106  //Return: copied chars. (wchar_t *)lParam - buffer that receives "CmdLineEnd" string.
+#define MI_SHOWMODIFY                110  //Return: "ShowModify" flags, see SM_* defines.
+#define MI_STATUSPOSTYPE             111  //Return: "StatusPosType" type, see SPT_* defines.
+#define MI_STATUSUSERFORMAT          112  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
+#define MI_STATUSUSERFLAGS           113  //Reserved.
+#define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
+#define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
+#define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
+#define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
+#define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
+//Menu
+#define MI_ONTOP                     141  //Return: always on top (on\off).
+#define MI_STATUSBAR                 142  //Return: show statusbar (on\off).
+#define MI_KEEPSPACE                 146  //Return: keep left space (on\off).
+#define MI_WATCHFILE                 147  //Return: watch file change (on\off).
+#define MI_SAVETIME                  148  //Return: save original file time (on\off).
+#define MI_SINGLEOPENFILE            152  //Return: single open file (on\off).
+#define MI_SINGLEOPENPROGRAM         153  //Return: single open program (on\off).
+#define MI_TABOPTIONSMDI             157  //Return: tab flags, see TAB_* defines.
+//Settings dialog
+#define MI_EXECUTECOMMAND            171  //Return: copied chars. (wchar_t *)lParam - buffer that receives execution command string.
+#define MI_EXECUTEDIRECTORY          172  //Return: copied chars. (wchar_t *)lParam - buffer that receives execution directory string.
+#define MI_CODEPAGELIST              176  //Return: copied bytes. (int *)lParam - buffer that receives array of codepages, last element in array is zero.
+#define MI_DEFAULTCODEPAGE           177  //Return: default codepage.
+#define MI_DEFAULTBOM                178  //Return: default BOM.
+#define MI_DEFAULTNEWLINE            179  //Return: default new line, see NEWLINE_* defines.
+#define MI_LANGCODEPAGERECOGNITION   183  //Return: codepage recognition language defined as LANGID.
+#define MI_CODEPAGERECOGNITIONBUFFER 184  //Return: size of codepage recognition buffer.
+#define MI_SAVEPOSITIONS             192  //Return: save recent file positions (on\off).
+#define MI_SAVECODEPAGES             193  //Return: save recent file codepages (on\off).
+#define MI_RECENTFILES               194  //Return: number of recent files.
+#define MI_SEARCHSTRINGS             198  //Return: number of search strings.
+#define MI_FILETYPESOPEN             202  //Return: copied chars. (wchar_t *)lParam - buffer that receives associated file types to open.
+#define MI_FILETYPESEDIT             203  //Return: copied chars. (wchar_t *)lParam - buffer that receives associated file types to edit.
+#define MI_FILETYPESPRINT            204  //Return: copied chars. (wchar_t *)lParam - buffer that receives associated file types to print.
+#define MI_FILETYPESASSOCIATED       205  //Return: associated file types, see FTA_* defines.
+#define MI_KEYBLAYOUTOPTIONS         209  //Return: keyboard layout options, see KLO_* defines.
+#define MI_SILENTCLOSEEMPTYMDI       213  //Return: silently close unsaved empty MDI tab (on\off).
+#define MI_DATELOG                   217  //Return: insert date if file has .LOG at the beginning (on\off).
+#define MI_SAVEINREADONLYMSG         221  //Return: save in read-only files warning (on\off).
+#define MI_DEFAULTSAVEEXT            224  //Return: copied chars. (wchar_t *)lParam - buffer that receives default saving extension string.
+#define MI_SEARCHOPTIONS             228  //Return: search options, see AEFR_* defines.
+//Print dialog
+#define MI_PRINTMARGINS              251  //Return: copied bytes. (RECT *)lParam - buffer that receives print margins.
+#define MI_PRINTCOLOR                255  //Return: color printing, see PRNC_* defines.
+#define MI_PRINTHEADERENABLE         259  //Return: enable print header (on\off).
+#define MI_PRINTHEADER               260  //Return: copied chars. (wchar_t *)lParam - buffer that receives print header string.
+#define MI_PRINTFOOTERENABLE         261  //Return: enable print footer (on\off).
+#define MI_PRINTFOOTER               262  //Return: copied chars. (wchar_t *)lParam - buffer that receives print footer string.
+#define MI_PRINTFONTENABLE           266  //Return: enable print font (on\off).
+#define MI_PRINTFONTW                267  //Return: copied bytes. (LOGFONTW *)lParam - buffer that receives print font data.
+//Open dialog
+#define MI_LASTDIR                   281  //Return: copied chars. (wchar_t *)lParam - buffer that receives last directory of open dialog.
+#define MI_SHOWPLACESBAR             282  //Return: show places bar in open dialog (on\off).
 
 //AKD_GETFRAMEINFO type. See FRAMEDATA members description.
 #define FI_WNDEDITPARENT        1
@@ -214,7 +275,7 @@
 #define FI_ICONINDEX            39
 #define FI_RECTEDIT             43
 #define FI_RECTMASTER           44
-#define FI_LOGFONTW             48
+#define FI_EDITFONTW            48
 #define FI_TABSTOPSIZE          52
 #define FI_TABSTOPASSPACES      53
 #define FI_UNDOLIMIT            57
@@ -280,10 +341,6 @@
 #define NEWLINE_UNIX  2  //Unix new line format (\n).
 #define NEWLINE_MAC   3  //MacOS new line format (\r).
 
-//Status bar position type
-#define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
-#define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
-
 //AKD_GOTO type
 #define GT_LINE    0x1
 #define GT_OFFSET  0x2
@@ -316,6 +373,25 @@
 #define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
 #define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
 
+//Status bar position type
+#define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
+#define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
+
+//Show modify
+#define SM_NONE           0x00000000
+#define SM_STATUSBAR      0x00000001
+#define SM_MAINTITLE_SDI  0x00000002
+#define SM_FRAMETITLE_MDI 0x00000004
+#define SM_TABTITLE_MDI   0x00000008
+
+//Status bar
+#define STATUS_POSITION       0
+#define STATUS_MODIFY         1
+#define STATUS_INSERT         2
+#define STATUS_NEWLINE        3
+#define STATUS_CODEPAGE       4
+#define STATUS_USER           5
+
 //Tab options MDI
 #define TAB_VIEW_NONE           0x00000001
 #define TAB_VIEW_TOP            0x00000002
@@ -331,13 +407,34 @@
 #define TAB_NODEL_LBUTTONDBLCLK 0x00400000
 #define TAB_NODEL_MBUTTONDOWN   0x00800000
 
-//Status bar
-#define STATUS_POSITION       0
-#define STATUS_MODIFY         1
-#define STATUS_INSERT         2
-#define STATUS_NEWLINE        3
-#define STATUS_CODEPAGE       4
-#define STATUS_USER           5
+//File types association
+#define FTA_ASSOCIATE     0x00000001  //Internal.
+#define FTA_DEASSOCIATE   0x00000002  //Internal.
+#define FTA_OPEN          0x00000004  //Open file types.
+#define FTA_EDIT          0x00000008  //Edit file types.
+#define FTA_PRINT         0x00000010  //Print file types.
+
+//Color printing
+#define PRNC_TEXT         0x01  //Print colored text.
+#define PRNC_BACKGROUND   0x02  //Print on colored background.
+#define PRNC_SELECTION    0x04  //Print text selection.
+
+//Search options
+//#define AEFR_DOWN               0x00000001
+//#define AEFR_WHOLEWORD          0x00000002
+//#define AEFR_MATCHCASE          0x00000004
+#define AEFR_UP                 0x00100000
+#define AEFR_BEGINNING          0x00200000
+#define AEFR_SELECTION          0x00400000
+#define AEFR_ESCAPESEQ          0x00800000
+#define AEFR_ALLFILES           0x01000000
+//Find/Replace dialog options
+#define AEFR_REPLACEALLANDCLOSE 0x02000000
+#define AEFR_CHECKINSELIFSEL    0x04000000
+#define AEFR_CYCLESEARCH        0x08000000
+//StrReplace options
+#define AEFR_WHOLEWORDGOODSTART 0x10000000
+#define AEFR_WHOLEWORDGOODEND   0x20000000
 
 //Main menu
 #define MENU_FILE_POSITION     0
@@ -1833,7 +1930,6 @@ typedef struct {
 #define AKD_EXGETTEXTRANGE         (WM_USER + 402)
 #define AKD_EXGETTEXTRANGEA        (WM_USER + 403)
 #define AKD_EXGETTEXTRANGEW        (WM_USER + 404)
-#define AKD_GETSTATUSPOSTYPE       (WM_USER + 405)
 
 
 /*
@@ -2849,13 +2945,18 @@ _______________
 Get main AkelPad data.
 
 (int)wParam  == see MI_* defines.
-lParam       == not used.
+(void)lParam == depend on wParam.
 
 Return Value
- Depend on MI_* define.
+ Depend on wParam.
 
-Example:
+Example (get status bar hadle):
  HWND hWndStatus=(HWND)SendMessage(pd->hMainWnd, AKD_GETMAININFO, MI_WNDSTATUS, 0);
+
+Example (get AkelPad directory):
+ wchar_t wszAkelDir[MAX_PATH];
+
+ SendMessage(pd->hMainWnd, AKD_GETMAININFO, MI_AKELDIRW, (WPARAM)wszAkelDir);
 
 
 AKD_GETFRAMEINFO
@@ -4117,21 +4218,6 @@ Example (bOldWindows == FALSE):
    MessageBoxW(pd->hMainWnd, (wchar_t *)tr.pText, L"Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
  }
-
-
-AKD_GETSTATUSPOSTYPE
-____________________
-
-Get status position type parameter.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- See SPT_* defines.
-
-Example:
- DWORD dwStatusPosType=SendMessage(pd->hMainWnd, AKD_GETSTATUSPOSTYPE, 0, 0);
 
 */
 
