@@ -2285,7 +2285,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        nType=wParam;
+        nType=(int)wParam;
         lpdwData=&dwData;
       }
 
