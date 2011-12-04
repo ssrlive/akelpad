@@ -2119,7 +2119,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)dwLangSystem;
       if (wParam == MI_LANGIDMODULE)
         return (LRESULT)dwLangModule;
-
+      if (wParam == MI_X64)
+      {
+        #ifdef _WIN64
+          return TRUE;
+        #else
+          return FALSE;
+        #endif
+      }
       return 0;
     }
     if (uMsg == AKD_GETFRAMEINFO)

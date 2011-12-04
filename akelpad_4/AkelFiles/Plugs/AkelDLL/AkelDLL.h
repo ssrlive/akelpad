@@ -185,6 +185,7 @@
 #define MI_LANGMODULEW     52
 #define MI_LANGIDSYSTEM    53
 #define MI_LANGIDMODULE    54
+#define MI_X64             101  //Return Value: TRUE - x64 version, FALSE - x86 version.
 
 //AKD_GETFRAMEINFO type. See FRAMEDATA members description.
 #define FI_WNDEDITPARENT        1
@@ -2890,8 +2891,8 @@ Set frame data info.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
 
 Return Value
- TRUE  success.
- FALSE error.
+ TRUE  info is changed.
+ FALSE info isn't changed.
 
 Example:
  BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
@@ -3046,52 +3047,6 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
-
-
-AKD_SETFRAMEINFO
-________________
-
-Set frame data info.
-
-(FRAMEINFO *)wParam == pointer to a FRAMEINFO structure.
-(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure, NULL for current frame data.
-
-Return Value
- TRUE  info is changed.
- FALSE info isn't changed.
-
-Example:
- FRAMEINFO fi;
- RECT rcMargins;
-
- rcMargins.left=4;
- rcMargins.top=0;
- rcMargins.right=4;
- rcMargins.bottom=0;
-
- fi.nType=FIS_RECTMARGINS;
- fi.dwData=(UINT_PTR)&rcMargins;
- SendMessage(pd->hMainWnd, AKD_SETFRAMEINFO, (WPARAM)&fi, (LPARAM)NULL);
-
-
-AKD_SETLOCKINHERIT
-__________________
-
-Lock inherit new document settings from current document.
-
-(HWND)wParam  == edit window, NULL for current edit window.
-(DWORD)lParam == lock inherit flags.
-
-Return Value
- TRUE   success.
- FALSE  failed.
-
-Example:
- DWORD dwLockInherit;
-
- dwLockInherit=(DWORD)SendMessage(pd->hMainWnd, AKD_GETLOCKINHERIT, (WPARAM)NULL, 0);
- dwLockInherit|=LI_FONT;
- SendMessage(pd->hMainWnd, AKD_SETLOCKINHERIT, (WPARAM)NULL, dwLockInherit);
 
 
 AKD_GETMODELESS

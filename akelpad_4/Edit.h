@@ -448,7 +448,6 @@ typedef struct {
   wchar_t wszFileTypesEdit[MAX_PATH];
   wchar_t wszFileTypesPrint[MAX_PATH];
   DWORD dwFileTypesAssociated;
-  int nClickURL;
   DWORD dwKeybLayoutOptions;
   BOOL bSilentCloseEmptyMDI;
   BOOL bDateLog;
