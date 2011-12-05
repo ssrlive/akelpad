@@ -4551,9 +4551,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   //Special messages
   if (nMDI)
   {
-    if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
+    if (uMsg == WM_LBUTTONDBLCLK)
     {
-      CreateFrameWindow(NULL);
+      if (!(moCur.dwTabOptionsMDI & TAB_NOADD_LBUTTONDBLCLK))
+      {
+        CreateFrameWindow(NULL);
+      }
+    }
+    else if (uMsg == WM_MBUTTONDOWN)
+    {
+      if (!(moCur.dwTabOptionsMDI & TAB_NOADD_MBUTTONDOWN))
+      {
+        CreateFrameWindow(NULL);
+      }
     }
   }
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
