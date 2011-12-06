@@ -14221,12 +14221,8 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Url prefixes
       GetWindowTextWide(hWndUrlPrefixes, lpFrameCurrent->wszUrlPrefixes, URL_PREFIXES_SIZE);
-
-      lpFrameCurrent->bUrlPrefixesEnable=(BOOL)SendMessage(hWndUrlPrefixesEnable, BM_GETCHECK, 0, 0);
-      if (lpFrameCurrent->bUrlPrefixesEnable)
-        SetUrlPrefixes(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszUrlPrefixes);
-      else
-        SetUrlPrefixes(lpFrameCurrent->ei.hWndEdit, NULL);
+      a=(BOOL)SendMessage(hWndUrlPrefixesEnable, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_URLPREFIXESENABLE, a);
 
       //Url delimiters
       GetWindowTextWide(hWndUrlLeftDelimiters, wbuf, BUFFER_SIZE);
@@ -14235,43 +14231,22 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       GetWindowTextWide(hWndUrlRightDelimiters, wbuf, BUFFER_SIZE);
       EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszUrlRightDelimiters, NEWLINE_UNIX);
 
-      lpFrameCurrent->bUrlDelimitersEnable=(BOOL)SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (lpFrameCurrent->bUrlDelimitersEnable)
-      {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrameCurrent->wszUrlLeftDelimiters);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrameCurrent->wszUrlRightDelimiters);
-      }
-      else
-      {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
-      }
+      a=(BOOL)SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_URLDELIMITERSENABLE, a);
 
       //Word delimiters
       GetWindowTextWide(hWndWordDelimiters, wbuf, BUFFER_SIZE);
       EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszWordDelimiters, NEWLINE_UNIX);
 
-      lpFrameCurrent->bWordDelimitersEnable=(BOOL)SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (lpFrameCurrent->bWordDelimitersEnable)
-      {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrameCurrent->wszWordDelimiters);
-      }
-      else
-      {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDBREAK, dwWordBreakDefault, 0);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
-      }
+      a=(BOOL)SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_WORDDELIMITERSENABLE, a);
 
       //Wrap delimiters
       GetWindowTextWide(hWndWrapDelimiters, wbuf, BUFFER_SIZE);
       EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszWrapDelimiters, NEWLINE_UNIX);
 
-      lpFrameCurrent->bWrapDelimitersEnable=(BOOL)SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (lpFrameCurrent->bWrapDelimitersEnable)
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrameCurrent->wszWrapDelimiters);
-      else
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+      a=(BOOL)SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
+      SetFrameInfo(lpFrameCurrent, FIS_WRAPDELIMITERSENABLE, a);
     }
   }
   return FALSE;
@@ -17801,6 +17776,162 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     {
       lpFrame->bShowURL=(BOOL)dwData;
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETDETECTURL, lpFrame->bShowURL, 0);
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_URLPREFIXESENABLE)
+  {
+    if (lpFrame->bUrlPrefixesEnable != (BOOL)dwData)
+    {
+      lpFrame->bUrlPrefixesEnable=(BOOL)dwData;
+
+      if (lpFrame->bUrlPrefixesEnable >= 0)
+      {
+        if (lpFrame->bUrlPrefixesEnable)
+          SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
+        else
+          SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_URLPREFIXES)
+  {
+    if (xstrcmpW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData))
+    {
+      xstrcpynW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData, URL_PREFIXES_SIZE);
+
+      if (lpFrame->bUrlPrefixesEnable >= 0)
+      {
+        if (lpFrame->bUrlPrefixesEnable)
+          SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
+        else
+          SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_URLDELIMITERSENABLE)
+  {
+    if (lpFrame->bUrlDelimitersEnable != (BOOL)dwData)
+    {
+      lpFrame->bUrlDelimitersEnable=(BOOL)dwData;
+
+      if (lpFrame->bUrlDelimitersEnable >= 0)
+      {
+        if (lpFrame->bUrlDelimitersEnable)
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
+        }
+        else
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+        }
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_URLLEFTDELIMITERS)
+  {
+    if (xstrcmpW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData))
+    {
+      xstrcpynW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
+
+      if (lpFrame->bUrlDelimitersEnable >= 0)
+      {
+        if (lpFrame->bUrlDelimitersEnable)
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
+        else
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_URLRIGHTDELIMITERS)
+  {
+    if (xstrcmpW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData))
+    {
+      xstrcpynW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
+
+      if (lpFrame->bUrlDelimitersEnable >= 0)
+      {
+        if (lpFrame->bUrlDelimitersEnable)
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
+        else
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_WORDDELIMITERSENABLE)
+  {
+    if (lpFrame->bWordDelimitersEnable != (BOOL)dwData)
+    {
+      lpFrame->bWordDelimitersEnable=(BOOL)dwData;
+
+      if (lpFrame->bWordDelimitersEnable >= 0)
+      {
+        if (lpFrame->bWordDelimitersEnable)
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
+        }
+        else
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, dwWordBreakDefault, 0);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+        }
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_WORDDELIMITERS)
+  {
+    if (xstrcmpW(lpFrame->wszWordDelimiters, (wchar_t *)dwData))
+    {
+      xstrcpynW(lpFrame->wszWordDelimiters, (wchar_t *)dwData, WORD_DELIMITERS_SIZE);
+
+      if (lpFrame->bWordDelimitersEnable >= 0)
+      {
+        if (lpFrame->bWordDelimitersEnable)
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
+        else
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_WRAPDELIMITERSENABLE)
+  {
+    if (lpFrame->bWrapDelimitersEnable != (BOOL)dwData)
+    {
+      lpFrame->bWrapDelimitersEnable=(BOOL)dwData;
+
+      if (lpFrame->bWrapDelimitersEnable >= 0)
+      {
+        if (lpFrame->bWrapDelimitersEnable)
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
+        else
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+      }
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_WRAPDELIMITERS)
+  {
+    if (xstrcmpW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData))
+    {
+      xstrcpynW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, WRAP_DELIMITERS_SIZE);
+
+      if (lpFrame->bWrapDelimitersEnable >= 0)
+      {
+        if (lpFrame->bWrapDelimitersEnable)
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
+        else
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+      }
       return TRUE;
     }
   }
