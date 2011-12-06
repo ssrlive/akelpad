@@ -1,6 +1,9 @@
 
 AkelPad 4.7.2 ()
 ----------------------------
+Added: now "AkelAdmin.exe" provides the ability to create file by opening in
+       protected folder (UAC).
+
 
 AkelPad 4.7.1 (Dec 04, 2011)
 ----------------------------

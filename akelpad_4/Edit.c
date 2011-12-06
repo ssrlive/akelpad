@@ -4187,12 +4187,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
     {
-      if (!bSetSecurity && !bOldWindows && bFileExist && GetLastError() == ERROR_ACCESS_DENIED)
+      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
       {
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
         {
-          if (!AkelAdminSend(AAA_SECURITYGET, wszFile) ||
+          if ((!bFileExist && !AkelAdminSend(AAA_CREATEFILE, wszFile)) ||
+              !AkelAdminSend(AAA_SECURITYGET, wszFile) ||
               !AkelAdminSend(AAA_SECURITYSETEVERYONE, wszFile))
           {
             //Reset AkelAdmin
