@@ -13967,7 +13967,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
       SetFrameInfo(lpFrameCurrent, FIS_TABSTOPSIZE, a);
       a=(int)SendMessage(hWndTabSizeSpaces, BM_GETCHECK, 0, 0);
-      SetFrameInfo(lpFrameCurrent, FIS_TABSTOPSIZE, a);
+      SetFrameInfo(lpFrameCurrent, FIS_TABSTOPASSPACES, a);
 
       //Undo
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, NULL, FALSE);
