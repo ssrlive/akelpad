@@ -1414,6 +1414,12 @@ BOOL DoFileOpen()
 
     //Open file dialog
     xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
+    if (lpFrameCurrent->nStreamOffset)
+    {
+      wszFileList[lpFrameCurrent->nStreamOffset]=L'\0';
+      wszFileList[lpFrameCurrent->nStreamOffset + 1]=L'\0';
+    }
+
     xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
     ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
@@ -1611,6 +1617,8 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
   //Save file dialog
   xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
+  if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'\0';
+
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
   ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
   ofnW.lCustData      =(LPARAM)&dc;
