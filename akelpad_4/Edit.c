@@ -17699,10 +17699,10 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
   }
   else if (nType == FIS_ALTLINES)
   {
-    if (lpFrame->dwAltLineFill != LOWORD(dwData) || lpFrame->dwAltLineSkip != HIWORD(dwData))
+    if (lpFrame->dwAltLineSkip != LOWORD(dwData) || lpFrame->dwAltLineFill != HIWORD(dwData))
     {
-      lpFrame->dwAltLineFill=LOWORD(dwData);
-      lpFrame->dwAltLineSkip=HIWORD(dwData);
+      lpFrame->dwAltLineSkip=LOWORD(dwData);
+      lpFrame->dwAltLineFill=HIWORD(dwData);
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineSkip, lpFrame->dwAltLineFill), 0);
       return TRUE;
     }
