@@ -5,6 +5,7 @@ Added: now "AkelAdmin.exe" provides the ability to create file by opening in
        protected folder (UAC).
 
 Fixed: saving tabulation settings.
+Fixed: saving alternating lines settings.
 
 
 AkelPad 4.7.1 (Dec 04, 2011)
