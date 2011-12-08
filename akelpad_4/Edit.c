@@ -176,6 +176,7 @@ extern wchar_t wszAkelAdminExe[MAX_PATH];
 extern wchar_t wszAkelAdminPipe[32];
 extern BOOL bPipeInitAkelAdmin;
 extern BOOL bSetSecurity;
+extern BOOL bResidentAkelAdmin;
 extern HICON hIconShieldAkelAdmin;
 
 //MessageBox dialog
@@ -4325,7 +4326,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   if (bSetSecurity)
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
-        !AkelAdminSend(AAA_SECURITYFREE, L""))
+        !AkelAdminSend(AAA_SECURITYFREE, L"") ||
+        !bResidentAkelAdmin)
     {
       //Reset AkelAdmin
       AkelAdminExit();
@@ -4989,7 +4991,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   if (bSetSecurity)
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
-        !AkelAdminSend(AAA_SECURITYFREE, L""))
+        !AkelAdminSend(AAA_SECURITYFREE, L"") ||
+        !bResidentAkelAdmin)
     {
       //Reset AkelAdmin
       AkelAdminExit();
