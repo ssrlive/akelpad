@@ -302,6 +302,25 @@
         </td>
       </tr>
       <tr>
+        <td><b>TabOptionsMDI</b></td>
+        <td>Defines tabs settings in MDI/PMDI mode. Sets by the sum of members:
+          <br><li>1 - GUI.
+          <br><li>2 - GUI.
+          <br><li>4 - GUI.
+          <br><li>256 - GUI.
+          <br><li>512 - GUI.
+          <br><li>1024 - GUI.
+          <br><li>65536 - GUI.
+          <br><li>131072 - GUI.
+          <br><li>524288 - create tabs after the current one.
+          <br><li>1048576 - don't create new tab by left button double click on the tab bar.
+          <br><li>2097152 - don't create new tab by middle button click on the tab bar.
+          <br><li>4194304 - don't close tab by left button double click on the tab.
+          <br><li>8388608 - don't close tab by middle button click on the tab.
+          <br>By default: 2+256+131072=131330.
+        </td>
+      </tr>
+      <tr>
         <td><b>PaintOptions</b></td>
         <td>Defines, some text draw settings. Sets by the sum of members:
           <br><li>1 - Paint text by group of characters (default is character by character). With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
