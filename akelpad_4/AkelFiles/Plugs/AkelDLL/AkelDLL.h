@@ -310,8 +310,8 @@
 
 //AKD_SETFRAMEINFO type.
 #define FIS_TABSTOPSIZE          1   //(int)FRAMEINFO.dwData - tabulation size in characters.
-#define FIS_TABSTOPASSPACES      2   //(DWORD)FRAMEINFO.dwData - undo limit.
-#define FIS_UNDOLIMIT            6   //(int)FRAMEINFO.dwData - wrap limit.
+#define FIS_TABSTOPASSPACES      2   //BOOL)FRAMEINFO.dwData - insert tabulation as spaces.
+#define FIS_UNDOLIMIT            6   //(int)FRAMEINFO.dwData - undo limit.
 #define FIS_DETAILEDUNDO         7   //(BOOL)FRAMEINFO.dwData - detailed undo.
 #define FIS_WRAP                 11  //(DWORD)FRAMEINFO.dwData - the low-order word contains the wrap type (see AEWW_* defines in AkelEdit.h). The high-order word contains the wrap limit in characters.
 #define FIS_MARKER               12  //(int)FRAMEINFO.dwData - column marker position.
