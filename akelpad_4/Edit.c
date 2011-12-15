@@ -176,7 +176,7 @@ extern wchar_t wszAkelAdminExe[MAX_PATH];
 extern wchar_t wszAkelAdminPipe[32];
 extern BOOL bPipeInitAkelAdmin;
 extern BOOL bSetSecurity;
-extern BOOL bResidentAkelAdmin;
+extern BOOL bAkelAdminResident;
 extern HICON hIconShieldAkelAdmin;
 
 //MessageBox dialog
@@ -3631,6 +3631,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
     ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
     ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
+    ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &bAkelAdminResident, sizeof(DWORD));
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -4327,7 +4328,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
         !AkelAdminSend(AAA_SECURITYFREE, L"") ||
-        !bResidentAkelAdmin)
+        !bAkelAdminResident)
     {
       //Reset AkelAdmin
       AkelAdminExit();
@@ -4992,7 +4993,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
         !AkelAdminSend(AAA_SECURITYFREE, L"") ||
-        !bResidentAkelAdmin)
+        !bAkelAdminResident)
     {
       //Reset AkelAdmin
       AkelAdminExit();

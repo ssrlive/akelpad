@@ -346,7 +346,7 @@ wchar_t wszAkelAdminExe[MAX_PATH];
 wchar_t wszAkelAdminPipe[32];
 BOOL bPipeInitAkelAdmin=FALSE;
 BOOL bSetSecurity=FALSE;
-BOOL bResidentAkelAdmin=TRUE;
+BOOL bAkelAdminResident=TRUE;
 HICON hIconShieldAkelAdmin=NULL;
 
 //MessageBox dialog
