@@ -1,8 +1,9 @@
 
-AkelPad 4.7.2 ()
+AkelPad 4.7.2 (Dec 15, 2011)
 ----------------------------
 Added: now "AkelAdmin.exe" provides the ability to create file by opening in
        protected folder (UAC).
+Added: manual parameter "AkelAdminResident" - defines residency of the AkelAdmin.exe.
 
 Fixed: saving tabulation settings.
 Fixed: saving alternating lines settings.
