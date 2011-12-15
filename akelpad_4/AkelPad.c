@@ -346,7 +346,6 @@ wchar_t wszAkelAdminExe[MAX_PATH];
 wchar_t wszAkelAdminPipe[32];
 BOOL bPipeInitAkelAdmin=FALSE;
 BOOL bSetSecurity=FALSE;
-BOOL bAkelAdminResident=TRUE;
 HICON hIconShieldAkelAdmin=NULL;
 
 //MessageBox dialog
@@ -731,6 +730,7 @@ void _WinMain()
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.bRichEditClass=FALSE;
+  moInit.bAkelAdminResident=TRUE;
   //moInit.wszDateLogFormat[0]='\0';
   //moInit.wszDateInsertFormat[0]='\0';
 

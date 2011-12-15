@@ -176,7 +176,6 @@ extern wchar_t wszAkelAdminExe[MAX_PATH];
 extern wchar_t wszAkelAdminPipe[32];
 extern BOOL bPipeInitAkelAdmin;
 extern BOOL bSetSecurity;
-extern BOOL bAkelAdminResident;
 extern HICON hIconShieldAkelAdmin;
 
 //MessageBox dialog
@@ -3629,9 +3628,9 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwWordBreakCustom, sizeof(DWORD));
     ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
     ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
+    ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD));
     ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
     ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
-    ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &bAkelAdminResident, sizeof(DWORD));
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -3843,6 +3842,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MANUAL, &mo->dwPaintOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"RichEditClass", MOT_DWORD|MOT_MANUAL, &mo->bRichEditClass, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"AkelAdminResident", MOT_DWORD|MOT_MANUAL, &mo->bAkelAdminResident, sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"DateLogFormat", MOT_STRING|MOT_MANUAL, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
     goto Error;
@@ -4328,7 +4329,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
         !AkelAdminSend(AAA_SECURITYFREE, L"") ||
-        !bAkelAdminResident)
+        !moCur.bAkelAdminResident)
     {
       //Reset AkelAdmin
       AkelAdminExit();
@@ -4993,7 +4994,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if (!AkelAdminSend(AAA_SECURITYRESTORE, L"") ||
         !AkelAdminSend(AAA_SECURITYFREE, L"") ||
-        !bAkelAdminResident)
+        !moCur.bAkelAdminResident)
     {
       //Reset AkelAdmin
       AkelAdminExit();
