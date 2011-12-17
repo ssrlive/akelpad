@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "3.5"
+!define PRODUCT_VERSION "3.7"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -18,7 +18,7 @@ LangString url ${LANG_ENGLISH} 'URL'
 LangString url ${LANG_RUSSIAN} 'Ссылка'
 LangString downloading ${LANG_ENGLISH} 'Downloading'
 LangString downloading ${LANG_RUSSIAN} 'Скачивание'
-LangString connecting ${LANG_ENGLISH} 'Сonnecting'
+LangString connecting ${LANG_ENGLISH} 'Connecting'
 LangString connecting ${LANG_RUSSIAN} 'Соединение'
 LangString file_name ${LANG_ENGLISH} 'File Name'
 LangString file_name ${LANG_RUSSIAN} 'Имя файла'
