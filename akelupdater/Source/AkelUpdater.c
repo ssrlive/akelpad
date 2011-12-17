@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.5                  *
+ *                 AkelUpdater NSIS plugin v3.6                  *
  *                                                               *
  * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -203,6 +203,7 @@ void StackPluginsSort(HSTACK *hStack);
 void StackPluginsFree(HSTACK *hStack);
 int GetExeDirA(HINSTANCE hInstance, char *szExeDir, int nLen);
 int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen);
+const char* GetFileExtA(const char *pFile, int nFileLen);
 BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 const char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
@@ -1105,14 +1106,19 @@ void StackPluginsFill(HSTACK *hStack)
   PLUGINITEM *lpPluginItem;
   HANDLE hSearch;
   HMODULE hInstance;
+  const char *pPluginExt="dll";
   void (*DllAkelPadID)(PLUGINVERSION *pv);
 
-  wsprintfA(szSearchDir, "%s\\*.dll", szPlugsDir);
+  wsprintfA(szSearchDir, "%s\\*.%s", szPlugsDir, pPluginExt);
 
   if ((hSearch=FindFirstFileA(szSearchDir, &wfdA)) != INVALID_HANDLE_VALUE)
   {
     do
     {
+      //Avoid FindFirstFile/FindNextFile bug: "*.dll_ANYSYMBOLS" is also matched
+      if (lstrcmpiA(pPluginExt, GetFileExtA(wfdA.cFileName, -1)))
+        continue;
+
       wsprintfA(szFile, "%s\\%s", szPlugsDir, wfdA.cFileName);
       diGlobal.szPluginName[0]='\0';
       diGlobal.dwError=PE_CANTLOAD;
@@ -1296,6 +1302,20 @@ int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen)
   lstrcpynA(szBaseName, pFile + i, nBaseNameMaxLen);
 
   return nBaseNameMaxLen;
+}
+
+const char* GetFileExtA(const char *pFile, int nFileLen)
+{
+  const char *pCount;
+
+  if (nFileLen == -1) nFileLen=(int)lstrlenA(pFile);
+
+  for (pCount=pFile + nFileLen - 1; pCount >= pFile; --pCount)
+  {
+    if (*pCount == '.') return pCount + 1;
+    if (*pCount == '\\') break;
+  }
+  return NULL;
 }
 
 BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
