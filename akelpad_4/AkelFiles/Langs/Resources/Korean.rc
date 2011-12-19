@@ -68,8 +68,8 @@ BEGIN
         MENUITEM "실행 취소(&N)\tCtrl+Z",       IDM_EDIT_UNDO
         MENUITEM "다시 실행(&E)\tCtrl+Shift+Z", IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "자르기(&X)\tCtrl+X",          IDM_EDIT_CUT
-        MENUITEM "베껴두기(&C)\tCtrl+C",        IDM_EDIT_COPY
+        MENUITEM "잘라내기(&X)\tCtrl+X",          IDM_EDIT_CUT
+        MENUITEM "복사(&C)\tCtrl+C",        IDM_EDIT_COPY
         MENUITEM "붙여넣기(&P)\tCtrl+V",        IDM_EDIT_PASTE
         MENUITEM "지우기(&D)\tDel",             IDM_EDIT_CLEAR
         MENUITEM "모두 선택(&A)\tCtrl+A",       IDM_EDIT_SELECTALL
@@ -180,15 +180,15 @@ BEGIN
         MENUITEM "수평 배열(&H)",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "수직 배열(&V)",               IDM_WINDOW_TILEVERTICAL
         MENUITEM "계단식(&C)",                  IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "닫기",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "모두 닫기",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "선택 문서를 제외하고 모두 닫기",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "창 선택...",                  IDM_WINDOW_MDILIST
     END
     POPUP "도움말(&H)"
     BEGIN
-        MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "메뉴얼(&M)",                     IDM_MANUAL
         MENUITEM SEPARATOR
         MENUITEM "이 프로그램은(&A)",           IDM_ABOUT
     END
@@ -201,8 +201,8 @@ BEGIN
         MENUITEM "실행 취소(&U)",               IDM_EDIT_UNDO
         MENUITEM "다시 실행(&R)",               IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "자르기(&X)",                  IDM_EDIT_CUT
-        MENUITEM "베껴두기(&C)",                IDM_EDIT_COPY
+        MENUITEM "잘라내기(&X)",                  IDM_EDIT_CUT
+        MENUITEM "복사(&C)",                IDM_EDIT_COPY
         MENUITEM "붙이기(&P)",                  IDM_EDIT_PASTE
         MENUITEM "지우기(&D)",                  IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
@@ -210,7 +210,7 @@ BEGIN
     END
     POPUP "ViewPopup"
     BEGIN
-        MENUITEM "베껴두기(&C)",                IDM_EDIT_COPY
+        MENUITEM "복사(&C)",                IDM_EDIT_COPY
         MENUITEM SEPARATOR
         MENUITEM "모두 선택(&A)",               IDM_EDIT_SELECTALL
     END
