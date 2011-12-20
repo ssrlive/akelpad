@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 6)
 
 
 //// Defines
@@ -1760,8 +1760,9 @@ typedef struct {
 #define AKDN_DLLCALL               (WM_USER + 41)  //0x429
 #define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
 
-#define AKDN_ACTIVATE              (WM_USER + 51)  //0x433
-#define AKDN_SIZE                  (WM_USER + 52)  //0x434
+#define AKDN_ACTIVATE              (WM_USER + 50)  //0x432
+#define AKDN_SIZE_ONSTART          (WM_USER + 51)  //0x433
+#define AKDN_SIZE_ONFINISH         (WM_USER + 52)  //0x434
 #define AKDN_OPENDOCUMENT_START    (WM_USER + 53)  //0x435
 #define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 54)  //0x436
 #define AKDN_SAVEDOCUMENT_START    (WM_USER + 55)  //0x437
@@ -2159,10 +2160,22 @@ Return Value
  Zero.
 
 
-AKDN_SIZE
-_________
+AKDN_SIZE_ONSTART
+_________________
 
 Notification message, sends to the main procedure before the main window client RECT changed.
+
+wParam           == not used.
+(NSIZE *)lParam  == pointer to a NSIZE structure.
+
+Return Value
+ Zero.
+
+
+AKDN_SIZE_ONFINISH
+___________________
+
+Notification message, sends to the main procedure after the main window client RECT changed.
 
 wParam           == not used.
 (NSIZE *)lParam  == pointer to a NSIZE structure.
@@ -3187,7 +3200,7 @@ Example:
 AKD_RESIZE
 __________
 
-Update main window size with AKDN_SIZE notification message.
+Update main window size with AKDN_SIZE_* notification messages.
 
 wParam == not used.
 lParam == not used.

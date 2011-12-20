@@ -19007,7 +19007,7 @@ void UpdateSize()
     if (moCur.bStatusBar && IsWindowVisible(hStatus))
       nsSize.rcInitial.bottom-=nStatusHeight;
     nsSize.rcCurrent=nsSize.rcInitial;
-    SendMessage(hMainWnd, AKDN_SIZE, 0, (LPARAM)&nsSize);
+    SendMessage(hMainWnd, AKDN_SIZE_ONSTART, 0, (LPARAM)&nsSize);
 
     //Docks
     StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_LEFT)?DKS_RIGHT:DKS_LEFT, &nsSize);
@@ -19041,6 +19041,7 @@ void UpdateSize()
       if (nMDI == WMD_MDI)
         MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
     }
+    SendMessage(hMainWnd, AKDN_SIZE_ONFINISH, 0, (LPARAM)&nsSize);
     hDocksStack.bSizing=FALSE;
   }
 }
