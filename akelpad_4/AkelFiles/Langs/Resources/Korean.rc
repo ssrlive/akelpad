@@ -50,7 +50,7 @@ BEGIN
         MENUITEM "저장(&S)\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "다른 이름으로 저장(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "모두 저장(&L)\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Sav&e all as...",             IDM_FILE_SAVEALLAS
+        MENUITEM "모든 문서 일괄 인코딩 변경 후 저장(&E)...",             IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "페이지 설정(&G)...",          IDM_FILE_PAGESETUP
         MENUITEM "미리 보기(&V)...",            IDM_FILE_PRINTPREVIEW
@@ -84,7 +84,7 @@ BEGIN
         MENUITEM "날짜 삽입(&T)\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "선택(&S)"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "클립보드 내용 붙여넣기\tAlt+V",       IDM_EDIT_PASTECOLUMN
             MENUITEM "탭 들여쓰기 늘임(&B)\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "탭 들여쓰기 줄임(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -444,7 +444,7 @@ BEGIN
     GROUPBOX        "파일들",IDC_MDILIST_FILES_GROUP,191,163,64,49
     PUSHBUTTON      "저장",IDC_MDILIST_SAVE,198,177,50,14
     PUSHBUTTON      "닫기",IDC_MDILIST_CLOSE,198,192,50,14
-    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "파일 이름만 표시",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,219,67,10
     PUSHBUTTON      "취소",IDCANCEL,198,243,50,14
 END
@@ -553,7 +553,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "번호:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
-    CONTROL         "줄:Column",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,
+    CONTROL         "행 번호 : 열 번호",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,
                     41,70,10
     CONTROL         "위치",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,41,
                     50,10
@@ -758,7 +758,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "활성열 보이기",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
+    CONTROL         "선택한 줄의 배경 색상 변경",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
@@ -870,7 +870,7 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "default saving extension",IDC_STATIC,37,77,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,96,200,53
+    GROUPBOX        "찾기/바꾸기 대화상자",IDC_STATIC,9,96,200,53
     CONTROL         "모두 바꾸기 - 대화상자 닫기",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
@@ -964,7 +964,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "메시지 큐에 에러 발생."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "오류: 메모리가 부족합니다. 프로그램을 종료하세요."
     MSG_ERROR_BINARY        """%s"" 파일은 바이너리 파일입니다. 계속할까요?"
     MSG_ERROR_IO            "입출력 오류."
     MSG_ERROR_SYNTAX        "구문 오류."
@@ -1002,7 +1002,7 @@ BEGIN
     MSG_FILE_CHANGED        """%s"" 파일이 외부에서 변경되었습니다.\n\n다시 읽을까요?"
     MSG_CP_UNIMPLEMENTED    """%d"" 코드페이지는 구현되지 않았습니다."
     MSG_CP_MISMATCH         """%d""번째 줄에 이 인코딩에서 손실되는 문자가 포함되어 있습니다. 계속 진행하시겠습니까?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "관리자 권한이 필요합니다.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "프로그램을 재시작하면 변경사항이 적용됩니다."
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
     MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
@@ -1069,21 +1069,21 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_INVERTSELECTION     "Invert selection"
     STR_MESSAGEBOX_OK       "확인"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_YES      "예(&Y)"
+    STR_MESSAGEBOX_NO       "아니오(&N)"
     STR_MESSAGEBOX_CANCEL   "취소"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "모두 예"
+    STR_MESSAGEBOX_NOTOALL  "모두 아니오"
     STR_MESSAGEBOX_GOTO     "줄 번호 이동"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "종료"
+    STR_MESSAGEBOX_CONTINUE "계속"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "동부 유럽 (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "서부 유럽 (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "터키 (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "중국 (ANSI, UTF-8)"
     STR_AUTODETECT_JAPANESE "일본 (932, UTF-8)"
