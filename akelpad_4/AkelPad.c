@@ -586,7 +586,7 @@ void _WinMain()
   //Initialize WideFunc.h header
   WideInitialize();
 
-  //Get command line
+  //Fill MAINCREATE if not DLL build
   #ifndef AKELPAD_DLLBUILD
     if (bOldWindows)
       mc.pCmdLine=(BYTE *)GetCommandLineParamsA();
@@ -595,7 +595,6 @@ void _WinMain()
     mc.hWndParent=NULL;
     mc.dwStyle=WS_OVERLAPPEDWINDOW;
   #endif
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
 
   //Get program HINSTANCE
   #ifndef AKELPAD_DLLBUILD
@@ -897,6 +896,9 @@ void _WinMain()
       }
     }
   }
+
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
