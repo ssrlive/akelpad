@@ -8,6 +8,7 @@
 
 
 #define WIN32_LEAN_AND_MEAN
+#define UNICODE
 #include <windows.h>
 #include <aclapi.h>
 #include "..\AkelEdit\StrFunc.h"
@@ -26,6 +27,7 @@
 #define STRID_ERRORSETPIPESECURITY  5
 #define STRID_ERRORGETFILESECURITY  6
 #define STRID_ERRORSETFILESECURITY  7
+#define STRID_ERRORGETPRIVILEGE     8
 
 #define BUFFER_SIZE      1024
 
@@ -65,6 +67,7 @@ typedef struct {
 
 
 //Functions prototypes
+BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetCommandLineArgW(wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, wchar_t **wpNextArg);
@@ -286,9 +289,19 @@ void _WinMain()
                           //Restore file security
                           if (psdCurrentFile)
                           {
-                            if (!SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
+                            if (EnablePrivilege(SE_RESTORE_NAME, TRUE))
                             {
-                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
+                              if (!SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
+                              {
+                                wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
+                                MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                                apipe.dwExitCode=1;
+                              }
+                              EnablePrivilege(SE_RESTORE_NAME, FALSE);
+                            }
+                            else
+                            {
+                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETPRIVILEGE), wszCurrentFile);
                               MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
                               apipe.dwExitCode=1;
                             }
@@ -332,6 +345,27 @@ void _WinMain()
   else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORWIN), STR_AKELADMIN, MB_ICONEXCLAMATION);
 
   ExitProcess(dwExitCode);
+}
+
+BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable)
+{
+  TOKEN_PRIVILEGES tp;
+  HANDLE hToken;
+  BOOL bResult=FALSE;
+
+  if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY, &hToken))
+  {
+    if (LookupPrivilegeValueW(NULL, wpName, &tp.Privileges[0].Luid))
+    {
+      tp.PrivilegeCount=1;
+      tp.Privileges[0].Attributes=(bEnable?SE_PRIVILEGE_ENABLED:0);
+
+      if (AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL))
+        bResult=TRUE;
+    }
+    CloseHandle(hToken);
+  }
+  return bResult;
 }
 
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
@@ -424,6 +458,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x043E\x043B\x0443\x0447\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
     if (nStringID == STRID_ERRORSETFILESECURITY)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
+    if (nStringID == STRID_ERRORGETPRIVILEGE)
+      return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x043E\x043B\x0443\x0447\x0438\x0442\x044C\x0020\x043F\x0440\x0438\x0432\x0438\x043B\x0435\x0433\x0438\x0438\x0020\x0434\x043B\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x043A\x0438\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0435\x043A\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
   }
   else
   {
@@ -441,6 +477,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Can't get security options of file \"%s\"";
     if (nStringID == STRID_ERRORSETFILESECURITY)
       return L"Can't set security options for file \"%s\"";
+    if (nStringID == STRID_ERRORGETPRIVILEGE)
+      return L"Can't get privilege to set security options of file \"%s\"";
   }
   return L"";
 }

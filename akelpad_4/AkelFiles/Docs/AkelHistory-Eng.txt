@@ -1,4 +1,9 @@
 
+AkelPad 4.7.3 ()
+----------------------------
+Fixed: "AkelAdmin.exe" - set security options for file with different owner.
+
+
 AkelPad 4.7.2 (Dec 15, 2011)
 ----------------------------
 Added: now "AkelAdmin.exe" provides the ability to create file by opening in
