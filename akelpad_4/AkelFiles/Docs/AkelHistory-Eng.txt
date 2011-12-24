@@ -1,6 +1,7 @@
 
 AkelPad 4.7.3 ()
 ----------------------------
+Fixed: manual parameters "CmdLineBegin" and "CmdLineEnd" didn't work.
 Fixed: "AkelAdmin.exe" - set security options for file with different owner.
 
 
