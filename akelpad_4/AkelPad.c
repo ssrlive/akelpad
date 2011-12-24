@@ -876,6 +876,9 @@ void _WinMain()
   //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
+
   //Get startup info
   #ifndef AKELPAD_DLLBUILD
   {
@@ -896,9 +899,6 @@ void _WinMain()
       }
     }
   }
-
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
