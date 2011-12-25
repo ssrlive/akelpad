@@ -17341,12 +17341,12 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
               else if (*wpSource == 'f' || *wpSource == 'F')
               {
                 ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
+                if (*wpFile) wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
               }
               else if (*wpSource == 'd' || *wpSource == 'D')
               {
                 ++wpSource;
-                wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
+                if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
               }
               else if (*wpSource == 'a' || *wpSource == 'A')
               {
@@ -18667,12 +18667,12 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
         else if (*wpSource == 'f' || *wpSource == 'F')
         {
           ++wpSource;
-          wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpFile, wpTargetMax - wpTarget) - !wszBuffer;
+          if (*wpFile) wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpFile, wpTargetMax - wpTarget) - !wszBuffer;
         }
         else if (*wpSource == 'd' || *wpSource == 'D')
         {
           ++wpSource;
-          wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
+          if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
         }
         else if (*wpSource == 'a' || *wpSource == 'A')
         {
