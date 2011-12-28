@@ -5343,6 +5343,10 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         nLastSplit=IDM_VIEW_SPLIT_WINDOW_WE;
       else if (lpFrameCurrent->ei.hWndClone2)
         nLastSplit=IDM_VIEW_SPLIT_WINDOW_NS;
+
+      //Signal to Toolbar plugin for buttons update
+      SendMessage(hMainWnd, WM_COMMAND, 0, 0);
+
       *lResult=0;
       return TRUE;
     }
