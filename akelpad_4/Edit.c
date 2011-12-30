@@ -6930,10 +6930,7 @@ LRESULT CALLBACK PreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (lResult=PreviewMessages(hWnd, uMsg, wParam, lParam))
     return lResult;
 
-  if (bOldWindows)
-    return DefWindowProcA(hWnd, uMsg, wParam, lParam);
-  else
-    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+  return DefWindowProcWide(hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -8547,6 +8544,79 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
     }
   }
   return FALSE;
+}
+
+BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, int *nCodePageFrom, int *nCodePageTo)
+{
+  //Detect nCodePageFrom
+  int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
+                             {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
+                             {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
+                             {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
+                             {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
+                             {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
+                             {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
+                             {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
+  int nIndex;
+  char *szText=NULL;
+  INT_PTR nAnsiLen;
+  int i;
+  BOOL bUsedDefaultChar=TRUE;
+
+  if (nIndex=GetDetectionIndex(dwLangID))
+  {
+    for (i=0; lpDetectCodePage[nIndex][i]; ++i)
+    {
+      nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wpText, (int)(nTextLen + 1), NULL, 0, NULL, &bUsedDefaultChar);
+
+      if (!bUsedDefaultChar)
+      {
+        if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+        {
+          WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wpText, nTextLen + 1, szText, nAnsiLen, NULL, NULL);
+          *nCodePageFrom=lpDetectCodePage[nIndex][i];
+        }
+        break;
+      }
+    }
+  }
+
+  if (szText)
+  {
+    //Detect nCodePageTo
+    if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nCodePageTo))
+      *nCodePageTo=*nCodePageFrom;
+
+    API_HeapFree(hHeap, 0, (LPVOID)szText);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+wchar_t* ConvertWideChar(const wchar_t *wpText, INT_PTR nTextLen, int nCodePageFrom, int nCodePageTo)
+{
+  char *szText;
+  wchar_t *wszText=NULL;
+  INT_PTR nUnicodeLen;
+  INT_PTR nAnsiLen;
+
+  //Convert
+  if (nCodePageFrom > 0 && nCodePageTo > 0)
+  {
+    nAnsiLen=WideCharToMultiByte64(nCodePageFrom, 0, wpText, nTextLen + 1, NULL, 0, NULL, NULL);
+
+    if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+    {
+      WideCharToMultiByte64(nCodePageFrom, 0, wpText, nTextLen + 1, szText, nAnsiLen, NULL, NULL);
+      nUnicodeLen=MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
+
+      if (wszText=AllocWideStr(nUnicodeLen))
+        MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
+
+      API_HeapFree(hHeap, 0, (LPVOID)szText);
+    }
+  }
+  return wszText;
 }
 
 int GetDetectionIndex(DWORD dwLangID)
@@ -11006,7 +11076,6 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   wchar_t *wszText;
   int nFirstLine=0;
   INT_PTR nUnicodeLen;
-  INT_PTR nAnsiLen;
   BOOL bCaretAtStart=FALSE;
   BOOL bSelection;
 
@@ -11039,87 +11108,39 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
 
   if (nUnicodeLen=ExGetRangeTextW(lpFrame->ei.hWndEdit, &crRange.ciMin, &crRange.ciMax, -1, &wszSelText, AELB_ASIS, TRUE))
   {
-    //Autodetect
+    //Detect
     if (*nCodePageFrom == -1 && *nCodePageTo == -1)
     {
-      //Detect nCodePageFrom
-      int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
-                                 {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
-                                 {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
-                                 {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
-                                 {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
-                                 {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
-                                 {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
-                                 {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
-      int nIndex;
-      int i;
-      BOOL bUsedDefaultChar=TRUE;
-
-      if (nIndex=GetDetectionIndex(moCur.dwLangCodepageRecognition))
-      {
-        for (i=0; lpDetectCodePage[nIndex][i]; ++i)
-        {
-          nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wszSelText, (int)(nUnicodeLen + 1), NULL, 0, NULL, &bUsedDefaultChar);
-
-          if (!bUsedDefaultChar)
-          {
-            if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
-            {
-              WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
-              *nCodePageFrom=lpDetectCodePage[nIndex][i];
-            }
-            break;
-          }
-        }
-      }
-
-      if (szText)
-      {
-        //Detect nCodePageTo
-        if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, (unsigned char *)szText, nAnsiLen, nCodePageTo))
-          *nCodePageTo=*nCodePageFrom;
-
-        API_HeapFree(hHeap, 0, (LPVOID)szText);
-      }
+      AutodetectWideChar(moCur.dwLangCodepageRecognition, wszSelText, nUnicodeLen, nCodePageFrom, nCodePageTo);
     }
 
     //Convert
-    if (!(dwFlags & RCS_DETECTONLY) && *nCodePageFrom > 0 && *nCodePageTo > 0)
+    if (!(dwFlags & RCS_DETECTONLY))
     {
-      nAnsiLen=WideCharToMultiByte64(*nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
-
-      if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+      if (wszText=ConvertWideChar(wszSelText, nUnicodeLen, *nCodePageFrom, *nCodePageTo))
       {
-        WideCharToMultiByte64(*nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
-        nUnicodeLen=MultiByteToWideChar64(*nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
+        FreeText(wszSelText);
+        wszSelText=NULL;
 
-        if (wszText=AllocWideStr(nUnicodeLen))
+        if (!hWndPreview)
         {
-          MultiByteToWideChar64(*nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
-          API_HeapFree(hHeap, 0, (LPVOID)szText);
-          szText=NULL;
-
-          if (!hWndPreview)
+          ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen - 1, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
+  
+          //Update selection
+          if (!bSelection)
           {
-            ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen - 1, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
-
-            //Update selection
-            if (!bSelection)
-            {
-              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
-              crRange.ciMin=ciInitialCaret;
-              crRange.ciMax=ciInitialCaret;
-            }
-            SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
+            crRange.ciMin=ciInitialCaret;
+            crRange.ciMax=ciInitialCaret;
           }
-          else SendMessage(hWndPreview, AEM_SETTEXTW, (WPARAM)(nUnicodeLen - 1), (LPARAM)wszText);
-
-          FreeWideStr(wszText);
+          SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
         }
-        if (szText) API_HeapFree(hHeap, 0, (LPVOID)szText);
+        else SendMessage(hWndPreview, AEM_SETTEXTW, (WPARAM)(nUnicodeLen - 1), (LPARAM)wszText);
+  
+        FreeWideStr(wszText);
       }
     }
-    FreeText(wszSelText);
+    if (wszSelText) FreeText(wszSelText);
   }
 
   if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))

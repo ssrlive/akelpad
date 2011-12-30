@@ -852,6 +852,8 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage);
+BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, int *nCodePageFrom, int *nCodePageTo);
+wchar_t* ConvertWideChar(const wchar_t *wpText, INT_PTR nTextLen, int nCodePageFrom, int nCodePageTo);
 int GetDetectionIndex(DWORD dwLangID);
 BOOL IsLangEasternEurope(DWORD dwLangID);
 BOOL IsLangWesternEurope(DWORD dwLangID);

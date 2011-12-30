@@ -117,6 +117,7 @@
 #define CreateMDIWindowWide
 #define CreateProcessWide
 #define CreateWindowExWide
+#define DefWindowProcWide
 #define DeleteFileWide
 #define DispatchMessageWide
 #define DragQueryFileWide
@@ -6533,8 +6534,5 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK DummyProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (bOldWindows)
-    return DefWindowProcA(hWnd, uMsg, wParam, lParam);
-  else
-    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+  return DefWindowProcWide(hWnd, uMsg, wParam, lParam);
 }
