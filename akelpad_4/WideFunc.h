@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v1.6                    *
+ *                  Wide functions header v1.7                    *
  *                                                                *
- * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -783,7 +783,8 @@ BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine,
 #endif
 BOOL FileExistsAnsi(const char *pFile)
 {
-  if (GetFileAttributesA(pFile) == (DWORD)-1)
+  DWORD dwAttr=GetFileAttributesA(pFile);
+  if (dwAttr == (DWORD)-1 || (dwAttr & FILE_ATTRIBUTE_DIRECTORY))
     return FALSE;
   return TRUE;
 }
@@ -797,7 +798,8 @@ BOOL FileExistsAnsi(const char *pFile)
 #endif
 BOOL FileExistsWide(const wchar_t *wpFile)
 {
-  if (GetFileAttributesWide(wpFile) == (DWORD)-1)
+  DWORD dwAttr=GetFileAttributesWide(wpFile);
+  if (dwAttr == (DWORD)-1 || (dwAttr & FILE_ATTRIBUTE_DIRECTORY))
     return FALSE;
   return TRUE;
 }
