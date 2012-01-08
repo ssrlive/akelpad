@@ -831,12 +831,45 @@ typedef struct {
 } UNISTRING;
 
 typedef struct {
+  DWORD dwLangID;         //Codepage recognition language defined as LANGID. If -1, then use current settings.
+  const char *pText;      //Ansi text.
+  INT_PTR nTextLen;       //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nCodePage;          //Result: detected Ansi codepage.
+} DETECTANSITEXT;
+
+typedef struct {
+  DWORD dwLangID;         //Codepage recognition language defined as LANGID. If -1, then use current settings.
+  const wchar_t *wpText;  //Unicode text.
+  INT_PTR nTextLen;       //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nCodePageFrom;      //Result: codepage that converts text to Ansi without character lost.
+  int nCodePageTo;        //Result: detected Ansi codepage.
+} DETECTUNITEXT;
+
+typedef struct {
+  const char *pInput;     //Ansi text.
+  INT_PTR nInputLen;      //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nCodePageFrom;      //Codepage for Ansi to Unicode conversion.
+  int nCodePageTo;        //Codepage for Unicode to Ansi conversion.
+  char *szOutput;         //Result: pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+  INT_PTR nOutputLen;     //Result: text length.
+} CONVERTANSITEXT;
+
+typedef struct {
+  const wchar_t *wpInput; //Unicode text.
+  INT_PTR nInputLen;      //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nCodePageFrom;      //Codepage for Unicode to Ansi conversion.
+  int nCodePageTo;        //Codepage for Ansi to Unicode conversion.
+  wchar_t *wszOutput;     //Result: pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+  INT_PTR nOutputLen;     //Result: text length.
+} CONVERTUNITEXT;
+
+typedef struct {
   const char *pFile;     //File to detect.
   DWORD dwBytesToCheck;  //How many bytes will be checked.
   DWORD dwFlags;         //See ADT_* defines.
   int nCodePage;         //Detected codepage.
   BOOL bBOM;             //Detected BOM.
-} DETECTCODEPAGEA;
+} DETECTFILEA;
 
 typedef struct {
   const wchar_t *pFile;  //File to detect.
@@ -844,7 +877,7 @@ typedef struct {
   DWORD dwFlags;         //See ADT_* defines.
   int nCodePage;         //Detected codepage.
   BOOL bBOM;             //Detected BOM.
-} DETECTCODEPAGEW;
+} DETECTFILEW;
 
 typedef struct {
   HANDLE hFile;          //File handle, returned by CreateFile function.
@@ -1793,9 +1826,13 @@ typedef struct {
 #define AKD_PARSECMDLINEW          (WM_USER + 125)
 
 //Text retrieval and modification
-#define AKD_DETECTCODEPAGE         (WM_USER + 151)
-#define AKD_DETECTCODEPAGEA        (WM_USER + 152)
-#define AKD_DETECTCODEPAGEW        (WM_USER + 153)
+#define AKD_DETECTANSITEXT         (WM_USER + 146)
+#define AKD_DETECTUNITEXT          (WM_USER + 147)
+#define AKD_CONVERTANSITEXT        (WM_USER + 148)
+#define AKD_CONVERTUNITEXT         (WM_USER + 149)
+#define AKD_DETECTFILE             (WM_USER + 151)
+#define AKD_DETECTFILEA            (WM_USER + 152)
+#define AKD_DETECTFILEW            (WM_USER + 153)
 #define AKD_READFILECONTENT        (WM_USER + 154)
 #define AKD_OPENDOCUMENT           (WM_USER + 155)
 #define AKD_OPENDOCUMENTA          (WM_USER + 156)
@@ -2474,13 +2511,99 @@ Example:
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
-AKD_DETECTCODEPAGE, AKD_DETECTCODEPAGEA, AKD_DETECTCODEPAGEW
-__________________  ___________________  ___________________
+AKD_DETECTANSITEXT
+__________________
+
+Detect codepage of a ansi text.
+
+lParam                   == not used.
+(DETECTANSITEXT *)lParam == pointer to a DETECTANSITEXT structure.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ DETECTANSITEXT dat;
+
+ dat.dwLangID=(DWORD)-1;
+ dat.pText="\x91\x20\xE7\xA5\xA3\xAE\x20\xAD\xA0\xE7\xA8\xAD\xA0\xA5\xE2\xE1\xEF\x20\x90\xAE\xA4\xA8\xAD\xA0";
+ dat.nTextLen=-1;
+ SendMessage(hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
+
+
+AKD_DETECTUNITEXT
+_________________
+
+Detect ansi codepage of a unicode text.
+
+lParam                  == not used.
+(DETECTUNITEXT *)lParam == pointer to a DETECTUNITEXT structure.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ DETECTUNITEXT dut;
+
+ dut.dwLangID=(DWORD)-1;
+ dut.wpText=L"\x2018\x0020\x0437\x0490\x0408\x00AE\x0020\x00AD\x00A0\x0437\x0401\x00AD\x00A0\x0490\x0432\x0431\x043F\x0020\x0452\x00AE\x00A4\x0401\x00AD\x00A0";
+ dut.nTextLen=-1;
+ SendMessage(hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
+
+
+AKD_CONVERTANSITEXT
+___________________
+
+Change codepage of a ansi text.
+
+lParam                    == not used.
+(CONVERTANSITEXT *)lParam == pointer to a CONVERTANSITEXT structure.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ CONVERTANSITEXT cat;
+
+ cat.pInput="\x91\x20\xE7\xA5\xA3\xAE\x20\xAD\xA0\xE7\xA8\xAD\xA0\xA5\xE2\xE1\xEF\x20\x90\xAE\xA4\xA8\xAD\xA0";
+ cat.nInputLen=-1;
+ cat.nCodePageFrom=866;
+ cat.nCodePageTo=1251;
+ SendMessage(hMainWnd, AKD_CONVERTANSITEXT, 0, (LPARAM)&cat);
+
+
+AKD_CONVERTUNITEXT
+__________________
+
+Change codepage of a unicode text.
+
+lParam                   == not used.
+(CONVERTUNITEXT *)lParam == pointer to a CONVERTUNITEXT structure.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ CONVERTUNITEXT cut;
+
+ cut.wpInput=L"\x2018\x0020\x0437\x0490\x0408\x00AE\x0020\x00AD\x00A0\x0437\x0401\x00AD\x00A0\x0490\x0432\x0431\x043F\x0020\x0452\x00AE\x00A4\x0401\x00AD\x00A0";
+ cut.nInputLen=-1;
+ cut.nCodePageFrom=1251;
+ cut.nCodePageTo=866;
+ SendMessage(hMainWnd, AKD_CONVERTUNITEXT, 0, (LPARAM)&cut);
+
+
+AKD_DETECTFILE, AKD_DETECTFILEA, AKD_DETECTFILEW
+______________  _______________  _______________
 
 Detect codepage of a file.
 
-lParam                   == not used.
-(DETECTCODEPAGE *)lParam == pointer to a DETECTCODEPAGE structure.
+lParam               == not used.
+(DETECTFILE *)lParam == pointer to a DETECTFILE structure.
 
 Return Value
  See EDT_* defines.
@@ -2504,7 +2627,7 @@ Return Value
 Example (bOldWindows == TRUE):
  int ReadFileContentA(const char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   DETECTCODEPAGEA dc;
+   DETECTFILEA dc;
    FILECONTENT fc;
    int nResult=0;
 
@@ -2516,7 +2639,7 @@ Example (bOldWindows == TRUE):
    dc.dwFlags=dwFlags;
    dc.nCodePage=nCodePage;
    dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEA, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   if (SendMessage(hMainWnd, AKD_DETECTFILEA, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
      //Read contents
      if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
@@ -2552,7 +2675,7 @@ Example (bOldWindows == TRUE):
 Example (bOldWindows == FALSE):
  int ReadFileContentW(const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   DETECTCODEPAGEW dc;
+   DETECTFILEW dc;
    FILECONTENT fc;
    int nResult=0;
 
@@ -2564,7 +2687,7 @@ Example (bOldWindows == FALSE):
    dc.dwFlags=dwFlags;
    dc.nCodePage=nCodePage;
    dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEW, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   if (SendMessage(hMainWnd, AKD_DETECTFILEW, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
      //Read contents
      if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
@@ -2712,7 +2835,7 @@ Example:
 AKD_FREETEXT
 ____________
 
-Free text buffer allocated with AKD_GETTEXTRANGE.
+Free text buffer allocated with some AKD_* messages.
 
 wParam                  == not used.
 (unsigned char *)lParam == buffer pointer.
@@ -2721,7 +2844,8 @@ Return Value
  TRUE   success.
  FALSE  failed.
 
-See AKD_GETTEXTRANGE.
+Example:
+ See AKD_GETTEXTRANGE.
 
 
 AKD_REPLACESEL, AKD_REPLACESELA, AKD_REPLACESELW
@@ -4311,7 +4435,7 @@ Example (Unicode):
 //// UNICODE define
 
 #ifndef UNICODE
-  #define DETECTCODEPAGE DETECTCODEPAGEA
+  #define DETECTFILE DETECTFILEA
   #define OPENDOCUMENT OPENDOCUMENTA
   #define SAVEDOCUMENT SAVEDOCUMENTA
   #define PLUGINCALLSEND PLUGINCALLSENDA
@@ -4322,7 +4446,7 @@ Example (Unicode):
   #define TEXTREPLACE TEXTREPLACEA
   #define CREATEWINDOW CREATEWINDOWA
 #else
-  #define DETECTCODEPAGE DETECTCODEPAGEW
+  #define DETECTFILE DETECTFILEW
   #define OPENDOCUMENT OPENDOCUMENTW
   #define SAVEDOCUMENT SAVEDOCUMENTW
   #define PLUGINCALLSEND PLUGINCALLSENDW

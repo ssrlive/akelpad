@@ -1794,15 +1794,39 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Text retrieval and modification
-    if (uMsg == AKD_DETECTCODEPAGE ||
-        uMsg == AKD_DETECTCODEPAGEA ||
-        uMsg == AKD_DETECTCODEPAGEW)
+    if (uMsg == AKD_DETECTANSITEXT)
     {
-      DETECTCODEPAGEW *dc=(DETECTCODEPAGEW *)lParam;
+      DETECTANSITEXT *dat=(DETECTANSITEXT *)lParam;
+
+      return AutodetectMultibyte(dat->dwLangID, (unsigned char *)dat->pText, dat->nTextLen, &dat->nCodePage);
+    }
+    if (uMsg == AKD_DETECTUNITEXT)
+    {
+      DETECTUNITEXT *dut=(DETECTUNITEXT *)lParam;
+
+      return AutodetectWideChar(dut->dwLangID, dut->wpText, dut->nTextLen, &dut->nCodePageFrom, &dut->nCodePageTo);
+    }
+    if (uMsg == AKD_CONVERTANSITEXT)
+    {
+      CONVERTANSITEXT *cat=(CONVERTANSITEXT *)lParam;
+
+      return ConvertAnsiString(cat->pInput, cat->nInputLen, cat->nCodePageFrom, cat->nCodePageTo, &cat->szOutput, &cat->nOutputLen);
+    }
+    if (uMsg == AKD_CONVERTUNITEXT)
+    {
+      CONVERTUNITEXT *cut=(CONVERTUNITEXT *)lParam;
+
+      return ConvertWideString(cut->wpInput, cut->nInputLen, cut->nCodePageFrom, cut->nCodePageTo, &cut->wszOutput, &cut->nOutputLen);
+    }
+    if (uMsg == AKD_DETECTFILE ||
+        uMsg == AKD_DETECTFILEA ||
+        uMsg == AKD_DETECTFILEW)
+    {
+      DETECTFILEW *dc=(DETECTFILEW *)lParam;
       wchar_t *wpFile=AllocWideStr(MAX_PATH);
       int nResult;
 
-      if (uMsg == AKD_DETECTCODEPAGEA || (bOldWindows && uMsg == AKD_DETECTCODEPAGE))
+      if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
         xprintfW(wpFile, L"%S", (char *)dc->pFile);
       else
         xprintfW(wpFile, L"%s", (wchar_t *)dc->pFile);
