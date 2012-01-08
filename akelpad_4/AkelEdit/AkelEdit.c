@@ -1,7 +1,7 @@
 /***********************************************************************************
  *                      AkelEdit text control v1.7.2                               *
  *                                                                                 *
- * Copyright 2007-2011 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
  * License: this source is distributed under "BSD license" conditions.             *
  *                                                                                 *
@@ -379,6 +379,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       goto CanUndo;
 
     //Text retrieval and modification
+    if (uMsg == AEM_EXSETTEXTA)
+    {
+      AESETTEXTA *at=(AESETTEXTA *)lParam;
+
+      return AE_SetTextAnsi(ae, at->nCodePage, at->pText, at->dwTextLen, at->nNewLine);
+    }
+    if (uMsg == AEM_EXSETTEXTW)
+    {
+      AESETTEXTW *at=(AESETTEXTW *)lParam;
+
+      return AE_SetText(ae, at->pText, at->dwTextLen, at->nNewLine, FALSE);
+    }
     if (uMsg == AEM_SETTEXTA)
     {
       return AE_SetTextAnsi(ae, CP_ACP, (char *)lParam, wParam, AELB_ASINPUT);

@@ -827,6 +827,19 @@ typedef struct {
   UINT_PTR dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;          //[in] See AELB_* defines.
   int nCodePage;         //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+} AESETTEXTA;
+
+typedef struct {
+  const wchar_t *pText;  //[in] Text to append.
+  UINT_PTR dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;          //[in] See AELB_* defines.
+} AESETTEXTW;
+
+typedef struct {
+  const char *pText;     //[in] Text to append.
+  UINT_PTR dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;          //[in] See AELB_* defines.
+  int nCodePage;         //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
 } AEAPPENDTEXTA;
 
 typedef struct {
@@ -1390,6 +1403,8 @@ typedef struct {
 #define EM_GETTEXTEX64            (WM_USER + 1964)
 
 //Text retrieval and modification
+#define AEM_EXSETTEXTA            (WM_USER + 1999)
+#define AEM_EXSETTEXTW            (WM_USER + 2000)
 #define AEM_SETTEXTA              (WM_USER + 2001)
 #define AEM_SETTEXTW              (WM_USER + 2002)
 #define AEM_APPENDTEXTA           (WM_USER + 2003)
@@ -2092,6 +2107,53 @@ Return Value
 
 Remarks
  To receive AEN_MARKER notifications, specify AENM_MARKER in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEM_EXSETTEXTA
+______________
+
+Set ansi text of the edit control.
+
+wParam               == not used.
+(AESETTEXTA *)lParam == pointer to a AESETTEXTA structure.
+
+Return Value
+ Text length.
+
+Remarks
+ Message ignore AECO_READONLY flag.
+
+Example:
+ AESETTEXTA st;
+
+ st.pText="SomeText";
+ st.dwTextLen=(UINT_PTR)-1;
+ st.nNewLine=AELB_ASINPUT;
+ st.nCodePage=CP_ACP;
+ SendMessage(hWndEdit, AEM_EXSETTEXTA, 0, (LPARAM)&st);
+
+
+AEM_EXSETTEXTW
+______________
+
+Set unicode text of the edit control.
+
+wParam               == not used.
+(AESETTEXTW *)lParam == pointer to a AESETTEXTW structure.
+
+Return Value
+ Text length.
+
+Remarks
+ Message ignore AECO_READONLY flag.
+
+Example:
+ AESETTEXTW st;
+
+ st.pText=L"SomeText";
+ st.dwTextLen=(UINT_PTR)-1;
+ st.nNewLine=AELB_ASINPUT;
+ SendMessage(hWndEdit, AEM_EXSETTEXTW, 0, (LPARAM)&st);
 
 
 AEM_SETTEXTA
