@@ -4198,7 +4198,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
     {
-      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED && IsFile(wszFile) != ERROR_DIRECTORY)
       {
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
@@ -4904,7 +4904,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
-      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED)
+      if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED && IsFile(wszFile) != ERROR_DIRECTORY)
       {
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
@@ -8263,7 +8263,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   return EDT_SUCCESS;
 }
 
-BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage)
+BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage)
 {
   static const char lpTrailingBytesForUTF8[256]={
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -8292,6 +8292,10 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwByte
   UINT_PTR j;
   BOOL bRated=FALSE;
 
+  if (dwBytesToCheck == (UINT_PTR)-1)
+    dwBytesToCheck=xstrlenA((char *)pBuffer);
+  if (dwLangID == (DWORD)-1)
+    dwLangID=moCur.dwLangCodepageRecognition;
   dwLangID=PRIMARYLANGID(dwLangID);
 
   //Watermarks
@@ -8563,17 +8567,20 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
   int i;
   BOOL bUsedDefaultChar=TRUE;
 
+  if (dwLangID == (DWORD)-1)
+    dwLangID=moCur.dwLangCodepageRecognition;
+
   if (nIndex=GetDetectionIndex(dwLangID))
   {
     for (i=0; lpDetectCodePage[nIndex][i]; ++i)
     {
-      nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wpText, (int)(nTextLen + 1), NULL, 0, NULL, &bUsedDefaultChar);
+      nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wpText, (int)nTextLen, NULL, 0, NULL, &bUsedDefaultChar);
 
       if (!bUsedDefaultChar)
       {
         if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
         {
-          WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wpText, nTextLen + 1, szText, nAnsiLen, NULL, NULL);
+          WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wpText, nTextLen, szText, nAnsiLen, NULL, NULL);
           *nCodePageFrom=lpDetectCodePage[nIndex][i];
         }
         break;
@@ -8593,30 +8600,70 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
   return FALSE;
 }
 
-wchar_t* ConvertWideChar(const wchar_t *wpText, INT_PTR nTextLen, int nCodePageFrom, int nCodePageTo)
+BOOL ConvertAnsiString(const char *pInput, INT_PTR nInputLen, int nCodePageFrom, int nCodePageTo, char **szOutput, INT_PTR *lpnOutputLen)
 {
-  char *szText;
-  wchar_t *wszText=NULL;
-  INT_PTR nUnicodeLen;
+  wchar_t *wszInput;
   INT_PTR nAnsiLen;
+  INT_PTR nUnicodeLen;
+  BOOL bResult=FALSE;
 
   //Convert
   if (nCodePageFrom > 0 && nCodePageTo > 0)
   {
-    nAnsiLen=WideCharToMultiByte64(nCodePageFrom, 0, wpText, nTextLen + 1, NULL, 0, NULL, NULL);
+    //From MultiByte to Unicode
+    nUnicodeLen=MultiByteToWideChar64(nCodePageFrom, 0, pInput, nInputLen, NULL, 0);
 
-    if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+    if (wszInput=(wchar_t *)API_HeapAlloc(hHeap, 0, nUnicodeLen))
     {
-      WideCharToMultiByte64(nCodePageFrom, 0, wpText, nTextLen + 1, szText, nAnsiLen, NULL, NULL);
-      nUnicodeLen=MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
+      MultiByteToWideChar64(nCodePageFrom, 0, pInput, nInputLen, wszInput, nUnicodeLen);
 
-      if (wszText=AllocWideStr(nUnicodeLen))
-        MultiByteToWideChar64(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
+      //From Unicode to MultiByte
+      nAnsiLen=WideCharToMultiByte64(nCodePageTo, 0, wszInput, nUnicodeLen, NULL, 0, NULL, NULL);
 
-      API_HeapFree(hHeap, 0, (LPVOID)szText);
+      if (*szOutput=API_HeapAlloc(hHeap, 0, nAnsiLen + 1))
+      {
+        WideCharToMultiByte64(nCodePageTo, 0, wszInput, nUnicodeLen, *szOutput, nAnsiLen, NULL, NULL);
+        (*szOutput)[nAnsiLen]=L'\0';
+        if (lpnOutputLen) *lpnOutputLen=nAnsiLen;
+        bResult=TRUE;
+      }
+      API_HeapFree(hHeap, 0, (LPVOID)wszInput);
     }
   }
-  return wszText;
+  return bResult;
+}
+
+BOOL ConvertWideString(const wchar_t *wpInput, INT_PTR nInputLen, int nCodePageFrom, int nCodePageTo, wchar_t **wszOutput, INT_PTR *lpnOutputLen)
+{
+  char *szInput;
+  INT_PTR nUnicodeLen;
+  INT_PTR nAnsiLen;
+  BOOL bResult=FALSE;
+
+  //Convert
+  if (nCodePageFrom > 0 && nCodePageTo > 0)
+  {
+    //From Unicode to MultiByte
+    nAnsiLen=WideCharToMultiByte64(nCodePageFrom, 0, wpInput, nInputLen, NULL, 0, NULL, NULL);
+
+    if (szInput=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+    {
+      WideCharToMultiByte64(nCodePageFrom, 0, wpInput, nInputLen, szInput, nAnsiLen, NULL, NULL);
+
+      //From MultiByte to Unicode
+      nUnicodeLen=MultiByteToWideChar64(nCodePageTo, 0, szInput, nAnsiLen, NULL, 0);
+
+      if (*wszOutput=AllocWideStr(nUnicodeLen + 1))
+      {
+        MultiByteToWideChar64(nCodePageTo, 0, szInput, nAnsiLen, *wszOutput, nUnicodeLen);
+        (*wszOutput)[nUnicodeLen]=L'\0';
+        if (lpnOutputLen) *lpnOutputLen=nUnicodeLen;
+        bResult=TRUE;
+      }
+      API_HeapFree(hHeap, 0, (LPVOID)szInput);
+    }
+  }
+  return bResult;
 }
 
 int GetDetectionIndex(DWORD dwLangID)
@@ -11072,7 +11119,6 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszSelText;
-  char *szText=NULL;
   wchar_t *wszText;
   int nFirstLine=0;
   INT_PTR nUnicodeLen;
@@ -11117,14 +11163,14 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
     //Convert
     if (!(dwFlags & RCS_DETECTONLY))
     {
-      if (wszText=ConvertWideChar(wszSelText, nUnicodeLen, *nCodePageFrom, *nCodePageTo))
+      if (ConvertWideString(wszSelText, nUnicodeLen, *nCodePageFrom, *nCodePageTo, &wszText, &nUnicodeLen))
       {
         FreeText(wszSelText);
         wszSelText=NULL;
 
         if (!hWndPreview)
         {
-          ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen - 1, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
+          ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
   
           //Update selection
           if (!bSelection)
@@ -11135,7 +11181,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
           }
           SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
         }
-        else SendMessage(hWndPreview, AEM_SETTEXTW, (WPARAM)(nUnicodeLen - 1), (LPARAM)wszText);
+        else SendMessage(hWndPreview, AEM_SETTEXTW, (WPARAM)nUnicodeLen, (LPARAM)wszText);
   
         FreeWideStr(wszText);
       }
