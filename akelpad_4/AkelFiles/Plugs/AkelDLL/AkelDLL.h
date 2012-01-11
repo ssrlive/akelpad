@@ -168,7 +168,7 @@
 #define MI_INSTANCEEXE               3    //Return: EXE instance.
 #define MI_PLUGINSSTACK              4    //Return: copied bytes. (HSTACK *)lParam - buffer that receives plugin stack.
 #define MI_SAVESETTINGS              5    //Return: see SS_* defines.
-#define MI_WNDSTATUS                 11   //Return: statusBar window handle.
+#define MI_WNDSTATUS                 11   //Return: status bar window handle.
 #define MI_WNDMDICLIENT              12   //Return: MDI client window handle.
 #define MI_WNDTAB                    13   //Return: tab window handle.
 #define MI_MENUMAIN                  21   //Return: main menu handle.
@@ -310,7 +310,7 @@
 
 //AKD_SETFRAMEINFO type.
 #define FIS_TABSTOPSIZE          1   //(int)FRAMEINFO.dwData - tabulation size in characters.
-#define FIS_TABSTOPASSPACES      2   //BOOL)FRAMEINFO.dwData - insert tabulation as spaces.
+#define FIS_TABSTOPASSPACES      2   //(BOOL)FRAMEINFO.dwData - insert tabulation as spaces.
 #define FIS_UNDOLIMIT            6   //(int)FRAMEINFO.dwData - undo limit.
 #define FIS_DETAILEDUNDO         7   //(BOOL)FRAMEINFO.dwData - detailed undo.
 #define FIS_WRAP                 11  //(DWORD)FRAMEINFO.dwData - the low-order word contains the wrap type (see AEWW_* defines in AkelEdit.h). The high-order word contains the wrap limit in characters.
