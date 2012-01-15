@@ -1128,6 +1128,14 @@ int BytesInString(const wchar_t *wpString);
 char* AKD_strchr(const char *s, int c);
 wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
+INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
+BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
+DWORD PatCharCmp(const wchar_t **wppPat, wchar_t wchStr, BOOL bSensitive, wchar_t *wchPatChar);
+REGROUP* GetPatGroup(STACKREGROUP *hStack, int nIndex);
+REGROUP* NextPatGroup(REGROUP *lpREGroupItem);
+REGROUP* PrevPatGroup(REGROUP *lpREGroupItem);
+void FreePat(STACKREGROUP *hStack);
+
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
 HACCEL API_LoadAcceleratorsA(HINSTANCE hLoadInstance, char *lpTableName);

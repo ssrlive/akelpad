@@ -9982,7 +9982,7 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, wchar_t *wszOutput, in
           if (!*a) goto Error;
           whex[3]=*++a;
           if (!*a) goto Error;
-          nDec=(int)hex2decW(whex);
+          nDec=(int)hex2decW(whex, 4);
           if (nDec == -1) goto Error;
           *b=(wchar_t)nDec;
           while (*++a == ' ');
@@ -17602,7 +17602,7 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
           if (!*a) goto Error;
           whex[3]=*++a;
           if (!*a) goto Error;
-          nDec=(int)hex2decW(whex);
+          nDec=(int)hex2decW(whex, 4);
           if (nDec == -1) goto Error;
           while (*++a == ' ');
 
@@ -19814,6 +19814,780 @@ wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c)
     if (*s != L'\0')
       return ((wchar_t *)s);
     return NULL;
+  }
+}
+
+
+//// Regular expressions
+
+INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat)
+{
+  REGROUP *lpREGroupItem;
+  REGROUP *lpREGroupNew;
+  REGROUP *lpREGroupOr;
+  const wchar_t *wpMinPat=wpPat;
+  const wchar_t *wpClassStart=NULL;
+  const wchar_t *wpClassEnd=NULL;
+  const wchar_t *wpCharStart=NULL;
+  int nIndex=0;
+  BOOL bCheckGroupChars=FALSE;
+
+  //Zero group is the all pattern
+  if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
+  {
+    if (*wpPat != L'^')
+      lpREGroupItem->dwFlags|=REGF_ROOTANY;
+    else
+      ++wpPat;
+
+    lpREGroupItem->parent=NULL;
+    lpREGroupItem->wpPatStart=wpPat;
+    lpREGroupItem->wpPatEnd=wpMaxPat;
+    lpREGroupItem->wpPatLeft=wpPat;
+    lpREGroupItem->wpPatRight=wpMaxPat;
+    lpREGroupItem->nIndex=0;
+    lpREGroupItem->nMinMatch=1;
+    lpREGroupItem->nMaxMatch=1;
+  }
+
+  while (wpPat < wpMaxPat)
+  {
+    if (*wpPat == L'|')
+    {
+      //Close all REGF_AFTERANY
+      do
+      {
+        if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+        {
+          lpREGroupItem->wpPatEnd=wpPat;
+          lpREGroupItem->wpPatRight=wpPat;
+          bCheckGroupChars=FALSE;
+        }
+        else break;
+      }
+      while (lpREGroupItem=lpREGroupItem->parent);
+
+      //100|ABC(200|300|400)
+      if (lpREGroupItem->dwFlags & REGF_OR)
+      {
+        //300
+        lpREGroupItem->wpPatEnd=wpPat;
+        lpREGroupItem->wpPatRight=wpPat + 1;
+
+        lpREGroupItem=lpREGroupItem->parent;
+      }
+      else if (!lpREGroupItem->firstChild || !(lpREGroupItem->firstChild->dwFlags & REGF_OR))
+      {
+        //100 or 200
+        if (lpREGroupOr=(REGROUP *)GlobalAlloc(GPTR, sizeof(REGROUP)))
+        {
+          lpREGroupOr->parent=lpREGroupItem;
+          lpREGroupOr->wpPatLeft=lpREGroupItem->wpPatStart;
+          lpREGroupOr->wpPatStart=lpREGroupItem->wpPatStart;
+          lpREGroupOr->wpPatEnd=wpPat;
+          lpREGroupOr->wpPatRight=wpPat + 1;
+          lpREGroupOr->nMinMatch=1;
+          lpREGroupOr->nMaxMatch=1;
+          lpREGroupOr->nIndex=-1;
+          lpREGroupOr->dwFlags|=REGF_OR;
+
+          //Change parent for childrens
+          for (lpREGroupNew=lpREGroupItem->firstChild; lpREGroupNew; lpREGroupNew=lpREGroupNew->next)
+          {
+            lpREGroupNew->parent=lpREGroupOr;
+          }
+
+          //Change childrens for parent
+          lpREGroupOr->firstChild=lpREGroupItem->firstChild;
+          lpREGroupOr->lastChild=lpREGroupItem->lastChild;
+          lpREGroupItem->firstChild=lpREGroupOr;
+          lpREGroupItem->lastChild=lpREGroupOr;
+        }
+      }
+
+      if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+      {
+        lpREGroupNew->parent=lpREGroupItem;
+        lpREGroupNew->wpPatLeft=++wpPat;
+        lpREGroupNew->wpPatStart=wpPat;
+        lpREGroupNew->nMinMatch=1;
+        lpREGroupNew->nMaxMatch=1;
+        lpREGroupNew->nIndex=-1;
+        lpREGroupNew->dwFlags|=REGF_OR;
+
+        lpREGroupItem=lpREGroupNew;
+      }
+    }
+    else if (*wpPat == L')')
+    {
+      if (wpClassStart > wpClassEnd)
+        goto Error;
+      if (!lpREGroupItem->parent || lpREGroupItem->wpPatEnd)
+        goto Error;
+
+      //Close all REGF_AFTERANY
+      do
+      {
+        if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+        {
+          lpREGroupItem->wpPatEnd=wpPat;
+          lpREGroupItem->wpPatRight=wpPat;
+          bCheckGroupChars=FALSE;
+        }
+        else break;
+      }
+      while (lpREGroupItem=lpREGroupItem->parent);
+
+      if (lpREGroupItem->dwFlags & REGF_OR)
+      {
+        lpREGroupItem->wpPatEnd=wpPat;
+        lpREGroupItem->wpPatRight=wpPat;
+
+        lpREGroupItem=lpREGroupItem->parent;
+      }
+
+      lpREGroupItem->wpPatEnd=wpPat++;
+      lpREGroupItem->wpPatRight=wpPat;
+      lpREGroupItem->nMinMatch=1;
+      lpREGroupItem->nMaxMatch=1;
+
+      lpREGroupItem=lpREGroupItem->parent;
+      continue;
+    }
+    //Multipliers
+    else if (*wpPat == L'*' ||
+             *wpPat == L'+' ||
+             *wpPat == L'?' ||
+             *wpPat == L'{')
+    {
+      if (lpREGroupItem->lastChild && wpPat == lpREGroupItem->lastChild->wpPatEnd + 1)
+      {
+        //(...)* or (...)+ or (...){1,1}
+        lpREGroupNew=lpREGroupItem->lastChild;
+      }
+      else if (wpPat == wpClassEnd)
+      {
+        //[...]* or [...]+ or [...]{1,1}
+        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        {
+          lpREGroupNew->parent=lpREGroupItem;
+          lpREGroupNew->wpPatLeft=wpClassStart;
+          lpREGroupNew->wpPatStart=wpClassStart;
+          lpREGroupNew->wpPatEnd=wpClassEnd;
+          lpREGroupNew->nIndex=-1;
+        }
+      }
+      else if (wpCharStart)
+      {
+        //\d* or \d+ or \d{1,1}
+        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        {
+          lpREGroupNew->parent=lpREGroupItem;
+          lpREGroupNew->wpPatLeft=wpCharStart;
+          lpREGroupNew->wpPatStart=wpCharStart;
+          lpREGroupNew->wpPatEnd=wpPat;
+          lpREGroupNew->nIndex=-1;
+
+          if (lpREGroupNew->wpPatEnd - lpREGroupNew->wpPatStart == 1 && *lpREGroupNew->wpPatStart == L'.')
+          {
+            lpREGroupNew->dwFlags|=REGF_ANY;
+            bCheckGroupChars=TRUE;
+          }
+        }
+      }
+      else goto Error;
+
+      if (*wpPat == L'*')
+      {
+        lpREGroupNew->nMinMatch=0;
+        lpREGroupNew->nMaxMatch=-1;
+        lpREGroupNew->wpPatRight=++wpPat;
+        continue;
+      }
+      else if (*wpPat == L'+')
+      {
+        lpREGroupNew->nMinMatch=1;
+        lpREGroupNew->nMaxMatch=-1;
+        lpREGroupNew->wpPatRight=++wpPat;
+        continue;
+      }
+      else if (*wpPat == L'?')
+      {
+        lpREGroupNew->nMinMatch=0;
+        lpREGroupNew->nMaxMatch=1;
+        lpREGroupNew->wpPatRight=++wpPat;
+        continue;
+      }
+      else if (*wpPat == L'{')
+      {
+        lpREGroupNew->nMinMatch=xatoiW(++wpPat, &wpPat);
+        if (*wpPat == L'}')
+          lpREGroupNew->nMaxMatch=lpREGroupNew->nMinMatch;
+        else if (*wpPat == L',')
+        {
+          if (*++wpPat == L'}')
+            lpREGroupNew->nMaxMatch=-1;
+          else
+            lpREGroupNew->nMaxMatch=xatoiW(wpPat, &wpPat);
+        }
+        lpREGroupNew->wpPatRight=++wpPat;
+        continue;
+      }
+    }
+    else
+    {
+      if (bCheckGroupChars)
+      {
+        //Group (456(789)0): "(.*)456(789)0". It will be used by REGF_ANY group.
+        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        {
+          lpREGroupNew->parent=lpREGroupItem;
+          lpREGroupNew->wpPatLeft=wpPat;
+          lpREGroupNew->wpPatStart=wpPat;
+          lpREGroupNew->nMinMatch=1;
+          lpREGroupNew->nMaxMatch=1;
+          lpREGroupNew->nIndex=-1;
+          lpREGroupNew->dwFlags|=REGF_AFTERANY;
+
+          lpREGroupItem=lpREGroupNew;
+        }
+        bCheckGroupChars=FALSE;
+      }
+
+      if (*wpPat == L'(')
+      {
+        if (wpClassStart > wpClassEnd)
+          goto Error;
+
+        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        {
+          lpREGroupNew->parent=lpREGroupItem;
+          lpREGroupNew->wpPatLeft=wpPat;
+          lpREGroupNew->wpPatStart=++wpPat;
+          lpREGroupNew->nIndex=++nIndex;
+
+          if (*wpPat == L'?')
+          {
+            if (*++wpPat == L':' || *wpPat == L'=')
+            {
+            }
+            else if (*wpPat == L'!')
+              lpREGroupNew->dwFlags|=REGF_NEGATIVE;
+
+            --nIndex;
+            lpREGroupNew->nIndex=-1;
+            lpREGroupNew->wpPatStart=++wpPat;
+          }
+          lpREGroupItem=lpREGroupNew;
+          continue;
+        }
+      }
+      else if (*wpPat == L'\\')
+      {
+        wpCharStart=wpPat;
+
+        if (*++wpPat == L'x')
+          wpPat+=1;
+        else if (*wpPat == L'u')
+          wpPat+=3;
+        else if (*wpPat >= L'0' && *wpPat <= L'9')
+        {
+          if (xatoiW(wpPat, &wpPat) > nIndex)
+          {
+            wpPat=wpCharStart;
+            goto Error;
+          }
+          continue;
+        }
+      }
+      else if (*wpPat == L'[')
+      {
+        wpClassStart=wpPat++;
+        if (*wpPat == L'-')
+          goto Error;
+        continue;
+      }
+      else if (*wpPat == L']')
+      {
+        if (wpPat == wpMinPat || *(wpPat - 1) == L'-')
+          goto Error;
+        wpClassEnd=++wpPat;
+        continue;
+      }
+      else wpCharStart=wpPat;
+    }
+
+    ++wpPat;
+  }
+  if (wpClassStart > wpClassEnd)
+  {
+    wpPat=wpClassStart;
+    goto Error;
+  }
+
+  //Close all REGF_AFTERANY
+  do
+  {
+    if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+    {
+      lpREGroupItem->wpPatEnd=wpPat;
+      lpREGroupItem->wpPatRight=wpPat;
+    }
+    else break;
+  }
+  while (lpREGroupItem=lpREGroupItem->parent);
+
+  if (lpREGroupItem->dwFlags & REGF_OR)
+  {
+    lpREGroupItem->wpPatEnd=wpPat;
+    lpREGroupItem->wpPatRight=wpPat;
+
+    lpREGroupItem=lpREGroupItem->parent;
+  }
+  hStack->nLastIndex=nIndex;
+  return 0;
+
+  Error:
+  FreePat(hStack);
+  return wpPat - wpMinPat;
+}
+
+BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr)
+{
+  REGROUP *lpREGroupNext;
+  REGROUP *lpREGroupNextNext;
+  REGROUP *lpREGroupRef;
+  const wchar_t *wpPat;
+  const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
+  const wchar_t *wpMinStr=wpStr;
+  const wchar_t *wpStrStart;
+  const wchar_t *wpNextGroup;
+  wchar_t wchChar;
+  wchar_t wchNextChar;
+  int nCurMatch=0;
+  int nAnyMatch;
+  int nRefIndex;
+  int nRefLen;
+  DWORD dwCmpResult=0;
+  BOOL bExclude;
+
+  if (lpREGroupItem->dwFlags & REGF_ROOTANY)
+  {
+    BOOL bResult=FALSE;
+
+    //Turn off REGF_ROOTANY and execute itself
+    lpREGroupItem->dwFlags&=~REGF_ROOTANY;
+
+    while (wpStr < wpMaxStr)
+    {
+      if (ExecPat(hStack, lpREGroupItem, wpStr, wpMaxStr) &&
+          lpREGroupItem->wpStrStart != lpREGroupItem->wpStrEnd)
+      {
+        bResult=TRUE;
+        break;
+      }
+      ++wpStr;
+    }
+    lpREGroupItem->dwFlags|=REGF_ROOTANY;
+    return bResult;
+  }
+
+  BeginLoop:
+  if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch)
+  {
+    wpStrStart=wpStr;
+    wpPat=lpREGroupItem->wpPatStart;
+    if (lpREGroupNext=lpREGroupItem->firstChild)
+      wpNextGroup=lpREGroupNext->wpPatLeft;
+    else
+      wpNextGroup=NULL;
+
+    for (;;)
+    {
+      if (wpPat >= wpMaxPat)
+      {
+        Match:
+        lpREGroupItem->wpStrStart=wpStrStart;
+        lpREGroupItem->wpStrEnd=wpStr;
+        ++nCurMatch;
+        goto BeginLoop;
+      }
+      if (wpStr >= wpMaxStr)
+      {
+        if (wpMaxPat - wpPat == 2 && *wpPat == L'\\' && *(wpPat + 1) == L'b')
+          goto Match;
+        goto EndLoop;
+      }
+
+      if (wpPat == wpNextGroup)
+      {
+        if (lpREGroupNext->dwFlags & REGF_ANY)
+        {
+          //".+" or ".{5,}"
+          if (wpStr + lpREGroupNext->nMinMatch < wpMaxStr)
+            wpStr+=lpREGroupNext->nMinMatch;
+          else
+            goto EndLoop;
+
+          if (lpREGroupNextNext=NextPatGroup(lpREGroupNext))
+          {
+            for (nAnyMatch=lpREGroupNext->nMinMatch; (DWORD)nAnyMatch < (DWORD)lpREGroupNext->nMaxMatch; ++nAnyMatch)
+            {
+              if (wpStr >= wpMaxStr)
+                goto EndLoop;
+
+              if (ExecPat(hStack, lpREGroupNextNext, wpStr, wpMaxStr) &&
+                  lpREGroupNextNext->wpStrStart != lpREGroupNextNext->wpStrEnd)
+              {
+                wpPat=lpREGroupNext->wpPatRight;
+                goto NextGroup;
+              }
+              ++wpStr;
+            }
+          }
+          else
+          {
+            wpStr=wpMaxStr;
+            goto Match;
+          }
+          goto EndLoop;
+        }
+        else if (lpREGroupNext->dwFlags & REGF_OR)
+        {
+          bExclude=FALSE;
+
+          for (;;)
+          {
+            if (!bExclude)
+            {
+              if (ExecPat(hStack, lpREGroupNext, wpStr, wpMaxStr))
+              {
+                wpStr=lpREGroupNext->wpStrEnd;
+                bExclude=TRUE;
+              }
+            }
+            if (lpREGroupNext->next && (lpREGroupNext->next->dwFlags & REGF_OR))
+              lpREGroupNext=lpREGroupNext->next;
+            else
+              break;
+          }
+          if (!bExclude) goto EndLoop;
+        }
+        else
+        {
+          if (!ExecPat(hStack, lpREGroupNext, wpStr, wpMaxStr))
+            goto EndLoop;
+          wpStr=lpREGroupNext->wpStrEnd;
+        }
+
+        NextGroup:
+        wpPat=lpREGroupNext->wpPatRight;
+
+        if (lpREGroupNext=lpREGroupNext->next)
+          wpNextGroup=lpREGroupNext->wpPatLeft;
+        else
+          wpNextGroup=NULL;
+        continue;
+      }
+
+      if (*wpPat == L'.')
+      {
+        //Any char
+      }
+      else if (*wpPat == L'[')
+      {
+        if (*++wpPat == L'^')
+        {
+          bExclude=TRUE;
+          ++wpPat;
+        }
+        else bExclude=FALSE;
+
+        for (; *wpPat != L']'; ++wpPat)
+        {
+          if (*wpPat == L'-')
+          {
+            if (!(dwCmpResult & RECC_MIX))
+            {
+              ++wpPat;
+              dwCmpResult=PatCharCmp(&wpPat, *wpStr, (hStack->dwOptions & REO_MATCHCASE), &wchNextChar);
+              if (dwCmpResult & RECC_EQUAL)
+              {
+                if (bExclude) goto EndLoop;
+                break;
+              }
+
+              //Check range
+              if (!(dwCmpResult & RECC_MIX))
+              {
+                if (*wpStr >= wchChar && *wpStr <= wchNextChar)
+                {
+                  if (bExclude) goto EndLoop;
+                  break;
+                }
+              }
+            }
+          }
+          else
+          {
+            dwCmpResult=PatCharCmp(&wpPat, *wpStr, (hStack->dwOptions & REO_MATCHCASE), &wchChar);
+            if (dwCmpResult & RECC_EQUAL)
+            {
+              if (bExclude) goto EndLoop;
+              break;
+            }
+          }
+        }
+
+        if (*wpPat == L']')
+        {
+          if (!bExclude) goto EndLoop;
+        }
+        else while (*++wpPat != L']');
+      }
+      else
+      {
+        dwCmpResult=PatCharCmp(&wpPat, *wpStr, (hStack->dwOptions & REO_MATCHCASE), &wchChar);
+
+        if (!(dwCmpResult & RECC_EQUAL))
+        {
+          if (dwCmpResult & RECC_DIF)
+            goto EndLoop;
+
+          if (dwCmpResult & RECC_WORD)
+          {
+            if (*wpPat == L'b')
+            {
+              if (*wpStr != L' ' && *wpStr != L'\n' && *wpStr != L'\r' && *wpStr != L'\t' && wpStr != wpMaxStr && wpStr != wpMinStr)
+                goto EndLoop;
+              ++wpPat;
+              continue;
+            }
+            else if (*wpPat == L'B')
+            {
+              if (*wpStr == L' ' || *wpStr == L'\n' || *wpStr == L'\r' || *wpStr == L'\t' || wpStr == wpMaxStr || wpStr == wpMinStr)
+                goto EndLoop;
+              ++wpPat;
+              continue;
+            }
+          }
+          else if (dwCmpResult & RECC_REF)
+          {
+            nRefIndex=xatoiW(wpPat, &wpPat);
+
+            if (lpREGroupRef=GetPatGroup(hStack, nRefIndex))
+            {
+              nRefLen=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+              if (nRefLen && ((hStack->dwOptions & REO_MATCHCASE)?
+                               (!xstrcmpnW(lpREGroupRef->wpStrStart, wpStr, nRefLen)) :
+                               (!xstrcmpinW(lpREGroupRef->wpStrStart, wpStr, nRefLen))))
+                wpStr+=nRefLen;
+              else
+                goto EndLoop;
+            }
+            else goto EndLoop;
+
+            continue;
+          }
+        }
+      }
+      ++wpPat;
+      ++wpStr;
+
+      if (*wpPat == L'$' && wpStr == wpMaxStr)
+        goto Match;
+    }
+    EndLoop:
+    if (nCurMatch < lpREGroupItem->nMinMatch)
+    {
+      //if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+      //{
+      //  lpREGroupItem->wpStrStart=wpStrStart;
+      //  lpREGroupItem->wpStrEnd=(wpStr < wpMaxStr?wpStr + 1:wpStr);
+      //  return TRUE;
+      //}
+      return FALSE;
+    }
+    if (!nCurMatch)
+    {
+      lpREGroupItem->wpStrStart=wpStrStart;
+      lpREGroupItem->wpStrEnd=wpStrStart;
+    }
+  }
+  //if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+  //  return FALSE;
+  return TRUE;
+}
+
+DWORD PatCharCmp(const wchar_t **wppPat, wchar_t wchStr, BOOL bSensitive, wchar_t *wchPatChar)
+{
+  wchar_t wchPat=**wppPat;
+  DWORD dwResult=RECC_EQUAL;
+
+  for (;;)
+  {
+    if (wchPat == L'\\')
+    {
+      ++(*wppPat);
+      wchPat=**wppPat;
+
+      if (wchPat == L'u')
+      {
+        wchPat=(wchar_t)hex2decW(++(*wppPat), 4);
+        (*wppPat)+=3;
+      }
+      else if (wchPat == L'x')
+      {
+        wchPat=(wchar_t)hex2decW(++(*wppPat), 2);
+        (*wppPat)+=1;
+      }
+      else if (wchPat == L'n')
+        wchPat=L'\n';
+      else if (wchPat == L'r')
+        wchPat=L'\r';
+      else if (wchPat == L't')
+        wchPat=L'\t';
+      else if (wchPat == L'f')
+        wchPat=L'\f';
+      else if (wchPat == L'v')
+        wchPat=L'\v';
+      else
+      {
+        if (wchPat == L'd')
+        {
+          if (wchStr < L'0' || wchStr > L'9')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L'D')
+        {
+          if (wchStr >= L'0' && wchStr <= L'9')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L's')
+        {
+          if (wchStr != L' ' && wchStr != L'\f' && wchStr != L'\n' && wchStr != L'\r' && wchStr != L'\t' && wchStr != L'\v')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L'S')
+        {
+          if (wchStr == L' ' || wchStr == L'\f' || wchStr == L'\n' || wchStr == L'\r' || wchStr == L'\t' || wchStr == L'\v')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L'w')
+        {
+          if ((wchStr < L'A' || wchStr > L'Z') && (wchStr < L'a' || wchStr > L'z') && (wchStr < L'0' || wchStr > L'9') && wchStr != L'_')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L'W')
+        {
+          if ((wchStr >= L'A' && wchStr <= L'Z') || (wchStr >= L'a' && wchStr <= L'z') || (wchStr >= L'0' && wchStr <= L'9') || wchStr == L'_')
+            dwResult=RECC_DIF;
+        }
+        else if (wchPat == L'b')
+        {
+          dwResult=RECC_WORD;
+        }
+        else if (wchPat == L'B')
+        {
+          dwResult=RECC_WORD;
+        }
+        else if (wchPat >= L'0' && wchPat <= L'9')
+        {
+          dwResult=RECC_REF;
+        }
+        else
+        {
+          //Any escaped char like \[, \], \(, \)
+          goto Compare;
+        }
+
+        dwResult|=RECC_MIX;
+        break;
+      }
+    }
+
+    Compare:
+    if (wchStr != wchPat && (bSensitive || WideCharLower(wchStr) != WideCharLower(wchPat)))
+      dwResult=RECC_DIF;
+    *wchPatChar=wchPat;
+    break;
+  }
+  return dwResult;
+}
+
+REGROUP* GetPatGroup(STACKREGROUP *hStack, int nIndex)
+{
+  REGROUP *lpREGroupItem;
+
+  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=NextPatGroup(lpREGroupItem))
+  {
+    if (lpREGroupItem->nIndex == nIndex)
+      break;
+  }
+  return lpREGroupItem;
+}
+
+REGROUP* NextPatGroup(REGROUP *lpREGroupItem)
+{
+  if (lpREGroupItem->firstChild)
+    return lpREGroupItem->firstChild;
+
+  do
+  {
+    if (lpREGroupItem->next)
+      return lpREGroupItem->next;
+  }
+  while (lpREGroupItem=lpREGroupItem->parent);
+
+  return lpREGroupItem;
+}
+
+REGROUP* PrevPatGroup(REGROUP *lpREGroupItem)
+{
+  if (lpREGroupItem->lastChild)
+    return lpREGroupItem->lastChild;
+
+  do
+  {
+    if (lpREGroupItem->prev)
+      return lpREGroupItem->prev;
+  }
+  while (lpREGroupItem=lpREGroupItem->parent);
+
+  return lpREGroupItem;
+}
+
+void FreePat(STACKREGROUP *hStack)
+{
+  REGROUP *lpParent=NULL;
+  REGROUP *lpSubling=hStack->first;
+  REGROUP *lpNextSubling;
+
+  while (lpSubling)
+  {
+    NextParent:
+    if (lpSubling->firstChild)
+    {
+      lpSubling=lpSubling->firstChild;
+      continue;
+    }
+
+    //Fold doesn't have childrens
+    lpParent=lpSubling->parent;
+    lpNextSubling=lpSubling->next;
+
+    //Delete fold
+    if (!lpParent)
+      StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpSubling);
+    else
+      StackDelete((stack **)&lpParent->firstChild, (stack **)&lpParent->lastChild, (stack *)lpSubling);
+
+    lpSubling=lpNextSubling;
+  }
+  if (lpParent)
+  {
+    lpSubling=lpParent;
+    goto NextParent;
   }
 }
 

@@ -573,14 +573,40 @@
 #define FR_ALLFILES      0x01000000  //Search in all opened MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
 #define FR_CYCLESEARCH   0x08000000  //Cycle search.
 
-//AKD_RECODESEL flags
-#define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
-
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define PASTE_COLUMN     0x00000002  //Paste to column selection.
 #define PASTE_AFTER      0x00001000  //Paste text after caret.
 #define PASTE_SINGLELINE 0x00002000  //Paste multiline text to single line edit control. All new lines replaced with '\r'.
+
+//AKD_RECODESEL flags
+#define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
+
+//STACKREGROUP options 
+#define REO_MATCHCASE 0x1
+
+//REGROUP flags
+#define REGF_ROOTANY  0x01
+#define REGF_ANY      0x02
+#define REGF_AFTERANY 0x04
+#define REGF_OR       0x08
+#define REGF_NEGATIVE 0x10
+
+//PatCharCmp return value
+#define RECC_EQUAL    0x01
+#define RECC_DIF      0x02
+#define RECC_MIX      0x04
+#define RECC_WORD     0x08
+#define RECC_REF      0x10
+
+//AKD_PATEXEC options 
+#define REPE_MATCHCASE 0x1
+#define REPE_GLOBAL    0x2
+
+//AKD_PATEXEC callback return value
+#define REPEC_CONTINUE   0
+#define REPEC_STOPEXEC   -1
+#define REPEC_NEXTMATCH  -2
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.
@@ -1213,6 +1239,48 @@ typedef struct {
   int nCodePageTo;          //Target code page.
   DWORD dwFlags;            //See RCS_* defines.
 } TEXTRECODE;
+
+typedef struct _REGROUP {
+  struct _REGROUP *next;
+  struct _REGROUP *prev;
+  struct _REGROUP *parent;
+  struct _REGROUP *firstChild;
+  struct _REGROUP *lastChild;
+  const wchar_t *wpPatStart;
+  const wchar_t *wpPatEnd;
+  const wchar_t *wpPatLeft;
+  const wchar_t *wpPatRight;
+  const wchar_t *wpStrStart;    //Begin of matched string.
+  const wchar_t *wpStrEnd;      //End of matched string.
+  int nMinMatch;                //Minimum group match.
+  int nMaxMatch;                //Maximum group match, -1 if unlimited.
+  DWORD dwFlags;                //See REGF_* defines.
+  int nIndex;                   //Group index, -1 if not captured.
+} REGROUP;
+
+typedef struct {
+  REGROUP *first;
+  REGROUP *last;
+  DWORD dwOptions;              //See REO_* defines.
+  int nLastIndex;               //Last captured index.
+} STACKREGROUP;
+
+typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam);
+
+typedef struct {
+  STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
+  const wchar_t *wpPat;         //Pattern for process.
+  const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+  const wchar_t *wpStr;         //String for process.
+  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  DWORD dwOptions;              //See REPE_* defines.
+  int nErrorOffset;             //Contain wpPat offset, if error occurred during compile pattern.
+
+  //Callback
+  PATEXECCALLBACK lpCallback;   //Pointer to an callback function. Callback calls repeatedly for each matched group.
+  LPARAM lParam;                //Specifies an application-defined value that passes to the PATEXECCALLBACK function specified by the lpCallback member.
+  int nErrorCallback;           //See REPEC_* defines.
+} PATEXEC;
 
 typedef struct {
   char szClassName[MAX_PATH];   //Window class name.
@@ -1962,6 +2030,13 @@ typedef struct {
 #define AKD_INISETVALUEA           (WM_USER + 358)
 #define AKD_INISETVALUEW           (WM_USER + 359)
 #define AKD_INICLOSE               (WM_USER + 360)
+
+//Regular expressions
+#define AKD_PATEXEC                (WM_USER + 391)
+#define AKD_PATFREE                (WM_USER + 392)
+#define AKD_PATGET                 (WM_USER + 396)
+#define AKD_PATNEXT                (WM_USER + 397)
+#define AKD_PATPREV                (WM_USER + 398)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -4315,6 +4390,76 @@ Return Value
 
 Example:
  See AKD_INIOPEN examples
+
+
+AKD_PATEXEC
+___________
+
+Compile and execute regular expressions pattern.
+
+wParam            == not used.
+(PATEXEC *)lParam == pointer to a PATEXEC structure.
+
+Return Value
+ Match count.
+
+Example:
+
+
+AKD_PATFREE
+___________
+
+Free regular expressions pattern.
+
+wParam            == not used.
+(PATEXEC *)lParam == pointer to a PATEXEC structure.
+
+Return Value
+ Zero.
+
+Example:
+
+
+AKD_PATGET
+__________
+
+Retrieve pattern group by index.
+
+(STACKREGROUP *)wParam == pointer to a STACKREGROUP structure.
+(int)lParam            == group index.
+
+Return Value
+ Pointer to a REGROUP structure.
+
+Example:
+
+
+AKD_PATNEXT
+___________
+
+Retrieve next pattern group.
+
+(REGROUP *)wParam == pointer to a REGROUP structure.
+lParam            == not used.
+
+Return Value
+ Pointer to a next REGROUP structure.
+
+Example:
+
+
+AKD_PATPREV
+___________
+
+Retrieve previous pattern group.
+
+(REGROUP *)wParam == pointer to a REGROUP structure.
+lParam            == not used.
+
+Return Value
+ Pointer to a previous REGROUP structure.
+
+Example:
 
 
 AKD_EXGETTEXTLENGTH
