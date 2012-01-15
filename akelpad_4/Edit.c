@@ -20591,6 +20591,104 @@ void FreePat(STACKREGROUP *hStack)
   }
 }
 
+int PatStructExec(PATEXEC *pe)
+{
+  REGROUP *lpREGroupRoot;
+  REGROUP *lpREGroupNext;
+  int nMatchCount=0;
+
+  if (!pe->lpREGroupStack)
+  {
+    if (pe->lpREGroupStack=(STACKREGROUP *)API_HeapAlloc(hHeap, 0, sizeof(STACKREGROUP)))
+    {
+      pe->lpREGroupStack->first=0;
+      pe->lpREGroupStack->last=0;
+      pe->lpREGroupStack->dwOptions=0;
+      if (pe->dwOptions & REPE_MATCHCASE)
+        pe->lpREGroupStack->dwOptions|=REO_MATCHCASE;
+      if (pe->nErrorOffset=CompilePat(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
+        return 0;
+    }
+  }
+  if (!(lpREGroupRoot=pe->lpREGroupStack->first))
+    return 0;
+
+  while (pe->wpStr < pe->wpMaxStr)
+  {
+    if (ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxStr))
+    {
+      if (lpREGroupRoot->wpStrStart != lpREGroupRoot->wpStrEnd)
+      {
+        if (pe->lpCallback)
+        {
+          lpREGroupNext=lpREGroupRoot;
+
+          do
+          {
+            pe->nErrorCallback=pe->lpCallback(lpREGroupNext, nMatchCount, pe->lParam);
+            if (pe->nErrorCallback < 0)
+            {
+              if (pe->nErrorCallback == REPEC_NEXTMATCH)
+                break;
+              if (pe->nErrorCallback == REPEC_STOPEXEC)
+                return nMatchCount;
+            }
+          }
+          while (lpREGroupNext=NextPatGroup(lpREGroupNext));
+
+          //Find next match
+          pe->wpStr=lpREGroupNext->wpStrEnd;
+          ++nMatchCount;
+          if (!(pe->dwOptions & REPE_GLOBAL)) break;
+        }
+        else break;
+      }
+      else break;
+    }
+    else break;
+  }
+  return nMatchCount;
+}
+
+void PatStructFree(PATEXEC *pe)
+{
+  if (pe->lpREGroupStack)
+  {
+    FreePat(pe->lpREGroupStack);
+    API_HeapFree(hHeap, 0, (LPVOID)pe->lpREGroupStack);
+    pe->lpREGroupStack=NULL;
+  }
+}
+
+int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam)
+{
+  PATEXECPARAM *pep=(PATEXECPARAM *)lParam;
+  REGROUP *lpREGroupRef;
+  const wchar_t *wpRep=pep->wpRep;
+
+  //Copy unmatched left part of string
+  pep->wpBufCount+=xstrcpynW(pep->wszBuf?pep->wpBufCount:NULL, pep->pe->wpStr, (lpREGroup->wpStrStart - pep->pe->wpStr) + 1);
+
+  //Replace matched part of string
+  while (wpRep < pep->wpMaxRep)
+  {
+    if (*wpRep == L'$')
+    {
+      if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, xatoiW(++wpRep, &wpRep)))
+        pep->wpBufCount+=xstrcpynW(pep->wszBuf?pep->wpBufCount:NULL, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) + 1);
+    }
+    else
+    {
+      if (pep->wszBuf)
+        *pep->wpBufCount=*wpRep;
+      ++pep->wpBufCount;
+      ++wpRep;
+    }
+  }
+  pep->wpRightStr=lpREGroup->wpStrEnd;
+  return REPEC_NEXTMATCH;
+}
+
 
 //// API functions replacement
 

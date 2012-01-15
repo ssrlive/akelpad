@@ -686,6 +686,15 @@ typedef struct {
   BOOL bBOM;
 } STATUSSTATE;
 
+typedef struct {
+  PATEXEC *pe;
+  const wchar_t *wpRep;
+  const wchar_t *wpMaxRep;
+  const wchar_t *wpRightStr;
+  wchar_t *wszBuf;
+  wchar_t *wpBufCount;
+} PATEXECPARAM;
+
 
 //// Functions prototype
 
@@ -1135,6 +1144,9 @@ REGROUP* GetPatGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* NextPatGroup(REGROUP *lpREGroupItem);
 REGROUP* PrevPatGroup(REGROUP *lpREGroupItem);
 void FreePat(STACKREGROUP *hStack);
+int PatStructExec(PATEXEC *pe);
+void PatStructFree(PATEXEC *pe);
+int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);

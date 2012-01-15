@@ -3380,74 +3380,38 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Regular expressions
     if (uMsg == AKD_PATEXEC)
     {
-      PATEXEC *pe=(PATEXEC *)lParam;
-      REGROUP *lpREGroupRoot;
-      REGROUP *lpREGroupNext;
-      int nMatchCount=0;
-
-      if (!pe->lpREGroupStack)
-      {
-        if (pe->lpREGroupStack=(STACKREGROUP *)API_HeapAlloc(hHeap, 0, sizeof(STACKREGROUP)))
-        {
-          pe->lpREGroupStack->first=0;
-          pe->lpREGroupStack->last=0;
-          pe->lpREGroupStack->dwOptions=0;
-          if (pe->dwOptions & REPE_MATCHCASE)
-            pe->lpREGroupStack->dwOptions|=REO_MATCHCASE;
-          if (pe->nErrorOffset=CompilePat(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
-            return 0;
-        }
-      }
-      if (!(lpREGroupRoot=pe->lpREGroupStack->first))
-        return 0;
-
-      while (pe->wpStr < pe->wpMaxStr)
-      {
-        if (ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxStr))
-        {
-          if (lpREGroupRoot->wpStrStart != lpREGroupRoot->wpStrEnd)
-          {
-            if (pe->lpCallback)
-            {
-              lpREGroupNext=lpREGroupRoot;
-
-              do
-              {
-                pe->nErrorCallback=pe->lpCallback(lpREGroupNext, nMatchCount, pe->lParam);
-                if (pe->nErrorCallback < 0)
-                {
-                  if (pe->nErrorCallback == REPEC_NEXTMATCH)
-                    break;
-                  if (pe->nErrorCallback == REPEC_STOPEXEC)
-                    return nMatchCount;
-                }
-              }
-              while (lpREGroupNext=NextPatGroup(lpREGroupNext));
-
-              //Find next match
-              pe->wpStr=lpREGroupNext->wpStrEnd;
-              ++nMatchCount;
-              if (!(pe->dwOptions & REPE_GLOBAL)) break;
-            }
-            else break;
-          }
-          else break;
-        }
-        else break;
-      }
-      return nMatchCount;
+      return PatStructExec((PATEXEC *)lParam);
     }
-    if (uMsg == AKD_PATFREE)
+    if (uMsg == AKD_PATREPLACE)
     {
-      PATEXEC *pe=(PATEXEC *)lParam;
+      PATREPLACE *pr=(PATREPLACE *)lParam;
+      PATEXEC pe;
+      PATEXECPARAM pep;
 
-      if (pe->lpREGroupStack)
+      //Replace using RegExp
+      pep.pe=&pe;
+      pep.wpRep=pr->wpRep;
+      pep.wpMaxRep=pr->wpMaxRep;
+      pep.wpRightStr=NULL;
+      pep.wszBuf=pr->wszResult;
+      pep.wpBufCount=pep.wszBuf;
+
+      pe.lpREGroupStack=0;
+      pe.dwOptions=REPE_GLOBAL;
+      pe.wpPat=pr->wpPat;
+      pe.wpMaxPat=pr->wpMaxPat;
+      pe.wpStr=pr->wpStr;
+      pe.wpMaxStr=pr->wpMaxStr;
+      pe.lpCallback=PatReplaceCallback;
+      pe.lParam=(LPARAM)&pep;
+      if (PatStructExec(&pe))
       {
-        FreePat(pe->lpREGroupStack);
-        API_HeapFree(hHeap, 0, (LPVOID)pe->lpREGroupStack);
-        pe->lpREGroupStack=NULL;
+        //Copy unmatched right part of string
+        pep.wpBufCount+=xstrcpynW(pep.wszBuf?pep.wpBufCount:NULL, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) + 1);
       }
-      return 0;
+      PatStructFree(&pe);
+
+      return (LRESULT)(pep.wpBufCount - pep.wszBuf);
     }
     if (uMsg == AKD_PATGET)
     {
@@ -3468,6 +3432,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PATPREV)
     {
       return (LRESULT)PrevPatGroup((REGROUP *)wParam);
+    }
+    if (uMsg == AKD_PATFREE)
+    {
+      PatStructFree((PATEXEC *)lParam);
+      return 0;
     }
 
     //AkelPad 4.x only messages

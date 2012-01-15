@@ -582,7 +582,7 @@
 //AKD_RECODESEL flags
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
-//STACKREGROUP options 
+//STACKREGROUP options
 #define REO_MATCHCASE 0x1
 
 //REGROUP flags
@@ -599,7 +599,7 @@
 #define RECC_WORD     0x08
 #define RECC_REF      0x10
 
-//AKD_PATEXEC options 
+//AKD_PATEXEC options
 #define REPE_MATCHCASE 0x1
 #define REPE_GLOBAL    0x2
 
@@ -1281,6 +1281,16 @@ typedef struct {
   LPARAM lParam;                //Specifies an application-defined value that passes to the PATEXECCALLBACK function specified by the lpCallback member.
   int nErrorCallback;           //See REPEC_* defines.
 } PATEXEC;
+
+typedef struct {
+  const wchar_t *wpStr;    //String for process.
+  const wchar_t *wpMaxStr; //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpPat;    //Pattern for process.
+  const wchar_t *wpMaxPat; //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+  const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
+  const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+  wchar_t *wszResult;      //Buffer that received replace result.
+} PATREPLACE;
 
 typedef struct {
   char szClassName[MAX_PATH];   //Window class name.
@@ -2033,10 +2043,11 @@ typedef struct {
 
 //Regular expressions
 #define AKD_PATEXEC                (WM_USER + 391)
-#define AKD_PATFREE                (WM_USER + 392)
-#define AKD_PATGET                 (WM_USER + 396)
-#define AKD_PATNEXT                (WM_USER + 397)
-#define AKD_PATPREV                (WM_USER + 398)
+#define AKD_PATREPLACE             (WM_USER + 392)
+#define AKD_PATGET                 (WM_USER + 395)
+#define AKD_PATNEXT                (WM_USER + 396)
+#define AKD_PATPREV                (WM_USER + 397)
+#define AKD_PATFREE                (WM_USER + 399)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -4406,18 +4417,38 @@ Return Value
 Example:
 
 
-AKD_PATFREE
-___________
+AKD_PATREPLACE
+______________
 
-Free regular expressions pattern.
+Replace in string using regular expressions.
 
-wParam            == not used.
-(PATEXEC *)lParam == pointer to a PATEXEC structure.
+wParam               == not used.
+(PATREPLACE *)lParam == pointer to a PATREPLACE structure.
 
 Return Value
- Zero.
+ Result string length.
 
 Example:
+ PATREPLACE pr;
+ INT_PTR nLen;
+
+ //Calculate result string length
+ pr.wpStr=L"123ABC200DEF";
+ pr.wpMaxStr=pr.wpStr + lstrlenW(pr.wpStr);
+ pr.wpPat=L"(.2)";
+ pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
+ pr.wpRep=L"[$1]";
+ pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
+ pr.wszResult=NULL;
+ nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
+
+ //Receive result string
+ if (pr.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen + sizeof(wchar_t)))
+ {
+   SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
+   MessageBoxW(pd->hMainWnd, pr.wszResult, L"Test", MB_OK);
+   GlobalFree((HGLOBAL)pr.wszResult);
+ }
 
 
 AKD_PATGET
@@ -4458,6 +4489,20 @@ lParam            == not used.
 
 Return Value
  Pointer to a previous REGROUP structure.
+
+Example:
+
+
+AKD_PATFREE
+___________
+
+Free regular expressions pattern.
+
+wParam            == not used.
+(PATEXEC *)lParam == pointer to a PATEXEC structure.
+
+Return Value
+ Zero.
 
 Example:
 
