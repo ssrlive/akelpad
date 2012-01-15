@@ -3397,11 +3397,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pep.wpBufCount=pep.wszBuf;
 
       pe.lpREGroupStack=0;
-      pe.dwOptions=REPE_GLOBAL;
       pe.wpPat=pr->wpPat;
       pe.wpMaxPat=pr->wpMaxPat;
       pe.wpStr=pr->wpStr;
       pe.wpMaxStr=pr->wpMaxStr;
+      pe.dwOptions=pr->dwOptions;
       pe.lpCallback=PatReplaceCallback;
       pe.lParam=(LPARAM)&pep;
       if (PatStructExec(&pe))
