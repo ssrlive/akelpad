@@ -74,6 +74,7 @@
 #define xstrcpyA
 #define xstrcpyW
 #define xstrstrW
+#define xstrcmpnW
 #define xstrcmpinW
 #define xatoiA
 #define xatoiW
@@ -3374,6 +3375,99 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         API_HeapFree(hHeap, 0, (LPVOID)ih);
       }
       return bResult;
+    }
+
+    //Regular expressions
+    if (uMsg == AKD_PATEXEC)
+    {
+      PATEXEC *pe=(PATEXEC *)lParam;
+      REGROUP *lpREGroupRoot;
+      REGROUP *lpREGroupNext;
+      int nMatchCount=0;
+
+      if (!pe->lpREGroupStack)
+      {
+        if (pe->lpREGroupStack=(STACKREGROUP *)API_HeapAlloc(hHeap, 0, sizeof(STACKREGROUP)))
+        {
+          pe->lpREGroupStack->first=0;
+          pe->lpREGroupStack->last=0;
+          pe->lpREGroupStack->dwOptions=0;
+          if (pe->dwOptions & REPE_MATCHCASE)
+            pe->lpREGroupStack->dwOptions|=REO_MATCHCASE;
+          if (pe->nErrorOffset=CompilePat(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
+            return 0;
+        }
+      }
+      if (!(lpREGroupRoot=pe->lpREGroupStack->first))
+        return 0;
+
+      while (pe->wpStr < pe->wpMaxStr)
+      {
+        if (ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxStr))
+        {
+          if (lpREGroupRoot->wpStrStart != lpREGroupRoot->wpStrEnd)
+          {
+            if (pe->lpCallback)
+            {
+              lpREGroupNext=lpREGroupRoot;
+
+              do
+              {
+                pe->nErrorCallback=pe->lpCallback(lpREGroupNext, nMatchCount, pe->lParam);
+                if (pe->nErrorCallback < 0)
+                {
+                  if (pe->nErrorCallback == REPEC_NEXTMATCH)
+                    break;
+                  if (pe->nErrorCallback == REPEC_STOPEXEC)
+                    return nMatchCount;
+                }
+              }
+              while (lpREGroupNext=NextPatGroup(lpREGroupNext));
+
+              //Find next match
+              pe->wpStr=lpREGroupNext->wpStrEnd;
+              ++nMatchCount;
+              if (!(pe->dwOptions & REPE_GLOBAL)) break;
+            }
+            else break;
+          }
+          else break;
+        }
+        else break;
+      }
+      return nMatchCount;
+    }
+    if (uMsg == AKD_PATFREE)
+    {
+      PATEXEC *pe=(PATEXEC *)lParam;
+
+      if (pe->lpREGroupStack)
+      {
+        FreePat(pe->lpREGroupStack);
+        API_HeapFree(hHeap, 0, (LPVOID)pe->lpREGroupStack);
+        pe->lpREGroupStack=NULL;
+      }
+      return 0;
+    }
+    if (uMsg == AKD_PATGET)
+    {
+      STACKREGROUP *lpREGroupStack=(STACKREGROUP *)wParam;
+      REGROUP *lpREGroupItem;
+
+      if (lpREGroupItem=GetPatGroup(lpREGroupStack, lParam))
+      {
+        if (lpREGroupItem->wpStrEnd != lpREGroupItem->wpStrStart)
+          return (LRESULT)lpREGroupItem;
+      }
+      return (LRESULT)NULL;
+    }
+    if (uMsg == AKD_PATNEXT)
+    {
+      return (LRESULT)NextPatGroup((REGROUP *)wParam);
+    }
+    if (uMsg == AKD_PATPREV)
+    {
+      return (LRESULT)PrevPatGroup((REGROUP *)wParam);
     }
 
     //AkelPad 4.x only messages
