@@ -590,7 +590,8 @@
 #define REGF_ANY      0x02
 #define REGF_AFTERANY 0x04
 #define REGF_OR       0x08
-#define REGF_NEGATIVE 0x10
+#define REGF_POSITIVE 0x10
+#define REGF_NEGATIVE 0x20
 
 //PatCharCmp return value
 #define RECC_EQUAL    0x01
