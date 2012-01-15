@@ -20070,10 +20070,13 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           {
             if (*++wpPat == L':' || *wpPat == L'=')
             {
+              //Non-capture positive group
             }
             else if (*wpPat == L'!')
+            {
+              //Non-capture negative group
               lpREGroupNew->dwFlags|=REGF_NEGATIVE;
-
+            }
             --nIndex;
             lpREGroupNew->nIndex=-1;
             lpREGroupNew->wpPatStart=++wpPat;
@@ -20400,12 +20403,12 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
-      //if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
-      //{
-      //  lpREGroupItem->wpStrStart=wpStrStart;
-      //  lpREGroupItem->wpStrEnd=(wpStr < wpMaxStr?wpStr + 1:wpStr);
-      //  return TRUE;
-      //}
+      if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+      {
+        lpREGroupItem->wpStrStart=wpMinStr;
+        lpREGroupItem->wpStrEnd=wpMinStr;
+        return TRUE;
+      }
       return FALSE;
     }
     if (!nCurMatch)
@@ -20414,8 +20417,8 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       lpREGroupItem->wpStrEnd=wpStrStart;
     }
   }
-  //if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
-  //  return FALSE;
+  if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+    return FALSE;
   return TRUE;
 }
 
