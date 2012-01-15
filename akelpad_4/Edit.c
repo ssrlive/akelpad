@@ -11171,7 +11171,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
         if (!hWndPreview)
         {
           ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
-  
+
           //Update selection
           if (!bSelection)
           {
@@ -11182,7 +11182,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
           SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
         }
         else SendMessage(hWndPreview, AEM_SETTEXTW, (WPARAM)nUnicodeLen, (LPARAM)wszText);
-  
+
         FreeWideStr(wszText);
       }
     }
@@ -20068,9 +20068,14 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
           if (*wpPat == L'?')
           {
-            if (*++wpPat == L':' || *wpPat == L'=')
+            if (*++wpPat == L':')
+            {
+              //Don't assign index
+            }
+            else if (*wpPat == L'=')
             {
               //Non-capture positive group
+              lpREGroupNew->dwFlags|=REGF_POSITIVE;
             }
             else if (*wpPat == L'!')
             {
@@ -20419,6 +20424,11 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
     return FALSE;
+  if (lpREGroupItem->dwFlags & REGF_POSITIVE)
+  {
+    lpREGroupItem->wpStrStart=wpMinStr;
+    lpREGroupItem->wpStrEnd=wpMinStr;
+  }
   return TRUE;
 }
 
