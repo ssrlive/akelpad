@@ -1289,6 +1289,7 @@ typedef struct {
   const wchar_t *wpMaxPat; //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
   const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+  DWORD dwOptions;         //See REPE_* defines.
   wchar_t *wszResult;      //Buffer that received replace result.
 } PATREPLACE;
 
@@ -4148,7 +4149,7 @@ Return Value
  Size of the data copied to the buffer.
 
 Example:
- See AKD_BEGINOPTIONS examples
+ See AKD_BEGINOPTIONS examples.
 
 
 AKD_ENDOPTIONS
@@ -4164,7 +4165,7 @@ Return Value
  FALSE  failed.
 
 Example:
- See AKD_BEGINOPTIONS examples
+ See AKD_BEGINOPTIONS examples.
 
 
 AKD_INIOPEN, AKD_INIOPENA, AKD_INIOPENW
@@ -4353,7 +4354,7 @@ Return Value
  FALSE  failed.
 
 Example:
- See AKD_INIGETKEY examples
+ See AKD_INIGETKEY examples.
 
 
 AKD_INIGETVALUE, AKD_INIGETVALUEA, AKD_INIGETVALUEW
@@ -4368,7 +4369,7 @@ Return Value
  Size of the data copied to the buffer.
 
 Example:
- See AKD_INIOPEN examples
+ See AKD_INIOPEN examples.
 
 
 AKD_INISETVALUE, AKD_INISETVALUEA, AKD_INISETVALUEW
@@ -4384,7 +4385,7 @@ Return Value
  FALSE  failed.
 
 Example:
- See AKD_INIOPEN examples
+ See AKD_INIOPEN examples.
 
 
 AKD_INICLOSE
@@ -4400,7 +4401,7 @@ Return Value
  FALSE  failed.
 
 Example:
- See AKD_INIOPEN examples
+ See AKD_INIOPEN examples.
 
 
 AKD_PATEXEC
@@ -4415,6 +4416,45 @@ Return Value
  Match count.
 
 Example:
+ PATEXEC pe;
+ REGROUP *lpREGroupRoot;
+ REGROUP *lpREGroupNext;
+ wchar_t wszResult[MAX_PATH];
+ wchar_t *wpResult;
+
+ //Fill structure for AKD_PATEXEC
+ pe.lpREGroupStack=0;
+ pe.wpStr=L"1234567890 11223344556677889900";
+ pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
+ pe.wpPat=L"(23)(.*)(89)";
+ pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
+ pe.dwOptions=REPE_MATCHCASE;
+ pe.lpCallback=NULL;
+
+ while (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))
+ {
+   lpREGroupRoot=pe.lpREGroupStack->first;
+   lpREGroupNext=lpREGroupRoot;
+   wpResult=wszResult;
+
+   do
+   {
+     if (lpREGroupNext->wpStrStart != lpREGroupNext->wpStrEnd && lpREGroupNext->nIndex != -1)
+     {
+       //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart, lpREGroupNext->wpStrStart);
+       wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
+       lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart) + 1);
+       wpResult+=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+       wpResult+=wsprintfW(wpResult, L"]\n");
+     }
+   }
+   while (lpREGroupNext=(REGROUP *)SendMessage(pd->hMainWnd, AKD_PATNEXT, (WPARAM)lpREGroupNext, 0));
+
+   if (MessageBoxW(pd->hMainWnd, wszResult, L"Find next?", MB_YESNO) == IDNO)
+     break;
+   pe.wpStr=lpREGroupRoot->wpStrEnd;
+ }
+ SendMessage(pd->hMainWnd, AKD_PATFREE, 0, (LPARAM)&pe);
 
 
 AKD_PATREPLACE
@@ -4439,6 +4479,7 @@ Example:
  pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
  pr.wpRep=L"[$1]";
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
+ pr.dwOptions=REPE_GLOBAL|REPE_MATCHCASE;
  pr.wszResult=NULL;
  nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
 
@@ -4463,6 +4504,7 @@ Return Value
  Pointer to a REGROUP structure.
 
 Example:
+ See AKD_PATEXEC example.
 
 
 AKD_PATNEXT
@@ -4477,6 +4519,7 @@ Return Value
  Pointer to a next REGROUP structure.
 
 Example:
+ See AKD_PATEXEC example.
 
 
 AKD_PATPREV
@@ -4491,6 +4534,7 @@ Return Value
  Pointer to a previous REGROUP structure.
 
 Example:
+ See AKD_PATEXEC example.
 
 
 AKD_PATFREE
@@ -4505,6 +4549,7 @@ Return Value
  Zero.
 
 Example:
+ See AKD_PATEXEC example.
 
 
 AKD_EXGETTEXTLENGTH
@@ -4611,7 +4656,7 @@ Example (Unicode):
  if (pclp=(PARSECMDLINEPOSTW *)GlobalAlloc(GMEM_FIXED, sizeof(PARSECMDLINEPOSTW)))
  {
    pclp->bPostMessage=TRUE;
-   pclp->nCmdLineLen=xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
+   pclp->nCmdLineLen=lstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
    pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
 
    cds.dwData=CD_PARSECMDLINEW;

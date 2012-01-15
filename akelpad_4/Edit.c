@@ -20635,13 +20635,12 @@ int PatStructExec(PATEXEC *pe)
             }
           }
           while (lpREGroupNext=NextPatGroup(lpREGroupNext));
-
-          //Find next match
-          pe->wpStr=lpREGroupNext->wpStrEnd;
-          ++nMatchCount;
-          if (!(pe->dwOptions & REPE_GLOBAL)) break;
         }
-        else break;
+
+        //Find next match
+        pe->wpStr=lpREGroupRoot->wpStrEnd;
+        ++nMatchCount;
+        if (!(pe->dwOptions & REPE_GLOBAL)) break;
       }
       else break;
     }
