@@ -1,7 +1,7 @@
 /*****************************************************************
- *              String functions header v5.0                     *
+ *              String functions header v5.1                     *
  *                                                               *
- * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -59,8 +59,8 @@ int xuitoaA(UINT_PTR nNumber, char *szStr);
 int xuitoaW(UINT_PTR nNumber, wchar_t *wszStr);
 int xi64toaA(__int64 nNumber, char *szStr);
 int xi64toaW(__int64 nNumber, wchar_t *wszStr);
-INT_PTR hex2decA(const char *pStrHex);
-INT_PTR hex2decW(const wchar_t *wpStrHex);
+INT_PTR hex2decA(const char *pStrHex, INT_PTR nStrHexLen);
+INT_PTR hex2decW(const wchar_t *wpStrHex, INT_PTR nStrHexLen);
 int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
 INT_PTR bin2hexA(const unsigned char *pData, INT_PTR nBytes, char *szStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
@@ -1559,7 +1559,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
  *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero. 
+ *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero.
  *[in] wchar_t *wpString2   Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
@@ -2372,30 +2372,53 @@ int xi64toaW(__int64 nNumber, wchar_t *wszStr)
  *Converts hex value to decimal.
  *
  *[in]  const char *pStrHex  Hex value.
+ *[in]  INT_PTR nStrHexLen   Unicode hex value length.
+ *                            If this value is -1, the string is assumed to be null-terminated
+ *                            and the length is calculated automatically.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decA("A1F") == 2591;
+ *  hex2decA("A1F", -1) == 2591;
  ********************************************************************/
 #if defined hex2decA || defined ALLSTRFUNC
 #define hex2decA_INCLUDED
 #undef hex2decA
-INT_PTR hex2decA(const char *pStrHex)
+INT_PTR hex2decA(const char *pStrHex, INT_PTR nStrHexLen)
 {
+  const char *pStrHexMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  for (;;)
+  if (nStrHexLen == -1)
   {
-    a=*pStrHex++;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else return -1;
+    for (;;)
+    {
+      a=*pStrHex++;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else return -1;
 
-    if (*pStrHex) b=(b + a) * 16;
-    else return (b + a);
+      if (*pStrHex) b=(b + a) * 16;
+      else return (b + a);
+    }
+  }
+  else
+  {
+    pStrHexMax=pStrHex + nStrHexLen;
+
+    for (;;)
+    {
+      a=*pStrHex++;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else return -1;
+
+      if (pStrHex < pStrHexMax) b=(b + a) * 16;
+      else return (b + a);
+    }
   }
 }
 #endif
@@ -2407,30 +2430,53 @@ INT_PTR hex2decA(const char *pStrHex)
  *Converts unicode hex value to decimal.
  *
  *[in]  const wchar_t *wpStrHex  Unicode hex value.
+ *[in]  INT_PTR nStrHexLen       Unicode hex value length.
+ *                                If this value is -1, the string is assumed to be null-terminated
+ *                                and the length is calculated automatically.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decW(L"A1F") == 2591;
+ *  hex2decW(L"A1F", -1) == 2591;
  ********************************************************************/
 #if defined hex2decW || defined ALLSTRFUNC
 #define hex2decW_INCLUDED
 #undef hex2decW
-INT_PTR hex2decW(const wchar_t *wpStrHex)
+INT_PTR hex2decW(const wchar_t *wpStrHex, INT_PTR nStrHexLen)
 {
+  const wchar_t *wpStrHexMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  for (;;)
+  if (nStrHexLen == -1)
   {
-    a=*wpStrHex++;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else return -1;
+    for (;;)
+    {
+      a=*wpStrHex++;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else return -1;
 
-    if (*wpStrHex) b=(b + a) * 16;
-    else return (b + a);
+      if (*wpStrHex) b=(b + a) * 16;
+      else return (b + a);
+    }
+  }
+  else
+  {
+    wpStrHexMax=wpStrHex + nStrHexLen;
+
+    for (;;)
+    {
+      a=*wpStrHex++;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else return -1;
+
+      if (wpStrHex < wpStrHexMax) b=(b + a) * 16;
+      else return (b + a);
+    }
   }
 }
 #endif
@@ -2676,7 +2722,7 @@ INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex,
 #undef hex2binA
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
-  char szHexChar[4];
+  char szHexChar[2];
   INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
@@ -2688,9 +2734,8 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
     szHexChar[0]=pStrHex[a++];
     if (!pStrHex[a]) break;
     szHexChar[1]=pStrHex[a++];
-    szHexChar[2]='\0';
 
-    if ((nHexChar=hex2decA(szHexChar)) >= 0)
+    if ((nHexChar=hex2decA(szHexChar, 2)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
@@ -2723,7 +2768,7 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 #undef hex2binW
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
-  wchar_t wszHexChar[4];
+  wchar_t wszHexChar[2];
   INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
@@ -2735,9 +2780,8 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
     wszHexChar[0]=wpStrHex[a++];
     if (!wpStrHex[a]) break;
     wszHexChar[1]=wpStrHex[a++];
-    wszHexChar[2]='\0';
 
-    if ((nHexChar=hex2decW(wszHexChar)) >= 0)
+    if ((nHexChar=hex2decW(wszHexChar, 2)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
