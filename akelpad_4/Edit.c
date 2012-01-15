@@ -20519,6 +20519,9 @@ REGROUP* GetPatGroup(STACKREGROUP *hStack, int nIndex)
 {
   REGROUP *lpREGroupItem;
 
+  if (nIndex > hStack->nLastIndex)
+    return NULL;
+
   for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=NextPatGroup(lpREGroupItem))
   {
     if (lpREGroupItem->nIndex == nIndex)
