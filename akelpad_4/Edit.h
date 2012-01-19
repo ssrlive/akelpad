@@ -202,15 +202,6 @@
 #define CHARLAYOUT_ENGLISH    1
 #define CHARLAYOUT_NONENGLISH 2
 
-//Code pages int
-#define CP_UNICODE_UTF16LE  1200
-#define CP_UNICODE_UTF16BE  1201
-#define CP_UNICODE_UTF32LE  12000
-#define CP_UNICODE_UTF32BE  12001
-#define CP_UNICODE_UTF7     65000
-#define CP_UNICODE_UTF8     65001
-#define CP_KOI8_R           20866
-
 //Captures
 #define MSC_PREVIEWMOVE   0x01
 #define MSC_SPLITSIZE     0x02
