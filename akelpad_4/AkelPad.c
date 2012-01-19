@@ -3407,29 +3407,60 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (PatStructExec(&pe))
       {
         //Copy unmatched right part of string
-        pep.wpBufCount+=xstrcpynW(pep.wszBuf?pep.wpBufCount:NULL, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) + 1);
+        if (pep.wszBuf)
+          xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
+        pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
+
+        if (pep.wszBuf)
+          *pep.wpBufCount=L'\0';
+        else
+          ++pep.wpBufCount;
       }
       PatStructFree(&pe);
 
       return (LRESULT)(pep.wpBufCount - pep.wszBuf);
     }
-    if (uMsg == AKD_PATGET)
+    if (uMsg == AKD_PATGROUPSTR)
     {
-      STACKREGROUP *lpREGroupStack=(STACKREGROUP *)wParam;
-      REGROUP *lpREGroupItem;
+      PATGROUPSTR *pgs=(PATGROUPSTR *)lParam;
+      REGROUP *lpREGroupRef;
+      const wchar_t *wpStr=pgs->wpStr;
+      wchar_t *wpBufCount=pgs->wszResult;
 
-      if (lpREGroupItem=GetPatGroup(lpREGroupStack, lParam))
+      while (wpStr < pgs->wpMaxStr)
       {
-        if (lpREGroupItem->wpStrEnd != lpREGroupItem->wpStrStart)
-          return (LRESULT)lpREGroupItem;
+        if (*wpStr == L'$')
+        {
+          if (lpREGroupRef=GetPatGroup(pgs->lpREGroupStack, xatoiW(++wpStr, &wpStr)))
+          {
+            if (pgs->wszResult)
+              xmemcpy(wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+            wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+          }
+        }
+        else
+        {
+          if (pgs->wszResult)
+            *wpBufCount=*wpStr;
+          ++wpBufCount;
+          ++wpStr;
+        }
       }
-      return (LRESULT)NULL;
+      if (pgs->wszResult)
+        *wpBufCount=L'\0';
+      else
+        ++wpBufCount;
+      return (LRESULT)(wpBufCount - pgs->wszResult);
     }
-    if (uMsg == AKD_PATNEXT)
+    if (uMsg == AKD_PATGETGROUP)
+    {
+      return (LRESULT)GetPatGroup((STACKREGROUP *)wParam, lParam);
+    }
+    if (uMsg == AKD_PATNEXTGROUP)
     {
       return (LRESULT)NextPatGroup((REGROUP *)wParam);
     }
-    if (uMsg == AKD_PATPREV)
+    if (uMsg == AKD_PATPREVGROUP)
     {
       return (LRESULT)PrevPatGroup((REGROUP *)wParam);
     }

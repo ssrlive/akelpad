@@ -20683,7 +20683,9 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
   const wchar_t *wpRep=pep->wpRep;
 
   //Copy unmatched left part of string
-  pep->wpBufCount+=xstrcpynW(pep->wszBuf?pep->wpBufCount:NULL, pep->pe->wpStr, (lpREGroup->wpStrStart - pep->pe->wpStr) + 1);
+  if (pep->wszBuf)
+    xmemcpy(pep->wpBufCount, pep->pe->wpStr, (lpREGroup->wpStrStart - pep->pe->wpStr) * sizeof(wchar_t));
+  pep->wpBufCount+=lpREGroup->wpStrStart - pep->pe->wpStr;
 
   //Replace matched part of string
   while (wpRep < pep->wpMaxRep)
@@ -20691,7 +20693,11 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
     if (*wpRep == L'$')
     {
       if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, xatoiW(++wpRep, &wpRep)))
-        pep->wpBufCount+=xstrcpynW(pep->wszBuf?pep->wpBufCount:NULL, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) + 1);
+      {
+        if (pep->wszBuf)
+          xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+        pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+      }
     }
     else
     {
