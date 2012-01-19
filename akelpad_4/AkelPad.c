@@ -2592,11 +2592,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETCODEPAGELIST)
     {
-      int *nCodePage=(int *)wParam;
+      int *lpnCodePage=(int *)wParam;
 
-      if (nCodePage)
+      if (lpnCodePage)
       {
-        *nCodePage=moCur.nDefaultCodePage;
+        *lpnCodePage=moCur.nDefaultCodePage;
       }
       return (LRESULT)lpCodepageList;
     }

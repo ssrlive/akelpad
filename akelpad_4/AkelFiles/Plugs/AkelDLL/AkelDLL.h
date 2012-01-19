@@ -108,6 +108,15 @@
 #define ESD_STOP            -5  //Stopped from AKDN_SAVEDOCUMENT_START.
 #define ESD_STREAMOUT       -6  //Error in EM_STREAMOUT.
 
+//Code pages int
+#define CP_UNICODE_UTF16LE  1200
+#define CP_UNICODE_UTF16BE  1201
+#define CP_UNICODE_UTF32LE  12000
+#define CP_UNICODE_UTF32BE  12001
+#define CP_UNICODE_UTF7     65000
+#define CP_UNICODE_UTF8     65001
+#define CP_KOI8_R           20866
+
 //Save settings
 #define SS_REGISTRY   1  //Registry.
 #define SS_INI        2  //INI file.
