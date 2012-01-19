@@ -19917,6 +19917,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
         lpREGroupItem=lpREGroupNew;
       }
+      continue;
     }
     else if (*wpPat == L')')
     {
