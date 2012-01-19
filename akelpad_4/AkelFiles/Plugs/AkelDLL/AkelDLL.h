@@ -1291,8 +1291,15 @@ typedef struct {
   const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
   const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;         //See REPE_* defines.
-  wchar_t *wszResult;      //Buffer that received replace result.
+  wchar_t *wszResult;      //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
+
+typedef struct {
+  STACKREGROUP *lpREGroupStack; //Groups stack. Filled by AKD_PATEXEC message.
+  const wchar_t *wpStr;         //String for process. Can be used "$n" - the n'th captured submatch.
+  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  wchar_t *wszResult;           //Buffer that received convert result. If NULL, AKD_PATGROUPSTR returns required buffer size in characters.
+} PATGROUPSTR;
 
 typedef struct {
   char szClassName[MAX_PATH];   //Window class name.
@@ -2046,9 +2053,10 @@ typedef struct {
 //Regular expressions
 #define AKD_PATEXEC                (WM_USER + 391)
 #define AKD_PATREPLACE             (WM_USER + 392)
-#define AKD_PATGET                 (WM_USER + 395)
-#define AKD_PATNEXT                (WM_USER + 396)
-#define AKD_PATPREV                (WM_USER + 397)
+#define AKD_PATGROUPSTR            (WM_USER + 393)
+#define AKD_PATGETGROUP            (WM_USER + 395)
+#define AKD_PATNEXTGROUP           (WM_USER + 396)
+#define AKD_PATPREVGROUP           (WM_USER + 397)
 #define AKD_PATFREE                (WM_USER + 399)
 
 //AkelPad 4.x messages
@@ -4449,7 +4457,7 @@ Example:
        wpResult+=wsprintfW(wpResult, L"]\n");
      }
    }
-   while (lpREGroupNext=(REGROUP *)SendMessage(pd->hMainWnd, AKD_PATNEXT, (WPARAM)lpREGroupNext, 0));
+   while (lpREGroupNext=(REGROUP *)SendMessage(pd->hMainWnd, AKD_PATNEXTGROUP, (WPARAM)lpREGroupNext, 0));
 
    if (MessageBoxW(pd->hMainWnd, wszResult, L"Find next?", MB_YESNO) == IDNO)
      break;
@@ -4467,7 +4475,7 @@ wParam               == not used.
 (PATREPLACE *)lParam == pointer to a PATREPLACE structure.
 
 Return Value
- Result string length.
+ Result string length in characters.
 
 Example:
  PATREPLACE pr;
@@ -4485,7 +4493,7 @@ Example:
  nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
 
  //Receive result string
- if (pr.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen + sizeof(wchar_t)))
+ if (pr.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen * sizeof(wchar_t)))
  {
    SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
    MessageBoxW(pd->hMainWnd, pr.wszResult, L"Test", MB_OK);
@@ -4493,8 +4501,54 @@ Example:
  }
 
 
-AKD_PATGET
-__________
+AKD_PATGROUPSTR
+_______________
+
+Translate string that contain group indexes, like "[$1$2]".
+
+wParam                == not used.
+(PATGROUPSTR *)lParam == pointer to a PATGROUPSTR structure.
+
+Return Value
+ Result string length in characters.
+
+Example:
+ PATEXEC pe;
+
+ //Fill structure for AKD_PATEXEC
+ pe.lpREGroupStack=0;
+ pe.wpStr=L"1234567890";
+ pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
+ pe.wpPat=L"(23)(.*)(89)";
+ pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
+ pe.dwOptions=REPE_MATCHCASE;
+ pe.lpCallback=NULL;
+
+ if (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))
+ {
+   PATGROUPSTR pgs;
+   INT_PTR nLen;
+
+   //Calculate result string length
+   pgs.lpREGroupStack=pe.lpREGroupStack;
+   pgs.wpStr=L"<$3><$1><$2>";
+   pgs.wpMaxStr=pgs.wpStr + lstrlenW(pgs.wpStr);
+   pgs.wszResult=NULL;
+   nLen=SendMessage(pd->hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs);
+  
+   //Receive result string
+   if (pgs.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen * sizeof(wchar_t)))
+   {
+     SendMessage(pd->hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs);
+     MessageBoxW(pd->hMainWnd, pgs.wszResult, L"Test", MB_OK);
+     GlobalFree((HGLOBAL)pgs.wszResult);
+   }
+ }
+ SendMessage(pd->hMainWnd, AKD_PATFREE, 0, (LPARAM)&pe);
+
+
+AKD_PATGETGROUP
+_______________
 
 Retrieve pattern group by index.
 
@@ -4508,8 +4562,8 @@ Example:
  See AKD_PATEXEC example.
 
 
-AKD_PATNEXT
-___________
+AKD_PATNEXTGROUP
+________________
 
 Retrieve next pattern group.
 
@@ -4523,8 +4577,8 @@ Example:
  See AKD_PATEXEC example.
 
 
-AKD_PATPREV
-___________
+AKD_PATPREVGROUP
+________________
 
 Retrieve previous pattern group.
 
