@@ -2752,26 +2752,26 @@ Return Value
 Example (bOldWindows == TRUE):
  int ReadFileContentA(const char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   DETECTFILEA dc;
+   DETECTFILEA df;
    FILECONTENT fc;
    int nResult=0;
 
    *wpContent=NULL;
 
    //Detect codepage
-   dc.pFile=pFile;
-   dc.dwBytesToCheck=1024;
-   dc.dwFlags=dwFlags;
-   dc.nCodePage=nCodePage;
-   dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTFILEA, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   df.pFile=pFile;
+   df.dwBytesToCheck=1024;
+   df.dwFlags=dwFlags;
+   df.nCodePage=nCodePage;
+   df.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTFILEA, 0, (LPARAM)&df) == EDT_SUCCESS)
    {
      //Read contents
-     if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
+     if ((fc.hFile=CreateFileA(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
        fc.dwBytesMax=(UINT_PTR)-1;
-       fc.nCodePage=dc.nCodePage;
-       fc.bBOM=dc.bBOM;
+       fc.nCodePage=df.nCodePage;
+       fc.bBOM=df.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
        {
          CloseHandle(fc.hFile);
@@ -2800,26 +2800,26 @@ Example (bOldWindows == TRUE):
 Example (bOldWindows == FALSE):
  int ReadFileContentW(const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   DETECTFILEW dc;
+   DETECTFILEW df;
    FILECONTENT fc;
    int nResult=0;
 
    *wpContent=NULL;
 
    //Detect codepage
-   dc.pFile=wpFile;
-   dc.dwBytesToCheck=1024;
-   dc.dwFlags=dwFlags;
-   dc.nCodePage=nCodePage;
-   dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTFILEW, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   df.pFile=wpFile;
+   df.dwBytesToCheck=1024;
+   df.dwFlags=dwFlags;
+   df.nCodePage=nCodePage;
+   df.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTFILEW, 0, (LPARAM)&df) == EDT_SUCCESS)
    {
      //Read contents
-     if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
+     if ((fc.hFile=CreateFileW(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
        fc.dwBytesMax=(UINT_PTR)-1;
-       fc.nCodePage=dc.nCodePage;
-       fc.bBOM=dc.bBOM;
+       fc.nCodePage=df.nCodePage;
+       fc.bBOM=df.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
        {
          CloseHandle(fc.hFile);
