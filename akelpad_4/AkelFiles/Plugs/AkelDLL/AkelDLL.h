@@ -680,6 +680,10 @@
 #define BIF_ETCHED      0x100 //Draw edge around button.
 #define BIF_ENABLEFOCUS 0x200 //Draw focus rectangle when button receive focus.
 
+//BUTTONMESSAGEBOX flags
+#define BMB_DEFAULT   0x001  //Default button.
+#define BMB_DISABLED  0x002  //Button is disabled.
+
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
@@ -1376,6 +1380,21 @@ typedef struct {
 } BUTTONDRAW;
 
 typedef struct {
+  int nButtonControlID;       //ID of the button that returned in result
+  const wchar_t *wpButtonStr; //Pointer to Unicode text or ID of the string resource in current language module.
+  DWORD dwFlags;              //See BMB_* defines.
+} BUTTONMESSAGEBOX;
+
+typedef struct {
+  HWND hWndParent;            //Handle to the owner window.
+  const wchar_t *wpText;      //Pointer to a null-terminated string that contains the message to be displayed.
+  const wchar_t *wpCaption;   //Pointer to a null-terminated string that contains the dialog box title.
+  UINT uType;                 //Specifies the contents and behavior of the dialog box. See MSDN for MB_* defines of the MessageBox function.
+  HICON hIcon;                //Force using specified icon.
+  BUTTONMESSAGEBOX *bmb;      //Array of the BUTTONMESSAGEBOX structures. Each element specified one message box button. Last item in the array should contain all zeros in members.
+} DIALOGMESSAGEBOX;
+
+typedef struct {
   HWND hWnd;           //Window handle.
   UINT uMsg;           //Specifies the message to be sent.
   WPARAM wParam;       //Specifies additional message-specific information.
@@ -2015,6 +2034,7 @@ typedef struct {
 #define AKD_GETQUEUE               (WM_USER + 289)
 #define AKD_POSTMESSAGE            (WM_USER + 290)
 #define AKD_TRANSLATEMESSAGE       (WM_USER + 291)
+#define AKD_MESSAGEBOX             (WM_USER + 292)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -3921,6 +3941,38 @@ Example:
  }
 
 
+AKD_MESSAGEBOX
+______________
+
+Show custom message box.
+
+wParam                     == not used.
+(DIALOGMESSAGEBOX *)lParam == pointer to an DIALOGMESSAGEBOX structure that contains message box information.
+
+Return Value
+ Button ID.
+
+Example:
+ DIALOGMESSAGEBOX dmb;
+ BUTTONMESSAGEBOX bmb[]={{IDOK,     L"My &Ok",     BMB_DEFAULT},
+                         {IDCANCEL, L"My &Cancel", 0},
+                         {0, 0, 0}};
+
+ dmb.hWndParent=pd->hMainWnd;
+ dmb.wpText=L"Are you sure you want to quit?";
+ dmb.wpCaption=L"Quit prompt";
+ dmb.uType=MB_OKCANCEL|MB_ICONQUESTION;
+ dmb.hIcon=NULL;
+ dmb.bmb=&bmb[0];
+ if (SendMessage(pd->hMainWnd, AKD_MESSAGEBOX, 0, (LPARAM)&dmb) == IDOK)
+ {
+   //"My &Ok"
+ }
+ else
+ {
+   //"My &Cancel"
+ }
+
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
 ___________  ____________  ____________
@@ -4544,7 +4596,7 @@ Example:
    pgs.wpMaxStr=pgs.wpStr + lstrlenW(pgs.wpStr);
    pgs.wszResult=NULL;
    nLen=SendMessage(pd->hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs);
-  
+
    //Receive result string
    if (pgs.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen * sizeof(wchar_t)))
    {

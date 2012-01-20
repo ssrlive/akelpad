@@ -283,10 +283,6 @@
 #define FONTSIZE_DECREASE  2
 #define FONTSIZE_RESTORE   3
 
-//BUTTONMESSAGEBOX flags
-#define BMB_DEFAULT   0x001  //Default button.
-#define BMB_DISABLED  0x002  //Button is disabled.
-
 //SaveChanged flags
 #define PROMPT_NONE           0x001  //Don't prompt, answering "No".
 #define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
@@ -642,21 +638,6 @@ typedef struct {
 } OPENFILENAME_2000W;
 
 typedef struct {
-  int nButtonControlID;
-  int nButtonStringID;
-  DWORD dwFlags;         //See BMB_* defines.
-} BUTTONMESSAGEBOX;
-
-typedef struct {
-  HWND hWndParent;
-  const wchar_t *wpText;
-  const wchar_t *wpCaption;
-  UINT uType;
-  HICON hIcon;
-  BUTTONMESSAGEBOX *btn;
-} DIALOGMESSAGEBOX;
-
-typedef struct {
   DWORD dwExitCode;
   int nAction;
   wchar_t wszFile[MAX_PATH];
@@ -983,7 +964,7 @@ void FreeListBoxSelItems(int **lpSelItems);
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetUserManual(wchar_t *wszManual, int nManualLen);
 
-int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *btn);
+int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *bmb);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL ScaleInit(HDC hDC, HWND hWnd);
 int ScaleX(int x);
