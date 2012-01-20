@@ -1288,7 +1288,7 @@ typedef struct {
   const wchar_t *wpStr;         //String for process.
   const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
   DWORD dwOptions;              //See REPE_* defines.
-  int nErrorOffset;             //Contain wpPat offset, if error occurred during compile pattern.
+  INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
   //Callback
   PATEXECCALLBACK lpCallback;   //Pointer to an callback function. Callback calls repeatedly for each matched group.
