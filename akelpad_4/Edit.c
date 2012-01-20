@@ -1567,10 +1567,10 @@ BOOL SaveChanged(DWORD dwPrompt)
 {
   if (!(dwPrompt & PROMPT_NONE) && lpFrameCurrent->ei.bModified)
   {
-    BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_YES,     (wchar_t *)STR_MESSAGEBOX_YES,     BMB_DEFAULT},
-                            {IDC_MESSAGEBOX_NO,      (wchar_t *)STR_MESSAGEBOX_NO,      0},
-                            {IDC_MESSAGEBOX_NOTOALL, (wchar_t *)STR_MESSAGEBOX_NOTOALL, 0},
-                            {IDCANCEL,               (wchar_t *)STR_MESSAGEBOX_CANCEL,  0},
+    BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_YES,     MAKEINTRESOURCEW(STR_MESSAGEBOX_YES),     BMB_DEFAULT},
+                            {IDC_MESSAGEBOX_NO,      MAKEINTRESOURCEW(STR_MESSAGEBOX_NO),      0},
+                            {IDC_MESSAGEBOX_NOTOALL, MAKEINTRESOURCEW(STR_MESSAGEBOX_NOTOALL), 0},
+                            {IDCANCEL,               MAKEINTRESOURCEW(STR_MESSAGEBOX_CANCEL),  0},
                             {0, 0, 0}};
     int nChoice;
 
@@ -4839,9 +4839,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
         //Custom MessageBox
         {
-          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   (wchar_t *)STR_MESSAGEBOX_OK,     0},
-                                  {IDCANCEL,            (wchar_t *)STR_MESSAGEBOX_CANCEL, 0},
-                                  {IDC_MESSAGEBOX_GOTO, (wchar_t *)STR_MESSAGEBOX_GOTO,   BMB_DEFAULT},
+          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   MAKEINTRESOURCEW(STR_MESSAGEBOX_OK),     0},
+                                  {IDCANCEL,            MAKEINTRESOURCEW(STR_MESSAGEBOX_CANCEL), 0},
+                                  {IDC_MESSAGEBOX_GOTO, MAKEINTRESOURCEW(STR_MESSAGEBOX_GOTO),   BMB_DEFAULT},
                                   {0, 0, 0}};
           int nChoice;
           int nMessageLine=nLostLine;
@@ -5144,8 +5144,8 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
   if (FileExistsWide(wszAkelAdminExe))
   {
     //Custom MessageBox
-    BUTTONMESSAGEBOX bmb[]={{IDOK,     (wchar_t *)STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
-                            {IDCANCEL, (wchar_t *)STR_MESSAGEBOX_CANCEL,   0},
+    BUTTONMESSAGEBOX bmb[]={{IDOK,     MAKEINTRESOURCEW(STR_MESSAGEBOX_CONTINUE), BMB_DEFAULT},
+                            {IDCANCEL, MAKEINTRESOURCEW(STR_MESSAGEBOX_CANCEL),   0},
                             {0, 0, 0}};
     HMODULE hAdvApi32;
     HMODULE hShell32;
@@ -15132,9 +15132,9 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
       {
         if ((INT_PTR)lpButton->wpButtonStr > 0xFFFF)
-          nStrLen=xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
+          nStrLen=(int)xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
         else
-          nStrLen=API_LoadStringW(hLangLib, (UINT)lpButton->wpButtonStr, wszString, MAX_PATH);
+          nStrLen=API_LoadStringW(hLangLib, (UINT)(UINT_PTR)lpButton->wpButtonStr, wszString, MAX_PATH);
         if (nStrLen)
         {
           GetTextExtentPoint32W(hDC, wszString, nStrLen, &sizeString);
@@ -15249,7 +15249,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         if ((INT_PTR)lpButton->wpButtonStr > 0xFFFF)
           xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
         else
-          API_LoadStringW(hLangLib, (UINT)lpButton->wpButtonStr, wszString, MAX_PATH);
+          API_LoadStringW(hLangLib, (UINT)(UINT_PTR)lpButton->wpButtonStr, wszString, MAX_PATH);
         SetWindowTextWide(hWndButton, wszString);
 
         if (lpButton->dwFlags & BMB_DEFAULT)
@@ -20030,7 +20030,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       }
       else if (*wpPat == L'{')
       {
-        lpREGroupNew->nMinMatch=xatoiW(++wpPat, &wpPat);
+        lpREGroupNew->nMinMatch=(int)xatoiW(++wpPat, &wpPat);
         if (*wpPat == L'}')
           lpREGroupNew->nMaxMatch=lpREGroupNew->nMinMatch;
         else if (*wpPat == L',')
@@ -20038,7 +20038,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           if (*++wpPat == L'}')
             lpREGroupNew->nMaxMatch=-1;
           else
-            lpREGroupNew->nMaxMatch=xatoiW(wpPat, &wpPat);
+            lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
         }
         lpREGroupNew->wpPatRight=++wpPat;
         continue;
@@ -20185,7 +20185,7 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   int nCurMatch=0;
   int nAnyMatch;
   int nRefIndex;
-  int nRefLen;
+  INT_PTR nRefLen;
   DWORD dwCmpResult=0;
   BOOL bExclude;
 
@@ -20391,7 +20391,7 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           else if (dwCmpResult & RECC_REF)
           {
-            nRefIndex=xatoiW(wpPat, &wpPat);
+            nRefIndex=(int)xatoiW(wpPat, &wpPat);
 
             if (lpREGroupRef=GetPatGroup(hStack, nRefIndex))
             {
@@ -20701,7 +20701,7 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
   {
     if (*wpRep == L'$')
     {
-      if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, xatoiW(++wpRep, &wpRep)))
+      if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, (int)xatoiW(++wpRep, &wpRep)))
       {
         if (pep->wszBuf)
           xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));

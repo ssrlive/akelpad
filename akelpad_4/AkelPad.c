@@ -3437,7 +3437,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (*wpStr == L'$')
         {
-          if (lpREGroupRef=GetPatGroup(pgs->lpREGroupStack, xatoiW(++wpStr, &wpStr)))
+          if (lpREGroupRef=GetPatGroup(pgs->lpREGroupStack, (int)xatoiW(++wpStr, &wpStr)))
           {
             if (pgs->wszResult)
               xmemcpy(wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
@@ -3460,7 +3460,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PATGETGROUP)
     {
-      return (LRESULT)GetPatGroup((STACKREGROUP *)wParam, lParam);
+      return (LRESULT)GetPatGroup((STACKREGROUP *)wParam, (int)lParam);
     }
     if (uMsg == AKD_PATNEXTGROUP)
     {
@@ -4789,8 +4789,8 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     {
       if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
       {
-        BUTTONMESSAGEBOX bmb[]={{IDYES, (wchar_t *)STR_MESSAGEBOX_TERMINATE, BMB_DEFAULT},
-                                {IDNO,  (wchar_t *)STR_MESSAGEBOX_CONTINUE,  0},
+        BUTTONMESSAGEBOX bmb[]={{IDYES, MAKEINTRESOURCEW(STR_MESSAGEBOX_TERMINATE), BMB_DEFAULT},
+                                {IDNO,  MAKEINTRESOURCEW(STR_MESSAGEBOX_CONTINUE),  0},
                                 {0, 0, 0}};
 
         API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
