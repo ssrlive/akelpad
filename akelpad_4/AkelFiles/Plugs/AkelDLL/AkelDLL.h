@@ -1389,8 +1389,8 @@ typedef struct {
   HWND hWndParent;            //Handle to the owner window.
   const wchar_t *wpText;      //Pointer to a null-terminated string that contains the message to be displayed.
   const wchar_t *wpCaption;   //Pointer to a null-terminated string that contains the dialog box title.
-  UINT uType;                 //Specifies the contents and behavior of the dialog box. See MSDN for MB_* defines of the MessageBox function.
-  HICON hIcon;                //Force using specified icon.
+  UINT uType;                 //Specifies the standard message box icon. See MSDN for MB_ICON* defines of the MessageBox function.
+  HICON hIcon;                //Custom icon.
   BUTTONMESSAGEBOX *bmb;      //Array of the BUTTONMESSAGEBOX structures. Each element specified one message box button. Last item in the array should contain all zeros in members.
 } DIALOGMESSAGEBOX;
 
@@ -3961,7 +3961,7 @@ Example:
  dmb.hWndParent=pd->hMainWnd;
  dmb.wpText=L"Are you sure you want to quit?";
  dmb.wpCaption=L"Quit prompt";
- dmb.uType=MB_OKCANCEL|MB_ICONQUESTION;
+ dmb.uType=MB_ICONQUESTION;
  dmb.hIcon=NULL;
  dmb.bmb=&bmb[0];
  if (SendMessage(pd->hMainWnd, AKD_MESSAGEBOX, 0, (LPARAM)&dmb) == IDOK)
