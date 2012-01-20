@@ -1567,10 +1567,10 @@ BOOL SaveChanged(DWORD dwPrompt)
 {
   if (!(dwPrompt & PROMPT_NONE) && lpFrameCurrent->ei.bModified)
   {
-    BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_YES,     STR_MESSAGEBOX_YES,     BMB_DEFAULT},
-                            {IDC_MESSAGEBOX_NO,      STR_MESSAGEBOX_NO,      0},
-                            {IDC_MESSAGEBOX_NOTOALL, STR_MESSAGEBOX_NOTOALL, 0},
-                            {IDCANCEL,               STR_MESSAGEBOX_CANCEL,  0},
+    BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_YES,     (wchar_t *)STR_MESSAGEBOX_YES,     BMB_DEFAULT},
+                            {IDC_MESSAGEBOX_NO,      (wchar_t *)STR_MESSAGEBOX_NO,      0},
+                            {IDC_MESSAGEBOX_NOTOALL, (wchar_t *)STR_MESSAGEBOX_NOTOALL, 0},
+                            {IDCANCEL,               (wchar_t *)STR_MESSAGEBOX_CANCEL,  0},
                             {0, 0, 0}};
     int nChoice;
 
@@ -4839,9 +4839,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
         //Custom MessageBox
         {
-          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   STR_MESSAGEBOX_OK,     0},
-                                  {IDCANCEL,            STR_MESSAGEBOX_CANCEL, 0},
-                                  {IDC_MESSAGEBOX_GOTO, STR_MESSAGEBOX_GOTO,   BMB_DEFAULT},
+          BUTTONMESSAGEBOX bmb[]={{IDC_MESSAGEBOX_OK,   (wchar_t *)STR_MESSAGEBOX_OK,     0},
+                                  {IDCANCEL,            (wchar_t *)STR_MESSAGEBOX_CANCEL, 0},
+                                  {IDC_MESSAGEBOX_GOTO, (wchar_t *)STR_MESSAGEBOX_GOTO,   BMB_DEFAULT},
                                   {0, 0, 0}};
           int nChoice;
           int nMessageLine=nLostLine;
@@ -5144,8 +5144,8 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
   if (FileExistsWide(wszAkelAdminExe))
   {
     //Custom MessageBox
-    BUTTONMESSAGEBOX bmb[]={{IDOK,     STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
-                            {IDCANCEL, STR_MESSAGEBOX_CANCEL,   0},
+    BUTTONMESSAGEBOX bmb[]={{IDOK,     (wchar_t *)STR_MESSAGEBOX_CONTINUE, BMB_DEFAULT},
+                            {IDCANCEL, (wchar_t *)STR_MESSAGEBOX_CANCEL,   0},
                             {0, 0, 0}};
     HMODULE hAdvApi32;
     HMODULE hShell32;
@@ -15069,7 +15069,7 @@ int GetUserManual(wchar_t *wszManual, int nManualLen)
 
 //// System-like MessageBox implementation
 
-int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *btn)
+int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *bmb)
 {
   DIALOGMESSAGEBOX dmb;
   int nResult;
@@ -15080,7 +15080,7 @@ int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCa
   dmb.wpCaption=wpCaption;
   dmb.uType=uType;
   dmb.hIcon=hIcon;
-  dmb.btn=btn;
+  dmb.bmb=bmb;
   nResult=(int)API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_MESSAGEBOX), hWndParent, (DLGPROC)MessageBoxDlgProc, (LPARAM)&dmb);
   SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)hWndParent, 0);
 
@@ -15129,9 +15129,13 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       SelectObject(hDC, hGuiFont);
 
       //Get maximum button width
-      for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+      for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
       {
-        if (nStrLen=API_LoadStringW(hLangLib, lpButton->nButtonStringID, wszString, MAX_PATH))
+        if ((INT_PTR)lpButton->wpButtonStr > 0xFFFF)
+          nStrLen=xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
+        else
+          nStrLen=API_LoadStringW(hLangLib, (UINT)lpButton->wpButtonStr, wszString, MAX_PATH);
+        if (nStrLen)
         {
           GetTextExtentPoint32W(hDC, wszString, nStrLen, &sizeString);
           nButtonWidth=max(nButtonWidth, sizeString.cx + GetSystemMetrics(SM_CYFIXEDFRAME) * 2);
@@ -15228,10 +15232,10 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     //MessageBox buttons
     nButtonX=rcDlg.right / 2 - nButtonsWidth / 2 - GetSystemMetrics(SM_CXFIXEDFRAME);
 
-    for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+    for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
     {
       dwStyle=WS_CHILD|WS_VISIBLE|WS_TABSTOP;
-      if (lpButton == lpDialog->btn)
+      if (lpButton == lpDialog->bmb)
         dwStyle|=WS_GROUP;
       if (lpButton->dwFlags & BMB_DEFAULT)
         dwStyle|=BS_DEFPUSHBUTTON;
@@ -15241,8 +15245,13 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (hWndButton=CreateWindowExWide(0, L"BUTTON", NULL, dwStyle, nButtonX, nButtonY, nButtonWidth, nButtonHeight, hDlg, (HMENU)(UINT_PTR)lpButton->nButtonControlID, hInstance, NULL))
       {
         SendMessage(hWndButton, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
-        API_LoadStringW(hLangLib, lpButton->nButtonStringID, wszString, MAX_PATH);
+
+        if ((INT_PTR)lpButton->wpButtonStr > 0xFFFF)
+          xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
+        else
+          API_LoadStringW(hLangLib, (UINT)lpButton->wpButtonStr, wszString, MAX_PATH);
         SetWindowTextWide(hWndButton, wszString);
+
         if (lpButton->dwFlags & BMB_DEFAULT)
         {
           SetFocus(hWndButton);
@@ -15264,7 +15273,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     BUTTONMESSAGEBOX *lpButton;
 
-    for (lpButton=lpDialog->btn; lpButton->nButtonStringID; ++lpButton)
+    for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
     {
       if (LOWORD(wParam) == lpButton->nButtonControlID)
       {

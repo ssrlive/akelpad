@@ -3013,6 +3013,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return TranslateMessageAll((DWORD)wParam, (LPMSG)lParam);
     }
+    if (uMsg == AKD_MESSAGEBOX)
+    {
+      DIALOGMESSAGEBOX *dmb=(DIALOGMESSAGEBOX *)lParam;
+      
+      return MessageBoxCustom(dmb->hWndParent, dmb->wpText, dmb->wpCaption, dmb->uType, dmb->hIcon, dmb->bmb);
+    }
 
     //Plugin options
     if (uMsg == AKD_BEGINOPTIONS ||
@@ -4783,8 +4789,8 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     {
       if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
       {
-        BUTTONMESSAGEBOX bmb[]={{IDYES, STR_MESSAGEBOX_TERMINATE, BMB_DEFAULT},
-                                {IDNO,  STR_MESSAGEBOX_CONTINUE,  0},
+        BUTTONMESSAGEBOX bmb[]={{IDYES, (wchar_t *)STR_MESSAGEBOX_TERMINATE, BMB_DEFAULT},
+                                {IDNO,  (wchar_t *)STR_MESSAGEBOX_CONTINUE,  0},
                                 {0, 0, 0}};
 
         API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
