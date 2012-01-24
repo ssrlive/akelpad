@@ -552,6 +552,7 @@
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 
 //AEM_SETWORDWRAP flags
+#define AEWW_NONE            0x00000000  //Turn off wrap.
 #define AEWW_WORD            0x00000001  //Wrap by words.
 #define AEWW_SYMBOL          0x00000002  //Wrap by symbols.
 #define AEWW_LIMITPIXEL      0x00000100  //Limit in pixels (default).
