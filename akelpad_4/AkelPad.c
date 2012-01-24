@@ -112,6 +112,7 @@
 #define ComboBox_GetLBTextLenWide
 #define ComboBox_GetLBTextWide
 #define ComboBox_InsertStringWide
+#define CreateDialogWide
 #define CreateDirectoryWide
 #define CreateFileWide
 #define CreateFontIndirectWide
@@ -120,6 +121,8 @@
 #define CreateWindowExWide
 #define DefWindowProcWide
 #define DeleteFileWide
+#define DialogBoxParamWide
+#define DialogBoxWide
 #define DispatchMessageWide
 #define DragQueryFileWide
 #define ExpandEnvironmentStringsWide

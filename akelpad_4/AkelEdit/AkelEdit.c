@@ -19040,7 +19040,8 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
         int i;
         BOOL bCaretAtStart;
 
-        if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciCaretIndex))
+        if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciCaretIndex) ||
+            !AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
           bCaretAtStart=TRUE;
         else
           bCaretAtStart=FALSE;

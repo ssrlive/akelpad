@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.7                    *
+ *                  Wide functions header v1.8                    *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -115,6 +115,10 @@ ATOM RegisterClassWide(WNDCLASSW *lpWndClass);
 BOOL UnregisterClassWide(const wchar_t *wpClassName, HINSTANCE hInstance);
 HWND CreateWindowExWide(DWORD dwExStyle, const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
+HWND CreateDialogWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc);
+HWND CreateDialogParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+INT_PTR DialogBoxWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc);
+INT_PTR DialogBoxParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 UINT_PTR GetClassLongPtrWide(HWND hWnd, int nIndex);
 UINT_PTR SetClassLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex);
@@ -1708,6 +1712,126 @@ HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName
     FreeAnsi(pClassName);
     FreeAnsi(pWindowName);
     return hResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined CreateDialogWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define CreateDialogWide_INCLUDED
+#undef CreateDialogWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+HWND CreateDialogWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateDialogW(hInstance, wpTemplate, hWndParent, lpDialogFunc);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pTemplate;
+    HWND hResult;
+
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      pTemplate=AllocAnsi(wpTemplate);
+    else
+      pTemplate=(char *)wpTemplate;
+    hResult=CreateDialogA(hInstance, pTemplate, hWndParent, lpDialogFunc);
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      FreeAnsi(pTemplate);
+    return hResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined CreateDialogParamWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define CreateDialogParamWide_INCLUDED
+#undef CreateDialogParamWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+HWND CreateDialogParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return CreateDialogParamW(hInstance, wpTemplate, hWndParent, lpDialogFunc, dwInitParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pTemplate;
+    HWND hResult;
+
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      pTemplate=AllocAnsi(wpTemplate);
+    else
+      pTemplate=(char *)wpTemplate;
+    hResult=CreateDialogParamA(hInstance, pTemplate, hWndParent, lpDialogFunc, dwInitParam);
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      FreeAnsi(pTemplate);
+    return hResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined DialogBoxWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define DialogBoxWide_INCLUDED
+#undef DialogBoxWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+INT_PTR DialogBoxWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return DialogBoxW(hInstance, wpTemplate, hWndParent, lpDialogFunc);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pTemplate;
+    INT_PTR nResult;
+
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      pTemplate=AllocAnsi(wpTemplate);
+    else
+      pTemplate=(char *)wpTemplate;
+    nResult=DialogBoxA(hInstance, pTemplate, hWndParent, lpDialogFunc);
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      FreeAnsi(pTemplate);
+    return nResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined DialogBoxParamWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define DialogBoxParamWide_INCLUDED
+#undef DialogBoxParamWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+INT_PTR DialogBoxParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return DialogBoxParamW(hInstance, wpTemplate, hWndParent, lpDialogFunc, dwInitParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pTemplate;
+    INT_PTR nResult;
+
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      pTemplate=AllocAnsi(wpTemplate);
+    else
+      pTemplate=(char *)wpTemplate;
+    nResult=DialogBoxParamA(hInstance, pTemplate, hWndParent, lpDialogFunc, dwInitParam);
+    if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
+      FreeAnsi(pTemplate);
+    return nResult;
   }
 
   WideNotInitialized();

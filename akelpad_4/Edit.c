@@ -2490,7 +2490,7 @@ void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
   }
   else
   {
-    SetWordWrap(lpFrame, 0, 0);
+    SetWordWrap(lpFrame, AEWW_NONE, 0);
     UpdateShowHScroll(lpFrame);
   }
 }
@@ -20860,18 +20860,10 @@ HWND API_CreateDialog(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWn
 {
   HWND hResult;
 
-  if (bOldWindows)
-  {
-    if (!(hResult=CreateDialogA(hLoadInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc)))
-      if (hLoadInstance != hInstance)
-        hResult=CreateDialogA(hInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc);
-  }
-  else
-  {
-    if (!(hResult=CreateDialogW(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc)))
-      if (hLoadInstance != hInstance)
-        hResult=CreateDialogW(hInstance, lpTemplateName, hWndParent, lpDialogFunc);
-  }
+  if (!(hResult=CreateDialogWide(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc)))
+    if (hLoadInstance != hInstance)
+      hResult=CreateDialogWide(hInstance, lpTemplateName, hWndParent, lpDialogFunc);
+
   return hResult;
 }
 
@@ -20879,18 +20871,10 @@ INT_PTR API_DialogBox(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWn
 {
   INT_PTR nResult;
 
-  if (bOldWindows)
-  {
-    if ((nResult=DialogBoxA(hLoadInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc)) == -1)
-      if (hLoadInstance != hInstance)
-        nResult=DialogBoxA(hInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc);
-  }
-  else
-  {
-    if ((nResult=DialogBoxW(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc)) == -1)
-      if (hLoadInstance != hInstance)
-        nResult=DialogBoxW(hInstance, lpTemplateName, hWndParent, lpDialogFunc);
-  }
+  if ((nResult=DialogBoxWide(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc)) == -1)
+    if (hLoadInstance != hInstance)
+      nResult=DialogBoxWide(hInstance, lpTemplateName, hWndParent, lpDialogFunc);
+
   return nResult;
 }
 
@@ -20898,18 +20882,10 @@ INT_PTR API_DialogBoxParam(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWN
 {
   INT_PTR nResult;
 
-  if (bOldWindows)
-  {
-    if ((nResult=DialogBoxParamA(hLoadInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc, dwInitParam)) == -1)
-      if (hLoadInstance != hInstance)
-        nResult=DialogBoxParamA(hInstance, (char *)lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
-  }
-  else
-  {
-    if ((nResult=DialogBoxParamW(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam)) == -1)
-      if (hLoadInstance != hInstance)
-        nResult=DialogBoxParamW(hInstance, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
-  }
+  if ((nResult=DialogBoxParamWide(hLoadInstance, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam)) == -1)
+    if (hLoadInstance != hInstance)
+      nResult=DialogBoxParamWide(hInstance, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
+
   return nResult;
 }
 
