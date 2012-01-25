@@ -351,8 +351,9 @@
 #define NEWLINE_MAC   3  //MacOS new line format (\r).
 
 //AKD_GOTO type
-#define GT_LINE    0x1
-#define GT_OFFSET  0x2
+#define GT_LINE        0x1 //Go to "Line:Column".
+#define GT_OFFSETBYTE  0x2 //Go to offset counted in bytes.
+#define GT_OFFSETCHAR  0x4 //Go to offset counted in characters (not present in "Go to..." dialog).
 
 //Caret options
 #define CO_CARETOUTEDGE          0x00000001  //Allow caret moving out of the line edge.
