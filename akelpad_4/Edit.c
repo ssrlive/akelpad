@@ -10428,7 +10428,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_LINE, 0);
     }
-    else if (dwGotoType & GT_OFFSET)
+    else if (dwGotoType & GT_OFFSETBYTE)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_OFFSET, 0);
@@ -10442,7 +10442,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (LOWORD(wParam) == IDC_GOTO_LINE)
         dwGotoType=GT_LINE;
       else if (LOWORD(wParam) == IDC_GOTO_OFFSET)
-        dwGotoType=GT_OFFSET;
+        dwGotoType=GT_OFFSETBYTE;
 
       if (dwGotoType & GT_LINE)
       {
@@ -10466,7 +10466,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(hWndNumber, EM_SETSEL, 0, nNumberLen);
         }
       }
-      else if (dwGotoType & GT_OFFSET)
+      else if (dwGotoType & GT_OFFSETBYTE)
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
@@ -10503,7 +10503,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
 {
-  if (wpString && ((dwGotoType & GT_LINE) || (dwGotoType & GT_OFFSET)))
+  if (wpString && ((dwGotoType & GT_LINE) || (dwGotoType & GT_OFFSETBYTE) || (dwGotoType & GT_OFFSETCHAR)))
   {
     AECHARRANGE cr;
     wchar_t wszFirst[MAX_PATH];
@@ -10563,7 +10563,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
       else
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
     }
-    else if (dwGotoType & GT_OFFSET)
+    else if (dwGotoType & GT_OFFSETBYTE)
     {
       if (nFirst >= 0)
       {
@@ -10575,6 +10575,18 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
         IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nFirst + 1, AELB_ASIS);
       }
+    }
+    else if (dwGotoType & GT_OFFSETCHAR)
+    {
+      int nLockScroll;
+
+      if ((nLockScroll=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+      SendMessage(lpFrameCurrent->ei.hWndEdit, EM_SETSEL, nFirst, nFirst);
+      if (nLockScroll == -1)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+      ScrollCaret(lpFrameCurrent->ei.hWndEdit);
+      return TRUE;
     }
 
     //Set selection
@@ -16792,19 +16804,19 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
   wchar_t wchStopChar;
   wchar_t wchQuoteChar=0;
 
-  while (*wpCount == ' ') ++wpCount;
+  while (*wpCount == L' ') ++wpCount;
 
   wchFirstChar=*wpCount;
-  if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+  if (*wpCount == L'\"' || *wpCount == '\'' || *wpCount == L'`')
   {
     wchStopChar=*wpCount++;
     wchQuoteChar=wchStopChar;
   }
-  else wchStopChar=' ';
+  else wchStopChar=L' ';
 
-  if (bParseAsNotepad && wchFirstChar != '/' && wchStopChar == ' ')
+  if (bParseAsNotepad && wchFirstChar != L'/' && wchStopChar == L' ')
   {
-    for (; *wpCount != '/' && *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
+    for (; *wpCount != L'/' && *wpCount != L'\"' && *wpCount != L'\0'; ++wpCount)
     {
       if (wpArg < wpArgMax)
       {
@@ -16812,10 +16824,10 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
         ++wpArg;
       }
     }
-    while (wpArg > wszArg && *(wpArg - 1) == ' ')
+    while (wpArg > wszArg && *(wpArg - 1) == L' ')
     {
       --wpArg;
-      if (wszArg) *wpArg='\0';
+      if (wszArg) *wpArg=L'\0';
     }
   }
   else
@@ -16826,7 +16838,7 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
       {
         if (*wpCount == wchStopChar)
         {
-          if (wchStopChar != wchFirstChar && wchStopChar != ' ')
+          if (wchStopChar != wchFirstChar && wchStopChar != L' ')
           {
             if (wpArg < wpArgMax)
             {
@@ -16836,12 +16848,12 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
           }
           break;
         }
-        if (!wchQuoteChar && wchFirstChar == '/')
+        if (!wchQuoteChar && wchFirstChar == L'/')
         {
-          if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+          if (*wpCount == L'\"' || *wpCount == L'\'' || *wpCount == L'`')
             wchQuoteChar=*wpCount;
-          else if (*wpCount == '(')
-            wchStopChar=')';
+          else if (*wpCount == L'(')
+            wchStopChar=L')';
         }
         else wchQuoteChar=0;
       }
@@ -16854,9 +16866,9 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
   }
   if (*wpCount == wchStopChar)
     ++wpCount;
-  if (wszArg) *wpArg='\0';
+  if (wszArg) *wpArg=L'\0';
   if (wpNextArg)
-    for (*wpNextArg=wpCount; **wpNextArg == ' '; ++*wpNextArg);
+    for (*wpNextArg=wpCount; **wpNextArg == L' '; ++*wpNextArg);
 
   return (int)(wpArg - wszArg);
 }

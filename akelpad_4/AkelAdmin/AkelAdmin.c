@@ -70,7 +70,7 @@ typedef struct {
 BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
-int GetCommandLineArgW(wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, wchar_t **wpNextArg);
+int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
 
 //Global variables
@@ -118,10 +118,10 @@ void _WinMain()
     if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer, nExeDirLen)))
     {
       //Skip executable
-      GetCommandLineArgW(pArguments, NULL, 0, &pArguments);
+      GetCommandLineArg(pArguments, NULL, 0, &pArguments);
 
       //First argument is action number (currently only one action).
-      if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
+      if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
       {
         nAction=(int)xatoiW(wszBuffer, NULL);
 
@@ -129,7 +129,7 @@ void _WinMain()
         if (nAction == AAA_CMDINIT)
         {
           //Second argument is caller process id.
-          if (GetCommandLineArgW(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
+          if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
           {
             HANDLE hPipeAkelAdmin;
             HANDLE hMutex;
@@ -403,9 +403,9 @@ const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
   return wpFile;
 }
 
-int GetCommandLineArgW(wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, wchar_t **wpNextArg)
+int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg)
 {
-  wchar_t *wpCount=wpCmdLine;
+  const wchar_t *wpCount=wpCmdLine;
   wchar_t *wpArgSet=wszArg;
   wchar_t *wpArgSetMax=wszArg + nArgMax - 1;
   wchar_t wchInitStopChar;
