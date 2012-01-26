@@ -3019,7 +3019,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_MESSAGEBOX)
     {
       DIALOGMESSAGEBOX *dmb=(DIALOGMESSAGEBOX *)lParam;
-      
+
       return MessageBoxCustom(dmb->hWndParent, dmb->wpText, dmb->wpCaption, dmb->uType, dmb->hIcon, dmb->bmb);
     }
 
@@ -6157,7 +6157,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         SetMouseCapture(hWnd, MSC_BUTTONPRESS);
         bMousePush=TRUE;
       }
-      InvalidateRect(hWnd, NULL, FALSE);
+      InvalidateRect(hWnd, NULL, TRUE);
       return 0;
     }
     else if (uMsg == WM_MOUSEMOVE)
@@ -6167,12 +6167,12 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         if (!(dwMouseCapture & MSC_BUTTONOVER))
         {
           SetMouseCapture(hWnd, MSC_BUTTONOVER);
-          InvalidateRect(hWnd, NULL, FALSE);
+          InvalidateRect(hWnd, NULL, TRUE);
         }
         else if (!IsCursorOnWindow(hWnd))
         {
           ReleaseMouseCapture(MSC_BUTTONOVER);
-          InvalidateRect(hWnd, NULL, FALSE);
+          InvalidateRect(hWnd, NULL, TRUE);
           UpdateWindow(hWnd);
         }
       }
@@ -6181,7 +6181,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         if (IsCursorOnWindow(hWnd) != bMousePush)
         {
           bMousePush=!bMousePush;
-          InvalidateRect(hWnd, NULL, FALSE);
+          InvalidateRect(hWnd, NULL, TRUE);
         }
       }
     }
@@ -6196,7 +6196,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           bPost=bMousePush;
         bMousePush=FALSE;
         ReleaseMouseCapture(MSC_BUTTONPRESS);
-        InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRect(hWnd, NULL, TRUE);
         UpdateWindow(hWnd);
 
         if (bPost)
@@ -6221,20 +6221,18 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     }
     else if (uMsg == WM_ERASEBKGND)
     {
-      return 1;
+      //return 1;
     }
     else if (uMsg == WM_PAINT)
     {
+      PAINTSTRUCT ps;
       HDC hDC;
       RECT rcButton;
-
-      ValidateRect(hWnd, NULL);
-
-      if (hDC=GetDC(hWnd))
+  
+      if (BeginPaint(hWnd, &ps))
       {
-        //Fill background
+        hDC=ps.hdc;
         GetClientRect(hWnd, &rcButton);
-        FillRect(hDC, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
 
         //Draw edge
         if ((dwMouseCapture & MSC_BUTTONPRESS) && bMousePush)
@@ -6386,7 +6384,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             DeleteObject(hPen);
           }
         }
-        ReleaseDC(hWnd, hDC);
+        EndPaint(hWnd, &ps);
         return TRUE;
       }
     }
