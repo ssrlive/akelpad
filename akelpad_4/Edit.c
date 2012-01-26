@@ -19140,6 +19140,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
   {
     RECT rcTemplate;
     RECT rcControl;
+    DWORD dwFlags=SWP_NOMOVE;
     int i;
 
     rcTemplate=*rcCurrent;
@@ -19173,8 +19174,9 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       {
         rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
         rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
+        dwFlags&=~SWP_NOMOVE;
       }
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
     }
   }
   else if (uMsg == WM_GETMINMAXINFO)
