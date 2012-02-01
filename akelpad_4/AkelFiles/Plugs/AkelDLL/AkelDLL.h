@@ -4693,7 +4693,7 @@ Retrieves a specified range of characters from a AkelEdit control.
 (EXGETTEXTRANGE *)lParam == pointer to a EXGETTEXTRANGE structure.
 
 Return Value
- Text length in TCHARs. Without null character if EXGETTEXTRANGE.pText member is not NULL or including null character if EXGETTEXTRANGE.pText member is NULL.
+ Text length in TCHARs.
 
 Example (bOldWindows == FALSE):
  EXGETTEXTRANGE tr;
