@@ -3780,22 +3780,25 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALL)
     {
-      if (!nMDI)
+      if (nDocumentsModified)
       {
-        return DoFileSave();
-      }
-      else
-      {
-        FRAMEDATA *lpFrameInit=lpFrameCurrent;
-
-        do
+        if (!nMDI)
         {
-          if (!DoFileSave()) return FALSE;
-          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          return DoFileSave();
         }
-        while (lpFrameCurrent != lpFrameInit);
+        else
+        {
+          FRAMEDATA *lpFrameInit=lpFrameCurrent;
 
-        return TRUE;
+          do
+          {
+            if (!DoFileSave()) return FALSE;
+            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          }
+          while (lpFrameCurrent != lpFrameInit);
+
+          return TRUE;
+        }
       }
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
@@ -6228,7 +6231,7 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       PAINTSTRUCT ps;
       HDC hDC;
       RECT rcButton;
-  
+
       if (BeginPaint(hWnd, &ps))
       {
         hDC=ps.hdc;
