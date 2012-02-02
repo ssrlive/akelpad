@@ -20176,6 +20176,8 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
     lpREGroupItem=lpREGroupItem->parent;
   }
+  if (!lpREGroupItem->wpPatEnd)
+    goto Error;
   hStack->nLastIndex=nIndex;
   return 0;
 
@@ -20447,7 +20449,11 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     }
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+  {
+    //lpREGroupItem->wpStrStart=wpMinStr;
+    //lpREGroupItem->wpStrEnd=wpMinStr;
     return FALSE;
+  }
   if (lpREGroupItem->dwFlags & REGF_POSITIVE)
   {
     lpREGroupItem->wpStrStart=wpMinStr;

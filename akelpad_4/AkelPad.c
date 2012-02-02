@@ -3796,10 +3796,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
           }
           while (lpFrameCurrent != lpFrameInit);
-
-          return TRUE;
         }
       }
+      return TRUE;
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
     {
