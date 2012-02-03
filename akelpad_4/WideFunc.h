@@ -152,7 +152,9 @@ BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
 BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *wpNewItem);
 
 //Controls (CONTROLWIDEFUNC). User32.lib.
+BOOL ListView_GetColumnWide(HWND hWnd, int iCol, LVCOLUMNW *lvcW);
 int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW);
+BOOL ListView_SetColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW);
 BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW);
 int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW);
 BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW);
@@ -2455,6 +2457,43 @@ BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewIte
 
 
 //// Controls
+#if defined ListView_GetColumnWide || defined CONTROLWIDEFUNC || defined ALLWIDEFUNC
+#define ListView_GetColumnWide_INCLUDED
+#undef ListView_GetColumnWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL ListView_GetColumnWide(HWND hWnd, int iCol, LVCOLUMNW *lvcW)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return (BOOL)SendMessageW(hWnd, LVM_GETCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    if (lvcW->mask & LVCF_TEXT)
+    {
+      wchar_t *wpSaveText=lvcW->pszText;
+      int nSaveTextMax=lvcW->cchTextMax;
+      BOOL bResult=FALSE;
+
+      lvcW->cchTextMax*=sizeof(wchar_t);
+      if (lvcW->pszText=(wchar_t *)GlobalAlloc(GPTR, lvcW->cchTextMax))
+      {
+        bResult=(BOOL)SendMessageA(hWnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
+        AnsiToWide((char *)lvcW->pszText, -1, wpSaveText, nSaveTextMax);
+        GlobalFree((HGLOBAL)lvcW->pszText);
+      }
+      lvcW->pszText=wpSaveText;
+      lvcW->cchTextMax=nSaveTextMax;
+      return bResult;
+    }
+    return (BOOL)SendMessageA(hWnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
+  }
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
+
 #if defined ListView_InsertColumnWide || defined CONTROLWIDEFUNC || defined ALLWIDEFUNC
 #define ListView_InsertColumnWide_INCLUDED
 #undef ListView_InsertColumnWide
@@ -2484,6 +2523,38 @@ int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
 
   WideNotInitialized();
   return -1;
+}
+#endif
+
+#if defined ListView_SetColumnWide || defined CONTROLWIDEFUNC || defined ALLWIDEFUNC
+#define ListView_SetColumnWide_INCLUDED
+#undef ListView_SetColumnWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL ListView_SetColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return (int)SendMessageW(hWnd, LVM_SETCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    if (lvcW->mask & LVCF_TEXT)
+    {
+      LVCOLUMNA lvcA;
+      BOOL bResult;
+
+      xmemcpy(&lvcA, lvcW, sizeof(LVCOLUMNA));
+      lvcA.pszText=AllocAnsi(lvcW->pszText);
+      bResult=(int)SendMessageA(hWnd, LVM_SETCOLUMNA, (WPARAM)iCol, (LPARAM)&lvcA);
+
+      FreeAnsi((char *)lvcA.pszText);
+      return bResult;
+    }
+    return (int)SendMessageA(hWnd, LVM_SETCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
+  }
+
+  WideNotInitialized();
+  return FALSE;
 }
 #endif
 
