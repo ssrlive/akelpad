@@ -1617,7 +1617,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
   //Save file dialog
   xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
-  if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'\0';
+  if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'_';
 
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
   ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
