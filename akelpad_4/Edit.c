@@ -8244,7 +8244,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   {
     if (dwFlags & ADT_DETECT_CODEPAGE)
     {
-      if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, pBuffer, dwBytesRead, nCodePage))
+      if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, pBuffer, dwBytesRead, DETECTCHARS_REQUIRED, nCodePage))
       {
         *nCodePage=moCur.nDefaultCodePage;
         dwFlags&=~ADT_DETECT_CODEPAGE;
@@ -8263,7 +8263,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   return EDT_SUCCESS;
 }
 
-BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage)
+BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, UINT_PTR dwCharsRequired, int *nCodePage)
 {
   static const char lpTrailingBytesForUTF8[256]={
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -8308,7 +8308,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   {
     xstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2");  //àáâåèíîïðòÀÁÂÅÈÍÎÏÒ
     xstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xEE\xEF\xF0\xF2\xF4");  //ÁÂ×ÅÉÎÏÒÔáâ÷åéîïðòô
-    xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAC\xAD\xE2\x8E\x45\x80\x88\x8C\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //îåàèìíòÎEÀÈÌÍÒ         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
+    xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAA\xAC\xAD\xE2\x8E\x45\x80\x88\x8A\x8C\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //îåàèêìíòÎEÀÈÊÌÍÒ         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
     xstrcpyA(szUTF8watermark, "\xD0\xD1");
   }
   else if (IsLangEasternEurope(dwLangID))
@@ -8361,10 +8361,10 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   }
 
   //Give it up if there's no representative selection
-  if (j > 10)
+  if (j > dwCharsRequired)
   {
-    //Rate top 10 repeated characters
-    j=10;
+    //Rate top repeated characters
+    j=dwCharsRequired;
 
     while (j)
     {
@@ -8550,7 +8550,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   return FALSE;
 }
 
-BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, int *nCodePageFrom, int *nCodePageTo)
+BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR nMinChars, int *nCodePageFrom, int *nCodePageTo)
 {
   //Detect nCodePageFrom
   int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
@@ -8591,7 +8591,7 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
   if (szText)
   {
     //Detect nCodePageTo
-    if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nCodePageTo))
+    if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nMinChars, nCodePageTo))
       *nCodePageTo=*nCodePageFrom;
 
     API_HeapFree(hHeap, 0, (LPVOID)szText);
@@ -11169,7 +11169,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
     //Detect
     if (*nCodePageFrom == -1 && *nCodePageTo == -1)
     {
-      AutodetectWideChar(moCur.dwLangCodepageRecognition, wszSelText, nUnicodeLen, nCodePageFrom, nCodePageTo);
+      AutodetectWideChar(moCur.dwLangCodepageRecognition, wszSelText, nUnicodeLen, DETECTCHARS_REQUIRED, nCodePageFrom, nCodePageTo);
     }
 
     //Convert
