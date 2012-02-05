@@ -1,6 +1,8 @@
 
-AkelPad 4.7.3 ()
+AkelPad 4.7.3 (Feb 05, 2012)
 ----------------------------
+Changed: due to LogView plugin functionality expansion, its name changed to Log.
+
 Fixed: manual parameters "CmdLineBegin" and "CmdLineEnd" didn't work.
 Fixed: "AkelAdmin.exe" - set security options for file with different owner.
 
