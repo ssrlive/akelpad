@@ -875,6 +875,7 @@ typedef struct {
   DWORD dwLangID;         //Codepage recognition language defined as LANGID. If -1, then use current settings.
   const char *pText;      //Ansi text.
   INT_PTR nTextLen;       //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  INT_PTR nMinChars;      //Minimum detect characters representation. If zero, default number is used.
   int nCodePage;          //Result: detected Ansi codepage.
 } DETECTANSITEXT;
 
@@ -882,6 +883,7 @@ typedef struct {
   DWORD dwLangID;         //Codepage recognition language defined as LANGID. If -1, then use current settings.
   const wchar_t *wpText;  //Unicode text.
   INT_PTR nTextLen;       //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  INT_PTR nMinChars;      //Minimum detect characters representation. If zero, default number is used.
   int nCodePageFrom;      //Result: codepage that converts text to Ansi without character lost.
   int nCodePageTo;        //Result: detected Ansi codepage.
 } DETECTUNITEXT;
@@ -2655,6 +2657,7 @@ Example:
  dat.dwLangID=(DWORD)-1;
  dat.pText="\x91\x20\xE7\xA5\xA3\xAE\x20\xAD\xA0\xE7\xA8\xAD\xA0\xA5\xE2\xE1\xEF\x20\x90\xAE\xA4\xA8\xAD\xA0";
  dat.nTextLen=-1;
+ dat.nMinChars=0;
  SendMessage(hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
 
 
@@ -2676,6 +2679,7 @@ Example:
  dut.dwLangID=(DWORD)-1;
  dut.wpText=L"\x2018\x0020\x0437\x0490\x0408\x00AE\x0020\x00AD\x00A0\x0437\x0401\x00AD\x00A0\x0490\x0432\x0431\x043F\x0020\x0452\x00AE\x00A4\x0401\x00AD\x00A0";
  dut.nTextLen=-1;
+ dut.nMinChars=0;
  SendMessage(hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
 
 
