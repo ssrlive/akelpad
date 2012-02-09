@@ -6207,19 +6207,20 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       else if (dwMouseCapture & MSC_BUTTONOVER)
       {
         ReleaseMouseCapture(MSC_BUTTONOVER);
-        InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRect(hWnd, NULL, TRUE);
         UpdateWindow(hWnd);
       }
       return 0;
     }
-    else if (uMsg == WM_SETFOCUS)
+    else if (uMsg == WM_SETFOCUS ||
+             uMsg == WM_KILLFOCUS)
     {
       if (lpButtonDrawItem->bd.dwFlags & BIF_ENABLEFOCUS)
-        InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRect(hWnd, NULL, TRUE);
     }
     else if (uMsg == WM_ENABLE)
     {
-      InvalidateRect(hWnd, NULL, FALSE);
+      InvalidateRect(hWnd, NULL, TRUE);
     }
     else if (uMsg == WM_ERASEBKGND)
     {
