@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.2                               *
+ *                      AkelEdit text control v1.7.3                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -785,6 +785,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else if (wParam <= AEGI_LASTFULLVISIBLELINE)
       {
+        //AEGI_FIRSTVISIBLECHAR, AEGI_LASTVISIBLECHAR, AEGI_FIRSTFULLVISIBLECHAR, AEGI_LASTFULLVISIBLECHAR,
+        //AEGI_FIRSTVISIBLELINE, AEGI_LASTVISIBLELINE, AEGI_FIRSTFULLVISIBLELINE, AEGI_LASTFULLVISIBLELINE
         if (AE_GetIndex(ae, (int)wParam, NULL, &ciChar))
           return AE_AkelIndexToRichOffset(ae, &ciChar);
       }
@@ -7598,6 +7600,20 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         *ciCharOut=*ciCharIn;
         return NULL;
       }
+    }
+    else if (nType == AEGI_LINEBEGIN)
+    {
+      ciCharOut->nLine=ciCharIn->nLine;
+      ciCharOut->lpLine=ciCharIn->lpLine;
+      ciCharOut->nCharInLine=0;
+      return ciCharOut->lpLine;
+    }
+    else if (nType == AEGI_LINEEND)
+    {
+      ciCharOut->nLine=ciCharIn->nLine;
+      ciCharOut->lpLine=ciCharIn->lpLine;
+      ciCharOut->nCharInLine=ciCharIn->nLineLen;
+      return ciCharOut->lpLine;
     }
     else if (nType == AEGI_WRAPLINEBEGIN)
     {

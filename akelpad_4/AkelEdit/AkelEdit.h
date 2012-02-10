@@ -251,8 +251,12 @@
 #define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
                                        //
 //Next flags require pointer to the input index in lParam.
-#define AEGI_VALIDCHARINLINE       17  //Correct character to make sure that it is on line.
+#define AEGI_VALIDCHARINLINE       15  //Correct character to make sure that it is on line.
                                        //For better performance use AEC_ValidCharInLine instead.
+#define AEGI_LINEBEGIN             16  //First character in line.
+                                       //
+#define AEGI_LINEEND               17  //Last character in line.
+                                       //
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
                                        //For better performance use AEC_WrapLineBeginEx instead.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.

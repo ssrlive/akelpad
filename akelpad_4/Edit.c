@@ -10106,11 +10106,7 @@ void RichOffsetToAkelIndex(HWND hWnd, INT_PTR nOffset, AECHARINDEX *ciChar)
 
 INT_PTR GetTextLength(HWND hWnd)
 {
-  GETTEXTLENGTHEX gtl;
-
-  gtl.flags=GTL_PRECISE|GTL_NUMCHARS;
-  gtl.codepage=1200;
-  return SendMessage(hWnd, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
+  return SendMessage(hWnd, AEM_GETRICHOFFSET, AEGI_LASTCHAR, 0);
 }
 
 INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText)
