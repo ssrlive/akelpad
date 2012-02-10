@@ -2118,6 +2118,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         if (wParam == MI_SAVESETTINGS)
           return (LRESULT)moCur.nSaveSettings;
+        if (wParam == MI_WNDPROGRESS)
+          return (LRESULT)hProgress;
         if (wParam == MI_WNDSTATUS)
           return (LRESULT)hStatus;
         if (wParam == MI_WNDMDICLIENT)

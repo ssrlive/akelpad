@@ -7612,7 +7612,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       ciCharOut->nLine=ciCharIn->nLine;
       ciCharOut->lpLine=ciCharIn->lpLine;
-      ciCharOut->nCharInLine=ciCharIn->nLineLen;
+      ciCharOut->nCharInLine=ciCharIn->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
     else if (nType == AEGI_WRAPLINEBEGIN)
