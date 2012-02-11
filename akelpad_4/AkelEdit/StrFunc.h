@@ -1286,10 +1286,10 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
  *
  *Case sensitive comparison specified number of characters of two strings.
  *
- *[in] char *pString1     First string to compare.
- *[in] char *pString2     Second string to compare.
- *[in] DWORD dwMaxLength  Number of characters to compare,
- *                         -1 compare until NULL character in pString1.
+ *[in] char *pString1        First string to compare.
+ *[in] char *pString2        Second string to compare.
+ *[in] UINT_PTR dwMaxLength  Number of characters to compare,
+ *                            -1 compare until NULL character in pString1.
  *
  *Returns:  -1 string1 less than string2.
  *           0 string1 identical to string2.
@@ -1322,10 +1322,10 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *Case sensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1  First string to compare.
- *[in] wchar_t *wpString2  Second string to compare.
- *[in] DWORD dwMaxLength   Number of characters to compare,
- *                          -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1     First string to compare.
+ *[in] wchar_t *wpString2     Second string to compare.
+ *[in] UINT_PTR dwMaxLength   Number of characters to compare,
+ *                             -1 compare until NULL character in wpString1.
  *
  *Returns:  -1 string1 less than string2.
  *           0 string1 identical to string2.
@@ -1359,10 +1359,10 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMax
  *
  *Case insensitive comparison specified number of characters of two strings.
  *
- *[in] char *pString1     First string to compare.
- *[in] char *pString2     Second string to compare.
- *[in] DWORD dwMaxLength  Number of characters to compare,
- *                         -1 compare until NULL character in pString1.
+ *[in] char *pString1        First string to compare.
+ *[in] char *pString2        Second string to compare.
+ *[in] UINT_PTR dwMaxLength  Number of characters to compare,
+ *                            -1 compare until NULL character in pString1.
  *
  *Returns:  -1 string1 less than string2.
  *           0 string1 identical to string2.
@@ -1397,10 +1397,10 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *Case insensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1  First string to compare.
- *[in] wchar_t *wpString2  Second string to compare.
- *[in] DWORD dwMaxLength   Number of characters to compare,
- *                          -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1     First string to compare.
+ *[in] wchar_t *wpString2     Second string to compare.
+ *[in] UINT_PTR dwMaxLength   Number of characters to compare,
+ *                             -1 compare until NULL character in wpString1.
  *
  *Returns:  -1 string1 less than string2.
  *           0 string1 identical to string2.
