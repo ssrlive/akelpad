@@ -2890,7 +2890,8 @@ void DoHelpAbout()
 void DoNonMenuDelLine(HWND hWnd)
 {
   AECHARRANGE cr;
-  BOOL bLastLine=FALSE;
+  POINT64 ptGlobal;
+  INT_PTR nCaretHorzIndent;
 
   if (IsReadOnly(hWnd)) return;
 
@@ -2899,22 +2900,21 @@ void DoNonMenuDelLine(HWND hWnd)
   cr.ciMin.nCharInLine=0;
   if (!AEC_NextLineEx(&cr.ciMax, &cr.ciMax))
   {
+    //Last line
     cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
     AEC_PrevLineEx(&cr.ciMin, &cr.ciMin);
-    bLastLine=TRUE;
   }
-  SetSel(hWnd, &cr, AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET, NULL);
+  nCaretHorzIndent=SendMessage(hWnd, AEM_GETCARETHORZINDENT, 0, 0);
 
+  SetSel(hWnd, &cr, AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET, NULL);
   ReplaceSelW(hWnd, L"", -1, AELB_ASINPUT, 0, NULL, NULL);
 
-  if (bLastLine && crCurSel.ciMin.nCharInLine)
-  {
-    cr.ciMin=crCurSel.ciMin;
-    cr.ciMax=crCurSel.ciMax;
-    cr.ciMin.nCharInLine=0;
-    cr.ciMax.nCharInLine=0;
-    SetSel(hWnd, &cr, 0, NULL);
-  }
+  SendMessage(hWnd, AEM_GETCARETPOS, 0, (WPARAM)&ptGlobal);
+  ptGlobal.x=nCaretHorzIndent;
+  SendMessage(hWnd, AEM_CHARFROMGLOBALPOS, (WPARAM)&ptGlobal, (LPARAM)&cr.ciMin);
+  cr.ciMax=cr.ciMin;
+  SetSel(hWnd, &cr, 0, NULL);
+  SendMessage(hWnd, AEM_SETCARETHORZINDENT, nCaretHorzIndent, 0);
 }
 
 
