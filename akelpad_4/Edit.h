@@ -262,10 +262,10 @@
 #define AAA_CREATEFILE          25  //Create new file.
 
 //Find/Replace dialog message
-#define AKDLG_PUTFIND           (WM_USER + 1)
+#define AKDLG_PUTFIND           (WM_USER + 100)
 
 //Recode dialog message
-#define AKDLG_RECODEUPDATE      (WM_USER + 1)
+#define AKDLG_RECODEUPDATE      (WM_USER + 100)
 
 //Insert/Delete char in selection
 #define STRSEL_CHECK   0x00000001
