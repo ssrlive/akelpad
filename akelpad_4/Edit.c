@@ -19571,10 +19571,13 @@ void UpdateTitle(FRAMEDATA *lpFrame)
 
 void UpdateTabs(HWND hWnd)
 {
-  HWND hTabSpin;
+  static HWND hTabSpin;
   int nPos;
 
-  if (hTabSpin=GetDlgItem(hWnd, 1))
+  if (!hTabSpin)
+    hTabSpin=GetWindow(hWnd, GW_CHILD);
+
+  if (hTabSpin)
   {
     if (nDocumentsCount < 30000)
     {
@@ -19588,6 +19591,7 @@ void UpdateTabs(HWND hWnd)
     {
       //Destroy Up-Down control to prevent crash after WM_HSCROLL when many thousands of tabs appeared ~30000.
       DestroyWindow(hTabSpin);
+      hTabSpin=NULL;
     }
   }
 }
