@@ -1759,7 +1759,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!bEditOnFinish)
       {
-        if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
+        if (hDlgModeless && nModelessType != MLT_CUSTOM)
+          SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
 
         if (!bLockWatchFile)
         {
@@ -4135,7 +4136,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_VIEW_READONLY)
     {
       DoViewReadOnly(lpFrameCurrent, !lpFrameCurrent->ei.bReadOnly, FALSE);
-      if (hDlgModeless) SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
+      if (hDlgModeless && nModelessType != MLT_CUSTOM)
+        SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
     }
     else if (LOWORD(wParam) == IDM_VIEW_WORDWRAP)
     {
