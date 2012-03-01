@@ -5123,7 +5123,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    if (lParam)
+    if (lParam && dwLastMainSizeClient)
     {
       FRAMEDATA *lpFrame;
 
