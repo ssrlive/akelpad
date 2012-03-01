@@ -386,7 +386,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 
   if (lpFrame->dwLockInherit & LI_FONT)
     xmemcpy(&lpFrame->lf, &fdInit.lf, sizeof(LOGFONTW));
-  if (lpFrame->dwLockInherit & LI_COLORS)
+  if ((lpFrame->dwLockInherit & LI_COLORS) || !lpFrame->aec.dwFlags)
     xmemcpy(&lpFrame->aec, &fdInit.aec, sizeof(AECOLORS));
   if (lpFrame->dwLockInherit & LI_WRAP)
     lpFrame->ei.bWordWrap=FALSE;
