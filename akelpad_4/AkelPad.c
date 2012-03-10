@@ -878,7 +878,7 @@ void _WinMain()
   {
     STATUSPART *sp;
 
-    moInit.nStatusUserFormatLen=xstrlenW(moInit.wszStatusUserFormat);
+    moInit.nStatusUserFormatLen=(int)xstrlenW(moInit.wszStatusUserFormat);
     TranslateStatusUser(NULL, moInit.wszStatusUserFormat, moInit.nStatusUserFormatLen, NULL, 0);
 
     for (sp=hStatusStack.first; sp; sp=sp->next)
