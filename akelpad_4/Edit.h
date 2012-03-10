@@ -364,6 +364,7 @@ typedef struct {
   DWORD dwShowModify;
   DWORD dwStatusPosType;
   wchar_t wszStatusUserFormat[MAX_PATH];
+  int nStatusUserFormatLen;
   DWORD dwStatusUserFlags;
   DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
@@ -585,6 +586,22 @@ typedef struct _FONTITEM {
   LOGFONTW lfFont;
   HFONT hFont;
 } FONTITEM;
+
+typedef struct _STATUSPART {
+  struct _STATUSPART *next;
+  struct _STATUSPART *prev;
+  DWORD dwFormatFlags;
+  const wchar_t *wpFormat;
+  int nFormatLen;
+  int nPartSize;
+  int nIndex;
+} STATUSPART;
+
+typedef struct {
+  STATUSPART *first;
+  STATUSPART *last;
+  int nElements;
+} STACKSTATUSPART;
 
 typedef struct _ASSOCICON {
   struct _ASSOCICON *next;
@@ -1015,7 +1032,9 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
 void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
-DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
+DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize);
+STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack);
+void StackStatusPartFree(STACKSTATUSPART *hStack);
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);

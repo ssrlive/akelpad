@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 8)
 
 
 //// Defines
@@ -395,13 +395,13 @@
 #define SM_FRAMETITLE_MDI 0x00000004
 #define SM_TABTITLE_MDI   0x00000008
 
-//Status bar
-#define STATUS_POSITION       0
-#define STATUS_MODIFY         1
-#define STATUS_INSERT         2
-#define STATUS_NEWLINE        3
-#define STATUS_CODEPAGE       4
-#define STATUS_USER           5
+//StatusBar parts
+#define SBP_POSITION   0
+#define SBP_MODIFY     1
+#define SBP_INSERT     2
+#define SBP_NEWLINE    3
+#define SBP_CODEPAGE   4
+#define SBP_USER       5
 
 //Tab options MDI
 #define TAB_VIEW_NONE           0x00000001

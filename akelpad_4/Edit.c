@@ -127,6 +127,7 @@ extern BOOL bFirstTabOnFinish;
 
 //Status window
 extern STATUSSTATE ssStatus;
+extern STACKSTATUSPART hStatusStack;
 extern HWND hStatus;
 extern HWND hProgress;
 extern int nStatusHeight;
@@ -1491,7 +1492,7 @@ BOOL DoFileOpen()
             if (moCur.bStatusBar)
             {
               xprintfW(wbuf, wszString, ++nFileCount, nFiles);
-              StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+              StatusBar_SetTextWide(hStatus, SBP_MODIFY, wbuf);
 
               while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
               {
@@ -1506,7 +1507,7 @@ BOOL DoFileOpen()
           while (*(wpFile+=xstrlenW(wpFile) + 1));
 
           if (moCur.bStatusBar)
-            StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
+            StatusBar_SetTextWide(hStatus, SBP_MODIFY, L"");
         }
         else
         {
@@ -5398,7 +5399,7 @@ void DropFiles(HDROP hDrop)
       if (moCur.bStatusBar)
       {
         xprintfW(wbuf, wszString, i + 1, nDropped);
-        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        StatusBar_SetTextWide(hStatus, SBP_MODIFY, wbuf);
 
         while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
         {
@@ -5412,7 +5413,7 @@ void DropFiles(HDROP hDrop)
     }
 
     if (moCur.bStatusBar)
-      StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
+      StatusBar_SetTextWide(hStatus, SBP_MODIFY, L"");
   }
   DragFinish(hDrop);
 }
@@ -16006,7 +16007,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel.ciMin=crCurSel.ciMin;
     lpFrameCurrent->crPrevSel.ciMax=crCurSel.ciMax;
 
-    StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
+    StatusBar_SetTextWide(hStatus, SBP_POSITION, wszStatus);
     UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET|CSB_LINECOUNT|CSB_RICHCOUNT);
   }
 }
@@ -16022,7 +16023,7 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
       if (!ssStatus.bReadOnly)
       {
         API_LoadStringW(hLangLib, STR_READONLY, wbuf, BUFFER_SIZE);
-        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        StatusBar_SetTextWide(hStatus, SBP_MODIFY, wbuf);
         ssStatus.bReadOnly=TRUE;
       }
     }
@@ -16035,7 +16036,7 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
         else
           wbuf[0]='\0';
 
-        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        StatusBar_SetTextWide(hStatus, SBP_MODIFY, wbuf);
         ssStatus.bReadOnly=FALSE;
       }
     }
@@ -16052,7 +16053,7 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
           else
             wbuf[0]='\0';
 
-          StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+          StatusBar_SetTextWide(hStatus, SBP_MODIFY, wbuf);
         }
         ssStatus.bModified=bState;
       }
@@ -16074,7 +16075,7 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
   {
     if (ssStatus.bOvertypeMode != bState)
     {
-      StatusBar_SetTextWide(hStatus, STATUS_INSERT, bState?L"Ovr":L"Ins");
+      StatusBar_SetTextWide(hStatus, SBP_INSERT, bState?L"Ovr":L"Ins");
       ssStatus.bOvertypeMode=bState;
     }
     if (!lpFrame) return;
@@ -16095,11 +16096,11 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
     if (ssStatus.nNewLine != nState)
     {
       if (nState == NEWLINE_WIN)
-        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Win");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Win");
       else if (nState == NEWLINE_UNIX)
-        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Unix");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Unix");
       else if (nState == NEWLINE_MAC)
-        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Mac");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Mac");
       ssStatus.nNewLine=nState;
     }
     if (!lpFrame) return;
@@ -16134,7 +16135,7 @@ void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
       {
         if (!bBOM) xprintfW(wbuf, L"%s%s", wbuf, STR_NOBOMW);
       }
-      StatusBar_SetTextWide(hStatus, STATUS_CODEPAGE, wbuf);
+      StatusBar_SetTextWide(hStatus, SBP_CODEPAGE, wbuf);
 
       ssStatus.nCodePage=nCodePage;
       ssStatus.bBOM=bBOM;
@@ -16180,14 +16181,27 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
 
-      TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE);
-      StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
+      //Set status bar parts text
+      {
+        STATUSPART *sp;
+
+        for (sp=hStatusStack.first; sp; sp=sp->next)
+        {
+          if (sp->dwFormatFlags & dwFlags)
+          {
+            TranslateStatusUser(lpFrame, sp->wpFormat, sp->nFormatLen, wbuf, BUFFER_SIZE);
+            StatusBar_SetTextWide(hStatus, sp->nIndex, wbuf);
+          }
+        }
+      }
     }
   }
 }
 
-DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
+DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize)
 {
+  //%%  - Symbol %.
+  //%[width] - add status bar delimiter.
   //%ch - Current character hex code in lowercase.
   //%cH - Current character hex code in uppercase.
   //%cd - Current character decimal code.
@@ -16205,12 +16219,25 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
   //%dm - Count of modified documents (MDI/PMDI).
   //%ds - Count of unmodified documents (MDI/PMDI).
   //%di - Active document index (MDI/PMDI).
-  //%%  - Symbol %.
 
+  STATUSPART *sp=NULL;
+  const wchar_t *wpStringMax=wpString + nStringLen;
+  int nPartIndex=SBP_USER;
   DWORD dwFlags=0;
   DWORD i;
 
-  for (i=0; *wpString; ++wpString)
+  if (!wszBuffer)
+  {
+    if (sp=StackStatusPartInsert(&hStatusStack))
+    {
+      sp->wpFormat=wpString;
+      sp->nFormatLen=(int)(wpStringMax - wpString);
+      sp->nPartSize=-1;
+      sp->nIndex=nPartIndex++;
+    }
+  }
+
+  for (i=0; wpString < wpStringMax; ++wpString)
   {
     if (*wpString == '%')
     {
@@ -16218,6 +16245,32 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
       {
         if (lpFrame && wszBuffer) wszBuffer[i]='%';
         ++i;
+      }
+      else if (*wpString == '[')
+      {
+        const wchar_t *wpStrStart=wpString - 1;
+        const wchar_t *wpStrEnd;
+        int nPartSize;
+
+        nPartSize=(int)xatoiW(wpString + 1, &wpString);
+        for (wpStrEnd=wpString; *wpStrEnd != ']' && *wpStrEnd; ++wpStrEnd);
+        wpString=wpStrEnd;
+
+        if (nPartSize && sp)
+        {
+          sp->nPartSize=nPartSize;
+          sp->nFormatLen=(int)(wpStrStart - sp->wpFormat);
+          sp->dwFormatFlags=dwFlags;
+          dwFlags=0;
+
+          if (sp=StackStatusPartInsert(&hStatusStack))
+          {
+            sp->wpFormat=wpString + 1;
+            sp->nFormatLen=(int)(wpStringMax - sp->wpFormat);
+            sp->nPartSize=-1;
+            sp->nIndex=nPartIndex++;
+          }
+        }
       }
       else if (*wpString == 'c')
       {
@@ -16311,7 +16364,6 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
             dwFlags|=CSB_SEARCHENDED;
 
           wpString=wpStrEnd;
-          if (!*wpString) break;
         }
       }
       else if (*wpString == 'r')
@@ -16361,11 +16413,26 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
     }
   }
   if (lpFrame && wszBuffer) wszBuffer[i]='\0';
+  if (sp) sp->dwFormatFlags=dwFlags;
+  return i;
+}
 
-  if (lpFrame)
-    return i;
-  else
-    return dwFlags;
+STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack)
+{
+  STATUSPART *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(STATUSPART)))
+  {
+    ++hStack->nElements;
+    return lpElement;
+  }
+  return NULL;
+}
+
+void StackStatusPartFree(STACKSTATUSPART *hStack)
+{
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->nElements=0;
 }
 
 
