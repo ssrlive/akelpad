@@ -1,4 +1,9 @@
 
+AkelPad 4.7.4 ()
+----------------------------
+Added: possibility to add status bar delimiter with "StatusUserFormat".
+
+
 AkelPad 4.7.3 (Feb 05, 2012)
 ----------------------------
 Changed: due to LogView plugin functionality expansion, its name changed to Log.

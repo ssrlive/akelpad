@@ -302,6 +302,7 @@ BOOL bFirstTabOnFinish=FALSE;
 
 //Status window
 STATUSSTATE ssStatus;
+STACKSTATUSPART hStatusStack={0};
 HWND hStatus;
 HWND hProgress;
 int nStatusHeight=0;
@@ -731,6 +732,7 @@ void _WinMain()
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
   //moInit.dwStatusPosType=0;
   //moInit.wszStatusUserFormat[0]='\0';
+  //moInit.nStatusUserFormatLen=0;
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.bRichEditClass=FALSE;
@@ -873,7 +875,15 @@ void _WinMain()
 
   //Get status bar user flags
   if (moInit.wszStatusUserFormat[0])
-    moInit.dwStatusUserFlags=TranslateStatusUser(NULL, moInit.wszStatusUserFormat, NULL, 0);
+  {
+    STATUSPART *sp;
+
+    moInit.nStatusUserFormatLen=xstrlenW(moInit.wszStatusUserFormat);
+    TranslateStatusUser(NULL, moInit.wszStatusUserFormat, moInit.nStatusUserFormatLen, NULL, 0);
+
+    for (sp=hStatusStack.first; sp; sp=sp->next)
+      moInit.dwStatusUserFlags|=sp->dwFormatFlags;
+  }
 
   //Get ansi language module
   WideCharToMultiByte(CP_ACP, 0, moInit.wszLangModule, -1, moInit.szLangModule, MAX_PATH, NULL, NULL);
@@ -1188,6 +1198,7 @@ void WinMainCleanUp()
   CodepageListFree(&lpCodepageList);
   RecentFilesZero(&hRecentFilesStack);
   FreeMemorySearch();
+  StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
@@ -1406,7 +1417,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_CREATE)
   {
-    int iSBParts[6];
+    int *lpSBParts;
     int iBorders[3];
     CLIENTCREATESTRUCT ccs;
     DWORD dwClassStyle;
@@ -1535,32 +1546,54 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                NULL);
 
     SendMessage(hStatus, SB_SIMPLE, FALSE, 0);
-    iSBParts[0]=110;
-    iSBParts[1]=220;
-    iSBParts[2]=250;
-    iSBParts[3]=280;
-    iSBParts[4]=-1;
-    nStatusParts=5;
-    if (moCur.wszStatusUserFormat[0])
+
+    //Set status bar parts
+    nStatusParts=SBP_USER + hStatusStack.nElements;
+
+    if (lpSBParts=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, nStatusParts * sizeof(int)))
     {
-      iSBParts[4]=560;
-      iSBParts[5]=-1;
-      nStatusParts=6;
+      lpSBParts[SBP_POSITION]=110;
+      lpSBParts[SBP_MODIFY]=220;
+      lpSBParts[SBP_INSERT]=250;
+      lpSBParts[SBP_NEWLINE]=280;
+      lpSBParts[SBP_CODEPAGE]=-1;
+
+      //Set user parts
+      if (hStatusStack.nElements)
+      {
+        STATUSPART *sp;
+        int nPartIndex=SBP_USER;
+        int nPartSize;
+
+        lpSBParts[SBP_CODEPAGE]=560;
+        nPartSize=lpSBParts[SBP_CODEPAGE];
+
+        for (sp=hStatusStack.first; sp; sp=sp->next)
+        {
+          if (sp->nPartSize == -1)
+          {
+            lpSBParts[nPartIndex++]=-1;
+            break;
+          }
+          nPartSize+=sp->nPartSize;
+          lpSBParts[nPartIndex++]=nPartSize;
+        }
+      }
     }
-    SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)&iSBParts);
+    SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)lpSBParts);
 
     GetWindowRect(hStatus, &rcRect);
     nStatusHeight=rcRect.bottom - rcRect.top;
 
     //Progress Bar
     SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
-    nProgressWidth=(iSBParts[1] - iSBParts[0]) - iBorders[2];
+    nProgressWidth=(lpSBParts[SBP_MODIFY] - lpSBParts[SBP_POSITION]) - iBorders[2];
 
     hProgress=CreateWindowExWide(0,
                                  L"msctls_progress32",
                                  NULL,
                                  WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
-                                 iSBParts[0] + iBorders[2], iBorders[1], nProgressWidth, nStatusHeight - iBorders[1],
+                                 lpSBParts[SBP_POSITION] + iBorders[2], iBorders[1], nProgressWidth, nStatusHeight - iBorders[1],
                                  hStatus,
                                  (HMENU)(UINT_PTR)ID_PROGRESS,
                                  hInstance,
@@ -3872,7 +3905,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       RECT rc;
 
-      SendMessage(hStatus, SB_GETRECT, STATUS_CODEPAGE, (LPARAM)&rc);
+      SendMessage(hStatus, SB_GETRECT, SBP_CODEPAGE, (LPARAM)&rc);
       ClientToScreen(hStatus, (POINT *)&rc);
       ShowMenuPopupCodepage((POINT *)&rc);
     }
