@@ -3,6 +3,8 @@ AkelPad 4.7.4 ()
 ----------------------------
 Added: possibility to add status bar delimiter with "StatusUserFormat".
 
+Fixed: split window in SDI mode.
+
 
 AkelPad 4.7.3 (Feb 05, 2012)
 ----------------------------

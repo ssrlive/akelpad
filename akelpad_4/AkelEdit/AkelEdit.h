@@ -5281,7 +5281,7 @@ Return Value
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_ADDCLONE, (HWND)hWndEdit2, 0);
+ SendMessage(hWndEdit, AEM_ADDCLONE, (WPARAM)hWndEdit2, 0);
 
 
 AEM_DELCLONE
@@ -5297,7 +5297,7 @@ Return Value
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
+ SendMessage(hWndEdit, AEM_DELCLONE, (WPARAM)hWndEdit2, 0);
 
 
 AEM_GETMASTER
