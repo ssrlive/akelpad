@@ -1112,8 +1112,8 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone1=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone1=(AEHDOC)SendMessage(lpFrame->ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone1, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
-      SetMargins(lpFrame->ei.hWndClone1, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDocClone1);
     }
     if (dwFlags & CN_CLONE2)
@@ -1144,8 +1144,8 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone2=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone2=(AEHDOC)SendMessage(lpFrame->ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone2, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
-      SetMargins(lpFrame->ei.hWndClone2, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDocClone2);
     }
     if (dwFlags & CN_CLONE3)
@@ -1176,8 +1176,8 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone3=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone3=(AEHDOC)SendMessage(lpFrame->ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone3, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
-      SetMargins(lpFrame->ei.hWndClone3, &lpFrame->rcEditMargins, NULL);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
     }
     SplitVisUpdate(lpFrame);
@@ -1189,7 +1189,6 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   bEditOnFinish=TRUE;
 
-  //AEM_DELCLONE is not necessary cause AkelEdit do all the job.
   if (lpFrame->ei.hWndMaster)
   {
     if (dwFlags & CN_CLONE1)
@@ -1203,11 +1202,15 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           DestroyWindow(lpFrame->ei.hWndClone1);
         }
-        else if (nMDI == WMD_PMDI)
+        else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (lpFrame->ei.hDocClone1 == (AEHDOC)SendMessage(lpFrame->ei.hWndClone1, AEM_GETDOCUMENT, 0, 0))
+          if (fdInit.ei.hDocClone1 != lpFrame->ei.hDocClone1)
+          {
+            //WMD_PMDI
             SendMessage(lpFrame->ei.hWndClone1, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone1, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone1, 0);
+            SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone1, 0);
+          }
+          SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone1 == lpFrame->ei.hWndEdit)
@@ -1230,11 +1233,15 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           DestroyWindow(lpFrame->ei.hWndClone2);
         }
-        else if (nMDI == WMD_PMDI)
+        else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (lpFrame->ei.hDocClone2 == (AEHDOC)SendMessage(lpFrame->ei.hWndClone2, AEM_GETDOCUMENT, 0, 0))
+          if (fdInit.ei.hDocClone2 != lpFrame->ei.hDocClone2)
+          {
+            //WMD_PMDI
             SendMessage(lpFrame->ei.hWndClone2, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone2, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone2, 0);
+            SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone2, 0);
+          }
+          SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone2 == lpFrame->ei.hWndEdit)
@@ -1257,11 +1264,15 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           DestroyWindow(lpFrame->ei.hWndClone3);
         }
-        else if (nMDI == WMD_PMDI)
+        else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (lpFrame->ei.hDocClone3 == (AEHDOC)SendMessage(lpFrame->ei.hWndClone3, AEM_GETDOCUMENT, 0, 0))
+          if (fdInit.ei.hDocClone3 != lpFrame->ei.hDocClone3)
+          {
+            //WMD_PMDI
             SendMessage(lpFrame->ei.hWndClone3, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone3, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone3, 0);
+            SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone3, 0);
+          }
+          SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone3 == lpFrame->ei.hWndEdit)
@@ -10929,7 +10940,7 @@ void RecentFilesMenu()
 
     for (i=0, lpRecentFile=hRecentFilesStack.first; lpRecentFile; lpRecentFile=lpRecentFile->next)
     {
-      TrimPathW(wbuf2, lpRecentFile->wszFile, RECENTFILES_RECORD_LENGTH);
+      TrimPath(wbuf2, lpRecentFile->wszFile, RECENTFILES_RECORD_LENGTH);
       FixAmpW(wbuf2, wbuf, BUFFER_SIZE);
       InsertMenuWide(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + (++i), wbuf);
     }
@@ -10984,30 +10995,26 @@ void StackRecentFileParamFree(RECENTFILE *lpRecentFile)
   StackClear((stack **)&lpRecentFile->lpParamsStack.first, (stack **)&lpRecentFile->lpParamsStack.last);
 }
 
-int TrimPathW(wchar_t *wszResult, const wchar_t *wpPath, int nMax)
+int TrimPath(wchar_t *wszResult, const wchar_t *wpPath, int nMax)
 {
   int nFileLen;
   int nLen=(int)xstrlenW(wpPath);
-  const wchar_t *wpEnd=wpPath + nLen;
-  const wchar_t *wpFile=wpEnd - 1;
+  const wchar_t *wpPathMax=wpPath + nLen;
+  const wchar_t *wpFile=wpPathMax - 1;
 
   if (nLen <= nMax)
-  {
     return (int)xstrcpyW(wszResult, wpPath);
-  }
 
   while (wpFile >= wpPath && *wpFile != '\\') --wpFile;
 
   if (wpFile >= wpPath)
   {
-    nFileLen=(int)(wpEnd - wpFile);
+    nFileLen=(int)(wpPathMax - wpFile);
 
     if (nFileLen + 3 < nMax)
-    {
       return (int)xprintfW(wszResult, L"%.%ds...%s", nMax - nFileLen - 4, wpPath, wpFile);
-    }
   }
-  return (int)xprintfW(wszResult, L"...%s", wpEnd - nMax + 4);
+  return (int)xprintfW(wszResult, L"...%s", wpPathMax - nMax + 4);
 }
 
 int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax)
