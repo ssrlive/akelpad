@@ -3058,6 +3058,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return MessageBoxCustom(dmb->hWndParent, dmb->wpText, dmb->wpCaption, dmb->uType, dmb->hIcon, dmb->bmb);
     }
+    if (uMsg == AKD_GETFOCUS)
+    {
+      return (LRESULT)GetFocus();
+    }
 
     //Plugin options
     if (uMsg == AKD_BEGINOPTIONS ||

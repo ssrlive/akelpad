@@ -2039,6 +2039,7 @@ typedef struct {
 #define AKD_POSTMESSAGE            (WM_USER + 290)
 #define AKD_TRANSLATEMESSAGE       (WM_USER + 291)
 #define AKD_MESSAGEBOX             (WM_USER + 292)
+#define AKD_GETFOCUS               (WM_USER + 293)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -3978,6 +3979,21 @@ Example:
  {
    //"My &Cancel"
  }
+
+
+AKD_GETFOCUS
+____________
+
+Retrieve the handle to the window that has the keyboard focus.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Handle to the window with the keyboard focus. If the main thread's message queue does not have an associated window with the keyboard focus, the return value is NULL. 
+
+Example:
+ HWND hWndFocus=(HWND)SendMessage(pd->hMainWnd, AKD_GETFOCUS, 0, 0);
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
