@@ -2040,6 +2040,7 @@ typedef struct {
 #define AKD_TRANSLATEMESSAGE       (WM_USER + 291)
 #define AKD_MESSAGEBOX             (WM_USER + 292)
 #define AKD_GETFOCUS               (WM_USER + 293)
+#define AKD_PEEKMESSAGE            (WM_USER + 294)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -3990,10 +3991,48 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Handle to the window with the keyboard focus. If the main thread's message queue does not have an associated window with the keyboard focus, the return value is NULL. 
+ Handle to the window with the keyboard focus. If the main thread's message queue does not have an associated window with the keyboard focus, the return value is NULL.
 
 Example:
  HWND hWndFocus=(HWND)SendMessage(pd->hMainWnd, AKD_GETFOCUS, 0, 0);
+
+
+AKD_PEEKMESSAGE
+_______________
+
+Checks the thread message queue for a posted message, and retrieves the message (if any exist).
+
+(HWND)wParam  == a handle to the window whose messages are to be retrieved. If hWnd is NULL, AKD_PEEKMESSAGE retrieves messages for any window that belongs to the main thread.
+(MSG *)lParam == pointer to an MSG structure that contains message information.
+
+Return Value
+ TRUE  message is available.
+ FALSE no messages are available.
+
+Remarks
+ Messages are removed from the queue after processing by AKD_PEEKMESSAGE.
+
+Example (wait for handle and process messages):
+void WaitForMutex(hMutex)
+{
+  MSG msg;
+  BOOL bExitLoop=FALSE;
+
+  for (;;)
+  {
+    while (SendMessage(hMainWnd, AKD_PEEKMESSAGE, (WPARAM)NULL, (LPARAM)&msg))
+    {
+      if (msg.message == WM_QUIT)
+        bExitLoop=TRUE;
+      else
+        SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+    }
+    if (bExitLoop)
+      break;
+    if (MsgWaitForMultipleObjects(1, &hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+      break;
+  }
+}
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
