@@ -20692,11 +20692,11 @@ void FreePat(STACKREGROUP *hStack)
       continue;
     }
 
-    //Fold doesn't have childrens
+    //Group doesn't have childrens
     lpParent=lpSubling->parent;
     lpNextSubling=lpSubling->next;
 
-    //Delete fold
+    //Delete group
     if (!lpParent)
       StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpSubling);
     else
