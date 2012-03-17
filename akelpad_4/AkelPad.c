@@ -3062,6 +3062,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return (LRESULT)GetFocus();
     }
+    if (uMsg == AKD_PEEKMESSAGE)
+    {
+      return (LRESULT)PeekMessage((LPMSG)lParam, (HWND)wParam, 0, 0, PM_REMOVE);
+    }
 
     //Plugin options
     if (uMsg == AKD_BEGINOPTIONS ||
@@ -4885,9 +4889,10 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
           SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
 
-          if ((moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT) && !(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
+          if (!(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
           {
-            SwitchLayout(aensc->hdr.hwndFrom, &aensc->ciCaret);
+            if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
+              SwitchLayout(aensc->hdr.hwndFrom, &aensc->ciCaret);
           }
         }
       }
