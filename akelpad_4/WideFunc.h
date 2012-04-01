@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.8                    *
+ *                  Wide functions header v1.9                    *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -2038,6 +2038,9 @@ int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax)
     char *szText;
     int nTextLen=0;
 
+    //Make nTextMax less than 0x7FFF otherwise GetWindowTextA failed
+    if (nTextMax > 0x7FFF) nTextMax=0x7FFF;
+
     if (szText=(char *)GlobalAlloc(GPTR, nTextMax * sizeof(wchar_t)))
     {
       nTextLen=GetWindowTextA(hWnd, szText, nTextMax * sizeof(wchar_t));
@@ -2093,6 +2096,9 @@ int GetDlgItemTextWide(HWND hDlg, int nIDDlgItem, wchar_t *wszText, int nTextMax
   {
     char *szText;
     int nTextLen=0;
+
+    //Make nTextMax less than 0x7FFF otherwise GetDlgItemTextA failed
+    if (nTextMax > 0x7FFF) nTextMax=0x7FFF;
 
     if (szText=(char *)GlobalAlloc(GPTR, nTextMax * sizeof(wchar_t)))
     {
