@@ -9291,7 +9291,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       if (bReplaceAll)
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
-      SetFocus(hWndFocus);
+      if (hWndFocus)
+        SetFocus(hWndFocus);
 
       return TRUE;
     }
@@ -20257,7 +20258,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
   Error:
   FreePat(hStack);
-  return wpPat - wpMinPat;
+  return (wpPat - wpMinPat) + 1;
 }
 
 BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr)

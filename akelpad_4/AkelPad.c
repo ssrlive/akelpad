@@ -1547,37 +1547,35 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SendMessage(hStatus, SB_SIMPLE, FALSE, 0);
 
-    //Set status bar parts
+    //Set standard parts
     nStatusParts=SBP_USER + hStatusStack.nElements;
 
-    if (lpSBParts=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, nStatusParts * sizeof(int)))
+    lpSBParts=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, nStatusParts * sizeof(int));
+    lpSBParts[SBP_POSITION]=110;
+    lpSBParts[SBP_MODIFY]=220;
+    lpSBParts[SBP_INSERT]=250;
+    lpSBParts[SBP_NEWLINE]=280;
+    lpSBParts[SBP_CODEPAGE]=-1;
+
+    //Set user parts
+    if (hStatusStack.nElements)
     {
-      lpSBParts[SBP_POSITION]=110;
-      lpSBParts[SBP_MODIFY]=220;
-      lpSBParts[SBP_INSERT]=250;
-      lpSBParts[SBP_NEWLINE]=280;
-      lpSBParts[SBP_CODEPAGE]=-1;
+      STATUSPART *sp;
+      int nPartIndex=SBP_USER;
+      int nPartSize;
 
-      //Set user parts
-      if (hStatusStack.nElements)
+      lpSBParts[SBP_CODEPAGE]=560;
+      nPartSize=lpSBParts[SBP_CODEPAGE];
+
+      for (sp=hStatusStack.first; sp; sp=sp->next)
       {
-        STATUSPART *sp;
-        int nPartIndex=SBP_USER;
-        int nPartSize;
-
-        lpSBParts[SBP_CODEPAGE]=560;
-        nPartSize=lpSBParts[SBP_CODEPAGE];
-
-        for (sp=hStatusStack.first; sp; sp=sp->next)
+        if (sp->nPartSize == -1)
         {
-          if (sp->nPartSize == -1)
-          {
-            lpSBParts[nPartIndex++]=-1;
-            break;
-          }
-          nPartSize+=sp->nPartSize;
-          lpSBParts[nPartIndex++]=nPartSize;
+          lpSBParts[nPartIndex++]=-1;
+          break;
         }
+        nPartSize+=sp->nPartSize;
+        lpSBParts[nPartIndex++]=nPartSize;
       }
     }
     SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)lpSBParts);
@@ -1605,6 +1603,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ssStatus.nNewLine=-1;
     ssStatus.nCodePage=-1;
     ssStatus.bBOM=-1;
+    API_HeapFree(hHeap, 0, (LPVOID)lpSBParts);
 
     PostMessage(hWnd, AKDN_MAIN_ONSTART, 0, 0);
   }
