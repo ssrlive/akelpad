@@ -484,8 +484,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
+    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Kierunek",IDC_STATIC,121,27,68,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,62,10
@@ -501,8 +505,6 @@ BEGIN
     DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,198,6,59,14,BS_CENTER
     PUSHBUTTON      "Anuluj",IDCANCEL,198,23,59,14,BS_CENTER
     LTEXT           "Co:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - wartoœæ hex,\n \\\\ - backslash,\n \\n - nowy wiersz,\n \\t - tabulacja)",
-                    IDC_STATIC,21,66,97,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 264, 122
@@ -520,8 +522,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
+    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Kierunek",IDC_STATIC,121,41,68,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,62,10
@@ -542,8 +548,6 @@ BEGIN
     PUSHBUTTON      "Anuluj",IDCANCEL,198,55,59,14,BS_CENTER
     LTEXT           "Co:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "Czym:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - wartoœæ hex,\n \\\\ - backslash,\n \\n - nowy wiersz,\n \\t - tabulacja)",
-                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85

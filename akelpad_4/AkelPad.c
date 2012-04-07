@@ -860,6 +860,7 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_BEGINNING) |
           (moInit.dwSearchOptions & AEFR_SELECTION) |
           (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
+          (moInit.dwSearchOptions & AEFR_REGEXP) |
           (moInit.dwSearchOptions & AEFR_ALLFILES) |
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |
@@ -3436,41 +3437,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PATREPLACE)
     {
-      PATREPLACE *pr=(PATREPLACE *)lParam;
-      PATEXEC pe;
-      PATEXECPARAM pep;
-
-      //Replace using RegExp
-      pep.pe=&pe;
-      pep.wpRep=pr->wpRep;
-      pep.wpMaxRep=pr->wpMaxRep;
-      pep.wpRightStr=NULL;
-      pep.wszBuf=pr->wszResult;
-      pep.wpBufCount=pep.wszBuf;
-
-      pe.lpREGroupStack=0;
-      pe.wpPat=pr->wpPat;
-      pe.wpMaxPat=pr->wpMaxPat;
-      pe.wpStr=pr->wpStr;
-      pe.wpMaxStr=pr->wpMaxStr;
-      pe.dwOptions=pr->dwOptions;
-      pe.lpCallback=PatReplaceCallback;
-      pe.lParam=(LPARAM)&pep;
-      if (PatStructExec(&pe))
-      {
-        //Copy unmatched right part of string
-        if (pep.wszBuf)
-          xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
-        pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
-
-        if (pep.wszBuf)
-          *pep.wpBufCount=L'\0';
-        else
-          ++pep.wpBufCount;
-      }
-      PatStructFree(&pe);
-
-      return (LRESULT)(pep.wpBufCount - pep.wszBuf);
+      return PatReplace((PATREPLACE *)lParam);
     }
     if (uMsg == AKD_PATGROUPSTR)
     {

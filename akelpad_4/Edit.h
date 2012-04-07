@@ -1140,6 +1140,7 @@ REGROUP* PrevPatGroup(REGROUP *lpREGroupItem);
 void FreePat(STACKREGROUP *hStack);
 int PatStructExec(PATEXEC *pe);
 void PatStructFree(PATEXEC *pe);
+INT_PTR PatReplace(PATREPLACE *pr);
 int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);

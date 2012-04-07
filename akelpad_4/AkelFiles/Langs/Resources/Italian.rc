@@ -487,8 +487,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,88,12
     CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,88,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,88,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Direzione",IDC_STATIC,115,27,71,58
     CONTROL         "Giù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,120,
                     37,33,10
@@ -505,8 +509,6 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "Annulla",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "Cerca:",IDC_STATIC,4,11,22,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - riga hex,\n \\\\ - backslash,\n \\n - linea feed,\n \\t - tabulazione)",
-                    IDC_STATIC,21,66,88,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -524,8 +526,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,88,12
     CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,88,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,88,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Direzione",IDC_STATIC,115,41,71,58
     CONTROL         "Giù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,120,
                     51,33,10
@@ -547,8 +553,6 @@ BEGIN
     PUSHBUTTON      "Annulla",IDCANCEL,196,55,54,14,BS_CENTER
     LTEXT           "Cosa:",IDC_STATIC,4,11,22,8,NOT WS_GROUP
     LTEXT           "Con:",IDC_STATIC,4,25,22,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - riga hex,\n \\\\ - backslash,\n \\n - linea feed,\n \\t - tabulazione)",
-                    IDC_STATIC,21,80,88,33,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85

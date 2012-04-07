@@ -485,8 +485,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,74,10
     CONTROL         "Sólo frase entera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Secuencias-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,67,10
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Dirección",IDC_STATIC,121,27,81,58
     CONTROL         "Abajo",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,75,10
@@ -503,8 +507,6 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "Cancelar",IDCANCEL,212,23,68,14,BS_CENTER
     LTEXT           "Qué:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - cadena hexadecimal,\n \\\\ - barra inversa,\n \\n - salto de línea,\n \\t - tabulación)",
-                    IDC_STATIC,21,66,91,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 288, 122
@@ -522,8 +524,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,74,10
     CONTROL         "Sólo frase entera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,105,12
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Secuencias-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,67,10
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Dirección",IDC_STATIC,121,41,81,58
     CONTROL         "Abajo",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,75,10
@@ -545,8 +551,6 @@ BEGIN
     PUSHBUTTON      "Cancelar",IDCANCEL,212,55,67,14,BS_CENTER
     LTEXT           "Qué:",IDC_STATIC,4,11,16,8,NOT WS_GROUP
     LTEXT           "Con:",IDC_STATIC,4,25,16,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - cadena hexadecimal,\n \\\\ - barra inversa,\n \\n - salto de línea,\n \\t - tabulación)",
-                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85

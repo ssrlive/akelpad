@@ -471,7 +471,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "尋找"
-FONT 9, "新細明體", 0, 0, 0x1
+FONT 9, "新細明體"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,43,9,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -479,8 +479,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
+    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,121,27,66,58
     CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
@@ -495,10 +499,8 @@ BEGIN
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
     DEFPUSHBUTTON   "尋找下一個(&F)",IDC_SEARCH_FIND_BUTTON,194,6,56,14,
                     BS_CENTER
-    PUSHBUTTON      "取消",IDCANCEL,196,23,54,14,BS_CENTER
+    PUSHBUTTON      "取消",IDCANCEL,194,23,56,14,BS_CENTER
     LTEXT           "尋找目標:",IDC_STATIC,4,11,38,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16進位字串,\n \\\\ - 反斜線,\n \\n - 換行,\n \\t - 表格)",
-                    IDC_STATIC,21,66,97,39,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -516,8 +518,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
+    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,121,41,66,58
     CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
@@ -539,8 +545,6 @@ BEGIN
     PUSHBUTTON      "取消",IDCANCEL,196,55,54,14,BS_CENTER
     LTEXT           "尋找目標:",IDC_STATIC,4,11,38,12,NOT WS_GROUP
     LTEXT           "取代為:",IDC_STATIC,4,25,38,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16進位字串,\n \\\\ - 反斜線,\n \\n - 換行,\n \\t - 表格)",
-                    IDC_STATIC,21,80,97,39,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
@@ -752,12 +756,12 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "插入點",IDC_STATIC,9,86,202,51
-    CONTROL         "允許插入點在行結尾之後",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
-    CONTROL         "顯示使用中的列",IDC_OPTIONS_CARETVERTLINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "顯示使用中的行",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "允許插入點在行結尾之後",IDC_OPTIONS_CARETOUTEDGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "顯示使用中的列",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "顯示使用中的行",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "框線",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "寬度:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -788,9 +792,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -808,15 +812,14 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "編輯器 2"
 FONT 9, "新細明體"
 BEGIN
-    CONTROL         "在邊界選擇行按滑鼠左鍵",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit 滑鼠選取",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+    CONTROL         "在邊界選擇行按滑鼠左鍵",IDC_OPTIONS_MOUSELEFTMARGIN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+    CONTROL         "RichEdit 滑鼠選取",IDC_OPTIONS_MOUSERICHEDIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "滑鼠拖曳",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "按右鍵移動插入符號",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "按右鍵移動插入符號",IDC_OPTIONS_RCLICKMOVECARET,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
     GROUPBOX        "超連結",IDC_STATIC,9,60,200,100
     CONTROL         "顯示",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
@@ -959,8 +962,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "訊息佇列發生錯誤。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "嚴重錯誤: 無足夠的記憶體。建議終止程式。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY "嚴重錯誤: 無足夠的記憶體。建議終止程式。"
     MSG_ERROR_BINARY        """%s"" 是一個二進位檔案。要繼續嗎?"
     MSG_ERROR_IO            "輸出/輸入錯誤。"
     MSG_ERROR_SYNTAX        "語法錯誤。"
@@ -1057,11 +1059,11 @@ BEGIN
     STR_PAGEWIDTH           "頁寬"
     STR_ALLFILES            "所有檔案"
     STR_ONLYMODIFIED        "已修改"
-    STR_ONLYUNMODIFIED      "未修改過"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYUNMODIFIED      "未修改過"
     STR_INVERTSELECTION     "反向選擇"
     STR_MESSAGEBOX_OK       "確定"
     STR_MESSAGEBOX_YES      "是(&Y)"

@@ -434,6 +434,7 @@
 //#define AEFR_DOWN               0x00000001
 //#define AEFR_WHOLEWORD          0x00000002
 //#define AEFR_MATCHCASE          0x00000004
+#define AEFR_REGEXP             0x00080000
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
 #define AEFR_SELECTION          0x00400000
@@ -1058,6 +1059,7 @@ typedef struct _FRAMEDATA {
   HKL dwInputLocale;                                  //Keyboard layout.
   DWORD dwLockInherit;                                //See LI_* defines.
   int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
+  INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
 
   //Substract selection
   AECHARRANGE crPrevSel;
@@ -1308,6 +1310,7 @@ typedef struct {
   const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
   const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;         //See REPE_* defines.
+  int nReplaceCount;       //Receives replace count number.
   wchar_t *wszResult;      //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
 

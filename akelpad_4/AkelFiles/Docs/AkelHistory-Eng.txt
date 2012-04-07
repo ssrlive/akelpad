@@ -1,6 +1,7 @@
 
 AkelPad 4.7.4 ()
 ----------------------------
+Added: support for regular expressions in find/replace dialog.
 Added: possibility to add status bar delimiter with "StatusUserFormat".
 
 Fixed: split window in SDI mode.
