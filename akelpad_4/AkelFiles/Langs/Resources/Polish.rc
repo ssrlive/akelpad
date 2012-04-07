@@ -484,7 +484,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Wyra¿enia &regularne",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
