@@ -8887,6 +8887,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndMatchCase;
   static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
+  static HWND hWndRegExp;
   static HWND hWndForward;
   static HWND hWndBackward;
   static HWND hWndBeginning;
@@ -8916,6 +8917,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndMatchCase=GetDlgItem(hDlg, IDC_SEARCH_MATCHCASE);
     hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
+    hWndRegExp=GetDlgItem(hDlg, IDC_SEARCH_REGEXP);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
@@ -8967,6 +8969,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     if (moCur.dwSearchOptions & AEFR_MATCHCASE) SendMessage(hWndMatchCase, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_WHOLEWORD) SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_ESCAPESEQ) SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & AEFR_REGEXP) SendMessage(hWndRegExp, BM_SETCHECK, BST_CHECKED, 0);
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOXEDIT))
     {
@@ -9032,6 +9035,22 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       if (SendMessage(hWndEscapeSeq, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=AEFR_ESCAPESEQ;
       else moCur.dwSearchOptions&=~AEFR_ESCAPESEQ;
+      if (moCur.dwSearchOptions & AEFR_ESCAPESEQ)
+      {
+        SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
+        moCur.dwSearchOptions&=~AEFR_REGEXP;
+      }
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_SEARCH_REGEXP)
+    {
+      if (SendMessage(hWndRegExp, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=AEFR_REGEXP;
+      else moCur.dwSearchOptions&=~AEFR_REGEXP;
+      if (moCur.dwSearchOptions & AEFR_REGEXP)
+      {
+        SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_UNCHECKED, 0);
+        moCur.dwSearchOptions&=~AEFR_ESCAPESEQ;
+      }
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_FORWARD)
@@ -9202,13 +9221,28 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
             if (nResult == -1)
             {
-              if (bSpecialCheck == TRUE)
+              if ((moCur.dwSearchOptions & AEFR_REGEXP) && lpFrameCurrent->nCompileErrorOffset)
               {
-                bSpecialCheck=FALSE;
-                moCur.dwSearchOptions|=AEFR_BEGINNING;
-                SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+                API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
+                API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+                hWndFocus=NULL;
+                SetFocus(hWndFind);
+                SendMessage(hWndFind, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
+
+                //Don't show MSG_SEARCH_ENDED
+                nResult=-2;
+                break;
               }
-              lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+              else
+              {
+                if (bSpecialCheck == TRUE)
+                {
+                  bSpecialCheck=FALSE;
+                  moCur.dwSearchOptions|=AEFR_BEGINNING;
+                  SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+                }
+                lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+              }
             }
             else
             {
@@ -9249,34 +9283,45 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
         if (nResult == -1)
         {
-          if (bSpecialCheck == TRUE)
+          if (lpFrameCurrent->nCompileErrorOffset)
           {
-            bSpecialCheck=FALSE;
-            moCur.dwSearchOptions|=AEFR_BEGINNING;
-            SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
-          }
-          if (bReplaceAll == TRUE)
-          {
-            //Show result
-            lpFrameCurrent->nReplaceCount=nReplaceCount;
-            UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
-
-            if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
-            {
-              API_LoadStringW(hLangLib, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
-              xprintfW(wszMsg, wbuf, nReplaceCount);
-              API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
-            }
-            else
-            {
-              PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-              return TRUE;
-            }
+            API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
+            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+            hWndFocus=NULL;
+            SetFocus(hWndFind);
+            SendMessage(hWndFind, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
           }
           else
           {
-            API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
-            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+            if (bSpecialCheck == TRUE)
+            {
+              bSpecialCheck=FALSE;
+              moCur.dwSearchOptions|=AEFR_BEGINNING;
+              SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+            }
+            if (bReplaceAll == TRUE)
+            {
+              //Show result
+              lpFrameCurrent->nReplaceCount=nReplaceCount;
+              UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
+
+              if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
+              {
+                API_LoadStringW(hLangLib, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
+                xprintfW(wszMsg, wbuf, nReplaceCount);
+                API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+              }
+              else
+              {
+                PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+                return TRUE;
+              }
+            }
+            else
+            {
+              API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
+              API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+            }
           }
         }
         else
@@ -9494,6 +9539,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 {
   AEFINDTEXTW ft;
   CHARRANGE64 cr;
+  BOOL bFound=FALSE;
 
   if (dwFlags & AEFR_SELECTION)
   {
@@ -9517,48 +9563,144 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   }
   else return -1;
 
-  ft.dwFlags=dwFlags;
-  ft.pText=wpFindIt;
-  ft.dwTextLen=nFindItLen;
-  ft.nNewLine=AELB_R;
-
-  if (SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
+  if (dwFlags & AEFR_REGEXP)
   {
-    lpFrame->bReachedEOF=FALSE;
-    UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+    STACKREGROUP hREGroupStack;
+    AECHARRANGE crWord;
+    const wchar_t *wpStr;
+    const wchar_t *wpMaxStr;
 
+    hREGroupStack.first=0;
+    hREGroupStack.last=0;
+    hREGroupStack.dwOptions=(dwFlags & AEFR_MATCHCASE)?REO_MATCHCASE:0;
+
+    if (!(lpFrame->nCompileErrorOffset=CompilePat(&hREGroupStack, wpFindIt, wpFindIt + nFindItLen)))
+    {
+      if (dwFlags & AEFR_UP)
+      {
+        for (;;)
+        {
+          if (ft.crSearch.ciMin.nLine < ft.crSearch.ciMax.nLine)
+          {
+            wpStr=ft.crSearch.ciMax.lpLine->wpLine;
+            wpMaxStr=wpStr + ft.crSearch.ciMax.nCharInLine;
+          }
+          else if (ft.crSearch.ciMin.nLine == ft.crSearch.ciMax.nLine)
+          {
+            wpStr=ft.crSearch.ciMin.lpLine->wpLine + ft.crSearch.ciMin.nCharInLine;
+            wpMaxStr=ft.crSearch.ciMin.lpLine->wpLine + ft.crSearch.ciMax.nCharInLine;
+          }
+          else break;
+
+          while (wpStr < wpMaxStr)
+          {
+            if (ExecPat(&hREGroupStack, hREGroupStack.first, wpStr, wpMaxStr))
+            {
+              crWord.ciMin=ft.crSearch.ciMax;
+              crWord.ciMin.nCharInLine=(int)(hREGroupStack.first->wpStrStart - ft.crSearch.ciMax.lpLine->wpLine);
+              crWord.ciMax=ft.crSearch.ciMax;
+              crWord.ciMax.nCharInLine=(int)(hREGroupStack.first->wpStrEnd - ft.crSearch.ciMax.lpLine->wpLine);
+
+              if (!(dwFlags & AEFR_WHOLEWORD) ||
+                  (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crWord.ciMin) &&
+                   SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crWord.ciMax)))
+              {
+                xmemcpy(&ft.crFound, &crWord, sizeof(AECHARRANGE));
+                bFound=TRUE;
+              }
+              //Find next match
+              wpStr=hREGroupStack.first->wpStrEnd;
+            }
+            else break;
+          }
+          if (bFound) break;
+
+          if (!AEC_PrevLine(&ft.crSearch.ciMax))
+            break;
+        }
+      }
+      else
+      {
+        for (;;)
+        {
+          if (ft.crSearch.ciMin.nLine < ft.crSearch.ciMax.nLine)
+          {
+            wpStr=ft.crSearch.ciMin.lpLine->wpLine + ft.crSearch.ciMin.nCharInLine;
+            wpMaxStr=ft.crSearch.ciMin.lpLine->wpLine + ft.crSearch.ciMin.lpLine->nLineLen;
+          }
+          else if (ft.crSearch.ciMin.nLine == ft.crSearch.ciMax.nLine)
+          {
+            wpStr=ft.crSearch.ciMin.lpLine->wpLine + ft.crSearch.ciMin.nCharInLine;
+            wpMaxStr=ft.crSearch.ciMax.lpLine->wpLine + ft.crSearch.ciMax.nCharInLine;
+          }
+          else break;
+
+          if (ExecPat(&hREGroupStack, hREGroupStack.first, wpStr, wpMaxStr))
+          {
+            ft.crFound.ciMin=ft.crSearch.ciMin;
+            ft.crFound.ciMin.nCharInLine=(int)(hREGroupStack.first->wpStrStart - ft.crSearch.ciMin.lpLine->wpLine);
+            ft.crFound.ciMax=ft.crSearch.ciMin;
+            ft.crFound.ciMax.nCharInLine=(int)(hREGroupStack.first->wpStrEnd - ft.crSearch.ciMin.lpLine->wpLine);
+
+            if (!(dwFlags & AEFR_WHOLEWORD) ||
+                (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&ft.crFound.ciMin) &&
+                 SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ft.crFound.ciMax)))
+            {
+              bFound=TRUE;
+              break;
+            }
+          }
+
+          if (!AEC_NextLine(&ft.crSearch.ciMin))
+            break;
+        }
+      }
+      FreePat(&hREGroupStack);
+    }
+  }
+  else
+  {
+    ft.dwFlags=dwFlags;
+    ft.pText=wpFindIt;
+    ft.dwTextLen=nFindItLen;
+    ft.nNewLine=AELB_R;
+
+    if (SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
+    {
+      lpFrame->bReachedEOF=FALSE;
+      UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+      bFound=TRUE;
+    }
+    else
+    {
+      lpFrame->bReachedEOF=TRUE;
+      UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+
+      if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
+      {
+        if (dwFlags & AEFR_DOWN)
+        {
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+          ft.crSearch.ciMax=crCurSel.ciMin;
+        }
+        else if (dwFlags & AEFR_UP)
+        {
+          ft.crSearch.ciMin=crCurSel.ciMax;
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+        }
+        bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
+      }
+    }
+  }
+
+  if (bFound)
+  {
     SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
     ScrollCaret(lpFrame->ei.hWndEdit);
     SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
     return cr.cpMin;
   }
-  else
-  {
-    lpFrame->bReachedEOF=TRUE;
-    UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
-
-    if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
-    {
-      if (dwFlags & AEFR_DOWN)
-      {
-        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
-        ft.crSearch.ciMax=crCurSel.ciMin;
-      }
-      else if (dwFlags & AEFR_UP)
-      {
-        ft.crSearch.ciMin=crCurSel.ciMax;
-        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
-      }
-      if (SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
-      {
-        SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
-        ScrollCaret(lpFrame->ei.hWndEdit);
-        SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-        return cr.cpMin;
-      }
-    }
-    SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
-  }
+  SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
   return -1;
 }
 
@@ -9569,6 +9711,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   AECHARRANGE crInsert;
   AECHARINDEX ciFirstVisibleBefore;
   CHARRANGE64 crInitialRE;
+  PATREPLACE pr;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
   int nGetTextNewLine;
@@ -9684,17 +9827,42 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
     if (nRangeTextLen=ExGetRangeTextW(lpFrame->ei.hWndEdit, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, nGetTextNewLine, TRUE))
     {
-      if (nFindItLen < nReplaceWithLen)
+      //Calculate result string length
+      if (dwFlags & AEFR_REGEXP)
       {
-        if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
+        pr.wpStr=wszRangeText;
+        pr.wpMaxStr=wszRangeText + nRangeTextLen;
+        pr.wpPat=wpFindIt;
+        pr.wpMaxPat=wpFindIt + nFindItLen;
+        pr.wpRep=wpReplaceWith;
+        pr.wpMaxRep=wpReplaceWith + nReplaceWithLen;
+        pr.dwOptions=REPE_GLOBAL|(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
+        pr.wszResult=NULL;
+        nResultTextLen=PatReplace(&pr);
+
+        if (pr.nReplaceCount)
         {
-          wszResultText=AllocWideStr(nResultTextLen + 1);
+          if (nResultTextLen < nRangeTextLen)
+            wszResultText=AllocWideStr(nResultTextLen);
+          else
+          {
+            //We don't need allocate new buffer since output string is less than input
+            wszResultText=wszRangeText;
+          }
         }
       }
       else
       {
-        //We don't need allocate new buffer since output string is less than input
-        wszResultText=wszRangeText;
+        if (nFindItLen < nReplaceWithLen)
+        {
+          if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
+            wszResultText=AllocWideStr(nResultTextLen + 1);
+        }
+        else
+        {
+          //We don't need allocate new buffer since output string is less than input
+          wszResultText=wszRangeText;
+        }
       }
 
       if (wszResultText)
@@ -9738,9 +9906,17 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         else nFirstVisible=-MAXINT_PTR;
 
         //Replace operation
-        if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -MAXINT_PTR)?NULL:&nMax, (nFirstVisible == -MAXINT_PTR)?NULL:&nFirstVisible))
+        if (dwFlags & AEFR_REGEXP)
         {
-          if (nFindItLen < nReplaceWithLen)
+          pr.wszResult=wszResultText;
+          nResultTextLen=PatReplace(&pr);
+          nChanges=pr.nReplaceCount;
+        }
+        else nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -MAXINT_PTR)?NULL:&nMax, (nFirstVisible == -MAXINT_PTR)?NULL:&nFirstVisible);
+
+        if (nChanges)
+        {
+          if (wszResultText != wszRangeText)
           {
             //Data for ReplaceSelW now in wszResultText
             FreeText(wszRangeText);
@@ -9820,7 +9996,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           }
         }
 
-        if (nFindItLen < nReplaceWithLen)
+        if (wszResultText != wszRangeText)
           FreeWideStr(wszResultText);
       }
       if (wszRangeText) FreeText(wszRangeText);
@@ -9830,19 +10006,55 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   {
     AEFINDTEXTW ft;
 
-    ft.dwFlags=dwFlags;
-    ft.pText=wpFindIt;
-    ft.dwTextLen=nFindItLen;
-    ft.nNewLine=AELB_R;
-
-    if (SendMessage(lpFrame->ei.hWndEdit, AEM_ISMATCHW, (WPARAM)&crCurSel.ciMin, (LPARAM)&ft))
+    if (dwFlags & AEFR_REGEXP)
     {
-      if (!AEC_IndexCompare(&crCurSel.ciMax, &ft.crFound.ciMax))
+      if (crCurSel.ciMin.nLine == crCurSel.ciMax.nLine)
       {
-        ReplaceSelW(lpFrame->ei.hWndEdit, wpReplaceWith, nReplaceWithLen, AELB_ASINPUT, 0, NULL, NULL);
-        nChanges=1;
+        STACKREGROUP hREGroupStack;
+        const wchar_t *wpStr;
+        const wchar_t *wpMaxStr;
+
+        hREGroupStack.first=0;
+        hREGroupStack.last=0;
+        hREGroupStack.dwOptions=(dwFlags & AEFR_MATCHCASE)?REO_MATCHCASE:0;
+
+        if (!(lpFrame->nCompileErrorOffset=CompilePat(&hREGroupStack, wpFindIt, wpFindIt + nFindItLen)))
+        {
+          wpStr=crCurSel.ciMin.lpLine->wpLine + crCurSel.ciMin.nCharInLine;
+          wpMaxStr=crCurSel.ciMax.lpLine->wpLine + crCurSel.ciMax.nCharInLine;
+
+          if (ExecPat(&hREGroupStack, hREGroupStack.first, wpStr, wpMaxStr))
+          {
+            ft.crFound.ciMin=crCurSel.ciMin;
+            ft.crFound.ciMin.nCharInLine=(int)(hREGroupStack.first->wpStrStart - crCurSel.ciMin.lpLine->wpLine);
+            ft.crFound.ciMax=crCurSel.ciMin;
+            ft.crFound.ciMax.nCharInLine=(int)(hREGroupStack.first->wpStrEnd - crCurSel.ciMin.lpLine->wpLine);
+
+            if (!(dwFlags & AEFR_WHOLEWORD) ||
+                (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&ft.crFound.ciMin) &&
+                 SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ft.crFound.ciMax)))
+            {
+              nChanges=1;
+            }
+          }
+        }
+        FreePat(&hREGroupStack);
       }
     }
+    else
+    {
+      ft.dwFlags=dwFlags;
+      ft.pText=wpFindIt;
+      ft.dwTextLen=nFindItLen;
+      ft.nNewLine=AELB_R;
+
+      if (SendMessage(lpFrame->ei.hWndEdit, AEM_ISMATCHW, (WPARAM)&crCurSel.ciMin, (LPARAM)&ft))
+      {
+        if (!AEC_IndexCompare(&crCurSel.ciMax, &ft.crFound.ciMax))
+          nChanges=1;
+      }
+    }
+    if (nChanges) ReplaceSelW(lpFrame->ei.hWndEdit, wpReplaceWith, nReplaceWithLen, AELB_ASINPUT, 0, NULL, NULL);
     nResult=TextFindW(lpFrame, dwFlags, wpFindIt, nFindItLen);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
@@ -20778,6 +20990,44 @@ void PatStructFree(PATEXEC *pe)
     API_HeapFree(hHeap, 0, (LPVOID)pe->lpREGroupStack);
     pe->lpREGroupStack=NULL;
   }
+}
+
+INT_PTR PatReplace(PATREPLACE *pr)
+{
+  PATEXEC pe;
+  PATEXECPARAM pep;
+
+  //Replace using RegExp
+  pep.pe=&pe;
+  pep.wpRep=pr->wpRep;
+  pep.wpMaxRep=pr->wpMaxRep;
+  pep.wpRightStr=NULL;
+  pep.wszBuf=pr->wszResult;
+  pep.wpBufCount=pep.wszBuf;
+
+  pe.lpREGroupStack=0;
+  pe.wpPat=pr->wpPat;
+  pe.wpMaxPat=pr->wpMaxPat;
+  pe.wpStr=pr->wpStr;
+  pe.wpMaxStr=pr->wpMaxStr;
+  pe.dwOptions=pr->dwOptions;
+  pe.lpCallback=PatReplaceCallback;
+  pe.lParam=(LPARAM)&pep;
+  if (pr->nReplaceCount=PatStructExec(&pe))
+  {
+    //Copy unmatched right part of string
+    if (pep.wszBuf)
+      xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
+    pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
+
+    if (pep.wszBuf)
+      *pep.wpBufCount=L'\0';
+    else
+      ++pep.wpBufCount;
+  }
+  PatStructFree(&pe);
+
+  return (INT_PTR)(pep.wpBufCount - pep.wszBuf);
 }
 
 int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam)

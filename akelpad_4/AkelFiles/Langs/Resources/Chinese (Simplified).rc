@@ -477,8 +477,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,42,105,12
-    CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
+    CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,135,27,66,58
     CONTROL         "向下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,37,50,10
@@ -495,8 +499,6 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,206,23,58,14,BS_CENTER
     LTEXT           "查找内容:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16进制字符串，\n \\\\ - 反斜线，\n \\n - 换行符，\n \\t - 制表符)",
-                    IDC_STATIC,21,66,97,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 270, 122
@@ -514,8 +516,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,56,105,12
-    CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
+    CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,135,41,66,58
     CONTROL         "向下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,51,50,10
@@ -537,8 +543,6 @@ BEGIN
     PUSHBUTTON      "取消",IDCANCEL,206,55,58,14,BS_CENTER
     LTEXT           "查找内容:",IDC_STATIC,4,11,37,8,NOT WS_GROUP
     LTEXT           "替换为:",IDC_STATIC,12,25,29,8,NOT WS_GROUP
-    LTEXT           "(\\[...] - 16进制字符串，\n \\\\ - 反斜线，\n \\n - 换行符，\n \\t - 制表符)",
-                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
