@@ -470,83 +470,83 @@ BEGIN
     PUSHBUTTON      "&Zavøít",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
-IDD_FIND DIALOGEX 70, 70, 259, 109
+IDD_FIND DIALOGEX 70, 70, 262, 110
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Najít"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,162,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Rozlišit malá a VELKÁ písmena",IDC_SEARCH_MATCHCASE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,29,112,12
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,29,112,12
     CONTROL         "Jen celá slova",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,42,112,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,42,112,12
     CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,54,112,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,54,112,12
     CONTROL         "Speciální znaky",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,67,112,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,67,112,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,21,80,90,12,NOT 
                     WS_GROUP
-    GROUPBOX        "Smìr",IDC_STATIC,121,27,68,58
+    GROUPBOX        "Smìr",IDC_STATIC,124,27,68,58
     CONTROL         "Dolù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
-                    125,37,60,10
+                    128,37,60,10
     CONTROL         "Nahoru",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    125,48,60,10
+                    128,48,60,10
     CONTROL         "Od zaèátku",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,125,59,60,10
+                    BS_AUTORADIOBUTTON,128,59,60,10
     CONTROL         "Ve výbìru",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
-                    125,70,60,10
+                    128,70,60,10
     CONTROL         "Ve všech soub.",IDC_SEARCH_ALLFILES,"Button",
-                    BS_AUTORADIOBUTTON,125,87,60,10
-    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,68,19
-    DEFPUSHBUTTON   "&Najít další",IDC_SEARCH_FIND_BUTTON,198,6,54,14,
+                    BS_AUTORADIOBUTTON,128,87,60,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,124,80,68,19
+    DEFPUSHBUTTON   "&Najít další",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Zrušit",IDCANCEL,198,23,54,14,BS_CENTER
+    PUSHBUTTON      "Zrušit",IDCANCEL,201,23,54,14,BS_CENTER
     LTEXT           "Najít:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
 END
 
-IDD_REPLACE DIALOGEX 70, 70, 259, 122
+IDD_REPLACE DIALOGEX 70, 70, 262, 122
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Nahradit"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,162,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_SEARCH_REPLACE,27,23,162,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_REPLACE,27,23,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Rozlišit VELKÁ a malá písmena",IDC_SEARCH_MATCHCASE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,43,112,12
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,43,112,12
     CONTROL         "Jen celá slova",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,56,112,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,56,112,12
     CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,68,112,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,68,112,12
     CONTROL         "Speciální znaky",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,81,112,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,81,112,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,21,94,90,12,NOT 
                     WS_GROUP
-    GROUPBOX        "Smìr",IDC_STATIC,121,41,68,58
+    GROUPBOX        "Smìr",IDC_STATIC,124,41,68,58
     CONTROL         "Dolù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
-                    125,51,60,10
+                    128,51,60,10
     CONTROL         "Nahoru",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    125,62,60,10
+                    128,62,60,10
     CONTROL         "Od zaèátku",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,125,73,60,10
+                    BS_AUTORADIOBUTTON,128,73,60,10
     CONTROL         "Ve výbìru",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
-                    125,84,60,10
+                    128,84,60,10
     CONTROL         "Ve všech soub.",IDC_SEARCH_ALLFILES,"Button",
-                    BS_AUTORADIOBUTTON,125,101,60,10
-    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,68,19
-    DEFPUSHBUTTON   "&Najít další",IDC_SEARCH_FIND_BUTTON,198,6,54,14,
+                    BS_AUTORADIOBUTTON,128,101,60,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,124,94,68,19
+    DEFPUSHBUTTON   "&Najít další",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
                     BS_CENTER
-    PUSHBUTTON      "&Nahradit",IDC_SEARCH_REPLACE_BUTTON,198,23,54,14,
+    PUSHBUTTON      "&Nahradit",IDC_SEARCH_REPLACE_BUTTON,201,23,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Nahradit &vše",IDC_SEARCH_ALL_BUTTON,198,39,54,14,
+    PUSHBUTTON      "Nahradit &vše",IDC_SEARCH_ALL_BUTTON,201,39,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Zrušit",IDCANCEL,198,55,54,14,BS_CENTER
+    PUSHBUTTON      "Zrušit",IDCANCEL,201,55,54,14,BS_CENTER
     LTEXT           "Co:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "Èím:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
 END
@@ -974,8 +974,8 @@ GUIDELINES DESIGNINFO DISCARDABLE
 BEGIN
     IDD_FIND, DIALOG
     BEGIN
-        RIGHTMARGIN, 257
-        BOTTOMMARGIN, 108
+        RIGHTMARGIN, 260
+        BOTTOMMARGIN, 109
     END
 END
 #endif    // APSTUDIO_INVOKED

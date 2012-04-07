@@ -471,7 +471,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Find"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -483,7 +483,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,27,66,58
     CONTROL         "Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -508,7 +508,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -522,7 +522,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,41,66,58
     CONTROL         "Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,

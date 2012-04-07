@@ -487,7 +487,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Напрямок",IDC_STATIC,121,27,71,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -526,7 +526,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Напрямок",IDC_STATIC,121,41,71,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
