@@ -488,7 +488,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,80,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Kierunek",IDC_STATIC,121,27,68,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -522,11 +522,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Wyra¿enia &regularne",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,24,94,90,12,NOT 
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
                     WS_GROUP
     GROUPBOX        "Kierunek",IDC_STATIC,121,41,68,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
