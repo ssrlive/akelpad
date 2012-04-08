@@ -3,6 +3,10 @@ AkelPad 4.7.4 ()
 ----------------------------
 Added: support for regular expressions in find/replace dialog.
 Added: possibility to add status bar delimiter with "StatusUserFormat".
+Added: variables for "StatusUserFormat":
+       "%lb" - number of the first selected line;
+       "%le" - number of the last selected line;
+       "%ls" - count of lines in selection.
 
 Fixed: split window in SDI mode.
 
