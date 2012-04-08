@@ -1023,7 +1023,7 @@ BEGIN
     STR_MODIFIED            "Zmodyfikowany"
     STR_READONLY            "Tylko do odczytu"
     STR_COUNT               "%d z %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "bez"
     STR_AUTODETECT          "&Autodetekcja"
     STR_RECENT_FILES_EMPTY  "Puste"
     STR_RECENT_FILES_DELETE_DEAD "Usuñ odwo³ania do nieistniej¹cych plików"
