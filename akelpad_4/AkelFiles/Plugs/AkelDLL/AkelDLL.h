@@ -1069,7 +1069,12 @@ typedef struct _FRAMEDATA {
   INT_PTR nCaretRichOffset;
   INT_PTR nCaretByteOffset;
   int nCaretChar;
-  int nLineCount;
+  int nCaretLine;
+  int nCaretColumn;
+  int nLineCountAll;
+  int nLineCountSel;
+  int nLineSelBegin;
+  int nLineSelEnd;
   INT_PTR nRichCount;
   int nFontPoint;
   BOOL bReachedEOF;

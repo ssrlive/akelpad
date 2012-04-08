@@ -291,22 +291,25 @@
 #define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
 
 //Custom statusbar
-#define CSB_CHARHEX           0x0001
-#define CSB_CHARDEC           0x0002
-#define CSB_CHARLETTER        0x0004
-#define CSB_RICHOFFSET        0x0008
-#define CSB_BYTEOFFSET        0x0010
-#define CSB_LINECOUNT         0x0020
-#define CSB_RICHCOUNT         0x0040
-#define CSB_FONTPOINT         0x0080
-#define CSB_TABSIZE           0x0100
-#define CSB_MARKER            0x0200
-#define CSB_REPLACECOUNT      0x0400
-#define CSB_SEARCHENDED       0x0800
-#define CSB_DOCUMENTSCOUNT    0x1000
-#define CSB_DOCUMENTSMODIFIED 0x2000
-#define CSB_DOCUMENTSSAVED    0x4000
-#define CSB_DOCUMENTINDEX     0x8000
+#define CSB_CHARHEX           0x00001
+#define CSB_CHARDEC           0x00002
+#define CSB_CHARLETTER        0x00004
+#define CSB_RICHOFFSET        0x00008
+#define CSB_BYTEOFFSET        0x00010
+#define CSB_LINEALLCOUNT      0x00020
+#define CSB_LINESELCOUNT      0x00040
+#define CSB_LINESELBEGIN      0x00080
+#define CSB_LINESELEND        0x00100
+#define CSB_RICHCOUNT         0x00200
+#define CSB_FONTPOINT         0x00400
+#define CSB_TABSIZE           0x00800
+#define CSB_MARKER            0x01000
+#define CSB_REPLACECOUNT      0x02000
+#define CSB_SEARCHENDED       0x04000
+#define CSB_DOCUMENTSCOUNT    0x08000
+#define CSB_DOCUMENTSMODIFIED 0x10000
+#define CSB_DOCUMENTSSAVED    0x20000
+#define CSB_DOCUMENTINDEX     0x40000
 
 //Colors list
 #define LVI_COLOR_BASIC            0
@@ -886,6 +889,8 @@ INT_PTR IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int
 INT_PTR IndexOffset(HWND hWnd, AECHARINDEX *ciChar, INT_PTR nOffset, int nNewLine);
 INT_PTR AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar);
 void RichOffsetToAkelIndex(HWND hWnd, INT_PTR nOffset, AECHARINDEX *ciChar);
+int GetLineNumber(FRAMEDATA *lpFrame, int nWrappedLine);
+int GetIndexColumn(FRAMEDATA *lpFrame, const AECHARINDEX *ciChar);
 INT_PTR GetTextLength(HWND hWnd);
 INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText);
 INT_PTR GetRangeTextW(HWND hWnd, INT_PTR nMin, INT_PTR nMax, wchar_t **wpText);
