@@ -186,6 +186,7 @@ BEGIN
     POPUP "&Справка"
     BEGIN
         MENUITEM "&Руководство",                IDM_MANUAL
+        MENUITEM "О&бновление...",              IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&О программе",                IDM_ABOUT
     END
@@ -474,7 +475,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Поиск"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -511,7 +512,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Замена"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1047,11 +1048,11 @@ BEGIN
     STR_OPTIONS             "Параметры..."
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
     STR_NONE                "Нет"
     STR_PLUGIN              "Плагин"
     STR_FUNCTION            "Функция"
@@ -1067,11 +1068,11 @@ BEGIN
     STR_STANDARDTHEME       "Стандартная"
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
-    STR_SAMPLE              "Образец"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Образец"
     STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
@@ -1087,11 +1088,11 @@ BEGIN
     STR_PAGEFIT             "Целиком"
     STR_PAGEWIDTH           "По ширине"
     STR_ALLFILES            "Все файлы"
-    STR_ONLYMODIFIED        "Измененные"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Измененные"
     STR_ONLYUNMODIFIED      "Неизмененные"
     STR_INVERTSELECTION     "Инвертировать выделение"
     STR_MESSAGEBOX_OK       "OK"

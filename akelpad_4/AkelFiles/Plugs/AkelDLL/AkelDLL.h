@@ -1858,6 +1858,9 @@ typedef struct {
 #define IDM_MANUAL                      4352  //Open user's manual.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
+#define IDM_UPDATE                      4353  //Open AkelUpdater.
+                                              //Return Value: zero.
+                                              //
 #define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.
                                               //Return Value: zero.
                                               //

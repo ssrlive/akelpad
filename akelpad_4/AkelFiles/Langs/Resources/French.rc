@@ -193,6 +193,7 @@ BEGIN
     POPUP "&Aide"
     BEGIN
         MENUITEM "&Manuel",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&A propos",                   IDM_ABOUT
     END
@@ -766,8 +767,8 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Curseur",IDC_STATIC,9,86,202,51
-    CONTROL         "Curseur libre",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Curseur libre",IDC_OPTIONS_CARETOUTEDGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Montrer la colonne active",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
     CONTROL         "Montrer la ligne active",IDC_OPTIONS_CARETACTIVELINE,
@@ -802,9 +803,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -823,14 +824,16 @@ CAPTION "Editeur 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Clic gauche sur la marge sélectionne la ligne",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "Sélection RichEdit avec la souris",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
-    CONTROL         "Glissement avec la souris",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Clic droit déplace le curseur",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "Sélection RichEdit avec la souris",
+                    IDC_OPTIONS_MOUSERICHEDIT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,20,200,10
+    CONTROL         "Glissement avec la souris",IDC_OPTIONS_MOUSEDRAGGING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
+    CONTROL         "Clic droit déplace le curseur",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "HyperLiens",IDC_STATIC,9,60,200,100
     CONTROL         "Voir",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
@@ -847,13 +850,15 @@ BEGIN
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "Délimiteurs des mots:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    CONTROL         "Délimiteurs des mots:",
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Défaut",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
                     BS_CENTER
-    CONTROL         "Délimiteurs de wrapping:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    CONTROL         "Délimiteurs de wrapping:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Défaut",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
                     BS_CENTER
@@ -1037,11 +1042,11 @@ BEGIN
     STR_OPTIONS             "Réglages..."
     STR_LANGUAGE_NONE       "Interne"
     STR_FILE_FILTER         "Fichiers texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Fichiers exécutables (*.exe)|*.exe|Tous les fichiers (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Fichiers exécutables (*.exe)|*.exe|Tous les fichiers (*.*)|*.*"
     STR_NONE                "Aucun"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Fonction"
@@ -1057,11 +1062,11 @@ BEGIN
     STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Texte"
     STR_BACKGROUND          "Arrière plan"
-    STR_SAMPLE              "Echantillon"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Echantillon"
     STR_BASIC               "Couleur de base"
     STR_SELECTION           "Sélection"
     STR_ACTIVELINE          "Ligne active"
@@ -1077,12 +1082,12 @@ BEGIN
     STR_PAGEFIT             "Ajuster la page"
     STR_PAGEWIDTH           "Largeur de page"
     STR_ALLFILES            "Tous les fichiers"
-    STR_ONLYMODIFIED        "Modifié"
-    STR_ONLYUNMODIFIED      "Non modifié"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Modifié"
+    STR_ONLYUNMODIFIED      "Non modifié"
     STR_INVERTSELECTION     "Inverser la sélection"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Oui"

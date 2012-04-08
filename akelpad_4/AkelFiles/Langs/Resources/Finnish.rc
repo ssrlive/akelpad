@@ -192,6 +192,7 @@ BEGIN
     POPUP "&Ohje"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Tietoja",                    IDM_ABOUT
     END
@@ -767,12 +768,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "&Koh&distin",IDC_STATIC,9,86,202,51
-    CONTROL         "Est‰ kohdistimen  siirt&‰minen pois rivin reunoilta",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Est‰ kohdistimen  siirt&‰minen pois rivin reunoilta",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
     CONTROL         "&N‰yt‰ aktiivinen sarake",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Le&veys:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -803,9 +805,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -824,10 +826,10 @@ CAPTION "Editori 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Left click on margin selects line",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit-hiirivalinta",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "RichEdit-hiirivalinta",IDC_OPTIONS_MOUSERICHEDIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Hiiren raahaaminen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
     CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
@@ -851,13 +853,14 @@ BEGIN
     CONTROL         "Sano&jen erottimet:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Automaattisen rivityksen rajat:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Automaattisen rivityksen rajat:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1037,11 +1040,11 @@ BEGIN
     STR_OPTIONS             "Asetukset..."
     STR_LANGUAGE_NONE       "Sis‰inen"
     STR_FILE_FILTER         "Tekstitiedostot (*.txt)|*.txt|Kaikki (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Ohjelmatiedostot (*.exe)|*.exe|Kaikki (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Ohjelmatiedostot (*.exe)|*.exe|Kaikki (*.*)|*.*"
     STR_NONE                "Ei mit‰‰n"
     STR_PLUGIN              "Lis‰osa"
     STR_FUNCTION            "Funktio"
@@ -1057,11 +1060,11 @@ BEGIN
     STR_STANDARDTHEME       "Standardi"
     STR_TEXT                "Teksti"
     STR_BACKGROUND          "Tausta"
-    STR_SAMPLE              "Esimerkki"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Esimerkki"
     STR_BASIC               "Perusv‰ri"
     STR_SELECTION           "Valinta"
     STR_ACTIVELINE          "Aktiivinen rivi"
@@ -1077,12 +1080,12 @@ BEGIN
     STR_PAGEFIT             "Sovita sivu"
     STR_PAGEWIDTH           "Sivun leveys"
     STR_ALLFILES            "Kaikki tiedostot"
-    STR_ONLYMODIFIED        "Muokattu"
-    STR_ONLYUNMODIFIED      "Muokkaamaton"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Muokattu"
+    STR_ONLYUNMODIFIED      "Muokkaamaton"
     STR_INVERTSELECTION     "K‰‰nteinen valinta"
     STR_MESSAGEBOX_OK       "&OK"
     STR_MESSAGEBOX_YES      "&Yes"

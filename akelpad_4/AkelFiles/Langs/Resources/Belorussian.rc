@@ -187,6 +187,7 @@ BEGIN
     POPUP "&Даведка"
     BEGIN
         MENUITEM "&Кіраўніцтва",                IDM_MANUAL
+        MENUITEM "О&бновление...",              IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Аб праграме",                IDM_ABOUT
     END
@@ -796,14 +797,15 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,173,187,11,13
-    RTEXT           "Міжрадковы інтэрвал:",IDC_STATIC,104,214,70,8,NOT WS_GROUP
+    RTEXT           "Міжрадковы інтэрвал:",IDC_STATIC,104,214,70,8,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_LINEGAP,178,212,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,200,
@@ -817,8 +819,8 @@ CAPTION "Рэдактар 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Левы клік у водступ вылучае радок",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit вылучэнне мышшу",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Перацягванне мышшу",IDC_OPTIONS_MOUSEDRAGGING,"Button",
@@ -826,8 +828,8 @@ BEGIN
     CONTROL         "Правы клік ссоўвае карэтку",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
     GROUPBOX        "Гіперспасылкі",IDC_STATIC,9,60,200,100
-    CONTROL         "Паказваць",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,76,90,10
+    CONTROL         "Паказваць",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Адзінарны клік",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Падвойны клік",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -835,8 +837,8 @@ BEGIN
     CONTROL         "Прэфіксы:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
-    CONTROL         "Раздзяляльнікі:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    CONTROL         "Раздзяляльнікі:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
@@ -844,13 +846,14 @@ BEGIN
     CONTROL         "Падзельнікі слоў:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Скінуць",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Падзельнікі пераносаў:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Скінуць",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Падзельнікі пераносаў:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Скінуць",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Скінуць",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1050,11 +1053,11 @@ BEGIN
     STR_OPTIONS             "Параметры..."
     STR_LANGUAGE_NONE       "Унутраная"
     STR_FILE_FILTER         "Тэкставыя файлы (*.txt)|*.txt|Усе файлы (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Выконваемыя файлы (*.exe)|*.exe|Усе файлы (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Выконваемыя файлы (*.exe)|*.exe|Усе файлы (*.*)|*.*"
     STR_NONE                "Не"
     STR_PLUGIN              "Плагін"
     STR_FUNCTION            "Функцыя"
@@ -1070,11 +1073,11 @@ BEGIN
     STR_STANDARDTHEME       "Стандартная"
     STR_TEXT                "Тэкст"
     STR_BACKGROUND          "Фон"
-    STR_SAMPLE              "Узор"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Узор"
     STR_BASIC               "Асноўны колер"
     STR_SELECTION           "Вылучэнне"
     STR_ACTIVELINE          "Актыўны радок"
@@ -1090,12 +1093,12 @@ BEGIN
     STR_PAGEFIT             "Цалкам"
     STR_PAGEWIDTH           "Па шырыні"
     STR_ALLFILES            "Усе файлы"
-    STR_ONLYMODIFIED        "Зменёныя"
-    STR_ONLYUNMODIFIED      "Незмянёныя"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Зменёныя"
+    STR_ONLYUNMODIFIED      "Незмянёныя"
     STR_INVERTSELECTION     "Інвертаваць вылучэнне"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Так"

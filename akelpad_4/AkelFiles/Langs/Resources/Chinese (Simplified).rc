@@ -184,6 +184,7 @@ BEGIN
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "用户手册(&M)",                IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "关于(&A)",                    IDM_ABOUT
     END
@@ -754,12 +755,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "插入点",IDC_STATIC,9,86,202,51
-    CONTROL         "允许插入点移动到行末边缘的右边",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
-    CONTROL         "显示当前列",IDC_OPTIONS_CARETVERTLINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "显示当前行",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "允许插入点移动到行末边缘的右边",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
+    CONTROL         "显示当前列",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "显示当前行",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "边框",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "宽度:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -790,9 +792,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -810,11 +812,10 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "编辑器 2"
 FONT 9, "宋体"
 BEGIN
-    CONTROL         "左击空白选定行",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
+    CONTROL         "左击空白选定行",IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit 鼠标选择",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+    CONTROL         "RichEdit 鼠标选择",IDC_OPTIONS_MOUSERICHEDIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "鼠标拖放",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
     CONTROL         "右键点击时移动插入点",IDC_OPTIONS_RCLICKMOVECARET,
@@ -835,13 +836,13 @@ BEGIN
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "单词分隔符:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    CONTROL         "单词分隔符:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重置",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
                     BS_CENTER
-    CONTROL         "换行分隔符:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    CONTROL         "换行分隔符:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重置",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
                     BS_CENTER
@@ -1015,11 +1016,11 @@ BEGIN
     STR_OPTIONS             "设置..."
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
     STR_NONE                "无"
     STR_PLUGIN              "插件"
     STR_FUNCTION            "函数"
@@ -1035,11 +1036,11 @@ BEGIN
     STR_STANDARDTHEME       "标准"
     STR_TEXT                "文本"
     STR_BACKGROUND          "背景"
-    STR_SAMPLE              "示例"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "示例"
     STR_BASIC               "基本颜色"
     STR_SELECTION           "选定区域"
     STR_ACTIVELINE          "当前行"
@@ -1055,12 +1056,12 @@ BEGIN
     STR_PAGEFIT             "适合页面"
     STR_PAGEWIDTH           "页面宽度"
     STR_ALLFILES            "所有文件"
-    STR_ONLYMODIFIED        "已修改"
-    STR_ONLYUNMODIFIED      "未修改"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "已修改"
+    STR_ONLYUNMODIFIED      "未修改"
     STR_INVERTSELECTION     "反选"
     STR_MESSAGEBOX_OK       "确定"
     STR_MESSAGEBOX_YES      "是(&Y)"

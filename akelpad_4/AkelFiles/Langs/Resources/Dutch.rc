@@ -192,6 +192,7 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "Hand&leiding",                IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Over",                       IDM_ABOUT
     END
@@ -763,12 +764,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Knipperende cursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Cursor binnen regelgrens houden",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
-    CONTROL         "Toon actieve kolom",IDC_OPTIONS_CARETVERTLINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Toon actieve regel",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "Cursor binnen regelgrens houden",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
+    CONTROL         "Toon actieve kolom",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Toon actieve regel",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "grens",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Breedte:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -799,9 +801,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -820,17 +822,18 @@ CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Links klik op marge selecteert regel",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit Muisselectie",IDC_OPTIONS_MOUSERICHEDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "RichEdit Muisselectie",IDC_OPTIONS_MOUSERICHEDIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Muis slepen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Klik met de rechtermuisknop beweegt dakje",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "Klik met de rechtermuisknop beweegt dakje",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "Links",IDC_STATIC,9,60,200,100
-    CONTROL         "Laat zien",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,76,90,10
+    CONTROL         "Laat zien",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Klik",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Dubbelklik",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -838,22 +841,24 @@ BEGIN
     CONTROL         "Voorvoegsels:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
-    CONTROL         "Scheidingtekens:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    CONTROL         "Scheidingtekens:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "Woord scheidingstekens:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    CONTROL         "Woord scheidingstekens:",
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Terugzetten",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Scheidingsteken terugloop:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Terugzetten",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,
+                    50,13,BS_CENTER
+    CONTROL         "Scheidingsteken terugloop:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Terugzetten",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Terugzetten",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,
+                    50,13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1033,11 +1038,11 @@ BEGIN
     STR_OPTIONS             "Instellingen..."
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "Tekst bestanden (*.txt)|*.txt|All files (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
     STR_NONE                "Geen"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Functie"
@@ -1053,11 +1058,11 @@ BEGIN
     STR_STANDARDTHEME       "Standaard"
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "Achtergrond"
-    STR_SAMPLE              "Voorbeeld"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Voorbeeld"
     STR_BASIC               "Basis kleur"
     STR_SELECTION           "Selectie"
     STR_ACTIVELINE          "Actieve regel"
@@ -1073,12 +1078,12 @@ BEGIN
     STR_PAGEFIT             "Passend op pagina"
     STR_PAGEWIDTH           "Pagina breedte"
     STR_ALLFILES            "Alle bestanden"
-    STR_ONLYMODIFIED        "Gewijzigd"
-    STR_ONLYUNMODIFIED      "Niet Gewijzigd"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Gewijzigd"
+    STR_ONLYUNMODIFIED      "Niet Gewijzigd"
     STR_INVERTSELECTION     "Selectie omkeren"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Ja"

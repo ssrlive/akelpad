@@ -189,6 +189,7 @@ BEGIN
     POPUP "&Nápovìda"
     BEGIN
         MENUITEM "&Návod k použití",            IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&O programu",                 IDM_ABOUT
     END
@@ -475,7 +476,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Najít"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -512,7 +513,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Nahradit"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1048,11 +1049,11 @@ BEGIN
     STR_OPTIONS             "Nastavení..."
     STR_LANGUAGE_NONE       "Interní"
     STR_FILE_FILTER         "Textový soubor (*.txt)|*.txt|Všechny soubory (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Spustitelné soubory (*.exe)|*.exe|Všechny soubory (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Spustitelné soubory (*.exe)|*.exe|Všechny soubory (*.*)|*.*"
     STR_NONE                "Žádný"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkce"
@@ -1068,11 +1069,11 @@ BEGIN
     STR_STANDARDTHEME       "Standardní"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Pozadí"
-    STR_SAMPLE              "Ukázka"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Ukázka"
     STR_BASIC               "Základní barva"
     STR_SELECTION           "Výbìr"
     STR_ACTIVELINE          "Aktivní øádek"
@@ -1088,11 +1089,11 @@ BEGIN
     STR_PAGEFIT             "Pøizpùsobit stránce"
     STR_PAGEWIDTH           "Šíøka stránky"
     STR_ALLFILES            "Všechny soubory"
-    STR_ONLYMODIFIED        "Upraven"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Upraven"
     STR_ONLYUNMODIFIED      "Neupraven"
     STR_INVERTSELECTION     "Otoèit výbìr"
     STR_MESSAGEBOX_OK       "OK"

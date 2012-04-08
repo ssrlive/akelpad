@@ -434,6 +434,7 @@ WNDPROC lpOldEditProc;
 //Execute
 char szExeDir[MAX_PATH]="";
 wchar_t wszExeDir[MAX_PATH]=L"";
+wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
 HSTACK hFramesStack={0};
@@ -1021,6 +1022,9 @@ void _WinMain()
   for (nFilterLen=0; wszFilter[nFilterLen]; ++nFilterLen)
     if (wszFilter[nFilterLen] == '|') wszFilter[nFilterLen]='\0';
   wszFilter[++nFilterLen]='\0';
+
+  //AkelUpdater path
+  xprintfW(wszAkelUpdaterExe, L"%s\\AkelFiles\\AkelUpdater.exe", wszExeDir);
 
   if (bOldWindows)
   {
@@ -3611,6 +3615,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszExecuteCommand)?MF_ENABLED:MF_GRAYED);
       EnableMenuItem(hMainMenu, IDM_MANUAL, GetUserManual(NULL, BUFFER_SIZE)?MF_ENABLED:MF_GRAYED);
+      EnableMenuItem(hMainMenu, IDM_UPDATE, FileExistsWide(wszAkelUpdaterExe)?MF_ENABLED:MF_GRAYED);
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
@@ -4276,6 +4281,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
       }
       return FALSE;
+    }
+    else if (LOWORD(wParam) == IDM_UPDATE)
+    {
+      ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, NULL, NULL, SW_SHOWDEFAULT);
     }
     else if (LOWORD(wParam) == IDM_ABOUT)
     {

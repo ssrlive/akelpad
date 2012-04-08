@@ -193,6 +193,7 @@ BEGIN
     POPUP "&PomocnÌk"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&O programe",                 IDM_ABOUT
     END
@@ -480,7 +481,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Hæadaù"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Hæ&adaù:",IDC_STATIC,4,11,25,12,NOT WS_GROUP
     COMBOBOX        IDC_SEARCH_FIND,30,9,186,100,CBS_DROPDOWN | 
@@ -517,7 +518,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Nahradiù"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Hæ&adaù:",IDC_STATIC,4,11,30,12,NOT WS_GROUP
     COMBOBOX        IDC_SEARCH_FIND,35,9,181,100,CBS_DROPDOWN | 
@@ -1043,11 +1044,11 @@ BEGIN
     STR_OPTIONS             "Nastavenia..."
     STR_LANGUAGE_NONE       "Intern˝"
     STR_FILE_FILTER         "TextovÈ s˙bory (*.txt)|*.txt|Vöetky s˙bory (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "SpustiteænÈ s˙bory (*.exe)|*.exe|Vöetky s˙bory (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "SpustiteænÈ s˙bory (*.exe)|*.exe|Vöetky s˙bory (*.*)|*.*"
     STR_NONE                "NiË"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcia"
@@ -1063,11 +1064,11 @@ BEGIN
     STR_STANDARDTHEME       "ätandardn·"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Pozadie"
-    STR_SAMPLE              "Uk·ûka"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Uk·ûka"
     STR_BASIC               "Z·kladn· farba"
     STR_SELECTION           "V˝ber"
     STR_ACTIVELINE          "AktÌvny riadok"
@@ -1083,11 +1084,11 @@ BEGIN
     STR_PAGEFIT             "PrispÙsobiù str·nke"
     STR_PAGEWIDTH           "äÌrka str·nky"
     STR_ALLFILES            "Vöetky s˙bory"
-    STR_ONLYMODIFIED        "ZmenenÈ"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "ZmenenÈ"
     STR_ONLYUNMODIFIED      "NezmenenÈ"
     STR_INVERTSELECTION     "Invertovaù v˝ber"
     STR_MESSAGEBOX_OK       "&OK"

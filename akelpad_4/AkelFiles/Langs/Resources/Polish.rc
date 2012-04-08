@@ -190,6 +190,7 @@ BEGIN
     POPUP "Pomo&c"
     BEGIN
         MENUITEM "&Przewodnik",                 IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&O programie",                IDM_ABOUT
     END
@@ -759,8 +760,9 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Przesuwaj kursor poza koniec wiersza",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Przesuwaj kursor poza koniec wiersza",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
     CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
     CONTROL         "Wyró¿nij bie¿¹cy wiersz",IDC_OPTIONS_CARETACTIVELINE,
@@ -795,9 +797,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -816,8 +818,8 @@ CAPTION "Edytor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Lewy klik na marginesie zaznacza wiersz",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit zaznaczanie mysz¹",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Przeci¹ganie mysz¹",IDC_OPTIONS_MOUSEDRAGGING,"Button",
@@ -827,8 +829,8 @@ BEGIN
     GROUPBOX        "Hiper³¹cza",IDC_STATIC,9,60,200,100
     CONTROL         "Poka¿",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
-    CONTROL         "Pojedyncze klikniêcie",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,112,76,90,10
+    CONTROL         "Pojedyncze klikniêcie",IDC_OPTIONS_URL_SINGLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Podwójne klikniêcie",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,87,90,10
     CONTROL         "Prefiksy:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
@@ -843,13 +845,14 @@ BEGIN
     CONTROL         "Separatory s³ów:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Separatory zawijania:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Separatory zawijania:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1030,11 +1033,11 @@ BEGIN
     STR_OPTIONS             "Opcje..."
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Pliki tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Pliki programów (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Pliki programów (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
     STR_NONE                "Brak"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcja"
@@ -1050,11 +1053,11 @@ BEGIN
     STR_STANDARDTHEME       "Standardowy"
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "T³o"
-    STR_SAMPLE              "Przyk³ad"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Przyk³ad"
     STR_BASIC               "Podstawowy kolor"
     STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
@@ -1070,12 +1073,12 @@ BEGIN
     STR_PAGEFIT             "Wpasuj stronê"
     STR_PAGEWIDTH           "Na szerokoœæ"
     STR_ALLFILES            "Wszystkie pliki"
-    STR_ONLYMODIFIED        "Zmienione"
-    STR_ONLYUNMODIFIED      "Niezmienione"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Zmienione"
+    STR_ONLYUNMODIFIED      "Niezmienione"
     STR_INVERTSELECTION     "Odwróæ zaznaczenie"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "&Tak"

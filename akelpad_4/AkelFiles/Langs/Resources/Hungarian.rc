@@ -190,6 +190,7 @@ BEGIN
     POPUP "S&úgó"
     BEGIN
         MENUITEM "&Manuális",                   IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "Névjegy",                     IDM_ABOUT
     END
@@ -760,12 +761,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kurzor",IDC_STATIC,9,86,202,51
-    CONTROL         "Kurzor engedélyezése a sorvég után",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Kurzor engedélyezése a sorvég után",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
     CONTROL         "Aktív oszlop megjelenítése",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Szélesség:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -796,9 +798,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -817,17 +819,18 @@ CAPTION "Szerkesztõ 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Left click on margin selects line",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit egér kiválasztás",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Egérhúzás",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Jobb klikk a hiányjel áthelyezéséhez",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "Jobb klikk a hiányjel áthelyezéséhez",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "Hiperhivatkozások",IDC_STATIC,9,60,200,100
-    CONTROL         "Megjelenítés",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,76,90,10
+    CONTROL         "Megjelenítés",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Egy kattintás",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Dupla kattintás",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -835,8 +838,8 @@ BEGIN
     CONTROL         "Elõtagok:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
-    CONTROL         "Határolójelek:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    CONTROL         "Határolójelek:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
@@ -844,13 +847,14 @@ BEGIN
     CONTROL         "Szó határolójelek:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Visszavonás",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Tördelési határolójelek:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Visszavonás",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,
+                    50,13,BS_CENTER
+    CONTROL         "Tördelési határolójelek:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Visszavonás",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Visszavonás",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,
+                    50,13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1029,11 +1033,11 @@ BEGIN
     STR_OPTIONS             "Beállítások..."
     STR_LANGUAGE_NONE       "Belsõ"
     STR_FILE_FILTER         "Szöveges fájlok (*.txt)|*.txt |Minden fájl  (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Végrehajtható fájlok (*.exe)|*.exe |Minden fájl  (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Végrehajtható fájlok (*.exe)|*.exe |Minden fájl  (*.*)|*.*"
     STR_NONE                "Nincs"
     STR_PLUGIN              "Beépülõ"
     STR_FUNCTION            "Funkció"
@@ -1049,11 +1053,11 @@ BEGIN
     STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Szöveg"
     STR_BACKGROUND          "Háttér"
-    STR_SAMPLE              "Minta"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Minta"
     STR_BASIC               "Alapszín"
     STR_SELECTION           "Kijelölés"
     STR_ACTIVELINE          "Aktív sor"
@@ -1069,12 +1073,12 @@ BEGIN
     STR_PAGEFIT             "Oldalhoz igazítás"
     STR_PAGEWIDTH           "O&ldalszélesség"
     STR_ALLFILES            "Összes fájl"
-    STR_ONLYMODIFIED        "Módosítva"
-    STR_ONLYUNMODIFIED      "Nem módosított"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Módosítva"
+    STR_ONLYUNMODIFIED      "Nem módosított"
     STR_INVERTSELECTION     "Kiválasztás megfordítása"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Igen"
