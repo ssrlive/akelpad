@@ -1,5 +1,5 @@
 
-AkelPad 4.7.4 (Apr 08, 2012)
+AkelPad 4.7.4 (Apr 09, 2012)
 ----------------------------
 Changed: Unicode files without BOM now displayed as "without BOM" instead of "*BOM".
 
@@ -10,6 +10,7 @@ Added: variables for "StatusUserFormat":
        "%le" - number of the last selected line;
        "%ls" - count of lines in selection.
 Added: AkelUpdater in installer.
+Added: menu item to open AkelUpdater.
 
 Fixed: split window in SDI mode.
 

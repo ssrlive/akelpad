@@ -187,6 +187,7 @@ BEGIN
     POPUP "&Довідка"
     BEGIN
         MENUITEM "&Керівництво",                IDM_MANUAL
+        MENUITEM "О&бновление...",              IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "Пр&о програму",               IDM_ABOUT
     END
@@ -765,8 +766,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Показувати активний стовпчик",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Показувати активне посилання",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "Показувати активне посилання",
+                    IDC_OPTIONS_CARETACTIVELINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,122,132,10
     CONTROL         "межа",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Ширина:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -797,14 +799,15 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,173,187,11,13
-    RTEXT           "Міжрядковий інтервал:",IDC_STATIC,104,214,70,8,NOT WS_GROUP
+    RTEXT           "Міжрядковий інтервал:",IDC_STATIC,104,214,70,8,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_LINEGAP,178,212,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,200,
@@ -818,8 +821,8 @@ CAPTION "Редактор 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Лівий клік в відступ виділяє рядок",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit виділення мишею",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Перетаскування мишею",IDC_OPTIONS_MOUSEDRAGGING,"Button",
@@ -827,8 +830,8 @@ BEGIN
     CONTROL         "Правий клік зміщує каретку",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
     GROUPBOX        "Гіперпосилання",IDC_STATIC,9,60,200,100
-    CONTROL         "Показувати",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,76,90,10
+    CONTROL         "Показувати",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Одинарний клік",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,112,76,90,10
     CONTROL         "Подвійний клік",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -845,13 +848,14 @@ BEGIN
     CONTROL         "Роздільники слів:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Скинути",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Роздільники переносів:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Скинути",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Роздільники переносів:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Скинути",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Скинути",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1051,11 +1055,11 @@ BEGIN
     STR_OPTIONS             "Параметри..."
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
     STR_NONE                "Ні"
     STR_PLUGIN              "Плаґін"
     STR_FUNCTION            "Функція"
@@ -1071,11 +1075,11 @@ BEGIN
     STR_STANDARDTHEME       "Стандартна"
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
-    STR_SAMPLE              "Зразок"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Зразок"
     STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
@@ -1091,12 +1095,12 @@ BEGIN
     STR_PAGEFIT             "Повністю"
     STR_PAGEWIDTH           "За шириною"
     STR_ALLFILES            "Усі файли"
-    STR_ONLYMODIFIED        "Змінені"
-    STR_ONLYUNMODIFIED      "Незмінені"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Змінені"
+    STR_ONLYUNMODIFIED      "Незмінені"
     STR_INVERTSELECTION     "Інвертувати позначення"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Так"

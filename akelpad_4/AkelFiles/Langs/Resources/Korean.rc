@@ -191,6 +191,7 @@ BEGIN
     POPUP "도움말(&H)"
     BEGIN
         MENUITEM "메뉴얼(&M)",                  IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "이 프로그램은(&A)",           IDM_ABOUT
     END
@@ -477,7 +478,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "찾기"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,34,9,154,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -512,7 +513,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "바꾸기"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,34,9,154,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1028,11 +1029,11 @@ BEGIN
     STR_OPTIONS             "설정..."
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
     STR_NONE                "없음"
     STR_PLUGIN              "플러그인"
     STR_FUNCTION            "기능"
@@ -1048,11 +1049,11 @@ BEGIN
     STR_STANDARDTHEME       "표준"
     STR_TEXT                "텍스트"
     STR_BACKGROUND          "배경색"
-    STR_SAMPLE              "샘플"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "샘플"
     STR_BASIC               "기본 색상"
     STR_SELECTION           "선택영역"
     STR_ACTIVELINE          "현재 줄"
@@ -1068,11 +1069,11 @@ BEGIN
     STR_PAGEFIT             "페이지 맞추기"
     STR_PAGEWIDTH           "페이지 폭"
     STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Modified"
     STR_ONLYUNMODIFIED      "Unmodified"
     STR_INVERTSELECTION     "Invert selection"
     STR_MESSAGEBOX_OK       "확인"

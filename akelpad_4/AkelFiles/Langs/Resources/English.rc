@@ -185,6 +185,7 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&About",                      IDM_ABOUT
     END
@@ -471,7 +472,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Find"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -508,7 +509,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1024,11 +1025,11 @@ BEGIN
     STR_OPTIONS             "Settings..."
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
     STR_NONE                "None"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Function"
@@ -1044,11 +1045,11 @@ BEGIN
     STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Sample"
     STR_BASIC               "Basic color"
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
@@ -1064,11 +1065,11 @@ BEGIN
     STR_PAGEFIT             "Fit page"
     STR_PAGEWIDTH           "Page width"
     STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Modified"
     STR_ONLYUNMODIFIED      "Unmodified"
     STR_INVERTSELECTION     "Invert selection"
     STR_MESSAGEBOX_OK       "OK"

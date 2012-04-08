@@ -192,6 +192,7 @@ BEGIN
     POPUP "A&jutor"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Despre",                     IDM_ABOUT
     END
@@ -764,12 +765,13 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Cursorul",IDC_STATIC,9,86,202,51
-    CONTROL         "Poate fi pus dupã limita textului",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
-    CONTROL         "Aratã coloana activã",IDC_OPTIONS_CARETVERTLINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Aratã linia activã",IDC_OPTIONS_CARETACTIVELINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "Poate fi pus dupã limita textului",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,98,132,10
+    CONTROL         "Aratã coloana activã",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Aratã linia activã",IDC_OPTIONS_CARETACTIVELINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "margine",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Lãþime:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -800,14 +802,15 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,173,187,11,13
-    RTEXT           "Spaþiu între rînduri:",IDC_STATIC,104,214,70,8,NOT WS_GROUP
+    RTEXT           "Spaþiu între rînduri:",IDC_STATIC,104,214,70,8,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_LINEGAP,178,212,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,200,
@@ -821,40 +824,44 @@ CAPTION "Editor 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Clicul-stînga pe margine selecteazã linia",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "Selectare RichEdit cu mausul",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
-    CONTROL         "Tragere cu mausul a textului",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Clicul-dreapta mutã cursorul",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "Tragere cu mausul a textului",IDC_OPTIONS_MOUSEDRAGGING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
+    CONTROL         "Clicul-dreapta mutã cursorul",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "Legãturi de Internet",IDC_STATIC,9,60,200,100
-    CONTROL         "Aratã legãturile existente în text",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "Aratã legãturile existente în text",
+                    IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
-    CONTROL         "Lanseazã cu clic simplu",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,112,76,90,10
-    CONTROL         "Lanseazã cu clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,112,87,90,10
+    CONTROL         "Lanseazã cu clic simplu",IDC_OPTIONS_URL_SINGLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,112,76,90,10
+    CONTROL         "Lanseazã cu clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,112,87,90,10
     CONTROL         "Prefixe:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
-    CONTROL         "Delimitatoare:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    CONTROL         "Delimitatoare:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "Delimitatoare de Cuvinte:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    CONTROL         "Delimitatoare de Cuvinte:",
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
-    CONTROL         "Delimitatoare de Încadrare a Textului:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Delimitatoare de Încadrare a Textului:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1033,11 +1040,11 @@ BEGIN
     STR_OPTIONS             "Setãri..."
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "File Text (*.txt)|*.txt|Toate Filele (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "File Executabile (*.exe)|*.exe|Toate Filele (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "File Executabile (*.exe)|*.exe|Toate Filele (*.*)|*.*"
     STR_NONE                "Nimic"
     STR_PLUGIN              "Extensie"
     STR_FUNCTION            "Funcþie"
@@ -1053,11 +1060,11 @@ BEGIN
     STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Fundal"
-    STR_SAMPLE              "Exemplu"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Exemplu"
     STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
@@ -1073,12 +1080,12 @@ BEGIN
     STR_PAGEFIT             "Încadreazã Toatã Pagina"
     STR_PAGEWIDTH           "Încadreazã pe Lãþime"
     STR_ALLFILES            "Toate Filele"
-    STR_ONLYMODIFIED        "Modificate"
-    STR_ONLYUNMODIFIED      "Nemodificate"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Modificate"
+    STR_ONLYUNMODIFIED      "Nemodificate"
     STR_INVERTSELECTION     "Inverseazã selecþia"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "&Da"

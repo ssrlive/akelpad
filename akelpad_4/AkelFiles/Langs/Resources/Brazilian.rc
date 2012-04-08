@@ -190,6 +190,7 @@ BEGIN
     POPUP "A&juda"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Sobre",                      IDM_ABOUT
     END
@@ -476,7 +477,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Procurar"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -513,7 +514,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Substituir"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1054,11 +1055,11 @@ BEGIN
     STR_OPTIONS             "Configurações..."
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Arquivos de texto (*.txt)|*.txt|Todos os arquivos (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
     STR_NONE                "Nenhum"
     STR_PLUGIN              "Plug-in"
     STR_FUNCTION            "Função"
@@ -1074,11 +1075,11 @@ BEGIN
     STR_STANDARDTHEME       "Padrão"
     STR_TEXT                "Texto"
     STR_BACKGROUND          "Fundo"
-    STR_SAMPLE              "Amostra"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "Amostra"
     STR_BASIC               "Cor básica"
     STR_SELECTION           "Seleção"
     STR_ACTIVELINE          "Linha atual"
@@ -1094,11 +1095,11 @@ BEGIN
     STR_PAGEFIT             "Dimenções da página"
     STR_PAGEWIDTH           "Largura da página"
     STR_ALLFILES            "Todos os arquivos"
-    STR_ONLYMODIFIED        "Modificado"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "Modificado"
     STR_ONLYUNMODIFIED      "Não-modificado"
     STR_INVERTSELECTION     "Inverter seleção"
     STR_MESSAGEBOX_OK       "OK"

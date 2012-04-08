@@ -259,6 +259,7 @@ extern WNDPROC lpOldEditProc;
 //Execute
 extern char szExeDir[MAX_PATH];
 extern wchar_t wszExeDir[MAX_PATH];
+extern wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
 extern HSTACK hFramesStack;

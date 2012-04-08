@@ -189,6 +189,7 @@ BEGIN
     POPUP "ヘルプ(&H)"
     BEGIN
         MENUITEM "マニュアル(&M)",              IDM_MANUAL
+        MENUITEM "&Update...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "バージョン情報(&A)",          IDM_ABOUT
     END
@@ -760,8 +761,8 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "キャレット",IDC_STATIC,9,86,202,51
-    CONTROL         "行末の外へも移動",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "行末の外へも移動",IDC_OPTIONS_CARETOUTEDGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "アクティブな列を表示する",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
     CONTROL         "アクティブな行を表示する",IDC_OPTIONS_CARETACTIVELINE,
@@ -784,8 +785,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "枠",IDC_OPTIONS_ALTLINEBORDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
+    CONTROL         "枠",IDC_OPTIONS_ALTLINEBORDER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,18,191,90,10
     GROUPBOX        "テキストの余白",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
@@ -796,9 +797,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,193,172,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
-    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,173,156,11,13
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -817,14 +818,15 @@ CAPTION "エディター 2"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "マージンを左クリックで行選択",
-                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,9,200,10
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit互換のマウス選択",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "マウスによるドラッグ",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "右クリックでキャレットを移動",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "右クリックでキャレットを移動",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "ハイパーリンク",IDC_STATIC,9,60,200,100
     CONTROL         "表示する",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
@@ -844,13 +846,13 @@ BEGIN
     CONTROL         "単語のデリミタ:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "リセット",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "リセット",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
     CONTROL         "折り返しのデリミタ:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "リセット",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "リセット",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -1029,11 +1031,11 @@ BEGIN
     STR_OPTIONS             "設定..."
     STR_LANGUAGE_NONE       "内蔵"
     STR_FILE_FILTER         "テキスト ファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
     STR_NONE                "なし"
     STR_PLUGIN              "プラグイン"
     STR_FUNCTION            "関数"
@@ -1049,11 +1051,11 @@ BEGIN
     STR_STANDARDTHEME       "標準"
     STR_TEXT                "テキスト"
     STR_BACKGROUND          "背景"
-    STR_SAMPLE              "サンプル"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SAMPLE              "サンプル"
     STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
@@ -1069,12 +1071,12 @@ BEGIN
     STR_PAGEFIT             "ページに合わせる"
     STR_PAGEWIDTH           "ページ幅"
     STR_ALLFILES            "すべてのファイル"
-    STR_ONLYMODIFIED        "変更あり"
-    STR_ONLYUNMODIFIED      "変更なし"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_ONLYMODIFIED        "変更あり"
+    STR_ONLYUNMODIFIED      "変更なし"
     STR_INVERTSELECTION     "選択を反転"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "はい(&Y)"
