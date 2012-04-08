@@ -33,7 +33,6 @@
 #define STR_UNICODE_UTF7W           L"65000 (UTF-7)"
 #define STR_UNICODE_UTF32LEW        L"12000  (UTF-32 LE)"
 #define STR_UNICODE_UTF32BEW        L"12001  (UTF-32 BE)"
-#define STR_NOBOMW                  L"  *BOM"
 
 #define STR_AKELADMINW              L"AkelAdmin"
 #define STR_DEFAULTSAVEEXTW         L"txt"

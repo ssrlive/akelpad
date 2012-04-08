@@ -1044,6 +1044,7 @@ BEGIN
     STR_MODIFIED            "Змінений"
     STR_READONLY            "Тільки для читання"
     STR_COUNT               "%d із %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Автовибір"
     STR_RECENT_FILES_EMPTY  "Порожньо"
     STR_RECENT_FILES_DELETE_DEAD "Видалити неіснуючі"

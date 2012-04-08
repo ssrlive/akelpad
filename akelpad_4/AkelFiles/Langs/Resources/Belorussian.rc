@@ -1043,6 +1043,7 @@ BEGIN
     STR_MODIFIED            "Зменены"
     STR_READONLY            "Толькі чытанне"
     STR_COUNT               "%d з %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Аўтавылучэнне"
     STR_RECENT_FILES_EMPTY  "Пуста"
     STR_RECENT_FILES_DELETE_DEAD "Выдаліць неіснуючыя"

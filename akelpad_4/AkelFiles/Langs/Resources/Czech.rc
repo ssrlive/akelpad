@@ -1041,6 +1041,7 @@ BEGIN
     STR_MODIFIED            "Upraven"
     STR_READONLY            "Jen ke ètení"
     STR_COUNT               "%d z %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Autodetekce"
     STR_RECENT_FILES_EMPTY  "Prázdný"
     STR_RECENT_FILES_DELETE_DEAD "Smazat neexistující"

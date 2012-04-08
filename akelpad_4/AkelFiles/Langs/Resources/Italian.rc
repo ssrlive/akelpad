@@ -1033,6 +1033,7 @@ BEGIN
     STR_MODIFIED            "Modificato"
     STR_READONLY            "Sola-lettura"
     STR_COUNT               "%d di %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Auto-rileva"
     STR_RECENT_FILES_EMPTY  "Vuoto"
     STR_RECENT_FILES_DELETE_DEAD "Elimina i non esistenti"

@@ -1,6 +1,8 @@
 
 AkelPad 4.7.4 ()
 ----------------------------
+Changed: Unicode files without BOM now displayed as "without BOM" instead of "*BOM".
+
 Added: support for regular expressions in find/replace dialog.
 Added: possibility to add status bar delimiter with "StatusUserFormat".
 Added: variables for "StatusUserFormat":
