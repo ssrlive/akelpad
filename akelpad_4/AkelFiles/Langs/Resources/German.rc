@@ -1045,6 +1045,7 @@ BEGIN
     STR_MODIFIED            "Geändert"
     STR_READONLY            "Nur lesen"
     STR_COUNT               "%d von %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Automatisch"
     STR_RECENT_FILES_EMPTY  "Leer"
     STR_RECENT_FILES_DELETE_DEAD "Nicht existierende löschen"

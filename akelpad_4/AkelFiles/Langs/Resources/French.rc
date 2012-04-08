@@ -1030,6 +1030,7 @@ BEGIN
     STR_MODIFIED            "Modifié"
     STR_READONLY            "Fichiers en lecture seule modifiables"
     STR_COUNT               "%d sur %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "Détection &auto"
     STR_RECENT_FILES_EMPTY  "Vide"
     STR_RECENT_FILES_DELETE_DEAD "Effacer non existants"

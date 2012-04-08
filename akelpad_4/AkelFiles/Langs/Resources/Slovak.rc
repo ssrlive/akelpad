@@ -1036,6 +1036,7 @@ BEGIN
     STR_MODIFIED            "Zmenen˝"
     STR_READONLY            "Len na ËÌtanie"
     STR_COUNT               "%d z %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Automatick· detekcia"
     STR_RECENT_FILES_EMPTY  "Pr·zdne"
     STR_RECENT_FILES_DELETE_DEAD "Vymazaù neexistuj˙ce"

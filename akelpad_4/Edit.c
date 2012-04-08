@@ -16353,7 +16353,11 @@ void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
 
       if (IsCodePageUnicode(nCodePage))
       {
-        if (!bBOM) xprintfW(wbuf, L"%s%s", wbuf, STR_NOBOMW);
+        if (!bBOM)
+        {
+          API_LoadStringW(hLangLib, STR_WITHOUT, wbuf2, BUFFER_SIZE);
+          xprintfW(wbuf, L"%s %s BOM", wbuf, wbuf2);
+        }
       }
       StatusBar_SetTextWide(hStatus, SBP_CODEPAGE, wbuf);
 

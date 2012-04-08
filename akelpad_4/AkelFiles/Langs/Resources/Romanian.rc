@@ -1026,6 +1026,7 @@ BEGIN
     STR_MODIFIED            "Modificat"
     STR_READONLY            "Nemodificabil (Doar-Citire)"
     STR_COUNT               "%d din %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Autodetectare"
     STR_RECENT_FILES_EMPTY  "Nimic"
     STR_RECENT_FILES_DELETE_DEAD "ªterge Dispãrutele"

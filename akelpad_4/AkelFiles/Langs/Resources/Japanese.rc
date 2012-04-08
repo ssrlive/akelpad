@@ -1022,6 +1022,7 @@ BEGIN
     STR_MODIFIED            "変更あり"
     STR_READONLY            "読み取り専用"
     STR_COUNT               "%d / %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "自動検出(&A)"
     STR_RECENT_FILES_EMPTY  "空です"
     STR_RECENT_FILES_DELETE_DEAD "既に無いファイルの履歴を削除"

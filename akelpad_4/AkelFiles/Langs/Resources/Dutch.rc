@@ -1026,6 +1026,7 @@ BEGIN
     STR_MODIFIED            "Gewijzigd"
     STR_READONLY            "Alleen lezen"
     STR_COUNT               "%d van %d"
+    STR_WITHOUT             "without"
     STR_AUTODETECT          "&Autodetectie"
     STR_RECENT_FILES_EMPTY  "Leeg"
     STR_RECENT_FILES_DELETE_DEAD "Verwijder niet-bestaande bestandnamen"
