@@ -483,7 +483,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "Слова цалкам",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Регулярные выражения",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     CONTROL         "Esc-паслядоўнасці",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
@@ -522,7 +522,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "Слова цалкам",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Регулярные выражения",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     CONTROL         "Esc-паслядоўнасці",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
@@ -1043,7 +1043,7 @@ BEGIN
     STR_MODIFIED            "Зменены"
     STR_READONLY            "Толькі чытанне"
     STR_COUNT               "%d з %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "без"
     STR_AUTODETECT          "&Аўтавылучэнне"
     STR_RECENT_FILES_EMPTY  "Пуста"
     STR_RECENT_FILES_DELETE_DEAD "Выдаліць неіснуючыя"
