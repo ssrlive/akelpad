@@ -21083,6 +21083,8 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
   PATEXECPARAM *pep=(PATEXECPARAM *)lParam;
   REGROUP *lpREGroupRef;
   const wchar_t *wpRep=pep->wpRep;
+  wchar_t wchChar;
+  int nIndex;
 
   //Copy unmatched left part of string
   if (pep->wszBuf)
@@ -21096,29 +21098,37 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
     {
       if (*++wpRep == L'\\')
       {
-        wchar_t wchChar;
-
         PatCharCmp(&wpRep, 0, TRUE, &wchChar);
 
         if (pep->wszBuf)
           *pep->wpBufCount=wchChar;
         ++pep->wpBufCount;
         ++wpRep;
+        continue;
       }
-      else if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, (int)xatoiW(wpRep, &wpRep)))
+      else if (*wpRep == L'$')
       {
-        if (pep->wszBuf)
-          xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
-        pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+        //$ - symbol
+      }
+      else
+      {
+        if (nIndex=(int)xatoiW(wpRep, &wpRep))
+        {
+          if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
+          {
+            if (pep->wszBuf)
+              xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+            pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+          }
+        }
+        continue;
       }
     }
-    else
-    {
-      if (pep->wszBuf)
-        *pep->wpBufCount=*wpRep;
-      ++pep->wpBufCount;
-      ++wpRep;
-    }
+
+    if (pep->wszBuf)
+      *pep->wpBufCount=*wpRep;
+    ++pep->wpBufCount;
+    ++wpRep;
   }
   pep->wpRightStr=lpREGroup->wpStrEnd;
   return REPEC_NEXTMATCH;
