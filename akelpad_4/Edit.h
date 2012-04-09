@@ -374,6 +374,7 @@ typedef struct {
   BOOL bAkelAdminResident;
   wchar_t wszDateLogFormat[128];
   wchar_t wszDateInsertFormat[128];
+  wchar_t wszAkelUpdaterOptions[MAX_PATH];
 
   //Menu settings
   BOOL bOnTop;
