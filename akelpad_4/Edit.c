@@ -21094,7 +21094,18 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
   {
     if (*wpRep == L'$')
     {
-      if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, (int)xatoiW(++wpRep, &wpRep)))
+      if (*++wpRep == L'\\')
+      {
+        wchar_t wchChar;
+
+        PatCharCmp(&wpRep, 0, TRUE, &wchChar);
+
+        if (pep->wszBuf)
+          *pep->wpBufCount=wchChar;
+        ++pep->wpBufCount;
+        ++wpRep;
+      }
+      else if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, (int)xatoiW(wpRep, &wpRep)))
       {
         if (pep->wszBuf)
           xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));

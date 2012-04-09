@@ -1,4 +1,9 @@
 
+AkelPad 4.7.5 ()
+----------------------------
+Fixed: regular expressions support.
+
+
 AkelPad 4.7.4 (Apr 09, 2012)
 ----------------------------
 Changed: Unicode files without BOM now displayed as "without BOM" instead of "*BOM".
