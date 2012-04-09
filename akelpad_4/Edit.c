@@ -9842,7 +9842,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
         if (pr.nReplaceCount)
         {
-          if (nResultTextLen < nRangeTextLen)
+          if (nResultTextLen > nRangeTextLen)
             wszResultText=AllocWideStr(nResultTextLen);
           else
           {
