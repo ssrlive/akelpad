@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.4 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.5 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.4 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.7.5 (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
   #define APP_MAIN_CLASSA            "AkelPad4 Library"
