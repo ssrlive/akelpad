@@ -740,6 +740,7 @@ void _WinMain()
   moInit.bAkelAdminResident=TRUE;
   //moInit.wszDateLogFormat[0]='\0';
   //moInit.wszDateInsertFormat[0]='\0';
+  //moInit.wszAkelUpdaterOptions[0]='\0';
 
   //--Menu settings--
   //moInit.bOnTop=FALSE;
@@ -2239,10 +2240,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return moCur.dwPaintOptions;
         if (wParam == MI_RICHEDITCLASS)
           return moCur.bRichEditClass;
+        if (wParam == MI_AKELADMINRESIDENT)
+          return moCur.bAkelAdminResident;
         if (wParam == MI_DATELOGFORMAT)
           return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
         if (wParam == MI_DATEINSERTFORMAT)
           return xstrcpynW((void *)lParam, moCur.wszDateInsertFormat, 128);
+        if (wParam == MI_AKELUPDATEROPTIONS)
+          return xstrcpynW((void *)lParam, moCur.wszAkelUpdaterOptions, MAX_PATH);
         if (wParam == MI_ONTOP)
           return moCur.bOnTop;
         if (wParam == MI_STATUSBAR)
@@ -4284,7 +4289,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_UPDATE)
     {
-      ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, NULL, NULL, SW_SHOWDEFAULT);
+      ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, moCur.wszAkelUpdaterOptions, NULL, SW_SHOWDEFAULT);
     }
     else if (LOWORD(wParam) == IDM_ABOUT)
     {

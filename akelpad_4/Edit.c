@@ -3644,6 +3644,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD));
     ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
     ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
+    ReadOption(&oh, L"AkelUpdaterOptions", MOT_STRING, mo->wszAkelUpdaterOptions, sizeof(mo->wszAkelUpdaterOptions));
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -3861,6 +3862,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"DateLogFormat", MOT_STRING|MOT_MANUAL, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
     goto Error;
   if (!SaveOption(&oh, L"DateInsertFormat", MOT_STRING|MOT_MANUAL, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
+    goto Error;
+  if (!SaveOption(&oh, L"AkelUpdaterOptions", MOT_STRING|MOT_MANUAL, mo->wszAkelUpdaterOptions, BytesInString(mo->wszAkelUpdaterOptions)))
     goto Error;
 
   //Frame data

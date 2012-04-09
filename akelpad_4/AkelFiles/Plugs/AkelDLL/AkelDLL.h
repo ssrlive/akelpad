@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 8)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 9)
 
 
 //// Defines
@@ -211,8 +211,10 @@
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
+#define MI_AKELADMINRESIDENT         126  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
 #define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
+#define MI_AKELUPDATEROPTIONS        131  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
 //Menu
 #define MI_ONTOP                     141  //Return: always on top (on\off).
 #define MI_STATUSBAR                 142  //Return: show statusbar (on\off).
