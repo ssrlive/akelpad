@@ -190,7 +190,7 @@ BEGIN
     POPUP "Pomo&c"
     BEGIN
         MENUITEM "&Przewodnik",                 IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&Aktualizacja...",            IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&O programie",                IDM_ABOUT
     END
