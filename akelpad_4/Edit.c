@@ -20536,6 +20536,7 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpNextGroup;
   wchar_t wchChar;
   wchar_t wchNextChar;
+  wchar_t wchCaseChar;
   int nCurMatch=0;
   int nAnyMatch;
   int nRefIndex;
@@ -20692,7 +20693,10 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               //Check range
               if (!(dwCmpResult & RECC_MIX))
               {
-                if (*wpStr >= wchChar && *wpStr <= wchNextChar)
+                if (*wpStr >= wchChar && *wpStr <= wchNextChar ||
+                    (!(hStack->dwOptions & REO_MATCHCASE) &&
+                      (((wchCaseChar=WideCharLower(*wpStr)) >= wchChar && wchCaseChar <= wchNextChar) ||
+                       ((wchCaseChar=WideCharUpper(*wpStr)) >= wchChar && wchCaseChar <= wchNextChar))))
                 {
                   if (bExclude) goto EndLoop;
                   break;
