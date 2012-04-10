@@ -20192,6 +20192,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   const wchar_t *wpCharStart=NULL;
   int nIndex=0;
   BOOL bCheckGroupChars=FALSE;
+  BOOL bGroupOpen=FALSE;
 
   //Zero group is the all pattern
   if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
@@ -20213,6 +20214,48 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
   while (wpPat < wpMaxPat)
   {
+    if (*wpPat == L'\\')
+    {
+      wpCharStart=wpPat;
+
+      if (*++wpPat == L'x')
+        wpPat+=2;
+      else if (*wpPat == L'u')
+        wpPat+=4;
+      else if (*wpPat >= L'0' && *wpPat <= L'9')
+      {
+        if (xatoiW(wpPat, &wpPat) > nIndex)
+        {
+          wpPat=wpCharStart;
+          goto Error;
+        }
+      }
+      else ++wpPat;
+
+      continue;
+    }
+    if (*wpPat == L']')
+    {
+      if (!bGroupOpen || *(wpPat - 1) == L'-')
+        goto Error;
+      bGroupOpen=FALSE;
+      wpClassEnd=++wpPat;
+      continue;
+    }
+    if (bGroupOpen)
+    {
+      ++wpPat;
+      continue;
+    }
+    if (*wpPat == L'[')
+    {
+      bGroupOpen=TRUE;
+      wpClassStart=wpPat++;
+      if (*wpPat == L'-')
+        goto Error;
+      continue;
+    }
+
     if (*wpPat == L'|')
     {
       //Close all REGF_AFTERANY
@@ -20452,38 +20495,6 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           continue;
         }
       }
-      else if (*wpPat == L'\\')
-      {
-        wpCharStart=wpPat;
-
-        if (*++wpPat == L'x')
-          wpPat+=1;
-        else if (*wpPat == L'u')
-          wpPat+=3;
-        else if (*wpPat >= L'0' && *wpPat <= L'9')
-        {
-          if (xatoiW(wpPat, &wpPat) > nIndex)
-          {
-            wpPat=wpCharStart;
-            goto Error;
-          }
-          continue;
-        }
-      }
-      else if (*wpPat == L'[')
-      {
-        wpClassStart=wpPat++;
-        if (*wpPat == L'-')
-          goto Error;
-        continue;
-      }
-      else if (*wpPat == L']')
-      {
-        if (wpPat == wpMinPat || *(wpPat - 1) == L'-')
-          goto Error;
-        wpClassEnd=++wpPat;
-        continue;
-      }
       else wpCharStart=wpPat;
     }
 
@@ -20587,7 +20598,7 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       if (wpStr >= wpMaxStr)
       {
-        if (wpMaxPat - wpPat == 2 && *wpPat == L'\\' && *(wpPat + 1) == L'b')
+        if (*wpPat == L'$' || (wpMaxPat - wpPat == 2 && *wpPat == L'\\' && *(wpPat + 1) == L'b'))
           goto Match;
         goto EndLoop;
       }
