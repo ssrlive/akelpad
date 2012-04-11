@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.3                               *
+ *                      AkelEdit text control v1.7.5                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -19439,7 +19439,7 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     if (aec->dwFlags & AECLR_DEFAULT)
     {
       aec->crActiveLineBk=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 94);
-      aec->crActiveLineBk=AE_ColorCombine(aec->crActiveLineBk, GetSysColor(COLOR_WINDOW));
+      aec->crActiveLineBk=AE_ColorCombine(aec->crActiveLineBk, GetSysColor(COLOR_WINDOW), RGB(0xFF, 0xFF, 0xFF));
     }
     else aec->crActiveLineBk=ae->popt->aec.crActiveLineBk;
   }
@@ -19448,7 +19448,7 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     if (aec->dwFlags & AECLR_DEFAULT)
     {
       aec->crActiveLineBorder=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 90);
-      aec->crActiveLineBorder=AE_ColorCombine(aec->crActiveLineBorder, GetSysColor(COLOR_WINDOW));
+      aec->crActiveLineBorder=AE_ColorCombine(aec->crActiveLineBorder, GetSysColor(COLOR_WINDOW), RGB(0xFF, 0xFF, 0xFF));
     }
     else aec->crActiveLineBorder=ae->popt->aec.crActiveLineBorder;
   }
@@ -19617,10 +19617,10 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate)
     {
       ae->popt->aec.crUrlVisitText=aec->crUrlVisitText;
     }
-    ae->popt->crActiveLineTextWithAltText=AE_ColorCombine(ae->popt->aec.crActiveLineText, ae->popt->aec.crAltLineText);
-    ae->popt->crActiveLineBkWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBk, ae->popt->aec.crAltLineBk);
-    ae->popt->crActiveLineBorderWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBk);
-    ae->popt->crActiveLineBorderWithAltBorder=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBorder);
+    ae->popt->crActiveLineTextWithAltText=AE_ColorCombine(ae->popt->aec.crActiveLineText, ae->popt->aec.crAltLineText, ae->popt->aec.crBasicText);
+    ae->popt->crActiveLineBkWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBk, ae->popt->aec.crAltLineBk, ae->popt->aec.crBasicBk);
+    ae->popt->crActiveLineBorderWithAltBk=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBk, ae->popt->aec.crBasicBk);
+    ae->popt->crActiveLineBorderWithAltBorder=AE_ColorCombine(ae->popt->aec.crActiveLineBorder, ae->popt->aec.crAltLineBorder, ae->popt->aec.crBasicBk);
 
     if ((aec->dwFlags & AECLR_CARET) || (aec->dwFlags & AECLR_ACTIVELINEBK))
     {
@@ -19637,26 +19637,61 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate)
   }
 }
 
-COLORREF AE_ColorCombine(COLORREF crColor1, COLORREF crColor2)
+COLORREF AE_ColorCombine(COLORREF crColor1Cur, COLORREF crColor2NewBase, COLORREF crColor3CurBase)
 {
-  int r=GetRValue(crColor1) + GetRValue(crColor2);
-  int g=GetGValue(crColor1) + GetGValue(crColor2);
-  int b=GetBValue(crColor1) + GetBValue(crColor2);
+  int r1=GetRValue(crColor1Cur);
+  int g1=GetGValue(crColor1Cur);
+  int b1=GetBValue(crColor1Cur);
+  int r2=GetRValue(crColor2NewBase);
+  int g2=GetGValue(crColor2NewBase);
+  int b2=GetBValue(crColor2NewBase);
+  int r3=GetRValue(crColor3CurBase);
+  int g3=GetGValue(crColor3CurBase);
+  int b3=GetBValue(crColor3CurBase);
 
-  if (r > 0xFF)
-    r-=0xFF;
+  if ((r1 < 0x80 && r2 < 0x80 && r3 < 0x80) || (r1 > 0x80 && r2 > 0x80 && r3 > 0x80))
+  {
+    r1+=(r2 - r3);
+    r1=min(r1, 0xFF);
+    r1=max(r1, 0x00);
+  }
   else
-    r/=2;
-  if (g > 0xFF)
-    g-=0xFF;
-  else
-    g/=2;
-  if (b > 0xFF)
-    b-=0xFF;
-  else
-    b/=2;
+  {
+    if (r1 < r2)
+      r1+=(r2 - r1) / 6;
+    else
+      r1-=(r1 - r2) / 6;
+  }
 
-  return RGB(r, g, b);
+  if ((g1 < 0x80 && g2 < 0x80 && g3 < 0x80) || (g1 > 0x80 && g2 > 0x80 && g3 > 0x80))
+  {
+    g1+=(g2 - g3);
+    g1=min(g1, 0xFF);
+    g1=max(g1, 0x00);
+  }
+  else
+  {
+    if (g1 < g2)
+      g1+=(g2 - g1) / 6;
+    else
+      g1-=(g1 - g2) / 6;
+  }
+
+  if ((b1 < 0x80 && b2 < 0x80 && b3 < 0x80) || (b1 > 0x80 && b2 > 0x80 && b3 > 0x80))
+  {
+    b1+=(b2 - b3);
+    b1=min(b1, 0xFF);
+    b1=max(b1, 0x00);
+  }
+  else
+  {
+    if (b1 < b2)
+      b1+=(b2 - b1) / 6;
+    else
+      b1-=(b1 - b2) / 6;
+  }
+
+  return RGB(r1, g1, b1);
 }
 
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
