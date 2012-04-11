@@ -20191,8 +20191,8 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   const wchar_t *wpClassEnd=NULL;
   const wchar_t *wpCharStart=NULL;
   int nIndex=0;
-  BOOL bCheckGroupChars=FALSE;
-  BOOL bGroupOpen=FALSE;
+  BOOL bGroupNextChars=FALSE;
+  BOOL bClassOpen=FALSE;
 
   //Zero group is the all pattern
   if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
@@ -20214,6 +20214,32 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
   while (wpPat < wpMaxPat)
   {
+    if (bGroupNextChars)
+    {
+      if (*wpPat != L'|' &&
+          *wpPat != L')' &&
+          *wpPat != L'*' &&
+          *wpPat != L'+' &&
+          *wpPat != L'?' &&
+          *wpPat != L'{')
+      {
+        //"(.*)456(789)0" -> group to "(.*)(456(789)0)". It will be used by REGF_ANY group.
+        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        {
+          lpREGroupNew->parent=lpREGroupItem;
+          lpREGroupNew->wpPatLeft=wpPat;
+          lpREGroupNew->wpPatStart=wpPat;
+          lpREGroupNew->nMinMatch=1;
+          lpREGroupNew->nMaxMatch=1;
+          lpREGroupNew->nIndex=-1;
+          lpREGroupNew->dwFlags|=REGF_AFTERANY;
+  
+          lpREGroupItem=lpREGroupNew;
+        }
+        bGroupNextChars=FALSE;
+      }
+    }
+
     if (*wpPat == L'\\')
     {
       wpCharStart=wpPat;
@@ -20236,20 +20262,21 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     if (*wpPat == L']')
     {
-      if (!bGroupOpen || *(wpPat - 1) == L'-')
+      if (!bClassOpen || *(wpPat - 1) == L'-')
         goto Error;
-      bGroupOpen=FALSE;
+      bClassOpen=FALSE;
       wpClassEnd=++wpPat;
       continue;
     }
-    if (bGroupOpen)
+    if (bClassOpen)
     {
       ++wpPat;
       continue;
     }
+    //Class open
     if (*wpPat == L'[')
     {
-      bGroupOpen=TRUE;
+      bClassOpen=TRUE;
       wpClassStart=wpPat++;
       if (*wpPat == L'-')
         goto Error;
@@ -20265,7 +20292,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         {
           lpREGroupItem->wpPatEnd=wpPat;
           lpREGroupItem->wpPatRight=wpPat;
-          bCheckGroupChars=FALSE;
+          bGroupNextChars=FALSE;
         }
         else break;
       }
@@ -20325,8 +20352,6 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     else if (*wpPat == L')')
     {
-      if (wpClassStart > wpClassEnd)
-        goto Error;
       if (!lpREGroupItem->parent || lpREGroupItem->wpPatEnd)
         goto Error;
 
@@ -20337,7 +20362,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         {
           lpREGroupItem->wpPatEnd=wpPat;
           lpREGroupItem->wpPatRight=wpPat;
-          bCheckGroupChars=FALSE;
+          bGroupNextChars=FALSE;
         }
         else break;
       }
@@ -20396,7 +20421,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           if (lpREGroupNew->wpPatEnd - lpREGroupNew->wpPatStart == 1 && *lpREGroupNew->wpPatStart == L'.')
           {
             lpREGroupNew->dwFlags|=REGF_ANY;
-            bCheckGroupChars=TRUE;
+            bGroupNextChars=TRUE;
           }
         }
       }
@@ -20439,64 +20464,41 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         continue;
       }
     }
-    else
+    //Group open
+    else if (*wpPat == L'(')
     {
-      if (bCheckGroupChars)
+      if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
       {
-        //Group (456(789)0): "(.*)456(789)0". It will be used by REGF_ANY group.
-        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
+        lpREGroupNew->parent=lpREGroupItem;
+        lpREGroupNew->wpPatLeft=wpPat;
+        lpREGroupNew->wpPatStart=++wpPat;
+        lpREGroupNew->nIndex=++nIndex;
+
+        if (*wpPat == L'?')
         {
-          lpREGroupNew->parent=lpREGroupItem;
-          lpREGroupNew->wpPatLeft=wpPat;
-          lpREGroupNew->wpPatStart=wpPat;
-          lpREGroupNew->nMinMatch=1;
-          lpREGroupNew->nMaxMatch=1;
-          lpREGroupNew->nIndex=-1;
-          lpREGroupNew->dwFlags|=REGF_AFTERANY;
-
-          lpREGroupItem=lpREGroupNew;
-        }
-        bCheckGroupChars=FALSE;
-      }
-
-      if (*wpPat == L'(')
-      {
-        if (wpClassStart > wpClassEnd)
-          goto Error;
-
-        if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
-        {
-          lpREGroupNew->parent=lpREGroupItem;
-          lpREGroupNew->wpPatLeft=wpPat;
-          lpREGroupNew->wpPatStart=++wpPat;
-          lpREGroupNew->nIndex=++nIndex;
-
-          if (*wpPat == L'?')
+          if (*++wpPat == L':')
           {
-            if (*++wpPat == L':')
-            {
-              //Don't assign index
-            }
-            else if (*wpPat == L'=')
-            {
-              //Non-capture positive group
-              lpREGroupNew->dwFlags|=REGF_POSITIVE;
-            }
-            else if (*wpPat == L'!')
-            {
-              //Non-capture negative group
-              lpREGroupNew->dwFlags|=REGF_NEGATIVE;
-            }
-            --nIndex;
-            lpREGroupNew->nIndex=-1;
-            lpREGroupNew->wpPatStart=++wpPat;
+            //Don't assign index
           }
-          lpREGroupItem=lpREGroupNew;
-          continue;
+          else if (*wpPat == L'=')
+          {
+            //Non-capture positive group
+            lpREGroupNew->dwFlags|=REGF_POSITIVE;
+          }
+          else if (*wpPat == L'!')
+          {
+            //Non-capture negative group
+            lpREGroupNew->dwFlags|=REGF_NEGATIVE;
+          }
+          --nIndex;
+          lpREGroupNew->nIndex=-1;
+          lpREGroupNew->wpPatStart=++wpPat;
         }
+        lpREGroupItem=lpREGroupNew;
+        continue;
       }
-      else wpCharStart=wpPat;
     }
+    else wpCharStart=wpPat;
 
     ++wpPat;
   }
