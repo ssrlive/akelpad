@@ -4053,11 +4053,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
           }
 
-          if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+          if ((ae->ciCaretIndex.lpLine->nLineLen && !ae->ciCaretIndex.nCharInLine) ||
+              !AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+          {
             ciPrevWord=ae->ciCaretIndex;
-          if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+          }
+          if ((ae->ciCaretIndex.lpLine->nLineLen && ae->ciCaretIndex.nCharInLine == ae->ciCaretIndex.lpLine->nLineLen) ||
+              !AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+          {
             ciNextWord=ae->ciCaretIndex;
-
+          }
           ae->ciMouseSelClick=ae->ciCaretIndex;
           ae->ciMouseSelStart=ciPrevWord;
           ae->ciMouseSelEnd=ciNextWord;
@@ -9082,10 +9087,11 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
   AECHARINDEX ciCharIndex;
   AECHARINDEX ciSelEnd;
   int dwMouseSelType=ae->dwMouseSelType;
+  int nPosResult;
 
   if (ae->rcDraw.bottom - ae->rcDraw.top > 0 && ae->rcDraw.right - ae->rcDraw.left > 0)
   {
-    AE_GetCharFromPos(ae, ptPos->x, ptPos->y, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+    nPosResult=AE_GetCharFromPos(ae, ptPos->x, ptPos->y, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
     if (ae->nCurrentCursor == AECC_MARGIN && (dwMouseSelType & AEMSS_WORDS))
       dwMouseSelType=AEMSS_LINES;
@@ -9162,7 +9168,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         }
         else
         {
-          if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) > 0)
+          if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) > 0 ||
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && nPosResult == AEPC_BEFORE))
             AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelEnd;
