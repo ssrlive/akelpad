@@ -20233,7 +20233,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupNew->nMaxMatch=1;
           lpREGroupNew->nIndex=-1;
           lpREGroupNew->dwFlags|=REGF_AFTERANY;
-  
+
           lpREGroupItem=lpREGroupNew;
         }
         bGroupNextChars=FALSE;
