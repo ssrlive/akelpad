@@ -9160,7 +9160,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
       {
         if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0)
         {
-          if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0)
+          if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0 ||
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && nPosResult == AEPC_AFTER))
             AE_GetPrevBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelStart;
@@ -14190,6 +14191,7 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent,
   INT_PTR nStringWidth=0;
   int nStartChar=0;
   int nCharWidth=0;
+  INT_PTR nInitMaxExtent=nMaxExtent;
   INT_PTR nHScrollMax;
 
   if (lpLine)
@@ -14354,9 +14356,9 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent,
     if (nCharPos) *nCharPos=nStringWidth;
     if (nCharIndex) *nCharIndex=ciChar.nCharInLine;
 
-    if (nMaxExtent == nStringWidth)
+    if (nInitMaxExtent == nStringWidth)
       return AEPC_EQUAL;
-    if (nMaxExtent > nStringWidth)
+    if (nInitMaxExtent > nStringWidth)
       return AEPC_BEFORE;
     return AEPC_AFTER;
   }
