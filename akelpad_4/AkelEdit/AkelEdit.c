@@ -4045,6 +4045,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
           AECHARINDEX ciPrevWord;
           AECHARINDEX ciNextWord;
+          AECHARINDEX ciCharIndex;
+          int nPosResult;
 
           if (!ae->dwMouseMoveTimer)
           {
@@ -4052,14 +4054,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
             AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
           }
+          nPosResult=AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
 
           if ((ae->ciCaretIndex.lpLine->nLineLen && !ae->ciCaretIndex.nCharInLine) ||
-              !AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+              !AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)|(nPosResult == AEPC_BEFORE?AEWB_MINMOVE:0)))
           {
             ciPrevWord=ae->ciCaretIndex;
           }
           if ((ae->ciCaretIndex.lpLine->nLineLen && ae->ciCaretIndex.nCharInLine == ae->ciCaretIndex.lpLine->nLineLen) ||
-              !AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
+              !AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)))
           {
             ciNextWord=ae->ciCaretIndex;
           }
@@ -14432,6 +14435,9 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     return 0;
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
+  if (dwFlags & AEWB_MINMOVE)
+    AEC_PrevChar(&ciCount);
+
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
     if (ciCount.lpLine->next)
@@ -14444,13 +14450,13 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
 
   if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
   {
-    if (bInList=bNewLineInList)
-      bIsSpacePrevious=TRUE;
-
     AEC_NextLine(&ciCount);
     ++nLen;
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
+
+    if (bInList=bNewLineInList)
+      bIsSpacePrevious=TRUE;
   }
   else
   {
@@ -14573,6 +14579,9 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     return 0;
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
+  if (dwFlags & AEWB_MINMOVE)
+    AEC_NextChar(&ciCount);
+
   if (ciCount.nCharInLine <= 0)
   {
     if (ciCount.lpLine->prev)
@@ -14586,13 +14595,13 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
 
   if (ciCount.nCharInLine < 0)
   {
-    if (bInList=bNewLineInList)
-      bIsSpacePrevious=TRUE;
-
     AEC_PrevLine(&ciCount);
     nLen+=AEC_IndexDec(&ciCount);
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
+
+    if (bInList=bNewLineInList)
+      bIsSpacePrevious=TRUE;
   }
   else
   {
