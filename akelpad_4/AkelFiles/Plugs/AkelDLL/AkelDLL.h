@@ -1310,15 +1310,17 @@ typedef struct {
 } PATEXEC;
 
 typedef struct {
-  const wchar_t *wpStr;    //String for process.
-  const wchar_t *wpMaxStr; //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpPat;    //Pattern for process.
-  const wchar_t *wpMaxPat; //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
-  const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;         //See REPE_* defines.
-  int nReplaceCount;       //Receives replace count number.
-  wchar_t *wszResult;      //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
+  const wchar_t *wpStr;      //String for process.
+  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpPat;      //Pattern for process.
+  const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+  const wchar_t *wpRep;      //String to replace with. Can be used "$n" - the n'th captured submatch.
+  const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+  DWORD dwOptions;           //See REPE_* defines.
+  int nReplaceCount;         //Receives replace count number.
+  const wchar_t *wpLeftStr;  //First replace occurrence in string.
+  const wchar_t *wpRightStr; //Unmatched right part of string.
+  wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
 
 typedef struct {
