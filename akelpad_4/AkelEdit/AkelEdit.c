@@ -9161,7 +9161,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0)
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0 ||
-             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && nPosResult == AEPC_AFTER))
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && ciCharIndex.nCharInLine == 0 && nPosResult == AEPC_AFTER))
             AE_GetPrevBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelStart;
@@ -9170,7 +9170,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         else
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) > 0 ||
-             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && nPosResult == AEPC_BEFORE))
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen && nPosResult == AEPC_BEFORE))
             AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelEnd;
