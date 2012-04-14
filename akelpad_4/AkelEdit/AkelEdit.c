@@ -14436,7 +14436,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (dwFlags & AEWB_MINMOVE)
-    AEC_PrevChar(&ciCount);
+    AEC_PrevCharEx(&ciCount, &ciCount);
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
@@ -14580,7 +14580,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (dwFlags & AEWB_MINMOVE)
-    AEC_NextChar(&ciCount);
+    AEC_NextCharEx(&ciCount, &ciCount);
 
   if (ciCount.nCharInLine <= 0)
   {
