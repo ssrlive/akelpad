@@ -4061,8 +4061,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           {
             ciPrevWord=ae->ciCaretIndex;
           }
-          if ((ae->ciCaretIndex.lpLine->nLineLen && ae->ciCaretIndex.nCharInLine == ae->ciCaretIndex.lpLine->nLineLen) ||
-              !AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)))
+          if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)))
           {
             ciNextWord=ae->ciCaretIndex;
           }
@@ -9164,7 +9163,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0)
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0 ||
-             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && ciCharIndex.nCharInLine == 0 && nPosResult == AEPC_AFTER))
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && nPosResult == AEPC_AFTER))
             AE_GetPrevBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelStart;
@@ -9173,7 +9172,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         else
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) > 0 ||
-             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen && nPosResult == AEPC_BEFORE))
+             (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && nPosResult == AEPC_BEFORE))
             AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciMouseSelEnd;
