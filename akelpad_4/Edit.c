@@ -21142,14 +21142,23 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
       }
       else
       {
-        if (nIndex=(int)xatoiW(wpRep, &wpRep))
+        if (*wpRep == L'&')
         {
-          if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
-          {
-            if (pep->wszBuf)
-              xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
-            pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
-          }
+          ++wpRep;
+          nIndex=0;
+        }
+        else
+        {
+          if (*wpRep < L'0' || *wpRep > L'9')
+            continue;
+          nIndex=(int)xatoiW(wpRep, &wpRep);
+        }
+
+        if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
+        {
+          if (pep->wszBuf)
+            xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+          pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
         }
         continue;
       }
