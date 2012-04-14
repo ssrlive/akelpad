@@ -4069,7 +4069,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           ae->ciMouseSelStart=ciPrevWord;
           ae->ciMouseSelEnd=ciNextWord;
           ae->dwMouseSelType=AEMSS_WORDS;
-          AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
+
+          if (nPosResult == AEPC_AFTER)
+            AE_SetSelectionPos(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
+          else
+            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
         }
       }
       //Three clicks
@@ -9160,11 +9164,12 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
     {
       if (bShift)
       {
-        if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0)
+        if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0 ||
+            (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) && nPosResult == AEPC_AFTER))
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0 ||
              (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) && nPosResult == AEPC_AFTER))
-            AE_GetPrevBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
+            AE_GetPrevBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak|(nPosResult == AEPC_BEFORE?AEWB_MINMOVE:0));
           else
             ciCharIndex=ae->ciMouseSelStart;
           ciSelEnd=ae->ciMouseSelEnd;
@@ -9173,7 +9178,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) > 0 ||
              (!AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) && nPosResult == AEPC_BEFORE))
-            AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
+            AE_GetNextBreak(ae, &ciCharIndex, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak|(nPosResult == AEPC_AFTER?AEWB_MINMOVE:0));
           else
             ciCharIndex=ae->ciMouseSelEnd;
           ciSelEnd=ae->ciMouseSelStart;
