@@ -9748,7 +9748,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpMaxPat=wpFindIt + nFindItLen;
     pr.wpRep=wpReplaceWith;
     pr.wpMaxRep=wpReplaceWith + nReplaceWithLen;
-    pr.dwOptions=REPE_GLOBAL|(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
+    pr.dwOptions=(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
     nResultTextLen=PatReplace(&pr);
   }
 
@@ -9845,6 +9845,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       {
         pr.wpStr=wszRangeText;
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
+        pr.dwOptions|=REPE_GLOBAL;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
@@ -10022,7 +10023,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         {
           pr.wpStr=crCurSel.ciMin.lpLine->wpLine + crCurSel.ciMin.nCharInLine;
           pr.wpMaxStr=crCurSel.ciMax.lpLine->wpLine + crCurSel.ciMax.nCharInLine;
-          pr.dwOptions&=~REPE_GLOBAL;
+          pr.dwOptions|=REPE_BEGIN;
           pr.wszResult=NULL;
           nResultTextLen=PatReplace(&pr);
 
@@ -21016,6 +21017,8 @@ int PatStructExec(PATEXEC *pe)
   }
   if (!(lpREGroupRoot=pe->lpREGroupStack->first))
     return 0;
+  if (pe->dwOptions & REPE_BEGIN)
+    lpREGroupRoot->dwFlags&=~REGF_ROOTANY;
 
   while (pe->wpStr < pe->wpMaxStr)
   {
@@ -21044,7 +21047,8 @@ int PatStructExec(PATEXEC *pe)
         //Find next match
         pe->wpStr=lpREGroupRoot->wpStrEnd;
         ++nMatchCount;
-        if (!(pe->dwOptions & REPE_GLOBAL)) break;
+        if (!(pe->dwOptions & REPE_GLOBAL) || (!(lpREGroupRoot->dwFlags & REGF_ROOTANY) && !(pe->dwOptions & REPE_BEGIN)))
+          break;
       }
       else break;
     }

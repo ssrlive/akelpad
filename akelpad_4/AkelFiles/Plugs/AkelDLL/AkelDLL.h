@@ -615,8 +615,9 @@
 #define RECC_REF      0x10
 
 //AKD_PATEXEC options
-#define REPE_MATCHCASE 0x1
-#define REPE_GLOBAL    0x2
+#define REPE_MATCHCASE 0x1 //Case-sensitive search.
+#define REPE_GLOBAL    0x2 //Search all possible occurrences.
+#define REPE_BEGIN     0x4 //Force first occurrence located at the beginning of the string.
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE   0
