@@ -2,7 +2,9 @@
 AkelPad 4.7.5 ()
 ----------------------------
 Changed: processing capture after double mouse click.
+Changed: automatic check "In selection" option works when multiple lines selected.
 
+Added: option for prompting in text cycle search.
 Added: possibility during replace with regular expressions to use escape characters:
        $\r, $\n, $\t, $\u0000, $\x00 etc.
 Added: manual parameter "AkelUpdaterOptions" - defines command line options for

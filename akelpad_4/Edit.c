@@ -2327,15 +2327,11 @@ void DoEditFind()
       moCur.dwSearchOptions&=~AEFR_ALLFILES;
     if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
-    else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     hDlgModeless=API_CreateDialog(hLangLib, MAKEINTRESOURCEW(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
 
     if (hDlgModeless)
-    {
       ShowWindow(hDlgModeless, SW_SHOW);
-    }
   }
   else if (nModelessType == MLT_FIND)
   {
@@ -2376,15 +2372,11 @@ void DoEditReplace()
       moCur.dwSearchOptions&=~AEFR_ALLFILES;
     if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
-    else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     hDlgModeless=API_CreateDialog(hLangLib, MAKEINTRESOURCEW(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
 
     if (hDlgModeless)
-    {
       ShowWindow(hDlgModeless, SW_SHOW);
-    }
   }
   else if (nModelessType == MLT_REPLACE)
   {
@@ -8902,6 +8894,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndReplaceAllButton;
   static HWND hWndCancelButton;
   static BOOL bSpecialCheck=FALSE;
+  static BOOL bInSelAutoCheck=FALSE;
   HWND hWndFocus=NULL;
   HWND hWndComboboxEdit;
   BOOL bReplace=FALSE;
@@ -8941,6 +8934,14 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
     }
 
+    if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
+    {
+      if (crCurSel.ciMax.nLine - crCurSel.ciMin.nLine > 0)
+      {
+        moCur.dwSearchOptions|=AEFR_SELECTION;
+        bInSelAutoCheck=TRUE;
+      }
+    }
     if (moCur.nSearchStrings)
     {
       FillComboboxSearch(hWndFind, hWndReplace);
@@ -9000,10 +9001,10 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     CHARRANGE64 cr;
     wchar_t *wszData;
-    int nSelLen;
+    INT_PTR nSelLen;
     BOOL bResult=FALSE;
 
-    if (nSelLen=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr))
+    if (nSelLen=SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr))
     {
       if (nSelLen <= PUTFIND_MAXSEL && !(moCur.dwSearchOptions & AEFR_SELECTION) && !SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
       {
@@ -9351,6 +9352,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         bSpecialCheck=FALSE;
         moCur.dwSearchOptions|=AEFR_BEGINNING;
       }
+      if (bInSelAutoCheck)
+        moCur.dwSearchOptions&=~AEFR_SELECTION;
       if (moCur.nSearchStrings)
         SaveComboboxSearch(hWndFind, hWndReplace);
       GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
@@ -9681,17 +9684,39 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
       if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
       {
+        AECHARINDEX ciChar;
+        HWND hWndParent;
+        int nAnswer=IDOK;
+
         if (dwFlags & AEFR_DOWN)
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
-          ft.crSearch.ciMax=crCurSel.ciMin;
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar);
+          if (AEC_IndexCompare(&ft.crSearch.ciMin, &ciChar))
+          {
+            ft.crSearch.ciMin=ciChar;
+            ft.crSearch.ciMax=crCurSel.ciMax;
+          }
+          else nAnswer=IDCANCEL;
         }
         else if (dwFlags & AEFR_UP)
         {
-          ft.crSearch.ciMin=crCurSel.ciMax;
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciChar);
+          if (AEC_IndexCompare(&ft.crSearch.ciMax, &ciChar))
+          {
+            ft.crSearch.ciMin=crCurSel.ciMin;
+            ft.crSearch.ciMax=ciChar;
+          }
+          else nAnswer=IDCANCEL;
         }
-        bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
+        if (nAnswer == IDOK && (dwFlags & AEFR_CYCLESEARCHPROMPT))
+        {
+          hWndParent=(nModelessType == MLT_FIND || nModelessType == MLT_REPLACE)?hDlgModeless:hMainWnd;
+
+          API_LoadStringW(hLangLib, MSG_SEARCH_CYCLEPROMPT, wszMsg, BUFFER_SIZE);
+          nAnswer=API_MessageBox(hWndParent, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONQUESTION);
+        }
+        if (nAnswer == IDOK)
+          bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
       }
     }
   }
@@ -14577,6 +14602,8 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndReplaceAllAndClose;
   static HWND hWndInSelIfSel;
   static HWND hWndCycleSearch;
+  static HWND hWndCycleSearchPrompt;
+  BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -14589,6 +14616,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
+    hWndCycleSearchPrompt=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCHPROMPT);
 
     if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
       SendMessage(hWndSwitchKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
@@ -14606,8 +14634,18 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndInSelIfSel, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_CYCLESEARCH)
       SendMessage(hWndCycleSearch, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & AEFR_CYCLESEARCHPROMPT)
+      SendMessage(hWndCycleSearchPrompt, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_OPTIONS_CYCLESEARCH)
+    {
+      bState=(BOOL)SendMessage(hWndCycleSearch, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndCycleSearchPrompt, bState);
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -14658,6 +14696,12 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         moCur.dwSearchOptions|=AEFR_CYCLESEARCH;
       else
         moCur.dwSearchOptions&=~AEFR_CYCLESEARCH;
+
+      //Cycle search prompt
+      if (SendMessage(hWndCycleSearchPrompt, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwSearchOptions|=AEFR_CYCLESEARCHPROMPT;
+      else
+        moCur.dwSearchOptions&=~AEFR_CYCLESEARCHPROMPT;
     }
   }
   return FALSE;

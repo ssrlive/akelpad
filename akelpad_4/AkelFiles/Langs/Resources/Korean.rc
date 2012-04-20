@@ -885,7 +885,9 @@ BEGIN
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
+    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,134,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1002,6 +1004,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "»èÁ¦µÈ ±â·Ï: %d"
     MSG_SEARCH_ENDED        "°Ë»öÀ» ¸¶ÃÆ½À´Ï´Ù."
+    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
     MSG_REPLACE_COUNT       "¹Ù²ï °¹¼ö: %d"
     MSG_REPLACE_COUNT_ALLFILES "¹Ù²ï ÆÄÀÏ ¼ö: %d\n¹Ù²ï °¹¼ö: %Id"
     MSG_FILE_WILL_BE_REOPENED 

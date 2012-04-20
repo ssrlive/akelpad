@@ -878,7 +878,9 @@ BEGIN
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
     CONTROL         "循環搜尋",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
+    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,134,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -994,6 +996,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "已刪除的記錄: %d"
     MSG_SEARCH_ENDED        "搜尋完畢。"
+    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
     MSG_REPLACE_COUNT       "變更次數: %d"
     MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %Id"
     MSG_FILE_WILL_BE_REOPENED "檔案即將重新開啟，所有的變更將遺失。"
