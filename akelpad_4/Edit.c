@@ -197,6 +197,7 @@ extern wchar_t *wszFindText;
 extern wchar_t *wszReplaceText;
 extern int nFindTextLen;
 extern int nReplaceTextLen;
+extern BOOL bNoSearchFinishMessage;
 extern WNDPROC lpOldComboboxEdit;
 
 //Go to line dialog
@@ -8933,6 +8934,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       lpFrameCurrent->nReplaceCount=0;
       UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
     }
+    bNoSearchFinishMessage=FALSE;
 
     if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
     {
@@ -9233,8 +9235,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 SetFocus(hWndFind);
                 SendMessage(hWndFind, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
 
-                //Don't show MSG_SEARCH_ENDED
-                nResult=-2;
+                bNoSearchFinishMessage=TRUE;
                 break;
               }
               else
@@ -9261,7 +9262,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           while (lpFrameCurrent != lpFrameInit);
 
-          if (nResult == -1)
+          if (nResult == -1 && !bNoSearchFinishMessage)
           {
             API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -9321,7 +9322,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 return TRUE;
               }
             }
-            else
+            else if (!bNoSearchFinishMessage)
             {
               API_LoadStringW(hLangLib, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
               API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -9717,6 +9718,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
         }
         if (nAnswer == IDOK)
           bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
+        else
+          bNoSearchFinishMessage=TRUE;
       }
     }
   }
