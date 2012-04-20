@@ -14638,6 +14638,8 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndCycleSearchPrompt, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt);
+
+    SendMessage(hDlg, WM_COMMAND, IDC_OPTIONS_CYCLESEARCH, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
