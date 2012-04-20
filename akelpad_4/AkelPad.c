@@ -372,6 +372,7 @@ wchar_t *wszFindText=NULL;
 wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
 int nReplaceTextLen=0;
+BOOL bNoSearchFinishMessage=FALSE;
 WNDPROC lpOldComboboxEdit;
 
 //Go to line dialog
