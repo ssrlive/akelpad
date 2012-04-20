@@ -888,7 +888,9 @@ BEGIN
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Поиск по кругу",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
+    CONTROL         "Запрос",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,134,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1021,6 +1023,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Удалено записей: %d"
     MSG_SEARCH_ENDED        "Поиск завершен."
+    MSG_SEARCH_CYCLEPROMPT  "Достигнута граница файла. Продолжить?"
     MSG_REPLACE_COUNT       "Количество замен: %d"
     MSG_REPLACE_COUNT_ALLFILES "Измененных файлов: %d\nКоличество замен: %Id"
     MSG_FILE_WILL_BE_REOPENED 

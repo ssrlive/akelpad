@@ -866,7 +866,8 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_ALLFILES) |
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |
-          (moInit.dwSearchOptions & AEFR_CYCLESEARCH);
+          (moInit.dwSearchOptions & AEFR_CYCLESEARCH) |
+          (moInit.dwSearchOptions & AEFR_CYCLESEARCHPROMPT);
 
   //Normalize tab flags
   if (!(moInit.dwTabOptionsMDI & TAB_VIEW_NONE) && !(moInit.dwTabOptionsMDI & TAB_VIEW_TOP) && !(moInit.dwTabOptionsMDI & TAB_VIEW_BOTTOM))
