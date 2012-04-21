@@ -20480,22 +20480,16 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       {
         lpREGroupNew->nMinMatch=0;
         lpREGroupNew->nMaxMatch=-1;
-        lpREGroupNew->wpPatRight=++wpPat;
-        continue;
       }
       else if (*wpPat == L'+')
       {
         lpREGroupNew->nMinMatch=1;
         lpREGroupNew->nMaxMatch=-1;
-        lpREGroupNew->wpPatRight=++wpPat;
-        continue;
       }
       else if (*wpPat == L'?')
       {
         lpREGroupNew->nMinMatch=0;
         lpREGroupNew->nMaxMatch=1;
-        lpREGroupNew->wpPatRight=++wpPat;
-        continue;
       }
       else if (*wpPat == L'{')
       {
@@ -20509,9 +20503,13 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           else
             lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
         }
-        lpREGroupNew->wpPatRight=++wpPat;
-        continue;
       }
+      else continue;
+
+      //We already non-greedy, so ignore it.
+      if (*++wpPat == L'?') ++wpPat;
+      lpREGroupNew->wpPatRight=wpPat;
+      continue;
     }
     //Group open
     else if (*wpPat == L'(')
