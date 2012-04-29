@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 9)
+#define AKELDLL MAKE_IDENTIFIER(1, 6, 1, 0)
 
 
 //// Defines
@@ -500,14 +500,16 @@
 #define PDS_NOMDI        0x00000010  //Function doesn't support MDI mode.
 #define PDS_NOPMDI       0x00000020  //Function doesn't support PMDI mode.
 #define PDS_NORICHEDIT   0x00000040  //Reserved.
-#define PDS_GETSUPPORT   0x10000000  //Flag is set if caller specified DLLCF_GETSUPPORT in AKD_DLLCALL and wants to get PDS_* flags without function execution.
+#define PDS_GETSUPPORT   0x10000000  //Flag is set if caller wants to get PDS_* flags without function execution.
+#define PDS_STRANSI      0x20000000  //Flag is set if caller passes Ansi strings in external call arguments (PLUGINDATA.lParam).
+#define PDS_STRWIDE      0x40000000  //Flag is set if caller passes Unicode strings in external call arguments (PLUGINDATA.lParam).
+                                     //If PDS_STRANSI and PDS_STRWIDE not specified then one of these flags will be set automatically depending on Windows version.
 
 //AKD_DLLCALL flags
-#define DLLCF_ONPROGRAMLOAD   0x01  //Don't use it. For internal code only.
-#define DLLCF_GETSUPPORT      0x02  //Get PDS_* flags without function execution.
-#define DLLCF_SWITCHAUTOLOAD  0x04  //If function running after call then turn on autoload, if not then turn off autoload.
-#define DLLCF_SAVENOW         0x08  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
-#define DLLCF_SAVEONEXIT      0x10  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
+#define DLLCF_ONPROGRAMLOAD   0x001  //Don't use it. For internal code only.
+#define DLLCF_SWITCHAUTOLOAD  0x004  //If function running after call then turn on autoload, if not then turn off autoload.
+#define DLLCF_SAVENOW         0x008  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
+#define DLLCF_SAVEONEXIT      0x010  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
 
 //AKD_DLLSAVE flags
 #define DLLSF_NOW     0x1  //Save plugins stack immediately.
@@ -1128,23 +1130,25 @@ typedef struct {
 typedef struct {
   const char *pFunction;      //Function name, format "Plugin::Function".
   LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //Receives PDS_* flags.
+  DWORD dwSupport;            //See PDS_* defines.
 } PLUGINCALLSENDA;
 
 typedef struct {
   const wchar_t *pFunction;   //Function name, format L"Plugin::Function".
   LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //Receives PDS_* flags.
+  DWORD dwSupport;            //See PDS_* defines.
 } PLUGINCALLSENDW;
 
 typedef struct {
-  LPARAM lParam;              //Input data.
-  char szFunction[MAX_PATH];  //Function name, format "Plugin::Function".
+  LPARAM lParam;                //Input data.
+  char szFunction[MAX_PATH];    //Function name, format "Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
 } PLUGINCALLPOSTA;
 
 typedef struct {
-  LPARAM lParam;                  //Input data.
-  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function".
+  LPARAM lParam;                //Input data.
+  wchar_t szFunction[MAX_PATH]; //Function name, format L"Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
 } PLUGINCALLPOSTW;
 
 typedef struct {

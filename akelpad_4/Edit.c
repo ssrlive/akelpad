@@ -12577,7 +12577,7 @@ void CallPluginsOnStart(HSTACK *hStack)
     {
       pcs.pFunction=pfElement->wszFunction;
       pcs.lParam=0;
-      //pcs.dwSupport=0;
+      pcs.dwSupport=0;
       CallPluginSend(&pfElement, &pcs, DLLCF_ONPROGRAMLOAD);
     }
     pfElement=pfNextElement;
@@ -12618,7 +12618,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
         {
           if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if ((dwFlags & DLLCF_SWITCHAUTOLOAD) && !(pcs->dwSupport & PDS_NOAUTOLOAD) && !(dwFlags & DLLCF_GETSUPPORT))
+            if ((dwFlags & DLLCF_SWITCHAUTOLOAD) && !(pcs->dwSupport & PDS_NOAUTOLOAD) && !(pcs->dwSupport & PDS_GETSUPPORT))
             {
               if (!pfElement->bAutoLoad)
               {
@@ -12731,7 +12731,9 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
                   pd.cb=sizeof(PLUGINDATA);
-                  pd.dwSupport=(dwFlags & DLLCF_GETSUPPORT)?PDS_GETSUPPORT:PDS_SUPPORTALL;
+                  pd.dwSupport=pcs->dwSupport;
+                  if (!(pd.dwSupport & PDS_STRANSI) && !(pd.dwSupport & PDS_STRWIDE))
+                    pd.dwSupport|=bOldWindows?PDS_STRANSI:PDS_STRWIDE;
                   pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)pcs->pFunction;
                   pd.szFunction=szFullName;
                   pd.wszFunction=pcs->pFunction;
@@ -12775,7 +12777,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
 
                   pcs->dwSupport=pd.dwSupport;
-                  if ((dwFlags & DLLCF_GETSUPPORT) && bInMemory)
+                  if ((pcs->dwSupport & PDS_GETSUPPORT) && bInMemory)
                     return UD_NONUNLOAD_UNCHANGE;
                   if ((pd.nUnload & UD_NONUNLOAD_ACTIVE) ||
                       (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
@@ -12932,7 +12934,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallPostW->lParam;
-      //pcsW.dwSupport=0;
+      pcsW.dwSupport=lpCallPostW->dwSupport;
       CallPluginSend(NULL, &pcsW, (DWORD)lpMsg->wParam);
       GlobalFree((HGLOBAL)lpMsg->lParam);
     }
@@ -13017,7 +13019,7 @@ int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg)
 
         pcs.pFunction=pfElement->wszFunction;
         pcs.lParam=0;
-        //pcs.dwSupport=0;
+        pcs.dwSupport=0;
         if (CallPluginSend(&pfElement, &pcs, 0) & UD_HOTKEY_DODEFAULT)
           break;
         return TRUE;
@@ -13255,8 +13257,8 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                     pcs.pFunction=pliElement->pf->wszFunction;
                     pcs.lParam=0;
-                    pcs.dwSupport=0;
-                    if ((pliElement->nCallResult=CallPluginSend(NULL, &pcs, DLLCF_GETSUPPORT)) != UD_FAILED)
+                    pcs.dwSupport=PDS_GETSUPPORT;
+                    if ((pliElement->nCallResult=CallPluginSend(NULL, &pcs, 0)) != UD_FAILED)
                     {
                       if (pcs.dwSupport & PDS_NOAUTOLOAD)
                         pliElement->nAutoLoad=0;
