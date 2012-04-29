@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v5.1                     *
+ *              String functions header v5.2                     *
  *                                                               *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -126,6 +126,9 @@ wchar_t WideCharLower(wchar_t c)
         return (c + 1);
       return c;
     }
+
+    if (c == 0x0259)
+      return c;
 
     if ((c >= 0x0139 && c <= 0x0147) ||
         (c >= 0x01cd && c <= 0x91db))
