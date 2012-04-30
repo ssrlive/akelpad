@@ -19,7 +19,6 @@ void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {
   GETTEXTRANGE gtr;
   CHARRANGE64 cr;
-  INT_PTR nLen;
 
   //Function doesn't support autoload
   pd->dwSupport|=PDS_NOAUTOLOAD;
@@ -32,24 +31,23 @@ void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
   gtr.cpMax=cr.cpMax;
 
   //Get text from selection
-  if (nLen=SendMessage(pd->hMainWnd, AKD_GETTEXTRANGE, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
+  if (pd->dwSupport & PDS_STRANSI)
   {
-    //Show result
-    if (pd->bOldWindows)
+    if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
+    {
       MessageBoxA(pd->hMainWnd, (char *)gtr.pText, "Test", MB_OK);
-    else
-      MessageBoxW(pd->hMainWnd, (wchar_t *)gtr.pText, L"Test", MB_OK);
-
-    //Free text buffer allocated with AKD_GETTEXTRANGE
-    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
+      SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
+    }
+    else MessageBoxA(pd->hMainWnd, "Text doesn't selected", "Test", MB_OK);
   }
   else
   {
-    //Show result
-    if (pd->bOldWindows)
-      MessageBoxA(pd->hMainWnd, "Text doesn't selected", "Test", MB_OK);
-    else
-      MessageBoxW(pd->hMainWnd, L"Text doesn't selected", L"Test", MB_OK);
+    if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
+    {
+      MessageBoxW(pd->hMainWnd, (wchar_t *)gtr.pText, L"Test", MB_OK);
+      SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
+    }
+    else MessageBoxW(pd->hMainWnd, L"Text doesn't selected", L"Test", MB_OK);
   }
 }
 
