@@ -888,7 +888,7 @@ BEGIN
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Szukaj wko³o",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "Zapytanie",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
@@ -1008,7 +1008,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Liczba usuniêtych wpisów: %d"
     MSG_SEARCH_ENDED        "Wyszukiwanie zakoñczone."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Osi¹gniêto granicê pliku. Kontynuowaæ?"
     MSG_REPLACE_COUNT       "Liczba zmian: %d"
     MSG_REPLACE_COUNT_ALLFILES "Zmienione pliki: %d\nLiczba zmian: %Id"
     MSG_FILE_WILL_BE_REOPENED 
