@@ -9576,12 +9576,13 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     AECHARRANGE crWord;
     const wchar_t *wpStr;
     const wchar_t *wpMaxStr;
+    const wchar_t *wpMaxFindIt=wpFindIt + nFindItLen;
 
     hREGroupStack.first=0;
     hREGroupStack.last=0;
     hREGroupStack.dwOptions=(dwFlags & AEFR_MATCHCASE)?REO_MATCHCASE:0;
 
-    if (!(lpFrame->nCompileErrorOffset=CompilePat(&hREGroupStack, wpFindIt, wpFindIt + nFindItLen)))
+    if (!(lpFrame->nCompileErrorOffset=CompilePat(&hREGroupStack, wpFindIt, wpMaxFindIt)))
     {
       if (dwFlags & AEFR_UP)
       {
@@ -9608,9 +9609,10 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
               crWord.ciMax=ft.crSearch.ciMax;
               crWord.ciMax.nCharInLine=(int)(hREGroupStack.first->wpStrEnd - ft.crSearch.ciMax.lpLine->wpLine);
 
-              if (!(dwFlags & AEFR_WHOLEWORD) ||
-                  (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crWord.ciMin) &&
-                   SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crWord.ciMax)))
+              if ((!(dwFlags & AEFR_WHOLEWORD) ||
+                   (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crWord.ciMin) &&
+                    SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crWord.ciMax))) &&
+                  (*(wpMaxFindIt - 1) != L'$' || AEC_IsLastCharInLine(&crWord.ciMax)))
               {
                 xmemcpy(&ft.crFound, &crWord, sizeof(AECHARRANGE));
                 bFound=TRUE;
@@ -9649,9 +9651,10 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
             ft.crFound.ciMax=ft.crSearch.ciMin;
             ft.crFound.ciMax.nCharInLine=(int)(hREGroupStack.first->wpStrEnd - ft.crSearch.ciMin.lpLine->wpLine);
 
-            if (!(dwFlags & AEFR_WHOLEWORD) ||
-                (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&ft.crFound.ciMin) &&
-                 SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ft.crFound.ciMax)))
+            if ((!(dwFlags & AEFR_WHOLEWORD) ||
+                 (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&ft.crFound.ciMin) &&
+                  SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ft.crFound.ciMax))) &&
+                (*(wpFindIt) != L'^' || AEC_IsFirstCharInLine(&ft.crFound.ciMin)))
             {
               bFound=TRUE;
               break;
