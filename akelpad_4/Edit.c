@@ -9776,7 +9776,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpMaxPat=wpFindIt + nFindItLen;
     pr.wpRep=wpReplaceWith;
     pr.wpMaxRep=wpReplaceWith + nReplaceWithLen;
-    pr.dwOptions=(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
+    pr.dwOptions=REPE_MULTILINE|(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
     nResultTextLen=PatReplace(&pr);
   }
 
@@ -9878,15 +9878,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         nResultTextLen=PatReplace(&pr);
 
         if (pr.nReplaceCount)
-        {
-          if (nResultTextLen > nRangeTextLen)
-            wszResultText=AllocWideStr(nResultTextLen);
-          else
-          {
-            //We don't need allocate new buffer since output string is less than input
-            wszResultText=wszRangeText;
-          }
-        }
+          wszResultText=AllocWideStr(nResultTextLen);
       }
       else
       {
@@ -20267,6 +20259,9 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   {
     if (bGroupNextChars)
     {
+      if (*wpPat == L'$')
+        break;
+
       if (*wpPat != L'|' &&
           *wpPat != L')' &&
           *wpPat != L'*' &&
@@ -20613,10 +20608,9 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     //Turn off REGF_ROOTANY and execute itself
     lpREGroupItem->dwFlags&=~REGF_ROOTANY;
 
-    while (wpStr < wpMaxStr)
+    while (wpStr <= wpMaxStr)
     {
-      if (ExecPat(hStack, lpREGroupItem, wpStr, wpMaxStr) &&
-          lpREGroupItem->wpStrStart != lpREGroupItem->wpStrEnd)
+      if (ExecPat(hStack, lpREGroupItem, wpStr, wpMaxStr))
       {
         bResult=TRUE;
         break;
@@ -20647,20 +20641,13 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         ++nCurMatch;
         goto BeginLoop;
       }
-      if (wpStr >= wpMaxStr)
-      {
-        if (*wpPat == L'$' || (wpMaxPat - wpPat == 2 && *wpPat == L'\\' && *(wpPat + 1) == L'b'))
-          goto Match;
-        goto EndLoop;
-      }
-
       if (wpPat == wpNextGroup)
       {
         if (lpREGroupNext->dwFlags & REGF_ANY)
         {
           //".+" or ".{5,}"
           nAnyMatch=max(lpREGroupNext->nMinMatch, lpREGroupNext->nMaxMatch);
-          if (wpStr + nAnyMatch < wpMaxStr)
+          if (wpStr + nAnyMatch <= wpMaxStr)
             wpStr+=nAnyMatch;
           else
             goto EndLoop;
@@ -20727,6 +20714,12 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         else
           wpNextGroup=NULL;
         continue;
+      }
+      if (wpStr >= wpMaxStr)
+      {
+        if (*wpPat == L'$' || (wpMaxPat - wpPat == 2 && *wpPat == L'\\' && *(wpPat + 1) == L'b'))
+          goto Match;
+        goto EndLoop;
       }
 
       if (*wpPat == L'.')
@@ -21050,6 +21043,7 @@ int PatStructExec(PATEXEC *pe)
   REGROUP *lpREGroupRoot;
   REGROUP *lpREGroupNext;
   int nMatchCount=0;
+  BOOL bMatched=FALSE;
 
   if (!pe->lpREGroupStack)
   {
@@ -21068,40 +21062,60 @@ int PatStructExec(PATEXEC *pe)
     return 0;
   if (pe->dwOptions & REPE_BEGIN)
     lpREGroupRoot->dwFlags&=~REGF_ROOTANY;
+  if (pe->dwOptions & REPE_MULTILINE)
+    pe->wpMaxLine=NULL;
+  else
+    pe->wpMaxLine=pe->wpMaxStr;
 
   while (pe->wpStr < pe->wpMaxStr)
   {
-    if (ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxStr))
+    if (pe->dwOptions & REPE_MULTILINE)
     {
-      if (lpREGroupRoot->wpStrStart != lpREGroupRoot->wpStrEnd)
+      if (pe->wpStr > pe->wpMaxLine)
       {
-        if (pe->lpCallback)
-        {
-          lpREGroupNext=lpREGroupRoot;
-
-          do
-          {
-            pe->nErrorCallback=pe->lpCallback(lpREGroupNext, nMatchCount, pe->lParam);
-            if (pe->nErrorCallback < 0)
-            {
-              if (pe->nErrorCallback == REPEC_NEXTMATCH)
-                break;
-              if (pe->nErrorCallback == REPEC_STOPEXEC)
-                return nMatchCount;
-            }
-          }
-          while (lpREGroupNext=NextPatGroup(lpREGroupNext));
-        }
-
-        //Find next match
-        pe->wpStr=lpREGroupRoot->wpStrEnd;
-        ++nMatchCount;
-        if (!(pe->dwOptions & REPE_GLOBAL) || (!(lpREGroupRoot->dwFlags & REGF_ROOTANY) && !(pe->dwOptions & REPE_BEGIN)))
-          break;
+        for (pe->wpMaxLine=pe->wpStr; pe->wpMaxLine < pe->wpMaxStr && *pe->wpMaxLine != L'\n' && *pe->wpMaxLine != L'\r'; ++pe->wpMaxLine);
       }
-      else break;
     }
-    else break;
+
+    if (!(bMatched=ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxLine)))
+    {
+      if (!(pe->dwOptions & REPE_MULTILINE))
+        break;
+    }
+    else ++nMatchCount;
+
+    if (pe->lpCallback)
+    {
+      lpREGroupNext=lpREGroupRoot;
+
+      do
+      {
+        pe->nErrorCallback=pe->lpCallback(lpREGroupNext, bMatched, pe->lParam);
+        if (pe->nErrorCallback < 0)
+        {
+          if (pe->nErrorCallback == REPEC_NEXTMATCH)
+            break;
+          if (pe->nErrorCallback == REPEC_STOPEXEC)
+            return nMatchCount;
+        }
+      }
+      while (lpREGroupNext=NextPatGroup(lpREGroupNext));
+    }
+
+    //Find next match
+    if (!(pe->dwOptions & REPE_GLOBAL))
+      break;
+    if (bMatched)
+      pe->wpStr=lpREGroupRoot->wpStrEnd;
+    else
+      pe->wpStr=pe->wpMaxLine;
+
+    if (pe->dwOptions & REPE_MULTILINE)
+    {
+      if (pe->wpStr < pe->wpMaxStr && *pe->wpStr == L'\r') ++pe->wpStr;
+      if (pe->wpStr < pe->wpMaxStr && *pe->wpStr == L'\r') ++pe->wpStr;
+      if (pe->wpStr < pe->wpMaxStr && *pe->wpStr == L'\n') ++pe->wpStr;
+    }
   }
   return nMatchCount;
 }
@@ -21142,10 +21156,13 @@ INT_PTR PatReplace(PATREPLACE *pr)
     pr->wpLeftStr=pe.lpREGroupStack->first->wpStrStart;
     pr->wpRightStr=pep.wpRightStr;
 
-    //Copy unmatched right part of string
-    if (pep.wszBuf)
-      xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
-    pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
+    if (!(pr->dwOptions & REPE_MULTILINE))
+    {
+      //Copy unmatched right part of string
+      if (pep.wszBuf)
+        xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
+      pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
+    }
 
     if (pep.wszBuf)
       *pep.wpBufCount=L'\0';
@@ -21157,7 +21174,7 @@ INT_PTR PatReplace(PATREPLACE *pr)
   return (INT_PTR)(pep.wpBufCount - pep.wszBuf);
 }
 
-int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam)
+int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam)
 {
   PATEXECPARAM *pep=(PATEXECPARAM *)lParam;
   REGROUP *lpREGroupRef;
@@ -21165,60 +21182,93 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, int nMatchCount, LPARAM lPar
   wchar_t wchChar;
   int nIndex;
 
-  //Copy unmatched left part of string
-  if (pep->wszBuf)
-    xmemcpy(pep->wpBufCount, pep->pe->wpStr, (lpREGroup->wpStrStart - pep->pe->wpStr) * sizeof(wchar_t));
-  pep->wpBufCount+=lpREGroup->wpStrStart - pep->pe->wpStr;
-
-  //Replace matched part of string
-  while (wpRep < pep->wpMaxRep)
+  if (bMatched)
   {
-    if (*wpRep == L'$')
-    {
-      if (*++wpRep == L'\\')
-      {
-        PatCharCmp(&wpRep, 0, TRUE, &wchChar);
+    //Copy unmatched left part of string
+    if (pep->wszBuf)
+      xmemcpy(pep->wpBufCount, pep->pe->wpStr, (lpREGroup->wpStrStart - pep->pe->wpStr) * sizeof(wchar_t));
+    pep->wpBufCount+=lpREGroup->wpStrStart - pep->pe->wpStr;
 
-        if (pep->wszBuf)
-          *pep->wpBufCount=wchChar;
-        ++pep->wpBufCount;
-        ++wpRep;
-        continue;
-      }
-      else if (*wpRep == L'$')
+    //Replace matched part of string
+    while (wpRep < pep->wpMaxRep)
+    {
+      if (*wpRep == L'$')
       {
-        //$ - symbol
-      }
-      else
-      {
-        if (*wpRep == L'&')
+        if (*++wpRep == L'\\')
         {
+          PatCharCmp(&wpRep, 0, TRUE, &wchChar);
+
+          if (pep->wszBuf)
+            *pep->wpBufCount=wchChar;
+          ++pep->wpBufCount;
           ++wpRep;
-          nIndex=0;
+          continue;
+        }
+        else if (*wpRep == L'$')
+        {
+          //$ - symbol
         }
         else
         {
-          if (*wpRep < L'0' || *wpRep > L'9')
-            continue;
-          nIndex=(int)xatoiW(wpRep, &wpRep);
-        }
+          if (*wpRep == L'&')
+          {
+            ++wpRep;
+            nIndex=0;
+          }
+          else
+          {
+            if (*wpRep < L'0' || *wpRep > L'9')
+              continue;
+            nIndex=(int)xatoiW(wpRep, &wpRep);
+          }
 
-        if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
-        {
-          if (pep->wszBuf)
-            xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
-          pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+          if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
+          {
+            if (pep->wszBuf)
+              xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+            pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+          }
+          continue;
         }
-        continue;
       }
-    }
 
-    if (pep->wszBuf)
-      *pep->wpBufCount=*wpRep;
-    ++pep->wpBufCount;
-    ++wpRep;
+      if (pep->wszBuf)
+        *pep->wpBufCount=*wpRep;
+      ++pep->wpBufCount;
+      ++wpRep;
+    }
+    pep->wpRightStr=lpREGroup->wpStrEnd;
   }
-  pep->wpRightStr=lpREGroup->wpStrEnd;
+  else
+  {
+    //Copy unmatched right part of line (REPE_MULTILINE flag used).
+    if (pep->wszBuf)
+      xmemcpy(pep->wpBufCount, pep->pe->wpStr, (pep->pe->wpMaxLine - pep->pe->wpStr) * sizeof(wchar_t));
+    pep->wpBufCount+=pep->pe->wpMaxLine - pep->pe->wpStr;
+    pep->wpRightStr=pep->pe->wpMaxLine;
+  }
+
+  if (pep->pe->dwOptions & REPE_MULTILINE)
+  {
+    if (pep->wpRightStr < pep->pe->wpMaxStr && *pep->wpRightStr == L'\r')
+    {
+      if (pep->wszBuf) *pep->wpBufCount=*pep->wpRightStr;
+      ++pep->wpBufCount;
+      ++pep->wpRightStr;
+    }
+    if (pep->wpRightStr < pep->pe->wpMaxStr && *pep->wpRightStr == L'\r')
+    {
+      if (pep->wszBuf) *pep->wpBufCount=*pep->wpRightStr;
+      ++pep->wpBufCount;
+      ++pep->wpRightStr;
+    }
+    if (pep->wpRightStr < pep->pe->wpMaxStr && *pep->wpRightStr == L'\n')
+    {
+      if (pep->wszBuf) *pep->wpBufCount=*pep->wpRightStr;
+      ++pep->wpBufCount;
+      ++pep->wpRightStr;
+    }
+  }
   return REPEC_NEXTMATCH;
 }
 
