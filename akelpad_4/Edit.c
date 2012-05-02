@@ -9654,7 +9654,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
             if ((!(dwFlags & AEFR_WHOLEWORD) ||
                  (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&ft.crFound.ciMin) &&
                   SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ft.crFound.ciMax))) &&
-                (*(wpFindIt) != L'^' || AEC_IsFirstCharInLine(&ft.crFound.ciMin)))
+                (*wpFindIt != L'^' || AEC_IsFirstCharInLine(&ft.crFound.ciMin)))
             {
               bFound=TRUE;
               break;
@@ -10040,9 +10040,11 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     {
       if (crCurSel.ciMin.nLine == crCurSel.ciMax.nLine)
       {
-        if (!(dwFlags & AEFR_WHOLEWORD) ||
-            (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crCurSel.ciMin) &&
-             SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crCurSel.ciMax)))
+        if ((!(dwFlags & AEFR_WHOLEWORD) ||
+             (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crCurSel.ciMin) &&
+              SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crCurSel.ciMax))) &&
+            (*pr.wpPat != L'^' || AEC_IsFirstCharInLine(&crCurSel.ciMin)) &&
+            (*(pr.wpMaxPat - 1) != L'$' || AEC_IsLastCharInLine(&crCurSel.ciMax)))
         {
           pr.wpStr=crCurSel.ciMin.lpLine->wpLine + crCurSel.ciMin.nCharInLine;
           pr.wpMaxStr=crCurSel.ciMax.lpLine->wpLine + crCurSel.ciMax.nCharInLine;
