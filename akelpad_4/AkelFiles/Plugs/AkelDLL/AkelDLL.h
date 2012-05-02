@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 1)
 
 
 //// Defines
@@ -621,6 +621,7 @@
 #define REPE_MATCHCASE 0x1 //Case-sensitive search.
 #define REPE_GLOBAL    0x2 //Search all possible occurrences.
 #define REPE_BEGIN     0x4 //Force first occurrence located at the beginning of the string.
+#define REPE_MULTILINE 0x8 //Search line by line.
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE   0
@@ -1298,7 +1299,7 @@ typedef struct {
   int nLastIndex;               //Last captured index.
 } STACKREGROUP;
 
-typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam);
+typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam);
 
 typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
@@ -1306,6 +1307,7 @@ typedef struct {
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;         //String for process.
   const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpMaxLine;     //Internal usage.
   DWORD dwOptions;              //See REPE_* defines.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
