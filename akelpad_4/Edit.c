@@ -20470,10 +20470,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupNew->nIndex=-1;
 
           if (lpREGroupNew->wpPatEnd - lpREGroupNew->wpPatStart == 1 && *lpREGroupNew->wpPatStart == L'.')
-          {
             lpREGroupNew->dwFlags|=REGF_ANY;
-            bGroupNextChars=TRUE;
-          }
         }
       }
       else goto Error;
@@ -20507,6 +20504,9 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         }
       }
       else continue;
+
+      if (lpREGroupNew->nMaxMatch == -1)
+        bGroupNextChars=TRUE;
 
       //We already non-greedy, so ignore it.
       if (*++wpPat == L'?') ++wpPat;
@@ -20644,6 +20644,15 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
         ++nCurMatch;
+
+        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
+        {
+          if (lpREGroupNextNext=NextPatGroup(lpREGroupItem))
+          {
+            if (ExecPat(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
+              goto EndLoop;
+          }
+        }
         goto BeginLoop;
       }
       if (wpPat == wpNextGroup)
