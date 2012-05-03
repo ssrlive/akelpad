@@ -1,5 +1,5 @@
 
-AkelPad 4.7.5 ()
+AkelPad 4.7.5 (May 03, 2012)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: "Replace all" with regular expressions works line by line.
