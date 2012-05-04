@@ -3,12 +3,14 @@ AkelPad 4.7.5 (May 03, 2012)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: "Replace all" with regular expressions works line by line.
+Changed: replace with regular expressions uses \n and \nn instead of $n and $nn for
+         backreferences.
 Changed: processing capture after double mouse click.
 Changed: automatic check "In selection" option works when multiple lines selected.
 
 Added: option for prompting in text cycle search.
 Added: possibility during replace with regular expressions to use escape characters:
-       $\r, $\n, $\t, $\u0000, $\x00 etc.
+       \r, \n, \t, \u0000, \x00 etc.
 Added: manual parameter "AkelUpdaterOptions" - defines command line options for
        the AkelUpdater.exe.
 

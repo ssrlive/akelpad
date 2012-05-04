@@ -20956,7 +20956,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, wchar_t wchStr, BOOL bSensitive, wchar_
         }
         else
         {
-          //Any escaped char like \[, \], \(, \)
+          //Any escaped char like \\, \[, \], \(, \)
           goto Compare;
         }
 
@@ -21208,41 +21208,18 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam
     //Replace matched part of string
     while (wpRep < pep->wpMaxRep)
     {
-      if (*wpRep == L'$')
+      if (*wpRep == L'\\')
       {
-        if (*++wpRep == L'\\')
+        if (PatCharCmp(&wpRep, 0, TRUE, &wchChar) & RECC_REF)
         {
-          PatCharCmp(&wpRep, 0, TRUE, &wchChar);
-
-          if (pep->wszBuf)
-            *pep->wpBufCount=wchChar;
-          ++pep->wpBufCount;
-          ++wpRep;
-          continue;
-        }
-        else if (*wpRep == L'$')
-        {
-          //$ - symbol
-        }
-        else
-        {
-          if (*wpRep == L'&')
+          wszIndex[0]=*wpRep++;
+          wszIndex[1]=L'\0';
+          if (*wpRep >= L'0' && *wpRep <= L'9')
           {
-            ++wpRep;
-            nIndex=0;
+            wszIndex[1]=*wpRep++;
+            wszIndex[2]=L'\0';
           }
-          else
-          {
-            if (*wpRep < L'0' || *wpRep > L'9') continue;
-            wszIndex[0]=*wpRep++;
-            wszIndex[1]=L'\0';
-            if (*wpRep >= L'0' && *wpRep <= L'9')
-            {
-              wszIndex[1]=*wpRep++;
-              wszIndex[2]=L'\0';
-            }
-            nIndex=(int)xatoiW(wszIndex, NULL);
-          }
+          nIndex=(int)xatoiW(wszIndex, NULL);
 
           if (lpREGroupRef=GetPatGroup(pep->pe->lpREGroupStack, nIndex))
           {
@@ -21250,8 +21227,15 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam
               xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
             pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
           }
-          continue;
         }
+        else
+        {
+          if (pep->wszBuf)
+            *pep->wpBufCount=wchChar;
+          ++pep->wpBufCount;
+          ++wpRep;
+        }
+        continue;
       }
 
       if (pep->wszBuf)
