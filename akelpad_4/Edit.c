@@ -9780,7 +9780,6 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpRep=wpReplaceWith;
     pr.wpMaxRep=wpReplaceWith + nReplaceWithLen;
     pr.dwOptions=REPE_MULTILINE|(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
-    nResultTextLen=PatReplace(&pr);
   }
 
   if (bAll)
@@ -20645,7 +20644,7 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         ++nCurMatch;
 
-        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
+        if (nCurMatch >= lpREGroupItem->nMinMatch && nCurMatch < lpREGroupItem->nMaxMatch)
         {
           if (lpREGroupNextNext=NextPatGroup(lpREGroupItem))
           {
@@ -20660,13 +20659,12 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         if (lpREGroupNext->dwFlags & REGF_ANY)
         {
           //".+" or ".{5,}"
-          nAnyMatch=max(lpREGroupNext->nMinMatch, lpREGroupNext->nMaxMatch);
-          if (wpStr + nAnyMatch <= wpMaxStr)
-            wpStr+=nAnyMatch;
+          if (wpStr + lpREGroupNext->nMinMatch <= wpMaxStr)
+            wpStr+=lpREGroupNext->nMinMatch;
           else
             goto EndLoop;
 
-          if (lpREGroupNext->nMaxMatch == -1)
+          if ((DWORD)lpREGroupNext->nMinMatch < (DWORD)lpREGroupNext->nMaxMatch)
           {
             if (lpREGroupNextNext=NextPatGroup(lpREGroupNext))
             {
@@ -20686,7 +20684,10 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             }
             else
             {
-              wpStr=wpMaxStr;
+              if (lpREGroupNext->nMaxMatch == -1)
+                wpStr=wpMaxStr;
+              else
+                wpStr=min(wpStr + lpREGroupNext->nMaxMatch - lpREGroupNext->nMinMatch, wpMaxStr);
               goto Match;
             }
             goto EndLoop;
