@@ -21058,6 +21058,7 @@ int PatStructExec(PATEXEC *pe)
   REGROUP *lpREGroupRoot;
   REGROUP *lpREGroupNext;
   int nMatchCount=0;
+  int nMaxMatchCount=-1;
   BOOL bMatched=FALSE;
 
   if (!pe->lpREGroupStack)
@@ -21080,7 +21081,11 @@ int PatStructExec(PATEXEC *pe)
   if (pe->dwOptions & REPE_MULTILINE)
     pe->wpMaxLine=NULL;
   else
+  {
+    if (!(lpREGroupRoot->dwFlags & REGF_ROOTANY))
+      nMaxMatchCount=1;
     pe->wpMaxLine=pe->wpMaxStr;
+  }
 
   while (pe->wpStr < pe->wpMaxStr)
   {
@@ -21092,12 +21097,8 @@ int PatStructExec(PATEXEC *pe)
       }
     }
 
-    if (!(bMatched=ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxLine)))
-    {
-      if (!(pe->dwOptions & REPE_MULTILINE))
-        break;
-    }
-    else ++nMatchCount;
+    if (bMatched=ExecPat(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxLine))
+      ++nMatchCount;
 
     if (pe->lpCallback)
     {
@@ -21118,9 +21119,9 @@ int PatStructExec(PATEXEC *pe)
     }
 
     //Find next match
-    if (!(pe->dwOptions & REPE_GLOBAL))
+    if (!(pe->dwOptions & REPE_GLOBAL) || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
       break;
-    if (bMatched)
+    if (bMatched && (lpREGroupRoot->dwFlags & REGF_ROOTANY))
       pe->wpStr=lpREGroupRoot->wpStrEnd;
     else
       pe->wpStr=pe->wpMaxLine;
@@ -21170,14 +21171,6 @@ INT_PTR PatReplace(PATREPLACE *pr)
   {
     pr->wpLeftStr=pe.lpREGroupStack->first->wpStrStart;
     pr->wpRightStr=pep.wpRightStr;
-
-    if (!(pr->dwOptions & REPE_MULTILINE))
-    {
-      //Copy unmatched right part of string
-      if (pep.wszBuf)
-        xmemcpy(pep.wpBufCount, pep.wpRightStr, (pe.wpMaxStr - pep.wpRightStr) * sizeof(wchar_t));
-      pep.wpBufCount+=pe.wpMaxStr - pep.wpRightStr;
-    }
 
     if (pep.wszBuf)
       *pep.wpBufCount=L'\0';
@@ -21244,10 +21237,19 @@ int CALLBACK PatReplaceCallback(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam
       ++wpRep;
     }
     pep->wpRightStr=lpREGroup->wpStrEnd;
+
+    if ((pep->pe->dwOptions & REPE_MULTILINE) && !(lpREGroup->dwFlags & REGF_ROOTANY))
+    {
+      //Copy right part of line.
+      if (pep->wszBuf)
+        xmemcpy(pep->wpBufCount, pep->wpRightStr, (pep->pe->wpMaxLine - pep->wpRightStr) * sizeof(wchar_t));
+      pep->wpBufCount+=pep->pe->wpMaxLine - pep->wpRightStr;
+      pep->wpRightStr=pep->pe->wpMaxLine;
+    }
   }
   else
   {
-    //Copy unmatched right part of line (REPE_MULTILINE flag used).
+    //Copy unmatched right part of string.
     if (pep->wszBuf)
       xmemcpy(pep->wpBufCount, pep->pe->wpStr, (pep->pe->wpMaxLine - pep->pe->wpStr) * sizeof(wchar_t));
     pep->wpBufCount+=pep->pe->wpMaxLine - pep->pe->wpStr;
