@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.5                               *
+ *                      AkelEdit text control v1.7.6                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -4065,15 +4065,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           {
             ciNextWord=ae->ciCaretIndex;
           }
-          ae->ciMouseSelClick=ae->ciCaretIndex;
+          if (nPosResult == AEPC_AFTER)
+            AEC_PrevCharEx(&ae->ciCaretIndex, &ae->ciMouseSelClick);
+          else
+            ae->ciMouseSelClick=ae->ciCaretIndex;
+
           ae->ciMouseSelStart=ciPrevWord;
           ae->ciMouseSelEnd=ciNextWord;
           ae->dwMouseSelType=AEMSS_WORDS;
 
-          if (nPosResult == AEPC_AFTER)
-            AE_SetSelectionPos(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
-          else
-            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
+          AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
         }
       }
       //Three clicks
