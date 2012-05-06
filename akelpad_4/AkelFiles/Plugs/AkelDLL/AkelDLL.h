@@ -618,10 +618,12 @@
 #define RECC_REF      0x10
 
 //AKD_PATEXEC options
-#define REPE_MATCHCASE 0x1 //Case-sensitive search.
-#define REPE_GLOBAL    0x2 //Search all possible occurrences.
-#define REPE_BEGIN     0x4 //Force first occurrence located at the beginning of the string.
-#define REPE_MULTILINE 0x8 //Search line by line.
+#define REPE_MATCHCASE        0x01 //Case-sensitive search.
+#define REPE_GLOBAL           0x02 //Search all possible occurrences.
+#define REPE_ISMATCH          0x04 //Find first occurrence that should located at the beginning of the string.
+#define REPE_MULTILINE        0x08 //Search line by line.
+#define REPE_NOFIRSTLINEBEGIN 0x10 //PATEXEC.wpStr starts not from line beginning.
+#define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending.
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE   0
