@@ -622,8 +622,8 @@
 #define REPE_GLOBAL           0x02 //Search all possible occurrences.
 #define REPE_ISMATCH          0x04 //Find first occurrence that should located at the beginning of the string.
 #define REPE_MULTILINE        0x08 //Search line by line.
-#define REPE_NOFIRSTLINEBEGIN 0x10 //PATEXEC.wpStr starts not from line beginning.
-#define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending.
+#define REPE_NOFIRSTLINEBEGIN 0x10 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
+#define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE   0
