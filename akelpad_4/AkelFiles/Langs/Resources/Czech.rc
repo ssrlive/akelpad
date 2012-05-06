@@ -43,7 +43,7 @@ BEGIN
     POPUP "&Soubor"
     BEGIN
         MENUITEM "&Nový\tCtrl+N",               IDM_FILE_NEW
-        MENUITEM "Nové &kno\tCtrl+Shift+N",     IDM_FILE_CREATENEW
+        MENUITEM "Nové o&kno\tCtrl+Shift+N",    IDM_FILE_CREATENEW
         MENUITEM "&Otevøít...\tCtrl+O",         IDM_FILE_OPEN
         MENUITEM "&Znovu otevøít\tF5",          IDM_FILE_REOPEN
         MENUITEM SEPARATOR
@@ -139,11 +139,11 @@ BEGIN
         MENUITEM "&Spustit\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
         MENUITEM "&Automaticky odsazovat\tCtrl+L", IDM_OPTIONS_KEEPSPACE
-        MENUITEM "Sledovat zmìny  v &souboru",  IDM_OPTIONS_WATCHFILE
+        MENUITEM "Sledovat zmìny v &souboru",   IDM_OPTIONS_WATCHFILE
         MENUITEM "Uložit èas &souboru",         IDM_OPTIONS_SAVETIME
         MENUITEM "Neotvírat &stejný soubor dvakrát", 
                                                 IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "Neotvírat &progam dvakrát",   IDM_OPTIONS_SINGLEOPEN_PROGRAM
+        MENUITEM "Nespouštìt &progam dvakrát",  IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
         POPUP "&Režim zobrazení"
@@ -173,12 +173,12 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "&Další-Pøedchozí",            IDM_WINDOW_TABSWITCH_NEXTPREV
 
-            MENUITEM "&Pravá-Levá",                 IDM_WINDOW_TABSWITCH_RIGHTLEFT
+            MENUITEM "&Pravý-Levý",                 IDM_WINDOW_TABSWITCH_RIGHTLEFT
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Horizontálnì",               IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "&Vertikálnì",                 IDM_WINDOW_TILEVERTICAL
+        MENUITEM "&Horizontální",               IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "&Vertikální",                 IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Kaskádovitì",                IDM_WINDOW_CASCADE
         MENUITEM "Zavøít",                      IDM_WINDOW_FRAMECLOSE
         MENUITEM "Zavøít vše",                  IDM_WINDOW_FRAMECLOSEALL
@@ -189,7 +189,7 @@ BEGIN
     POPUP "&Nápovìda"
     BEGIN
         MENUITEM "&Návod k použití",            IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&Aktualizace...",             IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&O programu",                 IDM_ABOUT
     END
@@ -202,7 +202,7 @@ BEGIN
         MENUITEM "&Zpìt",                       IDM_EDIT_UNDO
         MENUITEM "&Znovu",                      IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Vložit",                     IDM_EDIT_CUT
+        MENUITEM "&Vyjmout",                    IDM_EDIT_CUT
         MENUITEM "K&opírovat",                  IDM_EDIT_COPY
         MENUITEM "&Vložit",                     IDM_EDIT_PASTE
         MENUITEM "&Smazat",                     IDM_EDIT_CLEAR
@@ -480,11 +480,11 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Rozlišit malá a VELKÁ písmena",IDC_SEARCH_MATCHCASE,
+    CONTROL         "Rozlišit malá a VELKÁ písmena",IDC_SEARCH_MATCHCASE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,29,112,12
     CONTROL         "Jen celá slova",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,42,112,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Pøesný výraz",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,54,112,12
     CONTROL         "Speciální znaky",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,67,112,12
@@ -523,7 +523,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,43,112,12
     CONTROL         "Jen celá slova",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,56,112,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Pøesný výraz",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,68,112,12
     CONTROL         "Speciální znaky",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,81,112,12
@@ -618,7 +618,7 @@ BEGIN
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
     LTEXT           "Zaškrtnìte políèko pro automatické naètení pluginu",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
-    LTEXT           "Klávesová skr.",IDC_PLUGINS_HOTKEY_LABEL,282,13,50,8
+    LTEXT           "Klávesové zkr.",IDC_PLUGINS_HOTKEY_LABEL,282,13,50,8
     CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Pøiøadit",IDC_PLUGINS_ASSIGN,282,42,50,14
@@ -638,7 +638,7 @@ BEGIN
                     IDC_STATIC,21,24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Pracovní &adresáø (%d složka se souborem):",IDC_STATIC,
+    LTEXT           "Pracovní &složka (%d složka se souborem):",IDC_STATIC,
                     21,59,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
@@ -738,7 +738,7 @@ BEGIN
                     11,13
     CONTROL         "Mezer",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
-    GROUPBOX        "Limit pro zpšt",IDC_STATIC,9,46,105,34
+    GROUPBOX        "Limit pro zpìt",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
@@ -889,7 +889,7 @@ BEGIN
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Vyhledávat celé vìty",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "Øádek",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
@@ -1012,10 +1012,10 @@ BEGIN
     MSG_UPDATE_PLUGIN       "Aktualizace %s.\n\nArchitektura AkelPad: %d.%d.%d.%d\nArchitektura pluginù %s: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nebyl rozpoznán jako plugin AkelPadu."
     MSG_UPDATE_LANGMODULE   "Aktualizujte %s\n\nAktuální verze: %d.%d.%d.%d\nPožadovaná verze: %d.%d.%d.%d"
-    MSG_HOTKEY_EXISTS       "Tato klávesouvá skratka je již pøiøazena k ""%s""."
+    MSG_HOTKEY_EXISTS       "Tato klávesová zkratka je již pøiøazena k ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nelze otevøít soubor ""%s""."
     MSG_WRONG_STRING        "Neplatné èíslo øádku."
-    MSG_LONG_FILELIST       "Je vybráno pøíliš hodnì souborù."
+    MSG_LONG_FILELIST       "Je vybráno pøíliš mnoho souborù."
     MSG_DOCUMENT_CHANGED    "Dokument se zmìnil. Chcete ho uložit?"
     MSG_FILE_DOES_NOT_EXIST "Vytvoøit nový soubor ""%s""?"
 END
@@ -1024,7 +1024,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Smazáno záznamù: %d"
     MSG_SEARCH_ENDED        "Vyhledávání je dokonèeno."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Soubor pøekroèil limit. Pokraèovat?"
     MSG_REPLACE_COUNT       "Poèet zmìn: %d"
     MSG_REPLACE_COUNT_ALLFILES "Zmìny v souboru: %d\nPoèet zmìn: %Id"
     MSG_FILE_WILL_BE_REOPENED 
@@ -1032,11 +1032,11 @@ BEGIN
     MSG_FILE_CHANGED        "Soubor ""%s"" byl zmìnìn jinou aplikací.\n\nChcete ho znovu otevøít?"
     MSG_CP_UNIMPLEMENTED    "Kódování ""%d"" není podporováno."
     MSG_CP_MISMATCH         "Øádek ""%d"" obsahuje znaky, které nelze uložit v tomto kódování. Pokraèovat?"
-    MSG_ACCESSDENIED        "Je nitné mít práva Administrátora.\n\n""%s""\n\n"
+    MSG_ACCESSDENIED        "Je nutné mít práva Administrátora.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Zmìny budou aplikovány pøi pøíštím spuštìní programu."
     MSG_SAVEIN_READONLY     "Soubor ""%s"" je v režimu jen ke ètení. Pokraèovat?"
     MSG_OVERWRITEPROMPT     """%s"" již existuje. Chcete ho pøepsat?"
-    MSG_DOCUMENTSLIMIT      "Dosáhli jste limitu. Pro více otevøených dokumentù zvolte režim PMDI."
+    MSG_DOCUMENTSLIMIT      "Dosáhli jste limitu. Pro otevøení více dokumentù zvolte režim PMD."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1045,7 +1045,7 @@ BEGIN
     STR_MODIFIED            "Upraven"
     STR_READONLY            "Jen ke ètení"
     STR_COUNT               "%d z %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "bez"
     STR_AUTODETECT          "&Autodetekce"
     STR_RECENT_FILES_EMPTY  "Prázdný"
     STR_RECENT_FILES_DELETE_DEAD "Smazat neexistující"
@@ -1060,7 +1060,7 @@ BEGIN
     STR_NONE                "Žádný"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkce"
-    STR_HOTKEY              "Klávesová skratka"
+    STR_HOTKEY              "Klávesová zkratka"
     STR_STATUS              "Stav"
     STR_RUNNING             "Spuštìn"
     STR_FONT                "Písmo"
@@ -1113,8 +1113,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrilice (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE "Východoevropský (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE "Západoevropský (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "Východoevropské (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "Západoevropské (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Tureètina (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Èínština (ANSI, UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonština (932, UTF-8)"
