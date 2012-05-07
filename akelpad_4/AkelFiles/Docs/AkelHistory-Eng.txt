@@ -2,6 +2,7 @@
 AkelPad 4.7.6 ()
 ----------------------------
 Fixed: regular expressions support.
+Fixed: cycle search with regular expressions didn't work.
 
 
 AkelPad 4.7.5 (May 04, 2012)
