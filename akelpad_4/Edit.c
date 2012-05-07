@@ -9546,6 +9546,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 {
   AEFINDTEXTW ft;
   CHARRANGE64 cr;
+  BOOL bCycleCheck=TRUE;
   BOOL bFound=FALSE;
 
   if (dwFlags & AEFR_SELECTION)
@@ -9570,6 +9571,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   }
   else return -1;
 
+  FindIt:
   if (dwFlags & AEFR_REGEXP)
   {
     STACKREGROUP hREGroupStack;
@@ -9681,49 +9683,52 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
       bFound=TRUE;
     }
-    else
+  }
+
+  if (bCycleCheck && !bFound)
+  {
+    lpFrame->bReachedEOF=TRUE;
+    UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+
+    if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
     {
-      lpFrame->bReachedEOF=TRUE;
-      UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+      AECHARINDEX ciChar;
+      HWND hWndParent;
+      int nAnswer=IDOK;
 
-      if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
+      if (dwFlags & AEFR_DOWN)
       {
-        AECHARINDEX ciChar;
-        HWND hWndParent;
-        int nAnswer=IDOK;
-
-        if (dwFlags & AEFR_DOWN)
+        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar);
+        if (AEC_IndexCompare(&ft.crSearch.ciMin, &ciChar))
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar);
-          if (AEC_IndexCompare(&ft.crSearch.ciMin, &ciChar))
-          {
-            ft.crSearch.ciMin=ciChar;
-            ft.crSearch.ciMax=crCurSel.ciMax;
-          }
-          else nAnswer=IDCANCEL;
+          ft.crSearch.ciMin=ciChar;
+          ft.crSearch.ciMax=crCurSel.ciMax;
         }
-        else if (dwFlags & AEFR_UP)
-        {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciChar);
-          if (AEC_IndexCompare(&ft.crSearch.ciMax, &ciChar))
-          {
-            ft.crSearch.ciMin=crCurSel.ciMin;
-            ft.crSearch.ciMax=ciChar;
-          }
-          else nAnswer=IDCANCEL;
-        }
-        if (nAnswer == IDOK && (dwFlags & AEFR_CYCLESEARCHPROMPT))
-        {
-          hWndParent=(nModelessType == MLT_FIND || nModelessType == MLT_REPLACE)?hDlgModeless:hMainWnd;
-
-          API_LoadStringW(hLangLib, MSG_SEARCH_CYCLEPROMPT, wszMsg, BUFFER_SIZE);
-          nAnswer=API_MessageBox(hWndParent, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONQUESTION);
-        }
-        if (nAnswer == IDOK)
-          bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
-        else
-          bNoSearchFinishMessage=TRUE;
+        else nAnswer=IDCANCEL;
       }
+      else if (dwFlags & AEFR_UP)
+      {
+        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciChar);
+        if (AEC_IndexCompare(&ft.crSearch.ciMax, &ciChar))
+        {
+          ft.crSearch.ciMin=crCurSel.ciMin;
+          ft.crSearch.ciMax=ciChar;
+        }
+        else nAnswer=IDCANCEL;
+      }
+      if (nAnswer == IDOK && (dwFlags & AEFR_CYCLESEARCHPROMPT))
+      {
+        hWndParent=(nModelessType == MLT_FIND || nModelessType == MLT_REPLACE)?hDlgModeless:hMainWnd;
+
+        API_LoadStringW(hLangLib, MSG_SEARCH_CYCLEPROMPT, wszMsg, BUFFER_SIZE);
+        nAnswer=API_MessageBox(hWndParent, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONQUESTION);
+      }
+      if (nAnswer == IDOK)
+      {
+        bCycleCheck=FALSE;
+        goto FindIt;
+      }
+      else bNoSearchFinishMessage=TRUE;
     }
   }
 
