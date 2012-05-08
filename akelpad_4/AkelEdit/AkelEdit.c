@@ -13499,7 +13499,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim1.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote)
+            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -13518,7 +13518,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crWord.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote)
+            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -13537,7 +13537,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim2.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote)
+            if (!hlp->mtm.lpMarkText && !hlp->qm.lpQuote && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
