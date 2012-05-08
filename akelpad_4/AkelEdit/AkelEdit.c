@@ -18,7 +18,7 @@
  * - Syntax highlighting.                                                          *
  * - URL detection and highlighting.                                               *
  * - Code folding.                                                                 *
- * - Split edit window.                                                            *
+ * - Splitting edit window.                                                        *
  * - Color printing.                                                               *
  * - Support of proportional and non-proportional fonts.                           *
  * - Support of Input Method Editors (IME).                                        *
