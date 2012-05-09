@@ -189,7 +189,7 @@ BEGIN
     POPUP "ヘルプ(&H)"
     BEGIN
         MENUITEM "マニュアル(&M)",              IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "アップデート(&U)...",         IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "バージョン情報(&A)",          IDM_ABOUT
     END
@@ -484,8 +484,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
     CONTROL         "単語全体と一致",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
+    CONTROL         "正規表現",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,54,105,12
     CONTROL         "エスケープシーケンス",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
@@ -523,8 +523,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
     CONTROL         "単語全体と一致",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
+    CONTROL         "正規表現",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,68,105,12
     CONTROL         "エスケープシーケンス",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
@@ -885,7 +885,7 @@ BEGIN
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
     CONTROL         "最初に戻って検索を続ける",IDC_OPTIONS_CYCLESEARCH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,133,103,10
     CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
@@ -1006,7 +1006,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "削除された履歴: %d"
     MSG_SEARCH_ENDED        "検索が完了しました。"
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "ファイル端に達しました。続行しますか？"
     MSG_REPLACE_COUNT       "変更の数: %d"
     MSG_REPLACE_COUNT_ALLFILES "変更されたファイル: %d\n変更の数: %Id"
     MSG_FILE_WILL_BE_REOPENED 
