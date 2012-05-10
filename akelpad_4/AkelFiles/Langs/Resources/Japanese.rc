@@ -886,7 +886,7 @@ BEGIN
                     WS_TABSTOP,17,121,185,10
     CONTROL         "ç≈èâÇ…ñﬂÇ¡ÇƒåüçıÇë±ÇØÇÈ",IDC_OPTIONS_CYCLESEARCH,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,133,103,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "ñﬂÇÈÇ∆Ç´Ç…í ímÇ∑ÇÈ",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
