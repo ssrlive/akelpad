@@ -9762,6 +9762,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   INT_PTR nResultTextLen;
   INT_PTR nChanges=0;
   INT_PTR nResult=-1;
+  int nFirstLine=0;
   int i;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
@@ -9907,43 +9908,51 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
       if (wszResultText)
       {
-        //Remember selection
-        if (nGetTextNewLine == AELB_ASIS)
+        if (dwFlags & AEFR_REGEXP)
         {
-          crInitialRE.cpMin=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
-          crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(lpFrame->ei.hWndEdit, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
+          //Remember scroll
+          nFirstLine=SaveLineScroll(lpFrame->ei.hWndEdit);
         }
-        else SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
-
-        if (dwFlags & AEFR_SELECTION)
+        else
         {
-          nMin=0;
-          nMax=crInitialRE.cpMax - crInitialRE.cpMin;
-        }
-        else if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
-        {
-          nMin=crInitialRE.cpMin;
-          nMax=crInitialRE.cpMax;
-        }
-        else if (dwFlags & AEFR_DOWN)
-        {
-          nMin=0;
-          nMax=crInitialRE.cpMax - crInitialRE.cpMin;
-        }
-        if (nMin == nMax)
-          nMax=-MAXINT_PTR;
-
-        //Remember scroll
-        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
-
-        if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-        {
+          //Remember selection
           if (nGetTextNewLine == AELB_ASIS)
-            nFirstVisible=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciFirstVisibleBefore, AELB_ASIS, FALSE);
-          else
-            nFirstVisible=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore);
+          {
+            crInitialRE.cpMin=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
+            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(lpFrame->ei.hWndEdit, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
+          }
+          else SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
+
+          if (dwFlags & AEFR_SELECTION)
+          {
+            nMin=0;
+            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
+          }
+          else if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+          {
+            nMin=crInitialRE.cpMin;
+            nMax=crInitialRE.cpMax;
+          }
+          else if (dwFlags & AEFR_DOWN)
+          {
+            nMin=0;
+            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
+          }
+          if (nMin == nMax)
+            nMax=-MAXINT_PTR;
+
+          //Remember scroll
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
+
+          if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
+          {
+            if (nGetTextNewLine == AELB_ASIS)
+              nFirstVisible=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciFirstVisibleBefore, AELB_ASIS, FALSE);
+            else
+              nFirstVisible=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore);
+          }
+          else nFirstVisible=-MAXINT_PTR;
         }
-        else nFirstVisible=-MAXINT_PTR;
 
         //Replace operation
         if (dwFlags & AEFR_REGEXP)
@@ -9982,31 +9991,40 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           ReplaceSelW(lpFrame->ei.hWndEdit, wszResultText, nResultTextLen, nReplaceSelNewLine, (bColumnSel?AEREPT_COLUMNON:0)|AEREPT_LOCKSCROLL, &crInsert.ciMin, &crInsert.ciMax);
 
           //Restore selection
-          if (nMax == -MAXINT_PTR)
-            nMax=nMin;
           if (dwFlags & AEFR_SELECTION)
           {
             SetSel(lpFrame->ei.hWndEdit, &crInsert, (bInitialColumnSel?AESELT_COLUMNON:0)|AESELT_LOCKSCROLL, bCaretAtStart?&crInsert.ciMin:&crInsert.ciMax);
           }
           else
           {
-            if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
-            {
-              if (nGetTextNewLine == AELB_ASIS)
-              {
-                SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
-                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, nMin, AELB_ASIS);
-              }
-              else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nMin, &crInitialSel.ciMin);
-
-              crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
-            }
-            else if (dwFlags & AEFR_DOWN)
+            if (dwFlags & AEFR_REGEXP)
             {
               SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-              crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
+              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
+            }
+            else
+            {
+              if (nMax == -MAXINT_PTR)
+                nMax=nMin;
+
+              if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+              {
+                if (nGetTextNewLine == AELB_ASIS)
+                {
+                  SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
+                  IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, nMin, AELB_ASIS);
+                }
+                else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nMin, &crInitialSel.ciMin);
+
+                crInitialSel.ciMax=crInitialSel.ciMin;
+                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
+              }
+              else if (dwFlags & AEFR_DOWN)
+              {
+                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
+                crInitialSel.ciMax=crInitialSel.ciMin;
+                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
+              }
             }
             SetSel(lpFrame->ei.hWndEdit, &crInitialSel, (bInitialColumnSel?AESELT_COLUMNON:0)|AESELT_LOCKSCROLL, bCaretAtStart?&crInitialSel.ciMin:&crInitialSel.ciMax);
           }
@@ -10016,22 +10034,29 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
 
           //Restore scroll
-          if (nFirstVisible != -MAXINT_PTR)
+          if (dwFlags & AEFR_REGEXP)
           {
-            if (nGetTextNewLine == AELB_ASIS)
+            RestoreLineScroll(lpFrame->ei.hWndEdit, nFirstLine);
+          }
+          else
+          {
+            if (nFirstVisible != -MAXINT_PTR)
             {
-              SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, AELB_ASIS);
-            }
-            else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
+              if (nGetTextNewLine == AELB_ASIS)
+              {
+                SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciFirstVisibleBefore);
+                IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, AELB_ASIS);
+              }
+              else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
 
-            if ((int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != ciFirstVisibleBefore.nLine)
-            {
-              POINT64 ptScrollPos;
+              if ((int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != ciFirstVisibleBefore.nLine)
+              {
+                POINT64 ptScrollPos;
 
-              ptScrollPos.x=-1;
-              ptScrollPos.y=SendMessage(lpFrame->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, ciFirstVisibleBefore.nLine);
-              SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
+                ptScrollPos.x=-1;
+                ptScrollPos.y=SendMessage(lpFrame->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, ciFirstVisibleBefore.nLine);
+                SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
+              }
             }
           }
         }
