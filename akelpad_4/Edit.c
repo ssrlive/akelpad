@@ -21132,7 +21132,7 @@ int PatStructExec(PATEXEC *pe)
     Callback:
     if (pe->lpCallback)
     {
-      if (((PATEXECCALLBACK)pe->lpCallback)(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
+      if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
         return nMatchCount;
     }
 

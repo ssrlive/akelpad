@@ -1300,6 +1300,14 @@ typedef struct {
   int nLastIndex;               //Last captured index.
 } STACKREGROUP;
 
+typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
+//pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
+//lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
+//bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
+//                FALSE - pe->wpStr and pe->wpMaxLine are valid.
+//Return Value
+// See REPEC_* defines.
+
 typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
@@ -1311,17 +1319,9 @@ typedef struct {
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
   //Callback
-  void *lpCallback;             //Pointer to an PATEXECCALLBACK function.
+  PATEXECCALLBACK lpCallback;   //Pointer to an PATEXECCALLBACK function.
   LPARAM lParam;                //Specifies an application-defined value.
 } PATEXEC;
-
-typedef int (CALLBACK *PATEXECCALLBACK)(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-//pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
-//lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
-//bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
-//                FALSE - pe->wpStr and pe->wpMaxLine are valid.
-//Return Value
-// See REPEC_* defines.
 
 typedef struct {
   const wchar_t *wpStr;      //String for process.
