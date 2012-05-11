@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 2)
 
 
 //// Defines
@@ -626,9 +626,8 @@
 #define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
 
 //AKD_PATEXEC callback return value
-#define REPEC_CONTINUE   0
-#define REPEC_STOPEXEC   -1
-#define REPEC_NEXTMATCH  -2
+#define REPEC_CONTINUE  0
+#define REPEC_STOP      -1
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.
@@ -1301,8 +1300,6 @@ typedef struct {
   int nLastIndex;               //Last captured index.
 } STACKREGROUP;
 
-typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam);
-
 typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
@@ -1314,10 +1311,17 @@ typedef struct {
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
   //Callback
-  PATEXECCALLBACK lpCallback;   //Pointer to an callback function. Callback calls repeatedly for each matched group.
-  LPARAM lParam;                //Specifies an application-defined value that passes to the PATEXECCALLBACK function specified by the lpCallback member.
-  int nErrorCallback;           //See REPEC_* defines.
+  void *lpCallback;             //Pointer to an PATEXECCALLBACK function.
+  LPARAM lParam;                //Specifies an application-defined value.
 } PATEXEC;
+
+typedef int (CALLBACK *PATEXECCALLBACK)(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
+//pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
+//lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
+//bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
+//                FALSE - pe->wpStr and pe->wpMaxLine are valid.
+//Return Value
+// See REPEC_* defines.
 
 typedef struct {
   const wchar_t *wpStr;      //String for process.
