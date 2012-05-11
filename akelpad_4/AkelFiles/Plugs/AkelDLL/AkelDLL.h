@@ -600,7 +600,7 @@
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //STACKREGROUP options
-#define REO_MATCHCASE 0x1
+#define REO_MATCHCASE 0x1  //Case-sensitive search.
 
 //REGROUP flags
 #define REGF_ROOTANY  0x01
@@ -626,8 +626,8 @@
 #define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
 
 //AKD_PATEXEC callback return value
-#define REPEC_CONTINUE  0
-#define REPEC_STOP      -1
+#define REPEC_CONTINUE  0  //Find next match.
+#define REPEC_STOP      -1 //Stop search.
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.
@@ -822,7 +822,7 @@ typedef struct _PLUGINFUNCTION {
   void *lpParameter;              //Procedure parameter.
 } PLUGINFUNCTION;
 
-typedef struct _PLUGINDATA {
+typedef struct {
   DWORD cb;                         //Size of the structure.
   DWORD dwSupport;                  //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
   const BYTE *pFunction;            //Called function name, format "Plugin::Function".
