@@ -4014,7 +4014,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
         {
           if (!IsReadOnly(NULL))
-            SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+            ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L" ", 1, AELB_ASINPUT, AEREPT_UNDOGROUPING, NULL, NULL);
         }
         else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
       }
@@ -4093,7 +4093,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bResult;
 
       if (!(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crCurSel)))
-        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, AELB_ASINPUT, 0, NULL, NULL);
+        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", 1, AELB_ASINPUT, 0, NULL, NULL);
       return bResult;
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELLINE)
