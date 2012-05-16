@@ -16052,7 +16052,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   BOOL bUpdateCaret=FALSE;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
-  AE_StackUndoGroupStop(ae);
+  if (!(dwFlags & AEREPT_UNDOGROUPING))
+    AE_StackUndoGroupStop(ae);
 
   if (dwFlags & AEREPT_COLUMNON)
     bColumnSel=TRUE;
@@ -16097,7 +16098,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
     ae->nCaretHorzIndent=ae->ptCaret.x;
     if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
   }
-  AE_StackUndoGroupStop(ae);
+  if (!(dwFlags & AEREPT_UNDOGROUPING))
+    AE_StackUndoGroupStop(ae);
 
   if (bColumnSel)
   {
