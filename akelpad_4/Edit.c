@@ -2125,8 +2125,10 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
   INT_PTR nRangeLen;
-  INT_PTR a;
-  INT_PTR b;
+  INT_PTR nNewRangeLen;
+  wchar_t *wpRead;
+  wchar_t *wpWrite;
+  wchar_t *wpMaxRead;
   int nFirstLine=0;
   BOOL bSelection;
   BOOL bCaretAtStart=FALSE;
@@ -2144,7 +2146,6 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   {
     SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
     SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
-    SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
     bSelection=FALSE;
   }
   else
@@ -2156,31 +2157,39 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 
   if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS, TRUE))
   {
-    for (a=0, b=0; b < nRangeLen; wszRange[a++]=wszRange[b++])
+    wpMaxRead=wszRange + nRangeLen;
+
+    for (wpWrite=wszRange, wpRead=wszRange; wpRead < wpMaxRead; *wpWrite++=*wpRead++)
     {
-      if (wszRange[b] == '\r' || wszRange[b] == '\n')
+      if (*wpRead == '\r' || *wpRead == '\n')
       {
-        while (--a >= 0 && (wszRange[a] == '\t' || wszRange[a] == ' '));
-        ++a;
+        while (--wpWrite >= wszRange && (*wpWrite == '\t' || *wpWrite == ' '));
+        ++wpWrite;
       }
     }
-    while (--a >= 0 && (wszRange[a] == '\t' || wszRange[a] == ' '));
-    ++a;
-    wszRange[a]='\0';
+    while (--wpWrite >= wszRange && (*wpWrite == '\t' || *wpWrite == ' '));
+    ++wpWrite;
+    *wpWrite=L'\0';
+    nNewRangeLen=wpWrite - wszRange;
 
-    ReplaceSelW(hWnd, wszRange, a, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
-
-    //Update selection
-    if (!bSelection)
+    if (nRangeLen != nNewRangeLen)
     {
-      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
-      crRange.ciMin=ciInitialCaret;
-      crRange.ciMax=ciInitialCaret;
-    }
-    SetSel(hWnd, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
+      if (!bSelection)
+        SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
 
+      ReplaceSelW(hWnd, wszRange, wpWrite - wszRange, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
+
+      //Update selection
+      if (!bSelection)
+      {
+        SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciInitialCaret);
+        crRange.ciMin=ciInitialCaret;
+        crRange.ciMax=ciInitialCaret;
+      }
+      SetSel(hWnd, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
+      bResult=TRUE;
+    }
     FreeText(wszRange);
-    bResult=TRUE;
   }
 
   //Restore scroll
