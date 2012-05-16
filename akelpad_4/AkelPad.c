@@ -4027,7 +4027,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
         {
           if (!IsReadOnly(NULL))
-            SendMessage(lpFrameCurrent->ei.hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+            ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L" ", 1, AELB_ASINPUT, AEREPT_UNDOGROUPING, NULL, NULL);
         }
         else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_SPACE, L" ");
       }
