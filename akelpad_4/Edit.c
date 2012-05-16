@@ -2177,7 +2177,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
       if (!bSelection)
         SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
 
-      ReplaceSelW(hWnd, wszRange, wpWrite - wszRange, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
+      ReplaceSelW(hWnd, wszRange, nNewRangeLen, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
 
       //Update selection
       if (!bSelection)
