@@ -18721,8 +18721,7 @@ BOOL InsertTabStop(HWND hWnd)
     wszSpaces[i]='\0';
     ReplaceSelW(hWnd, wszSpaces, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
   }
-  else
-    SendMessage(hWnd, WM_CHAR, (WPARAM)'\t', 0);
+  else ReplaceSelW(hWnd, L"\t", 1, AELB_ASINPUT, AEREPT_UNDOGROUPING, NULL, NULL);
 
   return TRUE;
 }
@@ -18744,8 +18743,7 @@ BOOL IndentTabStop(HWND hWnd, int nAction)
     wszSpaces[i]='\0';
     DoEditInsertStringInSelectionW(hWnd, nAction, wszSpaces);
   }
-  else
-    DoEditInsertStringInSelectionW(hWnd, nAction, L"\t");
+  else DoEditInsertStringInSelectionW(hWnd, nAction, L"\t");
 
   return TRUE;
 }

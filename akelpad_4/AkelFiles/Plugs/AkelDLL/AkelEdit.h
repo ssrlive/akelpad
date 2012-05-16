@@ -304,6 +304,7 @@
 #define AEREPT_COLUMNON            0x00000001  //Make column selection ON.
 #define AEREPT_COLUMNASIS          0x00000002  //Leave column selection as is.
 #define AEREPT_LOCKSCROLL          0x00000004  //Lock edit window scroll. However edit window can be scrolled during window resize when AECO_DISABLENOSCROLL option not set.
+#define AEREPT_UNDOGROUPING        0x00000100  //Continue undo grouping.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
