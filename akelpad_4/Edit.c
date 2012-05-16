@@ -2224,7 +2224,6 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
   {
     SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
     SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
-    SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
     bSelection=FALSE;
   }
   else
@@ -2305,6 +2304,9 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
         }
       }
     }
+
+    if (!bSelection)
+      SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
 
     ReplaceSelW(hWnd, wszRange, -1, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
 
@@ -11449,9 +11451,6 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
-
-    if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
-      SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
     bSelection=FALSE;
   }
   else
@@ -11479,6 +11478,9 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
 
         if (!hWndPreview)
         {
+          if (!bSelection)
+            SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
+
           ReplaceSelW(lpFrame->ei.hWndEdit, wszText, nUnicodeLen, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
 
           //Update selection
