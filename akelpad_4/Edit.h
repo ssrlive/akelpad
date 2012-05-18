@@ -699,6 +699,7 @@ FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
 FRAMEDATA* GetFrameDataFromEditDocument(AEHDOC hDocEditHandle);
 FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource);
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
+void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
 void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 BOOL CreateFrameWindow(RECT *rcRect);
