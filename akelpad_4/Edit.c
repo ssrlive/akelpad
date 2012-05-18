@@ -265,7 +265,7 @@ extern wchar_t wszAkelUpdaterExe[MAX_PATH];
 //Mdi
 extern HSTACK hFramesStack;
 extern FRAMEDATA fdInit;
-extern FRAMEDATA fdLast;
+extern FRAMEDATA fdDefault;
 extern FRAMEDATA *lpFrameCurrent;
 extern FRAMEDATA *lpFramePrevious;
 extern int nMDI;
@@ -346,8 +346,8 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
         //Get default colors
         aecDefault.dwFlags=AECLR_ALL;
         SendMessage((HWND)hResult, AEM_GETCOLORS, 0, (LPARAM)&aecDefault);
-        if (!fdInit.aec.dwFlags)
-          xmemcpy(&fdInit.aec, &aecDefault, sizeof(AECOLORS));
+        if (!fdDefault.aec.dwFlags)
+          xmemcpy(&fdDefault.aec, &aecDefault, sizeof(AECOLORS));
 
         //Standard theme
         API_LoadStringW(hLangLib, STR_STANDARDTHEME, wbuf, BUFFER_SIZE);
@@ -388,9 +388,9 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   DWORD dwOptions;
 
   if (lpFrame->dwLockInherit & LI_FONT)
-    xmemcpy(&lpFrame->lf, &fdInit.lf, sizeof(LOGFONTW));
+    xmemcpy(&lpFrame->lf, &fdDefault.lf, sizeof(LOGFONTW));
   if ((lpFrame->dwLockInherit & LI_COLORS) || !lpFrame->aec.dwFlags)
-    xmemcpy(&lpFrame->aec, &fdInit.aec, sizeof(AECOLORS));
+    xmemcpy(&lpFrame->aec, &fdDefault.aec, sizeof(AECOLORS));
   if (lpFrame->dwLockInherit & LI_WRAP)
     lpFrame->ei.bWordWrap=FALSE;
   lpFrame->dwLockInherit=0;
@@ -497,7 +497,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
   if (nMDI == WMD_MDI)
     lprcEditWindow=&lpFrame->rcEditWindow;
   else
-    lprcEditWindow=&fdInit.rcEditWindow;
+    lprcEditWindow=&fdDefault.rcEditWindow;
   UpdateWindow(hStatus);
 
   if (lpFrame->ei.hWndMaster)
@@ -600,7 +600,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
   //Remember current frame edit RECT
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
-    lpFrame->rcEditWindow=fdInit.rcEditWindow;
+    lpFrame->rcEditWindow=fdDefault.rcEditWindow;
 }
 
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl)
@@ -732,6 +732,17 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   //xmemcpy(&lpFrameTarget->wszWrapDelimiters, lpFrameSource->wszWrapDelimiters, sizeof(lpFrameTarget->wszWrapDelimiters));
 }
 
+void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
+{
+  xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, offsetof(FRAMEDATA, lpEditProc) - offsetof(FRAMEDATA, lf));
+  lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
+  xstrcpynA(lpFrameTarget->szFile, lpFrameSource->szFile, MAX_PATH);
+  xstrcpynW(lpFrameTarget->wszFile, lpFrameSource->wszFile, MAX_PATH);
+  lpFrameTarget->nFileLen=lpFrameSource->nFileLen;
+  lpFrameTarget->hIcon=lpFrameSource->hIcon;
+  lpFrameTarget->nIconIndex=lpFrameSource->nIconIndex;
+}
+
 void SaveFrameData(FRAMEDATA *lpFrame)
 {
   if (nMDI)
@@ -774,10 +785,10 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       SetFocus(lpFrame->ei.hWndEdit);
 
     //If window size has been changed, update virtual window according to current window size
-    if (xmemcmp(&lpFrame->rcEditWindow, &fdInit.rcEditWindow, sizeof(RECT)))
+    if (xmemcmp(&lpFrame->rcEditWindow, &fdDefault.rcEditWindow, sizeof(RECT)))
     {
       SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESIZE, 0, 0);
-      lpFrame->rcEditWindow=fdInit.rcEditWindow;
+      lpFrame->rcEditWindow=fdDefault.rcEditWindow;
     }
 
     if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
@@ -842,9 +853,9 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
     if (lpFrame=CreateFrameData(hMainWnd, lpFrameCurrent))
     {
       //Create virtual document. Procedure and window aren't changed.
-      lpFrame->ei.hDocEdit=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-      lpFrame->lpEditProc=fdInit.lpEditProc;
-      lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
+      lpFrame->ei.hDocEdit=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdDefault.ei.hWndEdit);
+      lpFrame->lpEditProc=fdDefault.lpEditProc;
+      lpFrame->ei.hWndEdit=fdDefault.ei.hWndEdit;
 
       InsertTabItem(hTab, (moCur.dwTabOptionsMDI & TAB_ADD_AFTERCURRENT)?nDocumentIndex + 1:-1, (LPARAM)lpFrame);
 
@@ -871,7 +882,7 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
   if (lpFrameCurrent != lpFrame)
   {
     //Save deactivated frame data
-    if (lpFrameCurrent == &fdInit)
+    if (lpFrameCurrent == &fdDefault)
       lpFramePrevious=NULL;
     else
       lpFramePrevious=lpFrameCurrent;
@@ -1003,8 +1014,7 @@ int DestroyFrameWindow(FRAMEDATA *lpFrame)
         if (!nMainOnFinish || bFirstTabOnFinish)
         {
           bFirstTabOnFinish=FALSE;
-          CopyFrameData(&fdLast, lpFrame);
-          xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+          CopyFrameSettings(&fdDefault, lpFrame);
         }
         return FWDE_LASTTAB;
       }
@@ -1028,15 +1038,14 @@ int DestroyFrameWindow(FRAMEDATA *lpFrame)
         //Destroy active document
         SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
-        SendMessage(lpFrame->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocEdit, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocEdit, AESWD_NOREDRAW);
         SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocEdit, 0);
 
         //Save frame settings
         if (!nMainOnFinish || bFirstTabOnFinish)
         {
           bFirstTabOnFinish=FALSE;
-          CopyFrameData(&fdLast, lpFrame);
-          xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+          CopyFrameSettings(&fdDefault, lpFrame);
         }
         StackFrameDelete(&hFramesStack, lpFrame);
 
@@ -1080,10 +1089,10 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
   {
     lpFrame->ei.hWndMaster=lpFrame->ei.hWndEdit;
     lpFrame->ei.hDocMaster=lpFrame->ei.hDocEdit;
-    if (!fdInit.ei.hWndMaster)
+    if (!fdDefault.ei.hWndMaster)
     {
-      fdInit.ei.hWndMaster=fdInit.ei.hWndEdit;
-      fdInit.ei.hDocMaster=fdInit.ei.hDocEdit;
+      fdDefault.ei.hWndMaster=fdDefault.ei.hWndEdit;
+      fdDefault.ei.hDocMaster=fdDefault.ei.hDocEdit;
     }
 
     if (dwFlags & CN_CLONE1)
@@ -1091,16 +1100,16 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
         //Create real edit window for clone #1 if not created before
-        if (!fdInit.ei.hWndClone1)
+        if (!fdDefault.ei.hWndClone1)
         {
-          fdInit.ei.hWndClone1=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.ei.hDocClone1=(AEHDOC)SendMessage(fdInit.ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
+          fdDefault.ei.hWndClone1=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdDefault.ei.hDocClone1=(AEHDOC)SendMessage(fdDefault.ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
         }
-        lpFrame->ei.hWndClone1=fdInit.ei.hWndClone1;
+        lpFrame->ei.hWndClone1=fdDefault.ei.hWndClone1;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->ei.hDocClone1=fdInit.ei.hDocClone1;
+          lpFrame->ei.hDocClone1=fdDefault.ei.hDocClone1;
         }
         else if (nMDI == WMD_PMDI)
         {
@@ -1123,16 +1132,16 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
         //Create real edit window for clone #2 if not created before
-        if (!fdInit.ei.hWndClone2)
+        if (!fdDefault.ei.hWndClone2)
         {
-          fdInit.ei.hWndClone2=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.ei.hDocClone2=(AEHDOC)SendMessage(fdInit.ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
+          fdDefault.ei.hWndClone2=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdDefault.ei.hDocClone2=(AEHDOC)SendMessage(fdDefault.ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
         }
-        lpFrame->ei.hWndClone2=fdInit.ei.hWndClone2;
+        lpFrame->ei.hWndClone2=fdDefault.ei.hWndClone2;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->ei.hDocClone2=fdInit.ei.hDocClone2;
+          lpFrame->ei.hDocClone2=fdDefault.ei.hDocClone2;
         }
         else if (nMDI == WMD_PMDI)
         {
@@ -1155,16 +1164,16 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
         //Create real edit window for clone #3 if not created before
-        if (!fdInit.ei.hWndClone3)
+        if (!fdDefault.ei.hWndClone3)
         {
-          fdInit.ei.hWndClone3=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.ei.hDocClone3=(AEHDOC)SendMessage(fdInit.ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
+          fdDefault.ei.hWndClone3=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdDefault.ei.hDocClone3=(AEHDOC)SendMessage(fdDefault.ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
         }
-        lpFrame->ei.hWndClone3=fdInit.ei.hWndClone3;
+        lpFrame->ei.hWndClone3=fdDefault.ei.hWndClone3;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->ei.hDocClone3=fdInit.ei.hDocClone3;
+          lpFrame->ei.hDocClone3=fdDefault.ei.hDocClone3;
         }
         else if (nMDI == WMD_PMDI)
         {
@@ -1197,19 +1206,19 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone1)
       {
-        if (lpFrame != &fdInit)
+        if (lpFrame != &fdDefault)
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDocClone1);
 
-        if (nMDI == WMD_MDI || lpFrame == &fdInit)
+        if (nMDI == WMD_MDI || lpFrame == &fdDefault)
         {
           DestroyWindow(lpFrame->ei.hWndClone1);
         }
         else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (fdInit.ei.hDocClone1 != lpFrame->ei.hDocClone1)
+          if (fdDefault.ei.hDocClone1 != lpFrame->ei.hDocClone1)
           {
             //WMD_PMDI
-            SendMessage(lpFrame->ei.hWndClone1, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone1, AESWD_NOREDRAW);
+            SendMessage(lpFrame->ei.hWndClone1, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone1, AESWD_NOREDRAW);
             SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone1, 0);
           }
           SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
@@ -1228,19 +1237,19 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone2)
       {
-        if (lpFrame != &fdInit)
+        if (lpFrame != &fdDefault)
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDocClone2);
 
-        if (nMDI == WMD_MDI || lpFrame == &fdInit)
+        if (nMDI == WMD_MDI || lpFrame == &fdDefault)
         {
           DestroyWindow(lpFrame->ei.hWndClone2);
         }
         else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (fdInit.ei.hDocClone2 != lpFrame->ei.hDocClone2)
+          if (fdDefault.ei.hDocClone2 != lpFrame->ei.hDocClone2)
           {
             //WMD_PMDI
-            SendMessage(lpFrame->ei.hWndClone2, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone2, AESWD_NOREDRAW);
+            SendMessage(lpFrame->ei.hWndClone2, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone2, AESWD_NOREDRAW);
             SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone2, 0);
           }
           SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
@@ -1259,19 +1268,19 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone3)
       {
-        if (lpFrame != &fdInit)
+        if (lpFrame != &fdDefault)
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
 
-        if (nMDI == WMD_MDI || lpFrame == &fdInit)
+        if (nMDI == WMD_MDI || lpFrame == &fdDefault)
         {
           DestroyWindow(lpFrame->ei.hWndClone3);
         }
         else if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
         {
-          if (fdInit.ei.hDocClone3 != lpFrame->ei.hDocClone3)
+          if (fdDefault.ei.hDocClone3 != lpFrame->ei.hDocClone3)
           {
             //WMD_PMDI
-            SendMessage(lpFrame->ei.hWndClone3, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocClone3, AESWD_NOREDRAW);
+            SendMessage(lpFrame->ei.hWndClone3, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone3, AESWD_NOREDRAW);
             SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocClone3, 0);
           }
           SendMessage(lpFrame->ei.hWndMaster, AEM_DELCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
@@ -1305,22 +1314,22 @@ void SplitVisUpdate(FRAMEDATA *lpFrame)
 {
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
   {
-    if (fdInit.ei.hWndMaster)
+    if (fdDefault.ei.hWndMaster)
     {
-      if (fdInit.ei.hWndClone1)
+      if (fdDefault.ei.hWndClone1)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone1) == !lpFrame->ei.hDocClone1)
-          ShowWindow(fdInit.ei.hWndClone1, lpFrame->ei.hDocClone1?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdDefault.ei.hWndClone1) == !lpFrame->ei.hDocClone1)
+          ShowWindow(fdDefault.ei.hWndClone1, lpFrame->ei.hDocClone1?SW_SHOW:SW_HIDE);
       }
-      if (fdInit.ei.hWndClone2)
+      if (fdDefault.ei.hWndClone2)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone2) == !lpFrame->ei.hDocClone2)
-          ShowWindow(fdInit.ei.hWndClone2, lpFrame->ei.hDocClone2?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdDefault.ei.hWndClone2) == !lpFrame->ei.hDocClone2)
+          ShowWindow(fdDefault.ei.hWndClone2, lpFrame->ei.hDocClone2?SW_SHOW:SW_HIDE);
       }
-      if (fdInit.ei.hWndClone3)
+      if (fdDefault.ei.hWndClone3)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone3) == !lpFrame->ei.hDocClone3)
-          ShowWindow(fdInit.ei.hWndClone3, lpFrame->ei.hDocClone3?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdDefault.ei.hWndClone3) == !lpFrame->ei.hDocClone3)
+          ShowWindow(fdDefault.ei.hWndClone3, lpFrame->ei.hDocClone3?SW_SHOW:SW_HIDE);
       }
     }
   }
@@ -2475,7 +2484,7 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
   }
   else if (nAction == FONTSIZE_RESTORE)
   {
-    lpFrame->lf.lfHeight=fdInit.lf.lfHeight;
+    lpFrame->lf.lfHeight=fdDefault.lf.lfHeight;
   }
   SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
   UpdateMappedPrintWidth(lpFrame);
@@ -2536,7 +2545,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
     if (nMDI == WMD_MDI)
       lprcEditWindow=&lpFrameCurrent->rcEditWindow;
     else
-      lprcEditWindow=&fdInit.rcEditWindow;
+      lprcEditWindow=&fdDefault.rcEditWindow;
     lpFrameCurrent->rcMasterWindow.left=lprcEditWindow->left;
     lpFrameCurrent->rcMasterWindow.top=lprcEditWindow->top;
     lpFrameCurrent->rcMasterWindow.right=lprcEditWindow->right / 2;
@@ -4077,8 +4086,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   {
     //Update initial options
     xmemcpy(&moInit, mo, sizeof(MAINOPTIONS));
-    xmemcpy(&fdInit.lf, &fd->lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf));
-    fdInit.ei.bWordWrap=fd->ei.bWordWrap;
+    CopyFrameSettings(&fdInit, fd);
+    CopyFrameSettings(&fdDefault, fd);
   }
 
   Error:
@@ -11188,7 +11197,7 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
 
   if (moCur.nRecentFiles && lpFrame->wszFile[0])
   {
-    if (!nMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrame->wszFile))
+    if (!nMainOnFinish || !nMDI || xstrcmpiW(fdDefault.wszFile, lpFrame->wszFile))
     {
       RecentFilesRead(&hRecentFilesStack);
 
@@ -16197,7 +16206,7 @@ void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex)
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame)
 {
   if (lpFrame == lpFrameCurrent)
-    lpFrameCurrent=&fdInit;
+    lpFrameCurrent=&fdDefault;
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame);
 }
 
@@ -19537,10 +19546,10 @@ void UpdateSize()
 
     if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
     {
-      fdInit.rcEditWindow.left=nsSize.rcCurrent.left;
-      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
-      fdInit.rcEditWindow.right=nsSize.rcCurrent.right;
-      fdInit.rcEditWindow.bottom=nEditHeight;
+      fdDefault.rcEditWindow.left=nsSize.rcCurrent.left;
+      fdDefault.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
+      fdDefault.rcEditWindow.right=nsSize.rcCurrent.right;
+      fdDefault.rcEditWindow.bottom=nEditHeight;
       ResizeEditWindow(lpFrameCurrent, 0);
     }
     if (nMDI)

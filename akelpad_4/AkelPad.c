@@ -440,8 +440,8 @@ wchar_t wszAkelUpdaterExe[MAX_PATH];
 //Mdi
 HSTACK hFramesStack={0};
 FRAMEDATA fdInit;
-FRAMEDATA fdLast;
-FRAMEDATA *lpFrameCurrent=&fdInit;
+FRAMEDATA fdDefault;
+FRAMEDATA *lpFrameCurrent=&fdDefault;
 FRAMEDATA *lpFramePrevious=NULL;
 int nMDI=WMD_SDI;
 HWND hMdiClient=NULL;
@@ -620,7 +620,6 @@ void _WinMain()
   //Set default options before reading from registry/ini
   xmemset(&moInit, 0, sizeof(MAINOPTIONS));
   xmemset(&fdInit, 0, sizeof(FRAMEDATA));
-  xmemset(&fdLast, 0, sizeof(FRAMEDATA));
   xmemset(&aecDefault, 0, sizeof(AECOLORS));
 
   //System default codepages
@@ -854,6 +853,7 @@ void _WinMain()
   prninfo.rtMargin=moInit.rcPrintMargins;
   nMDI=moInit.nMDI;
   if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
+  xmemcpy(&fdDefault, &fdInit, sizeof(FRAMEDATA));
 
   //Normalize search flags
   moInit.dwSearchOptions=(moInit.dwSearchOptions & AEFR_DOWN) |
@@ -1376,24 +1376,23 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         //Destroy last empty tab
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocEdit, FALSE);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocEdit, FALSE);
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrameCurrent->ei.hDocEdit, 0);
       }
 
       //Destroy real edits
-      SplitDestroy(&fdInit, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+      SplitDestroy(&fdDefault, CN_CLONE1|CN_CLONE2|CN_CLONE3);
 
       bEditOnFinish=TRUE;
-      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdInit.ei.hWndEdit, 0);
-      DestroyWindow(fdInit.ei.hWndEdit);
-      fdInit.ei.hWndEdit=NULL;
-      fdInit.ei.hDocEdit=NULL;
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdDefault.ei.hWndEdit, 0);
+      DestroyWindow(fdDefault.ei.hWndEdit);
+      fdDefault.ei.hWndEdit=NULL;
+      fdDefault.ei.hDocEdit=NULL;
       bEditOnFinish=FALSE;
 
       if (nMDI == WMD_SDI)
       {
-        CopyFrameData(&fdLast, lpFrameCurrent);
-        xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
+        CopyFrameSettings(&fdDefault, lpFrameCurrent);
       }
       StackFrameDelete(&hFramesStack, lpFrameCurrent);
     }
@@ -1643,34 +1642,34 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //  - Maximum edit windows in SDI mode is 4. At next step we will create first one, later when window will be split
       //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
       //  - SDI mode has one allocated FRAMEDATA.
-      //  - fdInit structure keeps default settings and also all created edit windows.
+      //  - fdDefault structure keeps default settings and also all created edit windows.
       //MDI:
       //  - Maximum edit windows in MDI mode is limited by GDI buffer. During tests this number is about 800-1000 windows.
       //  - MDI mode allocated FRAMEDATA count is equal to number of tabs (MDI client frame windows).
       //  - Each tab is 1 MDI client frame window and 1 edit window (or 4 if window split).
-      //  - fdInit structure keeps default settings, but not edit windows.
+      //  - fdDefault structure keeps default settings, but not edit windows.
       //PMDI:
       //  - Allows you to open an unlimited number of files. In contrast to the MDI mode, opening a new tab does not lead
       //  creation of new graphical objects, thus avoid GDI buffer overflow.
       //  - Maximum edit windows in PMDI mode is 4. At next step we will create first one, later when window will be split
       //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
       //  - PMDI mode allocated FRAMEDATA count is equal to number of tabs.
-      //  - fdInit structure keeps default settings and also all created real edit windows.
+      //  - fdDefault structure keeps default settings and also all created real edit windows.
       //  - If you want to send any message to non-active frame in PMDI mode, you should activate it first with AKD_FRAMEACTIVATE or use special message AEM_SENDMESSAGE.
 
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
-        fdInit.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
-        fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
-        fdInit.ei.hDocEdit=(AEHDOC)SendMessage(fdInit.ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
+        fdDefault.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
+        fdDefault.lpEditProc=(AEEditProc)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
+        fdDefault.ei.hDocEdit=(AEHDOC)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
         if (nMDI == WMD_SDI)
         {
-          if (lpFrameCurrent=CreateFrameData(hMainWnd, &fdInit))
+          if (lpFrameCurrent=CreateFrameData(hMainWnd, &fdDefault))
           {
-            lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
-            lpFrameCurrent->lpEditProc=fdInit.lpEditProc;
-            lpFrameCurrent->ei.hDocEdit=fdInit.ei.hDocEdit;
+            lpFrameCurrent->ei.hWndEdit=fdDefault.ei.hWndEdit;
+            lpFrameCurrent->lpEditProc=fdDefault.lpEditProc;
+            lpFrameCurrent->ei.hDocEdit=fdDefault.ei.hDocEdit;
             RestoreFrameData(lpFrameCurrent, 0);
             SetEditWindowSettings(lpFrameCurrent);
             SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
@@ -4679,7 +4678,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    SaveOptions(&moCur, &fdLast, moCur.nSaveSettings, FALSE);
+    SaveOptions(&moCur, &fdDefault, moCur.nSaveSettings, FALSE);
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)
@@ -5121,10 +5120,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
     //lpFrame=(FRAMEDATA *)mcs->lParam
 
-    if (!nDocumentsCount && fdLast.hIcon)
-      lpFrame=&fdLast;
-    else
-      lpFrame=lpFrameCurrent;
+    lpFrame=lpFrameCurrent;
 
     if (lpFrame=CreateFrameData(hWnd, lpFrame))
     {
@@ -5247,15 +5243,15 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Variants:
       //A. MDI window just created - MDI client has now one window. WM_MDIACTIVATE sended 1 time:
-      //  1. On enter lpFrameCurrent == &fdInit, wParam == NULL, lParam != NULL
+      //  1. On enter lpFrameCurrent == &fdDefault, wParam == NULL, lParam != NULL
       //B. Another MDI window created or switching between MDI windows. WM_MDIACTIVATE sended 2 times:
       //  1. On enter lpFrameCurrent == wParam, wParam != NULL, lParam != NULL
       //  2. On leave lpFrameCurrent == lParam, wParam != NULL, lParam != NULL
       //C. Active MDI window just received WM_MDIDESTROY - MDI client has still one or more windows. WM_MDIACTIVATE sended 2 times:
-      //  1. On enter lpFrameCurrent == &fdInit, wParam != NULL, lParam != NULL
+      //  1. On enter lpFrameCurrent == &fdDefault, wParam != NULL, lParam != NULL
       //  2. On leave lpFrameCurrent == lParam, wParam != NULL, lParam != NULL
       //D. Active MDI window just received WM_MDIDESTROY - MDI client has no more windows. WM_MDIACTIVATE sended 1 time:
-      //  1. On leave lpFrameCurrent == &fdInit, wParam != NULL, lParam == NULL
+      //  1. On leave lpFrameCurrent == &fdDefault, wParam != NULL, lParam == NULL
 
       if (hWnd == (HWND)wParam)
       {
@@ -5707,8 +5703,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           if (!nMainOnFinish || bFirstTabOnFinish)
           {
             bFirstTabOnFinish=FALSE;
-            CopyFrameData(&fdLast, lpFrame);
-            xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+            CopyFrameSettings(&fdDefault, lpFrame);
           }
           StackFrameDelete(&hFramesStack, lpFrame);
         }
