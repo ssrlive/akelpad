@@ -9911,6 +9911,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
         if (pr.nReplaceCount)
           wszResultText=AllocWideStr(nResultTextLen);
+        else
+          lpFrame->nCompileErrorOffset=pr.nErrorOffset;
       }
       else
       {
@@ -20598,6 +20600,12 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         continue;
       }
     }
+    else if (*wpPat == L'$')
+    {
+      if (++wpPat < wpMaxPat)
+        goto Error;
+      break;
+    }
     else wpCharStart=wpPat;
 
     ++wpPat;
@@ -20696,7 +20704,10 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         ++nCurMatch;
 
-        if (nCurMatch >= lpREGroupItem->nMinMatch && nCurMatch < lpREGroupItem->nMaxMatch)
+        if (wpStr >= wpMaxStr)
+          goto EndLoop;
+
+        if (nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch)
         {
           if (lpREGroupNextNext=NextPatGroup(lpREGroupItem))
           {
@@ -21237,6 +21248,8 @@ INT_PTR PatReplace(PATREPLACE *pr)
     else
       ++pep.wpBufCount;
   }
+  else pr->nErrorOffset=pe.nErrorOffset;
+
   PatStructFree(&pe);
 
   return (INT_PTR)(pep.wpBufCount - pep.wszBuf);
