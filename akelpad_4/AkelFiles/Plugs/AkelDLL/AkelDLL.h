@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 3)
 
 
 //// Defines
@@ -1331,6 +1331,7 @@ typedef struct {
   const wchar_t *wpRep;      //String to replace with. Can be used "$n" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;           //See REPE_* defines.
+  INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
   int nReplaceCount;         //Receives replace count number.
   const wchar_t *wpLeftStr;  //First replace occurrence in string.
   const wchar_t *wpRightStr; //Unmatched right part of string.
