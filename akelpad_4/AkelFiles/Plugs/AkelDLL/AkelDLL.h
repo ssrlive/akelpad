@@ -1285,8 +1285,10 @@ typedef struct _REGROUP {
   const wchar_t *wpPatEnd;
   const wchar_t *wpPatLeft;
   const wchar_t *wpPatRight;
-  const wchar_t *wpStrStart;    //Begin of matched string.
-  const wchar_t *wpStrEnd;      //End of matched string.
+  const wchar_t *wpStrStart;    //Begin of matched string. ExecPat function.
+  const wchar_t *wpStrEnd;      //End of matched string. ExecPat function.
+  AECHARINDEX ciStrStart;       //Begin of matched string. AE_ExecPat function.
+  AECHARINDEX ciStrEnd;         //End of matched string. AE_ExecPat function.
   int nMinMatch;                //Minimum group match.
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
   DWORD dwFlags;                //See REGF_* defines.

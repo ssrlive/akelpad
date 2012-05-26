@@ -1138,6 +1138,8 @@ wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
 INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
 BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
+BOOL AE_ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
+wchar_t AE_PatCharAtIndex(const AECHARINDEX *ciChar);
 DWORD PatCharCmp(const wchar_t **wppPat, wchar_t wchStr, BOOL bSensitive, wchar_t *wchPatChar);
 REGROUP* GetPatGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* NextPatGroup(REGROUP *lpREGroupItem);
