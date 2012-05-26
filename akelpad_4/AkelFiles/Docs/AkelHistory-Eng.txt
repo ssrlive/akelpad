@@ -1,9 +1,12 @@
 
 AkelPad 4.7.6 ()
 ----------------------------
+Added: global search/replace with regular expressions.
+
 Fixed: regular expressions support.
 Fixed: cycle search with regular expressions didn't work.
 Fixed: saving settings without open frames (MDI).
+Fixed: applying delimiters settings.
 
 
 AkelPad 4.7.5 (May 04, 2012)

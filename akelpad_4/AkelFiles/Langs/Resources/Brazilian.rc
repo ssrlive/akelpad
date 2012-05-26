@@ -482,15 +482,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Diferenciar maiúsculas",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,97,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,97,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,82,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,65,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,75,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,87,98,12
     GROUPBOX        "Direção",IDC_STATIC,109,27,78,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
                     BS_AUTORADIOBUTTON,114,37,72,10
@@ -521,15 +523,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Diferenciar maiúsculas",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,98,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,98,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,98,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,98,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,83,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,79,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,89,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,101,98,12
     GROUPBOX        "Direção",IDC_STATIC,109,41,78,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
                     BS_AUTORADIOBUTTON,114,51,64,10

@@ -8904,6 +8904,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
   static HWND hWndRegExp;
+  static HWND hWndMultiline;
   static HWND hWndForward;
   static HWND hWndBackward;
   static HWND hWndBeginning;
@@ -8935,6 +8936,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
     hWndRegExp=GetDlgItem(hDlg, IDC_SEARCH_REGEXP);
+    hWndMultiline=GetDlgItem(hDlg, IDC_SEARCH_MULTILINE);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
@@ -8996,6 +8998,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     if (moCur.dwSearchOptions & AEFR_WHOLEWORD) SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_ESCAPESEQ) SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & AEFR_REGEXP) SendMessage(hWndRegExp, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & AEFR_MULTILINE) SendMessage(hWndMultiline, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndMultiline, (moCur.dwSearchOptions & AEFR_REGEXP));
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOXEDIT))
     {
@@ -9065,6 +9069,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
         moCur.dwSearchOptions&=~AEFR_REGEXP;
+        EnableWindow(hWndMultiline, FALSE);
       }
       return TRUE;
     }
@@ -9077,6 +9082,13 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_UNCHECKED, 0);
         moCur.dwSearchOptions&=~AEFR_ESCAPESEQ;
       }
+      EnableWindow(hWndMultiline, (moCur.dwSearchOptions & AEFR_REGEXP));
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_SEARCH_MULTILINE)
+    {
+      if (SendMessage(hWndMultiline, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=AEFR_MULTILINE;
+      else moCur.dwSearchOptions&=~AEFR_MULTILINE;
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_FORWARD)
@@ -9597,7 +9609,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     STACKREGROUP hREGroupStack;
     const wchar_t *wpMaxFindIt=wpFindIt + nFindItLen;
     AECHARRANGE crLine;
-    BOOL bLineByLine=TRUE;
+    BOOL bMultiline=(moCur.dwSearchOptions & AEFR_MULTILINE);
 
     hREGroupStack.first=0;
     hREGroupStack.last=0;
@@ -9607,7 +9619,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     {
       if (dwFlags & AEFR_UP)
       {
-        if (bLineByLine)
+        if (bMultiline)
         {
           if (AEC_IsFirstCharInLine(&ft.crSearch.ciMax))
             AEC_PrevLineEx(&ft.crSearch.ciMax, &crLine.ciMax);
@@ -9638,7 +9650,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
               break;
           }
 
-          if (bLineByLine)
+          if (bMultiline)
           {
             if (bFound)
               break;
@@ -9654,7 +9666,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       }
       else
       {
-        if (bLineByLine)
+        if (bMultiline)
         {
           if (AEC_IsLastCharInLine(&ft.crSearch.ciMin))
             AEC_NextLineEx(&ft.crSearch.ciMin, &crLine.ciMin);
@@ -9809,7 +9821,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpMaxPat=wpFindIt + nFindItLen;
     pr.wpRep=wpReplaceWith;
     pr.wpMaxRep=wpReplaceWith + nReplaceWithLen;
-    pr.dwOptions=REPE_MULTILINE|(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0);
+    pr.dwOptions=(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0)|(dwFlags & AEFR_MULTILINE?REPE_MULTILINE:0);
   }
 
   if (bAll)
@@ -14620,30 +14632,36 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SetFrameInfo(lpFrameCurrent, FIS_CLICKURL, a);
 
       //Url prefixes
-      GetWindowTextWide(hWndUrlPrefixes, lpFrameCurrent->wszUrlPrefixes, URL_PREFIXES_SIZE);
+      GetWindowTextWide(hWndUrlPrefixes, wbuf, URL_PREFIXES_SIZE);
+      SetFrameInfo(lpFrameCurrent, FIS_URLPREFIXES, (UINT_PTR)wbuf);
+
       a=(BOOL)SendMessage(hWndUrlPrefixesEnable, BM_GETCHECK, 0, 0);
       SetFrameInfo(lpFrameCurrent, FIS_URLPREFIXESENABLE, a);
 
       //Url delimiters
       GetWindowTextWide(hWndUrlLeftDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszUrlLeftDelimiters, NEWLINE_UNIX);
+      EscapeStringToEscapeDataW(wbuf, wbuf2, NEWLINE_UNIX);
+      SetFrameInfo(lpFrameCurrent, FIS_URLLEFTDELIMITERS, (UINT_PTR)wbuf2);
 
       GetWindowTextWide(hWndUrlRightDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszUrlRightDelimiters, NEWLINE_UNIX);
+      EscapeStringToEscapeDataW(wbuf, wbuf2, NEWLINE_UNIX);
+      SetFrameInfo(lpFrameCurrent, FIS_URLRIGHTDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       SetFrameInfo(lpFrameCurrent, FIS_URLDELIMITERSENABLE, a);
 
       //Word delimiters
       GetWindowTextWide(hWndWordDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszWordDelimiters, NEWLINE_UNIX);
+      EscapeStringToEscapeDataW(wbuf, wbuf2, NEWLINE_UNIX);
+      SetFrameInfo(lpFrameCurrent, FIS_WORDDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       SetFrameInfo(lpFrameCurrent, FIS_WORDDELIMITERSENABLE, a);
 
       //Wrap delimiters
       GetWindowTextWide(hWndWrapDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, lpFrameCurrent->wszWrapDelimiters, NEWLINE_UNIX);
+      EscapeStringToEscapeDataW(wbuf, wbuf2, NEWLINE_UNIX);
+      SetFrameInfo(lpFrameCurrent, FIS_WRAPDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
       SetFrameInfo(lpFrameCurrent, FIS_WRAPDELIMITERSENABLE, a);
