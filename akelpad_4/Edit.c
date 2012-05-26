@@ -9609,9 +9609,12 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       {
         if (bLineByLine)
         {
-          crLine.ciMax=ft.crSearch.ciMax;
+          if (AEC_IsFirstCharInLine(&ft.crSearch.ciMax))
+            AEC_PrevLineEx(&ft.crSearch.ciMax, &crLine.ciMax);
+          else
+            crLine.ciMax=ft.crSearch.ciMax;
           crLine.ciMin=crLine.ciMax;
-          crLine.ciMin.nCharInLine=0;
+          AEC_WrapLineBegin(&crLine.ciMin);
           if (AEC_IndexCompare(&ft.crSearch.ciMin, &crLine.ciMin) > 0)
             crLine.ciMin=ft.crSearch.ciMin;
         }
@@ -9619,7 +9622,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
         for (;;)
         {
-          if (AE_ExecPat(&hREGroupStack, hREGroupStack.first, &crLine.ciMin, &crLine.ciMax))
+          while (AE_ExecPat(&hREGroupStack, hREGroupStack.first, &crLine.ciMin, &crLine.ciMax))
           {
             if ((!(dwFlags & AEFR_WHOLEWORD) ||
                  (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&hREGroupStack.first->ciStrStart) &&
@@ -9630,28 +9633,35 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
               ft.crFound.ciMax=hREGroupStack.first->ciStrEnd;
               bFound=TRUE;
             }
+            crLine.ciMin=hREGroupStack.first->ciStrEnd;
+            if (AEC_IndexCompare(&crLine.ciMin, &crLine.ciMax) >= 0)
+              break;
           }
-          else break;
 
           if (bLineByLine)
           {
-            if (!AEC_PrevLine(&crLine.ciMax) || AEC_IndexCompare(&crLine.ciMax, &ft.crSearch.ciMin) <= 0)
+            if (bFound)
               break;
-            crLine.ciMin=crLine.ciMax;
-            crLine.ciMin.nCharInLine=0;
+            if (!AEC_PrevLine(&crLine.ciMin) || AEC_IndexCompare(&crLine.ciMin, &ft.crSearch.ciMin) <= 0)
+              break;
+            crLine.ciMax=crLine.ciMin;
+            AEC_WrapLineBegin(&crLine.ciMin);
             if (AEC_IndexCompare(&ft.crSearch.ciMin, &crLine.ciMin) > 0)
               crLine.ciMin=ft.crSearch.ciMin;
           }
-          else crLine.ciMin=hREGroupStack.first->ciStrEnd;
+          else break;
         }
       }
       else
       {
         if (bLineByLine)
         {
-          crLine.ciMin=ft.crSearch.ciMin;
+          if (AEC_IsLastCharInLine(&ft.crSearch.ciMin))
+            AEC_NextLineEx(&ft.crSearch.ciMin, &crLine.ciMin);
+          else
+            crLine.ciMin=ft.crSearch.ciMin;
           crLine.ciMax=crLine.ciMin;
-          crLine.ciMax.nCharInLine=crLine.ciMax.lpLine->nLineLen;
+          AEC_WrapLineEnd(&crLine.ciMax);
           if (AEC_IndexCompare(&ft.crSearch.ciMax, &crLine.ciMax) < 0)
             crLine.ciMax=ft.crSearch.ciMax;
         }
@@ -9673,10 +9683,10 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
             }
           }
 
-          if (!AEC_NextLine(&crLine.ciMin) || AEC_IndexCompare(&crLine.ciMin, &ft.crSearch.ciMax) >= 0)
+          if (!AEC_NextLine(&crLine.ciMax) || AEC_IndexCompare(&crLine.ciMax, &ft.crSearch.ciMax) >= 0)
             break;
-          crLine.ciMax=crLine.ciMin;
-          crLine.ciMax.nCharInLine=crLine.ciMax.lpLine->nLineLen;
+          crLine.ciMin=crLine.ciMax;
+          AEC_WrapLineEnd(&crLine.ciMax);
           if (AEC_IndexCompare(&ft.crSearch.ciMax, &crLine.ciMax) < 0)
             crLine.ciMax=ft.crSearch.ciMax;
         }
