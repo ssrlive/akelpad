@@ -180,15 +180,16 @@
 #define IDC_SEARCH_WHOLEWORD            3055
 #define IDC_SEARCH_ESCAPESEQ            3056
 #define IDC_SEARCH_REGEXP               3057
-#define IDC_SEARCH_BACKWARD             3058
-#define IDC_SEARCH_FORWARD              3059
-#define IDC_SEARCH_BEGINNING            3060
-#define IDC_SEARCH_INSEL                3061
-#define IDC_SEARCH_ALLFILES_GROUP       3062
-#define IDC_SEARCH_ALLFILES             3063
-#define IDC_SEARCH_FIND_BUTTON          3064
-#define IDC_SEARCH_REPLACE_BUTTON       3065
-#define IDC_SEARCH_ALL_BUTTON           3066
+#define IDC_SEARCH_MULTILINE            3058
+#define IDC_SEARCH_BACKWARD             3059
+#define IDC_SEARCH_FORWARD              3060
+#define IDC_SEARCH_BEGINNING            3061
+#define IDC_SEARCH_INSEL                3062
+#define IDC_SEARCH_ALLFILES_GROUP       3063
+#define IDC_SEARCH_ALLFILES             3064
+#define IDC_SEARCH_FIND_BUTTON          3065
+#define IDC_SEARCH_REPLACE_BUTTON       3066
+#define IDC_SEARCH_ALL_BUTTON           3067
 #define IDC_GOTO_NUMBER                 3101
 #define IDC_GOTO_LINE                   3102
 #define IDC_GOTO_OFFSET                 3103
@@ -327,7 +328,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

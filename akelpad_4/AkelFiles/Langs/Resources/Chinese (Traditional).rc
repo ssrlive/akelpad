@@ -477,15 +477,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_FIND,43,9,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "大小寫須相符",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,65,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,75,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,87,98,12
     GROUPBOX        "方向",IDC_STATIC,121,27,66,58
     CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
@@ -516,15 +518,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_REPLACE,43,23,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "大小寫須相符",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,81,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,79,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,89,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,101,98,12
     GROUPBOX        "方向",IDC_STATIC,121,41,66,58
     CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10

@@ -483,15 +483,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_FIND,34,9,154,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "대소문자 구분",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "전체 단어",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
-    CONTROL         "특수문자",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,67,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,80,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
+    CONTROL         "특수문자",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,65,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,75,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,87,98,12
     GROUPBOX        "방향",IDC_STATIC,121,27,66,48
     CONTROL         "아래",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
@@ -520,15 +522,17 @@ BEGIN
     COMBOBOX        IDC_SEARCH_REPLACE,34,23,154,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "대소문자 구분",IDC_SEARCH_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "전체 단어",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
-    CONTROL         "특수문자",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,81,105,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,94,90,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
+    CONTROL         "특수문자",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,79,96,12,NOT 
                     WS_GROUP
+    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,89,109,12
+    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,101,98,12
     GROUPBOX        "방향",IDC_STATIC,121,41,66,58
     CONTROL         "아래",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
