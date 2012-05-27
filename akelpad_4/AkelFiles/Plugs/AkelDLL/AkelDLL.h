@@ -601,7 +601,10 @@
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //STACKREGROUP options
-#define REO_MATCHCASE 0x1  //Case-sensitive search.
+#define REO_MATCHCASE        0x1 //Case-sensitive search.
+#define REO_MULTILINE        0x2 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define REO_NOFIRSTLINEBEGIN 0x4 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_ExecPat ignore this flag.
+#define REO_NOLASTLINEEND    0x8 //String ends not on line ending. Used with REO_MULTILINE flag. AE_ExecPat ignore this flag.
 
 //REGROUP flags
 #define REGF_ROOTANY  0x01
@@ -619,12 +622,13 @@
 #define RECC_REF      0x10
 
 //AKD_PATEXEC options
-#define REPE_MATCHCASE        0x01 //Case-sensitive search.
-#define REPE_GLOBAL           0x02 //Search all possible occurrences.
-#define REPE_ISMATCH          0x04 //Find first occurrence that should located at the beginning of the string.
-#define REPE_MULTILINE        0x08 //Search line by line.
-#define REPE_NOFIRSTLINEBEGIN 0x10 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
-#define REPE_NOLASTLINEEND    0x20 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
+#define REPE_MATCHCASE        0x001 //Case-sensitive search.
+#define REPE_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define REPE_NOFIRSTLINEBEGIN 0x004 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
+#define REPE_NOLASTLINEEND    0x008 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
+#define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
+#define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
+
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE  0  //Find next match.
@@ -1307,7 +1311,7 @@ typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL b
 //pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
 //lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
 //bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
-//                FALSE - pe->wpStr and pe->wpMaxLine are valid.
+//                FALSE - pe->wpStr is valid.
 //Return Value
 // See REPEC_* defines.
 
@@ -1317,7 +1321,6 @@ typedef struct {
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;         //String for process.
   const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpMaxLine;     //Internal usage.
   DWORD dwOptions;              //See REPE_* defines.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 

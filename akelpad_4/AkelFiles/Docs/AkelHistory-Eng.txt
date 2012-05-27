@@ -1,7 +1,7 @@
 
 AkelPad 4.7.6 ()
 ----------------------------
-Added: global search/replace with regular expressions.
+Added: multiline search/replace with regular expressions.
 
 Fixed: regular expressions support.
 Fixed: cycle search with regular expressions didn't work.
