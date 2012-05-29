@@ -1149,6 +1149,7 @@ int PatStructExec(PATEXEC *pe);
 void PatStructFree(PATEXEC *pe);
 INT_PTR PatReplace(PATREPLACE *pr);
 int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
+int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
