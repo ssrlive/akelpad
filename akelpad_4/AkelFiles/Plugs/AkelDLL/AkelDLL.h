@@ -629,7 +629,6 @@
 #define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
 #define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
 
-
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE  0  //Find next match.
 #define REPEC_STOP      -1 //Stop search.
@@ -1319,8 +1318,10 @@ typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;         //String for process.
-  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpStr;         //String for process. ExecPat function.
+  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. ExecPat function.
+  AECHARINDEX ciStr;            //First character for process. AE_ExecPat function.
+  AECHARINDEX ciMaxStr;         //Last character at which processing is stopped. AE_ExecPat function.
   DWORD dwOptions;              //See REPE_* defines.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
@@ -1330,11 +1331,13 @@ typedef struct {
 } PATEXEC;
 
 typedef struct {
-  const wchar_t *wpStr;      //String for process.
-  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
   const wchar_t *wpPat;      //Pattern for process.
   const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpRep;      //String to replace with. Can be used "$n" - the n'th captured submatch.
+  const wchar_t *wpStr;      //String for process. ExecPat function.
+  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. ExecPat function.
+  AECHARINDEX ciStr;         //First character for process. AE_ExecPat function.
+  AECHARINDEX ciMaxStr;      //Last character at which processing is stopped. AE_ExecPat function.
+  const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;           //See REPE_* defines.
   INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
