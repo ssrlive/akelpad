@@ -17904,20 +17904,20 @@ DWORD AE_GetLinesCount(const wchar_t *wpText, int nTextLen)
 
 int AE_GetNewLineString(int nNewLine, const wchar_t **wpNewLine)
 {
-  if (nNewLine == AELB_R)
+  if (nNewLine == AELB_RN)
   {
-    if (wpNewLine) *wpNewLine=L"\r";
-    return 1;
+    if (wpNewLine) *wpNewLine=L"\r\n";
+    return 2;
   }
   else if (nNewLine == AELB_N)
   {
     if (wpNewLine) *wpNewLine=L"\n";
     return 1;
   }
-  else if (nNewLine == AELB_RN)
+  else if (nNewLine == AELB_R)
   {
-    if (wpNewLine) *wpNewLine=L"\r\n";
-    return 2;
+    if (wpNewLine) *wpNewLine=L"\r";
+    return 1;
   }
   else if (nNewLine == AELB_RRN)
   {

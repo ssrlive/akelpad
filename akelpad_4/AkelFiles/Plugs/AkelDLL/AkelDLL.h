@@ -1349,8 +1349,10 @@ typedef struct {
   const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
   int nReplaceCount;         //Receives replace count number.
-  const wchar_t *wpLeftStr;  //First replace occurrence in string.
-  const wchar_t *wpRightStr; //Unmatched right part of string.
+  const wchar_t *wpLeftStr;  //First replace occurrence in string. PatExec function.
+  const wchar_t *wpRightStr; //Unmatched right part of string. PatExec function.
+  AECHARINDEX ciLeftStr;     //First replace occurrence in string. AE_PatExec function.
+  AECHARINDEX ciRightStr;    //Unmatched right part of string. AE_PatExec function.
   wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
 

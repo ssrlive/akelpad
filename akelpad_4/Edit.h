@@ -685,6 +685,7 @@ typedef struct {
   const wchar_t *wpRep;
   const wchar_t *wpMaxRep;
   const wchar_t *wpRightStr;
+  AECHARINDEX ciRightStr;
   wchar_t *wszBuf;
   wchar_t *wpBufCount;
 } PATEXECPARAM;
@@ -1139,7 +1140,9 @@ wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
 BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
 BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
-wchar_t AE_PatCharAtIndex(const AECHARINDEX *ciChar);
+int PatChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, wchar_t *wchChar);
+wchar_t AE_PatChar(const AECHARINDEX *ciChar);
+INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarget);
 DWORD PatCharCmp(const wchar_t **wppPat, wchar_t wchStr, BOOL bSensitive, wchar_t *wchPatChar);
 BOOL PatIsCharDelim(wchar_t wchChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
