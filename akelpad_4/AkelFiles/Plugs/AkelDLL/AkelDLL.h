@@ -603,8 +603,8 @@
 //STACKREGROUP options
 #define REO_MATCHCASE        0x1 //Case-sensitive search.
 #define REO_MULTILINE        0x2 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_NOFIRSTLINEBEGIN 0x4 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_ExecPat ignore this flag.
-#define REO_NOLASTLINEEND    0x8 //String ends not on line ending. Used with REO_MULTILINE flag. AE_ExecPat ignore this flag.
+#define REO_NOFIRSTLINEBEGIN 0x4 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
+#define REO_NOLASTLINEEND    0x8 //String ends not on line ending. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
 
 //REGROUP flags
 #define REGF_ROOTITEM 0x01
@@ -1290,10 +1290,10 @@ typedef struct _REGROUP {
   const wchar_t *wpPatEnd;
   const wchar_t *wpPatLeft;
   const wchar_t *wpPatRight;
-  const wchar_t *wpStrStart;    //Begin of matched string. ExecPat function.
-  const wchar_t *wpStrEnd;      //End of matched string. ExecPat function.
-  AECHARINDEX ciStrStart;       //Begin of matched string. AE_ExecPat function.
-  AECHARINDEX ciStrEnd;         //End of matched string. AE_ExecPat function.
+  const wchar_t *wpStrStart;    //Begin of matched string. PatExec function.
+  const wchar_t *wpStrEnd;      //End of matched string. PatExec function.
+  AECHARINDEX ciStrStart;       //Begin of matched string. AE_PatExec function.
+  AECHARINDEX ciStrEnd;         //End of matched string. AE_PatExec function.
   int nMinMatch;                //Minimum group match.
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
   DWORD dwFlags;                //See REGF_* defines.
@@ -1304,6 +1304,8 @@ typedef struct {
   REGROUP *first;
   REGROUP *last;
   DWORD dwOptions;              //See REO_* defines.
+  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   int nLastIndex;               //Last captured index.
 } STACKREGROUP;
 
@@ -1319,11 +1321,13 @@ typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;         //String for process. ExecPat function.
-  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. ExecPat function.
-  AECHARINDEX ciStr;            //First character for process. AE_ExecPat function.
-  AECHARINDEX ciMaxStr;         //Last character at which processing is stopped. AE_ExecPat function.
+  const wchar_t *wpStr;         //String for process. PatExec function.
+  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. PatExec function.
+  AECHARINDEX ciStr;            //First character for process. AE_PatExec function.
+  AECHARINDEX ciMaxStr;         //Last character at which processing is stopped. AE_PatExec function.
   DWORD dwOptions;              //See REPE_* defines.
+  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
   //Callback
@@ -1334,13 +1338,15 @@ typedef struct {
 typedef struct {
   const wchar_t *wpPat;      //Pattern for process.
   const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;      //String for process. ExecPat function.
-  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. ExecPat function.
-  AECHARINDEX ciStr;         //First character for process. AE_ExecPat function.
-  AECHARINDEX ciMaxStr;      //Last character at which processing is stopped. AE_ExecPat function.
+  const wchar_t *wpStr;      //String for process. PatExec function.
+  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. PatExec function.
+  AECHARINDEX ciStr;         //First character for process. AE_PatExec function.
+  AECHARINDEX ciMaxStr;      //Last character at which processing is stopped. AE_PatExec function.
   const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;           //See REPE_* defines.
+  const wchar_t *wpDelim;    //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
   int nReplaceCount;         //Receives replace count number.
   const wchar_t *wpLeftStr;  //First replace occurrence in string.
@@ -4600,6 +4606,7 @@ Example:
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
+ pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
  while (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))
@@ -4651,6 +4658,7 @@ Example:
  pr.wpRep=L"[$1]";
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
  pr.dwOptions=REPE_GLOBAL|REPE_MATCHCASE;
+ pr.wpDelim=NULL;
  pr.wszResult=NULL;
  nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
 
@@ -4684,6 +4692,7 @@ Example:
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
+ pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
  if (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))

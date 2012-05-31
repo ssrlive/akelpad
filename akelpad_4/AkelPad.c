@@ -3461,7 +3461,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (*wpStr == L'$')
         {
-          if (lpREGroupRef=GetPatGroup(pgs->lpREGroupStack, (int)xatoiW(++wpStr, &wpStr)))
+          if (lpREGroupRef=PatGetGroup(pgs->lpREGroupStack, (int)xatoiW(++wpStr, &wpStr)))
           {
             if (pgs->wszResult)
               xmemcpy(wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
@@ -3484,15 +3484,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PATGETGROUP)
     {
-      return (LRESULT)GetPatGroup((STACKREGROUP *)wParam, (int)lParam);
+      return (LRESULT)PatGetGroup((STACKREGROUP *)wParam, (int)lParam);
     }
     if (uMsg == AKD_PATNEXTGROUP)
     {
-      return (LRESULT)NextPatGroup((REGROUP *)wParam);
+      return (LRESULT)PatNextGroup((REGROUP *)wParam);
     }
     if (uMsg == AKD_PATPREVGROUP)
     {
-      return (LRESULT)PrevPatGroup((REGROUP *)wParam);
+      return (LRESULT)PatPrevGroup((REGROUP *)wParam);
     }
     if (uMsg == AKD_PATFREE)
     {
