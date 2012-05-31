@@ -20942,8 +20942,11 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             else
             {
               if (wpStr - 1 > hStack->first->wpStrStart >= 0)
+              {
                 wchStrChar=*(wpStr - 1);
-              if (wpStr - 1 < hStack->first->wpStrStart || wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\r' || wchStrChar == L'\t')
+                if (wchStrChar == L'\r') wchStrChar=L'\n';
+              }
+              if (wpStr - 1 < hStack->first->wpStrStart || wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\t')
               {
                 if (*wpPat == L'b')
                 {
