@@ -10074,29 +10074,26 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   {
     if (dwFlags & AEFR_REGEXP)
     {
-      if (crCurSel.ciMin.nLine == crCurSel.ciMax.nLine)
+      if (!(dwFlags & AEFR_WHOLEWORD) ||
+          (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crCurSel.ciMin) &&
+           SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crCurSel.ciMax)))
       {
-        if (!(dwFlags & AEFR_WHOLEWORD) ||
-            (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crCurSel.ciMin) &&
-             SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crCurSel.ciMax)))
-        {
-          pr.wpStr=NULL;
-          pr.wpMaxStr=NULL;
-          pr.ciStr=crCurSel.ciMin;
-          pr.ciMaxStr=crCurSel.ciMax;
-          pr.dwOptions|=REPE_ISMATCH;
-          pr.wszResult=NULL;
-          nResultTextLen=PatReplace(&pr);
+        pr.wpStr=NULL;
+        pr.wpMaxStr=NULL;
+        pr.ciStr=crCurSel.ciMin;
+        pr.ciMaxStr=crCurSel.ciMax;
+        pr.dwOptions|=REPE_ISMATCH;
+        pr.wszResult=NULL;
+        nResultTextLen=PatReplace(&pr);
 
-          if (pr.nReplaceCount && !AEC_IndexCompare(&pr.ciLeftStr, &pr.ciStr) && !AEC_IndexCompare(&pr.ciRightStr, &pr.ciMaxStr))
+        if (pr.nReplaceCount && !AEC_IndexCompare(&pr.ciLeftStr, &pr.ciStr) && !AEC_IndexCompare(&pr.ciRightStr, &pr.ciMaxStr))
+        {
+          if (pr.wszResult=AllocWideStr(nResultTextLen))
           {
-            if (pr.wszResult=AllocWideStr(nResultTextLen))
-            {
-              nResultTextLen=PatReplace(&pr);
-              ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASINPUT, 0, NULL, NULL);
-              nChanges=1;
-              FreeWideStr(pr.wszResult);
-            }
+            nResultTextLen=PatReplace(&pr);
+            ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASINPUT, 0, NULL, NULL);
+            nChanges=1;
+            FreeWideStr(pr.wszResult);
           }
         }
       }
