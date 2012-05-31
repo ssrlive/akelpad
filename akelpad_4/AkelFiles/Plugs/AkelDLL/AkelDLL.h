@@ -1290,10 +1290,10 @@ typedef struct _REGROUP {
   const wchar_t *wpPatEnd;
   const wchar_t *wpPatLeft;
   const wchar_t *wpPatRight;
-  const wchar_t *wpStrStart;    //Begin of matched string. PatExec function.
-  const wchar_t *wpStrEnd;      //End of matched string. PatExec function.
-  AECHARINDEX ciStrStart;       //Begin of matched string. AE_PatExec function.
-  AECHARINDEX ciStrEnd;         //End of matched string. AE_PatExec function.
+  const wchar_t *wpStrStart;    //PatExec: Begin of matched string.
+  const wchar_t *wpStrEnd;      //PatExec: End of matched string.
+  AECHARINDEX ciStrStart;       //AE_PatExec: Begin of matched string.
+  AECHARINDEX ciStrEnd;         //AE_PatExec: End of matched string.
   int nMinMatch;                //Minimum group match.
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
   DWORD dwFlags;                //See REGF_* defines.
@@ -1321,10 +1321,10 @@ typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;         //String for process. PatExec function.
-  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. PatExec function.
-  AECHARINDEX ciStr;            //First character for process. AE_PatExec function.
-  AECHARINDEX ciMaxStr;         //Last character at which processing is stopped. AE_PatExec function.
+  const wchar_t *wpStr;         //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
+  const wchar_t *wpMaxStr;      //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
+  AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
   DWORD dwOptions;              //See REPE_* defines.
   const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
@@ -1338,10 +1338,10 @@ typedef struct {
 typedef struct {
   const wchar_t *wpPat;      //Pattern for process.
   const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;      //String for process. PatExec function.
-  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character. PatExec function.
-  AECHARINDEX ciStr;         //First character for process. AE_PatExec function.
-  AECHARINDEX ciMaxStr;      //Last character at which processing is stopped. AE_PatExec function.
+  const wchar_t *wpStr;      //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
+  const wchar_t *wpMaxStr;   //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
+  AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
   const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;           //See REPE_* defines.
@@ -1349,10 +1349,10 @@ typedef struct {
   const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
   int nReplaceCount;         //Receives replace count number.
-  const wchar_t *wpLeftStr;  //First replace occurrence in string. PatExec function.
-  const wchar_t *wpRightStr; //Unmatched right part of string. PatExec function.
-  AECHARINDEX ciLeftStr;     //First replace occurrence in string. AE_PatExec function.
-  AECHARINDEX ciRightStr;    //Unmatched right part of string. AE_PatExec function.
+  const wchar_t *wpLeftStr;  //PatExec: First replace occurrence in string.
+  const wchar_t *wpRightStr; //PatExec: Unmatched right part of string.
+  AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
+  AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
   wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
 
