@@ -9787,6 +9787,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.dwOptions=(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0)|(dwFlags & AEFR_MULTILINE?REPE_MULTILINE:0);
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
+    lpFrame->nCompileErrorOffset=0;
   }
 
   if (bAll)
@@ -20734,14 +20735,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             {
               for (nAnyMatch=lpREGroupNext->nMinMatch; (DWORD)nAnyMatch < (DWORD)lpREGroupNext->nMaxMatch; ++nAnyMatch)
               {
-                if (wpStr >= wpMaxStr)
-                  goto EndLoop;
-
                 if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
                 {
                   wpPat=lpREGroupNext->wpPatRight;
                   goto NextGroup;
                 }
+                if (wpStr >= wpMaxStr)
+                  goto EndLoop;
                 ++wpStr;
               }
             }
@@ -21087,14 +21087,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             {
               for (nAnyMatch=lpREGroupNext->nMinMatch; (DWORD)nAnyMatch < (DWORD)lpREGroupNext->nMaxMatch; ++nAnyMatch)
               {
-                if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-                  goto EndLoop;
-
                 if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
                 {
                   wpPat=lpREGroupNext->wpPatRight;
                   goto NextGroup;
                 }
+                if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+                  goto EndLoop;
                 AEC_NextChar(&ciStr);
               }
             }
