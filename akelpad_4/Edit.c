@@ -21435,10 +21435,13 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
         else wpTarget+=3;
       }
     }
-    if (wszTarget)
-      *wpTarget++=ciCount.lpLine->wpLine[ciCount.nCharInLine];
     else
-      wpTarget+=1;
+    {
+      if (wszTarget)
+        *wpTarget++=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+      else
+        wpTarget+=1;
+    }
   }
   return (wpTarget - wszTarget);
 }
