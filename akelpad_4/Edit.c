@@ -20285,6 +20285,7 @@ INT_PTR CompilePat(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       ++wpPat;
     else
       lpREGroupItem->dwFlags|=REGF_ROOTANY;
+    lpREGroupItem->dwFlags|=REGF_ROOTITEM;
 
     lpREGroupItem->parent=NULL;
     lpREGroupItem->wpPatStart=wpPat;
@@ -20651,28 +20652,30 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   DWORD dwCmpResult=0;
   BOOL bExclude;
 
-  if (lpREGroupItem->dwFlags & REGF_ROOTANY)
+  if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
-    BOOL bResult=FALSE;
-
-    //Turn off REGF_ROOTANY and execute itself
-    lpREGroupItem->dwFlags&=~REGF_ROOTANY;
-
-    //For ^ and REO_MULTILINE flag.
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
 
-    while (wpStr <= wpMaxStr)
+    if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
-      if (ExecPat(hStack, lpREGroupItem, wpStr, wpMaxStr))
+      BOOL bResult=FALSE;
+
+      //Turn off REGF_ROOTANY and execute itself
+      lpREGroupItem->dwFlags&=~REGF_ROOTITEM & ~REGF_ROOTANY;
+
+      while (wpStr <= wpMaxStr)
       {
-        bResult=TRUE;
-        break;
+        if (ExecPat(hStack, lpREGroupItem, wpStr, wpMaxStr))
+        {
+          bResult=TRUE;
+          break;
+        }
+        ++wpStr;
       }
-      ++wpStr;
+      lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
+      return bResult;
     }
-    lpREGroupItem->dwFlags|=REGF_ROOTANY;
-    return bResult;
   }
 
   BeginLoop:
@@ -20803,9 +20806,8 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       else if (*wpPat == L'^' && wpPat == lpREGroupItem->wpPatStart)
       {
         //REO_MULTILINE
-        if ((!(hStack->dwOptions & REO_NOFIRSTLINEBEGIN) &&
-             ((!lpREGroupItem->wpStrStart && wpStr == wpMinStr) || wpStr == lpREGroupItem->wpStrStart)) ||
-            *(wpStr - 1) == L'\n' || *(wpStr - 1) == L'\r')
+        if (!(hStack->dwOptions & REO_NOFIRSTLINEBEGIN) &&
+            (wpStr == hStack->first->wpStrStart || *(wpStr - 1) == L'\n' || *(wpStr - 1) == L'\r'))
         {
           ++wpPat;
           continue;
@@ -20920,19 +20922,41 @@ BOOL ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
           if (dwCmpResult & RECC_WORD)
           {
-            if (*wpPat == L'b')
+            if (wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\t')
             {
-              if (wchStrChar != L' ' && wchStrChar != L'\n' && wchStrChar != L'\r' && wchStrChar != L'\t' && wpStr != wpMaxStr && wpStr != wpMinStr)
-                goto EndLoop;
-              ++wpPat;
-              continue;
+              if (wpStr > hStack->first->wpStrStart)
+              {
+                if (*wpPat == L'b')
+                {
+                  ++wpPat;
+                  continue;
+                }
+              }
+              else if (*wpPat == L'B')
+              {
+                ++wpPat;
+                continue;
+              }
+              goto EndLoop;
             }
-            else if (*wpPat == L'B')
+            else
             {
-              if (wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\r' || wchStrChar == L'\t' || wpStr == wpMaxStr || wpStr == wpMinStr)
-                goto EndLoop;
-              ++wpPat;
-              continue;
+              if (wpStr - 1 > hStack->first->wpStrStart >= 0)
+                wchStrChar=*(wpStr - 1);
+              if (wpStr - 1 < hStack->first->wpStrStart || wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\r' || wchStrChar == L'\t')
+              {
+                if (*wpPat == L'b')
+                {
+                  ++wpPat;
+                  continue;
+                }
+              }
+              else if (*wpPat == L'B')
+              {
+                ++wpPat;
+                continue;
+              }
+              goto EndLoop;
             }
           }
           else if (dwCmpResult & RECC_REF)
@@ -21013,24 +21037,30 @@ BOOL AE_ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   DWORD dwCmpResult=0;
   BOOL bExclude;
 
-  if (lpREGroupItem->dwFlags & REGF_ROOTANY)
+  if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
-    BOOL bResult=FALSE;
+    lpREGroupItem->ciStrStart=ciStr;
+    lpREGroupItem->ciStrEnd=ciStr;
 
-    //Turn off REGF_ROOTANY and execute itself
-    lpREGroupItem->dwFlags&=~REGF_ROOTANY;
-
-    while (AEC_IndexCompare(&ciStr, &ciMaxStr) <= 0)
+    if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
-      if (AE_ExecPat(hStack, lpREGroupItem, &ciStr, &ciMaxStr))
+      BOOL bResult=FALSE;
+
+      //Turn off REGF_ROOTANY and execute itself
+      lpREGroupItem->dwFlags&=~REGF_ROOTITEM & ~REGF_ROOTANY;
+
+      while (AEC_IndexCompare(&ciStr, &ciMaxStr) <= 0)
       {
-        bResult=TRUE;
-        break;
+        if (AE_ExecPat(hStack, lpREGroupItem, &ciStr, &ciMaxStr))
+        {
+          bResult=TRUE;
+          break;
+        }
+        AEC_NextChar(&ciStr);
       }
-      AEC_NextChar(&ciStr);
+      lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
+      return bResult;
     }
-    lpREGroupItem->dwFlags|=REGF_ROOTANY;
-    return bResult;
   }
 
   BeginLoop:
@@ -21244,19 +21274,44 @@ BOOL AE_ExecPat(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
           if (dwCmpResult & RECC_WORD)
           {
-            if (*wpPat == L'b')
+            if (wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\t')
             {
-              if (wchStrChar != L' ' && wchStrChar != L'\n' && wchStrChar != L'\r' && wchStrChar != L'\t' && AEC_IndexCompare(&ciStr, &ciMaxStr) && AEC_IndexCompare(&ciStr, &ciMinStr))
-                goto EndLoop;
-              ++wpPat;
-              continue;
+              if (AEC_IndexCompare(&ciStr, &hStack->first->ciStrStart) > 0)
+              {
+                if (*wpPat == L'b')
+                {
+                  ++wpPat;
+                  continue;
+                }
+              }
+              else if (*wpPat == L'B')
+              {
+                ++wpPat;
+                continue;
+              }
+              goto EndLoop;
             }
-            else if (*wpPat == L'B')
+            else
             {
-              if (wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\r' || wchStrChar == L'\t' || !AEC_IndexCompare(&ciStr, &ciMaxStr) || !AEC_IndexCompare(&ciStr, &ciMinStr))
-                goto EndLoop;
-              ++wpPat;
-              continue;
+              AECHARINDEX ciPrevChar=ciStr;
+
+              AEC_PrevChar(&ciPrevChar);
+              if (AEC_IndexCompare(&ciPrevChar, &hStack->first->ciStrStart) >= 0)
+                wchStrChar=AE_PatCharAtIndex(&ciPrevChar);
+              if (AEC_IndexCompare(&ciPrevChar, &hStack->first->ciStrStart) < 0 || wchStrChar == L' ' || wchStrChar == L'\n' || wchStrChar == L'\t')
+              {
+                if (*wpPat == L'b')
+                {
+                  ++wpPat;
+                  continue;
+                }
+              }
+              else if (*wpPat == L'B')
+              {
+                ++wpPat;
+                continue;
+              }
+              goto EndLoop;
             }
           }
           else if (dwCmpResult & RECC_REF)
@@ -21582,13 +21637,13 @@ int PatStructExec(PATEXEC *pe)
         }
         else ++nMatchCount;
       }
-  
+
       if (pe->lpCallback)
       {
         if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
           return nMatchCount;
       }
-  
+
       //Find next match
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
@@ -21620,13 +21675,13 @@ int PatStructExec(PATEXEC *pe)
         }
         else ++nMatchCount;
       }
-  
+
       if (pe->lpCallback)
       {
         if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
           return nMatchCount;
       }
-  
+
       //Find next match
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;

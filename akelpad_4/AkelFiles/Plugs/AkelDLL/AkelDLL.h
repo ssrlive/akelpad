@@ -607,12 +607,13 @@
 #define REO_NOLASTLINEEND    0x8 //String ends not on line ending. Used with REO_MULTILINE flag. AE_ExecPat ignore this flag.
 
 //REGROUP flags
-#define REGF_ROOTANY  0x01
-#define REGF_ANY      0x02
-#define REGF_AFTERANY 0x04
-#define REGF_OR       0x08
-#define REGF_POSITIVE 0x10
-#define REGF_NEGATIVE 0x20
+#define REGF_ROOTITEM 0x01
+#define REGF_ROOTANY  0x02
+#define REGF_ANY      0x04
+#define REGF_AFTERANY 0x08
+#define REGF_OR       0x10
+#define REGF_POSITIVE 0x20
+#define REGF_NEGATIVE 0x40
 
 //PatCharCmp return value
 #define RECC_EQUAL    0x01
