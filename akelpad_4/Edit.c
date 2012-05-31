@@ -21687,7 +21687,8 @@ int PatStructExec(PATEXEC *pe)
         {
           if (AE_PatCharAtIndex(&pe->ciStr) == L'\n')
           {
-            AEC_NextCharEx(&pe->ciStr, &ciLineStart);
+            ciLineStart=pe->ciStr;
+            AEC_NextChar(&ciLineStart);
 
             if (AEC_IndexCompare(&ciLineStart, &pe->ciMaxStr) < 0)
             {
