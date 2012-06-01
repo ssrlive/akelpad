@@ -864,7 +864,6 @@ void _WinMain()
           (moInit.dwSearchOptions & AEFR_SELECTION) |
           (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
           (moInit.dwSearchOptions & AEFR_REGEXP) |
-          (moInit.dwSearchOptions & AEFR_MULTILINE) |
           (moInit.dwSearchOptions & AEFR_ALLFILES) |
           (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |

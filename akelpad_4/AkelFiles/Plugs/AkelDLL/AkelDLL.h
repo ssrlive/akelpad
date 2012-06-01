@@ -436,8 +436,7 @@
 //#define AEFR_DOWN               0x00000001
 //#define AEFR_WHOLEWORD          0x00000002
 //#define AEFR_MATCHCASE          0x00000004
-#define AEFR_REGEXP             0x00040000
-#define AEFR_MULTILINE          0x00080000
+#define AEFR_REGEXP             0x00080000
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
 #define AEFR_SELECTION          0x00400000

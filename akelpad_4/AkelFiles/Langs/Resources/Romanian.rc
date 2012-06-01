@@ -488,14 +488,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "Doar cuvinte întregi",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Secvenþe-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,65,96,12,NOT 
-                    WS_GROUP
     CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,75,109,12
-    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,87,98,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    CONTROL         "Secvenþe-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Direcþie",IDC_STATIC,121,27,66,58
     CONTROL         "Jos",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,126,
                     37,60,10
@@ -528,14 +526,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "Doar cuvinte întregi",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Secvenþe-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,79,96,12,NOT 
-                    WS_GROUP
     CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,89,109,12
-    CONTROL         "Multiline",IDC_SEARCH_MULTILINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,101,98,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    CONTROL         "Secvenþe-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
+                    WS_GROUP
     GROUPBOX        "Direcþie",IDC_STATIC,121,41,66,58
     CONTROL         "Jos",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,126,
                     51,60,10
