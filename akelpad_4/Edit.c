@@ -20534,7 +20534,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
         }
       }
-      if (*(lpREGroupNew->wpPatEnd - 1) == L'$' && (DWORD)lpREGroupNew->nMaxMatch > 1)
+      if ((DWORD)lpREGroupNew->nMaxMatch > 1 &&
+          ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
+           (lpREGroupNew->wpPatEnd - 2 >= lpREGroupNew->wpPatStart && *(lpREGroupNew->wpPatEnd - 2) == L'\\' && *(lpREGroupNew->wpPatEnd - 1) == L'b')))
         goto Error;
       if (lpREGroupNew->nMaxMatch == -1)
         bGroupNextChars=TRUE;
