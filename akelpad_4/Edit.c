@@ -20477,7 +20477,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
              *wpPat == L'?' ||
              *wpPat == L'{')
     {
-      if (lpREGroupItem->lastChild && wpPat == lpREGroupItem->lastChild->wpPatEnd + 1)
+      if (lpREGroupItem->lastChild && wpPat == lpREGroupItem->lastChild->wpPatEnd + 1 && *lpREGroupItem->lastChild->wpPatEnd == L')')
       {
         //(...)* or (...)+ or (...){1,1}
         lpREGroupNew=lpREGroupItem->lastChild;
@@ -20539,10 +20539,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
         }
       }
-      else continue;
-
       if (lpREGroupNew->nMaxMatch == -1)
         bGroupNextChars=TRUE;
+      wpCharStart=NULL;
 
       //We already non-greedy, so ignore it.
       if (*++wpPat == L'?') ++wpPat;
