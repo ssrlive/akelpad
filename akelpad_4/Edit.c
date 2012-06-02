@@ -20573,6 +20573,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             //Non-capture negative group
             lpREGroupNew->dwFlags|=REGF_NEGATIVE;
           }
+          else goto Error;
+
           --nIndex;
           lpREGroupNew->nIndex=-1;
           lpREGroupNew->wpPatStart=++wpPat;
