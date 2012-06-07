@@ -325,7 +325,9 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   cs.x=0;
   cs.y=0;
   cs.cx=rcRect.right;
-  cs.cy=rcRect.bottom - (moCur.bStatusBar?nStatusHeight:0);
+  cs.cy=rcRect.bottom;
+  if ((nMDI == WMD_SDI || nMDI == WMD_PMDI) && moCur.bStatusBar && IsWindowVisible(hStatus))
+    cs.cy-=nStatusHeight;
   cs.hwndParent=hWndParent;
   cs.hMenu=(HMENU)(UINT_PTR)ID_EDIT;
   cs.hInstance=hInstance;
