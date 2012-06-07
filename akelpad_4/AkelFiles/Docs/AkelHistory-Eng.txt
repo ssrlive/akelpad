@@ -1,4 +1,8 @@
 
+AkelPad 4.7.7 ()
+----------------------------
+
+
 AkelPad 4.7.6 (Jun 03, 2012)
 ----------------------------
 Added: multiline search/replace with regular expressions.
