@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.6                               *
+ *                      AkelEdit text control v1.7.7                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -491,12 +491,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_KEYDOWN)
     {
-      if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
-        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-          return 0;
-
-      AE_KeyDown(ae, (int)wParam, (BOOL)(lParam & AEMOD_ALT), (BOOL)(lParam & AEMOD_SHIFT), (BOOL)(lParam & AEMOD_CONTROL));
+      return AE_KeyDown(ae, (int)wParam, (BOOL)(lParam & AEMOD_ALT), (BOOL)(lParam & AEMOD_SHIFT), (BOOL)(lParam & AEMOD_CONTROL));
+    }
+    if (uMsg == AEM_INSERTCHAR)
+    {
+      AE_EditChar(ae, (int)wParam, TRUE);
       return 0;
+    }
+    if (uMsg == AEM_CHARAT)
+    {
+      AECHARINDEX *ciPos=(AECHARINDEX *)wParam;
+
+      return AEC_CharAtIndex(ciPos);
+    }
+    if (uMsg == AEM_INPUTLANGUAGE)
+    {
+      return (LRESULT)ae->dwInputLocale;
     }
     if (uMsg == AEM_DRAGDROP)
     {
@@ -512,16 +522,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
       }
       return 0;
-    }
-    if (uMsg == AEM_CHARAT)
-    {
-      AECHARINDEX *ciPos=(AECHARINDEX *)wParam;
-
-      return AEC_CharAtIndex(ciPos);
-    }
-    if (uMsg == AEM_INPUTLANGUAGE)
-    {
-      return (LRESULT)ae->dwInputLocale;
     }
 
     //Undo and Redo

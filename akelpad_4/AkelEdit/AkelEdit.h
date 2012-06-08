@@ -1433,9 +1433,10 @@ typedef struct {
 #define AEM_ISMATCHA              (WM_USER + 2018)
 #define AEM_ISMATCHW              (WM_USER + 2019)
 #define AEM_KEYDOWN               (WM_USER + 2020)
-#define AEM_DRAGDROP              (WM_USER + 2021)
+#define AEM_INSERTCHAR            (WM_USER + 2021)
 #define AEM_CHARAT                (WM_USER + 2022)
 #define AEM_INPUTLANGUAGE         (WM_USER + 2023)
+#define AEM_DRAGDROP              (WM_USER + 2024)
 
 //Undo and Redo
 #define AEM_CANUNDO               (WM_USER + 2051)
@@ -2667,13 +2668,14 @@ Example:
 AEM_KEYDOWN
 ___________
 
-Emulate key down pressing.
+Emulate special key down pressing. For example: VK_HOME, VK_DOWN, VK_INSERT, VK_BACK, etc.
 
 (int)wParam   == virtual-key code.
 (DWORD)lParam == see AEMOD_* defines.
 
 Return Value
- Zero.
+ TRUE  virtual-key is processed.
+ FALSE virtual-key not processed.
 
 Remarks
  To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
@@ -2682,21 +2684,19 @@ Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
 
 
-AEM_DRAGDROP
-____________
+AEM_INSERTCHAR
+______________
 
-Operations with current drag'n'drop.
+Insert character taking into account overtype mode and grouping undo.
 
-(DWORD)wParam == see AEDD_* defines.
+(int)wParam   == virtual-key code.
 lParam        == not used.
 
 Return Value
- Value depended on the AEDD_* define.
+ Zero.
 
 Example:
- HWND hWndDragSource;
-
- hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
+ SendMessage(hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
 
 
 AEM_CHARAT
@@ -2739,6 +2739,23 @@ Return Value
 
 Example:
  HKL dwInputLocale=(HKL)SendMessage(hWndEdit, AEM_INPUTLANGUAGE, 0, 0);
+
+
+AEM_DRAGDROP
+____________
+
+Operations with current drag'n'drop.
+
+(DWORD)wParam == see AEDD_* defines.
+lParam        == not used.
+
+Return Value
+ Value depended on the AEDD_* define.
+
+Example:
+ HWND hWndDragSource;
+
+ hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
 
 
 AEM_CANUNDO
