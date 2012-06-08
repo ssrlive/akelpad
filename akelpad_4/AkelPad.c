@@ -3688,11 +3688,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
+    dwLastMainSizeType=(DWORD)wParam;
     //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
     if (dwLastMainSizeClient == (DWORD)lParam)
       return TRUE;
-
-    dwLastMainSizeType=(DWORD)wParam;
     dwLastMainSizeClient=(DWORD)lParam;
 
     if (lParam)
@@ -5143,7 +5142,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    if (lParam && dwLastMainSizeClient)
+    if (lParam)
     {
       FRAMEDATA *lpFrame;
 
