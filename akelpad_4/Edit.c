@@ -18710,7 +18710,7 @@ BOOL InsertTabStop(HWND hWnd)
     wszSpaces[i]='\0';
     ReplaceSelW(hWnd, wszSpaces, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
   }
-  else ReplaceSelW(hWnd, L"\t", 1, AELB_ASINPUT, AEREPT_UNDOGROUPING, NULL, NULL);
+  else SendMessage(hWnd, AEM_INSERTCHAR, VK_TAB, 0);
 
   return TRUE;
 }
