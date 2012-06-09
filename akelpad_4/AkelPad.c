@@ -1827,7 +1827,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(pcls->pWorkDir);
-      nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONSHOW);
+      nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONMESSAGE);
       if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(wszExeDir);
       if (!bCmdLineQuitAsEnd && nResult == PCLE_QUIT)
