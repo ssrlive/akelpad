@@ -4208,7 +4208,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
             ActivateFrameWindow(lpFrame, FWA_NOTIFY_REOPEN);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
-            if (SaveChanged(0))
+            //If wpCmdLine not NULL, document just opened and does not need a reopening.
+            if (SaveChanged(0) && !wpCmdLine)
             {
               OpenDocument(hWnd, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
             }

@@ -105,6 +105,7 @@
 //ParseCmdLine flags
 #define PCL_ONLOAD          0
 #define PCL_ONSHOW          1
+#define PCL_ONMESSAGE       2
 
 //Open file dialog
 #define IDC_OFN_LIST           1120
