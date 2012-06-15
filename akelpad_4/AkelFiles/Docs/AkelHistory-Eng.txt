@@ -4,6 +4,7 @@ AkelPad 4.7.7 ()
 Fixed: in overtype mode space and tabulation inserted without replacement.
 Fixed: size of the first non-maximized MDI frame when status bar is on.
 Fixed: size of the first maximized MDI frame when status bar and tab panel are off.
+Fixed: drawing tab bar, located at the bottom, when the status bar is turned on (PMDI).
 
 
 AkelPad 4.7.6 (Jun 03, 2012)

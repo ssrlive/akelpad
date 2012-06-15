@@ -19498,6 +19498,7 @@ void UpdateSize()
 {
   int nTabHeight;
   int nEditHeight;
+  BOOL bStatusBar=FALSE;
 
   if (!hDocksStack.bSizing)
   {
@@ -19505,7 +19506,10 @@ void UpdateSize()
 
     GetClientRect(hMainWnd, &nsSize.rcInitial);
     if (moCur.bStatusBar && IsWindowVisible(hStatus))
+    {
       nsSize.rcInitial.bottom-=nStatusHeight;
+      bStatusBar=TRUE;
+    }
     nsSize.rcCurrent=nsSize.rcInitial;
     SendMessage(hMainWnd, AKDN_SIZE_ONSTART, 0, (LPARAM)&nsSize);
 
@@ -19537,6 +19541,8 @@ void UpdateSize()
       {
         MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, FALSE);
         InvalidateRect(hTab, NULL, TRUE);
+        if (bStatusBar && nMDI == WMD_PMDI)
+          InvalidateRect(hStatus, NULL, TRUE);
       }
       if (nMDI == WMD_MDI)
         MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
