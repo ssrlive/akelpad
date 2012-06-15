@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.9                    *
+ *                  Wide functions header v2.0                    *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -73,6 +73,8 @@ BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine,
 //Non-system
 BOOL FileExistsAnsi(const char *pFile);
 BOOL FileExistsWide(const wchar_t *wpFile);
+BOOL DirExistsAnsi(const char *pDir);
+BOOL DirExistsWide(const wchar_t *wpDir);
 
 //Shell (SHELLWIDEFUNC). Shell32.lib and Comdlg32.lib.
 HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t *wpFile, const wchar_t *wpParameters, const wchar_t *wpDirectory, INT nShowCmd);
@@ -806,6 +808,36 @@ BOOL FileExistsWide(const wchar_t *wpFile)
 {
   DWORD dwAttr=GetFileAttributesWide(wpFile);
   if (dwAttr == (DWORD)-1 || (dwAttr & FILE_ATTRIBUTE_DIRECTORY))
+    return FALSE;
+  return TRUE;
+}
+#endif
+
+#if defined DirExistsAnsi || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define DirExistsAnsi_INCLUDED
+#undef DirExistsAnsi
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL DirExistsAnsi(const char *pDir)
+{
+  DWORD dwAttr=GetFileAttributesA(pDir);
+  if (dwAttr == (DWORD)-1 || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY))
+    return FALSE;
+  return TRUE;
+}
+#endif
+
+#if defined DirExistsWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define DirExistsWide_INCLUDED
+#undef DirExistsWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL DirExistsWide(const wchar_t *wpDir)
+{
+  DWORD dwAttr=GetFileAttributesWide(wpDir);
+  if (dwAttr == (DWORD)-1 || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY))
     return FALSE;
   return TRUE;
 }
