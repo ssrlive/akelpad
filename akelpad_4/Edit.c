@@ -1421,8 +1421,10 @@ BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL DoFileOpen()
 {
   OPENFILENAME_2000W ofnW;
+  wchar_t wszOpenDir[MAX_PATH];
   wchar_t *wszFileList;
   DIALOGCODEPAGE dc;
+  int nFileLen;
   int nOpen;
   BOOL bShowPlacesBarInit;
   BOOL bResult=FALSE;
@@ -1438,12 +1440,19 @@ BOOL DoFileOpen()
     bShowPlacesBarInit=moCur.bShowPlacesBar;
 
     //Open file dialog
-    xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
+    nFileLen=(int)xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
     if (lpFrameCurrent->nStreamOffset)
     {
       wszFileList[lpFrameCurrent->nStreamOffset]=L'\0';
       wszFileList[lpFrameCurrent->nStreamOffset + 1]=L'\0';
     }
+    if (*wszFileList)
+    {
+      GetFileDir(wszFileList, nFileLen, wszOpenDir, MAX_PATH);
+      if (!DirExistsWide(wszOpenDir))
+        xstrcpynW(wszOpenDir, moCur.wszLastDir, MAX_PATH);
+    }
+    else xstrcpynW(wszOpenDir, moCur.wszLastDir, MAX_PATH);
 
     xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
     ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
@@ -1454,7 +1463,7 @@ BOOL DoFileOpen()
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
     ofnW.nMaxFile       =OPENFILELIST_SIZE;
-    ofnW.lpstrInitialDir=FileExistsWide(moCur.wszLastDir)?moCur.wszLastDir:L"";
+    ofnW.lpstrInitialDir=wszOpenDir;
     ofnW.lpstrDefExt    =NULL;
     ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
@@ -1630,7 +1639,9 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 {
   OPENFILENAME_2000W ofnW;
   wchar_t wszSaveFile[MAX_PATH];
+  wchar_t wszSaveDir[MAX_PATH];
   DIALOGCODEPAGE dc;
+  int nFileLen;
   BOOL bShowPlacesBarInit;
   BOOL bResult;
 
@@ -1641,8 +1652,15 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   bShowPlacesBarInit=moCur.bShowPlacesBar;
 
   //Save file dialog
-  xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
+  nFileLen=(int)xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
   if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'_';
+  if (*wszSaveFile)
+  {
+    GetFileDir(wszSaveFile, nFileLen, wszSaveDir, MAX_PATH);
+    if (!DirExistsWide(wszSaveDir))
+      xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
+  }
+  else xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
 
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
   ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
@@ -1653,7 +1671,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   ofnW.lpstrFilter    =wszFilter;
   ofnW.nFilterIndex   =2;
   ofnW.nMaxFile       =MAX_PATH;
-  ofnW.lpstrInitialDir=moCur.wszLastDir;
+  ofnW.lpstrInitialDir=wszSaveDir;
   ofnW.lpstrDefExt    =moCur.wszDefaultSaveExt;
   ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
   ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
@@ -9630,7 +9648,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
           }
 
           //Next match
-          ft.crSearch.ciMin=hREGroupStack.first->ciStrEnd;
+          if (AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0)
+            ft.crSearch.ciMin=hREGroupStack.first->ciStrEnd;
           if (AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) >= 0)
             break;
         }

@@ -123,6 +123,7 @@
 #define DeleteFileWide
 #define DialogBoxParamWide
 #define DialogBoxWide
+#define DirExistsWide
 #define DispatchMessageWide
 #define DragQueryFileWide
 #define ExpandEnvironmentStringsWide
