@@ -31,7 +31,7 @@ function MakeIdentifier(a, b, c, d: ShortInt): DWORD;
 function AkelDLL: DWORD;
 {$EXTERNALSYM AkelDLL}
 
-const AkelDLLVer: array[1..4] of Byte = (1, 6, 0, 7);
+const AkelDLLVer: array[1..4] of Byte = (1, 7, 0, 1);
 {$EXTERNALSYM AkelDLLVer}
 
 //// Defines
@@ -352,10 +352,14 @@ const MI_PAINTOPTIONS = 121;  //Return: "PaintOptions" flags, see PAINT_ * defin
 {$EXTERNALSYM MI_PAINTOPTIONS}
 const MI_RICHEDITCLASS = 125;  //Return: "RichEditClass" type.
 {$EXTERNALSYM MI_RICHEDITCLASS}
+const MI_AKELADMINRESIDENT = 126;  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
+{$EXTERNALSYM MI_AKELADMINRESIDENT}
 const MI_DATELOGFORMAT = 129;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
 {$EXTERNALSYM MI_DATELOGFORMAT}
 const MI_DATEINSERTFORMAT = 130;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
 {$EXTERNALSYM MI_DATEINSERTFORMAT}
+const MI_AKELUPDATEROPTIONS = 131;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
+{$EXTERNALSYM MI_AKELUPDATEROPTIONS}
 
 //Menu
 const MI_ONTOP = 141;  //Return: always on top (on\off).
@@ -698,18 +702,18 @@ const SM_TABTITLE_MDI = $00000008;
 {$EXTERNALSYM SM_TABTITLE_MDI}
 
 //Status bar
-const STATUS_POSITION = 0;
-{$EXTERNALSYM STATUS_POSITION}
-const STATUS_MODIFY = 1;
-{$EXTERNALSYM STATUS_MODIFY}
-const STATUS_INSERT = 2;
-{$EXTERNALSYM STATUS_INSERT}
-const STATUS_NEWLINE = 3;
-{$EXTERNALSYM STATUS_NEWLINE}
-const STATUS_CODEPAGE = 4;
-{$EXTERNALSYM STATUS_CODEPAGE}
-const STATUS_USER = 5;
-{$EXTERNALSYM STATUS_USER}
+const SBP_POSITION = 0;
+{$EXTERNALSYM SBP_POSITION}
+const SBP_MODIFY = 1;
+{$EXTERNALSYM SBP_MODIFY}
+const SBP_INSERT = 2;
+{$EXTERNALSYM SBP_INSERT}
+const SBP_NEWLINE = 3;
+{$EXTERNALSYM SBP_NEWLINE}
+const SBP_CODEPAGE = 4;
+{$EXTERNALSYM SBP_CODEPAGE}
+const SBP_USER = 5;
+{$EXTERNALSYM SBP_USER}
 
 //Tab options MDI
 const TAB_VIEW_NONE = $00000001;
@@ -763,6 +767,8 @@ const PRNC_SELECTION = $04;  //Print text selection.
 //#define AEFR_DOWN               0x00000001
 //#define AEFR_WHOLEWORD          0x00000002
 //#define AEFR_MATCHCASE          0x00000004
+const AEFR_REGEXP = $00080000;
+{$EXTERNALSYM AEFR_REGEXP}
 const AEFR_UP = $00100000;
 {$EXTERNALSYM AEFR_UP}
 const AEFR_BEGINNING = $00200000;
@@ -780,10 +786,12 @@ const AEFR_CHECKINSELIFSEL = $04000000;
 {$EXTERNALSYM AEFR_CHECKINSELIFSEL}
 const AEFR_CYCLESEARCH = $08000000;
 {$EXTERNALSYM AEFR_CYCLESEARCH}
+const AEFR_CYCLESEARCHPROMPT = $10000000;
+{$EXTERNALSYM AEFR_CYCLESEARCHPROMPT}
 //StrReplace options
-const AEFR_WHOLEWORDGOODSTART = $10000000;
+const AEFR_WHOLEWORDGOODSTART = $40000000;
 {$EXTERNALSYM AEFR_WHOLEWORDGOODSTART}
-const AEFR_WHOLEWORDGOODEND = $20000000;
+const AEFR_WHOLEWORDGOODEND = $80000000;
 {$EXTERNALSYM AEFR_WHOLEWORDGOODEND}
 
 //Main menu
@@ -871,19 +879,21 @@ const PDS_NOPMDI = $00000020;  //Function doesn't support PMDI mode.
 {$EXTERNALSYM PDS_NOPMDI}
 const PDS_NORICHEDIT = $00000040;  //Reserved.
 {$EXTERNALSYM PDS_NORICHEDIT}
-const PDS_GETSUPPORT = $10000000;  //Flag is set if caller specified DLLCF_GETSUPPORT in AKD_DLLCALL and wants to get PDS_ * flags without function execution.
+const PDS_GETSUPPORT = $10000000; //Flag is set if caller wants to get PDS_* flags without function execution.
 {$EXTERNALSYM PDS_GETSUPPORT}
+const PDS_STRANSI = $20000000;  //Flag is set if caller passes Ansi strings in external call arguments (PLUGINDATA.lParam).
+{$EXTERNALSYM PDS_STRANSI}
+const PDS_STRWIDE = $40000000;  //Flag is set if caller passes Unicode strings in external call arguments (PLUGINDATA.lParam).
+{$EXTERNALSYM PDS_STRWIDE}  //If PDS_STRANSI and PDS_STRWIDE not specified then one of these flags will be set automatically depending on Windows version.
 
 //AKD_DLLCALL flags
-const DLLCF_ONPROGRAMLOAD = $01;  //Don't use it. For internal code only.
+const DLLCF_ONPROGRAMLOAD = $001;//Don't use it. For internal code only.
 {$EXTERNALSYM DLLCF_ONPROGRAMLOAD}
-const DLLCF_GETSUPPORT = $02;  //Get PDS_ * flags without function execution.
-{$EXTERNALSYM DLLCF_GETSUPPORT}
-const DLLCF_SWITCHAUTOLOAD = $04;  //If function running after call then turn on autoload, if not then turn off autoload.
+const DLLCF_SWITCHAUTOLOAD = $004; //If function running after call then turn on autoload, if not then turn off autoload.
 {$EXTERNALSYM DLLCF_SWITCHAUTOLOAD}
-const DLLCF_SAVENOW = $08;  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
+const DLLCF_SAVENOW = $008; //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
 {$EXTERNALSYM DLLCF_SAVENOW}
-const DLLCF_SAVEONEXIT = $10;  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
+const DLLCF_SAVEONEXIT = $010; //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
 {$EXTERNALSYM DLLCF_SAVEONEXIT}
 
 //AKD_DLLSAVE flags
@@ -1047,10 +1057,14 @@ const RECC_REF = $10;
 {$EXTERNALSYM RECC_REF}
 
 //AKD_PATEXEC options
-const REPE_MATCHCASE = $1;
+const REPE_MATCHCASE = $1; //Case-sensitive search.
 {$EXTERNALSYM REPE_MATCHCASE}
-const REPE_GLOBAL = $2;
+const REPE_GLOBAL = $2; //Search all possible occurrences.
 {$EXTERNALSYM REPE_GLOBAL}
+const REPE_BEGIN = $4; //Force first occurrence located at the beginning of the string.
+{$EXTERNALSYM REPE_BEGIN}
+const REPE_MULTILINE = $8; //Search line by line.
+{$EXTERNALSYM REPE_MULTILINE}
 
 //AKD_PATEXEC callback return value
 const REPEC_CONTINUE = 0;
@@ -1205,7 +1219,7 @@ type
   {$IF CompilerVersion < 20}
     INT_PTR = Integer;
     {$EXTERNALSYM INT_PTR}
-    LONG_PTR = Longint;
+    LONG_PTR = Integer;
     {$EXTERNALSYM LONG_PTR}
     UINT_PTR = Cardinal;
     {$EXTERNALSYM UINT_PTR}
@@ -1615,9 +1629,9 @@ type
     ei : TEDITINFO;                                        //Edit info.
     szFile : array[0..MAX_PATH-1] of AnsiChar;             //Frame cFile (Ansi).
     wszFile : array[0..MAX_PATH-1] of WideChar;            //Frame cFile (Unicode).
-    nFileLen : longint;                                    //Frame cFile length.
+    nFileLen : Integer;                                    //Frame cFile length.
     hIcon : HICON;                                         //Frame icon.
-    nIconIndex : longint;                                  //Frame ImageList icon index.
+    nIconIndex : Integer;                                  //Frame ImageList icon index.
     rcEditWindow : TRECT;                                  //Edit TRect. rcEditWindow.right - is width and rcEditWindow.bottom is height.
     rcMasterWindow : TRECT;                                //Master window TRect. rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
     //Edit settings (AkelPad)
@@ -1625,7 +1639,7 @@ type
     bTabStopAsSpaces : BOOL;                               //Insert tab stop as spaces.
     dwCaretOptions : DWORD;                                //See CO_* defines.
     dwMouseOptions : DWORD;                                //See MO_* defines.
-    nClickURL : longint;                                   //Number of clicks to open URL.
+    nClickURL : Integer;                                   //Number of clicks to open URL.
     bUrlPrefixesEnable : BOOL;                             //URL prefixes enable.
     bUrlDelimitersEnable : BOOL;                           //URL delimiters enable.
     bWordDelimitersEnable : BOOL;                          //Word delimiters enabled.
@@ -1633,13 +1647,13 @@ type
     dwMappedPrintWidth : DWORD;                            //Mapped print page width.
     //Edit settings (AkelPad)
     rcEditMargins : TRECT;                                 //Edit margins.
-    nTabStopSize : longint;                                //Tab stop size.
-    nUndoLimit : longint;                                  //Undo limit.
+    nTabStopSize : Integer;                                //Tab stop size.
+    nUndoLimit : Integer;                                  //Undo limit.
     bDetailedUndo : BOOL;                                  //Detailed undo.
     dwWrapType : DWORD;                                    //Wrap cType AEWW_WORD or AEWW_SYMBOL.
     dwWrapLimit : DWORD;                                   //Wrap characters limit, zero if wrap by window edge.
     dwMarker : DWORD;                                      //Vertical marker, zero if no marker set.
-    nCaretWidth : longint;                                 //Caret width.
+    nCaretWidth : Integer;                                 //Caret width.
     dwAltLineFill : DWORD;                                 //Alternating lines fill interval.
     dwAltLineSkip : DWORD;                                 //Alternating lines skip interval.
     bAltLineBorder : BOOL;                                 //Draw alternating lines border.
@@ -1656,17 +1670,23 @@ type
     ft : FILETIME;                                         //cFile time.
     dwInputLocale : HKL;                                   //Keyboard layout.
     dwLockInherit : DWORD;                                 //See LI_* defines.
-    nStreamOffset : longint;                               //":" symbol offset in FRAMEDATA.wszFile.
+    nStreamOffset : Integer;                               //":" symbol offset in FRAMEDATA.wszFile.
+    nCompileErrorOffset : INT_PTR;                         //Contain pattern offset, if error occurred during compile pattern.
     //Substract selection
     crPrevSel : TAECHARRANGE;
     nSelSubtract : INT_PTR;
     //"StatusUserFormat" variables.
     nCaretRichOffset : INT_PTR;
     nCaretByteOffset : INT_PTR;
-    nCaretChar : longint;
-    nLineCount : longint;
+    nCaretChar : Integer;
+    nCaretLine: Integer;
+    nCaretColumn: Integer;
+    nLineCountAll: Integer;
+    nLineCountSel: Integer;
+    nLineSelBegin: Integer;
+    nLineSelEnd: Integer;
     nRichCount : INT_PTR;
-    nFontPoint : longint;
+    nFontPoint : Integer;
     bReachedEOF : BOOL;
     nReplaceCount : INT_PTR;
   end;
@@ -1736,7 +1756,7 @@ type
   _PLUGINCALLSENDA = record
     pFunction: PAnsiChar;      //cFunction name, format "Plugin::cFunction".
     lParam: LPARAM;              //Input data.
-    dwSupport: DWORD;            //Receives PDS_* flags.
+    dwSupport: DWORD;            //See PDS_* defines.
   end;
   TPLUGINCALLSENDA = _PLUGINCALLSENDA;
   {$EXTERNALSYM _PLUGINCALLSENDA}
@@ -1746,7 +1766,7 @@ type
   _PLUGINCALLSENDW = record
     pFunction: PWideChar;   //cFunction name, format L"Plugin::cFunction".
     lParam: LPARAM;              //Input data.
-    dwSupport: DWORD;            //Receives PDS_* flags.
+    dwSupport: DWORD;            //See PDS_* defines.
   end;
   TPLUGINCALLSENDW = _PLUGINCALLSENDW;
   {$EXTERNALSYM _PLUGINCALLSENDW}
@@ -1756,6 +1776,7 @@ type
   _PLUGINCALLPOSTA = record
     lParam: LPARAM;              //Input data.
     szFunction : array[0..MAX_PATH-1] of AnsiChar;  //cFunction name;
+    dwSupport: DWORD;            //See PDS_* defines.
   end;
   TPLUGINCALLPOSTA = _PLUGINCALLPOSTA;
   {$EXTERNALSYM _PLUGINCALLPOSTA}
@@ -1765,6 +1786,7 @@ type
   _PLUGINCALLPOSTW = record
     lParam: LPARAM;                  //Input data.
     szFunction : array[0..MAX_PATH-1] of  WideChar;   //cFunction name;
+    dwSupport: DWORD;            //See PDS_* defines.
   end;
   TPLUGINCALLPOSTW = _PLUGINCALLPOSTW;
   {$EXTERNALSYM _PLUGINCALLPOSTW}
@@ -1980,7 +2002,7 @@ type
 
 
 type
-  TPatExecCallback = function(lpREGroup: PREGROUP; nMatchCount: Integer; lParam: LPARAM): Integer; stdcall;
+  TPatExecCallback = function(lpREGroup: PREGROUP; bMatched: BOOL; lParam: LPARAM): Integer; stdcall;
   {$EXTERNALSYM TPatExecCallback}
 
 
@@ -1991,6 +2013,7 @@ type
     wpMaxPat: PWideChar;           //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
     wpStr: PWideChar;              //String for process.
     wpMaxStr: PWideChar;           //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+    wpMaxLine: PWideChar;          //Internal usage.
     dwOptions: DWORD;              //See REPE_* defines.
     nErrorOffset: INT_PTR;         //Contain wpPat offset, if error occurred during compile pattern.
     lpCallback: TPatExecCallback;  //Pointer to an callback function. Callback calls repeatedly for each matched group.
@@ -2003,15 +2026,18 @@ type
 
 type
   _PATREPLACE = record
-    wpStr: PWideChar;     //String for process.
-    wpMaxStr: PWideChar;  //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-    wpPat: PWideChar;     //Pattern for process.
-    wpMaxPat: PWideChar;  //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-    wpRep: PWideChar;     //String to replace with. Can be used "$n" - the n'th captured submatch.
-    wpMaxRep: PWideChar;  //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-    dwOptions: DWORD;     //See REPE_* defines.
-    wszResult: PWideChar; //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
-  end;
+    wpStr: PWideChar;       //String for process.
+    wpMaxStr: PWideChar;    //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+    wpPat: PWideChar;       //Pattern for process.
+    wpMaxPat: PWideChar;    //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+    wpRep: PWideChar;       //String to replace with. Can be used "$n" - the n'th captured submatch.
+    wpMaxRep: PWideChar;    //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+    dwOptions: DWORD;       //See REPE_* defines.
+    nReplaceCount: Integer; //Receives replace count number.
+    wpLeftStr: PWideChar;   //First replace occurrence in string.
+    wpRightStr: PWideChar;  //Unmatched right part of string.
+    wszResult: PWideChar;   //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
+    end;
   TPATREPLACE = _PATREPLACE;
   {$EXTERNALSYM _PATREPLACE}
 
@@ -2735,6 +2761,11 @@ const IDM_MANUAL = 4352;  //Open user's manual.
 {$EXTERNALSYM IDM_MANUAL}
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
+
+const IDM_UPDATE = 4353;  //Open AkelUpdater
+{$EXTERNALSYM IDM_UPDATE}  //Return Value: zero.
+                           //
+
 const IDM_INTERNAL_REOPEN_MSG = 4601;  //Internal command.
 {$EXTERNALSYM IDM_INTERNAL_REOPEN_MSG}
                                               //Return Value: zero.
@@ -3064,6 +3095,10 @@ const AKD_TRANSLATEMESSAGE = (WM_USER + 291);
 {$EXTERNALSYM AKD_TRANSLATEMESSAGE}
 const AKD_MESSAGEBOX = (WM_USER + 292);
 {$EXTERNALSYM AKD_MESSAGEBOX}
+const AKD_GETFOCUS = (WM_USER + 293);
+{$EXTERNALSYM AKD_GETFOCUS}
+const AKD_PEEKMESSAGE = (WM_USER + 294);
+{$EXTERNALSYM AKD_PEEKMESSAGE}
 
 //Plugin load
 const AKD_DLLCALL = (WM_USER + 301);
@@ -5057,6 +5092,59 @@ Example:
  }
 
 
+AKD_GETFOCUS
+____________
+
+Retrieve the handle to the window that has the keyboard focus.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Handle to the window with the keyboard focus. If the main thread's message queue does not have an associated window with the keyboard focus, the return value is NULL.
+
+Example:
+ HWND hWndFocus=(HWND)SendMessage(pd->hMainWnd, AKD_GETFOCUS, 0, 0);
+
+
+AKD_PEEKMESSAGE
+_______________
+
+Checks the thread message queue for a posted message, and retrieves the message (if any exist).
+
+(HWND)wParam  == a handle to the window whose messages are to be retrieved. If hWnd is NULL, AKD_PEEKMESSAGE retrieves messages for any window that belongs to the main thread.
+(MSG * )lParam == pointer to an MSG structure that contains message information.
+
+Return Value
+ TRUE  message is available.
+ FALSE no messages are available.
+
+Remarks
+ Messages are removed from the queue after processing by AKD_PEEKMESSAGE.
+
+Example (wait for handle and process messages):
+void WaitForMutex(hMutex)
+{
+  MSG msg;
+  BOOL bExitLoop=FALSE;
+
+  for (;;)
+  {
+    while (SendMessage(hMainWnd, AKD_PEEKMESSAGE, (WPARAM)NULL, (LPARAM)&msg))
+    {
+      if (msg.message == WM_QUIT)
+        bExitLoop=TRUE;
+      else
+        SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+    }
+    if (bExitLoop)
+      break;
+    if (MsgWaitForMultipleObjects(1, &hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+      break;
+  }
+}
+
+
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
 ___________  ____________  ____________
 
@@ -5915,6 +6003,67 @@ type
   {$EXTERNALSYM TCREATEWINDOW}
 {$endif}
 
+// Parameters for current call are kept in the following form:
+//   pd.lParam - pointer to array of INT_PTR (let's call it Params)
+//   Params[0] = size of the whole array in bytes including the 0-th element itself.
+//               So Length(Params) = Params[0] div SizeOf(INT_PTR), ParamCount = Length(Params) - 1
+//   Params[1] = pointer to parameter string OR the value of numerical parameter
+//   ...
+// WARNING. There's no way to distinguish what kind of parameter is passed so be careful
+
+{$IF CompilerVersion < 20} // ?
+  {*****************************************************************************
+    Usage for Delphi versions earlier than D2009
+    procedure Init(var pd: TPLUGINDATA);
+    var
+      AkelParams: PAkelParamArr;
+    begin
+      AkelParams := PAkelParamArr(pd.lParam);
+      if AkelParams_Count(AkelParams) > 0 then
+        sParam := AkelParams_ParamStr(AkelParams, 0); // returns empty string if parameter is NULL
+        ...
+    end;
+  *****************************************************************************}
+
+type
+  TAkelParamArr = array[0..$FFFF] of INT_PTR;
+  PAkelParamArr = ^TAkelParamArr;
+
+function AkelParams_Count(Params: PAkelParamArr): Integer;
+function AkelParams_ParamInt(Params: PAkelParamArr; Idx: Integer): INT_PTR;
+function AkelParams_ParamStr(Params: PAkelParamArr; Idx: Integer): string;
+
+{$ELSE}
+  {*****************************************************************************
+    Usage for Delphi versions D2009 and later
+    procedure Init(var pd: TPLUGINDATA);
+    var
+      AkelParams: TAkelParams;
+    begin
+      AkelParams.Init(Pointer(pd.lParam));
+      if AkelParams.Count > 0 then
+      begin
+        sParam := AkelParams.ParamStr(0); // returns empty string if parameter is NULL
+        ...
+    end;
+  *****************************************************************************}
+
+type
+  TAkelParams = record
+  strict private
+    type
+      TAkelParamArr = array[0..$FFFF] of INT_PTR;
+      PAkelParamArr = ^TAkelParamArr;
+    var
+      FParamArr: PAkelParamArr;
+  public
+    procedure Init(ParamArr: Pointer);
+    function Count: Integer;
+    function ParamStr(Idx: Integer): string;
+    function ParamInt(Idx: Integer): INT_PTR;
+  end;
+{$IFEND}
+
 implementation
 
 function MakeIdentifier(a, b, c, d: ShortInt): DWORD;
@@ -5926,5 +6075,58 @@ function AkelDLL: DWORD;
 begin
   Result := MakeIdentifier(AkelDLLVer[1], AkelDLLVer[2], AkelDLLVer[3], AkelDLLVer[4]);
 end;
+
+{$IF CompilerVersion < 20}
+
+function AkelParams_Count(Params: PAkelParamArr): Integer;
+begin
+  if Params = nil then
+    Result := 0
+  else
+    Result := Params^[0] div SizeOf(INT_PTR) - 1;
+end;
+
+function AkelParams_ParamInt(Params: PAkelParamArr; Idx: Integer): INT_PTR;
+begin
+  if (Idx >= AkelParams_Count(Params)) or (Idx < 0) then
+    Result := 0
+  else
+    Result := Params^[Idx + 1];
+end;
+
+function AkelParams_ParamStr(Params: PAkelParamArr; Idx: Integer): string;
+begin
+  Result := string(PChar(AkelParams_ParamInt(Params, Idx)));
+end;
+
+{$ELSE}
+
+procedure TAkelParams.Init(ParamArr: Pointer);
+begin
+  FParamArr := PAkelParamArr(ParamArr);
+end;
+
+function TAkelParams.Count: Integer;
+begin
+  if FParamArr = nil then
+    Result := 0
+  else
+    Result := FParamArr^[0] div SizeOf(INT_PTR) - 1;
+end;
+
+function TAkelParams.ParamInt(Idx: Integer): INT_PTR;
+begin
+  if (Idx >= Count) or (Idx < 0) then
+    Result := 0
+  else
+    Result := FParamArr^[Idx + 1];
+end;
+
+function TAkelParams.ParamStr(Idx: Integer): string;
+begin
+  Result := string(PChar(ParamInt(Idx)));
+end;
+
+{$IFEND}
 
 end.
