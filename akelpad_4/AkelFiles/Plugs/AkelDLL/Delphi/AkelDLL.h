@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 6, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 1)
 
 
 //// Defines
@@ -211,8 +211,10 @@
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
+#define MI_AKELADMINRESIDENT         126  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
 #define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
+#define MI_AKELUPDATEROPTIONS        131  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
 //Menu
 #define MI_ONTOP                     141  //Return: always on top (on\off).
 #define MI_STATUSBAR                 142  //Return: show statusbar (on\off).
@@ -395,13 +397,13 @@
 #define SM_FRAMETITLE_MDI 0x00000004
 #define SM_TABTITLE_MDI   0x00000008
 
-//Status bar
-#define STATUS_POSITION       0
-#define STATUS_MODIFY         1
-#define STATUS_INSERT         2
-#define STATUS_NEWLINE        3
-#define STATUS_CODEPAGE       4
-#define STATUS_USER           5
+//StatusBar parts
+#define SBP_POSITION   0
+#define SBP_MODIFY     1
+#define SBP_INSERT     2
+#define SBP_NEWLINE    3
+#define SBP_CODEPAGE   4
+#define SBP_USER       5
 
 //Tab options MDI
 #define TAB_VIEW_NONE           0x00000001
@@ -434,6 +436,7 @@
 //#define AEFR_DOWN               0x00000001
 //#define AEFR_WHOLEWORD          0x00000002
 //#define AEFR_MATCHCASE          0x00000004
+#define AEFR_REGEXP             0x00080000
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
 #define AEFR_SELECTION          0x00400000
@@ -443,9 +446,10 @@
 #define AEFR_REPLACEALLANDCLOSE 0x02000000
 #define AEFR_CHECKINSELIFSEL    0x04000000
 #define AEFR_CYCLESEARCH        0x08000000
+#define AEFR_CYCLESEARCHPROMPT  0x10000000
 //StrReplace options
-#define AEFR_WHOLEWORDGOODSTART 0x10000000
-#define AEFR_WHOLEWORDGOODEND   0x20000000
+#define AEFR_WHOLEWORDGOODSTART 0x40000000
+#define AEFR_WHOLEWORDGOODEND   0x80000000
 
 //Main menu
 #define MENU_FILE_POSITION     0
@@ -496,14 +500,16 @@
 #define PDS_NOMDI        0x00000010  //Function doesn't support MDI mode.
 #define PDS_NOPMDI       0x00000020  //Function doesn't support PMDI mode.
 #define PDS_NORICHEDIT   0x00000040  //Reserved.
-#define PDS_GETSUPPORT   0x10000000  //Flag is set if caller specified DLLCF_GETSUPPORT in AKD_DLLCALL and wants to get PDS_* flags without function execution.
+#define PDS_GETSUPPORT   0x10000000  //Flag is set if caller wants to get PDS_* flags without function execution.
+#define PDS_STRANSI      0x20000000  //Flag is set if caller passes Ansi strings in external call arguments (PLUGINDATA.lParam).
+#define PDS_STRWIDE      0x40000000  //Flag is set if caller passes Unicode strings in external call arguments (PLUGINDATA.lParam).
+                                     //If PDS_STRANSI and PDS_STRWIDE not specified then one of these flags will be set automatically depending on Windows version.
 
 //AKD_DLLCALL flags
-#define DLLCF_ONPROGRAMLOAD   0x01  //Don't use it. For internal code only.
-#define DLLCF_GETSUPPORT      0x02  //Get PDS_* flags without function execution.
-#define DLLCF_SWITCHAUTOLOAD  0x04  //If function running after call then turn on autoload, if not then turn off autoload.
-#define DLLCF_SAVENOW         0x08  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
-#define DLLCF_SAVEONEXIT      0x10  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
+#define DLLCF_ONPROGRAMLOAD   0x001  //Don't use it. For internal code only.
+#define DLLCF_SWITCHAUTOLOAD  0x004  //If function running after call then turn on autoload, if not then turn off autoload.
+#define DLLCF_SAVENOW         0x008  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
+#define DLLCF_SAVEONEXIT      0x010  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
 
 //AKD_DLLSAVE flags
 #define DLLSF_NOW     0x1  //Save plugins stack immediately.
@@ -612,8 +618,10 @@
 #define RECC_REF      0x10
 
 //AKD_PATEXEC options
-#define REPE_MATCHCASE 0x1
-#define REPE_GLOBAL    0x2
+#define REPE_MATCHCASE 0x1 //Case-sensitive search.
+#define REPE_GLOBAL    0x2 //Search all possible occurrences.
+#define REPE_BEGIN     0x4 //Force first occurrence located at the beginning of the string.
+#define REPE_MULTILINE 0x8 //Search line by line.
 
 //AKD_PATEXEC callback return value
 #define REPEC_CONTINUE   0
@@ -1058,6 +1066,7 @@ typedef struct _FRAMEDATA {
   HKL dwInputLocale;                                  //Keyboard layout.
   DWORD dwLockInherit;                                //See LI_* defines.
   int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
+  INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
 
   //Substract selection
   AECHARRANGE crPrevSel;
@@ -1067,7 +1076,12 @@ typedef struct _FRAMEDATA {
   INT_PTR nCaretRichOffset;
   INT_PTR nCaretByteOffset;
   int nCaretChar;
-  int nLineCount;
+  int nCaretLine;
+  int nCaretColumn;
+  int nLineCountAll;
+  int nLineCountSel;
+  int nLineSelBegin;
+  int nLineSelEnd;
   INT_PTR nRichCount;
   int nFontPoint;
   BOOL bReachedEOF;
@@ -1117,23 +1131,25 @@ typedef struct {
 typedef struct {
   const char *pFunction;      //Function name, format "Plugin::Function".
   LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //Receives PDS_* flags.
+  DWORD dwSupport;            //See PDS_* defines.
 } PLUGINCALLSENDA;
 
 typedef struct {
   const wchar_t *pFunction;   //Function name, format L"Plugin::Function".
   LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //Receives PDS_* flags.
+  DWORD dwSupport;            //See PDS_* defines.
 } PLUGINCALLSENDW;
 
 typedef struct {
-  LPARAM lParam;              //Input data.
-  char szFunction[MAX_PATH];  //Function name, format "Plugin::Function".
+  LPARAM lParam;                //Input data.
+  char szFunction[MAX_PATH];    //Function name, format "Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
 } PLUGINCALLPOSTA;
 
 typedef struct {
-  LPARAM lParam;                  //Input data.
-  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function".
+  LPARAM lParam;                //Input data.
+  wchar_t szFunction[MAX_PATH]; //Function name, format L"Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
 } PLUGINCALLPOSTW;
 
 typedef struct {
@@ -1283,7 +1299,7 @@ typedef struct {
   int nLastIndex;               //Last captured index.
 } STACKREGROUP;
 
-typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, int nMatchCount, LPARAM lParam);
+typedef int (CALLBACK *PATEXECCALLBACK)(REGROUP *lpREGroup, BOOL bMatched, LPARAM lParam);
 
 typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
@@ -1291,6 +1307,7 @@ typedef struct {
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;         //String for process.
   const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpMaxLine;     //Internal usage.
   DWORD dwOptions;              //See REPE_* defines.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
@@ -1301,14 +1318,17 @@ typedef struct {
 } PATEXEC;
 
 typedef struct {
-  const wchar_t *wpStr;    //String for process.
-  const wchar_t *wpMaxStr; //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpPat;    //Pattern for process.
-  const wchar_t *wpMaxPat; //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpRep;    //String to replace with. Can be used "$n" - the n'th captured submatch.
-  const wchar_t *wpMaxRep; //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;         //See REPE_* defines.
-  wchar_t *wszResult;      //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
+  const wchar_t *wpStr;      //String for process.
+  const wchar_t *wpMaxStr;   //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpPat;      //Pattern for process.
+  const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+  const wchar_t *wpRep;      //String to replace with. Can be used "$n" - the n'th captured submatch.
+  const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+  DWORD dwOptions;           //See REPE_* defines.
+  int nReplaceCount;         //Receives replace count number.
+  const wchar_t *wpLeftStr;  //First replace occurrence in string.
+  const wchar_t *wpRightStr; //Unmatched right part of string.
+  wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
 
 typedef struct {
@@ -1850,6 +1870,9 @@ typedef struct {
 #define IDM_MANUAL                      4352  //Open user's manual.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
+#define IDM_UPDATE                      4353  //Open AkelUpdater.
+                                              //Return Value: zero.
+                                              //
 #define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.
                                               //Return Value: zero.
                                               //
@@ -2039,6 +2062,8 @@ typedef struct {
 #define AKD_POSTMESSAGE            (WM_USER + 290)
 #define AKD_TRANSLATEMESSAGE       (WM_USER + 291)
 #define AKD_MESSAGEBOX             (WM_USER + 292)
+#define AKD_GETFOCUS               (WM_USER + 293)
+#define AKD_PEEKMESSAGE            (WM_USER + 294)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -3978,6 +4003,59 @@ Example:
  {
    //"My &Cancel"
  }
+
+
+AKD_GETFOCUS
+____________
+
+Retrieve the handle to the window that has the keyboard focus.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Handle to the window with the keyboard focus. If the main thread's message queue does not have an associated window with the keyboard focus, the return value is NULL.
+
+Example:
+ HWND hWndFocus=(HWND)SendMessage(pd->hMainWnd, AKD_GETFOCUS, 0, 0);
+
+
+AKD_PEEKMESSAGE
+_______________
+
+Checks the thread message queue for a posted message, and retrieves the message (if any exist).
+
+(HWND)wParam  == a handle to the window whose messages are to be retrieved. If hWnd is NULL, AKD_PEEKMESSAGE retrieves messages for any window that belongs to the main thread.
+(MSG *)lParam == pointer to an MSG structure that contains message information.
+
+Return Value
+ TRUE  message is available.
+ FALSE no messages are available.
+
+Remarks
+ Messages are removed from the queue after processing by AKD_PEEKMESSAGE.
+
+Example (wait for handle and process messages):
+void WaitForMutex(hMutex)
+{
+  MSG msg;
+  BOOL bExitLoop=FALSE;
+
+  for (;;)
+  {
+    while (SendMessage(hMainWnd, AKD_PEEKMESSAGE, (WPARAM)NULL, (LPARAM)&msg))
+    {
+      if (msg.message == WM_QUIT)
+        bExitLoop=TRUE;
+      else
+        SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+    }
+    if (bExitLoop)
+      break;
+    if (MsgWaitForMultipleObjects(1, &hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+      break;
+  }
+}
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW

@@ -2708,7 +2708,7 @@ Example:
  dat.pText="\x91\x20\xE7\xA5\xA3\xAE\x20\xAD\xA0\xE7\xA8\xAD\xA0\xA5\xE2\xE1\xEF\x20\x90\xAE\xA4\xA8\xAD\xA0";
  dat.nTextLen=-1;
  dat.nMinChars=0;
- SendMessage(hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
+ SendMessage(pd->hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
 
 
 AKD_DETECTUNITEXT
@@ -2730,7 +2730,7 @@ Example:
  dut.wpText=L"\x2018\x0020\x0437\x0490\x0408\x00AE\x0020\x00AD\x00A0\x0437\x0401\x00AD\x00A0\x0490\x0432\x0431\x043F\x0020\x0452\x00AE\x00A4\x0401\x00AD\x00A0";
  dut.nTextLen=-1;
  dut.nMinChars=0;
- SendMessage(hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
+ SendMessage(pd->hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
 
 
 AKD_CONVERTANSITEXT
@@ -2752,7 +2752,7 @@ Example:
  cat.nInputLen=-1;
  cat.nCodePageFrom=866;
  cat.nCodePageTo=1251;
- SendMessage(hMainWnd, AKD_CONVERTANSITEXT, 0, (LPARAM)&cat);
+ SendMessage(pd->hMainWnd, AKD_CONVERTANSITEXT, 0, (LPARAM)&cat);
 
 
 AKD_CONVERTUNITEXT
@@ -2774,7 +2774,7 @@ Example:
  cut.nInputLen=-1;
  cut.nCodePageFrom=1251;
  cut.nCodePageTo=866;
- SendMessage(hMainWnd, AKD_CONVERTUNITEXT, 0, (LPARAM)&cut);
+ SendMessage(pd->hMainWnd, AKD_CONVERTUNITEXT, 0, (LPARAM)&cut);
 
 
 AKD_DETECTFILE, AKD_DETECTFILEA, AKD_DETECTFILEW

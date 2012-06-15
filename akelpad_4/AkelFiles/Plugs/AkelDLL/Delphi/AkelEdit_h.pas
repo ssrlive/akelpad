@@ -942,6 +942,8 @@ const AEWB_SKIPSPACEEND = $00000080;  //Movement is continued, when spacing end 
 {$EXTERNALSYM AEWB_SKIPSPACEEND}
 const AEWB_STOPNEWLINE = $00000100;  //Movement is stopped, when new line is found.
 {$EXTERNALSYM AEWB_STOPNEWLINE}
+const AEWB_MINMOVE = $00001000;  //Minimum movement or not move at all if flags matched.
+{$EXTERNALSYM AEWB_MINMOVE}
 
 //AEM_STREAMIN, AEM_STREAMOUT flags
 const AESF_SELECTION = $00000001;  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
@@ -6131,7 +6133,7 @@ Return Value
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_ADDCLONE, (HWND)hWndEdit2, 0);
+ SendMessage(hWndEdit, AEM_ADDCLONE, (WPARAM)hWndEdit2, 0);
 
 
 AEM_DELCLONE
@@ -6147,7 +6149,7 @@ Return Value
  FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
+ SendMessage(hWndEdit, AEM_DELCLONE, (WPARAM)hWndEdit2, 0);
 
 
 AEM_GETMASTER
@@ -7019,7 +7021,7 @@ function AEC_WrapLineBegin(var ciChar: TAECHARINDEX): Integer;
 function AEC_WrapLineEnd(var ciChar: TAECHARINDEX): Integer;
 function AEC_WrapLineBeginEx(const ciIn: TAECHARINDEX; var ciOut: TAECHARINDEX): Integer;
 function AEC_WrapLineEndEx(const ciIn: TAECHARINDEX; var ciOut: TAECHARINDEX): Integer;
-//int AEC_CharAtIndex(const AECHARINDEX *ciChar)
+function AEC_CharAtIndex(var ciChar: TAECHARINDEX): Integer;
 function AEC_IsCharInSelection(var ciChar: TAECHARINDEX): Boolean;
 function AEC_IsFirstCharInLine(var ciChar: TAECHARINDEX): Boolean;
 function AEC_IsLastCharInLine(var ciChar: TAECHARINDEX): Boolean;
@@ -7358,30 +7360,17 @@ begin
   Result := AEC_WrapLineEnd(ciOut);
 end;
 
-{}(*
+// Fr0sT: Returns WideChar if >= 0 and line break type if < 0
 function AEC_CharAtIndex(var ciChar: TAECHARINDEX): Integer;
 begin
   if ciChar.nCharInLine >= ciChar.lpLine.nLineLen then
     if ciChar.lpLine.nLineBreak = AELB_WRAP then
-      Result := ciChar.lpLine.next.wpLine[0]
+      Result := Integer(ciChar.lpLine.next.wpLine^)
     else
       Result := -ciChar.lpLine.nLineBreak
   else
-    Result := ciChar.lpLine.wpLine[ciChar.nCharInLine];
+    Result := Integer( (ciChar.lpLine.wpLine + ciChar.nCharInLine)^ );
 end;
-
-int AEC_CharAtIndex(const AECHARINDEX *ciChar)
-{
-  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
-  {
-    if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-      return ciChar->lpLine->next->wpLine[0];
-    return -ciChar->lpLine->nLineBreak;
-  }
-  return ciChar->lpLine->wpLine[ciChar->nCharInLine];
-}
-
-*)
 
 function AEC_IsCharInSelection(var ciChar: TAECHARINDEX): Boolean;
 begin

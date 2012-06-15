@@ -2689,14 +2689,14 @@ ______________
 
 Insert character taking into account overtype mode and grouping undo.
 
-(int)wParam   == virtual-key code.
-lParam        == not used.
+(wchar_t)wParam == unicode character.
+lParam          == not used.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+ SendMessage(hWndEdit, AEM_INSERTCHAR, (WPARAM)L' ', 0);
 
 
 AEM_CHARAT
