@@ -2154,7 +2154,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpDelimDst=AE_HighlightInsertDelimiter(ae, lpTheme, lpDelimSrc->nDelimiterLen, lpDelimSrc->nIndex))
       {
-        if (lpDelimDst->pDelimiter=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
+        if (lpDelimDst->pDelimiter=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen + 1, (wchar_t *)lpDelimDst->pDelimiter, lpDelimSrc->nDelimiterLen + 1);
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
@@ -2173,7 +2173,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpDelimDst=AE_HighlightInsertDelimiter(ae, lpTheme, lpDelimSrc->nDelimiterLen, lpDelimSrc->nIndex))
       {
-        if (lpDelimDst->pDelimiter=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
+        if (lpDelimDst->pDelimiter=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
           xmemcpy((wchar_t *)lpDelimDst->pDelimiter, lpDelimSrc->pDelimiter, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t));
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
@@ -2209,7 +2209,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpWordDst=AE_HighlightInsertWord(ae, lpTheme, nWordLen))
       {
-        if (lpWordDst->pWord=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
+        if (lpWordDst->pWord=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpWordSrc->pWord, lpWordSrc->nWordLen + 1, (wchar_t *)lpWordDst->pWord, lpWordSrc->nWordLen + 1);
         lpWordDst->nWordLen=nWordLen;
 
@@ -2234,7 +2234,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpWordDst=AE_HighlightInsertWord(ae, lpTheme, nWordLen))
       {
-        if (lpWordDst->pWord=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
+        if (lpWordDst->pWord=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
           xmemcpy((wchar_t *)lpWordDst->pWord, lpWordSrc->pWord, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t));
         lpWordDst->nWordLen=nWordLen;
 
@@ -2266,13 +2266,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         if (lpQuoteSrc->pQuoteStart && !(lpQuoteSrc->dwFlags & AEHLF_QUOTESTART_ISDELIMITER))
         {
-          if (lpQuoteDst->pQuoteStart=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteStart=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, (wchar_t *)lpQuoteDst->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
           lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
         }
         if (lpQuoteSrc->pQuoteEnd && !(lpQuoteSrc->dwFlags & AEHLF_QUOTEEND_ISDELIMITER))
         {
-          if (lpQuoteDst->pQuoteEnd=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteEnd=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, (wchar_t *)lpQuoteDst->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
@@ -2281,13 +2281,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (lpQuoteSrc->pQuoteInclude)
         {
-          if (lpQuoteDst->pQuoteInclude=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteInclude=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1, (wchar_t *)lpQuoteDst->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1);
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
         if (lpQuoteSrc->pQuoteExclude)
         {
-          if (lpQuoteDst->pQuoteExclude=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteExclude=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1, (wchar_t *)lpQuoteDst->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1);
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
@@ -2310,13 +2310,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         if (lpQuoteSrc->pQuoteStart && !(lpQuoteSrc->dwFlags & AEHLF_QUOTESTART_ISDELIMITER))
         {
-          if (lpQuoteDst->pQuoteStart=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteStart=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
             xmemcpy((wchar_t *)lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
         }
         if (lpQuoteSrc->pQuoteEnd && !(lpQuoteSrc->dwFlags & AEHLF_QUOTEEND_ISDELIMITER))
         {
-          if (lpQuoteDst->pQuoteEnd=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteEnd=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
             xmemcpy((wchar_t *)lpQuoteDst->pQuoteEnd, lpQuoteSrc->pQuoteEnd, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
@@ -2325,13 +2325,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (lpQuoteSrc->pQuoteInclude)
         {
-          if (lpQuoteDst->pQuoteInclude=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteInclude=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
             xmemcpy((wchar_t *)lpQuoteDst->pQuoteInclude, lpQuoteSrc->pQuoteInclude, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
         if (lpQuoteSrc->pQuoteExclude)
         {
-          if (lpQuoteDst->pQuoteExclude=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
+          if (lpQuoteDst->pQuoteExclude=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
             xmemcpy((wchar_t *)lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
@@ -2363,7 +2363,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme, lpMarkTextSrc->nIndex))
       {
-        if (lpMarkTextDst->pMarkText=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
+        if (lpMarkTextDst->pMarkText=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpMarkTextSrc->pMarkText, lpMarkTextSrc->nMarkTextLen + 1, (wchar_t *)lpMarkTextDst->pMarkText, lpMarkTextSrc->nMarkTextLen + 1);
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
@@ -2382,7 +2382,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme, lpMarkTextSrc->nIndex))
       {
-        if (lpMarkTextDst->pMarkText=(const wchar_t *)AE_HeapAlloc(lpTheme?NULL:ae, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
+        if (lpMarkTextDst->pMarkText=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
           xmemcpy((wchar_t *)lpMarkTextDst->pMarkText, lpMarkTextSrc->pMarkText, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t));
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
@@ -4861,9 +4861,9 @@ void AE_DestroyWindowData(AKELEDIT *ae)
     AE_StackLineFree(ae);
     AE_EmptyUndoBuffer(ae);
     AE_UrlVisitFree(ae);
-    AE_HighlightDeleteTheme(ae, NULL);
   }
 
+  AE_HighlightDeleteTheme(ae, NULL);
   AE_StackFoldFree(ae);
   AE_StackPointFree(ae);
   AE_StackEraseFree(ae);
@@ -4887,7 +4887,6 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
     AE_StackLineFree(ae);
     AE_EmptyUndoBuffer(ae);
     AE_UrlVisitFree(ae);
-    AE_HighlightDeleteTheme(ae, NULL);
   }
 
   //Reset variables
@@ -10684,60 +10683,39 @@ void AE_HighlightUnsetTheme(AETHEMEITEMW *aeti)
 
 AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen, int nIndex)
 {
-  AEDELIMITEMW *lpDelimItem=NULL;
+  AESTACKDELIM *lpDelimiterStack=aeti?&aeti->hDelimiterStack:&ae->ptxt->hDelimiterStack;
+  AEDELIMITEMW *lpDelimItem;
 
-  if (aeti)
-    AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack **)&lpDelimItem, nIndex, sizeof(AEDELIMITEMW));
-  else
-    AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hDelimiterStack.first, (stack **)&ae->ptxt->hDelimiterStack.last, (stack **)&lpDelimItem, nIndex, sizeof(AEDELIMITEMW));
+  AE_HeapStackInsertIndex(NULL, (stack **)&lpDelimiterStack->first, (stack **)&lpDelimiterStack->last, (stack **)&lpDelimItem, nIndex, sizeof(AEDELIMITEMW));
+
   return lpDelimItem;
 }
 
 void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, AEDELIMITEMW *aedi)
 {
-  if (aeti)
-  {
-    if (aedi->pDelimiter) AE_HeapFree(NULL, 0, (LPVOID)aedi->pDelimiter);
-    AE_HeapStackDelete(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack *)aedi);
-  }
-  else
-  {
-    if (aedi->pDelimiter) AE_HeapFree(ae, 0, (LPVOID)aedi->pDelimiter);
-    AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hDelimiterStack.first, (stack **)&ae->ptxt->hDelimiterStack.last, (stack *)aedi);
-  }
+  AESTACKDELIM *lpDelimiterStack=aeti?&aeti->hDelimiterStack:&ae->ptxt->hDelimiterStack;
+
+  if (aedi->pDelimiter) AE_HeapFree(NULL, 0, (LPVOID)aedi->pDelimiter);
+  AE_HeapStackDelete(NULL, (stack **)&lpDelimiterStack->first, (stack **)&lpDelimiterStack->last, (stack *)aedi);
 }
 
 void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 {
-  AESTACKDELIM *lpDelimiterStack;
+  AESTACKDELIM *lpDelimiterStack=aeti?&aeti->hDelimiterStack:&ae->ptxt->hDelimiterStack;
   AEDELIMITEMW *lpDelimItem;
-
-  if (aeti)
-  {
-    lpDelimiterStack=&aeti->hDelimiterStack;
-    ae=NULL;
-  }
-  else lpDelimiterStack=&ae->ptxt->hDelimiterStack;
 
   for (lpDelimItem=lpDelimiterStack->first; lpDelimItem; lpDelimItem=lpDelimItem->next)
   {
-    if (lpDelimItem->pDelimiter) AE_HeapFree(ae, 0, (LPVOID)lpDelimItem->pDelimiter);
+    if (lpDelimItem->pDelimiter) AE_HeapFree(NULL, 0, (LPVOID)lpDelimItem->pDelimiter);
   }
-  AE_HeapStackClear(ae, (stack **)&lpDelimiterStack->first, (stack **)&lpDelimiterStack->last);
+  AE_HeapStackClear(NULL, (stack **)&lpDelimiterStack->first, (stack **)&lpDelimiterStack->last);
 }
 
 AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen)
 {
-  AESTACKWORD *lpWordStack;
+  AESTACKWORD *lpWordStack=aeti?&aeti->hWordStack:&ae->ptxt->hWordStack;
   AEWORDITEMW *lpWordItem=NULL;
   AEWORDITEMW *lpTmp;
-
-  if (aeti)
-  {
-    lpWordStack=&aeti->hWordStack;
-    ae=NULL;
-  }
-  else lpWordStack=&ae->ptxt->hWordStack;
 
   if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(INT_PTR))
   {
@@ -10757,7 +10735,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
         lpTmp=lpTmp->next;
       }
     }
-    AE_HeapStackInsertBefore(ae, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)lpTmp, (stack **)&lpWordItem, sizeof(AEWORDITEMW));
+    AE_HeapStackInsertBefore(NULL, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)lpTmp, (stack **)&lpWordItem, sizeof(AEWORDITEMW));
 
     if (lpWordItem)
       lpWordStack->lpWordLens[nWordLen]=(INT_PTR)lpWordItem;
@@ -10767,14 +10745,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
 
 void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
 {
-  AESTACKWORD *lpWordStack;
-
-  if (aeti)
-  {
-    lpWordStack=&aeti->hWordStack;
-    ae=NULL;
-  }
-  else lpWordStack=&ae->ptxt->hWordStack;
+  AESTACKWORD *lpWordStack=aeti?&aeti->hWordStack:&ae->ptxt->hWordStack;
 
   if (lpWordStack->lpWordLens[aewi->nWordLen] == (INT_PTR)aewi)
   {
@@ -10784,53 +10755,38 @@ void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
     else
       lpWordStack->lpWordLens[aewi->nWordLen]=0;
   }
-  if (aewi->pWord) AE_HeapFree(ae, 0, (LPVOID)aewi->pWord);
-  AE_HeapStackDelete(ae, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)aewi);
+  if (aewi->pWord) AE_HeapFree(NULL, 0, (LPVOID)aewi->pWord);
+  AE_HeapStackDelete(NULL, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)aewi);
 }
 
 void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 {
-  AESTACKWORD *lpWordStack;
+  AESTACKWORD *lpWordStack=aeti?&aeti->hWordStack:&ae->ptxt->hWordStack;
   AEWORDITEMW *lpWordItem;
-
-  if (aeti)
-  {
-    lpWordStack=&aeti->hWordStack;
-    ae=NULL;
-  }
-  else lpWordStack=&ae->ptxt->hWordStack;
 
   for (lpWordItem=lpWordStack->first; lpWordItem; lpWordItem=lpWordItem->next)
   {
-    if (lpWordItem->pWord) AE_HeapFree(ae, 0, (LPVOID)lpWordItem->pWord);
+    if (lpWordItem->pWord) AE_HeapFree(NULL, 0, (LPVOID)lpWordItem->pWord);
   }
-  AE_HeapStackClear(ae, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last);
+  AE_HeapStackClear(NULL, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last);
   xmemset(lpWordStack->lpWordLens, 0, MAX_PATH * sizeof(INT_PTR));
 }
 
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
 {
-  AEQUOTEITEMW *lpQuoteItem=NULL;
+  AESTACKQUOTE *lpQuoteStack=aeti?&aeti->hQuoteStack:&ae->ptxt->hQuoteStack;
+  AEQUOTEITEMW *lpQuoteItem;
 
-  if (aeti)
-    AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack **)&lpQuoteItem, nIndex, sizeof(AEQUOTEITEMW));
-  else
-    AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hQuoteStack.first, (stack **)&ae->ptxt->hQuoteStack.last, (stack **)&lpQuoteItem, nIndex, sizeof(AEQUOTEITEMW));
+  AE_HeapStackInsertIndex(NULL, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last, (stack **)&lpQuoteItem, nIndex, sizeof(AEQUOTEITEMW));
+
   return lpQuoteItem;
 }
 
 AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *lpQuoteItem)
 {
-  AESTACKQUOTESTART *lpQuoteStartStack;
+  AESTACKQUOTESTART *lpQuoteStartStack=aeti?&aeti->hQuoteStartStack:&ae->ptxt->hQuoteStartStack;
   AEQUOTESTART *lpQuoteStart;
   AEQUOTEITEMHANDLE *lpQuoteItemHandle;
-
-  if (aeti)
-  {
-    lpQuoteStartStack=&aeti->hQuoteStartStack;
-    ae=NULL;
-  }
-  else lpQuoteStartStack=&ae->ptxt->hQuoteStartStack;
 
   for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
   {
@@ -10854,7 +10810,7 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
 
   if (!lpQuoteStart)
   {
-    if (!AE_HeapStackInsertIndex(ae, (stack **)&lpQuoteStartStack->first, (stack **)&lpQuoteStartStack->last, (stack **)&lpQuoteStart, -1, sizeof(AEQUOTESTART)))
+    if (!AE_HeapStackInsertIndex(NULL, (stack **)&lpQuoteStartStack->first, (stack **)&lpQuoteStartStack->last, (stack **)&lpQuoteStart, -1, sizeof(AEQUOTESTART)))
     {
       lpQuoteStart->pQuoteStart=lpQuoteItem->pQuoteStart;
       lpQuoteStart->nQuoteStartLen=lpQuoteItem->nQuoteStartLen;
@@ -10863,7 +10819,7 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
     }
   }
 
-  if (!AE_HeapStackInsertIndex(ae, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last, (stack **)&lpQuoteItemHandle, -1, sizeof(AEQUOTEITEMHANDLE)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last, (stack **)&lpQuoteItemHandle, -1, sizeof(AEQUOTEITEMHANDLE)))
   {
     lpQuoteItemHandle->lpQuoteItem=lpQuoteItem;
   }
@@ -10872,16 +10828,9 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
 
 void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi)
 {
-  AESTACKQUOTE *lpQuoteStack;
+  AESTACKQUOTE *lpQuoteStack=aeti?&aeti->hQuoteStack:&ae->ptxt->hQuoteStack;
   AEQUOTESTART *lpQuoteStart;
   AEQUOTEITEMHANDLE *lpQuoteItemHandle;
-
-  if (aeti)
-  {
-    lpQuoteStack=&aeti->hQuoteStack;
-    ae=NULL;
-  }
-  else lpQuoteStack=&ae->ptxt->hQuoteStack;
 
   //Find and clear quote start handle
   if (aeqi->lpQuoteStart)
@@ -10892,17 +10841,17 @@ void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeq
     {
       if (lpQuoteItemHandle->lpQuoteItem == aeqi)
       {
-        AE_HeapStackDelete(ae, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last, (stack *)lpQuoteItemHandle);
+        AE_HeapStackDelete(NULL, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last, (stack *)lpQuoteItemHandle);
         break;
       }
     }
   }
 
-  if (aeqi->pQuoteStart) AE_HeapFree(ae, 0, (LPVOID)aeqi->pQuoteStart);
-  if (aeqi->pQuoteEnd) AE_HeapFree(ae, 0, (LPVOID)aeqi->pQuoteEnd);
-  if (aeqi->pQuoteInclude) AE_HeapFree(ae, 0, (LPVOID)aeqi->pQuoteInclude);
-  if (aeqi->pQuoteExclude) AE_HeapFree(ae, 0, (LPVOID)aeqi->pQuoteExclude);
-  AE_HeapStackDelete(ae, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last, (stack *)aeqi);
+  if (aeqi->pQuoteStart) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteStart);
+  if (aeqi->pQuoteEnd) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteEnd);
+  if (aeqi->pQuoteInclude) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteInclude);
+  if (aeqi->pQuoteExclude) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteExclude);
+  AE_HeapStackDelete(NULL, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last, (stack *)aeqi);
 }
 
 void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
@@ -10916,7 +10865,6 @@ void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   {
     lpQuoteStack=&aeti->hQuoteStack;
     lpQuoteStartStack=&aeti->hQuoteStartStack;
-    ae=NULL;
   }
   else
   {
@@ -10927,90 +10875,73 @@ void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   //Clear quotes start
   for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
   {
-    AE_HeapStackClear(ae, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last);
+    AE_HeapStackClear(NULL, (stack **)&lpQuoteStart->hQuoteItemHandleStack.first, (stack **)&lpQuoteStart->hQuoteItemHandleStack.last);
   }
-  AE_HeapStackClear(ae, (stack **)&lpQuoteStartStack->first, (stack **)&lpQuoteStartStack->last);
+  AE_HeapStackClear(NULL, (stack **)&lpQuoteStartStack->first, (stack **)&lpQuoteStartStack->last);
 
   //Clear quotes
   for (lpQuoteItem=lpQuoteStack->first; lpQuoteItem; lpQuoteItem=lpQuoteItem->next)
   {
-    if (lpQuoteItem->pQuoteStart) AE_HeapFree(ae, 0, (LPVOID)lpQuoteItem->pQuoteStart);
-    if (lpQuoteItem->pQuoteEnd) AE_HeapFree(ae, 0, (LPVOID)lpQuoteItem->pQuoteEnd);
-    if (lpQuoteItem->pQuoteInclude) AE_HeapFree(ae, 0, (LPVOID)lpQuoteItem->pQuoteInclude);
-    if (lpQuoteItem->pQuoteExclude) AE_HeapFree(ae, 0, (LPVOID)lpQuoteItem->pQuoteExclude);
+    if (lpQuoteItem->pQuoteStart) AE_HeapFree(NULL, 0, (LPVOID)lpQuoteItem->pQuoteStart);
+    if (lpQuoteItem->pQuoteEnd) AE_HeapFree(NULL, 0, (LPVOID)lpQuoteItem->pQuoteEnd);
+    if (lpQuoteItem->pQuoteInclude) AE_HeapFree(NULL, 0, (LPVOID)lpQuoteItem->pQuoteInclude);
+    if (lpQuoteItem->pQuoteExclude) AE_HeapFree(NULL, 0, (LPVOID)lpQuoteItem->pQuoteExclude);
   }
-  AE_HeapStackClear(ae, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last);
+  AE_HeapStackClear(NULL, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last);
 }
 
 AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
 {
-  AEMARKTEXTITEMW *lpMarkTextItem=NULL;
+  AESTACKMARKTEXT *lpMarkTextStack=aeti?&aeti->hMarkTextStack:&ae->ptxt->hMarkTextStack;
+  AEMARKTEXTITEMW *lpMarkTextItem;
 
-  if (aeti)
-    AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hMarkTextStack.first, (stack **)&aeti->hMarkTextStack.last, (stack **)&lpMarkTextItem, nIndex, sizeof(AEMARKTEXTITEMW));
-  else
-    AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hMarkTextStack.first, (stack **)&ae->ptxt->hMarkTextStack.last, (stack **)&lpMarkTextItem, nIndex, sizeof(AEMARKTEXTITEMW));
+  AE_HeapStackInsertIndex(NULL, (stack **)&lpMarkTextStack->first, (stack **)&lpMarkTextStack->last, (stack **)&lpMarkTextItem, nIndex, sizeof(AEMARKTEXTITEMW));
+
   return lpMarkTextItem;
 }
 
 void AE_HighlightDeleteMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti)
 {
-  if (aeti)
-  {
-    if (aemti->pMarkText) AE_HeapFree(NULL, 0, (LPVOID)aemti->pMarkText);
-    AE_HeapStackDelete(NULL, (stack **)&aeti->hMarkTextStack.first, (stack **)&aeti->hMarkTextStack.last, (stack *)aemti);
-  }
-  else
-  {
-    if (aemti->pMarkText) AE_HeapFree(ae, 0, (LPVOID)aemti->pMarkText);
-    AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hMarkTextStack.first, (stack **)&ae->ptxt->hMarkTextStack.last, (stack *)aemti);
-  }
+  AESTACKMARKTEXT *lpMarkTextStack=aeti?&aeti->hMarkTextStack:&ae->ptxt->hMarkTextStack;
+
+  if (aemti->pMarkText) AE_HeapFree(NULL, 0, (LPVOID)aemti->pMarkText);
+  AE_HeapStackDelete(NULL, (stack **)&lpMarkTextStack->first, (stack **)&lpMarkTextStack->last, (stack *)aemti);
 }
 
 void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 {
-  AESTACKMARKTEXT *lpMarkTextStack;
+  AESTACKMARKTEXT *lpMarkTextStack=aeti?&aeti->hMarkTextStack:&ae->ptxt->hMarkTextStack;
   AEMARKTEXTITEMW *lpMarkTextItem;
-
-  if (aeti)
-  {
-    lpMarkTextStack=&aeti->hMarkTextStack;
-    ae=NULL;
-  }
-  else lpMarkTextStack=&ae->ptxt->hMarkTextStack;
 
   for (lpMarkTextItem=lpMarkTextStack->first; lpMarkTextItem; lpMarkTextItem=lpMarkTextItem->next)
   {
-    if (lpMarkTextItem->pMarkText) AE_HeapFree(ae, 0, (LPVOID)lpMarkTextItem->pMarkText);
+    if (lpMarkTextItem->pMarkText) AE_HeapFree(NULL, 0, (LPVOID)lpMarkTextItem->pMarkText);
   }
-  AE_HeapStackClear(ae, (stack **)&lpMarkTextStack->first, (stack **)&lpMarkTextStack->last);
+  AE_HeapStackClear(NULL, (stack **)&lpMarkTextStack->first, (stack **)&lpMarkTextStack->last);
 }
 
 AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
 {
-  AEMARKRANGEITEM *lpMarkRangeItem=NULL;
+  AESTACKMARKRANGE *lpMarkRangeStack=aeti?&aeti->hMarkRangeStack:&ae->ptxt->hMarkRangeStack;
+  AEMARKRANGEITEM *lpMarkRangeItem;
 
-  if (aeti)
-    AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last, (stack **)&lpMarkRangeItem, nIndex, sizeof(AEMARKRANGEITEM));
-  else
-    AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hMarkRangeStack.first, (stack **)&ae->ptxt->hMarkRangeStack.last, (stack **)&lpMarkRangeItem, nIndex, sizeof(AEMARKRANGEITEM));
+  AE_HeapStackInsertIndex(NULL, (stack **)&lpMarkRangeStack->first, (stack **)&lpMarkRangeStack->last, (stack **)&lpMarkRangeItem, nIndex, sizeof(AEMARKRANGEITEM));
+
   return lpMarkRangeItem;
 }
 
 void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri)
 {
-  if (aeti)
-    AE_HeapStackDelete(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last, (stack *)aemri);
-  else
-    AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hMarkRangeStack.first, (stack **)&ae->ptxt->hMarkRangeStack.last, (stack *)aemri);
+  AESTACKMARKRANGE *lpMarkRangeStack=aeti?&aeti->hMarkRangeStack:&ae->ptxt->hMarkRangeStack;
+
+  AE_HeapStackDelete(NULL, (stack **)&lpMarkRangeStack->first, (stack **)&lpMarkRangeStack->last, (stack *)aemri);
 }
 
 void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 {
-  if (aeti)
-    AE_HeapStackClear(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last);
-  else
-    AE_HeapStackClear(ae, (stack **)&ae->ptxt->hMarkRangeStack.first, (stack **)&ae->ptxt->hMarkRangeStack.last);
+  AESTACKMARKRANGE *lpMarkRangeStack=aeti?&aeti->hMarkRangeStack:&ae->ptxt->hMarkRangeStack;
+
+  AE_HeapStackClear(NULL, (stack **)&lpMarkRangeStack->first, (stack **)&lpMarkRangeStack->last);
 }
 
 HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert)
