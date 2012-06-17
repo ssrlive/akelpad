@@ -41,6 +41,11 @@
 #define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status.
 #define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing.
 
+//Hotkey owner
+#define HKO_NONE                  0  //Hotkey is not assigned.
+#define HKO_PLUGINFUNCTION        1  //Hotkey assigned to plugin function.
+#define HKO_HOTKEYSPLUGIN         2  //Hotkey assigned to Hotkeys plugin command.
+
 //Command line options
 #define CLO_NONOTEPADCMD          0x01  //Don't use MS Notepad compatibility mode when parse command line parameters.
 #define CLO_GLOBALPRINT           0x02  //Next opened file will be printed.
@@ -2106,6 +2111,7 @@ typedef struct {
 #define AKD_DLLDELETE              (WM_USER + 311)
 #define AKD_DLLSAVE                (WM_USER + 312)
 #define AKD_CALLPROC               (WM_USER + 313)
+#define AKD_CHECKHOTKEY            (WM_USER + 314)
 
 //Plugin options
 #define AKD_BEGINOPTIONS           (WM_USER + 331)
@@ -3450,7 +3456,7 @@ Example:
  {
    for (rf=rfs->first; rf; rf=rf->next)
    {
-     MessageBoxW(NULL, rf->wszFile, NULL, 0);
+     MessageBoxW(pd->hMainWnd, rf->wszFile, L"Test", MB_OK);
    }
  }
 
@@ -4146,12 +4152,12 @@ Return Value
 Example find by name (Unicode):
  PLUGINFUNCTION *pf;
  if (pf=(PLUGINFUNCTION *)SendMessage(pd->hMainWnd, AKD_DLLFINDW, (WPARAM)L"SomePlugin::SomeFunction", 0))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+   if (pf->bRunning) MessageBoxW(pd->hMainWnd, L"Plugin is running", L"Test", MB_OK);
 
 Example find by hotkey:
  PLUGINFUNCTION *pf;
  if (pf=(PLUGINFUNCTION *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+   if (pf->bRunning) MessageBoxW(pd->hMainWnd, L"Plugin is running", L"Test", MB_OK);
 
 
 AKD_DLLADD, AKD_DLLADDA, AKD_DLLADDW
@@ -4240,6 +4246,26 @@ Example:
  {
  }
  PostMessage(pd->hMainWnd, AKD_CALLPROC, (WPARAM)MyProcedure, (LPARAM)NULL);
+
+
+AKD_CHECKHOTKEY
+_______________
+
+Get hotkey owner and existence.
+
+(WORD)wParam      == hotkey returned by HKM_GETHOTKEY.
+(wchar_t *)lParam == buffer that received assigned owner, format L"Plugin::Function". Can be NULL. If not NULL, buffer size must be at least for MAX_PATH characters.
+
+Return Value
+ See HKO_* defines.
+
+Example (check F11 hotkey):
+ wchar_t wszHotkeyOwner[MAX_PATH];
+
+ if (SendMessage(pd->hMainWnd, AKD_CHECKHOTKEY, 122, (LPARAM)wszHotkeyOwner))
+   MessageBoxW(pd->hMainWnd, wszHotkeyOwner, L"Test", MB_OK);
+ else
+   MessageBoxW(pd->hMainWnd, L"Hotkey not exists", L"Test", MB_OK);
 
 
 AKD_BEGINOPTIONS, AKD_BEGINOPTIONSA, AKD_BEGINOPTIONSW
