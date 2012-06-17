@@ -18,8 +18,9 @@
   <li><a href=#ch4>Manual settings</a>
   <li><a href=#ch5>Keyboard commands</a>
   <li><a href=#ch6>Internal commands</a>
-  <li><a href=#ch7>License</a>
-  <li><a href=#ch8>Contributors</a>
+  <li><a href=#ch7>Regular expression syntax</a>
+  <li><a href=#ch8>License</a>
+  <li><a href=#ch9>Contributors</a>
 </ol>
 
 <a name=ch0><h3>Compatibility</h3></a>
@@ -1639,10 +1640,192 @@
   </table>
   </ul>
 
-<a name=ch7><h3>License</h3></a>
+<a name=ch7><h3>Regular expression syntax</h3></a>
+  A regular expression is a pattern of text that consists of ordinary characters (for example, letters a through z) and special characters, known as <i>metacharacters</i>. The pattern describes one or more strings to match when searching text.
+  <br>
+  <br>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <th>Expression example</th>
+      <th>Matches</th>
+    </tr>
+    <tr>
+      <td>^\s*$</td>
+      <td>Match a blank line.</td>
+    </tr>
+    <tr>
+      <td>\d{2}-\d{5}</td>
+      <td>Validate an ID number consisting of 2 digits, a hyphen, and an additional 5 digits.</td>
+    </tr>
+    <tr>
+      <td>&lt;\s*(\S+)(\s[^&gt;]*)?&gt;.*&lt;\s*\/\1\s*&gt;</td>
+      <td>Match an HTML tag.</td>
+    </tr>
+  </table>
+
+  <br>
+  <br>The following table contains the complete list of metacharacters and their behavior in the context of regular expressions:
+  <br>
+  <br>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <th>Character</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>\</td>
+      <td>Marks the next character as a special character, a literal or a backreference. For example, 'n' matches the character "n". '\n' matches a newline character. The sequence '\\' matches "\" and "\(" matches "(".</td>
+    </tr>
+    <tr>
+      <td>^</td>
+      <td>Matches the position at the beginning of the line.</td>
+    </tr>
+    <tr>
+      <td>$</td>
+      <td>Matches the position at the end of the line.</td>
+    </tr>
+    <tr>
+      <td>*</td>
+      <td>Matches the preceding character or subexpression zero or more times. For example, 'zo*' matches "z" and "zoo". '*' is equivalent to '{0,}'.</td>
+    </tr>
+    <tr>
+      <td>+</td>
+      <td>Matches the preceding character or subexpression one or more times. For example, 'zo+' matches "zo" and "zoo", but not "z". '+' is equivalent to '{1,}'.</td>
+    </tr>
+    <tr>
+      <td>?</td>
+      <td>Matches the preceding character or subexpression zero or one time. For example, 'do(es)?' matches the "do" in "do" or "does". '?' is equivalent to '{0,1}'.</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>}</td>
+      <td><i>n</i> is a nonnegative integer. Matches exactly <i>n</i> times. For example, 'o{2}' does not match the "o" in "Bob", but matches the two o's in "food".</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>,}</td>
+      <td><i>n</i> is a nonnegative integer. Matches at least <i>n</i> times. For example, 'o{2,}' does not match the "o" in "Bob" and matches all the o's in "foooood". 'o{1,}' is equivalent to 'o+'. 'o{0,}' is equivalent to 'o*'.</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>,<i>m</i>}</td>
+      <td><i>M</i> and <i>n</i> are nonnegative integers, where <i>n</i> &lt;= <i>m</i>. Matches at least <i>n</i> and at most <i>m</i> times. For example, "o{1,3}" matches the first three o's in "fooooood". 'o{0,1}' is equivalent to 'o?'. Note that you cannot put a space between the comma and the numbers.</td>
+    </tr>
+    <tr>
+      <td>.</td>
+      <td>Matches any single character.</td>
+    </tr>
+    <tr>
+      <td>(<i>pattern</i>)</td>
+      <td>A subexpression that matches <i>pattern</i> and captures the match. The captured match can be retrieved from the resulting collection using the <b>\0...\9</b> backreferences. To match parentheses characters "(" or ")", use '\(' or '\)'.</td>
+    </tr>
+    <tr>
+      <td>(?:<i>pattern</i>)</td>
+      <td>A subexpression that matches <i>pattern</i> but does not capture the match, that is, it is a non-capturing match that is not stored for possible later use. This is useful for combining parts of a pattern with the "or" character (|). For example, 'industr(?:y|ies)' is a more economical expression than 'industry|industries'.</td>
+    </tr>
+    <tr>
+      <td>(?=<i>pattern</i>)</td>
+      <td>A subexpression that performs a positive lookahead search, which matches the string at any point where a string matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example 'Windows (?=95|98|NT|2000)' matches "Windows" in "Windows 2000" but not "Windows" in "Windows 3.1". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+    </tr>
+    <tr>
+      <td>(?!<i>pattern</i>)</td>
+      <td>A subexpression that performs a negative lookahead search, which matches the search string at any point where a string not matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example 'Windows (?!95|98|NT|2000)' matches "Windows" in "Windows 3.1" but does not match "Windows" in "Windows 2000". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+    </tr>
+    <tr>
+      <td><i>x</i>|<i>y</i></td>
+      <td>Matches either <i>x</i> or <i>y</i>. For example, 'z|food' matches "z" or "food". '(z|f)ood' matches "zood" or "food".</td>
+    </tr>
+    <tr>
+      <td>[<i>xyz</i>]</td>
+      <td>A character set. Matches any one of the enclosed characters. For example, '[abc]' matches the "a" in "plain".</td>
+    </tr>
+    <tr>
+      <td>[^<i>xyz</i>]</td>
+      <td>A negative character set. Matches any character not enclosed. For example, '[^abc]' matches the "p" in "plain".</td>
+    </tr>
+    <tr>
+      <td>[<i>a-z</i>]</td>
+      <td>A range of characters. Matches any character in the specified range. For example, '[a-z]' matches any lowercase alphabetic character in the range "a" through "z".</td>
+    </tr>
+    <tr>
+      <td>[^<i>a-z</i>]</td>
+      <td>A negative range characters. Matches any character not in the specified range. For example, '[^a-z]' matches any character not in the range "a" through "z".</td>
+    </tr>
+    <tr>
+      <td>\b</td>
+      <td>Matches a word boundary, that is, the position between a word and a delimiter. For example, 'er\b' matches the "er" in "never" but not the 'er' in "verb".</td>
+    </tr>
+    <tr>
+      <td>\B</td>
+      <td>Matches a nonword boundary. 'er\B' matches the "e" in "verb" but not the "er" in "never".</td>
+    </tr>
+    <tr>
+      <td>\d</td>
+      <td>Matches a digit character. Equivalent to '[0-9]'.</td>
+    </tr>
+    <tr>
+      <td>\D</td>
+      <td>Matches a nondigit character. Equivalent to '[^0-9]'.</td>
+    </tr>
+    <tr>
+      <td>\f</td>
+      <td>Matches a form-feed character. Equivalent to '\x0c'.</td>
+    </tr>
+    <tr>
+      <td>\n</td>
+      <td>Matches a newline character. Equivalent to '\x0a'.</td>
+    </tr>
+    <tr>
+      <td>\r</td>
+      <td>Matches a carriage return character. Equivalent to '\x0d'.</td>
+    </tr>
+    <tr>
+      <td>\s</td>
+      <td>Matches any white space character including space, tab, form-feed, and so on. Equivalent to '[ \f\n\r\t\v]'.</td>
+    </tr>
+    <tr>
+      <td>\S</td>
+      <td>Matches any non-white space character. Equivalent to '[^ \f\n\r\t\v]'.</td>
+    </tr>
+    <tr>
+      <td>\t</td>
+      <td>Matches a tab character. Equivalent to '\x09'.</td>
+    </tr>
+    <tr>
+      <td>\v</td>
+      <td>Matches a vertical tab character. Equivalent to '\x0b'.</td>
+    </tr>
+    <tr>
+      <td>\w</td>
+      <td>Matches any word character including underscore. Equivalent to '[A-Za-z0-9_]'.</td>
+    </tr>
+    <tr>
+      <td>\W</td>
+      <td>Matches any nonword character. Equivalent to '[^A-Za-z0-9_]'.</td>
+    </tr>
+    <tr>
+      <td>\x<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value. Hexadecimal escape values must be exactly two digits long. For example, '\x41' matches "A".</td>
+    </tr>
+    <tr>
+      <td>\u<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a Unicode character expressed as four hexadecimal digits. For example, '\u00A9' matches the copyright symbol "©".</td>
+    </tr>
+    <tr>
+      <td>\<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a single decimal digit. A reference back to captured matches. For example, '(.)\1' matches two consecutive identical characters.</td>
+    </tr>
+    <tr>
+      <td>\<i>nn</i></td>
+      <td>Matches <i>nn</i>, where <i>nn</i> is a two-digit decimal number from 01 through 99. A reference back to captured matches. For example, '(.)\01' matches two consecutive identical characters.</td>
+    </tr>
+  </table>
+
+  <br><b>Notes:</b>
+  <br>Regular expression quantifiers (*, +, {n,}) are always non-qready. For example, in the string "aaaooo", '.*o' matches "aaao".
+  <br>
+
+<a name=ch8><h3>License</h3></a>
   This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
 
-<a name=ch8><h3>Contributors</h3></a>
+<a name=ch9><h3>Contributors</h3></a>
   Shengalts Aleksander (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
   <br>Kuznetsov Alexey
   <br><br><a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
