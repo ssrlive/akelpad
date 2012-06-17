@@ -2963,6 +2963,20 @@ void DoNonMenuDelLine(HWND hWnd)
   SendMessage(hWnd, AEM_SETCARETHORZINDENT, nCaretHorzIndent, 0);
 }
 
+BOOL DoNonMenuSelJumpCaret(HWND hWnd)
+{
+  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+  {
+    SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS, &crCurSel.ciMax);
+    return FALSE;
+  }
+  else
+  {
+    SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS, &crCurSel.ciMin);
+    return TRUE;
+  }
+}
+
 
 //// INI functions
 
@@ -13105,6 +13119,53 @@ BOOL IsMainFunctionW(const wchar_t *wpFunction)
   return FALSE;
 }
 
+BOOL CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner)
+{
+  PLUGINFUNCTION *pfElement;
+  BOOL bExist=FALSE;
+
+  if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
+  {
+    xstrcpynW(wszHotkeyOwner, pfElement->wszFunction, MAX_PATH);
+    bExist=TRUE;
+  }
+  else if ((pfElement=StackPluginFind(&hPluginsStack, L"Hotkeys::Main", -1)) && pfElement->bRunning)
+  {
+    //Hotkeys external call defines
+    #define DLLA_HOTKEYS_CHECKHOTKEY  1
+
+    typedef struct {
+      UINT_PTR dwStructSize;
+      INT_PTR nAction;
+      UINT_PTR dwHotkey;
+      BOOL *lpbExist;
+      wchar_t *wszName;
+      INT_PTR nNameMax;
+    } DLLEXTHOTKEYS;
+
+    //Hotkeys external call
+    PLUGINCALLSENDW pcs;
+    DLLEXTHOTKEYS deh;
+    wchar_t wszName[MAX_PATH];
+
+    wszName[0]=L'\0';
+    deh.dwStructSize=sizeof(DLLEXTHOTKEYS);
+    deh.nAction=DLLA_HOTKEYS_CHECKHOTKEY;
+    deh.dwHotkey=wHotkey;
+    deh.lpbExist=&bExist;
+    deh.wszName=wszName;
+    deh.nNameMax=MAX_PATH - 32;
+
+    pcs.pFunction=L"Hotkeys::Main";
+    pcs.lParam=(LPARAM)&deh;
+    pcs.dwSupport=PDS_STRWIDE;
+    CallPluginSend(NULL, &pcs, 0);
+
+    if (bExist) xprintfW(wszHotkeyOwner, L"Hotkeys::Main::%s", wszName);
+  }
+  return bExist;
+}
+
 
 //// Plugins core
 
@@ -13184,15 +13245,16 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (LOWORD(wParam) == IDC_PLUGINS_ASSIGN)
     {
-      PLUGINFUNCTION *pfElement=NULL;
       PLUGINLISTITEM *pliElement;
       LVITEMW lviW;
+      wchar_t wszHotkeyOwner[MAX_PATH];
+      BOOL bHotkeyExist=FALSE;
       WORD wHotkey;
 
       if (wHotkey=(WORD)SendMessage(hWndHotkey, HKM_GETHOTKEY, 0, 0))
-        pfElement=StackHotkeyFind(&hPluginsStack, wHotkey);
+        bHotkeyExist=CheckHotkey(wHotkey, wszHotkeyOwner);
 
-      if (!pfElement)
+      if (!bHotkeyExist)
       {
         GetHotkeyString(wHotkey, wbuf);
         lviW.mask=LVIF_TEXT;
@@ -13211,7 +13273,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
       {
         API_LoadStringW(hLangLib, MSG_HOTKEY_EXISTS, wbuf, BUFFER_SIZE);
-        xprintfW(wszMsg, wbuf, pfElement->wszFunction);
+        xprintfW(wszMsg, wbuf, wszHotkeyOwner);
         API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         SetFocus(hWndHotkey);
       }
@@ -16443,7 +16505,7 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
   lpFrame->nSelSubtract=0;
-  SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, 0);
 }
 
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)

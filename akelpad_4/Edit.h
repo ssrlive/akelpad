@@ -767,6 +767,7 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst);
 void DoWindowSelectWindow();
 void DoHelpAbout();
 void DoNonMenuDelLine(HWND hWnd);
+BOOL DoNonMenuSelJumpCaret(HWND hWnd);
 
 BOOL OpenIniA(INIFILE *hIniFile, const char *pFile, BOOL bCreate);
 BOOL OpenIniW(INIFILE *hIniFile, const wchar_t *wpFile, BOOL bCreate);
@@ -958,6 +959,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg);
 int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
+BOOL CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner);
 
 BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
