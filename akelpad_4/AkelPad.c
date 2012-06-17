@@ -1356,6 +1356,10 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return TRUE;
       }
     }
+    else if (uMsg == AKD_CHECKHOTKEY)
+    {
+      return CheckHotkey((WORD)wParam, (wchar_t *)lParam);
+    }
   }
 
   lResult=lpfnMainProc(hWnd, uMsg, wParam, lParam);
@@ -6570,13 +6574,13 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     //Show tooltip if hotkey already exist
     {
       wchar_t wszHotkeyOwner[MAX_PATH];
-      BOOL bHotkeyExist=FALSE;
+      int nOwner=HKO_NONE;
 
       if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
       {
         if (wHotkey != wInitHotkey)
         {
-          if (bHotkeyExist=CheckHotkey(wHotkey, wszHotkeyOwner))
+          if (nOwner=CheckHotkey(wHotkey, wszHotkeyOwner))
           {
             if (!hWndToolTip)
             {
@@ -6635,7 +6639,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           }
         }
       }
-      if (!bHotkeyExist)
+      if (!nOwner)
       {
         if (hWndToolTip) SendMessage(hWndToolTip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&tiW);
       }
@@ -6660,7 +6664,8 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
     if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
       if (wHotkey != wInitHotkey)
-        bDrawRect=CheckHotkey(wHotkey, NULL);
+        if (CheckHotkey(wHotkey, NULL))
+          bDrawRect=TRUE;
 
     if (bDrawRect)
     {

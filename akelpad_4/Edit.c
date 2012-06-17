@@ -13119,51 +13119,59 @@ BOOL IsMainFunctionW(const wchar_t *wpFunction)
   return FALSE;
 }
 
-BOOL CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner)
+int CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner)
 {
   PLUGINFUNCTION *pfElement;
   BOOL bExist=FALSE;
+  int nOwner=HKO_NONE;
 
-  if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
+  if (wHotkey)
   {
-    xstrcpynW(wszHotkeyOwner, pfElement->wszFunction, MAX_PATH);
-    bExist=TRUE;
+    if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
+    {
+      xstrcpynW(wszHotkeyOwner, pfElement->wszFunction, MAX_PATH);
+      nOwner=HKO_PLUGINFUNCTION;
+    }
+    else if ((pfElement=StackPluginFind(&hPluginsStack, L"Hotkeys::Main", -1)) && pfElement->bRunning)
+    {
+      //Hotkeys external call defines
+      #define DLLA_HOTKEYS_CHECKHOTKEY  1
+
+      typedef struct {
+        UINT_PTR dwStructSize;
+        INT_PTR nAction;
+        UINT_PTR dwHotkey;
+        BOOL *lpbExist;
+        wchar_t *wszName;
+        INT_PTR nNameMax;
+      } DLLEXTHOTKEYS;
+
+      //Hotkeys external call
+      PLUGINCALLSENDW pcs;
+      DLLEXTHOTKEYS deh;
+      wchar_t wszName[MAX_PATH];
+
+      wszName[0]=L'\0';
+      deh.dwStructSize=sizeof(DLLEXTHOTKEYS);
+      deh.nAction=DLLA_HOTKEYS_CHECKHOTKEY;
+      deh.dwHotkey=wHotkey;
+      deh.lpbExist=&bExist;
+      deh.wszName=wszName;
+      deh.nNameMax=MAX_PATH - 32;
+
+      pcs.pFunction=L"Hotkeys::Main";
+      pcs.lParam=(LPARAM)&deh;
+      pcs.dwSupport=PDS_STRWIDE;
+      CallPluginSend(NULL, &pcs, 0);
+
+      if (bExist)
+      {
+        xprintfW(wszHotkeyOwner, L"Hotkeys::Main::%s", wszName);
+        nOwner=HKO_HOTKEYSPLUGIN;
+      }
+    }
   }
-  else if ((pfElement=StackPluginFind(&hPluginsStack, L"Hotkeys::Main", -1)) && pfElement->bRunning)
-  {
-    //Hotkeys external call defines
-    #define DLLA_HOTKEYS_CHECKHOTKEY  1
-
-    typedef struct {
-      UINT_PTR dwStructSize;
-      INT_PTR nAction;
-      UINT_PTR dwHotkey;
-      BOOL *lpbExist;
-      wchar_t *wszName;
-      INT_PTR nNameMax;
-    } DLLEXTHOTKEYS;
-
-    //Hotkeys external call
-    PLUGINCALLSENDW pcs;
-    DLLEXTHOTKEYS deh;
-    wchar_t wszName[MAX_PATH];
-
-    wszName[0]=L'\0';
-    deh.dwStructSize=sizeof(DLLEXTHOTKEYS);
-    deh.nAction=DLLA_HOTKEYS_CHECKHOTKEY;
-    deh.dwHotkey=wHotkey;
-    deh.lpbExist=&bExist;
-    deh.wszName=wszName;
-    deh.nNameMax=MAX_PATH - 32;
-
-    pcs.pFunction=L"Hotkeys::Main";
-    pcs.lParam=(LPARAM)&deh;
-    pcs.dwSupport=PDS_STRWIDE;
-    CallPluginSend(NULL, &pcs, 0);
-
-    if (bExist) xprintfW(wszHotkeyOwner, L"Hotkeys::Main::%s", wszName);
-  }
-  return bExist;
+  return nOwner;
 }
 
 
@@ -13248,13 +13256,13 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       PLUGINLISTITEM *pliElement;
       LVITEMW lviW;
       wchar_t wszHotkeyOwner[MAX_PATH];
-      BOOL bHotkeyExist=FALSE;
+      int nOwner=HKO_NONE;
       WORD wHotkey;
 
       if (wHotkey=(WORD)SendMessage(hWndHotkey, HKM_GETHOTKEY, 0, 0))
-        bHotkeyExist=CheckHotkey(wHotkey, wszHotkeyOwner);
+        nOwner=CheckHotkey(wHotkey, wszHotkeyOwner);
 
-      if (!bHotkeyExist)
+      if (nOwner == HKO_NONE)
       {
         GetHotkeyString(wHotkey, wbuf);
         lviW.mask=LVIF_TEXT;

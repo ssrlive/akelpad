@@ -959,7 +959,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg);
 int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
-BOOL CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner);
+int CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner);
 
 BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
