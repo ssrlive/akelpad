@@ -1741,6 +1741,9 @@ typedef struct {
 #define IDM_EDIT_DELLINE                4197  //Delete current line.
                                               //Return Value: zero.
                                               //
+#define IDM_EDIT_SELJUMPCARET           4199  //Move caret on the contrary side of selection.
+                                              //Return Value: TRUE - jump to selection beginning, FALSE - jump to selection ending.
+                                              //
 #define IDM_VIEW_FONT                   4201  //Font dialog.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //

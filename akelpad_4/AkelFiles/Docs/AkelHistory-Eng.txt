@@ -1,6 +1,9 @@
 
 AkelPad 4.7.7 ()
 ----------------------------
+Added: checking hotkey existence in the Hotkeys plugin.
+Added: command 4199 - move caret on the contrary side of selection.
+
 Fixed: in overtype mode space and tabulation inserted without replacement.
 Fixed: size of the first non-maximized MDI frame when status bar is on.
 Fixed: size of the first maximized MDI frame when status bar and tab panel are off.

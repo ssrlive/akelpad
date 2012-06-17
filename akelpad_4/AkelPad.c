@@ -4099,6 +4099,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoNonMenuDelLine(lpFrameCurrent->ei.hWndEdit);
     }
+    else if (LOWORD(wParam) == IDM_EDIT_SELJUMPCARET)
+    {
+      return DoNonMenuSelJumpCaret(lpFrameCurrent->ei.hWndEdit);
+    }
     else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN ||
              LOWORD(wParam) == IDM_EDIT_NEWLINE_UNIX ||
              LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
@@ -6432,9 +6436,9 @@ LRESULT CALLBACK NewButtonDrawProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndToolTip=NULL;
   static TOOLINFOA tiA;
   static TOOLINFOW tiW;
+  static HWND hWndToolTip=NULL;
   static HWND hWndLButtonClick=NULL;
   static WORD wInitHotkey;
   LRESULT lResult=0;
@@ -6474,7 +6478,6 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     MSG msg;
     RECT rcWindow;
     BOOL bOwnKey=FALSE;
-    BOOL bHotkeyExist=FALSE;
     BYTE nMod=0;
     WORD wHotkey;
 
@@ -6566,16 +6569,15 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
     //Show tooltip if hotkey already exist
     {
-      PLUGINFUNCTION *pfElement=NULL;
+      wchar_t wszHotkeyOwner[MAX_PATH];
+      BOOL bHotkeyExist=FALSE;
 
       if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
       {
         if (wHotkey != wInitHotkey)
         {
-          if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
+          if (bHotkeyExist=CheckHotkey(wHotkey, wszHotkeyOwner))
           {
-            bHotkeyExist=TRUE;
-
             if (!hWndToolTip)
             {
               hWndToolTip=CreateWindowExWide(WS_EX_TOPMOST,
@@ -6593,12 +6595,13 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
               if (bOldWindows)
               {
+                WideCharToMultiByte(CP_ACP, 0, wszHotkeyOwner, -1, buf, MAX_PATH, NULL, NULL);
                 tiA.cbSize=sizeof(TOOLINFOA);
                 tiA.uFlags=TTF_ABSOLUTE|TTF_TRACK;
                 tiA.hwnd=hWnd;
                 tiA.hinst=hInstance;
                 tiA.uId=0;
-                tiA.lpszText=pfElement->szFunction;
+                tiA.lpszText=buf;
                 SendMessage(hWndToolTip, TTM_ADDTOOLA, 0, (LPARAM)&tiA);
               }
               else
@@ -6608,7 +6611,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 tiW.hwnd=hWnd;
                 tiW.hinst=hInstance;
                 tiW.uId=0;
-                tiW.lpszText=pfElement->wszFunction;
+                tiW.lpszText=wszHotkeyOwner;
                 SendMessage(hWndToolTip, TTM_ADDTOOLW, 0, (LPARAM)&tiW);
               }
             }
@@ -6616,12 +6619,13 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             {
               if (bOldWindows)
               {
-                tiA.lpszText=pfElement->szFunction;
+                WideCharToMultiByte(CP_ACP, 0, wszHotkeyOwner, -1, buf, MAX_PATH, NULL, NULL);
+                tiA.lpszText=buf;
                 SendMessage(hWndToolTip, TTM_SETTOOLINFOA, 0, (LPARAM)&tiA);
               }
               else
               {
-                tiW.lpszText=pfElement->wszFunction;
+                tiW.lpszText=wszHotkeyOwner;
                 SendMessage(hWndToolTip, TTM_SETTOOLINFOW, 0, (LPARAM)&tiW);
               }
             }
@@ -6647,7 +6651,6 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   //Draw color rectangle if hotkey already exist
   if (uMsg == WM_PAINT)
   {
-    PLUGINFUNCTION *pfElement=NULL;
     HPEN hPen;
     HPEN hPenOld;
     HDC hDC;
@@ -6657,8 +6660,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
     if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
       if (wHotkey != wInitHotkey)
-        if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
-          bDrawRect=TRUE;
+        bDrawRect=CheckHotkey(wHotkey, NULL);
 
     if (bDrawRect)
     {
