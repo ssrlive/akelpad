@@ -2965,16 +2965,17 @@ void DoNonMenuDelLine(HWND hWnd)
 
 BOOL DoNonMenuSelJumpCaret(HWND hWnd)
 {
-  if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+  AECHARINDEX *lpciNewCaret=&crCurSel.ciMin;
+
+  if (AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
-    SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS, &crCurSel.ciMax);
-    return FALSE;
+    if (!AEC_IndexCompare(&crCurSel.ciMin, &ciCurCaret))
+      lpciNewCaret=&crCurSel.ciMax;
+
+    SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, lpciNewCaret);
+    ScrollCaret(hWnd);
   }
-  else
-  {
-    SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS, &crCurSel.ciMin);
-    return TRUE;
-  }
+  return (lpciNewCaret == &crCurSel.ciMin);
 }
 
 
