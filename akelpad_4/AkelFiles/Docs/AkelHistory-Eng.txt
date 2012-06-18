@@ -10,6 +10,7 @@ Fixed: size of the first maximized MDI frame when status bar and tab panel are o
 Fixed: drawing tab bar, located at the bottom, when the status bar is turned on (PMDI).
 Fixed: current directory in the file open/save dialog.
 Fixed: search backward with regular expressions.
+Fixed: search forward with regular expressions and whole word option.
 
 
 AkelPad 4.7.6 (Jun 03, 2012)

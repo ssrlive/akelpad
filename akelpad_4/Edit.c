@@ -9640,56 +9640,31 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
     if (!(lpFrame->nCompileErrorOffset=PatCompile(&hREGroupStack, wpFindIt, wpFindIt + nFindItLen)))
     {
-      if (dwFlags & AEFR_UP)
+      while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
       {
-        while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
+        //*(wpFindIt + nFindItLen - 1) == L'$'
+        if (!AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd))
         {
-          //*(wpFindIt + nFindItLen - 1) == L'$'
-          if (!AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd))
-          {
-            if (AEC_NextChar(&ft.crSearch.ciMin) && AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) < 0)
-              if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
-                break;
-          }
-
-          if (!(dwFlags & AEFR_WHOLEWORD) ||
-              (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&hREGroupStack.first->ciStrStart) &&
-               SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&hREGroupStack.first->ciStrEnd)))
-          {
-            ft.crFound.ciMin=hREGroupStack.first->ciStrStart;
-            ft.crFound.ciMax=hREGroupStack.first->ciStrEnd;
-            bFound=TRUE;
-          }
-
-          //Next match
-          if (AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0)
-            ft.crSearch.ciMin=hREGroupStack.first->ciStrEnd;
-          if (AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) >= 0)
-            break;
+          if (AEC_NextChar(&ft.crSearch.ciMin) && AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) < 0)
+            if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
+              break;
         }
-      }
-      else
-      {
-        while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
-        {
-          //*(wpFindIt + nFindItLen - 1) == L'$'
-          if (!AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd))
-          {
-            if (AEC_NextChar(&ft.crSearch.ciMin) && AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) < 0)
-              if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
-                break;
-          }
 
-          if (!(dwFlags & AEFR_WHOLEWORD) ||
-              (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&hREGroupStack.first->ciStrStart) &&
-               SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&hREGroupStack.first->ciStrEnd)))
-          {
-            ft.crFound.ciMin=hREGroupStack.first->ciStrStart;
-            ft.crFound.ciMax=hREGroupStack.first->ciStrEnd;
-            bFound=TRUE;
-          }
+        if (!(dwFlags & AEFR_WHOLEWORD) ||
+            (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&hREGroupStack.first->ciStrStart) &&
+             SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&hREGroupStack.first->ciStrEnd)))
+        {
+          ft.crFound.ciMin=hREGroupStack.first->ciStrStart;
+          ft.crFound.ciMax=hREGroupStack.first->ciStrEnd;
+          bFound=TRUE;
+          if (!(dwFlags & AEFR_UP)) break;
+        }
+
+        //Next match
+        if (AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0)
+          ft.crSearch.ciMin=hREGroupStack.first->ciStrEnd;
+        if (AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) >= 0)
           break;
-        }
       }
       PatFree(&hREGroupStack);
     }
