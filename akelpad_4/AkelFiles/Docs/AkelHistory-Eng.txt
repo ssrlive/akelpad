@@ -1,6 +1,9 @@
 
 AkelPad 4.7.7 ()
 ----------------------------
+Changed: command 4196 - inserts new line without keeping left spaces, if option
+         "Keep space" is on.
+
 Added: checking hotkey existence in the Hotkeys plugin.
 Added: command 4199 - move caret on the contrary side of selection (Alt+\).
 
