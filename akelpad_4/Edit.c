@@ -12635,7 +12635,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
 
     if (pfElement && pfElement->PluginProc)
     {
-      if ((pfElement->PluginProc)(pfElement->lpParameter))
+      if ((pfElement->PluginProc)(pfElement->lpParameter?pfElement->lpParameter:(void *)pcs->lParam))
         nResult=UD_NONUNLOAD_UNCHANGE;
       else
         nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
@@ -20419,7 +20419,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     if (*wpPat == L']')
     {
-      if (!bClassOpen || *(wpPat - 1) == L'-')
+      if (!bClassOpen)
         goto Error;
       bClassOpen=FALSE;
       wpClassEnd=++wpPat;
@@ -20428,6 +20428,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     if (bClassOpen)
     {
       ++wpPat;
+      if (*wpPat == L']')
+        goto Error;
       continue;
     }
     //Class open
