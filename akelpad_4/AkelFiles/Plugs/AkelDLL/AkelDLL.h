@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 4)
 
 
 //// Defines
@@ -1126,7 +1126,7 @@ typedef struct {
   BOOL bAutoLoad;             //TRUE  if function has autoload flag.
                               //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter.
+  void *lpParameter;          //Procedure parameter. If lpParameter is NULL, then PLUGINDATA.lParam will be passed to PluginProc procedure.
 } PLUGINADDA;
 
 typedef struct {
@@ -1135,7 +1135,7 @@ typedef struct {
   BOOL bAutoLoad;             //TRUE  if function has autoload flag.
                               //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter.
+  void *lpParameter;          //Procedure parameter. If lpParameter is NULL, then PLUGINDATA.lParam will be passed to PluginProc procedure.
 } PLUGINADDW;
 
 typedef struct {
