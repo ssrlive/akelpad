@@ -1421,6 +1421,7 @@ BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL DoFileOpen()
 {
   OPENFILENAME_2000W ofnW;
+  wchar_t wszOpenFile[MAX_PATH];
   wchar_t wszOpenDir[MAX_PATH];
   wchar_t *wszFileList;
   DIALOGCODEPAGE dc;
@@ -1439,21 +1440,26 @@ BOOL DoFileOpen()
     dc.bBOM=-1;
     bShowPlacesBarInit=moCur.bShowPlacesBar;
 
-    //Open file dialog
-    nFileLen=(int)xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
+    //Initial directory
+    nFileLen=(int)xstrcpynW(wszOpenFile, lpFrameCurrent->wszFile, MAX_PATH);
     if (lpFrameCurrent->nStreamOffset)
     {
-      wszFileList[lpFrameCurrent->nStreamOffset]=L'\0';
-      wszFileList[lpFrameCurrent->nStreamOffset + 1]=L'\0';
+      wszOpenFile[lpFrameCurrent->nStreamOffset]=L'\0';
+      wszOpenFile[lpFrameCurrent->nStreamOffset + 1]=L'\0';
+      nFileLen=lpFrameCurrent->nStreamOffset;
     }
-    if (*wszFileList)
+    if (*wszOpenFile)
     {
-      GetFileDir(wszFileList, nFileLen, wszOpenDir, MAX_PATH);
+      GetFileDir(wszOpenFile, nFileLen, wszOpenDir, MAX_PATH);
       if (!DirExistsWide(wszOpenDir))
         xstrcpynW(wszOpenDir, moCur.wszLastDir, MAX_PATH);
     }
     else xstrcpynW(wszOpenDir, moCur.wszLastDir, MAX_PATH);
 
+    //Initial file
+    xprintfW(wszFileList, L"%s", GetFileName(wszOpenFile, nFileLen));
+
+    //Show dialog
     xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
     ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
@@ -1651,7 +1657,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   dc.bBOM=bDialogBOM;
   bShowPlacesBarInit=moCur.bShowPlacesBar;
 
-  //Save file dialog
+  //Initial directory
   nFileLen=(int)xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
   if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'_';
   if (*wszSaveFile)
@@ -1661,6 +1667,9 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
       xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
   }
   else xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
+
+  //Initial file
+  xprintfW(wszSaveFile, L"%s", GetFileName(wszSaveFile, nFileLen));
 
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
   ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
