@@ -9354,7 +9354,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
         if (nResult == -1)
         {
-          if (lpFrameCurrent->nCompileErrorOffset)
+          if ((moCur.dwSearchOptions & AEFR_REGEXP) && lpFrameCurrent->nCompileErrorOffset)
           {
             API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
