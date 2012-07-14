@@ -273,7 +273,7 @@ MAINOPTIONS moInit;
 MAINOPTIONS moCur;
 HWND hMainWnd=NULL;
 HWND hDummyWindow;
-DWORD dwLastMainSizeType=0;
+DWORD dwLastMainSizeType=SIZE_RESTORED;
 DWORD dwLastMainSizeClient=0;
 DWORD dwMouseCapture=0;
 HACCEL hGlobalAccel;
@@ -3693,7 +3693,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    dwLastMainSizeType=(DWORD)wParam;
+    if (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)
+      dwLastMainSizeType=(DWORD)wParam;
     //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
     if (dwLastMainSizeClient == (DWORD)lParam)
       return TRUE;
