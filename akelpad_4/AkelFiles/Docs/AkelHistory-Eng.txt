@@ -14,6 +14,7 @@ Fixed: drawing tab bar, located at the bottom, when the status bar is turned on 
 Fixed: current directory in the file open/save dialog.
 Fixed: search backward with regular expressions.
 Fixed: search forward with regular expressions and whole word option.
+Fixed: restore maximized state on startup after closing main window in minimized state.
 
 
 AkelPad 4.7.6 (Jun 03, 2012)
