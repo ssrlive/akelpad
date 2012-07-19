@@ -1,6 +1,7 @@
 
 AkelPad 4.7.7 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
 Changed: command 4196 - inserts new line without keeping left spaces, if option
          "Keep space" is on.
 
