@@ -927,7 +927,7 @@ int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax);
 void LanguageMenu();
 
 void FillMenuPopupCodepage();
-void ShowMenuPopupCodepage(POINT *ptScreen);
+void ShowMenuPopupCodepage(POINT *ptScreen, BOOL bMouse);
 
 void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCodePageFrom, int *nCodePageTo);
 BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

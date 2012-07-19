@@ -11406,13 +11406,14 @@ void FillMenuPopupCodepage()
   }
 }
 
-void ShowMenuPopupCodepage(POINT *ptScreen)
+void ShowMenuPopupCodepage(POINT *ptScreen, BOOL bMouse)
 {
   NCONTEXTMENU ncm;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
   ncm.pt=*ptScreen;
+  ncm.bMouse=bMouse;
   ncm.bProcess=TRUE;
   SendMessage(hMainWnd, AKDN_CONTEXTMENU, 0, (LPARAM)&ncm);
 
@@ -12644,7 +12645,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
 
     if (pfElement && pfElement->PluginProc)
     {
-      if ((pfElement->PluginProc)(pfElement->lpParameter?pfElement->lpParameter:(void *)pcs->lParam))
+      if ((pfElement->PluginProc)(pfElement->lpParameter, pcs->lParam, pcs->dwSupport))
         nResult=UD_NONUNLOAD_UNCHANGE;
       else
         nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
@@ -12952,7 +12953,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
   }
   else if (lpMsg->message == AKD_CALLPROC)
   {
-    PLUGINPROC lpProcedure=(PLUGINPROC)lpMsg->wParam;
+    CALLPROC lpProcedure=(CALLPROC)lpMsg->wParam;
     void *lpParameter=(void *)lpMsg->lParam;
 
     (lpProcedure)(lpParameter);
@@ -20436,9 +20437,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     if (bClassOpen)
     {
-      ++wpPat;
-      if (*wpPat == L']')
+      if (*wpPat == L'[')
         goto Error;
+      ++wpPat;
       continue;
     }
     //Class open

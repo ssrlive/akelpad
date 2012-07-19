@@ -3897,7 +3897,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       SendMessage(hStatus, SB_GETRECT, SBP_CODEPAGE, (LPARAM)&rc);
       ClientToScreen(hStatus, (POINT *)&rc);
-      ShowMenuPopupCodepage((POINT *)&rc);
+      ShowMenuPopupCodepage((POINT *)&rc, FALSE);
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
@@ -4566,7 +4566,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           POINT pt;
 
           GetCursorPos(&pt);
-          ShowMenuPopupCodepage(&pt);
+          ShowMenuPopupCodepage(&pt, TRUE);
         }
       }
     }
@@ -4800,6 +4800,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       ncm.hWnd=lpFrameCurrent->ei.hWndEdit;
       ncm.uType=NCM_EDIT;
       ncm.pt=pt;
+      ncm.bMouse=(lParam != -1);
       ncm.bProcess=TRUE;
       SendMessage(hMainWnd, AKDN_CONTEXTMENU, 0, (LPARAM)&ncm);
       if (ncm.bProcess)
@@ -5752,6 +5753,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ncm.hWnd=hWnd;
         ncm.uType=NCM_TAB;
         ncm.pt=pt;
+        ncm.bMouse=TRUE;
         ncm.bProcess=TRUE;
         SendMessage(hMainWnd, AKDN_CONTEXTMENU, 0, (LPARAM)&ncm);
         if (ncm.bProcess)

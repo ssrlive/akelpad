@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 7, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 0)
 
 
 //// Defines
@@ -798,8 +798,16 @@ DECLARE_HANDLE (HINIFILE);
 DECLARE_HANDLE (HINISECTION);
 DECLARE_HANDLE (HINIKEY);
 
-typedef BOOL (CALLBACK *PLUGINPROC)(void *);
 typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
+typedef void (CALLBACK *CALLPROC)(void *);
+typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSupport);
+//lpParameter  Procedure parameter. Specified in AKD_DLLADD message (PLUGINADD.lpParameter).
+//lParam       Input data. Specified in AKD_DLLCALL message.
+//dwSupport    See PDS_* defines. Specified in AKD_DLLCALL message.
+//
+//Return Value
+// TRUE  catch hotkey.
+// FALSE do default hotkey processing.
 
 typedef struct {
   DWORD cb;                   //Size of the structure.
@@ -1126,7 +1134,7 @@ typedef struct {
   BOOL bAutoLoad;             //TRUE  if function has autoload flag.
                               //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter. If lpParameter is NULL, then PLUGINDATA.lParam will be passed to PluginProc procedure.
+  void *lpParameter;          //Procedure parameter.
 } PLUGINADDA;
 
 typedef struct {
@@ -1135,7 +1143,7 @@ typedef struct {
   BOOL bAutoLoad;             //TRUE  if function has autoload flag.
                               //FALSE if function has no autoload flag.
   PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter. If lpParameter is NULL, then PLUGINDATA.lParam will be passed to PluginProc procedure.
+  void *lpParameter;          //Procedure parameter.
 } PLUGINADDW;
 
 typedef struct {
@@ -1527,6 +1535,7 @@ typedef struct {
   HWND hWnd;              //Context menu window.
   UINT uType;             //Type:    NCM_EDIT, NCM_TAB or NCM_STATUS.
   POINT pt;               //Context menu coordiates.
+  BOOL bMouse;            //Context menu is requested with mouse.
   BOOL bProcess;          //TRUE   show context menu.
                           //FALSE  do not show context menu.
 } NCONTEXTMENU;
@@ -4172,7 +4181,7 @@ Return Value
  Pointer to a PLUGINFUNCTION structure in stack.
 
 Example add plugin hotkey (Unicode):
- BOOL CALLBACK PluginProc(void *lpParameter)
+ BOOL CALLBACK PluginProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
  {
    return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing.
  }
@@ -4235,8 +4244,8 @@ ____________
 
 Call procedure.
 
-(PLUGINPROC)wParam == procedure address.
-(void *)lParam     == pointer to a variable to be passed to the procedure.
+(CALLPROC)wParam == procedure address.
+(void *)lParam   == pointer to a variable to be passed to the procedure.
 
 Return Value
  Zero.
