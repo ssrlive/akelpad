@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.7.5"
+  !define PRODUCT_VERSION "4.7.7"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -93,6 +93,8 @@ Var HWND
 Var REDCTL
 Var INSTTYPE
 Var SHORTCUT
+Var COMSPEC
+Var USERNAME
 Var SETUPDIR
 Var SETUPEXE
 Var TCDIR
@@ -247,6 +249,10 @@ Function .onInit
   ${GetOptions} $PARAMETERS "/SHORTCUT=" $0
   IfErrors +2
   StrCpy $SHORTCUT $0
+
+  #Environment variables
+  ReadEnvStr $COMSPEC COMSPEC
+  ReadEnvStr $USERNAME USERNAME
 
   #Silent install
   IfSilent 0 custom
@@ -592,12 +598,12 @@ Section
           Pop $0
         !endif
 
-        nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
+        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
         Pop $0
-        nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
+        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
         Pop $0
         !if ${PRODUCT_BIT} == "64"
-          nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "%USERNAME%":F'
+          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
           Pop $0
         !endif
       ${EndIf}
@@ -809,12 +815,12 @@ Section un.install
         Pop $0
       !endif
 
-      nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
+      nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
       Pop $0
-      nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
+      nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
       Pop $0
       !if ${PRODUCT_BIT} == "64"
-        nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "%USERNAME%":F'
+        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
         Pop $0
       !endif
     ${EndIf}
