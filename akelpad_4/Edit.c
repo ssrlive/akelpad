@@ -20818,8 +20818,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             {
               if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               {
-                lpREGroupNext=lpREGroupNextNext;
-                wpStr=lpREGroupNext->wpStrEnd;
+                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                {
+                  lpREGroupNext=lpREGroupNextNext;
+                  wpStr=lpREGroupNext->wpStrEnd;
+                }
                 goto NextGroup;
               }
             }
@@ -20858,7 +20861,10 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
       if (*wpPat == L'.')
       {
-        //Any char
+        ////Any character except new line
+        //wpStr+=PatChar(wpStr, wpMaxStr, &wchStrChar);
+        //if (wchStrChar == L'\n')
+        //  goto EndLoop;
       }
       else if (*wpPat == L'^')
       {
@@ -21145,8 +21151,11 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             {
               if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               {
-                lpREGroupNext=lpREGroupNextNext;
-                ciStr=lpREGroupNext->ciStrEnd;
+                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                {
+                  lpREGroupNext=lpREGroupNextNext;
+                  ciStr=lpREGroupNext->ciStrEnd;
+                }
                 goto NextGroup;
               }
             }
@@ -21192,7 +21201,10 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
       if (*wpPat == L'.')
       {
-        //Any char
+        ////Any character except new line
+        //wchStrChar=AE_PatChar(&ciStr);
+        //if (wchStrChar == L'\n')
+        //  goto EndLoop;
       }
       else if (*wpPat == L'^')
       {
