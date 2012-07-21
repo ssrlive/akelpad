@@ -2691,7 +2691,7 @@ Example:
 AKD_PARSECMDLINEW
 _________________
 
-Set command line options.
+Parse command line string.
 
 wParam                      == not used.
 (PARSECMDLINESENDW *)lpData == pointer to a PARSECMDLINESENDW structure.
@@ -2710,7 +2710,7 @@ Example:
 AKD_DETECTANSITEXT
 __________________
 
-Detect codepage of a ansi text.
+Detect codepage of ansi text.
 
 lParam                   == not used.
 (DETECTANSITEXT *)lParam == pointer to a DETECTANSITEXT structure.
@@ -2732,7 +2732,7 @@ Example:
 AKD_DETECTUNITEXT
 _________________
 
-Detect ansi codepage of a unicode text.
+Detect ansi codepage of unicode text.
 
 lParam                  == not used.
 (DETECTUNITEXT *)lParam == pointer to a DETECTUNITEXT structure.
@@ -2754,7 +2754,7 @@ Example:
 AKD_CONVERTANSITEXT
 ___________________
 
-Change codepage of a ansi text.
+Change codepage of ansi text.
 
 lParam                    == not used.
 (CONVERTANSITEXT *)lParam == pointer to a CONVERTANSITEXT structure.
@@ -2776,7 +2776,7 @@ Example:
 AKD_CONVERTUNITEXT
 __________________
 
-Change codepage of a unicode text.
+Change codepage of unicode text.
 
 lParam                   == not used.
 (CONVERTUNITEXT *)lParam == pointer to a CONVERTUNITEXT structure.
