@@ -105,7 +105,7 @@
 #define SD_SELECTION         0x00000002  //Save only selection.
 
 //Save document errors
-#define ESD_SUCCESS          0   //Success.
+#define ESD_SUCCESS          0  //Success.
 #define ESD_OPEN            -1  //Can't open file.
 #define ESD_WRITE           -2  //Can't write to file.
 #define ESD_READONLY        -3  //File has read-only attribute.
@@ -411,19 +411,19 @@
 #define SBP_USER       5
 
 //Tab options MDI
-#define TAB_VIEW_NONE           0x00000001
-#define TAB_VIEW_TOP            0x00000002
-#define TAB_VIEW_BOTTOM         0x00000004
-#define TAB_TYPE_STANDARD       0x00000100
-#define TAB_TYPE_BUTTONS        0x00000200
-#define TAB_TYPE_FLATBUTTONS    0x00000400
-#define TAB_SWITCH_NEXTPREV     0x00010000
-#define TAB_SWITCH_RIGHTLEFT    0x00020000
-#define TAB_ADD_AFTERCURRENT    0x00080000
-#define TAB_NOADD_LBUTTONDBLCLK 0x00100000
-#define TAB_NOADD_MBUTTONDOWN   0x00200000
-#define TAB_NODEL_LBUTTONDBLCLK 0x00400000
-#define TAB_NODEL_MBUTTONDOWN   0x00800000
+#define TAB_VIEW_NONE           0x00000001  //Hide tab bar.
+#define TAB_VIEW_TOP            0x00000002  //Show tab bar on top.
+#define TAB_VIEW_BOTTOM         0x00000004  //Show tab bar at the bottom.
+#define TAB_TYPE_STANDARD       0x00000100  //Standard tab bar style.
+#define TAB_TYPE_BUTTONS        0x00000200  //Buttons tab bar style.
+#define TAB_TYPE_FLATBUTTONS    0x00000400  //Flat buttons tab bar style.
+#define TAB_SWITCH_NEXTPREV     0x00010000  //Switch between tabs: Next-Previous.
+#define TAB_SWITCH_RIGHTLEFT    0x00020000  //Switch between tabs: Left-Right.
+#define TAB_ADD_AFTERCURRENT    0x00080000  //Create tabs after the current one.
+#define TAB_NOADD_LBUTTONDBLCLK 0x00100000  //Don't create new tab by left button double click on the tab bar.
+#define TAB_NOADD_MBUTTONDOWN   0x00200000  //Don't create new tab by middle button click on the tab bar.     
+#define TAB_NODEL_LBUTTONDBLCLK 0x00400000  //Don't close tab by left button double click on the tab.         
+#define TAB_NODEL_MBUTTONDOWN   0x00800000  //Don't close tab by middle button click on the tab.              
 
 //File types association
 #define FTA_ASSOCIATE     0x00000001  //Internal.
@@ -4937,7 +4937,9 @@ Example (Unicode):
 #ifndef UNICODE
   #define DETECTFILE DETECTFILEA
   #define OPENDOCUMENT OPENDOCUMENTA
+  #define OPENDOCUMENTPOST OPENDOCUMENTPOSTA
   #define SAVEDOCUMENT SAVEDOCUMENTA
+  #define PLUGINADD PLUGINADDA
   #define PLUGINCALLSEND PLUGINCALLSENDA
   #define PLUGINCALLPOST PLUGINCALLPOSTA
   #define PLUGINOPTION PLUGINOPTIONA
@@ -4948,7 +4950,9 @@ Example (Unicode):
 #else
   #define DETECTFILE DETECTFILEW
   #define OPENDOCUMENT OPENDOCUMENTW
+  #define OPENDOCUMENTPOST OPENDOCUMENTPOSTW
   #define SAVEDOCUMENT SAVEDOCUMENTW
+  #define PLUGINADD PLUGINADDW
   #define PLUGINCALLSEND PLUGINCALLSENDW
   #define PLUGINCALLPOST PLUGINCALLPOSTW
   #define PLUGINOPTION PLUGINOPTIONW
