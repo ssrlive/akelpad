@@ -20634,6 +20634,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         bGroupNextChars=TRUE;
         //Mark all parents if lpREGroupNew is the first item in group
         wpPatLeft=lpREGroupNew->wpPatLeft;
+        lpREGroupNew->dwFlags|=REGF_CHILDNOMAXMATCH;
 
         for (lpREGroupParent=lpREGroupNew->parent; lpREGroupParent; lpREGroupParent=lpREGroupParent->parent)
         {
