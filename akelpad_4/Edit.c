@@ -13618,7 +13618,8 @@ int GetHotkeyString(WORD wHotkey, wchar_t *wszString)
   LONG lScan;
   int nResult=0;
 
-  wszString[0]='\0';
+  wszString[0]=L'\0';
+  wszKeyText[0]=L'\0';
 
   if (wHotkey)
   {
@@ -13631,9 +13632,9 @@ int GetHotkeyString(WORD wHotkey, wchar_t *wszString)
     GetKeyNameTextWide(lScan, wszKeyText, 100);
 
     nResult=(int)xprintfW(wszString, L"%s%s%s%s",
-                                    (HIBYTE(wHotkey) & HOTKEYF_CONTROL)?L"Ctrl + ":L"",
-                                    (HIBYTE(wHotkey) & HOTKEYF_SHIFT)?L"Shift + ":L"",
-                                    (HIBYTE(wHotkey) & HOTKEYF_ALT)?L"Alt + ":L"",
+                                     (HIBYTE(wHotkey) & HOTKEYF_CONTROL)?L"Ctrl + ":L"",
+                                     (HIBYTE(wHotkey) & HOTKEYF_SHIFT)?L"Shift + ":L"",
+                                     (HIBYTE(wHotkey) & HOTKEYF_ALT)?L"Alt + ":L"",
                                      wszKeyText);
   }
   return nResult;
