@@ -605,19 +605,21 @@
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //STACKREGROUP options
-#define REO_MATCHCASE        0x1 //Case-sensitive search.
-#define REO_MULTILINE        0x2 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_NOFIRSTLINEBEGIN 0x4 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
-#define REO_NOLASTLINEEND    0x8 //String ends not on line ending. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
+#define REO_MATCHCASE        0x001 //Case-sensitive search.
+#define REO_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define REO_NOFIRSTLINEBEGIN 0x004 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
+#define REO_NOLASTLINEEND    0x008 //String ends not on line ending. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
+#define REO_REFEXIST         0x100 //Internal.
 
 //REGROUP flags
-#define REGF_ROOTITEM 0x01
-#define REGF_ROOTANY  0x02
-#define REGF_ANY      0x04
-#define REGF_AFTERANY 0x08
-#define REGF_OR       0x10
-#define REGF_POSITIVE 0x20
-#define REGF_NEGATIVE 0x40
+#define REGF_ROOTITEM        0x001
+#define REGF_ROOTANY         0x002
+#define REGF_ANY             0x004
+#define REGF_AUTOGROUP       0x008
+#define REGF_OR              0x010
+#define REGF_POSITIVE        0x020
+#define REGF_NEGATIVE        0x040
+#define REGF_CHILDNOMAXMATCH 0x100
 
 //PatCharCmp return value
 #define RECC_EQUAL    0x01
