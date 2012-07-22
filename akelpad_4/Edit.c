@@ -20346,10 +20346,12 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   REGROUP *lpREGroupItem;
   REGROUP *lpREGroupNew;
   REGROUP *lpREGroupOr;
+  REGROUP *lpREGroupParent;
   const wchar_t *wpMinPat=wpPat;
   const wchar_t *wpClassStart=NULL;
   const wchar_t *wpClassEnd=NULL;
   const wchar_t *wpCharStart=NULL;
+  const wchar_t *wpPatLeft;
   int nIndex=0;
   BOOL bGroupNextChars=FALSE;
   BOOL bClassOpen=FALSE;
@@ -20391,7 +20393,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           *wpPat != L'?' &&
           *wpPat != L'{')
       {
-        //"(.*)456(789)0" -> group to "(.*)(456(789)0)". It will be used by REGF_ANY group.
+        //"(.*)456(789)0" -> group to "(.*)(456(789)0)".
         if (!StackInsertBefore((stack **)&lpREGroupItem->firstChild, (stack **)&lpREGroupItem->lastChild, (stack *)NULL, (stack **)&lpREGroupNew, sizeof(REGROUP)))
         {
           lpREGroupNew->parent=lpREGroupItem;
@@ -20400,7 +20402,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupNew->nMinMatch=1;
           lpREGroupNew->nMaxMatch=1;
           lpREGroupNew->nIndex=-1;
-          lpREGroupNew->dwFlags|=REGF_AFTERANY;
+          lpREGroupNew->dwFlags|=REGF_AUTOGROUP;
 
           lpREGroupItem=lpREGroupNew;
         }
@@ -20423,6 +20425,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           wpPat=wpCharStart;
           goto Error;
         }
+        hStack->dwOptions|=REO_REFEXIST;
       }
       else ++wpPat;
 
@@ -20455,10 +20458,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
     if (*wpPat == L'|')
     {
-      //Close all REGF_AFTERANY
+      //Close all REGF_AUTOGROUP
       do
       {
-        if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+        if (lpREGroupItem->dwFlags & REGF_AUTOGROUP)
         {
           lpREGroupItem->wpPatEnd=wpPat;
           lpREGroupItem->wpPatRight=wpPat;
@@ -20525,10 +20528,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       if (!lpREGroupItem->parent || lpREGroupItem->wpPatEnd)
         goto Error;
 
-      //Close all REGF_AFTERANY
+      //Close all REGF_AUTOGROUP
       do
       {
-        if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+        if (lpREGroupItem->dwFlags & REGF_AUTOGROUP)
         {
           lpREGroupItem->wpPatEnd=wpPat;
           lpREGroupItem->wpPatRight=wpPat;
@@ -20627,7 +20630,21 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
            (lpREGroupNew->wpPatEnd - 2 >= lpREGroupNew->wpPatStart && *(lpREGroupNew->wpPatEnd - 2) == L'\\' && *(lpREGroupNew->wpPatEnd - 1) == L'b')))
         goto Error;
       if (lpREGroupNew->nMaxMatch == -1)
+      {
         bGroupNextChars=TRUE;
+        //Mark all parents if lpREGroupNew is the first item in group
+        wpPatLeft=lpREGroupNew->wpPatLeft;
+
+        for (lpREGroupParent=lpREGroupNew->parent; lpREGroupParent; lpREGroupParent=lpREGroupParent->parent)
+        {
+          if (wpPatLeft == lpREGroupParent->wpPatStart)
+          {
+            lpREGroupParent->dwFlags|=REGF_CHILDNOMAXMATCH;
+            wpPatLeft=lpREGroupParent->wpPatLeft;
+          }
+          else break;
+        }
+      }
       wpCharStart=NULL;
 
       //We already non-greedy, so ignore it.
@@ -20681,10 +20698,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     goto Error;
   }
 
-  //Close all REGF_AFTERANY
+  //Close all REGF_AUTOGROUP
   do
   {
-    if (lpREGroupItem->dwFlags & REGF_AFTERANY)
+    if (lpREGroupItem->dwFlags & REGF_AUTOGROUP)
     {
       lpREGroupItem->wpPatEnd=wpPat;
       lpREGroupItem->wpPatRight=wpPat;
@@ -20778,10 +20795,16 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         if (wpStr >= wpMaxStr)
           goto EndLoop;
 
-        if (nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch)
+        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if (lpREGroupNextNext=PatNextGroup(lpREGroupItem))
+          if ((lpREGroupNextNext=PatNextGroup(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
           {
+            if (hStack->dwOptions & REO_REFEXIST)
+            {
+              //Set wpStrEnd to all parent groups for possible backreferences in child PatExec.
+              for (lpREGroupRef=lpREGroupItem->parent; lpREGroupRef; lpREGroupRef=lpREGroupRef->parent)
+                lpREGroupRef->wpStrEnd=wpStr;
+            }
             if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               goto EndLoop;
           }
@@ -20813,9 +20836,15 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         else
         {
+          if (hStack->dwOptions & REO_REFEXIST)
+          {
+            //Set wpStrStart for possible backreferences in child PatExec.
+            lpREGroupItem->wpStrStart=wpStrStart;
+          }
+
           if (!lpREGroupNext->nMinMatch)
           {
-            if (lpREGroupNextNext=PatNextGroup(lpREGroupNext))
+            if ((lpREGroupNextNext=PatNextGroup(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
             {
               if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               {
@@ -21111,10 +21140,16 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
           goto EndLoop;
 
-        if (nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch)
+        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if (lpREGroupNextNext=PatNextGroup(lpREGroupItem))
+          if ((lpREGroupNextNext=PatNextGroup(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
           {
+            if (hStack->dwOptions & REO_REFEXIST)
+            {
+              //Set ciStrEnd to all parent groups for possible backreferences in child AE_PatExec.
+              for (lpREGroupRef=lpREGroupItem->parent; lpREGroupRef; lpREGroupRef=lpREGroupRef->parent)
+                lpREGroupRef->ciStrEnd=ciStr;
+            }
             if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               goto EndLoop;
           }
@@ -21146,9 +21181,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         else
         {
+          if (hStack->dwOptions & REO_REFEXIST)
+          {
+            //Set ciStrStart for possible backreferences in child AE_PatExec.
+            lpREGroupItem->ciStrStart=ciStrStart;
+          }
+
           if (!lpREGroupNext->nMinMatch)
           {
-            if (lpREGroupNextNext=PatNextGroup(lpREGroupNext))
+            if ((lpREGroupNextNext=PatNextGroup(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
             {
               if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               {
