@@ -1,4 +1,9 @@
 
+AkelPad 4.7.8 ()
+----------------------------
+Changed: hotkey for command 4206 is now Ctrl+*.
+
+
 AkelPad 4.7.7 (Jul 22, 2012)
 ----------------------------
 Changed: plugin architecture. Update plugins.
