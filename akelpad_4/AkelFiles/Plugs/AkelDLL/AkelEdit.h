@@ -1565,6 +1565,8 @@ typedef struct {
 #define AEM_LOCKERASERECT         (WM_USER + 2356)
 #define AEM_HIDESELECTION         (WM_USER + 2361)
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
+#define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
+#define AEM_SETBACKGROUNDIMAGE    (WM_USER + 2367)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -4914,6 +4916,42 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_REDRAWLINERANGE, 10, (LPARAM)-1);
+
+
+AEM_GETBACKGROUNDIMAGE
+______________________
+
+Retrieve background image.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Image handle or NULL, if not set.
+
+Example:
+ HBITMAP hBitmap=(HBITMAP)SendMessage(hWndEdit, AEM_GETBACKGROUNDIMAGE, 0, 0);
+
+
+AEM_SETBACKGROUNDIMAGE
+______________________
+
+Set background image.
+
+(HBITMAP)wParam == image handle. If NULL, image removed from background.
+lParam          == not used.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+HBITMAP hBkImage;
+
+if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE))
+{
+  SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 0);
+}
 
 
 AEM_GETFOLDSTACK

@@ -1810,6 +1810,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (wParam)
       {
+        if (ae->popt->lpBkImage)
+        {
+          if (ae->popt->lpBkImage->hBitmap == (HBITMAP)wParam)
+            return FALSE;
+
+          //Remove from stack, if handle not assigned to any other edit window.
+          if (!--ae->popt->lpBkImage->nRefCount)
+            AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
+        }
+
         if (!(ae->popt->lpBkImage=AE_StackDcItemGet(&hAkelEditBitmapDcStack, (HBITMAP)wParam)))
           ae->popt->lpBkImage=AE_StackDcItemInsert(&hAkelEditBitmapDcStack, (HBITMAP)wParam);
         if (ae->popt->lpBkImage)
@@ -1817,20 +1827,26 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (ae->popt->lpBkImage->hDC)
           {
             ++ae->popt->lpBkImage->nRefCount;
-            return TRUE;
           }
-          AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
-          ae->popt->lpBkImage=NULL;
+          else
+          {
+            AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
+            ae->popt->lpBkImage=NULL;
+            return FALSE;
+          }
         }
-        return FALSE;
+        else return FALSE;
       }
-      else
+      else if (ae->popt->lpBkImage)
       {
         //Remove from stack, if handle not assigned to any other edit window.
         if (!--ae->popt->lpBkImage->nRefCount)
           AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
         ae->popt->lpBkImage=NULL;
       }
+      else return FALSE;
+
+      InvalidateRect(ae->hWndEdit, NULL, TRUE);
       return TRUE;
     }
 
