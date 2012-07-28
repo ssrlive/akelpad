@@ -1812,12 +1812,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         if (!(ae->popt->lpBkImage=AE_StackDcItemGet(&hAkelEditBitmapDcStack, (HBITMAP)wParam)))
           ae->popt->lpBkImage=AE_StackDcItemInsert(&hAkelEditBitmapDcStack, (HBITMAP)wParam);
-        if (ae->popt->lpBkImage && ae->popt->lpBkImage->hDC)
-          return TRUE;
+        if (ae->popt->lpBkImage)
+        {
+          if (ae->popt->lpBkImage->hDC)
+          {
+            ++ae->popt->lpBkImage->nRefCount;
+            return TRUE;
+          }
+          AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
+          ae->popt->lpBkImage=NULL;
+        }
         return FALSE;
       }
-      else ae->popt->lpBkImage=NULL;
-
+      else
+      {
+        if (!--ae->popt->lpBkImage->nRefCount)
+          AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
+        ae->popt->lpBkImage=NULL;
+      }
       return TRUE;
     }
 
@@ -5779,6 +5791,11 @@ AEDCITEM* AE_StackDcItemGet(HSTACK *hStack, HBITMAP hBitmap)
       return lpElement;
   }
   return NULL;
+}
+
+void AE_StackDcItemDelete(HSTACK *hStack, AEDCITEM *lpElement)
+{
+  AE_HeapStackDelete(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement);
 }
 
 void AE_StackDcItemsFree(HSTACK *hStack)

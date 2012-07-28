@@ -383,6 +383,7 @@ typedef struct _AEBITMAPITEM {
 typedef struct _AEDCITEM {
   struct _AEDCITEM *next;
   struct _AEDCITEM *prev;
+  int nRefCount;
   HBITMAP hBitmap;
   HBITMAP hBitmapOld;
   HDC hDC;
@@ -744,6 +745,7 @@ AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEDCITEM* AE_StackDcItemInsert(HSTACK *hStack, HBITMAP hBitmap);
 AEDCITEM* AE_StackDcItemGet(HSTACK *hStack, HBITMAP hBitmap);
+void AE_StackDcItemDelete(HSTACK *hStack, AEDCITEM *lpElement);
 void AE_StackDcItemsFree(HSTACK *hStack);
 AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor);
 AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor);
