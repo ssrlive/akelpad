@@ -13876,7 +13876,7 @@ BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse)
 
 void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
 {
-  if (ae->popt->dwColumnMarkerPos)
+  if (ae->popt->dwColumnMarkerPos && nTop < nBottom)
   {
     HPEN hPenOld;
     INT_PTR nMarkerPos;
