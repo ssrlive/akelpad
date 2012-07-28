@@ -1826,6 +1826,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else
       {
+        //Remove from stack, if handle not assigned to any other edit window.
         if (!--ae->popt->lpBkImage->nRefCount)
           AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
         ae->popt->lpBkImage=NULL;
@@ -5795,6 +5796,11 @@ AEDCITEM* AE_StackDcItemGet(HSTACK *hStack, HBITMAP hBitmap)
 
 void AE_StackDcItemDelete(HSTACK *hStack, AEDCITEM *lpElement)
 {
+  if (lpElement->hDC)
+  {
+    if (lpElement->hBitmapOld) SelectObject(lpElement->hDC, lpElement->hBitmapOld);
+    DeleteDC(lpElement->hDC);
+  }
   AE_HeapStackDelete(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement);
 }
 
