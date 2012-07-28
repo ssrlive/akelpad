@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.7                               *
+ *                      AkelEdit text control v1.7.8                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -82,7 +82,8 @@ int nAkelEditHeapCount=0;
 HSTACK hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontsStackA={0};
 HSTACK hAkelEditFontsStackW={0};
-HSTACK hAkelEditBitmapsStack={0};
+HSTACK hAkelEditBitmapDataStack={0};
+HSTACK hAkelEditBitmapDcStack={0};
 HSTACK hAkelEditPensStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
@@ -272,7 +273,8 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
   }
   AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
-  AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
+  AE_StackBitmapItemsFree(&hAkelEditBitmapDataStack);
+  AE_StackDcItemsFree(&hAkelEditBitmapDcStack);
   AE_StackPenItemsFree(&hAkelEditPensStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
@@ -305,7 +307,8 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
   }
   AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
-  AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
+  AE_StackBitmapItemsFree(&hAkelEditBitmapDataStack);
+  AE_StackDcItemsFree(&hAkelEditBitmapDcStack);
   AE_StackPenItemsFree(&hAkelEditPensStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
@@ -1796,6 +1799,26 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AE_RedrawLineRange(ae, (int)wParam, (int)lParam, TRUE);
       return 0;
+    }
+    if (uMsg == AEM_GETBACKGROUNDIMAGE)
+    {
+      if (ae->popt->lpBkImage)
+        return (LRESULT)ae->popt->lpBkImage->hBitmap;
+      return (LRESULT)NULL;
+    }
+    if (uMsg == AEM_SETBACKGROUNDIMAGE)
+    {
+      if (wParam)
+      {
+        if (!(ae->popt->lpBkImage=AE_StackDcItemGet(&hAkelEditBitmapDcStack, (HBITMAP)wParam)))
+          ae->popt->lpBkImage=AE_StackDcItemInsert(&hAkelEditBitmapDcStack, (HBITMAP)wParam);
+        if (ae->popt->lpBkImage && ae->popt->lpBkImage->hDC)
+          return TRUE;
+        return FALSE;
+      }
+      else ae->popt->lpBkImage=NULL;
+
+      return TRUE;
     }
 
     //Folding
@@ -4489,12 +4512,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_ERASEBKGND)
   {
-    RECT rcErase;
-    HBRUSH hbrBasicBk;
     AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
     AEERASE *lpEraseNext;
+    RECT rcErase;
 
-    hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+    ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
 
     //Message came not from WM_PAINT - use all edit area
     if (!lpErase)
@@ -4509,28 +4531,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
           rcErase=lpErase->rcErase;
           rcErase.right=min(rcErase.right, ae->rcDraw.left);
-          FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.left=rcErase.right;
         }
         if (lpErase->rcErase.top < ae->rcDraw.top)
         {
           rcErase=lpErase->rcErase;
           rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
-          FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.top=rcErase.bottom;
         }
         if (lpErase->rcErase.right > ae->rcDraw.right)
         {
           rcErase=lpErase->rcErase;
           rcErase.left=max(rcErase.left, ae->rcDraw.right);
-          FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.right=rcErase.left;
         }
         if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
         {
           rcErase=lpErase->rcErase;
           rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
-          FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.bottom=rcErase.top;
         }
 
@@ -4540,7 +4562,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (rcErase.top < rcErase.bottom)
         {
-          FillRect((HDC)wParam, &rcErase, hbrBasicBk);
+          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
 
           if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
           {
@@ -4555,8 +4577,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_StackEraseDelete(ae, lpErase);
       lpErase=lpEraseNext;
     }
-    DeleteObject(hbrBasicBk);
-
+    DeleteObject(ae->popt->hbrBasicBk);
+    ae->popt->hbrBasicBk=NULL;
     return 1;
   }
   else if (uMsg == WM_NCPAINT ||
@@ -5723,6 +5745,53 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
   for (lpElement=(AEBITMAPITEM *)hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hBitmap) DeleteObject(lpElement->hBitmap);
+  }
+  AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+AEDCITEM* AE_StackDcItemInsert(HSTACK *hStack, HBITMAP hBitmap)
+{
+  AEDCITEM *lpElement=NULL;
+  BITMAP bmpImage;
+
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEDCITEM)))
+  {
+    if (GetObjectA(hBitmap, sizeof(BITMAP), &bmpImage))
+    {
+      lpElement->hBitmap=hBitmap;
+      lpElement->nBitmapX=bmpImage.bmWidth;
+      lpElement->nBitmapY=bmpImage.bmHeight;
+      if (lpElement->hDC=CreateCompatibleDC(NULL))
+        lpElement->hBitmapOld=(HBITMAP)SelectObject(lpElement->hDC, lpElement->hBitmap);
+    }
+    return lpElement;
+  }
+  return NULL;
+}
+
+AEDCITEM* AE_StackDcItemGet(HSTACK *hStack, HBITMAP hBitmap)
+{
+  AEDCITEM *lpElement;
+
+  for (lpElement=(AEDCITEM *)hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->hBitmap == hBitmap)
+      return lpElement;
+  }
+  return NULL;
+}
+
+void AE_StackDcItemsFree(HSTACK *hStack)
+{
+  AEDCITEM *lpElement;
+
+  for (lpElement=(AEDCITEM *)hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->hDC)
+    {
+      if (lpElement->hBitmapOld) SelectObject(lpElement->hDC, lpElement->hBitmapOld);
+      DeleteDC(lpElement->hDC);
+    }
   }
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -11073,8 +11142,8 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       bd.crBasic=ae->popt->aec.crCaret;
       bd.crInvert=(ae->popt->dwOptions & AECO_ACTIVELINE)?ae->popt->aec.crActiveLineBk:ae->popt->aec.crBasicBk;
 
-      if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
-        bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+      if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapDataStack, &bd)))
+        bi=AE_StackBitmapItemInsert(&hAkelEditBitmapDataStack, &bd);
       hCaretBitmap=bi->hBitmap;
 
       if (!ae->popt->bOverType)
@@ -11562,6 +11631,9 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
 
           if (ae->nHScrollPos != ae->nLastHScrollPos)
           {
+            //Update edit margins
+            if (ae->popt->lpBkImage)
+              AE_SendEraseBackground(ae, ae->hDC);
             AE_NotifyHScroll(ae);
             ae->nLastHScrollPos=ae->nHScrollPos;
           }
@@ -11625,6 +11697,9 @@ INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos)
 
           if (ae->nVScrollPos != ae->nLastVScrollPos)
           {
+            //Update edit margins
+            if (ae->popt->lpBkImage)
+              AE_SendEraseBackground(ae, ae->hDC);
             AE_NotifyVScroll(ae);
             ae->nLastVScrollPos=ae->nVScrollPos;
           }
@@ -12008,7 +12083,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AETEXTOUT to;
   AECHARINDEX ciCount;
   AECHARINDEX ciTmp;
-  HBRUSH hbrBasicBk;
   HBRUSH hbrTab;
   HFONT hPrintFontOld;
   RECT rcSpace;
@@ -12039,7 +12113,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
-  hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+  ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
   hlp.dwDefaultText=ae->popt->aec.crBasicText;
   hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
   hlp.dwActiveText=hlp.dwDefaultText;
@@ -12052,7 +12126,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     if (prn->dwFlags & AEPRN_COLOREDBACKGROUND)
     {
-      FillRect(ph->aePrint.hDC, &prn->rcPageIn, hbrBasicBk);
+      AE_FillRect(ae, ph->aePrint.hDC, &prn->rcPageIn, ae->popt->hbrBasicBk);
     }
   }
 
@@ -12193,7 +12267,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
           {
             if (hbrTab=CreateSolidBrush(hlp.dwActiveBk))
             {
-              FillRect(to.hDC, &rcSpace, hbrTab);
+              AE_FillRect(ae, to.hDC, &rcSpace, hbrTab);
               DeleteObject(hbrTab);
             }
           }
@@ -12263,7 +12337,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   //Free resources
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
-  DeleteObject(hbrBasicBk);
+  DeleteObject(ae->popt->hbrBasicBk);
+  ae->popt->hbrBasicBk=NULL;
 
   return bContinuePrint;
 }
@@ -12276,13 +12351,60 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AE_HeapFree(ae, 0, (LPVOID)ph);
 }
 
-void AE_FillRect(HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom)
+void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
+{
+  if (ae->popt->lpBkImage && ae->popt->hbrBasicBk == hbr)
+  {
+    //Bitmap as background
+    RECT rcCopy;
+    int nImageX=(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+    int nImageY=(lpRect->top + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
+    int nImageWidth=ae->popt->lpBkImage->nBitmapX - nImageX;
+    int nImageHeight=ae->popt->lpBkImage->nBitmapY - nImageY;
+
+    rcCopy.top=lpRect->top;
+    rcCopy.bottom=lpRect->bottom - rcCopy.top;
+    if (rcCopy.bottom > nImageHeight)
+      rcCopy.bottom=nImageHeight;
+
+    while (rcCopy.bottom > 0)
+    {
+      //Restore initial X variables
+      nImageX=(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+      rcCopy.left=lpRect->left;
+      rcCopy.right=lpRect->right - rcCopy.left;
+      if (rcCopy.right > nImageWidth)
+        rcCopy.right=nImageWidth;
+
+      //Draw line
+      while (rcCopy.right > 0)
+      {
+        BitBlt(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, SRCCOPY);
+        rcCopy.left+=rcCopy.right;
+        rcCopy.right=lpRect->right - rcCopy.left;
+        if (rcCopy.right > ae->popt->lpBkImage->nBitmapX)
+          rcCopy.right=ae->popt->lpBkImage->nBitmapX;
+        nImageX=0;
+      }
+
+      //Next line
+      rcCopy.top+=rcCopy.bottom;
+      rcCopy.bottom=lpRect->bottom - rcCopy.top;
+      if (rcCopy.bottom > ae->popt->lpBkImage->nBitmapY)
+        rcCopy.bottom=ae->popt->lpBkImage->nBitmapY;
+      nImageY=0;
+    }
+  }
+  else FillRect(hDC, lpRect, hbr);
+}
+
+void AE_FillRectWithBorder(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom)
 {
   RECT rcBorder;
 
   if (hbrDefaultBk)
   {
-    FillRect(hDC, lpRect, hbrDefaultBk);
+    AE_FillRect(ae, hDC, lpRect, hbrDefaultBk);
   }
 
   //Draw top and bottom borders
@@ -12293,13 +12415,13 @@ void AE_FillRect(HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBor
   {
     rcBorder.top=lpRect->top;
     rcBorder.bottom=lpRect->top + 1;
-    FillRect(hDC, &rcBorder, hbrBorderTop);
+    AE_FillRect(ae, hDC, &rcBorder, hbrBorderTop);
   }
   if (hbrBorderBottom)
   {
     rcBorder.top=lpRect->bottom - 1;
     rcBorder.bottom=lpRect->bottom;
-    FillRect(hDC, &rcBorder, hbrBorderBottom);
+    AE_FillRect(ae, hDC, &rcBorder, hbrBorderBottom);
   }
 }
 
@@ -12368,7 +12490,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
     {
       AEFOLD *lpCollapsed;
       HBRUSH hbrDefaultBk;
-      HBRUSH hbrBasicBk;
       HBRUSH hbrSelBk;
       HBRUSH hbrActiveLineBk;
       HBRUSH hbrActiveLineBorder;
@@ -12393,7 +12514,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
 
       //Create GDI objects
-      hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+      ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
       hbrSelBk=CreateSolidBrush(ae->popt->aec.crSelBk);
       hbrActiveLineBk=CreateSolidBrush(ae->popt->aec.crActiveLineBk);
       hbrActiveLineBorder=CreateSolidBrush(ae->popt->aec.crActiveLineBorder);
@@ -12523,7 +12644,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           {
             hlp.dwDefaultText=ae->popt->aec.crBasicText;
             hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
-            hbrDefaultBk=hbrBasicBk;
+            hbrDefaultBk=ae->popt->hbrBasicBk;
           }
           hlp.dwActiveText=hlp.dwDefaultText;
           hlp.dwActiveBk=hlp.dwDefaultBk;
@@ -12535,7 +12656,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           rcSpace.top=(int)to.ptFirstCharInLine.y;
           rcSpace.right=rcUpdate.right;
           rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-          AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
+          AE_FillRectWithBorder(ae, to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
 
           //Fill space after line end, before text line is drawn.
           if (to.ciDrawLine.lpLine->nLineWidth <= nMaxPaintWidth)
@@ -12555,7 +12676,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                     rcSpace.top=(int)to.ptFirstCharInLine.y;
                     rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
                     rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                    AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
+                    AE_FillRectWithBorder(ae, to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
                   }
                   if (to.ciDrawLine.lpLine->nSelEnd > to.ciDrawLine.lpLine->nLineLen)
                   {
@@ -12565,7 +12686,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                       rcSpace.top=(int)to.ptFirstCharInLine.y;
                       rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                      FillRect(to.hDC, &rcSpace, hbrSelBk);
+                      AE_FillRect(ae, to.hDC, &rcSpace, hbrSelBk);
                     }
                   }
                 }
@@ -12585,7 +12706,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                       rcSpace.top=(int)to.ptFirstCharInLine.y;
                       rcSpace.right=ae->rcDraw.right;
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                      FillRect(to.hDC, &rcSpace, hbrSelBk);
+                      AE_FillRect(ae, to.hDC, &rcSpace, hbrSelBk);
                     }
                   }
                   else if (!(ae->popt->dwOptions & AECO_NONEWLINEDRAW) &&
@@ -12597,7 +12718,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                       rcSpace.top=(int)to.ptFirstCharInLine.y;
                       rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                      FillRect(to.hDC, &rcSpace, hbrSelBk);
+                      AE_FillRect(ae, to.hDC, &rcSpace, hbrSelBk);
                     }
                   }
                 }
@@ -12611,7 +12732,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
               rcSpace.top=(int)to.ptFirstCharInLine.y;
               rcSpace.right=ae->rcDraw.right;
               rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-              AE_FillRect(to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
+              AE_FillRectWithBorder(ae, to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
             }
           }
 
@@ -12644,7 +12765,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
 
                 if (hbrTab=CreateSolidBrush(hlp.dwActiveBk))
                 {
-                  FillRect(to.hDC, &rcSpace, hbrTab);
+                  AE_FillRect(ae, to.hDC, &rcSpace, hbrTab);
                   DeleteObject(hbrTab);
                 }
               }
@@ -12733,7 +12854,8 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       DeleteObject(hbrActiveLineBorder);
       DeleteObject(hbrActiveLineBk);
       DeleteObject(hbrSelBk);
-      DeleteObject(hbrBasicBk);
+      DeleteObject(ae->popt->hbrBasicBk);
+      ae->popt->hbrBasicBk=NULL;
     }
     EndPaint(ae->hWndEdit, &ps);
   }
@@ -12863,7 +12985,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
           {
             if (hBrush=CreateSolidBrush(hlp->dwActiveBk))
             {
-              FillRect(to->hDC, &rcTextOut, hBrush);
+              AE_FillRect(ae, to->hDC, &rcTextOut, hBrush);
               DeleteObject(hBrush);
             }
             SetBkMode(to->hDC, TRANSPARENT);
@@ -20402,6 +20524,17 @@ BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
     }
   }
   return bResult;
+}
+
+void AE_SendEraseBackground(AKELEDIT *ae, HDC hDC)
+{
+  HDC hInputDC=hDC;
+
+  if (hDC || (hDC=GetDC(ae->hWndEdit)))
+  {
+    AE_SendMessage(ae, ae->hWndEdit, WM_ERASEBKGND, (WPARAM)hDC, 0);
+    if (!hInputDC) ReleaseDC(ae->hWndEdit, hDC);
+  }
 }
 
 LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

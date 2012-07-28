@@ -380,6 +380,16 @@ typedef struct _AEBITMAPITEM {
   HBITMAP hBitmap;
 } AEBITMAPITEM;
 
+typedef struct _AEDCITEM {
+  struct _AEDCITEM *next;
+  struct _AEDCITEM *prev;
+  HBITMAP hBitmap;
+  HBITMAP hBitmapOld;
+  HDC hDC;
+  int nBitmapX;
+  int nBitmapY;
+} AEDCITEM;
+
 typedef struct _AEPENITEM {
   struct _AEPENITEM *next;
   struct _AEPENITEM *prev;
@@ -517,6 +527,8 @@ typedef struct {
   COLORREF crActiveLineBorderWithAltBk;
   COLORREF crActiveLineBorderWithAltBorder;
   BOOL bDefaultColors;
+  HBRUSH hbrBasicBk;
+  AEDCITEM *lpBkImage;
   HBITMAP hCaretInsert;
   HBITMAP hCaretOvertype;
   int nCaretInsertWidth;
@@ -730,6 +742,9 @@ void AE_StackFontItemsFreeW(HSTACK *hStack);
 AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
+AEDCITEM* AE_StackDcItemInsert(HSTACK *hStack, HBITMAP hBitmap);
+AEDCITEM* AE_StackDcItemGet(HSTACK *hStack, HBITMAP hBitmap);
+void AE_StackDcItemsFree(HSTACK *hStack);
 AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor);
 AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor);
 void AE_StackPenItemsFree(HSTACK *hStack);
@@ -851,7 +866,8 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn);
 void AE_GetPrintRect(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage);
 BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
-void AE_FillRect(HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom);
+void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr);
+void AE_FillRectWithBorder(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom);
 void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate);
 void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine);
@@ -965,6 +981,7 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink);
 void AE_NotifyMarker(AKELEDIT *ae, BOOL bMouse);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
+void AE_SendEraseBackground(AKELEDIT *ae, HDC hDC);
 LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase);
