@@ -390,6 +390,7 @@ BOOL bOptionsRestart;
 //Font/Color
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
+HSTACK hBkFilesStack={0};
 COLORREF crCustColors[16]={0};
 RECT rcColorsMinMaxDialog={362, 333, 0, 0};
 AECOLORS aecDefault;
@@ -1209,6 +1210,7 @@ void WinMainCleanUp()
   FreeMemorySearch();
   StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
+  StackBkFileFree(&hBkFilesStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
   StackFramesFree(&hFramesStack);

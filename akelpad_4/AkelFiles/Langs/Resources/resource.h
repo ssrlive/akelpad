@@ -200,7 +200,10 @@
 #define IDC_COLORS_LIST                 3201
 #define IDC_COLORS_THEME_NAME           3202
 #define IDC_COLORS_THEME_SAVE           3203
-#define IDC_COLORS_THEME_DELETE         3204
+#define IDC_COLORS_THEME_DELETE         3204 
+#define IDC_COLORS_BKFILE_LABEL         3205
+#define IDC_COLORS_BKFILE_EDIT          3206
+#define IDC_COLORS_BKFILE_BROWSE        3207
 #define IDC_PLUGINS_LIST                3251
 #define IDC_PLUGINS_HOTKEY              3252
 #define IDC_PLUGINS_ASSIGN              3253
