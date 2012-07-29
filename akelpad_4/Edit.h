@@ -523,6 +523,11 @@ typedef struct _COLORTHEME {
   wchar_t wszName[MAX_PATH];
   int nNameLen;
   AECOLORS aec;
+  COLORREF crReserved1;
+  COLORREF crReserved2;
+  COLORREF crReserved3;
+  COLORREF crReserved4;
+  wchar_t wszBkFile[MAX_PATH];
 } COLORTHEME;
 
 typedef struct _PLUGINHANDLE {
@@ -575,6 +580,13 @@ typedef struct _HDOCK {
   int nSizingSide;
   int nSizingType;
 } HDOCK;
+
+typedef struct _BKFILEITEM {
+  struct _BKFILEITEM *next;
+  struct _BKFILEITEM *prev;
+  wchar_t wszBkFile[MAX_PATH];
+  HBITMAP hBkImage;
+} BKFILEITEM;
 
 typedef struct _BUTTONDRAWITEM {
   struct _BUTTONDRAWITEM *next;
@@ -934,13 +946,18 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxThemes(HWND hWnd);
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, int nIndex);
+COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nIndex);
 COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName);
-COLORTHEME* StackThemeGetByColors(HSTACK *hStack, AECOLORS *aec);
+COLORTHEME* StackThemeGetByColorsAndFile(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkFile);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
 void StackThemeFree(HSTACK *hStack);
 void ReadThemes(MAINOPTIONS *mo);
 BOOL SaveThemes(int nSaveSettings);
+
+BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile);
+BKFILEITEM* StackBkFileGet(HSTACK *hStack, const wchar_t *wpFile);
+void StackBkFileFree(HSTACK *hStack);
+BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile);
 
 void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);

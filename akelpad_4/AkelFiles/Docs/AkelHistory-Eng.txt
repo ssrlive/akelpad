@@ -3,6 +3,8 @@ AkelPad 4.7.8 ()
 ----------------------------
 Changed: hotkey for command 4206 is now Ctrl+*.
 
+Added: ability to use an image as the editor background.
+
 
 AkelPad 4.7.7 (Jul 22, 2012)
 ----------------------------

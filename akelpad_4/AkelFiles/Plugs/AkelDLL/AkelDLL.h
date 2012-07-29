@@ -1078,6 +1078,8 @@ typedef struct _FRAMEDATA {
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters.
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
+  wchar_t wszBkFile[MAX_PATH];                        //Background image file.
+  HBITMAP hBkImage;                                   //Background image handle.
   AECOLORS aec;                                       //Edit colors.
 
   //Edit state internal
