@@ -115,6 +115,8 @@ AKELEDIT *lpAkelEditPrev=NULL;
 AKELEDIT *lpAkelEditDrag=NULL;
 UINT cfAkelEditColumnSel=0;
 UINT cfAkelEditText=0;
+HANDLE hAkelEditMsimg32=NULL;
+BOOL (WINAPI *AkelEditAlphaBlendPtr)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION)=NULL;
 
 
 //// Entry point
@@ -253,6 +255,12 @@ void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     else
       bAkelEditWindows9x=FALSE;
   }
+
+  //Get functions addresses
+  if (!(hAkelEditMsimg32=GetModuleHandleA("msimg32.dll")))
+    hAkelEditMsimg32=LoadLibraryA("msimg32.dll");
+  if (hAkelEditMsimg32)
+    AkelEditAlphaBlendPtr=(BOOL (WINAPI *)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION))GetProcAddress(hAkelEditMsimg32, "AlphaBlend");
 }
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
@@ -12424,6 +12432,8 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
     if (ae->popt->hbrBasicBk != hbr)
     {
       FillRect(hDC, lpRect, hbr);
+      if (!AkelEditAlphaBlendPtr) return;
+
       bf.BlendOp=AC_SRC_OVER;
       bf.BlendFlags=0;
       bf.SourceConstantAlpha=(BYTE)ae->popt->nBkImageAlpha;
@@ -12447,7 +12457,7 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
       while (rcCopy.right > 0)
       {
         if (ae->popt->hbrBasicBk != hbr)
-          AlphaBlend(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, rcCopy.right, rcCopy.bottom, bf);
+          AkelEditAlphaBlendPtr(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, rcCopy.right, rcCopy.bottom, bf);
         else
           BitBlt(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, SRCCOPY);
 

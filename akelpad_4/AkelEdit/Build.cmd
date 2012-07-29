@@ -23,7 +23,7 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
 )
 rc /R /DRC_AKELEDITBIT=%BIT% /Fo"AkelEdit.res" "Resources\AkelEdit.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl /O1 %CLFLAGS% AkelEdit.c AkelEdit.res /LD /link kernel32.lib user32.lib gdi32.lib ole32.lib uuid.lib imm32.lib msimg32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:AkelEdit.dll
+cl /O1 %CLFLAGS% AkelEdit.c AkelEdit.res /LD /link kernel32.lib user32.lib gdi32.lib ole32.lib uuid.lib imm32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:AkelEdit.dll
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
