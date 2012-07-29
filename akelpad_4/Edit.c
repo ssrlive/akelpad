@@ -12467,7 +12467,6 @@ void StackBkFileFree(HSTACK *hStack)
 BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile)
 {
   BKFILEITEM *bkfi;
-  BOOL bResult=FALSE;
 
   xstrcpynW(lpFrame->wszBkFile, wpFile, MAX_PATH);
 

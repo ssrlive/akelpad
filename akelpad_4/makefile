@@ -26,7 +26,7 @@ else
   STRIP = strip.exe
 endif
 CFLAGS = -Os -g0 -Wchar-subscripts -Wcomment -Wformat -Wreturn-type -Wsign-compare -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
-LDFLAGS = -mwindows -e $(ENTRY) -static-libgcc -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion
+LDFLAGS = -mwindows -e $(ENTRY) -static-libgcc -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion -lmsimg32
 DEFINES = -D CINTERFACE -D AKELEDIT_STATICBUILD -D RC_VERSIONLANGID=$(LANGID)
 
 all: AkelPad.exe

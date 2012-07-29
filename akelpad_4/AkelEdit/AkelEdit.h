@@ -4940,7 +4940,7 @@ ______________________
 Set background image.
 
 (HBITMAP)wParam == image handle. If NULL, image removed from background.
-lParam          == not used.
+(int)lParam     == alpha transparency value that ranges from 1 to 255. If zero default transparency will be used.
 
 Return Value
  TRUE   success.

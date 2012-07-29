@@ -117,6 +117,9 @@
 #ifndef COLOR_HOTLIGHT
   #define COLOR_HOTLIGHT  26
 #endif
+#ifndef AC_SRC_ALPHA
+  #define AC_SRC_ALPHA  0x01
+#endif
 #ifndef WM_MOUSEHWHEEL
   #define WM_MOUSEHWHEEL  0x020E
 #endif
@@ -530,6 +533,7 @@ typedef struct {
   BOOL bDefaultColors;
   HBRUSH hbrBasicBk;
   AEDCITEM *lpBkImage;
+  int nBkImageAlpha;
   HBITMAP hCaretInsert;
   HBITMAP hCaretOvertype;
   int nCaretInsertWidth;

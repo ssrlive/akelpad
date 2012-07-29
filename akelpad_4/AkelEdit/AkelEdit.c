@@ -33,6 +33,7 @@
 //// Includes
 
 #define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0500
 #include <windows.h>
 #include <stddef.h>
 #include <imm.h>
@@ -1860,6 +1861,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else return FALSE;
 
+      if (lParam)
+        ae->popt->nBkImageAlpha=(int)lParam;
+      else
+        ae->popt->nBkImageAlpha=128;
       InvalidateRect(ae->hWndEdit, NULL, TRUE);
       return TRUE;
     }
@@ -12406,15 +12411,24 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
 void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
 {
-  if (ae->popt->lpBkImage && ae->popt->hbrBasicBk == hbr)
+  if (ae->popt->lpBkImage)
   {
     //Bitmap as background
+    BLENDFUNCTION bf;
     RECT rcCopy;
     int nImageX=(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
     int nImageY=(lpRect->top + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
     int nImageWidth=ae->popt->lpBkImage->nBitmapX - nImageX;
     int nImageHeight=ae->popt->lpBkImage->nBitmapY - nImageY;
 
+    if (ae->popt->hbrBasicBk != hbr)
+    {
+      FillRect(hDC, lpRect, hbr);
+      bf.BlendOp=AC_SRC_OVER;
+      bf.BlendFlags=0;
+      bf.SourceConstantAlpha=(BYTE)ae->popt->nBkImageAlpha;
+      bf.AlphaFormat=0;
+    }
     rcCopy.top=lpRect->top;
     rcCopy.bottom=lpRect->bottom - rcCopy.top;
     if (rcCopy.bottom > nImageHeight)
@@ -12432,7 +12446,11 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
       //Draw line
       while (rcCopy.right > 0)
       {
-        BitBlt(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, SRCCOPY);
+        if (ae->popt->hbrBasicBk != hbr)
+          AlphaBlend(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, rcCopy.right, rcCopy.bottom, bf);
+        else
+          BitBlt(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, SRCCOPY);
+
         rcCopy.left+=rcCopy.right;
         rcCopy.right=lpRect->right - rcCopy.left;
         if (rcCopy.right > ae->popt->lpBkImage->nBitmapX)
