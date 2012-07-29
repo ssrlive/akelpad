@@ -33,7 +33,6 @@
 //// Includes
 
 #define WIN32_LEAN_AND_MEAN
-#define WINVER 0x0500
 #include <windows.h>
 #include <stddef.h>
 #include <imm.h>
