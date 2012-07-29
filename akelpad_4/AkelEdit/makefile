@@ -20,7 +20,7 @@ else
   STRIP = strip.exe
 endif
 CFLAGS = -Os -g0 -Wchar-subscripts -Wcomment -Wformat -Wreturn-type -Wsign-compare -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable
-LDFLAGS = -shared -static-libgcc -lkernel32 -luser32 -lgdi32 -lole32 -luuid -limm32
+LDFLAGS = -shared -static-libgcc -lkernel32 -luser32 -lgdi32 -lole32 -luuid -limm32 -lmsimg32
 DEFINES = -D CINTERFACE
 
 all: AkelEdit.dll
