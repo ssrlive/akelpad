@@ -698,6 +698,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return AE_GetLastFullVisibleLine(ae);
       if (wParam == AEGL_LINEUNWRAPCOUNT)
         return ae->ptxt->nLineUnwrapCount + 1;
+      if (wParam == AEGL_UNWRAPSELMULTILINE)
+      {
+        AECHARINDEX ciCount;
+
+        if (ae->ciSelStartIndex.nLine < ae->ciSelEndIndex.nLine)
+        {
+          for (ciCount=ae->ciSelStartIndex; ciCount.nLine < ae->ciSelEndIndex.nLine; AEC_NextLine(&ciCount))
+          {
+            if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+              return TRUE;
+          }
+        }
+        return FALSE;
+      }
       return 0;
     }
     if (uMsg == AEM_GETINDEX)
