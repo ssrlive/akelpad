@@ -235,6 +235,7 @@
 #define AEGL_FIRSTFULLVISIBLELINE   6  //First fully visible line.
 #define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
 #define AEGL_LINEUNWRAPCOUNT       11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
+#define AEGL_UNWRAPSELMULTILINE    12  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
 
 //AEM_GETINDEX and AEM_GETRICHOFFSET flags
 #define AEGI_FIRSTCHAR              1  //First character.
