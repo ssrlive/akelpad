@@ -958,6 +958,7 @@ BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile);
 BKFILEITEM* StackBkFileGet(HSTACK *hStack, const wchar_t *wpFile);
 void StackBkFileFree(HSTACK *hStack);
 BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile);
+HBITMAP LoadPictureFile(wchar_t *wpFile);
 
 void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
