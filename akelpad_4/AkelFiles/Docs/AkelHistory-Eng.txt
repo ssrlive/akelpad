@@ -3,7 +3,7 @@ AkelPad 4.7.8 ()
 ----------------------------
 Changed: hotkey for command 4206 is now Ctrl+*.
 
-Added: ability to use an image as the editor background. Program start will be faster,
+Added: ability to use an image as the editor background. Program start can be much faster,
        if images will be in bmp format.
 
 
