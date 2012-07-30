@@ -52,9 +52,6 @@
 #define AEMA_LBUTTONDOWN    1
 #define AEMA_IGNORE         2
 
-//Background image
-#define AEBKI_ALPHA 128
-
 //Print
 #define AEPRNL_PRINTLINESIZE 32768
 

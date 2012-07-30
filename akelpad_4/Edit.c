@@ -11700,7 +11700,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
-    SendMessage(hWndBkImageAlphaSpin, UDM_SETRANGE, 0, MAKELONG(255, 1));
+    SendMessage(hWndBkImageAlphaSpin, UDM_SETRANGE, 0, MAKELONG(255, 0));
     SendMessage(hWndBkImageAlphaSpin, UDM_SETBUDDY, (WPARAM)hWndBkImageAlphaEdit, 0);
 
     //Columns
@@ -12261,6 +12261,11 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (HIWORD(wParam) == EN_CHANGE)
       {
         nBkImageAlphaDlg=GetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, NULL, FALSE);
+        if (nBkImageAlphaDlg > 255)
+        {
+          nBkImageAlphaDlg=255;
+          SetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, nBkImageAlphaDlg, FALSE);
+        }
         PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_COLORS_BKIMAGEFILE_EDIT, EN_CHANGE), 0);
       }
     }

@@ -4940,7 +4940,7 @@ ______________________
 Set background image.
 
 (HBITMAP)wParam == image handle. If NULL, image removed from background.
-(int)lParam     == alpha transparency value that ranges from 1 to 255. If zero default transparency will be used.
+(int)lParam     == alpha transparency value that ranges from 0 to 255 (default is 128).
 
 Return Value
  TRUE   success.
@@ -4951,7 +4951,7 @@ HBITMAP hBkImage;
 
 if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE))
 {
-  SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 0);
+  SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 128);
 }
 
 
