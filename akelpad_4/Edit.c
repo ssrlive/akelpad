@@ -215,7 +215,7 @@ extern BOOL bOptionsRestart;
 //Font/Color
 extern HSTACK hFontsStack;
 extern HSTACK hThemesStack;
-extern HSTACK hBkFilesStack;
+extern HSTACK hBkImagesStack;
 extern COLORREF crCustColors[16];
 extern RECT rcColorsMinMaxDialog;
 extern AECOLORS aecDefault;
@@ -355,7 +355,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
 
         //Standard theme
         API_LoadStringW(hLangLib, STR_STANDARDTHEME, wbuf, BUFFER_SIZE);
-        StackThemeAdd(&hThemesStack, wbuf, &aecDefault, L"", 1);
+        StackThemeAdd(&hThemesStack, wbuf, &aecDefault, L"", EDIT_BKIMAGEALPHA, 1);
 
         if (hThemesStack.first == hThemesStack.last)
         {
@@ -376,7 +376,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
           aec.crAltLineText=RGB(0x00, 0x00, 0x00);
           aec.crAltLineBk=RGB(0xF9, 0xF9, 0xF9);
           aec.crAltLineBorder=RGB(0xEF, 0xEF, 0xEF);
-          StackThemeAdd(&hThemesStack, L"Notepad++", &aec, L"", -1);
+          StackThemeAdd(&hThemesStack, L"Notepad++", &aec, L"", EDIT_BKIMAGEALPHA, -1);
         }
       }
       lpOldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
@@ -443,7 +443,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 
   //Colors
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrame->aec);
-  SetBkFile(lpFrame, lpFrame->wszBkFile);
+  SetBkImage(lpFrame, lpFrame->wszBkImageFile, lpFrame->nBkImageAlpha);
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
   SetMargins(lpFrame->ei.hWndEdit, &lpFrame->rcEditMargins, NULL);
@@ -3711,7 +3711,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"Font", MOT_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
     ReadOption(&oh, L"FontFace", MOT_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
     ReadOption(&oh, L"Colors", MOT_BINARY, &fd->aec, sizeof(AECOLORS));
-    ReadOption(&oh, L"BkFile", MOT_STRING, &fd->wszBkFile, sizeof(fd->wszBkFile));
+    ReadOption(&oh, L"BkImageFile", MOT_STRING, &fd->wszBkImageFile, sizeof(fd->wszBkImageFile));
+    ReadOption(&oh, L"BkImageAlpha", MOT_DWORD, &fd->nBkImageAlpha, sizeof(DWORD));
 
     //Menu settings
     ReadOption(&oh, L"OnTop", MOT_DWORD, &mo->bOnTop, sizeof(DWORD));
@@ -3962,7 +3963,9 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"Colors", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, aec), sizeof(AECOLORS)))
     goto Error;
-  if (!SaveOption(&oh, L"BkFile", MOT_STRING|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszBkFile), BytesInString(fd->wszBkFile)))
+  if (!SaveOption(&oh, L"BkImageFile", MOT_STRING|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszBkImageFile), BytesInString(fd->wszBkImageFile)))
+    goto Error;
+  if (!SaveOption(&oh, L"BkImageAlpha", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, nBkImageAlpha), sizeof(DWORD)))
     goto Error;
 
   //Menu settings
@@ -11645,29 +11648,39 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndThemeSave;
   static HWND hWndThemeDelete;
   static HWND hWndList;
-  static HWND hWndBkFileLabel;
-  static HWND hWndBkFileEdit;
-  static HWND hWndBkFileBrowse;
+  static HWND hWndBkImageFileLabel;
+  static HWND hWndBkImageFileEdit;
+  static HWND hWndBkImageFileBrowse;
+  static HWND hWndBkImageAlphaLabel;
+  static HWND hWndBkImageAlphaEdit;
+  static HWND hWndBkImageAlphaSpin;
   static HWND hWndOK;
   static HWND hWndCancel;
   static AECOLORS aecColorsDlg;
-  static wchar_t wszBkFileDlg[MAX_PATH];
+  static wchar_t wszBkImageFileDlg[MAX_PATH];
+  static int nBkImageAlphaDlg;
   static BOOL bColorsChanged;
-  static DIALOGRESIZE drs[]={{&hWndThemeName,    DRS_SIZE|DRS_X, 0},
-                             {&hWndThemeSave,    DRS_MOVE|DRS_X, 0},
-                             {&hWndThemeDelete,  DRS_MOVE|DRS_X, 0},
-                             {&hWndList,         DRS_SIZE|DRS_X, 0},
-                             {&hWndList,         DRS_SIZE|DRS_Y, 0},
-                             {&hWndBkFileLabel,  DRS_SIZE|DRS_X, 0},
-                             {&hWndBkFileLabel,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkFileEdit,   DRS_SIZE|DRS_X, 0},
-                             {&hWndBkFileEdit,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkFileBrowse, DRS_MOVE|DRS_X, 0},
-                             {&hWndBkFileBrowse, DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,           DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,           DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,       DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndThemeName,         DRS_SIZE|DRS_X, 0},
+                             {&hWndThemeSave,         DRS_MOVE|DRS_X, 0},
+                             {&hWndThemeDelete,       DRS_MOVE|DRS_X, 0},
+                             {&hWndList,              DRS_SIZE|DRS_X, 0},
+                             {&hWndList,              DRS_SIZE|DRS_Y, 0},
+                             {&hWndBkImageFileLabel,  DRS_SIZE|DRS_X, 0},
+                             {&hWndBkImageFileLabel,  DRS_MOVE|DRS_Y, 0},
+                             {&hWndBkImageFileEdit,   DRS_SIZE|DRS_X, 0},
+                             {&hWndBkImageFileEdit,   DRS_MOVE|DRS_Y, 0},
+                             {&hWndBkImageFileBrowse, DRS_MOVE|DRS_X, 0},
+                             {&hWndBkImageFileBrowse, DRS_MOVE|DRS_Y, 0},
+                             {&hWndBkImageAlphaLabel, DRS_MOVE|DRS_X, 0},
+                             {&hWndBkImageAlphaLabel, DRS_MOVE|DRS_Y, 0},
+                             {&hWndBkImageAlphaEdit,  DRS_MOVE|DRS_X, 0},
+                             {&hWndBkImageAlphaEdit,  DRS_MOVE|DRS_Y, 0},
+                             {&hWndBkImageAlphaSpin,  DRS_MOVE|DRS_X, 0},
+                             {&hWndBkImageAlphaSpin,  DRS_MOVE|DRS_Y, 0},
+                             {&hWndOK,                DRS_MOVE|DRS_X, 0},
+                             {&hWndOK,                DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel,            DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,            DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -11677,12 +11690,18 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndThemeSave=GetDlgItem(hDlg, IDC_COLORS_THEME_SAVE);
     hWndThemeDelete=GetDlgItem(hDlg, IDC_COLORS_THEME_DELETE);
     hWndList=GetDlgItem(hDlg, IDC_COLORS_LIST);
-    hWndBkFileLabel=GetDlgItem(hDlg, IDC_COLORS_BKFILE_LABEL);
-    hWndBkFileEdit=GetDlgItem(hDlg, IDC_COLORS_BKFILE_EDIT);
-    hWndBkFileBrowse=GetDlgItem(hDlg, IDC_COLORS_BKFILE_BROWSE);
+    hWndBkImageFileLabel=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEFILE_LABEL);
+    hWndBkImageFileEdit=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEFILE_EDIT);
+    hWndBkImageFileBrowse=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEFILE_BROWSE);
+    hWndBkImageAlphaLabel=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEALPHA_LABEL);
+    hWndBkImageAlphaEdit=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT);
+    hWndBkImageAlphaSpin=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEALPHA_SPIN);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
+    SendMessage(hWndBkImageAlphaSpin, UDM_SETRANGE, 0, MAKELONG(255, 1));
+    SendMessage(hWndBkImageAlphaSpin, UDM_SETBUDDY, (WPARAM)hWndBkImageAlphaEdit, 0);
 
     //Columns
     {
@@ -11748,14 +11767,15 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FillComboboxThemes(hWndThemeName);
 
       xmemcpy(&aecColorsDlg, &lpFrameCurrent->aec, sizeof(AECOLORS));
-      xstrcpynW(wszBkFileDlg, lpFrameCurrent->wszBkFile, MAX_PATH);
+      xstrcpynW(wszBkImageFileDlg, lpFrameCurrent->wszBkImageFile, MAX_PATH);
+      nBkImageAlphaDlg=lpFrameCurrent->nBkImageAlpha;
 
       if (!aecColorsDlg.dwFlags)
       {
         aecColorsDlg.dwFlags=AECLR_DEFAULT|AECLR_ALL;
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&aecColorsDlg);
       }
-      if (ctElement=StackThemeGetByColorsAndFile(&hThemesStack, &aecColorsDlg, wszBkFileDlg))
+      if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
         nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
       SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
 
@@ -11771,8 +11791,11 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
 
-    //Background file
-    SetWindowTextWide(hWndBkFileEdit, wszBkFileDlg);
+    //Background image
+    SetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg);
+    SetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, nBkImageAlphaDlg, FALSE);
+    EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
+    EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
 
     //Colors inheriting is locked. Don't let user press OK, but allow to save as new theme.
     if (lpFrameCurrent->dwLockInherit & LI_COLORS)
@@ -12059,7 +12082,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             COLORTHEME *ctElement;
             int nSelection=-1;
 
-            if (ctElement=StackThemeGetByColorsAndFile(&hThemesStack, &aecColorsDlg, wszBkFileDlg))
+            if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
               nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
             SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
             if (nSelection > 0)
@@ -12090,7 +12113,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
           }
-          ctElement=StackThemeGetByColorsAndFile(&hThemesStack, &aecColorsDlg, wszBkFileDlg);
+          ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg);
         }
 
         if (!nSelection)
@@ -12116,8 +12139,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
             {
               xmemcpy(&aecColorsDlg, &ctElement->aec, sizeof(AECOLORS));
-              xstrcpynW(wszBkFileDlg, ctElement->wszBkFile, MAX_PATH);
-              SetWindowTextWide(hWndBkFileEdit, wszBkFileDlg);
+              xstrcpynW(wszBkImageFileDlg, ctElement->wszBkImageFile, MAX_PATH);
+              SetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg);
+              nBkImageAlphaDlg=ctElement->nBkImageAlpha;
+              SetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, nBkImageAlphaDlg, FALSE);
               bColorsChanged=TRUE;
               InvalidateRect(hWndList, NULL, TRUE);
             }
@@ -12152,13 +12177,14 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             xstrcpynW(ctElement->wszName, wszThemeName, MAX_PATH);
             xmemcpy(&ctElement->aec, &aecColorsDlg, sizeof(AECOLORS));
-            xstrcpynW(ctElement->wszBkFile, wszBkFileDlg, MAX_PATH);
+            xstrcpynW(ctElement->wszBkImageFile, wszBkImageFileDlg, MAX_PATH);
+            ctElement->nBkImageAlpha=nBkImageAlphaDlg;
           }
           else bProcess=FALSE;
         }
         else
         {
-          StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg, wszBkFileDlg, -1);
+          StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg, -1);
           ComboBox_AddStringWide(hWndThemeName, wszThemeName);
         }
 
@@ -12189,33 +12215,35 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
-    else if (LOWORD(wParam) == IDC_COLORS_BKFILE_EDIT)
+    else if (LOWORD(wParam) == IDC_COLORS_BKIMAGEFILE_EDIT)
     {
       if (HIWORD(wParam) == EN_CHANGE)
       {
         COLORTHEME *ctElement;
         int nSelection=-1;
 
-        GetWindowTextWide(hWndBkFileEdit, wszBkFileDlg, MAX_PATH);
-        if (ctElement=StackThemeGetByColorsAndFile(&hThemesStack, &aecColorsDlg, wszBkFileDlg))
+        GetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg, MAX_PATH);
+        if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
           nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
         SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
         if (nSelection > 0)
           EnableWindow(hWndThemeDelete, TRUE);
         else
           EnableWindow(hWndThemeDelete, FALSE);
+        EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
+        EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
 
         bColorsChanged=TRUE;
       }
     }
-    else if (LOWORD(wParam) == IDC_COLORS_BKFILE_BROWSE)
+    else if (LOWORD(wParam) == IDC_COLORS_BKIMAGEFILE_BROWSE)
     {
       OPENFILENAMEW efnW;
 
       xmemset(&efnW, 0, sizeof(OPENFILENAMEW));
       efnW.lStructSize  =sizeof(OPENFILENAMEW);
       efnW.hwndOwner    =hDlg;
-      efnW.lpstrFile    =wszBkFileDlg;
+      efnW.lpstrFile    =wszBkImageFileDlg;
       efnW.nMaxFile     =MAX_PATH;
       efnW.lpstrFilter  =L"*.bmp;*.jpg;*.jpeg;*.gif\0*.bmp;*.jpg;*.jpeg;*.gif\0*.*\0*.*\0\0";;
       efnW.nFilterIndex =1;
@@ -12223,19 +12251,30 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (GetOpenFileNameWide(&efnW))
       {
-        SetWindowTextWide(hWndBkFileEdit, wszBkFileDlg);
-        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_COLORS_BKFILE_EDIT, EN_CHANGE), 0);
+        SetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg);
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_COLORS_BKIMAGEFILE_EDIT, EN_CHANGE), 0);
       }
       return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_COLORS_BKIMAGEALPHA_EDIT)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        nBkImageAlphaDlg=GetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, NULL, FALSE);
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_COLORS_BKIMAGEFILE_EDIT, EN_CHANGE), 0);
+      }
     }
     else if (LOWORD(wParam) == IDOK)
     {
       if (bColorsChanged)
       {
+        //Colors
         xmemcpy(&lpFrameCurrent->aec, &aecColorsDlg, sizeof(AECOLORS));
         lpFrameCurrent->aec.dwFlags=AECLR_ALL;
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
-        SetBkFile(lpFrameCurrent, wszBkFileDlg);
+
+        //Background image
+        SetBkImage(lpFrameCurrent, wszBkImageFileDlg, nBkImageAlphaDlg);
       }
 
       SaveThemes(moCur.nSaveSettings);
@@ -12265,7 +12304,7 @@ void FillComboboxThemes(HWND hWnd)
   }
 }
 
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nIndex)
+COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nBkImageAlpha, int nIndex)
 {
   COLORTHEME *ctElement;
 
@@ -12274,7 +12313,8 @@ COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, 
     xstrcpynW(ctElement->wszName, wpName, MAX_PATH);
     ctElement->nNameLen=(int)xstrlenW(ctElement->wszName);
     if (aec) xmemcpy(&ctElement->aec, aec, sizeof(AECOLORS));
-    xstrcpynW(ctElement->wszBkFile, wpFile, MAX_PATH);
+    xstrcpynW(ctElement->wszBkImageFile, wpFile, MAX_PATH);
+    ctElement->nBkImageAlpha=nBkImageAlpha;
   }
   return ctElement;
 }
@@ -12295,13 +12335,15 @@ COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName)
   return NULL;
 }
 
-COLORTHEME* StackThemeGetByColorsAndFile(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkFile)
+COLORTHEME* StackThemeGetByData(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkImageFile, int nBkImageAlpha)
 {
   COLORTHEME *ctElement;
 
   for (ctElement=(COLORTHEME *)hStack->first; ctElement; ctElement=ctElement->next)
   {
-    if (!xmemcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)) && !xstrcmpiW(ctElement->wszBkFile, wpBkFile))
+    if (!xmemcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)) &&
+        !xstrcmpiW(ctElement->wszBkImageFile, wpBkImageFile) &&
+        ctElement->nBkImageAlpha == nBkImageAlpha)
       return ctElement;
   }
   return NULL;
@@ -12342,7 +12384,7 @@ void ReadThemes(MAINOPTIONS *mo)
         if (RegEnumValueWide(hKey, dwIndex, ct.wszName, &dwSizeValue, NULL, &dwType, (LPBYTE)&ct.aec, &dwSizeString) != ERROR_SUCCESS)
           break;
 
-        StackThemeAdd(&hThemesStack, ct.wszName, &ct.aec, ct.wszBkFile, -1);
+        StackThemeAdd(&hThemesStack, ct.wszName, &ct.aec, ct.wszBkImageFile, ct.nBkImageAlpha, -1);
         ++dwIndex;
       }
       RegCloseKey(hKey);
@@ -12359,7 +12401,7 @@ void ReadThemes(MAINOPTIONS *mo)
       {
         xmemset(&ct.aec, 0, dwSizeData);
         StackGetIniData(lpIniKey, INI_BINARY, (LPBYTE)&ct.aec, dwSizeData);
-        StackThemeAdd(&hThemesStack, lpIniKey->wszKey, &ct.aec, ct.wszBkFile, -1);
+        StackThemeAdd(&hThemesStack, lpIniKey->wszKey, &ct.aec, ct.wszBkImageFile, ct.nBkImageAlpha, -1);
         ++dwIndex;
       }
     }
@@ -12428,14 +12470,14 @@ BOOL SaveThemes(int nSaveSettings)
 
 //// Background image
 
-BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile)
+BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile)
 {
-  BKFILEITEM *lpElement=NULL;
+  BKIMAGEITEM *lpElement=NULL;
   wchar_t wszFileExp[MAX_PATH];
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BKFILEITEM)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BKIMAGEITEM)))
   {
-    xstrcpynW(lpElement->wszBkFile, wpFile, MAX_PATH);
+    xstrcpynW(lpElement->wszBkImageFile, wpFile, MAX_PATH);
     TranslateFileString(wpFile, wszFileExp, MAX_PATH);
 
     if (!xstrcmpiW(L"bmp", GetFileExt(wpFile, -1)))
@@ -12443,53 +12485,54 @@ BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile)
       if (bOldWindows)
       {
         WideCharToMultiByte(CP_ACP, 0, wszFileExp, -1, buf, MAX_PATH, NULL, NULL);
-        lpElement->hBkImage=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+        lpElement->hBkImageBitmap=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
       }
-      else lpElement->hBkImage=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+      else lpElement->hBkImageBitmap=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
     }
-    else lpElement->hBkImage=LoadPictureFile(wszFileExp);
+    else lpElement->hBkImageBitmap=LoadPictureFile(wszFileExp);
   }
   return lpElement;
 }
 
-BKFILEITEM* StackBkFileGet(HSTACK *hStack, const wchar_t *wpFile)
+BKIMAGEITEM* StackBkImageGet(HSTACK *hStack, const wchar_t *wpFile)
 {
-  BKFILEITEM *lpBkFile;
+  BKIMAGEITEM *lpBkImage;
 
-  for (lpBkFile=(BKFILEITEM *)hStack->first; lpBkFile; lpBkFile=lpBkFile->next)
+  for (lpBkImage=(BKIMAGEITEM *)hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
   {
-    if (!xstrcmpiW(lpBkFile->wszBkFile, wpFile))
-      return lpBkFile;
+    if (!xstrcmpiW(lpBkImage->wszBkImageFile, wpFile))
+      return lpBkImage;
   }
   return NULL;
 }
 
-void StackBkFileFree(HSTACK *hStack)
+void StackBkImageFree(HSTACK *hStack)
 {
-  BKFILEITEM *lpBkFile;
+  BKIMAGEITEM *lpBkImage;
 
-  for (lpBkFile=(BKFILEITEM *)hStack->first; lpBkFile; lpBkFile=lpBkFile->next)
+  for (lpBkImage=(BKIMAGEITEM *)hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
   {
-    DeleteObject(lpBkFile->hBkImage);
+    DeleteObject(lpBkImage->hBkImageBitmap);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile)
+BOOL SetBkImage(FRAMEDATA *lpFrame, wchar_t *wpFile, int nBkImageAlpha)
 {
-  BKFILEITEM *bkfi;
+  BKIMAGEITEM *bkfi;
 
-  xstrcpynW(lpFrame->wszBkFile, wpFile, MAX_PATH);
+  xstrcpynW(lpFrame->wszBkImageFile, wpFile, MAX_PATH);
+  lpFrame->nBkImageAlpha=nBkImageAlpha;
 
-  if (*lpFrame->wszBkFile)
+  if (*lpFrame->wszBkImageFile)
   {
-    if (!(bkfi=StackBkFileGet(&hBkFilesStack, lpFrame->wszBkFile)))
-      bkfi=StackBkFileInsert(&hBkFilesStack, lpFrame->wszBkFile);
-    lpFrame->hBkImage=bkfi->hBkImage;
+    if (!(bkfi=StackBkImageGet(&hBkImagesStack, lpFrame->wszBkImageFile)))
+      bkfi=StackBkImageInsert(&hBkImagesStack, lpFrame->wszBkImageFile);
+    lpFrame->hBkImageBitmap=bkfi->hBkImageBitmap;
   }
-  else lpFrame->hBkImage=NULL;
+  else lpFrame->hBkImageBitmap=NULL;
 
-  return (BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)lpFrame->hBkImage, 0);
+  return (BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)lpFrame->hBkImageBitmap, (LPARAM)lpFrame->nBkImageAlpha);
 }
 
 HBITMAP LoadPictureFile(wchar_t *wpFile)

@@ -390,7 +390,7 @@ BOOL bOptionsRestart;
 //Font/Color
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
-HSTACK hBkFilesStack={0};
+HSTACK hBkImagesStack={0};
 COLORREF crCustColors[16]={0};
 RECT rcColorsMinMaxDialog={362, 333, 0, 0};
 AECOLORS aecDefault;
@@ -727,6 +727,8 @@ void _WinMain()
   xstrcpyW(fdInit.wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
   xstrcpyW(fdInit.wszWordDelimiters, STR_WORD_DELIMITERSW);
   xstrcpyW(fdInit.wszWrapDelimiters, STR_WRAP_DELIMITERSW);
+  //moInit.wszBkImageFileDlg[0]='\0';
+  fdInit.nBkImageAlpha=EDIT_BKIMAGEALPHA;
 
   //--Save place--
   moInit.nSaveSettings=SS_REGISTRY;
@@ -1210,7 +1212,7 @@ void WinMainCleanUp()
   FreeMemorySearch();
   StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
-  StackBkFileFree(&hBkFilesStack);
+  StackBkImageFree(&hBkImagesStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
   StackFramesFree(&hFramesStack);
