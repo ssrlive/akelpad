@@ -115,6 +115,7 @@ AKELEDIT *lpAkelEditDrag=NULL;
 UINT cfAkelEditColumnSel=0;
 UINT cfAkelEditText=0;
 HANDLE hAkelEditMsimg32=NULL;
+BOOL bAkelEditMsimg32Free=FALSE;
 BOOL (WINAPI *AkelEditAlphaBlendPtr)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION)=NULL;
 
 
@@ -160,7 +161,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
   {
     WNDCLASSA wndclass;
 
-    AE_RegisterClassCommon(hInstance, bRegisterRichEdit);
+    AE_RegisterClassCommon(hInstance);
 
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
@@ -191,7 +192,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
   {
     WNDCLASSW wndclass;
 
-    AE_RegisterClassCommon(hInstance, bRegisterRichEdit);
+    AE_RegisterClassCommon(hInstance);
 
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
@@ -216,7 +217,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
   return bAkelEditClassRegisteredW;
 }
 
-void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit)
+void AE_RegisterClassCommon(HINSTANCE hInstance)
 {
   if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
   if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
@@ -257,34 +258,16 @@ void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 
   //Get functions addresses
   if (!(hAkelEditMsimg32=GetModuleHandleA("msimg32.dll")))
-    hAkelEditMsimg32=LoadLibraryA("msimg32.dll");
+    if (hAkelEditMsimg32=LoadLibraryA("msimg32.dll"))
+      bAkelEditMsimg32Free=TRUE;
   if (hAkelEditMsimg32)
     AkelEditAlphaBlendPtr=(BOOL (WINAPI *)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION))GetProcAddress(hAkelEditMsimg32, "AlphaBlend");
 }
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
-  if (hAkelEditBitmapMCenterAll)
-  {
-    DeleteObject(hAkelEditBitmapMCenterAll);
-    hAkelEditBitmapMCenterAll=NULL;
-  }
-  if (hAkelEditBitmapMCenterLeftRight)
-  {
-    DeleteObject(hAkelEditBitmapMCenterLeftRight);
-    hAkelEditBitmapMCenterLeftRight=NULL;
-  }
-  if (hAkelEditBitmapMCenterTopBottom)
-  {
-    DeleteObject(hAkelEditBitmapMCenterTopBottom);
-    hAkelEditBitmapMCenterTopBottom=NULL;
-  }
-  AE_HighlightDeleteThemeAll();
+  AE_UnregisterClassCommon(hInstance);
   AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
-  AE_StackBitmapItemsFree(&hAkelEditBitmapDataStack);
-  AE_StackDcItemsFree(&hAkelEditBitmapDcStack);
-  AE_StackPenItemsFree(&hAkelEditPensStack);
-  AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredA)
   {
@@ -298,6 +281,21 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 
 BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
+  AE_UnregisterClassCommon(hInstance);
+  AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
+
+  if (bAkelEditClassRegisteredW)
+  {
+    if (UnregisterClassW(AES_AKELEDITCLASSW, hInstance))
+      bAkelEditClassRegisteredW=FALSE;
+    if (UnregisterClassW(AES_RICHEDITCLASSW, hInstance))
+      bRichEditClassRegisteredW=FALSE;
+  }
+  return !bAkelEditClassRegisteredW;
+}
+
+void AE_UnregisterClassCommon(HINSTANCE hInstance)
+{
   if (hAkelEditBitmapMCenterAll)
   {
     DeleteObject(hAkelEditBitmapMCenterAll);
@@ -314,20 +312,17 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
   AE_HighlightDeleteThemeAll();
-  AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
   AE_StackBitmapItemsFree(&hAkelEditBitmapDataStack);
   AE_StackDcItemsFree(&hAkelEditBitmapDcStack);
   AE_StackPenItemsFree(&hAkelEditPensStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
-  if (bAkelEditClassRegisteredW)
+  if (bAkelEditMsimg32Free)
   {
-    if (UnregisterClassW(AES_AKELEDITCLASSW, hInstance))
-      bAkelEditClassRegisteredW=FALSE;
-    if (UnregisterClassW(AES_RICHEDITCLASSW, hInstance))
-      bRichEditClassRegisteredW=FALSE;
+    bAkelEditMsimg32Free=FALSE;
+    FreeLibrary(hAkelEditMsimg32);
   }
-  return !bAkelEditClassRegisteredW;
+  hAkelEditMsimg32=NULL;
 }
 
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
