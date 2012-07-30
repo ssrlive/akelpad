@@ -255,13 +255,6 @@ void AE_RegisterClassCommon(HINSTANCE hInstance)
     else
       bAkelEditWindows9x=FALSE;
   }
-
-  //Get functions addresses
-  if (!(hAkelEditMsimg32=GetModuleHandleA("msimg32.dll")))
-    if (hAkelEditMsimg32=LoadLibraryA("msimg32.dll"))
-      bAkelEditMsimg32Free=TRUE;
-  if (hAkelEditMsimg32)
-    AkelEditAlphaBlendPtr=(BOOL (WINAPI *)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION))GetProcAddress(hAkelEditMsimg32, "AlphaBlend");
 }
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
@@ -5803,6 +5796,16 @@ AEDCITEM* AE_StackDcItemInsert(HSTACK *hStack, HBITMAP hBitmap)
 {
   AEDCITEM *lpElement=NULL;
   BITMAP bmpImage;
+
+  //Get AlphaBlend address
+  if (!AkelEditAlphaBlendPtr)
+  {
+    if (!(hAkelEditMsimg32=GetModuleHandleA("msimg32.dll")))
+      if (hAkelEditMsimg32=LoadLibraryA("msimg32.dll"))
+        bAkelEditMsimg32Free=TRUE;
+    if (hAkelEditMsimg32)
+      AkelEditAlphaBlendPtr=(BOOL (WINAPI *)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION))GetProcAddress(hAkelEditMsimg32, "AlphaBlend");
+  }
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEDCITEM)))
   {
