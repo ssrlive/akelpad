@@ -1818,12 +1818,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETBACKGROUNDIMAGE)
     {
+      int nAlpha;
+      BOOL bResult=FALSE;
+
       if (wParam)
       {
         if (ae->popt->lpBkImage)
         {
           if (ae->popt->lpBkImage->hBitmap == (HBITMAP)wParam)
-            return FALSE;
+            goto CheckAlpha;
 
           //Remove from stack, if handle not assigned to any other edit window.
           if (!--ae->popt->lpBkImage->nRefCount)
@@ -1837,6 +1840,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (ae->popt->lpBkImage->hDC)
           {
             ++ae->popt->lpBkImage->nRefCount;
+            bResult=TRUE;
           }
           else
           {
@@ -1853,15 +1857,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (!--ae->popt->lpBkImage->nRefCount)
           AE_StackDcItemDelete(&hAkelEditBitmapDcStack, ae->popt->lpBkImage);
         ae->popt->lpBkImage=NULL;
+        bResult=TRUE;
       }
       else return FALSE;
 
+      CheckAlpha:
       if (lParam)
-        ae->popt->nBkImageAlpha=(int)lParam;
+        nAlpha=(int)lParam;
       else
-        ae->popt->nBkImageAlpha=128;
-      InvalidateRect(ae->hWndEdit, NULL, TRUE);
-      return TRUE;
+        nAlpha=AEBKI_ALPHA;
+      if (nAlpha != ae->popt->nBkImageAlpha)
+      {
+        ae->popt->nBkImageAlpha=nAlpha;
+        bResult=TRUE;
+      }
+
+      if (bResult)
+        InvalidateRect(ae->hWndEdit, NULL, TRUE);
+      return bResult;
     }
 
     //Folding

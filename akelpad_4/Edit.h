@@ -101,6 +101,7 @@
 #define SEARCHSTRINGS_AMOUNT       10
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
+#define EDIT_BKIMAGEALPHA          128
 
 //ParseCmdLine flags
 #define PCL_ONLOAD          0
@@ -527,7 +528,8 @@ typedef struct _COLORTHEME {
   COLORREF crReserved2;
   COLORREF crReserved3;
   COLORREF crReserved4;
-  wchar_t wszBkFile[MAX_PATH];
+  wchar_t wszBkImageFile[MAX_PATH];
+  int nBkImageAlpha;
 } COLORTHEME;
 
 typedef struct _PLUGINHANDLE {
@@ -581,12 +583,12 @@ typedef struct _HDOCK {
   int nSizingType;
 } HDOCK;
 
-typedef struct _BKFILEITEM {
-  struct _BKFILEITEM *next;
-  struct _BKFILEITEM *prev;
-  wchar_t wszBkFile[MAX_PATH];
-  HBITMAP hBkImage;
-} BKFILEITEM;
+typedef struct _BKIMAGEITEM {
+  struct _BKIMAGEITEM *next;
+  struct _BKIMAGEITEM *prev;
+  wchar_t wszBkImageFile[MAX_PATH];
+  HBITMAP hBkImageBitmap;
+} BKIMAGEITEM;
 
 typedef struct _BUTTONDRAWITEM {
   struct _BUTTONDRAWITEM *next;
@@ -946,18 +948,18 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxThemes(HWND hWnd);
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nIndex);
+COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nBkImageAlpha, int nIndex);
 COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName);
-COLORTHEME* StackThemeGetByColorsAndFile(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkFile);
+COLORTHEME* StackThemeGetByData(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkImageFile, int nBkImageAlpha);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
 void StackThemeFree(HSTACK *hStack);
 void ReadThemes(MAINOPTIONS *mo);
 BOOL SaveThemes(int nSaveSettings);
 
-BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile);
-BKFILEITEM* StackBkFileGet(HSTACK *hStack, const wchar_t *wpFile);
-void StackBkFileFree(HSTACK *hStack);
-BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile);
+BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile);
+BKIMAGEITEM* StackBkImageGet(HSTACK *hStack, const wchar_t *wpFile);
+void StackBkImageFree(HSTACK *hStack);
+BOOL SetBkImage(FRAMEDATA *lpFrame, wchar_t *wpFile, int nBkImageAlpha);
 HBITMAP LoadPictureFile(wchar_t *wpFile);
 
 void RegisterPluginsHotkeys(MAINOPTIONS *mo);
