@@ -12384,6 +12384,8 @@ void ReadThemes(MAINOPTIONS *mo)
       for (;;)
       {
         xmemset(&ct.aec, 0, dwSizeData);
+        ct.nBkImageAlpha=EDIT_BKIMAGEALPHA;
+
         dwSizeValue=MAX_PATH;
         dwSizeString=dwSizeData;
         if (RegEnumValueWide(hKey, dwIndex, ct.wszName, &dwSizeValue, NULL, &dwType, (LPBYTE)&ct.aec, &dwSizeString) != ERROR_SUCCESS)
@@ -12405,6 +12407,8 @@ void ReadThemes(MAINOPTIONS *mo)
       for (lpIniKey=lpIniSection->first; lpIniKey; lpIniKey=lpIniKey->next)
       {
         xmemset(&ct.aec, 0, dwSizeData);
+        ct.nBkImageAlpha=EDIT_BKIMAGEALPHA;
+
         StackGetIniData(lpIniKey, INI_BINARY, (LPBYTE)&ct.aec, dwSizeData);
         StackThemeAdd(&hThemesStack, lpIniKey->wszKey, &ct.aec, ct.wszBkImageFile, ct.nBkImageAlpha, -1);
         ++dwIndex;
