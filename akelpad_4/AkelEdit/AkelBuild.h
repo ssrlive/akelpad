@@ -704,9 +704,10 @@ typedef struct {
 
 BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit);
-void AE_RegisterClassCommon(HINSTANCE hInstance, BOOL bRegisterRichEdit);
+void AE_RegisterClassCommon(HINSTANCE hInstance);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
+void AE_UnregisterClassCommon(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam);
 AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc);
