@@ -1818,7 +1818,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETBACKGROUNDIMAGE)
     {
-      int nAlpha;
       BOOL bResult=FALSE;
 
       if (wParam)
@@ -1862,13 +1861,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else return FALSE;
 
       CheckAlpha:
-      if (lParam)
-        nAlpha=(int)lParam;
-      else
-        nAlpha=AEBKI_ALPHA;
-      if (nAlpha != ae->popt->nBkImageAlpha)
+      if (lParam != ae->popt->nBkImageAlpha)
       {
-        ae->popt->nBkImageAlpha=nAlpha;
+        ae->popt->nBkImageAlpha=(int)lParam;
         bResult=TRUE;
       }
 
