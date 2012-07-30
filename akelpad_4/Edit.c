@@ -7,6 +7,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <olectl.h>
 #include <aclapi.h>
 #include <richedit.h>
 #include "WideFunc.h"
@@ -12216,7 +12217,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       efnW.hwndOwner    =hDlg;
       efnW.lpstrFile    =wszBkFileDlg;
       efnW.nMaxFile     =MAX_PATH;
-      efnW.lpstrFilter  =L"*.bmp\0*.bmp\0\0";;
+      efnW.lpstrFilter  =L"*.bmp;*.jpg;*.jpeg;*.gif\0*.bmp;*.jpg;*.jpeg;*.gif\0*.*\0*.*\0\0";;
       efnW.nFilterIndex =1;
       efnW.Flags        =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
 
@@ -12437,12 +12438,16 @@ BKFILEITEM* StackBkFileInsert(HSTACK *hStack, const wchar_t *wpFile)
     xstrcpynW(lpElement->wszBkFile, wpFile, MAX_PATH);
     TranslateFileString(wpFile, wszFileExp, MAX_PATH);
 
-    if (bOldWindows)
+    if (!xstrcmpiW(L"bmp", GetFileExt(wpFile, -1)))
     {
-      WideCharToMultiByte(CP_ACP, 0, wszFileExp, -1, buf, MAX_PATH, NULL, NULL);
-      lpElement->hBkImage=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+      if (bOldWindows)
+      {
+        WideCharToMultiByte(CP_ACP, 0, wszFileExp, -1, buf, MAX_PATH, NULL, NULL);
+        lpElement->hBkImage=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+      }
+      else lpElement->hBkImage=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
     }
-    else lpElement->hBkImage=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+    else lpElement->hBkImage=LoadPictureFile(wszFileExp);
   }
   return lpElement;
 }
@@ -12461,6 +12466,12 @@ BKFILEITEM* StackBkFileGet(HSTACK *hStack, const wchar_t *wpFile)
 
 void StackBkFileFree(HSTACK *hStack)
 {
+  BKFILEITEM *lpBkFile;
+
+  for (lpBkFile=(BKFILEITEM *)hStack->first; lpBkFile; lpBkFile=lpBkFile->next)
+  {
+    DeleteObject(lpBkFile->hBkImage);
+  }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
@@ -12479,6 +12490,23 @@ BOOL SetBkFile(FRAMEDATA *lpFrame, wchar_t *wpFile)
   else lpFrame->hBkImage=NULL;
 
   return (BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)lpFrame->hBkImage, 0);
+}
+
+HBITMAP LoadPictureFile(wchar_t *wpFile)
+{
+  HBITMAP hBitmapResult=NULL;
+  HBITMAP hBitmapOle=NULL;
+  IPicture *lpPic=NULL;
+
+  if (OleLoadPicturePath(wpFile, NULL, 0, 0, &IID_IPicture, (void **)&lpPic) == S_OK)
+  {
+    if (lpPic->lpVtbl->get_Handle(lpPic, (UINT*)&hBitmapOle) == S_OK)
+    {
+      hBitmapResult=(HBITMAP)CopyImage(hBitmapOle, IMAGE_BITMAP, 0, 0, 0);
+    }
+    lpPic->lpVtbl->Release(lpPic);
+  }
+  return hBitmapResult;
 }
 
 
