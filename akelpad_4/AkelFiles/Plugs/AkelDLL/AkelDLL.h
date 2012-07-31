@@ -324,6 +324,8 @@
 #define FI_LOCKINHERIT          129
 #define FI_FILETIME             133
 #define FI_COLORS               137
+#define FI_BKIMAGEFILE          140
+#define FI_BKIMAGEALPHA         141
 
 //AKD_SETFRAMEINFO type.
 #define FIS_TABSTOPSIZE          1   //(int)FRAMEINFO.dwData - tabulation size in characters.
@@ -352,6 +354,7 @@
 #define FIS_WRAPDELIMITERS       60  //(wchar_t *)FRAMEINFO.dwData - wrap delimiters.
 #define FIS_LOCKINHERIT          68  //(DWORD)FRAMEINFO.dwData - lock inherit new document settings from current document. FRAMEINFO.dwData contain lock inherit flags, see LI_* defines.
 #define FIS_COLORS               72  //(AECOLORS *)FRAMEINFO.dwData - set colors.
+#define FIS_BKIMAGE              73  //(BKIMAGE *)FRAMEINFO.dwData - set background image.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
@@ -579,7 +582,8 @@
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.
 #define LI_COLORS         0x00000002  //Lock inherit colors.
-#define LI_WRAP           0x00000004  //Lock inherit wrapping.
+#define LI_BKIMAGE        0x00000004  //Lock inherit background image.
+#define LI_WRAP           0x00000008  //Lock inherit wrapping.
 
 //Find text flags
 #ifndef FR_DOWN
@@ -1079,7 +1083,7 @@ typedef struct _FRAMEDATA {
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
   wchar_t wszBkImageFile[MAX_PATH];                   //Background image file.
-  int nBkImageAlpha;                                  //Alpha transparency value that ranges from 1 to 255.
+  int nBkImageAlpha;                                  //Alpha transparency value that ranges from 0 to 255.
   HBITMAP hBkImageBitmap;                             //Background image handle.
   AECOLORS aec;                                       //Edit colors.
 
@@ -1116,6 +1120,11 @@ typedef struct {
   int nType;        //See FIS_* defines.
   UINT_PTR dwData;  //Depend on FIS_* define.
 } FRAMEINFO;
+
+typedef struct {
+  const wchar_t *wpFile; //Background image file.
+  int nAlpha;            //Alpha transparency value that ranges from 0 to 255.
+} BKIMAGE;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;

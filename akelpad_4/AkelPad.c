@@ -2564,6 +2564,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else *lpdwData=(UINT_PTR)&lpFrame->aec;
         }
+        else if (nType == FI_BKIMAGEFILE)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszBkImageFile, MAX_PATH);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszBkImageFile;
+        }
+        else if (nType == FI_BKIMAGEALPHA)
+          *lpdwData=(UINT_PTR)lpFrame->nBkImageAlpha;
 
         if (wParam > 0xFFFF)
           return dwSize;
