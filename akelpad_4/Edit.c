@@ -11799,12 +11799,22 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Background image
     SetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg);
     SetDlgItemInt(hDlg, IDC_COLORS_BKIMAGEALPHA_EDIT, nBkImageAlphaDlg, FALSE);
-    EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
-    EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
 
     //Colors inheriting is locked. Don't let user press OK, but allow to save as new theme.
-    if (lpFrameCurrent->dwLockInherit & LI_COLORS)
+    if ((lpFrameCurrent->dwLockInherit & LI_COLORS) || (lpFrameCurrent->dwLockInherit & LI_BKIMAGE))
       EnableWindow(hWndOK, FALSE);
+    if (lpFrameCurrent->dwLockInherit & LI_BKIMAGE)
+    {
+      EnableWindow(hWndBkImageFileEdit, FALSE);
+      EnableWindow(hWndBkImageFileBrowse, FALSE);
+      EnableWindow(hWndBkImageAlphaEdit, FALSE);
+      EnableWindow(hWndBkImageAlphaSpin, FALSE);
+    }
+    else
+    {
+      EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
+      EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -12224,21 +12234,24 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (HIWORD(wParam) == EN_CHANGE)
       {
-        COLORTHEME *ctElement;
-        int nSelection=-1;
+        if (!(lpFrameCurrent->dwLockInherit & LI_BKIMAGE))
+        {
+          COLORTHEME *ctElement;
+          int nSelection=-1;
 
-        GetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg, MAX_PATH);
-        if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
-          nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
-        SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
-        if (nSelection > 0)
-          EnableWindow(hWndThemeDelete, TRUE);
-        else
-          EnableWindow(hWndThemeDelete, FALSE);
-        EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
-        EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
+          GetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg, MAX_PATH);
+          if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
+            nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
+          SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
+          if (nSelection > 0)
+            EnableWindow(hWndThemeDelete, TRUE);
+          else
+            EnableWindow(hWndThemeDelete, FALSE);
+          EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
+          EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
 
-        bColorsChanged=TRUE;
+          bColorsChanged=TRUE;
+        }
       }
     }
     else if (LOWORD(wParam) == IDC_COLORS_BKIMAGEFILE_BROWSE)
