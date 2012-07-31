@@ -395,8 +395,13 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     xmemcpy(&lpFrame->lf, &fdDefault.lf, sizeof(LOGFONTW));
   if ((lpFrame->dwLockInherit & LI_COLORS) || !lpFrame->aec.dwFlags)
     xmemcpy(&lpFrame->aec, &fdDefault.aec, sizeof(AECOLORS));
+  if (lpFrame->dwLockInherit & LI_BKIMAGE)
+  {
+    xstrcpynW(lpFrame->wszBkImageFile, fdDefault.wszBkImageFile, MAX_PATH);
+    lpFrame->nBkImageAlpha=fdDefault.nBkImageAlpha;
+  }
   if (lpFrame->dwLockInherit & LI_WRAP)
-    lpFrame->ei.bWordWrap=FALSE;
+    lpFrame->ei.bWordWrap=fdDefault.ei.bWordWrap;
   lpFrame->dwLockInherit=0;
 
   //Set settings
@@ -12483,13 +12488,14 @@ BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile)
 {
   BKIMAGEITEM *lpElement=NULL;
   wchar_t wszFileExp[MAX_PATH];
+  const wchar_t *wpExt;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BKIMAGEITEM)))
   {
     xstrcpynW(lpElement->wszBkImageFile, wpFile, MAX_PATH);
     TranslateFileString(wpFile, wszFileExp, MAX_PATH);
 
-    if (!xstrcmpiW(L"bmp", GetFileExt(wpFile, -1)))
+    if ((wpExt=GetFileExt(wpFile, -1)) && !xstrcmpiW(L"bmp", wpExt))
     {
       if (bOldWindows)
       {
@@ -12521,12 +12527,12 @@ void StackBkImageFree(HSTACK *hStack)
 
   for (lpBkImage=(BKIMAGEITEM *)hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
   {
-    DeleteObject(lpBkImage->hBkImageBitmap);
+    if (lpBkImage->hBkImageBitmap) DeleteObject(lpBkImage->hBkImageBitmap);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL SetBkImage(FRAMEDATA *lpFrame, wchar_t *wpFile, int nBkImageAlpha)
+BOOL SetBkImage(FRAMEDATA *lpFrame, const wchar_t *wpFile, int nBkImageAlpha)
 {
   BKIMAGEITEM *bkfi;
 
@@ -18711,14 +18717,24 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
   }
   else if (nType == FIS_COLORS)
   {
-    if (xmemcmp(&lpFrame->aec, (AECOLORS *)dwData, sizeof(AECOLORS)))
-    {
-      AECOLORS *aec=(AECOLORS *)dwData;
+    AECOLORS *aec=(AECOLORS *)dwData;
 
+    if (xmemcmp(&lpFrame->aec, aec, sizeof(AECOLORS)))
+    {
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
       lpFrame->aec.dwFlags=aec->dwFlags;
       SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
       lpFrame->aec.dwFlags=AECLR_ALL;
+      return TRUE;
+    }
+  }
+  else if (nType == FIS_BKIMAGE)
+  {
+    BKIMAGE *bki=(BKIMAGE *)dwData;
+
+    if (xstrcmpiW(lpFrame->wszBkImageFile, bki->wpFile) || lpFrame->nBkImageAlpha != bki->nAlpha)
+    {
+      SetBkImage(lpFrame, bki->wpFile, bki->nAlpha);
       return TRUE;
     }
   }

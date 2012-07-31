@@ -959,7 +959,7 @@ BOOL SaveThemes(int nSaveSettings);
 BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile);
 BKIMAGEITEM* StackBkImageGet(HSTACK *hStack, const wchar_t *wpFile);
 void StackBkImageFree(HSTACK *hStack);
-BOOL SetBkImage(FRAMEDATA *lpFrame, wchar_t *wpFile, int nBkImageAlpha);
+BOOL SetBkImage(FRAMEDATA *lpFrame, const wchar_t *wpFile, int nBkImageAlpha);
 HBITMAP LoadPictureFile(wchar_t *wpFile);
 
 void RegisterPluginsHotkeys(MAINOPTIONS *mo);
