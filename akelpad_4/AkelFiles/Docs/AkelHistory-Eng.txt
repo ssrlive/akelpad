@@ -6,6 +6,9 @@ Changed: hotkey for command 4206 is now Ctrl+*.
 Added: ability to use an image as the editor background. Program start can be much faster,
        if images will be in bmp format.
 
+Fixed: search with regular expressions and %se[text] variable of manual parameter
+       "StatusUserFormat"
+            .
 
 AkelPad 4.7.7 (Jul 22, 2012)
 ----------------------------

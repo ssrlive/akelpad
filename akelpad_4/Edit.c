@@ -9676,17 +9676,12 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
     if (SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
     {
-      lpFrame->bReachedEOF=FALSE;
-      UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
       bFound=TRUE;
     }
   }
 
   if (bCycleCheck && !bFound)
   {
-    lpFrame->bReachedEOF=TRUE;
-    UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
-
     if ((dwFlags & AEFR_CYCLESEARCH) && !(dwFlags & AEFR_SELECTION) && !(dwFlags & AEFR_BEGINNING))
     {
       AECHARINDEX ciChar;
@@ -9728,6 +9723,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       else bNoSearchFinishMessage=TRUE;
     }
   }
+  lpFrame->bReachedEOF=!bFound;
+  UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
 
   if (bFound)
   {
