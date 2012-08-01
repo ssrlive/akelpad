@@ -12429,8 +12429,8 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
     //Bitmap as background
     BLENDFUNCTION bf;
     RECT rcCopy;
-    int nImageX=(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
-    int nImageY=(lpRect->top + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
+    int nImageX=(int)(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+    int nImageY=(int)(lpRect->top + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
     int nImageWidth=ae->popt->lpBkImage->nBitmapX - nImageX;
     int nImageHeight=ae->popt->lpBkImage->nBitmapY - nImageY;
 
@@ -12452,7 +12452,7 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
     while (rcCopy.bottom > 0)
     {
       //Restore initial X variables
-      nImageX=(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+      nImageX=(int)(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
       rcCopy.left=lpRect->left;
       rcCopy.right=lpRect->right - rcCopy.left;
       if (rcCopy.right > nImageWidth)
