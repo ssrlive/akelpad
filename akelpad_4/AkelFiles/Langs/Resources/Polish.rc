@@ -562,7 +562,7 @@ BEGIN
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
     CONTROL         "&Wiersz:Kolumna",IDC_GOTO_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
-    CONTROL         "&Znak (Offset)",IDC_GOTO_OFFSET,"Button",
+    CONTROL         "&Znak(offset)",IDC_GOTO_OFFSET,"Button",
                     BS_AUTORADIOBUTTON,86,41,50,10
     PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Anuluj",IDCANCEL,77,63,50,14,BS_CENTER
@@ -595,7 +595,7 @@ STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Kolory"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Schemat kolorów:",IDC_STATIC,11,6,103,8
+    LTEXT           "Motyw kolorów:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,129,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Zapisz",IDC_COLORS_THEME_SAVE,145,16,50,14
@@ -603,11 +603,11 @@ BEGIN
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,239,144
-    LTEXT           "Background image (%a – katalog AkelPada):",
+    LTEXT           "Obraz t³a (%a - katalog AkelPada):",
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
-    LTEXT           "Alpha:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    LTEXT           "Alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
     EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
@@ -643,11 +643,11 @@ CAPTION "G³ówne"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Uruchom",IDC_STATIC,9,6,200,90
-    LTEXT           "Polecenie (%f – plik, %a – katalog AkelPada):",
+    LTEXT           "Polecenie (%f - plik, %a - katalog AkelPada):",
                     IDC_STATIC,21,24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Katalog roboczy (%d – katalog pliku):",IDC_STATIC,21,59,
+    LTEXT           "Katalog roboczy (%d - katalog pliku):",IDC_STATIC,21,59,
                     160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
@@ -770,7 +770,7 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,86,202,51
-    CONTROL         "Przesuwaj kursor poza koniec wiersza",
+    CONTROL         "Przenoœ kursor poza koniec wiersza",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,16,98,132,10
     CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,
@@ -834,7 +834,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Przeci¹ganie mysz¹",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Prawy klik przesuwa kursor",IDC_OPTIONS_RCLICKMOVECARET,
+    CONTROL         "Prawy klik przenosi kursor",IDC_OPTIONS_RCLICKMOVECARET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
     GROUPBOX        "Hiper³¹cza",IDC_STATIC,9,60,200,100
     CONTROL         "Poka¿",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
@@ -890,7 +890,7 @@ BEGIN
     LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
                     77,171,8
     GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,96,200,53
-    CONTROL         """Zamieñ wszystko"" – zamyka okno dialogowe",
+    CONTROL         """Zamieñ wszystko"" - zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         "Ustaw ""W zaznaczeniu"" jeœli jest zaznaczenie",
