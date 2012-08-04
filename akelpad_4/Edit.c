@@ -6407,7 +6407,9 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   wchar_t *wpCount=&wszCenter[0];
   wchar_t wszPageNumber[32];
   const wchar_t *wpFile;
+  HBRUSH hbrBasicBk;
   DWORD dwAlign;
+  int nBkModeOld;
   int nCenter=0;
   int nLeft=0;
   int nRight=0;
@@ -6517,6 +6519,16 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   if (nRight < MAX_PATH)
     wszRight[nRight]='\0';
 
+  if (moCur.dwPrintColor & PRNC_BACKGROUND)
+  {
+    if (hbrBasicBk=CreateSolidBrush(lpFrameCurrent->aec.crBasicBk))
+    {
+      FillRect(hDC, rc, hbrBasicBk);
+      DeleteObject(hbrBasicBk);
+    }
+    nBkModeOld=SetBkMode(hDC, TRANSPARENT);
+  }
+
   dwAlign=GetTextAlign(hDC);
   if (*wszCenter && bResult)
   {
@@ -6534,6 +6546,7 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
     bResult=ExtTextOutW(hDC, rc->right, rc->top, ETO_CLIPPED, rc, wszRight, nRight, NULL);
   }
   SetTextAlign(hDC, dwAlign);
+  SetBkMode(hDC, nBkModeOld);
 
   return bResult;
 }

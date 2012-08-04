@@ -12170,7 +12170,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   if (!prn->hPrintFont || !prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
     return FALSE;
 
-  //Select print font
+  //Prepare variables
+  ae->bPrinting=TRUE;
   hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
 
   //Set AETEXTOUT
@@ -12410,6 +12411,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
   DeleteObject(ae->popt->hbrBasicBk);
   ae->popt->hbrBasicBk=NULL;
+  ae->bPrinting=FALSE;
 
   return bContinuePrint;
 }
@@ -12424,7 +12426,7 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
 void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
 {
-  if (ae->popt->lpBkImage)
+  if (ae->popt->lpBkImage && !ae->bPrinting)
   {
     //Bitmap as background
     BLENDFUNCTION bf;
