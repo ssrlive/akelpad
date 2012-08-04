@@ -560,23 +560,16 @@ typedef struct _AKELEDIT {
   struct _AKELEDIT *next;
   struct _AKELEDIT *prev;
 
-  //Ident
-  AEEditProc lpEditProc;
-  HWND hWndEdit;
-  HWND hWndParent;
-  int nEditCtrlID;
-  BOOL bUnicodeWindow;
-  BOOL bRichEditClass;
-
   //Text
-  AKELTEXT txt;
   AKELTEXT *ptxt;
+  AKELTEXT txt;
+  BOOL bSkipMessages;
 
   //Options
-  AKELOPTIONS opt;
   AKELOPTIONS *popt;
+  AKELOPTIONS opt;
 
-  //Current selection
+  //Selection
   AELINEINDEX liFirstDrawLine;
   AECHARINDEX ciSelStartIndex;
   AECHARINDEX ciSelEndIndex;
@@ -594,19 +587,29 @@ typedef struct _AKELEDIT {
   INT_PTR nCaretHorzIndent;
   BOOL bColumnSel;
 
-  //Window
+  //Ident
+  AEEditProc lpEditProc;
+  HWND hWndEdit;
+  HWND hWndParent;
+  int nEditCtrlID;
+  BOOL bUnicodeWindow;
+  BOOL bRichEditClass;
+
+  //Painting
   HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
   AESTACKERASE hEraseStack;
   POINT ptActiveColumnDraw;
-  HKL dwInputLocale;
-  DWORD dwImeChar;
-  BOOL bSkipMessages;
   BOOL bHScrollShow;
   BOOL bVScrollShow;
   BOOL bCaretVisible;
+  BOOL bPrinting;
+
+  //Input
   BOOL bFocus;
+  HKL dwInputLocale;
+  DWORD dwImeChar;
   int nAltChar;
 
   //Notification
