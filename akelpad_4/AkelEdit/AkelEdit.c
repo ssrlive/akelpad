@@ -9779,13 +9779,18 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
 
         //Is on new line
         if (ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
-            ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
-            ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
+            ciCharIndex.nLine < ae->ciSelEndIndex.nLine)
         {
-          AE_GlobalToClient(ae, &ptGlobal, &ptClient64, NULL);
-
-          if (nClientX >= ptClient64.x && nClientX <= ptClient64.x + ae->ptxt->nAveCharWidth)
+          if (ae->popt->dwOptions & AECO_ENTIRENEWLINEDRAW)
             return TRUE;
+
+          if (ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
+          {
+            AE_GlobalToClient(ae, &ptGlobal, &ptClient64, NULL);
+
+            if (nClientX >= ptClient64.x && nClientX <= ptClient64.x + ae->ptxt->nAveCharWidth)
+              return TRUE;
+          }
         }
       }
     }
