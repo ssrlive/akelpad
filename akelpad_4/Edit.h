@@ -1167,6 +1167,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
 int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar);
 int AE_PatStrChar(const AECHARINDEX *ciChar);
+AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
 int PatRepChar(const wchar_t **wppPat);
 int PatHexChar(const wchar_t **wppPat);
 DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, int *lpnPatChar);
