@@ -424,9 +424,9 @@
 #define TAB_SWITCH_RIGHTLEFT    0x00020000  //Switch between tabs: Left-Right.
 #define TAB_ADD_AFTERCURRENT    0x00080000  //Create tabs after the current one.
 #define TAB_NOADD_LBUTTONDBLCLK 0x00100000  //Don't create new tab by left button double click on the tab bar.
-#define TAB_NOADD_MBUTTONDOWN   0x00200000  //Don't create new tab by middle button click on the tab bar.     
-#define TAB_NODEL_LBUTTONDBLCLK 0x00400000  //Don't close tab by left button double click on the tab.         
-#define TAB_NODEL_MBUTTONDOWN   0x00800000  //Don't close tab by middle button click on the tab.              
+#define TAB_NOADD_MBUTTONDOWN   0x00200000  //Don't create new tab by middle button click on the tab bar.
+#define TAB_NODEL_LBUTTONDBLCLK 0x00400000  //Don't close tab by left button double click on the tab.
+#define TAB_NODEL_MBUTTONDOWN   0x00800000  //Don't close tab by middle button click on the tab.
 
 //File types association
 #define FTA_ASSOCIATE     0x00000001  //Internal.
@@ -631,6 +631,10 @@
 #define RECC_MIX      0x04
 #define RECC_WORD     0x08
 #define RECC_REF      0x10
+
+//PatRepChar return value
+#define RERC_WRONG -1
+#define RERC_REF   -2
 
 //AKD_PATEXEC options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
