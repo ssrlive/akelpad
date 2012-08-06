@@ -19271,7 +19271,7 @@ int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen)
   return 0;
 }
 
-const wchar_t* GetNewLineString(nNewLine)
+const wchar_t* GetNewLineString(int nNewLine)
 {
   if (nNewLine == NEWLINE_WIN) return L"\r\n";
   if (nNewLine == NEWLINE_UNIX) return L"\n";
