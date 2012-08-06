@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 3)
 
 
 //// Defines
@@ -633,8 +633,9 @@
 #define RECC_REF      0x10
 
 //PatRepChar return value
-#define RERC_WRONG -1
-#define RERC_REF   -2
+#define RERC_WRONG   70001
+#define RERC_NEWLINE 70002
+#define RERC_REF     70003
 
 //AKD_PATEXEC options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
@@ -1377,6 +1378,7 @@ typedef struct {
   DWORD dwOptions;           //See REPE_* defines.
   const wchar_t *wpDelim;    //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  const wchar_t *wpNewLine;  //New line string. If NULL, default will be used "\r\n".
   INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
   int nReplaceCount;         //Receives replace count number.
   const wchar_t *wpLeftStr;  //PatExec: First replace occurrence in string.
@@ -4716,6 +4718,7 @@ Example:
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
  pr.dwOptions=REPE_GLOBAL|REPE_MATCHCASE;
  pr.wpDelim=NULL;
+ pr.wpNewLine=NULL;
  pr.wszResult=NULL;
  nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
 
