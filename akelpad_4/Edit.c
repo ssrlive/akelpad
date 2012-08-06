@@ -9795,6 +9795,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.dwOptions=(dwFlags & AEFR_MATCHCASE?REPE_MATCHCASE:0)|REPE_MULTILINE;
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
+    pr.wpNewLine=GetNewLineString(lpFrame->ei.nNewLine);
     lpFrame->nCompileErrorOffset=0;
   }
 
@@ -9861,7 +9862,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     {
       //Find new line in wpFindIt and wpReplaceWith.
       nGetTextNewLine=HIWORD(SendMessage(lpFrame->ei.hWndEdit, AEM_GETNEWLINE, 0, 0));
-  
+
       if (nGetTextNewLine == AELB_ASIS)
       {
         for (i=0; i < nFindItLen; ++i)
@@ -19270,6 +19271,14 @@ int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen)
   return 0;
 }
 
+const wchar_t* GetNewLineString(nNewLine)
+{
+  if (nNewLine == NEWLINE_WIN) return L"\r\n";
+  if (nNewLine == NEWLINE_UNIX) return L"\n";
+  if (nNewLine == NEWLINE_MAC) return L"\r";
+  return L"";
+}
+
 void TrimModifyState(wchar_t *wszFile, int nFileLen)
 {
   wchar_t *wpCount;
@@ -21720,10 +21729,8 @@ int PatRepChar(const wchar_t **wppPat)
       nPatChar=(int)hex2decW(++(*wppPat), 2);
       (*wppPat)+=1;
     }
-    else if (nPatChar == L'r')
-      return L'\r';
-    else if (nPatChar == L'n')
-      return L'\n';
+    else if (nPatChar == L'r' || nPatChar == L'n')
+      return RERC_NEWLINE;
     else if (nPatChar == L't')
       return L'\t';
     else if (nPatChar == L'f')
@@ -21732,7 +21739,7 @@ int PatRepChar(const wchar_t **wppPat)
       return L'\v';
     else if (nPatChar >= L'0' && nPatChar <= L'9')
       return RERC_REF;
-    else 
+    else
       return RERC_WRONG;
   }
   return nPatChar;
@@ -22143,6 +22150,7 @@ INT_PTR PatReplace(PATREPLACE *pr)
   //Replace using RegExp
   pep.wpRep=pr->wpRep;
   pep.wpMaxRep=pr->wpMaxRep;
+  pep.wpNewLine=pr->wpNewLine;
   pep.wszBuf=pr->wszResult;
   pep.wpBufCount=pep.wszBuf;
 
@@ -22226,7 +22234,11 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
         }
         continue;
       }
-      if (nPatChar != RERC_WRONG)
+      if (nPatChar == RERC_NEWLINE)
+      {
+        pep->wpBufCount+=xstrcpyW(pep->wszBuf?pep->wpBufCount:NULL, pep->wpNewLine?pep->wpNewLine:L"\r\n");
+      }
+      else if (nPatChar != RERC_WRONG)
       {
         if (pep->wszBuf)
           *pep->wpBufCount=(wchar_t)nPatChar;
@@ -22283,7 +22295,11 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
         }
         continue;
       }
-      if (nPatChar != RERC_WRONG)
+      if (nPatChar == RERC_NEWLINE)
+      {
+        pep->wpBufCount+=xstrcpyW(pep->wszBuf?pep->wpBufCount:NULL, pep->wpNewLine?pep->wpNewLine:L"\r\n");
+      }
+      else if (nPatChar != RERC_WRONG)
       {
         if (pep->wszBuf)
           *pep->wpBufCount=(wchar_t)nPatChar;
