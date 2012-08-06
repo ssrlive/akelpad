@@ -10110,7 +10110,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           if (pr.wszResult=AllocWideStr(nResultTextLen))
           {
             nResultTextLen=PatReplace(&pr);
-            ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASINPUT, 0, NULL, NULL);
+            ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASIS, 0, NULL, NULL);
             nChanges=1;
             FreeWideStr(pr.wszResult);
           }
@@ -20999,7 +20999,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           bResult=TRUE;
           break;
         }
-        ++wpStr;
+        wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar) + 1;
       }
       lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
       return bResult;
@@ -21347,7 +21347,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           bResult=TRUE;
           break;
         }
-        AEC_NextChar(&ciStr);
+        AE_PatNextChar(&ciStr);
       }
       lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
       return bResult;
@@ -21623,8 +21623,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                      WideCharLower((wchar_t)nStrChar) != WideCharLower((wchar_t)nGroupChar))
                   goto EndLoop;
 
-                AEC_NextChar(&ciStrCount);
-                AEC_NextChar(&ciGroupCount);
+                AE_PatNextChar(&ciStrCount);
+                AE_PatNextChar(&ciGroupCount);
               }
               if (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0)
                 goto EndLoop;
@@ -21637,7 +21637,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
       }
       ++wpPat;
-      AEC_NextChar(&ciStr);
+      AE_PatNextChar(&ciStr);
     }
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
@@ -21708,6 +21708,19 @@ int AE_PatStrChar(const AECHARINDEX *ciChar)
     return -ciChar->lpLine->nLineBreak;
   }
   return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+}
+
+AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
+{
+  if (++ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+  {
+    if (ciChar->nCharInLine > ciChar->lpLine->nLineLen ||
+        ciChar->lpLine->nLineBreak == AELB_WRAP)
+    {
+      AEC_NextLine(ciChar);
+    }
+  }
+  return ciChar->lpLine;
 }
 
 int PatRepChar(const wchar_t **wppPat)
@@ -22102,7 +22115,7 @@ int PatStructExec(PATEXEC *pe)
           if (AE_PatStrChar(&pe->ciStr) < 0)
           {
             ciLineStart=pe->ciStr;
-            AEC_NextChar(&ciLineStart);
+            AE_PatNextChar(&ciLineStart);
 
             if (AEC_IndexCompare(&ciLineStart, &pe->ciMaxStr) < 0)
             {
@@ -22150,7 +22163,7 @@ INT_PTR PatReplace(PATREPLACE *pr)
   //Replace using RegExp
   pep.wpRep=pr->wpRep;
   pep.wpMaxRep=pr->wpMaxRep;
-  pep.wpNewLine=pr->wpNewLine;
+  pep.wpNewLine=pr->wpNewLine?pr->wpNewLine:L"\r\n";
   pep.wszBuf=pr->wszResult;
   pep.wpBufCount=pep.wszBuf;
 
@@ -22236,7 +22249,10 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
       }
       if (nPatChar == RERC_NEWLINE)
       {
-        pep->wpBufCount+=xstrcpyW(pep->wszBuf?pep->wpBufCount:NULL, pep->wpNewLine?pep->wpNewLine:L"\r\n");
+        if (pep->wszBuf)
+          pep->wpBufCount+=xstrcpyW(pep->wpBufCount, pep->wpNewLine);
+        else
+          pep->wpBufCount+=xstrlenW(pep->wpNewLine);
       }
       else if (nPatChar != RERC_WRONG)
       {
@@ -22297,7 +22313,10 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
       }
       if (nPatChar == RERC_NEWLINE)
       {
-        pep->wpBufCount+=xstrcpyW(pep->wszBuf?pep->wpBufCount:NULL, pep->wpNewLine?pep->wpNewLine:L"\r\n");
+        if (pep->wszBuf)
+          pep->wpBufCount+=xstrcpyW(pep->wpBufCount, pep->wpNewLine);
+        else
+          pep->wpBufCount+=xstrlenW(pep->wpNewLine);
       }
       else if (nPatChar != RERC_WRONG)
       {
@@ -22323,7 +22342,7 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
   AECHARINDEX ciCount;
   wchar_t *wpTarget=wszTarget;
 
-  for (ciCount=*ciStart; AEC_IndexCompare(&ciCount, ciEnd) < 0; AEC_NextChar(&ciCount))
+  for (ciCount=*ciStart; AEC_IndexCompare(&ciCount, ciEnd) < 0; AE_PatNextChar(&ciCount))
   {
     if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
     {
