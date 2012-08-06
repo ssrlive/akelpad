@@ -22229,7 +22229,7 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
       if (nPatChar != RERC_WRONG)
       {
         if (pep->wszBuf)
-          *pep->wpBufCount=nPatChar;
+          *pep->wpBufCount=(wchar_t)nPatChar;
         ++pep->wpBufCount;
       }
       ++wpRep;
@@ -22286,7 +22286,7 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
       if (nPatChar != RERC_WRONG)
       {
         if (pep->wszBuf)
-          *pep->wpBufCount=nPatChar;
+          *pep->wpBufCount=(wchar_t)nPatChar;
         ++pep->wpBufCount;
       }
       ++wpRep;
