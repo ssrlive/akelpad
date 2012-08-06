@@ -383,7 +383,7 @@
             </tr>
             <tr>
               <td><li>%ob</td>
-              <td>Offset in bytes. New line breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol.</td>
+              <td>Offset in symbols. New line breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol.</td>
             </tr>
             <tr>
               <td><li>%al</td>
@@ -1787,11 +1787,11 @@
     </tr>
     <tr>
       <td>\n</td>
-      <td>Matches a newline character. Equivalent to '\x0a'.</td>
+      <td>Matches any newline. To match Unix newline character use '\x0a'.</td>
     </tr>
     <tr>
       <td>\r</td>
-      <td>Matches a carriage return character. Equivalent to '\x0d'.</td>
+      <td>Matches any newline. To match Mac newline character use '\x0d'.</td>
     </tr>
     <tr>
       <td>\s</td>
