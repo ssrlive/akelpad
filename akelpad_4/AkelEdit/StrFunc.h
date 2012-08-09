@@ -1611,8 +1611,8 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *[out] char **pStrBegin   Pointer to the first char of pStr, can be NULL.
  *[out] char **pStrEnd     Pointer to the first char after pStr, can be NULL.
  *
- *Returns:  TRUE  pStr is founded.
- *          FALSE pStr isn't founded.
+ *Returns:  TRUE  pStr is found.
+ *          FALSE pStr isn't found.
  *
  *Note:
  *  xstrstrA uses xstrlenA.
@@ -1675,8 +1675,8 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
  *[out] wchar_t **wpStrBegin   Pointer to the first char of wpStr, can be NULL.
  *[out] wchar_t **wpStrEnd     Pointer to the first char after wpStr, can be NULL.
  *
- *Returns:  TRUE  wpStr is founded.
- *          FALSE wpStr isn't founded.
+ *Returns:  TRUE  wpStr is found.
+ *          FALSE wpStr isn't found.
  *
  *Note:
  *  - xstrstrW uses xstrlenW.

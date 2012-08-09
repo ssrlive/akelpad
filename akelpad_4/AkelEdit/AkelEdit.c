@@ -336,7 +336,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
   if (ae=AE_StackWindowGet(&hAkelEditWindowsStack, hWnd))
   {
-    //Move founded AKELEDIT in first place. To make next AE_StackWindowGet calls faster.
+    //Move found AKELEDIT in first place. To make next AE_StackWindowGet calls faster.
     AE_StackWindowMakeFirst(&hAkelEditWindowsStack, ae);
 
     //if (ae->bSkipMessages)
@@ -18271,13 +18271,13 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
         if (!ft->pText[++dwCount])
         {
           ++ciCount.nCharInLine;
-          goto Founded;
+          goto Found;
         }
       }
       else if (++dwCount >= ft->dwTextLen)
       {
         ++ciCount.nCharInLine;
-        goto Founded;
+        goto Found;
       }
     }
 
@@ -18318,16 +18318,16 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
     if (ft->dwTextLen == (UINT_PTR)-1)
     {
       if (!ft->pText[dwCount])
-        goto Founded;
+        goto Found;
     }
     else
     {
       if (dwCount >= ft->dwTextLen)
-        goto Founded;
+        goto Found;
     }
   }
 
-  Founded:
+  Found:
   if (ft->dwFlags & AEFR_WHOLEWORD)
   {
     if (!AE_IsDelimiter(ae, &ciCount, AEDLM_WORD))

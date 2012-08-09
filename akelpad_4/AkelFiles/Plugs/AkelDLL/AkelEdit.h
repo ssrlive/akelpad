@@ -2555,7 +2555,7 @@ wParam                == not used.
 (AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -2586,7 +2586,7 @@ wParam                == not used.
 (AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -3969,7 +3969,7 @@ ______________
 Checks is point on URL.
 
 (POINT *)wParam       == coordinates of a point in the control's client area.
-(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if founded. Can be NULL.
+(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if found. Can be NULL.
 
 Return Value
  Detected URL length or zero if not found.
