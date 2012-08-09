@@ -632,10 +632,10 @@
 #define RECC_WORD     0x08
 #define RECC_REF      0x10
 
-//PatRepChar return value
-#define RERC_WRONG   70001
-#define RERC_NEWLINE 70002
-#define RERC_REF     70003
+//PatEscChar return value
+#define REEC_WRONG   70001
+#define REEC_NEWLINE 70002
+#define REEC_REF     70003
 
 //AKD_PATEXEC options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
