@@ -1168,9 +1168,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar);
 int AE_PatStrChar(const AECHARINDEX *ciChar);
 AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
-int PatRepChar(const wchar_t **wppPat);
-int PatHexChar(const wchar_t **wppPat);
-DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, int *lpnPatChar);
+int PatEscChar(const wchar_t **wppPat);
+DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t *wchPatChar);
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
