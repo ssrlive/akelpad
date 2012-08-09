@@ -5416,13 +5416,16 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MOUSEWHEEL)
   {
-    if (LOWORD(wParam) == MK_CONTROL)
+    if (!(lpFrameCurrent->dwMouseOptions & MO_NOWHEELFONTCHANGE))
     {
-      if ((short)HIWORD(wParam) < 0)
-        DoViewFontSize(lpFrameCurrent, FONTSIZE_DECREASE);
-      else
-        DoViewFontSize(lpFrameCurrent, FONTSIZE_INCREASE);
-      return TRUE;
+      if (LOWORD(wParam) == MK_CONTROL)
+      {
+        if ((short)HIWORD(wParam) < 0)
+          DoViewFontSize(lpFrameCurrent, FONTSIZE_DECREASE);
+        else
+          DoViewFontSize(lpFrameCurrent, FONTSIZE_INCREASE);
+        return TRUE;
+      }
     }
   }
 
