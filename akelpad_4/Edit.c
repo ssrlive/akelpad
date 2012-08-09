@@ -21804,7 +21804,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t 
           }
         }
       }
-      else *wchPatChar=nPatChar;
+      else *wchPatChar=(wchar_t)nPatChar;
     }
     else if (nPatChar == REEC_NEWLINE)
     {
