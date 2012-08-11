@@ -40,6 +40,7 @@
 #include "StrFunc.h"
 #include "x64Func.h"
 #include "AkelBuild.h"
+#include "RegExpFunc.h"
 #include "Resources\resource.h"
 #include "Resources\version.h"
 
@@ -48,13 +49,20 @@
 #define AEC_FUNCTIONS
 #include "AkelEdit.h"
 
+//Include RegExp functions
+#define RE_FUNCTIONS
+#include "RegExpFunc.h"
+
 //Include stack functions
 #define StackJoin
 #define StackSplit
+#define StackInsertBefore
+#define StackDelete
 #include "StackFunc.h"
 
 //Include string functions
 #define WideCharLower
+#define WideCharUpper
 #define xmemcpy
 #define xmemcmp
 #define xmemset
@@ -63,8 +71,13 @@
 #define xstrcmpW
 #define xstrcmpiA
 #define xstrcmpiW
+#define xstrcmpnW
+#define xstrcmpinW
+#define xstrcpyW
 #define xstrcpynA
 #define xstrcpynW
+#define xatoiW
+#define hex2decW
 #define UTF8toUTF16
 #define UTF16toUTF8
 #include "StrFunc.h"

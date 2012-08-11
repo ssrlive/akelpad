@@ -696,16 +696,6 @@ typedef struct {
   BOOL bBOM;
 } STATUSSTATE;
 
-typedef struct {
-  const wchar_t *wpRep;
-  const wchar_t *wpMaxRep;
-  const wchar_t *wpNewLine;
-  const wchar_t *wpRightStr;
-  AECHARINDEX ciRightStr;
-  wchar_t *wszBuf;
-  wchar_t *wpBufCount;
-} PATEXECPARAM;
-
 
 //// Functions prototype
 
@@ -1161,26 +1151,6 @@ void FreeMemorySearch();
 int BytesInString(const wchar_t *wpString);
 char* AKD_strchr(const char *s, int c);
 wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
-
-INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
-BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
-BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
-int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar);
-int AE_PatStrChar(const AECHARINDEX *ciChar);
-AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
-int PatEscChar(const wchar_t **wppPat);
-DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t *wchPatChar);
-BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
-REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
-REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
-REGROUP* PatPrevGroup(REGROUP *lpREGroupItem);
-void PatFree(STACKREGROUP *hStack);
-int PatStructExec(PATEXEC *pe);
-void PatStructFree(PATEXEC *pe);
-INT_PTR PatReplace(PATREPLACE *pr);
-int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarget);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
