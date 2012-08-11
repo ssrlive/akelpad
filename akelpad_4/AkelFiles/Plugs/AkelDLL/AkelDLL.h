@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 5)
 
 
 //// Defines
@@ -608,47 +608,6 @@
 
 //AKD_RECODESEL flags
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
-
-//STACKREGROUP options
-#define REO_MATCHCASE        0x001 //Case-sensitive search.
-#define REO_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_NOFIRSTLINEBEGIN 0x004 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
-#define REO_NOLASTLINEEND    0x008 //String ends not on line ending. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
-#define REO_REFEXIST         0x100 //Internal.
-
-//REGROUP flags
-#define REGF_ROOTITEM        0x001
-#define REGF_ROOTANY         0x002
-#define REGF_ANY             0x004
-#define REGF_AUTOGROUP       0x008
-#define REGF_OR              0x010
-#define REGF_POSITIVE        0x020
-#define REGF_NEGATIVE        0x040
-#define REGF_CHILDNOMAXMATCH 0x100
-
-//PatCharCmp return value
-#define RECC_EQUAL    0x01
-#define RECC_DIF      0x02
-#define RECC_MIX      0x04
-#define RECC_WORD     0x08
-#define RECC_REF      0x10
-
-//PatEscChar return value
-#define REEC_WRONG   70001
-#define REEC_NEWLINE 70002
-#define REEC_REF     70003
-
-//AKD_PATEXEC options
-#define REPE_MATCHCASE        0x001 //Case-sensitive search.
-#define REPE_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REPE_NOFIRSTLINEBEGIN 0x004 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
-#define REPE_NOLASTLINEEND    0x008 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
-#define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
-#define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
-
-//AKD_PATEXEC callback return value
-#define REPEC_CONTINUE  0  //Find next match.
-#define REPEC_STOP      -1 //Stop search.
 
 //AKD_GETMODELESS types
 #define MLT_NONE     0 //No registered modeless dialog open.
@@ -1311,90 +1270,6 @@ typedef struct {
   int nCodePageTo;          //Target code page.
   DWORD dwFlags;            //See RCS_* defines.
 } TEXTRECODE;
-
-typedef struct _REGROUP {
-  struct _REGROUP *next;
-  struct _REGROUP *prev;
-  struct _REGROUP *parent;
-  struct _REGROUP *firstChild;
-  struct _REGROUP *lastChild;
-  const wchar_t *wpPatStart;
-  const wchar_t *wpPatEnd;
-  const wchar_t *wpPatLeft;
-  const wchar_t *wpPatRight;
-  const wchar_t *wpStrStart;    //PatExec: Begin of matched string.
-  const wchar_t *wpStrEnd;      //PatExec: End of matched string.
-  AECHARINDEX ciStrStart;       //AE_PatExec: Begin of matched string.
-  AECHARINDEX ciStrEnd;         //AE_PatExec: End of matched string.
-  int nMinMatch;                //Minimum group match.
-  int nMaxMatch;                //Maximum group match, -1 if unlimited.
-  DWORD dwFlags;                //See REGF_* defines.
-  int nIndex;                   //Group index, -1 if not captured.
-} REGROUP;
-
-typedef struct {
-  REGROUP *first;
-  REGROUP *last;
-  DWORD dwOptions;              //See REO_* defines.
-  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
-  int nLastIndex;               //Last captured index.
-} STACKREGROUP;
-
-typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-//pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
-//lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
-//bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
-//                FALSE - pe->wpStr is valid.
-//Return Value
-// See REPEC_* defines.
-
-typedef struct {
-  STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
-  const wchar_t *wpPat;         //Pattern for process.
-  const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;         //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
-  const wchar_t *wpMaxStr;      //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
-  AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
-  DWORD dwOptions;              //See REPE_* defines.
-  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
-  INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
-
-  //Callback
-  PATEXECCALLBACK lpCallback;   //Pointer to an PATEXECCALLBACK function.
-  LPARAM lParam;                //Specifies an application-defined value.
-} PATEXEC;
-
-typedef struct {
-  const wchar_t *wpPat;      //Pattern for process.
-  const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;      //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
-  const wchar_t *wpMaxStr;   //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
-  AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
-  const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
-  const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;           //See REPE_* defines.
-  const wchar_t *wpDelim;    //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
-  const wchar_t *wpNewLine;  //New line string. If NULL, default will be used "\r\n".
-  INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
-  int nReplaceCount;         //Receives replace count number.
-  const wchar_t *wpLeftStr;  //PatExec: First replace occurrence in string.
-  const wchar_t *wpRightStr; //PatExec: Unmatched right part of string.
-  AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
-  AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
-  wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
-} PATREPLACE;
-
-typedef struct {
-  STACKREGROUP *lpREGroupStack; //Groups stack. Filled by AKD_PATEXEC message.
-  const wchar_t *wpStr;         //String for process. Can be used "$n" - the n'th captured submatch.
-  const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  wchar_t *wszResult;           //Buffer that received convert result. If NULL, AKD_PATGROUPSTR returns required buffer size in characters.
-} PATGROUPSTR;
 
 typedef struct {
   char szClassName[MAX_PATH];   //Window class name.

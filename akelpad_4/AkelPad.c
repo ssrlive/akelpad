@@ -13,6 +13,7 @@
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\x64Func.h"
 #include "AkelEdit\AkelBuild.h"
+#include "AkelEdit\RegExpFunc.h"
 #include "AkelFiles\Langs\Resources\resource.h"
 #include "AkelFiles\Langs\Resources\version.h"
 #include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
@@ -21,14 +22,19 @@
 
 
 //Include stack functions
+#ifndef AKELEDIT_STATICBUILD
+  #define StackInsertBefore
+  #define StackDelete
+#else
+  #define StackInsertBefore_INCLUDED
+  #define StackDelete_INCLUDED
+#endif
 #define StackGetElement
 #define StackInsertAfter
-#define StackInsertBefore
 #define StackInsertIndex
 #define StackMoveAfter
 #define StackMoveBefore
 #define StackMoveIndex
-#define StackDelete
 #define StackClear
 #include "AkelEdit\StackFunc.h"
 
@@ -41,6 +47,7 @@
 //Include string functions
 #ifndef AKELEDIT_STATICBUILD
   #define WideCharLower
+  #define WideCharUpper
   #define xmemcpy
   #define xmemcmp
   #define xmemset
@@ -49,12 +56,18 @@
   #define xstrcmpW
   #define xstrcmpiA
   #define xstrcmpiW
+  #define xstrcmpnW
+  #define xstrcmpinW
+  #define xstrcpyW
   #define xstrcpynA
   #define xstrcpynW
+  #define xatoiW
+  #define hex2decW
   #define UTF8toUTF16
   #define UTF16toUTF8
 #else
   #define WideCharLower_INCLUDED
+  #define WideCharUpper_INCLUDED
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
@@ -63,24 +76,23 @@
   #define xstrcmpW_INCLUDED
   #define xstrcmpiA_INCLUDED
   #define xstrcmpiW_INCLUDED
+  #define xstrcmpnW_INCLUDED
+  #define xstrcmpinW_INCLUDED
+  #define xstrcpyW_INCLUDED
   #define xstrcpynA_INCLUDED
   #define xstrcpynW_INCLUDED
+  #define xatoiW_INCLUDED
+  #define hex2decW_INCLUDED
   #define UTF8toUTF16_INCLUDED
   #define UTF16toUTF8_INCLUDED
 #endif
-#define WideCharUpper
 #define xarraysizeA
 #define xarraysizeW
 #define xstrcpyA
-#define xstrcpyW
 #define xstrstrW
-#define xstrcmpnW
-#define xstrcmpinW
 #define xatoiA
-#define xatoiW
 #define xuitoaW
 #define xitoaW
-#define hex2decW
 #define dec2hexW
 #define hex2binW
 #define bin2hexW
@@ -88,6 +100,12 @@
 #define UTF32toUTF16
 #define UTF16toUTF32
 #include "AkelEdit\StrFunc.h"
+
+//Include RegExp functions
+#ifndef AKELEDIT_STATICBUILD
+  #define RE_FUNCTIONS
+  #include "AkelEdit\RegExpFunc.h"
+#endif
 
 //Include x64 functions
 #ifndef AKELEDIT_STATICBUILD
@@ -3469,35 +3487,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PATGROUPSTR)
     {
-      PATGROUPSTR *pgs=(PATGROUPSTR *)lParam;
-      REGROUP *lpREGroupRef;
-      const wchar_t *wpStr=pgs->wpStr;
-      wchar_t *wpBufCount=pgs->wszResult;
-
-      while (wpStr < pgs->wpMaxStr)
-      {
-        if (*wpStr == L'$')
-        {
-          if (lpREGroupRef=PatGetGroup(pgs->lpREGroupStack, (int)xatoiW(++wpStr, &wpStr)))
-          {
-            if (pgs->wszResult)
-              xmemcpy(wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
-            wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
-          }
-        }
-        else
-        {
-          if (pgs->wszResult)
-            *wpBufCount=*wpStr;
-          ++wpBufCount;
-          ++wpStr;
-        }
-      }
-      if (pgs->wszResult)
-        *wpBufCount=L'\0';
-      else
-        ++wpBufCount;
-      return (LRESULT)(wpBufCount - pgs->wszResult);
+      return PatGroupStr((PATGROUPSTR *)lParam);
     }
     if (uMsg == AKD_PATGETGROUP)
     {
