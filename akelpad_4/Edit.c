@@ -21491,7 +21491,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       else if (*wpPat == L'[')
       {
-         nStrChar=AE_PatStrChar(&ciStr);
+        nStrChar=AE_PatStrChar(&ciStr);
 
         if (*++wpPat == L'^')
         {
