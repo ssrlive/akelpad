@@ -2046,7 +2046,7 @@ typedef struct {
 #define AKD_INISETVALUEW           (WM_USER + 359)
 #define AKD_INICLOSE               (WM_USER + 360)
 
-//Regular expressions
+//Regular expressions. Requires for include "RegExpFunc.h".
 #define AKD_PATEXEC                (WM_USER + 391)
 #define AKD_PATREPLACE             (WM_USER + 392)
 #define AKD_PATGROUPSTR            (WM_USER + 393)
@@ -4519,7 +4519,7 @@ Example:
 AKD_PATEXEC
 ___________
 
-Compile and execute regular expressions pattern.
+Compile and execute regular expressions pattern. Requires for include "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC *)lParam == pointer to a PATEXEC structure.
@@ -4573,7 +4573,7 @@ Example:
 AKD_PATREPLACE
 ______________
 
-Replace in string using regular expressions.
+Replace in string using regular expressions. Requires for include "RegExpFunc.h".
 
 wParam               == not used.
 (PATREPLACE *)lParam == pointer to a PATREPLACE structure.
@@ -4610,7 +4610,7 @@ Example:
 AKD_PATGROUPSTR
 _______________
 
-Translate string that contain group indexes, like "[$1$2]".
+Translate string that contain group indexes, like "[$1$2]". Requires for include "RegExpFunc.h".
 
 wParam                == not used.
 (PATGROUPSTR *)lParam == pointer to a PATGROUPSTR structure.
@@ -4657,7 +4657,7 @@ Example:
 AKD_PATGETGROUP
 _______________
 
-Retrieve pattern group by index.
+Retrieve pattern group by index. Requires for include "RegExpFunc.h".
 
 (STACKREGROUP *)wParam == pointer to a STACKREGROUP structure.
 (int)lParam            == group index.
@@ -4672,7 +4672,7 @@ Example:
 AKD_PATNEXTGROUP
 ________________
 
-Retrieve next pattern group.
+Retrieve next pattern group. Requires for include "RegExpFunc.h".
 
 (REGROUP *)wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -4687,7 +4687,7 @@ Example:
 AKD_PATPREVGROUP
 ________________
 
-Retrieve previous pattern group.
+Retrieve previous pattern group. Requires for include "RegExpFunc.h".
 
 (REGROUP *)wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -4702,7 +4702,7 @@ Example:
 AKD_PATFREE
 ___________
 
-Free regular expressions pattern.
+Free regular expressions pattern. Requires for include "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC *)lParam == pointer to a PATEXEC structure.
