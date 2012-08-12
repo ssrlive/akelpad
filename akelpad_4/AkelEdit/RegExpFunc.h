@@ -76,6 +76,7 @@ typedef struct _REGROUP {
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
   DWORD dwFlags;                //See REGF_* defines.
   int nIndex;                   //Group index, -1 if not captured.
+  UINT_PTR dwUserData;          //User data.
 } REGROUP;
 
 typedef struct {
@@ -177,6 +178,7 @@ void PatFree(STACKREGROUP *hStack);
   BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
+  REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
 #endif
 
 int PatStructExec(PATEXEC *pe);
@@ -1618,6 +1620,21 @@ AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
     }
   }
   return ciChar->lpLine;
+}
+
+REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
+{
+  REGROUP *lpREGroupItem;
+
+  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
+  {
+    if (lpREGroupItem->dwUserData)
+    {
+      if (AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrStart) >= 0 && AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrEnd) < 0)
+        break;
+    }
+  }
+  return lpREGroupItem;
 }
 #endif //__AKELEDIT_H__
 
