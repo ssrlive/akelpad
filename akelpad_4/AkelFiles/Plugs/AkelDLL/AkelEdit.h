@@ -406,23 +406,27 @@
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
 //Highlight flags
-#define AEHLF_MATCHCASE              0x00001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_WORDCOMPOSITION        0x00002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
-#define AEHLF_QUOTEEND_REQUIRED      0x00004  //If quote end isn't found, text after quote start will not be highlighted.
-#define AEHLF_QUOTESTART_ISDELIMITER 0x00008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
-#define AEHLF_QUOTEEND_ISDELIMITER   0x00010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
-#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x00020  //Don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x00040  //Don't highlight quote end string.
-#define AEHLF_QUOTESTART_NOCATCH     0x00080  //Don't catch and don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOCATCH       0x00100  //Don't catch and don't highlight quote end string.
-#define AEHLF_ATLINESTART            0x00200  //Quote start, delimiter or word located at line start.
-#define AEHLF_ATLINEEND              0x00400  //Quote end, delimiter or word located at line end.
-#define AEHLF_QUOTESTART_ISWORD      0x00800  //Quote start is surrounded with delimiters.
-#define AEHLF_QUOTEEND_ISWORD        0x01000  //Quote end is surrounded with delimiters.
-#define AEHLF_QUOTEWITHOUTDELIMITERS 0x02000  //Quote doesn't contain delimiters.
-#define AEHLF_QUOTESTART_CATCHONLY   0x04000  //Only quote start string is catched.
-#define AEHLF_QUOTEINCLUDE           0x10000  //Quote include string is valid.
-#define AEHLF_QUOTEEXCLUDE           0x20000  //Quote exclude string is valid.
+#define AEHLF_MATCHCASE              0x00000001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
+#define AEHLF_WORDCOMPOSITION        0x00000002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
+#define AEHLF_QUOTEEND_REQUIRED      0x00000004  //If quote end isn't found, text after quote start will not be highlighted.
+#define AEHLF_QUOTESTART_ISDELIMITER 0x00000008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
+#define AEHLF_QUOTEEND_ISDELIMITER   0x00000010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
+#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x00000020  //Don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x00000040  //Don't highlight quote end string.
+#define AEHLF_QUOTESTART_NOCATCH     0x00000080  //Don't catch and don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOCATCH       0x00000100  //Don't catch and don't highlight quote end string.
+#define AEHLF_ATLINESTART            0x00000200  //Quote start, delimiter or word located at line start.
+#define AEHLF_ATLINEEND              0x00000400  //Quote end, delimiter or word located at line end.
+#define AEHLF_QUOTESTART_ISWORD      0x00000800  //Quote start is surrounded with delimiters.
+#define AEHLF_QUOTEEND_ISWORD        0x00001000  //Quote end is surrounded with delimiters.
+#define AEHLF_QUOTEWITHOUTDELIMITERS 0x00002000  //Quote doesn't contain delimiters.
+#define AEHLF_QUOTESTART_CATCHONLY   0x00004000  //Only quote start string is catched.
+#define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
+#define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
+#define AEHLF_REGEXP                 0x10000000  //AEQUOTEITEM.pQuoteStart is a regular exression pattern,
+                                                 //AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
+                                                 //"\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
+                                                 //Note that color in match map is specified as "#RRGGBB".
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
@@ -1110,7 +1114,14 @@ typedef struct _AEQUOTEITEMW {
   COLORREF crText;              //Quote text color. If -1, then don't set.
   COLORREF crBk;                //Quote background color. If -1, then don't set.
   void *lpQuoteStart;           //Don't use it. For internal code only.
+  void *lpREGroupStack;         //Don't use it. For internal code only.
 } AEQUOTEITEMW;
+
+typedef struct {
+  DWORD dwFontStyle;            //See AEHLS_* defines.
+  COLORREF crText;              //Quote text color. If -1, then don't set.
+  COLORREF crBk;                //Quote background color. If -1, then don't set.
+} AEREGROUPCOLOR;
 
 typedef struct _AEMARKTEXTITEMA {
   struct _AEMARKTEXTITEMA *next;
