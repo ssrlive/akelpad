@@ -6,6 +6,7 @@ Changed: hotkey for command 4206 is now Ctrl+*.
 
 Added: ability to use an image as the editor background. Program start can be much faster,
        if images will be in bmp format.
+Added: ability to use regular expressions in syntax highlighting rules.
 Added: manual parameter for "MouseOptions" with a value of 32 - deny changing font size by
        scrolling mouse wheel with Ctrl key.
 
