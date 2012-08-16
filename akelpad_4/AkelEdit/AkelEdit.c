@@ -3624,11 +3624,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       return lResult;
     }
 
+    if (wParam == VK_RETURN)
+    {
+      AE_EditKeyReturn(ae);
+      return 1;
+    }
     if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
     {
       AE_EditChar(ae, wParam, ae->bUnicodeWindow);
-      lResult=1;
-      return lResult;
+      return 1;
     }
   }
   else if (uMsg == WM_DEADCHAR ||
@@ -18762,14 +18766,6 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       AE_EditChar(ae, VK_TAB, TRUE);
       return TRUE;
     }
-  }
-  if (nVk == VK_RETURN)
-  {
-    if (!bAlt)
-    {
-      AE_EditKeyReturn(ae);
-    }
-    return TRUE;
   }
   if (nVk == VK_BACK)
   {
