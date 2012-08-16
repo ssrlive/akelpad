@@ -478,6 +478,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           else
             lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
         }
+        else goto Error;
       }
       if ((DWORD)lpREGroupNew->nMaxMatch > 1 &&
           ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
