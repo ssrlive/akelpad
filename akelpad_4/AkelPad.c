@@ -5388,7 +5388,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
   }
-  else if (uMsg == WM_KEYDOWN)
+  else if (uMsg == WM_CHAR)
   {
     if (wParam == VK_RETURN)
     {
