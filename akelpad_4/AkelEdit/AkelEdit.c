@@ -13565,6 +13565,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             wchar_t wszColor[12];
             wchar_t *wpColor=wszColor;
             INT_PTR nColorLen;
+            DWORD dwActiveText=hlp->dwDefaultText;
+            DWORD dwActiveBk=hlp->dwDefaultBk;
 
             if (lpREGroup=AE_PatCharInGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, &to->ciDrawLine))
             {
@@ -13578,8 +13580,6 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                     AE_PaintTextOut(ae, to, hlp);
                   }
                 }
-
-                hlp->dwActiveText=hlp->dwDefaultText;
                 if (lpREGroupColor->crText != (DWORD)-1)
                 {
                   if (lpREGroupColor->dwFlags & AEREGCF_BACKREFCOLORTEXT)
@@ -13593,13 +13593,11 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                         --nColorLen;
                       }
                       if (nColorLen == 6)
-                        hlp->dwActiveText=AE_GetColorFromStr(wpColor);
+                        dwActiveText=AE_GetColorFromStr(wpColor);
                     }
                   }
-                  else hlp->dwActiveText=lpREGroupColor->crText;
+                  else dwActiveText=lpREGroupColor->crText;
                 }
-
-                hlp->dwActiveBk=hlp->dwDefaultBk;
                 if (lpREGroupColor->crBk != (DWORD)-1)
                 {
                   if (lpREGroupColor->dwFlags & AEREGCF_BACKREFCOLORBK)
@@ -13613,15 +13611,25 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                         --nColorLen;
                       }
                       if (nColorLen == 6)
-                        hlp->dwActiveBk=AE_GetColorFromStr(wpColor);
+                        dwActiveBk=AE_GetColorFromStr(wpColor);
                     }
                   }
-                  else hlp->dwActiveBk=lpREGroupColor->crBk;
+                  else dwActiveBk=lpREGroupColor->crBk;
                 }
 
                 //if (lpREGroupColor->dwFontStyle != AEHLS_NONE)
                   hlp->dwFontStyle=lpREGroupColor->dwFontStyle;
               }
+            }
+            if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk)
+            {
+              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              {
+                //Draw text before color change
+                AE_PaintTextOut(ae, to, hlp);
+              }
+              hlp->dwActiveText=dwActiveText;
+              hlp->dwActiveBk=dwActiveBk;
             }
           }
           else
