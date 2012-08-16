@@ -10981,10 +10981,10 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
   {
     AEREGROUPCOLOR *lpREGroupColor=NULL;
     REGROUP *lpREGroupRef;
-    wchar_t wszIndex[3];
     int nIndex;
     const wchar_t *wpCount;
     const wchar_t *wpCountMax;
+    DWORD dwFlags;
     DWORD dwFontStyle;
     COLORREF crText;
     COLORREF crBk;
@@ -11007,59 +11007,77 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
       lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
 
       //Parse pQuoteEnd: \BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk)
-      wpCountMax=lpQuoteSrc->pQuoteEnd + lpQuoteSrc->nQuoteEndLen;
-
-      for (wpCount=lpQuoteSrc->pQuoteEnd; wpCount < wpCountMax; ++wpCount)
+      if (lpQuoteSrc->pQuoteEnd)
       {
-        if (*wpCount == L'\\')
+        wpCountMax=lpQuoteSrc->pQuoteEnd + lpQuoteSrc->nQuoteEndLen;
+
+        for (wpCount=lpQuoteSrc->pQuoteEnd; wpCount < wpCountMax; ++wpCount)
         {
-          if (*++wpCount >= L'0' && *wpCount <= L'9')
+          if (*wpCount == L'\\')
           {
-            wszIndex[0]=*wpCount++;
-            wszIndex[1]=L'\0';
-            if (*wpCount >= L'0' && *wpCount <= L'9')
-            {
-              wszIndex[1]=*wpCount++;
-              wszIndex[2]=L'\0';
-            }
-            nIndex=(int)xatoiW(wszIndex, NULL);
+            ++wpCount;
 
-            if (lpREGroupRef=PatGetGroup(lpREGroupStack, nIndex))
+            if ((nIndex=PatRefIndex(&wpCount)) != -1)
             {
-              if (*wpCount == L'=' && *++wpCount == L'(')
+              if (lpREGroupRef=PatGetGroup(lpREGroupStack, nIndex))
               {
-                dwFontStyle=(DWORD)xatoiW(++wpCount, &wpCount);
-
-                if (*wpCount == L',')
+                if (*wpCount == L'=' && *++wpCount == L'(')
                 {
-                  if (*++wpCount == L'0')
-                    crText=(DWORD)-1;
-                  else if (*wpCount == L'#')
-                  {
-                    if (wpCountMax - wpCount < 6) break;
-                    if ((crText=AE_GetColorFromStr(++wpCount)) != (DWORD)-1)
-                      wpCount+=5;
-                  }
-                  else break;
+                  dwFlags=0;
+                  dwFontStyle=(DWORD)xatoiW(++wpCount, &wpCount);
 
-                  if (*++wpCount == L',')
+                  if (*wpCount == L',')
                   {
                     if (*++wpCount == L'0')
-                      crBk=(DWORD)-1;
+                    {
+                      ++wpCount;
+                      crText=(DWORD)-1;
+                    }
+                    else if (*wpCount == L'\\')
+                    {
+                      ++wpCount;
+                      if ((crText=PatRefIndex(&wpCount)) != -1)
+                        dwFlags|=AEREGCF_BACKREFCOLORTEXT;
+                    }
                     else if (*wpCount == L'#')
                     {
+                      ++wpCount;
                       if (wpCountMax - wpCount < 6) break;
-                      if ((crBk=AE_GetColorFromStr(++wpCount)) != (DWORD)-1)
-                        wpCount+=5;
+                      if ((crText=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
+                        wpCount+=6;
                     }
                     else break;
 
-                    if (lpREGroupColor=(AEREGROUPCOLOR *)AE_HeapAlloc(NULL, 0, sizeof(AEREGROUPCOLOR)))
+                    if (*wpCount == L',')
                     {
-                      lpREGroupColor->dwFontStyle=dwFontStyle;
-                      lpREGroupColor->crText=crText;
-                      lpREGroupColor->crBk=crBk;
-                      lpREGroupRef->dwUserData=(UINT_PTR)lpREGroupColor;
+                      if (*++wpCount == L'0')
+                      {
+                        ++wpCount;
+                        crBk=(DWORD)-1;
+                      }
+                      else if (*wpCount == L'\\')
+                      {
+                        ++wpCount;
+                        if ((crBk=PatRefIndex(&wpCount)) != -1)
+                          dwFlags|=AEREGCF_BACKREFCOLORBK;
+                      }
+                      else if (*wpCount == L'#')
+                      {
+                        ++wpCount;
+                        if (wpCountMax - wpCount < 6) break;
+                        if ((crBk=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
+                          wpCount+=6;
+                      }
+                      else break;
+
+                      if (lpREGroupColor=(AEREGROUPCOLOR *)AE_HeapAlloc(NULL, 0, sizeof(AEREGROUPCOLOR)))
+                      {
+                        lpREGroupColor->dwFlags=dwFlags;
+                        lpREGroupColor->dwFontStyle=dwFontStyle;
+                        lpREGroupColor->crText=crText;
+                        lpREGroupColor->crBk=crBk;
+                        lpREGroupRef->dwUserData=(UINT_PTR)lpREGroupColor;
+                      }
                     }
                   }
                 }
@@ -11089,9 +11107,9 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
           xmemcpy((wchar_t *)lpQuoteDst->pQuoteEnd, lpQuoteSrc->pQuoteEnd, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t));
         lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
       }
-  
+
       lpQuoteDst->chEscape=lpQuoteSrc->chEscape;
-  
+
       if (lpQuoteSrc->pQuoteInclude)
       {
         if (lpQuoteDst->pQuoteInclude=(const wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
@@ -11104,7 +11122,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
           xmemcpy((wchar_t *)lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t));
         lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
       }
-  
+
       lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
       lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
       lpQuoteDst->crText=lpQuoteSrc->crText;
@@ -13544,6 +13562,9 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           {
             REGROUP *lpREGroup;
             AEREGROUPCOLOR *lpREGroupColor;
+            wchar_t wszColor[12];
+            wchar_t *wpColor=wszColor;
+            INT_PTR nColorLen;
 
             if (lpREGroup=AE_PatCharInGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, &to->ciDrawLine))
             {
@@ -13557,14 +13578,47 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                     AE_PaintTextOut(ae, to, hlp);
                   }
                 }
+
+                hlp->dwActiveText=hlp->dwDefaultText;
                 if (lpREGroupColor->crText != (DWORD)-1)
-                  hlp->dwActiveText=lpREGroupColor->crText;
-                else
-                  hlp->dwActiveText=hlp->dwDefaultText;
+                {
+                  if (lpREGroupColor->dwFlags & AEREGCF_BACKREFCOLORTEXT)
+                  {
+                    if (lpREGroup=PatGetGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, lpREGroupColor->crText))
+                    {
+                      nColorLen=AE_PatStrCopy(&lpREGroup->ciStrStart, &lpREGroup->ciStrEnd, wszColor, wszColor + 12);
+                      if (*wpColor == L'#')
+                      {
+                        ++wpColor;
+                        --nColorLen;
+                      }
+                      if (nColorLen == 6)
+                        hlp->dwActiveText=AE_GetColorFromStr(wpColor);
+                    }
+                  }
+                  else hlp->dwActiveText=lpREGroupColor->crText;
+                }
+
+                hlp->dwActiveBk=hlp->dwDefaultBk;
                 if (lpREGroupColor->crBk != (DWORD)-1)
-                  hlp->dwActiveBk=lpREGroupColor->crBk;
-                else
-                  hlp->dwActiveBk=hlp->dwDefaultBk;
+                {
+                  if (lpREGroupColor->dwFlags & AEREGCF_BACKREFCOLORBK)
+                  {
+                    if (lpREGroup=PatGetGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, lpREGroupColor->crBk))
+                    {
+                      nColorLen=AE_PatStrCopy(&lpREGroup->ciStrStart, &lpREGroup->ciStrEnd, wszColor, wszColor + 12);
+                      if (*wpColor == L'#')
+                      {
+                        ++wpColor;
+                        --nColorLen;
+                      }
+                      if (nColorLen == 6)
+                        hlp->dwActiveBk=AE_GetColorFromStr(wpColor);
+                    }
+                  }
+                  else hlp->dwActiveBk=lpREGroupColor->crBk;
+                }
+
                 //if (lpREGroupColor->dwFontStyle != AEHLS_NONE)
                   hlp->dwFontStyle=lpREGroupColor->dwFontStyle;
               }

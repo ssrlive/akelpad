@@ -423,10 +423,20 @@
 #define AEHLF_QUOTESTART_CATCHONLY   0x00004000  //Only quote start string is catched.
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
+                                                 //Regular exression:
 #define AEHLF_REGEXP                 0x10000000  //AEQUOTEITEM.pQuoteStart is a regular exression pattern,
                                                  //AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
-                                                 //"\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
-                                                 //Note that color in match map is specified as "#RRGGBB".
+                                                 //  "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
+                                                 //Notes:
+                                                 //  Color need to be in #RRGGBB format.
+                                                 //  If color equal to zero, then color ignored.
+                                                 //  Instead of color backreference can be used.
+                                                 //Example (highlight quoted string):
+                                                 //  AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
+                                                 //  AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
+                                                 //Example (highlight #RRGGBB word with its color):
+                                                 //  AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
+                                                 //  AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
@@ -457,6 +467,10 @@
 #define AEHPT_MARKRANGE              0x00000040
 #define AEHPT_LINK                   0x00000080
 #define AEHPT_FOLD                   0x00000100
+
+//AEREGROUPCOLOR flags
+#define AEREGCF_BACKREFCOLORTEXT  0x00000001  //AEREGROUPCOLOR.crText is backreference index for text color in format #RRGGBB or RRGGBB.
+#define AEREGCF_BACKREFCOLORBK    0x00000002  //AEREGROUPCOLOR.crBk is backreference index for background color in format #RRGGBB or RRGGBB.
 
 //AEM_FINDFOLD flags
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -1118,6 +1132,7 @@ typedef struct _AEQUOTEITEMW {
 } AEQUOTEITEMW;
 
 typedef struct {
+  DWORD dwFlags;                //See AEREGCF_* defines.
   DWORD dwFontStyle;            //See AEHLS_* defines.
   COLORREF crText;              //Quote text color. If -1, then don't set.
   COLORREF crBk;                //Quote background color. If -1, then don't set.
