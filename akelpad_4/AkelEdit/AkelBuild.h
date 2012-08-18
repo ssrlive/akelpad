@@ -14,6 +14,7 @@
 #define AEMAX_HEAPCREATE       1000
 #define AEMAX_LINKLENGTH       512
 #define AEMAX_WORDLENGTH       256
+#define AEMAX_DELIMLENGTH      128
 
 //Tabulation
 #define AETAB_DEFAULTSIZE      8
@@ -478,7 +479,7 @@ typedef struct {
   UINT_PTR dwTextLimit;
   DWORD dwWordWrap;
   DWORD dwWrapLimit;
-  wchar_t wszWrapDelimiters[128];
+  wchar_t wszWrapDelimiters[AEMAX_DELIMLENGTH];
 
   //Undo/Redo
   AESTACKUNDO hUndoStack;
@@ -547,11 +548,12 @@ typedef struct {
   DWORD dwColumnMarkerPos;
   DWORD dwAltLineSkip;
   DWORD dwAltLineFill;
-  wchar_t wszWordDelimiters[128];
+  wchar_t wszWordDelimiters[AEMAX_DELIMLENGTH];
+  int nWordDelimitersLen;
   DWORD dwWordBreak;
-  wchar_t wszUrlLeftDelimiters[128];
-  wchar_t wszUrlRightDelimiters[128];
-  wchar_t wszUrlPrefixes[128];
+  wchar_t wszUrlLeftDelimiters[AEMAX_DELIMLENGTH];
+  wchar_t wszUrlRightDelimiters[AEMAX_DELIMLENGTH];
+  wchar_t wszUrlPrefixes[AEMAX_DELIMLENGTH];
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
   BOOL bDetectUrl;

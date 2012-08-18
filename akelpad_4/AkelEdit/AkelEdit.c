@@ -66,6 +66,7 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xarraysizeW
 #define xstrlenA
 #define xstrlenW
 #define xstrcmpW
@@ -1477,28 +1478,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETWORDDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszWordDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszWordDelimiters)));
-      return 0;
+      return xstrcpynW((wchar_t *)lParam, ae->popt->wszWordDelimiters, wParam);
     }
     if (uMsg == AEM_SETWORDDELIMITERS)
     {
-      if (lParam)
-        xmemcpy(ae->popt->wszWordDelimiters, (wchar_t *)lParam, (xstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
-      else
-        xmemcpy(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
+      ae->popt->nWordDelimitersLen=xstrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
       return 0;
     }
     if (uMsg == AEM_GETWRAPDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->ptxt->wszWrapDelimiters)));
-      return 0;
+      return xstrcpynW((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, wParam);
     }
     if (uMsg == AEM_SETWRAPDELIMITERS)
     {
-      if (lParam)
-        xmemcpy(ae->ptxt->wszWrapDelimiters, (wchar_t *)lParam, (xstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
-      else
-        xmemcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
+      xstrcpynW(ae->ptxt->wszWrapDelimiters, lParam?(wchar_t *)lParam:AES_WRAPDELIMITERSW, AEMAX_DELIMLENGTH);
 
       if (ae->ptxt->dwWordWrap & AEWW_WORD)
       {
@@ -1510,47 +1503,42 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETURLLEFTDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlLeftDelimiters)));
-      return 0;
+      return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, wParam);
     }
     if (uMsg == AEM_SETURLLEFTDELIMITERS)
     {
-      if (lParam)
-        xmemcpy(ae->popt->wszUrlLeftDelimiters, (wchar_t *)lParam, (xstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
-      else
-        xmemcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
+      xstrcpynW(ae->popt->wszUrlLeftDelimiters, lParam?(wchar_t *)lParam:AES_URLLEFTDELIMITERSW, AEMAX_DELIMLENGTH);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
     }
     if (uMsg == AEM_GETURLRIGHTDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlRightDelimiters)));
-      return 0;
+      return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, wParam);
     }
     if (uMsg == AEM_SETURLRIGHTDELIMITERS)
     {
-      if (lParam)
-        xmemcpy(ae->popt->wszUrlRightDelimiters, (wchar_t *)lParam, (xstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
-      else
-        xmemcpy(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, sizeof(AES_URLRIGHTDELIMITERSW));
+      xstrcpynW(ae->popt->wszUrlRightDelimiters, lParam?(wchar_t *)lParam:AES_URLRIGHTDELIMITERSW, AEMAX_DELIMLENGTH);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
     }
     if (uMsg == AEM_GETURLPREFIXES)
     {
-      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlPrefixes, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlPrefixes)));
-      return 0;
+      INT_PTR nPrefixLen=min(xarraysizeW(ae->popt->wszUrlPrefixes, NULL), (INT_PTR)wParam);
+
+      if (lParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlPrefixes, nPrefixLen * sizeof(wchar_t));
+      return nPrefixLen;
     }
     if (uMsg == AEM_SETURLPREFIXES)
     {
+      const wchar_t *wpPrefix=lParam?(wchar_t *)lParam:AES_URLPREFIXESW;
       int nPrefix;
 
-      if (lParam)
-        xmemcpy(ae->popt->wszUrlPrefixes, (wchar_t *)lParam, sizeof(ae->popt->wszUrlPrefixes));
-      else
-        xmemcpy(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
+      xmemcpy(ae->popt->wszUrlPrefixes, wpPrefix, min(xarraysizeW(wpPrefix, NULL) * sizeof(wchar_t), sizeof(ae->popt->wszUrlPrefixes)));
+      ae->popt->wszUrlPrefixes[AEMAX_DELIMLENGTH - 1]=L'\0';
+      ae->popt->wszUrlPrefixes[AEMAX_DELIMLENGTH - 2]=L'\0';
+
       nPrefix=AE_GetUrlPrefixes(ae);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
@@ -18491,80 +18479,130 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   if (!ft->dwTextLen)
     return FALSE;
 
-  if (ft->dwFlags & AEFR_DOWN)
+  if (ft->dwFlags & AEFR_REGEXP)
   {
-    if (AEC_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
+    STACKREGROUP hREGroupStack;
+    INT_PTR nCompileErrorOffset;
+    BOOL bFound=FALSE;
+
+    hREGroupStack.first=0;
+    hREGroupStack.last=0;
+    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0)|REO_MULTILINE;
+    hREGroupStack.wpDelim=ae->popt->wszWordDelimiters;
+    hREGroupStack.wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
+
+    if (!(nCompileErrorOffset=PatCompile(&hREGroupStack, ft->pText, ft->pText + ft->dwTextLen)))
     {
       ciCount=ft->crSearch.ciMin;
       ciCountEnd=ft->crSearch.ciMax;
+
+      while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ciCount, &ciCountEnd))
+      {
+        //*(ft->pText + ft->dwTextLen - 1) == L'$'
+        if (!AEC_IndexCompare(&ciCount, &hREGroupStack.first->ciStrEnd))
+        {
+          if (AEC_NextChar(&ciCount) && AEC_IndexCompare(&ciCount, &ciCountEnd) < 0)
+            if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ciCount, &ciCountEnd))
+              break;
+        }
+
+        if (!(ft->dwFlags & AEFR_WHOLEWORD) ||
+            (AE_IsDelimiter(ae, &hREGroupStack.first->ciStrStart, AEDLM_WORD|AEDLM_PREVCHAR) &&
+             AE_IsDelimiter(ae, &hREGroupStack.first->ciStrEnd, AEDLM_WORD)))
+        {
+          ft->crFound.ciMin=hREGroupStack.first->ciStrStart;
+          ft->crFound.ciMax=hREGroupStack.first->ciStrEnd;
+          bFound=TRUE;
+          if (ft->dwFlags & AEFR_DOWN) break;
+        }
+
+        //Next match
+        if (AEC_IndexCompare(&ciCount, &hREGroupStack.first->ciStrEnd) < 0)
+          ciCount=hREGroupStack.first->ciStrEnd;
+        if (AEC_IndexCompare(&ciCount, &ciCountEnd) >= 0)
+          break;
+      }
+      PatFree(&hREGroupStack);
     }
-    else
-    {
-      ciCount=ft->crSearch.ciMax;
-      ciCountEnd=ft->crSearch.ciMin;
-    }
+    return bFound;
   }
   else
   {
-    if (AEC_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
+    if (ft->dwFlags & AEFR_DOWN)
     {
-      ciCount=ft->crSearch.ciMax;
-      ciCountEnd=ft->crSearch.ciMin;
-    }
-    else
-    {
-      ciCount=ft->crSearch.ciMin;
-      ciCountEnd=ft->crSearch.ciMax;
-    }
-  }
-  ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
-  ciCountEnd.nCharInLine=min(ciCountEnd.nCharInLine, ciCountEnd.lpLine->nLineLen);
-
-  if (ft->dwFlags & AEFR_DOWN)
-  {
-    if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(INT_PTR)ft->dwTextLen, ft->nNewLine))
-    {
-      for (;;)
+      if (AEC_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
       {
-        while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
-        {
-          if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
-            return FALSE;
-
-          if (AE_IsMatch(ae, ft, &ciCount))
-            return TRUE;
-
-          AEC_IndexInc(&ciCount);
-        }
-
-        if (ciCount.lpLine->next)
-          AEC_NextLine(&ciCount);
-        else
-          return FALSE;
+        ciCount=ft->crSearch.ciMin;
+        ciCountEnd=ft->crSearch.ciMax;
+      }
+      else
+      {
+        ciCount=ft->crSearch.ciMax;
+        ciCountEnd=ft->crSearch.ciMin;
       }
     }
-  }
-  else
-  {
-    if (AE_IndexOffset(ae, &ciCount, &ciCount, -(INT_PTR)ft->dwTextLen, ft->nNewLine))
+    else
     {
-      for (;;)
+      if (AEC_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
       {
-        while (ciCount.nCharInLine >= 0)
+        ciCount=ft->crSearch.ciMax;
+        ciCountEnd=ft->crSearch.ciMin;
+      }
+      else
+      {
+        ciCount=ft->crSearch.ciMin;
+        ciCountEnd=ft->crSearch.ciMax;
+      }
+    }
+    ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
+    ciCountEnd.nCharInLine=min(ciCountEnd.nCharInLine, ciCountEnd.lpLine->nLineLen);
+  
+    if (ft->dwFlags & AEFR_DOWN)
+    {
+      if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(INT_PTR)ft->dwTextLen, ft->nNewLine))
+      {
+        for (;;)
         {
-          if (AEC_IndexCompare(&ciCount, &ciCountEnd) < 0)
+          while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
+          {
+            if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
+              return FALSE;
+  
+            if (AE_IsMatch(ae, ft, &ciCount))
+              return TRUE;
+  
+            AEC_IndexInc(&ciCount);
+          }
+  
+          if (ciCount.lpLine->next)
+            AEC_NextLine(&ciCount);
+          else
             return FALSE;
-
-          if (AE_IsMatch(ae, ft, &ciCount))
-            return TRUE;
-
-          AEC_IndexDec(&ciCount);
         }
-
-        if (ciCount.lpLine->prev)
-          AEC_PrevLine(&ciCount);
-        else
-          return FALSE;
+      }
+    }
+    else
+    {
+      if (AE_IndexOffset(ae, &ciCount, &ciCount, -(INT_PTR)ft->dwTextLen, ft->nNewLine))
+      {
+        for (;;)
+        {
+          while (ciCount.nCharInLine >= 0)
+          {
+            if (AEC_IndexCompare(&ciCount, &ciCountEnd) < 0)
+              return FALSE;
+  
+            if (AE_IsMatch(ae, ft, &ciCount))
+              return TRUE;
+  
+            AEC_IndexDec(&ciCount);
+          }
+  
+          if (ciCount.lpLine->prev)
+            AEC_PrevLine(&ciCount);
+          else
+            return FALSE;
+        }
       }
     }
   }
