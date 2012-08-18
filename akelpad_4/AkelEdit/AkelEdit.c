@@ -2486,6 +2486,34 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_GetHighLight(ae, aegh);
       return 0;
     }
+    if (uMsg == AEM_HLGETOPTIONS)
+    {
+      return ae->popt->dwHLOptions;
+    }
+    if (uMsg == AEM_HLSETOPTIONS)
+    {
+      DWORD dwHLOptionsOld=ae->popt->dwHLOptions;
+      DWORD dwHLOptionsNew=ae->popt->dwHLOptions;
+
+      if (wParam == AECOOP_SET)
+        dwHLOptionsNew=(DWORD)lParam;
+      else if (wParam == AECOOP_OR)
+        dwHLOptionsNew|=(DWORD)lParam;
+      else if (wParam == AECOOP_AND)
+        dwHLOptionsNew&=(DWORD)lParam;
+      else if (wParam == AECOOP_XOR)
+        dwHLOptionsNew&=~(DWORD)lParam;
+
+      if (((dwHLOptionsOld & AEHLO_IGNOREFONTNORMAL) && !(dwHLOptionsNew & AEHLO_IGNOREFONTNORMAL)) ||
+          ((dwHLOptionsOld & AEHLO_IGNOREFONTBOLD) && !(dwHLOptionsNew & AEHLO_IGNOREFONTBOLD)) ||
+          ((dwHLOptionsOld & AEHLO_IGNOREFONTITALIC) && !(dwHLOptionsNew & AEHLO_IGNOREFONTITALIC)))
+      {
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+        AE_StackCloneUpdate(ae);
+      }
+      ae->popt->dwHLOptions=dwHLOptionsNew;
+      return ae->popt->dwHLOptions;
+    }
   }
 
 
@@ -13241,6 +13269,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   int nCharLen;
   int nBytes;
   int i;
+  DWORD dwFontStyle;
   DWORD dwTextOutFlags=0;
 
   if (to->gh)
@@ -13286,15 +13315,38 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
             {
               hFontPrev=ae->ptxt->hFontUrl;
             }
-            if (hlp->dwFontStyle)
+            dwFontStyle=hlp->dwFontStyle;
+            if (ae->popt->dwHLOptions)
             {
-              if (hlp->dwFontStyle == AEHLS_FONTNORMAL)
+              if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTITALIC)
+              {
+                if (dwFontStyle == AEHLS_FONTITALIC)
+                  dwFontStyle=AEHLS_FONTNORMAL;
+                else if (dwFontStyle == AEHLS_FONTBOLDITALIC)
+                  dwFontStyle=AEHLS_FONTBOLD;
+              }
+              if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTBOLD)
+              {
+                if (dwFontStyle == AEHLS_FONTBOLD)
+                  dwFontStyle=AEHLS_FONTNORMAL;
+                else if (dwFontStyle == AEHLS_FONTBOLDITALIC)
+                  dwFontStyle=AEHLS_FONTITALIC;
+              }
+              if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTNORMAL)
+              {
+                if (dwFontStyle == AEHLS_FONTNORMAL)
+                  dwFontStyle=AEHLS_NONE;
+              }
+            }
+            if (dwFontStyle)
+            {
+              if (dwFontStyle == AEHLS_FONTNORMAL)
                 hFontPrev=ae->ptxt->hFontNormal;
-              else if (hlp->dwFontStyle == AEHLS_FONTBOLD)
+              else if (dwFontStyle == AEHLS_FONTBOLD)
                 hFontPrev=ae->ptxt->hFontBold;
-              else if (hlp->dwFontStyle == AEHLS_FONTITALIC)
+              else if (dwFontStyle == AEHLS_FONTITALIC)
                 hFontPrev=ae->ptxt->hFontItalic;
-              else if (hlp->dwFontStyle == AEHLS_FONTBOLDITALIC)
+              else if (dwFontStyle == AEHLS_FONTBOLDITALIC)
                 hFontPrev=ae->ptxt->hFontBoldItalic;
             }
             if (hFontPrev != ae->ptxt->hFont && hFontPrev)
