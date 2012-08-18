@@ -582,6 +582,7 @@
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
+#define AEFR_REGEXP          0x00080000  //Regular expression search.
 
 //AEM_SETWORDWRAP flags
 #define AEWW_NONE            0x00000000  //Turn off wrap.
@@ -4433,7 +4434,7 @@ Retrieve word break delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4467,7 +4468,7 @@ Retrieve word wrapping delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4501,7 +4502,7 @@ Retrieve URL left delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4535,7 +4536,7 @@ Retrieve URL right delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4569,7 +4570,7 @@ Retrieve URL prefixes.
 (wchar_t *)lParam == pointer to a buffer that receives pairs of null-terminated prefixes strings. The last string terminated by two NULL characters.
 
 Return Value
- Zero.
+ Number of characters copied, including two NULL terminated characters.
 
 Example:
  wchar_t wszPrefixes[128];
