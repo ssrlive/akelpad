@@ -1482,7 +1482,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETWORDDELIMITERS)
     {
-      ae->popt->nWordDelimitersLen=xstrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
+      ae->popt->nWordDelimitersLen=(int)xstrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
       return 0;
     }
     if (uMsg == AEM_GETWRAPDELIMITERS)

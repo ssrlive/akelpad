@@ -1,5 +1,5 @@
 
-AkelPad 4.7.8 ()
+AkelPad 4.7.8 (Aug 19, 2012)
 ----------------------------
 Changed: \n and \r metacharacters processing in regular expressions.
 Changed: hotkey for command 4206 is now Ctrl+*.
