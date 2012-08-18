@@ -9640,59 +9640,11 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   else return -1;
 
   FindIt:
-  if (dwFlags & AEFR_REGEXP)
-  {
-    STACKREGROUP hREGroupStack;
-
-    hREGroupStack.first=0;
-    hREGroupStack.last=0;
-    hREGroupStack.dwOptions=(dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0)|REO_MULTILINE;
-    hREGroupStack.wpDelim=lpFrame->wszWordDelimiters;
-    hREGroupStack.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
-
-    if (!(lpFrame->nCompileErrorOffset=PatCompile(&hREGroupStack, wpFindIt, wpFindIt + nFindItLen)))
-    {
-      while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
-      {
-        //*(wpFindIt + nFindItLen - 1) == L'$'
-        if (!AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd))
-        {
-          if (AEC_NextChar(&ft.crSearch.ciMin) && AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) < 0)
-            if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ft.crSearch.ciMin, &ft.crSearch.ciMax))
-              break;
-        }
-
-        if (!(dwFlags & AEFR_WHOLEWORD) ||
-            (SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&hREGroupStack.first->ciStrStart) &&
-             SendMessage(lpFrame->ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&hREGroupStack.first->ciStrEnd)))
-        {
-          ft.crFound.ciMin=hREGroupStack.first->ciStrStart;
-          ft.crFound.ciMax=hREGroupStack.first->ciStrEnd;
-          bFound=TRUE;
-          if (!(dwFlags & AEFR_UP)) break;
-        }
-
-        //Next match
-        if (AEC_IndexCompare(&ft.crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0)
-          ft.crSearch.ciMin=hREGroupStack.first->ciStrEnd;
-        if (AEC_IndexCompare(&ft.crSearch.ciMin, &ft.crSearch.ciMax) >= 0)
-          break;
-      }
-      PatFree(&hREGroupStack);
-    }
-  }
-  else
-  {
-    ft.dwFlags=dwFlags;
-    ft.pText=wpFindIt;
-    ft.dwTextLen=nFindItLen;
-    ft.nNewLine=AELB_R;
-
-    if (SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
-    {
-      bFound=TRUE;
-    }
-  }
+  ft.dwFlags=dwFlags;
+  ft.pText=wpFindIt;
+  ft.dwTextLen=nFindItLen;
+  ft.nNewLine=AELB_R;
+  bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
 
   if (bCycleCheck && !bFound)
   {
