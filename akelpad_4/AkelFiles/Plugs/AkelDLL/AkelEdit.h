@@ -958,21 +958,23 @@ typedef struct {
 } AESTREAMOUT;
 
 typedef struct {
-  DWORD dwFlags;           //[in]  See AEFR_* defines.
-  const char *pText;       //[in]  Text to find.
-  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //[in]  See AELB_* defines.
-  AECHARRANGE crSearch;    //[in]  Range of characters to search.
-  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
+  DWORD dwFlags;                //[in]  See AEFR_* defines.
+  const char *pText;            //[in]  Text to find.
+  UINT_PTR dwTextLen;           //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;         //[in]  Range of characters to search.
+  AECHARRANGE crFound;          //[out] Range of characters in which text is found.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Returning when AEFR_REGEXP is set.
 } AEFINDTEXTA;
 
 typedef struct {
-  DWORD dwFlags;           //[in]  See AEFR_* defines.
-  const wchar_t *pText;    //[in]  Text to find.
-  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //[in]  See AELB_* defines.
-  AECHARRANGE crSearch;    //[in]  Range of characters to search.
-  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
+  DWORD dwFlags;                //[in]  See AEFR_* defines.
+  const wchar_t *pText;         //[in]  Text to find.
+  UINT_PTR dwTextLen;           //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;         //[in]  Range of characters to search.
+  AECHARRANGE crFound;          //[out] Range of characters in which text is found.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Returning when AEFR_REGEXP is set.
 } AEFINDTEXTW;
 
 typedef struct {

@@ -18482,7 +18482,6 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   if (ft->dwFlags & AEFR_REGEXP)
   {
     STACKREGROUP hREGroupStack;
-    INT_PTR nCompileErrorOffset;
     BOOL bFound=FALSE;
 
     hREGroupStack.first=0;
@@ -18491,7 +18490,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     hREGroupStack.wpDelim=ae->popt->wszWordDelimiters;
     hREGroupStack.wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
 
-    if (!(nCompileErrorOffset=PatCompile(&hREGroupStack, ft->pText, ft->pText + ft->dwTextLen)))
+    if (!(ft->nCompileErrorOffset=PatCompile(&hREGroupStack, ft->pText, ft->pText + ft->dwTextLen)))
     {
       ciCount=ft->crSearch.ciMin;
       ciCountEnd=ft->crSearch.ciMax;

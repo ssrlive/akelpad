@@ -9645,6 +9645,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
   bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
+  if (dwFlags & AEFR_REGEXP) lpFrame->nCompileErrorOffset=ft.nCompileErrorOffset;
 
   if (bCycleCheck && !bFound)
   {
