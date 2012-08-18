@@ -556,6 +556,7 @@ typedef struct {
   DWORD dwUrlMaxLength;
   BOOL bDetectUrl;
   AETHEMEITEMW *lpActiveTheme;
+  DWORD dwHLOptions;
 } AKELOPTIONS;
 
 typedef struct _AKELEDIT {

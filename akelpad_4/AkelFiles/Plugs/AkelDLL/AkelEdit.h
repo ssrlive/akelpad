@@ -405,6 +405,13 @@
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
+//Highlight options
+#define AEHLO_IGNOREFONTNORMAL       0x00000001  //Use AEHLS_NONE font style, if font style to change is AEHLS_FONTNORMAL.
+#define AEHLO_IGNOREFONTBOLD         0x00000002  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTBOLD.
+                                                 //Use AEHLS_FONTITALIC font style, if font style to change is AEHLS_FONTBOLDITALIC.
+#define AEHLO_IGNOREFONTITALIC       0x00000004  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTITALIC.
+                                                 //Use AEHLS_FONTBOLD font style, if font style to change is AEHLS_FONTBOLDITALIC.
+
 //Highlight flags
 #define AEHLF_MATCHCASE              0x00000001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
 #define AEHLF_WORDCOMPOSITION        0x00000002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
@@ -1656,6 +1663,8 @@ typedef struct {
 #define AEM_HLADDMARKRANGE        (WM_USER + 2561)
 #define AEM_HLDELETEMARKRANGE     (WM_USER + 2562)
 #define AEM_HLGETHIGHLIGHT        (WM_USER + 2571)
+#define AEM_HLGETOPTIONS          (WM_USER + 2581)
+#define AEM_HLSETOPTIONS          (WM_USER + 2582)
 
 
 //// RichEdit messages
@@ -4155,7 +4164,7 @@ Set the options for an edit control.
 (DWORD)lParam == see AECO_* defines.
 
 Return Value
- Current option of edit control.
+ Current options of edit control.
 
 Example 1:
  SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLEDRAG|AECO_DISABLEDROP);
@@ -6099,6 +6108,36 @@ Example:
 
    return 0;
  }
+
+
+AEM_HLGETOPTIONS
+________________
+
+Retrieve highlighting options.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Combination of the current option flag values. See AEHLO_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLGETOPTIONS, 0, 0);
+
+
+AEM_HLSETOPTIONS
+________________
+
+Set highlighting options.
+
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AEHLO_* defines.
+
+Return Value
+ Current options of highlighting.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLSETOPTIONS, AECOOP_OR, AEHLO_IGNOREFONTITALIC);
 
 */
 
