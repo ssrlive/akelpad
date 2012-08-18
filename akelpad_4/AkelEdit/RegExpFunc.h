@@ -71,6 +71,13 @@ typedef struct _REGROUP {
   #ifdef __AKELEDIT_H__
     AECHARINDEX ciStrStart;       //AE_PatExec: Begin of matched string.
     AECHARINDEX ciStrEnd;         //AE_PatExec: End of matched string.
+  #else
+    int nAlignA1;
+    INT_PTR nAlignA2;
+    int nAlignA3;
+    int nAlignB1;
+    INT_PTR nAlignB2;
+    int nAlignB3;
   #endif
   int nMinMatch;                //Minimum group match.
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
@@ -106,6 +113,13 @@ typedef struct {
   #ifdef __AKELEDIT_H__
     AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
     AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
+  #else
+    int nAlignA1;
+    INT_PTR nAlignA2;
+    int nAlignA3;
+    int nAlignB1;
+    INT_PTR nAlignB2;
+    int nAlignB3;
   #endif
   DWORD dwOptions;              //See REPE_* defines.
   const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
@@ -125,6 +139,13 @@ typedef struct {
   #ifdef __AKELEDIT_H__
     AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
     AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
+  #else
+    int nAlignA1;
+    INT_PTR nAlignA2;
+    int nAlignA3;
+    int nAlignB1;
+    INT_PTR nAlignB2;
+    int nAlignB3;
   #endif
   const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
@@ -139,6 +160,13 @@ typedef struct {
   #ifdef __AKELEDIT_H__
     AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
     AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
+  #else
+    int nAlignC1;
+    INT_PTR nAlignC2;
+    int nAlignC3;
+    int nAlignD1;
+    INT_PTR nAlignD2;
+    int nAlignD3;
   #endif
   wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
 } PATREPLACE;
@@ -150,6 +178,10 @@ typedef struct {
   const wchar_t *wpRightStr;
   #ifdef __AKELEDIT_H__
     AECHARINDEX ciRightStr;
+  #else
+    int nAlign1;
+    INT_PTR nAlign2;
+    int nAlign3;
   #endif
   wchar_t *wszBuf;
   wchar_t *wpBufCount;
