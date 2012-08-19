@@ -1,4 +1,9 @@
 
+AkelPad 4.7.9 ()
+----------------------------
+Fixed: error during split window.
+
+
 AkelPad 4.7.8 (Aug 19, 2012)
 ----------------------------
 Changed: \n and \r metacharacters processing in regular expressions.
@@ -12,7 +17,7 @@ Added: manual parameter for "MouseOptions" with a value of 32 - deny changing fo
 
 Fixed: search for surrogate pairs with regular expressions.
 Fixed: search with regular expressions and %se[text] variable of manual parameter
-       "StatusUserFormat"
+       "StatusUserFormat".
 Fixed: headlines background when using background for printing.
 
 

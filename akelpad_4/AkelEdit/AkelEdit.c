@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7.8                               *
+ *                      AkelEdit text control v1.7.9                               *
  *                                                                                 *
  * Copyright 2007-2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -93,7 +93,7 @@
 
 HANDLE hAkelEditProcessHeap=0;
 int nAkelEditHeapCount=0;
-HSTACK hAkelEditWindowsStack={0};
+AESTACKEDIT hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontsStackA={0};
 HSTACK hAkelEditFontsStackW={0};
 HSTACK hAkelEditBitmapDataStack={0};
@@ -5254,7 +5254,7 @@ void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last)
   *first=NULL;
 }
 
-AKELEDIT* AE_StackWindowInsert(HSTACK *hStack)
+AKELEDIT* AE_StackWindowInsert(AESTACKEDIT *hStack)
 {
   AKELEDIT *lpElement=NULL;
 
@@ -5262,7 +5262,7 @@ AKELEDIT* AE_StackWindowInsert(HSTACK *hStack)
   return lpElement;
 }
 
-AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit)
+AKELEDIT* AE_StackWindowGet(AESTACKEDIT *hStack, HWND hWndEdit)
 {
   AKELEDIT *lpElement=(AKELEDIT *)hStack->first;
 
@@ -5276,12 +5276,12 @@ AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit)
   return NULL;
 }
 
-void AE_StackWindowMakeFirst(HSTACK *hStack, AKELEDIT *ae)
+void AE_StackWindowMakeFirst(AESTACKEDIT *hStack, AKELEDIT *ae)
 {
   AE_HeapStackMoveBefore(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack *)ae, (stack *)hStack->first);
 }
 
-void AE_StackWindowFree(HSTACK *hStack)
+void AE_StackWindowFree(AESTACKEDIT *hStack)
 {
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -5440,7 +5440,7 @@ AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone)
       //aeClone->rcDraw.bottom=aeClone->rcEdit.bottom - (aeMaster->rcEdit.bottom - aeMaster->rcDraw.bottom);
 
       //Copy selection info
-      xmemcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->hDC - (BYTE *)&aeMaster->liFirstDrawLine);
+      xmemcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->lpEditProc - (BYTE *)&aeMaster->liFirstDrawLine);
 
       AE_UpdateScrollBars(aeClone, SB_BOTH);
     }
