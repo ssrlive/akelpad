@@ -668,6 +668,11 @@ typedef struct _AKELEDIT {
   //RECT rcCloneMargins;
 } AKELEDIT;
 
+typedef struct {
+  AKELEDIT *first;
+  AKELEDIT *last;
+} AESTACKEDIT;
+
 
 //// Clone
 
@@ -730,10 +735,10 @@ int AE_HeapStackInsertAfter(AKELEDIT *ae, stack **first, stack **last, stack *in
 int AE_HeapStackMoveBefore(AKELEDIT *ae, stack **first, stack **last, stack *src, stack *dst);
 int AE_HeapStackDelete(AKELEDIT *ae, stack **first, stack **last, stack *element);
 void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
-AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
-AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit);
-void AE_StackWindowMakeFirst(HSTACK *hStack, AKELEDIT *ae);
-void AE_StackWindowFree(HSTACK *hStack);
+AKELEDIT* AE_StackWindowInsert(AESTACKEDIT *hStack);
+AKELEDIT* AE_StackWindowGet(AESTACKEDIT *hStack, HWND hWndEdit);
+void AE_StackWindowMakeFirst(AESTACKEDIT *hStack, AKELEDIT *ae);
+void AE_StackWindowFree(AESTACKEDIT *hStack);
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
 AECLONE* AE_StackCloneGet(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
