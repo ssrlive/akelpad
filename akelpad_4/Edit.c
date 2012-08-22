@@ -499,7 +499,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   if (lpFrame->bWrapDelimitersEnable)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
 
-  UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_TABSIZE|CSB_MARKER);
+  UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_TABSIZE|CSB_MARKER|CSB_CAPSLOCK|CSB_NUMLOCK);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
@@ -16751,6 +16751,10 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->nRichCount=GetTextLength(lpFrame->ei.hWndEdit);
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=(int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARSIZE, AECS_POINTSIZE, (LPARAM)NULL);
+      if ((moCur.dwStatusUserFlags & CSB_CAPSLOCK) && (dwFlags & CSB_CAPSLOCK))
+        lpFrame->bCapsLock=(GetKeyState(VK_CAPITAL) & 1) == 1;
+      if ((moCur.dwStatusUserFlags & CSB_NUMLOCK) && (dwFlags & CSB_NUMLOCK))
+        lpFrame->bNumLock=(GetKeyState(VK_NUMLOCK) & 1) == 1;
 
       //Set status bar parts text
       {
@@ -16865,6 +16869,39 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStri
             i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar <= 0 || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
           else
             dwFlags|=CSB_CHARLETTER;
+        }
+        else if (*wpString == 'a')
+        {
+          if (*++wpString == 'p' && *++wpString == '[')
+          {
+            const wchar_t *wpStrEnd;
+
+            for (wpStrEnd=++wpString; *wpStrEnd != ']' && *wpStrEnd; ++wpStrEnd);
+            if (lpFrame)
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%.%ds", lpFrame->bCapsLock?min(wpStrEnd - wpString, 64):0, wpString);
+            else
+              dwFlags|=CSB_CAPSLOCK;
+
+            wpString=wpStrEnd;
+          }
+        }
+      }
+      else if (*wpString == 'n')
+      {
+        if (*++wpString == 'u')
+        {
+          if (*++wpString == 'm' && *++wpString == '[')
+          {
+            const wchar_t *wpStrEnd;
+
+            for (wpStrEnd=++wpString; *wpStrEnd != ']' && *wpStrEnd; ++wpStrEnd);
+            if (lpFrame)
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%.%ds", lpFrame->bNumLock?min(wpStrEnd - wpString, 64):0, wpString);
+            else
+              dwFlags|=CSB_NUMLOCK;
+
+            wpString=wpStrEnd;
+          }
         }
       }
       else if (*wpString == 'o')

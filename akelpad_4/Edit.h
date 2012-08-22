@@ -292,25 +292,27 @@
 #define PROMPT_NOTOALLBUTTON  0x002  //Show "No to all" button if necessary.
 
 //Custom statusbar
-#define CSB_CHARHEX           0x00001
-#define CSB_CHARDEC           0x00002
-#define CSB_CHARLETTER        0x00004
-#define CSB_RICHOFFSET        0x00008
-#define CSB_BYTEOFFSET        0x00010
-#define CSB_LINEALLCOUNT      0x00020
-#define CSB_LINESELCOUNT      0x00040
-#define CSB_LINESELBEGIN      0x00080
-#define CSB_LINESELEND        0x00100
-#define CSB_RICHCOUNT         0x00200
-#define CSB_FONTPOINT         0x00400
-#define CSB_TABSIZE           0x00800
-#define CSB_MARKER            0x01000
-#define CSB_REPLACECOUNT      0x02000
-#define CSB_SEARCHENDED       0x04000
-#define CSB_DOCUMENTSCOUNT    0x08000
-#define CSB_DOCUMENTSMODIFIED 0x10000
-#define CSB_DOCUMENTSSAVED    0x20000
-#define CSB_DOCUMENTINDEX     0x40000
+#define CSB_CHARHEX           0x000001
+#define CSB_CHARDEC           0x000002
+#define CSB_CHARLETTER        0x000004
+#define CSB_RICHOFFSET        0x000008
+#define CSB_BYTEOFFSET        0x000010
+#define CSB_LINEALLCOUNT      0x000020
+#define CSB_LINESELCOUNT      0x000040
+#define CSB_LINESELBEGIN      0x000080
+#define CSB_LINESELEND        0x000100
+#define CSB_RICHCOUNT         0x000200
+#define CSB_FONTPOINT         0x000400
+#define CSB_TABSIZE           0x000800
+#define CSB_MARKER            0x001000
+#define CSB_REPLACECOUNT      0x002000
+#define CSB_SEARCHENDED       0x004000
+#define CSB_DOCUMENTSCOUNT    0x008000
+#define CSB_DOCUMENTSMODIFIED 0x010000
+#define CSB_DOCUMENTSSAVED    0x020000
+#define CSB_DOCUMENTINDEX     0x040000
+#define CSB_CAPSLOCK          0x080000
+#define CSB_NUMLOCK           0x100000
 
 //Colors list
 #define LVI_COLOR_BASIC            0
