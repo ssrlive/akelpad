@@ -1076,6 +1076,8 @@ typedef struct _FRAMEDATA {
   int nLineSelEnd;
   INT_PTR nRichCount;
   int nFontPoint;
+  BOOL bCapsLock;
+  BOOL bNumLock;
   BOOL bReachedEOF;
   INT_PTR nReplaceCount;
 } FRAMEDATA;
