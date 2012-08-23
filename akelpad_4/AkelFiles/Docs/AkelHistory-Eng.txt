@@ -5,7 +5,8 @@ Added: variables for "StatusUserFormat":
        "%cap[text]" - text to appear when CapsLock key in turned on;
        "%num[text]" - text to appear when NumLock key in turned on.
 
-Fixed: error during split window.
+Fixed: error when spliting window.
+Fixed: background image was drawn not from beginning, when LineBoard or Coder plugins used.
 
 
 AkelPad 4.7.8 (Aug 19, 2012)
