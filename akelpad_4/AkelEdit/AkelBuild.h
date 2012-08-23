@@ -604,6 +604,7 @@ typedef struct _AKELEDIT {
   HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
+  RECT rcErase;
   AESTACKERASE hEraseStack;
   POINT ptActiveColumnDraw;
   BOOL bHScrollShow;

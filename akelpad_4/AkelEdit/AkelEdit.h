@@ -548,8 +548,8 @@
 #define AECT_GLOBAL 0  //Position in the virtual text space coordinates.
 #define AECT_CLIENT 1  //Position in the client area coordinates.
 
-//AEM_GETRECT and AEM_SETRECT flags
-#define AERC_UPDATE    0x01  //Redraw edit window. Only for AEM_SETRECT.
+//Rectangle flags
+#define AERC_UPDATE    0x01  //Redraw edit window. Only for AEM_SETRECT and AEM_SETERASERECT.
 #define AERC_MARGINS   0x02  //Rectangle contain edit area margins instead of edit area coordinates.
 #define AERC_NOLEFT    0x04  //Don't set/retrieve left side.
 #define AERC_NOTOP     0x08  //Don't set/retrieve top side.
@@ -1600,6 +1600,8 @@ typedef struct {
 #define AEM_UPDATESIZE            (WM_USER + 2354)
 #define AEM_LOCKUPDATE            (WM_USER + 2355)
 #define AEM_LOCKERASERECT         (WM_USER + 2356)
+#define AEM_GETERASERECT          (WM_USER + 2357)
+#define AEM_SETERASERECT          (WM_USER + 2358)
 #define AEM_HIDESELECTION         (WM_USER + 2361)
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
 #define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
@@ -4924,6 +4926,41 @@ Example:
 
    SendMessage(hWndEdit, AEM_LOCKERASERECT, 0, (LPARAM)&rcKeep);
  }
+
+
+AEM_GETERASERECT
+________________
+
+Retrieve the erasing rectangle of an edit control. By default all edit area is erased.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
+
+Return Value
+ Zero.
+
+Example:
+ RECT rc;
+
+ SendMessage(hWndEdit, AEM_GETERASERECT, 0, (LPARAM)&rc);
+
+
+AEM_SETERASERECT
+________________
+
+Set the erasing rectangle of an edit control. The erasing rectangle is the limiting rectangle into which the control erase background.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the erasing rectangle is set to its default values.
+
+Return Value
+ Zero.
+
+Example (exclude 10 left pixels from erasing):
+ RECT rc;
+
+ rc.left=10;
+ SendMessage(hWndEdit, AEM_SETERASERECT, AERC_NOTOP|AERC_NORIGHT|AERC_NOBOTTOM, (LPARAM)&rc);
 
 
 AEM_HIDESELECTION

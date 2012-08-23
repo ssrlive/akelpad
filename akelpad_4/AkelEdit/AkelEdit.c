@@ -1801,6 +1801,59 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return bResult;
     }
+    if (uMsg == AEM_GETERASERECT)
+    {
+      RECT *lprcErase=(RECT *)lParam;
+      RECT rcErase;
+
+      if (wParam & AERC_MARGINS)
+      {
+        rcErase.left=ae->rcErase.left - ae->rcEdit.left;
+        rcErase.top=ae->rcErase.top - ae->rcEdit.top;
+        rcErase.right=ae->rcEdit.right - ae->rcErase.right;
+        rcErase.bottom=ae->rcEdit.bottom - ae->rcErase.bottom;
+      }
+      else rcErase=ae->rcErase;
+
+      if (!(wParam & AERC_NOLEFT))
+        lprcErase->left=rcErase.left;
+      if (!(wParam & AERC_NOTOP))
+        lprcErase->top=rcErase.top;
+      if (!(wParam & AERC_NORIGHT))
+        lprcErase->right=rcErase.right;
+      if (!(wParam & AERC_NOBOTTOM))
+        lprcErase->bottom=rcErase.bottom;
+
+      return 0;
+    }
+    if (uMsg == AEM_SETERASERECT)
+    {
+      RECT *lprcErase=lParam?(RECT *)lParam:&ae->rcEdit;
+      RECT rcErase;
+
+      if (wParam & AERC_MARGINS)
+      {
+        rcErase.left=ae->rcEdit.left + lprcErase->left;
+        rcErase.top=ae->rcEdit.top + lprcErase->top;
+        rcErase.right=ae->rcEdit.right -  lprcErase->right;
+        rcErase.bottom=ae->rcEdit.bottom - lprcErase->bottom;
+      }
+      else rcErase=*lprcErase;
+
+      if (wParam & AERC_NOLEFT)
+        rcErase.left=ae->rcErase.left;
+      if (wParam & AERC_NOTOP)
+        rcErase.top=ae->rcErase.top;
+      if (wParam & AERC_NORIGHT)
+        rcErase.right=ae->rcErase.right;
+      if (wParam & AERC_NOBOTTOM)
+        rcErase.bottom=ae->rcErase.bottom;
+      ae->rcErase=rcErase;
+
+      if (wParam & AERC_UPDATE)
+        InvalidateRect(ae->hWndEdit, NULL, TRUE);
+      return 0;
+    }
     if (uMsg == AEM_HIDESELECTION)
     {
       AE_HideSelection(ae, (BOOL)wParam);
@@ -4575,6 +4628,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (lpErase->rcErase.left < ae->rcDraw.left)
         {
           rcErase=lpErase->rcErase;
+          rcErase.left=max(rcErase.left, ae->rcErase.left);
           rcErase.right=min(rcErase.right, ae->rcDraw.left);
           AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.left=rcErase.right;
@@ -4582,6 +4636,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (lpErase->rcErase.top < ae->rcDraw.top)
         {
           rcErase=lpErase->rcErase;
+          rcErase.top=max(rcErase.top, ae->rcErase.top);
           rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
           AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.top=rcErase.bottom;
@@ -4590,6 +4645,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
           rcErase=lpErase->rcErase;
           rcErase.left=max(rcErase.left, ae->rcDraw.right);
+          rcErase.right=min(rcErase.right, ae->rcErase.right);
           AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.right=rcErase.left;
         }
@@ -4597,6 +4653,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
           rcErase=lpErase->rcErase;
           rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
+          rcErase.bottom=min(rcErase.bottom, ae->rcErase.bottom);
           AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
           lpErase->rcErase.bottom=rcErase.top;
         }
@@ -4839,6 +4896,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     //ae->rcEdit.bottom=cs->cy;
     GetClientRect(ae->hWndEdit, &ae->rcEdit);
     AE_SetDrawRect(ae, NULL, FALSE);
+    ae->rcErase=ae->rcEdit;
 
     if (!ae->bUnicodeWindow)
       AE_SetEditFontA(ae, NULL, FALSE);
@@ -12697,8 +12755,8 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
     //Bitmap as background
     BLENDFUNCTION bf;
     RECT rcCopy;
-    int nImageX=(int)(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
-    int nImageY=(int)(lpRect->top + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
+    int nImageX=(int)((lpRect->left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+    int nImageY=(int)((lpRect->top - ae->rcErase.top) + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
     int nImageWidth=ae->popt->lpBkImage->nBitmapX - nImageX;
     int nImageHeight=ae->popt->lpBkImage->nBitmapY - nImageY;
 
@@ -12720,7 +12778,7 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
     while (rcCopy.bottom > 0)
     {
       //Restore initial X variables
-      nImageX=(int)(lpRect->left + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+      nImageX=(int)((lpRect->left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
       rcCopy.left=lpRect->left;
       rcCopy.right=lpRect->right - rcCopy.left;
       if (rcCopy.right > nImageWidth)
@@ -14388,6 +14446,8 @@ void AE_UpdateSize(AKELEDIT *ae)
       nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
       ae->rcDraw.right+=rcClient.right - ae->rcEdit.right;
       ae->rcDraw.bottom+=rcClient.bottom - ae->rcEdit.bottom;
+      ae->rcErase.right+=rcClient.right - ae->rcEdit.right;
+      ae->rcErase.bottom+=rcClient.bottom - ae->rcEdit.bottom;
       ae->rcEdit.right=rcClient.right;
       ae->rcEdit.bottom=rcClient.bottom;
 
