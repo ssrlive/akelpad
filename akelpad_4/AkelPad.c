@@ -799,7 +799,7 @@ void _WinMain()
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
 
   //--Search dialog--
-  moInit.dwSearchOptions=FR_DOWN;
+  moInit.dwSearchOptions=FRF_DOWN;
 
   //--Open file dialog--
   //moInit.wszLastDir[0]='\0';
@@ -879,19 +879,19 @@ void _WinMain()
   xmemcpy(&fdDefault, &fdInit, sizeof(FRAMEDATA));
 
   //Normalize search flags
-  moInit.dwSearchOptions=(moInit.dwSearchOptions & AEFR_DOWN) |
-          (moInit.dwSearchOptions & AEFR_WHOLEWORD) |
-          (moInit.dwSearchOptions & AEFR_MATCHCASE) |
-          (moInit.dwSearchOptions & AEFR_UP) |
-          (moInit.dwSearchOptions & AEFR_BEGINNING) |
-          (moInit.dwSearchOptions & AEFR_SELECTION) |
-          (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
-          (moInit.dwSearchOptions & AEFR_REGEXP) |
-          (moInit.dwSearchOptions & AEFR_ALLFILES) |
-          (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
-          (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL) |
-          (moInit.dwSearchOptions & AEFR_CYCLESEARCH) |
-          (moInit.dwSearchOptions & AEFR_CYCLESEARCHPROMPT);
+  moInit.dwSearchOptions=(moInit.dwSearchOptions & FRF_DOWN) |
+          (moInit.dwSearchOptions & FRF_WHOLEWORD) |
+          (moInit.dwSearchOptions & FRF_MATCHCASE) |
+          (moInit.dwSearchOptions & FRF_UP) |
+          (moInit.dwSearchOptions & FRF_BEGINNING) |
+          (moInit.dwSearchOptions & FRF_SELECTION) |
+          (moInit.dwSearchOptions & FRF_ESCAPESEQ) |
+          (moInit.dwSearchOptions & FRF_REGEXP) |
+          (moInit.dwSearchOptions & FRF_ALLFILES) |
+          (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
+          (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
+          (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
+          (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);
 
   //Normalize tab flags
   if (!(moInit.dwTabOptionsMDI & TAB_VIEW_NONE) && !(moInit.dwTabOptionsMDI & TAB_VIEW_TOP) && !(moInit.dwTabOptionsMDI & TAB_VIEW_BOTTOM))

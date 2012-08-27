@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 6)
 
 
 //// Defines
@@ -251,7 +251,7 @@
 #define MI_DATELOG                   217  //Return: insert date if file has .LOG at the beginning (on\off).
 #define MI_SAVEINREADONLYMSG         221  //Return: save in read-only files warning (on\off).
 #define MI_DEFAULTSAVEEXT            224  //Return: copied chars. (wchar_t *)lParam - buffer that receives default saving extension string.
-#define MI_SEARCHOPTIONS             228  //Return: search options, see AEFR_* defines.
+#define MI_SEARCHOPTIONS             228  //Return: search options, see FRF_* defines.
 //Print dialog
 #define MI_PRINTMARGINS              251  //Return: copied bytes. (RECT *)lParam - buffer that receives print margins.
 #define MI_PRINTCOLOR                255  //Return: color printing, see PRNC_* defines.
@@ -441,25 +441,6 @@
 #define PRNC_BACKGROUND   0x02  //Print on colored background.
 #define PRNC_SELECTION    0x04  //Print text selection.
 
-//Search options
-//#define AEFR_DOWN               0x00000001
-//#define AEFR_WHOLEWORD          0x00000002
-//#define AEFR_MATCHCASE          0x00000004
-//#define AEFR_REGEXP             0x00080000
-#define AEFR_UP                 0x00100000
-#define AEFR_BEGINNING          0x00200000
-#define AEFR_SELECTION          0x00400000
-#define AEFR_ESCAPESEQ          0x00800000
-#define AEFR_ALLFILES           0x01000000
-//Find/Replace dialog options
-#define AEFR_REPLACEALLANDCLOSE 0x02000000
-#define AEFR_CHECKINSELIFSEL    0x04000000
-#define AEFR_CYCLESEARCH        0x08000000
-#define AEFR_CYCLESEARCHPROMPT  0x10000000
-//StrReplace options
-#define AEFR_WHOLEWORDGOODSTART 0x40000000
-#define AEFR_WHOLEWORDGOODEND   0x80000000
-
 //Main menu
 #define MENU_FILE_POSITION     0
 #define MENU_EDIT_POSITION     1
@@ -586,19 +567,24 @@
 #define LI_BKIMAGE        0x00000004  //Lock inherit background image.
 #define LI_WRAP           0x00000008  //Lock inherit wrapping.
 
-//Find text flags
-#ifndef FR_DOWN
-  #define FR_DOWN        0x00000001  //Find down.
-#endif                               //
-#ifndef FR_MATCHCASE                 //
-  #define FR_MATCHCASE   0x00000004  //Search is case-sensitive.
-#endif                               //
-#define FR_UP            0x00100000  //Find up.
-#define FR_BEGINNING     0x00200000  //Search from beginning (usage: FR_DOWN|FR_BEGINNING).
-#define FR_SELECTION     0x00400000  //Search in selection (usage: FR_DOWN|FR_SELECTION).
-#define FR_ESCAPESEQ     0x00800000  //Search with escape sequences.
-#define FR_ALLFILES      0x01000000  //Search in all opened MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
-#define FR_CYCLESEARCH   0x08000000  //Cycle search.
+//Find/Replace flags
+#define FRF_DOWN               0x00000001  //Same as AEFR_DOWN.
+#define FRF_WHOLEWORD          0x00000002  //Same as AEFR_WHOLEWORD.
+#define FRF_MATCHCASE          0x00000004  //Same as AEFR_MATCHCASE.
+#define FRF_REGEXP             0x00080000  //Same as AEFR_REGEXP.
+#define FRF_UP                 0x00100000
+#define FRF_BEGINNING          0x00200000
+#define FRF_SELECTION          0x00400000
+#define FRF_ESCAPESEQ          0x00800000
+#define FRF_ALLFILES           0x01000000
+//Find/Replace dialog options
+#define FRF_REPLACEALLANDCLOSE 0x02000000
+#define FRF_CHECKINSELIFSEL    0x04000000
+#define FRF_CYCLESEARCH        0x08000000
+#define FRF_CYCLESEARCHPROMPT  0x10000000
+//StrReplace options
+#define FRF_WHOLEWORDGOODSTART 0x40000000
+#define FRF_WHOLEWORDGOODEND   0x80000000
 
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
@@ -1236,19 +1222,19 @@ typedef struct {
 } RECENTFILEPARAMSTACK;
 
 typedef struct {
-  DWORD dwFlags;            //See FR_* defines.
+  DWORD dwFlags;            //See FRF_* defines.
   const char *pFindIt;      //Find string.
   int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 } TEXTFINDA;
 
 typedef struct {
-  DWORD dwFlags;            //See FR_* defines.
+  DWORD dwFlags;            //See FRF_* defines.
   const wchar_t *pFindIt;   //Find string.
   int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 } TEXTFINDW;
 
 typedef struct {
-  DWORD dwFlags;               //See FR_* defines.
+  DWORD dwFlags;               //See FRF_* defines.
   const char *pFindIt;         //Find string.
   int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const char *pReplaceWith;    //Replace string.
@@ -1258,7 +1244,7 @@ typedef struct {
 } TEXTREPLACEA;
 
 typedef struct {
-  DWORD dwFlags;               //See FR_* defines.
+  DWORD dwFlags;               //See FRF_* defines.
   const wchar_t *pFindIt;      //Find string.
   int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const wchar_t *pReplaceWith; //Replace string.
@@ -3004,7 +2990,7 @@ Return Value
 Example (Unicode):
  TEXTFINDW tf;
 
- tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
+ tf.dwFlags=FRF_DOWN|FRF_BEGINNING|FRF_MATCHCASE;
  tf.pFindIt=L"Text to find";
  tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFINDW, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
@@ -3024,7 +3010,7 @@ Return Value
 Example (Unicode):
  TEXTREPLACEW tr;
 
- tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
+ tr.dwFlags=FRF_DOWN|FRF_BEGINNING|FRF_MATCHCASE;
  tr.pFindIt=L"Text to find";
  tr.nFindItLen=-1;
  tr.pReplaceWith=L"Text to replace";
