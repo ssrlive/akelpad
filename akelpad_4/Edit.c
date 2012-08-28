@@ -9619,10 +9619,19 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
   if (dwFlags & FRF_SELECTION)
   {
-    if (dwFlags & FRF_FINDFROMREPLACE)
-      ft.crSearch.ciMin=crCurSel.ciMin;
-    else
-      AEC_NextCharEx(&crCurSel.ciMin, &ft.crSearch.ciMin);
+    if (!(dwFlags & FRF_FINDFROMREPLACE))
+    {
+      ft.dwFlags=dwFlags;
+      ft.pText=wpFindIt;
+      ft.dwTextLen=nFindItLen;
+      ft.nNewLine=AELB_R;
+      if (SendMessage(lpFrame->ei.hWndEdit, AEM_ISMATCHW, (WPARAM)&crCurSel.ciMin, (LPARAM)&ft))
+        ft.crSearch.ciMin=ft.crFound.ciMax;
+      else
+        AEC_NextCharEx(&crCurSel.ciMin, &ft.crSearch.ciMin);
+    }
+    else ft.crSearch.ciMin=crCurSel.ciMin;
+
     ft.crSearch.ciMax=crCurSel.ciMax;
   }
   else if (dwFlags & FRF_BEGINNING)

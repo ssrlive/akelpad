@@ -18615,7 +18615,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     }
     ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
     ciCountEnd.nCharInLine=min(ciCountEnd.nCharInLine, ciCountEnd.lpLine->nLineLen);
-  
+
     if (ft->dwFlags & AEFR_DOWN)
     {
       if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(INT_PTR)ft->dwTextLen, ft->nNewLine))
@@ -18626,13 +18626,13 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
           {
             if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
               return FALSE;
-  
+
             if (AE_IsMatch(ae, ft, &ciCount))
               return TRUE;
-  
+
             AEC_IndexInc(&ciCount);
           }
-  
+
           if (ciCount.lpLine->next)
             AEC_NextLine(&ciCount);
           else
@@ -18650,13 +18650,13 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
           {
             if (AEC_IndexCompare(&ciCount, &ciCountEnd) < 0)
               return FALSE;
-  
+
             if (AE_IsMatch(ae, ft, &ciCount))
               return TRUE;
-  
+
             AEC_IndexDec(&ciCount);
           }
-  
+
           if (ciCount.lpLine->prev)
             AEC_PrevLine(&ciCount);
           else
@@ -18702,8 +18702,6 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount;
-  int nNewLine;
-  BYTE nLineBreak;
   DWORD dwCount;
 
   if (ft->dwFlags & AEFR_WHOLEWORD)
@@ -18712,91 +18710,123 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       return 0;
   }
   ciCount=*ciChar;
-  nNewLine=ft->nNewLine;
   dwCount=0;
 
-  //Set new line
-  if (nNewLine < AELB_ASIS)
+  if (ft->dwFlags & AEFR_REGEXP)
   {
-    if (nNewLine == AELB_ASINPUT)
-      nNewLine=ae->popt->nInputNewLine;
-    else if (nNewLine == AELB_ASOUTPUT)
-      nNewLine=ae->popt->nOutputNewLine;
-  }
+    STACKREGROUP hREGroupStack;
+    AECHARINDEX ciCountEnd;
 
-  for (;;)
-  {
-    for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
+    hREGroupStack.first=0;
+    hREGroupStack.last=0;
+    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0)|REO_MULTILINE;
+    hREGroupStack.wpDelim=ae->popt->wszWordDelimiters;
+    hREGroupStack.wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
+
+    if (!(ft->nCompileErrorOffset=PatCompile(&hREGroupStack, ft->pText, ft->pText + ft->dwTextLen)))
     {
-      if (ft->dwFlags & AEFR_MATCHCASE)
-      {
-        if (ciCount.lpLine->wpLine[ciCount.nCharInLine] != ft->pText[dwCount])
-          return 0;
-      }
-      else
-      {
-        if (WideCharLower(ciCount.lpLine->wpLine[ciCount.nCharInLine]) != WideCharLower(ft->pText[dwCount]))
-          return 0;
-      }
+      hREGroupStack.first->dwFlags&=~REGF_ROOTANY;
+      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCountEnd);
 
-      if (ft->dwTextLen == (UINT_PTR)-1)
+      if (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ciCount, &ciCountEnd))
       {
-        if (!ft->pText[++dwCount])
+        dwCount=hREGroupStack.first->nStrLen;
+        ciCount=hREGroupStack.first->ciStrEnd;
+      }
+      PatFree(&hREGroupStack);
+    }
+    if (!dwCount) return 0;
+  }
+  else
+  {
+    int nNewLine;
+    BYTE nLineBreak;
+
+    //Set new line
+    nNewLine=ft->nNewLine;
+
+    if (nNewLine < AELB_ASIS)
+    {
+      if (nNewLine == AELB_ASINPUT)
+        nNewLine=ae->popt->nInputNewLine;
+      else if (nNewLine == AELB_ASOUTPUT)
+        nNewLine=ae->popt->nOutputNewLine;
+    }
+
+    for (;;)
+    {
+      for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
+      {
+        if (ft->dwFlags & AEFR_MATCHCASE)
+        {
+          if (ciCount.lpLine->wpLine[ciCount.nCharInLine] != ft->pText[dwCount])
+            return 0;
+        }
+        else
+        {
+          if (WideCharLower(ciCount.lpLine->wpLine[ciCount.nCharInLine]) != WideCharLower(ft->pText[dwCount]))
+            return 0;
+        }
+
+        if (ft->dwTextLen == (UINT_PTR)-1)
+        {
+          if (!ft->pText[++dwCount])
+          {
+            ++ciCount.nCharInLine;
+            goto Found;
+          }
+        }
+        else if (++dwCount >= ft->dwTextLen)
         {
           ++ciCount.nCharInLine;
           goto Found;
         }
       }
-      else if (++dwCount >= ft->dwTextLen)
-      {
-        ++ciCount.nCharInLine;
-        goto Found;
-      }
-    }
 
-    if (ciCount.lpLine->nLineBreak != AELB_WRAP)
-    {
-      if (ciCount.lpLine->nLineBreak == AELB_EOF)
-        return 0;
-      if (nNewLine == AELB_ASIS)
-        nLineBreak=ciCount.lpLine->nLineBreak;
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+      {
+        if (ciCount.lpLine->nLineBreak == AELB_EOF)
+          return 0;
+        if (nNewLine == AELB_ASIS)
+          nLineBreak=ciCount.lpLine->nLineBreak;
+        else
+          nLineBreak=(BYTE)nNewLine;
+
+        if (nLineBreak == AELB_R)
+        {
+          if (ft->pText[dwCount++] != L'\r') return 0;
+        }
+        else if (nLineBreak == AELB_N)
+        {
+          if (ft->pText[dwCount++] != L'\n') return 0;
+        }
+        else if (nLineBreak == AELB_RN)
+        {
+          if (ft->pText[dwCount++] != L'\r') return 0;
+          if (ft->pText[dwCount++] != L'\n') return 0;
+        }
+        else if (nLineBreak == AELB_RRN)
+        {
+          if (ft->pText[dwCount++] != L'\r') return 0;
+          if (ft->pText[dwCount++] != L'\n') return 0;
+        }
+      }
+
+      if (ciCount.lpLine->next)
+        AEC_NextLine(&ciCount);
       else
-        nLineBreak=(BYTE)nNewLine;
+        return 0;
 
-      if (nLineBreak == AELB_R)
+      if (ft->dwTextLen == (UINT_PTR)-1)
       {
-        if (ft->pText[dwCount++] != L'\r') return 0;
+        if (!ft->pText[dwCount])
+          goto Found;
       }
-      else if (nLineBreak == AELB_N)
+      else
       {
-        if (ft->pText[dwCount++] != L'\n') return 0;
+        if (dwCount >= ft->dwTextLen)
+          goto Found;
       }
-      else if (nLineBreak == AELB_RN)
-      {
-        if (ft->pText[dwCount++] != L'\r') return 0;
-        if (ft->pText[dwCount++] != L'\n') return 0;
-      }
-      else if (nLineBreak == AELB_RRN)
-      {
-        if (ft->pText[dwCount++] != L'\r') return 0;
-        if (ft->pText[dwCount++] != L'\n') return 0;
-      }
-    }
-
-    if (ciCount.lpLine->next)
-      AEC_NextLine(&ciCount);
-    else
-      return 0;
-
-    if (ft->dwTextLen == (UINT_PTR)-1)
-    {
-      if (!ft->pText[dwCount])
-        goto Found;
-    }
-    else
-    {
-      if (dwCount >= ft->dwTextLen)
-        goto Found;
     }
   }
 

@@ -79,6 +79,7 @@ typedef struct _REGROUP {
     INT_PTR nAlignB2;
     int nAlignB3;
   #endif
+  INT_PTR nStrLen;              //Matched string length.
   int nMinMatch;                //Minimum group match.
   int nMaxMatch;                //Maximum group match, -1 if unlimited.
   DWORD dwFlags;                //See REGF_* defines.
@@ -639,6 +640,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   {
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
+    lpREGroupItem->nStrLen=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -678,6 +680,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         Match:
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
+        lpREGroupItem->nStrLen=wpStr - wpStrStart;
         ++nCurMatch;
 
         if (wpStr >= wpMaxStr)
@@ -923,8 +926,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
         }
       }
-      ++wpPat;
       ++wpStr;
+      ++wpPat;
     }
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
@@ -933,6 +936,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       {
         lpREGroupItem->wpStrStart=wpMinStr;
         lpREGroupItem->wpStrEnd=wpMinStr;
+        lpREGroupItem->nStrLen=0;
         return TRUE;
       }
       return FALSE;
@@ -941,18 +945,21 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     {
       lpREGroupItem->wpStrStart=wpStrStart;
       lpREGroupItem->wpStrEnd=wpStrStart;
+      lpREGroupItem->nStrLen=0;
     }
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
   {
     //lpREGroupItem->wpStrStart=wpMinStr;
     //lpREGroupItem->wpStrEnd=wpMinStr;
+    //lpREGroupItem->nStrLen=0;
     return FALSE;
   }
   if (lpREGroupItem->dwFlags & REGF_POSITIVE)
   {
     lpREGroupItem->wpStrStart=wpMinStr;
     lpREGroupItem->wpStrEnd=wpMinStr;
+    lpREGroupItem->nStrLen=0;
   }
   return TRUE;
 }
@@ -1303,6 +1310,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpNextGroup;
+  INT_PTR nStrLen=0;
+  INT_PTR nCount;
   int nStrChar;
   wchar_t wchPatChar;
   wchar_t wchPatNextChar;
@@ -1317,6 +1326,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   {
     lpREGroupItem->ciStrStart=ciStr;
     lpREGroupItem->ciStrEnd=ciStr;
+    lpREGroupItem->nStrLen=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -1356,6 +1366,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         Match:
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStr;
+        lpREGroupItem->nStrLen=nStrLen;
         ++nCurMatch;
 
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
@@ -1390,6 +1401,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               if (AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
               {
                 ciStr=lpREGroupNext->ciStrEnd;
+                nStrLen+=lpREGroupNext->nStrLen;
                 bExclude=TRUE;
               }
             }
@@ -1418,6 +1430,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 {
                   lpREGroupNext=lpREGroupNextNext;
                   ciStr=lpREGroupNext->ciStrEnd;
+                  nStrLen+=lpREGroupNext->nStrLen;
                 }
                 goto NextGroup;
               }
@@ -1426,6 +1439,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
             goto EndLoop;
           ciStr=lpREGroupNext->ciStrEnd;
+          nStrLen+=lpREGroupNext->nStrLen;
         }
 
         NextGroup:
@@ -1593,6 +1607,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             {
               ciStrCount=ciStr;
               ciGroupCount=lpREGroupRef->ciStrStart;
+              nCount=0;
 
               while (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0 && AEC_IndexCompare(&ciStrCount, &ciMaxStr) < 0)
               {
@@ -1608,10 +1623,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
                 AE_PatNextChar(&ciStrCount);
                 AE_PatNextChar(&ciGroupCount);
+                ++nCount;
               }
               if (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0)
                 goto EndLoop;
               ciStr=ciStrCount;
+              nStrLen+=nCount;
             }
             else goto EndLoop;
 
@@ -1619,8 +1636,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
         }
       }
-      ++wpPat;
       AE_PatNextChar(&ciStr);
+      ++nStrLen;
+      ++wpPat;
     }
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
@@ -1629,6 +1647,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       {
         lpREGroupItem->ciStrStart=ciMinStr;
         lpREGroupItem->ciStrEnd=ciMinStr;
+        lpREGroupItem->nStrLen=0;
         return TRUE;
       }
       return FALSE;
@@ -1637,18 +1656,21 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     {
       lpREGroupItem->ciStrStart=ciStrStart;
       lpREGroupItem->ciStrEnd=ciStrStart;
+      lpREGroupItem->nStrLen=0;
     }
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
   {
     //lpREGroupItem->ciStrStart=ciMinStr;
     //lpREGroupItem->ciStrEnd=ciMinStr;
+    //lpREGroupItem->nStrLen=0;
     return FALSE;
   }
   if (lpREGroupItem->dwFlags & REGF_POSITIVE)
   {
     lpREGroupItem->ciStrStart=ciMinStr;
     lpREGroupItem->ciStrEnd=ciMinStr;
+    lpREGroupItem->nStrLen=0;
   }
   return TRUE;
 }
