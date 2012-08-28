@@ -6410,7 +6410,7 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   const wchar_t *wpFile;
   HBRUSH hbrBasicBk;
   DWORD dwAlign;
-  int nBkModeOld;
+  int nBkModeOld=0;
   int nCenter=0;
   int nLeft=0;
   int nRight=0;
@@ -6547,7 +6547,7 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
     bResult=ExtTextOutW(hDC, rc->right, rc->top, ETO_CLIPPED, rc, wszRight, nRight, NULL);
   }
   SetTextAlign(hDC, dwAlign);
-  SetBkMode(hDC, nBkModeOld);
+  if (nBkModeOld) SetBkMode(hDC, nBkModeOld);
 
   return bResult;
 }
