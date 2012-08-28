@@ -9619,7 +9619,10 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
   if (dwFlags & FRF_SELECTION)
   {
-    ft.crSearch.ciMin=crCurSel.ciMin;
+    if (dwFlags & FRF_FINDFROMREPLACE)
+      ft.crSearch.ciMin=crCurSel.ciMin;
+    else
+      AEC_NextCharEx(&crCurSel.ciMin, &ft.crSearch.ciMin);
     ft.crSearch.ciMax=crCurSel.ciMax;
   }
   else if (dwFlags & FRF_BEGINNING)
@@ -9695,6 +9698,9 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
   if (bFound)
   {
+    if (dwFlags & FRF_SELECTION)
+      ft.crFound.ciMax=crCurSel.ciMax;
+
     SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
     ScrollCaret(lpFrame->ei.hWndEdit);
     SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
@@ -10059,12 +10065,33 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
-        if (pr.nReplaceCount && !AEC_IndexCompare(&pr.ciLeftStr, &pr.ciStr) && !AEC_IndexCompare(&pr.ciRightStr, &pr.ciMaxStr))
+        if (pr.nReplaceCount && !AEC_IndexCompare(&pr.ciLeftStr, &pr.ciStr) &&
+            (!AEC_IndexCompare(&pr.ciRightStr, &pr.ciMaxStr) || (dwFlags & FRF_SELECTION)))
         {
           if (pr.wszResult=AllocWideStr(nResultTextLen))
           {
             nResultTextLen=PatReplace(&pr);
-            ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASIS, 0, NULL, NULL);
+
+            if (dwFlags & FRF_SELECTION)
+            {
+              SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
+              crRange.ciMin=pr.ciStr;
+              crRange.ciMax=pr.ciRightStr;
+              SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_LOCKSCROLL, NULL);
+              ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASIS, 0, &crInsert.ciMin, &crInsert.ciMax);
+    
+              //Restore selection
+              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
+              crRange.ciMin=crInsert.ciMax;
+              crRange.ciMax=crInitialSel.ciMax;
+              SetSel(lpFrame->ei.hWndEdit, &crRange, 0, &crRange.ciMin);
+              SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
+              InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
+            }
+            else
+            {
+              ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASIS, 0, NULL, NULL);
+            }
             nChanges=1;
             FreeWideStr(pr.wszResult);
           }
@@ -10082,14 +10109,32 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
       if (SendMessage(lpFrame->ei.hWndEdit, AEM_ISMATCHW, (WPARAM)&crCurSel.ciMin, (LPARAM)&ft))
       {
-        if (!AEC_IndexCompare(&crCurSel.ciMax, &ft.crFound.ciMax))
+        if (dwFlags & FRF_SELECTION)
         {
-          ReplaceSelW(lpFrame->ei.hWndEdit, wpReplaceWith, nReplaceWithLen, AELB_ASINPUT, 0, NULL, NULL);
+          SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
+          SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
+          ReplaceSelW(lpFrame->ei.hWndEdit, wpReplaceWith, nReplaceWithLen, AELB_ASINPUT, 0, &crInsert.ciMin, &crInsert.ciMax);
+
+          //Restore selection
+          SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
+          crRange.ciMin=crInsert.ciMax;
+          crRange.ciMax=crInitialSel.ciMax;
+          SetSel(lpFrame->ei.hWndEdit, &crRange, 0, &crRange.ciMin);
+          SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, TRUE, 0);
+          InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
           nChanges=1;
+        }
+        else
+        {
+          if (!AEC_IndexCompare(&crCurSel.ciMax, &ft.crFound.ciMax))
+          {
+            ReplaceSelW(lpFrame->ei.hWndEdit, wpReplaceWith, nReplaceWithLen, AELB_ASINPUT, 0, NULL, NULL);
+            nChanges=1;
+          }
         }
       }
     }
-    nResult=TextFindW(lpFrame, dwFlags, wpFindIt, nFindItLen);
+    nResult=TextFindW(lpFrame, dwFlags|FRF_FINDFROMREPLACE, wpFindIt, nFindItLen);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
   return nResult;
