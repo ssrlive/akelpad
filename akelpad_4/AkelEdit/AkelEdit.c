@@ -11079,7 +11079,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
       if (PatCompile(lpREGroupStack, lpQuoteSrc->pQuoteStart, lpQuoteSrc->pQuoteStart + lpQuoteSrc->nQuoteStartLen))
       {
         AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
-        return (LRESULT)NULL;
+        return NULL;
       }
       //REPE_ISMATCH
       lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
@@ -11114,7 +11114,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
                     else if (*wpCount == L'\\')
                     {
                       ++wpCount;
-                      if ((crText=PatRefIndex(&wpCount)) != -1)
+                      if ((crText=PatRefIndex(&wpCount)) != (DWORD)-1)
                         dwFlags|=AEREGCF_BACKREFCOLORTEXT;
                     }
                     else if (*wpCount == L'#')
@@ -11136,7 +11136,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
                       else if (*wpCount == L'\\')
                       {
                         ++wpCount;
-                        if ((crBk=PatRefIndex(&wpCount)) != -1)
+                        if ((crBk=PatRefIndex(&wpCount)) != (DWORD)-1)
                           dwFlags|=AEREGCF_BACKREFCOLORBK;
                       }
                       else if (*wpCount == L'#')
@@ -20370,7 +20370,7 @@ COLORREF AE_GetColorFromStr(const wchar_t *wpColor)
 {
   COLORREF crColor;
 
-  if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != -1)
+  if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != (DWORD)-1)
     return RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
   return (DWORD)-1;
 }
