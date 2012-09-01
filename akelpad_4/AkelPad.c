@@ -4098,7 +4098,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_AUTOINDENT)
     {
-      BOOL bResult;
+      BOOL bResult=FALSE;
 
       if (moCur.bKeepSpace || !(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crCurSel)))
         ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", 1, AELB_ASINPUT, 0, NULL, NULL);
