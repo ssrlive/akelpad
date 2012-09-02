@@ -1,6 +1,8 @@
 
 AkelPad 4.7.9 ()
 ----------------------------
+Changed: single find/replace in selection.
+
 Added: variables for "StatusUserFormat":
        "%cap[text]" - text to appear when CapsLock key in turned on;
        "%num[text]" - text to appear when NumLock key in turned on.

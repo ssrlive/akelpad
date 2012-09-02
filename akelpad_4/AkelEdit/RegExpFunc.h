@@ -253,7 +253,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   //Zero group is the all pattern
   if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
   {
-    if (*wpPat == L'^' && !(hStack->dwOptions & REO_MULTILINE))
+    if (*wpPat == L'^' && (hStack->dwOptions & REO_MULTILINE))
       ++wpPat;
     else
       lpREGroupItem->dwFlags|=REGF_ROOTANY;
