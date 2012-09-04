@@ -533,8 +533,8 @@
 #define FWF_BYFILENAME     5  //Retrieve frame data by full file name. lParam is full file name string.
                               // For AKD_FRAMEFINDA string is ansi.
                               // For AKD_FRAMEFINDW string is unicode.
-#define FWF_BYEDITWINDOW   6  //Retrieve frame data by edit window handle. lParam is edit window handle.
-#define FWF_BYEDITDOCUMENT 7  //Retrieve frame data by edit document handle. lParam is edit document handle.
+#define FWF_BYEDITWINDOW   6  //Retrieve frame data by edit window handle. lParam is edit window handle or NULL for current edit window handle.
+#define FWF_BYEDITDOCUMENT 7  //Retrieve frame data by edit document handle. lParam is edit document handle or NULL for current edit document handle.
 #define FWF_BYTABINDEX     8  //Retrieve frame data by tab item index. lParam is tab item index.
 #define FWF_TABNEXT        9  //Retrieve next tab item frame data. lParam is a frame data pointer.
 #define FWF_TABPREV        10 //Retrieve previous tab item frame data. lParam is a frame data pointer.

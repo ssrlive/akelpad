@@ -578,7 +578,7 @@
 #define AEMSS_WORDS          0x4  //Words selection.
 #define AEMSS_LINES          0x8  //Lines selection.
 
-//AEM_FINDTEXTA, AEM_FINDTEXTW flags
+//AEM_FINDTEXT, AEM_ISMATCH flags
 #define AEFR_DOWN            0x00000001  //Same as FR_DOWN. If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 #define AEFR_WHOLEWORD       0x00000002  //Same as FR_WHOLEWORD. If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //Same as FR_MATCHCASE. If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
@@ -2654,7 +2654,7 @@ ____________
 Is ansi text matched with text at specified position.
 
 (AECHARINDEX *)wParam == position to check from.
-(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
+(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure. AEFINDTEXTA.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
@@ -2684,7 +2684,7 @@ ____________
 Is unicode text matched with text at specified position.
 
 (AECHARINDEX *)wParam == position to check from.
-(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
+(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure. AEFINDTEXTW.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
