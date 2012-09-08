@@ -1652,7 +1652,8 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   else xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
 
   //Initial file
-  xprintfW(wszSaveFile, L"%s", GetFileName(wszSaveFile, nFileLen));
+  if (*wszSaveFile)
+    xprintfW(wszSaveFile, L"%s%s", GetFileName(wszSaveFile, nFileLen), GetFileExt(wszSaveFile, nFileLen)?L"":L".");
 
   xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
   ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
@@ -16829,25 +16830,30 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize)
 {
-  //%%  - Symbol %.
-  //%[width] - add status bar delimiter.
+  //%[width] - Add status bar delimiter.
   //%ch - Current character hex code in lowercase.
   //%cH - Current character hex code in uppercase.
   //%cd - Current character decimal code.
   //%cl - Current character letter.
-  //%or - Offset in symbols (RichEdit).
-  //%ob - Offset in bytes.
+  //%or - Offset in symbols. Any new line breaks counted as one symbol (RichEdit).
+  //%ob - Offset in symbols. New line breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol.
   //%al - Count of lines in document.
   //%ar - Count of symbols in document (RichEdit).
-  //%f  - Font size.
-  //%t  - Tabulation size.
-  //%m  - Column marker size.
+  //%lb - Number of the first selected line.
+  //%le - Number of the last selected line.
+  //%ls - Count of lines in selection.
+  //%f - Font size.
+  //%t - Tabulation size.
+  //%m - Column marker size.
+  //%cap[text] - Text to appear when CapsLock key in turned on.
+  //%num[text] - Text to appear when NumLock key in turned on.
   //%se[text] - Text to appear when end of the document reached during search.
-  //%r  - Replace count after "Replace all".
+  //%r - Replace count after "Replace all".
   //%dc - Count of all documents (MDI/PMDI).
   //%dm - Count of modified documents (MDI/PMDI).
   //%ds - Count of unmodified documents (MDI/PMDI).
   //%di - Active document index (MDI/PMDI).
+  //%% - Symbol %.
 
   STATUSPART *sp=NULL;
   const wchar_t *wpStringMax=wpString + nStringLen;
