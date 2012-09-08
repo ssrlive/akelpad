@@ -6254,13 +6254,20 @@ Example:
 #ifndef AEC_IsSurrogate
   #define AEC_IsSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)
 #endif
-
 #ifndef AEC_IsHighSurrogate
   #define AEC_IsHighSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)
 #endif
-
 #ifndef AEC_IsLowSurrogate
   #define AEC_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
+#endif
+#ifndef AEC_ScalarFromSurrogate
+  #define AEC_ScalarFromSurrogate(high, low)  ((((high) - 0xD800) * 0x400) + ((low) - 0xDC00) + 0x10000)
+#endif
+#ifndef AEC_HighSurrogateFromScalar
+  #define AEC_HighSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) / 0x400) + 0xD800))
+#endif
+#ifndef AEC_LowSurrogateFromScalar
+  #define AEC_LowSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) % 0x400) + 0xDC00))
 #endif
 
 #ifdef AEC_FUNCTIONS
@@ -6620,13 +6627,23 @@ Example:
 
   int AEC_CharAtIndex(const AECHARINDEX *ciChar)
   {
+    int nChar;
+
     if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
     {
       if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-        return ciChar->lpLine->next->wpLine[0];
+      {
+        nChar=ciChar->lpLine->next->wpLine[0];
+        if (AEC_IsHighSurrogate(nChar))
+          nChar=AEC_ScalarFromSurrogate(nChar, ciChar->lpLine->next->wpLine[1]);
+        return nChar;
+      }
       return -ciChar->lpLine->nLineBreak;
     }
-    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+    nChar=ciChar->lpLine->wpLine[ciChar->nCharInLine];
+    if (AEC_IsHighSurrogate(nChar))
+      nChar=AEC_ScalarFromSurrogate(nChar, ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]);
+    return nChar;
   }
 
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)
