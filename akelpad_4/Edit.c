@@ -10089,7 +10089,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
               crRange.ciMax=pr.ciRightStr;
               SetSel(lpFrame->ei.hWndEdit, &crRange, AESELT_LOCKSCROLL, NULL);
               ReplaceSelW(lpFrame->ei.hWndEdit, pr.wszResult, nResultTextLen, AELB_ASIS, 0, &crInsert.ciMin, &crInsert.ciMax);
-    
+
               //Restore selection
               SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
               crRange.ciMin=crInsert.ciMax;
@@ -16770,7 +16770,10 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
           ((moCur.dwStatusUserFlags & CSB_CHARLETTER) && (dwFlags & CSB_CHARLETTER)))
       {
         lpFrame->nCaretChar=AEC_CharAtIndex(&ciCurCaret);
-        if (lpFrame->nCaretChar < -AELB_EOF) lpFrame->nCaretChar=L'\r';
+        if (lpFrame->nCaretChar <= -AELB_R && lpFrame->nCaretChar >= -AELB_RRN)
+          lpFrame->nCaretChar=L'\r';
+        else if (lpFrame->nCaretChar == -AELB_EOF)
+          lpFrame->nCaretChar=0xFFFF;
       }
       if ((moCur.dwStatusUserFlags & CSB_RICHOFFSET) && (dwFlags & CSB_RICHOFFSET))
         lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCurCaret);
@@ -16907,26 +16910,92 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStri
           }
         }
       }
+      else if (*wpString == 'C')
+      {
+        if (*++wpString == 'h' || *wpString == 'H')
+        {
+          if (lpFrame)
+          {
+            wchar_t wszChar[10];
+            char szChar[20];
+            int nCharLen;
+            int nCharCount;
+
+            if (lpFrame->nCaretChar == 0xFFFF)
+            {
+              if (lpFrame->ei.nCodePage == CP_UNICODE_UTF32LE ||
+                  lpFrame->ei.nCodePage == CP_UNICODE_UTF32BE)
+                xstrcpyW(wszChar, L"FFFFFFFF");
+              else
+                xstrcpyW(wszChar, L"FFFF");
+            }
+            else
+            {
+              if (lpFrame->ei.nCodePage == CP_UNICODE_UTF16LE ||
+                  lpFrame->ei.nCodePage == CP_UNICODE_UTF16BE)
+              {
+                if (lpFrame->nCaretChar >= 0x10000) //Unicode surrogate pair
+                  xprintfW(wszChar, (*wpString == 'h')?L"%04x%04x":L"%04X%04X", AEC_HighSurrogateFromScalar(lpFrame->nCaretChar), AEC_LowSurrogateFromScalar(lpFrame->nCaretChar));
+                else
+                  xprintfW(wszChar, (*wpString == 'h')?L"%04x":L"%04X", lpFrame->nCaretChar);
+              }
+              else
+              {
+                if (lpFrame->nCaretChar >= 0x10000) //Unicode surrogate pair
+                {
+                  wszChar[0]=AEC_HighSurrogateFromScalar(lpFrame->nCaretChar);
+                  wszChar[1]=AEC_LowSurrogateFromScalar(lpFrame->nCaretChar);
+                  nCharLen=2;
+                }
+                else
+                {
+                  wszChar[0]=(wchar_t)lpFrame->nCaretChar;
+                  nCharLen=1;
+                }
+
+                if (lpFrame->ei.nCodePage == CP_UNICODE_UTF32LE ||
+                    lpFrame->ei.nCodePage == CP_UNICODE_UTF32BE)
+                {
+                  nCharLen=UTF16toUTF32(wszChar, nCharLen, NULL, (unsigned long *)szChar, sizeof(szChar)) * sizeof(unsigned long);
+                  if (lpFrame->ei.nCodePage == CP_UNICODE_UTF32BE)
+                    ChangeFourBytesOrder((unsigned char *)szChar, nCharLen);
+                }
+                else nCharLen=WideCharToMultiByte(lpFrame->ei.nCodePage, 0, wszChar, nCharLen, szChar, sizeof(szChar), NULL, NULL);
+
+                for (nCharCount=0; nCharCount < nCharLen; ++nCharCount)
+                  dec2hexW((unsigned char)szChar[nCharCount], wszChar + nCharCount * 2, 2, (*wpString == 'h'));
+                wszChar[nCharCount * 2]=L'\0';
+              }
+            }
+            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%s", wszChar);
+          }
+          else dwFlags|=CSB_CHARHEX;
+        }
+      }
       else if (*wpString == 'c')
       {
         if (*++wpString == 'h' || *wpString == 'H')
         {
           if (lpFrame)
-            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (lpFrame->nCaretChar == -AELB_EOF)?0xFFFF:lpFrame->nCaretChar);
-          else
-            dwFlags|=CSB_CHARHEX;
+          {
+            if (lpFrame->nCaretChar >= 0x10000) //Unicode scalar value of surrogate pair
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%06x":L"%06X", lpFrame->nCaretChar);
+            else
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", lpFrame->nCaretChar);
+          }
+          else dwFlags|=CSB_CHARHEX;
         }
         else if (*wpString == 'd')
         {
           if (lpFrame)
-            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", (lpFrame->nCaretChar == -AELB_EOF)?-1:lpFrame->nCaretChar);
+            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", (lpFrame->nCaretChar == 0xFFFF)?-1:lpFrame->nCaretChar);
           else
             dwFlags|=CSB_CHARDEC;
         }
         else if (*wpString == 'l')
         {
           if (lpFrame)
-            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar <= 0 || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
+            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar == 0xFFFF || lpFrame->nCaretChar == L'\r' || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
           else
             dwFlags|=CSB_CHARLETTER;
         }

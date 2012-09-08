@@ -5,7 +5,10 @@ Changed: single find/replace in selection.
 
 Added: variables for "StatusUserFormat":
        "%cap[text]" - text to appear when CapsLock key in turned on;
-       "%num[text]" - text to appear when NumLock key in turned on.
+       "%num[text]" - text to appear when NumLock key in turned on;
+       "%Ch" - current character hex code in file codepage (lowercase);
+       "%CH" - current character hex code in file codepage (uppercase).
+Added: variables %cH, %ch of manual parameter "StatusUserFormat" now support surrogate pairs.
 
 Fixed: error when spliting window.
 Fixed: background image was drawn not from beginning, when LineBoard or Coder plugins used.
