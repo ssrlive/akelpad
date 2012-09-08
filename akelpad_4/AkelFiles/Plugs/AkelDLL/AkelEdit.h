@@ -538,7 +538,9 @@
 #define AECS_HEIGHT          0  //Current font character height. lParam not used.
 #define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
 #define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
-#define AECS_POINTSIZE       3  //Current font point size.
+#define AECS_POINTSIZE       3  //Current font point size. lParam not used.
+#define AECS_SPACEWIDTH      4  //Current font space width. lParam not used.
+#define AECS_TABWIDTH        5  //Current font tabulation width. lParam not used.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
