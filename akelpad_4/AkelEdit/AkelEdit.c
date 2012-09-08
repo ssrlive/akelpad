@@ -1168,6 +1168,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       if (wParam == AECS_POINTSIZE)
         return ae->ptxt->nPointSize;
+      if (wParam == AECS_SPACEWIDTH)
+        return ae->ptxt->nSpaceCharWidth;
+      if (wParam == AECS_TABWIDTH)
+        return ae->ptxt->nTabWidth;
       return 0;
     }
     if (uMsg == AEM_GETSTRWIDTH)
