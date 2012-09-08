@@ -18672,12 +18672,12 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   return FALSE;
 }
 
-DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar)
+UINT_PTR AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar)
 {
   AEFINDTEXTW ftW;
   wchar_t *wszText;
   UINT_PTR dwUnicodeLen;
-  DWORD dwResult=0;
+  UINT_PTR dwResult=0;
 
   if (dwUnicodeLen=MultiByteToWideChar64(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
   {
@@ -18703,10 +18703,10 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
   return dwResult;
 }
 
-DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
+UINT_PTR AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount;
-  DWORD dwCount;
+  UINT_PTR dwCount;
 
   if (ft->dwFlags & AEFR_WHOLEWORD)
   {
