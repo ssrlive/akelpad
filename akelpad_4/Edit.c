@@ -16954,7 +16954,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStri
               else if (lpFrame->ei.nCodePage == CP_UNICODE_UTF32LE ||
                        lpFrame->ei.nCodePage == CP_UNICODE_UTF32BE)
               {
-                nCharLen=UTF16toUTF32(wszChar, nCharLen, NULL, (unsigned long *)szChar, sizeof(szChar)) * sizeof(unsigned long);
+                nCharLen=(int)UTF16toUTF32(wszChar, nCharLen, NULL, (unsigned long *)szChar, sizeof(szChar)) * sizeof(unsigned long);
                 if (lpFrame->ei.nCodePage == CP_UNICODE_UTF32BE)
                   ChangeFourBytesOrder((unsigned char *)szChar, nCharLen);
               }
