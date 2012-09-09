@@ -853,34 +853,39 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_INDEXTOCOLUMN)
     {
-      AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
+      AECHARINDEX *lpChar=(AECHARINDEX *)lParam;
+      AECHARINDEX ciChar;
+      AECHARINDEX ciCount;
       int nTabStop=LOWORD(wParam);
       BOOL bWrappedScan=HIWORD(wParam);
-      int nCount;
-      int nCountEnd;
       int nColumn=0;
-
-      if (!bWrappedScan)
-      {
-        nCountEnd=min(ciChar.nCharInLine, ciChar.lpLine->nLineLen);
-        ciChar.nCharInLine=0;
-      }
-      else nCountEnd=AEC_WrapLineBegin(&ciChar);
 
       //Tab current size if zero
       if (nTabStop == 0) nTabStop=ae->ptxt->nTabStop;
-      if (nTabStop == 1) return nCountEnd;
 
-      for (nCount=0; nCount < nCountEnd; ++nCount)
+      ciChar=*lpChar;
+      if (ciChar.nCharInLine > ciChar.lpLine->nLineLen)
+        ciChar.nCharInLine=ciChar.lpLine->nLineLen;
+
+      if (!bWrappedScan)
       {
-        if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
+        ciCount.nLine=ciChar.nLine;
+        ciCount.lpLine=ciChar.lpLine;
+        ciCount.nCharInLine=0;
+      }
+      else AEC_WrapLineBeginEx(&ciChar, &ciCount);
+
+      while (AEC_IndexCompare(&ciCount, &ciChar) < 0)
+      {
+        if (ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\t')
           nColumn+=nTabStop - nColumn % nTabStop;
         else
-          ++nColumn;
+          nColumn+=1;
 
-        if (!AEC_NextChar(&ciChar))
-          break;
+        AEC_NextChar(&ciCount);
       }
+      nColumn+=lpChar->nCharInLine - ciChar.nCharInLine;
+
       return nColumn;
     }
     if (uMsg == AEM_COLUMNTOINDEX)

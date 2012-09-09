@@ -12,6 +12,7 @@ Added: variables %cH, %ch of manual parameter "StatusUserFormat" now support sur
 
 Fixed: error when spliting window.
 Fixed: background image was drawn not from beginning, when LineBoard or Coder plugins used.
+Fixed: incorrect current column displaying in status bar, if line contain surrogate pairs.
 
 
 AkelPad 4.7.8 (Aug 19, 2012)
