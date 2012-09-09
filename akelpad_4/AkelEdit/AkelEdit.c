@@ -12759,19 +12759,26 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
 void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
 {
+  RECT rcFill;
+
+  rcFill.left=max(lpRect->left, ae->rcErase.left);
+  rcFill.top=max(lpRect->top, ae->rcErase.top);
+  rcFill.right=min(lpRect->right, ae->rcErase.right);
+  rcFill.bottom=min(lpRect->bottom, ae->rcErase.bottom);
+
   if (ae->popt->lpBkImage && !ae->bPrinting)
   {
     //Bitmap as background
     BLENDFUNCTION bf;
     RECT rcCopy;
-    int nImageX=(int)((lpRect->left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
-    int nImageY=(int)((lpRect->top - ae->rcErase.top) + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
+    int nImageX=(int)((rcFill.left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+    int nImageY=(int)((rcFill.top - ae->rcErase.top) + ae->nVScrollPos) % ae->popt->lpBkImage->nBitmapY;
     int nImageWidth=ae->popt->lpBkImage->nBitmapX - nImageX;
     int nImageHeight=ae->popt->lpBkImage->nBitmapY - nImageY;
 
     if (ae->popt->hbrBasicBk != hbr)
     {
-      FillRect(hDC, lpRect, hbr);
+      FillRect(hDC, &rcFill, hbr);
       if (!AkelEditAlphaBlendPtr) return;
 
       bf.BlendOp=AC_SRC_OVER;
@@ -12779,17 +12786,17 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
       bf.SourceConstantAlpha=(BYTE)ae->popt->nBkImageAlpha;
       bf.AlphaFormat=0;
     }
-    rcCopy.top=lpRect->top;
-    rcCopy.bottom=lpRect->bottom - rcCopy.top;
+    rcCopy.top=rcFill.top;
+    rcCopy.bottom=rcFill.bottom - rcCopy.top;
     if (rcCopy.bottom > nImageHeight)
       rcCopy.bottom=nImageHeight;
 
     while (rcCopy.bottom > 0)
     {
       //Restore initial X variables
-      nImageX=(int)((lpRect->left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
-      rcCopy.left=lpRect->left;
-      rcCopy.right=lpRect->right - rcCopy.left;
+      nImageX=(int)((rcFill.left - ae->rcErase.left) + ae->nHScrollPos) % ae->popt->lpBkImage->nBitmapX;
+      rcCopy.left=rcFill.left;
+      rcCopy.right=rcFill.right - rcCopy.left;
       if (rcCopy.right > nImageWidth)
         rcCopy.right=nImageWidth;
 
@@ -12802,7 +12809,7 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
           BitBlt(hDC, rcCopy.left, rcCopy.top, rcCopy.right, rcCopy.bottom, ae->popt->lpBkImage->hDC, nImageX, nImageY, SRCCOPY);
 
         rcCopy.left+=rcCopy.right;
-        rcCopy.right=lpRect->right - rcCopy.left;
+        rcCopy.right=rcFill.right - rcCopy.left;
         if (rcCopy.right > ae->popt->lpBkImage->nBitmapX)
           rcCopy.right=ae->popt->lpBkImage->nBitmapX;
         nImageX=0;
@@ -12810,13 +12817,13 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
 
       //Next line
       rcCopy.top+=rcCopy.bottom;
-      rcCopy.bottom=lpRect->bottom - rcCopy.top;
+      rcCopy.bottom=rcFill.bottom - rcCopy.top;
       if (rcCopy.bottom > ae->popt->lpBkImage->nBitmapY)
         rcCopy.bottom=ae->popt->lpBkImage->nBitmapY;
       nImageY=0;
     }
   }
-  else FillRect(hDC, lpRect, hbr);
+  else FillRect(hDC, &rcFill, hbr);
 }
 
 void AE_FillRectWithBorder(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbrDefaultBk, HBRUSH hbrBorderTop, HBRUSH hbrBorderBottom)
