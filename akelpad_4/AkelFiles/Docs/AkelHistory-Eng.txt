@@ -1,4 +1,10 @@
 
+AkelPad 4.8.0 ()
+----------------------------
+Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserFormat" didn't
+       updated when switching to AkelPad from a different application.
+
+
 AkelPad 4.7.9 (Sep 09, 2012)
 ----------------------------
 Changed: single find/replace in selection.

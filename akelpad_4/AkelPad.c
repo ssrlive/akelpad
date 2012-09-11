@@ -3684,6 +3684,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
+  else if (uMsg == WM_ACTIVATEAPP)
+  {
+    if (wParam)
+      UpdateStatusUser(lpFrameCurrent, CSB_NUMLOCK|CSB_CAPSLOCK);
+  }
   else if (uMsg == WM_MOVE)
   {
     UINT_PTR dwStyle;
