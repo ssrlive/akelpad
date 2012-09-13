@@ -20510,8 +20510,12 @@ BOOL AE_GetHighLightCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCO
   {
     //Get char highlighting
     AEGETHIGHLIGHT aegh;
+    AECHARCOLORSCOOKIE aecck;
 
-    aegh.dwCookie=(UINT_PTR)aecc;
+    aecck.ae=ae;
+    aecck.aecc=aecc;
+
+    aegh.dwCookie=(UINT_PTR)&aecck;
     aegh.lpCallback=AE_GetHighLightCharColorCallback;
     aegh.crText.ciMin=*ciChar;
     AEC_NextCharEx(&aegh.crText.ciMin, &aegh.crText.ciMax);
@@ -20523,9 +20527,36 @@ BOOL AE_GetHighLightCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCO
 
 DWORD CALLBACK AE_GetHighLightCharColorCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp)
 {
-  AECHARCOLORS *aecc=(AECHARCOLORS *)dwCookie;
+  AECHARCOLORSCOOKIE *aecck=(AECHARCOLORSCOOKIE *)dwCookie;
+  AKELEDIT *ae=aecck->ae;
+  AECHARCOLORS *aecc=aecck->aecc;
+  DWORD dwFontStyle;
 
-  aecc->dwFontStyle=hlp->dwFontStyle;
+  dwFontStyle=hlp->dwFontStyle;
+  if (ae->popt->dwHLOptions)
+  {
+    if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTITALIC)
+    {
+      if (dwFontStyle == AEHLS_FONTITALIC)
+        dwFontStyle=AEHLS_FONTNORMAL;
+      else if (dwFontStyle == AEHLS_FONTBOLDITALIC)
+        dwFontStyle=AEHLS_FONTBOLD;
+    }
+    if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTBOLD)
+    {
+      if (dwFontStyle == AEHLS_FONTBOLD)
+        dwFontStyle=AEHLS_FONTNORMAL;
+      else if (dwFontStyle == AEHLS_FONTBOLDITALIC)
+        dwFontStyle=AEHLS_FONTITALIC;
+    }
+    if (ae->popt->dwHLOptions & AEHLO_IGNOREFONTNORMAL)
+    {
+      if (dwFontStyle == AEHLS_FONTNORMAL)
+        dwFontStyle=AEHLS_NONE;
+    }
+  }
+
+  aecc->dwFontStyle=dwFontStyle;
   aecc->crText=hlp->dwActiveText;
   aecc->crBk=hlp->dwActiveBk;
 
