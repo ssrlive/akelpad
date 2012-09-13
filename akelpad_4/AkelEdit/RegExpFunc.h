@@ -1,8 +1,15 @@
 /******************************************************************
- *                  RegExp functions header v1.0                  *
+ *                  RegExp functions header v1.1                  *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
+ *                                                                *
+ * RegExpFunc.h header uses functions:                            *
+ * 1. From StrFunc.h header                                       *
+ *   WideCharUpper, WideCharLower, xmemcpy, xstrlenW, xstrcpyW,   *
+ *   xstrcmpnW, xstrcmpinW, xatoiW, hex2decW                      *
+ * 2. From StackFunc.h header                                     *
+ *   StackInsertBefore, StackDelete, StackJoin                    *
  *****************************************************************/
 
 #ifndef _REGEXPFUNC_H_
@@ -2173,6 +2180,7 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
 //Include stack functions
 #define StackInsertBefore
 #define StackDelete
+#define StackJoin
 #include "StackFunc.h"
 
 //Include RegExp functions
