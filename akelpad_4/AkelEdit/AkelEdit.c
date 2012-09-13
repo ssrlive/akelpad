@@ -3617,123 +3617,118 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     return uCode;
   }
-  else if (uMsg == WM_KEYDOWN ||
-           uMsg == WM_SYSKEYDOWN)
+  else if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
   {
-    BOOL bAlt=FALSE;
-    BOOL bShift=FALSE;
-    BOOL bControl=FALSE;
-
     if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
       if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
         return 0;
 
-    if (GetKeyState(VK_MENU) < 0)
-      bAlt=TRUE;
-    if (GetKeyState(VK_SHIFT) < 0)
-      bShift=TRUE;
-    if (GetKeyState(VK_CONTROL) < 0)
-      bControl=TRUE;
-
-    //Character input: Alt + NumPad
-    if (bAlt && !bShift && !bControl)
+    if (uMsg == WM_KEYDOWN ||
+        uMsg == WM_SYSKEYDOWN)
     {
-      if (ae->nAltChar != AEAC_DODEFAULT)
+      BOOL bAlt=FALSE;
+      BOOL bShift=FALSE;
+      BOOL bControl=FALSE;
+
+      if (GetKeyState(VK_MENU) < 0)
+        bAlt=TRUE;
+      if (GetKeyState(VK_SHIFT) < 0)
+        bShift=TRUE;
+      if (GetKeyState(VK_CONTROL) < 0)
+        bControl=TRUE;
+
+      //Character input: Alt + NumPad
+      if (bAlt && !bShift && !bControl)
       {
-        if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
+        if (ae->nAltChar != AEAC_DODEFAULT)
         {
-          if (ae->nAltChar != AEAC_DECINPUT && ae->nAltChar <= AEAC_NONE)
+          if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
           {
-            if (wParam == VK_NUMPAD0)
+            if (ae->nAltChar != AEAC_DECINPUT && ae->nAltChar <= AEAC_NONE)
             {
-              if (ae->nAltChar == AEAC_NUMPAD0)
-                ae->nAltChar=AEAC_DECINPUT;
+              if (wParam == VK_NUMPAD0)
+              {
+                if (ae->nAltChar == AEAC_NUMPAD0)
+                  ae->nAltChar=AEAC_DECINPUT;
+                else
+                  ae->nAltChar=AEAC_NUMPAD0;
+              }
               else
-                ae->nAltChar=AEAC_NUMPAD0;
+              {
+                if ((ae->popt->dwOptions & AECO_ALTDECINPUT) && ae->nAltChar != AEAC_NUMPAD0)
+                  ae->nAltChar=(int)wParam - VK_NUMPAD0;
+                else
+                  ae->nAltChar=AEAC_DODEFAULT;
+              }
             }
             else
             {
-              if ((ae->popt->dwOptions & AECO_ALTDECINPUT) && ae->nAltChar != AEAC_NUMPAD0)
-                ae->nAltChar=(int)wParam - VK_NUMPAD0;
-              else
-                ae->nAltChar=AEAC_DODEFAULT;
-            }
-          }
-          else
-          {
-            if (ae->nAltChar == AEAC_DECINPUT)
-            {
-              if (wParam != VK_NUMPAD0)
-                ae->nAltChar=(int)wParam - VK_NUMPAD0;
-            }
-            else ae->nAltChar=ae->nAltChar * 10 + ((int)wParam - VK_NUMPAD0);
+              if (ae->nAltChar == AEAC_DECINPUT)
+              {
+                if (wParam != VK_NUMPAD0)
+                  ae->nAltChar=(int)wParam - VK_NUMPAD0;
+              }
+              else ae->nAltChar=ae->nAltChar * 10 + ((int)wParam - VK_NUMPAD0);
 
-            if (ae->nAltChar > 65536)
-              ae->nAltChar=AEAC_KEYDOWN;
+              if (ae->nAltChar > 65536)
+                ae->nAltChar=AEAC_KEYDOWN;
+            }
           }
+          else ae->nAltChar=AEAC_KEYDOWN;
         }
-        else ae->nAltChar=AEAC_KEYDOWN;
       }
-    }
 
-    //Process virtual key
-    if (AE_KeyDown(ae, (int)wParam, bAlt, bShift, bControl))
-      return 0;
-  }
-  else if (uMsg == WM_CHAR)
-  {
-    LRESULT lResult=0;
-
-    if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
-      if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+      //Process virtual key
+      if (AE_KeyDown(ae, (int)wParam, bAlt, bShift, bControl))
         return 0;
-
-    if (ae->nAltChar)
+    }
+    else if (uMsg == WM_CHAR)
     {
-      if (ae->nAltChar > AEAC_NONE)
+      LRESULT lResult=0;
+
+      if (ae->nAltChar)
       {
-        if (GetKeyState(VK_NUMLOCK))
+        if (ae->nAltChar > AEAC_NONE)
         {
-          AE_EditChar(ae, ae->nAltChar, TRUE);
-          lResult=1;
+          if (GetKeyState(VK_NUMLOCK))
+          {
+            AE_EditChar(ae, ae->nAltChar, TRUE);
+            lResult=1;
+          }
         }
-      }
-      ae->nAltChar=AEAC_NONE;
-      return lResult;
-    }
-
-    if (wParam == VK_RETURN)
-    {
-      AE_EditKeyReturn(ae);
-      return 1;
-    }
-    if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
-    {
-      AE_EditChar(ae, wParam, ae->bUnicodeWindow);
-      return 1;
-    }
-  }
-  else if (uMsg == WM_DEADCHAR ||
-           uMsg == WM_SYSCHAR ||
-           uMsg == WM_SYSDEADCHAR ||
-           uMsg == WM_KEYUP ||
-           uMsg == WM_SYSKEYUP)
-  {
-    if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
-      if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-        return 0;
-
-    if (wParam == VK_MENU)
-    {
-      if (ae->nAltChar == AEAC_DODEFAULT)
         ae->nAltChar=AEAC_NONE;
-      else if (ae->nAltChar == AEAC_KEYDOWN)
-        ae->nAltChar=AEAC_KEYUP;
+        return lResult;
+      }
+
+      if (wParam == VK_RETURN)
+      {
+        AE_EditKeyReturn(ae);
+        return 1;
+      }
+      if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
+      {
+        AE_EditChar(ae, wParam, ae->bUnicodeWindow);
+        return 1;
+      }
     }
-    if (uMsg == WM_SYSCHAR)
+    else if (uMsg == WM_SYSCHAR ||
+             uMsg == WM_DEADCHAR ||
+             uMsg == WM_SYSDEADCHAR ||
+             uMsg == WM_KEYUP ||
+             uMsg == WM_SYSKEYUP)
     {
-      //WM_KEYUP and WM_SYSKEYUP with VK_MENU doesn't sended after menu open with Alt+Key
-      ae->nAltChar=AEAC_NONE;
+      if (wParam == VK_MENU)
+      {
+        if (ae->nAltChar == AEAC_DODEFAULT)
+          ae->nAltChar=AEAC_NONE;
+        else if (ae->nAltChar == AEAC_KEYDOWN)
+          ae->nAltChar=AEAC_KEYUP;
+      }
+      if (uMsg == WM_SYSCHAR)
+      {
+        //WM_KEYUP and WM_SYSKEYUP with VK_MENU doesn't sended after menu open with Alt+Key
+        ae->nAltChar=AEAC_NONE;
+      }
     }
   }
   else if (uMsg == WM_INPUTLANGCHANGE)
