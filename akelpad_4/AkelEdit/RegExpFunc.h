@@ -25,12 +25,13 @@
 //REGROUP flags
 #define REGF_ROOTITEM        0x001
 #define REGF_ROOTANY         0x002
-#define REGF_ANY             0x004
-#define REGF_AUTOGROUP       0x008
-#define REGF_OR              0x010
-#define REGF_POSITIVE        0x020
-#define REGF_NEGATIVE        0x040
-#define REGF_CHILDNOMAXMATCH 0x100
+#define REGF_ROOTMULTILINE   0x004
+#define REGF_ANY             0x008
+#define REGF_AUTOGROUP       0x010
+#define REGF_OR              0x020
+#define REGF_POSITIVE        0x040
+#define REGF_NEGATIVE        0x100
+#define REGF_CHILDNOMAXMATCH 0x200
 
 //PatCharCmp return value
 #define RECC_EQUAL    0x01
@@ -262,8 +263,13 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   //Zero group is the all pattern
   if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
   {
-    if (*wpPat == L'^' && (hStack->dwOptions & REO_MULTILINE))
-      ++wpPat;
+    if (*wpPat == L'^')
+    {
+      if (hStack->dwOptions & REO_MULTILINE)
+        lpREGroupItem->dwFlags|=REGF_ROOTANY|REGF_ROOTMULTILINE;
+      else
+        ++wpPat;
+    }
     else
       lpREGroupItem->dwFlags|=REGF_ROOTANY;
     lpREGroupItem->dwFlags|=REGF_ROOTITEM;
@@ -635,6 +641,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           bResult=TRUE;
           break;
+        }
+        if (lpREGroupItem->dwFlags & REGF_ROOTMULTILINE)
+        {
+          while (*wpStr != L'\r' && *wpStr != L'\n' && wpStr > wpMaxStr) ++wpStr;
+          if (wpStr >= wpMaxStr) break;
         }
         wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar) + 1;
       }
@@ -1390,7 +1401,10 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           bResult=TRUE;
           break;
         }
-        AE_PatNextChar(&ciStr);
+        if (lpREGroupItem->dwFlags & REGF_ROOTMULTILINE)
+          AEC_NextLine(&ciStr);
+        else
+          AE_PatNextChar(&ciStr);
       }
       lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
       return bResult;
