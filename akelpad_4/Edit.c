@@ -19052,6 +19052,7 @@ BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
   AECHARINDEX ciCharIndex;
   BOOL bResult;
 
+  aecc.dwFlags=0;
   SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)cc->nCharPos, (LPARAM)&ciCharIndex);
   bResult=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCharIndex, (LPARAM)&aecc);
   cc->crText=aecc.crText;
