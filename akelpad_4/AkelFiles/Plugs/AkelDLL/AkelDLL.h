@@ -1924,7 +1924,6 @@ typedef struct {
 #define AKD_TEXTREPLACEA           (WM_USER + 176)
 #define AKD_TEXTREPLACEW           (WM_USER + 177)
 #define AKD_RECODESEL              (WM_USER + 178)
-#define AKD_GETCHARCOLOR           (WM_USER + 179)
 #define AKD_GOTO                   (WM_USER + 180)
 #define AKD_GOTOA                  (WM_USER + 181)
 #define AKD_GOTOW                  (WM_USER + 182)
@@ -3036,25 +3035,6 @@ Example:
  tr.nCodePageTo=866;
  tr.dwFlags=0;
  SendMessage(pd->hMainWnd, AKD_RECODESEL, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
-
-
-AKD_GETCHARCOLOR
-________________
-
-Get colors of the specified char.
-
-(HWND)wParam        == edit window, NULL for current edit window.
-(CHARCOLOR *)lParam == pointer to a CHARCOLOR structure.
-
-Return Value
- TRUE   specified char in selection.
- FALSE  specified char not in selection.
-
-Example:
- CHARCOLOR cc;
-
- cc.nCharPos=10;
- SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
 
 
 AKD_GOTO, AKD_GOTOA, AKD_GOTOW

@@ -2136,15 +2136,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecodeTextW(lpFrame, NULL, tr->dwFlags, &tr->nCodePageFrom, &tr->nCodePageTo);
       return 0;
     }
-    if (uMsg == AKD_GETCHARCOLOR)
-    {
-      CHARCOLOR *cc=(CHARCOLOR *)lParam;
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        return GetCharColor(lpFrame, cc);
-      return FALSE;
-    }
 
     //Print
     if (uMsg == AKD_GETPRINTINFO)

@@ -1090,7 +1090,6 @@ int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);
 DWORD ScrollCaret(HWND hWnd);
 BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor);
-BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc);
 void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos);
 void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit);
 void SetMargins(HWND hWnd, const RECT *lprcNewMargins, const RECT *lprcOldMargins);
