@@ -691,6 +691,14 @@ typedef struct {
 } AEPRINTHANDLE;
 
 
+//// Char color callback
+
+typedef struct {
+  AKELEDIT *ae;
+  AECHARCOLORS *aecc;
+} AECHARCOLORSCOOKIE;
+
+
 //// Functions as macros
 
 #ifndef AE_IsSurrogate
