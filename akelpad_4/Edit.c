@@ -19046,21 +19046,6 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
-{
-  AECHARCOLORS aecc;
-  AECHARINDEX ciCharIndex;
-  BOOL bResult;
-
-  aecc.dwFlags=0;
-  SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)cc->nCharPos, (LPARAM)&ciCharIndex);
-  bResult=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCharIndex, (LPARAM)&aecc);
-  cc->crText=aecc.crText;
-  cc->crBk=aecc.crBk;
-  return bResult;
-}
-
-//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos)
 {
   if (dwPos == (DWORD)-1)

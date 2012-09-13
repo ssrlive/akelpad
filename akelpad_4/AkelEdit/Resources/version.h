@@ -1,1 +1,1 @@
-#define RC_AKELEDITID 1,7,9,0
+#define RC_AKELEDITID 1,8,0,0
