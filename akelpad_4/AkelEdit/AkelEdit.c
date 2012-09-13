@@ -54,10 +54,10 @@
 #include "RegExpFunc.h"
 
 //Include stack functions
-#define StackJoin
-#define StackSplit
 #define StackInsertBefore
 #define StackDelete
+#define StackJoin
+#define StackSplit
 #include "StackFunc.h"
 
 //Include string functions
