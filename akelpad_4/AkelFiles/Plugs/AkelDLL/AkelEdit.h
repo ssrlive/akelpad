@@ -1001,11 +1001,11 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //[in] See AEGHF_* defines.
-  DWORD dwFontStyle;       //[in] See AEHLS_* defines.
-  COLORREF crText;         //[in] Text color in line.
-  COLORREF crBk;           //[in] Background color in line.
-  COLORREF crBorderTop;    //[in] Top border color of the line.
-  COLORREF crBorderBottom; //[in] Bottom border color of the line.
+  DWORD dwFontStyle;       //[Out] See AEHLS_* defines.
+  COLORREF crText;         //[Out] Text color in line.
+  COLORREF crBk;           //[Out] Background color in line.
+  COLORREF crBorderTop;    //[Out] Top border color of the line.
+  COLORREF crBorderBottom; //[Out] Bottom border color of the line.
 } AECHARCOLORS;
 
 typedef struct {
@@ -4818,6 +4818,7 @@ Example:
  AECHARINDEX ciCaret;
  AECHARCOLORS aelc;
 
+ aelc.dwFlags=0;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
 
