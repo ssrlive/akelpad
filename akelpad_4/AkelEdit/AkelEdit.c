@@ -19039,7 +19039,8 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
     else if (!bControl && !bShift && bAlt)
     {
-      AE_EditPasteFromClipboard(ae, AEPFC_COLUMN);
+      if (!(ae->popt->dwOptions & AECO_NOCOLUMNPASTEHOTKEY))
+        AE_EditPasteFromClipboard(ae, AEPFC_COLUMN);
     }
     return TRUE;
   }
