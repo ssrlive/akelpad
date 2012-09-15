@@ -4477,6 +4477,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
           }
         }
       }
+      else UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET|CSB_LINEALLCOUNT|CSB_RICHCOUNT|CSB_LINESELCOUNT|CSB_LINESELBEGIN|CSB_LINESELEND);
 
       //Print if "/p" option used in command line
       GlobalPrint:
