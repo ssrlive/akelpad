@@ -37,13 +37,14 @@
 #define RECC_EQUAL    0x01
 #define RECC_DIF      0x02
 #define RECC_MIX      0x04
-#define RECC_WORD     0x08
+#define RECC_BOUNDARY 0x08
 #define RECC_REF      0x10
 
 //PatEscChar return value
-#define REEC_WRONG   70001
-#define REEC_NEWLINE 70002
-#define REEC_REF     70003
+#define REEC_WRONG    70001
+#define REEC_NEWLINE  70002
+#define REEC_BOUNDARY 70003
+#define REEC_REF      70004
 
 //PatStructExec options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
@@ -856,7 +857,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           if (dwCmpResult & RECC_DIF)
             goto EndLoop;
 
-          if (dwCmpResult & RECC_WORD)
+          if (dwCmpResult & RECC_BOUNDARY)
           {
             if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
             {
@@ -1012,6 +1013,8 @@ int PatEscChar(const wchar_t **wppPat)
       return L'\f';
     else if (nPatChar == L'v')
       return L'\v';
+    else if (nPatChar == L'b' || nPatChar == L'B')
+      return REEC_BOUNDARY;
     else if (nPatChar >= L'0' && nPatChar <= L'9')
       return REEC_REF;
     else if (nPatChar == L'd' ||
@@ -1019,9 +1022,7 @@ int PatEscChar(const wchar_t **wppPat)
              nPatChar == L's' ||
              nPatChar == L'S' ||
              nPatChar == L'w' ||
-             nPatChar == L'W' ||
-             nPatChar == L'b' ||
-             nPatChar == L'B')
+             nPatChar == L'W')
     {
       return REEC_WRONG;
     }
@@ -1080,6 +1081,8 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t 
     else
     {
       *wchPatChar=L'\0';
+      if (nPatChar == REEC_BOUNDARY)
+        return RECC_BOUNDARY|RECC_MIX;
       if (nPatChar == REEC_REF)
         return RECC_REF|RECC_MIX;
     }
@@ -1120,16 +1123,16 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t 
       if ((nStrChar >= L'A' && nStrChar <= L'Z') || (nStrChar >= L'a' && nStrChar <= L'z') || (nStrChar >= L'0' && nStrChar <= L'9') || nStrChar == L'_')
         return RECC_DIF|RECC_MIX;
     }
-    else if (nPatChar == L'b' || nPatChar == L'B')
-    {
-      return RECC_WORD|RECC_MIX;
-    }
     return RECC_EQUAL|RECC_MIX;
   }
   else if (nPatChar == REEC_NEWLINE)
   {
     *wchPatChar=L'\n';
     return RECC_DIF;
+  }
+  else if (nPatChar == REEC_BOUNDARY)
+  {
+    return RECC_BOUNDARY|RECC_MIX;
   }
   else if (nPatChar == REEC_REF)
   {
@@ -1620,7 +1623,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           if (dwCmpResult & RECC_DIF)
             goto EndLoop;
 
-          if (dwCmpResult & RECC_WORD)
+          if (dwCmpResult & RECC_BOUNDARY)
           {
             if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
             {
