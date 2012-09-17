@@ -222,9 +222,9 @@
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //Modifier flags
-#define AEMOD_ALT               0x01  //ALT key
-#define AEMOD_SHIFT             0x02  //SHIFT key
-#define AEMOD_CONTROL           0x04  //CTRL key
+#define AEMOD_ALT               0x1  //ALT key
+#define AEMOD_SHIFT             0x2  //SHIFT key
+#define AEMOD_CONTROL           0x4  //CTRL key
 
 //AEM_GETLINENUMBER flags
 #define AEGL_LINECOUNT              0  //Total number of text lines. If the control has no text, the return value is 1.
@@ -4325,13 +4325,14 @@ Set type mode.
 
 (BOOL)wParam == TRUE   sets overtype mode.
                 FALSE  sets insert mode.
-lParam       == not used.
+(BOOL)lParam == TRUE  update caret.
+                FALSE don't update caret.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
+ SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, TRUE);
 
 
 AEM_GETCARETWIDTH
