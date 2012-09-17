@@ -1387,7 +1387,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (ae->popt->bOverType != (int)wParam)
       {
         ae->popt->bOverType=(BOOL)wParam;
-        AE_UpdateCaret(ae, ae->bFocus);
+        if (lParam)
+          AE_UpdateCaret(ae, ae->bFocus);
       }
       return 0;
     }

@@ -16689,7 +16689,7 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bOvertypeMode=bState;
 
   //Set overtype mode
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, TRUE);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
