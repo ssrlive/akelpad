@@ -376,7 +376,7 @@ BEGIN
     "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
     "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "\\",           IDM_EDIT_SELJUMPCARET,  ASCII,  ALT, NOINVERT
+    220,            IDM_EDIT_SELJUMPCARET,  VIRTKEY, ALT, NOINVERT
 END
 
 
