@@ -1626,17 +1626,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           if (dwCmpResult & RECC_BOUNDARY)
           {
             AECHARINDEX ciPrevChar=ciStr;
-            BOOL bCharDelim;
             BOOL bPrevCharDelim;
 
-            bCharDelim=PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim);
             AEC_PrevChar(&ciPrevChar);
             if (ciPrevChar.lpLine)
               bPrevCharDelim=PatIsCharDelim(AE_PatStrChar(&ciPrevChar), hStack->wpDelim, hStack->wpMaxDelim);
             else
               bPrevCharDelim=TRUE;
 
-            if (bCharDelim != bPrevCharDelim)
+            if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim) != bPrevCharDelim)
             {
               if (*wpPat == L'b')
               {
