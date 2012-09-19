@@ -1625,17 +1625,20 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
           if (dwCmpResult & RECC_BOUNDARY)
           {
-            if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
+            AECHARINDEX ciPrevChar=ciStr;
+            BOOL bCharDelim;
+            BOOL bPrevCharDelim;
+
+            bCharDelim=PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim);
+            AEC_PrevChar(&ciPrevChar);
+            if (ciPrevChar.lpLine)
+              bPrevCharDelim=PatIsCharDelim(AE_PatStrChar(&ciPrevChar), hStack->wpDelim, hStack->wpMaxDelim);
+            else
+              bPrevCharDelim=TRUE;
+
+            if (bCharDelim != bPrevCharDelim)
             {
-              if (AEC_IndexCompare(&ciStr, &hStack->first->ciStrStart) > 0)
-              {
-                if (*wpPat == L'b')
-                {
-                  ++wpPat;
-                  continue;
-                }
-              }
-              else if (*wpPat == L'B')
+              if (*wpPat == L'b')
               {
                 ++wpPat;
                 continue;
@@ -1644,20 +1647,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             }
             else
             {
-              AECHARINDEX ciPrevChar=ciStr;
-
-              AEC_PrevChar(&ciPrevChar);
-              if (ciPrevChar.lpLine)
-                nStrChar=AE_PatStrChar(&ciPrevChar);
-              if (!ciPrevChar.lpLine || PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
-              {
-                if (*wpPat == L'b')
-                {
-                  ++wpPat;
-                  continue;
-                }
-              }
-              else if (*wpPat == L'B')
+              if (*wpPat == L'B')
               {
                 ++wpPat;
                 continue;
