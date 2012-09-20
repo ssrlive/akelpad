@@ -9868,10 +9868,14 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.wpStr=wszRangeText;
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
         pr.dwOptions|=REPE_GLOBAL;
-        if (!AEC_IsFirstCharInLine(&crRange.ciMin))
-          pr.dwOptions|=REPE_NOFIRSTLINEBEGIN;
-        if (!AEC_IsLastCharInLine(&crRange.ciMax))
-          pr.dwOptions|=REPE_NOLASTLINEEND;
+        if (AEC_IsFirstCharInLine(&crRange.ciMin))
+          pr.dwOptions|=REPE_STARTLINEBEGIN;
+        if (AEC_IsLastCharInLine(&crRange.ciMax))
+          pr.dwOptions|=REPE_ENDLINEFINISH;
+        if (AE_PatIsCharBoundary(&crRange.ciMin, pr.wpDelim, pr.wpMaxDelim))
+          pr.dwOptions|=REPE_STARTBOUNDARY;
+        if (AE_PatIsCharBoundary(&crRange.ciMax, pr.wpDelim, pr.wpMaxDelim))
+          pr.dwOptions|=REPE_ENDBOUNDARY;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
