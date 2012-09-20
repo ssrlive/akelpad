@@ -18,8 +18,10 @@
 //STACKREGROUP options
 #define REO_MATCHCASE        0x001 //Case-sensitive search.
 #define REO_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_NOFIRSTLINEBEGIN 0x004 //String starts not from line beginning. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
-#define REO_NOLASTLINEEND    0x008 //String ends not on line ending. Used with REO_MULTILINE flag. AE_PatExec ignore this flag.
+#define REO_STARTLINEBEGIN   0x004 //Internal.
+#define REO_ENDLINEFINISH    0x008 //Internal.
+#define REO_STARTBOUNDARY    0x010 //Internal.
+#define REO_ENDBOUNDARY      0x020 //Internal.
 #define REO_REFEXIST         0x100 //Internal.
 
 //REGROUP flags
@@ -49,8 +51,10 @@
 //PatStructExec options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
 #define REPE_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REPE_NOFIRSTLINEBEGIN 0x004 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
-#define REPE_NOLASTLINEEND    0x008 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
+#define REPE_STARTLINEBEGIN   0x004 //PATEXEC.wpStr starts from line beginning. Used with REPE_MULTILINE flag.
+#define REPE_ENDLINEFINISH    0x008 //PATEXEC.wpMaxStr ends on line ending. Used with REPE_MULTILINE flag.
+#define REPE_STARTBOUNDARY    0x010 //PATEXEC.wpStr is word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_ENDBOUNDARY      0x020 //PATEXEC.wpMaxStr is word boundary. Valid if metacharacter \b or \B used in pattern.
 #define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
 #define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
 
@@ -207,6 +211,7 @@ typedef struct {
 INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
 BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
 int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar);
+BOOL PatIsCharBoundary(const wchar_t *wpChar, int nChar, STACKREGROUP *hStack);
 int PatEscChar(const wchar_t **wppPat);
 DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t *wchPatChar);
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
@@ -222,6 +227,7 @@ void PatFree(STACKREGROUP *hStack);
 #ifdef __AKELEDIT_H__
   BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
+  BOOL AE_PatIsCharBoundary(AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
 #endif
@@ -689,7 +695,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                 lpREGroupRef->wpStrEnd=wpStr;
             }
             //Check nStrLen for \d+Z? in 123Z
-            if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && lpREGroupNextNext->nStrLen)
+            if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               goto EndLoop;
           }
         }
@@ -757,7 +763,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       if (*wpPat == L'$')
       {
-        if ((!(hStack->dwOptions & REO_NOLASTLINEEND) && wpStr == wpMaxStr) ||
+        if (((hStack->dwOptions & REO_ENDLINEFINISH) && wpStr == wpMaxStr) ||
             ((hStack->dwOptions & REO_MULTILINE) && (*wpStr == L'\n' || *wpStr == L'\r')))
         {
           ++wpPat;
@@ -768,7 +774,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       if (wpStr >= wpMaxStr)
       {
-        if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && *(wpPat + 1) == L'b')
+        if ((hStack->dwOptions & REO_ENDBOUNDARY) && wpPat + 2 == wpMaxPat && *wpPat == L'\\' && *(wpPat + 1) == L'b')
           goto Match;
         goto EndLoop;
       }
@@ -782,7 +788,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       else if (*wpPat == L'^')
       {
         //REO_MULTILINE
-        if ((!(hStack->dwOptions & REO_NOFIRSTLINEBEGIN) && wpStr == hStack->first->wpStrStart) ||
+        if (((hStack->dwOptions & REO_STARTLINEBEGIN) && wpStr == hStack->first->wpStrStart) ||
             (wpStr > hStack->first->wpStrStart && (*(wpStr - 1) == L'\n' || *(wpStr - 1) == L'\r')))
         {
           ++wpPat;
@@ -859,45 +865,20 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
           if (dwCmpResult & RECC_BOUNDARY)
           {
-            if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
+            if (PatIsCharBoundary(wpStr, nStrChar, hStack))
             {
-              if (wpStr > hStack->first->wpStrStart)
-              {
-                if (*wpPat == L'b')
-                {
-                  ++wpPat;
-                  continue;
-                }
-              }
-              else if (*wpPat == L'B')
+              if (*wpPat == L'b')
               {
                 ++wpPat;
                 continue;
               }
-              goto EndLoop;
             }
-            else
+            else if (*wpPat == L'B')
             {
-              if (wpStr - 1 > hStack->first->wpStrStart >= 0)
-              {
-                nStrChar=*(wpStr - 1);
-                if (nStrChar == L'\r') nStrChar=L'\n';
-              }
-              if (wpStr - 1 < hStack->first->wpStrStart || PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim))
-              {
-                if (*wpPat == L'b')
-                {
-                  ++wpPat;
-                  continue;
-                }
-              }
-              else if (*wpPat == L'B')
-              {
-                ++wpPat;
-                continue;
-              }
-              goto EndLoop;
+              ++wpPat;
+              continue;
             }
+            goto EndLoop;
           }
           else if (dwCmpResult & RECC_REF)
           {
@@ -984,6 +965,24 @@ int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar)
   }
   *nChar=*wpStr;
   return 0;
+}
+
+BOOL PatIsCharBoundary(const wchar_t *wpChar, int nChar, STACKREGROUP *hStack)
+{
+  int nPrevChar;
+  BOOL bPrevCharDelim;
+
+  if (wpChar > hStack->first->wpStrStart)
+  {
+    nPrevChar=*(wpChar - 1);
+    if (nPrevChar == L'\r') nPrevChar=L'\n';
+    bPrevCharDelim=PatIsCharDelim(nPrevChar, hStack->wpDelim, hStack->wpMaxDelim);
+  }
+  else bPrevCharDelim=(hStack->dwOptions & REO_STARTBOUNDARY)?TRUE:FALSE;
+
+  if (PatIsCharDelim(nChar, hStack->wpDelim, hStack->wpMaxDelim) != bPrevCharDelim)
+    return TRUE;
+  return FALSE;
 }
 
 int PatEscChar(const wchar_t **wppPat)
@@ -1448,7 +1447,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 lpREGroupRef->ciStrEnd=ciStr;
             }
             //Check nStrLen for \d+Z? in 123Z
-            if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && lpREGroupNextNext->nStrLen)
+            if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               goto EndLoop;
           }
         }
@@ -1531,7 +1530,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       {
         if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B'))
         {
-          if (PatIsCharDelim(AE_PatStrChar(&ciStr), hStack->wpDelim, hStack->wpMaxDelim))
+          if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
           {
             if (*(wpPat + 1) == L'b')
               goto Match;
@@ -1625,33 +1624,20 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
           if (dwCmpResult & RECC_BOUNDARY)
           {
-            AECHARINDEX ciPrevChar=ciStr;
-            BOOL bPrevCharDelim;
-
-            AEC_PrevChar(&ciPrevChar);
-            if (ciPrevChar.lpLine)
-              bPrevCharDelim=PatIsCharDelim(AE_PatStrChar(&ciPrevChar), hStack->wpDelim, hStack->wpMaxDelim);
-            else
-              bPrevCharDelim=TRUE;
-
-            if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim) != bPrevCharDelim)
+            if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
             {
               if (*wpPat == L'b')
               {
                 ++wpPat;
                 continue;
               }
-              goto EndLoop;
             }
-            else
+            else if (*wpPat == L'B')
             {
-              if (*wpPat == L'B')
-              {
-                ++wpPat;
-                continue;
-              }
-              goto EndLoop;
+              ++wpPat;
+              continue;
             }
+            goto EndLoop;
           }
           else if (dwCmpResult & RECC_REF)
           {
@@ -1740,6 +1726,22 @@ int AE_PatStrChar(const AECHARINDEX *ciChar)
   return ciChar->lpLine->wpLine[ciChar->nCharInLine];
 }
 
+BOOL AE_PatIsCharBoundary(AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim)
+{
+  AECHARINDEX ciPrevChar=*ciChar;
+  BOOL bPrevCharDelim;
+
+  AEC_PrevChar(&ciPrevChar);
+  if (ciPrevChar.lpLine)
+    bPrevCharDelim=PatIsCharDelim(AE_PatStrChar(&ciPrevChar), wpDelim, wpMaxDelim);
+  else
+    bPrevCharDelim=TRUE;
+
+  if (PatIsCharDelim(AE_PatStrChar(ciChar), wpDelim, wpMaxDelim) != bPrevCharDelim)
+    return TRUE;
+  return FALSE;
+}
+
 AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
 {
   if (++ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
@@ -1787,10 +1789,14 @@ int PatStructExec(PATEXEC *pe)
         pe->lpREGroupStack->dwOptions|=REO_MATCHCASE;
       if (pe->dwOptions & REPE_MULTILINE)
         pe->lpREGroupStack->dwOptions|=REO_MULTILINE;
-      if (pe->dwOptions & REPE_NOFIRSTLINEBEGIN)
-        pe->lpREGroupStack->dwOptions|=REO_NOFIRSTLINEBEGIN;
-      if (pe->dwOptions & REPE_NOLASTLINEEND)
-        pe->lpREGroupStack->dwOptions|=REO_NOLASTLINEEND;
+      if (pe->dwOptions & REPE_STARTLINEBEGIN)
+        pe->lpREGroupStack->dwOptions|=REO_STARTLINEBEGIN;
+      if (pe->dwOptions & REPE_ENDLINEFINISH)
+        pe->lpREGroupStack->dwOptions|=REO_ENDLINEFINISH;
+      if (pe->dwOptions & REPE_STARTBOUNDARY)
+        pe->lpREGroupStack->dwOptions|=REO_STARTBOUNDARY;
+      if (pe->dwOptions & REPE_ENDBOUNDARY)
+        pe->lpREGroupStack->dwOptions|=REO_ENDBOUNDARY;
       pe->lpREGroupStack->wpDelim=pe->wpDelim;
       pe->lpREGroupStack->wpMaxDelim=pe->wpMaxDelim;
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
