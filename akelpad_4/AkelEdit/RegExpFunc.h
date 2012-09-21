@@ -816,10 +816,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               ++wpPat;
               dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &wchPatNextChar);
               if (dwCmpResult & RECC_EQUAL)
-              {
-                if (bExclude) goto EndLoop;
-                break;
-              }
+                goto ClassMatch;
               if (nStrChar < 0) nStrChar=L'\n';
 
               //Check range
@@ -830,8 +827,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                       (((wchCaseChar=WideCharLower((wchar_t)nStrChar)) >= wchPatChar && wchCaseChar <= wchPatNextChar) ||
                        (wchCaseChar == nStrChar && (wchCaseChar=WideCharUpper((wchar_t)nStrChar)) >= wchPatChar && wchCaseChar <= wchPatNextChar))))
                 {
-                  if (bExclude) goto EndLoop;
-                  break;
+                  goto ClassMatch;
                 }
               }
             }
@@ -840,18 +836,19 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           {
             dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &wchPatChar);
             if (dwCmpResult & RECC_EQUAL)
-            {
-              if (bExclude) goto EndLoop;
-              break;
-            }
+              goto ClassMatch;
           }
         }
+        if (!bExclude) goto EndLoop;
+        goto NextChar;
 
-        if (*wpPat == L']')
+        ClassMatch:
+        if (bExclude) goto EndLoop;
+        while (*++wpPat != L']')
         {
-          if (!bExclude) goto EndLoop;
+          if (*wpPat == L'\\')
+            ++wpPat;
         }
-        else while (*++wpPat != L']');
       }
       else
       {
@@ -900,6 +897,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
         }
       }
+      NextChar:
       ++wpStr;
       ++wpPat;
     }
@@ -1575,10 +1573,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               ++wpPat;
               dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &wchPatNextChar);
               if (dwCmpResult & RECC_EQUAL)
-              {
-                if (bExclude) goto EndLoop;
-                break;
-              }
+                goto ClassMatch;
               if (nStrChar < 0) nStrChar=L'\n';
 
               //Check range
@@ -1589,8 +1584,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                       (((wchCaseChar=WideCharLower((wchar_t)nStrChar)) >= wchPatChar && wchCaseChar <= wchPatNextChar) ||
                        (wchCaseChar == nStrChar && (wchCaseChar=WideCharUpper((wchar_t)nStrChar)) >= wchPatChar && wchCaseChar <= wchPatNextChar))))
                 {
-                  if (bExclude) goto EndLoop;
-                  break;
+                  goto ClassMatch;
                 }
               }
             }
@@ -1599,18 +1593,19 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           {
             dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &wchPatChar);
             if (dwCmpResult & RECC_EQUAL)
-            {
-              if (bExclude) goto EndLoop;
-              break;
-            }
+              goto ClassMatch;
           }
         }
+        if (!bExclude) goto EndLoop;
+        goto NextChar;
 
-        if (*wpPat == L']')
+        ClassMatch:
+        if (bExclude) goto EndLoop;
+        while (*++wpPat != L']')
         {
-          if (!bExclude) goto EndLoop;
+          if (*wpPat == L'\\')
+            ++wpPat;
         }
-        else while (*++wpPat != L']');
       }
       else
       {
@@ -1676,6 +1671,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
         }
       }
+      NextChar:
       AE_PatNextChar(&ciStr);
       ++nStrLen;
       ++wpPat;
