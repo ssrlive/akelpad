@@ -507,6 +507,7 @@ typedef struct _FILESTREAMDATA {
   HWND hWnd;
   HANDLE hFile;
   int nCodePage;
+  DWORD dwMaxCharSize;
   DWORD dwFlags;
   int nNewLine;
   UINT_PTR dwBytesCurrent;

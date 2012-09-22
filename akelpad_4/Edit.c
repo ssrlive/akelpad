@@ -4620,10 +4620,14 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
   AESTREAMIN aesi;
+  CPINFO cpi;
 
   if (lpData->dwBytesMax == (UINT_PTR)-1)
     lpData->dwBytesMax=GetFileSize64(lpData->hFile);
   SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+
+  GetCPInfo(lpData->nCodePage, &cpi);
+  lpData->dwMaxCharSize=cpi.MaxCharSize;
 
   aesi.dwCookie=(UINT_PTR)lpData;
   aesi.lpCallback=InputStreamCallback;
@@ -4699,8 +4703,9 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
 
           if (dwCharsConverted > 0)
           {
-            if ((pcTranslateBuffer[dwBytesRead - 1] != '\0' && wszBuf[dwCharsConverted - 1] == '\0') || //Windows 95/98/Me/2000/XP/2003
-                (pcTranslateBuffer[dwBytesRead - 1] != '?' && wszBuf[dwCharsConverted - 1] == '?'))     //Windows Vista/7/2008
+            //if ((pcTranslateBuffer[dwBytesRead - 1] != '\0' && wszBuf[dwCharsConverted - 1] == '\0') || //Windows 95/98/Me/2000/XP/2003
+            //    (pcTranslateBuffer[dwBytesRead - 1] != '?' && wszBuf[dwCharsConverted - 1] == '?'))     //Windows Vista/7/2008
+            if (lpData->dwMaxCharSize == 2 && IsDBCSLeadByteEx(lpData->nCodePage, pcTranslateBuffer[dwBytesRead - 1]))
             {
               //Double-byte char was split
               --lpData->dwBytesCurrent;
