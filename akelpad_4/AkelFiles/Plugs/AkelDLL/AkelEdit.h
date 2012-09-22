@@ -209,6 +209,7 @@
 #define AECO_VSCROLLBYLINE            0x01000000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_NOSCROLLDELETEALL        0x02000000  //Turn off scrolling to caret, when undo/redo operations replace all text.
 #define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
+#define AECO_NOCOLUMNPASTEHOTKEY      0x08000000  //Turn off Alt+V for columnar paste.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
 #define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
@@ -221,9 +222,9 @@
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //Modifier flags
-#define AEMOD_ALT               0x01  //ALT key
-#define AEMOD_SHIFT             0x02  //SHIFT key
-#define AEMOD_CONTROL           0x04  //CTRL key
+#define AEMOD_ALT               0x1  //ALT key
+#define AEMOD_SHIFT             0x2  //SHIFT key
+#define AEMOD_CONTROL           0x4  //CTRL key
 
 //AEM_GETLINENUMBER flags
 #define AEGL_LINECOUNT              0  //Total number of text lines. If the control has no text, the return value is 1.
@@ -4324,13 +4325,14 @@ Set type mode.
 
 (BOOL)wParam == TRUE   sets overtype mode.
                 FALSE  sets insert mode.
-lParam       == not used.
+(BOOL)lParam == TRUE  update caret.
+                FALSE don't update caret.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
+ SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, TRUE);
 
 
 AEM_GETCARETWIDTH
