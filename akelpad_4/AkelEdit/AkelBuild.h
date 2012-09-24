@@ -614,8 +614,8 @@ typedef struct _AKELEDIT {
 
   //Input
   BOOL bFocus;
-  HKL dwInputLocale;
   DWORD dwImeChar;
+  BOOL bImeComposition;
   int nAltChar;
 
   //Notification
