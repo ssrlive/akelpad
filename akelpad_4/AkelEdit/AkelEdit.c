@@ -4536,6 +4536,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_KILLFOCUS)
   {
+    AE_ImeComplete(ae);
+
     if (ae->nMouseActive == AEMA_LBUTTONDOWN)
     {
       //We lost focus, so ignore next WM_LBUTTONDOWN message posted in WM_MOUSEACTIVATE
@@ -19308,6 +19310,21 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     return TRUE;
   }
   return FALSE;
+}
+
+void AE_ImeComplete(AKELEDIT *ae)
+{
+  if (ImmIsIME(ae->dwInputLocale))
+  {
+    HIMC hImc;
+
+    if (hImc=ImmGetContext(ae->hWndEdit))
+    {
+      ImmNotifyIME(hImc, NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+      ImmNotifyIME(hImc, NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+      ImmReleaseContext(ae->hWndEdit, hImc);
+    }
+  }
 }
 
 BOOL AE_EditCanPaste(AKELEDIT *ae)
