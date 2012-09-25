@@ -4703,19 +4703,28 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
 
           if (dwCharsConverted > 0)
           {
-            //if ((pcTranslateBuffer[dwBytesRead - 1] != '\0' && wszBuf[dwCharsConverted - 1] == '\0') || //Windows 95/98/Me/2000/XP/2003
-            //    (pcTranslateBuffer[dwBytesRead - 1] != '?' && wszBuf[dwCharsConverted - 1] == '?'))     //Windows Vista/7/2008
-            if (lpData->dwMaxCharSize == 2 && IsDBCSLeadByteEx(lpData->nCodePage, pcTranslateBuffer[dwBytesRead - 1]))
+            if (lpData->dwMaxCharSize == 2)
             {
-              //Double-byte char was split
-              --lpData->dwBytesCurrent;
-              SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
-              --dwCharsConverted;
+              BYTE *pLastChar=pcTranslateBuffer + dwBytesRead - 1;
+
+              //Windows 95/98/Me/2000/XP/2003. MultiByteToWideChar converts one byte of double-byte char to zero.
+              if ((*pLastChar != '\0' && wszBuf[dwCharsConverted - 1] == L'\0') ||
+                  //Windows Vista/7/2008. MultiByteToWideChar trying to convert one byte of double-byte char.
+                  (dwBytesRead >= 2 && IsDBCSLeadByteEx(lpData->nCodePage, *pLastChar) &&
+                   //Double-byte char can consist of two lead bytes
+                   (!IsDBCSLeadByteEx(lpData->nCodePage, *(pLastChar - 1)) ||
+                     pLastChar - (BYTE *)CharPrevExA((WORD)lpData->nCodePage, (char *)pcTranslateBuffer, (char *)pLastChar, 0) == 2)))
+              {
+                //Double-byte char was split
+                --lpData->dwBytesCurrent;
+                SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
+                --dwCharsConverted;
+              }
             }
           }
         }
       }
-      wszBuf[dwCharsConverted]='\0';
+      wszBuf[dwCharsConverted]=L'\0';
     }
     else PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
   }
