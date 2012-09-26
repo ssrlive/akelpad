@@ -486,7 +486,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Expressões regulares",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
@@ -525,7 +525,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Expressões regulares",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
