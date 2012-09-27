@@ -190,7 +190,7 @@ BEGIN
     POPUP "A&juda"
     BEGIN
         MENUITEM "&Manual",                     IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&Atualizar...",                  IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Sobre",                      IDM_ABOUT
     END
@@ -605,11 +605,11 @@ BEGIN
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,239,144
-    LTEXT           "Background image (%a diretório do akelpad):",
+    LTEXT           "Imagem para plano de fundo (%a diretório do akelpad):",
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
-    LTEXT           "Alpha:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    LTEXT           "Alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
     EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
@@ -902,7 +902,7 @@ BEGIN
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Busca cíclica",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "Aviso",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
@@ -1039,7 +1039,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
     MSG_SEARCH_ENDED        "Busca acabou."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Limite do arquivo atingido. Continuar?"
     MSG_REPLACE_COUNT       "Número de alterações: %d"
     MSG_REPLACE_COUNT_ALLFILES 
                             "Arquivos alterados: %d\nNúmero de alterações: %Id"
@@ -1061,7 +1061,7 @@ BEGIN
     STR_MODIFIED            "Modificado"
     STR_READONLY            "Somente leitura"
     STR_COUNT               "%d de %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "sem"
     STR_AUTODETECT          "&Autodetectar"
     STR_RECENT_FILES_EMPTY  "Vazio"
     STR_RECENT_FILES_DELETE_DEAD "Apagar os que não existem"
