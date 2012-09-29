@@ -1902,7 +1902,8 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->wpStr=lpREGroupRoot->wpStrEnd;
-      PatReset(pe->lpREGroupStack);
+      if (pe->lpREGroupStack->dwOptions & REO_REFEXIST)
+        PatReset(pe->lpREGroupStack);
     }
   }
   else
@@ -1946,7 +1947,8 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->ciStr=lpREGroupRoot->ciStrEnd;
-      AE_PatReset(pe->lpREGroupStack);
+      if (pe->lpREGroupStack->dwOptions & REO_REFEXIST)
+        AE_PatReset(pe->lpREGroupStack);
     }
     #endif
   }
