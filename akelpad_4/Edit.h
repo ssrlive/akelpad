@@ -1055,6 +1055,7 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
 void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
+void SetTextStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize);
 STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack);
 void StackStatusPartFree(STACKSTATUSPART *hStack);
