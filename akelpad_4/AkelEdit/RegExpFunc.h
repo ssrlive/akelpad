@@ -6,8 +6,8 @@
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
  * 1. From StrFunc.h header                                       *
- *   WideCharUpper, WideCharLower, xmemcpy, xstrlenW, xstrcpyW,   *
- *   xstrcmpnW, xstrcmpinW, xatoiW, hex2decW                      *
+ *   WideCharUpper, WideCharLower, xmemcpy, xmemset,              *
+ *   xstrlenW, xstrcpyW, xstrcmpnW, xstrcmpinW, xatoiW, hex2decW  *
  * 2. From StackFunc.h header                                     *
  *   StackInsertBefore, StackDelete, StackJoin                    *
  *****************************************************************/
@@ -228,6 +228,7 @@ REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
 REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem);
 REGROUP* PatPrevGroup(REGROUP *lpREGroupItem);
 INT_PTR PatGroupStr(PATGROUPSTR *pgs);
+void PatReset(STACKREGROUP *hStack);
 void PatFree(STACKREGROUP *hStack);
 
 #ifdef __AKELEDIT_H__
@@ -236,6 +237,7 @@ void PatFree(STACKREGROUP *hStack);
   BOOL AE_PatIsCharBoundary(AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
+  void AE_PatReset(STACKREGROUP *hStack);
 #endif
 
 int PatStructExec(PATEXEC *pe);
@@ -1341,6 +1343,17 @@ INT_PTR PatGroupStr(PATGROUPSTR *pgs)
   return (wpBufCount - pgs->wszResult);
 }
 
+void PatReset(STACKREGROUP *hStack)
+{
+  REGROUP *lpREGroupItem;
+
+  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
+  {
+    lpREGroupItem->wpStrStart=NULL;
+    lpREGroupItem->wpStrEnd=NULL;
+  }
+}
+
 void PatFree(STACKREGROUP *hStack)
 {
   REGROUP *lpParent=NULL;
@@ -1375,7 +1388,7 @@ void PatFree(STACKREGROUP *hStack)
   }
 }
 
-#if defined __AKELEDIT_H__
+#ifdef __AKELEDIT_H__
 BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput)
 {
   REGROUP *lpREGroupNext;
@@ -1786,6 +1799,16 @@ REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
   }
   return lpREGroupItem;
 }
+
+void AE_PatReset(STACKREGROUP *hStack)
+{
+  REGROUP *lpREGroupItem;
+
+  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
+  {
+    xmemset(&lpREGroupItem->ciStrStart, 0, sizeof(AECHARRANGE));
+  }
+}
 #endif //__AKELEDIT_H__
 
 int PatStructExec(PATEXEC *pe)
@@ -1879,6 +1902,7 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->wpStr=lpREGroupRoot->wpStrEnd;
+      PatReset(pe->lpREGroupStack);
     }
   }
   else
@@ -1922,6 +1946,7 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->ciStr=lpREGroupRoot->ciStrEnd;
+      AE_PatReset(pe->lpREGroupStack);
     }
     #endif
   }

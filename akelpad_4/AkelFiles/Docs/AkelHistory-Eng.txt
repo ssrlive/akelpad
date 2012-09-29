@@ -2,7 +2,7 @@
 AkelPad 4.8.0 ()
 ----------------------------
 Fixed: file opening in DBCS codepage (WinVista/7).
-Fixed: ^ and \b metacharacters processing in regular expressions.
+Fixed: ^, \b, \s metacharacters processing in regular expressions.
 Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserFormat" didn't
        updated when switching to AkelPad from a different application.
 Fixed: switching focus when IME window active.
