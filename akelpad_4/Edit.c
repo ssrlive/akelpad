@@ -809,7 +809,9 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
         UpdateTabs(hTab);
       }
     }
-    UpdateStatusUser(lpFrame, CSB_DOCUMENTINDEX);
+
+    //Set text for all parts
+    SetTextStatusUser(lpFrame, (DWORD)-1);
   }
 }
 
@@ -16834,18 +16836,21 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->bNumLock=(GetKeyState(VK_NUMLOCK) & 1) == 1;
 
       //Set status bar parts text
-      {
-        STATUSPART *sp;
+      SetTextStatusUser(lpFrame, dwFlags);
+    }
+  }
+}
 
-        for (sp=hStatusStack.first; sp; sp=sp->next)
-        {
-          if (sp->dwFormatFlags & dwFlags)
-          {
-            TranslateStatusUser(lpFrame, sp->wpFormat, sp->nFormatLen, wbuf, BUFFER_SIZE);
-            StatusBar_SetTextWide(hStatus, sp->nIndex, wbuf);
-          }
-        }
-      }
+void SetTextStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
+{
+  STATUSPART *sp;
+
+  for (sp=hStatusStack.first; sp; sp=sp->next)
+  {
+    if (sp->dwFormatFlags & dwFlags)
+    {
+      TranslateStatusUser(lpFrame, sp->wpFormat, sp->nFormatLen, wbuf, BUFFER_SIZE);
+      StatusBar_SetTextWide(hStatus, sp->nIndex, wbuf);
     }
   }
 }

@@ -5,6 +5,8 @@ Fixed: file opening in DBCS codepage (WinVista/7).
 Fixed: ^, \b, \s metacharacters processing in regular expressions.
 Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserFormat" didn't
        updated when switching to AkelPad from a different application.
+Fixed: variables of manual parameter "StatusUserFormat" didn't updated when switching between
+       tabs (MDI/PMDI).
 Fixed: switching focus when IME window active.
 
 
