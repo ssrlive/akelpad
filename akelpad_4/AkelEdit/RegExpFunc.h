@@ -1036,7 +1036,6 @@ int PatEscChar(const wchar_t **wppPat)
         return REEC_LATIN;
       if (nPatChar == L'W')
         return REEC_NONLATIN;
-      return REEC_WRONG;
     }
   }
   return nPatChar;
@@ -1104,7 +1103,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t 
     return RECC_DIF;
   }
 
-  if (nPatChar >= REEC_WRONG)
+  if (nPatChar > REEC_WRONG)
   {
     if (nPatChar >= REEC_DIGIT)
     {
@@ -1153,10 +1152,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, BOOL bSensitive, wchar_t 
     {
       return RECC_REF|RECC_MIX;
     }
-    else if (nPatChar == REEC_WRONG)
-    {
-      return RECC_DIF|RECC_MIX;
-    }
+    return RECC_DIF|RECC_MIX;
   }
 
   //Compare
