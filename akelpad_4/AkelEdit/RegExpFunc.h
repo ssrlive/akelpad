@@ -33,7 +33,6 @@
 #define REGF_OR              0x020
 #define REGF_POSITIVE        0x040
 #define REGF_NEGATIVE        0x100
-#define REGF_CHILDNOMAXMATCH 0x200
 
 //PatCharCmp return value
 #define RECC_EQUAL    0x01
@@ -258,12 +257,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   REGROUP *lpREGroupItem;
   REGROUP *lpREGroupNew;
   REGROUP *lpREGroupOr;
-  REGROUP *lpREGroupParent;
   const wchar_t *wpMinPat=wpPat;
   const wchar_t *wpClassStart=NULL;
   const wchar_t *wpClassEnd=NULL;
   const wchar_t *wpCharStart=NULL;
-  const wchar_t *wpPatLeft;
   int nIndex=0;
   BOOL bGroupNextChars=FALSE;
   BOOL bClassOpen=FALSE;
@@ -527,23 +524,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
            (lpREGroupNew->wpPatEnd - 2 >= lpREGroupNew->wpPatStart && *(lpREGroupNew->wpPatEnd - 2) == L'\\' && *(lpREGroupNew->wpPatEnd - 1) == L'b')))
         goto Error;
-      if (lpREGroupNew->nMaxMatch == -1)
-      {
+      if (lpREGroupNew->nMinMatch >= 1 && (DWORD)lpREGroupNew->nMinMatch < (DWORD)lpREGroupNew->nMaxMatch)
         bGroupNextChars=TRUE;
-        //Mark all parents if lpREGroupNew is the first item in group
-        wpPatLeft=lpREGroupNew->wpPatLeft;
-        lpREGroupNew->dwFlags|=REGF_CHILDNOMAXMATCH;
-
-        for (lpREGroupParent=lpREGroupNew->parent; lpREGroupParent; lpREGroupParent=lpREGroupParent->parent)
-        {
-          if (wpPatLeft == lpREGroupParent->wpPatStart)
-          {
-            lpREGroupParent->dwFlags|=REGF_CHILDNOMAXMATCH;
-            wpPatLeft=lpREGroupParent->wpPatLeft;
-          }
-          else break;
-        }
-      }
       wpCharStart=NULL;
 
       //We already non-greedy, so ignore it.
@@ -692,9 +674,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         if (wpStr >= wpMaxStr)
           goto EndLoop;
 
-        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
+        if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
+          if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem))
           {
             if (hStack->dwOptions & REO_REFEXIST)
             {
@@ -742,7 +724,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
           if (!lpREGroupNext->nMinMatch)
           {
-            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
+            if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext))
             {
               if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               {
@@ -1464,9 +1446,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
           goto EndLoop;
 
-        if (lpREGroupItem->nMaxMatch == -1 && nCurMatch >= lpREGroupItem->nMinMatch)
+        if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
+          if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem))
           {
             if (hStack->dwOptions & REO_REFEXIST)
             {
@@ -1515,7 +1497,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
           if (!lpREGroupNext->nMinMatch)
           {
-            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_CHILDNOMAXMATCH))
+            if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext))
             {
               if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               {
