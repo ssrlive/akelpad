@@ -117,7 +117,7 @@ typedef struct {
 
 
 typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-//pe              Pointer to a PATEXEC structure. The application specifies this value when it sends the AKD_PATEXEC message.
+//pe              Pointer to a PATEXEC structure.
 //lpREGroupRoot   Pointer to a first REGROUP structure in stack (root group).
 //bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
 //                FALSE - pe->wpStr is valid.
@@ -125,7 +125,7 @@ typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL b
 // See REPEC_* defines.
 
 typedef struct {
-  STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
+  STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if PatStructExec called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;         //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
@@ -188,7 +188,7 @@ typedef struct {
     INT_PTR nAlignD2;
     int nAlignD3;
   #endif
-  wchar_t *wszResult;        //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
+  wchar_t *wszResult;        //Buffer that received replace result. If NULL, PatReplace returns required buffer size in characters.
 } PATREPLACE;
 
 typedef struct {
@@ -208,10 +208,10 @@ typedef struct {
 } PATEXECPARAM;
 
 typedef struct {
-  STACKREGROUP *lpREGroupStack; //Groups stack. Filled by AKD_PATEXEC message.
+  STACKREGROUP *lpREGroupStack; //Groups stack. Filled by PatExec message.
   const wchar_t *wpStr;         //String for process. Can be used "$n" - the n'th captured submatch.
   const wchar_t *wpMaxStr;      //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  wchar_t *wszResult;           //Buffer that received convert result. If NULL, AKD_PATGROUPSTR returns required buffer size in characters.
+  wchar_t *wszResult;           //Buffer that received convert result. If NULL, PatGroupStr returns required buffer size in characters.
 } PATGROUPSTR;
 
 INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
@@ -1834,7 +1834,7 @@ int PatStructExec(PATEXEC *pe)
       if (pe->dwOptions & REPE_ENDBOUNDARY)
         pe->lpREGroupStack->dwOptions|=REO_ENDBOUNDARY;
       pe->lpREGroupStack->wpDelim=pe->wpDelim;
-      pe->lpREGroupStack->wpMaxDelim=pe->wpMaxDelim;
+      pe->lpREGroupStack->wpMaxDelim=pe->wpDelim?pe->wpMaxDelim:NULL;
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
         return 0;
     }
@@ -1982,7 +1982,7 @@ INT_PTR PatReplace(PATREPLACE *pr)
   #endif
   pe.dwOptions=pr->dwOptions;
   pe.wpDelim=pr->wpDelim;
-  pe.wpMaxDelim=pr->wpMaxDelim;
+  pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;
   if (pr->wpStr)
     pe.lpCallback=(PATEXECCALLBACK)PatReplaceCallback;
   else
