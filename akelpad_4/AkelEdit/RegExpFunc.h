@@ -1834,6 +1834,7 @@ int PatStructExec(PATEXEC *pe)
   if (pe->wpStr)
   {
     const wchar_t *wpLineStart;
+    int nStrChar;
 
     while (pe->wpStr < pe->wpMaxStr)
     {
@@ -1842,20 +1843,11 @@ int PatStructExec(PATEXEC *pe)
         //*(pe->wpMaxPat - 1) == L'$'
         if ((pe->dwOptions & REPE_MULTILINE) && pe->wpStr == lpREGroupRoot->wpStrEnd)
         {
+          //Is new line?
           if (*pe->wpStr == L'\r' || *pe->wpStr == L'\n')
           {
             wpLineStart=pe->wpStr;
-
-            if (*wpLineStart == L'\r')
-            {
-              if (wpLineStart + 1 < pe->wpMaxStr && *(wpLineStart + 1) == L'\n')
-                wpLineStart+=2;
-              else if (wpLineStart + 2 < pe->wpMaxStr && *(wpLineStart + 1) == L'\r' && *(wpLineStart + 2) == L'\n')
-                wpLineStart+=3;
-              else
-                wpLineStart+=1;
-            }
-            else wpLineStart+=1;
+            wpLineStart+=PatStrChar(wpLineStart, pe->wpMaxStr, &nStrChar);
 
             if (wpLineStart < pe->wpMaxStr)
             {
@@ -1880,6 +1872,14 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->wpStr=lpREGroupRoot->wpStrEnd;
+
+      if (pe->dwOptions & REPE_MULTILINE)
+      {
+        if (*(pe->wpStr - 1) == L'\r' || *(pe->wpStr - 1) == L'\n')
+          pe->lpREGroupStack->dwOptions|=REO_STARTLINEBEGIN;
+        else
+          pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
+      }
       PatReset(pe->lpREGroupStack);
     }
   }
