@@ -524,7 +524,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
            (lpREGroupNew->wpPatEnd - 2 >= lpREGroupNew->wpPatStart && *(lpREGroupNew->wpPatEnd - 2) == L'\\' && *(lpREGroupNew->wpPatEnd - 1) == L'b')))
         goto Error;
-      if (lpREGroupNew->nMinMatch >= 1 && (DWORD)lpREGroupNew->nMinMatch < (DWORD)lpREGroupNew->nMaxMatch)
+      if ((DWORD)lpREGroupNew->nMaxMatch > 1 && (DWORD)lpREGroupNew->nMinMatch < (DWORD)lpREGroupNew->nMaxMatch)
         bGroupNextChars=TRUE;
       wpCharStart=NULL;
 
