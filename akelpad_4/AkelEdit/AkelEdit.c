@@ -193,7 +193,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     //RichEdit class
     if (bRegisterRichEdit)
     {
-      wndclass.lpszClassName=AES_RICHEDITCLASSA;
+      wndclass.lpszClassName=AES_RICHEDIT20A;
       bRichEditClassRegisteredA=RegisterClassA(&wndclass);
     }
   }
@@ -224,7 +224,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     //RichEdit class
     if (bRegisterRichEdit)
     {
-      wndclass.lpszClassName=AES_RICHEDITCLASSW;
+      wndclass.lpszClassName=AES_RICHEDIT20W;
       bRichEditClassRegisteredW=RegisterClassW(&wndclass);
     }
   }
@@ -280,7 +280,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
   {
     if (UnregisterClassA(AES_AKELEDITCLASSA, hInstance))
       bAkelEditClassRegisteredA=FALSE;
-    if (UnregisterClassA(AES_RICHEDITCLASSA, hInstance))
+    if (UnregisterClassA(AES_RICHEDIT20A, hInstance))
       bRichEditClassRegisteredA=FALSE;
   }
   return !bAkelEditClassRegisteredA;
@@ -295,7 +295,7 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
   {
     if (UnregisterClassW(AES_AKELEDITCLASSW, hInstance))
       bAkelEditClassRegisteredW=FALSE;
-    if (UnregisterClassW(AES_RICHEDITCLASSW, hInstance))
+    if (UnregisterClassW(AES_RICHEDIT20W, hInstance))
       bRichEditClassRegisteredW=FALSE;
   }
   return !bAkelEditClassRegisteredW;
@@ -4848,14 +4848,16 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->ido.stgmed[2].pUnkForRelease=0;
     ae->ido.nNumFormats=3;
 
-    if (!ae->bUnicodeWindow)
+    //Detect RichEdit class
     {
-      if (!xstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
-        ae->bRichEditClass=TRUE;
-    }
-    else
-    {
-      if (!xstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
+      wchar_t wszRichEditClass[16];
+      wchar_t wpRichEditClass=wszRichEditClass;
+
+      if (!ae->bUnicodeWindow)
+        MultiByteToWideChar(CP_ACP, 0, (char *)cs->lpszClass, -1, wszRichEditClass, 16);
+      else
+        wpRichEditClass=(wchar_t *)cs->lpszClass;
+      if (!xstrcmpiW(wpRichEditClass, AES_RICHEDIT20W) || !xstrcmpiW(wpRichEditClass, AES_RICHEDIT20A))
         ae->bRichEditClass=TRUE;
     }
 
