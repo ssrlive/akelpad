@@ -627,7 +627,7 @@ BEGIN
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
     LTEXT           "Zaznacz pole, ¿eby automatycznie wczytywaæ wtyczkê (plugin)",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
-    LTEXT           "Klawisz skrótu:",IDC_PLUGINS_HOTKEY_LABEL,284,13,46,8
+    LTEXT           "Klawisz skrótu:",IDC_PLUGINS_HOTKEY_LABEL,284,13,50,8
     CONTROL         "Klawisz skrótu1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",
                     WS_BORDER | WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Przydziel",IDC_PLUGINS_ASSIGN,282,42,50,14
@@ -716,7 +716,7 @@ BEGIN
                     UDS_NOTHOUSANDS,113,86,11,13
     PUSHBUTTON      "Wyczyœæ",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
     GROUPBOX        "Historia wyszukiwania",IDC_STATIC,9,113,200,33
-    LTEXT           "Liczba linii:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
+    LTEXT           "Liczba elementów:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -830,7 +830,7 @@ BEGIN
     CONTROL         "Lewy klik na marginesie zaznacza wiersz",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit zaznaczanie mysz¹",IDC_OPTIONS_MOUSERICHEDIT,
+    CONTROL         "Zaznaczanie mysz¹ RichEdit",IDC_OPTIONS_MOUSERICHEDIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Przeci¹ganie mysz¹",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
@@ -999,7 +999,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED 
                             """%s"" nie mo¿e byæ automatycznie wczytywany."
-    MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" w ""%s""."
+    MSG_FUNCTION_NOT_FOUND  "Nie znaleziono funkcji ""%s::%s"" w ""%s""."
     MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPada: %d.%d.%d.%d\nAktualna wersja AkelPada: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie jest wspierany."
     MSG_UPDATE_PLUGIN       "Zaktualizuj %s.\n\nArchitektura AkelPada: %d.%d.%d.%d\nArchitektura pluginu %s: %d.%d.%d.%d"
