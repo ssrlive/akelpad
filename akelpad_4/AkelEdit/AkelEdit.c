@@ -4851,13 +4851,13 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     //Detect RichEdit class
     {
       wchar_t wszRichEditClass[16];
-      wchar_t wpRichEditClass=wszRichEditClass;
+      wchar_t *wpRichEditClass=wszRichEditClass;
 
       if (!ae->bUnicodeWindow)
         MultiByteToWideChar(CP_ACP, 0, (char *)cs->lpszClass, -1, wszRichEditClass, 16);
       else
         wpRichEditClass=(wchar_t *)cs->lpszClass;
-      if (!xstrcmpiW(wpRichEditClass, AES_RICHEDIT20W) || !xstrcmpiW(wpRichEditClass, AES_RICHEDIT20A))
+      if (!xstrcmpiW(wpRichEditClass, AES_RICHEDIT20W) || !xstrcmpiW(wpRichEditClass, AES_RICHEDIT20A_UNICODE))
         ae->bRichEditClass=TRUE;
     }
 
