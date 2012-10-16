@@ -759,8 +759,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           ++wpPat;
           continue;
         }
-        if (wpPat + 1 == wpMaxPat)
-          goto EndLoop;
+        goto EndLoop;
       }
       if (wpStr >= wpMaxStr)
       {
@@ -1533,8 +1532,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           ++wpPat;
           continue;
         }
-        if (wpPat + 1 == wpMaxPat)
-          goto EndLoop;
+        goto EndLoop;
       }
       if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
       {
