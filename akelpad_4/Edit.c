@@ -100,7 +100,6 @@ extern MAINOPTIONS moCur;
 extern HWND hMainWnd;
 extern HWND hDummyWindow;
 extern DWORD dwLastMainSizeType;
-extern DWORD dwLastMainSizeClient;
 extern DWORD dwMouseCapture;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;

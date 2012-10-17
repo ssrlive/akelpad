@@ -295,7 +295,6 @@ MAINOPTIONS moCur;
 HWND hMainWnd=NULL;
 HWND hDummyWindow;
 DWORD dwLastMainSizeType=SIZE_RESTORED;
-DWORD dwLastMainSizeClient=0;
 DWORD dwMouseCapture=0;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
@@ -3684,9 +3683,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MOVE)
   {
-    UINT_PTR dwStyle;
-
-    dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
+    UINT_PTR dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
 
     if (!(dwStyle & WS_MAXIMIZE) && !(dwStyle & WS_MINIMIZE))
     {
@@ -3695,22 +3692,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SIZE)
   {
-    if (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)
-      dwLastMainSizeType=(DWORD)wParam;
-    //Avoid processing ShowWindow(hMainWnd, SW_HIDE) that sends WM_SIZE
-    if (dwLastMainSizeClient == (DWORD)lParam)
-      return TRUE;
-    dwLastMainSizeClient=(DWORD)lParam;
+    UINT_PTR dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
 
-    if (lParam)
+    if (!(dwStyle & WS_MINIMIZE))
     {
-      if (wParam != SIZE_MAXIMIZED)
+      if (LOWORD(lParam) && HIWORD(lParam))
       {
-        GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+        if (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)
+          dwLastMainSizeType=(DWORD)wParam;
+
+        if (wParam != SIZE_MAXIMIZED)
+        {
+          GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+        }
+        SendMessage(hStatus, WM_SIZE, wParam, lParam);
+        UpdateSize();
+        return TRUE;
       }
-      SendMessage(hStatus, WM_SIZE, wParam, lParam);
-      UpdateSize();
-      return TRUE;
     }
   }
   else if (uMsg == WM_DROPFILES)
