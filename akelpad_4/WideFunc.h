@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.0                    *
+ *                  Wide functions header v2.1                    *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -44,6 +44,9 @@ void WideNotInitialized();
 char* AllocAnsi(const wchar_t *wpWideStr);
 char* AllocAnsiLen(const wchar_t *wpWideStr, int nWideStrLen);
 void FreeAnsi(char *pAnsiBuf);
+wchar_t* AllocWide(const char *pAnsiStr);
+wchar_t* AllocWideLen(const char *pAnsiStr, int nAnsiStrLen);
+void FreeWide(wchar_t *pWideBuf);
 int WideToAnsi(const wchar_t *wpWideStr, int nWideStrLen, char *szAnsiBuf, int nAnsiBufMax);
 int AnsiToWide(const char *pAnsiStr, int nAnsiStrLen, wchar_t *wszWideBuf, int nWideBufMax);
 LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
@@ -3381,6 +3384,37 @@ void FreeAnsi(char *pAnsiBuf)
 {
   if (pAnsiBuf)
     GlobalFree((HGLOBAL)pAnsiBuf);
+}
+
+wchar_t* AllocWide(const char *pAnsiStr)
+{
+  return AllocWideLen(pAnsiStr, -1);
+}
+
+wchar_t* AllocWideLen(const char *pAnsiStr, int nAnsiStrLen)
+{
+  wchar_t *wszWideStr;
+  int nWideChars;
+
+  if (pAnsiStr)
+  {
+    if (nWideChars=MultiByteToWideChar(CP_ACP, 0, pAnsiStr, nAnsiStrLen, NULL, 0))
+    {
+      if (wszWideStr=(wchar_t *)GlobalAlloc(GMEM_FIXED, nWideChars * sizeof(wchar_t)))
+      {
+        if (nWideChars=MultiByteToWideChar(CP_ACP, 0, pAnsiStr, nAnsiStrLen, wszWideStr, nWideChars))
+          wszWideStr[nWideChars - 1]=L'\0';
+        return wszWideStr;
+      }
+    }
+  }
+  return NULL;
+}
+
+void FreeWide(wchar_t *pWideBuf)
+{
+  if (pWideBuf)
+    GlobalFree((HGLOBAL)pWideBuf);
 }
 
 int WideToAnsi(const wchar_t *wpWideStr, int nWideStrLen, char *szAnsiBuf, int nAnsiBufMax)
