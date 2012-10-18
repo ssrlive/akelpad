@@ -1845,7 +1845,7 @@ int PatStructExec(PATEXEC *pe)
           if (*pe->wpStr == L'\r' || *pe->wpStr == L'\n')
           {
             wpLineStart=pe->wpStr;
-            wpLineStart+=PatStrChar(wpLineStart, pe->wpMaxStr, &nStrChar);
+            wpLineStart+=PatStrChar(wpLineStart, pe->wpMaxStr, &nStrChar) + 1;
 
             if (wpLineStart < pe->wpMaxStr)
             {
