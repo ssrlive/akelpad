@@ -1109,6 +1109,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone1=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone1=(AEHDOC)SendMessage(lpFrame->ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone1, AEM_SETERASERECT, 0, (LPARAM)NULL);
       SendMessage(lpFrame->ei.hWndClone1, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDocClone1);
@@ -1141,6 +1142,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone2=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone2=(AEHDOC)SendMessage(lpFrame->ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone2, AEM_SETERASERECT, 0, (LPARAM)NULL);
       SendMessage(lpFrame->ei.hWndClone2, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDocClone2);
@@ -1173,6 +1175,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hWndClone3=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
         lpFrame->ei.hDocClone3=(AEHDOC)SendMessage(lpFrame->ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
       }
+      SendMessage(lpFrame->ei.hWndClone3, AEM_SETERASERECT, 0, (LPARAM)NULL);
       SendMessage(lpFrame->ei.hWndClone3, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&lpFrame->rcEditMargins);
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
