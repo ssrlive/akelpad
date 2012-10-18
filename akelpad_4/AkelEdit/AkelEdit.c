@@ -5555,7 +5555,7 @@ void AE_StackCloneDelete(AECLONE *aec)
     //aeClone->rcDraw.bottom=aeClone->rcEdit.bottom - aeClone->rcCloneMargins.bottom;
 
     //Reset selection info
-    xmemset(&aeClone->liFirstDrawLine, 0, (BYTE *)&aeClone->hDC - (BYTE *)&aeClone->liFirstDrawLine);
+    xmemset(&aeClone->liFirstDrawLine, 0, (BYTE *)&aeClone->lpEditProc - (BYTE *)&aeClone->liFirstDrawLine);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelStartIndex);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelEndIndex);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciCaretIndex);
