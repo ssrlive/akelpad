@@ -8,6 +8,8 @@ Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserForma
 Fixed: variables of manual parameter "StatusUserFormat" didn't updated when switching between
        tabs (MDI/PMDI).
 Fixed: switching focus when IME window active.
+Fixed: error when splitting window.
+Fixed: restore main window from minimized state cause split window resizing.
 
 
 AkelPad 4.7.9 (Sep 09, 2012)
