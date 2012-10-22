@@ -10,6 +10,8 @@ Fixed: variables of manual parameter "StatusUserFormat" didn't updated when swit
 Fixed: switching focus when IME window active.
 Fixed: error when splitting window.
 Fixed: restore main window from minimized state cause split window resizing (SDI/PMDI).
+Fixed: active line border on alternating line painting.
+Fixed: print preview when using background for printing.
 
 
 AkelPad 4.7.9 (Sep 09, 2012)

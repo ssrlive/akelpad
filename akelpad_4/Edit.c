@@ -6430,6 +6430,7 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   const wchar_t *wpFile;
   HBRUSH hbrBasicBk;
   DWORD dwAlign;
+  COLORREF crTextOld=(DWORD)-1;
   int nBkModeOld=0;
   int nCenter=0;
   int nLeft=0;
@@ -6540,6 +6541,11 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   if (nRight < MAX_PATH)
     wszRight[nRight]='\0';
 
+  if (moCur.dwPrintColor & PRNC_TEXT)
+  {
+    crTextOld=GetTextColor(hDC);
+    SetTextColor(hDC, lpFrameCurrent->aec.crBasicText);
+  }
   if (moCur.dwPrintColor & PRNC_BACKGROUND)
   {
     if (hbrBasicBk=CreateSolidBrush(lpFrameCurrent->aec.crBasicBk))
@@ -6567,7 +6573,10 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
     bResult=ExtTextOutW(hDC, rc->right, rc->top, ETO_CLIPPED, rc, wszRight, nRight, NULL);
   }
   SetTextAlign(hDC, dwAlign);
-  if (nBkModeOld) SetBkMode(hDC, nBkModeOld);
+  if (moCur.dwPrintColor & PRNC_TEXT)
+    SetTextColor(hDC, crTextOld);
+  if (moCur.dwPrintColor & PRNC_BACKGROUND)
+    SetBkMode(hDC, nBkModeOld);
 
   return bResult;
 }
