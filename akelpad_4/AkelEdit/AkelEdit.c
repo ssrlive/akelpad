@@ -12528,7 +12528,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     if (prn->dwFlags & AEPRN_COLOREDBACKGROUND)
     {
-      AE_FillRect(ae, ph->aePrint.hDC, &prn->rcPageIn, ae->popt->hbrBasicBk);
+      FillRect(to.hDC, &prn->rcPageIn, ae->popt->hbrBasicBk);
     }
   }
 
@@ -12669,7 +12669,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
           {
             if (hbrTab=CreateSolidBrush(hlp.dwActiveBk))
             {
-              AE_FillRect(ae, to.hDC, &rcSpace, hbrTab);
+              FillRect(to.hDC, &rcSpace, hbrTab);
               DeleteObject(hbrTab);
             }
           }
@@ -12763,7 +12763,7 @@ void AE_FillRect(AKELEDIT *ae, HDC hDC, const RECT *lpRect, HBRUSH hbr)
   rcFill.right=min(lpRect->right, ae->rcErase.right);
   rcFill.bottom=min(lpRect->bottom, ae->rcErase.bottom);
 
-  if (ae->popt->lpBkImage && !ae->bPrinting)
+  if (ae->popt->lpBkImage)
   {
     //Bitmap as background
     BLENDFUNCTION bf;
@@ -13038,14 +13038,17 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
               hlp.dwDefaultText=ae->popt->crActiveLineTextWithAltText;
               hlp.dwDefaultBk=ae->popt->crActiveLineBkWithAltBk;
               hbrDefaultBk=hbrActiveLineBkWithAltBk;
-              if (hbrBorderTop)
-                hbrBorderTop=hbrActiveLineBorderWithAltBorder;
-              else
-                hbrBorderTop=hbrActiveLineBorderWithAltBk;
-              if (hbrBorderBottom)
-                hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
-              else
-                hbrBorderBottom=hbrActiveLineBorderWithAltBk;
+              if (ae->popt->dwOptions & AECO_ACTIVELINEBORDER)
+              {
+                if (hbrBorderTop)
+                  hbrBorderTop=hbrActiveLineBorderWithAltBorder;
+                else
+                  hbrBorderTop=hbrActiveLineBorderWithAltBk;
+                if (hbrBorderBottom)
+                  hbrBorderBottom=hbrActiveLineBorderWithAltBorder;
+                else
+                  hbrBorderBottom=hbrActiveLineBorderWithAltBk;
+              }
             }
             else
             {
