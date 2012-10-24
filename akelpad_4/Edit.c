@@ -16622,6 +16622,31 @@ void StackRecentCaretFree(STACKRECENTCARET *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
+void RecentCaretSet(AENSELCHANGE *aensc)
+{
+  if (!bRecentCaretMsg)
+  {
+    if ((aensc->dwType & AESCT_SETSELMESSAGE) ||
+        (!(aensc->dwType & AESCT_MOUSECAPTURE) &&
+         ((aensc->dwType & AESCT_MOUSESINGLECLK) ||
+          //(aensc->dwType & AESCT_MOUSEDOUBLECLK) ||
+          //(aensc->dwType & AESCT_MOUSETRIPLECLK) ||
+          (aensc->dwType & AESCT_MOUSELEFTMARGIN))))
+    {
+      if (!lpFrameCurrent->hRecentCaretStack.last || lpFrameCurrent->hRecentCaretStack.last->nCaretOffset != aensc->crRichSel.cpMin)
+      {
+        RECENTCARETITEM *lpRecentCaret;
+
+        if (lpRecentCaret=StackRecentCaretInsert(&lpFrameCurrent->hRecentCaretStack))
+        {
+          lpRecentCaret->nCaretOffset=aensc->crRichSel.cpMin;
+        }
+      }
+      lpFrameCurrent->lpCurRecentCaret=NULL;
+    }
+  }
+}
+
 
 //// Status bar
 
