@@ -961,6 +961,17 @@ typedef struct {
   DWORD dwFlags;         //See SD_* defines.
 } SAVEDOCUMENTW;
 
+typedef struct _RECENTCARETITEM {
+  struct _RECENTCARETITEM *next;
+  struct _RECENTCARETITEM *prev;
+  INT_PTR nCaretOffset;
+} RECENTCARETITEM;
+
+typedef struct {
+  RECENTCARETITEM *first;
+  RECENTCARETITEM *last;
+} STACKRECENTCARET;
+
 typedef struct {
   HWND hWndEdit;           //Edit window.
   AEHDOC hDocEdit;         //Edit document.
@@ -1044,6 +1055,8 @@ typedef struct _FRAMEDATA {
   DWORD dwLockInherit;                                //See LI_* defines.
   int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
   INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
+  STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
+  RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
 
   //Substract selection
   AECHARRANGE crPrevSel;
@@ -1462,7 +1475,7 @@ typedef struct {
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_FILE_SAVEALLAS              4111  //Save all as dialog.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - "OK" pressed, FALSE - "Cancel" pressed.
                                               //
 #define IDM_FILE_SILENTPRINT            4113  //Print without dialog. lParam can be used to pass edit window handle.
                                               //Return Value: number of printed pages.
@@ -1638,8 +1651,14 @@ typedef struct {
 #define IDM_EDIT_DELLINE                4197  //Delete current line.
                                               //Return Value: zero.
                                               //
-#define IDM_EDIT_SELJUMPCARET           4199  //Move caret on the contrary side of selection.
+#define IDM_EDIT_SELJUMPCARET           4198  //Move caret on the contrary side of selection.
                                               //Return Value: TRUE - jump to selection beginning, FALSE - jump to selection ending.
+                                              //
+#define IDM_EDIT_RECENTCARETPREV        4199  //Move caret to the previous position.
+                                              //Return Value: zero.
+                                              //
+#define IDM_EDIT_RECENTCARETNEXT        4200  //Move caret to the next position.
+                                              //Return Value: zero.
                                               //
 #define IDM_VIEW_FONT                   4201  //Font dialog.
                                               //Return Value: TRUE - success, FALSE - failed.

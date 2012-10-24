@@ -1,6 +1,11 @@
 
 AkelPad 4.8.0 ()
 ----------------------------
+Changed: command that moves caret to opposite end of selection now has code 4198.
+
+Added: command 4199 - move caret to previous location.
+Added: command 4200 - move caret to next location.
+
 Fixed: file opening in DBCS codepage (WinVista/7).
 Fixed: ^, $, \b, \s metacharacters processing in regular expressions.
 Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserFormat" didn't

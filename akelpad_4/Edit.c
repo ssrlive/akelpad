@@ -255,6 +255,7 @@ extern AECHARRANGE crCurSel;
 extern AECHARINDEX ciCurCaret;
 extern int nLoopCase;
 extern DWORD dwWordBreakDefault;
+extern BOOL bRecentCaretMsg;
 extern BOOL bReopenMsg;
 extern BOOL bLockWatchFile;
 extern WNDPROC lpOldEditProc;
@@ -478,7 +479,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   }
   if (lpFrame->bShowURL)
   {
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETDETECTURL, lpFrame->bShowURL, 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_DETECTURL);
 
     if (lpFrame->bUrlPrefixesEnable)
       SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
@@ -714,6 +715,11 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->ft.dwLowDateTime=0;
   lpFrameTarget->ft.dwHighDateTime=0;
   lpFrameTarget->dwInputLocale=(HKL)(UINT_PTR)-1;
+  lpFrameTarget->nStreamOffset=0;
+  lpFrameTarget->nCompileErrorOffset=0;
+  lpFrameTarget->hRecentCaretStack.first=0;
+  lpFrameTarget->hRecentCaretStack.last=0;
+  lpFrameTarget->lpCurRecentCaret=NULL;
 }
 
 void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
@@ -1692,9 +1698,9 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   return FALSE;
 }
 
-void DoFileSaveAllAs()
+BOOL DoFileSaveAllAs()
 {
-  API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
+  return (BOOL)API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
 }
 
 BOOL DoFilePageSetup(HWND hWndOwner)
@@ -2481,9 +2487,9 @@ BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont)
   return TRUE;
 }
 
-void DoViewColors()
+BOOL DoViewColors()
 {
-  API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_COLORS), hMainWnd, (DLGPROC)ColorsDlgProc);
+  return (BOOL)API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_COLORS), hMainWnd, (DLGPROC)ColorsDlgProc);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
@@ -4630,8 +4636,11 @@ void FileStreamIn(FILESTREAMDATA *lpData)
     lpData->dwBytesMax=GetFileSize64(lpData->hFile);
   SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
-  GetCPInfo(lpData->nCodePage, &cpi);
-  lpData->dwMaxCharSize=cpi.MaxCharSize;
+  if (!IsCodePageUnicode(lpData->nCodePage))
+  {
+    GetCPInfo(lpData->nCodePage, &cpi);
+    lpData->dwMaxCharSize=cpi.MaxCharSize;
+  }
 
   aesi.dwCookie=(UINT_PTR)lpData;
   aesi.lpCallback=InputStreamCallback;
@@ -5655,7 +5664,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       else if (SendMessage(hWndNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nNewLine=NEWLINE_MAC;
 
-      EndDialog(hDlg, 0);
+      EndDialog(hDlg, 1);
 
       //Save documents
       if (lpFrameCurrent->hWndEditParent || !nMDI)
@@ -10391,6 +10400,18 @@ void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret)
   SendMessage(hWnd, AEM_SETSEL, (WPARAM)ciCaret, (LPARAM)&aes);
 }
 
+void SetSelRE(HWND hWnd, INT_PTR nSelStart, INT_PTR nSelEnd)
+{
+  int nLockScroll;
+
+  if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+  SendMessage(hWnd, EM_SETSEL, nSelStart, nSelEnd);
+  if (nLockScroll == -1)
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+  ScrollCaret(hWnd);
+}
+
 void ReplaceSelA(HWND hWnd, const char *pData, INT_PTR nDataLen, DWORD dwFlags, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AEREPLACESELA rs;
@@ -10930,14 +10951,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
     }
     else if (dwGotoType & GT_OFFSETCHAR)
     {
-      int nLockScroll;
-
-      if ((nLockScroll=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-      SendMessage(lpFrameCurrent->ei.hWndEdit, EM_SETSEL, nFirst, nFirst);
-      if (nLockScroll == -1)
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
-      ScrollCaret(lpFrameCurrent->ei.hWndEdit);
+      SetSelRE(lpFrameCurrent->ei.hWndEdit, nFirst, nFirst);
       return TRUE;
     }
 
@@ -12362,7 +12376,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       SaveThemes(moCur.nSaveSettings);
-      EndDialog(hDlg, 0);
+      EndDialog(hDlg, 1);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDCANCEL)
@@ -13548,7 +13562,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StackPluginCleanUp(&hPluginsStack, bListChanged?TRUE:FALSE);
         if (bListChanged) StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
 
-        EndDialog(hDlg, 0);
+        EndDialog(hDlg, 2);
         if (pcp) PostMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)pcp);
       }
     }
@@ -13558,7 +13572,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       StackPluginCleanUp(&hPluginsStack, TRUE);
       StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
 
-      EndDialog(hDlg, 0);
+      EndDialog(hDlg, 1);
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
@@ -14233,7 +14247,7 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
       FillComboboxCodepage(hWndDefaultCP, lpCodepageList);
       if (SelectComboboxCodepage(hWndDefaultCP, moCur.nDefaultCodePage) == CB_ERR)
         SendMessage(hWndDefaultCP, CB_SETCURSEL, 0, 0);
-      EndDialog(hDlg, 0);
+      EndDialog(hDlg, 1);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDCANCEL)
@@ -15403,7 +15417,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             SelectTabItem(hTab, nItem);
         FreeListBoxSelItems(&lpSelItems);
       }
-      EndDialog(hDlg, 0);
+      EndDialog(hDlg, 1);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDCANCEL)
@@ -16593,6 +16607,22 @@ void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd)
 }
 
 
+//// Recent caret
+
+RECENTCARETITEM* StackRecentCaretInsert(STACKRECENTCARET *hStack)
+{
+  RECENTCARETITEM *lpElement=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(RECENTCARETITEM));
+  return lpElement;
+}
+
+void StackRecentCaretFree(STACKRECENTCARET *hStack)
+{
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+
 //// Status bar
 
 void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci)
@@ -16720,7 +16750,7 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bOvertypeMode=bState;
 
   //Set overtype mode
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, TRUE);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, bState?AECOOP_OR:AECOOP_XOR, AECOE_OVERTYPE);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
@@ -18724,7 +18754,7 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     if (lpFrame->bShowURL != (BOOL)dwData)
     {
       lpFrame->bShowURL=(BOOL)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETDETECTURL, lpFrame->bShowURL, 0);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, lpFrame->bShowURL?AECOOP_OR:AECOOP_XOR, AECOE_DETECTURL);
       return TRUE;
     }
   }
