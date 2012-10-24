@@ -4948,13 +4948,17 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        if (lpFrameCurrent->ei.hDocEdit == aensc->hdr.docFrom)
+        if (!nMainOnFinish)
         {
-          if (lpFrameCurrent->nSelSubtract)
+          if (lpFrameCurrent->ei.hDocEdit == aensc->hdr.docFrom)
           {
-            if (xmemcmp(&aensc->aes.crSel, &lpFrameCurrent->crPrevSel, sizeof(AECHARRANGE)))
-              lpFrameCurrent->nSelSubtract=0;
+            if (lpFrameCurrent->nSelSubtract)
+            {
+              if (xmemcmp(&aensc->aes.crSel, &lpFrameCurrent->crPrevSel, sizeof(AECHARRANGE)))
+                lpFrameCurrent->nSelSubtract=0;
+            }
           }
+          RecentCaretSet(aensc);
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
@@ -4970,28 +4974,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
               SwitchLayout(aensc->hdr.hwndFrom, &aensc->ciCaret);
           }
-
-          if ((aensc->dwType & AESCT_SETSELMESSAGE) ||
-              (!(aensc->dwType & AESCT_MOUSECAPTURE) &&
-               ((aensc->dwType & AESCT_MOUSESINGLECLK) ||
-                //(aensc->dwType & AESCT_MOUSEDOUBLECLK) ||
-                //(aensc->dwType & AESCT_MOUSETRIPLECLK) ||
-                (aensc->dwType & AESCT_MOUSELEFTMARGIN))))
-          {
-            if (!bRecentCaretMsg)
-            {
-              RECENTCARETITEM *lpRecentCaret;
-
-              if (!lpFrameCurrent->hRecentCaretStack.last || lpFrameCurrent->hRecentCaretStack.last->nCaretOffset != aensc->crRichSel.cpMin)
-              {
-                if (lpRecentCaret=StackRecentCaretInsert(&lpFrameCurrent->hRecentCaretStack))
-                {
-                  lpRecentCaret->nCaretOffset=aensc->crRichSel.cpMin;
-                }
-              }
-              lpFrameCurrent->lpCurRecentCaret=NULL;
-            }
-          }
+          RecentCaretSet(aensc);
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
