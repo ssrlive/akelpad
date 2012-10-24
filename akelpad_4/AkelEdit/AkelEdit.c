@@ -1367,30 +1367,30 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_SetColors(ae, (AECOLORS *)lParam, TRUE);
       return 0;
     }
-    if (uMsg == AEM_GETDETECTURL)
+    if (uMsg == AEM_EXGETOPTIONS)
     {
-      return ae->popt->bDetectUrl;
+      return ae->popt->dwOptionsEx;
     }
-    if (uMsg == AEM_SETDETECTURL)
+    if (uMsg == AEM_EXSETOPTIONS)
     {
-      ae->popt->bDetectUrl=(BOOL)wParam;
-      InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
-      AE_StackCloneUpdate(ae);
-      return 0;
-    }
-    if (uMsg == AEM_GETOVERTYPE)
-    {
-      return ae->popt->bOverType;
-    }
-    if (uMsg == AEM_SETOVERTYPE)
-    {
-      if (ae->popt->bOverType != (int)wParam)
+      DWORD dwOptionsExOld=ae->popt->dwOptionsEx;
+      DWORD dwOptionsExNew=ae->popt->dwOptionsEx;
+
+      if (wParam == AECOOP_SET)
+        dwOptionsExNew=(DWORD)lParam;
+      else if (wParam == AECOOP_OR)
+        dwOptionsExNew|=(DWORD)lParam;
+      else if (wParam == AECOOP_AND)
+        dwOptionsExNew&=(DWORD)lParam;
+      else if (wParam == AECOOP_XOR)
+        dwOptionsExNew&=~(DWORD)lParam;
+      ae->popt->dwOptionsEx=dwOptionsExNew;
+
+      if (!(dwOptionsExOld & AECOE_OVERTYPE) != !(dwOptionsExNew & AECOE_OVERTYPE))
       {
-        ae->popt->bOverType=(BOOL)wParam;
-        if (lParam)
-          AE_UpdateCaret(ae, ae->bFocus);
+        AE_UpdateCaret(ae, ae->bFocus);
       }
-      return 0;
+      return ae->popt->dwOptionsEx;
     }
     if (uMsg == AEM_GETCARETWIDTH)
     {
@@ -3445,13 +3445,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_GETAUTOURLDETECT)
   {
-    return ae->popt->bDetectUrl;
+    if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
+      return TRUE;
+    return FALSE;
   }
   if (uMsg == EM_AUTOURLDETECT)
   {
-    ae->popt->bDetectUrl=(BOOL)wParam;
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
-    AE_StackCloneUpdate(ae);
+    if (!wParam != !(ae->popt->dwOptionsEx & AECOE_DETECTURL))
+    {
+      if (wParam)
+        ae->popt->dwOptionsEx|=AECOE_DETECTURL;
+      else
+        ae->popt->dwOptionsEx&=~AECOE_DETECTURL;
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+      AE_StackCloneUpdate(ae);
+    }
     return 0;
   }
 
@@ -9858,7 +9866,7 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
 
 DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRANGE *crLink)
 {
-  if (ae->popt->bDetectUrl)
+  if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
   {
     AECHARINDEX ciCharIndex;
     POINT ptClient;
@@ -11525,7 +11533,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       DestroyCaret();
     }
 
-    if (!ae->popt->bOverType)
+    if (!(ae->popt->dwOptionsEx & AECOE_OVERTYPE))
     {
       nCaretWidth=ae->popt->nCaretInsertWidth;
       nCaretHeight=ae->ptxt->nCharHeight;
@@ -11547,7 +11555,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
         bi=AE_StackBitmapItemInsert(&hAkelEditBitmapDataStack, &bd);
       hCaretBitmap=bi->hBitmap;
 
-      if (!ae->popt->bOverType)
+      if (!(ae->popt->dwOptionsEx & AECOE_OVERTYPE))
         ae->popt->hCaretInsert=hCaretBitmap;
       else
         ae->popt->hCaretOvertype=hCaretBitmap;
@@ -11575,7 +11583,7 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT64 *ptCaret)
 
   if (!(ae->popt->dwLockUpdate & AELU_CARET))
   {
-    if (ae->popt->bOverType)
+    if (ae->popt->dwOptionsEx & AECOE_OVERTYPE)
       bResult=SetCaretPos(ptClient.x, ptClient.y + max(ae->ptxt->nCharHeight - ae->popt->nCaretOvertypeHeight, 0));
     else
       bResult=SetCaretPos(ptClient.x, ptClient.y);
@@ -13510,7 +13518,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       hlp->dwFontStyle=AEHLS_NONE;
     }
   }
-  if (ae->popt->bDetectUrl)
+  if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
   {
     //Url find
     if (AEC_IndexCompare(&hlp->crLink.ciMax, &to->ciDrawLine) <= 0)
@@ -13983,7 +13991,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       }
     }
   }
-  if (ae->popt->bDetectUrl)
+  if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
   {
     if (hlp->crLink.ciMin.lpLine && hlp->crLink.ciMax.lpLine)
     {
@@ -14206,7 +14214,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
       hlp->fm.lpFold=NULL;
     }
   }
-  if (ae->popt->bDetectUrl)
+  if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
   {
     if (hlp->crLink.ciMin.lpLine && hlp->crLink.ciMax.lpLine)
     {
@@ -18995,7 +19003,10 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     {
       if (!bControl && !bShift)
       {
-        ae->popt->bOverType=!ae->popt->bOverType;
+        if (ae->popt->dwOptionsEx & AECOE_OVERTYPE)
+          ae->popt->dwOptionsEx&=~AECOE_OVERTYPE;
+        else
+          ae->popt->dwOptionsEx|=AECOE_OVERTYPE;
         AE_UpdateCaret(ae, ae->bFocus);
       }
       else
@@ -19833,7 +19844,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)
     char chChar=(char)(WORD)wParam;
     wchar_t wchChar;
 
-    if (ae->popt->bOverType)
+    if (ae->popt->dwOptionsEx & AECOE_OVERTYPE)
     {
       if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
       {
@@ -19868,7 +19879,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)
   {
     wchar_t wchChar=(wchar_t)(WORD)wParam;
 
-    if (ae->popt->bOverType)
+    if (ae->popt->dwOptionsEx & AECOE_OVERTYPE)
     {
       if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
       {
@@ -20780,6 +20791,8 @@ void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType)
     sc.hdr.code=AEN_SELCHANGING;
     sc.hdr.docFrom=(AEHDOC)ae;
     sc.dwType=dwType;
+    sc.crRichSel.cpMin=ae->nSelStartCharOffset;
+    sc.crRichSel.cpMax=ae->nSelEndCharOffset;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
@@ -20797,6 +20810,8 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.hdr.code=AEN_SELCHANGED;
     sc.hdr.docFrom=(AEHDOC)ae;
     sc.dwType=ae->dwNotifySelChange;
+    sc.crRichSel.cpMin=ae->nSelStartCharOffset;
+    sc.crRichSel.cpMax=ae->nSelEndCharOffset;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
@@ -20844,6 +20859,8 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
     tc.hdr.code=AEN_TEXTCHANGING;
     tc.hdr.docFrom=(AEHDOC)ae;
     tc.dwType=ae->dwNotifyTextChange;
+    tc.crRichSel.cpMin=ae->nSelStartCharOffset;
+    tc.crRichSel.cpMax=ae->nSelEndCharOffset;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
@@ -20863,6 +20880,8 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
     tc.hdr.code=AEN_TEXTCHANGED;
     tc.hdr.docFrom=(AEHDOC)ae;
     tc.dwType=ae->dwNotifyTextChange;
+    tc.crRichSel.cpMin=ae->nSelStartCharOffset;
+    tc.crRichSel.cpMax=ae->nSelEndCharOffset;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }

@@ -520,6 +520,7 @@ typedef struct {
   DWORD dwEventMask;
   DWORD dwRichEventMask;
   DWORD dwOptions;
+  DWORD dwOptionsEx;
   int nInputNewLine;
   int nOutputNewLine;
   int nVScrollLock;
@@ -541,7 +542,6 @@ typedef struct {
   HBITMAP hCaretOvertype;
   int nCaretInsertWidth;
   int nCaretOvertypeHeight;
-  BOOL bOverType;
   HPEN hActiveColumnPen;
   HPEN hColumnMarkerPen;
   DWORD dwColumnMarkerType;
@@ -556,7 +556,6 @@ typedef struct {
   wchar_t wszUrlPrefixes[AEMAX_DELIMLENGTH];
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
-  BOOL bDetectUrl;
   AETHEMEITEMW *lpActiveTheme;
   DWORD dwHLOptions;
 } AKELOPTIONS;

@@ -217,6 +217,10 @@
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
+//AEM_EXSETOPTIONS flags
+#define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
+#define AECOE_OVERTYPE                0x00000002  //Turn on overtype mode instead of insert mode.
+
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
 #define AECOOP_AND              3  //Retains only those current options that are also specified by lParam.
@@ -1317,16 +1321,18 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;      //Current selection.
-  AECHARINDEX ciCaret;  //Caret character index position.
-  DWORD dwType;         //See AESCT_* defines.
+  AESELECTION aes;       //Current selection.
+  AECHARINDEX ciCaret;   //Caret character index position.
+  DWORD dwType;          //See AESCT_* defines.
+  CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENSELCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;      //Current selection.
-  AECHARINDEX ciCaret;  //Caret character index position.
-  DWORD dwType;         //See AETCT_* defines.
+  AESELECTION aes;       //Current selection.
+  AECHARINDEX ciCaret;   //Caret character index position.
+  DWORD dwType;          //See AETCT_* defines.
+  CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENTEXTCHANGE;
 
 typedef struct {
@@ -1562,10 +1568,8 @@ typedef struct {
 #define AEM_SETNEWLINE            (WM_USER + 2206)
 #define AEM_GETCOLORS             (WM_USER + 2207)
 #define AEM_SETCOLORS             (WM_USER + 2208)
-#define AEM_GETDETECTURL          (WM_USER + 2209)
-#define AEM_SETDETECTURL          (WM_USER + 2210)
-#define AEM_GETOVERTYPE           (WM_USER + 2211)
-#define AEM_SETOVERTYPE           (WM_USER + 2212)
+#define AEM_EXGETOPTIONS          (WM_USER + 2209)
+#define AEM_EXSETOPTIONS          (WM_USER + 2210)
 #define AEM_GETCARETWIDTH         (WM_USER + 2213)
 #define AEM_SETCARETWIDTH         (WM_USER + 2214)
 #define AEM_GETTABSTOP            (WM_USER + 2215)
@@ -4271,69 +4275,34 @@ Example:
  SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aec);
 
 
-AEM_GETDETECTURL
+AEM_EXGETOPTIONS
 ________________
 
-Retrieve whether the URL detection is turned on.
+Retrieve edit control extended options.
 
 wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   URL detection is on.
- FALSE  URL detection is off.
+ Combination of the current extended option flag values. See AECOE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
+ SendMessage(hWndEdit, AEM_EXGETOPTIONS, 0, 0);
 
 
-AEM_SETDETECTURL
+AEM_EXSETOPTIONS
 ________________
 
-Enables or disables detection and highlighting of URLs by an edit control.
+Set the options for an edit control.
 
-(BOOL)wParam == TRUE   enable URL detection.
-                FALSE  disable URL detection.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
-
-
-AEM_GETOVERTYPE
-_______________
-
-Retrieve type mode.
-
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AECOE_* defines.
 
 Return Value
- TRUE   control is in overtype mode.
- FALSE  control is in insert mode.
+ Current extended options of edit control.
 
 Example:
- SendMessage(hWndEdit, AEM_GETOVERTYPE, 0, 0);
-
-
-AEM_SETOVERTYPE
-_______________
-
-Set type mode.
-
-(BOOL)wParam == TRUE   sets overtype mode.
-                FALSE  sets insert mode.
-(BOOL)lParam == TRUE  update caret.
-                FALSE don't update caret.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, TRUE);
+ SendMessage(hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_DETECTURL|AECOE_OVERTYPE);
 
 
 AEM_GETCARETWIDTH

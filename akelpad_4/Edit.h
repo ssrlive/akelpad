@@ -624,6 +624,15 @@ typedef struct {
   int nElements;
 } STACKSTATUSPART;
 
+typedef struct {
+  BOOL bModified;
+  BOOL bReadOnly;
+  BOOL bOvertypeMode;
+  int nNewLine;
+  int nCodePage;
+  BOOL bBOM;
+} STATUSSTATE;
+
 typedef struct _ASSOCICON {
   struct _ASSOCICON *next;
   struct _ASSOCICON *prev;
@@ -690,15 +699,6 @@ typedef struct {
   PARSECMDLINESENDW pcls;
 } PMPARSECMDLINEW;
 
-typedef struct {
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bOvertypeMode;
-  int nNewLine;
-  int nCodePage;
-  BOOL bBOM;
-} STATUSSTATE;
-
 
 //// Functions prototype
 
@@ -731,7 +731,7 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSave();
 BOOL SaveChanged(DWORD dwPrompt);
 BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM);
-void DoFileSaveAllAs();
+BOOL DoFileSaveAllAs();
 BOOL DoFilePageSetup(HWND hWndOwner);
 int DoFilePrint(FRAMEDATA *lpFrame, BOOL bSilent);
 void DoFilePreview(HWND hWnd);
@@ -755,7 +755,7 @@ INT_PTR DoEditFindNextUp(FRAMEDATA *lpFrame);
 void DoEditReplace();
 void DoEditGoTo();
 BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont);
-void DoViewColors();
+BOOL DoViewColors();
 void DoViewFontSize(FRAMEDATA *lpFrame, int nAction);
 void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst);
 void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst);
@@ -894,6 +894,7 @@ void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);
+void SetSelRE(HWND hWnd, INT_PTR nSelStart, INT_PTR nSelEnd);
 void ReplaceSelA(HWND hWnd, const char *pData, INT_PTR nDataLen, DWORD dwFlags, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void ReplaceSelW(HWND hWnd, const wchar_t *wpData, INT_PTR nDataLen, int nNewLine, DWORD dwFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 INT_PTR IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel);
@@ -1048,6 +1049,9 @@ BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd);
 void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw);
 void StackButtonDrawFree(HSTACK *hStack);
 void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd);
+
+RECENTCARETITEM* StackRecentCaretInsert(STACKRECENTCARET *hStack);
+void StackRecentCaretFree(STACKRECENTCARET *hStack);
 
 void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
