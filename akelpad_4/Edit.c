@@ -9690,7 +9690,9 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   else return -1;
 
   FindIt:
-  ft.dwFlags=dwFlags;
+  //Leave only FRF_* flags that corresponds to AEFR_*.
+  ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
+  ft.dwFlags|=bCycleCheck?0:AEFR_REGEXPMINMATCH;
   ft.pText=wpFindIt;
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;

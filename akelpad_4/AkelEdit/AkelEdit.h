@@ -591,6 +591,7 @@
 #define AEFR_WHOLEWORD       0x00000002  //Same as FR_WHOLEWORD. If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //Same as FR_MATCHCASE. If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 #define AEFR_REGEXP          0x00080000  //Regular expression search.
+#define AEFR_REGEXPMINMATCH  0x00100000  //Allow zero length match at string edges. For example: "^" at the string beginning or "$" at the string ending.
 
 //AEM_SETWORDWRAP flags
 #define AEWW_NONE            0x00000000  //Turn off wrap.
