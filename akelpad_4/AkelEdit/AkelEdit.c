@@ -18581,17 +18581,12 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
       while (AE_PatExec(&hREGroupStack, hREGroupStack.first, &ciCount, &ciCountEnd))
       {
-        //*(ft->pText + ft->dwTextLen - 1) == L'$'
-        if (!AEC_IndexCompare(&ciCount, &hREGroupStack.first->ciStrEnd))
-        {
-          if (AEC_NextChar(&ciCount) && AEC_IndexCompare(&ciCount, &ciCountEnd) < 0)
-            if (!AE_PatExec(&hREGroupStack, hREGroupStack.first, &ciCount, &ciCountEnd))
-              break;
-        }
-
-        if (!(ft->dwFlags & AEFR_WHOLEWORD) ||
-            (AE_IsDelimiter(ae, &hREGroupStack.first->ciStrStart, AEDLM_WORD|AEDLM_PREVCHAR) &&
-             AE_IsDelimiter(ae, &hREGroupStack.first->ciStrEnd, AEDLM_WORD)))
+        if ((!(ft->dwFlags & AEFR_WHOLEWORD) ||
+             (AE_IsDelimiter(ae, &hREGroupStack.first->ciStrStart, AEDLM_WORD|AEDLM_PREVCHAR) &&
+              AE_IsDelimiter(ae, &hREGroupStack.first->ciStrEnd, AEDLM_WORD))) &&
+            (hREGroupStack.first->nStrLen || ((ft->dwFlags & AEFR_REGEXPMINMATCH) ||
+             ((ft->dwFlags & AEFR_DOWN) ? AEC_IndexCompare(&ft->crSearch.ciMin, &hREGroupStack.first->ciStrEnd) :
+                                          AEC_IndexCompare(&ft->crSearch.ciMax, &hREGroupStack.first->ciStrStart)))))
         {
           ft->crFound.ciMin=hREGroupStack.first->ciStrStart;
           ft->crFound.ciMax=hREGroupStack.first->ciStrEnd;
@@ -18602,6 +18597,9 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
         //Next match
         if (AEC_IndexCompare(&ciCount, &hREGroupStack.first->ciStrEnd) < 0)
           ciCount=hREGroupStack.first->ciStrEnd;
+        else if (!AEC_NextChar(&ciCount)) //ft->pText == "^" or "$"
+          break;
+
         if (AEC_IndexCompare(&ciCount, &ciCountEnd) >= 0)
           break;
       }
