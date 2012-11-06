@@ -973,7 +973,7 @@ typedef struct {
   int nNewLine;                 //[in]  See AELB_* defines.
   AECHARRANGE crSearch;         //[in]  Range of characters to search.
   AECHARRANGE crFound;          //[out] Range of characters in which text is found.
-  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Returning when AEFR_REGEXP is set.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
 } AEFINDTEXTA;
 
 typedef struct {
@@ -983,7 +983,7 @@ typedef struct {
   int nNewLine;                 //[in]  See AELB_* defines.
   AECHARRANGE crSearch;         //[in]  Range of characters to search.
   AECHARRANGE crFound;          //[out] Range of characters in which text is found.
-  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Returning when AEFR_REGEXP is set.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
 } AEFINDTEXTW;
 
 typedef struct {

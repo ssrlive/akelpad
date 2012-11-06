@@ -3002,7 +3002,10 @@ Finds text in a edit control.
 (TEXTFIND *)lParam == pointer to a TEXTFIND structure.
 
 Return Value
- Character position of the next match. If there are no more matches, the return value is –1.
+ Character position of the next match.
+ If there are no more matches, the return value is –1.
+ If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
+ For example, TEXTFINDW.pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
 
 Example (Unicode):
  TEXTFINDW tf;
@@ -3022,7 +3025,10 @@ Replaces text in a edit control.
 (TEXTREPLACE *)lParam == pointer to a TEXTREPLACE structure.
 
 Return Value
- Character position of the next match. If there are no more matches, the return value is –1.
+ Character position of the next match.
+ If there are no more matches, the return value is –1.
+ If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
+ For example, TEXTREPLACEW.pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
 
 Example (Unicode):
  TEXTREPLACEW tr;
