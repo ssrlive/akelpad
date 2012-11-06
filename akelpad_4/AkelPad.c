@@ -2050,6 +2050,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       TEXTFINDW *tf=(TEXTFINDW *)lParam;
       FRAMEDATA *lpFrame;
+      INT_PTR nResult=-1;
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
@@ -2057,7 +2058,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           wchar_t *wpFindIt;
           int nFindItLen;
-          INT_PTR nResult=-1;
 
           nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
           if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
@@ -2067,11 +2067,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             nResult=TextFindW(lpFrame, tf->dwFlags, wpFindIt, tf->nFindItLen);
             GlobalFree((HGLOBAL)wpFindIt);
           }
-          return nResult;
         }
-        return TextFindW(lpFrame, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+        else nResult=TextFindW(lpFrame, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+
+        if (nResult == -1)
+        {
+          if ((tf->dwFlags & FRF_REGEXP) && lpFrame->nCompileErrorOffset)
+          {
+            nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
+          }
+        }
       }
-      return -1;
+      return nResult;
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA ||
@@ -2079,6 +2086,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
       FRAMEDATA *lpFrame;
+      INT_PTR nResult=-1;
 
       if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
@@ -2088,7 +2096,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           wchar_t *wpReplaceWith;
           int nFindItLen;
           int nReplaceWithLen;
-          INT_PTR nResult=-1;
 
           nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
           if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
@@ -2105,11 +2112,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             GlobalFree((HGLOBAL)wpFindIt);
           }
-          return nResult;
         }
-        return TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+        else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+
+        if (nResult == -1)
+        {
+          if ((tr->dwFlags & FRF_REGEXP) && lpFrame->nCompileErrorOffset)
+          {
+            nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
+          }
+        }
       }
-      return -1;
+      return nResult;
     }
     if (uMsg == AKD_GOTO ||
         uMsg == AKD_GOTOA ||
