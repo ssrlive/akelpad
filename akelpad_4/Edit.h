@@ -478,31 +478,6 @@ typedef struct {
   int nElements;
 } STACKEXTPARAM;
 
-typedef struct _INIKEY {
-  struct _INIKEY *next;
-  struct _INIKEY *prev;
-  wchar_t *wszKey;
-  int nKeyBytes;
-  wchar_t *wszString;
-  int nStringBytes;
-} INIKEY;
-
-typedef struct _INISECTION {
-  struct _INISECTION *next;
-  struct _INISECTION *prev;
-  HANDLE hIniFile;
-  wchar_t *wszSection;
-  int nSectionBytes;
-  INIKEY *first;
-  INIKEY *last;
-} INISECTION;
-
-typedef struct {
-  INISECTION *first;
-  INISECTION *last;
-  BOOL bModified;
-} INIFILE;
-
 typedef struct _FILESTREAMDATA {
   HWND hWnd;
   HANDLE hFile;

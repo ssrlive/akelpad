@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 7)
 
 
 //// Defines
@@ -1178,6 +1178,31 @@ typedef struct {
   BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } INIVALUEW;
+
+typedef struct _INIKEY {
+  struct _INIKEY *next;
+  struct _INIKEY *prev;
+  wchar_t *wszKey;
+  int nKeyBytes;
+  wchar_t *wszString;
+  int nStringBytes;
+} INIKEY;
+
+typedef struct _INISECTION {
+  struct _INISECTION *next;
+  struct _INISECTION *prev;
+  HANDLE hIniFile;
+  wchar_t *wszSection;
+  int nSectionBytes;
+  INIKEY *first;
+  INIKEY *last;
+} INISECTION;
+
+typedef struct {
+  INISECTION *first;
+  INISECTION *last;
+  BOOL bModified;
+} INIFILE;
 
 typedef struct {
   INT_PTR cpMin;              //First character in the range. First char of text: 0.
@@ -4281,7 +4306,7 @@ Opens ini file.
 (const unsigned char *)lParam == ini file.
 
 Return Value
- HINIFILE.
+ HINIFILE. For direct access use pointer to INIFILE structure.
 
 Example read (bOldWindows == TRUE):
  INIVALUEA iv;
@@ -4361,7 +4386,7 @@ Retrieve ini section handle.
 (const unsigned char *)lParam == section name.
 
 Return Value
- HINISECTION.
+ HINISECTION. For direct access use pointer to INISECTION structure.
 
 Example (bOldWindows == TRUE):
  HINISECTION hIniSection;
@@ -4426,7 +4451,7 @@ Retrieve key handle.
 (const unsigned char *)lParam == key name.
 
 Return Value
- HINIKEY.
+ HINIKEY. For direct access use pointer to INIKEY structure.
 
 Example (bOldWindows == TRUE):
  HINISECTION hIniSection;
