@@ -16533,6 +16533,7 @@ void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex)
 
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame)
 {
+  StackRecentCaretFree(&lpFrame->hRecentCaretStack);
   if (lpFrame == lpFrameCurrent)
     lpFrameCurrent=&fdDefault;
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame);
