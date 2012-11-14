@@ -1831,34 +1831,13 @@ int PatStructExec(PATEXEC *pe)
 
   if (pe->wpStr)
   {
-    const wchar_t *wpLineStart;
+    const wchar_t *wpStrNext=pe->wpStr;
     int nStrChar;
 
-    while (pe->wpStr < pe->wpMaxStr)
+    while (wpStrNext <= pe->wpMaxStr)
     {
-      if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, pe->wpStr, pe->wpMaxStr))
-      {
-        //*(pe->wpMaxPat - 1) == L'$'
-        if ((pe->dwOptions & REPE_MULTILINE) && pe->wpStr == lpREGroupRoot->wpStrEnd)
-        {
-          //Is new line?
-          if (*pe->wpStr == L'\r' || *pe->wpStr == L'\n')
-          {
-            wpLineStart=pe->wpStr;
-            wpLineStart+=PatStrChar(wpLineStart, pe->wpMaxStr, &nStrChar) + 1;
-
-            if (wpLineStart < pe->wpMaxStr)
-            {
-              //Execute without new line
-              if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpLineStart, pe->wpMaxStr))
-                ++nMatchCount;
-            }
-            else bMatched=FALSE;
-          }
-          else bMatched=FALSE;
-        }
-        else ++nMatchCount;
-      }
+      if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
+        ++nMatchCount;
 
       if (pe->lpCallback)
       {
@@ -1870,47 +1849,29 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->wpStr=lpREGroupRoot->wpStrEnd;
-
+      wpStrNext=lpREGroupRoot->wpStrEnd;
+      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+        wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
       if (pe->dwOptions & REPE_MULTILINE)
       {
-        if (*(pe->wpStr - 1) == L'\r' || *(pe->wpStr - 1) == L'\n')
+        if (*(wpStrNext - 1) == L'\n' || *(wpStrNext - 1) == L'\r')
           pe->lpREGroupStack->dwOptions|=REO_STARTLINEBEGIN;
         else
           pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
       }
+
       PatReset(pe->lpREGroupStack);
     }
   }
   else
   {
     #ifdef __AKELEDIT_H__
-    AECHARINDEX ciLineStart;
+    AECHARINDEX ciStrNext=pe->ciStr;
 
-    while (AEC_IndexCompare(&pe->ciStr, &pe->ciMaxStr) < 0)
+    while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) <= 0)
     {
-      if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &pe->ciStr, &pe->ciMaxStr))
-      {
-        //*(pe->wpMaxPat - 1) == L'$'
-        if ((pe->dwOptions & REPE_MULTILINE) && !AEC_IndexCompare(&pe->ciStr, &lpREGroupRoot->ciStrEnd))
-        {
-          //Is new line?
-          if (AE_PatStrChar(&pe->ciStr) < 0)
-          {
-            ciLineStart=pe->ciStr;
-            AE_PatNextChar(&ciLineStart);
-
-            if (AEC_IndexCompare(&ciLineStart, &pe->ciMaxStr) < 0)
-            {
-              //Execute without new line
-              if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciLineStart, &pe->ciMaxStr))
-                ++nMatchCount;
-            }
-            else bMatched=FALSE;
-          }
-          else bMatched=FALSE;
-        }
-        else ++nMatchCount;
-      }
+      if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
+        ++nMatchCount;
 
       if (pe->lpCallback)
       {
@@ -1922,6 +1883,10 @@ int PatStructExec(PATEXEC *pe)
       if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
         break;
       pe->ciStr=lpREGroupRoot->ciStrEnd;
+      ciStrNext=lpREGroupRoot->ciStrEnd;
+      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+        AE_PatNextChar(&ciStrNext);
+
       AE_PatReset(pe->lpREGroupStack);
     }
     #endif
@@ -1954,12 +1919,18 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pe.lpREGroupStack=0;
   pe.wpPat=pr->wpPat;
   pe.wpMaxPat=pr->wpMaxPat;
-  pe.wpStr=pr->wpStr;
-  pe.wpMaxStr=pr->wpMaxStr;
-  #ifdef __AKELEDIT_H__
-    pe.ciStr=pr->ciStr;
-    pe.ciMaxStr=pr->ciMaxStr;
-  #endif
+  if (pr->wpStr)
+  {
+    pe.wpStr=pr->wpStr;
+    pe.wpMaxStr=pr->wpMaxStr;
+  }
+  else
+  {
+    #ifdef __AKELEDIT_H__
+      pe.ciStr=pr->ciStr;
+      pe.ciMaxStr=pr->ciMaxStr;
+    #endif
+  }
   pe.dwOptions=pr->dwOptions;
   pe.wpDelim=pr->wpDelim;
   pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;

@@ -9655,6 +9655,12 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   BOOL bCycleCheck=TRUE;
   BOOL bFound=FALSE;
 
+  //Leave only FRF_* flags that corresponds to AEFR_*.
+  ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
+  ft.pText=wpFindIt;
+  ft.dwTextLen=nFindItLen;
+  ft.nNewLine=AELB_R;
+
   if (dwFlags & FRF_SELECTION)
   {
     if (!(dwFlags & FRF_FINDFROMREPLACE))
@@ -9676,6 +9682,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+    ft.dwFlags|=AEFR_REGEXPMINMATCH;
   }
   else if (dwFlags & FRF_DOWN)
   {
@@ -9690,12 +9697,6 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   else return -1;
 
   FindIt:
-  //Leave only FRF_* flags that corresponds to AEFR_*.
-  ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
-  ft.dwFlags|=bCycleCheck?0:AEFR_REGEXPMINMATCH;
-  ft.pText=wpFindIt;
-  ft.dwTextLen=nFindItLen;
-  ft.nNewLine=AELB_R;
   bFound=(BOOL)SendMessage(lpFrame->ei.hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft);
   if (dwFlags & FRF_REGEXP) lpFrame->nCompileErrorOffset=ft.nCompileErrorOffset;
 
@@ -9736,6 +9737,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       }
       if (nAnswer == IDOK)
       {
+        ft.dwFlags|=AEFR_REGEXPMINMATCH;
         bCycleCheck=FALSE;
         goto FindIt;
       }
