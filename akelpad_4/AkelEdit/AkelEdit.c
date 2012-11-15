@@ -18600,7 +18600,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
         else if (!AEC_NextChar(&ciCount)) //ft->pText == "^" or "$"
           break;
 
-        if (AEC_IndexCompare(&ciCount, &ciCountEnd) >= 0)
+        if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
           break;
       }
       PatFree(&hREGroupStack);

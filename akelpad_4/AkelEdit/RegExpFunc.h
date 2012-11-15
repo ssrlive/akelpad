@@ -761,6 +761,17 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         goto EndLoop;
       }
+      if (*wpPat == L'^')
+      {
+        //REO_MULTILINE
+        if (((hStack->dwOptions & REO_STARTLINEBEGIN) && wpStr == hStack->first->wpStrStart) ||
+            (wpStr > hStack->first->wpStrStart && (*(wpStr - 1) == L'\n' || *(wpStr - 1) == L'\r')))
+        {
+          ++wpPat;
+          continue;
+        }
+        goto EndLoop;
+      }
       if (wpStr >= wpMaxStr)
       {
         if ((hStack->dwOptions & REO_ENDBOUNDARY) && wpPat + 2 == wpMaxPat && *wpPat == L'\\' && *(wpPat + 1) == L'b')
@@ -773,17 +784,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         ////Any character except new line
         //wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar);
         //if (nStrChar < 0) goto EndLoop;
-      }
-      else if (*wpPat == L'^')
-      {
-        //REO_MULTILINE
-        if (((hStack->dwOptions & REO_STARTLINEBEGIN) && wpStr == hStack->first->wpStrStart) ||
-            (wpStr > hStack->first->wpStrStart && (*(wpStr - 1) == L'\n' || *(wpStr - 1) == L'\r')))
-        {
-          ++wpPat;
-          continue;
-        }
-        goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
@@ -1534,6 +1534,14 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         goto EndLoop;
       }
+      if (*wpPat == L'^')
+      {
+        //REO_MULTILINE
+        if (!AEC_IsFirstCharInLine(&ciStr))
+          goto EndLoop;
+        ++wpPat;
+        continue;
+      }
       if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
       {
         if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B'))
@@ -1554,14 +1562,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         ////Any character except new line
         //nStrChar=AE_PatStrChar(&ciStr);
         //if (nStrChar < 0) goto EndLoop;
-      }
-      else if (*wpPat == L'^')
-      {
-        //REO_MULTILINE
-        if (!AEC_IsFirstCharInLine(&ciStr))
-          goto EndLoop;
-        ++wpPat;
-        continue;
       }
       else if (*wpPat == L'[')
       {
