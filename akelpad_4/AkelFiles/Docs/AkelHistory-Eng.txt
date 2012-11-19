@@ -1,5 +1,5 @@
 
-AkelPad 4.8.0 ()
+AkelPad 4.8.0 (Nov 19, 2012)
 ----------------------------
 Changed: command that moves caret to opposite end of selection now has code 4198.
 
