@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.1                  *
+ *                  RegExp functions header v1.2                  *
  *                                                                *
  * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -1919,12 +1919,9 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pe.lpREGroupStack=0;
   pe.wpPat=pr->wpPat;
   pe.wpMaxPat=pr->wpMaxPat;
-  if (pr->wpStr)
-  {
-    pe.wpStr=pr->wpStr;
-    pe.wpMaxStr=pr->wpMaxStr;
-  }
-  else
+  pe.wpStr=pr->wpStr;
+  pe.wpMaxStr=pr->wpMaxStr;
+  if (!pr->wpStr)
   {
     #ifdef __AKELEDIT_H__
       pe.ciStr=pr->ciStr;
