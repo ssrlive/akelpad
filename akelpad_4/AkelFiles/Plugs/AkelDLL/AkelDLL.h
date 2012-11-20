@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 8)
 
 
 //// Defines
@@ -1818,7 +1818,7 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_WINDOW_CHANGESIZE           4331  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
-                                              //Return Value: zero.
+                                              //Return Value: SW_RESTORE - new style is SW_RESTORE, SW_MAXIMIZE - new style is SW_MAXIMIZE.
                                               //
 #define IDM_WINDOW_DLGNEXT              4332  //Activate next dialog window.
                                               //Return Value: activated dialog handle.
