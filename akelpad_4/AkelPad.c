@@ -4307,7 +4307,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_WINDOW_CHANGESIZE)
     {
-      ShowWindow(hWnd, (GetWindowLongPtrWide(hWnd, GWL_STYLE) & WS_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE);
+      int nCmdShow;
+
+      if (GetWindowLongPtrWide(hWnd, GWL_STYLE) & WS_MAXIMIZE)
+        nCmdShow=SW_RESTORE;
+      else
+        nCmdShow=SW_MAXIMIZE;
+      ShowWindow(hWnd, nCmdShow);
+      return nCmdShow;
     }
     else if (wCommand == IDM_WINDOW_DLGNEXT)
     {
@@ -4337,10 +4344,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (wCommand == IDM_UPDATE)
     {
       ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, moCur.wszAkelUpdaterOptions, NULL, SW_SHOWDEFAULT);
+      return 0;
     }
     else if (wCommand == IDM_ABOUT)
     {
       DoHelpAbout();
+      return 0;
     }
     else if (wCommand == IDM_INTERNAL_REOPEN_MSG)
     {
@@ -4455,7 +4464,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return SaveDocument(NULL, lpFrameCurrent->wszFile, lpCodepageList[wCommand - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
     }
 
-    //WM_COMMAND (MDI)
+    //WM_COMMAND (MDI/PMDI)
     if (nMDI)
     {
       if (wCommand == IDM_SELECTWINDOW ||
@@ -4517,93 +4526,58 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return !DestroyFrameWindow(lpFrameCurrent);
       }
-      else if (wCommand == IDM_WINDOW_FRAMECLOSEALL)
-      {
-        if (!nMDI)
-        {
-          return CloseDocument(0);
-        }
-        else
-        {
-          BOOL bResult=TRUE;
-
-          //Show "No to all" button if necessary
-          if (nDocumentsModified > 1)
-            dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
-          bLockWatchFile=TRUE;
-
-          while (lpFrameCurrent->hWndEditParent)
-          {
-            if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-            {
-              bResult=FALSE;
-              break;
-            }
-          }
-          dwChangedPrompt=0;
-          bLockWatchFile=FALSE;
-
-          return bResult;
-        }
-      }
       else if (wCommand == IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE)
       {
-        if (nMDI)
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
+        BOOL bResult=TRUE;
+
+        //Show "No to all" button if necessary
+        if (nDocumentsModified > 1)
+          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+        bLockWatchFile=TRUE;
+
+        for (;;)
         {
-          FRAMEDATA *lpFrameInit=lpFrameCurrent;
-          BOOL bResult=TRUE;
+          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          if (lpFrameCurrent == lpFrameInit) break;
 
-          //Show "No to all" button if necessary
-          if (nDocumentsModified > 1)
-            dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
-          bLockWatchFile=TRUE;
-
-          for (;;)
+          if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
           {
-            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
-            if (lpFrameCurrent == lpFrameInit) break;
-
-            if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-            {
-              bResult=FALSE;
-              break;
-            }
+            bResult=FALSE;
+            break;
           }
-          dwChangedPrompt=0;
-          bLockWatchFile=FALSE;
-
-          return bResult;
         }
+        dwChangedPrompt=0;
+        bLockWatchFile=FALSE;
+
+        return bResult;
       }
       else if (wCommand == IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED)
       {
-        if (nMDI)
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
+        BOOL bBreak=FALSE;
+        BOOL bResult=TRUE;
+
+        bLockWatchFile=TRUE;
+
+        while (!bBreak)
         {
-          FRAMEDATA *lpFrameInit=lpFrameCurrent;
-          BOOL bBreak=FALSE;
-          BOOL bResult=TRUE;
+          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          if (lpFrameCurrent == lpFrameInit)
+            bBreak=TRUE;
 
-          bLockWatchFile=TRUE;
-
-          while (!bBreak)
+          if (!lpFrameCurrent->ei.bModified)
           {
-            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
-            if (lpFrameCurrent == lpFrameInit)
-              bBreak=TRUE;
-
-            if (!lpFrameCurrent->ei.bModified)
+            if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
             {
-              if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
-              {
-                bResult=FALSE;
-                break;
-              }
+              bResult=FALSE;
+              break;
             }
           }
-          bLockWatchFile=FALSE;
-
-          return bResult;
         }
+        bLockWatchFile=FALSE;
+
+        return bResult;
       }
       if (nMDI == WMD_MDI)
       {
@@ -4622,7 +4596,35 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
-    return 0;
+    if (wCommand == IDM_WINDOW_FRAMECLOSEALL)
+    {
+      if (!nMDI)
+      {
+        return CloseDocument(0);
+      }
+      else
+      {
+        BOOL bResult=TRUE;
+
+        //Show "No to all" button if necessary
+        if (nDocumentsModified > 1)
+          dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
+        bLockWatchFile=TRUE;
+
+        while (lpFrameCurrent->hWndEditParent)
+        {
+          if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+          {
+            bResult=FALSE;
+            break;
+          }
+        }
+        dwChangedPrompt=0;
+        bLockWatchFile=FALSE;
+
+        return bResult;
+      }
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
