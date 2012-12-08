@@ -4471,6 +4471,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           wCommand == IDM_WINDOW_MDILIST)
       {
         DoWindowSelectWindow();
+        return 0;
       }
       else if (wCommand == IDM_WINDOW_TABVIEW_TOP)
       {
