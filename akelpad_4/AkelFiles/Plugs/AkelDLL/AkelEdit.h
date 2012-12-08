@@ -2730,6 +2730,7 @@ Return Value
  FALSE virtual-key not processed.
 
 Remarks
+ To emulate VK_RETURN key use WM_CHAR message.
  To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
 
 Example:
