@@ -429,7 +429,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     else if (*wpPat == L')')
     {
-      if (!lpREGroupItem->parent || lpREGroupItem->wpPatEnd)
+      if (!lpREGroupItem->parent || lpREGroupItem->wpPatEnd || (lpREGroupItem->dwFlags & REGF_AUTOGROUP))
         goto Error;
 
       //Close all REGF_AUTOGROUP
