@@ -4023,7 +4023,7 @@ Call dll.
                             or pointer to a PLUGINCALLPOST, allocated with GlobalAlloc, if PostMessage used.
 
 Return Value
- See EDL_* defines.
+ See UD_* defines.
 
 Example SendMessage (Unicode):
  PLUGINCALLSENDW pcs;
