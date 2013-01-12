@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v1.2                  *
  *                                                                *
- * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *

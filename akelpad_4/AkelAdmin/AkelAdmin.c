@@ -1,7 +1,7 @@
 /***********************************************************************************
  *                      AkelAdmin UAC support for AkelPad                          *
  *                                                                                 *
- * Copyright 2012 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)       *
+ * Copyright 2013 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)       *
  *                                                                                 *
  * License: this source is distributed under "BSD license" conditions.             *
  ***********************************************************************************/
