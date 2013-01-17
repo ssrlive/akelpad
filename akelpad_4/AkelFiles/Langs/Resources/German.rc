@@ -50,7 +50,7 @@ BEGIN
         MENUITEM "&Speichern\tCtrl+S",          IDM_FILE_SAVE
         MENUITEM "Speiche&rn unter...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "&Alle sichern\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "A&lle speichern unter...",     IDM_FILE_SAVEALLAS
+        MENUITEM "A&lle speichern unter...",    IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Se&ite einrichten...",        IDM_FILE_PAGESETUP
         MENUITEM "&Vorschau...",                IDM_FILE_PRINTPREVIEW
@@ -189,7 +189,7 @@ BEGIN
     POPUP "&Hilfe"
     BEGIN
         MENUITEM "Hand&buch",                   IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&Aktualisierung...",          IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Info",                       IDM_ABOUT
     END
@@ -488,7 +488,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "Nur den gesamten Ausdruck",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Reguläre Ausdrücke",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
     CONTROL         "Esc-Folgen",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
@@ -527,7 +527,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "Nur den gesamten Ausdruck",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Reguläre Ausdrücke",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
     CONTROL         "Esc-Folgen",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
@@ -607,7 +607,7 @@ BEGIN
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,239,144
-    LTEXT           "Background image (%a Verzeichnis des AkelPad's):",
+    LTEXT           "Hintergrundbild (%a Verzeichnis des AkelPad's):",
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
@@ -647,12 +647,12 @@ CAPTION "Allgemein"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Ausführen",IDC_STATIC,9,6,200,90
-    LTEXT           "Befehl (%f Datei, %a AkelPad-Verzeichnis):",
-                    IDC_STATIC,21,24,160,8,NOT WS_GROUP
+    LTEXT           "Befehl (%f Datei, %a AkelPad-Verzeichnis):",IDC_STATIC,
+                    21,24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Arbeitsverzeichnis (%d Dateien-Verzeichnis):",IDC_STATIC,21,59,160,8,
-                    NOT WS_GROUP
+    LTEXT           "Arbeitsverzeichnis (%d Dateien-Verzeichnis):",
+                    IDC_STATIC,21,59,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "Zeichensatzerkennung:",IDC_STATIC,12,110,150,8
@@ -777,8 +777,8 @@ BEGIN
     GROUPBOX        "Textcursor",IDC_STATIC,9,86,202,51
     CONTROL         "Cursor am Satzende",IDC_OPTIONS_CARETOUTEDGE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
-    CONTROL         "Aktive Spalte anzeigen",IDC_OPTIONS_CARETVERTLINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Aktive Spalte anzeigen",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
     CONTROL         "Aktive Zeile anzeigen",IDC_OPTIONS_CARETACTIVELINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "Rand",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
@@ -834,8 +834,9 @@ BEGIN
     CONTROL         "Linksklick auf Rand markiert Zeile",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,11,9,200,10
-    CONTROL         "RichEdit Mausauswahl",IDC_OPTIONS_MOUSERICHEDIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+    CONTROL         "RichEdit Textmarkierung mit der Maus",
+                    IDC_OPTIONS_MOUSERICHEDIT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,20,200,10
     CONTROL         "Verschieben mit der Maus",IDC_OPTIONS_MOUSEDRAGGING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
     CONTROL         "Rechtsklick verschiebt Textcursor",
@@ -857,7 +858,8 @@ BEGIN
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "Trennzeichen für Worte:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+    CONTROL         "Trennzeichen für Worte:",
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Zurücksetzen",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,
@@ -1039,7 +1041,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Einträge gelöscht: %d"
     MSG_SEARCH_ENDED        "Suche beendet."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Dateigrenze erreicht. Fortsetzten?"
     MSG_REPLACE_COUNT       "Anzahl der Veränderungen: %d"
     MSG_REPLACE_COUNT_ALLFILES 
                             "Dateien verändert: %d\nAnzahl der Veränderungen: %Id"
@@ -1061,7 +1063,7 @@ BEGIN
     STR_MODIFIED            "Geändert"
     STR_READONLY            "Nur lesen"
     STR_COUNT               "%d von %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "ohne"
     STR_AUTODETECT          "&Automatisch"
     STR_RECENT_FILES_EMPTY  "Leer"
     STR_RECENT_FILES_DELETE_DEAD "Nicht existierende löschen"
