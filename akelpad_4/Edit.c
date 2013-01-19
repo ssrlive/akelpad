@@ -4789,26 +4789,23 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
         {
           dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)dwBytesRead, wszBuf, dwBufBytesSize / sizeof(wchar_t));
 
-          if (lpData->dwMaxCharSize >= 2 && dwCharsConverted > 0 && dwBytesRead >= 2 && lpData->dwBytesCurrent < lpData->dwBytesMax)
+          if (lpData->dwMaxCharSize == 2 && dwCharsConverted > 0 && dwBytesRead >= 2 && lpData->dwBytesCurrent < lpData->dwBytesMax)
           {
             //DBCS
-            if (lpData->dwMaxCharSize == 2)
-            {
-              BYTE *pLastChar=pcTranslateBuffer + dwBytesRead - 1;
+            BYTE *pLastChar=pcTranslateBuffer + dwBytesRead - 1;
 
-              //Windows 95/98/Me/2000/XP/2003. MultiByteToWideChar converts one byte of double-byte char to zero.
-              if ((*pLastChar != '\0' && wszBuf[dwCharsConverted - 1] == L'\0') ||
-                  //Windows Vista/7/2008. MultiByteToWideChar trying to convert one byte of double-byte char.
-                  (IsDBCSLeadByteEx(lpData->nCodePage, *pLastChar) &&
-                   //Double-byte char can consist of two lead bytes
-                   (!IsDBCSLeadByteEx(lpData->nCodePage, *(pLastChar - 1)) ||
-                     pLastChar - (BYTE *)CharPrevExA((WORD)lpData->nCodePage, (char *)pcTranslateBuffer, (char *)pLastChar, 0) == 2)))
-              {
-                //Double-byte char was split
-                --lpData->dwBytesCurrent;
-                SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
-                --dwCharsConverted;
-              }
+            //Windows 95/98/Me/2000/XP/2003. MultiByteToWideChar converts one byte of double-byte char to zero.
+            if ((*pLastChar != '\0' && wszBuf[dwCharsConverted - 1] == L'\0') ||
+                //Windows Vista/7/2008. MultiByteToWideChar trying to convert one byte of double-byte char.
+                (IsDBCSLeadByteEx(lpData->nCodePage, *pLastChar) &&
+                 //Double-byte char can consist of two lead bytes
+                 (!IsDBCSLeadByteEx(lpData->nCodePage, *(pLastChar - 1)) ||
+                   pLastChar - (BYTE *)CharPrevExA((WORD)lpData->nCodePage, (char *)pcTranslateBuffer, (char *)pLastChar, 0) == 2)))
+            {
+              //Double-byte char was split
+              --lpData->dwBytesCurrent;
+              SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
+              --dwCharsConverted;
             }
           }
         }
