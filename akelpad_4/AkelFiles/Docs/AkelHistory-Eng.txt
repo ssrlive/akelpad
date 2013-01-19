@@ -1,6 +1,8 @@
 
 AkelPad 4.8.1 ()
 ----------------------------
+Changed: increased accuracy of the file opening indicator.
+
 Added: hotkey Alt+, for command 4199, hotkey Alt+. for command 4200.
 
 Fixed: file opening in MBCS codepage.

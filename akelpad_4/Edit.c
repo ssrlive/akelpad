@@ -171,6 +171,7 @@ extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
 extern POINT64 ptDocumentPos;
+extern FILESTREAMDATA *lpStreamInData;
 extern WNDPROC lpOldFilePreviewProc;
 
 //AkelAdmin
@@ -4392,7 +4393,9 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     fsd.nNewLine=moCur.nDefaultNewLine;
     fsd.dwBytesMax=(UINT_PTR)-1;
     fsd.bResult=TRUE;
+    lpStreamInData=&fsd;
     FileStreamIn(&fsd);
+    lpStreamInData=NULL;
     break;
   }
   if (hFile != INVALID_HANDLE_VALUE)
@@ -4525,11 +4528,12 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 {
   unsigned char *szBuffer;
   wchar_t *wszBuffer;
-  int nBufferBytes;
+  wchar_t *wpCount;
+  wchar_t *wpMax;
+  INT_PTR nBufferBytes;
   UINT_PTR dwFileSize;
   UINT_PTR dwBytesRead;
   UINT_PTR dwCharsConverted;
-  DWORD i;
 
   if ((dwFileSize=GetFileSize64(lpData->hFile)) != (UINT_PTR)-1)
   {
@@ -4577,31 +4581,31 @@ void FileStreamIn(FILESTREAMDATA *lpData)
           else
             dwCharsConverted=MultiByteToWideChar64(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
         }
-        wszBuffer[dwCharsConverted]='\0';
+        wszBuffer[dwCharsConverted]=L'\0';
+        wpMax=wszBuffer + dwCharsConverted;
 
         //Detect new line
-        for (i=0; i < dwCharsConverted; ++i)
+        for (wpCount=wszBuffer; wpCount < wpMax; ++wpCount)
         {
-          if (wszBuffer[i] == '\r')
+          if (*wpCount == L'\r')
           {
-            if (wszBuffer[i + 1] == '\r' && wszBuffer[i + 2] == '\n')
+            if (*(wpCount + 1) == L'\r' && *(wpCount + 2) == L'\n')
             {
               //Windows format \r\r\n
               lpData->nNewLine=NEWLINE_WIN;
               break;
             }
-            else if (wszBuffer[i + 1] == '\n')
+            else if (*(wpCount + 1) == L'\n')
             {
               //Windows format \r\n
               lpData->nNewLine=NEWLINE_WIN;
               break;
             }
-
             //MacOS format \r
             lpData->nNewLine=NEWLINE_MAC;
             break;
           }
-          else if (wszBuffer[i] == '\n')
+          else if (*wpCount == L'\n')
           {
             //Unix format \n
             lpData->nNewLine=NEWLINE_UNIX;
@@ -4629,7 +4633,6 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 //Stream file reading (AEM_STREAMIN).
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
-  AESTREAMIN aesi;
   CPINFO cpi;
 
   if (lpData->dwBytesMax == (UINT_PTR)-1)
@@ -4638,33 +4641,100 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 
   if (!IsCodePageUnicode(lpData->nCodePage))
   {
-    if (lpData->nCodePage == CP_UNICODE_UTF7)
-      lpData->dwMaxCharSize=8;
-    else
-    {
-      GetCPInfo(lpData->nCodePage, &cpi);
-      lpData->dwMaxCharSize=cpi.MaxCharSize;
-    }
+    GetCPInfo(lpData->nCodePage, &cpi);
+    lpData->dwMaxCharSize=cpi.MaxCharSize;
   }
+  else lpData->dwMaxCharSize=0;
 
-  aesi.dwCookie=(UINT_PTR)lpData;
-  aesi.lpCallback=InputStreamCallback;
-  aesi.nNewLine=AELB_ASIS;
-  aesi.dwTextLen=lpData->dwBytesMax;
-  SendMessage(lpData->hWnd, AEM_STREAMIN, 0, (LPARAM)&aesi);
-  lpData->bResult=!aesi.dwError;
-
-  //Detect new line
-  if (lpData->bResult)
+  if (lpData->dwMaxCharSize > 2)
   {
-    if (aesi.nFirstNewLine == AELB_RRN)
-      lpData->nNewLine=NEWLINE_WIN;
-    else if (aesi.nFirstNewLine == AELB_RN)
-      lpData->nNewLine=NEWLINE_WIN;
-    else if (aesi.nFirstNewLine == AELB_R)
-      lpData->nNewLine=NEWLINE_MAC;
-    else if (aesi.nFirstNewLine == AELB_N)
-      lpData->nNewLine=NEWLINE_UNIX;
+    //MBCS. Read entire file (AEM_SETTEXTW).
+    unsigned char *szBuffer;
+    wchar_t *wszBuffer;
+    wchar_t *wpCount;
+    wchar_t *wpMax;
+    INT_PTR nBufferBytes=lpData->dwBytesMax * sizeof(wchar_t);
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwCharsConverted;
+
+    if (wszBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferBytes + sizeof(wchar_t)))
+    {
+      szBuffer=(unsigned char *)wszBuffer + lpData->dwBytesMax;
+
+      //Read data from file
+      if (ReadFile64(lpData->hFile, szBuffer, lpData->dwBytesMax, &dwBytesRead, NULL))
+      {
+        //Translate data to UNICODE
+        dwCharsConverted=MultiByteToWideChar64(lpData->nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, nBufferBytes / sizeof(wchar_t));
+        wszBuffer[dwCharsConverted]=L'\0';
+        wpMax=wszBuffer + dwCharsConverted;
+
+        //Detect new line
+        for (wpCount=wszBuffer; wpCount < wpMax; ++wpCount)
+        {
+          if (*wpCount == L'\r')
+          {
+            if (*(wpCount + 1) == L'\r' && *(wpCount + 2) == L'\n')
+            {
+              //Windows format \r\r\n
+              lpData->nNewLine=NEWLINE_WIN;
+              break;
+            }
+            else if (*(wpCount + 1) == L'\n')
+            {
+              //Windows format \r\n
+              lpData->nNewLine=NEWLINE_WIN;
+              break;
+            }
+            //MacOS format \r
+            lpData->nNewLine=NEWLINE_MAC;
+            break;
+          }
+          else if (*wpCount == L'\n')
+          {
+            //Unix format \n
+            lpData->nNewLine=NEWLINE_UNIX;
+            break;
+          }
+        }
+
+        //Send to AkelEdit
+        SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+        SendMessage(lpData->hWnd, AEM_SETTEXTW, (WPARAM)dwCharsConverted, (LPARAM)wszBuffer);
+      }
+      else
+      {
+        lpData->bResult=FALSE;
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
+      }
+      API_HeapFree(hHeap, 0, (LPVOID)wszBuffer);
+    }
+    else lpData->bResult=FALSE;
+  }
+  else
+  {
+    //Read file stream (AEM_STREAMIN).
+    AESTREAMIN aesi;
+
+    aesi.dwCookie=(UINT_PTR)lpData;
+    aesi.lpCallback=InputStreamCallback;
+    aesi.nNewLine=AELB_ASIS;
+    aesi.dwTextLen=lpData->dwBytesMax;
+    SendMessage(lpData->hWnd, AEM_STREAMIN, 0, (LPARAM)&aesi);
+    lpData->bResult=!aesi.dwError;
+
+    //Detect new line
+    if (lpData->bResult)
+    {
+      if (aesi.nFirstNewLine == AELB_RRN)
+        lpData->nNewLine=NEWLINE_WIN;
+      else if (aesi.nFirstNewLine == AELB_RN)
+        lpData->nNewLine=NEWLINE_WIN;
+      else if (aesi.nFirstNewLine == AELB_R)
+        lpData->nNewLine=NEWLINE_MAC;
+      else if (aesi.nFirstNewLine == AELB_N)
+        lpData->nNewLine=NEWLINE_UNIX;
+    }
   }
 }
 
@@ -4739,35 +4809,6 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
                 SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
                 --dwCharsConverted;
               }
-            }
-            //MBCS
-            else if (lpData->dwMaxCharSize > 2)
-            {
-              int nPrevByte=0;
-              UINT_PTR dwPrevCharsConverted;
-              //Character can be split
-              UINT_PTR dwMinCharsConverted=dwCharsConverted - (lpData->dwMaxCharSize - 1);
-
-              //Test string converting to until dwMinCharsConverted reached
-              do
-              {
-                ++nPrevByte;
-                dwPrevCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)(dwBytesRead - nPrevByte), wszBuf, dwBufBytesSize / sizeof(wchar_t));
-                if (dwPrevCharsConverted > dwCharsConverted)
-                {
-                  //MultiByteToWideChar return 1 for "\1a\1b\2a\2b",
-                  //but return 2 for "\1a\1b\2a|\2b" (| is split place).
-                  //Avoid character splitting: "\1a\1b\2a|\2b".
-                  --nPrevByte;
-                  dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)(dwBytesRead - nPrevByte), wszBuf, dwBufBytesSize / sizeof(wchar_t));
-                  break;
-                }
-                dwCharsConverted=dwPrevCharsConverted;
-              }
-              while (dwCharsConverted >= dwMinCharsConverted);
-
-              lpData->dwBytesCurrent-=nPrevByte;
-              SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
             }
           }
         }

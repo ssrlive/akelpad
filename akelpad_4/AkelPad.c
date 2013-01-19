@@ -366,6 +366,7 @@ DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 POINT64 ptDocumentPos;
+FILESTREAMDATA *lpStreamInData=NULL;
 WNDPROC lpOldFilePreviewProc;
 
 //AkelAdmin
@@ -5129,9 +5130,15 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         static INT_PTR nIncrement;
         static INT_PTR nBarrier;
         static DWORD dwSeconds;
+        INT_PTR nCurrent;
 
         if (!dwProgressType || dwProgressType == aenp->dwType)
         {
+          if (dwProgressType == AEPGS_STREAMIN)
+            nCurrent=lpStreamInData->dwBytesCurrent;
+          else
+            nCurrent=aenp->nCurrent;
+
           //Start indication if elapsed time more than 0,5 second
           if (aenp->dwTimeElapsed > 500)
           {
@@ -5147,14 +5154,14 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
               if (!nIncrement)
                 nBarrier=0;
               else
-                nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
+                nBarrier=(nCurrent / nIncrement) * nIncrement;
               dwSeconds=1;
             }
 
             //Change position
-            if (aenp->nCurrent >= nBarrier)
+            if (nCurrent >= nBarrier)
             {
-              SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+              SendMessage(hProgress, PBM_SETPOS, nCurrent, 0);
               nBarrier+=nIncrement;
             }
 
@@ -5186,7 +5193,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             }
 
             //End progress
-            if (aenp->nCurrent == aenp->nMaximum || bStop)
+            if (nCurrent == aenp->nMaximum || bStop)
             {
               ShowWindow(hProgress, SW_HIDE);
               UpdateWindow(hStatus);
