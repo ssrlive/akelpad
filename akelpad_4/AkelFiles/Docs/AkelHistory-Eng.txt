@@ -3,6 +3,7 @@ AkelPad 4.8.1 ()
 ----------------------------
 Added: hotkey Alt+, for command 4199, hotkey Alt+. for command 4200.
 
+Fixed: file opening in MBCS codepage.
 Fixed: buttons that control the size of the frame didn't work (MDI).
 Fixed: single replace with using regular expressions.
 

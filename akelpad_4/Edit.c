@@ -4638,8 +4638,13 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 
   if (!IsCodePageUnicode(lpData->nCodePage))
   {
-    GetCPInfo(lpData->nCodePage, &cpi);
-    lpData->dwMaxCharSize=cpi.MaxCharSize;
+    if (lpData->nCodePage == CP_UNICODE_UTF7)
+      lpData->dwMaxCharSize=8;
+    else
+    {
+      GetCPInfo(lpData->nCodePage, &cpi);
+      lpData->dwMaxCharSize=cpi.MaxCharSize;
+    }
   }
 
   aesi.dwCookie=(UINT_PTR)lpData;
@@ -4714,8 +4719,9 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
         {
           dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)dwBytesRead, wszBuf, dwBufBytesSize / sizeof(wchar_t));
 
-          if (dwCharsConverted > 0)
+          if (lpData->dwMaxCharSize >= 2 && dwCharsConverted > 0 && dwBytesRead >= 2 && lpData->dwBytesCurrent < lpData->dwBytesMax)
           {
+            //DBCS
             if (lpData->dwMaxCharSize == 2)
             {
               BYTE *pLastChar=pcTranslateBuffer + dwBytesRead - 1;
@@ -4723,7 +4729,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
               //Windows 95/98/Me/2000/XP/2003. MultiByteToWideChar converts one byte of double-byte char to zero.
               if ((*pLastChar != '\0' && wszBuf[dwCharsConverted - 1] == L'\0') ||
                   //Windows Vista/7/2008. MultiByteToWideChar trying to convert one byte of double-byte char.
-                  (dwBytesRead >= 2 && IsDBCSLeadByteEx(lpData->nCodePage, *pLastChar) &&
+                  (IsDBCSLeadByteEx(lpData->nCodePage, *pLastChar) &&
                    //Double-byte char can consist of two lead bytes
                    (!IsDBCSLeadByteEx(lpData->nCodePage, *(pLastChar - 1)) ||
                      pLastChar - (BYTE *)CharPrevExA((WORD)lpData->nCodePage, (char *)pcTranslateBuffer, (char *)pLastChar, 0) == 2)))
@@ -4733,6 +4739,35 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
                 SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
                 --dwCharsConverted;
               }
+            }
+            //MBCS
+            else if (lpData->dwMaxCharSize > 2)
+            {
+              int nPrevByte=0;
+              UINT_PTR dwPrevCharsConverted;
+              //Character can be split
+              UINT_PTR dwMinCharsConverted=dwCharsConverted - (lpData->dwMaxCharSize - 1);
+
+              //Test string converting to until dwMinCharsConverted reached
+              do
+              {
+                ++nPrevByte;
+                dwPrevCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)(dwBytesRead - nPrevByte), wszBuf, dwBufBytesSize / sizeof(wchar_t));
+                if (dwPrevCharsConverted > dwCharsConverted)
+                {
+                  //MultiByteToWideChar return 1 for "\1a\1b\2a\2b",
+                  //but return 2 for "\1a\1b\2a|\2b" (| is split place).
+                  //Avoid character splitting: "\1a\1b\2a|\2b".
+                  --nPrevByte;
+                  dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, (int)(dwBytesRead - nPrevByte), wszBuf, dwBufBytesSize / sizeof(wchar_t));
+                  break;
+                }
+                dwCharsConverted=dwPrevCharsConverted;
+              }
+              while (dwCharsConverted >= dwMinCharsConverted);
+
+              lpData->dwBytesCurrent-=nPrevByte;
+              SetFilePointer64(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
             }
           }
         }
