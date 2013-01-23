@@ -10522,6 +10522,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
   AESTACKQUOTE *lpQuoteStack;
   AEQUOTEITEMW *lpQuoteItem;
   BOOL bDefaultTheme=FALSE;
+  BOOL bResult=FALSE;
 
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
     return FALSE;
@@ -10575,6 +10576,17 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
               qm->crQuoteEnd.ciMin=lpREGroupStack->first->ciStrEnd;
               qm->crQuoteEnd.ciMax=lpREGroupStack->first->ciStrEnd;
               qm->lpQuote=lpQuoteItem;
+
+              if (dwSearchType & AEHF_FINDFIRSTCHAR)
+              {
+                if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, ciChar) <= 0)
+                {
+                  ciCount=qm->crQuoteEnd.ciMax;
+                  AEC_IndexDec(&ciCount);
+                  bResult=TRUE;
+                  break;
+                }
+              }
               return TRUE;
             }
           }
@@ -10587,6 +10599,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
       else
         break;
     }
+    if (bResult) return TRUE;
   }
 
   EndTheme:
