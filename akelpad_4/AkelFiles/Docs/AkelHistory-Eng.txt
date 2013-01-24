@@ -1,5 +1,5 @@
 
-AkelPad 4.8.1 ()
+AkelPad 4.8.1 (Jan 24, 2013)
 ----------------------------
 Changed: increased accuracy of the file opening indicator.
 
