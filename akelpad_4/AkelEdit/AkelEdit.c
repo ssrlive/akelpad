@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.8.1                               *
+ *                      AkelEdit text control v1.8.2                               *
  *                                                                                 *
  * Copyright 2007-2013 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -4128,9 +4128,17 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           }
 
           AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
-          cr.ciMin=ciCharIndex;
-          cr.ciMax=ciCharIndex;
-          cr.ciMin.nCharInLine=0;
+          if (ae->popt->dwOptions & AECO_MARGINSELUNWRAPLINE)
+          {
+            AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
+            AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
+          }
+          else
+          {
+            cr.ciMin=ciCharIndex;
+            cr.ciMax=ciCharIndex;
+            cr.ciMin.nCharInLine=0;
+          }
           if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax))
             cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 

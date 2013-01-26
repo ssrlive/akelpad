@@ -1,4 +1,10 @@
 
+AkelPad 4.8.2 ()
+----------------------------
+Added: manual parameter for "MouseOptions" with a value of 64 - left margin line selection
+       with mouse selects all wrapped line.
+
+
 AkelPad 4.8.1 (Jan 24, 2013)
 ----------------------------
 Changed: increased accuracy of the file opening indicator.

@@ -434,6 +434,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_RBUTTONDOWNMOVECARET;
   if (lpFrame->dwMouseOptions & MO_NONEWLINEMOUSESELECT)
     dwOptions|=AECO_NONEWLINEMOUSESELECT;
+  if (lpFrame->dwMouseOptions & MO_MARGINSELUNWRAPLINE)
+    dwOptions|=AECO_MARGINSELUNWRAPLINE;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
