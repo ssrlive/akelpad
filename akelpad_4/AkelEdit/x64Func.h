@@ -64,12 +64,12 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
         {
           CPINFO cpi;
 
-          GetCPInfo(dwCodePage, &cpi);
-          dwMaxCharSize=cpi.MaxCharSize;
+          if (GetCPInfo(dwCodePage, &cpi))
+            dwMaxCharSize=cpi.MaxCharSize;
         }
         if (dwMaxCharSize >= 2)
         {
-          //If DBCS or DBCS codepage, try to find line ending
+          //If DBCS or MBCS codepage, try to find line ending
           while (*(lpMultiByteStr + nMultiByteCount + nMultiByteSrc) != '\n' && *(lpMultiByteStr + nMultiByteCount + nMultiByteSrc) != '\r')
             if (--nMultiByteSrc < 0) return 0;
           ++nMultiByteSrc;
