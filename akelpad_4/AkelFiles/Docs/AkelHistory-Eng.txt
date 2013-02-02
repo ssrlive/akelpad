@@ -4,6 +4,8 @@ AkelPad 4.8.2 ()
 Added: manual parameter for "MouseOptions" with a value of 64 - left margin line selection
        with mouse selects all wrapped line.
 
+Fixed: file saving in MBCS codepage.
+
 
 AkelPad 4.8.1 (Jan 24, 2013)
 ----------------------------

@@ -1,7 +1,7 @@
 /*****************************************************************
- *                   x64 functions header v1.0                   *
+ *                   x64 functions header v1.1                   *
  *                                                               *
- * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -41,6 +41,7 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
   int nMultiByteSrc;
   int nWideDst;
   int nCharsConverted;
+  DWORD dwMaxCharSize=0;
 
   if (cbMultiByte == -1)
     cbMultiByte=xstrlenA(lpMultiByteStr) + 1;
@@ -54,7 +55,26 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
     //Convert string sequentially with maximum block 0x0FFFFFFF
     for (;;)
     {
-      nMultiByteSrc=(int)min(cbMultiByte - nMultiByteCount, 0x0FFFFFFF);
+      if (cbMultiByte - nMultiByteCount < 0x0FFFFFFF)
+        nMultiByteSrc=cbMultiByte - nMultiByteCount;
+      else
+      {
+        nMultiByteSrc=0x0FFFFFFF;
+        if (!dwMaxCharSize)
+        {
+          CPINFO cpi;
+
+          GetCPInfo(dwCodePage, &cpi);
+          dwMaxCharSize=cpi.MaxCharSize;
+        }
+        if (dwMaxCharSize >= 2)
+        {
+          //If DBCS or DBCS codepage, try to find line ending
+          while (*(lpMultiByteStr + nMultiByteCount + nMultiByteSrc) != '\n' && *(lpMultiByteStr + nMultiByteCount + nMultiByteSrc) != '\r')
+            if (--nMultiByteSrc < 0) return 0;
+          ++nMultiByteSrc;
+        }
+      }
       nWideDst=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
 
       if (nCharsConverted=MultiByteToWideChar(dwCodePage, dwFlags, lpMultiByteStr + nMultiByteCount, nMultiByteSrc, lpWideCharStr + nWideCount, nWideDst))
@@ -63,14 +83,6 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
         nWideCount+=nCharsConverted;
         if (nMultiByteCount >= cbMultiByte || nWideCount >= cchWideChar)
           break;
-
-        if ((*(lpMultiByteStr + nMultiByteCount - 1) != '\0' && *(lpWideCharStr + nWideCount - 1) == '\0') || //Windows 95/98/Me/2000/XP/2003
-            (*(lpMultiByteStr + nMultiByteCount - 1) != '?' && *(lpWideCharStr + nWideCount - 1) == '?'))     //Windows Vista/7/2008
-        {
-          //Double-byte char was split
-          --nMultiByteCount;
-          --nWideCount;
-        }
       }
       else break;
     }
@@ -118,7 +130,7 @@ INT_PTR WideCharToMultiByte64(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpW
     {
       nWideSrc=(int)min(cchWideChar - nWideCount, 0x3FFFFFFF);
       nMultiByteDst=(int)min(cbMultiByte - nMultiByteCount, 0x7FFFFFFF);
-  
+
       if (nCharsConverted=WideCharToMultiByte(dwCodePage, dwFlags, lpWideCharStr + nWideCount, nWideSrc, lpMultiByteStr + nMultiByteCount, nMultiByteDst, lpDefaultChar, !bUsedDefaultChar?&bUsedDefaultChar:NULL))
       {
         nWideCount+=nWideSrc;
