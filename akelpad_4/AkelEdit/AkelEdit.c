@@ -16549,7 +16549,7 @@ UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   return dwResult;
 }
 
-BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, UINT_PTR *dwResult)
+BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, UINT_PTR *dwResult)
 {
   DWORD dwBufDone=0;
 
@@ -16566,6 +16566,11 @@ BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AEC
   }
   if (*dwBufCount >= dwBufLen)
   {
+    if (AEC_IsHighSurrogate(ciCount->lpLine->wpLine[ciCount->nCharInLine]) && ciCount->nCharInLine > 0)
+    {
+      --ciCount->nCharInLine;
+      --dwBufLen;
+    }
     wszBuf[dwBufLen]=L'\0';
     *dwBufCount=0;
     if (aeso->dwError=aeso->lpCallback(aeso->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) return FALSE;
