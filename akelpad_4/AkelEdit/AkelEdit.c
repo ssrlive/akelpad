@@ -16566,7 +16566,7 @@ BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, AECHARINDEX *ciCount, const AECHARIND
   }
   if (*dwBufCount >= dwBufLen)
   {
-    if (AEC_IsHighSurrogate(ciCount->lpLine->wpLine[ciCount->nCharInLine]) && ciCount->nCharInLine > 0)
+    if (ciCount->nCharInLine > 0 && AEC_IsHighSurrogate(ciCount->lpLine->wpLine[ciCount->nCharInLine - 1]))
     {
       --ciCount->nCharInLine;
       --dwBufLen;
