@@ -5193,7 +5193,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             }
 
             //End progress
-            if (nCurrent == aenp->nMaximum || bStop)
+            if (nCurrent >= aenp->nMaximum || bStop)
             {
               ShowWindow(hProgress, SW_HIDE);
               UpdateWindow(hStatus);
