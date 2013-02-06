@@ -17162,9 +17162,13 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStri
         else if (*wpString == 'l')
         {
           if (lpFrame)
-            i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar == 0xFFFF || lpFrame->nCaretChar == L'\r' || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
-          else
-            dwFlags|=CSB_CHARLETTER;
+          {
+            if (lpFrame->nCaretChar >= 0x10000) //Unicode scalar value of surrogate pair
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c%c", AEC_HighSurrogateFromScalar(lpFrame->nCaretChar), AEC_LowSurrogateFromScalar(lpFrame->nCaretChar));
+            else
+              i+=(DWORD)xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar == 0xFFFF || lpFrame->nCaretChar == L'\r' || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
+          }
+          else dwFlags|=CSB_CHARLETTER;
         }
         else if (*wpString == 'a')
         {
