@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.2                  *
+ *                  RegExp functions header v1.3                  *
  *                                                                *
  * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -821,7 +821,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             if (!(dwCmpResult & RECCE_MIX))
             {
               ++wpPat;
-              dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &nPatNextChar);
+              dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE)|RECCF_FULLSURROGATE, &nPatNextChar);
               if (dwCmpResult & RECCE_EQUAL)
                 goto ClassMatch;
               if (nStrChar < 0) nStrChar=L'\n';
@@ -841,7 +841,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           else
           {
-            dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &nPatChar);
+            dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE)|RECCF_FULLSURROGATE, &nPatChar);
             if (dwCmpResult & RECCE_EQUAL)
               goto ClassMatch;
           }
@@ -902,6 +902,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
             continue;
           }
+        }
+        if (nPatChar <= MAXWORD && nStrChar > MAXWORD)
+        {
+          ++wpPat;
+          continue;
         }
       }
       NextChar:
@@ -967,6 +972,11 @@ int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar)
       *nChar=-AELB_R;
       return 0;
     }
+  }
+  if (wpStr + 1 < wpMaxStr && AEC_IsHighSurrogate(*wpStr))
+  {
+    *nChar=AEC_ScalarFromSurrogate(*wpStr, *(wpStr + 1));
+    return 1;
   }
   *nChar=*wpStr;
   return 0;
@@ -1706,7 +1716,10 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
                 AEC_NextChar(&ciStrCount);
                 AEC_NextChar(&ciGroupCount);
-                ++nCount;
+                if (nStrChar <= MAXWORD)
+                  nCount+=1;
+                else
+                  nCount+=2;
               }
               if (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0)
                 goto EndLoop;
@@ -1721,10 +1734,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       NextChar:
       if (nPatChar <= MAXWORD)
+      {
+        nStrLen+=1;
         AE_PatNextChar(&ciStr);
+      }
       else
+      {
+        nStrLen+=AEC_IndexLen(&ciStr);
         AEC_NextChar(&ciStr);
-      ++nStrLen;
+      }
       ++wpPat;
     }
     EndLoop:

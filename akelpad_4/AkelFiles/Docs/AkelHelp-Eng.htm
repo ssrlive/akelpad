@@ -1846,11 +1846,15 @@
     </tr>
     <tr>
       <td>\x<i>n</i></td>
-      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value. Hexadecimal escape values must be exactly two digits long. For example, '\x41' matches "A".</td>
+      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value with exactly two digits long. For example, '\x41' matches "A".</td>
     </tr>
     <tr>
       <td>\u<i>n</i></td>
       <td>Matches <i>n</i>, where <i>n</i> is a Unicode character expressed as four hexadecimal digits. For example, '\u00A9' matches the copyright symbol "©".</td>
+    </tr>
+    <tr>
+      <td>\x{<i>n</i>}</td>
+      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value. For example, '\x{20027}' is equal to surrogate pair '\uD840\uDC27'.</td>
     </tr>
     <tr>
       <td>\<i>n</i></td>
