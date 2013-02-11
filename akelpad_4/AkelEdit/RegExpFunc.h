@@ -1587,7 +1587,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         ++wpPat;
         continue;
       }
-      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 &&
+          !(lpREGroupItem->dwFlags & REGF_POSITIVE) && !(lpREGroupItem->dwFlags & REGF_NEGATIVE))
       {
         if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B'))
         {
