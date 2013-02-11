@@ -628,6 +628,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpStrStart;
   const wchar_t *wpNextGroup;
   int nStrChar;
+  int nCharSize;
   int nPatChar;
   int nPatNextChar;
   wchar_t wchCaseChar;
@@ -859,7 +860,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       else
       {
-        wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar);
+        nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
         dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &nPatChar);
 
         if (!(dwCmpResult & RECCE_EQUAL))
@@ -903,6 +904,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             continue;
           }
         }
+        if (nCharSize)
+          wpStr+=nCharSize;
         if (nPatChar <= MAXWORD && nStrChar > MAXWORD)
         {
           ++wpPat;
