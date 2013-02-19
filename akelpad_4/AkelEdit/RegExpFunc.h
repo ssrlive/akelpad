@@ -1121,8 +1121,12 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
       *lpnPatChar=L'\0';
       if (nPatChar == REEC_BOUNDARY)
         return RECCE_BOUNDARY|RECCE_MIX;
-      if (nPatChar == REEC_SPACE)
+      if (nPatChar == REEC_SPACE ||
+          nPatChar == REEC_NONDIGIT ||
+          nPatChar == REEC_NONLATIN)
+      {
         return RECCE_EQUAL|RECCE_MIX;
+      }
       if (nPatChar == REEC_REF)
         return RECCE_REF|RECCE_MIX;
       return RECCE_DIF|RECCE_MIX;

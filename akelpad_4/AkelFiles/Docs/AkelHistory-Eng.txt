@@ -8,6 +8,7 @@ Added: \x{n} metacharacter in regular expressions for surrogate pairs search/rep
 
 Fixed: file saving in MBCS codepage.
 Fixed: single replace with using regular expressions.
+Fixed: \D, \W metacharacters didn't match new line.
 
 
 AkelPad 4.8.1 (Jan 24, 2013)
