@@ -1850,7 +1850,7 @@ AEN_VSCROLL
 ___________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure before an edit control window scrolled horizontally.
+Sends to the parent window procedure before an edit control window scrolled vertically.
 
 (int)wParam         == specifies the control identifier.
 (AENSCROLL *)lParam == pointer to a AENSCROLL structure.
