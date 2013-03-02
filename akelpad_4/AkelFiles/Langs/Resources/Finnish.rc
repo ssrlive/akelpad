@@ -50,13 +50,13 @@ BEGIN
         MENUITEM "&Tallenna\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Tallenna &nimell‰...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Tallenna &kaikki\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Tallenna kaikki nimell‰...",  IDM_FILE_SAVEALLAS
+        MENUITEM "Tallenna kaikki ni&mell‰...", IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Si&vun asetukset...",         IDM_FILE_PAGESETUP
         MENUITEM "&Esikatselu...",              IDM_FILE_PRINTPREVIEW
-        MENUITEM "T&ulosta...\tCtrl+P",         IDM_FILE_PRINT
+        MENUITEM "Tul&osta...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "Viimeisimm‰t tied&ostot"
+        POPUP "Viimeisimm‰t tiedo&stot"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
@@ -70,21 +70,21 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Leikkaa\tCtrl+X",            IDM_EDIT_CUT
         MENUITEM "&Kopioi\tCtrl+C",             IDM_EDIT_COPY
-        MENUITEM "&Liit‰\tCtrl+V",              IDM_EDIT_PASTE
+        MENUITEM "L&iit‰\tCtrl+V",              IDM_EDIT_PASTE
         MENUITEM "&Poista\tDel",                IDM_EDIT_CLEAR
         MENUITEM "Valitse k&aikki\tCtrl+A",     IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
         MENUITEM "&Etsi...\tCtrl+F",            IDM_EDIT_FIND
         MENUITEM "Etsi seuraava al&haalta\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Etsi seuraava &ylh‰‰lt‰\tShift+F3", IDM_EDIT_FINDNEXTUP
-        MENUITEM "&Korvaa...\tCtrl+R",          IDM_EDIT_REPLACE
+        MENUITEM "Ko&rvaa...\tCtrl+R",          IDM_EDIT_REPLACE
         MENUITEM "&Siirry...\tCtrl+G",          IDM_EDIT_GOTO
         MENUITEM SEPARATOR
-        MENUITEM "Lis‰‰ m&erkki\tCtrl+I",       IDM_EDIT_INSERTCHAR
-        MENUITEM "Lis‰‰ p‰&iv‰ys\tCtrl+D",      IDM_EDIT_INSERTDATE
+        MENUITEM "Lis‰‰ &merkki\tCtrl+I",       IDM_EDIT_INSERTCHAR
+        MENUITEM "Lis‰‰ p&‰iv‰ys\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Valinta"
         BEGIN
-            MENUITEM "Liit‰ sarakkeittain\tAlt+V",  IDM_EDIT_PASTECOLUMN
+            MENUITEM "&Liit‰ sarakkeittain\tAlt+V", IDM_EDIT_PASTECOLUMN
             MENUITEM "&Sarkainsisennys\tTab",       IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Poista sarkainsisennys\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -101,16 +101,15 @@ BEGIN
 
             MENUITEM SEPARATOR
             MENUITEM "&ISOT KIRJAIMET\tCtrl+6",     IDM_EDIT_UPPERCASE
-            MENUITEM "&pienet kirjaimet\tCtrl+7",   IDM_EDIT_LOWERCASE
-            MENUITEM "Isot kirjaimet vi&rkkeen alussa.\tCtrl+8", 
-                                                    IDM_EDIT_SENTENCECASE
-            MENUITEM "Isot Kirjaimet Kappaleiden Nimien Alussa\tCtrl+9", 
+            MENUITEM "pie&net kirjaimet\tCtrl+7",   IDM_EDIT_LOWERCASE
+            MENUITEM "La&use.\tCtrl+8",             IDM_EDIT_SENTENCECASE
+            MENUITEM "Isot Kirjaimet Kappaleiden Nimien Alkuun\tCtrl+9", 
                                                     IDM_EDIT_TITLECASE
             MENUITEM "&kƒƒNTEISET\tCtrl+0",         IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
             MENUITEM "Koo&daa uudelleen...\tAlt+R", IDM_EDIT_RECODE
         END
-        POPUP "Rivinvaihtomerkin &muoto"
+        POPUP "&Rivinvaihtomerkin muoto"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
@@ -122,7 +121,7 @@ BEGIN
         MENUITEM "&Fontti...",                  IDM_VIEW_FONT
         MENUITEM "&V‰rit...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "&Vain luku",                  IDM_VIEW_READONLY
+        MENUITEM "Vain &luku",                  IDM_VIEW_READONLY
         MENUITEM "&Automaattinen rivitys\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Jaa ikkuna",                 IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "Aina &p‰‰llimm‰isen‰\tCtrl+T", IDM_VIEW_ONTOP
@@ -152,7 +151,7 @@ BEGIN
         BEGIN
             MENUITEM "&Yksi ikkuna (SDI)",          IDM_OPTIONS_SDI
             MENUITEM "&Useita ikkunoita (MDI)",     IDM_OPTIONS_MDI
-            MENUITEM "&N‰enn‰iset useat ikkunat (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "Useita &n‰enn‰isi‰ ikkunoita (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Asetukset...",               IDM_OPTIONS
@@ -182,17 +181,17 @@ BEGIN
         MENUITEM "Jaa &vaakasuunnassa",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Jaa &pystysuunnassa",         IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Limitt‰in",                  IDM_WINDOW_CASCADE
-        MENUITEM "Sulje",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Sulje kaikki",                IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Sulje kaikki paitsi aktiivinen", 
+        MENUITEM "S&ulje",                      IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Sulje &kaikki",               IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Sulje kaikki paitsi &aktiivinen", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
-        MENUITEM "Valitse ikkuna...",           IDM_WINDOW_MDILIST
+        MENUITEM "Vali&tse ikkuna...",          IDM_WINDOW_MDILIST
     END
     POPUP "&Ohje"
     BEGIN
-        MENUITEM "&Manual",                     IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&K‰sikirja",                  IDM_MANUAL
+        MENUITEM "&P‰ivit‰...",                 IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Tietoja",                    IDM_ABOUT
     END
@@ -207,7 +206,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Leikkaa",                    IDM_EDIT_CUT
         MENUITEM "&Kopioi",                     IDM_EDIT_COPY
-        MENUITEM "&Liit‰",                      IDM_EDIT_PASTE
+        MENUITEM "L&iit‰",                      IDM_EDIT_PASTE
         MENUITEM "&Poista",                     IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
         MENUITEM "Valitse k&aikki",             IDM_EDIT_SELECTALL
@@ -415,9 +414,9 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,155,31,27,10
-    CONTROL         "Rivinvaihtomerkin &muoto:",IDC_SAVEALLAS_NEWLINE_CHECK,
+    CONTROL         "Tavuj‰rjestysmerkki (BOM)",IDC_SAVEALLAS_BOM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,155,31,27,10
+    CONTROL         "&Rivinvaihtomerkin muoto:",IDC_SAVEALLAS_NEWLINE_CHECK,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
@@ -426,7 +425,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,84,85,50,8
     CONTROL         "Mac",IDC_SAVEALLAS_NEWLINE_MAC,"Button",
                     BS_AUTORADIOBUTTON,140,85,40,8
-    DEFPUSHBUTTON   "&OK",IDOK,47,115,50,14,BS_CENTER
+    DEFPUSHBUTTON   "OK",IDOK,47,115,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,102,115,50,14,BS_CENTER
 END
 
@@ -440,18 +439,18 @@ BEGIN
                     WS_TABSTOP
     RTEXT           "",IDC_MDILIST_STATS,92,232,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "&OK",IDOK,198,10,50,14
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
     GROUPBOX        "J‰rjest‰",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Vaaka",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "Pysty",IDC_MDILIST_VERT,198,60,50,14
+    PUSHBUTTON      "&Vaaka",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "P&ysty",IDC_MDILIST_VERT,198,60,50,14
     GROUPBOX        "V‰lilehdet",IDC_MDILIST_TABS_GROUP,191,86,64,72
-    PUSHBUTTON      "&Ylˆs",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Y&lˆs",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "&Alas",IDC_MDILIST_DOWN,198,115,50,14
-    PUSHBUTTON      "Lajittele",IDC_MDILIST_SORT,198,138,50,14
+    PUSHBUTTON      "La&jittele",IDC_MDILIST_SORT,198,138,50,14
     GROUPBOX        "Tiedostot",IDC_MDILIST_FILES_GROUP,191,163,64,49
     PUSHBUTTON      "&Tallenna",IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "Sulje",IDC_MDILIST_CLOSE,198,192,50,14
-    CONTROL         "Pelk‰t nimet",IDC_MDILIST_ONLYNAMES,"Button",
+    PUSHBUTTON      "&Sulje",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "P&elk‰t nimet",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,219,67,10
     PUSHBUTTON      "Peruuta",IDCANCEL,198,243,50,14
 END
@@ -463,8 +462,8 @@ EXSTYLE WS_EX_CLIENTEDGE
 CAPTION "Esikatselu"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "T&ulosta...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "S&ivu...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    DEFPUSHBUTTON   "&Tulosta...",IDC_PREVIEW_PRINT,9,9,50,14
+    PUSHBUTTON      "&Sivu...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -474,7 +473,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Valinta",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
-    PUSHBUTTON      "Sulje",IDC_PREVIEW_CLOSE,390,9,50,14
+    PUSHBUTTON      "S&ulje",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -488,9 +487,9 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Sama kirjainkoko",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
-    CONTROL         "Koko sana",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "&Koko sana",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "S‰‰nnˆlliset &lausekkeet",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
     CONTROL         "Es&cape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
@@ -503,12 +502,12 @@ BEGIN
                     126,48,60,10
     CONTROL         "A&lku",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     126,59,60,10
-    CONTROL         "&Valittu alue",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,126,70,60,10
+    CONTROL         "&Valinta",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+                    126,70,60,10
     CONTROL         "&Kaikki tiedostot",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,67,19
-    DEFPUSHBUTTON   "Etsi se&uraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "Etsi s&euraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "&Etsi:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
@@ -527,9 +526,9 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Sama kirjainkoko",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
-    CONTROL         "Koko sana",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "&Koko sana",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "S‰‰&nnˆlliset lausekkeet",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
     CONTROL         "Es&cape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
@@ -542,12 +541,12 @@ BEGIN
                     126,62,60,10
     CONTROL         "A&lku",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     126,73,60,10
-    CONTROL         "&Valittu alue",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,126,84,60,10
+    CONTROL         "&Valinta",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+                    126,84,60,10
     CONTROL         "&Kaikki tiedostot",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,67,19
-    DEFPUSHBUTTON   "Etsi se&uraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "Etsi s&euraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "Ko&rvaa",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
                     BS_CENTER
@@ -555,7 +554,7 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,196,55,54,14,BS_CENTER
     LTEXT           "&Etsi:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
-    LTEXT           "&Korvaa:",IDC_STATIC,4,25,24,12,NOT WS_GROUP
+    LTEXT           "K&orvaa:",IDC_STATIC,4,25,24,12,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
@@ -566,11 +565,11 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "&Numero:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
-    CONTROL         "Rivi:Sarake",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "&Rivi:Sarake",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,
                     14,41,70,10
-    CONTROL         "Siirtym‰",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "S&iirtym‰",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     86,41,50,10
-    PUSHBUTTON      "&OK",IDOK,23,63,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,77,63,50,14,BS_CENTER
 END
 
@@ -591,7 +590,7 @@ BEGIN
     CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
                     WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
                     WS_EX_CLIENTEDGE
-    PUSHBUTTON      "&OK",IDOK,165,193,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,165,193,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,219,193,50,14,BS_CENTER
 END
 
@@ -601,7 +600,7 @@ STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "V‰rit"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "V‰riteema:",IDC_STATIC,11,6,103,8
+    LTEXT           "&V‰riteema:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,129,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Tallenna",IDC_COLORS_THEME_SAVE,145,16,50,14
@@ -609,16 +608,16 @@ BEGIN
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,239,144
-    LTEXT           "Background image (%a AkelPadin hakemisto):",
+    LTEXT           "&Taustakuva (%a AkelPadin hakemisto):",
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
-    LTEXT           "Alpha:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    LTEXT           "&Alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
     EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
                     200,11,13
-    PUSHBUTTON      "&OK",IDOK,145,224,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,145,224,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,198,224,50,14,BS_CENTER
 END
 
@@ -638,7 +637,7 @@ BEGIN
                     WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Liit‰",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "&Suorita",IDC_PLUGINS_CALL,9,209,50,14
-    PUSHBUTTON      "&OK",IDOK,228,209,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,228,209,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,282,209,50,14,BS_CENTER
 END
 
@@ -697,7 +696,7 @@ BEGIN
     LTEXT           "&J‰rjestelm‰:",IDC_STATIC,217,7,135,8
     LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM,213,18,141,209,
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&OK",IDOK,127,235,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,127,235,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,181,235,50,14,BS_CENTER
 END
 
@@ -707,15 +706,16 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Rekisteri"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "&Tallenna asetukset",IDC_STATIC,9,6,200,29
+    GROUPBOX        "Tallenna asetukset",IDC_STATIC,9,6,200,29
     CONTROL         "&Rekisteriin",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
                     BS_AUTORADIOBUTTON,32,19,70,10
     CONTROL         "&INI-tiedostoon",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "&Viimeisimm‰t tiedostot",IDC_STATIC,9,42,200,64
-    CONTROL         "&Muista kohdistimen paikka",IDC_OPTIONS_SAVEPOSITIONS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
-    CONTROL         "Mui&sta koodisivu",IDC_OPTIONS_SAVECODEPAGES,"Button",
+    GROUPBOX        "Viimeisimm‰t tiedostot",IDC_STATIC,9,42,200,64
+    CONTROL         "&Tallenna kohdistimen sijainti",
+                    IDC_OPTIONS_SAVEPOSITIONS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,55,185,10
+    CONTROL         "T&allenna koodisivu",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
     LTEXT           "Tiedostojen m&‰‰r‰:",IDC_STATIC,19,88,73,11,NOT 
                     WS_GROUP
@@ -724,7 +724,7 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,86,11,13
     PUSHBUTTON      "T&yhjenn‰",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "&Hakuhistoria",IDC_STATIC,9,113,200,33
+    GROUPBOX        "Hakuhistoria",IDC_STATIC,9,113,200,33
     LTEXT           "&Rivien m‰‰r‰:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
@@ -732,7 +732,7 @@ BEGIN
                     UDS_NOTHOUSANDS,113,126,11,13
     PUSHBUTTON      "Tyh&jenn‰",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,
                     14
-    GROUPBOX        "Tie&dostotyypit",IDC_STATIC,9,153,200,70
+    GROUPBOX        "Tiedostotyypit",IDC_STATIC,9,153,200,70
     CONTROL         "&Avaa:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
                     BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,169,43,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,64,167,138,13,ES_AUTOHSCROLL
@@ -750,14 +750,14 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editori 1"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "&Sarkainkoko",IDC_STATIC,9,6,105,34
+    GROUPBOX        "Sarkainkoko",IDC_STATIC,9,6,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,20,
                     11,13
     CONTROL         "&v‰lilyˆnti‰",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
-    GROUPBOX        "&Kumoamisen rajoitus",IDC_STATIC,9,46,105,34
+    GROUPBOX        "Kumoamisen rajoitus",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
@@ -779,35 +779,35 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
                     11,13
-    GROUPBOX        "&Koh&distin",IDC_STATIC,9,86,202,51
-    CONTROL         "Est‰ kohdistimen  siirt&‰minen pois rivin reunoilta",
+    GROUPBOX        "Kohdistin",IDC_STATIC,9,86,202,51
+    CONTROL         "Salli kohdistimen  siirt&‰minen rivin alun ja lopun ohi",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,16,98,132,10
     CONTROL         "&N‰yt‰ aktiivinen sarake",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Show active line",IDC_OPTIONS_CARETACTIVELINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
-    CONTROL         "border",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+    CONTROL         "N‰&yt‰ aktiivinen rivie",IDC_OPTIONS_CARETACTIVELINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "reunus",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Le&veys:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
                     105,11,13
-    GROUPBOX        "Alternating lines",IDC_STATIC,9,144,105,62
-    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    GROUPBOX        "Vaihtuvav‰riset rivit",IDC_STATIC,9,144,105,62
+    LTEXT           "O&hita:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
                     11,13
-    LTEXT           "Fill:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    LTEXT           "T‰yte:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
                     11,13
-    CONTROL         "Border",IDC_OPTIONS_ALTLINEBORDER,"Button",
+    CONTROL         "Reunus",IDC_OPTIONS_ALTLINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
-    GROUPBOX        "&Tekstin marginaali",IDC_STATIC,124,144,87,62
+    GROUPBOX        "Tekstin marginaali",IDC_STATIC,124,144,87,62
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,
@@ -837,16 +837,17 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editori 2"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Left click on margin selects line",
+    CONTROL         "Marginaalin vasen napsautus valitsee rivin",
                     IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,11,9,200,10
     CONTROL         "RichEdit-hiirivalinta",IDC_OPTIONS_MOUSERICHEDIT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
-    CONTROL         "Hiiren raahaaminen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+    CONTROL         "Hiirell‰ raahaaminen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Right click moves caret",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
-    GROUPBOX        "HyperLinkit",IDC_STATIC,9,60,200,100
+    CONTROL         "Oikea napsautus siirt‰‰ kohdistinta",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
+    GROUPBOX        "Hyperlinkit",IDC_STATIC,9,60,200,100
     CONTROL         "&N‰yt‰",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,76,90,10
     CONTROL         "N&apsautus",IDC_OPTIONS_URL_SINGLECLICK,"Button",
@@ -865,14 +866,14 @@ BEGIN
     CONTROL         "Sano&jen erottimet:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
-                    13,BS_CENTER
-    CONTROL         "Automaattisen rivityksen rajat:",
+    PUSHBUTTON      "&Palauta oletukset",IDC_OPTIONS_WORD_DELIMITERS_RESET,
+                    159,180,50,13,BS_CENTER
+    CONTROL         "Automaattisen ri&vityksen rajat:",
                     IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "No&llaa",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
-                    13,BS_CENTER
+    PUSHBUTTON      "P&alauta oletus",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,
+                    211,50,13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -881,13 +882,13 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Lis‰asetukset"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Auto switch keyboard layout",
+    CONTROL         "Vaihda n‰pp‰imistˆasettelua automaattisesti",
                     IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Muista jokaisen v‰lilehden n‰pp‰imistˆasettelu (MDI)",
+    CONTROL         "Tallenna &jokaisen v‰lilehden n‰pp‰imistˆasettelu (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Sulje tallentamaton tyhj‰ v‰lilehti vahvistamatta (MDI)",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Lis‰‰ p‰iv‰ys, jos tiedoston alussa on .LOG",
@@ -897,18 +898,18 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
-    LTEXT           "tiedoston oletustarkenne tallennettaessa",IDC_STATIC,37,
-                    77,171,8
-    GROUPBOX        "Etsi/korvaa -valintaikkuna",IDC_STATIC,9,96,200,53
-    CONTROL         "Korvaa kaikki -toiminto sulkee valintaikkunan",
+    LTEXT           "Tiedoston oletusp‰‰te tallennettaessa",IDC_STATIC,37,77,
+                    171,8
+    GROUPBOX        "Etsi/korvaa-valintaikkuna",IDC_STATIC,9,96,200,53
+    CONTROL         "&Korvaa kaikki -toiminto sulkee valintaikkunan",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
-    CONTROL         "Valitse ""Valittu alue"", jos valintaa ei ole",
+    CONTROL         "&Valitse ""Valinta""-vaihtoehto, jos valintaa ei ole",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
-    CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
+    CONTROL         "Aloita haku alusta",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "Kysy",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
@@ -937,7 +938,7 @@ BEGIN
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     WS_DISABLED | NOT WS_BORDER | NOT WS_TABSTOP,
                     WS_EX_STATICEDGE
-    PUSHBUTTON      "&OK",IDOK,148,183,50,14,BS_CENTER
+    PUSHBUTTON      "OK",IDOK,148,183,50,14,BS_CENTER
 END
 
 IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
@@ -995,14 +996,14 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Virhe viestijonossa."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
-                            "Critical error: not enough memory. It is recommended to terminate the program."
+                            "Kriittinen virhe: muisti ei riit‰. Ohjelman sulkeminen on suositeltavaa."
     MSG_ERROR_BINARY        """%s"" on bin‰‰ritiedosto. Jatketaanko?"
     MSG_ERROR_IO            "Syˆttˆ/tulostusvirhe."
     MSG_ERROR_SYNTAX        "Syntaksivirhe."
     MSG_ERROR_PRINT         "Asiakirjaa ei voi tulostaa."
     MSG_ERROR_RUN           "Ohjelmaa ei voi k‰ynnist‰‰."
-    MSG_ERROR_LOAD_DLL      "Ei voi ladata tiedostoa ""%s""."
-    MSG_ERROR_UNLOAD_DLL    "Ei voi poistaa muistista tiedostoa ""%s""."
+    MSG_ERROR_LOAD_DLL      "Tiedostoa ""%s"" ei voi ladata."
+    MSG_ERROR_UNLOAD_DLL    "Tiedostoa ""%s"" ei voi poistaa muistista."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1015,10 +1016,10 @@ BEGIN
     MSG_PLUGIN_IS_NOT_SUPPORTED 
                             """%s"" - ei tunnistettu AkelPadin lis‰osaksi."
     MSG_UPDATE_LANGMODULE   "P‰ivit‰ %s\n\nNykyinen versio: %d.%d.%d.%d\nTarvitaan versio: %d.%d.%d.%d"
-    MSG_HOTKEY_EXISTS       "Pikan‰pp‰in liitetty jo toimintoon ""%s""."
+    MSG_HOTKEY_EXISTS       "Pikan‰pp‰in on jo liitetty toimintoon ""%s""."
     MSG_CANNOT_OPEN_FILE    "Ei voi avata tiedostoa ""%s""."
-    MSG_WRONG_STRING        "Rivinumero ei kelpaa."
-    MSG_LONG_FILELIST       "Liian monta tiedostoa valittu."
+    MSG_WRONG_STRING        "Rivinumero on virheellinen."
+    MSG_LONG_FILELIST       "Liian monta tiedostoa valittuna."
     MSG_DOCUMENT_CHANGED    "Asiakirjaa on muokattu. Haluatko tallentaa sen?"
     MSG_FILE_DOES_NOT_EXIST "Luodaanko uusi tiedosto ""%s""?"
 END
@@ -1027,19 +1028,19 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Poistettuja tietueita: %d"
     MSG_SEARCH_ENDED        "Haku p‰‰ttynyt."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Tiedoston loppu saavutettu. Jatketaanko?"
     MSG_REPLACE_COUNT       "Muutoksia: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Muutettuja tiedostoja: %d\nMuutoksia: %Id"
+    MSG_REPLACE_COUNT_ALLFILES "Muokattuja tiedostoja: %d\nMuutoksia: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Tiedosto avataan uudelleen, kaikki muutokset menetet‰‰n."
     MSG_FILE_CHANGED        "Tiedostoa ""%s"" on muokattu jossain toisessa ohjelmassa.\n\nHaluatko avata sen uudelleen?"
     MSG_CP_UNIMPLEMENTED    "Koodisivua ""%d"" ei ole toteutettu."
-    MSG_CP_MISMATCH         "Rivi ""%d"" sis‰lt‰‰ symboleita, jotka menetet‰‰n t‰ll‰ koodauksella tallennettaessa. Jatketaanko?"
-    MSG_ACCESSDENIED        "Administrator permission required.\n\n""%s""\n\n"
+    MSG_CP_MISMATCH         "Rivi ""%d"" sis‰lt‰‰ symboleita, jotka menetet‰‰n t‰ll‰ merkistˆll‰ tallennettaessa. Jatketaanko?"
+    MSG_ACCESSDENIED        "Tarvitaan j‰rjestelm‰nvalvojan oikeuksia.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenk‰ynnistyksen j‰lkeen."
     MSG_SAVEIN_READONLY     """%s"" on vain luku -tiedosto. Jatketaanko?"
     MSG_OVERWRITEPROMPT     """%s"" on jo olemassa. Korvataanko se?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "Asiakirjojen enimm‰ism‰‰r‰ saavutettu. K‰yt‰ PMDI-tilaa avataksesi niit‰ enemm‰n."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1048,7 +1049,7 @@ BEGIN
     STR_MODIFIED            "Muokattu"
     STR_READONLY            "Vain luku"
     STR_COUNT               "%d / %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "ilman"
     STR_AUTODETECT          "&Automaattinen tunnistus"
     STR_RECENT_FILES_EMPTY  "Tyhj‰"
     STR_RECENT_FILES_DELETE_DEAD "Poista tiedostot, joita ei en‰‰ ole"
@@ -1083,15 +1084,15 @@ BEGIN
     STR_BASIC               "Perusv‰ri"
     STR_SELECTION           "Valinta"
     STR_ACTIVELINE          "Aktiivinen rivi"
-    STR_ACTIVELINEBORDER    "Active line border"
-    STR_ALTLINE             "Alt line"
-    STR_ALTLINEBORDER       "Alt line border"
+    STR_ACTIVELINEBORDER    "Aktiivinen rivin reunus"
+    STR_ALTLINE             "Vaiht rivit"
+    STR_ALTLINEBORDER       "Vaiht rivin reunus"
     STR_ACTIVECOLUMN        "Aktiivinen sarake"
     STR_COLUMNMARKER        "Sarakemerkki"
     STR_CARET               "Kohdistin"
     STR_URL                 "Hyperlinkki"
-    STR_ACTIVEURL           "Active hyperlink"
-    STR_VISITURL            "Visit hyperlink"
+    STR_ACTIVEURL           "Aktiivinen hyperlinkki"
+    STR_VISITURL            "Avaa hyperlinkki"
     STR_PAGEFIT             "Sovita sivu"
     STR_PAGEWIDTH           "Sivun leveys"
     STR_ALLFILES            "Kaikki tiedostot"
@@ -1102,22 +1103,22 @@ BEGIN
     STR_ONLYMODIFIED        "Muokattu"
     STR_ONLYUNMODIFIED      "Muokkaamaton"
     STR_INVERTSELECTION     "K‰‰nteinen valinta"
-    STR_MESSAGEBOX_OK       "&OK"
-    STR_MESSAGEBOX_YES      "&Yes"
-    STR_MESSAGEBOX_NO       "&No"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Kyll‰"
+    STR_MESSAGEBOX_NO       "&Ei"
     STR_MESSAGEBOX_CANCEL   "Peruuta"
-    STR_MESSAGEBOX_YESTOALL "Yes to all"
-    STR_MESSAGEBOX_NOTOALL  "No to all"
+    STR_MESSAGEBOX_YESTOALL "Kyll‰ kaikkiin"
+    STR_MESSAGEBOX_NOTOALL  "Ei kaikkiin"
     STR_MESSAGEBOX_GOTO     "Siirry"
-    STR_MESSAGEBOX_TERMINATE "Terminate"
-    STR_MESSAGEBOX_CONTINUE "Continue"
+    STR_MESSAGEBOX_TERMINATE "Sulje"
+    STR_MESSAGEBOX_CONTINUE "Jatka"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Kyrillinen (1251, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_EASTERNEUROPE "Eastern European (1250, OEM, UTF-8)"
-    STR_AUTODETECT_WESTERNEUROPE "Western European (1252, OEM, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "It‰eurooppalainen (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "L‰nsieurooppalainen (1252, OEM, UTF-8)"
     STR_AUTODETECT_TURKISH  "Turkkilainen (1254, OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "Kiinalainen (ANSI, UTF-8)"
     STR_AUTODETECT_JAPANESE "Japanilainen (932, UTF-8)"
