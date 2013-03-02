@@ -6643,6 +6643,20 @@ Example:
     return FALSE;
   }
 
+  BOOL AEC_IsFirstCharInFile(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0 && !ciChar->lpLine->prev)
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsLastCharInFile(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && !ciChar->lpLine->next)
+      return TRUE;
+    return FALSE;
+  }
+
   AEFOLD* AEC_NextFold(AEFOLD *lpFold, BOOL bRecursive)
   {
     if (lpFold)
@@ -6710,6 +6724,8 @@ Example:
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
   BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
   BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
+  BOOL AEC_IsFirstCharInFile(const AECHARINDEX *ciChar);
+  BOOL AEC_IsLastCharInFile(const AECHARINDEX *ciChar);
   AEFOLD* AEC_NextFold(AEFOLD *lpFold, BOOL bRecursive);
   AEFOLD* AEC_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 #endif //AEC_FUNCTIONS
