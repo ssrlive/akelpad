@@ -25,14 +25,16 @@
 #define REO_REFEXIST         0x100 //Internal.
 
 //REGROUP flags
-#define REGF_ROOTITEM        0x001
-#define REGF_ROOTANY         0x002
-#define REGF_ROOTMULTILINE   0x004
-#define REGF_ANY             0x008
-#define REGF_AUTOGROUP       0x010
-#define REGF_OR              0x020
-#define REGF_POSITIVE        0x040
-#define REGF_NEGATIVE        0x100
+#define REGF_ROOTITEM         0x001
+#define REGF_ROOTANY          0x002
+#define REGF_ROOTMULTILINE    0x004
+#define REGF_ANY              0x008
+#define REGF_AUTOGROUP        0x010
+#define REGF_OR               0x020
+#define REGF_POSITIVEFORWARD  0x040
+#define REGF_NEGATIVEFORWARD  0x100
+#define REGF_POSITIVEBACKWARD 0x200
+#define REGF_NEGATIVEBACKWARD 0x400
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -227,6 +229,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
 int PatRefIndex(const wchar_t **wppPat);
 REGROUP* PatCloseAutoGroups(REGROUP *lpREGroupItem, const wchar_t *wpPat, BOOL *lpbGroupNextChars);
+BOOL PatIsInNonCapture(REGROUP *lpREGroupItem);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
 REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem);
@@ -567,15 +570,29 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           {
             //Don't assign index
           }
+          else if (*wpPat == L'<')
+          {
+            if (*++wpPat == L'=')
+            {
+              //Non-capture positive backward group
+              lpREGroupNew->dwFlags|=REGF_POSITIVEBACKWARD;
+            }
+            else if (*wpPat == L'!')
+            {
+              //Non-capture negative backward group
+              lpREGroupNew->dwFlags|=REGF_NEGATIVEBACKWARD;
+            }
+            else goto Error;
+          }
           else if (*wpPat == L'=')
           {
-            //Non-capture positive group
-            lpREGroupNew->dwFlags|=REGF_POSITIVE;
+            //Non-capture positive foreward group
+            lpREGroupNew->dwFlags|=REGF_POSITIVEFORWARD;
           }
           else if (*wpPat == L'!')
           {
-            //Non-capture negative group
-            lpREGroupNew->dwFlags|=REGF_NEGATIVE;
+            //Non-capture negative foreward group
+            lpREGroupNew->dwFlags|=REGF_NEGATIVEFORWARD;
           }
           else goto Error;
 
@@ -919,7 +936,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
-      if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+      if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
       {
         lpREGroupItem->wpStrStart=wpMinStr;
         lpREGroupItem->wpStrEnd=wpMinStr;
@@ -935,14 +952,14 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       lpREGroupItem->nStrLen=0;
     }
   }
-  if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+  if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
   {
     //lpREGroupItem->wpStrStart=wpMinStr;
     //lpREGroupItem->wpStrEnd=wpMinStr;
     //lpREGroupItem->nStrLen=0;
     return FALSE;
   }
-  if (lpREGroupItem->dwFlags & REGF_POSITIVE)
+  if (lpREGroupItem->dwFlags & REGF_POSITIVEFORWARD)
   {
     lpREGroupItem->wpStrStart=wpMinStr;
     lpREGroupItem->wpStrEnd=wpMinStr;
@@ -1283,6 +1300,18 @@ REGROUP* PatCloseAutoGroups(REGROUP *lpREGroupItem, const wchar_t *wpPat, BOOL *
   return lpREGroupItem;
 }
 
+BOOL PatIsInNonCapture(REGROUP *lpREGroupItem)
+{
+  do
+  {
+    if ((lpREGroupItem->dwFlags & REGF_POSITIVEFORWARD) || (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD))
+      return TRUE;
+  }
+  while (lpREGroupItem=lpREGroupItem->parent);
+
+  return FALSE;
+}
+
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex)
 {
   REGROUP *lpREGroupItem;
@@ -1564,8 +1593,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
           if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
             goto EndLoop;
+
           ciStr=lpREGroupNext->ciStrEnd;
           nStrLen+=lpREGroupNext->nStrLen;
+          if (wpPat == lpREGroupItem->wpPatStart && !lpREGroupItem->parent &&
+              ((lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD) || (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)))
+            ciStrStart=ciStr;
         }
 
         NextGroup:
@@ -1579,7 +1612,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       if (*wpPat == L'$')
       {
-        if (hStack->dwOptions & REO_MULTILINE ? AEC_IsLastCharInLine(&ciStr) : !AEC_IndexCompare(&ciStr, &ciMaxStr))
+        if (hStack->dwOptions & REO_MULTILINE ? AEC_IsLastCharInLine(&ciStr) : !AEC_IsLastCharInFile(&ciStr))
         {
           ++wpPat;
           continue;
@@ -1594,8 +1627,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         ++wpPat;
         continue;
       }
-      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 &&
-          !(lpREGroupItem->dwFlags & REGF_POSITIVE) && !(lpREGroupItem->dwFlags & REGF_NEGATIVE))
+      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 && !PatIsInNonCapture(lpREGroupItem))
       {
         if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B'))
         {
@@ -1756,10 +1788,19 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     EndLoop:
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
-      if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+      if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
       {
         lpREGroupItem->ciStrStart=ciMinStr;
         lpREGroupItem->ciStrEnd=ciMinStr;
+        lpREGroupItem->nStrLen=0;
+        return TRUE;
+      }
+      if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
+      {
+        if (wpPat < lpREGroupItem->wpPatEnd)
+          goto NextChar;
+        lpREGroupItem->ciStrStart=ciStr;
+        lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=0;
         return TRUE;
       }
@@ -1772,17 +1813,24 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       lpREGroupItem->nStrLen=0;
     }
   }
-  if (lpREGroupItem->dwFlags & REGF_NEGATIVE)
+  if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
   {
-    //lpREGroupItem->ciStrStart=ciMinStr;
-    //lpREGroupItem->ciStrEnd=ciMinStr;
-    //lpREGroupItem->nStrLen=0;
     return FALSE;
   }
-  if (lpREGroupItem->dwFlags & REGF_POSITIVE)
+  if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
+  {
+    return FALSE;
+  }
+  if (lpREGroupItem->dwFlags & REGF_POSITIVEFORWARD)
   {
     lpREGroupItem->ciStrStart=ciMinStr;
     lpREGroupItem->ciStrEnd=ciMinStr;
+    lpREGroupItem->nStrLen=0;
+  }
+  if (lpREGroupItem->dwFlags & REGF_POSITIVEBACKWARD)
+  {
+    lpREGroupItem->ciStrStart=ciStr;
+    lpREGroupItem->ciStrEnd=ciStr;
     lpREGroupItem->nStrLen=0;
   }
   return TRUE;
