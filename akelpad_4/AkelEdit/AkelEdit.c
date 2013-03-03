@@ -1024,25 +1024,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       RECT *lprcDraw=(RECT *)lParam;
       RECT rcDraw;
 
-      if (wParam & AERC_MARGINS)
+      if (lprcDraw)
       {
-        rcDraw.left=ae->rcEdit.left + lprcDraw->left;
-        rcDraw.top=ae->rcEdit.top + lprcDraw->top;
-        rcDraw.right=ae->rcEdit.right -  lprcDraw->right;
-        rcDraw.bottom=ae->rcEdit.bottom - lprcDraw->bottom;
+        if (wParam & AERC_MARGINS)
+        {
+          rcDraw.left=ae->rcEdit.left + lprcDraw->left;
+          rcDraw.top=ae->rcEdit.top + lprcDraw->top;
+          rcDraw.right=ae->rcEdit.right -  lprcDraw->right;
+          rcDraw.bottom=ae->rcEdit.bottom - lprcDraw->bottom;
+        }
+        else rcDraw=*lprcDraw;
+
+        if (wParam & AERC_NOLEFT)
+          rcDraw.left=ae->rcDraw.left;
+        if (wParam & AERC_NOTOP)
+          rcDraw.top=ae->rcDraw.top;
+        if (wParam & AERC_NORIGHT)
+          rcDraw.right=ae->rcDraw.right;
+        if (wParam & AERC_NOBOTTOM)
+          rcDraw.bottom=ae->rcDraw.bottom;
+        lprcDraw=&rcDraw;
       }
-      else rcDraw=*lprcDraw;
-
-      if (wParam & AERC_NOLEFT)
-        rcDraw.left=ae->rcDraw.left;
-      if (wParam & AERC_NOTOP)
-        rcDraw.top=ae->rcDraw.top;
-      if (wParam & AERC_NORIGHT)
-        rcDraw.right=ae->rcDraw.right;
-      if (wParam & AERC_NOBOTTOM)
-        rcDraw.bottom=ae->rcDraw.bottom;
-
-      AE_SetDrawRect(ae, &rcDraw, (BOOL)(wParam & AERC_UPDATE));
+      AE_SetDrawRect(ae, lprcDraw, (BOOL)(wParam & AERC_UPDATE));
       if (ae->ptxt->dwWordWrap)
       {
         AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
