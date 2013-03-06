@@ -654,6 +654,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   INT_PTR nRefLen;
   DWORD dwCmpResult=0;
   BOOL bExclude;
+  int nNegativeBackward=0;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
@@ -775,7 +776,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
             goto EndLoop;
+
           wpStr=lpREGroupNext->wpStrEnd;
+          if (wpPat == lpREGroupItem->wpPatStart && !lpREGroupItem->parent &&
+              ((lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD) || (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)))
+            wpStrStart=wpStr;
         }
 
         NextGroup:
@@ -812,6 +817,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       {
         if ((hStack->dwOptions & REO_ENDBOUNDARY) && wpPat + 2 == wpMaxPat && *wpPat == L'\\' && *(wpPat + 1) == L'b')
           goto Match;
+        nNegativeBackward=-1;
         goto EndLoop;
       }
 
@@ -943,6 +949,18 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->nStrLen=0;
         return TRUE;
       }
+      if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
+      {
+        if (wpPat < lpREGroupItem->wpPatEnd && nNegativeBackward != -1)
+        {
+          ++nNegativeBackward;
+          goto NextChar;
+        }
+        lpREGroupItem->wpStrStart=wpStr;
+        lpREGroupItem->wpStrEnd=wpStr;
+        lpREGroupItem->nStrLen=0;
+        return TRUE;
+      }
       return FALSE;
     }
     if (!nCurMatch)
@@ -954,15 +972,29 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
   {
-    //lpREGroupItem->wpStrStart=wpMinStr;
-    //lpREGroupItem->wpStrEnd=wpMinStr;
-    //lpREGroupItem->nStrLen=0;
+    return FALSE;
+  }
+  if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
+  {
+    if (nNegativeBackward)
+    {
+      lpREGroupItem->wpStrStart=wpStr;
+      lpREGroupItem->wpStrEnd=wpStr;
+      lpREGroupItem->nStrLen=0;
+      return TRUE;
+    }
     return FALSE;
   }
   if (lpREGroupItem->dwFlags & REGF_POSITIVEFORWARD)
   {
     lpREGroupItem->wpStrStart=wpMinStr;
     lpREGroupItem->wpStrEnd=wpMinStr;
+    lpREGroupItem->nStrLen=0;
+  }
+  if (lpREGroupItem->dwFlags & REGF_POSITIVEBACKWARD)
+  {
+    lpREGroupItem->wpStrStart=wpStr;
+    lpREGroupItem->wpStrEnd=wpStr;
     lpREGroupItem->nStrLen=0;
   }
   return TRUE;
