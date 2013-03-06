@@ -1472,6 +1472,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   int nRefIndex;
   DWORD dwCmpResult=0;
   BOOL bExclude;
+  int nNegativeBackward=0;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
@@ -1639,6 +1640,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           else if (*(wpPat + 1) == L'B')
             goto Match;
         }
+        nNegativeBackward=-1;
         goto EndLoop;
       }
 
@@ -1797,8 +1799,11 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
       {
-        if (wpPat < lpREGroupItem->wpPatEnd)
+        if (wpPat < lpREGroupItem->wpPatEnd && nNegativeBackward != -1)
+        {
+          ++nNegativeBackward;
           goto NextChar;
+        }
         lpREGroupItem->ciStrStart=ciStr;
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=0;
@@ -1819,6 +1824,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   }
   if (lpREGroupItem->dwFlags & REGF_NEGATIVEBACKWARD)
   {
+    if (nNegativeBackward)
+    {
+      lpREGroupItem->ciStrStart=ciStr;
+      lpREGroupItem->ciStrEnd=ciStr;
+      lpREGroupItem->nStrLen=0;
+      return TRUE;
+    }
     return FALSE;
   }
   if (lpREGroupItem->dwFlags & REGF_POSITIVEFORWARD)
