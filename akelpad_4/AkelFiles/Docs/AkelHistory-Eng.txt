@@ -3,7 +3,9 @@ AkelPad 4.8.2 ()
 ----------------------------
 Added: (?<=pattern) positive lookbehind search.
 Added: (?<!pattern) negative lookbehind search.
-Added: \x{n} metacharacter in regular expressions for surrogate pairs search/replace.
+Added: \A metacharacter - matches the position at the beginning of the search range.
+Added: \Z metacharacter - matches the position at the end of the search range.
+Added: \x{n} metacharacter for surrogate pairs search/replace.
 Added: variable %cl of manual parameter "StatusUserFormat" now support surrogate pairs.
 Added: manual parameter for "MouseOptions" with a value of 64 - left margin line selection
        with mouse selects all wrapped line.

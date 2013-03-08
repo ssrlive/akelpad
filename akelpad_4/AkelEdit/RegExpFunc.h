@@ -290,8 +290,14 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       else
         ++wpPat;
     }
+    else if (*wpPat == L'\\' && wpPat + 1 < wpMaxPat && *(wpPat + 1) == L'A')
+    {
+      wpPat+=2;
+    }
     else
+    {
       lpREGroupItem->dwFlags|=REGF_ROOTANY;
+    }
     lpREGroupItem->dwFlags|=REGF_ROOTITEM;
 
     lpREGroupItem->parent=NULL;
@@ -815,8 +821,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       if (wpStr >= wpMaxStr)
       {
-        if ((hStack->dwOptions & REO_ENDBOUNDARY) && wpPat + 2 == wpMaxPat && *wpPat == L'\\' && *(wpPat + 1) == L'b')
-          goto Match;
+        if (wpPat + 2 == wpMaxPat && *wpPat == L'\\')
+        {
+          if ((hStack->dwOptions & REO_ENDBOUNDARY) && *(wpPat + 1) == L'b')
+            goto Match;
+          else if (*(wpPat + 1) == L'z' || *(wpPat + 1) == L'Z')
+            goto Match;
+        }
         nNegativeBackward=-1;
         goto EndLoop;
       }
@@ -1662,14 +1673,19 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 && !PatIsInNonCapture(lpREGroupItem))
       {
-        if (wpPat + 2 == wpMaxPat && *wpPat == L'\\' && (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B'))
+        if (wpPat + 2 == wpMaxPat && *wpPat == L'\\')
         {
-          if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
+          if (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B')
           {
-            if (*(wpPat + 1) == L'b')
+            if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
+            {
+              if (*(wpPat + 1) == L'b')
+                goto Match;
+            }
+            else if (*(wpPat + 1) == L'B')
               goto Match;
           }
-          else if (*(wpPat + 1) == L'B')
+          else if (*(wpPat + 1) == L'z' || *(wpPat + 1) == L'Z')
             goto Match;
         }
         nNegativeBackward=-1;
