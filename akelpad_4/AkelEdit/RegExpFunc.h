@@ -360,7 +360,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         wpPat+=5;
       else if (*wpPat >= L'0' && *wpPat <= L'9')
       {
-        if (PatRefIndex(&wpPat) > nIndex)
+        int nPatRefIndex=PatRefIndex(&wpPat);
+
+        if (nPatRefIndex > nIndex || nPatRefIndex == 0)
         {
           wpPat=wpCharStart;
           goto Error;
@@ -865,7 +867,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               if (!(dwCmpResult & RECCE_MIX))
               {
                 if ((nStrChar >= nPatChar && nStrChar <= nPatNextChar) ||
-                    (!(hStack->dwOptions & REO_MATCHCASE) && nStrChar <= MAXWORD && 
+                    (!(hStack->dwOptions & REO_MATCHCASE) && nStrChar <= MAXWORD &&
                       (((wchCaseChar=WideCharLower((wchar_t)nStrChar)) >= nPatChar && wchCaseChar <= nPatNextChar) ||
                        (wchCaseChar == nStrChar && (wchCaseChar=WideCharUpper((wchar_t)nStrChar)) >= nPatChar && wchCaseChar <= nPatNextChar))))
                 {
@@ -1728,7 +1730,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               if (!(dwCmpResult & RECCE_MIX))
               {
                 if ((nStrChar >= nPatChar && nStrChar <= nPatNextChar) ||
-                    (!(hStack->dwOptions & REO_MATCHCASE) && nStrChar <= MAXWORD && 
+                    (!(hStack->dwOptions & REO_MATCHCASE) && nStrChar <= MAXWORD &&
                       (((wchCaseChar=WideCharLower((wchar_t)nStrChar)) >= nPatChar && wchCaseChar <= nPatNextChar) ||
                        (wchCaseChar == nStrChar && (wchCaseChar=WideCharUpper((wchar_t)nStrChar)) >= nPatChar && wchCaseChar <= nPatNextChar))))
                 {
