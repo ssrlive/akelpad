@@ -1766,11 +1766,19 @@
     </tr>
     <tr>
       <td>(?=<i>pattern</i>)</td>
-      <td>A subexpression that performs a positive lookahead search, which matches the string at any point where a string matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example 'Windows (?=95|98|NT|2000)' matches "Windows" in "Windows 2000" but not "Windows" in "Windows 3.1". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+      <td>A subexpression that performs a positive lookahead search, which matches the search string at any point where a string matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example, 'Windows (?=95|98|NT|2000)' matches "Windows" in "Windows 2000" but not "Windows" in "Windows 3.1". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
     </tr>
     <tr>
       <td>(?!<i>pattern</i>)</td>
-      <td>A subexpression that performs a negative lookahead search, which matches the search string at any point where a string not matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example 'Windows (?!95|98|NT|2000)' matches "Windows" in "Windows 3.1" but does not match "Windows" in "Windows 2000". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+      <td>A subexpression that performs a negative lookahead search, which matches the search string at any point where a string not matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example, 'Windows (?!95|98|NT|2000)' matches "Windows" in "Windows 3.1" but does not match "Windows" in "Windows 2000". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+    </tr>
+    <tr>
+      <td>(?&lt;=<i>pattern</i>)</td>
+      <td>A subexpression that performs a positive lookbehind search, which matches the search string at any point where a string matching <i>pattern</i> ends. For example, '(?<=abc)z' matches an "z" only if it is preceded by the expression "abc". This is a non-capturing match, that is, the match is not captured for possible later use. Pattern must be of fixed length.</td>
+    </tr>
+    <tr>
+      <td>(?&lt;!<i>pattern</i>)</td>
+      <td>A subexpression that performs a negative lookbehind search, which matches the search string at any point where a string not matching <i>pattern</i> ends. For example, '(?<!abc)z' matches an "z" only if it is not preceded by the expression "abc". This is a non-capturing match, that is, the match is not captured for possible later use. Pattern must be of fixed length.</td>
     </tr>
     <tr>
       <td><i>x</i>|<i>y</i></td>

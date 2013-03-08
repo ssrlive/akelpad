@@ -5,6 +5,8 @@ Added: manual parameter for "MouseOptions" with a value of 64 - left margin line
        with mouse selects all wrapped line.
 Added: variable %cl of manual parameter "StatusUserFormat" now support surrogate pairs.
 Added: \x{n} metacharacter in regular expressions for surrogate pairs search/replace.
+Added: (?<=pattern) positive lookbehind search.
+Added: (?<!pattern) negative lookbehind search.
 
 Fixed: file saving in MBCS codepage.
 Fixed: single replace with using regular expressions.
