@@ -45,20 +45,24 @@
 #define RECCE_DIF           0x02
 #define RECCE_MIX           0x04
 #define RECCE_BOUNDARY      0x08
-#define RECCE_REF           0x10
+#define RECCE_STRBEGIN      0x10
+#define RECCE_STREND        0x20
+#define RECCE_REF           0x40
 
 //PatEscChar return value
 #define REEC_FIRST      (MAXLONG - 20)
 #define REEC_WRONG      (REEC_FIRST + 0)
 #define REEC_NEWLINE    (REEC_FIRST + 1)
 #define REEC_BOUNDARY   (REEC_FIRST + 2)
-#define REEC_REF        (REEC_FIRST + 3)
-#define REEC_DIGIT      (REEC_FIRST + 4)
-#define REEC_NONDIGIT   (REEC_FIRST + 5)
-#define REEC_SPACE      (REEC_FIRST + 6)
-#define REEC_NONSPACE   (REEC_FIRST + 7)
-#define REEC_LATIN      (REEC_FIRST + 8)
-#define REEC_NONLATIN   (REEC_FIRST + 9)
+#define REEC_STRBEGIN   (REEC_FIRST + 3)
+#define REEC_STREND     (REEC_FIRST + 4)
+#define REEC_REF        (REEC_FIRST + 5)
+#define REEC_DIGIT      (REEC_FIRST + 6)
+#define REEC_NONDIGIT   (REEC_FIRST + 7)
+#define REEC_SPACE      (REEC_FIRST + 8)
+#define REEC_NONSPACE   (REEC_FIRST + 9)
+#define REEC_LATIN      (REEC_FIRST + 10)
+#define REEC_NONLATIN   (REEC_FIRST + 11)
 
 //PatStructExec options
 #define REPE_MATCHCASE        0x001 //Case-sensitive search.
@@ -283,20 +287,22 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   //Zero group is the all pattern
   if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpREGroupItem, sizeof(REGROUP)))
   {
+    lpREGroupItem->dwFlags|=REGF_ROOTANY;
+
+    if (*wpPat == L'\\' && wpPat + 1 < wpMaxPat && *(wpPat + 1) == L'A')
+    {
+      wpPat+=2;
+      lpREGroupItem->dwFlags&=~REGF_ROOTANY;
+    }
     if (*wpPat == L'^')
     {
       if (hStack->dwOptions & REO_MULTILINE)
-        lpREGroupItem->dwFlags|=REGF_ROOTANY|REGF_ROOTMULTILINE;
+        lpREGroupItem->dwFlags|=REGF_ROOTMULTILINE;
       else
+      {
         ++wpPat;
-    }
-    else if (*wpPat == L'\\' && wpPat + 1 < wpMaxPat && *(wpPat + 1) == L'A')
-    {
-      wpPat+=2;
-    }
-    else
-    {
-      lpREGroupItem->dwFlags|=REGF_ROOTANY;
+        lpREGroupItem->dwFlags&=~REGF_ROOTANY;
+      }
     }
     lpREGroupItem->dwFlags|=REGF_ROOTITEM;
 
@@ -368,6 +374,13 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           goto Error;
         }
         hStack->dwOptions|=REO_REFEXIST;
+      }
+      else if (*wpPat == L'A' && lpREGroupItem->wpPatStart != wpPat - 1)
+        goto Error;
+      else if ((*wpPat == L'Z' || *wpPat == L'z') &&
+               (wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')'))
+      {
+        goto Error;
       }
       else ++wpPat;
 
@@ -827,7 +840,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           if ((hStack->dwOptions & REO_ENDBOUNDARY) && *(wpPat + 1) == L'b')
             goto Match;
-          else if (*(wpPat + 1) == L'z' || *(wpPat + 1) == L'Z')
+          else if (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z')
             goto Match;
         }
         nNegativeBackward=-1;
@@ -919,6 +932,19 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               ++wpPat;
               continue;
             }
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_STRBEGIN)
+          {
+            if (wpStr == hStack->first->wpStrStart)
+            {
+              ++wpPat;
+              continue;
+            }
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_STREND)
+          {
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_REF)
@@ -1109,10 +1135,6 @@ int PatEscChar(const wchar_t **wppPat)
         return L'\f';
       if (nPatChar == L'v')
         return L'\v';
-      if (nPatChar == L'b' || nPatChar == L'B')
-        return REEC_BOUNDARY;
-      if (nPatChar >= L'0' && nPatChar <= L'9')
-        return REEC_REF;
       if (nPatChar == L'd')
         return REEC_DIGIT;
       if (nPatChar == L'D')
@@ -1125,6 +1147,14 @@ int PatEscChar(const wchar_t **wppPat)
         return REEC_LATIN;
       if (nPatChar == L'W')
         return REEC_NONLATIN;
+      if (nPatChar == L'b' || nPatChar == L'B')
+        return REEC_BOUNDARY;
+      if (nPatChar == L'A')
+        return REEC_STRBEGIN;
+      if (nPatChar == L'Z' || nPatChar == L'z')
+        return REEC_STREND;
+      if (nPatChar >= L'0' && nPatChar <= L'9')
+        return REEC_REF;
     }
   }
   return nPatChar;
@@ -1183,6 +1213,10 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
       *lpnPatChar=L'\0';
       if (nPatChar == REEC_BOUNDARY)
         return RECCE_BOUNDARY|RECCE_MIX;
+      if (nPatChar == REEC_STRBEGIN)
+        return RECCE_STRBEGIN|RECCE_MIX;
+      if (nPatChar == REEC_STREND)
+        return RECCE_STREND|RECCE_MIX;
       if (nPatChar == REEC_SPACE ||
           nPatChar == REEC_NONDIGIT ||
           nPatChar == REEC_NONLATIN)
@@ -1240,6 +1274,14 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
     else if (nPatChar == REEC_BOUNDARY)
     {
       return RECCE_BOUNDARY|RECCE_MIX;
+    }
+    else if (nPatChar == REEC_STRBEGIN)
+    {
+      return RECCE_STRBEGIN|RECCE_MIX;
+    }
+    else if (nPatChar == REEC_STREND)
+    {
+      return RECCE_STREND|RECCE_MIX;
     }
     else if (nPatChar == REEC_REF)
     {
@@ -1687,7 +1729,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             else if (*(wpPat + 1) == L'B')
               goto Match;
           }
-          else if (*(wpPat + 1) == L'z' || *(wpPat + 1) == L'Z')
+          else if (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z')
             goto Match;
         }
         nNegativeBackward=-1;
@@ -1782,6 +1824,19 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               ++wpPat;
               continue;
             }
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_STRBEGIN)
+          {
+            if (!AEC_IndexCompare(&ciStr, &hStack->first->ciStrStart))
+            {
+              ++wpPat;
+              continue;
+            }
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_STREND)
+          {
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_REF)
