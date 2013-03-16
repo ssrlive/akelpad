@@ -88,6 +88,25 @@
   #define AELB_RRN      8  //"\r\r\n" new line.
 #endif
 
+#ifndef AEC_IsSurrogate
+  #define AEC_IsSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)
+#endif
+#ifndef AEC_IsHighSurrogate
+  #define AEC_IsHighSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)
+#endif
+#ifndef AEC_IsLowSurrogate
+  #define AEC_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
+#endif
+#ifndef AEC_ScalarFromSurrogate
+  #define AEC_ScalarFromSurrogate(high, low)  ((((high) - 0xD800) * 0x400) + ((low) - 0xDC00) + 0x10000)
+#endif
+#ifndef AEC_HighSurrogateFromScalar
+  #define AEC_HighSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) / 0x400) + 0xD800))
+#endif
+#ifndef AEC_LowSurrogateFromScalar
+  #define AEC_LowSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) % 0x400) + 0xDC00))
+#endif
+
 typedef struct _REGROUP {
   struct _REGROUP *next;
   struct _REGROUP *prev;
