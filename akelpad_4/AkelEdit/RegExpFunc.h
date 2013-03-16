@@ -22,6 +22,8 @@
 #define REO_ENDLINEFINISH    0x008 //Internal.
 #define REO_STARTBOUNDARY    0x010 //Internal.
 #define REO_ENDBOUNDARY      0x020 //Internal.
+#define REO_STARTSTRBEGIN    0x040 //Internal.
+#define REO_ENDSTRFINISH     0x080 //Internal.
 #define REO_REFEXIST         0x100 //Internal.
 
 //REGROUP flags
@@ -70,6 +72,8 @@
 #define REPE_ENDLINEFINISH    0x008 //PATEXEC.wpMaxStr ends on line ending. Used with REPE_MULTILINE flag.
 #define REPE_STARTBOUNDARY    0x010 //PATEXEC.wpStr is word boundary. Valid if metacharacter \b or \B used in pattern.
 #define REPE_ENDBOUNDARY      0x020 //PATEXEC.wpMaxStr is word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_STARTSTRBEGIN    0x040 //PATEXEC.wpStr starts from string beginning. Valid if metacharacter \A used in pattern.
+#define REPE_ENDSTRFINISH     0x080 //PATEXEC.wpMaxStr ends on string ending. Valid if metacharacter \Z used in pattern.
 #define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
 #define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
 
@@ -288,11 +292,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   {
     lpREGroupItem->dwFlags|=REGF_ROOTANY;
 
-    if (*wpPat == L'\\' && wpPat + 1 < wpMaxPat && *(wpPat + 1) == L'A')
-    {
-      wpPat+=2;
-      lpREGroupItem->dwFlags&=~REGF_ROOTANY;
-    }
     if (*wpPat == L'^')
     {
       if (hStack->dwOptions & REO_MULTILINE)
@@ -845,7 +844,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           if ((hStack->dwOptions & REO_ENDBOUNDARY) && *(wpPat + 1) == L'b')
             goto Match;
-          else if (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z')
+          else if ((hStack->dwOptions & REO_ENDSTRFINISH) && (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z'))
             goto Match;
         }
         nNegativeBackward=-1;
@@ -941,7 +940,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           else if (dwCmpResult & RECCE_STRBEGIN)
           {
-            if (wpStr == hStack->first->wpStrStart)
+            if ((hStack->dwOptions & REO_STARTSTRBEGIN) && wpStr == hStack->first->wpStrStart)
             {
               ++wpPat;
               continue;
@@ -2057,6 +2056,10 @@ int PatStructExec(PATEXEC *pe)
         pe->lpREGroupStack->dwOptions|=REO_STARTBOUNDARY;
       if (pe->dwOptions & REPE_ENDBOUNDARY)
         pe->lpREGroupStack->dwOptions|=REO_ENDBOUNDARY;
+      if (pe->dwOptions & REPE_STARTSTRBEGIN)
+        pe->lpREGroupStack->dwOptions|=REO_STARTSTRBEGIN;
+      if (pe->dwOptions & REPE_ENDSTRFINISH)
+        pe->lpREGroupStack->dwOptions|=REO_ENDSTRFINISH;
       pe->lpREGroupStack->wpDelim=pe->wpDelim;
       pe->lpREGroupStack->wpMaxDelim=pe->wpDelim?pe->wpMaxDelim:NULL;
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
@@ -2103,6 +2106,7 @@ int PatStructExec(PATEXEC *pe)
         else
           pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
       }
+      pe->lpREGroupStack->dwOptions&=~REO_STARTSTRBEGIN;
 
       PatReset(pe->lpREGroupStack);
     }
