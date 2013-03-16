@@ -9982,7 +9982,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       {
         pr.wpStr=wszRangeText;
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
-        pr.dwOptions|=REPE_GLOBAL;
+        pr.dwOptions|=REPE_GLOBAL|REPE_STARTSTRBEGIN|REPE_ENDSTRFINISH;
         if (AEC_IsFirstCharInLine(&crRange.ciMin))
           pr.dwOptions|=REPE_STARTLINEBEGIN;
         if (AEC_IsLastCharInLine(&crRange.ciMax))
