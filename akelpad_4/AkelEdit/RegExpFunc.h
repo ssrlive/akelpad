@@ -16,15 +16,17 @@
 #define _REGEXPFUNC_H_
 
 //STACKREGROUP options
-#define REO_MATCHCASE        0x001 //Case-sensitive search.
-#define REO_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_STARTLINEBEGIN   0x004 //Internal.
-#define REO_ENDLINEFINISH    0x008 //Internal.
-#define REO_STARTBOUNDARY    0x010 //Internal.
-#define REO_ENDBOUNDARY      0x020 //Internal.
-#define REO_STARTSTRBEGIN    0x040 //Internal.
-#define REO_ENDSTRFINISH     0x080 //Internal.
-#define REO_REFEXIST         0x100 //Internal.
+#define REO_MATCHCASE         0x0001 //Case-sensitive search.
+#define REO_MULTILINE         0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define REO_STARTLINEBEGIN    0x0004 //Internal.
+#define REO_ENDLINEFINISH     0x0008 //Internal.
+#define REO_STARTBOUNDARY     0x0010 //Internal.
+#define REO_ENDBOUNDARY       0x0020 //Internal.
+#define REO_STARTSTRBEGIN     0x0040 //Internal.
+#define REO_ENDSTRFINISH      0x0080 //Internal.
+#define REO_NOSTARTRANGEBEGIN 0x0100 //Internal.
+#define REO_NOSTARTRANGEEND   0x0200 //Internal.
+#define REO_REFEXIST          0x1000 //Internal.
 
 //REGROUP flags
 #define REGF_ROOTITEM         0x001
@@ -42,13 +44,15 @@
 #define RECCF_FULLSURROGATE 0x02 //Check full surrogate character.
 
 //PatCharCmp return value
-#define RECCE_EQUAL         0x01
-#define RECCE_DIF           0x02
-#define RECCE_MIX           0x04
-#define RECCE_BOUNDARY      0x08
-#define RECCE_STRBEGIN      0x10
-#define RECCE_STREND        0x20
-#define RECCE_REF           0x40
+#define RECCE_EQUAL         0x001
+#define RECCE_DIF           0x002
+#define RECCE_MIX           0x004
+#define RECCE_BOUNDARY      0x008
+#define RECCE_STRBEGIN      0x010
+#define RECCE_STREND        0x020
+#define RECCE_RANGEBEGIN    0x040
+#define RECCE_RANGEEND      0x080
+#define RECCE_REF           0x100
 
 //PatEscChar return value
 #define REEC_FIRST      (MAXLONG - 20)
@@ -57,25 +61,27 @@
 #define REEC_BOUNDARY   (REEC_FIRST + 2)
 #define REEC_STRBEGIN   (REEC_FIRST + 3)
 #define REEC_STREND     (REEC_FIRST + 4)
-#define REEC_REF        (REEC_FIRST + 5)
-#define REEC_DIGIT      (REEC_FIRST + 6)
-#define REEC_NONDIGIT   (REEC_FIRST + 7)
-#define REEC_SPACE      (REEC_FIRST + 8)
-#define REEC_NONSPACE   (REEC_FIRST + 9)
-#define REEC_LATIN      (REEC_FIRST + 10)
-#define REEC_NONLATIN   (REEC_FIRST + 11)
+#define REEC_RANGEBEGIN (REEC_FIRST + 5)
+#define REEC_RANGEEND   (REEC_FIRST + 6)
+#define REEC_REF        (REEC_FIRST + 7)
+#define REEC_DIGIT      (REEC_FIRST + 8)
+#define REEC_NONDIGIT   (REEC_FIRST + 9)
+#define REEC_SPACE      (REEC_FIRST + 10)
+#define REEC_NONSPACE   (REEC_FIRST + 11)
+#define REEC_LATIN      (REEC_FIRST + 12)
+#define REEC_NONLATIN   (REEC_FIRST + 13)
 
 //PatStructExec options
-#define REPE_MATCHCASE        0x001 //Case-sensitive search.
-#define REPE_MULTILINE        0x002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REPE_STARTLINEBEGIN   0x004 //PATEXEC.wpStr starts from line beginning. Used with REPE_MULTILINE flag.
-#define REPE_ENDLINEFINISH    0x008 //PATEXEC.wpMaxStr ends on line ending. Used with REPE_MULTILINE flag.
-#define REPE_STARTBOUNDARY    0x010 //PATEXEC.wpStr is word boundary. Valid if metacharacter \b or \B used in pattern.
-#define REPE_ENDBOUNDARY      0x020 //PATEXEC.wpMaxStr is word boundary. Valid if metacharacter \b or \B used in pattern.
-#define REPE_STARTSTRBEGIN    0x040 //PATEXEC.wpStr starts from string beginning. Valid if metacharacter \A used in pattern.
-#define REPE_ENDSTRFINISH     0x080 //PATEXEC.wpMaxStr ends on string ending. Valid if metacharacter \Z used in pattern.
-#define REPE_GLOBAL           0x100 //Search all possible occurrences. If not specified then find only first occurrence.
-#define REPE_ISMATCH          0x200 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
+#define REPE_MATCHCASE        0x0001 //Case-sensitive search.
+#define REPE_MULTILINE        0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define REPE_STARTLINEBEGIN   0x0004 //PATEXEC.wpStr starts from line beginning. Used with REPE_MULTILINE flag.
+#define REPE_ENDLINEFINISH    0x0008 //PATEXEC.wpMaxStr ends on line ending. Used with REPE_MULTILINE flag.
+#define REPE_STARTBOUNDARY    0x0010 //PATEXEC.wpStr is word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_ENDBOUNDARY      0x0020 //PATEXEC.wpMaxStr is word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_STARTSTRBEGIN    0x0040 //PATEXEC.wpStr starts from string beginning. Valid if metacharacters \A or \a used in pattern.
+#define REPE_ENDSTRFINISH     0x0080 //PATEXEC.wpMaxStr ends on string ending. Valid if metacharacters \Z or \z used in pattern.
+#define REPE_GLOBAL           0x1000 //Search all possible occurrences. If not specified then find only first occurrence.
+#define REPE_ISMATCH          0x2000 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
 
 //PatStructExec callback return value
 #define REPEC_CONTINUE  0  //Find next match.
@@ -395,10 +401,13 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         }
         hStack->dwOptions|=REO_REFEXIST;
       }
-      else if (*wpPat == L'A' && lpREGroupItem->wpPatStart != wpPat - 1)
+      else if ((*wpPat == L'A' || *wpPat == L'a') &&
+               lpREGroupItem->wpPatStart != wpPat - 1)
+      {
         goto Error;
+      }
       else if ((*wpPat == L'Z' || *wpPat == L'z') &&
-               (wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')'))
+               wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')')
       {
         goto Error;
       }
@@ -863,7 +872,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           if ((hStack->dwOptions & REO_ENDBOUNDARY) && *(wpPat + 1) == L'b')
             goto Match;
-          else if ((hStack->dwOptions & REO_ENDSTRFINISH) && (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z'))
+          else if ((hStack->dwOptions & REO_ENDSTRFINISH) && *(wpPat + 1) == L'Z')
+            goto Match;
+          else if (!(hStack->dwOptions & REO_NOSTARTRANGEEND) && *(wpPat + 1) == L'z')
             goto Match;
         }
         nNegativeBackward=-1;
@@ -966,7 +977,16 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             }
             goto EndLoop;
           }
-          else if (dwCmpResult & RECCE_STREND)
+          else if (dwCmpResult & RECCE_RANGEBEGIN)
+          {
+            if (!(hStack->dwOptions & REO_NOSTARTRANGEBEGIN) && wpStr == hStack->first->wpStrStart)
+            {
+              ++wpPat;
+              continue;
+            }
+            goto EndLoop;
+          }
+          else if ((dwCmpResult & RECCE_STREND) || (dwCmpResult & RECCE_RANGEEND))
           {
             goto EndLoop;
           }
@@ -1174,8 +1194,12 @@ int PatEscChar(const wchar_t **wppPat)
         return REEC_BOUNDARY;
       if (nPatChar == L'A')
         return REEC_STRBEGIN;
-      if (nPatChar == L'Z' || nPatChar == L'z')
+      if (nPatChar == L'Z')
         return REEC_STREND;
+      if (nPatChar == L'a')
+        return REEC_RANGEBEGIN;
+      if (nPatChar == L'z')
+        return REEC_RANGEEND;
       if (nPatChar >= L'0' && nPatChar <= L'9')
         return REEC_REF;
     }
@@ -1236,16 +1260,20 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
       *lpnPatChar=L'\0';
       if (nPatChar == REEC_BOUNDARY)
         return RECCE_BOUNDARY|RECCE_MIX;
-      if (nPatChar == REEC_STRBEGIN)
-        return RECCE_STRBEGIN|RECCE_MIX;
-      if (nPatChar == REEC_STREND)
-        return RECCE_STREND|RECCE_MIX;
       if (nPatChar == REEC_SPACE ||
           nPatChar == REEC_NONDIGIT ||
           nPatChar == REEC_NONLATIN)
       {
         return RECCE_EQUAL|RECCE_MIX;
       }
+      if (nPatChar == REEC_STRBEGIN)
+        return RECCE_STRBEGIN|RECCE_MIX;
+      if (nPatChar == REEC_STREND)
+        return RECCE_STREND|RECCE_MIX;
+      if (nPatChar == REEC_RANGEBEGIN)
+        return RECCE_RANGEBEGIN|RECCE_MIX;
+      if (nPatChar == REEC_RANGEEND)
+        return RECCE_RANGEEND|RECCE_MIX;
       if (nPatChar == REEC_REF)
         return RECCE_REF|RECCE_MIX;
       return RECCE_DIF|RECCE_MIX;
@@ -1305,6 +1333,14 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
     else if (nPatChar == REEC_STREND)
     {
       return RECCE_STREND|RECCE_MIX;
+    }
+    else if (nPatChar == REEC_RANGEBEGIN)
+    {
+      return RECCE_RANGEBEGIN|RECCE_MIX;
+    }
+    else if (nPatChar == REEC_RANGEEND)
+    {
+      return RECCE_RANGEEND|RECCE_MIX;
     }
     else if (nPatChar == REEC_REF)
     {
@@ -1765,7 +1801,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             else if (*(wpPat + 1) == L'B')
               goto Match;
           }
-          else if (*(wpPat + 1) == L'Z' || *(wpPat + 1) == L'z')
+          else if (*(wpPat + 1) == L'Z')
+          {
+            if (AEC_IsLastCharInFile(&ciStr))
+              goto Match;
+          }
+          else if (*(wpPat + 1) == L'z')
             goto Match;
         }
         nNegativeBackward=-1;
@@ -1864,6 +1905,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
           else if (dwCmpResult & RECCE_STRBEGIN)
           {
+            if (AEC_IsFirstCharInFile(&ciStr))
+            {
+              ++wpPat;
+              continue;
+            }
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_RANGEBEGIN)
+          {
             if (!AEC_IndexCompare(&ciStr, &hStack->first->ciStrStart))
             {
               ++wpPat;
@@ -1871,7 +1921,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             }
             goto EndLoop;
           }
-          else if (dwCmpResult & RECCE_STREND)
+          else if ((dwCmpResult & RECCE_STREND) || (dwCmpResult & RECCE_RANGEEND))
           {
             goto EndLoop;
           }
@@ -2125,7 +2175,7 @@ int PatStructExec(PATEXEC *pe)
         else
           pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
       }
-      pe->lpREGroupStack->dwOptions&=~REO_STARTSTRBEGIN;
+      pe->lpREGroupStack->dwOptions=(pe->lpREGroupStack->dwOptions & ~REO_STARTSTRBEGIN) | REO_NOSTARTRANGEBEGIN;
 
       PatReset(pe->lpREGroupStack);
     }

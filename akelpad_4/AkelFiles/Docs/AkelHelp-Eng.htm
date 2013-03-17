@@ -1810,11 +1810,19 @@
     </tr>
     <tr>
       <td>\A</td>
-      <td>Matches the position at the beginning of the search range. For example, '\Aabc' matches the "abc" in "abc\ndef" but not the "abc" in "def\nabc".</td>
+      <td>Matches the position at the beginning of the document. For example, '\Aabc' matches the "abc" in "abc\ndef" but not the "abc" in "def\nabc".</td>
     </tr>
     <tr>
       <td>\Z</td>
-      <td>Matches the position at the end of the search range. For example, 'abc\Z' matches the "abc" in "def\nabc" but not the "abc" in "abc\ndef".</td>
+      <td>Matches the position at the end of the document. For example, 'abc\Z' matches the "abc" in "def\nabc" but not the "abc" in "abc\ndef".</td>
+    </tr>
+    <tr>
+      <td>\a</td>
+      <td>Same as \A, but matches the position at the beginning of the search range.</td>
+    </tr>
+    <tr>
+      <td>\z</td>
+      <td>Same as \Z, but matches the position at the end of the search range.</td>
     </tr>
     <tr>
       <td>\d</td>
