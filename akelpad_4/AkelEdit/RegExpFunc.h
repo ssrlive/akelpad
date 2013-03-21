@@ -882,16 +882,17 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         goto EndLoop;
       }
 
+      //Compare char
+      nPatChar=0;
+      nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
+
       if (*wpPat == L'.')
       {
         ////Any character except new line
-        //wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar);
         //if (nStrChar < 0) goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
-        wpStr+=PatStrChar(wpStr, wpMaxStr, &nStrChar);
-
         if (*++wpPat == L'^')
         {
           bExclude=TRUE;
@@ -944,7 +945,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       else
       {
-        nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
         dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE), &nPatChar);
 
         if (!(dwCmpResult & RECCE_EQUAL))
@@ -1010,16 +1010,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             continue;
           }
         }
-        if (nCharSize)
-          wpStr+=nCharSize;
-        if (nPatChar <= MAXWORD && nStrChar > MAXWORD)
-        {
-          ++wpPat;
-          continue;
-        }
       }
       NextChar:
-      ++wpStr;
+      if (nStrChar > MAXWORD && nPatChar <= MAXWORD)
+        wpStr+=1;
+      else
+        wpStr+=1 + nCharSize;
       ++wpPat;
     }
     EndLoop:
