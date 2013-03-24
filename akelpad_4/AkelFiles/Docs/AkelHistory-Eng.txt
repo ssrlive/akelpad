@@ -5,7 +5,7 @@ Added: (?<=pattern) positive lookbehind search.
 Added: (?<!pattern) negative lookbehind search.
 Added: \A and \a metacharacters - matches the position at the beginning of the document/search
        range.
-Added: \Z and \a metacharacters - matches the position at the end of the document/search range.
+Added: \Z and \z metacharacters - matches the position at the end of the document/search range.
 Added: \x{n} metacharacter for surrogate pairs search/replace.
 Added: variable %cl of manual parameter "StatusUserFormat" now support surrogate pairs.
 Added: manual parameter for "MouseOptions" with a value of 64 - left margin line selection
