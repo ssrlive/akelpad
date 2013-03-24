@@ -1,5 +1,5 @@
 
-AkelPad 4.8.2 ()
+AkelPad 4.8.2 (Mar 24, 2013)
 ----------------------------
 Added: (?<=pattern) positive lookbehind search.
 Added: (?<!pattern) negative lookbehind search.
