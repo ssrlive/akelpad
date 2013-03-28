@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.8.2                               *
+ *                      AkelEdit text control v1.8.3                               *
  *                                                                                 *
  * Copyright 2007-2013 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
