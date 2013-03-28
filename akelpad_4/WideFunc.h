@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v2.1                    *
+ *                  Wide functions header v2.2                    *
  *                                                                *
- * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -70,6 +70,8 @@ HMODULE GetModuleHandleWide(const wchar_t *wpModule);
 DWORD GetModuleFileNameWide(HMODULE hModule, wchar_t *wszFileName, DWORD nSize);
 DWORD GetFullPathNameWide(const wchar_t *wpPath, DWORD nBufferLength, wchar_t *wszBuffer, wchar_t **wpFilePart);
 DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWORD dwLongPathSize);
+DWORD GetTempPathWide(DWORD nBufferLength, wchar_t *wszBuffer);
+UINT GetTempFileNameWide(const wchar_t *wpPathName, const wchar_t *wpPrefixString, UINT uUnique, wchar_t *wszTempFileName);
 UINT SearchPathWide(const wchar_t *wpPath, const wchar_t *wpFileName, const wchar_t *wpExtension, DWORD nBufferLength, wchar_t *wszBuffer, wchar_t **wpFilePart);
 DWORD ExpandEnvironmentStringsWide(const wchar_t *wpSrc, wchar_t *wszDst, DWORD nSize);
 BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, const wchar_t *wpCurrentDirectory, STARTUPINFOW *lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
@@ -669,6 +671,66 @@ DWORD GetLongPathNameWide(const wchar_t *wpShortPath, wchar_t *wszLongPath, DWOR
   else WideNotInitialized();
 
   return (DWORD)xstrcpynW(wszLongPath, wpShortPath, dwLongPathSize);
+}
+#endif
+
+#if defined GetTempPathWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define GetTempPathWide_INCLUDED
+#undef GetTempPathWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+DWORD GetTempPathWide(DWORD nBufferLength, wchar_t *wszBuffer)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetTempPathW(nBufferLength, wszBuffer);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char szBuffer[MAX_PATH];
+    DWORD dwResult;
+
+    if (dwResult=GetTempPathA(MAX_PATH, szBuffer))
+    {
+      if (dwResult=AnsiToWide(szBuffer, -1, wszBuffer, nBufferLength))
+        --dwResult;
+    }
+    return dwResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined GetTempFileNameWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define GetTempFileNameWide_INCLUDED
+#undef GetTempFileNameWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+UINT GetTempFileNameWide(const wchar_t *wpPathName, const wchar_t *wpPrefixString, UINT uUnique, wchar_t *wszTempFileName)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetTempFileNameW(wpPathName, wpPrefixString, uUnique, wszTempFileName);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pPathName=AllocAnsi(wpPathName);
+    char *pPrefixString=AllocAnsi(wpPrefixString);
+    char szTempFileName[MAX_PATH];
+    UINT uResult;
+
+    if (uResult=GetTempFileNameA(pPathName, pPrefixString, uUnique, szTempFileName))
+    {
+      if (uResult=AnsiToWide(szTempFileName, -1, wszTempFileName, MAX_PATH))
+        --uResult;
+    }
+    FreeAnsi(pPathName);
+    FreeAnsi(pPrefixString);
+    return uResult;
+  }
+
+  WideNotInitialized();
+  return 0;
 }
 #endif
 
