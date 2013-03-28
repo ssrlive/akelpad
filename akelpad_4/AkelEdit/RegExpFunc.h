@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.3                  *
+ *                  RegExp functions header v1.4                  *
  *                                                                *
  * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -2140,7 +2140,8 @@ int PatStructExec(PATEXEC *pe)
     const wchar_t *wpStrNext=pe->wpStr;
     int nStrChar;
 
-    while (wpStrNext <= pe->wpMaxStr)
+    //Not remember why here was <= sign. But with <= sign: str - "any", find - ".*", replace - "A\0Z", result - "A\0ZAZ".
+    while (wpStrNext < pe->wpMaxStr)
     {
       if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
         ++nMatchCount;
@@ -2175,7 +2176,7 @@ int PatStructExec(PATEXEC *pe)
     #ifdef __AKELEDIT_H__
     AECHARINDEX ciStrNext=pe->ciStr;
 
-    while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) <= 0)
+    while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) < 0)
     {
       if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
         ++nMatchCount;
@@ -2493,46 +2494,77 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
 
 void main()
 {
-  PATEXEC pe;
-  REGROUP *lpREGroupRoot;
-  REGROUP *lpREGroupNext;
-  wchar_t wszResult[MAX_PATH];
-  wchar_t *wpResult;
-
-  //Fill structure for PatStructExec
-  pe.lpREGroupStack=0;
-  pe.wpStr=L"1234567890 11223344556677889900";
-  pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
-  pe.wpPat=L"(23)(.*)(89)";
-  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
-  pe.dwOptions=REPE_MATCHCASE;
-  pe.wpDelim=NULL;
-  pe.lpCallback=NULL;
-
-  while (PatStructExec(&pe))
+  //Search example
   {
-    lpREGroupRoot=pe.lpREGroupStack->first;
-    lpREGroupNext=lpREGroupRoot;
-    wpResult=wszResult;
+    PATEXEC pe;
+    REGROUP *lpREGroupRoot;
+    REGROUP *lpREGroupNext;
+    wchar_t wszResult[MAX_PATH];
+    wchar_t *wpResult;
 
-    do
+    //Fill structure for PatStructExec
+    pe.lpREGroupStack=0;
+    pe.wpStr=L"1234567890 11223344556677889900";
+    pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
+    pe.wpPat=L"(23)(.*)(89)";
+    pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
+    pe.dwOptions=REPE_MATCHCASE;
+    pe.wpDelim=NULL;
+    pe.lpCallback=NULL;
+
+    while (PatStructExec(&pe))
     {
-      if (lpREGroupNext->wpStrStart != lpREGroupNext->wpStrEnd && lpREGroupNext->nIndex != -1)
+      lpREGroupRoot=pe.lpREGroupStack->first;
+      lpREGroupNext=lpREGroupRoot;
+      wpResult=wszResult;
+
+      do
       {
-        //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart, lpREGroupNext->wpStrStart);
-        wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
-        lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart) + 1);
-        wpResult+=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
-        wpResult+=wsprintfW(wpResult, L"]\n");
+        if (lpREGroupNext->wpStrStart != lpREGroupNext->wpStrEnd && lpREGroupNext->nIndex != -1)
+        {
+          //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart, lpREGroupNext->wpStrStart);
+          wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
+          lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart) + 1);
+          wpResult+=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+          wpResult+=wsprintfW(wpResult, L"]\n");
+        }
       }
+      while (lpREGroupNext=PatNextGroup(lpREGroupNext));
+
+      if (MessageBoxW(NULL, wszResult, L"Find next?", MB_YESNO) == IDNO)
+        break;
+      pe.wpStr=lpREGroupRoot->wpStrEnd;
     }
-    while (lpREGroupNext=PatNextGroup(lpREGroupNext));
-
-    if (MessageBoxW(NULL, wszResult, L"Find next?", MB_YESNO) == IDNO)
-      break;
-    pe.wpStr=lpREGroupRoot->wpStrEnd;
+    PatStructFree(&pe);
   }
-  PatStructFree(&pe);
-}
 
+  //Replace example
+  {
+    PATREPLACE pr;
+    INT_PTR nResultTextLen;
+
+    pr.wpStr=L"1234567890 1234567890";
+    pr.wpMaxStr=pr.wpStr + lstrlenW(pr.wpStr);
+    pr.wpPat=L"(23)(.*)(89)";
+    pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
+    pr.wpRep=L"\\1abc\\3";
+    pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
+    pr.dwOptions=REPE_GLOBAL|REPE_MULTILINE|REPE_STARTLINEBEGIN|REPE_ENDLINEFINISH|REPE_STARTSTRBEGIN|REPE_ENDSTRFINISH|REPE_STARTBOUNDARY|REPE_ENDBOUNDARY;
+    pr.wpDelim=NULL;
+    pr.wpNewLine=NULL;
+    pr.wszResult=NULL;
+    nResultTextLen=PatReplace(&pr);
+
+    if (pr.nReplaceCount)
+    {
+      if (pr.wszResult=(wchar_t *)GlobalAlloc(GMEM_FIXED, nResultTextLen * sizeof(wchar_t)))
+        PatReplace(&pr);
+    }
+    if (pr.wszResult)
+    {
+      MessageBoxW(NULL, pr.wszResult, NULL, 0);
+      GlobalFree((HGLOBAL)pr.wszResult);
+    }
+  }
+}
 */

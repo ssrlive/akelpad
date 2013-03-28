@@ -14138,7 +14138,7 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       biW.pidlRoot=NULL;
       biW.pszDisplayName=wbuf;
       biW.lpszTitle=NULL;
-      biW.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE;
+      biW.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;
       biW.lpfn=BrowseCallbackProc;
       biW.lParam=(LPARAM)wbuf;
       biW.iImage=0;
@@ -14224,8 +14224,10 @@ int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpDa
   {
     if (bOldWindows)
     {
-      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)lpData, -1, buf, MAX_PATH, NULL, NULL);
-      SendMessage(hWnd, BFFM_SETSELECTIONA, TRUE, (LPARAM)buf);
+      char szData[MAX_PATH];
+
+      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)lpData, -1, szData, MAX_PATH, NULL, NULL);
+      SendMessage(hWnd, BFFM_SETSELECTIONA, TRUE, (LPARAM)szData);
     }
     else SendMessage(hWnd, BFFM_SETSELECTIONW, TRUE, lpData);
   }
