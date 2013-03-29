@@ -14424,6 +14424,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       RecentFilesZero(&hRecentFilesStack);
       RecentFilesSave(&hRecentFilesStack);
       bMenuRecentFiles=TRUE;
+      SetFocus(hWndRecentFiles);
       EnableWindow((HWND)lParam, FALSE);
       return TRUE;
     }
@@ -14433,6 +14434,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
       RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+      SetFocus(hWndSearchStrings);
       EnableWindow((HWND)lParam, FALSE);
       return TRUE;
     }
