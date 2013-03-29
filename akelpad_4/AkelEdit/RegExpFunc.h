@@ -2138,35 +2138,41 @@ int PatStructExec(PATEXEC *pe)
     const wchar_t *wpStrNext=pe->wpStr;
     int nStrChar;
 
-    //Not remember why here was <= sign. But with <= sign: str - "any", find - ".*", replace - "A\0Z", result - "A\0ZAZ".
-    while (wpStrNext < pe->wpMaxStr)
+    //Patterns for check with <= or == sign:
+    //str - "any", find - ".*", replace - "A\0Z"
+    //str - "", find - "$", replace - "ZZZ"
+    if (wpStrNext <= pe->wpMaxStr)
     {
-      if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
-        ++nMatchCount;
-
-      if (pe->lpCallback)
+      do
       {
-        if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
-          return nMatchCount;
-      }
+        if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
+          ++nMatchCount;
 
-      //Find next match
-      if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
-        break;
-      pe->wpStr=lpREGroupRoot->wpStrEnd;
-      wpStrNext=lpREGroupRoot->wpStrEnd;
-      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
-        wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
-      if (pe->dwOptions & REPE_MULTILINE)
-      {
-        if (*(wpStrNext - 1) == L'\n' || *(wpStrNext - 1) == L'\r')
-          pe->lpREGroupStack->dwOptions|=REO_STARTLINEBEGIN;
-        else
-          pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
-      }
-      pe->lpREGroupStack->dwOptions=(pe->lpREGroupStack->dwOptions & ~REO_STARTSTRBEGIN) | REO_NOSTARTRANGEBEGIN;
+        if (pe->lpCallback)
+        {
+          if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
+            return nMatchCount;
+        }
 
-      PatReset(pe->lpREGroupStack);
+        //Find next match
+        if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
+          break;
+        pe->wpStr=lpREGroupRoot->wpStrEnd;
+        wpStrNext=lpREGroupRoot->wpStrEnd;
+        if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+          wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
+        if (pe->dwOptions & REPE_MULTILINE)
+        {
+          if (*(wpStrNext - 1) == L'\n' || *(wpStrNext - 1) == L'\r')
+            pe->lpREGroupStack->dwOptions|=REO_STARTLINEBEGIN;
+          else
+            pe->lpREGroupStack->dwOptions&=~REO_STARTLINEBEGIN;
+        }
+        pe->lpREGroupStack->dwOptions=(pe->lpREGroupStack->dwOptions & ~REO_STARTSTRBEGIN) | REO_NOSTARTRANGEBEGIN;
+
+        PatReset(pe->lpREGroupStack);
+      }
+      while (wpStrNext < pe->wpMaxStr);
     }
   }
   else
@@ -2174,26 +2180,30 @@ int PatStructExec(PATEXEC *pe)
     #ifdef __AKELEDIT_H__
     AECHARINDEX ciStrNext=pe->ciStr;
 
-    while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) < 0)
+    if (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) <= 0)
     {
-      if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
-        ++nMatchCount;
-
-      if (pe->lpCallback)
+      do
       {
-        if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
-          return nMatchCount;
+        if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
+          ++nMatchCount;
+
+        if (pe->lpCallback)
+        {
+          if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
+            return nMatchCount;
+        }
+
+        //Find next match
+        if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
+          break;
+        pe->ciStr=lpREGroupRoot->ciStrEnd;
+        ciStrNext=lpREGroupRoot->ciStrEnd;
+        if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+          AEC_NextChar(&ciStrNext);
+
+        AE_PatReset(pe->lpREGroupStack);
       }
-
-      //Find next match
-      if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
-        break;
-      pe->ciStr=lpREGroupRoot->ciStrEnd;
-      ciStrNext=lpREGroupRoot->ciStrEnd;
-      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
-        AEC_NextChar(&ciStrNext);
-
-      AE_PatReset(pe->lpREGroupStack);
+      while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) < 0);
     }
     #endif
   }
