@@ -1407,8 +1407,6 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
     }
     if (!lpREGroupItem->firstChild)
       continue;
-    if (wpPatEnd < wpPatRight && *wpPatEnd == L'|' && !(lpREGroupItem->dwFlags & REGF_OR))
-      break;
 
     //If only one children and pattern the same, then remove redundant grouping
     if (lpREGroupItem->firstChild == lpREGroupItem->lastChild)
