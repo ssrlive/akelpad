@@ -706,7 +706,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
   int nStrChar;
-  int nCharSize;
+  int nCharSize=0;
   int nPatChar;
   int nPatNextChar;
   wchar_t wchCaseChar;
