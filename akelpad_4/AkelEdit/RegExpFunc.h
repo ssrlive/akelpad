@@ -820,7 +820,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
           if (!lpREGroupNext->nMinMatch)
           {
-            if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext))
+            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
             {
               if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               {
@@ -1735,7 +1735,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
           if (!lpREGroupNext->nMinMatch)
           {
-            if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext))
+            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
             {
               if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               {
