@@ -773,7 +773,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
         if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem))
+          //Next group for check must not have REGF_OR flag:
+          //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
+          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
           {
             //Check nStrLen for \d+Z? in 123Z
             if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
@@ -1685,7 +1687,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
         if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch)
         {
-          if (lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem))
+          //Next group for check must not have REGF_OR flag:
+          //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
+          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
           {
             //Check nStrLen for \d+Z? in 123Z
             if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
