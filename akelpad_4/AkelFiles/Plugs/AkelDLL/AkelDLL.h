@@ -220,6 +220,7 @@
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
 #define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
 #define MI_AKELUPDATEROPTIONS        131  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
+#define MI_URLCOMMAND                132  //Return: copied chars. (wchar_t *)lParam - buffer that receives "UrlCommand" string.
 //Menu
 #define MI_ONTOP                     141  //Return: always on top (on\off).
 #define MI_STATUSBAR                 142  //Return: show statusbar (on\off).

@@ -457,8 +457,8 @@ BOOL bLockWatchFile=FALSE;
 WNDPROC lpOldEditProc;
 
 //Execute
-char szExeDir[MAX_PATH]="";
-wchar_t wszExeDir[MAX_PATH]=L"";
+char szExeDir[MAX_PATH];
+wchar_t wszExeDir[MAX_PATH];
 wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
@@ -769,6 +769,7 @@ void _WinMain()
   //moInit.wszDateLogFormat[0]='\0';
   //moInit.wszDateInsertFormat[0]='\0';
   //moInit.wszAkelUpdaterOptions[0]='\0';
+  //moInit.wszUrlCommand[0]='\0';
 
   //--Menu settings--
   //moInit.bOnTop=FALSE;
@@ -2287,6 +2288,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return xstrcpynW((void *)lParam, moCur.wszDateInsertFormat, 128);
         if (wParam == MI_AKELUPDATEROPTIONS)
           return xstrcpynW((void *)lParam, moCur.wszAkelUpdaterOptions, MAX_PATH);
+        if (wParam == MI_URLCOMMAND)
+          return xstrcpynW((void *)lParam, moCur.wszUrlCommand, MAX_PATH);
         if (wParam == MI_ONTOP)
           return moCur.bOnTop;
         if (wParam == MI_STATUSBAR)
@@ -5095,7 +5098,10 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
                 if (ExGetRangeTextW(lpFrameCurrent->ei.hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
                 {
-                  ShellExecuteWide(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
+                  if (moCur.wszUrlCommand[0])
+                    CallMethod(moCur.wszUrlCommand, wszURL);
+                  else
+                    ShellExecuteWide(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
                   FreeText(wszURL);
                 }
                 ++aenl->nVisitCount;

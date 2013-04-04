@@ -591,6 +591,16 @@
         <td><b>AkelUpdaterOptions</b></td>
         <td>Defines command line options for the AkelUpdater.exe, when launched from "Help/Update..." menu item.</td>
       </tr>
+      <tr>
+        <td><b>UrlCommand</b></td>
+        <td>Defines command for hyperlink click. Herewith variable %u denotes hyperlink text.
+          <br>
+          <br>Example:
+          <br>Exec(`"%ProgramFiles%\Mozilla Firefox\firefox.exe" "%u"`)
+          <br>
+          <br>By default: "" - hyperlink opens by operating system.
+        </td>
+      </tr>
     </table>
   </ul>
 
