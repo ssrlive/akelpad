@@ -693,9 +693,9 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->ei.pFile=bOldWindows?(LPBYTE)lpFrameTarget->szFile:(LPBYTE)lpFrameTarget->wszFile;
   lpFrameTarget->ei.szFile=lpFrameTarget->szFile;
   lpFrameTarget->ei.wszFile=lpFrameTarget->wszFile;
-  lpFrameTarget->ei.nCodePage=moCur.nDefaultCodePage;
-  lpFrameTarget->ei.bBOM=moCur.bDefaultBOM;
-  lpFrameTarget->ei.nNewLine=moCur.nDefaultNewLine;
+  lpFrameTarget->ei.nCodePage=moCur.nNewFileCodePage;
+  lpFrameTarget->ei.bBOM=moCur.bNewFileBOM;
+  lpFrameTarget->ei.nNewLine=moCur.nNewFileNewLine;
   lpFrameTarget->ei.bModified=FALSE;
   lpFrameTarget->ei.bReadOnly=FALSE;
   //lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
@@ -1356,9 +1356,9 @@ BOOL CloseDocument(DWORD dwPrompt)
   lpFrameCurrent->wszFile[0]=L'\0';
   lpFrameCurrent->nFileLen=0;
   lpFrameCurrent->nStreamOffset=0;
-  SetNewLineStatus(lpFrameCurrent, moCur.nDefaultNewLine, AENL_INPUT);
+  SetNewLineStatus(lpFrameCurrent, moCur.nNewFileNewLine, AENL_INPUT);
   SetModifyStatus(lpFrameCurrent, FALSE);
-  SetCodePageStatus(lpFrameCurrent, moCur.nDefaultCodePage, moCur.bDefaultBOM);
+  SetCodePageStatus(lpFrameCurrent, moCur.nNewFileCodePage, moCur.bNewFileBOM);
   UpdateTitle(lpFrameCurrent);
 
   return TRUE;
@@ -3761,7 +3761,9 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"ExecuteCommand", MOT_STRING, mo->wszExecuteCommand, sizeof(mo->wszExecuteCommand));
     ReadOption(&oh, L"ExecuteDirectory", MOT_STRING, mo->wszExecuteDirectory, sizeof(mo->wszExecuteDirectory));
     ReadOption(&oh, L"DefaultCodepage", MOT_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
-    ReadOption(&oh, L"DefaultNewLine", MOT_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
+    ReadOption(&oh, L"NewFileCodepage", MOT_DWORD, &mo->nNewFileCodePage, sizeof(DWORD));
+    ReadOption(&oh, L"NewFileBOM", MOT_DWORD, &mo->bNewFileBOM, sizeof(DWORD));
+    ReadOption(&oh, L"NewFileNewLine", MOT_DWORD, &mo->nNewFileNewLine, sizeof(DWORD));
     ReadOption(&oh, L"CodepageRecognition", MOT_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
     ReadOption(&oh, L"CodepageRecognitionBuffer", MOT_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD));
     ReadOption(&oh, L"SavePositions", MOT_DWORD, &mo->bSavePositions, sizeof(DWORD));
@@ -4026,7 +4028,11 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"DefaultCodepage", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nDefaultCodePage), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"DefaultNewLine", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nDefaultNewLine), sizeof(DWORD)))
+  if (!SaveOption(&oh, L"NewFileCodepage", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nNewFileCodePage), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"NewFileBOM", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bNewFileBOM), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"NewFileNewLine", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nNewFileNewLine), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"CodepageRecognition", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwLangCodepageRecognition), sizeof(DWORD)))
     goto Error;
@@ -4225,8 +4231,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         goto End;
       }
     }
-    nCodePage=moCur.nDefaultCodePage;
-    bBOM=moCur.bDefaultBOM;
+    nCodePage=moCur.nNewFileCodePage;
+    bBOM=moCur.bNewFileBOM;
   }
   else
   {
@@ -4392,7 +4398,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     fsd.hFile=hFile;
     fsd.nCodePage=nCodePage;
     fsd.dwFlags=dwFlags;
-    fsd.nNewLine=moCur.nDefaultNewLine;
+    fsd.nNewLine=moCur.nNewFileNewLine;
     fsd.dwBytesMax=(UINT_PTR)-1;
     fsd.bResult=TRUE;
     lpStreamInData=&fsd;
@@ -5661,10 +5667,10 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     hWndNewLineMac=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_MAC);
     hWndOK=GetDlgItem(hDlg, IDOK);
 
-    if (nNewLine < 0)
-      nNewLine=moCur.nDefaultNewLine;
     if (nCodePage < 0)
-      nCodePage=moCur.nDefaultCodePage;
+      nCodePage=moCur.nNewFileCodePage;
+    if (nNewLine < 0)
+      nNewLine=moCur.nNewFileNewLine;
 
     FillComboboxCodepage(hWndCodePageList, lpCodepageList);
     SelectComboboxCodepage(hWndCodePageList, nCodePage);
@@ -14045,9 +14051,9 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndAutodetectCP;
   static HWND hWndAutodetectCPBuffer;
   static HWND hWndDefaultCP;
-  static HWND hWndDefaultNewLineWin;
-  static HWND hWndDefaultNewLineUnix;
-  static HWND hWndDefaultNewLineMac;
+  static HWND hWndNewFileCP;
+  static HWND hWndNewFileBOM;
+  static HWND hWndNewFileNewLine;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -14057,9 +14063,9 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndAutodetectCP=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION);
     hWndAutodetectCPBuffer=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER);
     hWndDefaultCP=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_CODEPAGE);
-    hWndDefaultNewLineWin=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_WIN);
-    hWndDefaultNewLineUnix=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_UNIX);
-    hWndDefaultNewLineMac=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_MAC);
+    hWndNewFileCP=GetDlgItem(hDlg, IDC_OPTIONS_NEWFILE_CODEPAGE);
+    hWndNewFileBOM=GetDlgItem(hDlg, IDC_OPTIONS_NEWFILE_BOM);
+    hWndNewFileNewLine=GetDlgItem(hDlg, IDC_OPTIONS_NEWFILE_NEWLINE);
 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
@@ -14083,12 +14089,18 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     FillComboboxCodepage(hWndDefaultCP, lpCodepageList);
     SelectComboboxCodepage(hWndDefaultCP, moCur.nDefaultCodePage);
 
-    if (moCur.nDefaultNewLine == NEWLINE_WIN)
-      SendMessage(hWndDefaultNewLineWin, BM_SETCHECK, BST_CHECKED, 0);
-    else if (moCur.nDefaultNewLine == NEWLINE_UNIX)
-      SendMessage(hWndDefaultNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
-    else if (moCur.nDefaultNewLine == NEWLINE_MAC)
-      SendMessage(hWndDefaultNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
+    FillComboboxCodepage(hWndNewFileCP, lpCodepageList);
+    SelectComboboxCodepage(hWndNewFileCP, moCur.nNewFileCodePage);
+
+    if (moCur.bNewFileBOM)
+      SendMessage(hWndNewFileBOM, BM_SETCHECK, BST_CHECKED, 0);
+    else if (!IsCodePageUnicode(moCur.nNewFileCodePage))
+      EnableWindow(hWndNewFileBOM, FALSE);
+
+    ComboBox_AddStringWide(hWndNewFileNewLine, STR_NEWLINE_WIN);
+    ComboBox_AddStringWide(hWndNewFileNewLine, STR_NEWLINE_UNIX);
+    ComboBox_AddStringWide(hWndNewFileNewLine, STR_NEWLINE_MAC);
+    SendMessage(hWndNewFileNewLine, CB_SETCURSEL, (WPARAM)(moCur.nNewFileNewLine - 1), 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -14158,8 +14170,35 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_CODEPAGE_FILTER)
     {
-      API_DialogBoxParam(hLangLib, MAKEINTRESOURCEW(IDD_OPTIONS_GENERAL_FILTER), hDlg, (DLGPROC)OptionsGeneralFilterDlgProc, (LPARAM)hWndDefaultCP);
+      if (API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_OPTIONS_GENERAL_FILTER), hDlg, (DLGPROC)OptionsGeneralFilterDlgProc))
+      {
+        ClearCombobox(hWndDefaultCP);
+        FillComboboxCodepage(hWndDefaultCP, lpCodepageList);
+        if (SelectComboboxCodepage(hWndDefaultCP, moCur.nDefaultCodePage) == CB_ERR)
+          SendMessage(hWndDefaultCP, CB_SETCURSEL, 0, 0);
+
+        ClearCombobox(hWndNewFileCP);
+        FillComboboxCodepage(hWndNewFileCP, lpCodepageList);
+        if (SelectComboboxCodepage(hWndNewFileCP, moCur.nNewFileCodePage) == CB_ERR)
+          SendMessage(hWndNewFileCP, CB_SETCURSEL, 0, 0);
+      }
       return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_NEWFILE_CODEPAGE)
+    {
+      if (HIWORD(wParam) == CBN_SELCHANGE)
+      {
+        if (IsCodePageUnicode(GetComboboxCodepage(hWndNewFileCP)))
+        {
+          EnableWindow(hWndNewFileBOM, TRUE);
+          SendMessage(hWndNewFileBOM, BM_SETCHECK, BST_CHECKED, 0);
+        }
+        else
+        {
+          EnableWindow(hWndNewFileBOM, FALSE);
+          SendMessage(hWndNewFileBOM, BM_SETCHECK, BST_UNCHECKED, 0);
+        }
+      }
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -14206,13 +14245,12 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       //Default codepage
       moCur.nDefaultCodePage=GetComboboxCodepage(hWndDefaultCP);
 
-      //Default newline
-      if (SendMessage(hWndDefaultNewLineWin, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        moCur.nDefaultNewLine=NEWLINE_WIN;
-      else if (SendMessage(hWndDefaultNewLineUnix, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        moCur.nDefaultNewLine=NEWLINE_UNIX;
-      else if (SendMessage(hWndDefaultNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        moCur.nDefaultNewLine=NEWLINE_MAC;
+      //New file
+      moCur.nNewFileCodePage=GetComboboxCodepage(hWndNewFileCP);
+
+      moCur.bNewFileBOM=(BOOL)SendMessage(hWndNewFileBOM, BM_GETCHECK, 0, 0);
+
+      moCur.nNewFileNewLine=(int)SendMessage(hWndNewFileNewLine, CB_GETCURSEL, 0, 0) + 1;
     }
   }
   return FALSE;
@@ -14239,7 +14277,6 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
   static HWND hWndCustomList;
   static HWND hWndSystemList;
   static HWND hWndOK;
-  static HWND hWndDefaultCP;
   static int *lpFullCodepageList;
   int nSelection;
   int nCount;
@@ -14250,7 +14287,6 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
     hWndCustomList=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGES_FILTER_CUSTOM);
     hWndSystemList=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM);
     hWndOK=GetDlgItem(hDlg, IDOK);
-    hWndDefaultCP=(HWND)lParam;
 
     FillListBoxCodepage(hWndCustomList, lpCodepageList);
     EnumCodepageList(&lpFullCodepageList);
@@ -14328,10 +14364,6 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
       CodepageListFree(&lpFullCodepageList);
       GetListBoxCodepageList(hWndCustomList, &lpCodepageList);
       nCodepageListLen=CodepageListLen(lpCodepageList);
-      ClearCombobox(hWndDefaultCP);
-      FillComboboxCodepage(hWndDefaultCP, lpCodepageList);
-      if (SelectComboboxCodepage(hWndDefaultCP, moCur.nDefaultCodePage) == CB_ERR)
-        SendMessage(hWndDefaultCP, CB_SETCURSEL, 0, 0);
       EndDialog(hDlg, 1);
       return TRUE;
     }
@@ -16874,11 +16906,11 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
     if (ssStatus.nNewLine != nState)
     {
       if (nState == NEWLINE_WIN)
-        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Win");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, STR_NEWLINE_WIN);
       else if (nState == NEWLINE_UNIX)
-        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Unix");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, STR_NEWLINE_UNIX);
       else if (nState == NEWLINE_MAC)
-        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, L"Mac");
+        StatusBar_SetTextWide(hStatus, SBP_NEWLINE, STR_NEWLINE_MAC);
       ssStatus.nNewLine=nState;
     }
     if (!lpFrame) return;

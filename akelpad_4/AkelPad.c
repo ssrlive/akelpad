@@ -652,7 +652,9 @@ void _WinMain()
   dwLangSystem=GetUserDefaultLangID();
   moInit.nDefaultCodePage=nAnsiCodePage;
   moInit.bDefaultBOM=FALSE;
-  moInit.nDefaultNewLine=NEWLINE_WIN;
+  moInit.nNewFileCodePage=nAnsiCodePage;
+  moInit.bNewFileBOM=FALSE;
+  moInit.nNewFileNewLine=NEWLINE_WIN;
 
   //System default print metrics
   if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, buf, BUFFER_SIZE))
@@ -686,9 +688,9 @@ void _WinMain()
   fdInit.ei.pFile=bOldWindows?(LPBYTE)fdInit.szFile:(LPBYTE)fdInit.wszFile;
   fdInit.ei.szFile=fdInit.szFile;
   fdInit.ei.wszFile=fdInit.wszFile;
-  fdInit.ei.nCodePage=moInit.nDefaultCodePage;
-  fdInit.ei.bBOM=moInit.bDefaultBOM;
-  fdInit.ei.nNewLine=moInit.nDefaultNewLine;
+  fdInit.ei.nCodePage=moInit.nNewFileCodePage;
+  fdInit.ei.bBOM=moInit.bNewFileBOM;
+  fdInit.ei.nNewLine=moInit.nNewFileNewLine;
   //fdInit.ei.bModified=FALSE;
   //fdInit.ei.bReadOnly=FALSE;
   //fdInit.ei.bWordWrap=FALSE;
@@ -874,8 +876,8 @@ void _WinMain()
 
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
     moInit.bDefaultBOM=TRUE;
-  fdInit.ei.bBOM=moInit.bDefaultBOM;
-  fdInit.ei.nCodePage=moInit.nDefaultCodePage;
+  fdInit.ei.nCodePage=moInit.nNewFileCodePage;
+  fdInit.ei.bBOM=moInit.bNewFileBOM;
   prninfo.rtMargin=moInit.rcPrintMargins;
   nMDI=moInit.nMDI;
   if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
@@ -2314,8 +2316,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return moCur.nDefaultCodePage;
         if (wParam == MI_DEFAULTBOM)
           return moCur.bDefaultBOM;
-        if (wParam == MI_DEFAULTNEWLINE)
-          return moCur.nDefaultNewLine;
+        if (wParam == MI_NEWFILECODEPAGE)
+          return moCur.nNewFileCodePage;
+        if (wParam == MI_NEWFILEBOM)
+          return moCur.bNewFileBOM;
+        if (wParam == MI_NEWFILENEWLINE)
+          return moCur.nNewFileNewLine;
         if (wParam == MI_LANGCODEPAGERECOGNITION)
           return moCur.dwLangCodepageRecognition;
         if (wParam == MI_CODEPAGERECOGNITIONBUFFER)
@@ -5360,10 +5366,10 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableMenuItem(hMainMenu, nMessages[i], MF_ENABLED);
         bMdiNoWindows=FALSE;
 
-        SetNewLineStatus(NULL, moCur.nDefaultNewLine, 0);
+        SetNewLineStatus(NULL, moCur.nNewFileNewLine, 0);
         SetOvertypeStatus(NULL, FALSE);
         SetModifyStatus(NULL, FALSE);
-        SetCodePageStatus(NULL, moCur.nDefaultCodePage, moCur.bDefaultBOM);
+        SetCodePageStatus(NULL, moCur.nNewFileCodePage, moCur.bNewFileBOM);
       }
 
       //Variants:
