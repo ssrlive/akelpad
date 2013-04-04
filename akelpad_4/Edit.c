@@ -18129,7 +18129,12 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   if (*wpMethod == L'/')
     ++wpMethod;
 
-  if (!xstrcmpinW(L"Command(", wpMethod, (UINT_PTR)-1))
+  if (!xstrcmpinW(L"Show(", wpMethod, (UINT_PTR)-1))
+  {
+    DWORD dwCmdShow=(DWORD)xatoiW(wpMethod + 5, NULL);
+    ShowWindow(hMainWnd, dwCmdShow);
+  }
+  else if (!xstrcmpinW(L"Command(", wpMethod, (UINT_PTR)-1))
   {
     dwAction=EXTACT_COMMAND;
   }
