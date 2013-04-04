@@ -34,6 +34,10 @@
 #define STR_UNICODE_UTF32LEW        L"12000  (UTF-32 LE)"
 #define STR_UNICODE_UTF32BEW        L"12001  (UTF-32 BE)"
 
+#define STR_NEWLINE_WIN             L"Win"
+#define STR_NEWLINE_UNIX            L"Unix"
+#define STR_NEWLINE_MAC             L"Mac"
+
 #define STR_AKELADMINW              L"AkelAdmin"
 #define STR_DEFAULTSAVEEXTW         L"txt"
 #define STR_ASSOCIATE_OPENW         L"txt;log;ini;inf"
@@ -398,7 +402,9 @@ typedef struct {
   wchar_t wszExecuteDirectory[MAX_PATH];
   int nDefaultCodePage;
   int bDefaultBOM;
-  int nDefaultNewLine;
+  int nNewFileCodePage;
+  int bNewFileBOM;
+  int nNewFileNewLine;
   DWORD dwLangCodepageRecognition;
   DWORD dwCodepageRecognitionBuffer;
   BOOL bSavePositions;

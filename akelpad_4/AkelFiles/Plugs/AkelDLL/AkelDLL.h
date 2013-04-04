@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 8)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 9)
 
 
 //// Defines
@@ -235,7 +235,9 @@
 #define MI_CODEPAGELIST              176  //Return: copied bytes. (int *)lParam - buffer that receives array of codepages, last element in array is zero.
 #define MI_DEFAULTCODEPAGE           177  //Return: default codepage.
 #define MI_DEFAULTBOM                178  //Return: default BOM.
-#define MI_DEFAULTNEWLINE            179  //Return: default new line, see NEWLINE_* defines.
+#define MI_NEWFILECODEPAGE           179  //Return: new file codepage.
+#define MI_NEWFILEBOM                180  //Return: new file BOM.
+#define MI_NEWFILENEWLINE            181  //Return: new file new line, see NEWLINE_* defines.
 #define MI_LANGCODEPAGERECOGNITION   183  //Return: codepage recognition language defined as LANGID.
 #define MI_CODEPAGERECOGNITIONBUFFER 184  //Return: size of codepage recognition buffer.
 #define MI_SAVEPOSITIONS             192  //Return: save recent file positions (on\off).

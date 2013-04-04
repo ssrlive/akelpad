@@ -1,4 +1,9 @@
 
+AkelPad 4.8.3 ()
+----------------------------
+Added: possibility to specify new file codepage.
+
+
 AkelPad 4.8.2 (Mar 24, 2013)
 ----------------------------
 Added: (?<=pattern) positive lookbehind search.
