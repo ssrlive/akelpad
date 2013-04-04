@@ -3699,6 +3699,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
     ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
     ReadOption(&oh, L"AkelUpdaterOptions", MOT_STRING, mo->wszAkelUpdaterOptions, sizeof(mo->wszAkelUpdaterOptions));
+    ReadOption(&oh, L"UrlCommand", MOT_STRING, mo->wszUrlCommand, sizeof(mo->wszUrlCommand));
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -3922,6 +3923,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"DateInsertFormat", MOT_STRING|MOT_MANUAL, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
     goto Error;
   if (!SaveOption(&oh, L"AkelUpdaterOptions", MOT_STRING|MOT_MANUAL, mo->wszAkelUpdaterOptions, BytesInString(mo->wszAkelUpdaterOptions)))
+    goto Error;
+  if (!SaveOption(&oh, L"UrlCommand", MOT_STRING|MOT_MANUAL, mo->wszUrlCommand, BytesInString(mo->wszUrlCommand)))
     goto Error;
 
   //Frame data
@@ -17912,12 +17915,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
 {
   const wchar_t *wpCmdLine;
   const wchar_t *wpCmdLineNext;
-  wchar_t *wpAction;
-  STACKEXTPARAM hParamStack={0};
-  EXTPARAM *lpParameter;
-  DWORD dwAction;
   HWND hWndFriend=NULL;
   int nOpen;
+  DWORD dwCallMethod;
   BOOL bFileOpenedSDI=FALSE;
   BOOL bIgnoreNextArg=FALSE;
 
@@ -18044,243 +18044,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         //Process actions
         if (lpFrameCurrent->ei.hWndEdit)
         {
-          dwAction=0;
-
-          if (!xstrcmpinW(L"/Command(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_COMMAND;
-          }
-          else if (!xstrcmpinW(L"/Call(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_CALL;
-          }
-          else if (!xstrcmpinW(L"/Exec(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_EXEC;
-          }
-          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_OPENFILE;
-          }
-          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_SAVEFILE;
-          }
-          else if (!xstrcmpinW(L"/Font(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_FONT;
-          }
-          else if (!xstrcmpinW(L"/Recode(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_RECODE;
-          }
-          else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (UINT_PTR)-1))
-          {
-            dwAction=EXTACT_INSERT;
-          }
-
-          if (dwAction)
-          {
-            for (wpAction=wszCmdArg; *wpAction != '('; ++wpAction);
-            ParseMethodParameters(&hParamStack, ++wpAction, NULL);
-
-            if (dwAction == EXTACT_COMMAND)
-            {
-              int nCommand=0;
-
-              if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                nCommand=lpParameter->nNumber;
-
-              if (nCommand)
-              {
-                SendMessage(hMainWnd, WM_COMMAND, nCommand, 0);
-              }
-            }
-            else if (dwAction == EXTACT_CALL)
-            {
-              PLUGINCALLSENDW pcs;
-              unsigned char *lpStruct=NULL;
-              int nStructSize;
-
-              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-
-              if (nStructSize=StructMethodParameters(&hParamStack, NULL))
-              {
-                if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
-                {
-                  pcs.pFunction=hParamStack.first->wpString;
-                  if (nStructSize > (INT_PTR)sizeof(INT_PTR))
-                  {
-                    pcs.lParam=(LPARAM)lpStruct;
-                    StructMethodParameters(&hParamStack, lpStruct);
-                  }
-                  else pcs.lParam=0;
-
-                  CallPluginSend(NULL, &pcs, 0);
-                  GlobalFree((HGLOBAL)lpStruct);
-                }
-              }
-            }
-            else if (dwAction == EXTACT_EXEC)
-            {
-              STARTUPINFOW si;
-              PROCESS_INFORMATION pi;
-              wchar_t *wpCmdLine=NULL;
-              wchar_t *wpWorkDir=NULL;
-              BOOL bWait=FALSE;
-
-              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                wpCmdLine=lpParameter->wpExpanded;
-              if (lpParameter=GetMethodParameter(&hParamStack, 2))
-                wpWorkDir=lpParameter->wpExpanded;
-              if (lpParameter=GetMethodParameter(&hParamStack, 3))
-                bWait=lpParameter->nNumber;
-
-              if (wpCmdLine)
-              {
-                xmemset(&si, 0, sizeof(STARTUPINFOW));
-                si.cb=sizeof(STARTUPINFOW);
-                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
-                {
-                  if (bWait)
-                  {
-                    WaitForSingleObject(pi.hProcess, INFINITE);
-                    //GetExitCodeProcess(pi.hProcess, &dwExitCode);
-                  }
-                  CloseHandle(pi.hProcess);
-                  CloseHandle(pi.hThread);
-                }
-              }
-            }
-            else if (dwAction == EXTACT_OPENFILE ||
-                     dwAction == EXTACT_SAVEFILE)
-            {
-              wchar_t *wpFile=NULL;
-              int nCodePage=-1;
-              BOOL bBOM=-1;
-
-              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                wpFile=lpParameter->wpExpanded;
-              if (lpParameter=GetMethodParameter(&hParamStack, 2))
-                nCodePage=lpParameter->nNumber;
-              if (lpParameter=GetMethodParameter(&hParamStack, 3))
-                bBOM=lpParameter->nNumber;
-
-              if (dwAction == EXTACT_OPENFILE)
-              {
-                DWORD dwFlags=OD_ADT_BINARY_ERROR;
-
-                if (nCodePage == -1)
-                  dwFlags|=OD_ADT_DETECT_CODEPAGE;
-                if (bBOM == -1)
-                  dwFlags|=OD_ADT_DETECT_BOM;
-                nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
-                if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
-                  return PCLE_END;
-              }
-              else if (dwAction == EXTACT_SAVEFILE)
-              {
-                if (nCodePage == -1)
-                  nCodePage=lpFrameCurrent->ei.nCodePage;
-                if (bBOM == -1)
-                  bBOM=lpFrameCurrent->ei.bBOM;
-                if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
-                  return PCLE_END;
-              }
-            }
-            else if (dwAction == EXTACT_FONT)
-            {
-              wchar_t *wpFaceName=NULL;
-              DWORD dwFontStyle=0;
-              int nPointSize=0;
-              HDC hDC;
-
-              ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                wpFaceName=lpParameter->wpExpanded;
-              if (lpParameter=GetMethodParameter(&hParamStack, 2))
-                dwFontStyle=lpParameter->nNumber;
-              if (lpParameter=GetMethodParameter(&hParamStack, 3))
-                nPointSize=lpParameter->nNumber;
-
-              if (nPointSize)
-              {
-                if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
-                {
-                  lpFrameCurrent->lf.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-                  ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
-                }
-              }
-              if (dwFontStyle != FS_NONE)
-              {
-                lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
-                lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
-              }
-              if (*wpFaceName != '\0')
-              {
-                xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
-              }
-              SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
-              UpdateMappedPrintWidth(lpFrameCurrent);
-              UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT|CSB_MARKER);
-            }
-            else if (dwAction == EXTACT_RECODE)
-            {
-              TEXTRECODE tr={0};
-
-              if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                tr.nCodePageFrom=lpParameter->nNumber;
-              if (lpParameter=GetMethodParameter(&hParamStack, 2))
-                tr.nCodePageTo=lpParameter->nNumber;
-              RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
-            }
-            else if (dwAction == EXTACT_INSERT)
-            {
-              wchar_t *wpText=NULL;
-              wchar_t *wpUnescText=NULL;
-              int nTextLen=-1;
-              int nUnescTextLen;
-              DWORD dwCaret=(DWORD)-1;
-              BOOL bEscSequences=FALSE;
-
-              if (!IsReadOnly(lpFrameCurrent->ei.hWndEdit))
-              {
-                ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-                if (lpParameter=GetMethodParameter(&hParamStack, 1))
-                  wpText=lpParameter->wpExpanded;
-                if (lpParameter=GetMethodParameter(&hParamStack, 2))
-                  bEscSequences=lpParameter->nNumber;
-
-                if (bEscSequences)
-                {
-                  if (nUnescTextLen=(int)TranslateEscapeString(lpFrameCurrent, wpText, NULL, NULL))
-                  {
-                    if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
-                    {
-                      nTextLen=(int)TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText, &dwCaret);
-                      wpText=wpUnescText;
-                    }
-                  }
-                }
-                if (wpText)
-                {
-                  AECHARINDEX ciInsertPos;
-
-                  ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, AELB_ASINPUT, AEREPT_COLUMNASIS, &ciInsertPos, NULL);
-
-                  if (dwCaret != (DWORD)-1)
-                  {
-                    IndexOffset(lpFrameCurrent->ei.hWndEdit, &ciInsertPos, dwCaret, AELB_ASINPUT);
-                    SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_EXSETSEL, (WPARAM)&ciInsertPos, (LPARAM)&ciInsertPos);
-                  }
-                }
-                if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
-              }
-            }
-            FreeMethodParameters(&hParamStack);
-          }
+          if (dwCallMethod=CallMethod(wszCmdArg, L""))
+            return dwCallMethod;
         }
         continue;
       }
@@ -18354,6 +18119,255 @@ void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEn
   }
 }
 
+DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
+{
+  STACKEXTPARAM hParamStack={0};
+  EXTPARAM *lpParameter;
+  const wchar_t *wpAction;
+  DWORD dwAction=0;
+
+  if (*wpMethod == L'/')
+    ++wpMethod;
+
+  if (!xstrcmpinW(L"Command(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_COMMAND;
+  }
+  else if (!xstrcmpinW(L"Call(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_CALL;
+  }
+  else if (!xstrcmpinW(L"Exec(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_EXEC;
+  }
+  else if (!xstrcmpinW(L"OpenFile(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_OPENFILE;
+  }
+  else if (!xstrcmpinW(L"SaveFile(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_SAVEFILE;
+  }
+  else if (!xstrcmpinW(L"Font(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_FONT;
+  }
+  else if (!xstrcmpinW(L"Recode(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_RECODE;
+  }
+  else if (!xstrcmpinW(L"Insert(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_INSERT;
+  }
+
+  if (dwAction)
+  {
+    for (wpAction=wpMethod; *wpAction != '('; ++wpAction);
+    ParseMethodParameters(&hParamStack, ++wpAction, NULL);
+
+    if (dwAction == EXTACT_COMMAND)
+    {
+      int nCommand=0;
+
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        nCommand=lpParameter->nNumber;
+
+      if (nCommand)
+      {
+        SendMessage(hMainWnd, WM_COMMAND, nCommand, 0);
+      }
+    }
+    else if (dwAction == EXTACT_CALL)
+    {
+      PLUGINCALLSENDW pcs;
+      unsigned char *lpStruct=NULL;
+      int nStructSize;
+
+      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+
+      if (nStructSize=StructMethodParameters(&hParamStack, NULL))
+      {
+        if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+        {
+          pcs.pFunction=hParamStack.first->wpString;
+          if (nStructSize > (INT_PTR)sizeof(INT_PTR))
+          {
+            pcs.lParam=(LPARAM)lpStruct;
+            StructMethodParameters(&hParamStack, lpStruct);
+          }
+          else pcs.lParam=0;
+
+          CallPluginSend(NULL, &pcs, 0);
+          GlobalFree((HGLOBAL)lpStruct);
+        }
+      }
+    }
+    else if (dwAction == EXTACT_EXEC)
+    {
+      STARTUPINFOW si;
+      PROCESS_INFORMATION pi;
+      wchar_t *wpCmdLine=NULL;
+      wchar_t *wpWorkDir=NULL;
+      BOOL bWait=FALSE;
+
+      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        wpCmdLine=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        wpWorkDir=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 3))
+        bWait=lpParameter->nNumber;
+
+      if (wpCmdLine)
+      {
+        xmemset(&si, 0, sizeof(STARTUPINFOW));
+        si.cb=sizeof(STARTUPINFOW);
+        if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
+        {
+          if (bWait)
+          {
+            WaitForSingleObject(pi.hProcess, INFINITE);
+            //GetExitCodeProcess(pi.hProcess, &dwExitCode);
+          }
+          CloseHandle(pi.hProcess);
+          CloseHandle(pi.hThread);
+        }
+      }
+    }
+    else if (dwAction == EXTACT_OPENFILE ||
+             dwAction == EXTACT_SAVEFILE)
+    {
+      wchar_t *wpFile=NULL;
+      int nCodePage=-1;
+      BOOL bBOM=-1;
+
+      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        wpFile=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        nCodePage=lpParameter->nNumber;
+      if (lpParameter=GetMethodParameter(&hParamStack, 3))
+        bBOM=lpParameter->nNumber;
+
+      if (dwAction == EXTACT_OPENFILE)
+      {
+        DWORD dwFlags=OD_ADT_BINARY_ERROR;
+        int nOpen;
+
+        if (nCodePage == -1)
+          dwFlags|=OD_ADT_DETECT_CODEPAGE;
+        if (bBOM == -1)
+          dwFlags|=OD_ADT_DETECT_BOM;
+        nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
+          return PCLE_END;
+      }
+      else if (dwAction == EXTACT_SAVEFILE)
+      {
+        if (nCodePage == -1)
+          nCodePage=lpFrameCurrent->ei.nCodePage;
+        if (bBOM == -1)
+          bBOM=lpFrameCurrent->ei.bBOM;
+        if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+          return PCLE_END;
+      }
+    }
+    else if (dwAction == EXTACT_FONT)
+    {
+      wchar_t *wpFaceName=NULL;
+      DWORD dwFontStyle=0;
+      int nPointSize=0;
+      HDC hDC;
+
+      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        wpFaceName=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        dwFontStyle=lpParameter->nNumber;
+      if (lpParameter=GetMethodParameter(&hParamStack, 3))
+        nPointSize=lpParameter->nNumber;
+
+      if (nPointSize)
+      {
+        if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
+        {
+          lpFrameCurrent->lf.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+          ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
+        }
+      }
+      if (dwFontStyle != FS_NONE)
+      {
+        lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+        lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+      }
+      if (*wpFaceName != '\0')
+      {
+        xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
+      }
+      SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
+      UpdateMappedPrintWidth(lpFrameCurrent);
+      UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT|CSB_MARKER);
+    }
+    else if (dwAction == EXTACT_RECODE)
+    {
+      TEXTRECODE tr={0};
+
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        tr.nCodePageFrom=lpParameter->nNumber;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        tr.nCodePageTo=lpParameter->nNumber;
+      RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
+    }
+    else if (dwAction == EXTACT_INSERT)
+    {
+      wchar_t *wpText=NULL;
+      wchar_t *wpUnescText=NULL;
+      int nTextLen=-1;
+      int nUnescTextLen;
+      DWORD dwCaret=(DWORD)-1;
+      BOOL bEscSequences=FALSE;
+
+      if (!IsReadOnly(lpFrameCurrent->ei.hWndEdit))
+      {
+        ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+        if (lpParameter=GetMethodParameter(&hParamStack, 1))
+          wpText=lpParameter->wpExpanded;
+        if (lpParameter=GetMethodParameter(&hParamStack, 2))
+          bEscSequences=lpParameter->nNumber;
+
+        if (bEscSequences)
+        {
+          if (nUnescTextLen=(int)TranslateEscapeString(lpFrameCurrent, wpText, NULL, NULL))
+          {
+            if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+            {
+              nTextLen=(int)TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText, &dwCaret);
+              wpText=wpUnescText;
+            }
+          }
+        }
+        if (wpText)
+        {
+          AECHARINDEX ciInsertPos;
+
+          ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, AELB_ASINPUT, AEREPT_COLUMNASIS, &ciInsertPos, NULL);
+
+          if (dwCaret != (DWORD)-1)
+          {
+            IndexOffset(lpFrameCurrent->ei.hWndEdit, &ciInsertPos, dwCaret, AELB_ASINPUT);
+            SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_EXSETSEL, (WPARAM)&ciInsertPos, (LPARAM)&ciInsertPos);
+          }
+        }
+        if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
+      }
+    }
+    FreeMethodParameters(&hParamStack);
+  }
+  return 0;
+}
+
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
@@ -18423,9 +18437,9 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (wppText) *wppText=wpParamEnd;
 }
 
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
+void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, const wchar_t *wpUrlLink)
 {
-  //%f -file, %d -file directory, %a -AkelPad directory, %% -%
+  //%f -file, %d -file directory, %a -AkelPad directory, %u -URL address (work in "UrlCommand" manual parameter), %% -%
   EXTPARAM *lpParameter;
   wchar_t *wszSource;
   wchar_t *wpSource;
@@ -18475,6 +18489,11 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
               {
                 ++wpSource;
                 wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
+              }
+              else if (*wpSource == 'u' || *wpSource == 'U')
+              {
+                ++wpSource;
+                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpUrlLink) - !wszTarget;
               }
             }
             else
