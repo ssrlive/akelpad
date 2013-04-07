@@ -8751,14 +8751,14 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
 BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR nMinChars, int *nCodePageFrom, int *nCodePageTo)
 {
   //Detect nCodePageFrom
-  int lpDetectCodePage[][5]={{0,    0,                    0,               0,               0},  //DETECTINDEX_NONE
-                             {1251, 866,                  CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
-                             {1250, 852,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
-                             {1252, 850,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
-                             {1254, 857,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
-                             {950,  936,                  CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
-                             {932,  CP_UNICODE_UTF8,      0,               0,               0},  //DETECTINDEX_JAPANESE
-                             {949,  CP_UNICODE_UTF8,      0,               0,               0}}; //DETECTINDEX_KOREAN
+  int lpDetectCodePage[][5]={{0,    0,               0,               0,               0},  //DETECTINDEX_NONE
+                             {1251, 866,             CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
+                             {1250, 852,             CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
+                             {1252, 850,             CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_WESTERNEUROPE
+                             {1254, 857,             CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_TURKISH
+                             {950,  936,             CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_CHINESE
+                             {932,  CP_UNICODE_UTF8, 0,               0,               0},  //DETECTINDEX_JAPANESE
+                             {949,  CP_UNICODE_UTF8, 0,               0,               0}}; //DETECTINDEX_KOREAN
   int nIndex;
   char *szText=NULL;
   INT_PTR nAnsiLen;
