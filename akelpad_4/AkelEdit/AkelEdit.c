@@ -18,6 +18,7 @@
  * - Syntax highlighting.                                                          *
  * - URL detection and highlighting.                                               *
  * - Code folding.                                                                 *
+ * - Regular expressions.                                                          *
  * - Splitting edit window.                                                        *
  * - Color printing.                                                               *
  * - Support of proportional and non-proportional fonts.                           *
