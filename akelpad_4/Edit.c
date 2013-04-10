@@ -9205,6 +9205,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           SetWindowTextWide(hWndFind, wszData);
           bResult=TRUE;
           FreeText((LPVOID)wszData);
+          SendMessage(hDlg, WM_COMMAND, MAKELONG(IDC_SEARCH_FIND, CBN_EDITCHANGE), 0);
         }
       }
     }
