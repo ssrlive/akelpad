@@ -1,7 +1,7 @@
 /*****************************************************************
- *              String functions header v5.2                     *
+ *              String functions header v5.3                     *
  *                                                               *
- * 2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -1628,12 +1628,13 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
   const char *pStrMax;
   const char *pStrCount;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenA(pText) + 1;
   if (nStrLen == -1)
     nStrLen=(int)xstrlenA(pStr);
-  pTextMax=pText + nTextLen;
+  if (!nStrLen) return FALSE;
+  if (nTextLen == -1)
+    nTextLen=xstrlenA(pText) + 1;
   pStrMax=pStr + nStrLen;
+  pTextMax=pText + nTextLen;
 
   for (pTextCount=pText; pTextCount < pTextMax; ++pTextCount)
   {
@@ -1693,12 +1694,13 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
   const wchar_t *wpStrMax;
   const wchar_t *wpStrCount;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenW(wpText) + 1;
   if (nStrLen == -1)
     nStrLen=(int)xstrlenW(wpStr);
-  wpTextMax=wpText + nTextLen;
+  if (!nStrLen) return FALSE;
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText) + 1;
   wpStrMax=wpStr + nStrLen;
+  wpTextMax=wpText + nTextLen;
 
   for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
@@ -1770,19 +1772,19 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
   const char *pItCount;
   const char *pWithMax;
   const char *pWithCount;
-  char *pResultCount;
+  char *pResultCount=szResult;
   int nChanges=0;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenA(pText) + 1;
   if (nItLen == -1)
     nItLen=(int)xstrlenA(pIt);
+  if (!nItLen) goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenA(pWith);
-  pTextMax=pText + nTextLen;
+  if (nTextLen == -1)
+    nTextLen=xstrlenA(pText) + 1;
   pItMax=pIt + nItLen;
   pWithMax=pWith + nWithLen;
-  pResultCount=szResult;
+  pTextMax=pText + nTextLen;
 
   for (pTextCount=pText; pTextCount < pTextMax; ++pTextCount)
   {
@@ -1861,19 +1863,19 @@ int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int n
   const wchar_t *wpItCount;
   const wchar_t *wpWithMax;
   const wchar_t *wpWithCount;
-  wchar_t *wpResultCount;
+  wchar_t *wpResultCount=wszResult;
   int nChanges=0;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenW(wpText) + 1;
   if (nItLen == -1)
     nItLen=(int)xstrlenW(wpIt);
+  if (!nItLen) goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
-  wpTextMax=wpText + nTextLen;
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText) + 1;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
-  wpResultCount=wszResult;
+  wpTextMax=wpText + nTextLen;
 
   for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
