@@ -165,6 +165,7 @@ typedef struct _AEUNDOITEM {
   int nExtraEndOffset;
   wchar_t *wpText;
   UINT_PTR dwTextLen;
+  int nNewLine;
 } AEUNDOITEM;
 
 //"AkelEditText" clipboard

@@ -7109,6 +7109,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
               lpUndoElement->nActionEndOffset=nDeleteEnd;
               lpUndoElement->wpText=wpUndoText;
               lpUndoElement->dwTextLen=dwUndoTextLen;
+              lpUndoElement->nNewLine=AELB_ASIS;
 
               lpStopElement=lpUndoElement;
             }
@@ -16970,6 +16971,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
                         lpUndoElement->nActionEndOffset=nLineOffsetNew + min(lpElement->nSelEnd, lpElement->nLineLen);
                         lpUndoElement->wpText=wpUndoText;
                         lpUndoElement->dwTextLen=dwUndoTextLen;
+                        lpUndoElement->nNewLine=AELB_ASIS;
                       }
                       else break;
                     }
@@ -17125,6 +17127,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
                 lpSetSelUndo->nExtraEndOffset=nExtraEndOffset;
                 lpSetSelUndo->wpText=NULL;
                 lpSetSelUndo->dwTextLen=0;
+                lpSetSelUndo->nNewLine=AELB_ASIS;
               }
 
               //Set redo selection
@@ -17140,6 +17143,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
                   lpUndoElement->nExtraEndOffset=nExtraStartOffset;
                   lpUndoElement->wpText=NULL;
                   lpUndoElement->dwTextLen=0;
+                  lpUndoElement->nNewLine=AELB_ASIS;
                 }
               }
             }
@@ -17182,6 +17186,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
                   lpUndoElement->nActionEndOffset=nEndOffset;
                   lpUndoElement->wpText=wpUndoText;
                   lpUndoElement->dwTextLen=dwUndoTextLen;
+                  lpUndoElement->nNewLine=AELB_ASIS;
                 }
               }
             }
@@ -17705,6 +17710,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                           lpUndoElement->nActionEndOffset=nLineOffsetNew + nInsertCharInLine + nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
+                          lpUndoElement->nNewLine=nNewLine;
                         }
                         else break;
                       }
@@ -17748,6 +17754,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                             lpUndoElement->nActionEndOffset=nLineOffsetNew + lpNewElement->nLineLen + 1;
                             lpUndoElement->wpText=wpUndoText;
                             lpUndoElement->dwTextLen=dwUndoTextLen;
+                            lpUndoElement->nNewLine=nNewLine;
                           }
                           else break;
                         }
@@ -17818,6 +17825,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                             lpUndoElement->nActionEndOffset=nLineOffsetNew + lpNewElement->nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
+                          lpUndoElement->nNewLine=nNewLine;
                         }
                         else break;
                       }
@@ -17975,6 +17983,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                   lpUndoElement->nActionEndOffset=nEndOffset;
                   lpUndoElement->wpText=NULL;
                   lpUndoElement->dwTextLen=0;
+                  lpUndoElement->nNewLine=nNewLine;
                 }
               }
             }
@@ -18341,6 +18350,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                       lpUndoElement->nActionEndOffset=nStartOffset;
                       lpUndoElement->wpText=wpUndoText;
                       lpUndoElement->dwTextLen=nSpaces;
+                      lpUndoElement->nNewLine=nNewLine;
                     }
                   }
                 }
@@ -18357,6 +18367,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                     lpUndoElement->nActionEndOffset=nEndOffset;
                     lpUndoElement->wpText=wpUndoText;
                     lpUndoElement->dwTextLen=dwTextLen;
+                    lpUndoElement->nNewLine=nNewLine;
                   }
                 }
               }
@@ -19445,7 +19456,7 @@ void AE_EditUndo(AKELEDIT *ae)
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASIS, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
+        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, lpCurElement->nNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
         {
           if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP))
           {
@@ -19585,7 +19596,7 @@ void AE_EditRedo(AKELEDIT *ae)
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, AELB_ASIS, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
+        if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, lpCurElement->nNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATEALL, &ciInsertStart, &ciInsertEnd))
         {
           //if (!lpNextElement || (lpCurElement->dwFlags & AEUN_STOPGROUP))
           //{
