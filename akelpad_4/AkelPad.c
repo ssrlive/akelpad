@@ -4103,7 +4103,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while (lpRecentCaret)
       {
-        if (!SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr) && cr.cpMin == lpRecentCaret->nCaretOffset)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+
+        if (cr.cpMin == lpRecentCaret->nCaretOffset || cr.cpMax == lpRecentCaret->nCaretOffset)
           lpRecentCaret=lpRecentCaret->prev;
         else
           break;
@@ -4128,7 +4130,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while (lpRecentCaret)
       {
-        if (!SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr) && cr.cpMin == lpRecentCaret->nCaretOffset)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+
+        if (cr.cpMin == lpRecentCaret->nCaretOffset || cr.cpMax == lpRecentCaret->nCaretOffset)
           lpRecentCaret=lpRecentCaret->next;
         else
           break;
