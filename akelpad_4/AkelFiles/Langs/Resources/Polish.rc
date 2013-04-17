@@ -624,13 +624,13 @@ STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Wtyczki (Pluginy)"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Lista1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
+    CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
     LTEXT           "Zaznacz pole, ¿eby automatycznie wczytywaæ wtyczkê (plugin)",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
     LTEXT           "Klawisz skrótu:",IDC_PLUGINS_HOTKEY_LABEL,284,13,50,8
-    CONTROL         "Klawisz skrótu1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",
+    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",
                     WS_BORDER | WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Przydziel",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "Wywo³aj",IDC_PLUGINS_CALL,9,209,50,14
