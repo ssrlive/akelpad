@@ -1568,6 +1568,7 @@ void PatReset(STACKREGROUP *hStack)
   {
     lpREGroupItem->wpStrStart=NULL;
     lpREGroupItem->wpStrEnd=NULL;
+    lpREGroupItem->nStrLen=0;
   }
 }
 
@@ -2093,6 +2094,7 @@ void AE_PatReset(STACKREGROUP *hStack)
   for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
   {
     xmemset(&lpREGroupItem->ciStrStart, 0, sizeof(AECHARRANGE));
+    lpREGroupItem->nStrLen=0;
   }
 }
 #endif //__AKELEDIT_H__
