@@ -4833,6 +4833,14 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->idoVtbl.DUnadvise=AEIDataObject_DUnadvise;
     ae->idoVtbl.EnumDAdvise=AEIDataObject_EnumDAdvise;
 
+    ae->iefVtbl.QueryInterface=AEIEnumFORMATETC_QueryInterface;
+    ae->iefVtbl.AddRef=AEIEnumFORMATETC_AddRef;
+    ae->iefVtbl.Release=AEIEnumFORMATETC_Release;
+    ae->iefVtbl.Next=AEIEnumFORMATETC_Next;
+    ae->iefVtbl.Skip=AEIEnumFORMATETC_Skip;
+    ae->iefVtbl.Reset=AEIEnumFORMATETC_Reset;
+    ae->iefVtbl.Clone=AEIEnumFORMATETC_Clone;
+
     ae->idt.lpTable=&ae->idtVtbl;
     ae->idt.uRefCount=0;
     ae->idt.ae=ae;
@@ -21770,29 +21778,25 @@ HRESULT WINAPI AEIDataObject_GetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, S
 
   if (pFormatEtc->cfFormat != cfAkelEditColumnSel)
   {
-    if (pDataObj->fmtetc[nIndex].tymed == TYMED_HGLOBAL)
-    {
-      PVOID pSource;
-      PVOID pTarget;
-      UINT_PTR dwSourceSize;
+    PVOID pSource;
+    PVOID pTarget;
+    UINT_PTR dwSourceSize;
 
-      if (dwSourceSize=GlobalSize(pDataObj->stgmed[nIndex].hGlobal))
+    if (dwSourceSize=GlobalSize(pDataObj->stgmed[nIndex].hGlobal))
+    {
+      if (pSource=GlobalLock(pDataObj->stgmed[nIndex].hGlobal))
       {
-        if (pSource=GlobalLock(pDataObj->stgmed[nIndex].hGlobal))
+        if (pMedium->hGlobal=GlobalAlloc(GMEM_MOVEABLE, dwSourceSize))
         {
-          if (pMedium->hGlobal=GlobalAlloc(GMEM_MOVEABLE, dwSourceSize))
+          if (pTarget=GlobalLock(pMedium->hGlobal))
           {
-            if (pTarget=GlobalLock(pMedium->hGlobal))
-            {
-              xmemcpy(pTarget, pSource, dwSourceSize);
-              GlobalUnlock(pMedium->hGlobal);
-            }
+            xmemcpy(pTarget, pSource, dwSourceSize);
+            GlobalUnlock(pMedium->hGlobal);
           }
-          GlobalUnlock(pDataObj->stgmed[nIndex].hGlobal);
         }
+        GlobalUnlock(pDataObj->stgmed[nIndex].hGlobal);
       }
     }
-    else return DV_E_FORMATETC;
   }
   return S_OK;
 }
@@ -21812,10 +21816,19 @@ HRESULT WINAPI AEIDataObject_QueryGetData(LPUNKNOWN lpTable, FORMATETC *pFormatE
   return S_OK;
 }
 
-HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEct, FORMATETC *pFormatEtcOut)
+HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, FORMATETC *pFormatEtcOut)
 {
+  AEIDataObject *pDataObj=(AEIDataObject *)lpTable;
+
+  if (AE_DataObjectLookupFormatEtc(pDataObj, pFormatEtc) == -1)
+    return DV_E_FORMATETC;
+
+  pFormatEtcOut->cfFormat=pFormatEtc->cfFormat;
   pFormatEtcOut->ptd=NULL;
-  return E_NOTIMPL;
+  pFormatEtcOut->dwAspect=DVASPECT_CONTENT;
+  pFormatEtcOut->lindex=-1;
+  pFormatEtcOut->tymed=TYMED_HGLOBAL;
+  return S_OK;
 }
 
 HRESULT WINAPI AEIDataObject_SetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease)
@@ -21825,6 +21838,23 @@ HRESULT WINAPI AEIDataObject_SetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, S
 
 HRESULT WINAPI AEIDataObject_EnumFormatEtc(LPUNKNOWN lpTable, DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc)
 {
+  AKELEDIT *ae=(AKELEDIT *)((AEIDataObject *)lpTable)->ae;
+  AEIEnumFORMATETC *objIEnumFORMATETC;
+
+  *ppEnumFormatEtc=NULL;
+
+  if (dwDirection = DATADIR_GET)
+  {
+    if ((objIEnumFORMATETC=(AEIEnumFORMATETC *)GlobalAlloc(GPTR, sizeof(AEIEnumFORMATETC))))
+    {
+      objIEnumFORMATETC->lpTable=&ae->iefVtbl;
+      objIEnumFORMATETC->uRefCount=0;
+      objIEnumFORMATETC->ae=ae;
+      objIEnumFORMATETC->nPos=0;
+      return AEIEnumFORMATETC_QueryInterface((LPUNKNOWN)objIEnumFORMATETC, &IID_IEnumFORMATETC, ppEnumFormatEtc);
+    }
+    else return E_OUTOFMEMORY;
+  }
   return E_NOTIMPL;
 }
 
@@ -21847,11 +21877,14 @@ int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc)
 {
   int i;
 
+  if (pFormatEtc->ptd || pFormatEtc->lindex != -1)
+    return -1;
+
   for (i=0; i < pDataObj->nNumFormats; ++i)
   {
-    if ((pFormatEtc->tymed & pDataObj->fmtetc[i].tymed) &&
-        pFormatEtc->cfFormat == pDataObj->fmtetc[i].cfFormat &&
-        pFormatEtc->dwAspect == pDataObj->fmtetc[i].dwAspect)
+    if (pFormatEtc->cfFormat == pDataObj->fmtetc[i].cfFormat &&
+        (pFormatEtc->dwAspect & pDataObj->fmtetc[i].dwAspect) &&
+        (pFormatEtc->tymed & pDataObj->fmtetc[i].tymed))
     {
       return i;
     }
@@ -21920,6 +21953,90 @@ void AE_DataObjectFreeSelection(AKELEDIT *ae)
     GlobalFree(ae->ido.stgmed[1].hGlobal);
     ae->ido.stgmed[1].hGlobal=NULL;
   }
+}
+
+HRESULT WINAPI AEIEnumFORMATETC_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj)
+{
+  if (AE_IsEqualIID(riid, &IID_IUnknown) || AE_IsEqualIID(riid, &IID_IEnumFORMATETC))
+  {
+    *ppvObj=lpTable;
+    AEIEnumFORMATETC_AddRef((LPUNKNOWN)*ppvObj);
+    return S_OK;
+  }
+  else
+  {
+    *ppvObj=NULL;
+    return E_NOINTERFACE;
+  }
+}
+
+ULONG WINAPI AEIEnumFORMATETC_AddRef(LPUNKNOWN lpTable)
+{
+  return ++(((AEIEnumFORMATETC *)lpTable)->uRefCount);
+}
+
+ULONG WINAPI AEIEnumFORMATETC_Release(LPUNKNOWN lpTable)
+{
+  if (--((AEIEnumFORMATETC *)lpTable)->uRefCount == 0)
+  {
+    GlobalFree((HGLOBAL)lpTable);
+    return 0;
+  }
+  return ((AEIEnumFORMATETC *)lpTable)->uRefCount;
+}
+
+HRESULT WINAPI AEIEnumFORMATETC_Next(LPUNKNOWN lpTable, ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched)
+{
+  AEIEnumFORMATETC *lpEnumFormatEtc=(AEIEnumFORMATETC *)lpTable;
+  AKELEDIT *ae=(AKELEDIT *)lpEnumFormatEtc->ae;
+  ULONG nNumFormats;
+
+  if (!rgelt) return E_POINTER;
+
+  if (lpEnumFormatEtc->nPos < ae->ido.nNumFormats)
+  {
+    nNumFormats=min(celt, (ULONG)(ae->ido.nNumFormats - lpEnumFormatEtc->nPos));
+    xmemcpy(rgelt, &ae->ido.fmtetc[lpEnumFormatEtc->nPos], nNumFormats * sizeof(FORMATETC));
+    lpEnumFormatEtc->nPos+=nNumFormats;
+
+    if (pceltFetched)
+      *pceltFetched=nNumFormats;
+    if (nNumFormats)
+      return S_OK;
+  }
+  return S_FALSE;
+}
+
+HRESULT WINAPI AEIEnumFORMATETC_Skip(LPUNKNOWN lpTable, ULONG celt)
+{
+  AEIEnumFORMATETC *lpEnumFormatEtc=(AEIEnumFORMATETC *)lpTable;
+
+  lpEnumFormatEtc->nPos+=celt;
+  return S_OK;
+}
+
+HRESULT WINAPI AEIEnumFORMATETC_Reset(LPUNKNOWN lpTable)
+{
+  AEIEnumFORMATETC *lpEnumFormatEtc=(AEIEnumFORMATETC *)lpTable;
+
+  lpEnumFormatEtc->nPos=0;
+  return S_OK;
+}
+
+HRESULT WINAPI AEIEnumFORMATETC_Clone(LPUNKNOWN lpTable, IEnumFORMATETC **ppEnum)
+{
+  AEIEnumFORMATETC *lpEnumFormatEtc=(AEIEnumFORMATETC *)lpTable;
+  AEIEnumFORMATETC *objIEnumFORMATETC;
+
+  if ((objIEnumFORMATETC=(AEIEnumFORMATETC *)GlobalAlloc(GPTR, sizeof(AEIEnumFORMATETC))))
+  {
+    objIEnumFORMATETC->lpTable=lpEnumFormatEtc->lpTable;
+    objIEnumFORMATETC->uRefCount=0;
+    objIEnumFORMATETC->ae=lpEnumFormatEtc->ae;
+    objIEnumFORMATETC->nPos=lpEnumFormatEtc->nPos;
+    return AEIEnumFORMATETC_QueryInterface((LPUNKNOWN)objIEnumFORMATETC, &IID_IEnumFORMATETC, ppEnum);
+  }
+  else return E_OUTOFMEMORY;
 }
 
 BOOL AE_IsEqualIID(const GUID *rguid1, const GUID *rguid2)
