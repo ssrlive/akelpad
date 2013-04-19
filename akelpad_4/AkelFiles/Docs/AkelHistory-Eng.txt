@@ -4,11 +4,11 @@ AkelPad 4.8.3 ()
 Added: possibility to specify new file codepage.
 Added: manual parameter "UrlCommand" - defines command for hyperlink click.
 
+Fixed: text dragging in some programs didn't work.
 Fixed: new line type recovery from an undo buffer.
 Fixed: grouping elements in regular expressions pattern.
 Fixed: picking up a text when find/replace dialog was open, didn't restore the "Beginning"
        item.
-Fixed: text dragging in some programs didn't work.
 
 
 AkelPad 4.8.2 (Mar 24, 2013)
