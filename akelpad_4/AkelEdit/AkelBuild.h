@@ -230,6 +230,19 @@ typedef struct _AEIDataObjectCallbackVtbl {
   HRESULT (WINAPI *EnumDAdvise)(LPUNKNOWN, IEnumSTATDATA **ppEnumAdvise);
 } AEIDataObjectCallbackVtbl;
 
+typedef struct _AEIEnumFORMATETCCallbackVtbl {
+  // IUnknown implementation
+  HRESULT (WINAPI *QueryInterface)(LPUNKNOWN, REFIID, void **);
+  ULONG (WINAPI *AddRef)(LPUNKNOWN);
+  ULONG (WINAPI *Release)(LPUNKNOWN);
+
+  // Methods of the IDataObject interface
+  HRESULT (WINAPI *Next)(LPUNKNOWN, ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched);
+  HRESULT (WINAPI *Skip)(LPUNKNOWN, ULONG celt);
+  HRESULT (WINAPI *Reset)(LPUNKNOWN);
+  HRESULT (WINAPI *Clone)(LPUNKNOWN, IEnumFORMATETC **ppEnum);
+} AEIEnumFORMATETCCallbackVtbl;
+
 typedef struct _AEIDropTarget {
   AEIDropTargetCallbackVtbl *lpTable;
   ULONG uRefCount;
@@ -252,6 +265,13 @@ typedef struct _AEIDataObject {
   STGMEDIUM stgmed[3];
   LONG nNumFormats;
 } AEIDataObject;
+
+typedef struct _AEIEnumFORMATETC {
+  AEIEnumFORMATETCCallbackVtbl *lpTable;
+  ULONG uRefCount;
+  void *ae;
+  int nPos;
+} AEIEnumFORMATETC;
 
 
 //// Highlight
@@ -649,6 +669,7 @@ typedef struct _AKELEDIT {
   AEIDropTargetCallbackVtbl idtVtbl;
   AEIDropSourceCallbackVtbl idsVtbl;
   AEIDataObjectCallbackVtbl idoVtbl;
+  AEIEnumFORMATETCCallbackVtbl iefVtbl;
   AEIDropTarget idt;
   AEIDropSource ids;
   AEIDataObject ido;
@@ -1040,7 +1061,7 @@ ULONG WINAPI AEIDataObject_Release(LPUNKNOWN lpTable);
 HRESULT WINAPI AEIDataObject_GetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
 HRESULT WINAPI AEIDataObject_GetDataHere(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
 HRESULT WINAPI AEIDataObject_QueryGetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc);
-HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEct, FORMATETC *pFormatEtcOut);
+HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, FORMATETC *pFormatEtcOut);
 HRESULT WINAPI AEIDataObject_SetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease);
 HRESULT WINAPI AEIDataObject_EnumFormatEtc(LPUNKNOWN lpTable, DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc);
 HRESULT WINAPI AEIDataObject_DAdvise(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection);
@@ -1049,6 +1070,13 @@ HRESULT WINAPI AEIDataObject_EnumDAdvise(LPUNKNOWN lpTable, IEnumSTATDATA **ppEn
 int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc);
 UINT_PTR AE_DataObjectCopySelection(AKELEDIT *ae);
 void AE_DataObjectFreeSelection(AKELEDIT *ae);
+HRESULT WINAPI AEIEnumFORMATETC_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
+ULONG WINAPI AEIEnumFORMATETC_AddRef(LPUNKNOWN lpTable);
+ULONG WINAPI AEIEnumFORMATETC_Release(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIEnumFORMATETC_Next(LPUNKNOWN lpTable, ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched);
+HRESULT WINAPI AEIEnumFORMATETC_Skip(LPUNKNOWN lpTable, ULONG celt);
+HRESULT WINAPI AEIEnumFORMATETC_Reset(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIEnumFORMATETC_Clone(LPUNKNOWN lpTable, IEnumFORMATETC **ppEnum);
 BOOL AE_IsEqualIID(const GUID *rguid1, const GUID *rguid2);
 
 #endif
