@@ -1,6 +1,9 @@
 
 AkelPad 4.8.3 ()
 ----------------------------
+Changed: regular expressions quantifiers, which have a finite number of repeats, by default
+         are greedy.
+
 Added: possibility to specify new file codepage.
 Added: manual parameter "UrlCommand" - defines command for hyperlink click.
 
