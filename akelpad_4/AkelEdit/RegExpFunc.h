@@ -850,6 +850,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
                 goto EndLoop;
             }
+            else goto EndLoop;
           }
 
           wpStr=lpREGroupNext->wpStrEnd;
@@ -1750,6 +1751,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             lpREGroupItem->ciStrStart=ciStrStart;
           }
 
+          //str - "1901", find "(19)?\d\d"
+          //With REGF_GREEDY match 1901, without REGF_GREEDY match 19
           if (!(lpREGroupNext->dwFlags & REGF_GREEDY) || !AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
           {
             if (!lpREGroupNext->nMinMatch)
@@ -1773,6 +1776,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
                 goto EndLoop;
             }
+            else goto EndLoop;
           }
 
           ciStr=lpREGroupNext->ciStrEnd;
