@@ -236,7 +236,7 @@ typedef struct _AEIEnumFORMATETCCallbackVtbl {
   ULONG (WINAPI *AddRef)(LPUNKNOWN);
   ULONG (WINAPI *Release)(LPUNKNOWN);
 
-  // Methods of the IDataObject interface
+  // Methods of the IEnumFORMATETC interface
   HRESULT (WINAPI *Next)(LPUNKNOWN, ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched);
   HRESULT (WINAPI *Skip)(LPUNKNOWN, ULONG celt);
   HRESULT (WINAPI *Reset)(LPUNKNOWN);
