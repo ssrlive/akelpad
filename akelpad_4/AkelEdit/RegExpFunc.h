@@ -608,9 +608,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         bGroupNextChars=TRUE;
       wpCharStart=NULL;
 
-      //Add greedy flag, if group have max match
-      if (lpREGroupNew->nMaxMatch != -1)
-         lpREGroupNew->dwFlags|=REGF_GREEDY;
+      ////Add greedy flag, if group have max match
+      //if (lpREGroupNew->nMaxMatch != -1)
+      //   lpREGroupNew->dwFlags|=REGF_GREEDY;
       //Remove greedy flag
       if (*++wpPat == L'?')
       {
@@ -826,32 +826,23 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             lpREGroupItem->wpStrStart=wpStrStart;
           }
 
-          //str - "1901", find "(19)?\d\d"
-          //With REGF_GREEDY match 1901, without REGF_GREEDY match 19
-          if (!(lpREGroupNext->dwFlags & REGF_GREEDY) || !PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
+          if (!lpREGroupNext->nMinMatch)
           {
-            if (!lpREGroupNext->nMinMatch)
+            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
             {
-              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               {
-                if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
                 {
-                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
-                  {
-                    lpREGroupNext=lpREGroupNextNext;
-                    wpStr=lpREGroupNextNext->wpStrEnd;
-                  }
-                  goto NextGroup;
+                  lpREGroupNext=lpREGroupNextNext;
+                  wpStr=lpREGroupNextNext->wpStrEnd;
                 }
+                goto NextGroup;
               }
             }
-            if (!(lpREGroupNext->dwFlags & REGF_GREEDY))
-            {
-              if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
-                goto EndLoop;
-            }
-            else goto EndLoop;
           }
+          if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
+            goto EndLoop;
 
           wpStr=lpREGroupNext->wpStrEnd;
           if (wpPat == lpREGroupItem->wpPatStart && !lpREGroupItem->parent &&
@@ -1751,33 +1742,24 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             lpREGroupItem->ciStrStart=ciStrStart;
           }
 
-          //str - "1901", find "(19)?\d\d"
-          //With REGF_GREEDY match 1901, without REGF_GREEDY match 19
-          if (!(lpREGroupNext->dwFlags & REGF_GREEDY) || !AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
+          if (!lpREGroupNext->nMinMatch)
           {
-            if (!lpREGroupNext->nMinMatch)
+            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
             {
-              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
               {
-                if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
                 {
-                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
-                  {
-                    lpREGroupNext=lpREGroupNextNext;
-                    ciStr=lpREGroupNextNext->ciStrEnd;
-                    nStrLen+=lpREGroupNextNext->nStrLen;
-                  }
-                  goto NextGroup;
+                  lpREGroupNext=lpREGroupNextNext;
+                  ciStr=lpREGroupNextNext->ciStrEnd;
+                  nStrLen+=lpREGroupNextNext->nStrLen;
                 }
+                goto NextGroup;
               }
             }
-            if (!(lpREGroupNext->dwFlags & REGF_GREEDY))
-            {
-              if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
-                goto EndLoop;
-            }
-            else goto EndLoop;
           }
+          if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
+            goto EndLoop;
 
           ciStr=lpREGroupNext->ciStrEnd;
           nStrLen+=lpREGroupNext->nStrLen;
