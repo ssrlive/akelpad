@@ -104,6 +104,9 @@ wchar_t WideCharLower(wchar_t c)
 {
   if (c < 0x100)
   {
+    if (c == 0x00d7)
+      return c;
+
     if ((c >= 0x0041 && c <= 0x005a) ||
         (c >= 0x00c0 && c <= 0x00de))
       return (c + 0x20);
@@ -499,6 +502,9 @@ wchar_t WideCharUpper(wchar_t c)
 {
   if (c < 0x100)
   {
+    if (c == 0x00f7)
+      return c;
+
     if ((c >= 0x0061 && c <= 0x007a) ||
         (c >= 0x00e0 && c <= 0x00fe))
       return (c - 0x20);
