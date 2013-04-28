@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 0, 9)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 1, 0)
 
 
 //// Defines
@@ -667,26 +667,6 @@
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
-
-//GetWindowLongPtr/SetWindowLongPtr
-#ifndef GWLP_WNDPROC
-  #define DWLP_MSGRESULT 0
-#endif
-#ifndef GWLP_WNDPROC
-  #define GWLP_WNDPROC (-4)
-#endif
-#ifndef GWLP_HINSTANCE
-  #define GWLP_HINSTANCE (-6)
-#endif
-#ifndef GWLP_HWNDPARENT
-  #define GWLP_HWNDPARENT (-8)
-#endif
-#ifndef GWLP_ID
-  #define GWLP_ID (-12)
-#endif
-#ifndef GWLP_USERDATA
-  #define GWLP_USERDATA (-21)
-#endif
 
 
 //// Structures
