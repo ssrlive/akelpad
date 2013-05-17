@@ -2723,7 +2723,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       int nMaxBuffer=*(WORD *)lParam;
       int nResult=0;
 
-      wszBuffer[0]='\0';
+      wszBuffer[0]=L'\0';
 
       if (lpLine=AE_GetLineData(ae, (int)wParam))
       {
@@ -14632,7 +14632,7 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
       }
       if (hDC)
       {
-        if (wpString[i] != '\t')
+        if (wpString[i] != L'\t')
         {
           //Surrogate character
           if (AE_IsSurrogate(wpString[i]))
@@ -19826,11 +19826,11 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
         nLineSelEnd=AE_GetUnwrapLine(ae, ae->ciSelEndIndex.nLine);
         nLineSelRange=(nLineSelEnd - nLineSelStart) + 1;
 
-        nSourceLen=lstrlenW(wpSource);
+        nSourceLen=xstrlenW(wpSource);
         while (nSourceLen > 0)
         {
-          if (wpSource[nSourceLen - 1] == '\r' ||
-              wpSource[nSourceLen - 1] == '\n')
+          if (wpSource[nSourceLen - 1] == L'\r' ||
+              wpSource[nSourceLen - 1] == L'\n')
           {
             --nSourceLen;
           }
@@ -19850,9 +19850,9 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
             {
               nTargetCount=i * (nSourceLen + 1);
               xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
-              wpTarget[nTargetCount + nSourceLen]='\r';
+              wpTarget[nTargetCount + nSourceLen]=L'\r';
             }
-            wpTarget[nTargetLen]='\0';
+            wpTarget[nTargetLen]=L'\0';
 
             AE_ReplaceSel(ae, wpTarget, nTargetLen, AELB_ASINPUT, AEREPT_COLUMNON, &crRange.ciMin, &crRange.ciMax);
             bResult=TRUE;
