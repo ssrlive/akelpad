@@ -1,4 +1,10 @@
 
+AkelPad 4.8.4 ()
+----------------------------
+Fixed: synchronization of simultaneous access to external plugins calls.
+Fixed: FRF_ESCAPESEQ flag didn't work.
+
+
 AkelPad 4.8.3 (May 09, 2013)
 ----------------------------
 Added: possibility to specify new file codepage.
