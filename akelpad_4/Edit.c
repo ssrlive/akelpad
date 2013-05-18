@@ -10338,7 +10338,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   End:
   if (wszFindItEsc != wpFindIt)
     FreeWideStr(wszFindItEsc);
-  if (wszReplaceWithEsc != wpReplaceWithEsc)
+  if (wszReplaceWithEsc != wpReplaceWith)
     FreeWideStr(wszReplaceWithEsc);
   if (nReplaceCount) *nReplaceCount=nChanges;
   return nResult;
