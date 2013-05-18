@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 2, 0)
 
 
 //// Defines
@@ -1039,6 +1039,7 @@ typedef struct _FRAMEDATA {
   DWORD dwLockInherit;                                //See LI_* defines.
   int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
   INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
+  BOOL bCompileErrorReplace;                          //TRUE - error in "ReplaceWith" complitaion, FALSE - error in "FindIt" complitaion.
   STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
   RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
 
@@ -3013,8 +3014,8 @@ Finds text in a edit control.
 Return Value
  Character position of the next match.
  If there are no more matches, the return value is –1.
- If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
- For example, TEXTFINDW.pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (–100 - PatternOffset).
+ For example, TEXTFINDW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is –102.
 
 Example (Unicode):
  TEXTFINDW tf;
@@ -3036,8 +3037,8 @@ Replaces text in a edit control.
 Return Value
  Character position of the next match.
  If there are no more matches, the return value is –1.
- If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
- For example, TEXTREPLACEW.pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (–100 - PatternOffset).
+ For example, TEXTREPLACEW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is –102.
 
 Example (Unicode):
  TEXTREPLACEW tr;

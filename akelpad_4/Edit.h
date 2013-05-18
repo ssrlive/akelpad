@@ -866,12 +866,12 @@ void RegReadSearch();
 BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace);
-int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, int nNewLine);
+int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine);
 void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace);
 INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
 INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *nReplaceCount);
 INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis);
-INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, wchar_t *wszOutput, int nNewLine);
+INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine);
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
