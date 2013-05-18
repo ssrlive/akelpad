@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 8, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 8, 3, 0)
 
 
 //// Defines
@@ -777,6 +777,7 @@ typedef struct _PLUGINFUNCTION {
   BOOL bRunning;                  //Function is running.
   PLUGINPROC PluginProc;          //Function procedure.
   void *lpParameter;              //Procedure parameter.
+  int nRefCount;                  //Internal.
 } PLUGINFUNCTION;
 
 typedef struct {
