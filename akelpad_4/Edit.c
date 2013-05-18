@@ -12925,9 +12925,10 @@ PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, 
   return pfElement;
 }
 
-void StackPluginDelete(HSTACK *hStack, void *lpElement)
+void StackPluginDelete(HSTACK *hStack, PLUGINFUNCTION *pfElement)
 {
-  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement);
+  if (!pfElement->nRefCount)
+    StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
 }
 
 BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
@@ -13069,17 +13070,20 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
         if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, (int)xstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
           return UD_FAILED;
     }
+    ++pfElement->nRefCount;
 
-    if (pfElement && pfElement->PluginProc)
+    if (pfElement->PluginProc)
     {
       if ((pfElement->PluginProc)(pfElement->lpParameter, pcs->lParam, pcs->dwSupport))
         nResult=UD_NONUNLOAD_UNCHANGE;
       else
         nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
+      --pfElement->nRefCount;
     }
     else
     {
       nResult=CallPlugin(pfElement, pcs, dwFlags);
+      --pfElement->nRefCount;
 
       if (nResult != UD_FAILED)
       {
@@ -13127,11 +13131,8 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
       }
       else
       {
-        //if (!pfElement->wHotkey && !pfElement->bAutoLoad)
-        {
-          StackPluginDelete(&hPluginsStack, pfElement);
-          pfElement=NULL;
-        }
+        StackPluginDelete(&hPluginsStack, pfElement);
+        pfElement=NULL;
       }
     }
 

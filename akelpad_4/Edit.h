@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.3 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.4 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.3 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.4 (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
   #define APP_MAIN_CLASSA            "AkelPad4 Library"
@@ -943,7 +943,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
 PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey);
 PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
-void StackPluginDelete(HSTACK *hStack, void *lpElement);
+void StackPluginDelete(HSTACK *hStack, PLUGINFUNCTION *pfElement);
 BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
