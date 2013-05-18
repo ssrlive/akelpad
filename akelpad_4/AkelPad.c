@@ -388,8 +388,6 @@ RECT rcRecodeMinMaxDialog={246, 264, 0, 0};
 
 //Find/Replace dialog
 RECT rcFindAndReplaceDlg={0};
-wchar_t *wszFindText_orig=NULL;
-wchar_t *wszReplaceText_orig=NULL;
 wchar_t *wszFindText=NULL;
 wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
@@ -751,7 +749,7 @@ void _WinMain()
   xstrcpyW(fdInit.wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
   xstrcpyW(fdInit.wszWordDelimiters, STR_WORD_DELIMITERSW);
   xstrcpyW(fdInit.wszWrapDelimiters, STR_WRAP_DELIMITERSW);
-  //moInit.wszBkImageFileDlg[0]='\0';
+  //moInit.wszBkImageFileDlg[0]=L'\0';
   fdInit.nBkImageAlpha=EDIT_BKIMAGEALPHA;
 
   //--Save place--
@@ -760,22 +758,22 @@ void _WinMain()
   //--Manual--
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
   //moInit.dwStatusPosType=0;
-  //moInit.wszStatusUserFormat[0]='\0';
+  //moInit.wszStatusUserFormat[0]=L'\0';
   //moInit.nStatusUserFormatLen=0;
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
-  //moInit.wszDateLogFormat[0]='\0';
-  //moInit.wszDateInsertFormat[0]='\0';
-  //moInit.wszAkelUpdaterOptions[0]='\0';
-  //moInit.wszUrlCommand[0]='\0';
+  //moInit.wszDateLogFormat[0]=L'\0';
+  //moInit.wszDateInsertFormat[0]=L'\0';
+  //moInit.wszAkelUpdaterOptions[0]=L'\0';
+  //moInit.wszUrlCommand[0]=L'\0';
 
   //--Menu settings--
   //moInit.bOnTop=FALSE;
   moInit.bStatusBar=TRUE;
   //moInit.szLangModule[0]='\0';
-  //moInit.wszLangModule[0]='\0';
+  //moInit.wszLangModule[0]=L'\0';
   //moInit.bKeepSpace=FALSE;
   moInit.bWatchFile=TRUE;
   //moInit.bSaveTime=FALSE;
@@ -785,8 +783,8 @@ void _WinMain()
   moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
   //--Settings dialog--
-  //moInit.wszExecuteCommand[0]='\0';
-  //moInit.wszExecuteDirectory[0]='\0';
+  //moInit.wszExecuteCommand[0]=L'\0';
+  //moInit.wszExecuteDirectory[0]=L'\0';
   //lpCodepageList=NULL;
   moInit.dwLangCodepageRecognition=dwLangSystem;
   moInit.dwCodepageRecognitionBuffer=DETECT_CODEPAGE_SIZE;
@@ -808,7 +806,7 @@ void _WinMain()
   moInit.dwSearchOptions=FRF_DOWN;
 
   //--Open file dialog--
-  //moInit.wszLastDir[0]='\0';
+  //moInit.wszLastDir[0]=L'\0';
   moInit.bShowPlacesBar=TRUE;
 
   //--Print dialog--
@@ -1052,8 +1050,8 @@ void _WinMain()
   //GetOpenFileName dialog file filter
   API_LoadStringW(hLangLib, STR_FILE_FILTER, wszFilter, MAX_PATH);
   for (nFilterLen=0; wszFilter[nFilterLen]; ++nFilterLen)
-    if (wszFilter[nFilterLen] == '|') wszFilter[nFilterLen]='\0';
-  wszFilter[++nFilterLen]='\0';
+    if (wszFilter[nFilterLen] == L'|') wszFilter[nFilterLen]=L'\0';
+  wszFilter[++nFilterLen]=L'\0';
 
   //AkelUpdater path
   xprintfW(wszAkelUpdaterExe, L"%s\\AkelFiles\\AkelUpdater.exe", wszExeDir);
@@ -2076,7 +2074,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nResult == -1)
         {
-          if ((tf->dwFlags & FRF_REGEXP) && lpFrame->nCompileErrorOffset)
+          if (lpFrame->nCompileErrorOffset &&
+              ((tf->dwFlags & FRF_REGEXP) ||
+               (tf->dwFlags & FRF_ESCAPESEQ)))
           {
             nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
           }
@@ -2121,7 +2121,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nResult == -1)
         {
-          if ((tr->dwFlags & FRF_REGEXP) && lpFrame->nCompileErrorOffset)
+          if (lpFrame->nCompileErrorOffset &&
+              ((tr->dwFlags & FRF_REGEXP) ||
+               (tr->dwFlags & FRF_ESCAPESEQ)))
           {
             nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
           }
@@ -4456,7 +4458,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wCommand == IDM_LANGUAGE)
       {
         if (!*moCur.wszLangModule) return TRUE;
-        moCur.wszLangModule[0]='\0';
+        moCur.wszLangModule[0]=L'\0';
       }
       else
       {
