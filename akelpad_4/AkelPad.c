@@ -5578,7 +5578,10 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
   if (uMsg == WM_SETCURSOR)
   {
-    if (lpFrameCurrent->ei.hWndMaster && LOWORD(lParam) == HTBORDER)
+    if (lpFrameCurrent->ei.hWndMaster &&
+        (!(moCur.dwPaintOptions & PAINT_NOEDGE) ?
+            LOWORD(lParam) == HTBORDER :
+           (LOWORD(lParam) == HTHSCROLL || LOWORD(lParam) == HTVSCROLL)))
     {
       POINT pt;
       RECT rc;
