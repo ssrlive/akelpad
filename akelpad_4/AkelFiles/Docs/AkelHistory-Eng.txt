@@ -1,6 +1,8 @@
 
 AkelPad 4.8.4 ()
 ----------------------------
+Changed: increased speed of code folding processing with word wrap on.
+
 Fixed: synchronization of simultaneous access to external plugins calls.
 Fixed: inability to change split windows size with using flag 1024 of manual parameter
        "PaintOptions".
