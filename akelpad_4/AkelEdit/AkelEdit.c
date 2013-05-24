@@ -8509,6 +8509,11 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       break;
     lpTmpPoint->dwFlags&=~AEPTF_VALIDLINE;
   }
+  //for (lpTmpPoint=ae->ptxt->hPointsStack.first; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
+  //{
+  //  if (lpTmpPoint->dwFlags & AEPTF_VALIDLINE)
+  //    MessageBox(NULL, "Error: found AEPTF_VALIDLINE", NULL, 0);
+  //}
 
   //End progress
   if (ae->popt->dwEventMask & AENM_PROGRESS)
