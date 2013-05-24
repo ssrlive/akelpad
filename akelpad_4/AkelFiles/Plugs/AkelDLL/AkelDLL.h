@@ -1033,7 +1033,7 @@ typedef struct _FRAMEDATA {
   HBITMAP hBkImageBitmap;                             //Background image handle.
   AECOLORS aec;                                       //Edit colors.
 
-  //Edit state internal
+  //Edit state internal.
   AEEditProc lpEditProc;                              //Edit window procedure.
   FILETIME ft;                                        //File time.
   HKL dwInputLocale;                                  //Keyboard layout.
@@ -1044,7 +1044,7 @@ typedef struct _FRAMEDATA {
   STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
   RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
 
-  //Substract selection
+  //Substract selection. AKD_FRAMEINIT not copy data below.
   AECHARRANGE crPrevSel;
   INT_PTR nSelSubtract;
 
@@ -2001,7 +2001,8 @@ typedef struct {
 #define AKD_FRAMENOWINDOWS         (WM_USER + 268)
 #define AKD_FRAMEISVALID           (WM_USER + 269)
 #define AKD_FRAMEINDEX             (WM_USER + 270)
-#define AKD_FRAMECOPY              (WM_USER + 271)
+#define AKD_FRAMEINIT              (WM_USER + 271)
+#define AKD_FRAMEAPPLYEDIT         (WM_USER + 272)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -3671,27 +3672,42 @@ Example:
  SendMessage(pd->hMainWnd, AKD_FRAMEINDEX, FALSE, (LPARAM)lpFrame);
 
 
-AKD_FRAMECOPY
+AKD_FRAMEINIT
 _____________
 
-Copy frame data.
+Initialize frame data.
 
-(FRAMEDATA *)wParam == pointer to a target FRAMEDATA structure.
-(FRAMEDATA *)lParam == pointer to a source FRAMEDATA structure.
+(FRAMEDATA *)wParam == pointer to a source FRAMEDATA structure. If NULL, current frame will be used as source.
+(FRAMEDATA *)lParam == pointer to a target FRAMEDATA structure.
 
 Return Value
  Zero.
 
 Example:
  FRAMEDATA *lpFrameTarget;
- FRAMEDATA *lpFrameSource=(FRAMEDATA *)SendMessage(pd->hMainWnd, AKD_FRAMEFINDW, FWF_CURRENT, 0);
-
 
  if (lpFrameTarget=GlobalAlloc(GPTR, sizeof(FRAMEDATA)))
  {
-   SendMessage(pd->hMainWnd, AKD_FRAMECOPY, (WPARAM)lpFrameTarget, (LPARAM)lpFrameSource);
+   SendMessage(pd->hMainWnd, AKD_FRAMEINIT, (WPARAM)NULL, (LPARAM)lpFrameTarget);
    lpFrameTarget->ei.hWndEdit=hWndEdit;
+   lpFrameTarget->ei.hDocEdit=hDocEdit;
+   SendMessage(pd->hMainWnd, AKD_FRAMEAPPLYEDIT, 0, (WPARAM)lpFrameTarget);
  }
+
+
+AKD_FRAMEAPPLYEDIT
+__________________
+
+Apply frame data to edit window.
+
+wParam              == not used.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ Zero.
+
+Example:
+ See AKD_FRAMEINIT example.
 
 
 AKD_GLOBALALLOC
