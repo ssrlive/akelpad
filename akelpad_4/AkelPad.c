@@ -3051,9 +3051,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         return GetTabItemFromParam(hTab, lParam);
     }
-    if (uMsg == AKD_FRAMECOPY)
+    if (uMsg == AKD_FRAMEINIT)
     {
-      CopyFrameData((FRAMEDATA *)wParam, (FRAMEDATA *)lParam);
+      FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
+      if (!lpFrame) lpFrame=lpFrameCurrent;
+      CopyFrameData((FRAMEDATA *)lParam, lpFrame);
+      return 0;
+    }
+    if (uMsg == AKD_FRAMEAPPLYEDIT)
+    {
+      SetEditWindowSettings((FRAMEDATA *)lParam);
       return 0;
     }
 
