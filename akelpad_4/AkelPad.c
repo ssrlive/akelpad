@@ -3051,6 +3051,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         return GetTabItemFromParam(hTab, lParam);
     }
+    if (uMsg == AKD_FRAMECOPY)
+    {
+      CopyFrameData((FRAMEDATA *)wParam, (FRAMEDATA *)lParam);
+      return 0;
+    }
 
     //Thread
     if (uMsg == AKD_GLOBALALLOC)

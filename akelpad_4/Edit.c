@@ -682,7 +682,7 @@ FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource)
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
 {
   //Copy settings from lpFrameSource
-  xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), sizeof(FRAMEDATA) - sizeof(HSTACK));
+  xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), sizeof(FRAMEDATA) - sizeof(HSTACK) - (sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lpEditProc)));
 
   //Initialize own settings
   lpFrameTarget->hWndEditParent=NULL;

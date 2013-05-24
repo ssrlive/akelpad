@@ -2001,6 +2001,7 @@ typedef struct {
 #define AKD_FRAMENOWINDOWS         (WM_USER + 268)
 #define AKD_FRAMEISVALID           (WM_USER + 269)
 #define AKD_FRAMEINDEX             (WM_USER + 270)
+#define AKD_FRAMECOPY              (WM_USER + 271)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -3668,6 +3669,29 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMEINDEX, FALSE, (LPARAM)lpFrame);
+
+
+AKD_FRAMECOPY
+_____________
+
+Copy frame data.
+
+(FRAMEDATA *)wParam == pointer to a target FRAMEDATA structure.
+(FRAMEDATA *)lParam == pointer to a source FRAMEDATA structure.
+
+Return Value
+ Zero.
+
+Example:
+ FRAMEDATA *lpFrameTarget;
+ FRAMEDATA *lpFrameSource=(FRAMEDATA *)SendMessage(pd->hMainWnd, AKD_FRAMEFINDW, FWF_CURRENT, 0);
+
+
+ if (lpFrameTarget=GlobalAlloc(GPTR, sizeof(FRAMEDATA)))
+ {
+   SendMessage(pd->hMainWnd, AKD_FRAMECOPY, (WPARAM)lpFrameTarget, (LPARAM)lpFrameSource);
+   lpFrameTarget->ei.hWndEdit=hWndEdit;
+ }
 
 
 AKD_GLOBALALLOC
