@@ -52,11 +52,11 @@ BEGIN
         MENUITEM "Salva tutto\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
         MENUITEM "Salva tutto come...",         IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
-        MENUITEM "Imposta Pagina...",           IDM_FILE_PAGESETUP
-        MENUITEM "&Anteprima...",               IDM_FILE_PRINTPREVIEW
+        MENUITEM "Imposta pagina...",           IDM_FILE_PAGESETUP
+        MENUITEM "&Anteprima di stampa...",               IDM_FILE_PRINTPREVIEW
         MENUITEM "Stampa...\tCtrl+P",           IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "Files recenti"
+        POPUP "File recenti"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
@@ -135,7 +135,7 @@ BEGIN
     END
     POPUP "&Opzioni"
     BEGIN
-        MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
+        MENUITEM "Plug-i&n...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Esegui\tCtrl+F5",            IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
         MENUITEM "&Mantieni gli spazi (tabulazione)\tCtrl+L", 
@@ -158,7 +158,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Impostazioni...",            IDM_OPTIONS
     END
-    POPUP "&Finestra"
+    POPUP "F&inestra"
     BEGIN
         POPUP "&Tabulazioni"
         BEGIN
@@ -193,9 +193,9 @@ BEGIN
     POPUP "&Aiuto"
     BEGIN
         MENUITEM "&Manuale",                    IDM_MANUAL
-        MENUITEM "&Update...",                  IDM_UPDATE
+        MENUITEM "&Aggiornamento...",                  IDM_UPDATE
         MENUITEM SEPARATOR
-        MENUITEM "&Informazioni",               IDM_ABOUT
+        MENUITEM "&Informazioni su...",               IDM_ABOUT
     END
 END
 
@@ -395,7 +395,7 @@ IDD_OFN DIALOGEX 0, 0, 275, 120
 STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Codice della pagina:",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
+    LTEXT           "Codifica:",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
     COMBOBOX        IDC_OFN_CODEPAGE,53,1,145,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
@@ -411,7 +411,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
 CAPTION "Salva tutto come"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Codice della pagina:",IDC_SAVEALLAS_CODEPAGE_CHECK,
+    CONTROL         "Codifica:",IDC_SAVEALLAS_CODEPAGE_CHECK,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
@@ -449,7 +449,7 @@ BEGIN
     PUSHBUTTON      "Su",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "Giù",IDC_MDILIST_DOWN,198,115,50,14
     PUSHBUTTON      "Ordina",IDC_MDILIST_SORT,198,138,50,14
-    GROUPBOX        "Files",IDC_MDILIST_FILES_GROUP,191,163,64,49
+    GROUPBOX        "File",IDC_MDILIST_FILES_GROUP,191,163,64,49
     PUSHBUTTON      "Salva",IDC_MDILIST_SAVE,198,177,50,14
     PUSHBUTTON      "Chiudi",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Solo i nomi",IDC_MDILIST_ONLYNAMES,"Button",
@@ -461,7 +461,7 @@ IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
-CAPTION "Preview"
+CAPTION "Anteprima di stampa"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Stampa...",IDC_PREVIEW_PRINT,9,9,50,14
@@ -491,9 +491,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
     CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Espressioni regolari",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
-    CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Sequenza di escape",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
                     WS_GROUP
@@ -506,7 +506,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,120,59,47,10
     CONTROL         "Nella selezione",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,120,70,60,10
-    CONTROL         "Tutti i files",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "Tutti i file",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,120,87,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,115,80,71,19
     DEFPUSHBUTTON   "&Successivo",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
@@ -530,9 +530,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
     CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Espressioni regolari",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
-    CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Sequenza di escape",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
                     WS_GROUP
@@ -545,7 +545,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,120,73,50,10
     CONTROL         "Nella selezione",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,120,84,63,10
-    CONTROL         "Tutti i files",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "Tutti i file",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,120,101,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,115,94,71,19
     DEFPUSHBUTTON   "&Successivo",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
@@ -610,11 +610,11 @@ BEGIN
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,239,144
-    LTEXT           "Background image (%a cartella akelpad):",
+    LTEXT           "Immagine di sfondo (%a cartella akelpad):",
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
-    LTEXT           "Alpha:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    LTEXT           "Canale alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
     EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
@@ -626,13 +626,13 @@ END
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
-CAPTION "Plugins"
+CAPTION "Plugin"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
-    LTEXT           "Seleziona il checkbox per caricare automaticamente il plugin.",
+    LTEXT           "Seleziona la casella di spunta per caricare automaticamente il plugin.",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
     LTEXT           "Scorciatoia:",IDC_PLUGINS_HOTKEY_LABEL,284,13,37,8
     CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
@@ -658,18 +658,18 @@ BEGIN
                     59,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
-    LTEXT           "Riconoscimento codice della pagina:",IDC_STATIC,12,107,
+    LTEXT           "Riconoscimento automatico codifica:",IDC_STATIC,12,107,
                     150,8
     COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,118,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Buffer:",IDC_STATIC,170,107,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,118,40,13,
                     ES_NUMBER
-    LTEXT           "Codice della pagina predefinito:",IDC_STATIC,12,144,150,8
+    LTEXT           "Codifica carattere predefinita:",IDC_STATIC,12,144,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,155,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtro",IDC_OPTIONS_CODEPAGE_FILTER,168,155,40,13
-    GROUPBOX        "New file",IDC_STATIC,9,182,200,41
+    GROUPBOX        "Nuovo file",IDC_STATIC,9,182,200,41
     COMBOBOX        IDC_OPTIONS_NEWFILE_CODEPAGE,18,200,110,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_OPTIONS_NEWFILE_BOM,"Button",BS_AUTOCHECKBOX | 
@@ -710,16 +710,16 @@ BEGIN
     GROUPBOX        "Salva le impostazioni nel",IDC_STATIC,9,6,200,29
     CONTROL         "Registro",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
                     BS_AUTORADIOBUTTON,32,19,70,10
-    CONTROL         "In un file INI",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
+    CONTROL         "File INI",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "Files recenti",IDC_STATIC,9,42,200,64
+    GROUPBOX        "File recenti",IDC_STATIC,9,42,200,64
     CONTROL         "Memorizza la posizione del cursore",
                     IDC_OPTIONS_SAVEPOSITIONS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,55,185,10
-    CONTROL         "Memorizza il codice della pagina",
+    CONTROL         "Memorizza la codifica dei caratteri",
                     IDC_OPTIONS_SAVECODEPAGES,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,66,185,10
-    LTEXT           "Numero di files:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
+    LTEXT           "Numero di file:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -732,7 +732,7 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,126,11,13
     PUSHBUTTON      "Svuota",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,14
-    GROUPBOX        "Tipi di files",IDC_STATIC,9,153,200,70
+    GROUPBOX        "Tipi di file",IDC_STATIC,9,153,200,70
     CONTROL         "Apri:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
                     BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,169,49,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,69,167,133,13,ES_AUTOHSCROLL
@@ -750,14 +750,14 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Editor 1"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "Grandezza Tabulazione",IDC_STATIC,9,6,105,34
+    GROUPBOX        "Grandezza tabulazione",IDC_STATIC,9,6,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,20,
                     11,13
     CONTROL         "Spazi",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
-    GROUPBOX        "Limite Annullamenti",IDC_STATIC,9,46,105,34
+    GROUPBOX        "Limite annullamenti",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
@@ -847,7 +847,7 @@ BEGIN
     CONTROL         "Clic destro sposta il segno di omissione",
                     IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,11,42,200,10
-    GROUPBOX        "HyperLinks",IDC_STATIC,9,60,200,100
+    GROUPBOX        "Link cliccabili",IDC_STATIC,9,60,200,100
     CONTROL         "Visualizza",IDC_OPTIONS_URL_SHOW,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
     CONTROL         "Click singolo",IDC_OPTIONS_URL_SINGLECLICK,"Button",
@@ -867,13 +867,13 @@ BEGIN
                     IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Reset",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
+    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
                     BS_CENTER
     CONTROL         "Delimitatori a capo:",
                     IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Reset",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
+    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
                     BS_CENTER
 END
 
@@ -910,14 +910,14 @@ BEGIN
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Ricerca continua",IDC_OPTIONS_CYCLESEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
-    CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+    CONTROL         "Suggerimento",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Informazioni"
+CAPTION "Informazioni su AkelPad"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
@@ -1021,7 +1021,7 @@ BEGIN
     MSG_HOTKEY_EXISTS       "Tasto già assegnato a ""%s""."
     MSG_CANNOT_OPEN_FILE    "Impossibile aprire il file ""%s""."
     MSG_WRONG_STRING        "Numero di riga non valido."
-    MSG_LONG_FILELIST       "Sono stati scelti troppi files."
+    MSG_LONG_FILELIST       "Sono stati scelti troppi file."
     MSG_DOCUMENT_CHANGED    "Il documento è stato modificato. Si desidera salvarlo?"
     MSG_FILE_DOES_NOT_EXIST "Creare il nuovo file ""%s""?"
 END
@@ -1030,14 +1030,14 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_RECENTFILES_DELETED "Cancellazione registrazioni: %d"
     MSG_SEARCH_ENDED        "Ricerca terminata."
-    MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"
+    MSG_SEARCH_CYCLEPROMPT  "Superato la fine del file. Continuare?"
     MSG_REPLACE_COUNT       "Numero di cambiamenti: %d"
     MSG_REPLACE_COUNT_ALLFILES 
-                            "Files modificati: %d\nNumero di cambiamenti: %Id"
+                            "File modificati: %d\nNumero di cambiamenti: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Il file verrà riaperto, tutte le modifiche andranno perse."
     MSG_FILE_CHANGED        """%s"" è stato modificato dall'esterno.\n\nSi desidera riaprirlo?"
-    MSG_CP_UNIMPLEMENTED    "Il codice della pagina ""%d"" non è stato implementato."
+    MSG_CP_UNIMPLEMENTED    "La codifica ""%d"" non è stata implementata."
     MSG_CP_MISMATCH         "La riga ""%d"" contiene dei simboli che verranno persi se salvati in questa codifica. Si desidera continuare?"
     MSG_ACCESSDENIED        "Necessari i permessi di amministratore.\n\n""%s""\n\n"
     MSG_RESTART_PROGRAM     "I cambiamenti saranno visibili al prossimo riavvio del programma."
@@ -1052,18 +1052,18 @@ BEGIN
     STR_MODIFIED            "Modificato"
     STR_READONLY            "Sola-lettura"
     STR_COUNT               "%d di %d"
-    STR_WITHOUT             "without"
+    STR_WITHOUT             "senza"
     STR_AUTODETECT          "&Auto-rileva"
     STR_RECENT_FILES_EMPTY  "Vuoto"
     STR_RECENT_FILES_DELETE_DEAD "Elimina i non esistenti"
     STR_OPTIONS             "Impostazioni..."
     STR_LANGUAGE_NONE       "Interna"
-    STR_FILE_FILTER         "Files di testo (*.txt)|*.txt|Tutti i files (*.*)|*.*"
+    STR_FILE_FILTER         "File di testo (*.txt)|*.txt|Tutti i file (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_EXECUTABLE_FILTER   "Files eseguibili (*.exe)|*.exe|Tutti i files (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "File eseguibili (*.exe)|*.exe|Tutti i file (*.*)|*.*"
     STR_NONE                "Nessuno"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funzione"
@@ -1088,17 +1088,17 @@ BEGIN
     STR_SELECTION           "Selezione"
     STR_ACTIVELINE          "Riga attiva"
     STR_ACTIVELINEBORDER    "Attiva bordo riga"
-    STR_ALTLINE             "Riga altern."
-    STR_ALTLINEBORDER       "Bordo riga altern."
+    STR_ALTLINE             "Riga alternata"
+    STR_ALTLINEBORDER       "Bordo riga alternata"
     STR_ACTIVECOLUMN        "Attiva colonna"
     STR_COLUMNMARKER        "Evidenziatore Colonna"
     STR_CARET               "Segno d'omissione"
-    STR_URL                 "Hyperlink"
-    STR_ACTIVEURL           "Attiva hyperlink"
-    STR_VISITURL            "Visita hyperlink"
+    STR_URL                 "Link"
+    STR_ACTIVEURL           "Attiva Link"
+    STR_VISITURL            "Visita Link"
     STR_PAGEFIT             "Adatta alla pagina"
     STR_PAGEWIDTH           "Larghezza pagina"
-    STR_ALLFILES            "Tutti i files"
+    STR_ALLFILES            "Tutti i file"
 END
 
 STRINGTABLE DISCARDABLE 
