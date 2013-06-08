@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.4                  *
+ *                  RegExp functions header v1.5                  *
  *                                                                *
  * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -18,14 +18,15 @@
 //STACKREGROUP options
 #define REO_MATCHCASE         0x0001 //Case-sensitive search.
 #define REO_MULTILINE         0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REO_NOSTARTLINEBEGIN  0x0004 //Internal.
-#define REO_NOENDLINEFINISH   0x0008 //Internal.
-#define REO_NOSTARTBOUNDARY   0x0010 //Internal.
-#define REO_NOENDBOUNDARY     0x0020 //Internal.
-#define REO_NOSTARTSTRBEGIN   0x0040 //Internal.
-#define REO_NOENDSTRFINISH    0x0080 //Internal.
-#define REO_NOSTARTRANGEBEGIN 0x0100 //Internal.
-#define REO_NOSTARTRANGEEND   0x0200 //Internal.
+#define REO_NONEWLINEDOT      0x0004 //Symbol . specifies any character except new line.
+#define REO_NOSTARTLINEBEGIN  0x0008 //Internal.
+#define REO_NOENDLINEFINISH   0x0010 //Internal.
+#define REO_NOSTARTBOUNDARY   0x0020 //Internal.
+#define REO_NOENDBOUNDARY     0x0040 //Internal.
+#define REO_NOSTARTSTRBEGIN   0x0080 //Internal.
+#define REO_NOENDSTRFINISH    0x0100 //Internal.
+#define REO_NOSTARTRANGEBEGIN 0x0200 //Internal.
+#define REO_NOSTARTRANGEEND   0x0400 //Internal.
 #define REO_REFEXIST          0x1000 //Internal.
 
 //REGROUP flags
@@ -76,12 +77,13 @@
 //PatStructExec options
 #define REPE_MATCHCASE        0x0001 //Case-sensitive search.
 #define REPE_MULTILINE        0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REPE_NOSTARTLINEBEGIN 0x0004 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
-#define REPE_NOENDLINEFINISH  0x0008 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
-#define REPE_NOSTARTBOUNDARY  0x0010 //PATEXEC.wpStr is not word boundary. Valid if metacharacter \b or \B used in pattern.
-#define REPE_NOENDBOUNDARY    0x0020 //PATEXEC.wpMaxStr is not word boundary. Valid if metacharacter \b or \B used in pattern.
-#define REPE_NOSTARTSTRBEGIN  0x0040 //PATEXEC.wpStr starts not from string beginning. Valid if metacharacters \A or \a used in pattern.
-#define REPE_NOENDSTRFINISH   0x0080 //PATEXEC.wpMaxStr ends not on string ending. Valid if metacharacters \Z or \z used in pattern.
+#define REPE_NONEWLINEDOT     0x0004 //Symbol . specifies any character except new line.
+#define REPE_NOSTARTLINEBEGIN 0x0008 //PATEXEC.wpStr starts not from line beginning. Used with REPE_MULTILINE flag.
+#define REPE_NOENDLINEFINISH  0x0010 //PATEXEC.wpMaxStr ends not on line ending. Used with REPE_MULTILINE flag.
+#define REPE_NOSTARTBOUNDARY  0x0020 //PATEXEC.wpStr is not word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_NOENDBOUNDARY    0x0040 //PATEXEC.wpMaxStr is not word boundary. Valid if metacharacter \b or \B used in pattern.
+#define REPE_NOSTARTSTRBEGIN  0x0080 //PATEXEC.wpStr starts not from string beginning. Valid if metacharacters \A or \a used in pattern.
+#define REPE_NOENDSTRFINISH   0x0100 //PATEXEC.wpMaxStr ends not on string ending. Valid if metacharacters \Z or \z used in pattern.
 #define REPE_GLOBAL           0x1000 //Search all possible occurrences. If not specified then find only first occurrence.
 #define REPE_ISMATCH          0x2000 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
 
@@ -901,8 +903,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
       if (*wpPat == L'.')
       {
-        ////Any character except new line
-        //if (nStrChar < 0) goto EndLoop;
+        if (hStack->dwOptions & REO_NONEWLINEDOT)
+        {
+          //Any character except new line
+          if (nStrChar < 0) goto EndLoop;
+        }
       }
       else if (*wpPat == L'[')
       {
@@ -1825,9 +1830,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
       if (*wpPat == L'.')
       {
-        ////Any character except new line
-        //nStrChar=AE_PatStrChar(&ciStr);
-        //if (nStrChar < 0) goto EndLoop;
+        if (hStack->dwOptions & REO_NONEWLINEDOT)
+        {
+          //Any character except new line
+          nStrChar=AE_PatStrChar(&ciStr);
+          if (nStrChar < 0) goto EndLoop;
+        }
       }
       else if (*wpPat == L'[')
       {
@@ -2125,6 +2133,8 @@ int PatStructExec(PATEXEC *pe)
         pe->lpREGroupStack->dwOptions|=REO_MATCHCASE;
       if (pe->dwOptions & REPE_MULTILINE)
         pe->lpREGroupStack->dwOptions|=REO_MULTILINE;
+      if (pe->dwOptions & REPE_NONEWLINEDOT)
+        pe->lpREGroupStack->dwOptions|=REO_NONEWLINEDOT;
       if (pe->dwOptions & REPE_NOSTARTLINEBEGIN)
         pe->lpREGroupStack->dwOptions|=REO_NOSTARTLINEBEGIN;
       if (pe->dwOptions & REPE_NOENDLINEFINISH)
