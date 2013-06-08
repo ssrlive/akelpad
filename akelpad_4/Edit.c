@@ -406,8 +406,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 
   //Set settings
   DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly, TRUE);
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_DRAGDROP|AENM_POINT|AENM_LINK|AENM_MARKER);
-  SendMessage(lpFrame->ei.hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
+  SetEditNotify(lpFrame->ei.hWndEdit);
 
   dwOptions=AECO_NOCOLUMNPASTEHOTKEY;
   if (lpFrame->bDetailedUndo)
@@ -501,6 +500,12 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
 
   UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_TABSIZE|CSB_MARKER|CSB_CAPSLOCK|CSB_NUMLOCK);
+}
+
+void SetEditNotify(HWND hWnd)
+{
+  SendMessage(hWnd, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_DRAGDROP|AENM_POINT|AENM_LINK|AENM_MARKER);
+  SendMessage(hWnd, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent

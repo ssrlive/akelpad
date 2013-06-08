@@ -10,7 +10,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 7, 5, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 8, 4, 0);
   pv->pPluginName="AkelDLL";
 }
 
