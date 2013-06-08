@@ -18663,7 +18663,9 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
     hREGroupStack.first=0;
     hREGroupStack.last=0;
-    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0)|REO_MULTILINE;
+    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0) |
+                            (ft->dwFlags & AEFR_REGEXPNONEWLINEDOT?REO_NONEWLINEDOT:0) |
+                             REO_MULTILINE;
     hREGroupStack.wpDelim=ae->popt->wszWordDelimiters;
     hREGroupStack.wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
 
@@ -18834,7 +18836,9 @@ UINT_PTR AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 
     hREGroupStack.first=0;
     hREGroupStack.last=0;
-    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0)|REO_MULTILINE;
+    hREGroupStack.dwOptions=(ft->dwFlags & AEFR_MATCHCASE?REO_MATCHCASE:0) |
+                            (ft->dwFlags & AEFR_REGEXPNONEWLINEDOT?REO_NONEWLINEDOT:0) |
+                             REO_MULTILINE;
     hREGroupStack.wpDelim=ae->popt->wszWordDelimiters;
     hREGroupStack.wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
 

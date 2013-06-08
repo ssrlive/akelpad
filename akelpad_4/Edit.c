@@ -682,7 +682,7 @@ FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource)
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
 {
   //Copy settings from lpFrameSource
-  xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), (sizeof(FRAMEDATA) - sizeof(HSTACK)) - (sizeof(FRAMEDATA) - offsetof(FRAMEDATA, crPrevSel)));
+  xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), offsetof(FRAMEDATA, lpEditProc) - sizeof(HSTACK));
 
   //Initialize own settings
   lpFrameTarget->hWndEditParent=NULL;
@@ -709,19 +709,11 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->szFile[0]='\0';
   lpFrameTarget->wszFile[0]=L'\0';
   lpFrameTarget->nFileLen=0;
+  lpFrameTarget->nStreamOffset=0;
   lpFrameTarget->hIcon=hIconEmpty;
   lpFrameTarget->nIconIndex=0;
 
-  lpFrameTarget->lpEditProc=NULL;
-  lpFrameTarget->ft.dwLowDateTime=0;
-  lpFrameTarget->ft.dwHighDateTime=0;
   lpFrameTarget->dwInputLocale=(HKL)(UINT_PTR)-1;
-  lpFrameTarget->nStreamOffset=0;
-  lpFrameTarget->nCompileErrorOffset=0;
-  lpFrameTarget->bCompileErrorReplace=FALSE;
-  lpFrameTarget->hRecentCaretStack.first=0;
-  lpFrameTarget->hRecentCaretStack.last=0;
-  lpFrameTarget->lpCurRecentCaret=NULL;
 }
 
 void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
@@ -9753,6 +9745,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
   //Leave only FRF_* flags that corresponds to AEFR_*.
   ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
+  if (dwFlags & FRF_REGEXPNONEWLINEDOT)
+    ft.dwFlags|=AEFR_REGEXPNONEWLINEDOT;
   ft.pText=wszFindItEsc;
   ft.dwTextLen=nFindItLenEsc;
   ft.nNewLine=AELB_R;
@@ -9941,7 +9935,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpMaxPat=wszFindItEsc + nFindItLenEsc;
     pr.wpRep=wszReplaceWithEsc;
     pr.wpMaxRep=wszReplaceWithEsc + nReplaceWithLenEsc;
-    pr.dwOptions=(dwFlags & FRF_MATCHCASE?REPE_MATCHCASE:0)|REPE_MULTILINE;
+    pr.dwOptions=(dwFlags & FRF_MATCHCASE?REPE_MATCHCASE:0) |
+                 (dwFlags & FRF_REGEXPNONEWLINEDOT?REPE_NONEWLINEDOT:0) |
+                 REPE_MULTILINE;
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
     pr.wpNewLine=GetNewLineString(lpFrame->ei.nNewLine);
