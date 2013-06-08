@@ -1981,6 +1981,7 @@ typedef struct {
 #define AKD_GETCODEPAGELIST        (WM_USER + 213)
 #define AKD_RECENTFILES            (WM_USER + 214)
 #define AKD_SEARCHHISTORY          (WM_USER + 215)
+#define AKD_SETEDITNOTIFY          (WM_USER + 216)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -3385,6 +3386,21 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
+
+
+AKD_SETEDITNOTIFY
+_________________
+
+Set standard AkelPad's event mask for an edit control.
+
+(HWND)wParam == edit window.
+lParam       == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETEDITNOTIFY, (LPARAM)hWndEdit, 0);
 
 
 AKD_GETMODELESS

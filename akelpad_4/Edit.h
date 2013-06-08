@@ -686,6 +686,7 @@ typedef struct {
 
 HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI);
 void SetEditWindowSettings(FRAMEDATA *lpFrame);
+void SetEditNotify(HWND hWnd);
 void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
 FRAMEDATA* GetFrameDataFromEditDocument(AEHDOC hDocEditHandle);
