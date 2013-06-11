@@ -1,5 +1,5 @@
 
-AkelPad 4.8.4 ()
+AkelPad 4.8.4 (Jun 11, 2013)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: increased speed of code folding processing with word wrap on.
