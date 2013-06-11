@@ -18565,7 +18565,7 @@ wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, in
   return wpLineEnd;
 }
 
-DWORD AE_GetLinesCount(const wchar_t *wpText, int nTextLen)
+DWORD AE_GetLinesCount(const wchar_t *wpText, INT_PTR nTextLen)
 {
   const wchar_t *wpEnd=wpText + nTextLen;
   DWORD dwLines=1;
@@ -19859,9 +19859,9 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
         int nLineSelRange;
         int nLineSourceRange;
         int nLineTargetRange;
-        int nSourceLen;
-        int nTargetLen;
-        int nTargetCount;
+        INT_PTR nSourceLen;
+        INT_PTR nTargetLen;
+        INT_PTR nTargetCount;
         int i;
         BOOL bCaretAtStart;
 
