@@ -2650,12 +2650,6 @@ BOOL DoSettingsExec()
   return bResult;
 }
 
-void DoSettingsSaveTime(BOOL bState)
-{
-  CheckMenuItem(hMainMenu, IDM_OPTIONS_SAVETIME, bState?MF_CHECKED:MF_UNCHECKED);
-  moCur.bSaveTime=bState;
-}
-
 void DoSettingsKeepSpace(BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_OPTIONS_KEEPSPACE, bState?MF_CHECKED:MF_UNCHECKED);
@@ -2667,6 +2661,12 @@ void DoSettingsWatchFile(BOOL bState)
   CheckMenuItem(hMainMenu, IDM_OPTIONS_WATCHFILE, bState?MF_CHECKED:MF_UNCHECKED);
   moCur.bWatchFile=bState;
   if (moCur.bWatchFile) SetFocus(hMainWnd);
+}
+
+void DoSettingsSaveTime(BOOL bState)
+{
+  CheckMenuItem(hMainMenu, IDM_OPTIONS_SAVETIME, bState?MF_CHECKED:MF_UNCHECKED);
+  moCur.bSaveTime=bState;
 }
 
 void DoSettingsSingleOpenFile(BOOL bState)
@@ -4148,6 +4148,35 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   else
     StackFreeIni(&hIniFile);
   return bResult;
+}
+
+BOOL SetOption(LPARAM lParam, void *lpData, int nDataSize, int nType)
+{
+  if (nType == INI_STRINGUNICODE)
+  {
+    if (xstrcmpiW((wchar_t *)lpData, (wchar_t *)lParam))
+    {
+      xstrcpynW((wchar_t *)lpData, (wchar_t *)lParam, nDataSize / sizeof(wchar_t));
+      return TRUE;
+    }
+    return FALSE;
+  }
+  if (nType == INI_STRINGANSI)
+  {
+    if (xstrcmpiA((char *)lpData, (char *)lParam))
+    {
+      xstrcpynA((char *)lpData, (char *)lParam, nDataSize);
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  if (xmemcmp(lpData, &lParam, nDataSize))
+  {
+    xmemcpy(lpData, &lParam, nDataSize);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
@@ -11214,6 +11243,22 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   return lpRecentFile;
 }
 
+void RecentFilesRefresh(RECENTFILESTACK *hStack)
+{
+  RecentFilesZero(hStack);
+  RecentFilesRead(hStack);
+  bMenuRecentFiles=TRUE;
+
+  //Clean save
+  {
+    wchar_t wszRegKey[MAX_PATH];
+
+    xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
+    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+    RecentFilesSave(hStack);
+  }
+}
+
 int RecentFilesDeleteOld(RECENTFILESTACK *hStack)
 {
   RECENTFILE *lpRecentFile;
@@ -14572,7 +14617,6 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       wchar_t wszWindowText[MAX_PATH];
-      BOOL bRecentFilesRefresh=FALSE;
       BOOL bShellRefresh=FALSE;
       int a;
       int b;
@@ -14593,7 +14637,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (moCur.nRecentFiles != a)
       {
         moCur.nRecentFiles=a;
-        bRecentFilesRefresh=TRUE;
+        RecentFilesRefresh(&hRecentFilesStack);
       }
       a=(int)SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
       b=(int)SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
@@ -14601,23 +14645,6 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         moCur.bSavePositions=a;
         moCur.bSaveCodepages=b;
-        bRecentFilesRefresh=TRUE;
-      }
-
-      if (bRecentFilesRefresh)
-      {
-        RecentFilesZero(&hRecentFilesStack);
-        RecentFilesRead(&hRecentFilesStack);
-        bMenuRecentFiles=TRUE;
-
-        //Clean save
-        {
-          wchar_t wszRegKey[MAX_PATH];
-
-          xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
-          RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
-          RecentFilesSave(&hRecentFilesStack);
-        }
       }
 
       //Search history
@@ -17115,29 +17142,31 @@ void SetTextStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize)
 {
   //%[width] - Add status bar delimiter.
-  //%ch - Current character hex code in lowercase.
-  //%cH - Current character hex code in uppercase.
+  //%Ch - Current character hex code in file codepage (lowercase).
+  //%CH - Current character hex code in file codepage (uppercase).
+  //%ch - Current character hex code (lowercase).
+  //%cH - Current character hex code (uppercase).
   //%cd - Current character decimal code.
   //%cl - Current character letter.
-  //%or - Offset in symbols. Any new line breaks counted as one symbol (RichEdit).
-  //%ob - Offset in symbols. New line breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol.
+  //%or - Offset in symbols. Any newline breaks counted as one symbol (RichEdit).
+  //%ob - Offset in symbols. Newline breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol.
   //%al - Count of lines in document.
   //%ar - Count of symbols in document (RichEdit).
-  //%lb - Number of the first selected line.
-  //%le - Number of the last selected line.
+  //%lb - Number of first selected line.
+  //%le - Number of last selected line.
   //%ls - Count of lines in selection.
   //%f - Font size.
   //%t - Tabulation size.
-  //%m - Column marker size.
-  //%cap[text] - Text to appear when CapsLock key in turned on.
-  //%num[text] - Text to appear when NumLock key in turned on.
-  //%se[text] - Text to appear when end of the document reached during search.
+  //%m - Column marker position.
+  //%cap[text] - Text displayed when "Caps Lock" is on.
+  //%num[text] - Text displayed when "Num Lock" is on.
+  //%se[text] - Text displayed when end of the document reached during search.
   //%r - Replace count after "Replace all".
   //%dc - Count of all documents (MDI/PMDI).
   //%dm - Count of modified documents (MDI/PMDI).
   //%ds - Count of unmodified documents (MDI/PMDI).
   //%di - Active document index (MDI/PMDI).
-  //%% - Symbol %.
+  //%% - % symbol.
 
   STATUSPART *sp=NULL;
   const wchar_t *wpStringMax=wpString + nStringLen;
