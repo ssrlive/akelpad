@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 1)
 
 
 //// Defines
@@ -272,8 +272,8 @@
 //PLUGINDATA
 #define MIS_SAVESETTINGS              5    //(int)lParam - see SS_* defines.
 #define MIS_MDI                       45   //(int)lParam - window mode, see WMD_* defines. Required program restart.
-#define MIS_LANGMODULEA               51   //(char *)lParam - language module string.
-#define MIS_LANGMODULEW               52   //(wchar_t *)lParam - language module string.
+#define MIS_LANGMODULEA               51   //(char *)lParam - language module string. Required program restart.
+#define MIS_LANGMODULEW               52   //(wchar_t *)lParam - language module string. Required program restart.
 //Manual
 #define MIS_CMDLINEBEGIN              105  //(wchar_t *)lParam - "CmdLineBegin" string.
 #define MIS_CMDLINEEND                106  //(wchar_t *)lParam - "CmdLineEnd" string.
