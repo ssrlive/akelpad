@@ -212,7 +212,6 @@
 #define MI_SHOWMODIFY                110  //Return: "ShowModify" flags, see SM_* defines.
 #define MI_STATUSPOSTYPE             111  //Return: "StatusPosType" type, see SPT_* defines.
 #define MI_STATUSUSERFORMAT          112  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
-#define MI_STATUSUSERFLAGS           113  //Reserved.
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
@@ -267,6 +266,74 @@
 //Open dialog
 #define MI_LASTDIR                   281  //Return: copied chars. (wchar_t *)lParam - buffer that receives last directory of open dialog.
 #define MI_SHOWPLACESBAR             282  //Return: show places bar in open dialog (on\off).
+
+//AKD_SETMAININFO type
+
+//PLUGINDATA
+#define MIS_SAVESETTINGS              5    //(int)lParam - see SS_* defines.
+#define MIS_MDI                       45   //(int)lParam - window mode, see WMD_* defines. Required program restart.
+#define MIS_LANGMODULEA               51   //(char *)lParam - language module string.
+#define MIS_LANGMODULEW               52   //(wchar_t *)lParam - language module string.
+//Manual
+#define MIS_CMDLINEBEGIN              105  //(wchar_t *)lParam - "CmdLineBegin" string.
+#define MIS_CMDLINEEND                106  //(wchar_t *)lParam - "CmdLineEnd" string.
+#define MIS_SHOWMODIFY                110  //(DWORD)lParam - "ShowModify" flags, see SM_* defines.
+#define MIS_STATUSPOSTYPE             111  //(DWORD)lParam - "StatusPosType" type, see SPT_* defines.
+#define MIS_STATUSUSERFORMAT          112  //(wchar_t *)lParam - "StatusUserFormat" string.
+#define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags.
+#define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines.
+#define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type.
+#define MIS_AKELADMINRESIDENT         126  //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
+#define MIS_DATELOGFORMAT             129  //(wchar_t *)lParam - "DateLogFormat" string.
+#define MIS_DATEINSERTFORMAT          130  //(wchar_t *)lParam - "DateInsertFormat" string.
+#define MIS_AKELUPDATEROPTIONS        131  //(wchar_t *)lParam - "AkelUpdaterOptions" string.
+#define MIS_URLCOMMAND                132  //(wchar_t *)lParam - "UrlCommand" string.
+//Menu
+#define MIS_ONTOP                     141  //(BOOL)lParam - always on top (on\off).
+#define MIS_STATUSBAR                 142  //(BOOL)lParam - show statusbar (on\off).
+#define MIS_KEEPSPACE                 146  //(BOOL)lParam - keep left space (on\off).
+#define MIS_WATCHFILE                 147  //(BOOL)lParam - watch file change (on\off).
+#define MIS_SAVETIME                  148  //(BOOL)lParam - save original file time (on\off).
+#define MIS_SINGLEOPENFILE            152  //(BOOL)lParam - single open file (on\off).
+#define MIS_SINGLEOPENPROGRAM         153  //(BOOL)lParam - single open program (on\off).
+#define MIS_TABOPTIONSMDI             157  //(DWORD)lParam - tab flags, see TAB_* defines.
+//Settings dialog
+#define MIS_EXECUTECOMMAND            171  //(wchar_t *)lParam - execution command string.
+#define MIS_EXECUTEDIRECTORY          172  //(wchar_t *)lParam - execution directory string.
+#define MIS_CODEPAGELIST              176  //(int *)lParam - array of codepages, last element in array is zero.
+#define MIS_DEFAULTCODEPAGE           177  //(int)lParam - default codepage.
+#define MIS_DEFAULTBOM                178  //(BOOL)lParam - default BOM.
+#define MIS_NEWFILECODEPAGE           179  //(int)lParam - new file codepage.
+#define MIS_NEWFILEBOM                180  //(BOOL)lParam - new file BOM.
+#define MIS_NEWFILENEWLINE            181  //(int)lParam - new file new line, see NEWLINE_* defines.
+#define MIS_LANGCODEPAGERECOGNITION   183  //(DWORD)lParam - codepage recognition language defined as LANGID.
+#define MIS_CODEPAGERECOGNITIONBUFFER 184  //(DWORD)lParam - size of codepage recognition buffer.
+#define MIS_SAVEPOSITIONS             192  //(BOOL)lParam - save recent file positions (on\off).
+#define MIS_SAVECODEPAGES             193  //(BOOL)lParam - save recent file codepages (on\off).
+#define MIS_RECENTFILES               194  //(int)lParam - number of recent files.
+#define MIS_SEARCHSTRINGS             198  //(int)lParam - number of search strings.
+#define MIS_FILETYPESOPEN             202  //(wchar_t *)lParam - associated file types to open.
+#define MIS_FILETYPESEDIT             203  //(wchar_t *)lParam - associated file types to edit.
+#define MIS_FILETYPESPRINT            204  //(wchar_t *)lParam - associated file types to print.
+#define MIS_FILETYPESASSOCIATED       205  //(DWORD)lParam - associated file types, see FTA_* defines.
+#define MIS_KEYBLAYOUTOPTIONS         209  //(DWORD)lParam - keyboard layout options, see KLO_* defines.
+#define MIS_SILENTCLOSEEMPTYMDI       213  //(BOOL)lParam - silently close unsaved empty MDI tab (on\off).
+#define MIS_DATELOG                   217  //(BOOL)lParam - insert date if file has .LOG at the beginning (on\off).
+#define MIS_SAVEINREADONLYMSG         221  //(BOOL)lParam - save in read-only files warning (on\off).
+#define MIS_DEFAULTSAVEEXT            224  //(wchar_t *)lParam - default saving extension string.
+#define MIS_SEARCHOPTIONS             228  //(DWORD)lParam - search options, see FRF_* defines.
+//Print dialog
+#define MIS_PRINTMARGINS              251  //(RECT *)lParam - print margins.
+#define MIS_PRINTCOLOR                255  //(DWORD)lParam - color printing, see PRNC_* defines.
+#define MIS_PRINTHEADERENABLE         259  //(BOOL)lParam - enable print header (on\off).
+#define MIS_PRINTHEADER               260  //(wchar_t *)lParam - print header string.
+#define MIS_PRINTFOOTERENABLE         261  //(BOOL)lParam - enable print footer (on\off).
+#define MIS_PRINTFOOTER               262  //(wchar_t *)lParam - print footer string.
+#define MIS_PRINTFONTENABLE           266  //(BOOL)lParam - enable print font (on\off).
+#define MIS_PRINTFONTW                267  //(LOGFONTW *)lParam - print font data.
+//Open dialog
+#define MIS_LASTDIR                   281  //(wchar_t *)lParam - last directory of open dialog.
+#define MIS_SHOWPLACESBAR             282  //(BOOL)lParam - show places bar in open dialog (on\off).
 
 //AKD_GETFRAMEINFO type. See FRAMEDATA members description.
 #define FI_WNDEDITPARENT        1
@@ -1964,6 +2031,7 @@ typedef struct {
 #define AKD_SETPRINTINFO           (WM_USER + 192)
 
 //Options
+#define AKD_SETMAININFO            (WM_USER + 195)
 #define AKD_SETFRAMEINFO           (WM_USER + 196)
 #define AKD_GETMAININFO            (WM_USER + 198)
 #define AKD_GETFRAMEINFO           (WM_USER + 199)
@@ -1991,6 +2059,7 @@ typedef struct {
 #define AKD_SETBUTTONDRAW          (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
+#define AKD_UPDATESTATUSUSER       (WM_USER + 258)
 
 //Frames
 #define AKD_FRAMEACTIVATE          (WM_USER + 261)
@@ -3197,6 +3266,22 @@ Example (get AkelPad directory):
  SendMessage(pd->hMainWnd, AKD_GETMAININFO, MI_AKELDIRW, (WPARAM)wszAkelDir);
 
 
+AKD_SETMAININFO
+_______________
+
+Set main AkelPad data.
+
+(int)wParam  == see MIS_* defines.
+(void)lParam == depend on wParam.
+
+Return Value
+ TRUE  info changed.
+ FALSE info not changed.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETMAININFO, MIS_SAVESETTINGS, SS_INI);
+
+
 AKD_GETFRAMEINFO
 ________________
 
@@ -3560,6 +3645,21 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   return FALSE;
 }
+
+
+AKD_UPDATESTATUSUSER
+____________________
+
+Force update user statusbar.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_UPDATESTATUSUSER, 0, 0);
 
 
 AKD_FRAMEACTIVATE

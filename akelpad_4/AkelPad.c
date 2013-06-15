@@ -913,6 +913,7 @@ void _WinMain()
     moInit.nStatusUserFormatLen=(int)xstrlenW(moInit.wszStatusUserFormat);
     TranslateStatusUser(NULL, moInit.wszStatusUserFormat, moInit.nStatusUserFormatLen, NULL, 0);
 
+    moInit.dwStatusUserFlags=0;
     for (sp=hStatusStack.first; sp; sp=sp->next)
       moInit.dwStatusUserFlags|=sp->dwFormatFlags;
   }
@@ -1218,11 +1219,13 @@ void WinMainCleanUp()
   {
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineBegin);
     wszCmdLineBegin=NULL;
+    nCmdLineBeginLen=0;
   }
   if (wszCmdLineEnd)
   {
     API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineEnd);
     wszCmdLineEnd=NULL;
+    nCmdLineEndLen=0;
   }
   if (hIconShieldAkelAdmin)
   {
@@ -2268,7 +2271,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         if (wParam == MI_CMDLINEBEGIN)
           return xstrcpyW((void *)lParam, wszCmdLineBegin);
-        if (wParam == MI_CMDLINEBEGIN)
+        if (wParam == MI_CMDLINEEND)
           return xstrcpyW((void *)lParam, wszCmdLineEnd);
         if (wParam == MI_SHOWMODIFY)
           return moCur.dwShowModify;
@@ -2311,7 +2314,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == MI_EXECUTECOMMAND)
           return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, BUFFER_SIZE);
         if (wParam == MI_EXECUTEDIRECTORY)
-          return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, MAX_PATH);
+          return xstrcpynW((void *)lParam, moCur.wszExecuteDirectory, MAX_PATH);
         if (wParam == MI_CODEPAGELIST)
         {
           if (lParam) xmemcpy((void *)lParam, lpCodepageList, nCodepageListLen * sizeof(int));
@@ -2387,6 +2390,276 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return moCur.bShowPlacesBar;
       }
       return 0;
+    }
+    if (uMsg == AKD_SETMAININFO)
+    {
+      if (wParam == MIS_SAVESETTINGS)
+      {
+        if (SetOption(lParam, &moCur.nSaveSettings, sizeof(DWORD), INI_DWORD))
+        {
+          //Save to INI
+          SaveOptions(&moCur, lpFrameCurrent, SS_INI, TRUE);
+          SaveThemes(SS_INI);
+          StackPluginSave(&hPluginsStack, SS_INI);
+
+          //Save to registry
+          SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
+          SaveThemes(SS_REGISTRY);
+          StackPluginSave(&hPluginsStack, SS_REGISTRY);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_MDI)
+      {
+        if (nMDI != lParam)
+        {
+          //API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          moCur.nMDI=(int)lParam;
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_LANGMODULEA)
+      {
+        if (SetOption(lParam, moCur.szLangModule, sizeof(moCur.szLangModule), INI_STRINGANSI))
+        {
+          MultiByteToWideChar(CP_ACP, 0, moCur.szLangModule, -1, moCur.wszLangModule, MAX_PATH);
+          //API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_LANGMODULEW)
+      {
+        if (SetOption(lParam, moCur.wszLangModule, sizeof(moCur.wszLangModule), INI_STRINGUNICODE))
+        {
+          WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
+          //API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_CMDLINEBEGIN)
+      {
+        if (wszCmdLineBegin)
+          API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineBegin);
+        nCmdLineBeginLen=(int)xstrlenW((wchar_t *)lParam);
+
+        if (wszCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
+        {
+          xstrcpynW(wszCmdLineBegin, (void *)lParam, nCmdLineBeginLen + 1);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_CMDLINEEND)
+      {
+        if (wszCmdLineEnd)
+          API_HeapFree(hHeap, 0, (LPVOID)wszCmdLineEnd);
+        nCmdLineEndLen=(int)xstrlenW((wchar_t *)lParam);
+
+        if (wszCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineEndLen + 1) * sizeof(wchar_t)))
+        {
+          xstrcpynW(wszCmdLineEnd, (void *)lParam, nCmdLineEndLen + 1);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_SHOWMODIFY)
+        return SetOption(lParam, &moCur.dwShowModify, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_STATUSPOSTYPE)
+        return SetOption(lParam, &moCur.dwStatusPosType, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_STATUSUSERFORMAT)
+      {
+        if (SetOption(lParam, moCur.wszStatusUserFormat, sizeof(moCur.wszStatusUserFormat), INI_STRINGUNICODE))
+        {
+          StackStatusPartFree(&hStatusStack);
+
+          //Get status bar user flags
+          if (moCur.wszStatusUserFormat[0])
+          {
+            STATUSPART *sp;
+
+            moCur.nStatusUserFormatLen=(int)xstrlenW(moCur.wszStatusUserFormat);
+            TranslateStatusUser(NULL, moCur.wszStatusUserFormat, moCur.nStatusUserFormatLen, NULL, 0);
+
+            moCur.dwStatusUserFlags=0;
+            for (sp=hStatusStack.first; sp; sp=sp->next)
+              moCur.dwStatusUserFlags|=sp->dwFormatFlags;
+          }
+
+          UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_WORDBREAKCUSTOM)
+        return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PAINTOPTIONS)
+        return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_RICHEDITCLASS)
+        return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_AKELADMINRESIDENT)
+        return SetOption(lParam, &moCur.bAkelAdminResident, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_DATELOGFORMAT)
+        return SetOption(lParam, moCur.wszDateLogFormat, sizeof(moCur.wszDateLogFormat), INI_STRINGUNICODE);
+      if (wParam == MIS_DATEINSERTFORMAT)
+        return SetOption(lParam, moCur.wszDateInsertFormat, sizeof(moCur.wszDateInsertFormat), INI_STRINGUNICODE);
+      if (wParam == MIS_AKELUPDATEROPTIONS)
+        return SetOption(lParam, moCur.wszAkelUpdaterOptions, sizeof(moCur.wszAkelUpdaterOptions), INI_STRINGUNICODE);
+      if (wParam == MIS_URLCOMMAND)
+        return SetOption(lParam, moCur.wszUrlCommand, sizeof(moCur.wszUrlCommand), INI_STRINGUNICODE);
+      if (wParam == MIS_ONTOP)
+      {
+        if (SetOption(lParam, &moCur.bOnTop, sizeof(DWORD), INI_DWORD))
+        {
+          DoViewOnTop(moCur.bOnTop, FALSE);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_STATUSBAR)
+      {
+        if (SetOption(lParam, &moCur.bStatusBar, sizeof(DWORD), INI_DWORD))
+        {
+          DoViewShowStatusBar(moCur.bStatusBar, FALSE);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_KEEPSPACE)
+      {
+        if (SetOption(lParam, &moCur.bKeepSpace, sizeof(DWORD), INI_DWORD))
+        {
+          DoSettingsKeepSpace(moCur.bKeepSpace);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_WATCHFILE)
+      {
+        if (SetOption(lParam, &moCur.bWatchFile, sizeof(DWORD), INI_DWORD))
+        {
+          DoSettingsWatchFile(moCur.bWatchFile);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_SAVETIME)
+      {
+        if (SetOption(lParam, &moCur.bSaveTime, sizeof(DWORD), INI_DWORD))
+        {
+          DoSettingsSaveTime(moCur.bSaveTime);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_SINGLEOPENFILE)
+      {
+        if (SetOption(lParam, &moCur.bSingleOpenFile, sizeof(DWORD), INI_DWORD))
+        {
+          DoSettingsSingleOpenFile(moCur.bSingleOpenFile);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_SINGLEOPENPROGRAM)
+      {
+        if (SetOption(lParam, &moCur.bSingleOpenProgram, sizeof(DWORD), INI_DWORD))
+        {
+          DoSettingsSingleOpenProgram(moCur.bSingleOpenProgram);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_TABOPTIONSMDI)
+        return SetOption(lParam, &moCur.dwTabOptionsMDI, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_EXECUTECOMMAND)
+        return SetOption(lParam, moCur.wszExecuteCommand, sizeof(moCur.wszExecuteCommand), INI_STRINGUNICODE);
+      if (wParam == MIS_EXECUTEDIRECTORY)
+        return SetOption(lParam, moCur.wszExecuteDirectory, sizeof(moCur.wszExecuteDirectory), INI_STRINGUNICODE);
+      if (wParam == MIS_CODEPAGELIST)
+      {
+        CodepageListFree(&lpCodepageList);
+        lpCodepageList=(int *)lParam;
+        nCodepageListLen=CodepageListLen(lpCodepageList);
+        return TRUE;
+      }
+      if (wParam == MIS_DEFAULTCODEPAGE)
+        return SetOption(lParam, &moCur.nDefaultCodePage, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_DEFAULTBOM)
+        return SetOption(lParam, &moCur.bDefaultBOM, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_NEWFILECODEPAGE)
+        return SetOption(lParam, &moCur.nNewFileCodePage, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_NEWFILEBOM)
+        return SetOption(lParam, &moCur.bNewFileBOM, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_NEWFILENEWLINE)
+        return SetOption(lParam, &moCur.nNewFileNewLine, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_LANGCODEPAGERECOGNITION)
+        return SetOption(lParam, &moCur.dwLangCodepageRecognition, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_CODEPAGERECOGNITIONBUFFER)
+        return SetOption(lParam, &moCur.dwCodepageRecognitionBuffer, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_SAVEPOSITIONS)
+        return SetOption(lParam, &moCur.bSavePositions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_SAVECODEPAGES)
+        return SetOption(lParam, &moCur.bSaveCodepages, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_RECENTFILES)
+      {
+        //Same as AKD_RECENTFILES with RF_SET
+        if (SetOption(lParam, &moCur.nRecentFiles, sizeof(DWORD), INI_DWORD))
+        {
+          RecentFilesRefresh(&hRecentFilesStack);
+          return TRUE;
+        }
+        return FALSE;
+      }
+      if (wParam == MIS_SEARCHSTRINGS)
+        return SetOption(lParam, &moCur.nSearchStrings, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_FILETYPESOPEN)
+        return SetOption(lParam, moCur.wszFileTypesOpen, sizeof(moCur.wszFileTypesOpen), INI_STRINGUNICODE);
+      if (wParam == MIS_FILETYPESEDIT)
+        return SetOption(lParam, moCur.wszFileTypesEdit, sizeof(moCur.wszFileTypesEdit), INI_STRINGUNICODE);
+      if (wParam == MIS_FILETYPESPRINT)
+        return SetOption(lParam, moCur.wszFileTypesPrint, sizeof(moCur.wszFileTypesPrint), INI_STRINGUNICODE);
+      if (wParam == MIS_FILETYPESASSOCIATED)
+        return SetOption(lParam, &moCur.dwFileTypesAssociated, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_KEYBLAYOUTOPTIONS)
+        return SetOption(lParam, &moCur.dwKeybLayoutOptions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_SILENTCLOSEEMPTYMDI)
+        return SetOption(lParam, &moCur.bSilentCloseEmptyMDI, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_DATELOG)
+        return SetOption(lParam, &moCur.bDateLog, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_SAVEINREADONLYMSG)
+        return SetOption(lParam, &moCur.bSaveInReadOnlyMsg, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_DEFAULTSAVEEXT)
+        return SetOption(lParam, moCur.wszDefaultSaveExt, sizeof(moCur.wszDefaultSaveExt), INI_STRINGUNICODE);
+      if (wParam == MIS_SEARCHOPTIONS)
+        return SetOption(lParam, &moCur.dwSearchOptions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PRINTMARGINS)
+        return SetOption(lParam, &moCur.rcPrintMargins, sizeof(RECT), INI_BINARY);
+      if (wParam == MIS_PRINTCOLOR)
+        return SetOption(lParam, &moCur.dwPrintColor, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PRINTHEADERENABLE)
+        return SetOption(lParam, &moCur.bPrintHeaderEnable, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PRINTHEADER)
+        return SetOption(lParam, moCur.wszPrintHeader, sizeof(moCur.wszPrintHeader), INI_STRINGUNICODE);
+      if (wParam == MIS_PRINTFOOTERENABLE)
+        return SetOption(lParam, &moCur.bPrintFooterEnable, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PRINTFOOTER)
+        return SetOption(lParam, moCur.wszPrintFooter, sizeof(moCur.wszPrintFooter), INI_STRINGUNICODE);
+      if (wParam == MIS_PRINTFONTENABLE)
+        return SetOption(lParam, &moCur.bPrintFontEnable, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_PRINTFONTW)
+        return SetOption(lParam, &moCur.lfPrintFont, sizeof(LOGFONTW), INI_BINARY);
+      if (wParam == MIS_LASTDIR)
+        return SetOption(lParam, moCur.wszLastDir, sizeof(moCur.wszLastDir), INI_STRINGUNICODE);
+      if (wParam == MIS_SHOWPLACESBAR)
+        return SetOption(lParam, &moCur.bShowPlacesBar, sizeof(DWORD), INI_DWORD);
+      return FALSE;
     }
     if (uMsg == AKD_GETFRAMEINFO)
     {
@@ -2719,9 +2992,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (moCur.nRecentFiles != lParam)
         {
           moCur.nRecentFiles=(int)lParam;
-          RecentFilesZero(&hRecentFilesStack);
-          RecentFilesRead(&hRecentFilesStack);
-          bMenuRecentFiles=TRUE;
+          RecentFilesRefresh(&hRecentFilesStack);
         }
       }
       else if (wParam == RF_READ)
@@ -2964,6 +3235,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
 
       return DialogResizeMessages(drsm->drs, drsm->rcMinMax, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+    }
+    if (uMsg == AKD_UPDATESTATUSUSER)
+    {
+      UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
+      return 0;
     }
 
     //Frames
@@ -4485,6 +4761,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!xstrcmpiW(moCur.wszLangModule, wbuf2)) return TRUE;
         xstrcpynW(moCur.wszLangModule, wbuf2, MAX_PATH);
       }
+      WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
       API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
       API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       return 0;
