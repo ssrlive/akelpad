@@ -4282,7 +4282,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == WM_MBUTTONDOWN)
     {
-      if (!ae->bMButtonDown)
+      if (!(ae->popt->dwOptions & AECO_MBUTTONDOWNNOSCROLL) && !ae->bMButtonDown)
       {
         if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left ||
             ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
@@ -9171,7 +9171,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   POINT64 ptSelEnd;
   BOOL bColumnSelOld;
 
-  if (ae->popt->dwOptions & AECO_LOCKSELECTION)
+  if (ae->popt->dwOptionsEx & AECOE_LOCKSELECTION)
     return;
   if (ae->popt->dwOptions & AECO_NOSCROLLSELECTALL)
   {

@@ -1,4 +1,10 @@
 
+AkelPad 4.8.5 ()
+----------------------------
+Added: manual parameter for "MouseOptions" with a value of 128 - no scrolling after middle
+       mouse click.
+
+
 AkelPad 4.8.4 (Jun 11, 2013)
 ----------------------------
 Changed: plugin architecture. Update plugins.

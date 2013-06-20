@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 2)
 
 
 //// Defines
@@ -450,6 +450,7 @@
 #define MO_NONEWLINEMOUSESELECT  0x00000010  //Triple click and left margin click selects only line contents without new line.
 #define MO_NOWHEELFONTCHANGE     0x00000020  //Don't change font size with middle button scroll and Ctrl key.
 #define MO_MARGINSELUNWRAPLINE   0x00000040  //Left margin line selection with mouse selects all wrapped line.
+#define MO_MBUTTONDOWNNOSCROLL   0x00000080  //No scrolling after WM_MBUTTONDOWN message.
 
 //Keyboard layout options
 #define KLO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).
