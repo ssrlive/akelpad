@@ -2927,6 +2927,32 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
   }
 }
 
+void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bFirst)
+{
+  DWORD dwOldSwitch=moCur.dwTabOptionsMDI;
+  int nCommand=0;
+
+  if (dwNewSwitch & TAB_SWITCH_NEXTPREV)
+  {
+    nCommand=IDM_WINDOW_TABSWITCH_NEXTPREV;
+    dwNewSwitch=TAB_SWITCH_NEXTPREV;
+  }
+  else if (dwNewSwitch & TAB_SWITCH_RIGHTLEFT)
+  {
+    nCommand=IDM_WINDOW_TABSWITCH_RIGHTLEFT;
+    dwNewSwitch=TAB_SWITCH_RIGHTLEFT;
+  }
+  if (dwOldSwitch & TAB_SWITCH_NEXTPREV)
+    dwOldSwitch=TAB_SWITCH_NEXTPREV;
+  else if (dwOldSwitch & TAB_SWITCH_RIGHTLEFT)
+    dwOldSwitch=TAB_SWITCH_RIGHTLEFT;
+  CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, nCommand, MF_BYCOMMAND);
+
+  if (bFirst != TRUE && dwNewSwitch == dwOldSwitch) return;
+  moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_SWITCH_RIGHTLEFT & ~TAB_SWITCH_NEXTPREV;
+  moCur.dwTabOptionsMDI|=dwNewSwitch;
+}
+
 void DoWindowSelectWindow()
 {
   API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_MDILIST), hMainWnd, (DLGPROC)MdiListDlgProc);

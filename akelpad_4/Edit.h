@@ -755,6 +755,7 @@ void DoSettingsPlugins();
 void DoSettingsOptions();
 void DoWindowTabView(DWORD dwNewView, BOOL bFirst);
 void DoWindowTabType(DWORD dwNewType, BOOL bFirst);
+void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bFirst);
 void DoWindowSelectWindow();
 void DoHelpAbout();
 void DoNonMenuDelLine(HWND hWnd);
