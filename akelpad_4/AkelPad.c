@@ -1758,7 +1758,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoWindowTabView(moCur.dwTabOptionsMDI, TRUE);
         DoWindowTabType(moCur.dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
+        DoWindowTabSwitch(moCur.dwTabOptionsMDI, TRUE);
       }
 
       //PreShow
@@ -2515,69 +2515,78 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return SetOption(lParam, moCur.wszUrlCommand, sizeof(moCur.wszUrlCommand), INI_STRINGUNICODE);
       if (wParam == MIS_ONTOP)
       {
-        if (SetOption(lParam, &moCur.bOnTop, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bOnTop)
         {
-          DoViewOnTop(moCur.bOnTop, FALSE);
+          DoViewOnTop((BOOL)lParam, FALSE);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_STATUSBAR)
       {
-        if (SetOption(lParam, &moCur.bStatusBar, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bStatusBar)
         {
-          DoViewShowStatusBar(moCur.bStatusBar, FALSE);
+          DoViewShowStatusBar((BOOL)lParam, FALSE);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_KEEPSPACE)
       {
-        if (SetOption(lParam, &moCur.bKeepSpace, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bKeepSpace)
         {
-          DoSettingsKeepSpace(moCur.bKeepSpace);
+          DoSettingsKeepSpace((BOOL)lParam);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_WATCHFILE)
       {
-        if (SetOption(lParam, &moCur.bWatchFile, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bWatchFile)
         {
-          DoSettingsWatchFile(moCur.bWatchFile);
+          DoSettingsWatchFile((BOOL)lParam);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_SAVETIME)
       {
-        if (SetOption(lParam, &moCur.bSaveTime, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bSaveTime)
         {
-          DoSettingsSaveTime(moCur.bSaveTime);
+          DoSettingsSaveTime((BOOL)lParam);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_SINGLEOPENFILE)
       {
-        if (SetOption(lParam, &moCur.bSingleOpenFile, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bSingleOpenFile)
         {
-          DoSettingsSingleOpenFile(moCur.bSingleOpenFile);
+          DoSettingsSingleOpenFile((BOOL)lParam);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_SINGLEOPENPROGRAM)
       {
-        if (SetOption(lParam, &moCur.bSingleOpenProgram, sizeof(DWORD), INI_DWORD))
+        if (lParam != moCur.bSingleOpenProgram)
         {
-          DoSettingsSingleOpenProgram(moCur.bSingleOpenProgram);
+          DoSettingsSingleOpenProgram((BOOL)lParam);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_TABOPTIONSMDI)
-        return SetOption(lParam, &moCur.dwTabOptionsMDI, sizeof(DWORD), INI_DWORD);
+      {
+        if ((DWORD)lParam != moCur.dwTabOptionsMDI)
+        {
+          DoWindowTabView((DWORD)lParam, FALSE);
+          DoWindowTabType((DWORD)lParam, FALSE);
+          DoWindowTabSwitch((DWORD)lParam, FALSE);
+          return TRUE;
+        }
+        return FALSE;
+      }
       if (wParam == MIS_EXECUTECOMMAND)
         return SetOption(lParam, moCur.wszExecuteCommand, sizeof(moCur.wszExecuteCommand), INI_STRINGUNICODE);
       if (wParam == MIS_EXECUTEDIRECTORY)
@@ -4810,21 +4819,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (wCommand == IDM_WINDOW_TABSWITCH_NEXTPREV)
       {
-        if (moCur.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
-        {
-          CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_NEXTPREV, MF_BYCOMMAND);
-          moCur.dwTabOptionsMDI&=~TAB_SWITCH_RIGHTLEFT;
-          moCur.dwTabOptionsMDI|=TAB_SWITCH_NEXTPREV;
-        }
+        DoWindowTabSwitch(TAB_SWITCH_NEXTPREV, FALSE);
       }
       else if (wCommand == IDM_WINDOW_TABSWITCH_RIGHTLEFT)
       {
-        if (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
-        {
-          CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
-          moCur.dwTabOptionsMDI&=~TAB_SWITCH_NEXTPREV;
-          moCur.dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
-        }
+        DoWindowTabSwitch(TAB_SWITCH_RIGHTLEFT, FALSE);
       }
       else if (wCommand == IDM_WINDOW_FRAMENEXT)
       {

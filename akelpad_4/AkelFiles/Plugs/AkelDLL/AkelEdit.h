@@ -204,8 +204,8 @@
 #define AECO_NONEWLINEMOUSESELECT     0x00010000  //Triple click and left margin click selects only line contents without new line.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
-#define AECO_MARGINSELUNWRAPLINE      0x00080000  //Left margin line selection with mouse selects all wrapped line.
-#define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
+#define AECO_MBUTTONDOWNNOSCROLL      0x00080000  //No scrolling after WM_MBUTTONDOWN message.
+#define AECO_MARGINSELUNWRAPLINE      0x00100000  //Left margin line selection with mouse selects all wrapped line.
 #define AECO_NOMARGINSEL              0x00200000  //Disables left margin line selection with mouse.
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
@@ -222,6 +222,7 @@
 //AEM_EXSETOPTIONS flags
 #define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
 #define AECOE_OVERTYPE                0x00000002  //Turn on overtype mode instead of insert mode.
+#define AECOE_LOCKSELECTION           0x00000004  //Prevent selection changing. Use it with AECO_READONLY flag.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
