@@ -5198,7 +5198,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (fsd.bResult == TRUE)
     {
       //Restore last write time
-      if (moCur.bSaveTime)
+      if (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES && moCur.bSaveTime)
         SetFileTime(hFile, NULL, NULL, &wfd.ftLastWriteTime);
     }
     break;
