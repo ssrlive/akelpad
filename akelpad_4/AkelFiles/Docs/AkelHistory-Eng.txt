@@ -1,6 +1,8 @@
 
 AkelPad 4.8.5 ()
 ----------------------------
+Changed: Unicode symbols conversion to lowercase/uppercase brought to standard.
+
 Added: manual parameter for "MouseOptions" with a value of 128 - no scrolling after middle
        mouse click.
 
