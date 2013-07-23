@@ -113,9 +113,6 @@ wchar_t WideCharLower(wchar_t c)
         (c >= 0x00c0 && c <= 0x00de))
       return (c + 0x20);
 
-    //if (c == 0x00b5)
-    //  return 0x03bc;
-
     return c;
   }
   else if (c < 0x300)
@@ -124,21 +121,17 @@ wchar_t WideCharLower(wchar_t c)
         (c >= 0x0132 && c <= 0x0136) ||
         (c >= 0x014a && c <= 0x0176) ||
         (c >= 0x01de && c <= 0x01ee) ||
-        //(c >= 0x01f8 && c <= 0x021e) ||
-        (c >= 0x01fa && c <= 0x0217)
-        //(c >= 0x0222 && c <= 0x0232))
-        )
+        (c >= 0x01fa && c <= 0x0217))
     {
       if (!(c & 0x01))
         return (c + 1);
       return c;
     }
 
-    if (c == 0x01dd || c == 0x01ef || c == 0x0259)
+    if (c == 0x01dd || c == 0x01ef)
       return c;
 
     if ((c >= 0x0139 && c <= 0x0147) ||
-        //(c >= 0x01cd && c <= 0x91db))
         (c >= 0x01cd && c <= 0x01db))
     {
       if (c & 0x01)
@@ -146,7 +139,7 @@ wchar_t WideCharLower(wchar_t c)
       return c;
     }
 
-    if (c >= 0x178 && c <= 0x01f7)
+    if (c >= 0x0178 && c <= 0x01f7)
     {
       wchar_t k;
 
@@ -174,9 +167,6 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01b5:
         case 0x01b8:
         case 0x01bc:
-        //case 0x01c5:
-        //case 0x01c8:
-        //case 0x01cb:
         case 0x01cd:
         case 0x01cf:
         case 0x01d1:
@@ -185,13 +175,9 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01d7:
         case 0x01d9:
         case 0x01db:
-        //case 0x01f2:
         case 0x01f4:
           k=c + 1;
           break;
-        //case 0x017f:
-        //  k=0x0073;
-        //  break;
         case 0x0181:
           k=0x0253;
           break;
@@ -234,9 +220,6 @@ wchar_t WideCharLower(wchar_t c)
         case 0x019f:
           k=0x0275;
           break;
-        //case 0x01a6:
-        //  k=0x0280;
-        //  break;
         case 0x01a9:
           k=0x0283;
           break;
@@ -258,26 +241,17 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01f1:
           k=c + 2;
           break;
-        //case 0x01f6:
-        //  k=0x0195;
-        //  break;
-        //case 0x01f7:
-        //  k=0x01bf;
-        //  break;
         default:
           k=0;
       }
       if (k != 0)
         return k;
     }
-    //if (c == 0x0220)
-    //  return 0x019e;
   }
   else if (c < 0x0400)
   {
     if (c >= 0x0391 && c <= 0x03ab && c != 0x03a2)
       return (c + 0x20);
-    //if (c >= 0x03d8 && c <= 0x03ee && !(c & 0x01))
     if (c >= 0x03e2 && c <= 0x03ee && !(c & 0x01))
       return (c + 1);
     if (c >= 0x0386 && c <= 0x03f5)
@@ -307,51 +281,18 @@ wchar_t WideCharLower(wchar_t c)
         case 0x038f:
           k=0x03ce;
           break;
-        //case 0x03c2:
-        //  k=0x03c3;
-        //  break;
-        //case 0x03d0:
-        //  k=0x03b2;
-        //  break;
-        //case 0x03d1:
-        //  k=0x03b8;
-        //  break;
-        //case 0x03d5:
-        //  k=0x03c6;
-        //  break;
-        //case 0x03d6:
-        //  k=0x03c0;
-        //  break;
-        //case 0x03f0:
-        //  k=0x03ba;
-        //  break;
-        //case 0x03f1:
-        //  k=0x03c1;
-        //  break;
-        //case 0x03f2:
-        //  k=0x03c3;
-        //  break;
-        //case 0x03f4:
-        //  k=0x03b8;
-        //  break;
-        //case 0x03f5:
-        //  k=0x03b5;
-        //  break;
         default:
           k=0;
       }
       if (k != 0)
         return k;
     }
-    //if (c == 0x0345)
-    //  return 0x03b9;
   }
   else if (c < 0x500)
   {
     if (c == 0x040d)
       return c;
 
-    //if (c >= 0x0400 && c <= 0x040f)
     if (c >= 0x0401 && c <= 0x040f)
       return (c + 0x50);
 
@@ -362,7 +303,6 @@ wchar_t WideCharLower(wchar_t c)
       return c;
 
     if ((c >= 0x0460 && c <= 0x0480) ||
-        //(c >= 0x048a && c <= 0x04be) ||
         (c >= 0x0490 && c <= 0x04be) ||
         (c >= 0x04d0 && c <= 0x04f4) ||
         (c == 0x04f8))
@@ -375,7 +315,6 @@ wchar_t WideCharLower(wchar_t c)
     if (c == 0x04c5 || c == 0x04c9)
       return c;
 
-    //if (c >= 0x04c1 && c <= 0x04cd)
     if (c >= 0x04c1 && c <= 0x04cc)
     {
       if (c & 0x01)
@@ -385,8 +324,7 @@ wchar_t WideCharLower(wchar_t c)
   }
   else if (c < 0x1f00)
   {
-    if (//(c >= 0x0500 && c <= 0x050e) ||
-        (c >= 0x1e00 && c <= 0x1e94) ||
+    if ((c >= 0x1e00 && c <= 0x1e94) ||
         (c >= 0x1ea0 && c <= 0x1ef8))
     {
       if (!(c & 0x01))
@@ -397,9 +335,6 @@ wchar_t WideCharLower(wchar_t c)
     if ((c >= 0x0531 && c <= 0x0556) ||
         (c >= 0x10a0 && c <= 0x10c5))
       return (c + 0x30);
-
-    //if (c == 0x1e9b)
-    //  return 0x1e61;
   }
   else if (c < 0x2000)
   {
@@ -408,11 +343,7 @@ wchar_t WideCharLower(wchar_t c)
         (c >= 0x1f28 && c <= 0x1f2f) ||
         (c >= 0x1f38 && c <= 0x1f3f) ||
         (c >= 0x1f48 && c <= 0x1f4d) ||
-        (c >= 0x1f68 && c <= 0x1f6f)
-        //(c >= 0x1f88 && c <= 0x1f8f) ||
-        //(c >= 0x1f98 && c <= 0x1f9f) ||
-        //(c >= 0x1fa8 && c <= 0x1faf)
-        )
+        (c >= 0x1f68 && c <= 0x1f6f))
       return (c - 0x08);
 
     if (c >= 0x1f59 && c <= 0x1f5f)
@@ -440,21 +371,12 @@ wchar_t WideCharLower(wchar_t c)
         case 0x1fbb:
           k=c - 0x4a;
           break;
-        //case 0x1fbc:
-        //  k=0x1fb3;
-        //  break;
-        //case 0x1fbe:
-        //  k=0x03b9;
-        //  break;
         case 0x1fc8:
         case 0x1fc9:
         case 0x1fca:
         case 0x1fcb:
           k=c - 0x56;
           break;
-        //case 0x1fcc:
-        //  k=0x1fc3;
-        //  break;
         case 0x1fda:
         case 0x1fdb:
           k=c - 0x64;
@@ -476,9 +398,6 @@ wchar_t WideCharLower(wchar_t c)
         case 0x1ffb:
           k=c - 0x7e;
           break;
-        //case 0x1ffc:
-        //  k=0x1ff3;
-        //  break;
         default:
           k=0;
       }
@@ -496,16 +415,6 @@ wchar_t WideCharLower(wchar_t c)
 
     if (c >= 0xff21 && c <= 0xff3a)
       return (c + 0x20);
-
-    //if (c >= 0x10400 && c <= 0x10425)
-    //  return (c + 0x28);
-
-    //if (c == 0x2126)
-    //  return 0x03c9;
-    //if (c == 0x212a)
-    //  return 0x006b;
-    //if (c == 0x212b)
-    //  return 0x00e5;
   }
   return c;
 }
@@ -537,10 +446,7 @@ wchar_t WideCharUpper(wchar_t c)
         (c >= 0x00e0 && c <= 0x00fe))
       return (c - 0x20);
 
-    //if (c == 0x00b5)
-    //  return 0x039c;
-
-    if (c == 0xff)
+    if (c == 0x00ff)
       return 0x0178;
 
     return c;
@@ -551,8 +457,6 @@ wchar_t WideCharUpper(wchar_t c)
         (c >= 0x0133 && c <= 0x0137) ||
         (c >= 0x014b && c <= 0x0177) ||
         (c >= 0x01df && c <= 0x01ef) ||
-        //(c >= 0x01f9 && c <= 0x021f) ||
-        //(c >= 0x0223 && c <= 0x0233)
         (c >= 0x01fa && c <= 0x0218))
     {
       if (c & 0x01)
@@ -568,9 +472,6 @@ wchar_t WideCharUpper(wchar_t c)
       return c;
     }
 
-    //if (c == 0x0131)
-    //  return 0x0049;
-
     if (c == 0x017a || c == 0x017c || c == 0x017e)
       return (c - 1);
 
@@ -580,9 +481,6 @@ wchar_t WideCharUpper(wchar_t c)
 
       switch (c)
       {
-        //case 0x017f:
-        //  k=0x0053;
-        //  break;
         case 0x0183:
           k=0x0182;
           break;
@@ -598,15 +496,9 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x0192:
           k=0x0191;
           break;
-        //case 0x0195:
-        //  k=0x01f6;
-        //  break;
         case 0x0199:
           k=0x0198;
           break;
-        //case 0x019e:
-        //  k=0x0220;
-        //  break;
         case 0x01a1:
         case 0x01a3:
         case 0x01a5:
@@ -617,16 +509,9 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x01b6:
         case 0x01b9:
         case 0x01bd:
-        //case 0x01c5:
-        //case 0x01c8:
-        //case 0x01cb:
-        //case 0x01f2:
         case 0x01f5:
           k=c - 1;
           break;
-        //case 0x01bf:
-        //  k=0x01f7;
-        //  break;
         case 0x01c6:
         case 0x01c9:
         case 0x01cc:
@@ -677,9 +562,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x0275:
           k=0x019f;
           break;
-        //case 0x0280:
-        //  k=0x01a6;
-        //  break;
         case 0x0283:
           k=0x01a9;
           break;
@@ -713,9 +595,6 @@ wchar_t WideCharUpper(wchar_t c)
     if (c >= 0x03ad && c <= 0x03af)
       return (c - 0x25);
 
-    //if ((c & 0xfff0) == 0x03a0 && c >= 0x03ad)
-    //  return (c - 0x15);
-
     if (c >= 0x03b1 && c <= 0x03cb)
       return (c - 0x20);
 
@@ -732,23 +611,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x03ce:
           k=c - 0x3f;
           break;
-        //case 0x03d0:
-        //  k=0x0392;
-        //  break;
-        //case 0x03d1:
-        //  k=0x0398;
-        //  break;
-        //case 0x03d5:
-        //  k=0x03a6;
-        //  break;
-        //case 0x03d6:
-        //  k=0x03a0;
-        //  break;
-        //case 0x03d9:
-        //case 0x03db:
-        //case 0x03dd:
-        //case 0x03df:
-        //case 0x03e1:
         case 0x03e3:
         case 0x03e5:
         case 0x03e7:
@@ -758,18 +620,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x03ef:
           k=c - 1;
           break;
-        //case 0x03f0:
-        //  k=0x039a;
-        //  break;
-        //case 0x03f1:
-        //  k=0x03a1;
-        //  break;
-        //case 0x03f2:
-        //  k=0x03a3;
-        //  break;
-        //case 0x03f5:
-        //  k=0x0395;
-        //  break;
         default:
           k=0;
       }
@@ -782,7 +632,6 @@ wchar_t WideCharUpper(wchar_t c)
     if (c == 0x045d)
       return c;
 
-    //if (c >= 0x0450 && c <= 0x045f)
     if (c >= 0x0451 && c <= 0x045f)
       return (c - 0x50);
 
@@ -793,7 +642,6 @@ wchar_t WideCharUpper(wchar_t c)
       return c;
 
     if ((c >= 0x0461 && c <= 0x0481) ||
-        //(c >= 0x048b && c <= 0x04bf) ||
         (c >= 0x0491 && c <= 0x04bf) ||
         (c >= 0x04d1 && c <= 0x04f5))
     {
@@ -817,8 +665,7 @@ wchar_t WideCharUpper(wchar_t c)
   }
   else if (c < 0x1f00)
   {
-    if (//(c >= 0x0501 && c <= 0x050f) ||
-        (c >= 0x1e01 && c <= 0x1e95) ||
+    if ((c >= 0x1e01 && c <= 0x1e95) ||
         (c >= 0x1ea1 && c <= 0x1ef9))
     {
       if (c & 0x01)
@@ -828,9 +675,6 @@ wchar_t WideCharUpper(wchar_t c)
 
     if (c >= 0x0561 && c <= 0x0586)
       return (c - 0x30);
-
-    //if (c == 0x1e9b)
-    //  return 0x1e60;
   }
   else if (c < 0x2000)
   {
@@ -839,11 +683,7 @@ wchar_t WideCharUpper(wchar_t c)
         (c >= 0x1f20 && c <= 0x1f27) ||
         (c >= 0x1f30 && c <= 0x1f37) ||
         (c >= 0x1f40 && c <= 0x1f45) ||
-        (c >= 0x1f60 && c <= 0x1f67)
-        //(c >= 0x1f80 && c <= 0x1f87) ||
-        //(c >= 0x1f90 && c <= 0x1f97) ||
-        //(c >= 0x1fa0 && c <= 0x1fa7)
-        )
+        (c >= 0x1f60 && c <= 0x1f67))
       return (c + 0x08);
 
     if (c >= 0x1f51 && c <= 0x1f57 && (c & 0x01))
@@ -867,12 +707,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x1f71:
           k=0x1fbb;
           break;
-        //case 0x1fb3:
-        //  k=0x1fbc;
-        //  break;
-        //case 0x1fbe:
-        //  k=0x0399;
-        //  break;
         case 0x1f72:
           k=0x1fc8;
           break;
@@ -924,9 +758,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x1f7d:
           k=0x1ffb;
           break;
-        //case 0x1ff3:
-        //  k=0x1ffc;
-        //  break;
         default:
           k=0;
       }
@@ -944,9 +775,6 @@ wchar_t WideCharUpper(wchar_t c)
 
     if (c >= 0xff41 && c <= 0xff5a)
       return (c - 0x20);
-
-//    if (c >= 0x10428 && c <= 0x1044d)
-//      return (c - 0x28);
   }
   return c;
 }
