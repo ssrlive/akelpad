@@ -5879,6 +5879,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
+  static RECT rcInitMasterWindow;
   static POINT ptMouseDown;
   static int nMouseMove;
 
@@ -6011,6 +6012,7 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     {
       if (hCursorClone)
       {
+        rcInitMasterWindow=lpFrameCurrent->rcMasterWindow;
         GetCursorPos(&ptMouseDown);
         nMouseMove=1;
         SetMouseCapture(hWnd, MSC_SPLITSIZE);
@@ -6023,7 +6025,7 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
   {
     if (dwMouseCapture & MSC_SPLITSIZE)
     {
-      RECT rcMasterInitial=lpFrameCurrent->rcMasterWindow;
+      RECT rcBeforeMove=lpFrameCurrent->rcMasterWindow;
       POINT ptPos;
 
       if (nMouseMove > 0)
@@ -6043,8 +6045,8 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
           lpFrameCurrent->rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
         ResizeEditWindow(lpFrameCurrent, REW_TEST);
 
-        ptMouseDown.x+=(lpFrameCurrent->rcMasterWindow.right - rcMasterInitial.right);
-        ptMouseDown.y+=(lpFrameCurrent->rcMasterWindow.bottom - rcMasterInitial.bottom);
+        ptMouseDown.x+=(lpFrameCurrent->rcMasterWindow.right - rcBeforeMove.right);
+        ptMouseDown.y+=(lpFrameCurrent->rcMasterWindow.bottom - rcBeforeMove.bottom);
       }
       *lResult=0;
       return TRUE;
@@ -6060,9 +6062,17 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
       if (nMouseMove == 0)
       {
         ResizeEditWindow(lpFrameCurrent, REW_TEST);
-        ResizeEditWindow(lpFrameCurrent, 0);
-        *lResult=0;
-        return TRUE;
+
+        if (uMsg == WM_LBUTTONUP)
+        {
+          ResizeEditWindow(lpFrameCurrent, 0);
+          *lResult=0;
+          return TRUE;
+        }
+        else if (uMsg == WM_CAPTURECHANGED)
+        {
+          lpFrameCurrent->rcMasterWindow=rcInitMasterWindow;
+        }
       }
     }
   }
