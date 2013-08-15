@@ -9458,9 +9458,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           do
           {
             if (bReplace == TRUE)
-              nResult=TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
+              nResult=TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions & ~FRF_CYCLESEARCH, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
             else
-              nResult=TextFindW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen);
+              nResult=TextFindW(lpFrameCurrent, moCur.dwSearchOptions & ~FRF_CYCLESEARCH, wszFindText, nFindTextLen);
 
             if (nResult == -1)
             {

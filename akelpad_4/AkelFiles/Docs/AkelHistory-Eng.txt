@@ -7,6 +7,7 @@ Added: manual parameter for "MouseOptions" with a value of 128 - no scrolling af
        mouse click.
 
 Fixed: interrupt split window resizing with Escape button.
+Fixed: options conflict "Cycle search" and "All files".
 
 
 AkelPad 4.8.4 (Jun 11, 2013)
