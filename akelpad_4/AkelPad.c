@@ -2482,9 +2482,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return FALSE;
       }
       if (wParam == MIS_SHOWMODIFY)
-        return SetOption(lParam, &moCur.dwShowModify, sizeof(DWORD), INI_DWORD);
+      {
+        if ((DWORD)lParam != moCur.dwShowModify)
+        {
+          UpdateAsterisk(lpFrameCurrent, FALSE);
+          SetModifyStatus(NULL, FALSE);
+          moCur.dwShowModify=(DWORD)lParam;
+          UpdateAsterisk(lpFrameCurrent, lpFrameCurrent->ei.bModified);
+          SetModifyStatus(NULL, lpFrameCurrent->ei.bModified);
+          return TRUE;
+        }
+        return FALSE;
+      }
       if (wParam == MIS_STATUSPOSTYPE)
-        return SetOption(lParam, &moCur.dwStatusPosType, sizeof(DWORD), INI_DWORD);
+      {
+        if (SetOption(lParam, &moCur.dwStatusPosType, sizeof(DWORD), INI_DWORD))
+        {
+          SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+          return TRUE;
+        }
+        return FALSE;
+      }
       if (wParam == MIS_STATUSUSERFORMAT)
       {
         if (SetOption(lParam, moCur.wszStatusUserFormat, sizeof(moCur.wszStatusUserFormat), INI_STRINGUNICODE))
@@ -2595,6 +2613,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           DoWindowTabView((DWORD)lParam, FALSE);
           DoWindowTabType((DWORD)lParam, FALSE);
           DoWindowTabSwitch((DWORD)lParam, FALSE);
+          moCur.dwTabOptionsMDI=(DWORD)lParam;
           return TRUE;
         }
         return FALSE;
@@ -5326,66 +5345,15 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         else
           lpFrame=GetFrameDataFromEditWindow(aenm->hdr.hwndFrom);
 
-        //Synchronize changed state
-        if (nMDI == WMD_SDI)
-        {
-          if (moCur.dwShowModify & SM_MAINTITLE_SDI)
-          {
-            wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
-
-            xprintfW(wpTitle, L"%s%s - %s", aenm->bModified?L"* ":L"", GetFileName(lpFrame->wszFile, lpFrame->nFileLen), APP_MAIN_TITLEW);
-            SetWindowTextWide(hMainWnd, wpTitle);
-
-            FreeWideStr(wpTitle);
-          }
-        }
         if (nMDI)
         {
-          if (moCur.dwShowModify & SM_TABTITLE_MDI)
-          {
-            int nItem;
-
-            if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
-            {
-              wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
-              TCITEMW tcItem;
-
-              tcItem.mask=TCIF_TEXT;
-              tcItem.pszText=wpTitle;
-              tcItem.cchTextMax=MAX_PATH;
-              TabCtrl_GetItemWide(hTab, nItem, &tcItem);
-
-              if (aenm->bModified)
-                xprintfW(wpTitle, L"%s *", wpTitle);
-              else
-                TrimModifyState(wpTitle, -1);
-              TabCtrl_SetItemWide(hTab, nItem, &tcItem);
-
-              FreeWideStr(wpTitle);
-            }
-          }
-          if (moCur.dwShowModify & SM_FRAMETITLE_MDI)
-          {
-            wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
-
-            if (nMDI == WMD_MDI)
-            {
-              xprintfW(wpTitle, L"%s%s", lpFrame->wszFile, aenm->bModified?L" *":L"");
-              SetWindowTextWide(lpFrame->hWndEditParent, wpTitle);
-            }
-            else if (nMDI == WMD_PMDI)
-            {
-              xprintfW(wpTitle, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrame->wszFile, aenm->bModified?L" *":L"");
-              SetWindowTextWide(hMainWnd, wpTitle);
-            }
-            FreeWideStr(wpTitle);
-          }
           if (aenm->bModified)
             ++nDocumentsModified;
           else
             --nDocumentsModified;
           UpdateStatusUser(lpFrame, CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
         }
+        UpdateAsterisk(lpFrame, aenm->bModified);
         SetModifyStatus(lpFrame, aenm->bModified);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)

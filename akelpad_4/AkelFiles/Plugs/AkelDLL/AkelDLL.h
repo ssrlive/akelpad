@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 3)
 
 
 //// Defines
@@ -280,9 +280,9 @@
 #define MIS_SHOWMODIFY                110  //(DWORD)lParam - "ShowModify" flags, see SM_* defines.
 #define MIS_STATUSPOSTYPE             111  //(DWORD)lParam - "StatusPosType" type, see SPT_* defines.
 #define MIS_STATUSUSERFORMAT          112  //(wchar_t *)lParam - "StatusUserFormat" string.
-#define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags.
-#define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines.
-#define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type.
+#define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags. Changes are applied for a new edit windows.
+#define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines. Changes are applied for a new edit windows.
+#define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type. Changes are applied for a new edit windows.
 #define MIS_AKELADMINRESIDENT         126  //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MIS_DATELOGFORMAT             129  //(wchar_t *)lParam - "DateLogFormat" string.
 #define MIS_DATEINSERTFORMAT          130  //(wchar_t *)lParam - "DateInsertFormat" string.
