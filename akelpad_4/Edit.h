@@ -256,6 +256,7 @@
 #define MOT_MAINOFFSET  0x10  //lpData specifies offset of MAINOPTIONS structure.
 #define MOT_FRAMEOFFSET 0x20  //lpData specifies offset of FRAMEDATA structure.
 #define MOT_MANUAL      0x40  //lpData specifies manual parameter.
+#define MOT_POINTER     0x80  //lpData specifies pointer to a data.
 
 //AkelAdmin action
 #define AAA_CMDINIT             11
@@ -371,6 +372,10 @@ typedef struct {
   int nSaveSettings;
 
   //Manual
+  wchar_t *wpCmdLineBegin;
+  int nCmdLineBeginLen;
+  wchar_t *wpCmdLineEnd;
+  int nCmdLineEndLen;
   DWORD dwShowModify;
   DWORD dwStatusPosType;
   wchar_t wszStatusUserFormat[MAX_PATH];
