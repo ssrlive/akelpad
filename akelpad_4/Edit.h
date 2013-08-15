@@ -1109,13 +1109,14 @@ int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
 int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen);
 const wchar_t* GetNewLineString(int nNewLine);
-void TrimModifyState(wchar_t *wszFile, int nFileLen);
 void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSeconds);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
 BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 BOOL GetFileVersionW(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileString(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
+void TrimModifyState(wchar_t *wszFile, int nFileLen);
+void UpdateAsterisk(FRAMEDATA *lpFrame, BOOL bModified);
 void SetMouseCapture(HWND hWnd, DWORD dwType);
 void ReleaseMouseCapture(DWORD dwType);
 BOOL SwitchLayout(HWND hWndEdit, AECHARINDEX *lpciCaret);
