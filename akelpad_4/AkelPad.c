@@ -6038,7 +6038,8 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
       return TRUE;
     }
   }
-  else if (uMsg == WM_LBUTTONUP)
+  else if (uMsg == WM_LBUTTONUP ||
+           uMsg == WM_CAPTURECHANGED)
   {
     if (dwMouseCapture & MSC_SPLITSIZE)
     {
@@ -6050,18 +6051,6 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         ResizeEditWindow(lpFrameCurrent, 0);
         *lResult=0;
         return TRUE;
-      }
-    }
-  }
-  else if (uMsg == WM_CAPTURECHANGED)
-  {
-    if (dwMouseCapture & MSC_SPLITSIZE)
-    {
-      ReleaseMouseCapture(MSC_SPLITSIZE);
-
-      if (nMouseMove == 0)
-      {
-        ResizeEditWindow(lpFrameCurrent, REW_TEST);
       }
     }
   }
