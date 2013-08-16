@@ -247,6 +247,11 @@ wchar_t wbuf2[BUFFER_SIZE];
 //Command line
 wchar_t wszCmdLine[COMMANDLINE_SIZE];
 wchar_t wszCmdArg[COMMANDARG_SIZE];
+wchar_t *wpCmdLineBegin=NULL;
+int nCmdLineBeginLen=0;
+wchar_t *wpCmdLineEnd=NULL;
+int nCmdLineEndLen=0;
+BOOL bCmdLineChanged=FALSE;
 const wchar_t *wpCmdLine=NULL;
 DWORD dwCmdLineOptions=0;
 BOOL bCmdLineQuitAsEnd=FALSE;
@@ -285,9 +290,12 @@ int nLastFunctionIndex;
 INIFILE hIniFile={0};
 wchar_t wszIniFile[MAX_PATH];
 
-//Main Window
+//Main settings
 MAINOPTIONS moInit;
 MAINOPTIONS moCur;
+BOOL bSaveManual=FALSE;
+
+//Main Window
 HWND hMainWnd=NULL;
 HWND hDummyWindow;
 DWORD dwLastMainSizeType=SIZE_RESTORED;
@@ -919,10 +927,6 @@ void _WinMain()
 
   //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
-  if (moCur.wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (moCur.nCmdLineBeginLen + 1) * sizeof(wchar_t)))
-    xstrcpynW(moCur.wpCmdLineBegin, moInit.wpCmdLineBegin, moCur.nCmdLineBeginLen + 1);
-  if (moCur.wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (moCur.nCmdLineEndLen + 1) * sizeof(wchar_t)))
-    xstrcpynW(moCur.wpCmdLineEnd, moInit.wpCmdLineEnd, moCur.nCmdLineEndLen + 1);
 
   //Command line
   wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
@@ -1215,29 +1219,17 @@ void _WinMain()
 
 void WinMainCleanUp()
 {
-  if (moInit.wpCmdLineBegin)
+  if (wpCmdLineBegin)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)moInit.wpCmdLineBegin);
-    moInit.wpCmdLineBegin=NULL;
-    moInit.nCmdLineBeginLen=0;
+    API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineBegin);
+    wpCmdLineBegin=NULL;
+    nCmdLineBeginLen=0;
   }
-  if (moInit.wpCmdLineEnd)
+  if (wpCmdLineEnd)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)moInit.wpCmdLineEnd);
-    moInit.wpCmdLineEnd=NULL;
-    moInit.nCmdLineEndLen=0;
-  }
-  if (moCur.wpCmdLineBegin)
-  {
-    API_HeapFree(hHeap, 0, (LPVOID)moCur.wpCmdLineBegin);
-    moCur.wpCmdLineBegin=NULL;
-    moCur.nCmdLineBeginLen=0;
-  }
-  if (moCur.wpCmdLineEnd)
-  {
-    API_HeapFree(hHeap, 0, (LPVOID)moCur.wpCmdLineEnd);
-    moCur.wpCmdLineEnd=NULL;
-    moCur.nCmdLineEndLen=0;
+    API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineEnd);
+    wpCmdLineEnd=NULL;
+    nCmdLineEndLen=0;
   }
   if (hIconShieldAkelAdmin)
   {
@@ -2282,9 +2274,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           #endif
         }
         if (wParam == MI_CMDLINEBEGIN)
-          return xstrcpyW((void *)lParam, moCur.wpCmdLineBegin);
+          return xstrcpyW((void *)lParam, wpCmdLineBegin);
         if (wParam == MI_CMDLINEEND)
-          return xstrcpyW((void *)lParam, moCur.wpCmdLineEnd);
+          return xstrcpyW((void *)lParam, wpCmdLineEnd);
         if (wParam == MI_SHOWMODIFY)
           return moCur.dwShowModify;
         if (wParam == MI_STATUSPOSTYPE)
@@ -2457,26 +2449,28 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == MIS_CMDLINEBEGIN)
       {
-        if (moCur.wpCmdLineBegin)
-          API_HeapFree(hHeap, 0, (LPVOID)moCur.wpCmdLineBegin);
-        moCur.nCmdLineBeginLen=(int)xstrlenW((wchar_t *)lParam);
+        bCmdLineChanged=TRUE;
+        if (wpCmdLineBegin)
+          API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineBegin);
+        nCmdLineBeginLen=(int)xstrlenW((wchar_t *)lParam);
 
-        if (moCur.wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (moCur.nCmdLineBeginLen + 1) * sizeof(wchar_t)))
+        if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
         {
-          xstrcpynW(moCur.wpCmdLineBegin, (void *)lParam, moCur.nCmdLineBeginLen + 1);
+          xstrcpynW(wpCmdLineBegin, (void *)lParam, nCmdLineBeginLen + 1);
           return TRUE;
         }
         return FALSE;
       }
       if (wParam == MIS_CMDLINEEND)
       {
-        if (moCur.wpCmdLineEnd)
-          API_HeapFree(hHeap, 0, (LPVOID)moCur.wpCmdLineEnd);
-        moCur.nCmdLineEndLen=(int)xstrlenW((wchar_t *)lParam);
+        bCmdLineChanged=TRUE;
+        if (wpCmdLineEnd)
+          API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineEnd);
+        nCmdLineEndLen=(int)xstrlenW((wchar_t *)lParam);
 
-        if (moCur.wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (moCur.nCmdLineEndLen + 1) * sizeof(wchar_t)))
+        if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineEndLen + 1) * sizeof(wchar_t)))
         {
-          xstrcpynW(moCur.wpCmdLineEnd, (void *)lParam, moCur.nCmdLineEndLen + 1);
+          xstrcpynW(wpCmdLineEnd, (void *)lParam, nCmdLineEndLen + 1);
           return TRUE;
         }
         return FALSE;

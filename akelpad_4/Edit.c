@@ -52,6 +52,11 @@ extern wchar_t wbuf2[BUFFER_SIZE];
 //Command line
 extern wchar_t wszCmdLine[COMMANDLINE_SIZE];
 extern wchar_t wszCmdArg[COMMANDARG_SIZE];
+extern wchar_t *wpCmdLineBegin;
+extern int nCmdLineBeginLen;
+extern wchar_t *wpCmdLineEnd;
+extern int nCmdLineEndLen;
+extern BOOL bCmdLineChanged;
 extern const wchar_t *wpCmdLine;
 extern DWORD dwCmdLineOptions;
 extern BOOL bCmdLineQuitAsEnd;
@@ -90,9 +95,12 @@ extern int nLastFunctionIndex;
 extern INIFILE hIniFile;
 extern wchar_t wszIniFile[MAX_PATH];
 
-//Main Window
+//Main settings
 extern MAINOPTIONS moInit;
 extern MAINOPTIONS moCur;
+extern BOOL bSaveManual;
+
+//Main Window
 extern HWND hMainWnd;
 extern HWND hDummyWindow;
 extern DWORD dwLastMainSizeType;
@@ -3629,14 +3637,7 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
       else
       {
         //lpData is MAINOPTIONS structure offset. Check if specified member in lpData has been changed.
-        if ((dwType & MOT_STRING) && (dwType & MOT_POINTER))
-        {
-          if (!xstrcmpW(*(wchar_t **)(((LPBYTE)oh->mo) + (UINT_PTR)lpData), *(wchar_t **)(((LPBYTE)&moInit) + (UINT_PTR)lpData)))
-            return dwSize;
-          lpData=*(wchar_t **)(((LPBYTE)oh->mo) + (UINT_PTR)lpData);
-          goto SetData;
-        }
-        else if (!xmemcmp(((LPBYTE)oh->mo) + (UINT_PTR)lpData, ((LPBYTE)&moInit) + (UINT_PTR)lpData, dwSize))
+        if (!xmemcmp(((LPBYTE)oh->mo) + (UINT_PTR)lpData, ((LPBYTE)&moInit) + (UINT_PTR)lpData, dwSize))
           return dwSize;
       }
     }
@@ -3653,7 +3654,6 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     lpData=((LPBYTE)oh->fd) + (UINT_PTR)lpData;
   }
 
-  SetData:
   if (oh->nSaveSettings == SS_REGISTRY)
   {
     if (dwType & MOT_DWORD) dwType=REG_DWORD;
@@ -3710,35 +3710,54 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     //Manual
     if (dwSize=ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0))
     {
-      if (mo->wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+      if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
       {
-        ReadOption(&oh, L"CmdLineBegin", MOT_STRING, mo->wpCmdLineBegin, dwSize);
-        mo->nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
+        ReadOption(&oh, L"CmdLineBegin", MOT_STRING, wpCmdLineBegin, dwSize);
+        nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
       }
     }
-    else mo->wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+    else
+    {
+      wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+      bSaveManual=TRUE;
+    }
 
     if (dwSize=ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
     {
-      if (mo->wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+      if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
       {
-        ReadOption(&oh, L"CmdLineEnd", MOT_STRING, mo->wpCmdLineEnd, dwSize);
-        mo->nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
+        ReadOption(&oh, L"CmdLineEnd", MOT_STRING, wpCmdLineEnd, dwSize);
+        nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
       }
     }
-    else mo->wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+    else
+    {
+      wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+      bSaveManual=TRUE;
+    }
 
-    ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD));
-    ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
-    ReadOption(&oh, L"StatusUserFormat", MOT_STRING, mo->wszStatusUserFormat, sizeof(mo->wszStatusUserFormat));
-    ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwWordBreakCustom, sizeof(DWORD));
-    ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
-    ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
-    ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD));
-    ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
-    ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
-    ReadOption(&oh, L"AkelUpdaterOptions", MOT_STRING, mo->wszAkelUpdaterOptions, sizeof(mo->wszAkelUpdaterOptions));
-    ReadOption(&oh, L"UrlCommand", MOT_STRING, mo->wszUrlCommand, sizeof(mo->wszUrlCommand));
+    if (!ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"StatusUserFormat", MOT_STRING, mo->wszStatusUserFormat, sizeof(mo->wszStatusUserFormat)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwWordBreakCustom, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"AkelUpdaterOptions", MOT_STRING, mo->wszAkelUpdaterOptions, sizeof(mo->wszAkelUpdaterOptions)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"UrlCommand", MOT_STRING, mo->wszUrlCommand, sizeof(mo->wszUrlCommand)))
+      bSaveManual=TRUE;
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -3905,7 +3924,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
       {
         if (fd->ei.bWordWrap == fdInit.ei.bWordWrap)
         {
-          if (!bCodepageListChanged)
+          if (!bCodepageListChanged && !bCmdLineChanged && !bSaveManual)
           {
             //Settings unchanged
             return TRUE;
@@ -3939,10 +3958,16 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   }
 
   //Manual
-  if (!SaveOption(&oh, L"CmdLineBegin", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL|MOT_POINTER, (void *)offsetof(MAINOPTIONS, wpCmdLineBegin), (mo->nCmdLineBeginLen + 1) * sizeof(wchar_t)))
-    goto Error;
-  if (!SaveOption(&oh, L"CmdLineEnd", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL|MOT_POINTER, (void *)offsetof(MAINOPTIONS, wpCmdLineEnd), (mo->nCmdLineEndLen + 1) * sizeof(wchar_t)))
-    goto Error;
+  if (bForceWrite || bCmdLineChanged ||
+     !ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0) ||
+     !ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
+  {
+    bCmdLineChanged=FALSE;
+    if (!SaveOption(&oh, L"CmdLineBegin", MOT_STRING, (void *)wpCmdLineBegin, (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
+      goto Error;
+    if (!SaveOption(&oh, L"CmdLineEnd", MOT_STRING, (void *)wpCmdLineEnd, (nCmdLineEndLen + 1) * sizeof(wchar_t)))
+      goto Error;
+  }
   if (!SaveOption(&oh, L"ShowModify", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwShowModify), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwStatusPosType), sizeof(DWORD)))
@@ -3965,6 +3990,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"UrlCommand", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, wszUrlCommand), BytesInString(mo->wszUrlCommand)))
     goto Error;
+  bSaveManual=FALSE;
 
   //Frame data
   if (!SaveOption(&oh, L"TabStopSize", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, nTabStopSize), sizeof(DWORD)))
@@ -4180,13 +4206,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (bResult)
   {
     //Update initial options
-    if (moInit.wpCmdLineBegin) API_HeapFree(hHeap, 0, (LPVOID)moInit.wpCmdLineBegin);
-    if (moInit.wpCmdLineEnd) API_HeapFree(hHeap, 0, (LPVOID)moInit.wpCmdLineEnd);
     xmemcpy(&moInit, mo, sizeof(MAINOPTIONS));
-    if (moInit.wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (moInit.nCmdLineBeginLen + 1) * sizeof(wchar_t)))
-      xstrcpynW(moInit.wpCmdLineBegin, mo->wpCmdLineBegin, moInit.nCmdLineBeginLen + 1);
-    if (moInit.wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (moInit.nCmdLineEndLen + 1) * sizeof(wchar_t)))
-      xstrcpynW(moInit.wpCmdLineEnd, mo->wpCmdLineEnd, moInit.nCmdLineEndLen + 1);
 
     CopyFrameSettings(&fdInit, fd);
     CopyFrameSettings(&fdDefault, fd);
@@ -17949,9 +17969,9 @@ void StackFontItemsFree(HSTACK *hStack)
 wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
 {
   if (bOldWindows)
-    xprintfW(wszCmdLine, L"%s %.%dS %s", moCur.wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, moCur.wpCmdLineEnd);
+    xprintfW(wszCmdLine, L"%s %.%dS %s", wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wpCmdLineEnd);
   else
-    xprintfW(wszCmdLine, L"%s %.%ds %s", moCur.wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, moCur.wpCmdLineEnd);
+    xprintfW(wszCmdLine, L"%s %.%ds %s", wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wpCmdLineEnd);
   return wszCmdLine;
 }
 
