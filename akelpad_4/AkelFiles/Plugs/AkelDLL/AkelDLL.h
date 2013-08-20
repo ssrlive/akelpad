@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 4)
 
 
 //// Defines
@@ -315,7 +315,7 @@
 #define MIS_FILETYPESOPEN             202  //(wchar_t *)lParam - associated file types to open.
 #define MIS_FILETYPESEDIT             203  //(wchar_t *)lParam - associated file types to edit.
 #define MIS_FILETYPESPRINT            204  //(wchar_t *)lParam - associated file types to print.
-#define MIS_FILETYPESASSOCIATED       205  //(DWORD)lParam - associated file types, see FTA_* defines.
+#define MIS_FILETYPESASSOCIATED       205  //(DWORD)lParam - associated file types, see FTA_* defines. If FTA_ flag is set file types will be associated. If FTA_ flag is not set file types will be deassociated.
 #define MIS_KEYBLAYOUTOPTIONS         209  //(DWORD)lParam - keyboard layout options, see KLO_* defines.
 #define MIS_SILENTCLOSEEMPTYMDI       213  //(BOOL)lParam - silently close unsaved empty MDI tab (on\off).
 #define MIS_DATELOG                   217  //(BOOL)lParam - insert date if file has .LOG at the beginning (on\off).
