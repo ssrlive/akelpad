@@ -1,5 +1,5 @@
 
-AkelPad 4.8.5 ()
+AkelPad 4.8.5 (Sep 01, 2013)
 ----------------------------
 Changed: Unicode symbols conversion to lowercase/uppercase brought to standard.
 
