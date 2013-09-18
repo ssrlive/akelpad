@@ -15713,6 +15713,11 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
+  else if (uMsg == WM_DESTROY)
+  {
+    //Destroy resources
+    DestroyMenu(hMenuList);
+  }
   DialogResizeMessages(&drs[0], &rcMdiListMinMaxDialog, &moCur.rcMdiListCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
