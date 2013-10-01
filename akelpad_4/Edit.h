@@ -1048,6 +1048,7 @@ void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
 void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SetTextStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, int nStringLen, wchar_t *wszBuffer, int nBufferSize);
+int* SetStatusParts(STACKSTATUSPART *lpStatusStack);
 STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack);
 void StackStatusPartFree(STACKSTATUSPART *hStack);
 
