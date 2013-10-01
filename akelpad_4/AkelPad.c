@@ -331,7 +331,6 @@ STACKSTATUSPART hStatusStack={0};
 HWND hStatus;
 HWND hProgress;
 int nStatusHeight=0;
-int nStatusParts=0;
 int nProgressWidth=0;
 
 //Clones
@@ -1592,42 +1591,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                NULL);
 
     SendMessage(hStatus, SB_SIMPLE, FALSE, 0);
-
-    //Set standard parts
-    nStatusParts=SBP_USER + hStatusStack.nElements;
-
-    lpSBParts=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, nStatusParts * sizeof(int));
-    lpSBParts[SBP_POSITION]=110;
-    lpSBParts[SBP_MODIFY]=220;
-    lpSBParts[SBP_INSERT]=250;
-    lpSBParts[SBP_NEWLINE]=280;
-    lpSBParts[SBP_CODEPAGE]=-1;
-
-    //Set user parts
-    if (hStatusStack.nElements)
-    {
-      STATUSPART *sp;
-      int nPartIndex=SBP_USER;
-      int nPartSize;
-
-      lpSBParts[SBP_CODEPAGE]=560;
-      nPartSize=lpSBParts[SBP_CODEPAGE];
-
-      for (sp=hStatusStack.first; sp; sp=sp->next)
-      {
-        if (sp->nPartSize == -1)
-        {
-          lpSBParts[nPartIndex++]=-1;
-          break;
-        }
-        nPartSize+=sp->nPartSize;
-        lpSBParts[nPartIndex++]=nPartSize;
-      }
-    }
-    SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)lpSBParts);
-
     GetWindowRect(hStatus, &rcRect);
     nStatusHeight=rcRect.bottom - rcRect.top;
+    lpSBParts=SetStatusParts(&hStatusStack);
 
     //Progress Bar
     SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
@@ -2501,6 +2467,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (SetOption(lParam, moCur.wszStatusUserFormat, sizeof(moCur.wszStatusUserFormat), INI_STRINGUNICODE))
         {
+          int *lpSBParts;
+
           StackStatusPartFree(&hStatusStack);
 
           //Get status bar user flags
@@ -2515,6 +2483,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             for (sp=hStatusStack.first; sp; sp=sp->next)
               moCur.dwStatusUserFlags|=sp->dwFormatFlags;
           }
+          if (lpSBParts=SetStatusParts(&hStatusStack))
+            API_HeapFree(hHeap, 0, (LPVOID)lpSBParts);
 
           UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
           return TRUE;
@@ -5645,14 +5615,17 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bMdiNoWindows=TRUE;
 
       //Clear status
-      ssStatus.bModified=-1;
-      ssStatus.bOvertypeMode=-1;
-      ssStatus.nNewLine=-1;
-      ssStatus.nCodePage=-1;
-      ssStatus.bBOM=-1;
-      for (i=0; i < nStatusParts; ++i)
-        StatusBar_SetTextWide(hStatus, i, L"");
+      {
+        int nStatusParts=SBP_USER + hStatusStack.nElements;
 
+        ssStatus.bModified=-1;
+        ssStatus.bOvertypeMode=-1;
+        ssStatus.nNewLine=-1;
+        ssStatus.nCodePage=-1;
+        ssStatus.bBOM=-1;
+        for (i=0; i < nStatusParts; ++i)
+          StatusBar_SetTextWide(hStatus, i, L"");
+      }
       SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);
     }
     else
