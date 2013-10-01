@@ -541,7 +541,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
              *wpPat == L'?' ||
              *wpPat == L'{')
     {
-      if (lpREGroupItem->lastChild && wpPat == lpREGroupItem->lastChild->wpPatEnd + 1 && *lpREGroupItem->lastChild->wpPatEnd == L')')
+      if (lpREGroupItem->lastChild && wpPat == lpREGroupItem->lastChild->wpPatRight && *(lpREGroupItem->lastChild->wpPatRight - 1) == L')')
       {
         //(...)* or (...)+ or (...){1,1}
         lpREGroupNew=lpREGroupItem->lastChild;
