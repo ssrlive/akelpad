@@ -17208,7 +17208,7 @@ void SetTextStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 
   for (sp=hStatusStack.first; sp; sp=sp->next)
   {
-    if (sp->dwFormatFlags & dwFlags)
+    if ((sp->dwFormatFlags & dwFlags) || dwFlags == (DWORD)-1)
     {
       TranslateStatusUser(lpFrame, sp->wpFormat, sp->nFormatLen, wbuf, BUFFER_SIZE);
       StatusBar_SetTextWide(hStatus, sp->nIndex, wbuf);
