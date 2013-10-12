@@ -718,6 +718,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpMinStr=wpStr;
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
+  INT_PTR nPrevStrLen;
   int nStrChar;
   int nCharSize=0;
   int nPatChar;
@@ -776,6 +777,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       if (wpPat >= wpMaxPat)
       {
         Match:
+        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
@@ -796,7 +798,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
         }
         //Prevent infinite loop "($a*)+"
-        if (!lpREGroupItem->nStrLen)
+        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }
@@ -1638,6 +1640,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpNextGroup;
   INT_PTR nStrLen=0;
+  INT_PTR nPrevStrLen;
   INT_PTR nCount;
   int nStrChar;
   int nPatChar;
@@ -1694,6 +1697,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       if (wpPat >= wpMaxPat)
       {
         Match:
+        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
@@ -1714,7 +1718,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
         }
         //Prevent infinite loop "($a*)+"
-        if (!lpREGroupItem->nStrLen)
+        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }
