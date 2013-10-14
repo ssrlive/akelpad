@@ -10633,6 +10633,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
           if (lpQuoteItem->dwFlags & AEHLF_REGEXP)
           {
             lpREGroupStack=(STACKREGROUP *)lpQuoteItem->lpREGroupStack;
+            if (dwSearchType & AEHF_FINDFIRSTCHAR)
+              AE_PatReset(lpREGroupStack);
 
             if (AE_PatExec(lpREGroupStack, lpREGroupStack->first, &ciCount, &ciMaxLine))
             {
@@ -10654,6 +10656,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
               }
               return TRUE;
             }
+            else AE_PatReset(lpREGroupStack);
           }
         }
         AEC_IndexInc(&ciCount);
@@ -14156,6 +14159,8 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
             }
           }
         }
+        if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
+          AE_PatReset((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack);
         hlp->dwPaintType&=~AEHPT_QUOTE;
         hlp->qm.lpQuote=NULL;
       }
