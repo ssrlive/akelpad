@@ -1580,13 +1580,18 @@ INT_PTR PatGroupStr(PATGROUPSTR *pgs)
 
 void PatReset(STACKREGROUP *hStack)
 {
-  REGROUP *lpREGroupItem;
+  REGROUP *lpREGroupItem=hStack->first;
 
-  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
+  //Check root element
+  if (lpREGroupItem && lpREGroupItem->wpStrStart)
   {
-    lpREGroupItem->wpStrStart=NULL;
-    lpREGroupItem->wpStrEnd=NULL;
-    lpREGroupItem->nStrLen=0;
+    do
+    {
+      lpREGroupItem->wpStrStart=NULL;
+      lpREGroupItem->wpStrEnd=NULL;
+      lpREGroupItem->nStrLen=0;
+    }
+    while (lpREGroupItem=PatNextGroup(lpREGroupItem));
   }
 }
 
@@ -2112,12 +2117,17 @@ REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
 
 void AE_PatReset(STACKREGROUP *hStack)
 {
-  REGROUP *lpREGroupItem;
+  REGROUP *lpREGroupItem=hStack->first;
 
-  for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
+  //Check root element
+  if (lpREGroupItem && lpREGroupItem->ciStrStart.lpLine)
   {
-    xmemset(&lpREGroupItem->ciStrStart, 0, sizeof(AECHARRANGE));
-    lpREGroupItem->nStrLen=0;
+    do
+    {
+      xmemset(&lpREGroupItem->ciStrStart, 0, sizeof(AECHARRANGE));
+      lpREGroupItem->nStrLen=0;
+    }
+    while (lpREGroupItem=PatNextGroup(lpREGroupItem));
   }
 }
 #endif //__AKELEDIT_H__
