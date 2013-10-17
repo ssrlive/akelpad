@@ -13449,6 +13449,15 @@ DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
   if ((dwType & TMSG_HOTKEY) && (nHotkeyStatus=TranslateMessageHotkey(&hPluginsStack, lpMsg)) > 0)
     return TMSG_HOTKEY;
 
+  if (lpFrameCurrent->ei.hWndEdit)
+  {
+    if (lpMsg->message == WM_KEYDOWN && lpMsg->wParam == VK_ESCAPE)
+    {
+      //Escape cancel column marker movement
+      if (SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETMOUSESTATE, AEMS_CAPTURE, 0) & AEMSC_MOUSEMARKER)
+        dwType&=~TMSG_ACCELERATOR;
+    }
+  }
   if ((dwType & TMSG_ACCELERATOR) && nHotkeyStatus == 0 && TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
     return TMSG_ACCELERATOR;
 
