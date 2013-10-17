@@ -1,4 +1,9 @@
 
+AkelPad 4.8.6 ()
+----------------------------
+Added: Escape key interrupts column marker movement with mouse.
+
+
 AkelPad 4.8.5 (Sep 01, 2013)
 ----------------------------
 Changed: Unicode symbols conversion to lowercase/uppercase brought to standard.
