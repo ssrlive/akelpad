@@ -731,11 +731,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   BOOL bExclude;
   int nNegativeBackward=0;
 
+  lpREGroupItem->nStrLen=0;
+
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
-    lpREGroupItem->nStrLen=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -1658,11 +1659,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   BOOL bExclude;
   int nNegativeBackward=0;
 
+  lpREGroupItem->nStrLen=0;
+
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
     lpREGroupItem->ciStrStart=ciStr;
     lpREGroupItem->ciStrEnd=ciStr;
-    lpREGroupItem->nStrLen=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
