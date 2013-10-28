@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 5)
 
 
 //// Defines
@@ -1728,7 +1728,7 @@ typedef struct {
 #define IDM_EDIT_AUTOINDENT             4196  //Insert new line with keeping left spaces.
                                               //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces.
                                               //
-#define IDM_EDIT_DELLINE                4197  //Delete current line.
+#define IDM_EDIT_DELLINE                4197  //Delete current line. lParam: TRUE - delete all wrapped line, FALSE - normal behavior.
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_SELJUMPCARET           4198  //Move caret on the contrary side of selection.

@@ -758,7 +758,7 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst);
 void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bFirst);
 void DoWindowSelectWindow();
 void DoHelpAbout();
-void DoNonMenuDelLine(HWND hWnd);
+void DoNonMenuDelLine(HWND hWnd, BOOL bAllWrap);
 BOOL DoNonMenuSelJumpCaret(HWND hWnd);
 
 BOOL OpenIniA(INIFILE *hIniFile, const char *pFile, BOOL bCreate);
