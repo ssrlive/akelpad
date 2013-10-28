@@ -2966,7 +2966,7 @@ void DoHelpAbout()
   API_DialogBox(hLangLib, MAKEINTRESOURCEW(IDD_ABOUT), hMainWnd, (DLGPROC)AboutDlgProc);
 }
 
-void DoNonMenuDelLine(HWND hWnd)
+void DoNonMenuDelLine(HWND hWnd, BOOL bAllWrap)
 {
   AECHARRANGE cr;
   POINT64 ptGlobal;
@@ -2974,9 +2974,17 @@ void DoNonMenuDelLine(HWND hWnd)
 
   if (IsReadOnly(hWnd)) return;
 
-  cr.ciMin=crCurSel.ciMin;
-  cr.ciMax=crCurSel.ciMax;
-  cr.ciMin.nCharInLine=0;
+  if (bAllWrap)
+  {
+    AEC_WrapLineBeginEx(&crCurSel.ciMin, &cr.ciMin);
+    AEC_WrapLineEndEx(&crCurSel.ciMax, &cr.ciMax);
+  }
+  else
+  {
+    cr.ciMin=crCurSel.ciMin;
+    cr.ciMax=crCurSel.ciMax;
+    cr.ciMin.nCharInLine=0;
+  }
   if (!AEC_NextLineEx(&cr.ciMax, &cr.ciMax))
   {
     //Last line
