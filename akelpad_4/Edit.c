@@ -18405,13 +18405,16 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
     if (dwAction == EXTACT_COMMAND)
     {
       int nCommand=0;
+      LPARAM lParam=0;
 
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
-        nCommand=lpParameter->nNumber;
+        nCommand=(int)lpParameter->nNumber;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        lParam=lpParameter->nNumber;
 
       if (nCommand)
       {
-        SendMessage(hMainWnd, WM_COMMAND, nCommand, 0);
+        SendMessage(hMainWnd, WM_COMMAND, nCommand, lParam);
       }
     }
     else if (dwAction == EXTACT_CALL)
@@ -18453,7 +18456,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
         wpWorkDir=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&hParamStack, 3))
-        bWait=lpParameter->nNumber;
+        bWait=(BOOL)lpParameter->nNumber;
 
       if (wpCmdLine)
       {
@@ -18482,9 +18485,9 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
         wpFile=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
-        nCodePage=lpParameter->nNumber;
+        nCodePage=(int)lpParameter->nNumber;
       if (lpParameter=GetMethodParameter(&hParamStack, 3))
-        bBOM=lpParameter->nNumber;
+        bBOM=(BOOL)lpParameter->nNumber;
 
       if (dwAction == EXTACT_OPENFILE)
       {
@@ -18520,9 +18523,9 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
         wpFaceName=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
-        dwFontStyle=lpParameter->nNumber;
+        dwFontStyle=(DWORD)lpParameter->nNumber;
       if (lpParameter=GetMethodParameter(&hParamStack, 3))
-        nPointSize=lpParameter->nNumber;
+        nPointSize=(int)lpParameter->nNumber;
 
       if (nPointSize)
       {
@@ -18550,9 +18553,9 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       TEXTRECODE tr={0};
 
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
-        tr.nCodePageFrom=lpParameter->nNumber;
+        tr.nCodePageFrom=(int)lpParameter->nNumber;
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
-        tr.nCodePageTo=lpParameter->nNumber;
+        tr.nCodePageTo=(int)lpParameter->nNumber;
       RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
     }
     else if (dwAction == EXTACT_INSERT)
@@ -18570,7 +18573,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         if (lpParameter=GetMethodParameter(&hParamStack, 1))
           wpText=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&hParamStack, 2))
-          bEscSequences=lpParameter->nNumber;
+          bEscSequences=(BOOL)lpParameter->nNumber;
 
         if (bEscSequences)
         {
@@ -18656,7 +18659,7 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
       ++hParamStack->nElements;
 
       lpParameter->dwType=EXTPARAM_INT;
-      lpParameter->nNumber=(int)xatoiW(wpParamBegin, NULL);
+      lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
     }
   }
 
