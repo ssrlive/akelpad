@@ -470,7 +470,7 @@ typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
   struct _EXTPARAM *prev;
   DWORD dwType;            //See EXTPARAM_* defines.
-  int nNumber;             //External parameter number.
+  INT_PTR nNumber;         //External parameter number.
   char *pString;           //External parameter string (Ansi).
   wchar_t *wpString;       //External parameter string (Unicode).
   char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).

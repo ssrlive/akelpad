@@ -2,6 +2,7 @@
 AkelPad 4.8.6 ()
 ----------------------------
 Added: Escape key interrupts column marker movement with mouse.
+Added: optional parameter in command line method /Command() for passing to internal command.
 
 
 AkelPad 4.8.5 (Sep 01, 2013)
