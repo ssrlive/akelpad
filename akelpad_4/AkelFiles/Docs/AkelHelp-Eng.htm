@@ -1902,8 +1902,8 @@
   </table>
 
   <br><b>Notes:</b>
-  <br>Regular expression quantifiers (*, +, {n,}) are always non-greedy. For example, in the string "aaaooo", '.*o' matches "aaao".
-  <br>
+  <br>- Regular expression quantifiers (*, +, {n,}) are greedy by default (except for single dot, like, ".*" or ".{5,10}"). To make it non-greedy (old behaviour) use "?" after quantifier, like, "\d*?".
+  <br>- AkelPad's regular expressions greediness works consequentially. For example, pattern "ab?b" in "abc" has no matches, because "ab?" matches "ab" and next "b" has no match. Correct pattern will be "abb?".
 
 <a name=ch8><h3>License</h3></a>
   This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
