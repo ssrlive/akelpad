@@ -1,6 +1,12 @@
 
 AkelPad 4.8.6 ()
 ----------------------------
+Changed: regular expression quantifiers now greedy by default (except for single dot, like,
+         ".*" or ".{5,10}"). To make it non-greedy (old behaviour) use "?" after quantifier,
+         like, "\d*?". AkelPad's regular expressions greediness works consequentially.
+         For example, pattern "ab?b" in "abc" has no matches, because "ab?" matches "ab" and
+         next "b" has no match. Correct pattern will be "abb?".
+
 Added: Escape key interrupts column marker movement with mouse.
 Added: optional parameter in command line method /Command() for passing to internal command.
 
