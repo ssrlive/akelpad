@@ -3765,6 +3765,10 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"UrlCommand", MOT_STRING, mo->wszUrlCommand, sizeof(mo->wszUrlCommand)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"TabNameFind", MOT_STRING, mo->wszTabNameFind, sizeof(mo->wszTabNameFind)))
+      bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"TabNameRep", MOT_STRING, mo->wszTabNameRep, sizeof(mo->wszTabNameRep)))
+      bSaveManual=TRUE;
 
     //Frame data
     ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
@@ -3997,6 +4001,11 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"UrlCommand", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, wszUrlCommand), BytesInString(mo->wszUrlCommand)))
     goto Error;
+  if (!SaveOption(&oh, L"TabNameFind", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, wszTabNameFind), BytesInString(mo->wszTabNameFind)))
+    goto Error;
+  if (!SaveOption(&oh, L"TabNameRep", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, wszTabNameRep), BytesInString(mo->wszTabNameRep)))
+    goto Error;
+
   bSaveManual=FALSE;
 
   //Frame data
@@ -20914,13 +20923,35 @@ void UpdateTitle(FRAMEDATA *lpFrame)
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
     {
       wchar_t wszTabName[MAX_PATH];
+      wchar_t wszTabNameAmp[MAX_PATH];
+
+      if (*moCur.wszTabNameFind)
+      {
+        PATREPLACE pr;
+
+        pr.wpStr=wpFileName;
+        pr.wpMaxStr=pr.wpStr + xstrlenW(pr.wpStr);
+        pr.wpPat=moCur.wszTabNameFind;
+        pr.wpMaxPat=pr.wpPat + xstrlenW(pr.wpPat);
+        pr.wpRep=moCur.wszTabNameRep;
+        pr.wpMaxRep=pr.wpRep + xstrlenW(pr.wpRep);
+        pr.dwOptions=REPE_ISMATCH;
+        pr.wpDelim=NULL;
+        pr.wpNewLine=NULL;
+        pr.wszResult=wszTabName;
+        PatReplace(&pr);
+
+        if (!pr.nReplaceCount)
+          xstrcpynW(wszTabName, wpFileName, MAX_PATH);
+      }
+      else xstrcpynW(wszTabName, wpFileName, MAX_PATH);
 
       //Replace "&" with "&&"
-      FixAmpW(wpFileName, wszTabName, MAX_PATH);
+      FixAmpW(wszTabName, wszTabNameAmp, MAX_PATH);
 
       //Set tab text
       tcItem.mask=TCIF_TEXT|TCIF_IMAGE;
-      tcItem.pszText=wszTabName;
+      tcItem.pszText=wszTabNameAmp;
       tcItem.iImage=nIconIndex;
       TabCtrl_SetItemWide(hTab, nItem, &tcItem);
     }

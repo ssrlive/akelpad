@@ -384,6 +384,8 @@ typedef struct {
   wchar_t wszDateInsertFormat[128];
   wchar_t wszAkelUpdaterOptions[MAX_PATH];
   wchar_t wszUrlCommand[MAX_PATH];
+  wchar_t wszTabNameFind[MAX_PATH];
+  wchar_t wszTabNameRep[MAX_PATH];
 
   //Menu settings
   BOOL bOnTop;

@@ -264,6 +264,7 @@
           <br><li>2 - Display asterisk * in main window title (SDI).
           <br><li>4 - Display asterisk * in main window title and in frame window title (MDI/PMDI).
           <br><li>8 - Display asterisk * in tab button name (MDI/PMDI).
+          <br>
           <br>By default: 1+8=9, show all: 1+2+4+8=15.
         </td>
       </tr>
@@ -272,6 +273,7 @@
         <td>Defines how status bar statistics will be displayed. Set by the sum of members:
           <br><li>1 - "Line:Column". By default: "Line:Symbol".
           <br><li>2 - Wrap line numbers. By default: Non-wrap line numbers.
+          <br>
           <br>By default: 0.
         </td>
       </tr>
@@ -287,6 +289,7 @@
           <br><li>64 - Movement is continued, when spacing start is found. Cannot be combined with 16.
           <br><li>128 - Movement is continued, when spacing end is found. Cannot be combined with 32.
           <br><li>256 - Movement is stopped, when new line is found.
+          <br>
           <br>By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
         </td>
       </tr>
@@ -301,6 +304,7 @@
           <br><li>32 - Disable font size change using Ctrl+<i>mouse scroll wheel</i>.
           <br><li>64 - Left margin line selection with mouse selects all wrapped line.
           <br><li>128 - No scrolling after middle mouse click.
+          <br>
           <br>By default: 1+2+4=7.
         </td>
       </tr>
@@ -320,7 +324,26 @@
           <br><li>2097152 - disable new tab creation using middle button click on the tab bar.
           <br><li>4194304 - disable close tab using left button double click on the tab.
           <br><li>8388608 - disable close tab using middle button click on the tab.
+          <br>
           <br>By default: 2+256+131072=131330.
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameFind</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> search pattern for tab name in MDI/PMDI mode. Used with TabNameRep.
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameRep</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> replace pattern for tab name in MDI/PMDI mode. Used with TabNameFind.
+          <br>
+          <br>Example:
+          <br>TabNameFind=(.{20})[^.]{3,}(.*)
+          <br>TabNameRep=\1..\2
+          <br>
+          <br>By default: "".
         </td>
       </tr>
       <tr>
@@ -334,6 +357,7 @@
           <br><li>256 - Show scroll bars only when needed.
           <br><li>512 - Draw thin edit window border.
           <br><li>1024 - Draw no edit window border.
+          <br>
           <br>By default: 0.
         </td>
       </tr>
@@ -342,6 +366,7 @@
         <td>Defines edit control class name:
           <br><li>0 - "AkelEdit".
           <br><li>1 - "RichEdit20".
+          <br>
           <br>By default: 0.
         </td>
       </tr>
@@ -350,6 +375,7 @@
         <td>Defines residency of "AkelAdmin.exe":
           <br><li>0 - AkelAdmin.exe unloaded from memory. Password will be prompted each time to change protected file.
           <br><li>1 - AkelAdmin.exe remains in memory. Password will be prompted only for the first time to change protected file.
+          <br>
           <br>By default: 1.
         </td>
       </tr>
@@ -590,7 +616,10 @@
       </tr>
       <tr>
         <td><b>AkelUpdaterOptions</b></td>
-        <td>Defines command line options for the AkelUpdater.exe, when launched from "Help/Update..." menu item.</td>
+        <td>Defines command line options for the AkelUpdater.exe, when launched from "Help/Update..." menu item.
+          <br>
+          <br>By default: "".
+        </td>
       </tr>
       <tr>
         <td><b>UrlCommand</b></td>

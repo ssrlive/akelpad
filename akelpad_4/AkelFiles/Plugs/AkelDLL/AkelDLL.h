@@ -220,6 +220,8 @@
 #define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
 #define MI_AKELUPDATEROPTIONS        131  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
 #define MI_URLCOMMAND                132  //Return: copied chars. (wchar_t *)lParam - buffer that receives "UrlCommand" string.
+#define MI_TABNAMEFIND               133  //Return: copied chars. (wchar_t *)lParam - buffer that receives "TabNameFind" string.
+#define MI_TABNAMEREP                134  //Return: copied chars. (wchar_t *)lParam - buffer that receives "TabNameRep" string.
 //Menu
 #define MI_ONTOP                     141  //Return: always on top (on\off).
 #define MI_STATUSBAR                 142  //Return: show statusbar (on\off).
@@ -288,6 +290,8 @@
 #define MIS_DATEINSERTFORMAT          130  //(wchar_t *)lParam - "DateInsertFormat" string.
 #define MIS_AKELUPDATEROPTIONS        131  //(wchar_t *)lParam - "AkelUpdaterOptions" string.
 #define MIS_URLCOMMAND                132  //(wchar_t *)lParam - "UrlCommand" string.
+#define MIS_TABNAMEFIND               133  //(wchar_t *)lParam - "TabNameFind" string. Changes are applied for a new opened documents.
+#define MIS_TABNAMEREP                134  //(wchar_t *)lParam - "TabNameRep" string. Changes are applied for a new opened documents.
 //Menu
 #define MIS_ONTOP                     141  //(BOOL)lParam - always on top (on\off).
 #define MIS_STATUSBAR                 142  //(BOOL)lParam - show statusbar (on\off).

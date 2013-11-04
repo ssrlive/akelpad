@@ -7,6 +7,8 @@ Changed: regular expression quantifiers now greedy by default (except for single
          For example, pattern "ab?b" in "abc" has no matches, because "ab?" matches "ab" and
          next "b" has no match. Correct pattern will be "abb?".
 
+Added: manual parameters "TabNameFind" and "TabNameRep" - defines regular expression
+       search/replace pattern for tab name in MDI/PMDI mode.
 Added: Escape key interrupts column marker movement with mouse.
 Added: optional parameter in command line method /Command() for passing to internal command.
 
