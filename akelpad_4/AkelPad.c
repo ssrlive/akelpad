@@ -771,6 +771,8 @@ void _WinMain()
   //moInit.wszDateInsertFormat[0]=L'\0';
   //moInit.wszAkelUpdaterOptions[0]=L'\0';
   //moInit.wszUrlCommand[0]=L'\0';
+  //moInit.wszTabNameFind[0]=L'\0';
+  //moInit.wszTabNameRep[0]=L'\0';
 
   //--Menu settings--
   //moInit.bOnTop=FALSE;
@@ -2265,6 +2267,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return xstrcpynW((void *)lParam, moCur.wszAkelUpdaterOptions, MAX_PATH);
         if (wParam == MI_URLCOMMAND)
           return xstrcpynW((void *)lParam, moCur.wszUrlCommand, MAX_PATH);
+        if (wParam == MI_TABNAMEFIND)
+          return xstrcpynW((void *)lParam, moCur.wszTabNameFind, MAX_PATH);
+        if (wParam == MI_TABNAMEREP)
+          return xstrcpynW((void *)lParam, moCur.wszTabNameRep, MAX_PATH);
         if (wParam == MI_ONTOP)
           return moCur.bOnTop;
         if (wParam == MI_STATUSBAR)
@@ -2507,6 +2513,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return SetOption(lParam, moCur.wszAkelUpdaterOptions, sizeof(moCur.wszAkelUpdaterOptions), INI_STRINGUNICODE);
       if (wParam == MIS_URLCOMMAND)
         return SetOption(lParam, moCur.wszUrlCommand, sizeof(moCur.wszUrlCommand), INI_STRINGUNICODE);
+      if (wParam == MIS_TABNAMEFIND)
+        return SetOption(lParam, moCur.wszTabNameFind, sizeof(moCur.wszTabNameFind), INI_STRINGUNICODE);
+      if (wParam == MIS_TABNAMEREP)
+        return SetOption(lParam, moCur.wszTabNameRep, sizeof(moCur.wszTabNameRep), INI_STRINGUNICODE);
       if (wParam == MIS_ONTOP)
       {
         if (lParam != moCur.bOnTop)
