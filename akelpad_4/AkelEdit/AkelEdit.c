@@ -5034,6 +5034,9 @@ void AE_DestroyWindowData(AKELEDIT *ae)
 
 HANDLE AE_HeapCreate(AKELEDIT *ae)
 {
+  //HeapDestroy should do the job, but without AE_StackEraseFree BoundsChecker report memory leak
+  AE_StackEraseFree(ae);
+
   //Free memory
   if (ae->ptxt->hHeap)
   {
