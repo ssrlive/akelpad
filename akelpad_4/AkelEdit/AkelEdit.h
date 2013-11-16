@@ -437,6 +437,7 @@
 #define AEHLF_QUOTEEND_ISWORD        0x00001000  //Quote end is surrounded with delimiters.
 #define AEHLF_QUOTEWITHOUTDELIMITERS 0x00002000  //Quote doesn't contain delimiters.
 #define AEHLF_QUOTESTART_CATCHONLY   0x00004000  //Only quote start string is catched.
+#define AEHLF_QUOTEEMPTY             0x00008000  //Quote doesn't contain any character.
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
                                                  //Regular exression:

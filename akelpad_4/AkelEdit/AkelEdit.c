@@ -10469,17 +10469,19 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                     }
                   }
                 }
-                if (qm->lpQuote->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
-                {
-                  if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0))
-                    goto QuoteStartNext;
-                }
-                if (qm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
-                {
-                  if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0))
-                    goto QuoteStartNext;
-                }
               }
+            }
+            if (qm->lpQuote->dwFlags & AEHLF_QUOTEEMPTY)
+              goto QuoteStartNext;
+            if (qm->lpQuote->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
+            {
+              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0))
+                goto QuoteStartNext;
+            }
+            if (qm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
+            {
+              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0))
+                goto QuoteStartNext;
             }
             if (qm->lpQuote->dwFlags & AEHLF_QUOTEINCLUDE)
             {
@@ -11341,8 +11343,8 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
     if (lpQuoteStart->nQuoteStartLen == lpQuoteItem->nQuoteStartLen &&
         lpQuoteStart->dwFlags == lpQuoteItem->dwFlags &&
         lpQuoteStart->chEscape == lpQuoteItem->chEscape &&
-        !(lpQuoteStart->dwFlags & AEHLF_QUOTEINCLUDE) &&
-        !(lpQuoteStart->dwFlags & AEHLF_QUOTEEXCLUDE))
+        //AEQUOTEITEMs with filter flags should not be merged
+        !(lpQuoteStart->dwFlags & (AEHLF_QUOTEINCLUDE|AEHLF_QUOTEEXCLUDE|AEHLF_QUOTEEMPTY|AEHLF_QUOTEWITHOUTDELIMITERS)))
     {
       if (!lpQuoteItem->nQuoteStartLen)
         break;
