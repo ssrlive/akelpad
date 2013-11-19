@@ -475,30 +475,30 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Find"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Match case",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "Match &case",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "&Whole word",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
-    CONTROL         "Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,27,66,58
-    CONTROL         "Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "&Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
-    CONTROL         "Up",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,126,
-                    48,60,10
-    CONTROL         "Beginning",IDC_SEARCH_BEGINNING,"Button",
+    CONTROL         "&Up",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,48,60,10
+    CONTROL         "&Beginning",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,59,60,10
-    CONTROL         "In selection",IDC_SEARCH_INSEL,"Button",
+    CONTROL         "&In selection",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,70,60,10
-    CONTROL         "All files",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "All file&s",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
     DEFPUSHBUTTON   "&Find next",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
@@ -512,32 +512,32 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Match case",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "Match &case",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "&Whole word",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "Regular expressions",IDC_SEARCH_REGEXP,"Button",
+    CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
-    CONTROL         "Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,41,66,58
-    CONTROL         "Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "&Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
-    CONTROL         "Up",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,126,
-                    62,60,10
-    CONTROL         "Beginning",IDC_SEARCH_BEGINNING,"Button",
+    CONTROL         "&Up",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,62,60,10
+    CONTROL         "&Beginning",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,73,60,10
-    CONTROL         "In selection",IDC_SEARCH_INSEL,"Button",
+    CONTROL         "&In selection",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,84,60,10
-    CONTROL         "All files",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "All file&s",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,66,19
     DEFPUSHBUTTON   "&Find next",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
