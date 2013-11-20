@@ -503,7 +503,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,126,59,62,10
     CONTROL         "W zaznaczeni&u",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,70,62,10
-    CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "Wsz&ystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,62,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,68,19
     DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,198,6,59,14,BS_CENTER
@@ -541,7 +541,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,126,73,62,10
     CONTROL         "W zaznaczeni&u",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,84,62,10
-    CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
+    CONTROL         "Wsz&ystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,62,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,68,19
     DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,198,6,59,14,BS_CENTER
