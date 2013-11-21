@@ -18040,12 +18040,20 @@ wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
   wchar_t *wpCmd=wszCmdLine;
   wchar_t *wpMaxCmd=wszCmdLine + COMMANDLINE_SIZE;
 
-  wpCmd+=xstrcpynW(wpCmd, wpCmdLineBegin, wpMaxCmd - wpCmd);
+  if (nCmdLineBeginLen)
+  {
+    wpCmd+=xstrcpynW(wpCmd, wpCmdLineBegin, wpMaxCmd - wpCmd);
+    wpCmd+=xstrcpynW(wpCmd, L" ", wpMaxCmd - wpCmd);
+  }
   if (bOldWindows)
-    wpCmd+=xprintfW(wpCmd, L" %.%dS ", wpMaxCmd - wpCmd, pCmdParams);
+    wpCmd+=xprintfW(wpCmd, L"%.%dS", wpMaxCmd - wpCmd, pCmdParams);
   else
-    wpCmd+=xprintfW(wpCmd, L" %.%ds ", wpMaxCmd - wpCmd, pCmdParams);
-  wpCmd+=xstrcpynW(wpCmd, wpCmdLineEnd, wpMaxCmd - wpCmd);
+    wpCmd+=xprintfW(wpCmd, L"%.%ds", wpMaxCmd - wpCmd, pCmdParams);
+  if (nCmdLineEndLen)
+  {
+    wpCmd+=xstrcpynW(wpCmd, L" ", wpMaxCmd - wpCmd);
+    wpCmd+=xstrcpynW(wpCmd, wpCmdLineEnd, wpMaxCmd - wpCmd);
+  }
   return wszCmdLine;
 }
 
