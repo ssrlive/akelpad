@@ -18037,10 +18037,15 @@ void StackFontItemsFree(HSTACK *hStack)
 
 wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
 {
+  wchar_t *wpCmd=wszCmdLine;
+  wchar_t *wpMaxCmd=wszCmdLine + COMMANDLINE_SIZE;
+
+  wpCmd+=xstrcpynW(wpCmd, wpCmdLineBegin, wpMaxCmd - wpCmd);
   if (bOldWindows)
-    xprintfW(wszCmdLine, L"%s %.%dS %s", wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wpCmdLineEnd);
+    wpCmd+=xprintfW(wpCmd, L" %.%dS ", wpMaxCmd - wpCmd, pCmdParams);
   else
-    xprintfW(wszCmdLine, L"%s %.%ds %s", wpCmdLineBegin, COMMANDLINE_SIZE, pCmdParams, wpCmdLineEnd);
+    wpCmd+=xprintfW(wpCmd, L" %.%ds ", wpMaxCmd - wpCmd, pCmdParams);
+  wpCmd+=xstrcpynW(wpCmd, wpCmdLineEnd, wpMaxCmd - wpCmd);
   return wszCmdLine;
 }
 
