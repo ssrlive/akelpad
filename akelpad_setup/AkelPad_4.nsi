@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.8.5"
+  !define PRODUCT_VERSION "4.8.6"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -598,14 +598,27 @@ Section
           Pop $0
         !endif
 
-        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
-        Pop $0
-        !if ${PRODUCT_BIT} == "64"
-          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
+        ;Use icacls.exe if possible, because "echo y" will be useless on French OS (prompt between "O/N").
+        SearchPath $0 icacls.exe
+        ${If} $0 != ''
+          nsExec::Exec 'icacls.exe $WINDIR\notepad.exe /grant "$USERNAME":F'
           Pop $0
-        !endif
+          nsExec::Exec 'icacls.exe $SYSDIR\notepad.exe /grant "$USERNAME":F'
+          Pop $0
+          !if ${PRODUCT_BIT} == "64"
+            nsExec::Exec 'icacls.exe $WINDIR\SysWOW64\notepad.exe /grant "$USERNAME":F'
+            Pop $0
+          !endif
+        ${Else}
+          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
+          Pop $0
+          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
+          Pop $0
+          !if ${PRODUCT_BIT} == "64"
+            nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
+            Pop $0
+          !endif
+        ${EndIf}
       ${EndIf}
     ${EndIf}
 
