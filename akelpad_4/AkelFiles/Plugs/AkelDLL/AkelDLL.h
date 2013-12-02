@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 7)
 
 
 //// Defines
@@ -98,7 +98,8 @@
 #define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
 #define EOD_DOCUMENTS_LIMIT      -17        //Documents limit reached in MDI mode.
 #define EOD_MSGNO                -20        //File is skipped.
-#define EOD_MSGCANCEL            -21        //User press cancel.
+#define EOD_MSGCANCELCREATE      -21        //User press cancel in message "Create new file?".
+#define EOD_MSGCANCELBINARY      -22        //User press cancel in message "Binary file. Continue?".
 
 //Save document flags
 #define SD_UPDATE            0x00000001  //Update file info.
