@@ -4341,7 +4341,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       xprintfW(wszMsg, wbuf, wszFile);
       if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
       {
-        nResult=EOD_MSGCANCEL;
+        nResult=EOD_MSGCANCELCREATE;
         goto End;
       }
     }
@@ -4445,7 +4445,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
               xprintfW(wszMsg, wbuf, wszFile);
               if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
               {
-                nResult=EOD_MSGCANCEL;
+                nResult=EOD_MSGCANCELBINARY;
                 break;
               }
             }
