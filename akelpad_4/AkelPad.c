@@ -320,7 +320,8 @@ HMENU hMenuWindow=NULL;
 BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
-BOOL bMainOnStart=FALSE;
+BOOL bMainStarting=FALSE;
+BOOL bMainCheckIdle=FALSE;
 int nMainOnFinish=MOF_NONE;
 BOOL bEditOnFinish=FALSE;
 BOOL bFirstTabOnFinish=FALSE;
@@ -527,11 +528,11 @@ DWORD __declspec(dllexport) Translate(MSG *lpMsg)
 {
   DWORD dwResult=TranslateMessageAll(TMSG_ALL, lpMsg);
 
-  if (bMainOnStart)
+  if (bMainCheckIdle)
   {
     if (GetQueueStatus(QS_ALLINPUT) == 0)
     {
-      bMainOnStart=FALSE;
+      bMainCheckIdle=FALSE;
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
     }
   }
@@ -1184,11 +1185,11 @@ void _WinMain()
     {
       TranslateMessageAll(TMSG_ALL, &msg);
 
-      if (bMainOnStart)
+      if (bMainCheckIdle)
       {
         if (GetQueueStatus(QS_ALLINPUT) == 0)
         {
-          bMainOnStart=FALSE;
+          bMainCheckIdle=FALSE;
           SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
         }
       }
@@ -1631,6 +1632,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t *wpFileName;
       int i=0;
 
+      bMainStarting=TRUE;
+
       //Allocate and read search string
       if (moCur.nSearchStrings)
       {
@@ -1798,7 +1801,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       #endif
 
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-      bMainOnStart=TRUE;
+      bMainStarting=FALSE;
+      bMainCheckIdle=TRUE;
       return 0;
     }
     else if (uMsg == AKDN_FRAME_ACTIVATE)
@@ -2159,7 +2163,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETMAININFO)
     {
-      if (wParam < MI_X64)
+      if (wParam < MI_ISSTARTING)
       {
         if (wParam == MI_AKELDIRA)
           return xstrcpynA((void *)lParam, szExeDir, MAX_PATH);
@@ -2217,6 +2221,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
+        if (wParam == MI_ISSTARTING)
+          return bMainStarting;
         if (wParam == MI_X64)
         {
           #ifdef _WIN64

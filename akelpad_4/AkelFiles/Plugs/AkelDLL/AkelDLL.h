@@ -203,6 +203,8 @@
 #define MI_LANGMODULEW               52   //Return: copied chars. (wchar_t *)lParam - buffer that receives language module string.
 #define MI_LANGIDSYSTEM              53   //Return: system language ID.
 #define MI_LANGIDMODULE              54   //Return: language module language ID.
+//State
+#define MI_ISSTARTING                90   //Return: TRUE - execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_FINISH, FALSE - elsewhere.
 //Compile
 #define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
 #define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.
