@@ -322,7 +322,7 @@ HMENU hMenuWindow=NULL;
 BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
-BOOL bMainStarting=FALSE;
+BOOL bMainOnStart=FALSE;
 BOOL bMainCheckIdle=FALSE;
 int nMainOnFinish=MOF_NONE;
 BOOL bEditOnFinish=FALSE;
@@ -1636,7 +1636,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t *wpFileName;
       int i=0;
 
-      bMainStarting=TRUE;
+      bMainOnStart=TRUE;
 
       //Allocate and read search string
       if (moCur.nSearchStrings)
@@ -1805,7 +1805,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       #endif
 
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-      bMainStarting=FALSE;
+      bMainOnStart=FALSE;
       bMainCheckIdle=TRUE;
       return 0;
     }
@@ -2167,7 +2167,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETMAININFO)
     {
-      if (wParam < MI_ISSTARTING)
+      if (wParam < MI_ONSTART)
       {
         if (wParam == MI_AKELDIRA)
           return xstrcpynA((void *)lParam, szExeDir, MAX_PATH);
@@ -2225,8 +2225,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        if (wParam == MI_ISSTARTING)
-          return bMainStarting;
+        if (wParam == MI_ONSTART)
+          return bMainOnStart;
+        if (wParam == MI_ONFINISH)
+          return nMainOnFinish;
         if (wParam == MI_X64)
         {
           #ifdef _WIN64

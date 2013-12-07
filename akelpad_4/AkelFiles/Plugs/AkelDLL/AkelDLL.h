@@ -61,6 +61,11 @@
 #define PCLE_END     0x02  //Stop parsing command line parameters.
 #define PCLE_ONLOAD  0x04  //Done parsing command line parameters on program load (used internally).
 
+//MI_ONFINISH type
+#define MOF_NONE        0
+#define MOF_QUERYEND    1 //Processing WM_CLOSE or WM_QUERYENDSESSION message.
+#define MOF_DESTROY     2 //Processing AKDN_MAIN_ONFINISH message.
+
 //Autodetect flags
 #define ADT_BINARY_ERROR        0x00000001  //Check if file is binary.
 #define ADT_REG_CODEPAGE        0x00000002  //If last open code page found in registry, then it will be
@@ -203,8 +208,9 @@
 #define MI_LANGMODULEW               52   //Return: copied chars. (wchar_t *)lParam - buffer that receives language module string.
 #define MI_LANGIDSYSTEM              53   //Return: system language ID.
 #define MI_LANGIDMODULE              54   //Return: language module language ID.
-//State
-#define MI_ISSTARTING                90   //Return: TRUE - execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_FINISH, FALSE - elsewhere.
+//Execution
+#define MI_ONSTART                   90   //Return: TRUE - execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_FINISH, FALSE - elsewhere.
+#define MI_ONFINISH                  91   //Return: see MOF_* defines.
 //Compile
 #define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
 #define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.
