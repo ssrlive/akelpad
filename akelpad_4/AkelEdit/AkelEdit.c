@@ -11176,8 +11176,9 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
       lpREGroupStack->dwOptions=REO_MULTILINE;
       if (lpQuoteSrc->dwFlags & AEHLF_MATCHCASE)
         lpREGroupStack->dwOptions|=REO_MATCHCASE;
-      lpREGroupStack->wpDelim=NULL;
-      lpREGroupStack->wpMaxDelim=NULL;
+      lpREGroupStack->wpDelim=ae->popt->wszWordDelimiters;
+      lpREGroupStack->wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
+
       if (PatCompile(lpREGroupStack, lpQuoteSrc->pQuoteStart, lpQuoteSrc->pQuoteStart + lpQuoteSrc->nQuoteStartLen))
       {
         AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
