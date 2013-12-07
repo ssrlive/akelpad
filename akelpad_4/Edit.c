@@ -58,6 +58,8 @@ extern wchar_t *wpCmdLineEnd;
 extern int nCmdLineEndLen;
 extern BOOL bCmdLineChanged;
 extern const wchar_t *wpCmdLine;
+extern wchar_t *wpCmdParamsStart;
+extern wchar_t *wpCmdParamsEnd;
 extern DWORD dwCmdLineOptions;
 extern BOOL bCmdLineQuitAsEnd;
 
@@ -18036,7 +18038,7 @@ void StackFontItemsFree(HSTACK *hStack)
 
 //// Command line functions
 
-wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
+wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wppCmdParamsStart, wchar_t **wppCmdParamsEnd)
 {
   wchar_t *wpCmd=wszCmdLine;
   wchar_t *wpMaxCmd=wszCmdLine + COMMANDLINE_SIZE;
@@ -18046,10 +18048,14 @@ wchar_t* GetCommandLineParamsWide(unsigned char *pCmdParams)
     wpCmd+=xstrcpynW(wpCmd, wpCmdLineBegin, wpMaxCmd - wpCmd);
     wpCmd+=xstrcpynW(wpCmd, L" ", wpMaxCmd - wpCmd);
   }
+
+  if (wppCmdParamsStart) *wppCmdParamsStart=wpCmd;
   if (bOldWindows)
     wpCmd+=xprintfW(wpCmd, L"%.%dS", wpMaxCmd - wpCmd, pCmdParams);
   else
     wpCmd+=xprintfW(wpCmd, L"%.%ds", wpMaxCmd - wpCmd, pCmdParams);
+  if (wppCmdParamsEnd) *wppCmdParamsEnd=wpCmd;
+
   if (nCmdLineEndLen)
   {
     wpCmd+=xstrcpynW(wpCmd, L" ", wpMaxCmd - wpCmd);

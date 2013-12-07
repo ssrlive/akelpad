@@ -253,6 +253,8 @@ wchar_t *wpCmdLineEnd=NULL;
 int nCmdLineEndLen=0;
 BOOL bCmdLineChanged=FALSE;
 const wchar_t *wpCmdLine=NULL;
+wchar_t *wpCmdParamsStart=NULL;
+wchar_t *wpCmdParamsEnd=NULL;
 DWORD dwCmdLineOptions=0;
 BOOL bCmdLineQuitAsEnd=FALSE;
 
@@ -931,7 +933,7 @@ void _WinMain()
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
   //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine);
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
 
   //Get startup info
   #ifndef AKELPAD_DLLBUILD
@@ -975,7 +977,9 @@ void _WinMain()
           goto Quit;
       }
 
-      SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
+      //Send command line parameters without CmdLineBegin and CmdLineEnd
+      *wpCmdParamsEnd=L'\0';
+      SendCmdLine(hWndFriend, wpCmdParamsStart, TRUE, TRUE);
       goto Quit;
     }
   }
