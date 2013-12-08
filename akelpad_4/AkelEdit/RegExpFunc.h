@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.6                  *
+ *                  RegExp functions header v1.7                  *
  *                                                                *
  * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -604,6 +604,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         else goto Error;
       }
       if ((DWORD)lpREGroupNew->nMinMatch > (DWORD)lpREGroupNew->nMaxMatch)
+        goto Error;
+      if (!lpREGroupNew->nMinMatch && !lpREGroupNew->nMaxMatch)
         goto Error;
       if ((DWORD)lpREGroupNew->nMaxMatch > 1 &&
           ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
