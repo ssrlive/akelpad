@@ -5073,6 +5073,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
   if (!hWnd)
     hWnd=lpFrameCurrent->ei.hWndEdit;
+  if (!hWnd)
+    return ESD_NOWINDOW;
   GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
   nStreamOffset=GetFileStreamOffset(wszFile, nFileLen);
 
@@ -18301,11 +18303,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
         //Process actions
-        if (lpFrameCurrent->ei.hWndEdit)
-        {
-          if (dwCallMethod=CallMethod(wszCmdArg, L""))
-            return dwCallMethod;
-        }
+        if (dwCallMethod=CallMethod(wszCmdArg, L""))
+          return dwCallMethod;
         continue;
       }
       if (!*wszCmdArg) continue;
@@ -18548,44 +18547,50 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       int nPointSize=0;
       HDC hDC;
 
-      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
-      if (lpParameter=GetMethodParameter(&hParamStack, 1))
-        wpFaceName=lpParameter->wpExpanded;
-      if (lpParameter=GetMethodParameter(&hParamStack, 2))
-        dwFontStyle=(DWORD)lpParameter->nNumber;
-      if (lpParameter=GetMethodParameter(&hParamStack, 3))
-        nPointSize=(int)lpParameter->nNumber;
+      if (lpFrameCurrent->ei.hWndEdit)
+      {
+        ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+        if (lpParameter=GetMethodParameter(&hParamStack, 1))
+          wpFaceName=lpParameter->wpExpanded;
+        if (lpParameter=GetMethodParameter(&hParamStack, 2))
+          dwFontStyle=(DWORD)lpParameter->nNumber;
+        if (lpParameter=GetMethodParameter(&hParamStack, 3))
+          nPointSize=(int)lpParameter->nNumber;
 
-      if (nPointSize)
-      {
-        if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
+        if (nPointSize)
         {
-          lpFrameCurrent->lf.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-          ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
+          if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
+          {
+            lpFrameCurrent->lf.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+            ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
+          }
         }
+        if (dwFontStyle != FS_NONE)
+        {
+          lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+          lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+        }
+        if (*wpFaceName != L'\0')
+        {
+          xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
+        }
+        SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
+        UpdateMappedPrintWidth(lpFrameCurrent);
+        UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT|CSB_MARKER);
       }
-      if (dwFontStyle != FS_NONE)
-      {
-        lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
-        lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
-      }
-      if (*wpFaceName != L'\0')
-      {
-        xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
-      }
-      SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
-      UpdateMappedPrintWidth(lpFrameCurrent);
-      UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT|CSB_MARKER);
     }
     else if (dwAction == EXTACT_RECODE)
     {
       TEXTRECODE tr={0};
 
-      if (lpParameter=GetMethodParameter(&hParamStack, 1))
-        tr.nCodePageFrom=(int)lpParameter->nNumber;
-      if (lpParameter=GetMethodParameter(&hParamStack, 2))
-        tr.nCodePageTo=(int)lpParameter->nNumber;
-      RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
+      if (lpFrameCurrent->ei.hWndEdit)
+      {
+        if (lpParameter=GetMethodParameter(&hParamStack, 1))
+          tr.nCodePageFrom=(int)lpParameter->nNumber;
+        if (lpParameter=GetMethodParameter(&hParamStack, 2))
+          tr.nCodePageTo=(int)lpParameter->nNumber;
+        RecodeTextW(lpFrameCurrent, NULL, 0, &tr.nCodePageFrom, &tr.nCodePageTo);
+      }
     }
     else if (dwAction == EXTACT_INSERT)
     {
@@ -18596,7 +18601,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       DWORD dwCaret=(DWORD)-1;
       BOOL bEscSequences=FALSE;
 
-      if (!IsReadOnly(lpFrameCurrent->ei.hWndEdit))
+      if (lpFrameCurrent->ei.hWndEdit && !IsReadOnly(lpFrameCurrent->ei.hWndEdit))
       {
         ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
         if (lpParameter=GetMethodParameter(&hParamStack, 1))
