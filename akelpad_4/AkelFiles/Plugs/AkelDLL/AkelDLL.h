@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 8)
 
 
 //// Defines
@@ -118,6 +118,7 @@
 #define ESD_CODEPAGE_ERROR  -4  //Code page isn't implemented.
 #define ESD_STOP            -5  //Stopped from AKDN_SAVEDOCUMENT_START.
 #define ESD_STREAMOUT       -6  //Error in EM_STREAMOUT.
+#define ESD_NOWINDOW        -7  //No window to save from.
 
 //Code pages int
 #define CP_UNICODE_UTF16LE  1200
