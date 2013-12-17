@@ -510,8 +510,10 @@ Function SetInstallDirectory
   ${If} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ${If} $SETUPDIR == $WINDIR
     ${OrIf} $SETUPDIR == $SYSDIR
+    ${OrIf} $SETUPDIR == $WINDIR\SysWOW64
       !if ${PRODUCT_BIT} == "64"
         ${If} $SETUPDIR == $SYSDIR
+          ;Force install to SysWOW64, because AkelUpdater or uninstaller are x86 bit.
           StrCpy $SETUPDIR "$WINDIR\SysWOW64"
         ${EndIf}
       !endif
@@ -641,26 +643,26 @@ Section
       ${EndIf}
     !endif
 
-    ${If} $INSTDIR == $WINDIR
+    ${If} $SETUPDIR == $WINDIR
+    ${OrIf} $SETUPDIR == $SYSDIR
+    ${OrIf} $SETUPDIR == $WINDIR\SysWOW64
       !if ${PRODUCT_BIT} == "64"
-        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
-        File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
+        ${If} $SETUPDIR == $WINDIR
+          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
+          File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+        ${ElseIf} $SETUPDIR == $SYSDIR
+          File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
+          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
+        ${ElseIf} $SETUPDIR == $WINDIR\SysWOW64
+          File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
+          File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+        ${EndIf}
       !else
-        File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
-      !endif
-
-      ${If} ${FileExists} "$SETUPDIR\notepad.exe"
-        Delete "$SETUPDIR\notepad.exe"
-      ${EndIf}
-      Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
-      ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
-      WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
-    ${ElseIf} $INSTDIR == $SYSDIR
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
-        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
+        ${If} $SETUPDIR == $WINDIR
+          File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
+        ${ElseIf} $SETUPDIR == $SYSDIR
+          File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
+        ${EndIf}
       !endif
 
       ${If} ${FileExists} "$SETUPDIR\notepad.exe"
@@ -743,6 +745,14 @@ SectionEnd
 ;_____________________________________________________________________________________________
 
 Function un.onInit
+  !if ${PRODUCT_BIT} == "64"
+    ${IfNot} ${RunningX64}
+      MessageBox MB_OK|MB_ICONEXCLAMATION "$(No64bit)"
+      quit
+    ${EndIf}
+    SetRegView 64
+  !endif
+
   CheckWindow:
   FindWindow $0 "AkelPad4"
   IsWindow $0 +5
@@ -782,12 +792,7 @@ FunctionEnd
 
 Section un.install
   !if ${PRODUCT_BIT} == "64"
-    ${IfNot} ${RunningX64}
-      MessageBox MB_OK|MB_ICONEXCLAMATION "$(No64bit)"
-      quit
-    ${EndIf}
     ${DisableX64FSRedirection}
-    SetRegView 64
   !endif
 
   ${un.GetParent} "$INSTDIR" $SETUPDIR
