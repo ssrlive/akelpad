@@ -3671,7 +3671,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
               }
               else
               {
-                if ((ae->popt->dwOptions & AECO_ALTDECINPUT) && ae->nAltChar != AEAC_NUMPAD0)
+                if ((ae->popt->dwOptionsEx & AECOE_ALTDECINPUT) && ae->nAltChar != AEAC_NUMPAD0)
                   ae->nAltChar=(int)wParam - VK_NUMPAD0;
                 else
                   ae->nAltChar=AEAC_DODEFAULT;
@@ -12981,7 +12981,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   HFONT hFontOld=NULL;
   HRGN hDrawRgn;
   HRGN hDrawRgnOld=NULL;
-  BOOL bUseBufferDC=TRUE;
 
   //Initialize
   xmemset(&to, 0, sizeof(AETEXTOUT));
@@ -12998,7 +12997,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   //Set DCs
   to.hDC=ae->hDC;
 
-  if (bUseBufferDC)
+  if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
   {
     to.hDC=CreateCompatibleDC(ae->hDC);
     hBitmap=CreateCompatibleBitmap(ae->hDC, ae->rcEdit.right, ae->rcEdit.bottom);
@@ -13055,7 +13054,10 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
 
       //Avoid graphic rudiments
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-      hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+      if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
+        hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+      else
+        hDrawRgnOld=(HRGN)SelectObject(to.hDC, hDrawRgn);
 
       //Create GDI objects
       ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
@@ -13357,7 +13359,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           AE_ColumnMarkerDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
 
           //Copy line from buffer DC
-          if (bUseBufferDC)
+          if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
           {
             //Send AEN_PAINT
             if (ae->popt->dwEventMask & AENM_PAINT)
@@ -13390,7 +13392,13 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       }
 
       //Clean-up
-      if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
+      if (hDrawRgnOld)
+      {
+        if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
+          SelectObject(ps.hdc, hDrawRgnOld);
+        else
+          SelectObject(to.hDC, hDrawRgnOld);
+      }
       DeleteObject(hDrawRgn);
 
       if (hbrActiveLineBorderWithAltBorder) DeleteObject(hbrActiveLineBorderWithAltBorder);
@@ -13429,7 +13437,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   //Free DC
   if (hFontOld) SelectObject(to.hDC, hFontOld);
 
-  if (bUseBufferDC)
+  if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
   {
     if (hBitmapOld) SelectObject(to.hDC, hBitmapOld);
     DeleteObject(hBitmap);

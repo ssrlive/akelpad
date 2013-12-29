@@ -443,6 +443,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_MBUTTONDOWNNOSCROLL;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
+  if (moCur.dwPaintOptions & PAINT_NODCBUFFER)
+    dwOptions|=AECO_NODCBUFFER;
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
     dwOptions|=AECO_NONEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
