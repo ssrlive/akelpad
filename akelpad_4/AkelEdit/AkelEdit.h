@@ -214,15 +214,16 @@
 #define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
 #define AECO_NOCOLUMNPASTEHOTKEY      0x08000000  //Turn off Alt+V for columnar paste.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
-#define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECO_NODCBUFFER               0x20000000  //Don't use device context output buffering in AE_Paint. Notification AENM_PAINT with AEPNT_DRAWLINE will not send.
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 //AEM_EXSETOPTIONS flags
 #define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
-#define AECOE_OVERTYPE                0x00000002  //Turn on overtype mode instead of insert mode.
-#define AECOE_LOCKSELECTION           0x00000004  //Prevent selection changing. Use it with AECO_READONLY flag.
+#define AECOE_LOCKSELECTION           0x00000002  //Prevent selection changing. Use it with AECO_READONLY flag.
+#define AECOE_OVERTYPE                0x00000004  //Turn on overtype mode instead of insert mode.
+#define AECOE_ALTDECINPUT             0x00000008  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
