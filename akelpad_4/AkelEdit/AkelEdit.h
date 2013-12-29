@@ -214,7 +214,8 @@
 #define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
 #define AECO_NOCOLUMNPASTEHOTKEY      0x08000000  //Turn off Alt+V for columnar paste.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
-#define AECO_NODCBUFFER               0x20000000  //Don't use device context output buffering in AE_Paint. Notification AENM_PAINT with AEPNT_DRAWLINE will not send.
+#define AECO_NODCBUFFER               0x20000000  //Don't use device context output buffering in AE_Paint.
+                                                  //Cause edit window flashing, but without this flag some video drivers can work very slow.
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.

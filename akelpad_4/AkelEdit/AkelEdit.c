@@ -13358,18 +13358,19 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           //Draw column marker
           AE_ColumnMarkerDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
 
-          //Copy line from buffer DC
+          //Send AEN_PAINT
+          if (ae->popt->dwEventMask & AENM_PAINT)
+          {
+            pntNotify.ciMaxDraw=to.ciDrawLine;
+            pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
+            pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
+            pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
+            AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
+          }
+
           if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
           {
-            //Send AEN_PAINT
-            if (ae->popt->dwEventMask & AENM_PAINT)
-            {
-              pntNotify.ciMaxDraw=to.ciDrawLine;
-              pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
-              pntNotify.ptMaxDraw.x=(int)(to.ptFirstCharInLine.x + to.nStartDrawWidth);
-              pntNotify.ptMaxDraw.y=(int)to.ptFirstCharInLine.y;
-              AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
-            }
+            //Copy line from buffer DC
             BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right - rcSpace.left, rcSpace.bottom - rcSpace.top, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
           }
 
