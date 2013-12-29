@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 0, 9)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 1, 0)
 
 
 //// Defines
@@ -477,8 +477,6 @@
 #define PAINT_ENTIRENEWLINEDRAW     0x00000004  //Draw new line selection to the right edge.
 #define PAINT_HIDESEL               0x00000008  //Hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus.
 #define PAINT_NOMARKERAFTERLASTLINE 0x00000010  //Disables marker painting after last line.
-#define PAINT_NODCBUFFER            0x00000020  //Don't use device context output buffering in AE_Paint.
-                                                //Cause edit window flashing, but without this flag some video drivers can work very slow.
 #define PAINT_HIDENOSCROLL          0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
 #define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
 #define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
