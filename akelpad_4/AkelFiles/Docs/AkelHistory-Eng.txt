@@ -1,6 +1,7 @@
 
 AkelPad 4.8.7 ()
 ----------------------------
+Fixed: read/write recent files additional information.
 Fixed: command line parsing without open frames (MDI). 
 
 

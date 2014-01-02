@@ -9796,7 +9796,7 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
-  wchar_t *wszData;
+  wchar_t *wszRegData;
   HWND hWnd;
   HKEY hKey;
   int nSize;
@@ -9818,11 +9818,11 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
     {
       ++nSize;
 
-      if (wszData=AllocWideStr(nSize + 1))
+      if (wszRegData=AllocWideStr(nSize + 1))
       {
-        ComboBox_GetLBTextWide(hWnd, i, wszData);
-        RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)wszData, nSize * sizeof(wchar_t));
-        FreeWideStr(wszData);
+        ComboBox_GetLBTextWide(hWnd, i, wszRegData);
+        RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)wszRegData, nSize * sizeof(wchar_t));
+        FreeWideStr(wszRegData);
         continue;
       }
     }
@@ -11374,10 +11374,12 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
+  wchar_t *wszRegData;
   const wchar_t *wpCount;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
+  DWORD dwDataMax;
   DWORD dwSaveTime;
   int i=0;
 
@@ -11404,42 +11406,52 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
   {
     RecentFilesZero(hStack);
 
-    for (i=0; i < moCur.nRecentFiles; ++i)
+    dwDataMax=BUFFER_SIZE;
+    if (wszRegData=AllocWideStr(dwDataMax))
     {
-      xprintfW(wszRegValue, L"file%d", i);
-      dwSize=BUFFER_SIZE * sizeof(wchar_t);
-      if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wbuf, &dwSize) != ERROR_SUCCESS)
-        break;
-      if (!*wbuf || dwType != REG_MULTI_SZ)
-        break;
-
-      if (lpRecentFile=RecentFilesInsert(hStack, -1))
+      for (i=0; i < moCur.nRecentFiles; ++i)
       {
-        //File
-        wpCount=wbuf;
-        lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
-        wpCount+=lpRecentFile->nFileLen + 1;
+        xprintfW(wszRegValue, L"file%d", i);
+        if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
+          break;
 
-        //Codepage
-        if (*wpCount)
+        if (dwSize / sizeof(wchar_t) + 1 > dwDataMax)
         {
-          lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
-          wpCount+=xstrlenW(wpCount) + 1;
+          FreeWideStr(wszRegData);
+          dwDataMax=dwSize / sizeof(wchar_t) + 1;
+          if (!(wszRegData=AllocWideStr(dwDataMax)))
+            break;
         }
+        RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszRegData, &dwSize);
+        if (!*wszRegData || dwType != REG_MULTI_SZ)
+          break;
+        wszRegData[dwSize / sizeof(wchar_t)]=L'\0';
 
-        //Position
-        if (*wpCount)
+        if (lpRecentFile=RecentFilesInsert(hStack, -1))
         {
-          lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
-          if (*wpCount == L'-')
-            lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
-          wpCount+=xstrlenW(wpCount) + 1;
-        }
+          //File
+          wpCount=wszRegData;
+          lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
+          wpCount+=lpRecentFile->nFileLen + 1;
 
-        //Parameters
-        if (*wpCount)
-        {
-          do
+          //Codepage
+          if (*wpCount)
+          {
+            lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
+            wpCount+=xstrlenW(wpCount) + 1;
+          }
+
+          //Position
+          if (*wpCount)
+          {
+            lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
+            if (*wpCount == L'-')
+              lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
+            wpCount+=xstrlenW(wpCount) + 1;
+          }
+
+          //Parameters
+          if (*wpCount)
           {
             for (wpParamName=wpCount; *wpCount; ++wpCount)
             {
@@ -11457,12 +11469,13 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
                   if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
                     xstrcpynW(lpRecentFileParam->pParamValue, wpParamValue, nParamValueLen + 1);
                 }
+                wpParamName=wpCount + 1;
               }
             }
           }
-          while (*++wpCount);
         }
       }
+      FreeWideStr(wszRegData);
     }
   }
   RegCloseKey(hKey);
@@ -11473,16 +11486,17 @@ void RecentFilesSave(RECENTFILESTACK *hStack)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
+  wchar_t *wszRegData;
   wchar_t wchNull=L'\0';
   HKEY hKey;
-  int nStrLen;
+  int nDataLen;
   DWORD dwSaveTime;
   int i=0;
 
   //Params
   RECENTFILE *lpRecentFile;
   RECENTFILEPARAM *lpRecentFileParam;
-  DWORD dwSize;
+  DWORD dwParamsLen;
   wchar_t *wszRecentFileParams=NULL;
 
   //Save recent files array
@@ -11495,25 +11509,41 @@ void RecentFilesSave(RECENTFILESTACK *hStack)
     xprintfW(wszRegValue, L"file%d", i++);
 
     //Alloc params
-    for (dwSize=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
+    for (dwParamsLen=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
     {
-      dwSize+=(DWORD)xprintfW(NULL, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull) - 1;
+      dwParamsLen+=(DWORD)xprintfW(NULL, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull) - 1;
     }
-    if (dwSize)
+    if (dwParamsLen)
     {
-      if (wszRecentFileParams=AllocWideStr(dwSize + 1))
+      if (wszRecentFileParams=AllocWideStr(dwParamsLen + 1))
       {
-        for (dwSize=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
+        for (dwParamsLen=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
         {
-          dwSize+=(DWORD)xprintfW(wszRecentFileParams + dwSize, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull);
+          dwParamsLen+=(DWORD)xprintfW(wszRecentFileParams + dwParamsLen, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull);
         }
       }
     }
 
     //Set value
-    nStrLen=(int)xprintfW(wbuf, L"%s%c%d%c%Id-%Id%c%s", lpRecentFile->wszFile, wchNull, lpRecentFile->nCodePage, wchNull, lpRecentFile->cpMin, lpRecentFile->cpMax, wchNull, wszRecentFileParams);
-    if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wbuf, (nStrLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
-      break;
+    for (wszRegData=NULL;;)
+    {
+      nDataLen=(int)xprintfW(wszRegData, L"%s%c%d%c%Id-%Id%c", lpRecentFile->wszFile, wchNull, lpRecentFile->nCodePage, wchNull, lpRecentFile->cpMin, lpRecentFile->cpMax, wchNull);
+      if (!wszRegData)
+        wszRegData=AllocWideStr(nDataLen + dwParamsLen);
+      else
+        break;
+    }
+    if (wszRegData)
+    {
+      xmemcpy(wszRegData + nDataLen, wszRecentFileParams, dwParamsLen * sizeof(wchar_t));
+      wszRegData[nDataLen + dwParamsLen]=L'\0';
+
+      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wszRegData, (nDataLen + dwParamsLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+      {
+        //Too long string
+      }
+      FreeWideStr(wszRegData);
+    }
 
     //Free params
     if (wszRecentFileParams)
