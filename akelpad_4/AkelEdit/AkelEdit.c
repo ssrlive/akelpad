@@ -7811,7 +7811,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       ciCharOut->nLine=AE_GetLastVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-      ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+      if (ciCharOut->lpLine)
+        ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
     else if (nType == AEGI_FIRSTFULLVISIBLELINE)
@@ -7825,7 +7826,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       ciCharOut->nLine=AE_GetLastFullVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
-      ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+      if (ciCharOut->lpLine)
+        ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
   }
