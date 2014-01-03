@@ -513,7 +513,7 @@ Function SetInstallDirectory
     ${OrIf} $SETUPDIR == $WINDIR\SysWOW64
       !if ${PRODUCT_BIT} == "64"
         ${If} $SETUPDIR == $SYSDIR
-          ;Force install to SysWOW64, because AkelUpdater or uninstaller are x86 bit.
+          ;Force install to SysWOW64, because AkelUpdater and uninstaller are x86 bit.
           StrCpy $SETUPDIR "$WINDIR\SysWOW64"
         ${EndIf}
       !endif
@@ -833,14 +833,27 @@ Section un.install
         Pop $0
       !endif
 
-      nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
-      Pop $0
-      nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
-      Pop $0
-      !if ${PRODUCT_BIT} == "64"
-        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
+      ;Use icacls.exe if possible, because "echo y" will be useless on French OS (prompt between "O/N").
+      SearchPath $0 icacls.exe
+      ${If} $0 != ''
+        nsExec::Exec 'icacls.exe $WINDIR\notepad.exe /grant "$USERNAME":F'
         Pop $0
-      !endif
+        nsExec::Exec 'icacls.exe $SYSDIR\notepad.exe /grant "$USERNAME":F'
+        Pop $0
+        !if ${PRODUCT_BIT} == "64"
+          nsExec::Exec 'icacls.exe $WINDIR\SysWOW64\notepad.exe /grant "$USERNAME":F'
+          Pop $0
+        !endif
+      ${Else}
+        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
+        Pop $0
+        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
+        Pop $0
+        !if ${PRODUCT_BIT} == "64"
+          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
+          Pop $0
+        !endif
+      ${EndIf}
     ${EndIf}
   ${EndIf}
 
@@ -913,7 +926,7 @@ Section un.install
   DeleteFiles:
   Delete "$SETUPDIR\AkelFiles\Plugs\Coder\cache"
 
-  ;Generate list and include it in script at compile-time
+  ;Generate file list and include it in script at compile-time
   !execute 'unList\unList.exe /DATE=0 /INSTDIR="${PRODUCT_DIR}" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
   !include 'unList\unList.txt'
   !delfile 'unList\unList.txt'
