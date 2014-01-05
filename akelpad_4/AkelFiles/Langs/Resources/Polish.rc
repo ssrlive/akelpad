@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "© 2013 Krzysztof Janicki"
+  #define RC_VERSIONCOPYRIGHT "© 2014 Krzysztof Janicki"
   #define RC_VERSIONNAME "Polish.dll"
 #endif
 #include "winresrc.h"
