@@ -3653,7 +3653,7 @@ Example:
  AECHARINDEX ciCaret;
  POINT64 ptGlobal;
 
- SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)NULL, (WPARAM)&ptGlobal);
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (WPARAM)NULL, (LPARAM)&ptGlobal);
  SendMessage(hWndEdit, AEM_CHARFROMGLOBALPOS, (WPARAM)&ptGlobal, (LPARAM)&ciCaret);
 
 
@@ -3929,7 +3929,7 @@ Example:
  POINT ptClient;
  POINT64 ptGlobal;
 
- SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)&ptClient, (WPARAM)&ptGlobal);
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (WPARAM)&ptClient, (LPARAM)&ptGlobal);
 
 
 AEM_GETCARETHORZINDENT
