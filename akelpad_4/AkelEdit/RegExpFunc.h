@@ -2124,7 +2124,7 @@ void AE_PatReset(STACKREGROUP *hStack)
   REGROUP *lpREGroupItem=hStack->first;
 
   //Check root element
-  if (lpREGroupItem && lpREGroupItem->ciStrStart.lpLine)
+  if (lpREGroupItem && lpREGroupItem->ciStrStart.lpLine && lpREGroupItem->nStrLen)
   {
     do
     {
