@@ -728,8 +728,10 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 {
   REGROUP *lpREGroupNext;
   REGROUP *lpREGroupNextNext;
+  REGROUP *lpREGroupRef;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
+  const wchar_t *wpPatChar;
   const wchar_t *wpMinStr=wpStr;
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
@@ -794,6 +796,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
     for (;;)
     {
+      wpPatChar=wpPat;
+
       if (wpPat >= wpMaxPat)
       {
         Match:
@@ -1071,6 +1075,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     {
       if (bNewLoop && nCurMatch == nNegativeFixed)
       {
+        wpPat=wpPatChar;
+
         //Count all fixed length pattern
         do
         {
@@ -1078,14 +1084,38 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             return FALSE;
 
           nPatChar=PatEscChar(&wpPat);
+
+          if (*wpPat == L'[')
+          {
+            while (*++wpPat != L']')
+            {
+              if (*wpPat == L'\\')
+                ++wpPat;
+            }
+          }
+          else if (nPatChar == REEC_REF)
+          {
+            nRefIndex=(int)xatoiW(wpPat, &wpPat);
+
+            if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+            {
+              nRefLen=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
+              if (wpStr + nRefLen < wpMaxStr)
+                wpStr+=nRefLen;
+              else
+                return FALSE;
+            }
+            continue;
+          }
           nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
 
           if (nStrChar > MAXWORD && nPatChar <= MAXWORD)
             wpStr+=1;
           else
             wpStr+=1 + nCharSize;
+          ++wpPat;
         }
-        while (++wpPat < wpMaxPat);
+        while (wpPat < wpMaxPat);
 
         ++nNegativeFixed;
         ++nCurMatch;
@@ -1470,7 +1500,7 @@ int PatRefIndex(const wchar_t **wppPat)
 INT_PTR PatRefMatch(STACKREGROUP *hStack, const wchar_t *wpStr, int nRefIndex)
 {
   REGROUP *lpREGroupRef;
-  INT_PTR nRefLen;
+  INT_PTR nRefLen=0;
 
   if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
   {
@@ -1478,9 +1508,12 @@ INT_PTR PatRefMatch(STACKREGROUP *hStack, const wchar_t *wpStr, int nRefIndex)
     if (nRefLen && ((hStack->dwOptions & REO_MATCHCASE)?
                      (!xstrcmpnW(lpREGroupRef->wpStrStart, wpStr, nRefLen)) :
                      (!xstrcmpinW(lpREGroupRef->wpStrStart, wpStr, nRefLen))))
-      return nRefLen;
+    {
+      //Matched
+    }
+    else nRefLen=0;
   }
-  return 0;
+  return nRefLen;
 }
 
 REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const wchar_t *wpPatRight, BOOL *lpbGroupNextChars)
@@ -1706,12 +1739,14 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 {
   REGROUP *lpREGroupNext;
   REGROUP *lpREGroupNextNext;
+  REGROUP *lpREGroupRef;
   AECHARINDEX ciStr=*ciInput;
   AECHARINDEX ciMinStr=*ciInput;
   AECHARINDEX ciMaxStr=*ciMaxInput;
   AECHARINDEX ciStrStart=ciStr;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
+  const wchar_t *wpPatChar;
   const wchar_t *wpNextGroup;
   INT_PTR nStrLen=0;
   INT_PTR nPrevStrLen;
@@ -1772,6 +1807,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
     for (;;)
     {
+      wpPatChar=wpPat;
+
       if (wpPat >= wpMaxPat)
       {
         Match:
@@ -2068,13 +2105,42 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     {
       if (bNewLoop && nCurMatch == nNegativeFixed)
       {
+        wpPat=wpPatChar;
+
         //Count all fixed length pattern
         do
         {
           if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
             return FALSE;
 
-          if (PatEscChar(&wpPat) <= MAXWORD)
+          nPatChar=PatEscChar(&wpPat);
+
+          if (*wpPat == L'[')
+          {
+            while (*++wpPat != L']')
+            {
+              if (*wpPat == L'\\')
+                ++wpPat;
+            }
+          }
+          else if (nPatChar == REEC_REF)
+          {
+            nRefIndex=(int)xatoiW(wpPat, &wpPat);
+
+            if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+            {
+              for (nPrevStrLen=lpREGroupRef->nStrLen; nPrevStrLen > 0; --nPrevStrLen)
+              {
+                if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+                  return FALSE;
+                AE_PatNextChar(&ciStr);
+                ++nStrLen;
+              }
+            }
+            continue;
+          }
+
+          if (nPatChar <= MAXWORD)
           {
             nStrLen+=1;
             AE_PatNextChar(&ciStr);
@@ -2084,8 +2150,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             nStrLen+=AEC_IndexLen(&ciStr);
             AEC_NextChar(&ciStr);
           }
+          ++wpPat;
         }
-        while (++wpPat < wpMaxPat);
+        while (wpPat < wpMaxPat);
 
         ++nNegativeFixed;
         ++nCurMatch;
@@ -2216,7 +2283,10 @@ INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARI
       if (((hStack->dwOptions & REO_MATCHCASE) || nStrChar > MAXWORD || nGroupChar > MAXWORD) ?
            nStrChar != nGroupChar :
            WideCharLower((wchar_t)nStrChar) != WideCharLower((wchar_t)nGroupChar))
-        return 0;
+      {
+        nRefLen=0;
+        goto End;
+      }
 
       AEC_NextChar(&ciStrCount);
       AEC_NextChar(&ciGroupCount);
@@ -2226,14 +2296,11 @@ INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARI
         nRefLen+=2;
     }
     if (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0)
-      return 0;
-    if (nRefLen)
-    {
-      if (ciStrOut) *ciStrOut=ciStrCount;
-      return nRefLen;
-    }
+      nRefLen=0;
   }
-  return 0;
+  End:
+  if (nRefLen && ciStrOut) *ciStrOut=ciStrCount;
+  return nRefLen;
 }
 
 REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
