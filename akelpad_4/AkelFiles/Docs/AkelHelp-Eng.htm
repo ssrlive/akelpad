@@ -1801,6 +1801,10 @@
       <td>A subexpression that matches <i>pattern</i> and captures the match. The captured match can be retrieved from the resulting collection using the <b>\0</b>...<b>\9</b> backreferences. To match parentheses characters "(" or ")", use '\(' or '\)'.</td>
     </tr>
     <tr>
+      <td>(?^<i>pattern</i>)</td>
+      <td>A subexpression that matches negative <i>pattern</i> and captures the match. Pattern must be of fixed length.</td>
+    </tr>
+    <tr>
       <td>(?:<i>pattern</i>)</td>
       <td>A subexpression that matches <i>pattern</i> but does not capture the match, that is, it is a non-capturing match that is not stored for possible later use. This is useful for combining parts of a pattern with the "or" character (|). For example, 'industr(?:y|ies)' is a more economical expression than 'industry|industries'.</td>
     </tr>
