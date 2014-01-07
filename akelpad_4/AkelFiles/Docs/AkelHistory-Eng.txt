@@ -2,6 +2,7 @@
 AkelPad 4.8.7 ()
 ----------------------------
 Added: (?^pattern) negative pattern match.
+Added: possibility to use backreferences in character set, for example, "([ab])[\1]"
 
 Fixed: read/write recent files additional information.
 Fixed: command line parsing without open frames (MDI). 
