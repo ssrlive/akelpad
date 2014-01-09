@@ -1122,6 +1122,15 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         bNewLoop=FALSE;
         goto MatchFixed;
       }
+      if (nNegativeFixed < lpREGroupItem->nMinMatch)
+        return FALSE;
+      if (!nNegativeFixed)
+      {
+        lpREGroupItem->wpStrStart=wpStrStart;
+        lpREGroupItem->wpStrEnd=wpStrStart;
+        lpREGroupItem->nStrLen=0;
+      }
+      return TRUE;
     }
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
@@ -1179,11 +1188,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
     lpREGroupItem->nStrLen=0;
-  }
-  if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
-  {
-    if (nNegativeFixed < lpREGroupItem->nMinMatch)
-      return FALSE;
   }
   return TRUE;
 }
@@ -2159,6 +2163,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         bNewLoop=FALSE;
         goto MatchFixed;
       }
+      if (nNegativeFixed < lpREGroupItem->nMinMatch)
+        return FALSE;
+      if (!nNegativeFixed)
+      {
+        lpREGroupItem->ciStrStart=ciStrStart;
+        lpREGroupItem->ciStrEnd=ciStrStart;
+        lpREGroupItem->nStrLen=0;
+      }
+      return TRUE;
     }
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
@@ -2216,11 +2229,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     lpREGroupItem->ciStrStart=ciStr;
     lpREGroupItem->ciStrEnd=ciStr;
     lpREGroupItem->nStrLen=0;
-  }
-  if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
-  {
-    if (nNegativeFixed < lpREGroupItem->nMinMatch)
-      return FALSE;
   }
   return TRUE;
 }
