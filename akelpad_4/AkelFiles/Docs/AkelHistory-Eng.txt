@@ -5,6 +5,7 @@ Added: (?^pattern) negative pattern match.
 Added: possibility to use backreferences in character set, for example, "([ab])[\1]".
 
 Fixed: read/write recent files additional information.
+Fixed: "Replace all" with options "Regular expressions" è "Whole word".
 Fixed: command line parsing without open frames (MDI).
 
 
