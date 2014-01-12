@@ -10168,6 +10168,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.wpStr=wszRangeText;
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
         pr.dwOptions|=REPE_GLOBAL;
+        if (dwFlags & FRF_WHOLEWORD)
+          pr.dwOptions|=REPE_WHOLEWORD;
         if (!AEC_IsFirstCharInLine(&crRange.ciMin))
           pr.dwOptions|=REPE_NOSTARTLINEBEGIN;
         if (!AEC_IsLastCharInLine(&crRange.ciMax))
