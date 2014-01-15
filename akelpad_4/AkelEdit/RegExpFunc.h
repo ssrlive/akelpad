@@ -446,7 +446,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     {
       if (*wpPat == L'[')
         goto Error;
-      ++wpPat;
+      wpCharStart=wpPat++;
       continue;
     }
     //Class open
