@@ -517,9 +517,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     else if (*wpPat == L')')
     {
-      if (!lpREGroupItem->parent)
-        goto Error;
-
       lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &bGroupNextChars);
       if (lpREGroupItem->dwFlags & REGF_OR)
       {
@@ -531,6 +528,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         //Close groups for parent
         lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &bGroupNextChars);
       }
+      if (!lpREGroupItem->parent)
+        goto Error;
 
       if (!lpREGroupItem->wpPatEnd)
         lpREGroupItem->wpPatEnd=wpPat;
