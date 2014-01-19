@@ -1955,7 +1955,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         ++wpPat;
         continue;
       }
-      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 && !PatIsInNonCapture(lpREGroupItem))
+      if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0 && (!PatIsInNonCapture(lpREGroupItem) || AEC_IsLastCharInFile(&ciStr)))
       {
         if (wpPat + 2 == wpMaxPat && *wpPat == L'\\')
         {
