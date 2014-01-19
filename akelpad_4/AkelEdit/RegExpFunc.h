@@ -938,7 +938,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
           {
             const wchar_t *wpCount=wpStr;
-            int nCount=lpREGroupNext->nGroupLen;
+            INT_PTR nCount=lpREGroupNext->nGroupLen;
 
             //Find start position
             while (nCount > 0 && wpCount > hStack->wpText)
@@ -1967,7 +1967,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
           {
             AECHARINDEX ciCount=ciStr;
-            int nCount=lpREGroupNext->nGroupLen;
+            INT_PTR nCount=lpREGroupNext->nGroupLen;
 
             //Find start position
             while (nCount > 0 && AEC_PrevChar(&ciCount)) --nCount;

@@ -10184,7 +10184,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       if (sreg.nMaxBackward)
       {
         AECHARINDEX ciCount=crFullText.ciMin;
-        int nCount=sreg.nMaxBackward;
+        INT_PTR nCount=sreg.nMaxBackward;
 
         //Find backward offset
         while (nCount > 0 && AEC_PrevChar(&ciCount))
