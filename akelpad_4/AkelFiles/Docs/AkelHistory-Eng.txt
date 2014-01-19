@@ -1,6 +1,7 @@
 
 AkelPad 4.8.7 ()
 ----------------------------
+Added: (?<=pattern) and (?<!pattern) now works for single replace.
 Added: (?^pattern) negative pattern match.
 Added: possibility to use backreferences in character set, for example, "([ab])[\1]".
 
