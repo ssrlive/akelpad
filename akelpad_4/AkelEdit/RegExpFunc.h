@@ -563,9 +563,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         goto Error;
       if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
       {
-        if (lpREGroupItem->nGroupLen == -1)
+        if (lpREGroupItem->nGroupLen <= 0)
         {
-          wpPat=lpREGroupItem->wpPatEnd;
+          if (lpREGroupItem->wpPatEnd)
+            wpPat=lpREGroupItem->wpPatEnd;
           goto Error;
         }
         if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
