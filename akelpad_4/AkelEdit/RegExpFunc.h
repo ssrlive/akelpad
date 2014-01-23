@@ -25,19 +25,23 @@
 #define REO_REFEXIST          0x1000 //Internal.
 
 //REGROUP flags
-#define REGF_ROOTITEM         0x0001
-#define REGF_ROOTANY          0x0002
-#define REGF_ROOTMULTILINE    0x0004
-#define REGF_AUTOGROUP        0x0010
-#define REGF_OR               0x0020
-#define REGF_POSITIVEFORWARD  0x0040
-#define REGF_NEGATIVEFORWARD  0x0100
-#define REGF_POSITIVEBACKWARD 0x0200
-#define REGF_NEGATIVEBACKWARD 0x0400
-#define REGF_NEGATIVEFIXED    0x0800
-#define REGF_REFEXIST         0x1000
-#define REGF_NONGREEDY        0x2000
-#define REGF_ANY              0x4000
+#define REGF_ROOTITEM         0x00001
+#define REGF_ROOTANY          0x00002
+#define REGF_ROOTMULTILINE    0x00004
+#define REGF_AUTOGROUP        0x00010
+#define REGF_OR               0x00020
+#define REGF_POSITIVEFORWARD  0x00040
+#define REGF_NEGATIVEFORWARD  0x00100
+#define REGF_POSITIVEBACKWARD 0x00200
+#define REGF_NEGATIVEBACKWARD 0x00400
+#define REGF_NEGATIVEFIXED    0x00800
+#define REGF_IFPARENT         0x01000
+#define REGF_IFCONDITION      0x02000
+#define REGF_IFTRUE           0x04000
+#define REGF_IFFALSE          0x08000
+#define REGF_REFEXIST         0x10000
+#define REGF_NONGREEDY        0x20000
+#define REGF_ANY              0x40000
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -117,14 +121,14 @@ typedef struct _REGROUP {
   struct _REGROUP *lastChild;
   const wchar_t *wpPatStart;
   const wchar_t *wpPatEnd;
-  INT_PTR nGroupLen;            //Number of characters in fixed length pattern or -1 if no fixed.
+  INT_PTR nGroupLen;             //Number of characters in fixed length pattern or -1 if no fixed.
   const wchar_t *wpPatLeft;
   const wchar_t *wpPatRight;
-  const wchar_t *wpStrStart;    //PatExec: Begin of matched string.
-  const wchar_t *wpStrEnd;      //PatExec: End of matched string.
+  const wchar_t *wpStrStart;     //PatExec: Begin of matched string.
+  const wchar_t *wpStrEnd;       //PatExec: End of matched string.
   #ifdef __AKELEDIT_H__
-    AECHARINDEX ciStrStart;       //AE_PatExec: Begin of matched string.
-    AECHARINDEX ciStrEnd;         //AE_PatExec: End of matched string.
+    AECHARINDEX ciStrStart;      //AE_PatExec: Begin of matched string.
+    AECHARINDEX ciStrEnd;        //AE_PatExec: End of matched string.
   #else
     int nAlignA1;
     INT_PTR nAlignA2;
@@ -133,24 +137,25 @@ typedef struct _REGROUP {
     INT_PTR nAlignB2;
     int nAlignB3;
   #endif
-  INT_PTR nStrLen;              //Matched string length.
-  int nMinMatch;                //Minimum group match.
-  int nMaxMatch;                //Maximum group match, -1 if unlimited.
-  DWORD dwFlags;                //See REGF_* defines.
-  int nIndex;                   //Group index, -1 if not captured.
-  UINT_PTR dwUserData;          //User data.
+  INT_PTR nStrLen;               //Matched string length.
+  int nMinMatch;                 //Minimum group match.
+  int nMaxMatch;                 //Maximum group match, -1 if unlimited.
+  DWORD dwFlags;                 //See REGF_* defines.
+  int nIndex;                    //Group index, -1 if not captured.
+  struct _REGROUP *conditionRef; //REGF_IFCONDITION group.
+  UINT_PTR dwUserData;           //User data.
 } REGROUP;
 
 typedef struct {
   REGROUP *first;
   REGROUP *last;
-  DWORD dwOptions;              //See REO_* defines.
-  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
-  const wchar_t *wpText;        //PatExec: Text begin.
-  const wchar_t *wpMaxText;     //PatExec: Text end.
-  INT_PTR nMaxBackward;         //Maximum backward group length.
-  int nLastIndex;               //Last captured index.
+  DWORD dwOptions;               //See REO_* defines.
+  const wchar_t *wpDelim;        //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  const wchar_t *wpText;         //PatExec: Text begin.
+  const wchar_t *wpMaxText;      //PatExec: Text end.
+  INT_PTR nMaxBackward;          //Maximum backward group length.
+  int nLastIndex;                //Last captured index.
 } STACKREGROUP;
 
 
@@ -303,11 +308,15 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   REGROUP *lpREGroupItem;
   REGROUP *lpREGroupNew;
   REGROUP *lpREGroupOr;
+  REGROUP *lpREGroupRef;
   const wchar_t *wpMinPat=wpPat;
   const wchar_t *wpClassStart=NULL;
   const wchar_t *wpClassEnd=NULL;
   const wchar_t *wpCharStart=NULL;
+  const wchar_t *wpStrTmp;
   int nIndex=0;
+  int nPatChar;
+  int nPatRefIndex;
   BOOL bGroupNextChars=FALSE;
   BOOL bClassOpen=FALSE;
 
@@ -386,9 +395,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       {
         if (*++wpPat == L'{')
         {
-          const wchar_t *wpCodeStart=++wpPat;
-          int nPatChar;
-
+          wpStrTmp=++wpPat;
           for (;;)
           {
             if (!*wpPat) goto Error;
@@ -396,7 +403,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           }
           if (lpREGroupItem->nGroupLen != -1)
           {
-            nPatChar=(int)hex2decW(wpCodeStart, (wpPat - 1) - wpCodeStart);
+            nPatChar=(int)hex2decW(wpStrTmp, (wpPat - 1) - wpStrTmp);
             if (nPatChar <= MAXWORD)
               lpREGroupItem->nGroupLen+=1;
             else
@@ -418,9 +425,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       }
       else if (*wpPat >= L'0' && *wpPat <= L'9')
       {
-        REGROUP *lpREGroupRef;
-        int nPatRefIndex=PatRefIndex(&wpPat);
-
+        nPatRefIndex=PatRefIndex(&wpPat);
         hStack->nLastIndex=nIndex;
 
         if (nPatRefIndex > 0 && (lpREGroupRef=PatGetGroup(hStack, nPatRefIndex)))
@@ -559,7 +564,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         //Close groups for parent
         lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &bGroupNextChars);
       }
-      if (!lpREGroupItem->parent)
+      if (!lpREGroupItem->parent || lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
         goto Error;
       if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
       {
@@ -575,7 +580,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             hStack->nMaxBackward=lpREGroupItem->nGroupLen;
         }
       }
-
       if (!lpREGroupItem->wpPatEnd)
         lpREGroupItem->wpPatEnd=wpPat;
       lpREGroupItem->wpPatRight=wpPat + 1;
@@ -585,6 +589,32 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
         else
           lpREGroupItem->parent->nGroupLen=-1;
+      }
+
+      if ((lpREGroupItem->parent->dwFlags & REGF_IFPARENT) && lpREGroupItem->parent->firstChild == lpREGroupItem->parent->lastChild)
+      {
+        nPatRefIndex=(int)xatoiW(lpREGroupItem->wpPatStart, &wpStrTmp);
+        hStack->nLastIndex=nIndex;
+
+        if (nPatRefIndex > 0 && wpStrTmp == lpREGroupItem->wpPatEnd)
+        {
+          if (!(lpREGroupItem->conditionRef=PatGetGroup(hStack, nPatRefIndex)))
+            goto Error;
+        }
+        lpREGroupItem->dwFlags|=REGF_IFCONDITION;
+        //bGroupNextChars=TRUE;
+      }
+      else if (lpREGroupItem->dwFlags & REGF_IFPARENT)
+      {
+        if (!lpREGroupItem->firstChild || !lpREGroupItem->firstChild->next)
+          goto Error;
+        lpREGroupItem->firstChild->next->dwFlags|=REGF_IFTRUE;
+        if (lpREGroupItem->firstChild->next->next)
+        {
+          lpREGroupItem->firstChild->next->next->dwFlags|=REGF_IFFALSE;
+          if (lpREGroupItem->firstChild->next->next->next)
+            goto Error;
+        }
       }
       lpREGroupItem=lpREGroupItem->parent;
 
@@ -704,10 +734,15 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupNew->wpPatStart=++wpPat;
         lpREGroupNew->nMinMatch=1;
         lpREGroupNew->nMaxMatch=1;
-        lpREGroupNew->nIndex=++nIndex;
+        if (lpREGroupItem->dwFlags & REGF_IFPARENT)
+          lpREGroupNew->nIndex=-1;
+        else
+          lpREGroupNew->nIndex=++nIndex;
 
         if (*wpPat == L'?')
         {
+          if (lpREGroupItem->dwFlags & REGF_IFPARENT)
+            goto Error;
           --nIndex;
           lpREGroupNew->nIndex=-1;
 
@@ -745,6 +780,13 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
             //Capture negative group
             lpREGroupNew->dwFlags|=REGF_NEGATIVEFIXED;
+          }
+          else if (*wpPat == L'(')
+          {
+            --wpPat;
+
+            //Conditional group
+            lpREGroupNew->dwFlags|=REGF_IFPARENT;
           }
           else goto Error;
 
@@ -953,8 +995,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               //Set wpStrStart for possible backreferences in child AE_PatExec.
               lpREGroupItem->wpStrStart=wpCount;
             }
-
-            if (!nCount && PatExec(hStack, lpREGroupNext, wpCount, wpMaxStr) && lpREGroupNext->nStrLen)
+            if (!nCount && PatExec(hStack, lpREGroupNext, wpCount, wpMaxStr))
             {
               if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
               {
@@ -982,7 +1023,28 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             //Set wpStrStart for possible backreferences in child PatExec.
             lpREGroupItem->wpStrStart=wpStrStart;
           }
+          if (lpREGroupNext->dwFlags & REGF_IFPARENT)
+          {
+            if (lpREGroupNext->firstChild->conditionRef ?
+                  lpREGroupNext->firstChild->conditionRef->nStrLen :
+                  PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
+            {
+              lpREGroupNextNext=lpREGroupNext->firstChild->next;
+            }
+            else if (lpREGroupNext->firstChild->next->next)
+            {
+              lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+            }
+            else goto EndLoop;
 
+            if (!PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
+              goto EndLoop;
+            lpREGroupNext->wpStrStart=lpREGroupNextNext->wpStrStart;
+            lpREGroupNext->wpStrEnd=lpREGroupNextNext->wpStrEnd;
+            lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+            wpStr=lpREGroupNextNext->wpStrEnd;
+            goto NextGroup;
+          }
           if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
           {
             if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
@@ -1335,6 +1397,7 @@ BOOL PatIsCharBoundary(const wchar_t *wpChar, int nChar, STACKREGROUP *hStack)
 int PatEscChar(const wchar_t **wppPat)
 {
   int nPatChar=**wppPat;
+  const wchar_t *wpCodeEnd;
 
   if (nPatChar == L'\\')
   {
@@ -1351,8 +1414,6 @@ int PatEscChar(const wchar_t **wppPat)
       ++(*wppPat);
       if (**wppPat == L'{')
       {
-        const wchar_t *wpCodeEnd;
-
         for (wpCodeEnd=++(*wppPat); *wpCodeEnd && *wpCodeEnd != L'}'; ++wpCodeEnd);
         nPatChar=(int)hex2decW(*wppPat, wpCodeEnd - *wppPat);
         if (*wpCodeEnd)
@@ -1978,8 +2039,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               //Set ciStrStart for possible backreferences in child AE_PatExec.
               lpREGroupItem->ciStrStart=ciCount;
             }
-
-            if (!nCount && AE_PatExec(hStack, lpREGroupNext, &ciCount, &ciMaxStr) && lpREGroupNext->nStrLen)
+            if (!nCount && AE_PatExec(hStack, lpREGroupNext, &ciCount, &ciMaxStr))
             {
               if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
               {
@@ -2007,7 +2067,29 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             //Set ciStrStart for possible backreferences in child AE_PatExec.
             lpREGroupItem->ciStrStart=ciStrStart;
           }
+          if (lpREGroupNext->dwFlags & REGF_IFPARENT)
+          {
+            if (lpREGroupNext->firstChild->conditionRef ?
+                  lpREGroupNext->firstChild->conditionRef->nStrLen :
+                  AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
+            {
+              lpREGroupNextNext=lpREGroupNext->firstChild->next;
+            }
+            else if (lpREGroupNext->firstChild->next->next)
+            {
+              lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+            }
+            else goto EndLoop;
 
+            if (!AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
+              goto EndLoop;
+            lpREGroupNext->ciStrStart=lpREGroupNextNext->ciStrStart;
+            lpREGroupNext->ciStrEnd=lpREGroupNextNext->ciStrEnd;
+            lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+            ciStr=lpREGroupNextNext->ciStrEnd;
+            nStrLen+=lpREGroupNextNext->nStrLen;
+            goto NextGroup;
+          }
           if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
           {
             if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
