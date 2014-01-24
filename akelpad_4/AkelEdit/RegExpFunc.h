@@ -2961,7 +2961,7 @@ void main()
     STACKREGROUP sreg;
     const wchar_t *wpPat=L"(23)(.*)(89)";
     const wchar_t *wpMaxPat=wpPat + lstrlenW(wpPat);
-    const wchar_t *wpStr=L"\b1234567890 11223344556677889900";
+    const wchar_t *wpStr=L"1234567890 11223344556677889900";
     const wchar_t *wpMaxStr=wpStr + lstrlenW(wpStr);
     wchar_t wszResult[MAX_PATH];
     INT_PTR nCompileErrorOffset;
