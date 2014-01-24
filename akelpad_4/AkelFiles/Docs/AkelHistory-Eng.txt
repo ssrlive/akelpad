@@ -1,8 +1,7 @@
 
 AkelPad 4.8.7 ()
 ----------------------------
-Added: (?(condition)pattern-true|pattern-false) and (?(condition)pattern-true) conditional
-       patterns.
+Added: (?(condition)pattern-true|pattern-false) conditional patterns.
 Added: (?^pattern) negative pattern match.
 Added: (?<=pattern) and (?<!pattern) now works for single replace.
 Added: possibility to use backreferences in character set, for example, "([ab])[\1]".
