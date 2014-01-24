@@ -3845,7 +3845,7 @@ _________________
 Scroll the specified point into view in an edit control.
 
 wParam                    == not used.
-(AESCROLLTOPOINT *)lParam == pointer to a AESCROLLTOPOINT structure.
+(AESCROLLTOPOINT *)lParam == pointer to a AESCROLLTOPOINT structure. If lParam is NULL, then do smart scroll to caret position.
 
 Return Value
  See AECSE_* defines.
