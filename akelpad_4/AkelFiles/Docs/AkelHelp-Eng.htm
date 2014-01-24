@@ -1825,6 +1825,12 @@
       <td>A subexpression that performs a negative lookbehind search, which matches the search string at any point where a string not matching <i>pattern</i> ends. For example, '(?&lt;!abc)z' matches an "z" only if it is not preceded by the expression "abc". This is a non-capturing match, that is, the match is not captured for possible later use. Pattern must be of fixed length.</td>
     </tr>
     <tr>
+      <td>(?(<i>condition</i>)<i>pattern-true</i>|<i>pattern-false</i>)
+      <br><br>(?(<i>condition</i>)<i>pattern-true</i>)
+      </td>
+      <td>If the condition is satisfied, the pattern-true is used; otherwise the pattern-false (if present) is used. Condition can be pattern or a number of backreference, which will be checked for match. For example, '(a)?b(?(1)c|d)' matches the "abc" in "abc" and "bd" in "zbd". Because, if "а" found, then trying to find "с" after "b", if "а" not found, then trying to find "d" after "b".</td>
+    </tr>
+    <tr>
       <td><i>x</i>|<i>y</i></td>
       <td>Matches either <i>x</i> or <i>y</i>. For example, 'z|food' matches "z" or "food". '(z|f)ood' matches "zood" or "food".</td>
     </tr>
