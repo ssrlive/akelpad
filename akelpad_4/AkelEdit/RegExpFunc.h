@@ -564,7 +564,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         //Close groups for parent
         lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &bGroupNextChars);
       }
-      if (!lpREGroupItem->parent || lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
+      if (!lpREGroupItem->parent)
         goto Error;
       if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
       {
@@ -583,6 +583,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       if (!lpREGroupItem->wpPatEnd)
         lpREGroupItem->wpPatEnd=wpPat;
       lpREGroupItem->wpPatRight=wpPat + 1;
+      if (lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
+        goto Error;
+
       if (lpREGroupItem->parent->nGroupLen != -1)
       {
         if (lpREGroupItem->nGroupLen != -1)
@@ -590,7 +593,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         else
           lpREGroupItem->parent->nGroupLen=-1;
       }
-
       if ((lpREGroupItem->parent->dwFlags & REGF_IFPARENT) && lpREGroupItem->parent->firstChild == lpREGroupItem->parent->lastChild)
       {
         nPatRefIndex=(int)xatoiW(lpREGroupItem->wpPatStart, &wpStrTmp);
@@ -608,12 +610,24 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       {
         if (!lpREGroupItem->firstChild || !lpREGroupItem->firstChild->next)
           goto Error;
-        lpREGroupItem->firstChild->next->dwFlags|=REGF_IFTRUE;
-        if (lpREGroupItem->firstChild->next->next)
+        if (lpREGroupItem->firstChild->next->dwFlags & REGF_OR)
         {
-          lpREGroupItem->firstChild->next->next->dwFlags|=REGF_IFFALSE;
-          if (lpREGroupItem->firstChild->next->next->next)
+          //(?(condition)|pattern-false)
+          lpREGroupItem->firstChild->next->dwFlags|=REGF_IFFALSE;
+          if (lpREGroupItem->firstChild->next->next)
             goto Error;
+        }
+        else
+        {
+          //(?(condition)pattern-true)
+          lpREGroupItem->firstChild->next->dwFlags|=REGF_IFTRUE;
+          if (lpREGroupItem->firstChild->next->next)
+          {
+            //(?(condition)pattern-true|pattern-false)
+            lpREGroupItem->firstChild->next->next->dwFlags|=REGF_IFFALSE;
+            if (lpREGroupItem->firstChild->next->next->next)
+              goto Error;
+          }
         }
       }
       lpREGroupItem=lpREGroupItem->parent;
@@ -1029,14 +1043,18 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                   lpREGroupNext->firstChild->conditionRef->nStrLen :
                   PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
             {
+              if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                goto EndLoop;
               lpREGroupNextNext=lpREGroupNext->firstChild->next;
             }
-            else if (lpREGroupNext->firstChild->next->next)
+            else
             {
-              lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+              if (lpREGroupNext->firstChild->next->next)
+                lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+              else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                lpREGroupNextNext=lpREGroupNext->firstChild->next;
+              else goto EndLoop;
             }
-            else goto EndLoop;
-
             if (!PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               goto EndLoop;
             lpREGroupNext->wpStrStart=lpREGroupNextNext->wpStrStart;
@@ -1690,7 +1708,7 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
       continue;
 
     //If only one children and pattern the same, then remove redundant grouping
-    if (lpREGroupItem->firstChild == lpREGroupItem->lastChild)
+    if (lpREGroupItem->firstChild == lpREGroupItem->lastChild && !(lpREGroupItem->dwFlags & REGF_IFPARENT))
     {
       lpREGroupChild=lpREGroupItem->firstChild;
 
@@ -2073,14 +2091,18 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                   lpREGroupNext->firstChild->conditionRef->nStrLen :
                   AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
             {
+              if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                goto EndLoop;
               lpREGroupNextNext=lpREGroupNext->firstChild->next;
             }
-            else if (lpREGroupNext->firstChild->next->next)
+            else
             {
-              lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+              if (lpREGroupNext->firstChild->next->next)
+                lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+              else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                lpREGroupNextNext=lpREGroupNext->firstChild->next;
+              else goto EndLoop;
             }
-            else goto EndLoop;
-
             if (!AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               goto EndLoop;
             lpREGroupNext->ciStrStart=lpREGroupNextNext->ciStrStart;
