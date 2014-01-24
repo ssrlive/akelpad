@@ -502,7 +502,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupItem->wpPatRight=wpPat + 1;
         lpREGroupItem=lpREGroupItem->parent;
       }
-      else if (!lpREGroupItem->firstChild || !(lpREGroupItem->firstChild->dwFlags & REGF_OR))
+      else if (!lpREGroupItem->firstChild || !(lpREGroupItem->firstChild->dwFlags & (REGF_OR|REGF_IFCONDITION)))
       {
         //100 or 200
         if (lpREGroupOr=(REGROUP *)GlobalAlloc(GPTR, sizeof(REGROUP)))
@@ -602,7 +602,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             goto Error;
         }
         lpREGroupItem->dwFlags|=REGF_IFCONDITION;
-        //bGroupNextChars=TRUE;
+        bGroupNextChars=TRUE;
       }
       else if (lpREGroupItem->dwFlags & REGF_IFPARENT)
       {
