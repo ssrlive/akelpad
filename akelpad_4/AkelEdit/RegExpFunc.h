@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v1.7                  *
  *                                                                *
- * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -2956,7 +2956,39 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
 
 void main()
 {
-  //Search example
+  //Search example (PatCompile + PatExec)
+  {
+    STACKREGROUP sreg;
+    const wchar_t *wpPat=L"(23)(.*)(89)";
+    const wchar_t *wpMaxPat=wpPat + lstrlenW(wpPat);
+    const wchar_t *wpStr=L"\b1234567890 11223344556677889900";
+    const wchar_t *wpMaxStr=wpStr + lstrlenW(wpStr);
+    wchar_t wszResult[MAX_PATH];
+    INT_PTR nCompileErrorOffset;
+
+    sreg.first=0;
+    sreg.last=0;
+    sreg.dwOptions=REO_MULTILINE;
+    sreg.wpDelim=NULL;
+    sreg.wpMaxDelim=NULL;
+
+    if (!(nCompileErrorOffset=PatCompile(&sreg, wpPat, wpMaxPat)))
+    {
+      sreg.wpText=wpStr;
+      sreg.wpMaxText=wpMaxStr;
+
+      if (PatExec(&sreg, sreg.first, wpStr, wpMaxStr))
+      {
+        lstrcpynW(wszResult, sreg.first->wpStrStart, (sreg.first->wpStrEnd - sreg.first->wpStrStart) + 1);
+        MessageBoxW(NULL, wszResult, L"Matched", MB_OK);
+      }
+      else MessageBoxW(NULL, L"", L"Not matched", MB_OK);
+
+      PatFree(&sreg);
+    }
+  }
+
+  //Search example (PatStructExec)
   {
     PATEXEC pe;
     REGROUP *lpREGroupRoot;
