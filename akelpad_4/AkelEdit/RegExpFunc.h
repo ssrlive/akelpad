@@ -2964,7 +2964,7 @@ void main()
     const wchar_t *wpStr=L"1234567890 11223344556677889900";
     const wchar_t *wpMaxStr=wpStr + lstrlenW(wpStr);
     wchar_t wszResult[MAX_PATH];
-    INT_PTR nCompileErrorOffset;
+    INT_PTR nErrorOffset;
 
     sreg.first=0;
     sreg.last=0;
@@ -2972,7 +2972,7 @@ void main()
     sreg.wpDelim=NULL;
     sreg.wpMaxDelim=NULL;
 
-    if (!(nCompileErrorOffset=PatCompile(&sreg, wpPat, wpMaxPat)))
+    if (!(nErrorOffset=PatCompile(&sreg, wpPat, wpMaxPat)))
     {
       sreg.wpText=wpStr;
       sreg.wpMaxText=wpMaxStr;
