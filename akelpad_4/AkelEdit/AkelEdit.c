@@ -1124,6 +1124,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AESCROLLTOPOINT *stp=(AESCROLLTOPOINT *)lParam;
 
+      if (!stp)
+        return AE_ScrollToPoint(ae, NULL);
       return AE_ScrollToPointEx(ae, stp->dwFlags, &stp->ptPos, stp->nOffsetX, stp->nOffsetY);
     }
     if (uMsg == AEM_LOCKSCROLL)
