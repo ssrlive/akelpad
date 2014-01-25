@@ -13871,6 +13871,11 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                   hlp->dwFontStyle=lpREGroupColor->dwFontStyle;
               }
             }
+            else
+            {
+              //if (hlp->qm.lpQuote->dwFontStyle != AEHLS_NONE)
+                hlp->dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
+            }
             if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk)
             {
               if (!(hlp->dwPaintType & AEHPT_SELECTION))
