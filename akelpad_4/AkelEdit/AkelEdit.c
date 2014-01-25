@@ -13817,6 +13817,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             INT_PTR nColorLen;
             DWORD dwActiveText=hlp->dwDefaultText;
             DWORD dwActiveBk=hlp->dwDefaultBk;
+            DWORD dwFontStyle=hlp->dwFontStyle;
 
             if (lpREGroup=AE_PatCharInGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, &to->ciDrawLine))
             {
@@ -13868,15 +13869,15 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                 }
 
                 //if (lpREGroupColor->dwFontStyle != AEHLS_NONE)
-                  hlp->dwFontStyle=lpREGroupColor->dwFontStyle;
+                  dwFontStyle=lpREGroupColor->dwFontStyle;
               }
             }
             else
             {
               //if (hlp->qm.lpQuote->dwFontStyle != AEHLS_NONE)
-                hlp->dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
+                dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
             }
-            if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk)
+            if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk || dwFontStyle != hlp->dwFontStyle)
             {
               if (!(hlp->dwPaintType & AEHPT_SELECTION))
               {
@@ -13885,6 +13886,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               }
               hlp->dwActiveText=dwActiveText;
               hlp->dwActiveBk=dwActiveBk;
+              hlp->dwFontStyle=dwFontStyle;
             }
           }
           else
