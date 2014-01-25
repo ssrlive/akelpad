@@ -401,7 +401,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             if (!*wpPat) goto Error;
             if (*wpPat++ == L'}') break;
           }
-          if (lpREGroupItem->nGroupLen != -1)
+          if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
           {
             nPatChar=(int)hex2decW(wpStrTmp, (wpPat - 1) - wpStrTmp);
             if (nPatChar <= MAXWORD)
@@ -412,15 +412,19 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         }
         else
         {
+          if (wpPat + 2 > wpMaxPat)
+            goto Error;
           wpPat+=2;
-          if (lpREGroupItem->nGroupLen != -1)
+          if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
             ++lpREGroupItem->nGroupLen;
         }
       }
       else if (*wpPat == L'u')
       {
+        if (wpPat + 5 > wpMaxPat)
+          goto Error;
         wpPat+=5;
-        if (lpREGroupItem->nGroupLen != -1)
+        if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
           ++lpREGroupItem->nGroupLen;
       }
       else if (*wpPat >= L'0' && *wpPat <= L'9')
@@ -455,7 +459,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       else
       {
         ++wpPat;
-        if (lpREGroupItem->nGroupLen != -1)
+        if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
           ++lpREGroupItem->nGroupLen;
       }
       continue;
