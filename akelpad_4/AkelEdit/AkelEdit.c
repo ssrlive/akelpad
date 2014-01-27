@@ -12463,6 +12463,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     AE_GetPrintRect(prn, &prn->rcMargins, &prn->rcPageIn);
     ph->aePrint.rcEdit=prn->rcPageFull;
     ph->aePrint.rcDraw=prn->rcPageIn;
+    ph->aePrint.rcErase=ph->aePrint.rcEdit;
   }
   return ph;
 }
@@ -12540,6 +12541,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     AE_GetPrintRect(prn, &prn->rcMargins, &prn->rcPageIn);
     ph->aePrint.rcEdit=prn->rcPageFull;
     ph->aePrint.rcDraw=prn->rcPageIn;
+    ph->aePrint.rcErase=ph->aePrint.rcEdit;
   }
   return ph;
 }
