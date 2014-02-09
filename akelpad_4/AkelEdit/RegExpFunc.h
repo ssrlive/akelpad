@@ -320,6 +320,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   BOOL bGroupNextChars=FALSE;
   BOOL bClassOpen=FALSE;
 
+  if (wpPat == wpMaxPat)
+    return 0;
   if (!hStack->wpDelim)
   {
     //Default delimiters list
