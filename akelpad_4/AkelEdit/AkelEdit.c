@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.8.7                               *
+ *                      AkelEdit text control v1.8.8                               *
  *                                                                                 *
  * Copyright 2007-2014 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -11175,6 +11175,9 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
     DWORD dwFontStyle;
     COLORREF crText;
     COLORREF crBk;
+
+    if (lpQuoteSrc->pQuoteStart)
+      return NULL;
 
     if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
     {
