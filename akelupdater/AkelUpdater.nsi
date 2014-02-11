@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "3.7"
+!define PRODUCT_VERSION "3.8"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -7,9 +7,48 @@ SetCompressor /SOLID lzma
 CRCCheck off
 RequestExecutionLevel user
 
+############  File info  ############
+VIAddVersionKey FileDescription "AkelPad text editor updater"
+VIAddVersionKey LegalCopyright "© 2014 Shengalts Aleksander aka Instructor"
+VIAddVersionKey ProductName "${PRODUCT_NAME}"
+VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
+VIAddVersionKey Comments ""
+VIAddVersionKey LegalTrademarks ""
+VIProductVersion ${PRODUCT_VERSION}.0.0
+
+############  Functions  ############
+!addplugindir "."
+!include "WordFunc.nsh"
+!insertmacro WordFind
+!insertmacro WordFind2X
+!insertmacro WordReplace
+!include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
+!insertmacro GetParent
+!insertmacro GetFileName
+!insertmacro GetBaseName
+!insertmacro GetFileVersion
+!insertmacro VersionCompare
+!include "LogicLib.nsh"
+!include "WinMessages.nsh"
+
+############  MUI  ############
+icon "AkelUpdater.ico"
+ChangeUI all "Pages\default.exe"
+Caption "${PRODUCT_NAME}"
+SubCaption 4 " "
+BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+MiscButtonText " " "" "" "$(close)"
+CompletedText "$(completed)"
+ShowInstDetails show
+XPStyle on
+
+############  Defines  ############
 !define LANG_ENGLISH  1033
 !define LANG_RUSSIAN  1049
 
+############  Strings  ############
 LangString InstallAlreadyRun ${LANG_ENGLISH} 'AkelPad running.$\n$\nAfter closing AkelPad, select Retry.$\n$\nIf you want abort installation, select Cancel.'
 LangString InstallAlreadyRun ${LANG_RUSSIAN} 'AkelPad запущен.$\n$\nПосле того, как Вы закроете AkelPad, выберите Повтор.$\n$\nЕсли Вы хотите прервать установку, выберите Отмена.'
 LangString lng ${LANG_ENGLISH} 'eng'
@@ -52,41 +91,12 @@ LangString error ${LANG_ENGLISH} 'Error'
 LangString error ${LANG_RUSSIAN} 'Ошибка'
 LangString close ${LANG_ENGLISH} '&Close'
 LangString close ${LANG_RUSSIAN} '&Закрыть'
+LangString run ${LANG_ENGLISH} 'Run AkelPad'
+LangString run ${LANG_RUSSIAN} 'Запустить AkelPad'
 LangString completed ${LANG_ENGLISH} 'Completed'
 LangString completed ${LANG_RUSSIAN} 'Завершено'
 
-icon "AkelUpdater.ico"
-Caption "${PRODUCT_NAME}"
-SubCaption 4 " "
-BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-MiscButtonText " " "" "" "$(close)"
-CompletedText "$(completed)"
-ShowInstDetails show
-XPStyle on
-
-VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2011 Shengalts Aleksander aka Instructor"
-VIAddVersionKey ProductName "${PRODUCT_NAME}"
-VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
-VIAddVersionKey Comments ""
-VIAddVersionKey LegalTrademarks ""
-VIProductVersion ${PRODUCT_VERSION}.0.0
-
-!addplugindir "."
-!include "WordFunc.nsh"
-!insertmacro WordFind
-!insertmacro WordFind2X
-!insertmacro WordReplace
-!include "FileFunc.nsh"
-!insertmacro GetParameters
-!insertmacro GetOptions
-!insertmacro GetParent
-!insertmacro GetFileName
-!insertmacro GetBaseName
-!insertmacro GetFileVersion
-!insertmacro VersionCompare
-!include "LogicLib.nsh"
-
+############  Variables  ############
 Var PARAMETERS
 Var PROXYPARAM
 Var PROXYVALUE
@@ -467,12 +477,14 @@ Function FillStack
 FunctionEnd
 
 Section
-  ;Hide buttons
-  GetDlgItem $0 $HWNDPARENT 2
-  ShowWindow $0 0
-
+  ;Hide button
   GetDlgItem $0 $HWNDPARENT 3
   AkelUpdater::Collapse $0
+
+  ;Checkbox
+  GetDlgItem $0 $HWNDPARENT 2001
+  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(run)'
+  SendMessage $0 ${BM_SETCHECK} 1 0
 
   ;Extract "AkelPad-x.x.x-bin-lng.zip"
   ${While} $EXEVERSIONFULL != 0
@@ -558,6 +570,18 @@ Section
     ${Loop}
   ${Loop}
 SectionEnd
+
+Function .onInstSuccess
+  GetDlgItem $0 $HWNDPARENT 2001
+  SendMessage $0 ${BM_GETCHECK} 0 0 $1
+  ${If} $1 == 1
+    ${If} $NOTEPAD == 1
+      Exec "$AKELPADDIR\notepad.exe"
+    ${Else}
+      Exec "$AKELPADDIR\AkelPad.exe"
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
 
 Function ServiceCallback
   Pop $0  ;Archive name
