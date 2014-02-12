@@ -3022,12 +3022,12 @@ void main()
 
       do
       {
-        if (lpREGroupNext->wpStrStart != lpREGroupNext->wpStrEnd && lpREGroupNext->nIndex != -1)
+        if (lpREGroupNext->nStrLen && lpREGroupNext->nIndex != -1)
         {
-          //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart, lpREGroupNext->wpStrStart);
+          //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->nStrLen, lpREGroupNext->wpStrStart);
           wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
-          lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart) + 1);
-          wpResult+=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+          lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->nStrLen) + 1);
+          wpResult+=lpREGroupNext->nStrLen;
           wpResult+=wsprintfW(wpResult, L"]\n");
         }
       }

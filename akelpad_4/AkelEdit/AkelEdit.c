@@ -10650,7 +10650,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
             if (dwSearchType & AEHF_FINDFIRSTCHAR)
               AE_PatReset(lpREGroupStack);
 
-            if (AE_PatExec(lpREGroupStack, lpREGroupStack->first, &ciCount, &ciMaxLine))
+            if (AE_PatExec(lpREGroupStack, lpREGroupStack->first, &ciCount, &ciMaxLine) && lpREGroupStack->first->nStrLen)
             {
               qm->crQuoteStart.ciMin=lpREGroupStack->first->ciStrStart;
               qm->crQuoteStart.ciMax=lpREGroupStack->first->ciStrStart;
@@ -11176,7 +11176,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
     COLORREF crText;
     COLORREF crBk;
 
-    if (lpQuoteSrc->pQuoteStart)
+    if (!lpQuoteSrc->pQuoteStart || !*lpQuoteSrc->pQuoteStart)
       return NULL;
 
     if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
