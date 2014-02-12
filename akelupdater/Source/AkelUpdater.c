@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.6                  *
+ *                 AkelUpdater NSIS plugin v3.7                  *
  *                                                               *
- * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
@@ -51,7 +51,8 @@
 #define STRID_UPDATE           12
 #define STRID_CANCEL           13
 
-#define AKDLL_UPDATESTATUS  (WM_USER + 1)
+#define AKDLL_SHOWWINDOW    (WM_USER + 1)
+#define AKDLL_UPDATESTATUS  (WM_USER + 2)
 
 //Plugins list
 #define LVSI_NAME     0
@@ -187,6 +188,7 @@ DLLINFO diGlobal;
 HWND hWndDialog=NULL;
 int nProgramCompareResult=CR_NOTINSTALLED;
 int nInputBit=32;
+BOOL bInputAuto=FALSE;
 BOOL bInputNoCopies=FALSE;
 RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
@@ -258,6 +260,7 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variable
     popstring(szInputVersion, MAX_PATH);
     popstring(szInputLanguage, MAX_PATH);
     nInputBit=popinteger();
+    bInputAuto=popinteger();
     bInputNoCopies=popinteger();
     popstring(szInputHelper, MAX_PATH);
 
@@ -573,7 +576,18 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
 
-    PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+    if (bInputAuto)
+    {
+      if (nSelItemsCount)
+        PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+      else
+        PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+    }
+    else
+    {
+      PostMessage(hDlg, AKDLL_SHOWWINDOW, 0, 0);
+      PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+    }
   }
   else if (uMsg == WM_COPYDATA)
   {
@@ -582,6 +596,10 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     xstrcpynA(diGlobal.szPluginName, di->szPluginName, MAX_PATH);
     diGlobal.dwError=di->dwError;
+  }
+  else if (uMsg == AKDLL_SHOWWINDOW)
+  {
+    ShowWindow(hDlg, SW_SHOW);
   }
   else if (uMsg == AKDLL_UPDATESTATUS)
   {
