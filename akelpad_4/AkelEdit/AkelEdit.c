@@ -19577,6 +19577,8 @@ void AE_EditUndo(AKELEDIT *ae)
         bColumnSel=TRUE;
       else
         bColumnSel=FALSE;
+      if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+        ae->dwNotifyTextChange|=AETCT_COLUMNGROUP;
 
       if (lpCurElement->dwFlags & AEUN_INSERT)
       {
@@ -19643,6 +19645,9 @@ void AE_EditUndo(AKELEDIT *ae)
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
       }
+
+      if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+        ae->dwNotifyTextChange&=~AETCT_COLUMNGROUP;
     }
     lpCurElement=lpNextElement;
 
@@ -19701,6 +19706,8 @@ void AE_EditRedo(AKELEDIT *ae)
         bColumnSel=TRUE;
       else
         bColumnSel=FALSE;
+      if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+        ae->dwNotifyTextChange|=AETCT_COLUMNGROUP;
 
       if (lpCurElement->dwFlags & AEUN_INSERT)
       {
@@ -19758,6 +19765,9 @@ void AE_EditRedo(AKELEDIT *ae)
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
       }
+
+      if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+        ae->dwNotifyTextChange&=~AETCT_COLUMNGROUP;
     }
 
     //Stop undo

@@ -103,6 +103,7 @@
 #define AETCT_KEYDELETE         0x00000800  //Pressing VK_DELETE.
 #define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
 #define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
+#define AETCT_COLUMNGROUP       0x00004000  //Undo/Redo column text is grouped from one-line actions.
 
 //AEN_TEXTCHANGED types
 #define AETCT_NONE              0x00100000  //No text is changed.
