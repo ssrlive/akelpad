@@ -6274,12 +6274,12 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdA, 0, sizeof(PRINTDLGA));
   pdA.lStructSize =sizeof(PRINTDLGA);
   pdA.hwndOwner   =hWndOwner;
-  pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
+  pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_COLLATE;
   pdA.nMinPage    =1;
   pdA.nMaxPage    =9999;
   pdA.nFromPage   =prninfo->nFromPage;
   pdA.nToPage     =prninfo->nToPage;
-  pdA.nCopies     =1;
+  pdA.nCopies     =prninfo->nCopies;
   pdA.hDC         =prninfo->hDC;
   pdA.hDevMode    =prninfo->hDevMode;
   pdA.hDevNames   =prninfo->hDevNames;
@@ -6318,6 +6318,7 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     prninfo->dwPrintFlags=pdA.Flags;
     prninfo->nFromPage=pdA.nFromPage;
     prninfo->nToPage=pdA.nToPage;
+    prninfo->nCopies=pdA.nCopies;
   }
   prninfo->hDC=pdA.hDC;
   prninfo->hDevMode=pdA.hDevMode;
@@ -6332,12 +6333,12 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdW, 0, sizeof(PRINTDLGW));
   pdW.lStructSize =sizeof(PRINTDLGW);
   pdW.hwndOwner   =hWndOwner;
-  pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
+  pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_COLLATE;
   pdW.nMinPage    =1;
   pdW.nMaxPage    =9999;
   pdW.nFromPage   =prninfo->nFromPage;
   pdW.nToPage     =prninfo->nToPage;
-  pdW.nCopies     =1;
+  pdW.nCopies     =prninfo->nCopies;
   pdW.hDC         =prninfo->hDC;
   pdW.hDevMode    =prninfo->hDevMode;
   pdW.hDevNames   =prninfo->hDevNames;
@@ -6376,6 +6377,7 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     prninfo->dwPrintFlags=pdW.Flags;
     prninfo->nFromPage=pdW.nFromPage;
     prninfo->nToPage=pdW.nToPage;
+    prninfo->nCopies=pdW.nCopies;
   }
   prninfo->hDC=pdW.hDC;
   prninfo->hDevMode=pdW.hDevMode;
@@ -6445,6 +6447,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   POINT ptScreenDpi={0};
   POINT ptPrintDpi;
   PRINTPAGE *lpElement;
+  AECHARRANGE crInitText;
+  AECHARRANGE crInitPage;
   AEHPRINT hPrintDoc;
   HFONT hPrintFontOld;
   HDC hScreenDC;
@@ -6453,6 +6457,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   int nPageNumber=nInitPage;
   BOOL bPrintError=FALSE;
   BOOL bPrintStop=FALSE;
+  WORD nCopies=1;
 
   //Set print settings
   prn->dwFlags=((lpFrameCurrent->dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
@@ -6477,6 +6482,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
     }
   }
+  xmemcpy(&crInitText, &prn->crText, sizeof(AECHARRANGE));
+
   if (moCur.bPrintFontEnable)
     prn->hEditFont=CreateFontIndirectWide(&moCur.lfPrintFont);
   else
@@ -6532,6 +6539,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         prn->rcPageIn.bottom-=prn->nCharHeight;
       }
 
+      NextCopy:
       while (!bPrintStop && !bPrintError)
       {
         ++nPageNumber;
@@ -6578,6 +6586,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
               }
             }
           }
+          if ((dwFlags & PRND_REALPRINT) && !(prninfo.dwPrintFlags & PD_COLLATE) && nCopies == 1)
+            xmemcpy(&crInitPage, &prn->crText, sizeof(AECHARRANGE));
 
           if (moCur.bPrintHeaderEnable)
           {
@@ -6607,6 +6617,26 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
             break;
         }
         else bPrintError=TRUE;
+
+        if ((dwFlags & PRND_REALPRINT) && !(prninfo.dwPrintFlags & PD_COLLATE))
+        {
+          if (nCopies < prninfo.nCopies)
+          {
+            xmemcpy(&prn->crText, &crInitPage, sizeof(AECHARRANGE));
+            ++nCopies;
+            --nPageNumber;
+            bPrintStop=FALSE;
+          }
+          else nCopies=1;
+        }
+      }
+      if ((dwFlags & PRND_REALPRINT) && (prninfo.dwPrintFlags & PD_COLLATE) && nCopies < prninfo.nCopies)
+      {
+        xmemcpy(&prn->crText, &crInitText, sizeof(AECHARRANGE));
+        ++nCopies;
+        nPageNumber=nInitPage;
+        bPrintStop=FALSE;
+        goto NextCopy;
       }
       SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
     }

@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 2, 0)
 
 
 //// Defines
@@ -1476,6 +1476,7 @@ typedef struct {
   DWORD dwPrintFlags;
   WORD nFromPage;
   WORD nToPage;
+  WORD nCopies;
 
   //PAGESETUPDLG
   DWORD dwPageFlags;

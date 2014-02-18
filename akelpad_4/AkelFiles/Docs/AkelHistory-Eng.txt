@@ -1,4 +1,9 @@
 
+AkelPad 4.8.8 ()
+----------------------------
+Added: print multiple copies with "Collate" option.
+
+
 AkelPad 4.8.7 (Feb 02, 2014)
 ----------------------------
 Added: (?(condition)pattern-true|pattern-false) conditional patterns.
