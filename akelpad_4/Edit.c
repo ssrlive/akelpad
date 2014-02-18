@@ -6274,7 +6274,7 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdA, 0, sizeof(PRINTDLGA));
   pdA.lStructSize =sizeof(PRINTDLGA);
   pdA.hwndOwner   =hWndOwner;
-  pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_COLLATE;
+  pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC;
   pdA.nMinPage    =1;
   pdA.nMaxPage    =9999;
   pdA.nFromPage   =prninfo->nFromPage;
@@ -6333,7 +6333,7 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdW, 0, sizeof(PRINTDLGW));
   pdW.lStructSize =sizeof(PRINTDLGW);
   pdW.hwndOwner   =hWndOwner;
-  pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_COLLATE;
+  pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC;
   pdW.nMinPage    =1;
   pdW.nMaxPage    =9999;
   pdW.nFromPage   =prninfo->nFromPage;

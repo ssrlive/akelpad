@@ -680,7 +680,7 @@ void _WinMain()
       prninfo.rtMargin.bottom=500;
     }
     prninfo.hDC=NULL;
-    prninfo.dwPrintFlags=PD_ALLPAGES;
+    prninfo.dwPrintFlags=PD_ALLPAGES|PD_COLLATE;
     prninfo.nFromPage=1;
     prninfo.nToPage=1;
     prninfo.nCopies=1;
