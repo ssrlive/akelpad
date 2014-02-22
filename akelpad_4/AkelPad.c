@@ -968,8 +968,8 @@ void _WinMain()
       dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
       ActivateWindow(hWndFriend);
 
-      //Wait until we can send PostMessage
-      while (!IsWindowEnabled(hWndFriend))
+      //Wait until we can send PostMessage.
+      while (!IsWindowEnabled(hWndFriend) || SendMessage(hWndFriend, AKD_GETQUEUE, QS_ALLEVENTS, 0))
       {
         Sleep(100);
 
