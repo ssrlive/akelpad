@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v1.7                  *
+ *                  RegExp functions header v1.8                  *
  *                                                                *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -736,7 +736,16 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       }
 
       lpREGroupNew->wpPatRight=wpPat;
-      lpREGroupItem->nGroupLen=-1;
+      if (lpREGroupNew->nMinMatch == lpREGroupNew->nMaxMatch)
+      {
+        lpREGroupItem->nGroupLen+=lpREGroupNew->nGroupLen * (lpREGroupNew->nMinMatch - 1);
+        lpREGroupNew->nGroupLen=lpREGroupNew->nGroupLen * lpREGroupNew->nMinMatch;
+      }
+      else
+      {
+        lpREGroupItem->nGroupLen=-1;
+        lpREGroupNew->nGroupLen=-1;
+      }
       if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
       {
         wpPat=lpREGroupNew->wpPatEnd;
@@ -1710,53 +1719,63 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
       lpREGroupItem->wpPatEnd=wpPatEnd;
       lpREGroupItem->wpPatRight=wpPatEnd;
     }
-    if (!lpREGroupItem->firstChild)
-      continue;
-
-    //If only one children and pattern the same, then remove redundant grouping
-    if (lpREGroupItem->firstChild == lpREGroupItem->lastChild && !(lpREGroupItem->dwFlags & REGF_IFPARENT))
+    if (lpREGroupItem->firstChild)
     {
-      lpREGroupChild=lpREGroupItem->firstChild;
-
-      if (lpREGroupChild->wpPatLeft == lpREGroupItem->wpPatStart &&
-          lpREGroupChild->wpPatRight == wpPatEnd &&
-          (lpREGroupChild->nIndex == -1 || lpREGroupItem->nIndex == -1))
+      //If only one children and pattern the same, then remove redundant grouping
+      if (lpREGroupItem->firstChild == lpREGroupItem->lastChild && !(lpREGroupItem->dwFlags & REGF_IFPARENT))
       {
-        lpREGroupParent=lpREGroupItem->parent;
+        lpREGroupChild=lpREGroupItem->firstChild;
 
-        //Replace lpREGroupItem with lpREGroupChild
-        if (lpREGroupItem->wpPatLeft < lpREGroupChild->wpPatLeft)
-          lpREGroupChild->wpPatLeft=lpREGroupItem->wpPatLeft;
-        if (wpPatRight > lpREGroupChild->wpPatLeft)
-          lpREGroupChild->wpPatRight=wpPatRight;
-        if (lpREGroupItem->nGroupLen != lpREGroupChild->nGroupLen)
-          lpREGroupChild->nGroupLen=-1;
-        lpREGroupChild->dwFlags|=lpREGroupItem->dwFlags;
-        if (lpREGroupChild->nIndex == -1)
-          lpREGroupChild->nIndex=lpREGroupItem->nIndex;
-        StackJoin((stack **)&lpREGroupParent->firstChild, (stack **)&lpREGroupParent->lastChild, (stack *)lpREGroupItem, (stack *)lpREGroupChild, (stack *)lpREGroupChild);
-        StackDelete((stack **)&lpREGroupParent->firstChild, (stack **)&lpREGroupParent->lastChild, (stack *)lpREGroupItem);
-        lpREGroupChild->parent=lpREGroupParent;
-        lpREGroupItem=lpREGroupChild;
+        if (lpREGroupChild->wpPatLeft == lpREGroupItem->wpPatStart &&
+            lpREGroupChild->wpPatRight == wpPatEnd &&
+            (lpREGroupChild->nIndex == -1 || lpREGroupItem->nIndex == -1))
+        {
+          lpREGroupParent=lpREGroupItem->parent;
+
+          //Replace lpREGroupItem with lpREGroupChild
+          if (lpREGroupItem->wpPatLeft < lpREGroupChild->wpPatLeft)
+            lpREGroupChild->wpPatLeft=lpREGroupItem->wpPatLeft;
+          if (wpPatRight > lpREGroupChild->wpPatLeft)
+            lpREGroupChild->wpPatRight=wpPatRight;
+          if (lpREGroupItem->nGroupLen != lpREGroupChild->nGroupLen)
+            lpREGroupChild->nGroupLen=-1;
+          lpREGroupChild->dwFlags|=lpREGroupItem->dwFlags;
+          if (lpREGroupChild->nIndex == -1)
+            lpREGroupChild->nIndex=lpREGroupItem->nIndex;
+          StackJoin((stack **)&lpREGroupParent->firstChild, (stack **)&lpREGroupParent->lastChild, (stack *)lpREGroupItem, (stack *)lpREGroupChild, (stack *)lpREGroupChild);
+          StackDelete((stack **)&lpREGroupParent->firstChild, (stack **)&lpREGroupParent->lastChild, (stack *)lpREGroupItem);
+          lpREGroupChild->parent=lpREGroupParent;
+          lpREGroupItem=lpREGroupChild;
+        }
+      }
+
+      //If nMinMatch of all children is zero, then set nMinMatch to zero
+      if (lpREGroupItem->nMinMatch)
+      {
+        wpPatChild=lpREGroupItem->wpPatStart;
+
+        for (lpREGroupChild=lpREGroupItem->firstChild; lpREGroupChild; lpREGroupChild=lpREGroupChild->next)
+        {
+          if (lpREGroupChild->nMinMatch) break;
+          if (lpREGroupChild->wpPatLeft != wpPatChild) break;
+          wpPatChild=lpREGroupChild->wpPatRight;
+        }
+        if (!lpREGroupChild && wpPatEnd == wpPatChild)
+          lpREGroupItem->nMinMatch=0;
       }
     }
+    if (!(lpREGroupItem->dwFlags & REGF_AUTOGROUP)) break;
 
-    //If nMinMatch of all children is zero, then set nMinMatch to zero
-    if (lpREGroupItem->nMinMatch)
+    if (lpREGroupItem->parent->nGroupLen != -1)
     {
-      wpPatChild=lpREGroupItem->wpPatStart;
-
-      for (lpREGroupChild=lpREGroupItem->firstChild; lpREGroupChild; lpREGroupChild=lpREGroupChild->next)
-      {
-        if (lpREGroupChild->nMinMatch) break;
-        if (lpREGroupChild->wpPatLeft != wpPatChild) break;
-        wpPatChild=lpREGroupChild->wpPatRight;
-      }
-      if (!lpREGroupChild && wpPatEnd == wpPatChild)
-        lpREGroupItem->nMinMatch=0;
+      if (lpREGroupItem->nGroupLen != -1)
+        lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
+      else
+        lpREGroupItem->parent->nGroupLen=-1;
     }
+    lpREGroupItem=lpREGroupItem->parent;
   }
-  while ((lpREGroupItem->dwFlags & REGF_AUTOGROUP) && (lpREGroupItem=lpREGroupItem->parent));
+  while (lpREGroupItem);
 
   return lpREGroupItem;
 }
