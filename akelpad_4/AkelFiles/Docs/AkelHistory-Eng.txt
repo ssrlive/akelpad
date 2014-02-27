@@ -4,6 +4,7 @@ AkelPad 4.8.8 ()
 Added: print multiple copies with "Collate" option.
 
 Fixed: option "Don't open a program twice" on Win7.
+Fixed: Left key didn't move caret on previous line with option "Caret after end of line".
 
 
 AkelPad 4.8.7 (Feb 02, 2014)

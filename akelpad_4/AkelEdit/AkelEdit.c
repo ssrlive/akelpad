@@ -19310,7 +19310,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         }
         else
         {
-          if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+          if (bAlt || ((ae->popt->dwOptions & AECO_CARETOUTEDGE) && ae->ciCaretIndex.nCharInLine > 0))
           {
             AEC_IndexDec(&ciCharOut);
             ciCharOut.nCharInLine=max(ciCharOut.nCharInLine, 0);
