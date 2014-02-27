@@ -438,13 +438,19 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         {
           lpREGroupRef->dwFlags|=REGF_REFEXIST;
           hStack->dwOptions|=REO_REFEXIST;
+          if (lpREGroupItem->nGroupLen != -1)
+          {
+            if (lpREGroupRef->nGroupLen != -1)
+              lpREGroupItem->nGroupLen+=lpREGroupRef->nGroupLen;
+            else
+              lpREGroupItem->nGroupLen=-1;
+          }
         }
         else
         {
           wpPat=wpCharStart;
           goto Error;
         }
-        lpREGroupItem->nGroupLen=-1;
         if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
           goto Error;
       }
