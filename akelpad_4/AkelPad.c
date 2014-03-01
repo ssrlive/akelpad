@@ -889,6 +889,8 @@ void _WinMain()
   prninfo.rtMargin=moInit.rcPrintMargins;
   nMDI=moInit.nMDI;
   if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
+  if (!wpCmdLineBegin) wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+  if (!wpCmdLineEnd) wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
   xmemcpy(&fdDefault, &fdInit, sizeof(FRAMEDATA));
 
   //Normalize search flags

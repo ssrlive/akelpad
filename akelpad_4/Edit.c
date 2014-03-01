@@ -3726,11 +3726,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
         nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
       }
     }
-    else
-    {
-      wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
-      bSaveManual=TRUE;
-    }
+    else bSaveManual=TRUE;
 
     if (dwSize=ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
     {
@@ -3740,11 +3736,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
         nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
       }
     }
-    else
-    {
-      wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
-      bSaveManual=TRUE;
-    }
+    else bSaveManual=TRUE;
 
     if (!ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD)))
       bSaveManual=TRUE;
