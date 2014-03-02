@@ -444,19 +444,22 @@
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
                                                  //Regular exression:
-#define AEHLF_REGEXP                 0x10000000  //AEQUOTEITEM.pQuoteStart is a regular exression pattern,
-                                                 //AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
-                                                 //  "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
-                                                 //Notes:
-                                                 //  Color need to be in #RRGGBB format.
-                                                 //  If color equal to zero, then color ignored.
-                                                 //  Instead of color backreference can be used.
-                                                 //Example (highlight quoted string):
-                                                 //  AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
-                                                 //  AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
-                                                 //Example (highlight #RRGGBB word with its color):
-                                                 //  AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
-                                                 //  AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
+#define AEHLF_REGEXP                 0x10000000  //Can be used in AEQUOTEITEM.dwFlags.
+                                                 //  AEQUOTEITEM.pQuoteStart is a regular exression pattern,
+                                                 //  AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
+                                                 //    "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
+                                                 //  Notes:
+                                                 //    Color need to be in #RRGGBB format.
+                                                 //    If color equal to zero, then color ignored.
+                                                 //    Instead of color backreference can be used.
+                                                 //  Example (highlight quoted string):
+                                                 //    AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
+                                                 //    AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
+                                                 //  Example (highlight #RRGGBB word with its color):
+                                                 //    AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
+                                                 //    AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
+                                                 //Can be used in AEMARKTEXTITEM.dwFlags.
+                                                 //  AEMARKTEXTITEM.pMarkText is a regular exression pattern.
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
@@ -1187,6 +1190,7 @@ typedef struct _AEMARKTEXTITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
+  void *lpREGroupStack;      //Don't use it. For internal code only.
 } AEMARKTEXTITEMW;
 
 typedef struct _AEMARKRANGEITEM {
