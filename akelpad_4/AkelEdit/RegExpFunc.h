@@ -15,6 +15,11 @@
 #ifndef _REGEXPFUNC_H_
 #define _REGEXPFUNC_H_
 
+//Global variables
+#ifdef __AKELEDIT_H__
+  extern AECHARINDEX RegExpGlobal_ciMaxStr;
+#endif
+
 //STACKREGROUP options
 #define REO_MATCHCASE         0x0001 //Case-sensitive search.
 #define REO_MULTILINE         0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
@@ -281,11 +286,11 @@ void PatReset(STACKREGROUP *hStack);
 void PatFree(STACKREGROUP *hStack);
 
 #ifdef __AKELEDIT_H__
-  BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput);
+  BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, const AECHARINDEX *ciMaxInput);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
-  BOOL AE_PatIsCharBoundary(AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
+  BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
-  INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, AECHARINDEX *ciMaxStr, int nRefIndex);
+  INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, const AECHARINDEX *ciMaxStr, int nRefIndex);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
   void AE_PatReset(STACKREGROUP *hStack);
 #endif
@@ -294,8 +299,8 @@ int PatStructExec(PATEXEC *pe);
 void PatStructFree(PATEXEC *pe);
 INT_PTR PatReplace(PATREPLACE *pr);
 int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
-int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
 #ifdef __AKELEDIT_H__
+  int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched);
   INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarget, const wchar_t *wpTargetMax);
 #endif
 #endif //_REGEXPFUNC_H_
@@ -1939,7 +1944,7 @@ void PatFree(STACKREGROUP *hStack)
 }
 
 #ifdef __AKELEDIT_H__
-BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, AECHARINDEX *ciMaxInput)
+BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, const AECHARINDEX *ciMaxInput)
 {
   REGROUP *lpREGroupNext;
   REGROUP *lpREGroupNextNext;
@@ -2472,7 +2477,7 @@ int AE_PatStrChar(const AECHARINDEX *ciChar)
   return AEC_CharAtIndex(ciChar);
 }
 
-BOOL AE_PatIsCharBoundary(AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim)
+BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim)
 {
   AECHARINDEX ciPrevChar=*ciChar;
   BOOL bPrevCharDelim;
@@ -2501,7 +2506,7 @@ AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
-INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, AECHARINDEX *ciMaxStr, int nRefIndex)
+INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, const AECHARINDEX *ciMaxStr, int nRefIndex)
 {
   AECHARINDEX ciStrCount;
   AECHARINDEX ciGroupCount;
@@ -2719,9 +2724,15 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pe.wpDelim=pr->wpDelim;
   pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;
   if (pr->wpStr)
+  {
     pe.lpCallback=(PATEXECCALLBACK)PatReplaceCallback;
+  }
   else
-    pe.lpCallback=(PATEXECCALLBACK)AE_PatReplaceCallback;
+  {
+    #ifdef __AKELEDIT_H__
+      pe.lpCallback=(PATEXECCALLBACK)AE_PatReplaceCallback;
+    #endif
+  }
   pe.lParam=(LPARAM)&pep;
 
   if (pr->nReplaceCount=PatStructExec(&pe))
@@ -2816,9 +2827,9 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
   return REPEC_CONTINUE;
 }
 
+#ifdef __AKELEDIT_H__
 int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatched)
 {
-  #ifdef __AKELEDIT_H__
   PATEXECPARAM *pep=(PATEXECPARAM *)pe->lParam;
   REGROUP *lpREGroupRef;
   const wchar_t *wpRep=pep->wpRep;
@@ -2876,11 +2887,9 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
     pep->wpBufCount+=AE_PatStrCopy(&pe->ciStr, &pe->ciMaxStr, pep->wszBuf?pep->wpBufCount:NULL, NULL);
     pep->ciRightStr=pe->ciMaxStr;
   }
-  #endif
   return REPEC_CONTINUE;
 }
 
-#ifdef __AKELEDIT_H__
 INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarget, const wchar_t *wpTargetMax)
 {
   AECHARINDEX ciCount;
@@ -2948,6 +2957,12 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
   return (wpTarget - wszTarget);
 }
 #endif
+
+//// Global variables
+#ifdef __AKELEDIT_H__
+  AECHARINDEX RegExpGlobal_ciMaxStr={0x7FFFFFFF, NULL, 0};
+#endif
+
 #endif //RE_FUNCTIONS
 
 
