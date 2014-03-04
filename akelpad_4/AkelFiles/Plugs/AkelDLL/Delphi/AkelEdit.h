@@ -12,8 +12,9 @@
 
 #define AES_AKELEDITCLASSA       "AkelEditA"
 #define AES_AKELEDITCLASSW      L"AkelEditW"
-#define AES_RICHEDITCLASSA       "RichEdit20A"
-#define AES_RICHEDITCLASSW      L"RichEdit20W"
+#define AES_RICHEDIT20A          "RichEdit20A"
+#define AES_RICHEDIT20A_UNICODE L"RichEdit20A"
+#define AES_RICHEDIT20W         L"RichEdit20W"
 
 //AEM_CONTROLCLASS
 #define AECLASS_AKELEDIT        1
@@ -139,13 +140,15 @@
 #define AEPTT_DELETE            0x00000008  //Delete operation.
 
 //AEPOINT flags
-#define AEPTF_MOVED         0x00000001  //If set, AEPOINT.ciPoint index has been moved.
-#define AEPTF_MODIFY        0x00000002  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPTF_MODIFY        0x00000002  //If set, text in (AEPOINT.ciPoint + AEPOINT.nPointLen) area has been modified.
 #define AEPTF_INSERT        0x00000004  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
 #define AEPTF_DELETE        0x00000008  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
 #define AEPTF_NOTIFYDELETE  0x00000010  //Don't use it. For internal code only.
 #define AEPTF_NOTIFYINSERT  0x00000020  //Don't use it. For internal code only.
+#define AEPTF_VALIDLINE     0x00000040  //Don't use it. For internal code only.
 #define AEPTF_FOLD          0x00000100  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+#define AEPTF_MOVEOFFSET    0x00001000  //If set, AEPOINT.nPointOffset has been changed.
+#define AEPTF_MOVELINE      0x00002000  //If set, AEPOINT.ciPoint.nLine has been changed.
 
 //AEPOINT character offset value
 #define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
@@ -201,6 +204,7 @@
 #define AECO_NONEWLINEMOUSESELECT     0x00010000  //Triple click and left margin click selects only line contents without new line.
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
+#define AECO_MARGINSELUNWRAPLINE      0x00080000  //Left margin line selection with mouse selects all wrapped line.
 #define AECO_LOCKSELECTION            0x00100000  //Prevent selection changing. Use it with AECO_READONLY flag.
 #define AECO_NOMARGINSEL              0x00200000  //Disables left margin line selection with mouse.
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
@@ -208,11 +212,16 @@
 #define AECO_VSCROLLBYLINE            0x01000000  //Unit of vertical scrolling is line (default is pixel).
 #define AECO_NOSCROLLDELETEALL        0x02000000  //Turn off scrolling to caret, when undo/redo operations replace all text.
 #define AECO_NOSCROLLSELECTALL        0x04000000  //Turn off scrolling to caret, when all text is selected.
+#define AECO_NOCOLUMNPASTEHOTKEY      0x08000000  //Turn off Alt+V for columnar paste.
 #define AECO_DISABLEBEEP              0x10000000  //Disables sound beep, when unallowable action occur.
 #define AECO_ALTDECINPUT              0x20000000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+
+//AEM_EXSETOPTIONS flags
+#define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
+#define AECOE_OVERTYPE                0x00000002  //Turn on overtype mode instead of insert mode.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -220,9 +229,9 @@
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //Modifier flags
-#define AEMOD_ALT               0x01  //ALT key
-#define AEMOD_SHIFT             0x02  //SHIFT key
-#define AEMOD_CONTROL           0x04  //CTRL key
+#define AEMOD_ALT               0x1  //ALT key
+#define AEMOD_SHIFT             0x2  //SHIFT key
+#define AEMOD_CONTROL           0x4  //CTRL key
 
 //AEM_GETLINENUMBER flags
 #define AEGL_LINECOUNT              0  //Total number of text lines. If the control has no text, the return value is 1.
@@ -234,6 +243,7 @@
 #define AEGL_FIRSTFULLVISIBLELINE   6  //First fully visible line.
 #define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
 #define AEGL_LINEUNWRAPCOUNT       11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
+#define AEGL_UNWRAPSELMULTILINE    12  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
 
 //AEM_GETINDEX and AEM_GETRICHOFFSET flags
 #define AEGI_FIRSTCHAR              1  //First character.
@@ -303,6 +313,7 @@
 #define AEREPT_COLUMNON            0x00000001  //Make column selection ON.
 #define AEREPT_COLUMNASIS          0x00000002  //Leave column selection as is.
 #define AEREPT_LOCKSCROLL          0x00000004  //Lock edit window scroll. However edit window can be scrolled during window resize when AECO_DISABLENOSCROLL option not set.
+#define AEREPT_UNDOGROUPING        0x00000100  //Continue undo grouping.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -402,24 +413,45 @@
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
+//Highlight options
+#define AEHLO_IGNOREFONTNORMAL       0x00000001  //Use AEHLS_NONE font style, if font style to change is AEHLS_FONTNORMAL.
+#define AEHLO_IGNOREFONTBOLD         0x00000002  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTBOLD.
+                                                 //Use AEHLS_FONTITALIC font style, if font style to change is AEHLS_FONTBOLDITALIC.
+#define AEHLO_IGNOREFONTITALIC       0x00000004  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTITALIC.
+                                                 //Use AEHLS_FONTBOLD font style, if font style to change is AEHLS_FONTBOLDITALIC.
+
 //Highlight flags
-#define AEHLF_MATCHCASE              0x00001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_WORDCOMPOSITION        0x00002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
-#define AEHLF_QUOTEEND_REQUIRED      0x00004  //If quote end isn't found, text after quote start will not be highlighted.
-#define AEHLF_QUOTESTART_ISDELIMITER 0x00008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
-#define AEHLF_QUOTEEND_ISDELIMITER   0x00010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
-#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x00020  //Don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x00040  //Don't highlight quote end string.
-#define AEHLF_QUOTESTART_NOCATCH     0x00080  //Don't catch and don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOCATCH       0x00100  //Don't catch and don't highlight quote end string.
-#define AEHLF_ATLINESTART            0x00200  //Quote start, delimiter or word located at line start.
-#define AEHLF_ATLINEEND              0x00400  //Quote end, delimiter or word located at line end.
-#define AEHLF_QUOTESTART_ISWORD      0x00800  //Quote start is surrounded with delimiters.
-#define AEHLF_QUOTEEND_ISWORD        0x01000  //Quote end is surrounded with delimiters.
-#define AEHLF_QUOTEWITHOUTDELIMITERS 0x02000  //Quote doesn't contain delimiters.
-#define AEHLF_QUOTESTART_CATCHONLY   0x04000  //Only quote start string is catched.
-#define AEHLF_QUOTEINCLUDE           0x10000  //Quote include string is valid.
-#define AEHLF_QUOTEEXCLUDE           0x20000  //Quote exclude string is valid.
+#define AEHLF_MATCHCASE              0x00000001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
+#define AEHLF_WORDCOMPOSITION        0x00000002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
+#define AEHLF_QUOTEEND_REQUIRED      0x00000004  //If quote end isn't found, text after quote start will not be highlighted.
+#define AEHLF_QUOTESTART_ISDELIMITER 0x00000008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
+#define AEHLF_QUOTEEND_ISDELIMITER   0x00000010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
+#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x00000020  //Don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x00000040  //Don't highlight quote end string.
+#define AEHLF_QUOTESTART_NOCATCH     0x00000080  //Don't catch and don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOCATCH       0x00000100  //Don't catch and don't highlight quote end string.
+#define AEHLF_ATLINESTART            0x00000200  //Quote start, delimiter or word located at line start.
+#define AEHLF_ATLINEEND              0x00000400  //Quote end, delimiter or word located at line end.
+#define AEHLF_QUOTESTART_ISWORD      0x00000800  //Quote start is surrounded with delimiters.
+#define AEHLF_QUOTEEND_ISWORD        0x00001000  //Quote end is surrounded with delimiters.
+#define AEHLF_QUOTEWITHOUTDELIMITERS 0x00002000  //Quote doesn't contain delimiters.
+#define AEHLF_QUOTESTART_CATCHONLY   0x00004000  //Only quote start string is catched.
+#define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
+#define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
+                                                 //Regular exression:
+#define AEHLF_REGEXP                 0x10000000  //AEQUOTEITEM.pQuoteStart is a regular exression pattern,
+                                                 //AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
+                                                 //  "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
+                                                 //Notes:
+                                                 //  Color need to be in #RRGGBB format.
+                                                 //  If color equal to zero, then color ignored.
+                                                 //  Instead of color backreference can be used.
+                                                 //Example (highlight quoted string):
+                                                 //  AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
+                                                 //  AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
+                                                 //Example (highlight #RRGGBB word with its color):
+                                                 //  AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
+                                                 //  AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
@@ -450,6 +482,10 @@
 #define AEHPT_MARKRANGE              0x00000040
 #define AEHPT_LINK                   0x00000080
 #define AEHPT_FOLD                   0x00000100
+
+//AEREGROUPCOLOR flags
+#define AEREGCF_BACKREFCOLORTEXT  0x00000001  //AEREGROUPCOLOR.crText is backreference index for text color in format #RRGGBB or RRGGBB.
+#define AEREGCF_BACKREFCOLORBK    0x00000002  //AEREGROUPCOLOR.crBk is backreference index for background color in format #RRGGBB or RRGGBB.
 
 //AEM_FINDFOLD flags
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -510,7 +546,9 @@
 #define AECS_HEIGHT          0  //Current font character height. lParam not used.
 #define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
 #define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
-#define AECS_POINTSIZE       3  //Current font point size.
+#define AECS_POINTSIZE       3  //Current font point size. lParam not used.
+#define AECS_SPACEWIDTH      4  //Current font space width. lParam not used.
+#define AECS_TABWIDTH        5  //Current font tabulation width. lParam not used.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
@@ -520,8 +558,8 @@
 #define AECT_GLOBAL 0  //Position in the virtual text space coordinates.
 #define AECT_CLIENT 1  //Position in the client area coordinates.
 
-//AEM_GETRECT and AEM_SETRECT flags
-#define AERC_UPDATE    0x01  //Redraw edit window. Only for AEM_SETRECT.
+//Rectangle flags
+#define AERC_UPDATE    0x01  //Redraw edit window. Only for AEM_SETRECT and AEM_SETERASERECT.
 #define AERC_MARGINS   0x02  //Rectangle contain edit area margins instead of edit area coordinates.
 #define AERC_NOLEFT    0x04  //Don't set/retrieve left side.
 #define AERC_NOTOP     0x08  //Don't set/retrieve top side.
@@ -550,10 +588,13 @@
 #define AEMSS_WORDS          0x4  //Words selection.
 #define AEMSS_LINES          0x8  //Lines selection.
 
-//AEM_FINDTEXTA, AEM_FINDTEXTW flags
-#define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
-#define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
-#define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
+//AEM_FINDTEXT, AEM_ISMATCH flags
+#define AEFR_DOWN               0x00000001  //Same as FR_DOWN. If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
+#define AEFR_WHOLEWORD          0x00000002  //Same as FR_WHOLEWORD. If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
+#define AEFR_MATCHCASE          0x00000004  //Same as FR_MATCHCASE. If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
+#define AEFR_REGEXP             0x00080000  //Regular expression search.
+#define AEFR_REGEXPNONEWLINEDOT 0x00100000  //Symbol . specifies any character except new line.
+#define AEFR_REGEXPMINMATCH     0x00200000  //Allow zero length match at string edges. For example: "^" at the string beginning or "$" at the string ending.
 
 //AEM_SETWORDWRAP flags
 #define AEWW_NONE            0x00000000  //Turn off wrap.
@@ -929,21 +970,23 @@ typedef struct {
 } AESTREAMOUT;
 
 typedef struct {
-  DWORD dwFlags;           //[in]  See AEFR_* defines.
-  const char *pText;       //[in]  Text to find.
-  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //[in]  See AELB_* defines.
-  AECHARRANGE crSearch;    //[in]  Range of characters to search.
-  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
+  DWORD dwFlags;                //[in]  See AEFR_* defines.
+  const char *pText;            //[in]  Text to find.
+  UINT_PTR dwTextLen;           //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;         //[in]  Range of characters to search.
+  AECHARRANGE crFound;          //[out] Range of characters in which text is found.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
 } AEFINDTEXTA;
 
 typedef struct {
-  DWORD dwFlags;           //[in]  See AEFR_* defines.
-  const wchar_t *pText;    //[in]  Text to find.
-  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //[in]  See AELB_* defines.
-  AECHARRANGE crSearch;    //[in]  Range of characters to search.
-  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
+  DWORD dwFlags;                //[in]  See AEFR_* defines.
+  const wchar_t *pText;         //[in]  Text to find.
+  UINT_PTR dwTextLen;           //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;         //[in]  Range of characters to search.
+  AECHARRANGE crFound;          //[out] Range of characters in which text is found.
+  INT_PTR nCompileErrorOffset;  //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
 } AEFINDTEXTW;
 
 typedef struct {
@@ -968,11 +1011,11 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //[in] See AEGHF_* defines.
-  DWORD dwFontStyle;       //[in] See AEHLS_* defines.
-  COLORREF crText;         //[in] Text color in line.
-  COLORREF crBk;           //[in] Background color in line.
-  COLORREF crBorderTop;    //[in] Top border color of the line.
-  COLORREF crBorderBottom; //[in] Bottom border color of the line.
+  DWORD dwFontStyle;       //[Out] See AEHLS_* defines.
+  COLORREF crText;         //[Out] Text color in line.
+  COLORREF crBk;           //[Out] Background color in line.
+  COLORREF crBorderTop;    //[Out] Top border color of the line.
+  COLORREF crBorderBottom; //[Out] Bottom border color of the line.
 } AECHARCOLORS;
 
 typedef struct {
@@ -1107,7 +1150,15 @@ typedef struct _AEQUOTEITEMW {
   COLORREF crText;              //Quote text color. If -1, then don't set.
   COLORREF crBk;                //Quote background color. If -1, then don't set.
   void *lpQuoteStart;           //Don't use it. For internal code only.
+  void *lpREGroupStack;         //Don't use it. For internal code only.
 } AEQUOTEITEMW;
+
+typedef struct {
+  DWORD dwFlags;                //See AEREGCF_* defines.
+  DWORD dwFontStyle;            //See AEHLS_* defines.
+  COLORREF crText;              //Quote text color. If -1, then don't set.
+  COLORREF crBk;                //Quote background color. If -1, then don't set.
+} AEREGROUPCOLOR;
 
 typedef struct _AEMARKTEXTITEMA {
   struct _AEMARKTEXTITEMA *next;
@@ -1274,16 +1325,18 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;      //Current selection.
-  AECHARINDEX ciCaret;  //Caret character index position.
-  DWORD dwType;         //See AESCT_* defines.
+  AESELECTION aes;       //Current selection.
+  AECHARINDEX ciCaret;   //Caret character index position.
+  DWORD dwType;          //See AESCT_* defines.
+  CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENSELCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;      //Current selection.
-  AECHARINDEX ciCaret;  //Caret character index position.
-  DWORD dwType;         //See AETCT_* defines.
+  AESELECTION aes;       //Current selection.
+  AECHARINDEX ciCaret;   //Caret character index position.
+  DWORD dwType;          //See AETCT_* defines.
+  CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENTEXTCHANGE;
 
 typedef struct {
@@ -1431,9 +1484,10 @@ typedef struct {
 #define AEM_ISMATCHA              (WM_USER + 2018)
 #define AEM_ISMATCHW              (WM_USER + 2019)
 #define AEM_KEYDOWN               (WM_USER + 2020)
-#define AEM_DRAGDROP              (WM_USER + 2021)
+#define AEM_INSERTCHAR            (WM_USER + 2021)
 #define AEM_CHARAT                (WM_USER + 2022)
 #define AEM_INPUTLANGUAGE         (WM_USER + 2023)
+#define AEM_DRAGDROP              (WM_USER + 2024)
 
 //Undo and Redo
 #define AEM_CANUNDO               (WM_USER + 2051)
@@ -1518,10 +1572,8 @@ typedef struct {
 #define AEM_SETNEWLINE            (WM_USER + 2206)
 #define AEM_GETCOLORS             (WM_USER + 2207)
 #define AEM_SETCOLORS             (WM_USER + 2208)
-#define AEM_GETDETECTURL          (WM_USER + 2209)
-#define AEM_SETDETECTURL          (WM_USER + 2210)
-#define AEM_GETOVERTYPE           (WM_USER + 2211)
-#define AEM_SETOVERTYPE           (WM_USER + 2212)
+#define AEM_EXGETOPTIONS          (WM_USER + 2209)
+#define AEM_EXSETOPTIONS          (WM_USER + 2210)
 #define AEM_GETCARETWIDTH         (WM_USER + 2213)
 #define AEM_SETCARETWIDTH         (WM_USER + 2214)
 #define AEM_GETTABSTOP            (WM_USER + 2215)
@@ -1560,8 +1612,12 @@ typedef struct {
 #define AEM_UPDATESIZE            (WM_USER + 2354)
 #define AEM_LOCKUPDATE            (WM_USER + 2355)
 #define AEM_LOCKERASERECT         (WM_USER + 2356)
+#define AEM_GETERASERECT          (WM_USER + 2357)
+#define AEM_SETERASERECT          (WM_USER + 2358)
 #define AEM_HIDESELECTION         (WM_USER + 2361)
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
+#define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
+#define AEM_SETBACKGROUNDIMAGE    (WM_USER + 2367)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -1624,6 +1680,8 @@ typedef struct {
 #define AEM_HLADDMARKRANGE        (WM_USER + 2561)
 #define AEM_HLDELETEMARKRANGE     (WM_USER + 2562)
 #define AEM_HLGETHIGHLIGHT        (WM_USER + 2571)
+#define AEM_HLGETOPTIONS          (WM_USER + 2581)
+#define AEM_HLSETOPTIONS          (WM_USER + 2582)
 
 
 //// RichEdit messages
@@ -1794,7 +1852,7 @@ AEN_VSCROLL
 ___________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure before an edit control window scrolled horizontally.
+Sends to the parent window procedure before an edit control window scrolled vertically.
 
 (int)wParam         == specifies the control identifier.
 (AENSCROLL *)lParam == pointer to a AENSCROLL structure.
@@ -2549,7 +2607,7 @@ wParam                == not used.
 (AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -2580,7 +2638,7 @@ wParam                == not used.
 (AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -2608,7 +2666,7 @@ ____________
 Is ansi text matched with text at specified position.
 
 (AECHARINDEX *)wParam == position to check from.
-(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
+(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure. AEFINDTEXTA.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
@@ -2638,7 +2696,7 @@ ____________
 Is unicode text matched with text at specified position.
 
 (AECHARINDEX *)wParam == position to check from.
-(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
+(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure. AEFINDTEXTW.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
@@ -2665,36 +2723,36 @@ Example:
 AEM_KEYDOWN
 ___________
 
-Emulate key down pressing.
+Emulate special key down pressing. For example: VK_HOME, VK_DOWN, VK_INSERT, VK_BACK, etc.
 
 (int)wParam   == virtual-key code.
 (DWORD)lParam == see AEMOD_* defines.
 
 Return Value
- Zero.
+ TRUE  virtual-key is processed.
+ FALSE virtual-key not processed.
 
 Remarks
+ To emulate VK_RETURN key use WM_CHAR message.
  To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
 
 Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
 
 
-AEM_DRAGDROP
-____________
+AEM_INSERTCHAR
+______________
 
-Operations with current drag'n'drop.
+Insert character taking into account overtype mode and grouping undo.
 
-(DWORD)wParam == see AEDD_* defines.
-lParam        == not used.
+(wchar_t)wParam == unicode character.
+lParam          == not used.
 
 Return Value
- Value depended on the AEDD_* define.
+ Zero.
 
 Example:
- HWND hWndDragSource;
-
- hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
+ SendMessage(hWndEdit, AEM_INSERTCHAR, (WPARAM)L' ', 0);
 
 
 AEM_CHARAT
@@ -2737,6 +2795,23 @@ Return Value
 
 Example:
  HKL dwInputLocale=(HKL)SendMessage(hWndEdit, AEM_INPUTLANGUAGE, 0, 0);
+
+
+AEM_DRAGDROP
+____________
+
+Operations with current drag'n'drop.
+
+(DWORD)wParam == see AEDD_* defines.
+lParam        == not used.
+
+Return Value
+ Value depended on the AEDD_* define.
+
+Example:
+ HWND hWndDragSource;
+
+ hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
 
 
 AEM_CANUNDO
@@ -3947,7 +4022,7 @@ ______________
 Checks is point on URL.
 
 (POINT *)wParam       == coordinates of a point in the control's client area.
-(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if founded. Can be NULL.
+(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if found. Can be NULL.
 
 Return Value
  Detected URL length or zero if not found.
@@ -4107,7 +4182,7 @@ Set the options for an edit control.
 (DWORD)lParam == see AECO_* defines.
 
 Return Value
- Current option of edit control.
+ Current options of edit control.
 
 Example 1:
  SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLEDRAG|AECO_DISABLEDROP);
@@ -4205,68 +4280,34 @@ Example:
  SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aec);
 
 
-AEM_GETDETECTURL
+AEM_EXGETOPTIONS
 ________________
 
-Retrieve whether the URL detection is turned on.
+Retrieve edit control extended options.
 
 wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   URL detection is on.
- FALSE  URL detection is off.
+ Combination of the current extended option flag values. See AECOE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
+ SendMessage(hWndEdit, AEM_EXGETOPTIONS, 0, 0);
 
 
-AEM_SETDETECTURL
+AEM_EXSETOPTIONS
 ________________
 
-Enables or disables detection and highlighting of URLs by an edit control.
+Set the options for an edit control.
 
-(BOOL)wParam == TRUE   enable URL detection.
-                FALSE  disable URL detection.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
-
-
-AEM_GETOVERTYPE
-_______________
-
-Retrieve type mode.
-
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AECOE_* defines.
 
 Return Value
- TRUE   control is in overtype mode.
- FALSE  control is in insert mode.
+ Current extended options of edit control.
 
 Example:
- SendMessage(hWndEdit, AEM_GETOVERTYPE, 0, 0);
-
-
-AEM_SETOVERTYPE
-_______________
-
-Set type mode.
-
-(BOOL)wParam == TRUE   sets overtype mode.
-                FALSE  sets insert mode.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
+ SendMessage(hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_DETECTURL|AECOE_OVERTYPE);
 
 
 AEM_GETCARETWIDTH
@@ -4376,7 +4417,7 @@ Retrieve word break delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4410,7 +4451,7 @@ Retrieve word wrapping delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4444,7 +4485,7 @@ Retrieve URL left delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4478,7 +4519,7 @@ Retrieve URL right delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -4512,7 +4553,7 @@ Retrieve URL prefixes.
 (wchar_t *)lParam == pointer to a buffer that receives pairs of null-terminated prefixes strings. The last string terminated by two NULL characters.
 
 Return Value
- Zero.
+ Number of characters copied, including two NULL terminated characters.
 
 Example:
  wchar_t wszPrefixes[128];
@@ -4754,6 +4795,7 @@ Example:
  AECHARINDEX ciCaret;
  AECHARCOLORS aelc;
 
+ aelc.dwFlags=0;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
 
@@ -4866,6 +4908,41 @@ Example:
  }
 
 
+AEM_GETERASERECT
+________________
+
+Retrieve the erasing rectangle of an edit control. By default all edit area is erased.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
+
+Return Value
+ Zero.
+
+Example:
+ RECT rc;
+
+ SendMessage(hWndEdit, AEM_GETERASERECT, 0, (LPARAM)&rc);
+
+
+AEM_SETERASERECT
+________________
+
+Set the erasing rectangle of an edit control. The erasing rectangle is the limiting rectangle into which the control erase background.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the erasing rectangle is set to its default values.
+
+Return Value
+ Zero.
+
+Example (exclude 10 left pixels from erasing):
+ RECT rc;
+
+ rc.left=10;
+ SendMessage(hWndEdit, AEM_SETERASERECT, AERC_NOTOP|AERC_NORIGHT|AERC_NOBOTTOM, (LPARAM)&rc);
+
+
 AEM_HIDESELECTION
 _________________
 
@@ -4895,6 +4972,42 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_REDRAWLINERANGE, 10, (LPARAM)-1);
+
+
+AEM_GETBACKGROUNDIMAGE
+______________________
+
+Retrieve background image.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Image handle or NULL, if not set.
+
+Example:
+ HBITMAP hBitmap=(HBITMAP)SendMessage(hWndEdit, AEM_GETBACKGROUNDIMAGE, 0, 0);
+
+
+AEM_SETBACKGROUNDIMAGE
+______________________
+
+Set background image.
+
+(HBITMAP)wParam == image handle. If NULL, image removed from background.
+(int)lParam     == alpha transparency value that ranges from 0 to 255 (default is 128).
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+HBITMAP hBkImage;
+
+if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE))
+{
+  SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 128);
+}
 
 
 AEM_GETFOLDSTACK
@@ -6016,6 +6129,36 @@ Example:
    return 0;
  }
 
+
+AEM_HLGETOPTIONS
+________________
+
+Retrieve highlighting options.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Combination of the current option flag values. See AEHLO_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLGETOPTIONS, 0, 0);
+
+
+AEM_HLSETOPTIONS
+________________
+
+Set highlighting options.
+
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AEHLO_* defines.
+
+Return Value
+ Current options of highlighting.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLSETOPTIONS, AECOOP_OR, AEHLO_IGNOREFONTITALIC);
+
 */
 
 
@@ -6023,7 +6166,7 @@ Example:
 
 #ifndef UNICODE
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSA
-  #define AES_RICHEDITCLASS AES_RICHEDITCLASSA
+  #define AES_RICHEDIT20 AES_RICHEDIT20A
 
   #define TEXTRANGE64 TEXTRANGE64A
   #define FINDTEXTEX64 FINDTEXTEX64A
@@ -6052,7 +6195,7 @@ Example:
   #define AEM_HLADDMARKTEXT AEM_HLADDMARKTEXTA
 #else
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSW
-  #define AES_RICHEDITCLASS AES_RICHEDITCLASSW
+  #define AES_RICHEDIT20 AES_RICHEDIT20W
 
   #define TEXTRANGE64 TEXTRANGE64W
   #define FINDTEXTEX64 FINDTEXTEX64W
@@ -6089,13 +6232,20 @@ Example:
 #ifndef AEC_IsSurrogate
   #define AEC_IsSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)
 #endif
-
 #ifndef AEC_IsHighSurrogate
   #define AEC_IsHighSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)
 #endif
-
 #ifndef AEC_IsLowSurrogate
   #define AEC_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
+#endif
+#ifndef AEC_ScalarFromSurrogate
+  #define AEC_ScalarFromSurrogate(high, low)  ((((high) - 0xD800) * 0x400) + ((low) - 0xDC00) + 0x10000)
+#endif
+#ifndef AEC_HighSurrogateFromScalar
+  #define AEC_HighSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) / 0x400) + 0xD800))
+#endif
+#ifndef AEC_LowSurrogateFromScalar
+  #define AEC_LowSurrogateFromScalar(s)  ((wchar_t)((((s) - 0x10000) % 0x400) + 0xDC00))
 #endif
 
 #ifdef AEC_FUNCTIONS
@@ -6455,13 +6605,23 @@ Example:
 
   int AEC_CharAtIndex(const AECHARINDEX *ciChar)
   {
+    int nChar;
+
     if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
     {
       if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-        return ciChar->lpLine->next->wpLine[0];
+      {
+        nChar=ciChar->lpLine->next->wpLine[0];
+        if (AEC_IsHighSurrogate(nChar))
+          nChar=AEC_ScalarFromSurrogate(nChar, ciChar->lpLine->next->wpLine[1]);
+        return nChar;
+      }
       return -ciChar->lpLine->nLineBreak;
     }
-    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+    nChar=ciChar->lpLine->wpLine[ciChar->nCharInLine];
+    if (AEC_IsHighSurrogate(nChar))
+      nChar=AEC_ScalarFromSurrogate(nChar, ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]);
+    return nChar;
   }
 
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)
@@ -6481,6 +6641,20 @@ Example:
   BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar)
   {
     if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsFirstCharInFile(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0 && !ciChar->lpLine->prev)
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsLastCharInFile(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && !ciChar->lpLine->next)
       return TRUE;
     return FALSE;
   }
@@ -6552,6 +6726,8 @@ Example:
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
   BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
   BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
+  BOOL AEC_IsFirstCharInFile(const AECHARINDEX *ciChar);
+  BOOL AEC_IsLastCharInFile(const AECHARINDEX *ciChar);
   AEFOLD* AEC_NextFold(AEFOLD *lpFold, BOOL bRecursive);
   AEFOLD* AEC_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 #endif //AEC_FUNCTIONS
