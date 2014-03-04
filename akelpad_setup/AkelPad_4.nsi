@@ -568,24 +568,22 @@ Section
     ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
   ${ElseIf} $INSTTYPE == ${INSTTYPE_TOTALCMD}
     ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
-    StrCpy $TCINI "$TCDIR\Wincmd.ini"
-    ${IfNot} ${FileExists} "$TCINI"
-      SearchPath $TCINI "Wincmd.ini"
-      ${If} $TCINI == ''
-        goto RegInfo
+
+    Call GetTCINI
+    ${If} $TCINI == ''
+      goto RegInfo
+    ${EndIf}
+
+    ReadINIStr $0 "$TCINI" "Configuration" "Editor"
+    ${If} $0 != ''
+      ${GetFileName} "$0" $1
+      ${If} $1 != "Akelpad.exe"
+        WriteINIStr "$TCINI" "Configuration" "Editor_AkelUndo" "$0"
       ${EndIf}
     ${EndIf}
 
-    ReadINIStr $1 "$TCINI" "Configuration" "Editor"
-    ${If} $1 != ''
-      ${GetFileName} "$1" $2
-      ${If} $2 != "Akelpad.exe"
-        WriteINIStr "$TCINI" "Configuration" "Editor_AkelUndo" "$1"
-      ${EndIf}
-    ${EndIf}
-
-    ${WordReplace} "$SETUPDIR\AkelPad.exe" "$TCDIR" "%COMMANDER_PATH%" "+" $1
-    WriteINIStr "$TCINI" "Configuration" "Editor" "$1"
+    ${WordReplace} "$SETUPDIR\AkelPad.exe" "$TCDIR" "%COMMANDER_PATH%" "+" $0
+    WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     SearchPath $0 takeown.exe
     ${If} $0 != ''
@@ -896,26 +894,24 @@ Section un.install
     ${EndIf}
   ${EndIf}
   ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
-  StrCpy $TCINI "$TCDIR\Wincmd.ini"
-  ${IfNot} ${FileExists} "$TCINI"
-    SearchPath $TCINI "Wincmd.ini"
-    ${If} $TCINI == ''
-      goto DeleteFiles
-    ${EndIf}
+
+  Call un.GetTCINI
+  ${If} $TCINI == ''
+    goto DeleteFiles
   ${EndIf}
 
-  ReadINIStr $1 "$TCINI" "Configuration" "Editor"
-  ${If} $1 != ''
-    ${un.GetFileName} "$1" $2
-    ${If} $2 == "Akelpad.exe"
+  ReadINIStr $0 "$TCINI" "Configuration" "Editor"
+  ${If} $0 != ''
+    ${un.GetFileName} "$0" $1
+    ${If} $1 == "Akelpad.exe"
       DeleteINIStr "$TCINI" "Configuration" "Editor"
     ${Else}
       goto DeleteFiles
     ${EndIf}
   ${EndIf}
-  ReadINIStr $1 "$TCINI" "Configuration" "Editor_AkelUndo"
-  ${If} $1 != ''
-    WriteINIStr "$TCINI" "Configuration" "Editor" "$1"
+  ReadINIStr $0 "$TCINI" "Configuration" "Editor_AkelUndo"
+  ${If} $0 != ''
+    WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
     DeleteINIStr "$TCINI" "Configuration" "Editor_AkelUndo"
   ${EndIf}
   goto DeleteFiles
@@ -942,3 +938,50 @@ Function un.onGUIEnd
     MessageBox MB_ICONINFORMATION|MB_OK "$(UninstallSuccess)"
   ${EndIf}
 FunctionEnd
+
+;Shared functions
+!macro GetTCINI un
+  Function ${un}GetTCINI
+    ;Check in directory of the program
+    StrCpy $TCINI "$TCDIR\Wincmd.ini"
+    ${If} ${FileExists} "$TCINI"
+      ReadINIStr $0 "$TCINI" "Configuration" "UseIniInProgramDir"
+      IntOp $1 $0 & 0x1
+      ${If} $1 != 0
+        goto IniFound
+      ${EndIf}
+    ${EndIf}
+
+    ;Check in registry
+    ReadRegStr $TCINI HKCU "SOFTWARE\Ghisler\Total Commander" "IniFileName"
+    ${If} $TCINI != ''
+      goto IniFound
+    ${EndIf}
+    ReadRegStr $TCINI HKLM "SOFTWARE\Ghisler\Total Commander" "IniFileName"
+    ${If} $TCINI != ''
+      goto IniFound
+    ${EndIf}
+
+    ;Check in Application Data
+    StrCpy $TCINI "$APPDATA\GHISLER\Wincmd.ini"
+    ${If} ${FileExists} "$TCINI"
+      goto IniFound
+    ${EndIf}
+
+    ;Check in environment paths
+    SearchPath $TCINI "Wincmd.ini"
+    ${If} $TCINI == ''
+      Return
+    ${EndIf}
+
+    IniFound:
+    ;Check section redirection
+    ReadINIStr $0 "$TCINI" "Configuration" "RedirectSection"
+    ${If} $0 == '1'
+      ReadINIStr $TCINI "$TCINI" "Configuration" "AlternateUserIni"
+    ${EndIf}
+  FunctionEnd
+!macroend
+
+!insertmacro GetTCINI ""
+!insertmacro GetTCINI "un."
