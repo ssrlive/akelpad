@@ -1,10 +1,10 @@
 (*************************************************************************
 
 =========  AkelPad text editor plugin API ===========
-=========    Akel API version : 1.6.0.7   ===========
+=========    Akel API version : 1.9.0.1   ===========
 
 ** Origin: AkelDLL.h located at
-   http://akelpad.cvs.sourceforge.net/akelpad/akelpad_4/AkelFiles/Plugs/AkelDLL/AkelDLL.h
+   http://akelpad.cvs.sourceforge.net/viewvc/akelpad/akelpad_4/AkelFiles/Plugs/AkelDLL/AkelDLL.h
 ** Converted with C to Pascal Converter 2.0
 ** Release: 2.20.11.2011
 ** Email: al_gun@ncable.net.au
@@ -15,6 +15,7 @@
 ===========           Edited by Fr0sT           ===========
 = Tested on RAD Studio 2010 but compiles on D7 and should =
 = work on other versions also.                            =
+= All RegExp defines were excluded (they are in separate file RegExpFunc.h now)
 
 **************************************************************************)
 
@@ -31,7 +32,7 @@ function MakeIdentifier(a, b, c, d: ShortInt): DWORD;
 function AkelDLL: DWORD;
 {$EXTERNALSYM AkelDLL}
 
-const AkelDLLVer: array[1..4] of Byte = (1, 7, 0, 1);
+const AkelDLLVer: array[1..4] of Byte = (1, 9, 0, 1);
 {$EXTERNALSYM AkelDLLVer}
 
 //// Defines
@@ -83,6 +84,14 @@ const UD_NONUNLOAD_UNCHANGE = $4;  //Don't unload plugin and don't change active
 {$EXTERNALSYM UD_NONUNLOAD_UNCHANGE}
 const UD_HOTKEY_DODEFAULT = $8;  //Do default hotkey processing.
 {$EXTERNALSYM UD_HOTKEY_DODEFAULT}
+
+//Hotkey owner
+const HKO_NONE = 0;  //Hotkey is not assigned.
+{$EXTERNALSYM HKO_NONE}
+const HKO_PLUGINFUNCTION = 1;  //Hotkey assigned to plugin function.
+{$EXTERNALSYM HKO_PLUGINFUNCTION}
+const HKO_HOTKEYSPLUGIN = 2;  //Hotkey assigned to Hotkeys plugin command.
+{$EXTERNALSYM HKO_HOTKEYSPLUGIN}
 
 //Command line options
 const CLO_NONOTEPADCMD = $01;  //Don't use MS Notepad compatibility mode when parse command line parameters.
@@ -344,8 +353,6 @@ const MI_STATUSPOSTYPE = 111;  //Return: "StatusPosType" cType, see SPT_ * defin
 {$EXTERNALSYM MI_STATUSPOSTYPE}
 const MI_STATUSUSERFORMAT = 112;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
 {$EXTERNALSYM MI_STATUSUSERFORMAT}
-const MI_STATUSUSERFLAGS = 113;  //Reserved.
-{$EXTERNALSYM MI_STATUSUSERFLAGS}
 const MI_WORDBREAKCUSTOM = 117;  //Return: "WordBreak" flags.
 {$EXTERNALSYM MI_WORDBREAKCUSTOM}
 const MI_PAINTOPTIONS = 121;  //Return: "PaintOptions" flags, see PAINT_ * defines.
@@ -360,6 +367,8 @@ const MI_DATEINSERTFORMAT = 130;  //Return: copied chars. (wchar_t *)lParam - bu
 {$EXTERNALSYM MI_DATEINSERTFORMAT}
 const MI_AKELUPDATEROPTIONS = 131;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
 {$EXTERNALSYM MI_AKELUPDATEROPTIONS}
+const MI_URLCOMMAND = 132;  //Return: copied chars. (wchar_t *)lParam - buffer that receives "UrlCommand" string.
+{$EXTERNALSYM MI_URLCOMMAND}
 
 //Menu
 const MI_ONTOP = 141;  //Return: always on top (on\off).
@@ -390,8 +399,12 @@ const MI_DEFAULTCODEPAGE = 177;  //Return: default codepage.
 {$EXTERNALSYM MI_DEFAULTCODEPAGE}
 const MI_DEFAULTBOM = 178;  //Return: default BOM.
 {$EXTERNALSYM MI_DEFAULTBOM}
-const MI_DEFAULTNEWLINE = 179;  //Return: default new line, see NEWLINE_ * defines.
-{$EXTERNALSYM MI_DEFAULTNEWLINE}
+const MI_NEWFILECODEPAGE = 179;  //Return: new file codepage.
+{$EXTERNALSYM MI_NEWFILECODEPAGE}
+const MI_NEWFILEBOM = 180;  //Return: new file BOM.
+{$EXTERNALSYM MI_NEWFILEBOM}
+const MI_NEWFILENEWLINE = 181;  //Return: new file new line, see NEWLINE_* defines.
+{$EXTERNALSYM MI_NEWFILENEWLINE}
 const MI_LANGCODEPAGERECOGNITION = 183;  //Return: codepage recognition language defined as LANGID.
 {$EXTERNALSYM MI_LANGCODEPAGERECOGNITION}
 const MI_CODEPAGERECOGNITIONBUFFER = 184;  //Return: size of codepage recognition buffer.
@@ -422,7 +435,7 @@ const MI_SAVEINREADONLYMSG = 221;  //Return: save in read-only files warning (on
 {$EXTERNALSYM MI_SAVEINREADONLYMSG}
 const MI_DEFAULTSAVEEXT = 224;  //Return: copied chars. (wchar_t *)lParam - buffer that receives default saving extension string.
 {$EXTERNALSYM MI_DEFAULTSAVEEXT}
-const MI_SEARCHOPTIONS = 228;  //Return: search options, see AEFR_ * defines.
+const MI_SEARCHOPTIONS = 228;  //Return: search options, see FRF_ * defines.
 {$EXTERNALSYM MI_SEARCHOPTIONS}
 
 //Print dialog
@@ -448,6 +461,134 @@ const MI_LASTDIR = 281;  //Return: copied chars. (wchar_t *)lParam - buffer that
 {$EXTERNALSYM MI_LASTDIR}
 const MI_SHOWPLACESBAR = 282;  //Return: show places bar in open dialog (on\off).
 {$EXTERNALSYM MI_SHOWPLACESBAR}
+
+
+//AKD_SETMAININFO type
+
+//PLUGINDATA
+const MIS_SAVESETTINGS = 5;   //(int)lParam - see SS_* defines.
+{$EXTERNALSYM MIS_SAVESETTINGS}
+const MIS_MDI = 45;  //(int)lParam - window mode, see WMD_* defines. Required program restart.
+{$EXTERNALSYM MIS_MDI}
+const MIS_LANGMODULEA = 51;  //(char *)lParam - language module string. Required program restart.
+{$EXTERNALSYM MIS_LANGMODULEA}
+const MIS_LANGMODULEW = 52;  //(wchar_t *)lParam - language module string. Required program restart.
+{$EXTERNALSYM MIS_LANGMODULEW}
+//Manual
+const MIS_CMDLINEBEGIN = 105; //(wchar_t *)lParam - "CmdLineBegin" string.
+{$EXTERNALSYM MIS_CMDLINEBEGIN}
+const MIS_CMDLINEEND = 106; //(wchar_t *)lParam - "CmdLineEnd" string.
+{$EXTERNALSYM MIS_CMDLINEEND}
+const MIS_SHOWMODIFY = 110; //(DWORD)lParam - "ShowModify" flags, see SM_* defines.
+{$EXTERNALSYM MIS_SHOWMODIFY}
+const MIS_STATUSPOSTYPE = 111; //(DWORD)lParam - "StatusPosType" type, see SPT_* defines.
+{$EXTERNALSYM MIS_STATUSPOSTYPE}
+const MIS_STATUSUSERFORMAT = 112; //(wchar_t *)lParam - "StatusUserFormat" string.
+{$EXTERNALSYM MIS_STATUSUSERFORMAT}
+const MIS_WORDBREAKCUSTOM = 117; //(DWORD)lParam - "WordBreak" flags.
+{$EXTERNALSYM MIS_WORDBREAKCUSTOM}
+const MIS_PAINTOPTIONS = 121; //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines.
+{$EXTERNALSYM MIS_PAINTOPTIONS}
+const MIS_RICHEDITCLASS = 125; //(BOOL)lParam - "RichEditClass" type.
+{$EXTERNALSYM MIS_RICHEDITCLASS}
+const MIS_AKELADMINRESIDENT = 126; //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
+{$EXTERNALSYM MIS_AKELADMINRESIDENT}
+const MIS_DATELOGFORMAT = 129; //(wchar_t *)lParam - "DateLogFormat" string.
+{$EXTERNALSYM MIS_DATELOGFORMAT}
+const MIS_DATEINSERTFORMAT = 130; //(wchar_t *)lParam - "DateInsertFormat" string.
+{$EXTERNALSYM MIS_DATEINSERTFORMAT}
+const MIS_AKELUPDATEROPTIONS = 131; //(wchar_t *)lParam - "AkelUpdaterOptions" string.
+{$EXTERNALSYM MIS_AKELUPDATEROPTIONS}
+const MIS_URLCOMMAND = 132; //(wchar_t *)lParam - "UrlCommand" string.
+{$EXTERNALSYM MIS_URLCOMMAND}
+//Menu
+const MIS_ONTOP = 141; //(BOOL)lParam - always on top (on\off).
+{$EXTERNALSYM MIS_ONTOP}
+const MIS_STATUSBAR = 142; //(BOOL)lParam - show statusbar (on\off).
+{$EXTERNALSYM MIS_STATUSBAR}
+const MIS_KEEPSPACE = 146; //(BOOL)lParam - keep left space (on\off).
+{$EXTERNALSYM MIS_KEEPSPACE}
+const MIS_WATCHFILE = 147; //(BOOL)lParam - watch file change (on\off).
+{$EXTERNALSYM MIS_WATCHFILE}
+const MIS_SAVETIME = 148; //(BOOL)lParam - save original file time (on\off).
+{$EXTERNALSYM MIS_SAVETIME}
+const MIS_SINGLEOPENFILE = 152; //(BOOL)lParam - single open file (on\off).
+{$EXTERNALSYM MIS_SINGLEOPENFILE}
+const MIS_SINGLEOPENPROGRAM = 153; //(BOOL)lParam - single open program (on\off).
+{$EXTERNALSYM MIS_SINGLEOPENPROGRAM}
+const MIS_TABOPTIONSMDI = 157; //(DWORD)lParam - tab flags, see TAB_* defines.
+{$EXTERNALSYM MIS_TABOPTIONSMDI}
+//Settings dialog
+const MIS_EXECUTECOMMAND = 171; //(wchar_t *)lParam - execution command string.
+{$EXTERNALSYM MIS_EXECUTECOMMAND}
+const MIS_EXECUTEDIRECTORY = 172; //(wchar_t *)lParam - execution directory string.
+{$EXTERNALSYM MIS_EXECUTEDIRECTORY}
+const MIS_CODEPAGELIST = 176; //(int *)lParam - array of codepages, last element in array is zero.
+{$EXTERNALSYM MIS_CODEPAGELIST}
+const MIS_DEFAULTCODEPAGE = 177; //(int)lParam - default codepage.
+{$EXTERNALSYM MIS_DEFAULTCODEPAGE}
+const MIS_DEFAULTBOM = 178; //(BOOL)lParam - default BOM.
+{$EXTERNALSYM MIS_DEFAULTBOM}
+const MIS_NEWFILECODEPAGE = 179; //(int)lParam - new file codepage.
+{$EXTERNALSYM MIS_NEWFILECODEPAGE}
+const MIS_NEWFILEBOM = 180; //(BOOL)lParam - new file BOM.
+{$EXTERNALSYM MIS_NEWFILEBOM}
+const MIS_NEWFILENEWLINE = 181; //(int)lParam - new file new line, see NEWLINE_* defines.
+{$EXTERNALSYM MIS_NEWFILENEWLINE}
+const MIS_LANGCODEPAGERECOGNITION = 183; //(DWORD)lParam - codepage recognition language defined as LANGID.
+{$EXTERNALSYM MIS_LANGCODEPAGERECOGNITION}
+const MIS_CODEPAGERECOGNITIONBUFFER = 184; //(DWORD)lParam - size of codepage recognition buffer.
+{$EXTERNALSYM MIS_CODEPAGERECOGNITIONBUFFER}
+const MIS_SAVEPOSITIONS = 192; //(BOOL)lParam - save recent file positions (on\off).
+{$EXTERNALSYM MIS_SAVEPOSITIONS}
+const MIS_SAVECODEPAGES = 193; //(BOOL)lParam - save recent file codepages (on\off).
+{$EXTERNALSYM MIS_SAVECODEPAGES}
+const MIS_RECENTFILES = 194; //(int)lParam - number of recent files.
+{$EXTERNALSYM MIS_RECENTFILES}
+const MIS_SEARCHSTRINGS = 198; //(int)lParam - number of search strings.
+{$EXTERNALSYM MIS_SEARCHSTRINGS}
+const MIS_FILETYPESOPEN = 202; //(wchar_t *)lParam - associated file types to open.
+{$EXTERNALSYM MIS_FILETYPESOPEN}
+const MIS_FILETYPESEDIT = 203; //(wchar_t *)lParam - associated file types to edit.
+{$EXTERNALSYM MIS_FILETYPESEDIT}
+const MIS_FILETYPESPRINT = 204; //(wchar_t *)lParam - associated file types to print.
+{$EXTERNALSYM MIS_FILETYPESPRINT}
+const MIS_FILETYPESASSOCIATED = 205; //(DWORD)lParam - associated file types, see FTA_* defines.
+{$EXTERNALSYM MIS_FILETYPESASSOCIATED}
+const MIS_KEYBLAYOUTOPTIONS = 209; //(DWORD)lParam - keyboard layout options, see KLO_* defines.
+{$EXTERNALSYM MIS_KEYBLAYOUTOPTIONS}
+const MIS_SILENTCLOSEEMPTYMDI = 213; //(BOOL)lParam - silently close unsaved empty MDI tab (on\off).
+{$EXTERNALSYM MIS_SILENTCLOSEEMPTYMDI}
+const MIS_DATELOG = 217; //(BOOL)lParam - insert date if file has .LOG at the beginning (on\off).
+{$EXTERNALSYM MIS_DATELOG}
+const MIS_SAVEINREADONLYMSG = 221; //(BOOL)lParam - save in read-only files warning (on\off).
+{$EXTERNALSYM MIS_SAVEINREADONLYMSG}
+const MIS_DEFAULTSAVEEXT = 224; //(wchar_t *)lParam - default saving extension string.
+{$EXTERNALSYM MIS_DEFAULTSAVEEXT}
+const MIS_SEARCHOPTIONS = 228; //(DWORD)lParam - search options, see FRF_* defines.
+{$EXTERNALSYM MIS_SEARCHOPTIONS}
+//Print dialog
+const MIS_PRINTMARGINS = 251; //(RECT *)lParam - print margins.
+{$EXTERNALSYM MIS_PRINTMARGINS}
+const MIS_PRINTCOLOR = 255; //(DWORD)lParam - color printing, see PRNC_* defines.
+{$EXTERNALSYM MIS_PRINTCOLOR}
+const MIS_PRINTHEADERENABLE = 259; //(BOOL)lParam - enable print header (on\off).
+{$EXTERNALSYM MIS_PRINTHEADERENABLE}
+const MIS_PRINTHEADER = 260; //(wchar_t *)lParam - print header string.
+{$EXTERNALSYM MIS_PRINTHEADER}
+const MIS_PRINTFOOTERENABLE = 261; //(BOOL)lParam - enable print footer (on\off).
+{$EXTERNALSYM MIS_PRINTFOOTERENABLE}
+const MIS_PRINTFOOTER = 262; //(wchar_t *)lParam - print footer string.
+{$EXTERNALSYM MIS_PRINTFOOTER}
+const MIS_PRINTFONTENABLE = 266; //(BOOL)lParam - enable print font (on\off).
+{$EXTERNALSYM MIS_PRINTFONTENABLE}
+const MIS_PRINTFONTW = 267; //(LOGFONTW *)lParam - print font data.
+{$EXTERNALSYM MIS_PRINTFONTW}
+//Open dialog
+const MIS_LASTDIR = 281; //(wchar_t *)lParam - last directory of open dialog.
+{$EXTERNALSYM MIS_LASTDIR}
+const MIS_SHOWPLACESBAR = 282; //(BOOL)lParam - show places bar in open dialog (on\off).
+{$EXTERNALSYM MIS_SHOWPLACESBAR}
 
 //AKD_GETFRAMEINFO type. See FRAMEDATA members description.
 const FI_WNDEDITPARENT = 1;
@@ -566,6 +707,10 @@ const FI_FILETIME = 133;
 {$EXTERNALSYM FI_FILETIME}
 const FI_COLORS = 137;
 {$EXTERNALSYM FI_COLORS}
+const FI_BKIMAGEFILE = 140;
+{$EXTERNALSYM FI_BKIMAGEFILE}
+const FI_BKIMAGEALPHA = 141;
+{$EXTERNALSYM FI_BKIMAGEALPHA}
 
 //AKD_SETFRAMEINFO type.
 const FIS_TABSTOPSIZE = 1;   //(int)FRAMEINFO.dwData - tabulation size in characters.
@@ -620,6 +765,8 @@ const FIS_LOCKINHERIT = 68;  //(DWORD)FRAMEINFO.dwData - lock inherit new docume
 {$EXTERNALSYM FIS_LOCKINHERIT}
 const FIS_COLORS = 72;  //(AECOLORS *)FRAMEINFO.dwData - set colors.
 {$EXTERNALSYM FIS_COLORS}
+const FIS_BKIMAGE = 73;  //(BKIMAGE *)FRAMEINFO.dwData - set background image.
+{$EXTERNALSYM FIS_BKIMAGE}
 
 //New line format
 const NEWLINE_WIN = 1;  //Windows/DOS new line format (\r\n).
@@ -658,6 +805,10 @@ const MO_RCLICKMOVECARET = $00000008;  //WM_RBUTTONDOWN message moves caret to a
 {$EXTERNALSYM MO_RCLICKMOVECARET}
 const MO_NONEWLINEMOUSESELECT = $00000010;  //Triple click and left margin click selects only line contents without new line.
 {$EXTERNALSYM MO_NONEWLINEMOUSESELECT}
+const MO_NOWHEELFONTCHANGE = $00000020;  //Don't change font size with middle button scroll and Ctrl key.
+{$EXTERNALSYM MO_NOWHEELFONTCHANGE}
+const MO_MARGINSELUNWRAPLINE = $00000040;  //Left margin line selection with mouse selects all wrapped line.
+{$EXTERNALSYM MO_MARGINSELUNWRAPLINE}
 
 //Keyboard layout options
 const KLO_REMEMBERLAYOUT = $00000001;  //Remember keyboard layout for each tab (MDI).
@@ -716,31 +867,31 @@ const SBP_USER = 5;
 {$EXTERNALSYM SBP_USER}
 
 //Tab options MDI
-const TAB_VIEW_NONE = $00000001;
+const TAB_VIEW_NONE = $00000001;                //Hide tab bar.
 {$EXTERNALSYM TAB_VIEW_NONE}
-const TAB_VIEW_TOP = $00000002;
+const TAB_VIEW_TOP = $00000002;                 //Show tab bar on top.
 {$EXTERNALSYM TAB_VIEW_TOP}
-const TAB_VIEW_BOTTOM = $00000004;
+const TAB_VIEW_BOTTOM = $00000004;              //Show tab bar at the bottom.
 {$EXTERNALSYM TAB_VIEW_BOTTOM}
-const TAB_TYPE_STANDARD = $00000100;
+const TAB_TYPE_STANDARD = $00000100;            //Standard tab bar style.
 {$EXTERNALSYM TAB_TYPE_STANDARD}
-const TAB_TYPE_BUTTONS = $00000200;
+const TAB_TYPE_BUTTONS = $00000200;             //Buttons tab bar style.
 {$EXTERNALSYM TAB_TYPE_BUTTONS}
-const TAB_TYPE_FLATBUTTONS = $00000400;
+const TAB_TYPE_FLATBUTTONS = $00000400;         //Flat buttons tab bar style.
 {$EXTERNALSYM TAB_TYPE_FLATBUTTONS}
-const TAB_SWITCH_NEXTPREV = $00010000;
+const TAB_SWITCH_NEXTPREV = $00010000;          //Switch between tabs: Next-Previous.
 {$EXTERNALSYM TAB_SWITCH_NEXTPREV}
-const TAB_SWITCH_RIGHTLEFT = $00020000;
+const TAB_SWITCH_RIGHTLEFT = $00020000;         //Switch between tabs: Left-Right.
 {$EXTERNALSYM TAB_SWITCH_RIGHTLEFT}
-const TAB_ADD_AFTERCURRENT = $00080000;
+const TAB_ADD_AFTERCURRENT = $00080000;         //Create tabs after the current one.
 {$EXTERNALSYM TAB_ADD_AFTERCURRENT}
-const TAB_NOADD_LBUTTONDBLCLK = $00100000;
+const TAB_NOADD_LBUTTONDBLCLK = $00100000;      //Don't create new tab by left button double click on the tab bar.
 {$EXTERNALSYM TAB_NOADD_LBUTTONDBLCLK}
-const TAB_NOADD_MBUTTONDOWN = $00200000;
+const TAB_NOADD_MBUTTONDOWN = $00200000;        //Don't create new tab by middle button click on the tab bar.
 {$EXTERNALSYM TAB_NOADD_MBUTTONDOWN}
-const TAB_NODEL_LBUTTONDBLCLK = $00400000;
+const TAB_NODEL_LBUTTONDBLCLK = $00400000;      //Don't close tab by left button double click on the tab.
 {$EXTERNALSYM TAB_NODEL_LBUTTONDBLCLK}
-const TAB_NODEL_MBUTTONDOWN = $00800000;
+const TAB_NODEL_MBUTTONDOWN = $00800000;        //Don't close tab by middle button click on the tab.
 {$EXTERNALSYM TAB_NODEL_MBUTTONDOWN}
 
 //File types association
@@ -762,37 +913,6 @@ const PRNC_BACKGROUND = $02;  //Print on colored background.
 {$EXTERNALSYM PRNC_BACKGROUND}
 const PRNC_SELECTION = $04;  //Print text selection.
 {$EXTERNALSYM PRNC_SELECTION}
-
-//Search options
-//#define AEFR_DOWN               0x00000001
-//#define AEFR_WHOLEWORD          0x00000002
-//#define AEFR_MATCHCASE          0x00000004
-const AEFR_REGEXP = $00080000;
-{$EXTERNALSYM AEFR_REGEXP}
-const AEFR_UP = $00100000;
-{$EXTERNALSYM AEFR_UP}
-const AEFR_BEGINNING = $00200000;
-{$EXTERNALSYM AEFR_BEGINNING}
-const AEFR_SELECTION = $00400000;
-{$EXTERNALSYM AEFR_SELECTION}
-const AEFR_ESCAPESEQ = $00800000;
-{$EXTERNALSYM AEFR_ESCAPESEQ}
-const AEFR_ALLFILES = $01000000;
-{$EXTERNALSYM AEFR_ALLFILES}
-//Find/Replace dialog options
-const AEFR_REPLACEALLANDCLOSE = $02000000;
-{$EXTERNALSYM AEFR_REPLACEALLANDCLOSE}
-const AEFR_CHECKINSELIFSEL = $04000000;
-{$EXTERNALSYM AEFR_CHECKINSELIFSEL}
-const AEFR_CYCLESEARCH = $08000000;
-{$EXTERNALSYM AEFR_CYCLESEARCH}
-const AEFR_CYCLESEARCHPROMPT = $10000000;
-{$EXTERNALSYM AEFR_CYCLESEARCHPROMPT}
-//StrReplace options
-const AEFR_WHOLEWORDGOODSTART = $40000000;
-{$EXTERNALSYM AEFR_WHOLEWORDGOODSTART}
-const AEFR_WHOLEWORDGOODEND = $80000000;
-{$EXTERNALSYM AEFR_WHOLEWORDGOODEND}
 
 //Main menu
 const MENU_FILE_POSITION = 0;
@@ -939,9 +1059,9 @@ const FWF_BYINDEX = 4;  //Retrieve frame data by index in frame stack. lParam is
 const FWF_BYFILENAME = 5;     //Retrieve frame data by full cFile name. lParam is full cFile name string.
 {$EXTERNALSYM FWF_BYFILENAME} // For AKD_FRAMEFINDA string is ansi.
                               // For AKD_FRAMEFINDW string is unicode.
-const FWF_BYEDITWINDOW = 6;  //Retrieve frame data by edit window handle. lParam is edit window handle.
+const FWF_BYEDITWINDOW = 6;  //Retrieve frame data by edit window handle. lParam is edit window handle or NULL for current edit window handle.
 {$EXTERNALSYM FWF_BYEDITWINDOW}
-const FWF_BYEDITDOCUMENT = 7;  //Retrieve frame data by edit document handle. lParam is edit document handle.
+const FWF_BYEDITDOCUMENT = 7;  //Retrieve frame data by edit document handle. lParam is edit document handle or NULL for current edit document handle.
 {$EXTERNALSYM FWF_BYEDITDOCUMENT}
 const FWF_BYTABINDEX = 8;  //Retrieve frame data by tab item index. lParam is tab item index.
 {$EXTERNALSYM FWF_BYTABINDEX}
@@ -991,26 +1111,47 @@ const LI_FONT = $00000001;  //Lock inherit font.
 {$EXTERNALSYM LI_FONT}
 const LI_COLORS = $00000002;  //Lock inherit colors.
 {$EXTERNALSYM LI_COLORS}
-const LI_WRAP = $00000004;  //Lock inherit wrapping.
+const LI_BKIMAGE = $00000004;  //Lock inherit background image.
+{$EXTERNALSYM LI_BKIMAGE}
+const LI_WRAP = $00000008;  //Lock inherit wrapping.
 {$EXTERNALSYM LI_WRAP}
 
-//Find text flags
-const FR_DOWN = $00000001;  //Find down.
-{$EXTERNALSYM FR_DOWN}
-const FR_MATCHCASE = $00000004;  //Search is -sensitive.
-{$EXTERNALSYM FR_MATCHCASE}
-const FR_UP = $00100000;  //Find up.
-{$EXTERNALSYM FR_UP}
-const FR_BEGINNING = $00200000;  //Search from beginning (usage: FR_DOWN|FR_BEGINNING).
-{$EXTERNALSYM FR_BEGINNING}
-const FR_SELECTION = $00400000;  //Search in selection (usage: FR_DOWN|FR_SELECTION).
-{$EXTERNALSYM FR_SELECTION}
-const FR_ESCAPESEQ = $00800000;  //Search with escape sequences.
-{$EXTERNALSYM FR_ESCAPESEQ}
-const FR_ALLFILES = $01000000;  //Search in all opened MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES).
-{$EXTERNALSYM FR_ALLFILES}
-const FR_CYCLESEARCH = $08000000;  //Cycle search.
-{$EXTERNALSYM FR_CYCLESEARCH}
+//Find/Replace flags
+const FRF_DOWN = $00000001;  //Same as AEFR_DOWN.
+{$EXTERNALSYM FRF_DOWN}
+const FRF_WHOLEWORD = $00000002;  //Same as AEFR_WHOLEWORD.
+{$EXTERNALSYM FRF_WHOLEWORD}
+const FRF_MATCHCASE = $00000004;  //Same as AEFR_MATCHCASE.
+{$EXTERNALSYM FRF_MATCHCASE}
+const FRF_REGEXPNONEWLINEDOT = $00040000;  //Symbol . specifies any character except new line. Uses with FRF_REGEXP.
+{$EXTERNALSYM FRF_REGEXPNONEWLINEDOT}
+const FRF_REGEXP = $00080000;  //Same as AEFR_REGEXP.
+{$EXTERNALSYM FRF_REGEXP}
+const FRF_UP = $00100000;
+{$EXTERNALSYM FRF_UP}
+const FRF_BEGINNING = $00200000;
+{$EXTERNALSYM FRF_BEGINNING}
+const FRF_SELECTION = $00400000;
+{$EXTERNALSYM FRF_SELECTION}
+const FRF_ESCAPESEQ = $00800000;
+{$EXTERNALSYM FRF_ESCAPESEQ}
+const FRF_ALLFILES = $01000000;
+{$EXTERNALSYM FRF_ALLFILES}
+const FRF_REPLACEALLANDCLOSE = $02000000;
+{$EXTERNALSYM FRF_REPLACEALLANDCLOSE}
+const FRF_CHECKINSELIFSEL = $04000000;
+{$EXTERNALSYM FRF_CHECKINSELIFSEL}
+const FRF_CYCLESEARCH = $08000000;
+{$EXTERNALSYM FRF_CYCLESEARCH}
+const FRF_CYCLESEARCHPROMPT = $10000000;
+{$EXTERNALSYM FRF_CYCLESEARCHPROMPT}
+const FRF_FINDFROMREPLACE = $20000000;
+{$EXTERNALSYM FRF_FINDFROMREPLACE}
+const FRF_WHOLEWORDGOODSTART = $40000000;
+{$EXTERNALSYM FRF_WHOLEWORDGOODSTART}
+const FRF_WHOLEWORDGOODEND = $80000000;
+{$EXTERNALSYM FRF_WHOLEWORDGOODEND}
+
 
 //AKD_PASTE
 const PASTE_ANSI = $00000001;  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
@@ -1025,54 +1166,6 @@ const PASTE_SINGLELINE = $00002000;  //Paste multiline text to single line edit 
 //AKD_RECODESEL flags
 const RCS_DETECTONLY = $00000001;  //Don't do text replacement, only detect codepages.
 {$EXTERNALSYM RCS_DETECTONLY}
-
-//STACKREGROUP options
-const REO_MATCHCASE = $1;
-{$EXTERNALSYM REO_MATCHCASE}
-
-//REGROUP flags
-const REGF_ROOTANY = $01;
-{$EXTERNALSYM REGF_ROOTANY}
-const REGF_ANY = $02;
-{$EXTERNALSYM REGF_ANY}
-const REGF_AFTERANY = $04;
-{$EXTERNALSYM REGF_AFTERANY}
-const REGF_OR = $08;
-{$EXTERNALSYM REGF_OR}
-const REGF_POSITIVE = $10;
-{$EXTERNALSYM REGF_POSITIVE}
-const REGF_NEGATIVE = $20;
-{$EXTERNALSYM REGF_NEGATIVE}
-
-//PatCharCmp return value
-const RECC_EQUAL = $01;
-{$EXTERNALSYM RECC_EQUAL}
-const RECC_DIF = $02;
-{$EXTERNALSYM RECC_DIF}
-const RECC_MIX = $04;
-{$EXTERNALSYM RECC_MIX}
-const RECC_WORD = $08;
-{$EXTERNALSYM RECC_WORD}
-const RECC_REF = $10;
-{$EXTERNALSYM RECC_REF}
-
-//AKD_PATEXEC options
-const REPE_MATCHCASE = $1; //Case-sensitive search.
-{$EXTERNALSYM REPE_MATCHCASE}
-const REPE_GLOBAL = $2; //Search all possible occurrences.
-{$EXTERNALSYM REPE_GLOBAL}
-const REPE_BEGIN = $4; //Force first occurrence located at the beginning of the string.
-{$EXTERNALSYM REPE_BEGIN}
-const REPE_MULTILINE = $8; //Search line by line.
-{$EXTERNALSYM REPE_MULTILINE}
-
-//AKD_PATEXEC callback return value
-const REPEC_CONTINUE = 0;
-{$EXTERNALSYM REPEC_CONTINUE}
-const REPEC_STOPEXEC = -1;
-{$EXTERNALSYM REPEC_STOPEXEC}
-const REPEC_NEXTMATCH = -2;
-{$EXTERNALSYM REPEC_NEXTMATCH}
 
 //AKD_GETMODELESS types
 const MLT_NONE = 0; //No registered modeless dialog open.
@@ -1193,23 +1286,6 @@ const IMENU_EDIT = $00000001;
 {$EXTERNALSYM IMENU_EDIT}
 const IMENU_CHECKS = $00000004;
 {$EXTERNALSYM IMENU_CHECKS}
-
-//GetWindowLongPtr/SetWindowLongPtr
-const DWLP_MSGRESULT = 0;
-{$EXTERNALSYM DWLP_MSGRESULT}
-// Fr0sT: these constants are already defined in Windows.pas starting from D2009
-{$IF CompilerVersion < 20}
-  const GWLP_WNDPROC = -4;
-  {$EXTERNALSYM GWLP_WNDPROC}
-  const GWLP_HINSTANCE = -6;
-  {$EXTERNALSYM GWLP_HINSTANCE}
-  const GWLP_HWNDPARENT = -8;
-  {$EXTERNALSYM GWLP_HWNDPARENT}
-  const GWLP_ID = -12;
-  {$EXTERNALSYM GWLP_ID}
-  const GWLP_USERDATA = -21;
-  {$EXTERNALSYM GWLP_USERDATA}
-{$IFEND}
 
 ////
 type
@@ -1371,6 +1447,7 @@ type
     bRunning: BOOL;                 //Function is running.
     PluginProc: TPLUGINPROC;        //Function procedure.
     lpParameter: Pointer;           //Procedure parameter.
+    nRefCount: Integer;             //Internal.
   end;
   TPLUGINFUNCTION = _PLUGINFUNCTION;
   {$EXTERNALSYM _PLUGINFUNCTION}
@@ -1381,6 +1458,8 @@ type
     cb: DWORD;                         //Size of the structure.
     dwSupport: DWORD;                  //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
     pFunction: PBYTE;                  //Called cFunction name, format "Plugin::cFunction".
+                                       //  const char *pFunction     if bOldWindows == TRUE
+                                       //  const wchar_t *pFunction  if bOldWindows == FALSE
     szFunction: PAnsiChar;             //Called cFunction name (Ansi).
     wszFunction: PWideChar;            //Called cFunction name (Unicode).
     hInstanceDLL: HINST;               //DLL instance.
@@ -1388,8 +1467,12 @@ type
     nUnload: Integer;                  //See UD_* defines.
     bInMemory: BOOL;                   //Plugin already loaded.
     bOnStart: BOOL;                    //Indicates when function has been called:
+                                       //  TRUE  if function called on start-up.
+                                       //  FALSE if function called manually.
     lParam: LPARAM;                    //Input data.
     pAkelDir: PBYTE;                   //AkelPad directory.
+                                       //  const char *pAkelDir      if bOldWindows == TRUE
+                                       //  const wchar_t *pAkelDir   if bOldWindows == FALSE
     szAkelDir: PAnsiChar;              //AkelPad directory (Ansi).
     wszAkelDir: PWideChar;             //AkelPad directory (Unicode).
     hInstanceEXE: HINST;               //EXE instance.
@@ -1414,6 +1497,8 @@ type
     bAkelEdit: BOOL;                   //AkelEdit control is used.
     nMDI: Integer;                     //Window mode, see WMD_* defines.
     pLangModule: PBYTE;                //Language module.
+                                       //  const char *pLangModule      if bOldWindows == TRUE
+                                       //  const wchar_t *pLangModule   if bOldWindows == FALSE
     szLangModule: PAnsiChar;           //Language module (Ansi).
     wszLangModule: PWideChar;          //Language module (Unicode).
     wLangSystem: LANGID;               //System language ID.
@@ -1593,6 +1678,26 @@ type
 
 
 type
+  PRECENTCARETITEM = ^TRECENTCARETITEM;
+  _RECENTCARETITEM = record
+    next: PRECENTCARETITEM;
+    prev: PRECENTCARETITEM;
+    nCaretOffset: INT_PTR;
+  end;
+  TRECENTCARETITEM = _RECENTCARETITEM;
+  {$EXTERNALSYM _RECENTCARETITEM}
+
+
+type
+  _STACKRECENTCARET = record
+    first: PRECENTCARETITEM;
+    last: PRECENTCARETITEM;
+  end;
+  TSTACKRECENTCARET = _STACKRECENTCARET;
+  {$EXTERNALSYM _STACKRECENTCARET}
+
+
+type
   _EDITINFO = record
     hWndEdit: HWND;           //Edit window.
     hDocEdit: AEHDOC;         //Edit document.
@@ -1630,11 +1735,13 @@ type
     szFile : array[0..MAX_PATH-1] of AnsiChar;             //Frame cFile (Ansi).
     wszFile : array[0..MAX_PATH-1] of WideChar;            //Frame cFile (Unicode).
     nFileLen : Integer;                                    //Frame cFile length.
+    nStreamOffset: Integer;                                //":" symbol offset in FRAMEDATA.wszFile.
     hIcon : HICON;                                         //Frame icon.
     nIconIndex : Integer;                                  //Frame ImageList icon index.
     rcEditWindow : TRECT;                                  //Edit TRect. rcEditWindow.right - is width and rcEditWindow.bottom is height.
     rcMasterWindow : TRECT;                                //Master window TRect. rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
     //Edit settings (AkelPad)
+    dwLockInherit: DWORD;                                  //See LI_* defines.
     lf : LOGFONTW;                                         //Edit font.
     bTabStopAsSpaces : BOOL;                               //Insert tab stop as spaces.
     dwCaretOptions : DWORD;                                //See CO_* defines.
@@ -1664,18 +1771,23 @@ type
     wszUrlRightDelimiters : array[0..URL_DELIMITERS_SIZE-1] of WideChar; //URL right delimiters.
     wszWordDelimiters : array[0..WORD_DELIMITERS_SIZE-1] of WideChar;    //Word delimiters.
     wszWrapDelimiters : array[0..WRAP_DELIMITERS_SIZE-1] of WideChar;    //Wrap delimiters.
+    wszBkImageFile: array[0..MAX_PATH-1] of WideChar;                   //Background image file.
+    nBkImageAlpha: Integer;                                  //Alpha transparency value that ranges from 0 to 255.
+    hBkImageBitmap: HBITMAP;                             //Background image handle.
     aec : TAECOLORS;                                        //Edit colors.
-    //Edit state internal
+    //Edit state internal. AKD_FRAMEINIT not copy data below.
     lpEditProc : TAEEditProc;                              //Edit window procedure.
     ft : FILETIME;                                         //cFile time.
     dwInputLocale : HKL;                                   //Keyboard layout.
-    dwLockInherit : DWORD;                                 //See LI_* defines.
-    nStreamOffset : Integer;                               //":" symbol offset in FRAMEDATA.wszFile.
-    nCompileErrorOffset : INT_PTR;                         //Contain pattern offset, if error occurred during compile pattern.
-    //Substract selection
+    hRecentCaretStack: TSTACKRECENTCARET;                 //Recent caret stack.
+    lpCurRecentCaret: PRECENTCARETITEM;                  //Current recent caret position.
+    //Find/Replace
+    nCompileErrorOffset: INT_PTR;                        //Contain pattern offset, if error occurred during compile pattern.
+    bCompileErrorReplace: BOOL;                          //TRUE - error in "ReplaceWith" complitaion, FALSE - error in "FindIt" complitaion.
+  
+    //Statusbar
     crPrevSel : TAECHARRANGE;
     nSelSubtract : INT_PTR;
-    //"StatusUserFormat" variables.
     nCaretRichOffset : INT_PTR;
     nCaretByteOffset : INT_PTR;
     nCaretChar : Integer;
@@ -1687,11 +1799,14 @@ type
     nLineSelEnd: Integer;
     nRichCount : INT_PTR;
     nFontPoint : Integer;
+    bCapsLock : BOOL;
+    bNumLock : BOOL;
     bReachedEOF : BOOL;
     nReplaceCount : INT_PTR;
   end;
   TFRAMEDATA = _FRAMEDATA;
   {$EXTERNALSYM _PLUGINVERSION}
+
 
 //AKD_SETFRAMEINFO
 type
@@ -1701,6 +1816,15 @@ type
   end;
   TFRAMEINFO = _FRAMEINFO;
   {$EXTERNALSYM _FRAMEINFO}
+
+
+type
+  _BKIMAGE = record
+    wpFile: PWideChar; //Background image file.
+    nAlpha: Integer;   //Alpha transparency value that ranges from 0 to 255.
+  end;
+  TBKIMAGE = _BKIMAGE;
+  {$EXTERNALSYM _BKIMAGE}
 
 
 type
@@ -1727,6 +1851,7 @@ type
   end;
   TWNDPROCRETDATA = _WNDPROCRETDATA;
   {$EXTERNALSYM _WNDPROCRETDATA}
+
 
 type
   _PLUGINADDA = record
@@ -1839,6 +1964,45 @@ type
 
 
 type
+  PINIKEY = ^TINIKEY;
+  _INIKEY = record
+    next: PINIKEY;
+    prev: PINIKEY;
+    wszKey: PWideChar;
+    nKeyBytes: Integer;
+    wszString: PWideChar;
+    nStringBytes: Integer;
+  end;
+  TINIKEY = _INIKEY;
+  {$EXTERNALSYM _INIKEY}
+
+
+type
+  PINISECTION = ^TINISECTION;
+  _INISECTION = record
+    next: PINISECTION;
+    prev: PINISECTION;
+    hIniFile: THandle;
+    wszSection: PWideChar;
+    nSectionBytes: Integer;
+    first: PINIKEY;
+    las: PINIKEY;
+  end;
+  TINISECTION = _INISECTION;
+  {$EXTERNALSYM _INISECTION}
+
+
+type
+  _INIFILE = record
+    first: PINISECTION;
+    last: PINISECTION;
+    bModified: BOOL;
+  end;
+  TINIFILE = _INIFILE;
+  {$EXTERNALSYM _INIFILE}
+
+
+type
   _GETTEXTRANGE = record
     cpMin: INT_PTR;              //First character in the range. First char of text: 0.
     cpMax: INT_PTR;              //Last character in the range. Last char of text: -1.
@@ -1851,7 +2015,7 @@ type
 type
   _EXGETTEXTRANGE = record
     cr: TAECHARRANGE;             //Characters range to retrieve.
-    bColumnSel: BOOL;            //Column selection. If this value is –1, active column selection mode is used.
+    bColumnSel: BOOL;            //Column selection. If this value is â€“1, active column selection mode is used.
     pText: PByte;       //Pointer that receive allocated text.
     nNewLine: Integer;               //See AELB_* defines.
     nCodePage: Integer;              //Valid if bOldWindows == TRUE. Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
@@ -1876,6 +2040,7 @@ type
   end;
   TRECENTFILE = _RECENTFILE;
   {$EXTERNALSYM _RECENTFILE}
+
 
 type
   _RECENTFILESTACK = record
@@ -1911,7 +2076,7 @@ type
 
 type
   _TEXTFINDA = record
-    dwFlags: DWORD;            //See FR_* defines.
+    dwFlags: DWORD;            //See FRF_* defines.
     pFindIt: PAnsiChar;      //Find string.
     nFindItLen: Integer;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   end;
@@ -1921,7 +2086,7 @@ type
 
 type
   _TEXTFINDW = record
-    dwFlags: DWORD;            //See FR_* defines.
+    dwFlags: DWORD;            //See FRF_* defines.
     pFindIt: PWideChar;   //Find string.
     nFindItLen: Integer;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   end;
@@ -1931,7 +2096,7 @@ type
 
 type
   _TEXTREPLACEA = record
-    dwFlags: DWORD;               //See FR_* defines.
+    dwFlags: DWORD;               //See FRF_* defines.
     pFindIt: PAnsiChar;         //Find string.
     nFindItLen: Integer;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
     pReplaceWith: PAnsiChar;    //Replace string.
@@ -1945,7 +2110,7 @@ type
 
 type
   _TEXTREPLACEW = record
-    dwFlags: DWORD;               //See FR_* defines.
+    dwFlags: DWORD;               //See FRF_* defines.
     pFindIt: PWideChar;      //Find string.
     nFindItLen: Integer;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
     pReplaceWith: PWideChar; //Replace string.
@@ -1966,89 +2131,6 @@ type
   TTEXTRECODE = _TEXTRECODE;
   {$EXTERNALSYM _TEXTRECODE}
 
-
-type
-  PREGROUP = ^TREGROUP;
-  _REGROUP = record
-    prev: PREGROUP;
-    parent: PREGROUP;
-    firstChild: PREGROUP;
-    lastChild: PREGROUP;
-    wpPatStart: PWideChar;
-    wpPatEnd: PWideChar;
-    wpPatLeft: PWideChar;
-    wpPatRight: PWideChar;
-    wpStrStart: PWideChar;    //Begin of matched string.
-    wpStrEnd: PWideChar;      //End of matched string.
-    nMinMatch: Integer;       //Minimum group match.
-    nMaxMatch: Integer;       //Maximum group match, -1 if unlimited.
-    dwFlags: DWORD;           //See REGF_* defines.
-    nIndex: Integer;          //Group index, -1 if not captured.
-  end;
-  TREGROUP = _REGROUP;
-  {$EXTERNALSYM _REGROUP}
-
-
-type
-  PSTACKREGROUP = ^TSTACKREGROUP;
-  _STACKREGROUP = record
-    first: PREGROUP;
-    last: PREGROUP;
-    dwOptions: DWORD;          //See REO_* defines.
-    nLastIndex: Integer;       //Last captured index.
-  end;
-  TSTACKREGROUP = _STACKREGROUP;
-  {$EXTERNALSYM TSTACKREGROUP}
-
-
-type
-  TPatExecCallback = function(lpREGroup: PREGROUP; bMatched: BOOL; lParam: LPARAM): Integer; stdcall;
-  {$EXTERNALSYM TPatExecCallback}
-
-
-type
-  _PATEXEC = record
-    lpREGroupStack: PSTACKREGROUP; //Groups stack. Must be zero if AKD_PATEXEC called for the first time.
-    wpPat: PWideChar;              //Pattern for process.
-    wpMaxPat: PWideChar;           //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-    wpStr: PWideChar;              //String for process.
-    wpMaxStr: PWideChar;           //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-    wpMaxLine: PWideChar;          //Internal usage.
-    dwOptions: DWORD;              //See REPE_* defines.
-    nErrorOffset: INT_PTR;         //Contain wpPat offset, if error occurred during compile pattern.
-    lpCallback: TPatExecCallback;  //Pointer to an callback function. Callback calls repeatedly for each matched group.
-    lParam: LPARAM;                //Specifies an application-defined value that passes to the PATEXECCALLBACK function specified by the lpCallback member.
-    nErrorCallback: Integer;       //See REPEC_* defines.
-  end;
-  TPATEXEC = _PATEXEC;
-  {$EXTERNALSYM _PATEXEC}
-
-
-type
-  _PATREPLACE = record
-    wpStr: PWideChar;       //String for process.
-    wpMaxStr: PWideChar;    //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-    wpPat: PWideChar;       //Pattern for process.
-    wpMaxPat: PWideChar;    //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-    wpRep: PWideChar;       //String to replace with. Can be used "$n" - the n'th captured submatch.
-    wpMaxRep: PWideChar;    //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-    dwOptions: DWORD;       //See REPE_* defines.
-    nReplaceCount: Integer; //Receives replace count number.
-    wpLeftStr: PWideChar;   //First replace occurrence in string.
-    wpRightStr: PWideChar;  //Unmatched right part of string.
-    wszResult: PWideChar;   //Buffer that received replace result. If NULL, AKD_PATREPLACE returns required buffer size in characters.
-    end;
-  TPATREPLACE = _PATREPLACE;
-  {$EXTERNALSYM _PATREPLACE}
-
-  _PATGROUPSTR = record
-    lpREGroupStack: PSTACKREGROUP; //Groups stack. Filled by AKD_PATEXEC message.
-    wpStr: PWideChar;              //String for process. Can be used "$n" - the n'th captured submatch.
-    wpMaxStr: PWideChar;           //Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-    wszResult: PWideChar;          //Buffer that received convert cResult. If NULL, AKD_PATGROUPSTR returns required buffer size in characters.
-  end;
-  TPATGROUPSTR = _PATGROUPSTR;
-  {$EXTERNALSYM _PATGROUPSTR}
 
 
 type
@@ -2263,6 +2345,7 @@ type
     hWnd: HWND;              //Context menu window.
     uType: UINT;             //cType:    NCM_EDIT, NCM_TAB or NCM_STATUS.
     pt: TPoint;               //Context menu coordiates.
+    bMouse: BOOL;            //Context menu is requested with mouse.
     bProcess: BOOL;          //TRUE   show context menu.
   end;
   TNCONTEXTMENU = _NCONTEXTMENU;
@@ -2323,7 +2406,7 @@ const IDM_FILE_SAVEALL = 4110;  //Save all documents.
                                               //
 const IDM_FILE_SAVEALLAS = 4111;  //Save all as dialog.
 {$EXTERNALSYM IDM_FILE_SAVEALLAS}
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - "OK" pressed, FALSE - "Cancel" pressed.
                                               //
 const IDM_FILE_SILENTPRINT = 4113;  //Print without dialog. lParam can be used to pass edit window handle.
 {$EXTERNALSYM IDM_FILE_SILENTPRINT}
@@ -2427,11 +2510,11 @@ const IDM_EDIT_FIND = 4158;  //Find dialog.
                                               //
 const IDM_EDIT_FINDNEXTDOWN = 4159;  //Find last string down.
 {$EXTERNALSYM IDM_EDIT_FINDNEXTDOWN}
-                                              //Return Value: Character position of the next match. If there are no more matches, the return value is –1.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is â€“1.
                                               //
 const IDM_EDIT_FINDNEXTUP = 4160;  //Find last string up.
 {$EXTERNALSYM IDM_EDIT_FINDNEXTUP}
-                                              //Return Value: Character position of the next match. If there are no more matches, the return value is –1.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is â€“1.
                                               //
 const IDM_EDIT_REPLACE = 4161;  //Replace dialog.
 {$EXTERNALSYM IDM_EDIT_REPLACE}
@@ -2557,6 +2640,19 @@ const IDM_EDIT_DELLINE = 4197;  //Delete current line.
 {$EXTERNALSYM IDM_EDIT_DELLINE}
                                               //Return Value: zero.
                                               //
+const IDM_EDIT_SELJUMPCARET = 4198;  //Move caret on the contrary side of selection.
+{$EXTERNALSYM IDM_EDIT_SELJUMPCARET}
+                                              //Return Value: TRUE - jump to selection beginning, FALSE - jump to selection ending.
+                                              //
+const IDM_EDIT_RECENTCARETPREV = 4199;  //Move caret to the previous position.
+{$EXTERNALSYM IDM_EDIT_RECENTCARETPREV}
+                                              //Return Value: zero.
+                                              //
+const IDM_EDIT_RECENTCARETNEXT = 4200;  //Move caret to the next position.
+{$EXTERNALSYM IDM_EDIT_RECENTCARETNEXT}
+                                              //Return Value: zero.
+                                              //
+
 const IDM_VIEW_FONT = 4201;  //Font dialog.
 {$EXTERNALSYM IDM_VIEW_FONT}
                                               //Return Value: TRUE - success, FALSE - failed.
@@ -2735,7 +2831,7 @@ const IDM_WINDOW_MDILIST = 4327;  //Select window dialog (MDI). Same as IDM_SELE
                                               //
 const IDM_WINDOW_CHANGESIZE = 4331;  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
 {$EXTERNALSYM IDM_WINDOW_CHANGESIZE}
-                                              //Return Value: zero.
+                                              //Return Value: SW_RESTORE - new style is SW_RESTORE, SW_MAXIMIZE - new style is SW_MAXIMIZE.
                                               //
 const IDM_WINDOW_DLGNEXT = 4332;  //Activate next dialog window.
 {$EXTERNALSYM IDM_WINDOW_DLGNEXT}
@@ -2981,8 +3077,6 @@ const AKD_TEXTREPLACEW = (WM_USER + 177);
 {$EXTERNALSYM AKD_TEXTREPLACEW}
 const AKD_RECODESEL = (WM_USER + 178);
 {$EXTERNALSYM AKD_RECODESEL}
-const AKD_GETCHARCOLOR = (WM_USER + 179);
-{$EXTERNALSYM AKD_GETCHARCOLOR}
 const AKD_GOTO = (WM_USER + 180);
 {$EXTERNALSYM AKD_GOTO}
 const AKD_GOTOA = (WM_USER + 181);
@@ -2997,6 +3091,8 @@ const AKD_SETPRINTINFO = (WM_USER + 192);
 {$EXTERNALSYM AKD_SETPRINTINFO}
 
 //Options
+const AKD_SETMAININFO = (WM_USER + 195);
+{$EXTERNALSYM AKD_SETMAININFO}
 const AKD_SETFRAMEINFO = (WM_USER + 196);
 {$EXTERNALSYM AKD_SETFRAMEINFO}
 const AKD_GETMAININFO = (WM_USER + 198);
@@ -3031,6 +3127,8 @@ const AKD_RECENTFILES = (WM_USER + 214);
 {$EXTERNALSYM AKD_RECENTFILES}
 const AKD_SEARCHHISTORY = (WM_USER + 215);
 {$EXTERNALSYM AKD_SEARCHHISTORY}
+const AKD_SETEDITNOTIFY = (WM_USER + 216);
+{$EXTERNALSYM AKD_SETEDITNOTIFY}
 
 //Windows
 const AKD_GETMODELESS = (WM_USER + 251);
@@ -3047,6 +3145,8 @@ const AKD_SETHOTKEYINPUT = (WM_USER + 256);
 {$EXTERNALSYM AKD_SETHOTKEYINPUT}
 const AKD_DIALOGRESIZE = (WM_USER + 257);
 {$EXTERNALSYM AKD_DIALOGRESIZE}
+const AKD_UPDATESTATUSUSER = (WM_USER + 258);
+{$EXTERNALSYM AKD_UPDATESTATUSUSER}
 
 //Frames
 const AKD_FRAMEACTIVATE = (WM_USER + 261);
@@ -3069,6 +3169,10 @@ const AKD_FRAMEISVALID = (WM_USER + 269);
 {$EXTERNALSYM AKD_FRAMEISVALID}
 const AKD_FRAMEINDEX = (WM_USER + 270);
 {$EXTERNALSYM AKD_FRAMEINDEX}
+const AKD_FRAMEINIT = (WM_USER + 271);
+{$EXTERNALSYM AKD_FRAMEINIT}
+const AKD_FRAMEAPPLYEDIT = (WM_USER + 272);
+{$EXTERNALSYM AKD_FRAMEAPPLYEDIT}
 
 //Thread
 const AKD_GLOBALALLOC = (WM_USER + 281);
@@ -3127,6 +3231,8 @@ const AKD_DLLSAVE = (WM_USER + 312);
 {$EXTERNALSYM AKD_DLLSAVE}
 const AKD_CALLPROC = (WM_USER + 313);
 {$EXTERNALSYM AKD_CALLPROC}
+const AKD_CHECKHOTKEY = (WM_USER + 314);
+{$EXTERNALSYM AKD_CHECKHOTKEY}
 
 //Plugin options
 const AKD_BEGINOPTIONS = (WM_USER + 331);
@@ -3182,7 +3288,7 @@ const AKD_INISETVALUEW = (WM_USER + 359);
 const AKD_INICLOSE = (WM_USER + 360);
 {$EXTERNALSYM AKD_INICLOSE}
 
-//Regular expressions
+//Regular expressions. Requires for include "RegExpFunc.h".
 const AKD_PATEXEC = (WM_USER + 391);
 {$EXTERNALSYM AKD_PATEXEC}
 const AKD_PATREPLACE = (WM_USER + 392);
@@ -3736,7 +3842,7 @@ Example:
 AKD_PARSECMDLINEW
 _________________
 
-Set command line options.
+Parse command line string.
 
 wParam                      == not used.
 (PARSECMDLINESENDW * )lpData == pointer to a PARSECMDLINESENDW structure.
@@ -3755,7 +3861,7 @@ Example:
 AKD_DETECTANSITEXT
 __________________
 
-Detect codepage of a ansi text.
+Detect codepage of ansi text.
 
 lParam                   == not used.
 (DETECTANSITEXT * )lParam == pointer to a DETECTANSITEXT structure.
@@ -3771,13 +3877,13 @@ Example:
  dat.pText="\x91\x20\xE7\xA5\xA3\xAE\x20\xAD\xA0\xE7\xA8\xAD\xA0\xA5\xE2\xE1\xEF\x20\x90\xAE\xA4\xA8\xAD\xA0";
  dat.nTextLen=-1;
  dat.nMinChars=0;
- SendMessage(hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
+ SendMessage(pd->hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat);
 
 
 AKD_DETECTUNITEXT
 _________________
 
-Detect ansi codepage of a unicode text.
+Detect ansi codepage of unicode text.
 
 lParam                  == not used.
 (DETECTUNITEXT * )lParam == pointer to a DETECTUNITEXT structure.
@@ -3793,13 +3899,13 @@ Example:
  dut.wpText=L"\x2018\x0020\x0437\x0490\x0408\x00AE\x0020\x00AD\x00A0\x0437\x0401\x00AD\x00A0\x0490\x0432\x0431\x043F\x0020\x0452\x00AE\x00A4\x0401\x00AD\x00A0";
  dut.nTextLen=-1;
  dut.nMinChars=0;
- SendMessage(hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
+ SendMessage(pd->hMainWnd, AKD_DETECTUNITEXT, 0, (LPARAM)&dut);
 
 
 AKD_CONVERTANSITEXT
 ___________________
 
-Change codepage of a ansi text.
+Change codepage of ansi text.
 
 lParam                    == not used.
 (CONVERTANSITEXT * )lParam == pointer to a CONVERTANSITEXT structure.
@@ -3815,13 +3921,13 @@ Example:
  cat.nInputLen=-1;
  cat.nCodePageFrom=866;
  cat.nCodePageTo=1251;
- SendMessage(hMainWnd, AKD_CONVERTANSITEXT, 0, (LPARAM)&cat);
+ SendMessage(pd->hMainWnd, AKD_CONVERTANSITEXT, 0, (LPARAM)&cat);
 
 
 AKD_CONVERTUNITEXT
 __________________
 
-Change codepage of a unicode text.
+Change codepage of unicode text.
 
 lParam                   == not used.
 (CONVERTUNITEXT * )lParam == pointer to a CONVERTUNITEXT structure.
@@ -3837,7 +3943,7 @@ Example:
  cut.nInputLen=-1;
  cut.nCodePageFrom=1251;
  cut.nCodePageTo=866;
- SendMessage(hMainWnd, AKD_CONVERTUNITEXT, 0, (LPARAM)&cut);
+ SendMessage(pd->hMainWnd, AKD_CONVERTUNITEXT, 0, (LPARAM)&cut);
 
 
 AKD_DETECTFILE, AKD_DETECTFILEA, AKD_DETECTFILEW
@@ -4146,12 +4252,15 @@ Finds text in a edit control.
 (TEXTFIND * )lParam == pointer to a TEXTFIND structure.
 
 Return Value
- Character position of the next match. If there are no more matches, the return value is –1.
+ Character position of the next match.
+ If there are no more matches, the return value is -1.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (100 - PatternOffset).
+ For example, TEXTFINDW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is 102.
 
 Example (Unicode):
  TEXTFINDW tf;
 
- tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
+ tf.dwFlags=FRF_DOWN|FRF_BEGINNING|FRF_MATCHCASE;
  tf.pFindIt=L"Text to find";
  tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFINDW, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
@@ -4166,12 +4275,15 @@ Replaces text in a edit control.
 (TEXTREPLACE * )lParam == pointer to a TEXTREPLACE structure.
 
 Return Value
- Character position of the next match. If there are no more matches, the return value is –1.
+ Character position of the next match.
+ If there are no more matches, the return value is -1.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (100 - PatternOffset).
+ For example, TEXTREPLACEW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is 102.
 
 Example (Unicode):
  TEXTREPLACEW tr;
 
- tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
+ tr.dwFlags=FRF_DOWN|FRF_BEGINNING|FRF_MATCHCASE;
  tr.pFindIt=L"Text to find";
  tr.nFindItLen=-1;
  tr.pReplaceWith=L"Text to replace";
@@ -4198,25 +4310,6 @@ Example:
  tr.nCodePageTo=866;
  tr.dwFlags=0;
  SendMessage(pd->hMainWnd, AKD_RECODESEL, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
-
-
-AKD_GETCHARCOLOR
-________________
-
-Get colors of the specified char.
-
-(HWND)wParam        == edit window, NULL for current edit window.
-(CHARCOLOR * )lParam == pointer to a CHARCOLOR structure.
-
-Return Value
- TRUE   specified char in selection.
- FALSE  specified char not in selection.
-
-Example:
- CHARCOLOR cc;
-
- cc.nCharPos=10;
- SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
 
 
 AKD_GOTO, AKD_GOTOA, AKD_GOTOW
@@ -4337,6 +4430,23 @@ Example (get AkelPad directory):
  wchar_t wszAkelDir[MAX_PATH];
 
  SendMessage(pd->hMainWnd, AKD_GETMAININFO, MI_AKELDIRW, (WPARAM)wszAkelDir);
+
+
+AKD_SETMAININFO
+_______________
+
+Set main AkelPad data.
+
+(int)wParam  == see MIS_* defines.
+(void)lParam == depend on wParam.
+
+Return Value
+ TRUE  info changed.
+ FALSE info not changed.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETMAININFO, MIS_SAVESETTINGS, SS_INI);
+
 
 
 AKD_GETFRAMEINFO
@@ -4510,7 +4620,7 @@ Example:
  {
    for (rf=rfs->first; rf; rf=rf->next)
    {
-     MessageBoxW(NULL, rf->wszFile, NULL, 0);
+     MessageBoxW(pd->hMainWnd, rf->wszFile, L"Test", MB_OK);
    }
  }
 
@@ -4528,6 +4638,22 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
+
+
+AKD_SETEDITNOTIFY
+_________________
+
+Set standard AkelPad's event mask for an edit control.
+
+(HWND)wParam == edit window.
+lParam       == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETEDITNOTIFY, (LPARAM)hWndEdit, 0);
+
 
 
 AKD_GETMODELESS
@@ -4689,6 +4815,21 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
+AKD_UPDATESTATUSUSER
+____________________
+
+Force update user statusbar.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_UPDATESTATUSUSER, 0, 0);
+
+
 AKD_FRAMEACTIVATE
 _________________
 
@@ -4814,6 +4955,45 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMEINDEX, FALSE, (LPARAM)lpFrame);
+
+
+AKD_FRAMEINIT
+_____________
+
+Initialize frame data.
+
+(FRAMEDATA * )wParam == pointer to a source FRAMEDATA structure. If NULL, current frame will be used as source.
+(FRAMEDATA * )lParam == pointer to a target FRAMEDATA structure.
+
+Return Value
+ Zero.
+
+Example:
+ FRAMEDATA *lpFrameTarget;
+
+ if (lpFrameTarget=GlobalAlloc(GPTR, sizeof(FRAMEDATA)))
+ {
+   SendMessage(pd->hMainWnd, AKD_FRAMEINIT, (WPARAM)NULL, (LPARAM)lpFrameTarget);
+   lpFrameTarget->ei.hWndEdit=hWndEdit;
+   lpFrameTarget->ei.hDocEdit=hDocEdit;
+   SendMessage(pd->hMainWnd, AKD_FRAMEAPPLYEDIT, 0, (WPARAM)lpFrameTarget);
+ }
+
+
+AKD_FRAMEAPPLYEDIT
+__________________
+
+Apply frame data to edit window.
+
+wParam              == not used.
+(FRAMEDATA * )lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ Zero.
+
+Example:
+ See AKD_FRAMEINIT example.
+
 
 
 AKD_GLOBALALLOC
@@ -5155,7 +5335,7 @@ Call dll.
                             or pointer to a PLUGINCALLPOST, allocated with GlobalAlloc, if PostMessage used.
 
 Return Value
- See EDL_* defines.
+ See UD_* defines.
 
 Example SendMessage (Unicode):
  PLUGINCALLSENDW pcs;
@@ -5206,12 +5386,12 @@ Return Value
 Example find by name (Unicode):
  PLUGINFUNCTION *pf;
  if (pf=(PLUGINFUNCTION * )SendMessage(pd->hMainWnd, AKD_DLLFINDW, (WPARAM)L"SomePlugin::SomeFunction", 0))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+   if (pf->bRunning) MessageBoxW(pd->hMainWnd, L"Plugin is running", L"Test", MB_OK);
 
 Example find by hotkey:
  PLUGINFUNCTION *pf;
  if (pf=(PLUGINFUNCTION * )SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+   if (pf->bRunning) MessageBoxW(pd->hMainWnd, L"Plugin is running", L"Test", MB_OK);
 
 
 AKD_DLLADD, AKD_DLLADDA, AKD_DLLADDW
@@ -5226,7 +5406,7 @@ Return Value
  Pointer to a PLUGINFUNCTION structure in stack.
 
 Example add plugin hotkey (Unicode):
- BOOL CALLBACK PluginProc(void *lpParameter)
+ BOOL CALLBACK PluginProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
  {
    return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing.
  }
@@ -5289,8 +5469,8 @@ ____________
 
 Call procedure.
 
-(PLUGINPROC)wParam == procedure address.
-(void * )lParam     == pointer to a variable to be passed to the procedure.
+(CALLPROC)wParam == procedure address.
+(void * )lParam   == pointer to a variable to be passed to the procedure.
 
 Return Value
  Zero.
@@ -5300,6 +5480,26 @@ Example:
  {
  }
  PostMessage(pd->hMainWnd, AKD_CALLPROC, (WPARAM)MyProcedure, (LPARAM)NULL);
+
+
+AKD_CHECKHOTKEY
+_______________
+
+Get hotkey owner and existence.
+
+(WORD)wParam      == hotkey returned by HKM_GETHOTKEY.
+(wchar_t * )lParam == buffer that received assigned owner, format L"Plugin::Function". Can be NULL. If not NULL, buffer size must be at least for MAX_PATH characters.
+
+Return Value
+ See HKO_* defines.
+
+Example (check F11 hotkey):
+ wchar_t wszHotkeyOwner[MAX_PATH];
+
+ if (SendMessage(pd->hMainWnd, AKD_CHECKHOTKEY, 122, (LPARAM)wszHotkeyOwner))
+   MessageBoxW(pd->hMainWnd, wszHotkeyOwner, L"Test", MB_OK);
+ else
+   MessageBoxW(pd->hMainWnd, L"Hotkey not exists", L"Test", MB_OK);
 
 
 AKD_BEGINOPTIONS, AKD_BEGINOPTIONSA, AKD_BEGINOPTIONSW
@@ -5418,7 +5618,7 @@ Opens ini file.
 (const unsigned char * )lParam == ini file.
 
 Return Value
- HINIFILE.
+ HINIFILE. For direct access use pointer to INIFILE structure.
 
 Example read (bOldWindows == TRUE):
  INIVALUEA iv;
@@ -5498,7 +5698,7 @@ Retrieve ini section handle.
 (const unsigned char * )lParam == section name.
 
 Return Value
- HINISECTION.
+ HINISECTION. For direct access use pointer to INISECTION structure.
 
 Example (bOldWindows == TRUE):
  HINISECTION hIniSection;
@@ -5563,7 +5763,7 @@ Retrieve key handle.
 (const unsigned char * )lParam == key name.
 
 Return Value
- HINIKEY.
+ HINIKEY. For direct access use pointer to INIKEY structure.
 
 Example (bOldWindows == TRUE):
  HINISECTION hIniSection;
@@ -5648,7 +5848,7 @@ Example:
 AKD_PATEXEC
 ___________
 
-Compile and execute regular expressions pattern.
+Compile and execute regular expressions pattern. Requires for include "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC * )lParam == pointer to a PATEXEC structure.
@@ -5670,6 +5870,7 @@ Example:
  pe.wpPat=L"(23)(.* )(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
+ pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
  while (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))
@@ -5701,7 +5902,7 @@ Example:
 AKD_PATREPLACE
 ______________
 
-Replace in string using regular expressions.
+Replace in string using regular expressions. Requires for include "RegExpFunc.h".
 
 wParam               == not used.
 (PATREPLACE * )lParam == pointer to a PATREPLACE structure.
@@ -5721,6 +5922,8 @@ Example:
  pr.wpRep=L"[$1]";
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
  pr.dwOptions=REPE_GLOBAL|REPE_MATCHCASE;
+ pr.wpDelim=NULL;
+ pr.wpNewLine=NULL;
  pr.wszResult=NULL;
  nLen=SendMessage(pd->hMainWnd, AKD_PATREPLACE, 0, (LPARAM)&pr);
 
@@ -5736,7 +5939,7 @@ Example:
 AKD_PATGROUPSTR
 _______________
 
-Translate string that contain group indexes, like "[$1$2]".
+Translate string that contain group indexes, like "[$1$2]". Requires for include "RegExpFunc.h".
 
 wParam                == not used.
 (PATGROUPSTR * )lParam == pointer to a PATGROUPSTR structure.
@@ -5754,6 +5957,7 @@ Example:
  pe.wpPat=L"(23)(.* )(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
+ pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
  if (SendMessage(pd->hMainWnd, AKD_PATEXEC, 0, (LPARAM)&pe))
@@ -5782,7 +5986,7 @@ Example:
 AKD_PATGETGROUP
 _______________
 
-Retrieve pattern group by index.
+Retrieve pattern group by index. Requires for include "RegExpFunc.h".
 
 (STACKREGROUP * )wParam == pointer to a STACKREGROUP structure.
 (int)lParam            == group index.
@@ -5797,7 +6001,7 @@ Example:
 AKD_PATNEXTGROUP
 ________________
 
-Retrieve next pattern group.
+Retrieve next pattern group. Requires for include "RegExpFunc.h".
 
 (REGROUP * )wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -5812,7 +6016,7 @@ Example:
 AKD_PATPREVGROUP
 ________________
 
-Retrieve previous pattern group.
+Retrieve previous pattern group. Requires for include "RegExpFunc.h".
 
 (REGROUP * )wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -5827,7 +6031,7 @@ Example:
 AKD_PATFREE
 ___________
 
-Free regular expressions pattern.
+Free regular expressions pattern. Requires for include "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC * )lParam == pointer to a PATEXEC structure.
@@ -5946,7 +6150,7 @@ Example (Unicode):
  if (pclp=(PARSECMDLINEPOSTW * )GlobalAlloc(GMEM_FIXED, sizeof(PARSECMDLINEPOSTW)))
  {
    pclp->bPostMessage=TRUE;
-   pclp->nCmdLineLen=xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
+   pclp->nCmdLineLen=lstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
    pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
 
    cds.dwData=CD_PARSECMDLINEW;
@@ -5964,8 +6168,12 @@ type
   {$EXTERNALSYM TDETECTFILE}
   TOPENDOCUMENT = TOPENDOCUMENTA;
   {$EXTERNALSYM TOPENDOCUMENT}
+  TOPENDOCUMENTPOST = TOPENDOCUMENTPOSTA;
+  {$EXTERNALSYM TOPENDOCUMENTPOST}
   TSAVEDOCUMENT = TSAVEDOCUMENTA;
   {$EXTERNALSYM TSAVEDOCUMENT}
+  TPLUGINADD = TPLUGINADDA;
+  {$EXTERNALSYM TPLUGINADD}
   TPLUGINCALLSEND = TPLUGINCALLSENDA;
   {$EXTERNALSYM TPLUGINCALLSEND}
   TPLUGINCALLPOST = TPLUGINCALLPOSTA;
@@ -5985,8 +6193,12 @@ type
   {$EXTERNALSYM TDETECTFILE}
   TOPENDOCUMENT = TOPENDOCUMENTW;
   {$EXTERNALSYM TOPENDOCUMENT}
+  TOPENDOCUMENTPOST = TOPENDOCUMENTPOSTW;
+  {$EXTERNALSYM TOPENDOCUMENTPOST}
   TSAVEDOCUMENT = TSAVEDOCUMENTW;
   {$EXTERNALSYM TSAVEDOCUMENT}
+  TPLUGINADD = TPLUGINADDW;
+  {$EXTERNALSYM TPLUGINADD}
   TPLUGINCALLSEND = TPLUGINCALLSENDW;
   {$EXTERNALSYM TPLUGINCALLSEND}
   TPLUGINCALLPOST = TPLUGINCALLPOSTW;

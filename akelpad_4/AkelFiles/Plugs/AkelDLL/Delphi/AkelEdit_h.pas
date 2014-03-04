@@ -3,7 +3,7 @@
 =========  AkelPad text editor plugin API ===========
 
 ** Origin: AkelEdit.h located at
-   http://akelpad.cvs.sourceforge.net/akelpad_4/AkelFiles/Plugs/AkelDLL/AkelEdit.h
+   http://akelpad.cvs.sourceforge.net/viewvc/akelpad/akelpad_4/AkelFiles/Plugs/AkelDLL/AkelEdit.h
 ** Converted with C to Pascal Converter 2.0
 ** Release: 2.20.11.2011
 ** Email: al_gun@ncable.net.au
@@ -27,14 +27,16 @@ uses
 
 //// Defines
 
-const AES_AKELEDITCLASSA = 'AkelEditA';
+const AES_AKELEDITCLASSA = AnsiString('AkelEditA');
 {$EXTERNALSYM AES_AKELEDITCLASSA}
-const AES_AKELEDITCLASSW = 'AkelEditW';
+const AES_AKELEDITCLASSW = WideString('AkelEditW');
 {$EXTERNALSYM AES_AKELEDITCLASSW}
-const AES_RICHEDITCLASSA = 'RichEdit20A';
-{$EXTERNALSYM AES_RICHEDITCLASSA}
-const AES_RICHEDITCLASSW = 'RichEdit20W';
-{$EXTERNALSYM AES_RICHEDITCLASSW}
+const AES_RICHEDIT20A = AnsiString('RichEdit20A');
+{$EXTERNALSYM AES_RICHEDIT20A}
+const AES_RICHEDIT20A_UNICODE = WideString('RichEdit20A');
+{$EXTERNALSYM AES_RICHEDIT20A}
+const AES_RICHEDIT20W = WideString('RichEdit20W');
+{$EXTERNALSYM AES_RICHEDIT20W}
 
 // Fr0sT: these C types aren't defined in used units
 type
@@ -182,6 +184,7 @@ const AETCT_DROPINSERT = $00002000;  //Dropping text insert.
 
 //AEN_TEXTCHANGED types
 const AETCT_NONE = $00100000;  //No text is changed.
+
 {$EXTERNALSYM AETCT_NONE}
 const AETCT_DELETEALL = $00200000;  //Indicate that due to AETCT_ * action all text has been modified.
 {$EXTERNALSYM AETCT_DELETEALL}
@@ -231,9 +234,7 @@ const AEPTT_DELETE = $00000008;  //Delete operation.
 {$EXTERNALSYM AEPTT_DELETE}
 
 //AEPOINT flags
-const AEPTF_MOVED = $00000001;  //If set, AEPOINT.ciPoint index has been moved.
-{$EXTERNALSYM AEPTF_MOVED}
-const AEPTF_MODIFY = $00000002;  //If set, AEPOINT.ciPoint index has been modified.
+const AEPTF_MODIFY = $00000002;  //If set, text in (AEPOINT.ciPoint + AEPOINT.nPointLen) area has been modified.
 {$EXTERNALSYM AEPTF_MODIFY}
 const AEPTF_INSERT = $00000004;  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
 {$EXTERNALSYM AEPTF_INSERT}
@@ -243,8 +244,14 @@ const AEPTF_NOTIFYDELETE = $00000010;  //Don't use it. For internal code only.
 {$EXTERNALSYM AEPTF_NOTIFYDELETE}
 const AEPTF_NOTIFYINSERT = $00000020;  //Don't use it. For internal code only.
 {$EXTERNALSYM AEPTF_NOTIFYINSERT}
+const AEPTF_VALIDLINE = $00000040;  //Don't use it. For internal code only.
+{$EXTERNALSYM AEPTF_VALIDLINE}
 const AEPTF_FOLD = $00000100;  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
 {$EXTERNALSYM AEPTF_FOLD}
+const AEPTF_MOVEOFFSET = $00001000;  //If set, AEPOINT.nPointOffset has been changed.
+{$EXTERNALSYM AEPTF_MOVEOFFSET}
+const AEPTF_MOVELINE = $00002000;  //If set, AEPOINT.ciPoint.nLine has been changed.
+{$EXTERNALSYM AEPTF_MOVELINE}
 
 //AEPOINT character offset value
 const AEPTO_IGNORE = -1;  //Character RichEdit offset is not used in AEPOINT.
@@ -339,6 +346,8 @@ const AECO_LBUTTONUPCONTINUECAPTURE = $00020000;  //After WM_LBUTTONUP message c
 {$EXTERNALSYM AECO_LBUTTONUPCONTINUECAPTURE}
 const AECO_RBUTTONDOWNMOVECARET = $00040000;  //WM_RBUTTONDOWN message moves caret to a click position.
 {$EXTERNALSYM AECO_RBUTTONDOWNMOVECARET}
+const AECO_MARGINSELUNWRAPLINE = $00080000;  //Left margin line selection with mouse selects all wrapped line.
+{$EXTERNALSYM AECO_MARGINSELUNWRAPLINE}
 const AECO_LOCKSELECTION = $00100000;  //Prevent selection changing. Use it with AECO_READONLY flag.
 {$EXTERNALSYM AECO_LOCKSELECTION}
 const AECO_NOMARGINSEL = $00200000;  //Disables left margin line selection with mouse.
@@ -353,6 +362,8 @@ const AECO_NOSCROLLDELETEALL = $02000000;  //Turn off scrolling to caret, when u
 {$EXTERNALSYM AECO_NOSCROLLDELETEALL}
 const AECO_NOSCROLLSELECTALL = $04000000;  //Turn off scrolling to caret, when all text is selected.
 {$EXTERNALSYM AECO_NOSCROLLSELECTALL}
+const AECO_NOCOLUMNPASTEHOTKEY = $08000000;  //Turn off Alt+V for columnar paste.
+{$EXTERNALSYM AECO_NOCOLUMNPASTEHOTKEY}
 const AECO_DISABLEBEEP = $10000000;  //Disables sound beep, when unallowable action occur.
 {$EXTERNALSYM AECO_DISABLEBEEP}
 const AECO_ALTDECINPUT = $20000000;  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
@@ -361,6 +372,12 @@ const AECO_PAINTGROUP = $40000000;  //Paint text by group of characters (default
 {$EXTERNALSYM AECO_PAINTGROUP}      //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 const AECO_NOPRINTCOLLAPSED = $80000000;  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 {$EXTERNALSYM AECO_NOPRINTCOLLAPSED}
+
+//AEM_EXSETOPTIONS flags
+const AECOE_DETECTURL = $00000001;  //Enables detection and highlighting of URLs by an edit control.
+{$EXTERNALSYM AECOE_DETECTURL}
+const AECOE_OVERTYPE = $00000002;  //Turn on overtype mode instead of insert mode.
+{$EXTERNALSYM AECOE_OVERTYPE}
 
 const AECOOP_SET = 1;  //Sets the options to those specified by lParam.
 {$EXTERNALSYM AECOOP_SET}
@@ -372,11 +389,11 @@ const AECOOP_XOR = 4;  //Logically exclusive OR the current options with those s
 {$EXTERNALSYM AECOOP_XOR}
 
 //Modifier flags
-const AEMOD_ALT = $01;  //ALT key
+const AEMOD_ALT = $1;  //ALT key
 {$EXTERNALSYM AEMOD_ALT}
-const AEMOD_SHIFT = $02;  //SHIFT key
+const AEMOD_SHIFT = $2;  //SHIFT key
 {$EXTERNALSYM AEMOD_SHIFT}
-const AEMOD_CONTROL = $04;  //CTRL key
+const AEMOD_CONTROL = $4;  //CTRL key
 {$EXTERNALSYM AEMOD_CONTROL}
 
 //AEM_GETLINENUMBER flags
@@ -398,6 +415,8 @@ const AEGL_LASTFULLVISIBLELINE = 7;  //Last fully visible line.
 {$EXTERNALSYM AEGL_LASTFULLVISIBLELINE}
 const AEGL_LINEUNWRAPCOUNT = 11;  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
 {$EXTERNALSYM AEGL_LINEUNWRAPCOUNT}
+const AEGL_UNWRAPSELMULTILINE = 12;  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
+{$EXTERNALSYM AEGL_UNWRAPSELMULTILINE}
 
 //AEM_GETINDEX and AEM_GETRICHOFFSET flags
 const AEGI_FIRSTCHAR = 1;  //First character.
@@ -505,6 +524,8 @@ const AEREPT_COLUMNASIS = $00000002;  //Leave column selection as is.
 {$EXTERNALSYM AEREPT_COLUMNASIS}
 const AEREPT_LOCKSCROLL = $00000004;  //Lock edit window scroll. However edit window can be scrolled during window resize when AECO_DISABLENOSCROLL option not set.
 {$EXTERNALSYM AEREPT_LOCKSCROLL}
+const AEREPT_UNDOGROUPING = $00000100;  //Continue undo grouping.
+{$EXTERNALSYM AEREPT_UNDOGROUPING}
 
 //AEM_CHARFROMPOS return value
 const AEPC_ERROR = 0;  //Error.
@@ -642,41 +663,65 @@ const AEPRN_COLOREDBACKGROUND = $200;  //Print on colored background.
 const AEPRN_COLOREDSELECTION = $400;  //Print text selection.
 {$EXTERNALSYM AEPRN_COLOREDSELECTION}
 
+//Highlight options
+const AEHLO_IGNOREFONTNORMAL = $00000001;  //Use AEHLS_NONE font style, if font style to change is AEHLS_FONTNORMAL.
+{$EXTERNALSYM AEHLO_IGNOREFONTNORMAL}
+const AEHLO_IGNOREFONTBOLD = $00000002;  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTBOLD.
+{$EXTERNALSYM AEHLO_IGNOREFONTBOLD}
+                                                 //Use AEHLS_FONTITALIC font style, if font style to change is AEHLS_FONTBOLDITALIC.
+const AEHLO_IGNOREFONTITALIC = $00000004;  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTITALIC.
+{$EXTERNALSYM AEHLO_IGNOREFONTITALIC}
+                                                 //Use AEHLS_FONTBOLD font style, if font style to change is AEHLS_FONTBOLDITALIC.
+
 //Highlight flags
-const AEHLF_MATCHCASE = $00001;  //If set, the highlight operation is -sensitive. If not set, the highlight operation is -insensitive.
+const AEHLF_MATCHCASE = $00000001;  //If set, the highlight operation is -sensitive. If not set, the highlight operation is -insensitive.
 {$EXTERNALSYM AEHLF_MATCHCASE}
-const AEHLF_WORDCOMPOSITION = $00002;  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
+const AEHLF_WORDCOMPOSITION = $00000002;  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
 {$EXTERNALSYM AEHLF_WORDCOMPOSITION}
-const AEHLF_QUOTEEND_REQUIRED = $00004;  //If quote end isn't found, text after quote start will not be highlighted.
+const AEHLF_QUOTEEND_REQUIRED = $00000004;  //If quote end isn't found, text after quote start will not be highlighted.
 {$EXTERNALSYM AEHLF_QUOTEEND_REQUIRED}
-const AEHLF_QUOTESTART_ISDELIMITER = $00008;  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
+const AEHLF_QUOTESTART_ISDELIMITER = $00000008;  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
 {$EXTERNALSYM AEHLF_QUOTESTART_ISDELIMITER}
-const AEHLF_QUOTEEND_ISDELIMITER = $00010;  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
+const AEHLF_QUOTEEND_ISDELIMITER = $00000010;  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
 {$EXTERNALSYM AEHLF_QUOTEEND_ISDELIMITER}
-const AEHLF_QUOTESTART_NOHIGHLIGHT = $00020;  //Don't highlight quote start string.
+const AEHLF_QUOTESTART_NOHIGHLIGHT = $00000020;  //Don't highlight quote start string.
 {$EXTERNALSYM AEHLF_QUOTESTART_NOHIGHLIGHT}
-const AEHLF_QUOTEEND_NOHIGHLIGHT = $00040;  //Don't highlight quote end string.
+const AEHLF_QUOTEEND_NOHIGHLIGHT = $00000040;  //Don't highlight quote end string.
 {$EXTERNALSYM AEHLF_QUOTEEND_NOHIGHLIGHT}
-const AEHLF_QUOTESTART_NOCATCH = $00080;  //Don't catch and don't highlight quote start string.
+const AEHLF_QUOTESTART_NOCATCH = $00000080;  //Don't catch and don't highlight quote start string.
 {$EXTERNALSYM AEHLF_QUOTESTART_NOCATCH}
-const AEHLF_QUOTEEND_NOCATCH = $00100;  //Don't catch and don't highlight quote end string.
+const AEHLF_QUOTEEND_NOCATCH = $00000100;  //Don't catch and don't highlight quote end string.
 {$EXTERNALSYM AEHLF_QUOTEEND_NOCATCH}
-const AEHLF_ATLINESTART = $00200;  //Quote start, delimiter or word located at line start.
+const AEHLF_ATLINESTART = $00000200;  //Quote start, delimiter or word located at line start.
 {$EXTERNALSYM AEHLF_ATLINESTART}
-const AEHLF_ATLINEEND = $00400;  //Quote end, delimiter or word located at line end.
+const AEHLF_ATLINEEND = $00000400;  //Quote end, delimiter or word located at line end.
 {$EXTERNALSYM AEHLF_ATLINEEND}
-const AEHLF_QUOTESTART_ISWORD = $00800;  //Quote start is surrounded with delimiters.
+const AEHLF_QUOTESTART_ISWORD = $00000800;  //Quote start is surrounded with delimiters.
 {$EXTERNALSYM AEHLF_QUOTESTART_ISWORD}
-const AEHLF_QUOTEEND_ISWORD = $01000;  //Quote end is surrounded with delimiters.
+const AEHLF_QUOTEEND_ISWORD = $00001000;  //Quote end is surrounded with delimiters.
 {$EXTERNALSYM AEHLF_QUOTEEND_ISWORD}
-const AEHLF_QUOTEWITHOUTDELIMITERS = $02000;  //Quote doesn't contain delimiters.
+const AEHLF_QUOTEWITHOUTDELIMITERS = $00002000;  //Quote doesn't contain delimiters.
 {$EXTERNALSYM AEHLF_QUOTEWITHOUTDELIMITERS}
-const AEHLF_QUOTESTART_CATCHONLY = $04000;  //Only quote start string is catched.
+const AEHLF_QUOTESTART_CATCHONLY = $00004000;  //Only quote start string is catched.
 {$EXTERNALSYM AEHLF_QUOTESTART_CATCHONLY}
-const AEHLF_QUOTEINCLUDE = $10000;  //Quote include string is valid.
+const AEHLF_QUOTEINCLUDE = $00010000;  //Quote include string is valid.
 {$EXTERNALSYM AEHLF_QUOTEINCLUDE}
-const AEHLF_QUOTEEXCLUDE = $20000;  //Quote exclude string is valid.
+const AEHLF_QUOTEEXCLUDE = $00020000;  //Quote exclude string is valid.
 {$EXTERNALSYM AEHLF_QUOTEEXCLUDE}
+const AEHLF_REGEXP = $10000000;  //AEQUOTEITEM.pQuoteStart is a regular exression pattern,
+{$EXTERNALSYM AEHLF_REGEXP}
+                                                 //AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
+                                                 //  "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
+                                                 //Notes:
+                                                 //  Color need to be in #RRGGBB format.
+                                                 //  If color equal to zero, then color ignored.
+                                                 //  Instead of color backreference can be used.
+                                                 //Example (highlight quoted string):
+                                                 //  AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
+                                                 //  AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
+                                                 //Example (highlight #RRGGBB word with its color):
+                                                 //  AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
+                                                 //  AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
 
 //Highlight font style
 const AEHLS_NONE = 0;  //Current style.
@@ -729,6 +774,12 @@ const AEHPT_LINK = $00000080;
 {$EXTERNALSYM AEHPT_LINK}
 const AEHPT_FOLD = $00000100;
 {$EXTERNALSYM AEHPT_FOLD}
+
+//AEREGROUPCOLOR flags
+const AEREGCF_BACKREFCOLORTEXT = $00000001;  //AEREGROUPCOLOR.crText is backreference index for text color in format #RRGGBB or RRGGBB.
+{$EXTERNALSYM AEREGCF_BACKREFCOLORTEXT}
+const AEREGCF_BACKREFCOLORBK = $00000002;  //AEREGROUPCOLOR.crBk is backreference index for background color in format #RRGGBB or RRGGBB.
+{$EXTERNALSYM AEREGCF_BACKREFCOLORBK}
 
 //AEM_FINDFOLD flags
 const AEFF_FINDOFFSET = $00000001;  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -832,8 +883,12 @@ const AECS_AVEWIDTH = 1;  //Current font character average width. lParam not use
 {$EXTERNALSYM AECS_AVEWIDTH}
 const AECS_INDEXWIDTH = 2;  //lParam is character index, which width is retrieving.
 {$EXTERNALSYM AECS_INDEXWIDTH}
-const AECS_POINTSIZE = 3;  //Current font point size.
+const AECS_POINTSIZE  =     3;  //Current font point size. lParam not used.
 {$EXTERNALSYM AECS_POINTSIZE}
+const AECS_SPACEWIDTH =     4;  //Current font space width. lParam not used.
+{$EXTERNALSYM AECS_SPACEWIDTH}
+const AECS_TABWIDTH   =     5;  //Current font tabulation width. lParam not used.
+{$EXTERNALSYM AECS_TABWIDTH}
 
 //AEM_CONVERTPOINT flags
 const AECPT_GLOBALTOCLIENT = 0;  //Convert position in the virtual text space of the document, to client area coordinates.
@@ -847,8 +902,8 @@ const AECT_GLOBAL = 0;  //Position in the virtual text space coordinates.
 const AECT_CLIENT = 1;  //Position in the client area coordinates.
 {$EXTERNALSYM AECT_CLIENT}
 
-//AEM_GETRECT and AEM_SETRECT flags
-const AERC_UPDATE = $01;  //Redraw edit window. Only for AEM_SETRECT.
+//Rectangle flags
+const AERC_UPDATE = $01; //Redraw edit window. Only for AEM_SETRECT and AEM_SETERASERECT.
 {$EXTERNALSYM AERC_UPDATE}
 const AERC_MARGINS = $02;  //Rectangle contain edit area margins instead of edit area coordinates.
 {$EXTERNALSYM AERC_MARGINS}
@@ -897,13 +952,20 @@ const AEMSS_WORDS = $4;  //Words selection.
 const AEMSS_LINES = $8;  //Lines selection.
 {$EXTERNALSYM AEMSS_LINES}
 
-//AEM_FINDTEXTA, AEM_FINDTEXTW flags
-const AEFR_DOWN = $00000001;  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
+//AEM_FINDTEXT, AEM_ISMATCH flags
+const AEFR_DOWN = $00000001;       //Same as FR_DOWN. If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 {$EXTERNALSYM AEFR_DOWN}
-const AEFR_WHOLEWORD = $00000002;  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
+const AEFR_WHOLEWORD = $00000002;  //Same as FR_WHOLEWORD. If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 {$EXTERNALSYM AEFR_WHOLEWORD}
-const AEFR_MATCHCASE = $00000004;  //If set, the search operation is -sensitive. If not set, the search operation is -insensitive.
+const AEFR_MATCHCASE = $00000004;  //Same as FR_MATCHCASE. If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 {$EXTERNALSYM AEFR_MATCHCASE}
+const AEFR_REGEXP = $00080000;  //Regular expression search.
+{$EXTERNALSYM AEFR_REGEXP}
+const AEFR_REGEXPNONEWLINEDOT = $00100000;  //Symbol . specifies any character except new line.
+{$EXTERNALSYM AEFR_REGEXPNONEWLINEDOT}
+const AEFR_REGEXPMINMATCH = $00200000;  //Allow zero length match at string edges. For example: "^" at the string beginning or "$" at the string ending.
+{$EXTERNALSYM AEFR_REGEXPMINMATCH}
+
 
 //AEM_SETWORDWRAP flags
 const AEWW_NONE = $00000000;  //Turn off wrap.
@@ -1388,6 +1450,7 @@ type
     nNewLine: Integer;            //[in]  See AELB_* defines.
     crSearch: TAECHARRANGE;       //[in]  Range of characters to search.
     crFound: TAECHARRANGE;        //[out] Range of characters in which text is found.
+    nCompileErrorOffset: INT_PTR; //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
   end;
   TAEFINDTEXTA = _AEFINDTEXTA;
   {$EXTERNALSYM TAEFINDTEXTA}
@@ -1401,6 +1464,7 @@ type
     nNewLine: Integer;            //[in]  See AELB_* defines.
     crSearch: TAECHARRANGE;       //[in]  Range of characters to search.
     crFound: TAECHARRANGE;        //[out] Range of characters in which text is found.
+    nCompileErrorOffset: INT_PTR; //[out] Contain pattern offset, if error occurred during compile pattern. Return when AEFR_REGEXP is set.
   end;
   TAEFINDTEXTW = _AEFINDTEXTW;
   {$EXTERNALSYM TAEFINDTEXTW}
@@ -1412,11 +1476,11 @@ type
 type
   _AECHARCOLORS = record
     dwFlags: DWORD;           //[in] See AEGHF_* defines.
-    dwFontStyle: DWORD;       //[in] See AEHLS_* defines.
-    crText: COLORREF;         //[in] Text color in line.
-    crBk: COLORREF;           //[in] Background color in line.
-    crBorderTop: COLORREF;    //[in] Top border color of the line.
-    crBorderBottom: COLORREF; //[in] Bottom border color of the line.
+    dwFontStyle: DWORD;       //[Out] See AEHLS_* defines.
+    crText: COLORREF;         //[Out] Text color in line.
+    crBk: COLORREF;           //[Out] Background color in line.
+    crBorderTop: COLORREF;    //[Out] Top border color of the line.
+    crBorderBottom: COLORREF; //[Out] Bottom border color of the line.
   end;
   TAECHARCOLORS = _AECHARCOLORS;
   {$EXTERNALSYM TAECHARCOLORS}
@@ -1600,10 +1664,20 @@ type
     crText: COLORREF;              //Quote text color. If -1, then don't set.
     crBk: COLORREF;                //Quote background color. If -1, then don't set.
     lpQuoteStart: Pointer;         //Don't use it. For internal code only.
+    lpREGroupStack: Pointer;       //Don't use it. For internal code only.
   end;
   TAEQUOTEITEMW = _AEQUOTEITEMW;
   {$EXTERNALSYM TAEQUOTEITEMW}
 
+type
+  _AEREGROUPCOLOR = record
+    dwFlags: DWORD;                //See AEREGCF_* defines.
+    dwFontStyle: DWORD;            //See AEHLS_* defines.
+    crText: COLORREF;              //Quote text color. If -1, then don't set.
+    crBk: COLORREF;                //Quote background color. If -1, then don't set.
+  end;
+  TAEREGROUPCOLOR = _AEREGROUPCOLOR;
+  {$EXTERNALSYM TAEREGROUPCOLOR}
 
 type
   PAEMARKTEXTITEMA = ^TAEMARKTEXTITEMA;
@@ -1653,6 +1727,7 @@ type
   end;
   TAEMARKRANGEITEM = _AEMARKRANGEITEM;
   {$EXTERNALSYM TAEMARKRANGEITEM}
+
 
 
 type
@@ -2105,12 +2180,14 @@ const AEM_ISMATCHW = (WM_USER + 2019);
 {$EXTERNALSYM AEM_ISMATCHW}
 const AEM_KEYDOWN = (WM_USER + 2020);
 {$EXTERNALSYM AEM_KEYDOWN}
-const AEM_DRAGDROP = (WM_USER + 2021);
-{$EXTERNALSYM AEM_DRAGDROP}
+const AEM_INSERTCHAR = (WM_USER + 2021);
+{$EXTERNALSYM AEM_INSERTCHAR}
 const AEM_CHARAT = (WM_USER + 2022);
 {$EXTERNALSYM AEM_CHARAT}
 const AEM_INPUTLANGUAGE = (WM_USER + 2023);
 {$EXTERNALSYM AEM_INPUTLANGUAGE}
+const AEM_DRAGDROP = (WM_USER + 2024);
+{$EXTERNALSYM AEM_DRAGDROP}
 
 //Undo and Redo
 const AEM_CANUNDO = (WM_USER + 2051);
@@ -2271,14 +2348,10 @@ const AEM_GETCOLORS = (WM_USER + 2207);
 {$EXTERNALSYM AEM_GETCOLORS}
 const AEM_SETCOLORS = (WM_USER + 2208);
 {$EXTERNALSYM AEM_SETCOLORS}
-const AEM_GETDETECTURL = (WM_USER + 2209);
-{$EXTERNALSYM AEM_GETDETECTURL}
-const AEM_SETDETECTURL = (WM_USER + 2210);
-{$EXTERNALSYM AEM_SETDETECTURL}
-const AEM_GETOVERTYPE = (WM_USER + 2211);
-{$EXTERNALSYM AEM_GETOVERTYPE}
-const AEM_SETOVERTYPE = (WM_USER + 2212);
-{$EXTERNALSYM AEM_SETOVERTYPE}
+const AEM_EXGETOPTIONS = (WM_USER + 2209);
+{$EXTERNALSYM AEM_EXGETOPTIONS}
+const AEM_EXSETOPTIONS = (WM_USER + 2210);
+{$EXTERNALSYM AEM_EXSETOPTIONS}
 const AEM_GETCARETWIDTH = (WM_USER + 2213);
 {$EXTERNALSYM AEM_GETCARETWIDTH}
 const AEM_SETCARETWIDTH = (WM_USER + 2214);
@@ -2353,10 +2426,18 @@ const AEM_LOCKUPDATE = (WM_USER + 2355);
 {$EXTERNALSYM AEM_LOCKUPDATE}
 const AEM_LOCKERASERECT = (WM_USER + 2356);
 {$EXTERNALSYM AEM_LOCKERASERECT}
+const AEM_GETERASERECT = (WM_USER + 2357);
+{$EXTERNALSYM AEM_GETERASERECT}
+const AEM_SETERASERECT = (WM_USER + 2358);
+{$EXTERNALSYM AEM_SETERASERECT}
 const AEM_HIDESELECTION = (WM_USER + 2361);
 {$EXTERNALSYM AEM_HIDESELECTION}
 const AEM_REDRAWLINERANGE = (WM_USER + 2362);
 {$EXTERNALSYM AEM_REDRAWLINERANGE}
+const AEM_GETBACKGROUNDIMAGE = (WM_USER + 2366);
+{$EXTERNALSYM AEM_GETBACKGROUNDIMAGE}
+const AEM_SETBACKGROUNDIMAGE = (WM_USER + 2367);
+{$EXTERNALSYM AEM_SETBACKGROUNDIMAGE}
 
 //Folding
 const AEM_GETFOLDSTACK = (WM_USER + 2381);
@@ -2471,11 +2552,17 @@ const AEM_HLDELETEMARKRANGE = (WM_USER + 2562);
 {$EXTERNALSYM AEM_HLDELETEMARKRANGE}
 const AEM_HLGETHIGHLIGHT = (WM_USER + 2571);
 {$EXTERNALSYM AEM_HLGETHIGHLIGHT}
+const AEM_HLGETOPTIONS = (WM_USER + 2581);
+{$EXTERNALSYM AEM_HLGETOPTIONS}
+const AEM_HLSETOPTIONS = (WM_USER + 2582);
+{$EXTERNALSYM AEM_HLSETOPTIONS}
 
 
 //// RichEdit messages
 
 (*
+
+//// RichEdit messages
 
 AkelEdit can emulate RichEdit 3.0 and support the following messages:
 
@@ -2577,13 +2664,8 @@ EM_GETTEXTRANGE64A
 EM_GETTEXTRANGE64W
 EM_GETTEXTEX64
 
-*)
 
 //// AkelEdit messages description
-
-{$IF CompilerVersion > 20}{$REGION 'AkelEdit messages manual'}{$IFEND}
-
-(*
 
 AEN_ERRSPACE
 ____________
@@ -2628,7 +2710,7 @@ AEN_HSCROLL
 ___________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure before an edit control window scrolled horizontally.
+Sends to the parent window procedure before an edit control window scrolled vertically.
 
 (int)wParam         == specifies the control identifier.
 (AENSCROLL * )lParam == pointer to a AENSCROLL structure.
@@ -3400,7 +3482,7 @@ wParam                == not used.
 (AEFINDTEXTA * )lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -3431,7 +3513,7 @@ wParam                == not used.
 (AEFINDTEXTW * )lParam == pointer to a AEFINDTEXTW structure.
 
 Return Value
- TRUE   founded.
+ TRUE   found.
  FALSE  not found.
 
 Example:
@@ -3459,7 +3541,7 @@ ____________
 Is ansi text matched with text at specified position.
 
 (AECHARINDEX * )wParam == position to check from.
-(AEFINDTEXTA * )lParam == pointer to a AEFINDTEXTA structure.
+(AEFINDTEXTA * )lParam == pointer to a AEFINDTEXTA structure. AEFINDTEXTA.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
@@ -3489,7 +3571,7 @@ ____________
 Is unicode text matched with text at specified position.
 
 (AECHARINDEX * )wParam == position to check from.
-(AEFINDTEXTW * )lParam == pointer to a AEFINDTEXTW structure.
+(AEFINDTEXTW * )lParam == pointer to a AEFINDTEXTW structure. AEFINDTEXTW.crSearch member is ignored.
 
 Return Value
  Length of the matched text or zero if not found.
@@ -3516,36 +3598,36 @@ Example:
 AEM_KEYDOWN
 ___________
 
-Emulate key down pressing.
+Emulate special key down pressing. For example: VK_HOME, VK_DOWN, VK_INSERT, VK_BACK, etc.
 
 (int)wParam   == virtual-key code.
 (DWORD)lParam == see AEMOD_* defines.
 
 Return Value
- Zero.
+ TRUE  virtual-key is processed.
+ FALSE virtual-key not processed.
 
 Remarks
+ To emulate VK_RETURN key use WM_CHAR message.
  To emulate VK_TAB key use it with AEMOD_CONTROL modifier.
 
 Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
 
 
-AEM_DRAGDROP
-____________
+AEM_INSERTCHAR
+______________
 
-Operations with current drag'n'drop.
+Insert character taking into account overtype mode and grouping undo.
 
-(DWORD)wParam == see AEDD_* defines.
-lParam        == not used.
+(wchar_t)wParam == unicode character.
+lParam          == not used.
 
 Return Value
- Value depended on the AEDD_* define.
+ Zero.
 
 Example:
- HWND hWndDragSource;
-
- hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
+ SendMessage(hWndEdit, AEM_INSERTCHAR, (WPARAM)L' ', 0);
 
 
 AEM_CHARAT
@@ -3588,6 +3670,23 @@ Return Value
 
 Example:
  HKL dwInputLocale=(HKL)SendMessage(hWndEdit, AEM_INPUTLANGUAGE, 0, 0);
+
+
+AEM_DRAGDROP
+____________
+
+Operations with current drag'n'drop.
+
+(DWORD)wParam == see AEDD_* defines.
+lParam        == not used.
+
+Return Value
+ Value depended on the AEDD_* define.
+
+Example:
+ HWND hWndDragSource;
+
+ hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
 
 
 AEM_CANUNDO
@@ -4798,7 +4897,7 @@ ______________
 Checks is point on URL.
 
 (POINT * )wParam       == coordinates of a point in the control's client area.
-(AECHARRANGE * )lParam == pointer to a AECHARRANGE structure, that receives URL range, if founded. Can be NULL.
+(AECHARRANGE * )lParam == pointer to a AECHARRANGE structure, that receives URL range, if found. Can be NULL.
 
 Return Value
  Detected URL length or zero if not found.
@@ -4958,7 +5057,7 @@ Set the options for an edit control.
 (DWORD)lParam == see AECO_* defines.
 
 Return Value
- Current option of edit control.
+ Current options of edit control.
 
 Example 1:
  SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLEDRAG|AECO_DISABLEDROP);
@@ -5056,68 +5155,34 @@ Example:
  SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aec);
 
 
-AEM_GETDETECTURL
+AEM_EXGETOPTIONS
 ________________
 
-Retrieve whether the URL detection is turned on.
+Retrieve edit control extended options.
 
 wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   URL detection is on.
- FALSE  URL detection is off.
+ Combination of the current extended option flag values. See AECOE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
+ SendMessage(hWndEdit, AEM_EXGETOPTIONS, 0, 0);
 
 
-AEM_SETDETECTURL
+AEM_EXSETOPTIONS
 ________________
 
-Enables or disables detection and highlighting of URLs by an edit control.
+Set the options for an edit control.
 
-(BOOL)wParam == TRUE   enable URL detection.
-                FALSE  disable URL detection.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
-
-
-AEM_GETOVERTYPE
-_______________
-
-Retrieve type mode.
-
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AECOE_* defines.
 
 Return Value
- TRUE   control is in overtype mode.
- FALSE  control is in insert mode.
+ Current extended options of edit control.
 
 Example:
- SendMessage(hWndEdit, AEM_GETOVERTYPE, 0, 0);
-
-
-AEM_SETOVERTYPE
-_______________
-
-Set type mode.
-
-(BOOL)wParam == TRUE   sets overtype mode.
-                FALSE  sets insert mode.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
+ SendMessage(hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_DETECTURL|AECOE_OVERTYPE);
 
 
 AEM_GETCARETWIDTH
@@ -5227,7 +5292,7 @@ Retrieve word break delimiters.
 (wchar_t * )lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -5261,7 +5326,7 @@ Retrieve word wrapping delimiters.
 (wchar_t * )lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -5295,7 +5360,7 @@ Retrieve URL left delimiters.
 (wchar_t * )lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -5329,7 +5394,7 @@ Retrieve URL right delimiters.
 (wchar_t * )lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- Zero.
+ Number of characters copied, not including the terminating NULL character.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -5363,7 +5428,7 @@ Retrieve URL prefixes.
 (wchar_t * )lParam == pointer to a buffer that receives pairs of null-terminated prefixes strings. The last string terminated by two NULL characters.
 
 Return Value
- Zero.
+ Number of characters copied, including two NULL terminated characters.
 
 Example:
  wchar_t wszPrefixes[128];
@@ -5605,6 +5670,7 @@ Example:
  AECHARINDEX ciCaret;
  AECHARCOLORS aelc;
 
+ aelc.dwFlags=0;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
 
@@ -5717,6 +5783,41 @@ Example:
  }
 
 
+AEM_GETERASERECT
+________________
+
+Retrieve the erasing rectangle of an edit control. By default all edit area is erased.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT * )lParam == pointer to a RECT structure that receives the erasing rectangle.
+
+Return Value
+ Zero.
+
+Example:
+ RECT rc;
+
+ SendMessage(hWndEdit, AEM_GETERASERECT, 0, (LPARAM)&rc);
+
+
+AEM_SETERASERECT
+________________
+
+Set the erasing rectangle of an edit control. The erasing rectangle is the limiting rectangle into which the control erase background.
+
+(DWORD)wParam  == see AERC_* defines.
+(RECT * )lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the erasing rectangle is set to its default values.
+
+Return Value
+ Zero.
+
+Example (exclude 10 left pixels from erasing):
+ RECT rc;
+
+ rc.left=10;
+ SendMessage(hWndEdit, AEM_SETERASERECT, AERC_NOTOP|AERC_NORIGHT|AERC_NOBOTTOM, (LPARAM)&rc);
+
+
 AEM_HIDESELECTION
 _________________
 
@@ -5746,6 +5847,42 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_REDRAWLINERANGE, 10, (LPARAM)-1);
+
+
+AEM_GETBACKGROUNDIMAGE
+______________________
+
+Retrieve background image.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Image handle or NULL, if not set.
+
+Example:
+ HBITMAP hBitmap=(HBITMAP)SendMessage(hWndEdit, AEM_GETBACKGROUNDIMAGE, 0, 0);
+
+
+AEM_SETBACKGROUNDIMAGE
+______________________
+
+Set background image.
+
+(HBITMAP)wParam == image handle. If NULL, image removed from background.
+(int)lParam     == alpha transparency value that ranges from 0 to 255 (default is 128).
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+HBITMAP hBkImage;
+
+if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE))
+{
+  SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 128);
+}
 
 
 AEM_GETFOLDSTACK
@@ -6867,6 +7004,36 @@ Example:
    return 0;
  }
 
+
+AEM_HLGETOPTIONS
+________________
+
+Retrieve highlighting options.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Combination of the current option flag values. See AEHLO_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLGETOPTIONS, 0, 0);
+
+
+AEM_HLSETOPTIONS
+________________
+
+Set highlighting options.
+
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AEHLO_* defines.
+
+Return Value
+ Current options of highlighting.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLSETOPTIONS, AECOOP_OR, AEHLO_IGNOREFONTITALIC);
+
 *)
 
 {$IF CompilerVersion > 20}{$ENDREGION}{$IFEND}
@@ -6877,8 +7044,8 @@ Example:
 const
   AES_AKELEDITCLASS = AES_AKELEDITCLASSA;
   {$EXTERNALSYM AES_AKELEDITCLASS}
-  AES_RICHEDITCLASS = AES_RICHEDITCLASSA;
-  {$EXTERNALSYM AES_RICHEDITCLASS}
+  AES_RICHEDIT20 = AES_RICHEDIT20A;
+  {$EXTERNALSYM AES_RICHEDIT20}
 
 type
   TTEXTRANGE64 = TTEXTRANGE64A;
@@ -6934,8 +7101,8 @@ const
 const
   AES_AKELEDITCLASS = AES_AKELEDITCLASSW;
   {$EXTERNALSYM AES_AKELEDITCLASS}
-  AES_RICHEDITCLASS = AES_RICHEDITCLASSW;
-  {$EXTERNALSYM AES_RICHEDITCLASS}
+  AES_RICHEDIT20 = AES_RICHEDIT20W;
+  {$EXTERNALSYM AES_RICHEDIT20}
 
 type
   TTEXTRANGE64 = TTEXTRANGE64W;
@@ -6997,6 +7164,9 @@ const
 function AEC_IsSurrogate(c: WideChar): Boolean;     {$IFDEF INLINES}inline;{$ENDIF}
 function AEC_IsHighSurrogate(c: WideChar): Boolean; {$IFDEF INLINES}inline;{$ENDIF}
 function AEC_IsLowSurrogate(c: WideChar): Boolean;  {$IFDEF INLINES}inline;{$ENDIF}
+function AEC_ScalarFromSurrogate(high, low: WideChar): UCS4Char;
+function AEC_HighSurrogateFromScalar(c: UCS4Char): WideChar;
+function AEC_LowSurrogateFromScalar(c: UCS4Char): WideChar;
 
 function AEC_CopyChar(wszTarget: PWideChar; dwTargetSize: DWORD; const wpSource: PWideChar): Integer;
 function AEC_IndexInc(var ciChar: TAECHARINDEX): Integer;
@@ -7025,6 +7195,8 @@ function AEC_CharAtIndex(var ciChar: TAECHARINDEX): Integer;
 function AEC_IsCharInSelection(var ciChar: TAECHARINDEX): Boolean;
 function AEC_IsFirstCharInLine(var ciChar: TAECHARINDEX): Boolean;
 function AEC_IsLastCharInLine(var ciChar: TAECHARINDEX): Boolean;
+function AEC_IsFirstCharInFile(var ciChar: TAECHARINDEX): Boolean;
+function AEC_IsLastCharInFile(var ciChar: TAECHARINDEX): Boolean;
 function AEC_NextFold(var lpFold: PAEFOLD; bRecursive: Boolean): PAEFOLD;
 function AEC_PrevFold(var lpFold: PAEFOLD; bRecursive: Boolean): PAEFOLD;
 
@@ -7045,6 +7217,22 @@ end;
 function AEC_IsLowSurrogate(c: WideChar): Boolean;
 begin
   Result := (c >= #$DC00) and (c <= #$DFFF);
+end;
+
+function AEC_ScalarFromSurrogate(high, low: WideChar): UCS4Char;
+begin
+//  ((((high) - 0xD800) * 0x400) + ((low) - 0xDC00) + 0x10000)
+  Result := (Word(high) - $D800)*$400 + (Word(low) - $DC00) + $10000;
+end;
+
+function AEC_HighSurrogateFromScalar(c: UCS4Char): WideChar;
+begin
+  Result := WideChar((c - $10000) div $400 + $D800);
+end;
+
+function AEC_LowSurrogateFromScalar(c: UCS4Char): WideChar;
+begin
+  Result := WideChar((c - $10000) mod $400 + $DC00);
 end;
 
 function AEC_CopyChar(wszTarget: PWideChar; dwTargetSize: DWORD; const wpSource: PWideChar): Integer;
@@ -7365,11 +7553,21 @@ function AEC_CharAtIndex(var ciChar: TAECHARINDEX): Integer;
 begin
   if ciChar.nCharInLine >= ciChar.lpLine.nLineLen then
     if ciChar.lpLine.nLineBreak = AELB_WRAP then
-      Result := Integer(ciChar.lpLine.next.wpLine^)
+    begin
+      Result := Integer(ciChar.lpLine.next.wpLine^);
+      if AEC_IsHighSurrogate(WideChar(Result)) then
+        Result := AEC_ScalarFromSurrogate(WideChar(Result), (ciChar.lpLine.next.wpLine + 1)^);
+      Exit;
+    end
     else
       Result := -ciChar.lpLine.nLineBreak
   else
+  begin
     Result := Integer( (ciChar.lpLine.wpLine + ciChar.nCharInLine)^ );
+    if AEC_IsHighSurrogate(WideChar(Result)) then
+      Result := AEC_ScalarFromSurrogate(WideChar(Result), (ciChar.lpLine.next.wpLine + ciChar.nCharInLine + 1)^);
+    Exit;
+  end;
 end;
 
 function AEC_IsCharInSelection(var ciChar: TAECHARINDEX): Boolean;
@@ -7391,6 +7589,20 @@ begin
   Result :=
     (ciChar.nCharInLine = ciChar.lpLine.nLineLen) and
     (ciChar.lpLine.nLineBreak <> AELB_WRAP);
+end;
+
+function AEC_IsFirstCharInFile(var ciChar: TAECHARINDEX): Boolean;
+begin
+  Result :=
+    (ciChar.nCharInLine = 0) and
+    (ciChar.lpLine.prev <> nil);
+end;
+
+function AEC_IsLastCharInFile(var ciChar: TAECHARINDEX): Boolean;
+begin
+  Result :=
+    (ciChar.nCharInLine = ciChar.lpLine.nLineLen) and
+    (ciChar.lpLine.next <> nil);
 end;
 
 function AEC_NextFold(var lpFold: PAEFOLD; bRecursive: Boolean): PAEFOLD;
