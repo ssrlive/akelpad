@@ -581,9 +581,17 @@ Section
         WriteINIStr "$TCINI" "Configuration" "Editor_AkelUndo" "$0"
       ${EndIf}
     ${EndIf}
+    ReadINIStr $0 "$TCINI" "Configuration" "MultiRenameEdit"
+    ${If} $0 != ''
+      ${GetFileName} "$0" $1
+      ${If} $1 != "Akelpad.exe"
+        WriteINIStr "$TCINI" "Configuration" "MultiRenameEdit_AkelUndo" "$0"
+      ${EndIf}
+    ${EndIf}
 
     ${WordReplace} "$SETUPDIR\AkelPad.exe" "$TCDIR" "%COMMANDER_PATH%" "+" $0
     WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
+    WriteINIStr "$TCINI" "Configuration" "MultiRenameEdit" "$0"
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     SearchPath $0 takeown.exe
     ${If} $0 != ''
@@ -900,19 +908,30 @@ Section un.install
     goto DeleteFiles
   ${EndIf}
 
+  ReadINIStr $0 "$TCINI" "Configuration" "Editor_AkelUndo"
+  ${If} $0 != ''
+    WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
+    DeleteINIStr "$TCINI" "Configuration" "Editor_AkelUndo"
+  ${EndIf}
+  ReadINIStr $0 "$TCINI" "Configuration" "MultiRenameEdit_AkelUndo"
+  ${If} $0 != ''
+    WriteINIStr "$TCINI" "Configuration" "MultiRenameEdit" "$0"
+    DeleteINIStr "$TCINI" "Configuration" "MultiRenameEdit_AkelUndo"
+  ${EndIf}
+
   ReadINIStr $0 "$TCINI" "Configuration" "Editor"
   ${If} $0 != ''
     ${un.GetFileName} "$0" $1
     ${If} $1 == "Akelpad.exe"
       DeleteINIStr "$TCINI" "Configuration" "Editor"
-    ${Else}
-      goto DeleteFiles
     ${EndIf}
   ${EndIf}
-  ReadINIStr $0 "$TCINI" "Configuration" "Editor_AkelUndo"
+  ReadINIStr $0 "$TCINI" "Configuration" "MultiRenameEdit"
   ${If} $0 != ''
-    WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
-    DeleteINIStr "$TCINI" "Configuration" "Editor_AkelUndo"
+    ${un.GetFileName} "$0" $1
+    ${If} $1 == "Akelpad.exe"
+      DeleteINIStr "$TCINI" "Configuration" "MultiRenameEdit"
+    ${EndIf}
   ${EndIf}
   goto DeleteFiles
 
