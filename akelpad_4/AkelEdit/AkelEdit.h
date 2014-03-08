@@ -299,6 +299,10 @@
 #define AEDLM_URLLEFT   0x00000040  //URL left delimiter.
 #define AEDLM_URLRIGHT  0x00000080  //URL right delimiter.
 
+//AEM_COLUMNTOINDEX and AEM_INDEXTOCOLUMN flags
+#define AECTI_WRAPLINEBEGIN 0x0001  //If set, scan from first character of the unwrapped line. If not set, scan from first character of the wrapped line.
+#define AECTI_FIT           0x0002  //AEM_COLUMNTOINDEX: if set, character position must be equal or less than column boundary. If not set, character position must be equal or larger than column boundary.
+
 //AEM_SETSEL and AEM_UPDATESEL flags
 #define AESELT_COLUMNON            0x00000001  //Make column selection ON.
 #define AESELT_COLUMNASIS          0x00000002  //Leave column selection as is.
@@ -3498,8 +3502,7 @@ Retrieve the column in line of the character index taking into account tab stop 
 (DWORD)wParam         == low-order word:
                           tab stop size in characters. Use current value if zero.
                          high-order word:
-                          TRUE   scan all wrapped lines.
-                          FALSE  scan to first char in line.
+                          see AECTI_* defines.
 (AECHARINDEX *)lParam == AkelEdit character index.
 
 Return Value
@@ -3509,7 +3512,7 @@ Example:
  AECHARINDEX ciCaret;
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(0, TRUE), (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(0, AECTI_WRAPLINEBEGIN), (LPARAM)&ciCaret);
 
 
 AEM_COLUMNTOINDEX
@@ -3520,8 +3523,7 @@ Retrieve the character index of the column in line taking into account tab stop 
 (DWORD)wParam         == low-order word:
                           tab stop size in characters. Use current value if zero.
                          high-order word:
-                          TRUE   scan all wrapped lines.
-                          FALSE  scan to first char in line.
+                          see AECTI_* defines.
 (AECHARINDEX *)lParam == Input:  AECHARINDEX.lpLine and AECHARINDEX.nLine members specifies line to scan from.
                                  AECHARINDEX.nCharInLine specifies zero based column in line.
                          Output: AECHARINDEX structure is filled with result character index.
@@ -3535,7 +3537,7 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  ciCaret.nCharInLine=10;
- SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(0, TRUE), (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(0, AECTI_WRAPLINEBEGIN), (LPARAM)&ciCaret);
 
 
 AEM_INDEXINURL

@@ -858,7 +858,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AECHARINDEX ciChar;
       AECHARINDEX ciCount;
       int nTabStop=LOWORD(wParam);
-      BOOL bWrappedScan=HIWORD(wParam);
+      WORD wFlags=HIWORD(wParam);
       int nColumn=0;
 
       //Tab current size if zero
@@ -868,7 +868,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (ciChar.nCharInLine > ciChar.lpLine->nLineLen)
         ciChar.nCharInLine=ciChar.lpLine->nLineLen;
 
-      if (!bWrappedScan)
+      if (!(wFlags & AECTI_WRAPLINEBEGIN))
       {
         ciCount.nLine=ciChar.nLine;
         ciCount.lpLine=ciChar.lpLine;
@@ -893,12 +893,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AECHARINDEX *lpChar=(AECHARINDEX *)lParam;
       int nTabStop=LOWORD(wParam);
-      BOOL bWrappedScan=HIWORD(wParam);
+      WORD wFlags=HIWORD(wParam);
       int nColumn=0;
       int nColumnEnd=lpChar->nCharInLine;
 
       lpChar->nCharInLine=0;
-      if (bWrappedScan)
+      if (wFlags & AECTI_WRAPLINEBEGIN)
         AEC_WrapLineBegin(lpChar);
 
       //Tab current size if zero
@@ -916,6 +916,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (lpChar->lpLine->nLineBreak != AELB_WRAP)
             return FALSE;
         AEC_NextChar(lpChar);
+      }
+      if (wFlags & AECTI_FIT)
+      {
+        if (nColumn > nColumnEnd)
+          AEC_PrevChar(lpChar);
       }
       return TRUE;
     }
