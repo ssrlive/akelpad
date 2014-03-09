@@ -1495,6 +1495,7 @@ BOOL DoFileOpen()
         wchar_t wszString[MAX_PATH];
         wchar_t *wpFile=wszFileList + xstrlenW(wszFileList) + 1;
         MSG msg;
+        INT_PTR nFileLen=0;
         int nFiles=0;
         int nFileCount=0;
 
@@ -1517,10 +1518,13 @@ BOOL DoFileOpen()
           do
           {
             if (IsPathFull(wpFile))
-              xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
+              nFileLen=xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
             else
+            {
+              nFileLen=xstrlenW(wpFile);
               xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
-            nOpen=OpenDocument(NULL, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+            }
+            nOpen=OpenDocument(NULL, wszFile, dwOfnFlags|(*(wpFile + nFileLen + 1)?OD_MULTIFILE:0), nOfnCodePage, bOfnBOM);
             if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
             {
               bResult=FALSE;
@@ -1543,7 +1547,7 @@ BOOL DoFileOpen()
             //Win7: prevent system from mark program as hanged
             PeekMessageWide(&msg, hMainWnd, 0, 0, PM_NOREMOVE);
           }
-          while (*(wpFile+=xstrlenW(wpFile) + 1));
+          while (*(wpFile+=nFileLen + 1));
 
           if (moCur.bStatusBar)
             StatusBar_SetTextWide(hStatus, SBP_MODIFY, L"");
@@ -4276,6 +4280,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   int nFileCmp;
   int nFileLen;
   int nStreamOffset;
+  int nChoice;
+  DWORD dwMsgFlags;
   BOOL bFileExist=FALSE;
 
   if (!hWnd)
@@ -4286,6 +4292,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
+  if (dwFlags & OD_MULTIFILE)
+    dwMsgFlags=MB_YESNOCANCEL;
+  else
+    dwMsgFlags=MB_OKCANCEL;
   bFileExist=GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
   nStreamOffset=GetFileStreamOffset(wszFile, nFileLen);
 
@@ -4334,7 +4344,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     {
       API_LoadStringW(hLangLib, MSG_FILE_DOES_NOT_EXIST, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, wszFile);
-      if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
+      nChoice=API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, dwMsgFlags|MB_ICONEXCLAMATION);
+      if (nChoice == IDNO)
+      {
+        nResult=EOD_MSGNO;
+        goto End;
+      }
+      else if (nChoice == IDCANCEL)
       {
         nResult=EOD_MSGCANCELCREATE;
         goto End;
@@ -4438,7 +4454,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
             {
               API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
               xprintfW(wszMsg, wbuf, wszFile);
-              if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+              nChoice=API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, dwMsgFlags|MB_ICONEXCLAMATION|MB_DEFBUTTON2);
+              if (nChoice == IDNO)
+              {
+                nResult=EOD_MSGNO;
+                goto End;
+              }
+              else if (nChoice == IDCANCEL)
               {
                 nResult=EOD_MSGCANCELBINARY;
                 break;
@@ -5631,7 +5653,7 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
       }
       else
       {
-        nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|OD_MULTIFILE, 0, FALSE);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
         {
           bResult=FALSE;
@@ -5672,7 +5694,7 @@ void DropFiles(HDROP hDrop)
       }
       else
       {
-        nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(i + 1 < nDropped?OD_MULTIFILE:0), 0, FALSE);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
           break;
       }
@@ -18420,7 +18442,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         {
           if (!SaveChanged(0))
             return PCLE_END;
-          nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+          nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
             return PCLE_END;
           bFileOpenedSDI=TRUE;
@@ -18434,7 +18456,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
       if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
-      nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+      nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
       if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
         return PCLE_END;
     }
