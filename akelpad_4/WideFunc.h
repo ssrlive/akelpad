@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v2.2                    *
+ *                  Wide functions header v2.3                    *
  *                                                                *
- * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -126,6 +126,7 @@ HWND CreateDialogWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndP
 HWND CreateDialogParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 INT_PTR DialogBoxWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc);
 INT_PTR DialogBoxParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+int GetClassNameWide(HWND hWnd, wchar_t *wszText, int nTextMax);
 UINT_PTR GetClassLongPtrWide(HWND hWnd, int nIndex);
 UINT_PTR SetClassLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex);
@@ -1951,6 +1952,36 @@ INT_PTR DialogBoxParamWide(HINSTANCE hInstance, const wchar_t *wpTemplate, HWND 
     if ((UINT_PTR)wpTemplate > MAXUHALF_PTR)
       FreeAnsi(pTemplate);
     return nResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined GetClassNameWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define GetClassNameWide_INCLUDED
+#undef GetClassNameWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+int GetClassNameWide(HWND hWnd, wchar_t *wszText, int nTextMax)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetClassNameW(hWnd, wszText, nTextMax);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *szText;
+    int nTextLen=0;
+
+    if (szText=(char *)GlobalAlloc(GPTR, nTextMax * sizeof(wchar_t)))
+    {
+      nTextLen=GetClassNameA(hWnd, szText, nTextMax * sizeof(wchar_t));
+      if (nTextLen=AnsiToWide(szText, nTextLen + 1, wszText, nTextMax))
+        --nTextLen;
+      GlobalFree((HGLOBAL)szText);
+    }
+    return nTextLen;
   }
 
   WideNotInitialized();
