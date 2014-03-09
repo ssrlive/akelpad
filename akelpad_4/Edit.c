@@ -266,9 +266,12 @@ extern BOOL bLockWatchFile;
 extern WNDPROC lpOldEditProc;
 
 //Execute
+extern char szExeFile[MAX_PATH];
+extern wchar_t wszExeFile[MAX_PATH];
+extern int nExeFileLen;
 extern char szExeDir[MAX_PATH];
 extern wchar_t wszExeDir[MAX_PATH];
-extern wchar_t wszAkelUpdaterExe[MAX_PATH];
+extern int nExeDirLen;
 
 //Mdi
 extern HSTACK hFramesStack;
@@ -1372,7 +1375,7 @@ HWND DoFileNewWindow(DWORD dwAddFlags)
 {
   STARTUPINFOW si;
   PROCESS_INFORMATION pi;
-  HWND hWnd=0;
+  HWND hWndFriend=0;
 
   if (!GetModuleFileNameWide(hInstance, wbuf, MAX_PATH))
     return 0;
@@ -1385,35 +1388,23 @@ HWND DoFileNewWindow(DWORD dwAddFlags)
   if (CreateProcessWide(wbuf, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
   {
     WaitForInputIdle(pi.hProcess, INFINITE);
-    EnumThreadWindows(pi.dwThreadId, EnumThreadWindowsProc, (LPARAM)&hWnd);
+    EnumThreadWindows(pi.dwThreadId, EnumThreadWindowsProc, (LPARAM)&hWndFriend);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
-    return hWnd;
+    return hWndFriend;
   }
   return 0;
 }
 
-BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK EnumThreadWindowsProc(HWND hWnd, LPARAM lParam)
 {
-  HWND *hWnd=(HWND *)lParam;
+  HWND *hWndFriend=(HWND *)lParam;
 
-  if (bOldWindows)
+  GetClassNameWide(hWnd, wbuf, BUFFER_SIZE);
+  if (!xstrcmpW(wbuf, APP_MAIN_CLASSW))
   {
-    GetClassNameA(hwnd, buf, BUFFER_SIZE);
-    if (!lstrcmpA(buf, APP_MAIN_CLASSA))
-    {
-      *hWnd=hwnd;
-      return FALSE;
-    }
-  }
-  else
-  {
-    GetClassNameW(hwnd, wbuf, BUFFER_SIZE);
-    if (!xstrcmpW(wbuf, APP_MAIN_CLASSW))
-    {
-      *hWnd=hwnd;
-      return FALSE;
-    }
+    *hWndFriend=hWnd;
+    return FALSE;
   }
   return TRUE;
 }
@@ -18145,6 +18136,32 @@ void StackFontItemsFree(HSTACK *hStack)
 }
 
 
+//// Inter-Process Communication
+
+HANDLE MemCreate(const char *pName, DWORD dwSize)
+{
+  if (!dwSize)
+    return OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, pName);
+  else
+    return CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, dwSize, pName);
+}
+
+void* MemMap(HANDLE hMem, DWORD dwSize)
+{
+  return MapViewOfFile(hMem, FILE_MAP_ALL_ACCESS, 0, 0, dwSize);
+}
+
+BOOL MemUnmap(LPCVOID lpMem)
+{
+  return UnmapViewOfFile(lpMem);
+}
+
+BOOL MemClose(HANDLE hMem)
+{
+  return CloseHandle(hMem);
+}
+
+
 //// Command line functions
 
 wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wppCmdParamsStart, wchar_t **wppCmdParamsEnd)
@@ -19874,17 +19891,7 @@ BOOL GetFileWin32Data(const wchar_t *wpFile, WIN32_FIND_DATAW *wfd)
   return FALSE;
 }
 
-int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
-{
-  if (nLen=GetModuleFileNameWide(hInstance, wszExeDir, nLen))
-  {
-    while (nLen > 0 && wszExeDir[nLen] != L'\\') --nLen;
-    wszExeDir[nLen]=L'\0';
-  }
-  return nLen;
-}
-
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirMax)
 {
   const wchar_t *wpCount;
 
@@ -19894,7 +19901,7 @@ int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD d
   for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
     if (*wpCount == L'\\')
-      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, (DWORD)(wpCount - wpFile) + 1));
+      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirMax, (DWORD)(wpCount - wpFile) + 1));
   }
   return 0;
 }
@@ -20433,6 +20440,69 @@ void ActivateWindow(HWND hWnd)
     }
   }
   SendMessage(hWnd, AKDN_ACTIVATE, 0, 0);
+}
+
+HWND FindAkelCopy()
+{
+  HWND hWndFriend=NULL;
+  BOOL bSameExe=FALSE;
+
+  if (bSameExe)
+    EnumWindows(EnumAkelCopyProc, (LPARAM)&hWndFriend);
+  else
+    hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL);
+  return hWndFriend;
+}
+
+BOOL CALLBACK EnumAkelCopyProc(HWND hWnd, LPARAM lParam)
+{
+  HWND *hWndFriend=(HWND *)lParam;
+
+  GetClassNameWide(hWnd, wbuf, BUFFER_SIZE);
+  if (!xstrcmpW(wbuf, APP_MAIN_CLASSW))
+  {
+    if (GetAkelPadExe(hWnd, wbuf, BUFFER_SIZE))
+    {
+      if (!xstrcmpiW(wszExeFile, wbuf))
+      {
+        *hWndFriend=hWnd;
+        return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+
+int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
+{
+  HANDLE hMemRemote;
+  HANDLE hMemLocal;
+  wchar_t *wszMemRemote;
+  wchar_t *wszMemLocal;
+  DWORD dwMemSize=nExeFileMax * sizeof(wchar_t);
+  int nResult=0;
+
+  if (hMemRemote=(HANDLE)SendMessage(hWnd, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", dwMemSize))
+  {
+    if (wszMemRemote=(wchar_t *)SendMessage(hWnd, AKD_MEMMAP, (WPARAM)hMemRemote, dwMemSize))
+    {
+      SendMessage(hWnd, AKD_GETMAININFO, MI_AKELEXEW, (WPARAM)wszMemRemote);
+
+      //Read data from other process
+      if (hMemLocal=(HANDLE)MemCreate("Global\\AkelPad", 0))
+      {
+        if (wszMemLocal=(wchar_t *)MemMap(hMemLocal, dwMemSize))
+        {
+          nResult=xstrcpynW(szExeFile, wszMemLocal, nExeFileMax);
+          MemUnmap(wszMemLocal);
+        }
+        MemClose(hMemLocal);
+      }
+      SendMessage(hWnd, AKD_MEMUNMAP, (WPARAM)wszMemRemote, 0);
+    }
+    SendMessage(hWnd, AKD_MEMCLOSE, (WPARAM)hMemRemote, 0);
+  }
+  return nResult;
 }
 
 HWND NextDialog(BOOL bPrevious)

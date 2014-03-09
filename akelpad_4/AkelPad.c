@@ -155,6 +155,7 @@
 #define FindNextFileWide
 #define FindWindowExWide
 #define GetClassLongPtrWide
+#define GetClassNameWide
 #define GetCPInfoExWide
 #define GetCurrentDirectoryWide
 #define GetDateFormatWide
@@ -461,8 +462,12 @@ BOOL bLockWatchFile=FALSE;
 WNDPROC lpOldEditProc;
 
 //Execute
+char szExeFile[MAX_PATH];
+wchar_t wszExeFile[MAX_PATH];
+int nExeFileLen;
 char szExeDir[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
+int nExeDirLen;
 wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
@@ -638,8 +643,11 @@ void _WinMain()
   #endif
 
   //Get program directory
-  GetExeDir(hInstance, wszExeDir, MAX_PATH);
-  WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
+  nExeFileLen=GetModuleFileNameWide(hInstance, wszExeFile, MAX_PATH);
+  WideCharToMultiByte(CP_ACP, 0, wszExeFile, nExeFileLen + 1, szExeFile, MAX_PATH, NULL, NULL);
+
+  nExeDirLen=GetFileDir(wszExeFile, nExeFileLen, wszExeDir, MAX_PATH);
+  WideCharToMultiByte(CP_ACP, 0, wszExeDir, nExeDirLen + 1, szExeDir, MAX_PATH, NULL, NULL);
 
   //Zero AkelAdmin variables
   wszAkelAdminPipe[0]=L'\0';
@@ -965,7 +973,7 @@ void _WinMain()
     DWORD dwAtom;
 
     //Pass command line to opened instance
-    if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
+    if (hWndFriend=FindAkelCopy())
     {
       dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
       ActivateWindow(hWndFriend);
@@ -2232,6 +2240,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return bMainOnStart;
         if (wParam == MI_ONFINISH)
           return nMainOnFinish;
+        if (wParam == MI_AKELEXEA)
+          return xstrcpynA((void *)lParam, szExeFile, MAX_PATH);
+        if (wParam == MI_AKELEXEW)
+          return xstrcpynW((void *)lParam, wszExeFile, MAX_PATH);
+
         if (wParam == MI_X64)
         {
           #ifdef _WIN64
@@ -3393,21 +3406,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Thread
-    if (uMsg == AKD_GLOBALALLOC)
+    if (uMsg == AKD_MEMCREATE)
     {
-      return (LRESULT)GlobalAlloc((UINT)wParam, (SIZE_T)lParam);
+      return (LRESULT)MemCreate((const char *)wParam, (DWORD)lParam);
     }
-    if (uMsg == AKD_GLOBALLOCK)
+    if (uMsg == AKD_MEMMAP)
     {
-      return (LRESULT)GlobalLock((HGLOBAL)wParam);
+      return (LRESULT)MemMap((HANDLE)wParam, (DWORD)lParam);
     }
-    if (uMsg == AKD_GLOBALUNLOCK)
+    if (uMsg == AKD_MEMUNMAP)
     {
-      return (LRESULT)GlobalUnlock((HGLOBAL)wParam);
+      return (LRESULT)MemUnmap((LPCVOID)wParam);
     }
-    if (uMsg == AKD_GLOBALFREE)
+    if (uMsg == AKD_MEMCLOSE)
     {
-      return (LRESULT)GlobalFree((HGLOBAL)wParam);
+      return (LRESULT)MemClose((HANDLE)wParam);
     }
     if (uMsg == AKD_STRLENA)
     {

@@ -213,6 +213,8 @@
 //Execution
 #define MI_ONSTART                   90   //Return: TRUE - execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_FINISH, FALSE - elsewhere.
 #define MI_ONFINISH                  91   //Return: see MOF_* defines.
+#define MI_AKELEXEA                  95   //Return: copied chars. (char *)lParam - buffer that receives AkelPad executable string.
+#define MI_AKELEXEW                  96   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad executable string.
 //Compile
 #define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
 #define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.
@@ -2093,10 +2095,10 @@ typedef struct {
 #define AKD_FRAMEAPPLYEDIT         (WM_USER + 272)
 
 //Thread
-#define AKD_GLOBALALLOC            (WM_USER + 281)
-#define AKD_GLOBALLOCK             (WM_USER + 282)
-#define AKD_GLOBALUNLOCK           (WM_USER + 283)
-#define AKD_GLOBALFREE             (WM_USER + 284)
+#define AKD_MEMCREATE              (WM_USER + 281)
+#define AKD_MEMMAP                 (WM_USER + 282)
+#define AKD_MEMUNMAP               (WM_USER + 283)
+#define AKD_MEMCLOSE               (WM_USER + 284)
 #define AKD_STRLENA                (WM_USER + 285)
 #define AKD_STRLENW                (WM_USER + 286)
 #define AKD_CREATEWINDOW           (WM_USER + 287)
@@ -2152,7 +2154,7 @@ typedef struct {
 #define AKD_INISETVALUEW           (WM_USER + 359)
 #define AKD_INICLOSE               (WM_USER + 360)
 
-//Regular expressions. Requires for include "RegExpFunc.h".
+//Regular expressions. Requires include of "RegExpFunc.h".
 #define AKD_PATEXEC                (WM_USER + 391)
 #define AKD_PATREPLACE             (WM_USER + 392)
 #define AKD_PATGROUPSTR            (WM_USER + 393)
@@ -3844,64 +3846,101 @@ Example:
  See AKD_FRAMEINIT example.
 
 
-AKD_GLOBALALLOC
-_______________
+AKD_MEMCREATE
+_____________
 
-Allocates the specified number of bytes from the heap (see description for GlobalAlloc in MSDN).
+Creates or opens a named memory object.
 
-(DWORD)wParam == memory allocation attributes.
-(DWORD)lParam == number of bytes to allocate.
+(const char *)wParam == memory object name (see description for CreateFileMapping in MSDN).
+(DWORD)lParam        == number of bytes to allocate. If zero, then open already created memory object.
 
 Return Value
- Handle to the newly allocated memory object.
+ Handle to the memory object.
 
-Example:
- HGLOBAL hMem=(HGLOBAL)SendMessage(pd->hMainWnd, AKD_GLOBALALLOC, GPTR, 128);
+Example (get executable file of specified AkelPad window):
+ wchar_t szExeFile[MAX_PATH];
+
+ GetAkelPadExe(hWndRemote, pd->hMainWnd, szExeFile, MAX_PATH);
+
+ int GetAkelPadExe(HWND hWndRemote, HWND hWndLocal, wchar_t *szExeFile, int nExeFileMax)
+ {
+   HANDLE hMemRemote;
+   HANDLE hMemLocal;
+   wchar_t *wszMemRemote;
+   wchar_t *wszMemLocal;
+   DWORD dwMemSize=nExeFileMax * sizeof(wchar_t);
+   int nResult=0;
+ 
+   if (hMemRemote=(HANDLE)SendMessage(hWndRemote, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", dwMemSize))
+   {
+     if (wszMemRemote=(wchar_t *)SendMessage(hWndRemote, AKD_MEMMAP, (WPARAM)hMemRemote, dwMemSize))
+     {
+       SendMessage(hWndRemote, AKD_GETMAININFO, MI_AKELEXEW, (WPARAM)wszMemRemote);
+ 
+       //Read data from other process
+       if (hMemLocal=(HANDLE)SendMessage(hWndLocal, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", 0))
+       {
+         if (wszMemLocal=(wchar_t *)SendMessage(hWndLocal, AKD_MEMMAP, (WPARAM)hMemLocal, dwMemSize))
+         {
+           lstrcpynW(szExeFile, wszMemLocal, nExeFileMax);
+           nResult=lstrlenW(szExeFile);
+           SendMessage(hWndLocal, AKD_MEMUNMAP, (WPARAM)wszMemLocal, 0);
+         }
+         SendMessage(hWndLocal, AKD_MEMCLOSE, (WPARAM)hMemLocal, 0);
+       }
+       SendMessage(hWndRemote, AKD_MEMUNMAP, (WPARAM)wszMemRemote, 0);
+     }
+     SendMessage(hWndRemote, AKD_MEMCLOSE, (WPARAM)hMemRemote, 0);
+   }
+   return nResult;
+ }
 
 
-AKD_GLOBALLOCK
-______________
+AKD_MEMMAP
+__________
 
-Locks a global memory object (see description for GlobalLock in MSDN).
+Maps memory object into the address space of a calling process.
 
-(HGLOBAL)wParam == handle to the global memory object.
-lParam          == not used.
+(HANDLE)wParam == handle to the memory object.
+(DWORD)lParam  == number of bytes to map.
 
 Return Value
  Pointer to the first byte of the memory block.
 
 Example:
- void *pMem=(void *)SendMessage(pd->hMainWnd, AKD_GLOBALLOCK, (WPARAM)hMem, 0);
+ See AKD_MEMCREATE example.
 
 
-AKD_GLOBALUNLOCK
-________________
+AKD_MEMUNMAP
+____________
 
-Decrements the lock count associated with a memory object (see description for GlobalUnlock in MSDN).
+Unmaps a mapped memory object from the calling process's address space.
 
-(HGLOBAL)wParam == handle to the global memory object.
-lParam          == not used.
-
-Return Value
- Unlock result.
-
-Example:
- BOOL bUnlock=SendMessage(pd->hMainWnd, AKD_GLOBALUNLOCK, (WPARAM)hMem, 0);
-
-
-AKD_GLOBALFREE
-______________
-
-Frees the specified global memory object (see description for GlobalFree in MSDN).
-
-(HGLOBAL)wParam == handle to the global memory object.
-lParam          == not used.
+(HANDLE)wParam == pointer to the first byte of the memory block.
+lParam         == not used.
 
 Return Value
- Free result.
+ TRUE  success.
+ FALSE error.
 
 Example:
- HGLOBAL hMem=SendMessage(pd->hMainWnd, AKD_GLOBALFREE, (WPARAM)hMem, 0);
+ See AKD_MEMCREATE example.
+
+
+AKD_MEMCLOSE
+____________
+
+Close the specified memory object.
+
+(HANDLE)wParam == handle to the memory object.
+lParam         == not used.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ See AKD_MEMCREATE example.
 
 
 AKD_STRLENA
@@ -4696,7 +4735,7 @@ Example:
 AKD_PATEXEC
 ___________
 
-Compile and execute regular expressions pattern. Requires for include "RegExpFunc.h".
+Compile and execute regular expressions pattern. Requires include of "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC *)lParam == pointer to a PATEXEC structure.
@@ -4715,6 +4754,8 @@ Example:
  pe.lpREGroupStack=0;
  pe.wpStr=L"1234567890 11223344556677889900";
  pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
+ pe.wpText=pe.wpStr;
+ pe.wpMaxText=pe.wpMaxStr;
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
@@ -4729,12 +4770,12 @@ Example:
 
    do
    {
-     if (lpREGroupNext->wpStrStart != lpREGroupNext->wpStrEnd && lpREGroupNext->nIndex != -1)
+     if (lpREGroupNext->nStrLen && lpREGroupNext->nIndex != -1)
      {
-       //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart, lpREGroupNext->wpStrStart);
+       //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->nStrLen, lpREGroupNext->wpStrStart);
        wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
-       lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart) + 1);
-       wpResult+=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+       lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->nStrLen) + 1);
+       wpResult+=lpREGroupNext->nStrLen;
        wpResult+=wsprintfW(wpResult, L"]\n");
      }
    }
@@ -4750,7 +4791,7 @@ Example:
 AKD_PATREPLACE
 ______________
 
-Replace in string using regular expressions. Requires for include "RegExpFunc.h".
+Replace in string using regular expressions. Requires include of "RegExpFunc.h".
 
 wParam               == not used.
 (PATREPLACE *)lParam == pointer to a PATREPLACE structure.
@@ -4763,13 +4804,15 @@ Example:
  INT_PTR nLen;
 
  //Calculate result string length
- pr.wpStr=L"123ABC200DEF";
+ pr.wpStr=L"1234567890 1234567890";
  pr.wpMaxStr=pr.wpStr + lstrlenW(pr.wpStr);
- pr.wpPat=L"(.2)";
+ pr.wpText=pr.wpStr;
+ pr.wpMaxText=pr.wpMaxStr;
+ pr.wpPat=L"(23)(.*)(89)";
  pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
- pr.wpRep=L"[$1]";
+ pr.wpRep=L"\\1abc\\3";
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
- pr.dwOptions=REPE_GLOBAL|REPE_MATCHCASE;
+ pr.dwOptions=REPE_GLOBAL|REPE_MULTILINE;
  pr.wpDelim=NULL;
  pr.wpNewLine=NULL;
  pr.wszResult=NULL;
@@ -4787,7 +4830,7 @@ Example:
 AKD_PATGROUPSTR
 _______________
 
-Translate string that contain group indexes, like "[$1$2]". Requires for include "RegExpFunc.h".
+Expand string that contain group indexes, like "\2 and \1". Requires include of "RegExpFunc.h".
 
 wParam                == not used.
 (PATGROUPSTR *)lParam == pointer to a PATGROUPSTR structure.
@@ -4802,6 +4845,8 @@ Example:
  pe.lpREGroupStack=0;
  pe.wpStr=L"1234567890";
  pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
+ pe.wpText=pe.wpStr;
+ pe.wpMaxText=pe.wpMaxStr;
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
  pe.dwOptions=REPE_MATCHCASE;
@@ -4815,7 +4860,7 @@ Example:
 
    //Calculate result string length
    pgs.lpREGroupStack=pe.lpREGroupStack;
-   pgs.wpStr=L"<$3><$1><$2>";
+   pgs.wpStr=L"<\\3><\\1><\\2>";
    pgs.wpMaxStr=pgs.wpStr + lstrlenW(pgs.wpStr);
    pgs.wszResult=NULL;
    nLen=SendMessage(pd->hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs);
@@ -4834,7 +4879,7 @@ Example:
 AKD_PATGETGROUP
 _______________
 
-Retrieve pattern group by index. Requires for include "RegExpFunc.h".
+Retrieve pattern group by index. Requires include of "RegExpFunc.h".
 
 (STACKREGROUP *)wParam == pointer to a STACKREGROUP structure.
 (int)lParam            == group index.
@@ -4849,7 +4894,7 @@ Example:
 AKD_PATNEXTGROUP
 ________________
 
-Retrieve next pattern group. Requires for include "RegExpFunc.h".
+Retrieve next pattern group. Requires include of "RegExpFunc.h".
 
 (REGROUP *)wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -4864,7 +4909,7 @@ Example:
 AKD_PATPREVGROUP
 ________________
 
-Retrieve previous pattern group. Requires for include "RegExpFunc.h".
+Retrieve previous pattern group. Requires include of "RegExpFunc.h".
 
 (REGROUP *)wParam == pointer to a REGROUP structure.
 lParam            == not used.
@@ -4879,7 +4924,7 @@ Example:
 AKD_PATFREE
 ___________
 
-Free regular expressions pattern. Requires for include "RegExpFunc.h".
+Free regular expressions pattern. Requires include of "RegExpFunc.h".
 
 wParam            == not used.
 (PATEXEC *)lParam == pointer to a PATEXEC structure.
