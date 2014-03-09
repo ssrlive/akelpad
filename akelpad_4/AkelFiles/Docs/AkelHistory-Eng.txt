@@ -1,6 +1,10 @@
 
 AkelPad 4.8.8 ()
 ----------------------------
+Changed: when opening multiple files, message about create new or open binary file uses
+         "Yes/No/Cancel" buttons instead of "OK/Cancel". Allows answering "No" to
+          continue opening the remaining files.
+
 Added: print multiple copies with "Collate" option.
 
 Fixed: option "Don't open a program twice" on Win7.
