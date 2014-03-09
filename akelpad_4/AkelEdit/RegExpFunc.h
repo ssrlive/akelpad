@@ -1868,7 +1868,7 @@ INT_PTR PatGroupStr(PATGROUPSTR *pgs)
 
   while (wpStr < pgs->wpMaxStr)
   {
-    if (*wpStr == L'$')
+    if (*wpStr == L'\\')
     {
       if (lpREGroupRef=PatGetGroup(pgs->lpREGroupStack, (int)xatoiW(++wpStr, &wpStr)))
       {
