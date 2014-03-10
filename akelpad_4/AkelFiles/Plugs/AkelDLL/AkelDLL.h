@@ -242,7 +242,7 @@
 #define MI_WATCHFILE                 147  //Return: watch file change (on\off).
 #define MI_SAVETIME                  148  //Return: save original file time (on\off).
 #define MI_SINGLEOPENFILE            152  //Return: single open file (on\off).
-#define MI_SINGLEOPENPROGRAM         153  //Return: single open program (on\off).
+#define MI_SINGLEOPENPROGRAM         153  //Return: single open program flags, see SOP_* defines.
 #define MI_TABOPTIONSMDI             157  //Return: tab flags, see TAB_* defines.
 //Settings dialog
 #define MI_EXECUTECOMMAND            171  //Return: copied chars. (wchar_t *)lParam - buffer that receives execution command string.
@@ -312,7 +312,7 @@
 #define MIS_WATCHFILE                 147  //(BOOL)lParam - watch file change (on\off).
 #define MIS_SAVETIME                  148  //(BOOL)lParam - save original file time (on\off).
 #define MIS_SINGLEOPENFILE            152  //(BOOL)lParam - single open file (on\off).
-#define MIS_SINGLEOPENPROGRAM         153  //(BOOL)lParam - single open program (on\off).
+#define MIS_SINGLEOPENPROGRAM         153  //(DWORD)lParam - single open program flags, see SOP_* defines.
 #define MIS_TABOPTIONSMDI             157  //(DWORD)lParam - tab flags, see TAB_* defines.
 //Settings dialog
 #define MIS_EXECUTECOMMAND            171  //(wchar_t *)lParam - execution command string.
@@ -502,6 +502,10 @@
 #define SBP_NEWLINE    3
 #define SBP_CODEPAGE   4
 #define SBP_USER       5
+
+//"Don't open a program twice" flags
+#define SOP_ON       0x00000001  //"Don't open a program twice" is on.
+#define SOP_SAMEEXE  0x00000002  //"Don't open a program twice" only if AkelPad executable is the same.
 
 //Tab options MDI
 #define TAB_VIEW_NONE           0x00000001  //Hide tab bar.
@@ -3870,13 +3874,13 @@ Example (get executable file of specified AkelPad window):
    wchar_t *wszMemLocal;
    DWORD dwMemSize=nExeFileMax * sizeof(wchar_t);
    int nResult=0;
- 
+
    if (hMemRemote=(HANDLE)SendMessage(hWndRemote, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", dwMemSize))
    {
      if (wszMemRemote=(wchar_t *)SendMessage(hWndRemote, AKD_MEMMAP, (WPARAM)hMemRemote, dwMemSize))
      {
        SendMessage(hWndRemote, AKD_GETMAININFO, MI_AKELEXEW, (WPARAM)wszMemRemote);
- 
+
        //Read data from other process
        if (hMemLocal=(HANDLE)SendMessage(hWndLocal, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", 0))
        {

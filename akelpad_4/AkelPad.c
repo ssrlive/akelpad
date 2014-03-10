@@ -795,7 +795,7 @@ void _WinMain()
   moInit.bWatchFile=TRUE;
   //moInit.bSaveTime=FALSE;
   //moInit.bSingleOpenFile=FALSE;
-  moInit.bSingleOpenProgram=TRUE;
+  moInit.dwSingleOpenProgram=SOP_ON;
   moInit.nMDI=WMD_SDI;
   moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
@@ -967,7 +967,7 @@ void _WinMain()
     }
   }
 
-  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
+  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && (moCur.dwSingleOpenProgram & SOP_ON))
   {
     HWND hWndFriend;
     DWORD dwAtom;
@@ -1744,7 +1744,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nMDI)
       {
-        DoSettingsSingleOpenProgram(moCur.bSingleOpenProgram);
+        DoSettingsSingleOpenProgram(moCur.dwSingleOpenProgram);
         DoWindowTabView(moCur.dwTabOptionsMDI, TRUE);
         DoWindowTabType(moCur.dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
@@ -2312,7 +2312,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == MI_SINGLEOPENFILE)
           return moCur.bSingleOpenFile;
         if (wParam == MI_SINGLEOPENPROGRAM)
-          return moCur.bSingleOpenProgram;
+          return moCur.dwSingleOpenProgram;
         if (wParam == MI_TABOPTIONSMDI)
           return moCur.dwTabOptionsMDI;
         if (wParam == MI_EXECUTECOMMAND)
@@ -2601,9 +2601,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == MIS_SINGLEOPENPROGRAM)
       {
-        if (lParam != moCur.bSingleOpenProgram)
+        if ((DWORD)lParam != moCur.dwSingleOpenProgram)
         {
-          DoSettingsSingleOpenProgram((BOOL)lParam);
+          DoSettingsSingleOpenProgram((DWORD)lParam);
           return TRUE;
         }
         return FALSE;
@@ -3979,7 +3979,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrameCurrent->ei.hWndEdit)
       {
-        EnableMenuItem(hMainMenu, IDM_FILE_CREATENEW, (nMDI && moCur.bSingleOpenProgram)?MF_GRAYED:MF_ENABLED);
+        EnableMenuItem(hMainMenu, IDM_FILE_CREATENEW, (nMDI && (moCur.dwSingleOpenProgram & SOP_ON))?MF_GRAYED:MF_ENABLED);
         EnableMenuItem(hMainMenu, IDM_FILE_REOPEN, (lpFrameCurrent->wszFile[0])?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_FILE_SAVE, (lpFrameCurrent->ei.bModified || !lpFrameCurrent->wszFile[0])?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_FILE_SAVEALL, nDocumentsModified?MF_ENABLED:MF_GRAYED);
@@ -4111,7 +4111,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_FILE_CREATENEW)
     {
-      if (!nMDI || !moCur.bSingleOpenProgram)
+      if (!nMDI || !(moCur.dwSingleOpenProgram & SOP_ON))
       {
         SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
       }
@@ -4624,7 +4624,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
-      DoSettingsSingleOpenProgram(!moCur.bSingleOpenProgram);
+      DWORD dwState=moCur.dwSingleOpenProgram;
+
+      if (dwState & SOP_ON)
+        dwState&=~SOP_ON;
+      else
+        dwState|=SOP_ON;
+      DoSettingsSingleOpenProgram(dwState);
       SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
     }
     else if (wCommand == IDM_OPTIONS_SDI ||

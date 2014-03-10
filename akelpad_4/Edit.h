@@ -391,7 +391,7 @@ typedef struct {
   BOOL bWatchFile;
   BOOL bSaveTime;
   BOOL bSingleOpenFile;
-  BOOL bSingleOpenProgram;
+  DWORD dwSingleOpenProgram;
   int nMDI;
   DWORD dwTabOptionsMDI;
 
@@ -747,7 +747,7 @@ void DoSettingsKeepSpace(BOOL bState);
 void DoSettingsWatchFile(BOOL bState);
 void DoSettingsSaveTime(BOOL bState);
 void DoSettingsSingleOpenFile(BOOL bState);
-void DoSettingsSingleOpenProgram(BOOL bState);
+void DoSettingsSingleOpenProgram(DWORD dwState);
 void DoSettingsPlugins();
 void DoSettingsOptions();
 void DoWindowTabView(DWORD dwNewView, BOOL bFirst);
