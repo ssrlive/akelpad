@@ -2678,10 +2678,10 @@ void DoSettingsSingleOpenFile(BOOL bState)
   moCur.bSingleOpenFile=bState;
 }
 
-void DoSettingsSingleOpenProgram(BOOL bState)
+void DoSettingsSingleOpenProgram(DWORD dwState)
 {
-  CheckMenuItem(hMainMenu, IDM_OPTIONS_SINGLEOPEN_PROGRAM, bState?MF_CHECKED:MF_UNCHECKED);
-  moCur.bSingleOpenProgram=bState;
+  CheckMenuItem(hMainMenu, IDM_OPTIONS_SINGLEOPEN_PROGRAM, (dwState & SOP_ON)?MF_CHECKED:MF_UNCHECKED);
+  moCur.dwSingleOpenProgram=dwState;
 }
 
 void DoSettingsPlugins()
@@ -3802,7 +3802,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"WatchFile", MOT_DWORD, &mo->bWatchFile, sizeof(DWORD));
     ReadOption(&oh, L"SaveTime", MOT_DWORD, &mo->bSaveTime, sizeof(DWORD));
     ReadOption(&oh, L"SingleOpenFile", MOT_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
-    ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD));
+    ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->dwSingleOpenProgram, sizeof(DWORD));
     ReadOption(&oh, L"MDI", MOT_DWORD, &mo->nMDI, sizeof(DWORD));
     if (mo->nMDI)
     {
@@ -4079,7 +4079,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"SingleOpenFile", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bSingleOpenFile), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"SingleOpenProgram", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bSingleOpenProgram), sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SingleOpenProgram", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwSingleOpenProgram), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"MDI", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nMDI), sizeof(DWORD)))
     goto Error;
@@ -20445,9 +20445,8 @@ void ActivateWindow(HWND hWnd)
 HWND FindAkelCopy()
 {
   HWND hWndFriend=NULL;
-  BOOL bSameExe=FALSE;
 
-  if (bSameExe)
+  if (moCur.dwSingleOpenProgram & SOP_SAMEEXE)
     EnumWindows(EnumAkelCopyProc, (LPARAM)&hWndFriend);
   else
     hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL);

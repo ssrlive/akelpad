@@ -6,6 +6,8 @@ Changed: when opening multiple files, message about create new or open binary fi
           continue opening the remaining files.
 
 Added: print multiple copies with "Collate" option.
+Added: manual parameter for "SingleOpenProgram" with a value of 2 - option "Don't open
+       a program twice" works only for the same exe file.
 
 Fixed: option "Don't open a program twice" on Win7.
 Fixed: Left key didn't move caret on previous line with option "Caret after end of line".
