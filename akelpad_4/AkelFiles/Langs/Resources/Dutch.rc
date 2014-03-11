@@ -896,17 +896,20 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "Standaard extentie bij opslaan",IDC_STATIC,37,77,171,8
-    GROUPBOX        "Zoeken/Vervangen dialoog",IDC_STATIC,9,96,200,53
+    GROUPBOX        "Zoeken/Vervangen dialoog",IDC_STATIC,9,96,200,66
     CONTROL         "Vervang alles - sluit dialoog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
+    CONTROL         """Replace all"" without message",
+                    IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,121,185,10
     CONTROL         "Controleer ""In selectie"" of selectie niet leeg is",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,121,185,10
+                    WS_TABSTOP,17,133,185,10
     CONTROL         "Cyclus zoeken",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
     CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

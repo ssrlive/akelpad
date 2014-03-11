@@ -889,17 +889,20 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "保存時の既定の拡張子",IDC_STATIC,37,77,171,8
-    GROUPBOX        "検索/置換 ダイアログ",IDC_STATIC,9,96,200,53
+    GROUPBOX        "検索/置換 ダイアログ",IDC_STATIC,9,96,200,66
     CONTROL         """すべて置換"" のあとダイアログを閉じる",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
+    CONTROL         """Replace all"" without message",
+                    IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,121,185,10
     CONTROL         "範囲が選択されていれば ""選択範囲から"" をチェックする",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,121,185,10
+                    WS_TABSTOP,17,133,185,10
     CONTROL         "最初に戻って検索を続ける",IDC_OPTIONS_CYCLESEARCH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,133,103,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
     CONTROL         "戻るときに通知する",IDC_OPTIONS_CYCLESEARCHPROMPT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,133,83,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

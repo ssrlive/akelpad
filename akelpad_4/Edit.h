@@ -873,6 +873,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis);
 INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine);
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
+BOOL SetDefButtonStyle(HWND hWnd, HWND hWndNewDef);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);

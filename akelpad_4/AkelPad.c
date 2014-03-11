@@ -399,7 +399,8 @@ wchar_t *wszFindText=NULL;
 wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
 int nReplaceTextLen=0;
-BOOL bNoSearchFinishMessage=FALSE;
+BOOL bNoSearchFinishMsg=FALSE;
+WORD wLastReplaceButtonID=IDC_SEARCH_FIND_BUTTON;
 WNDPROC lpOldComboboxEdit;
 
 //Go to line dialog
@@ -912,6 +913,7 @@ void _WinMain()
           (moInit.dwSearchOptions & FRF_REGEXP) |
           (moInit.dwSearchOptions & FRF_ALLFILES) |
           (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
+          (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
           (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);
