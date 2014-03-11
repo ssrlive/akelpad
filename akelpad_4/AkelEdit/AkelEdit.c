@@ -11153,129 +11153,6 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
   AESTACKQUOTE *lpQuoteStack=lpTheme?&lpTheme->hQuoteStack:&ae->ptxt->hQuoteStack;
   STACKREGROUP *lpREGroupStack=NULL;
 
-  if (lpQuoteSrc->dwFlags & AEHLF_REGEXP)
-  {
-    AEREGROUPCOLOR *lpREGroupColor=NULL;
-    REGROUP *lpREGroupRef;
-    int nIndex;
-    const wchar_t *wpCount;
-    const wchar_t *wpCountMax;
-    DWORD dwFlags;
-    DWORD dwFontStyle;
-    COLORREF crText;
-    COLORREF crBk;
-
-    if (!lpQuoteSrc->pQuoteStart || !*lpQuoteSrc->pQuoteStart)
-      return NULL;
-
-    if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
-    {
-      lpREGroupStack->first=0;
-      lpREGroupStack->last=0;
-      lpREGroupStack->dwOptions=REO_MULTILINE;
-      if (lpQuoteSrc->dwFlags & AEHLF_MATCHCASE)
-        lpREGroupStack->dwOptions|=REO_MATCHCASE;
-      lpREGroupStack->wpDelim=NULL;
-      lpREGroupStack->wpMaxDelim=NULL;
-      if (PatCompile(lpREGroupStack, lpQuoteSrc->pQuoteStart, lpQuoteSrc->pQuoteStart + lpQuoteSrc->nQuoteStartLen))
-      {
-        AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
-        return NULL;
-      }
-
-      //Copy word delimiters to own buffer, because it could be changed.
-      if (lpREGroupStack->wpDelim=(wchar_t *)AE_HeapAlloc(NULL, 0, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t)))
-      {
-        xmemcpy((wchar_t *)lpREGroupStack->wpDelim, ae->popt->wszWordDelimiters, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t));
-        lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
-      }
-
-      //REPE_ISMATCH
-      lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
-
-      //Parse pQuoteEnd: \BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk)
-      if (lpQuoteSrc->pQuoteEnd)
-      {
-        wpCountMax=lpQuoteSrc->pQuoteEnd + lpQuoteSrc->nQuoteEndLen;
-
-        for (wpCount=lpQuoteSrc->pQuoteEnd; wpCount < wpCountMax; ++wpCount)
-        {
-          if (*wpCount == L'\\')
-          {
-            ++wpCount;
-
-            if ((nIndex=PatRefIndex(&wpCount)) != -1)
-            {
-              if (lpREGroupRef=PatGetGroup(lpREGroupStack, nIndex))
-              {
-                if (*wpCount == L'=' && *++wpCount == L'(')
-                {
-                  dwFlags=0;
-                  dwFontStyle=(DWORD)xatoiW(++wpCount, &wpCount);
-
-                  if (*wpCount == L',')
-                  {
-                    if (*++wpCount == L'0')
-                    {
-                      ++wpCount;
-                      crText=(DWORD)-1;
-                    }
-                    else if (*wpCount == L'\\')
-                    {
-                      ++wpCount;
-                      if ((crText=PatRefIndex(&wpCount)) != (DWORD)-1)
-                        dwFlags|=AEREGCF_BACKREFCOLORTEXT;
-                    }
-                    else if (*wpCount == L'#')
-                    {
-                      ++wpCount;
-                      if (wpCountMax - wpCount < 6) break;
-                      if ((crText=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
-                        wpCount+=6;
-                    }
-                    else break;
-
-                    if (*wpCount == L',')
-                    {
-                      if (*++wpCount == L'0')
-                      {
-                        ++wpCount;
-                        crBk=(DWORD)-1;
-                      }
-                      else if (*wpCount == L'\\')
-                      {
-                        ++wpCount;
-                        if ((crBk=PatRefIndex(&wpCount)) != (DWORD)-1)
-                          dwFlags|=AEREGCF_BACKREFCOLORBK;
-                      }
-                      else if (*wpCount == L'#')
-                      {
-                        ++wpCount;
-                        if (wpCountMax - wpCount < 6) break;
-                        if ((crBk=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
-                          wpCount+=6;
-                      }
-                      else break;
-
-                      if (lpREGroupColor=(AEREGROUPCOLOR *)AE_HeapAlloc(NULL, 0, sizeof(AEREGROUPCOLOR)))
-                      {
-                        lpREGroupColor->dwFlags=dwFlags;
-                        lpREGroupColor->dwFontStyle=dwFontStyle;
-                        lpREGroupColor->crText=crText;
-                        lpREGroupColor->crBk=crBk;
-                        lpREGroupRef->dwUserData=(UINT_PTR)lpREGroupColor;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   if (!lpQuoteDst)
     lpQuoteDst=AE_HighlightInsertQuote(ae, lpTheme, lpQuoteSrc->nIndex);
   if (lpQuoteDst)
@@ -11322,19 +11199,140 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
     lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
     lpQuoteDst->crText=lpQuoteSrc->crText;
     lpQuoteDst->crBk=lpQuoteSrc->crBk;
-
-    if (lpREGroupStack)
-    {
-      lpQuoteDst->lpREGroupStack=(void *)lpREGroupStack;
-      ++lpQuoteStack->nElementsRegExp;
-    }
-    else
-    {
-      lpQuoteDst->lpQuoteStart=(void *)AE_HighlightInsertQuoteStart(ae, lpTheme, lpQuoteDst);
-    }
     ++lpQuoteStack->nElementsAll;
+
+    if (lpQuoteDst->dwFlags & AEHLF_REGEXP)
+    {
+      AEREGROUPCOLOR *lpREGroupColor=NULL;
+      REGROUP *lpREGroupRef;
+      int nIndex;
+      const wchar_t *wpCount;
+      const wchar_t *wpCountMax;
+      DWORD dwFlags;
+      DWORD dwFontStyle;
+      COLORREF crText;
+      COLORREF crBk;
+
+      if (!lpQuoteDst->pQuoteStart || !*lpQuoteDst->pQuoteStart)
+        goto FreeQuote;
+
+      if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
+      {
+        lpREGroupStack->first=0;
+        lpREGroupStack->last=0;
+        lpREGroupStack->dwOptions=REO_MULTILINE;
+        if (lpQuoteDst->dwFlags & AEHLF_MATCHCASE)
+          lpREGroupStack->dwOptions|=REO_MATCHCASE;
+        lpREGroupStack->wpDelim=NULL;
+        lpREGroupStack->wpMaxDelim=NULL;
+        if (PatCompile(lpREGroupStack, lpQuoteDst->pQuoteStart, lpQuoteDst->pQuoteStart + lpQuoteDst->nQuoteStartLen))
+        {
+          AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
+          goto FreeQuote;
+        }
+
+        //Copy word delimiters to own buffer, because it could be changed.
+        if (lpREGroupStack->wpDelim=(wchar_t *)AE_HeapAlloc(NULL, 0, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t)))
+        {
+          xmemcpy((wchar_t *)lpREGroupStack->wpDelim, ae->popt->wszWordDelimiters, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t));
+          lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
+        }
+
+        //REPE_ISMATCH
+        lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
+
+        //Parse pQuoteEnd: \BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk)
+        if (lpQuoteDst->pQuoteEnd)
+        {
+          wpCountMax=lpQuoteDst->pQuoteEnd + lpQuoteDst->nQuoteEndLen;
+
+          for (wpCount=lpQuoteDst->pQuoteEnd; wpCount < wpCountMax; ++wpCount)
+          {
+            if (*wpCount == L'\\')
+            {
+              ++wpCount;
+
+              if ((nIndex=PatRefIndex(&wpCount)) != -1)
+              {
+                if (lpREGroupRef=PatGetGroup(lpREGroupStack, nIndex))
+                {
+                  if (*wpCount == L'=' && *++wpCount == L'(')
+                  {
+                    dwFlags=0;
+                    dwFontStyle=(DWORD)xatoiW(++wpCount, &wpCount);
+
+                    if (*wpCount == L',')
+                    {
+                      if (*++wpCount == L'0')
+                      {
+                        ++wpCount;
+                        crText=(DWORD)-1;
+                      }
+                      else if (*wpCount == L'\\')
+                      {
+                        ++wpCount;
+                        if ((crText=PatRefIndex(&wpCount)) != (DWORD)-1)
+                          dwFlags|=AEREGCF_BACKREFCOLORTEXT;
+                      }
+                      else if (*wpCount == L'#')
+                      {
+                        ++wpCount;
+                        if (wpCountMax - wpCount < 6) break;
+                        if ((crText=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
+                          wpCount+=6;
+                      }
+                      else break;
+
+                      if (*wpCount == L',')
+                      {
+                        if (*++wpCount == L'0')
+                        {
+                          ++wpCount;
+                          crBk=(DWORD)-1;
+                        }
+                        else if (*wpCount == L'\\')
+                        {
+                          ++wpCount;
+                          if ((crBk=PatRefIndex(&wpCount)) != (DWORD)-1)
+                            dwFlags|=AEREGCF_BACKREFCOLORBK;
+                        }
+                        else if (*wpCount == L'#')
+                        {
+                          ++wpCount;
+                          if (wpCountMax - wpCount < 6) break;
+                          if ((crBk=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
+                            wpCount+=6;
+                        }
+                        else break;
+
+                        if (lpREGroupColor=(AEREGROUPCOLOR *)AE_HeapAlloc(NULL, 0, sizeof(AEREGROUPCOLOR)))
+                        {
+                          lpREGroupColor->dwFlags=dwFlags;
+                          lpREGroupColor->dwFontStyle=dwFontStyle;
+                          lpREGroupColor->crText=crText;
+                          lpREGroupColor->crBk=crBk;
+                          lpREGroupRef->dwUserData=(UINT_PTR)lpREGroupColor;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        lpQuoteDst->lpREGroupStack=(void *)lpREGroupStack;
+        ++lpQuoteStack->nElementsRegExp;
+      }
+      else goto FreeQuote;
+    }
+    else lpQuoteDst->lpQuoteStart=(void *)AE_HighlightInsertQuoteStart(ae, lpTheme, lpQuoteDst);
   }
   return lpQuoteDst;
+
+  FreeQuote:
+  AE_HighlightDeleteQuote(ae, lpTheme, lpQuoteDst);
+  return NULL;
 }
 
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
@@ -11480,38 +11478,6 @@ AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, co
 {
   STACKREGROUP *lpREGroupStack=NULL;
 
-  if (lpMarkTextSrc->dwFlags & AEHLF_REGEXP)
-  {
-    if (!lpMarkTextSrc->pMarkText || !*lpMarkTextSrc->pMarkText)
-      return NULL;
-
-    if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
-    {
-      lpREGroupStack->first=0;
-      lpREGroupStack->last=0;
-      lpREGroupStack->dwOptions=REO_MULTILINE;
-      if (lpMarkTextSrc->dwFlags & AEHLF_MATCHCASE)
-        lpREGroupStack->dwOptions|=REO_MATCHCASE;
-      lpREGroupStack->wpDelim=NULL;
-      lpREGroupStack->wpMaxDelim=NULL;
-      if (PatCompile(lpREGroupStack, lpMarkTextSrc->pMarkText, lpMarkTextSrc->pMarkText + lpMarkTextSrc->nMarkTextLen))
-      {
-        AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
-        return NULL;
-      }
-
-      //Copy word delimiters to own buffer, because it could be changed.
-      if (lpREGroupStack->wpDelim=(wchar_t *)AE_HeapAlloc(NULL, 0, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t)))
-      {
-        xmemcpy((wchar_t *)lpREGroupStack->wpDelim, ae->popt->wszWordDelimiters, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t));
-        lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
-      }
-
-      //REPE_ISMATCH
-      lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
-    }
-  }
-
   if (!lpMarkTextDst)
     lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme, lpMarkTextSrc->nIndex);
   if (lpMarkTextDst)
@@ -11528,9 +11494,47 @@ AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, co
     lpMarkTextDst->dwFontStyle=lpMarkTextSrc->dwFontStyle;
     lpMarkTextDst->crText=lpMarkTextSrc->crText;
     lpMarkTextDst->crBk=lpMarkTextSrc->crBk;
-    lpMarkTextDst->lpREGroupStack=(void *)lpREGroupStack;
+  }
+
+  if (lpMarkTextDst->dwFlags & AEHLF_REGEXP)
+  {
+    if (!lpMarkTextDst->pMarkText || !*lpMarkTextDst->pMarkText)
+      goto FreeMarkText;
+
+    if (lpREGroupStack=(STACKREGROUP *)AE_HeapAlloc(NULL, 0, sizeof(STACKREGROUP)))
+    {
+      lpREGroupStack->first=0;
+      lpREGroupStack->last=0;
+      lpREGroupStack->dwOptions=REO_MULTILINE;
+      if (lpMarkTextDst->dwFlags & AEHLF_MATCHCASE)
+        lpREGroupStack->dwOptions|=REO_MATCHCASE;
+      lpREGroupStack->wpDelim=NULL;
+      lpREGroupStack->wpMaxDelim=NULL;
+      if (PatCompile(lpREGroupStack, lpMarkTextDst->pMarkText, lpMarkTextDst->pMarkText + lpMarkTextDst->nMarkTextLen))
+      {
+        AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
+        goto FreeMarkText;
+      }
+
+      //Copy word delimiters to own buffer, because it could be changed.
+      if (lpREGroupStack->wpDelim=(wchar_t *)AE_HeapAlloc(NULL, 0, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t)))
+      {
+        xmemcpy((wchar_t *)lpREGroupStack->wpDelim, ae->popt->wszWordDelimiters, (ae->popt->nWordDelimitersLen + 1) * sizeof(wchar_t));
+        lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
+      }
+
+      //REPE_ISMATCH
+      lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
+
+      lpMarkTextDst->lpREGroupStack=(void *)lpREGroupStack;
+    }
+    else goto FreeMarkText;
   }
   return lpMarkTextDst;
+
+  FreeMarkText:
+  AE_HighlightDeleteMarkText(ae, lpTheme, lpMarkTextDst);
+  return NULL;
 }
 
 AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
