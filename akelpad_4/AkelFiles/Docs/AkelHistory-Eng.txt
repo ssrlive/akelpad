@@ -1,11 +1,13 @@
 
 AkelPad 4.8.8 ()
 ----------------------------
+Changed: in replace dialog, the last used button, becomes locally default button.
 Changed: when opening multiple files, message about create new or open binary file uses
          "Yes/No/Cancel" buttons instead of "OK/Cancel". Allows answering "No" to
           continue opening the remaining files.
 
 Added: print multiple copies with "Collate" option.
+Added: "Replace all" without message.
 Added: manual parameter for "SingleOpenProgram" with a value of 2 - option "Don't open
        a program twice" works only for the same exe file.
 

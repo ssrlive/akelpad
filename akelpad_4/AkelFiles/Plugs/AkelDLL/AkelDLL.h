@@ -664,6 +664,9 @@
 #define FRF_DOWN               0x00000001  //Same as AEFR_DOWN.
 #define FRF_WHOLEWORD          0x00000002  //Same as AEFR_WHOLEWORD.
 #define FRF_MATCHCASE          0x00000004  //Same as AEFR_MATCHCASE.
+#define FRF_WHOLEWORDGOODSTART 0x00000010  //Internal.
+#define FRF_WHOLEWORDGOODEND   0x00000020  //Internal.
+#define FRF_FINDFROMREPLACE    0x00000040  //Internal.
 #define FRF_REGEXPNONEWLINEDOT 0x00040000  //Symbol . specifies any character except new line. Uses with FRF_REGEXP.
 #define FRF_REGEXP             0x00080000  //Same as AEFR_REGEXP.
 #define FRF_UP                 0x00100000
@@ -675,9 +678,7 @@
 #define FRF_CHECKINSELIFSEL    0x04000000
 #define FRF_CYCLESEARCH        0x08000000
 #define FRF_CYCLESEARCHPROMPT  0x10000000
-#define FRF_FINDFROMREPLACE    0x20000000
-#define FRF_WHOLEWORDGOODSTART 0x40000000
-#define FRF_WHOLEWORDGOODEND   0x80000000
+#define FRF_REPLACEALLNOMSG    0x20000000
 
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
