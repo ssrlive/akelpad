@@ -13053,7 +13053,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   AENPAINT pntNotify;
   PAINTSTRUCT ps;
   RECT rcUpdate;
-  HBITMAP hBitmap;
+  HBITMAP hBitmap=NULL;
   HBITMAP hBitmapOld=NULL;
   HFONT hFontOld=NULL;
   HRGN hDrawRgn;
