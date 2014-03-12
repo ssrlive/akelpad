@@ -1187,7 +1187,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE)|RECCF_FULLSURROGATE, &nPatNextChar);
               if (dwCmpResult & RECCE_EQUAL)
                 goto ClassMatch;
-              if (nStrChar < 0) nStrChar=L'\n';
 
               //Check range
               if (!(dwCmpResult & RECCE_MIX))
@@ -2260,7 +2259,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               dwCmpResult=PatCharCmp(&wpPat, nStrChar, (hStack->dwOptions & REO_MATCHCASE)|RECCF_FULLSURROGATE, &nPatNextChar);
               if (dwCmpResult & RECCE_EQUAL)
                 goto ClassMatch;
-              if (nStrChar < 0) nStrChar=L'\n';
 
               //Check range
               if (!(dwCmpResult & RECCE_MIX))
