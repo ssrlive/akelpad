@@ -397,15 +397,18 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     if (*wpPat == L'\\')
     {
       wpCharStart=wpPat;
+      if (++wpPat >= wpMaxPat) goto Error;
 
-      if (*++wpPat == L'x')
+      if (*wpPat == L'x')
       {
-        if (*++wpPat == L'{')
+        if (++wpPat >= wpMaxPat) goto Error;
+
+        if (*wpPat == L'{')
         {
           wpStrTmp=++wpPat;
           for (;;)
           {
-            if (!*wpPat) goto Error;
+            if (wpPat >= wpMaxPat) goto Error;
             if (*wpPat++ == L'}') break;
           }
           if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
@@ -481,7 +484,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     {
       if (!bClassOpen)
         goto Error;
-      if (!wpCharStart || *wpCharStart == L'-')
+      if (!wpCharStart || *wpCharStart == L'-' ||
+          (*wpCharStart == L'^' && wpCharStart + 1 == wpPat))
         goto Error;
       bClassOpen=FALSE;
       wpClassEnd=++wpPat;
