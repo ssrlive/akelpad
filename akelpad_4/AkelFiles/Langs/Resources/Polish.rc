@@ -895,7 +895,7 @@ BEGIN
     CONTROL         """Zamieñ wszystko"" - zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
-    CONTROL         """Replace all"" without message",
+    CONTROL         """Zamieñ wszystko"" bez komunikatu",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
     CONTROL         "Ustaw ""W zaznaczeniu"" jeœli jest zaznaczenie",
