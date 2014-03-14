@@ -10137,6 +10137,7 @@ BOOL AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
+  AECHARINDEX ciMaxRE;
   AESTACKMARKTEXT *lpMarkTextStack;
   AEMARKTEXTITEMW *lpMarkTextItem;
   BOOL bDefaultTheme=FALSE;
@@ -10158,6 +10159,7 @@ BOOL AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
   {
     //Find mark beginning (backward)
     ciCount=*ciChar;
+    ciMaxRE.lpLine=NULL;
 
     while (ciCount.lpLine)
     {
@@ -10167,7 +10169,7 @@ BOOL AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
           goto EndTheme;
 
         //Is mark
-        if (lpMarkTextItem=AE_HighlightIsMarkText(ae, &ft, &ciCount, lpMarkTextStack))
+        if (lpMarkTextItem=AE_HighlightIsMarkText(ae, &ft, &ciCount, &ciMaxRE, lpMarkTextStack))
         {
           mtm->lpMarkText=lpMarkTextItem;
           mtm->crMarkText.ciMin=ft.crFound.ciMin;
@@ -10197,7 +10199,7 @@ BOOL AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
   return FALSE;
 }
 
-AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack)
+AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AECHARINDEX *ciMaxRE, AESTACKMARKTEXT *lpMarkTextStack)
 {
   AEMARKTEXTITEMW *lpMarkTextItem;
   AEFINDTEXTW ftMatch;
@@ -10208,7 +10210,10 @@ AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AEC
   {
     if (lpMarkTextItem->dwFlags & AEHLF_REGEXP)
     {
-      if (AE_IsMatchRE(lpMarkTextItem->lpREGroupStack, &ft->crFound, ciChar))
+      //One line limit
+      if (!ciMaxRE->lpLine)
+        AEC_WrapLineEndEx(ciChar, ciMaxRE);
+      if (AE_IsMatchRE(lpMarkTextItem->lpREGroupStack, &ft->crFound, ciChar, ciMaxRE))
         return lpMarkTextItem;
     }
     else
@@ -14128,6 +14133,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         hlp->dwFindFirst&=~AEHPT_MARKTEXT;
         if (!AE_HighlightFindMarkText(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->mtm))
         {
+          hlp->mtm.lpMarkText=NULL;
           hlp->mtm.crMarkText.ciMin=to->ciDrawLine;
           hlp->mtm.crMarkText.ciMax=to->ciDrawLine;
         }
@@ -14161,7 +14167,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBk=hlp->mtm.lpMarkText->crBk;
         else
           hlp->dwActiveBk=hlp->dwDefaultBk;
-        if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
+        //if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
           hlp->dwFontStyle=hlp->mtm.lpMarkText->dwFontStyle;
       }
     }
@@ -16952,8 +16958,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
   INT_PTR nLineDelStartOffsetOld;
   INT_PTR nLineDelEndOffsetOld;
   int nLineDelLength;
-  int nFirstRedrawLine;
-  int nLastRedrawLine;
   int nElementLine;
   int nCompare;
 
@@ -17186,9 +17190,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
 
       //Delete lines in range
-      lpElement=ciDeleteStart.lpLine;
-
-      while (lpElement)
+      for (lpElement=ciDeleteStart.lpLine; lpElement; lpElement=lpNextElement)
       {
         if (lpElement == ciDeleteEnd.lpLine)
         {
@@ -17198,7 +17200,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
         lpNextElement=lpElement->next;
         AE_StackLineDelete(ae, lpElement);
-        lpElement=lpNextElement;
       }
 
       ciFirstChar.nLine=ciDeleteStart.nLine;
@@ -17242,10 +17243,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         ciFirstChar=lpPointOne->ciPoint;
         ciLastChar=lpPointTwo->ciPoint;
 
-        //Set redraw lines
-        nFirstRedrawLine=liWrapStart.nLine;
-        nLastRedrawLine=-1;
-
         //Set control points to "delete from" position
         AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciFirstChar;
@@ -17273,10 +17270,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
       else
       {
-        //Set redraw lines
-        nFirstRedrawLine=ciFirstChar.nLine;
-        nLastRedrawLine=ciLastChar.nLine;
-
         //Update scroll bars
         if (!ae->ptxt->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, dwCalcLinesWidthFlags);
@@ -17443,9 +17436,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
 
       //Delete lines in range
-      lpElement=ciDeleteStart.lpLine;
-
-      while (lpElement)
+      for (lpElement=ciDeleteStart.lpLine; lpElement; lpElement=lpNextElement)
       {
         nRichTextCount+=lpElement->nLineLen;
         if (lpElement->nLineBreak != AELB_WRAP)
@@ -17461,7 +17452,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         --nLineCount;
         lpNextElement=lpElement->next;
         AE_StackLineDelete(ae, lpElement);
-        lpElement=lpNextElement;
       }
       ciDeleteStart.lpLine=lpNewElement;
       ciFirstChar=ciDeleteStart;
@@ -17519,10 +17509,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
         ciFirstChar=lpPointOne->ciPoint;
         ciLastChar=lpPointTwo->ciPoint;
 
-        //Set redraw lines
-        nFirstRedrawLine=liWrapStart.nLine;
-        nLastRedrawLine=-1;
-
         //Set control points to "delete from" position
         AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciFirstChar;
@@ -17550,12 +17536,6 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
       else
       {
-        //Set redraw lines
-        nFirstRedrawLine=ciFirstChar.nLine;
-        nLastRedrawLine=-1;
-        if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
-          nLastRedrawLine=ciLastChar.nLine;
-
         //Update scroll bars
         if (nLineCount)
         {
@@ -17600,6 +17580,35 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
       else
       {
+        int nFirstRedrawLine;
+        int nLastRedrawLine;
+
+        nFirstRedrawLine=ciFirstChar.nLine;
+        if (ae->ptxt->dwWordWrap)
+        {
+          for (lpElement=ciFirstChar.lpLine->prev; lpElement; lpElement=lpElement->prev)
+          {
+            if (lpElement->nLineBreak == AELB_WRAP)
+              if (--nFirstRedrawLine < ae->liFirstDrawLine.nLine)
+                break;
+          }
+        }
+        if (nLineCount + nWrapCount)
+          nLastRedrawLine=-1;
+        else
+        {
+          nLastRedrawLine=ciLastChar.nLine;
+          if (ae->ptxt->dwWordWrap)
+          {
+            for (lpElement=ciLastChar.lpLine->next; lpElement; lpElement=lpElement->next)
+            {
+              //Don't calculate last visible line. Just take 50 as max lines in page.
+              if (lpElement->nLineBreak == AELB_WRAP)
+                if (++nLastRedrawLine >= ciLastChar.nLine + 50)
+                  break;
+            }
+          }
+        }
         AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
       }
     }
@@ -17671,8 +17680,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
   INT_PTR nEndOffset;
   INT_PTR nLineOffsetNew;
   INT_PTR nLineOffsetOld;
-  int nFirstRedrawLine=0;
-  int nLastRedrawLine=0;
   int i;
 
   if (ciInsertFrom.lpLine)
@@ -18038,9 +18045,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           ciLastChar.nCharInLine=nCaretIndexInLine;
 
           //Delete lines in range
-          lpElement=ciInsertFrom.lpLine;
-
-          while (lpElement)
+          for (lpElement=ciInsertFrom.lpLine; lpElement; lpElement=lpNextElement)
           {
             if (lpElement == lpInsertToElement)
             {
@@ -18050,7 +18055,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
             lpNextElement=lpElement->next;
             AE_StackLineDelete(ae, lpElement);
-            lpElement=lpNextElement;
           }
 
           //Update control points
@@ -18091,10 +18095,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             ciFirstChar=lpPointOne->ciPoint;
             ciLastChar=lpPointTwo->ciPoint;
 
-            //Set redraw lines
-            nFirstRedrawLine=liWrapStart.nLine;
-            nLastRedrawLine=-1;
-
             //Set control points to "insert from" position
             AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
             ae->ciCaretIndex=ciFirstChar;
@@ -18122,10 +18122,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           }
           else
           {
-            //Set redraw lines
-            nFirstRedrawLine=ciFirstChar.nLine;
-            nLastRedrawLine=ciLastChar.nLine;
-
             //Update scroll bars
             if (nLineCount)
             {
@@ -18441,10 +18437,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             ciFirstChar=lpPointOne->ciPoint;
             ciLastChar=lpPointTwo->ciPoint;
 
-            //Set redraw lines
-            nFirstRedrawLine=liWrapStart.nLine;
-            nLastRedrawLine=-1;
-
             //Set control points to "insert to" position
             AE_GetPosFromChar(ae, &ciLastChar, &ae->ptCaret, NULL);
             ae->ciCaretIndex=ciLastChar;
@@ -18472,12 +18464,6 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           }
           else
           {
-            //Set redraw lines
-            nFirstRedrawLine=ciFirstChar.nLine;
-            nLastRedrawLine=-1;
-            if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
-              nLastRedrawLine=ciLastChar.nLine;
-
             AE_GetPosFromChar(ae, &ciLastChar, &ae->ptCaret, NULL);
             ae->ciCaretIndex=ciLastChar;
             ae->nSelStartCharOffset=nEndOffset;
@@ -18584,6 +18570,35 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           }
           else
           {
+            int nFirstRedrawLine;
+            int nLastRedrawLine;
+
+            nFirstRedrawLine=ciFirstChar.nLine;
+            if (ae->ptxt->dwWordWrap)
+            {
+              for (lpElement=ciFirstChar.lpLine->prev; lpElement; lpElement=lpElement->prev)
+              {
+                if (lpElement->nLineBreak == AELB_WRAP)
+                  if (--nFirstRedrawLine < ae->liFirstDrawLine.nLine)
+                    break;
+              }
+            }
+            if (nLineCount + nWrapCount)
+              nLastRedrawLine=-1;
+            else
+            {
+              nLastRedrawLine=ciLastChar.nLine;
+              if (ae->ptxt->dwWordWrap)
+              {
+                for (lpElement=ciLastChar.lpLine->next; lpElement; lpElement=lpElement->next)
+                {
+                  //Don't calculate last visible line. Just take 50 as max lines in page.
+                  if (lpElement->nLineBreak == AELB_WRAP)
+                    if (++nLastRedrawLine >= ciLastChar.nLine + 50)
+                      break;
+                }
+              }
+            }
             AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
           }
         }
@@ -19088,7 +19103,7 @@ UINT_PTR AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   return dwCount;
 }
 
-UINT_PTR AE_IsMatchRE(void *lpREGroupStack, AECHARRANGE *crFound, const AECHARINDEX *ciChar)
+UINT_PTR AE_IsMatchRE(void *lpREGroupStack, AECHARRANGE *crFound, const AECHARINDEX *ciChar, const AECHARINDEX *ciMaxRE)
 {
   STACKREGROUP *sreg=(STACKREGROUP *)lpREGroupStack;
   AECHARINDEX ciStr=*ciChar;
@@ -19096,7 +19111,7 @@ UINT_PTR AE_IsMatchRE(void *lpREGroupStack, AECHARRANGE *crFound, const AECHARIN
 
   if (!sreg->first) return 0;
 
-  if (AE_PatExec(sreg, sreg->first, &ciStr, &RegExpGlobal_ciMaxStr))
+  if (AE_PatExec(sreg, sreg->first, &ciStr, ciMaxRE))
   {
     crFound->ciMin=sreg->first->ciStrStart;
     crFound->ciMax=sreg->first->ciStrEnd;
