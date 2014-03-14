@@ -14167,7 +14167,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBk=hlp->mtm.lpMarkText->crBk;
         else
           hlp->dwActiveBk=hlp->dwDefaultBk;
-        //if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
+        if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
           hlp->dwFontStyle=hlp->mtm.lpMarkText->dwFontStyle;
       }
     }
