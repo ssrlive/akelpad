@@ -18194,7 +18194,7 @@ void* MemMap(HANDLE hMem, DWORD dwSize)
   return MapViewOfFile(hMem, FILE_MAP_ALL_ACCESS, 0, 0, dwSize);
 }
 
-BOOL MemUnmap(LPCVOID lpMem)
+BOOL MemUnmap(void *lpMem)
 {
   return UnmapViewOfFile(lpMem);
 }

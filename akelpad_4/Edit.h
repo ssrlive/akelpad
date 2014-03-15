@@ -1063,7 +1063,7 @@ void StackFontItemsFree(HSTACK *hStack);
 
 HANDLE MemCreate(const char *pName, DWORD dwSize);
 void* MemMap(HANDLE hMem, DWORD dwSize);
-BOOL MemUnmap(LPCVOID lpMem);
+BOOL MemUnmap(void *lpMem);
 BOOL MemClose(HANDLE hMem);
 
 wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wppCmdParamsStart, wchar_t **wppCmdParamsEnd);
