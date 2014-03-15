@@ -20555,6 +20555,12 @@ int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
     }
     SendMessage(hWnd, AKD_MEMCLOSE, (WPARAM)hMemRemote, 0);
   }
+  else
+  {
+    API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
+    xprintfW(wszMsg, wbuf, L"SingleOpenProgram=3");
+    API_MessageBox(hMainWnd?hMainWnd:NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+  }
   return nResult;
 }
 
