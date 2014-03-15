@@ -5434,189 +5434,6 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
   return 1;
 }
 
-BOOL AkelAdminInit(const wchar_t *wpFile)
-{
-  if (!wszAkelAdminPipe[0])
-    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
-
-  if (FileExistsWide(wszAkelAdminExe))
-  {
-    //Custom MessageBox
-    BUTTONMESSAGEBOX bmb[]={{IDOK,     MAKEINTRESOURCEW(STR_MESSAGEBOX_CONTINUE), BMB_DEFAULT},
-                            {IDCANCEL, MAKEINTRESOURCEW(STR_MESSAGEBOX_CANCEL),   0},
-                            {0, 0, 0}};
-    HMODULE hAdvApi32;
-    HMODULE hShell32;
-
-    if (!wszAkelAdminPipe[0])
-      xprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMINW, dwProcessId);
-    if (!hIconShieldAkelAdmin)
-      ExtractIconExWide(wszAkelAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
-
-    //Get functions addresses
-    if (!SetSecurityInfoPtr || !SetEntriesInAclWPtr)
-    {
-      hAdvApi32=GetModuleHandleA("advapi32.dll");
-      SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
-      SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
-    }
-    if (!ShellExecuteExWPtr)
-    {
-      hShell32=GetModuleHandleA("shell32.dll");
-      ShellExecuteExWPtr=(BOOL (WINAPI *)(LPSHELLEXECUTEINFOW))GetProcAddress(hShell32, "ShellExecuteExW");
-    }
-
-    API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
-    xprintfW(wszMsg, wbuf, wpFile);
-    if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShieldAkelAdmin, &bmb[0]) == IDOK)
-    {
-      if (!bPipeInitAkelAdmin)
-      {
-        wchar_t wszParams[MAX_PATH];
-        SHELLEXECUTEINFOW sei;
-        HANDLE lpHandles[2];
-        HANDLE hMutex;
-
-        //Pipe server doesn't exist
-        if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
-        {
-          //Set security for hMutex. It required under limited user of WinXP.
-          if (SetSecurityInfoPtr && SetEntriesInAclWPtr)
-          {
-            ACL *pNewACL=NULL;
-            EXPLICIT_ACCESSW eal[1];
-            SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
-            SID *pSIDEveryone=NULL;
-
-            //Specify the DACL to use. Create a SID for the Everyone group.
-            if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
-            {
-              eal[0].grfAccessPermissions=GENERIC_ALL;
-              eal[0].grfAccessMode=SET_ACCESS;
-              eal[0].grfInheritance=NO_INHERITANCE;
-              eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
-              eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
-              eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
-              eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
-              eal[0].Trustee.pMultipleTrustee=NULL;
-
-              if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
-              {
-                (*SetSecurityInfoPtr)(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
-                LocalFree(pNewACL);
-              }
-              FreeSid(pSIDEveryone);
-            }
-          }
-
-          //Initialize AkelAdmin process
-          if (ShellExecuteExWPtr)
-          {
-            xprintfW(wszParams, L"\"%d\" \"%d\"", AAA_CMDINIT, dwProcessId);
-            sei.cbSize=sizeof(SHELLEXECUTEINFOW);
-            sei.fMask=SEE_MASK_NOCLOSEPROCESS;
-            sei.hwnd=hMainWnd;
-            sei.lpVerb=L"runas";
-            sei.lpFile=wszAkelAdminExe;
-            sei.lpParameters=wszParams;
-            sei.lpDirectory=NULL;
-            sei.nShow=SW_SHOWDEFAULT;
-
-            if ((*ShellExecuteExWPtr)(&sei))
-            {
-              lpHandles[0]=hMutex;
-              lpHandles[1]=sei.hProcess;
-
-              //Wait for mutex signal or process exit
-              if (WaitForMultipleObjects(2, lpHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
-              {
-                bPipeInitAkelAdmin=TRUE;
-
-                //Return focus if needed
-                if (lpFrameCurrent->ei.hWndEdit && GetFocus() != lpFrameCurrent->ei.hWndEdit)
-                  SetFocus(lpFrameCurrent->ei.hWndEdit);
-              }
-              CloseHandle(sei.hProcess);
-            }
-          }
-          CloseHandle(hMutex);
-        }
-      }
-      return bPipeInitAkelAdmin;
-    }
-  }
-  return FALSE;
-}
-
-BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
-{
-  if (bPipeInitAkelAdmin)
-  {
-    ADMINPIPE apipe;
-    HANDLE hFilePipe;
-    UINT_PTR dwBytesRead;
-    UINT_PTR dwBytesWritten;
-
-    apipe.dwExitCode=1;
-    apipe.nAction=nAction;
-    xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
-    apipe.dwLangModule=dwLangModule;
-
-    for (;;)
-    {
-      //Connect to pipe server, send and receive data.
-      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-      {
-        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-        CloseHandle(hFilePipe);
-        break;
-      }
-      else if (GetLastError() == ERROR_PIPE_BUSY)
-      {
-        //Wait until pipe server became free.
-        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
-      }
-      else break;
-    }
-    return !apipe.dwExitCode;
-  }
-  return FALSE;
-}
-
-void AkelAdminExit()
-{
-  if (bPipeInitAkelAdmin)
-  {
-    ADMINPIPE apipe;
-    HANDLE hFilePipe;
-    UINT_PTR dwBytesRead;
-    UINT_PTR dwBytesWritten;
-
-    for (;;)
-    {
-      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-      {
-        //Unload AkelAdmin.
-        xmemset(&apipe, 0, sizeof(ADMINPIPE));
-        apipe.nAction=AAA_EXIT;
-        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
-        CloseHandle(hFilePipe);
-
-        bPipeInitAkelAdmin=FALSE;
-        break;
-      }
-      else if (GetLastError() == ERROR_PIPE_BUSY)
-      {
-        //Wait until pipe server became free.
-        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
-      }
-      else break;
-    }
-  }
-}
-
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
 {
   wchar_t wszName[MAX_PATH];
@@ -18183,10 +18000,17 @@ void StackFontItemsFree(HSTACK *hStack)
 
 HANDLE MemCreate(const char *pName, DWORD dwSize)
 {
+  HANDLE hMem;
+
   if (!dwSize)
-    return OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, pName);
+    hMem=OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, pName);
   else
-    return CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, dwSize, pName);
+    hMem=CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, dwSize, pName);
+  if (hMem == INVALID_HANDLE_VALUE)
+  {
+    //GetLastError();
+  }
+  return hMem;
 }
 
 void* MemMap(HANDLE hMem, DWORD dwSize)
@@ -18202,6 +18026,192 @@ BOOL MemUnmap(void *lpMem)
 BOOL MemClose(HANDLE hMem)
 {
   return CloseHandle(hMem);
+}
+
+
+//// AkelAdmin
+
+BOOL AkelAdminInit(const wchar_t *wpFile)
+{
+  if (!wszAkelAdminPipe[0])
+    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
+
+  if (FileExistsWide(wszAkelAdminExe))
+  {
+    //Custom MessageBox
+    BUTTONMESSAGEBOX bmb[]={{IDOK,     MAKEINTRESOURCEW(STR_MESSAGEBOX_CONTINUE), BMB_DEFAULT},
+                            {IDCANCEL, MAKEINTRESOURCEW(STR_MESSAGEBOX_CANCEL),   0},
+                            {0, 0, 0}};
+    HMODULE hAdvApi32;
+    HMODULE hShell32;
+
+    if (!wszAkelAdminPipe[0])
+      xprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMINW, dwProcessId);
+    if (!hIconShieldAkelAdmin)
+      ExtractIconExWide(wszAkelAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
+
+    //Get functions addresses
+    if (!SetSecurityInfoPtr || !SetEntriesInAclWPtr)
+    {
+      hAdvApi32=GetModuleHandleA("advapi32.dll");
+      SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
+      SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
+    }
+    if (!ShellExecuteExWPtr)
+    {
+      hShell32=GetModuleHandleA("shell32.dll");
+      ShellExecuteExWPtr=(BOOL (WINAPI *)(LPSHELLEXECUTEINFOW))GetProcAddress(hShell32, "ShellExecuteExW");
+    }
+
+    API_LoadStringW(hLangLib, MSG_ACCESSDENIED, wbuf, BUFFER_SIZE);
+    xprintfW(wszMsg, wbuf, wpFile);
+    if (MessageBoxCustom(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_ICONEXCLAMATION, hIconShieldAkelAdmin, &bmb[0]) == IDOK)
+    {
+      if (!bPipeInitAkelAdmin)
+      {
+        wchar_t wszParams[MAX_PATH];
+        SHELLEXECUTEINFOW sei;
+        HANDLE lpHandles[2];
+        HANDLE hMutex;
+
+        //Pipe server doesn't exist
+        if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
+        {
+          //Set security for hMutex. It required under limited user of WinXP.
+          if (SetSecurityInfoPtr && SetEntriesInAclWPtr)
+          {
+            ACL *pNewACL=NULL;
+            EXPLICIT_ACCESSW eal[1];
+            SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
+            SID *pSIDEveryone=NULL;
+
+            //Specify the DACL to use. Create a SID for the Everyone group.
+            if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
+            {
+              eal[0].grfAccessPermissions=GENERIC_ALL;
+              eal[0].grfAccessMode=SET_ACCESS;
+              eal[0].grfInheritance=NO_INHERITANCE;
+              eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
+              eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
+              eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
+              eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
+              eal[0].Trustee.pMultipleTrustee=NULL;
+
+              if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
+              {
+                (*SetSecurityInfoPtr)(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
+                LocalFree(pNewACL);
+              }
+              FreeSid(pSIDEveryone);
+            }
+          }
+
+          //Initialize AkelAdmin process
+          if (ShellExecuteExWPtr)
+          {
+            xprintfW(wszParams, L"\"%d\" \"%d\"", AAA_CMDINIT, dwProcessId);
+            sei.cbSize=sizeof(SHELLEXECUTEINFOW);
+            sei.fMask=SEE_MASK_NOCLOSEPROCESS;
+            sei.hwnd=hMainWnd;
+            sei.lpVerb=L"runas";
+            sei.lpFile=wszAkelAdminExe;
+            sei.lpParameters=wszParams;
+            sei.lpDirectory=NULL;
+            sei.nShow=SW_SHOWDEFAULT;
+
+            if ((*ShellExecuteExWPtr)(&sei))
+            {
+              lpHandles[0]=hMutex;
+              lpHandles[1]=sei.hProcess;
+
+              //Wait for mutex signal or process exit
+              if (WaitForMultipleObjects(2, lpHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
+              {
+                bPipeInitAkelAdmin=TRUE;
+
+                //Return focus if needed
+                if (lpFrameCurrent->ei.hWndEdit && GetFocus() != lpFrameCurrent->ei.hWndEdit)
+                  SetFocus(lpFrameCurrent->ei.hWndEdit);
+              }
+              CloseHandle(sei.hProcess);
+            }
+          }
+          CloseHandle(hMutex);
+        }
+      }
+      return bPipeInitAkelAdmin;
+    }
+  }
+  return FALSE;
+}
+
+BOOL AkelAdminSend(int nAction, const wchar_t *wpFile)
+{
+  if (bPipeInitAkelAdmin)
+  {
+    ADMINPIPE apipe;
+    HANDLE hFilePipe;
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwBytesWritten;
+
+    apipe.dwExitCode=1;
+    apipe.nAction=nAction;
+    xstrcpynW(apipe.wszFile, wpFile, MAX_PATH);
+    apipe.dwLangModule=dwLangModule;
+
+    for (;;)
+    {
+      //Connect to pipe server, send and receive data.
+      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+      {
+        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+        CloseHandle(hFilePipe);
+        break;
+      }
+      else if (GetLastError() == ERROR_PIPE_BUSY)
+      {
+        //Wait until pipe server became free.
+        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
+      }
+      else break;
+    }
+    return !apipe.dwExitCode;
+  }
+  return FALSE;
+}
+
+void AkelAdminExit()
+{
+  if (bPipeInitAkelAdmin)
+  {
+    ADMINPIPE apipe;
+    HANDLE hFilePipe;
+    UINT_PTR dwBytesRead;
+    UINT_PTR dwBytesWritten;
+
+    for (;;)
+    {
+      if ((hFilePipe=CreateFileW(wszAkelAdminPipe, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+      {
+        //Unload AkelAdmin.
+        xmemset(&apipe, 0, sizeof(ADMINPIPE));
+        apipe.nAction=AAA_EXIT;
+        API_WriteFile(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+        ReadFile64(hFilePipe, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL);
+        CloseHandle(hFilePipe);
+
+        bPipeInitAkelAdmin=FALSE;
+        break;
+      }
+      else if (GetLastError() == ERROR_PIPE_BUSY)
+      {
+        //Wait until pipe server became free.
+        WaitNamedPipeW(wszAkelAdminPipe, NMPWAIT_WAIT_FOREVER);
+      }
+      else break;
+    }
+  }
 }
 
 
@@ -20524,6 +20534,7 @@ int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
   DWORD dwMemSize=nExeFileMax * sizeof(wchar_t);
   int nResult=0;
 
+  //Current AkelPad process must have privileges to send AKD_* messages
   if (hMemRemote=(HANDLE)SendMessage(hWnd, AKD_MEMCREATE, (WPARAM)"Global\\AkelPad", dwMemSize))
   {
     if (wszMemRemote=(wchar_t *)SendMessage(hWnd, AKD_MEMMAP, (WPARAM)hMemRemote, dwMemSize))
