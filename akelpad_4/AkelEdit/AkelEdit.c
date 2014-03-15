@@ -100,7 +100,7 @@ HSTACK hAkelEditFontsStackW={0};
 HSTACK hAkelEditBitmapDataStack={0};
 HSTACK hAkelEditBitmapDcStack={0};
 HSTACK hAkelEditPensStack={0};
-HSTACK hAkelEditThemesStack={0};
+AESTACKTHEME hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 BOOL bRichEditClassRegisteredA=FALSE;
@@ -2751,15 +2751,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else
       {
-        AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+        AELINEDATA *lpLine;
 
-        while (lpLine)
+        for (lpLine=ae->ptxt->hLinesStack.first; lpLine; lpLine=lpLine->next)
         {
           if (lpLine->nLineLen)
           {
             dwResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
           }
-          lpLine=lpLine->next;
+
         }
         dwResult+=ae->ptxt->nLineCount;
         if (gtl->flags & GTL_USECRLF)
@@ -5349,14 +5349,12 @@ AKELEDIT* AE_StackWindowInsert(AESTACKEDIT *hStack)
 
 AKELEDIT* AE_StackWindowGet(AESTACKEDIT *hStack, HWND hWndEdit)
 {
-  AKELEDIT *lpElement=(AKELEDIT *)hStack->first;
+  AKELEDIT *lpElement;
 
-  while (lpElement)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hWndEdit == hWndEdit)
       return lpElement;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
@@ -5468,28 +5466,24 @@ void AE_CloneRestoreSelection(AKELEDIT *ae)
 
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex)
 {
-  AECLONE *lpElement=(AECLONE *)ae->hClonesStack.first;
+  AECLONE *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AECLONE *)ae->hClonesStack.first; lpElement; lpElement=lpElement->next)
   {
     if (dwIndex-- == 0)
       break;
-
-    lpElement=lpElement->next;
   }
   return lpElement;
 }
 
 AECLONE* AE_StackCloneGet(AKELEDIT *aeMaster, AKELEDIT *aeClone)
 {
-  AECLONE *lpElement=(AECLONE *)aeMaster->hClonesStack.first;
+  AECLONE *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AECLONE *)aeMaster->hClonesStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->aeClone == aeClone)
       break;
-
-    lpElement=lpElement->next;
   }
   return lpElement;
 }
@@ -5593,14 +5587,13 @@ void AE_StackCloneDelete(AECLONE *aec)
 
 void AE_StackCloneDeleteAll(AKELEDIT *ae)
 {
-  AECLONE *lpElement=(AECLONE *)ae->hClonesStack.first;
+  AECLONE *lpElement;
   AECLONE *lpTmp;
 
-  while (lpElement)
+  for (lpElement=(AECLONE *)ae->hClonesStack.first; lpElement; lpElement=lpTmp)
   {
     lpTmp=lpElement->next;
     AE_StackCloneDelete(lpElement);
-    lpElement=lpTmp;
   }
 }
 
@@ -5640,14 +5633,11 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
   if (ae->bDragging) return ae;
   if (ae->lpMaster) ae=ae->lpMaster;
   if (ae->bDragging) return ae;
-  lpElement=(AECLONE *)ae->hClonesStack.first;
 
-  while (lpElement)
+  for (lpElement=(AECLONE *)ae->hClonesStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->aeClone->bDragging)
       return lpElement->aeClone;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
@@ -5666,17 +5656,15 @@ AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase)
 
 BOOL AE_StackEraseMore(AKELEDIT *ae, RECT *rcErase)
 {
-  AEERASE *lpElement=(AEERASE *)ae->hEraseStack.first;
+  AEERASE *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AEERASE *)ae->hEraseStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->rcErase.left <= rcErase->left &&
         lpElement->rcErase.top <= rcErase->top &&
         lpElement->rcErase.right >= rcErase->right &&
         lpElement->rcErase.bottom >= rcErase->bottom)
       return FALSE;
-
-    lpElement=lpElement->next;
   }
   return TRUE;
 }
@@ -6924,26 +6912,24 @@ void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem)
 
 UINT_PTR AE_StackUndoSize(AKELEDIT *ae)
 {
-  AEUNDOITEM *lpElement=ae->ptxt->hUndoStack.first;
+  AEUNDOITEM *lpElement;
   UINT_PTR dwSize=0;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hUndoStack.first; lpElement; lpElement=lpElement->next)
   {
     dwSize+=lpElement->dwTextLen;
-
-    lpElement=lpElement->next;
   }
   return dwSize;
 }
 
 int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
 {
-  AEUNDOITEM *lpElement=ae->ptxt->lpCurrentUndo;
+  AEUNDOITEM *lpElement;
   CHARRANGE64 crRange=*lpcrRange;
   INT_PTR nActionLen;
   int nResult=AEIRM_MODIFIEDUNSAVED;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->lpCurrentUndo; lpElement; lpElement=lpElement->prev)
   {
     if (lpElement == ae->ptxt->lpSavePoint)
       nResult=AEIRM_MODIFIEDSAVED;
@@ -6976,7 +6962,6 @@ int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
         crRange.cpMax+=nActionLen;
       }
     }
-    lpElement=lpElement->prev;
   }
   return AEIRM_UNMODIFIED;
 }
@@ -7135,11 +7120,11 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
 
       while (ae->ptxt->dwUndoCount > ae->ptxt->dwUndoLimit)
       {
-        AEUNDOITEM *lpElement=ae->ptxt->hUndoStack.first;
+        AEUNDOITEM *lpElement;
         AEUNDOITEM *lpTmp;
 
         //Delete first undo group
-        while (lpElement)
+        for (lpElement=ae->ptxt->hUndoStack.first; lpElement; lpElement=lpTmp)
         {
           if (lpElement->dwFlags & AEUN_STOPGROUP)
           {
@@ -7148,7 +7133,6 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
           }
           lpTmp=lpElement->next;
           AE_StackUndoItemDelete(ae, lpElement);
-          lpElement=lpTmp;
         }
         --ae->ptxt->dwUndoCount;
       }
@@ -7228,14 +7212,13 @@ void AE_StackLineDelete(AKELEDIT *ae, AELINEDATA *lpElement)
 
 void AE_StackLineFree(AKELEDIT *ae)
 {
-  AELINEDATA *lpElement=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  AELINEDATA *lpElement;
   AELINEDATA *lpTmp;
 
-  while (lpElement)
+  for (lpElement=ae->ptxt->hLinesStack.first; lpElement; lpElement=lpTmp)
   {
     lpTmp=lpElement->next;
     AE_StackLineDelete(ae, lpElement);
-    lpElement=lpTmp;
   }
 }
 
@@ -8034,9 +8017,7 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
 
   if (bColumnSel)
   {
-    lpElement=ciStart.lpLine;
-
-    while (lpElement)
+    for (lpElement=ciStart.lpLine; lpElement; lpElement=lpElement->next)
     {
       if (bFillSpaces)
         nCount+=lpElement->nSelEnd - lpElement->nSelStart;
@@ -8068,8 +8049,6 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
         nCount+=2;
       else if (nLineBreak == AELB_RRN)
         nCount+=3;
-
-      lpElement=lpElement->next;
     }
   }
   else
@@ -8084,9 +8063,7 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
     }
     else
     {
-      lpElement=ciStart.lpLine;
-
-      while (lpElement)
+      for (lpElement=ciStart.lpLine; lpElement; lpElement=lpElement->next)
       {
         if (lpElement == ciEnd.lpLine)
         {
@@ -8115,7 +8092,6 @@ INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARI
           else if (nLineBreak == AELB_RRN)
             nCount+=3;
         }
-        lpElement=lpElement->next;
       }
     }
   }
@@ -8748,9 +8724,8 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
         AE_GetLineWidth(ae, liLine->lpLine);
       dwUnwrapLineWidth+=liLine->lpLine->nLineWidth;
       dwUnwrapLineLen+=liLine->lpLine->nLineLen;
-      lpCurElement=liLine->lpLine->next;
 
-      while (lpCurElement)
+      for (lpCurElement=liLine->lpLine->next; lpCurElement; lpCurElement=lpCurElement->next)
       {
         //Set new line width (necessary for tabs)
         lpCurElement->nLineWidth=(int)AE_GetStringWidth(ae, lpCurElement->wpLine, lpCurElement->nLineLen, dwUnwrapLineWidth);
@@ -8762,7 +8737,6 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
           nUnwrapLineBreak=lpCurElement->nLineBreak;
           break;
         }
-        lpCurElement=lpCurElement->next;
       }
 
       //Unwrap line
@@ -8870,7 +8844,6 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
     if (liStart.lpLine == liEnd.lpLine) break;
 
     ++liStart.nLine;
-
     liStart.lpLine=liStart.lpLine->next;
   }
 
@@ -8899,7 +8872,7 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
 
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage, int *lpdwCharInLine)
 {
-  AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  AELINEDATA *lpLine=ae->ptxt->hLinesStack.first;
   char *szLine;
   char *pCount;
   char chChar=0x00;
@@ -9125,15 +9098,15 @@ void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *c
 {
   AELINEINDEX liLine;
 
-  liLine.lpLine=ciMin->lpLine;
   liLine.nLine=ciMin->nLine;
+  liLine.lpLine=ciMin->lpLine;
 
   while (liLine.lpLine)
   {
     AE_GetLineSelection(ae, &liLine, ciSelStart, ciSelEnd, nSelStartX, nSelEndX, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
     if (liLine.lpLine == ciMax->lpLine) break;
-    ++liLine.nLine;
 
+    ++liLine.nLine;
     liLine.lpLine=liLine.lpLine->next;
   }
 }
@@ -10995,28 +10968,24 @@ AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName)
 
 AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName)
 {
-  AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
+  AETHEMEITEMW *lpElement;
 
-  while (lpElement)
+  for (lpElement=hAkelEditThemesStack.first; lpElement; lpElement=lpElement->next)
   {
     if (!xstrcmpiW(lpElement->wszThemeName, wpThemeName))
       return lpElement;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
 BOOL AE_HighlightIsThemeExists(AETHEMEITEMW *aeti)
 {
-  AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
+  AETHEMEITEMW *lpElement;
 
-  while (lpElement)
+  for (lpElement=hAkelEditThemesStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement == aeti)
       return TRUE;
-
-    lpElement=lpElement->next;
   }
   return FALSE;
 }
@@ -11034,31 +11003,27 @@ void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti)
 
 void AE_HighlightDeleteThemeAll()
 {
-  AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
+  AETHEMEITEMW *lpElement;
 
-  while (lpElement)
+  for (lpElement=hAkelEditThemesStack.first; lpElement; lpElement=lpElement->next)
   {
     AE_HighlightDeleteDelimiterAll(NULL, lpElement);
     AE_HighlightDeleteWordAll(NULL, lpElement);
     AE_HighlightDeleteQuoteAll(NULL, lpElement);
     AE_HighlightDeleteMarkTextAll(NULL, lpElement);
     AE_HighlightDeleteMarkRangeAll(NULL, lpElement);
-
-    lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last);
 }
 
 void AE_HighlightUnsetTheme(AETHEMEITEMW *aeti)
 {
-  AKELEDIT *lpElement=(AKELEDIT *)hAkelEditWindowsStack.first;
+  AKELEDIT *lpElement;
 
-  while (lpElement)
+  for (lpElement=(AKELEDIT *)hAkelEditWindowsStack.first; lpElement; lpElement=lpElement->next)
   {
     if (!aeti || lpElement->popt->lpActiveTheme == aeti)
       lpElement->popt->lpActiveTheme=NULL;
-
-    lpElement=lpElement->next;
   }
 }
 
@@ -11106,14 +11071,10 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
     }
     else
     {
-      lpTmp=(AEWORDITEMW *)lpWordStack->first;
-
-      while (lpTmp)
+      for (lpTmp=lpWordStack->first; lpTmp; lpTmp=lpTmp->next)
       {
         if (lpTmp->nWordLen >= nWordLen)
           break;
-
-        lpTmp=lpTmp->next;
       }
     }
     AE_HeapStackInsertBefore(NULL, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)lpTmp, (stack **)&lpWordItem, sizeof(AEWORDITEMW));
@@ -14736,6 +14697,50 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
   InvalidateRect(ae->hWndEdit, &rcRedraw, bErase);
 }
 
+void AE_RedrawIndexRange(AKELEDIT *ae, const AECHARINDEX *ciFirstChar, const AECHARINDEX *ciLastChar, BOOL bErase)
+{
+  AELINEDATA *lpLine;
+  int nFirstRedrawLine;
+  int nLastRedrawLine;
+  int nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
+  int nMinRedrawLine;
+  int nMaxRedrawLine;
+
+  if (ciFirstChar)
+  {
+    nFirstRedrawLine=ciFirstChar->nLine;
+    if (ae->ptxt->dwWordWrap)
+    {
+      nMinRedrawLine=nFirstRedrawLine - nLinesInPage;
+      for (lpLine=ciFirstChar->lpLine->prev; lpLine; lpLine=lpLine->prev)
+      {
+        if (lpLine->nLineBreak == AELB_WRAP)
+          if (--nFirstRedrawLine < nMinRedrawLine)
+            break;
+      }
+    }
+  }
+  else nFirstRedrawLine=-1;
+
+  if (ciLastChar)
+  {
+    nLastRedrawLine=ciLastChar->nLine;
+    if (ae->ptxt->dwWordWrap)
+    {
+      nMaxRedrawLine=nLastRedrawLine + nLinesInPage;
+      for (lpLine=ciLastChar->lpLine->next; lpLine; lpLine=lpLine->next)
+      {
+        if (lpLine->nLineBreak == AELB_WRAP)
+          if (++nLastRedrawLine > nMaxRedrawLine)
+            break;
+      }
+    }
+  }
+  else nLastRedrawLine=-1;
+
+  AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, bErase);
+}
+
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide)
 {
   ae->popt->bHideSelection=bHide;
@@ -15686,7 +15691,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
   AECHARINDEX ciStart=*ciRangeStart;
   AECHARINDEX ciEnd=*ciRangeEnd;
   AECHARINDEX ciTmp;
-  AELINEDATA *lpElement;
+  AELINEDATA *lpLine;
   UINT_PTR dwCopied=0;
   UINT_PTR dwCharsToCopy;
   BYTE nLineBreak;
@@ -15721,18 +15726,16 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
           if (bColumnSel)
           {
-            lpElement=ciStart.lpLine;
-
-            while (lpElement)
+            for (lpLine=ciStart.lpLine; lpLine; lpLine=lpLine->next)
             {
-              for (i=lpElement->nSelStart; i < lpElement->nLineLen && i < lpElement->nSelEnd; ++i)
+              for (i=lpLine->nSelStart; i < lpLine->nLineLen && i < lpLine->nSelEnd; ++i)
               {
-                wszBuffer[dwCopied++]=lpElement->wpLine[i];
+                wszBuffer[dwCopied++]=lpLine->wpLine[i];
                 if (dwCopied >= dwBufferSize) goto End;
               }
               if (bFillSpaces)
               {
-                while (i < lpElement->nSelEnd)
+                while (i < lpLine->nSelEnd)
                 {
                   wszBuffer[dwCopied++]=L' ';
                   if (dwCopied >= dwBufferSize) goto End;
@@ -15740,9 +15743,9 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   ++i;
                 }
               }
-              if (lpElement == ciEnd.lpLine) break;
+              if (lpLine == ciEnd.lpLine) break;
 
-              if (lpElement->nLineBreak == AELB_WRAP)
+              if (lpLine->nLineBreak == AELB_WRAP)
               {
                 if (nNewLine == AELB_ASIS)
                   nLineBreak=AELB_RN;
@@ -15752,7 +15755,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               else
               {
                 if (nNewLine == AELB_ASIS)
-                  nLineBreak=lpElement->nLineBreak;
+                  nLineBreak=lpLine->nLineBreak;
                 else
                   nLineBreak=(BYTE)nNewLine;
               }
@@ -15783,7 +15786,6 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 wszBuffer[dwCopied++]=L'\n';
                 if (dwCopied >= dwBufferSize) goto End;
               }
-              lpElement=lpElement->next;
             }
           }
           else
@@ -15801,11 +15803,9 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
             }
             else
             {
-              lpElement=ciStart.lpLine;
-
-              while (lpElement)
+              for (lpLine=ciStart.lpLine; lpLine; lpLine=lpLine->next)
               {
-                if (lpElement == ciEnd.lpLine)
+                if (lpLine == ciEnd.lpLine)
                 {
                   //Last line
                   dwCharsToCopy=min((DWORD)ciEnd.nCharInLine, dwBufferSize - dwCopied);
@@ -15814,7 +15814,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   break;
                 }
 
-                if (lpElement == ciStart.lpLine)
+                if (lpLine == ciStart.lpLine)
                 {
                   //First line
                   dwCharsToCopy=min((DWORD)(ciStart.lpLine->nLineLen - ciStart.nCharInLine), dwBufferSize - dwCopied);
@@ -15825,16 +15825,16 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 else
                 {
                   //Middle
-                  dwCharsToCopy=min((DWORD)lpElement->nLineLen, dwBufferSize - dwCopied);
-                  xmemcpy(wszBuffer + dwCopied, lpElement->wpLine, dwCharsToCopy * sizeof(wchar_t));
+                  dwCharsToCopy=min((DWORD)lpLine->nLineLen, dwBufferSize - dwCopied);
+                  xmemcpy(wszBuffer + dwCopied, lpLine->wpLine, dwCharsToCopy * sizeof(wchar_t));
                   dwCopied+=dwCharsToCopy;
                   if (dwCopied >= dwBufferSize) goto End;
                 }
 
-                if (lpElement->nLineBreak != AELB_WRAP)
+                if (lpLine->nLineBreak != AELB_WRAP)
                 {
                   if (nNewLine == AELB_ASIS)
-                    nLineBreak=lpElement->nLineBreak;
+                    nLineBreak=lpLine->nLineBreak;
                   else
                     nLineBreak=(BYTE)nNewLine;
 
@@ -15865,7 +15865,6 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     if (dwCopied >= dwBufferSize) goto End;
                   }
                 }
-                lpElement=lpElement->next;
               }
             }
           }
@@ -16583,10 +16582,9 @@ int AE_JoinNewLines(AKELEDIT *ae)
 
           if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
           {
-            lpCurElement=liLineStart.lpLine;
             dwCountLen=0;
 
-            while (lpCurElement)
+            for (lpCurElement=liLineStart.lpLine; lpCurElement; lpCurElement=lpNextElement)
             {
               xmemcpy(lpNewElement->wpLine + dwCountLen, lpCurElement->wpLine, lpCurElement->nLineLen * sizeof(wchar_t));
               dwCountLen+=lpCurElement->nLineLen;
@@ -16598,7 +16596,6 @@ int AE_JoinNewLines(AKELEDIT *ae)
               }
               lpNextElement=lpCurElement->next;
               AE_StackLineDelete(ae, lpCurElement);
-              lpCurElement=lpNextElement;
             }
             lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
             AE_GetLineWidth(ae, lpNewElement);
@@ -17580,36 +17577,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       }
       else
       {
-        int nFirstRedrawLine;
-        int nLastRedrawLine;
-
-        nFirstRedrawLine=ciFirstChar.nLine;
-        if (ae->ptxt->dwWordWrap)
-        {
-          for (lpElement=ciFirstChar.lpLine->prev; lpElement; lpElement=lpElement->prev)
-          {
-            if (lpElement->nLineBreak == AELB_WRAP)
-              if (--nFirstRedrawLine < ae->liFirstDrawLine.nLine)
-                break;
-          }
-        }
-        if (nLineCount + nWrapCount)
-          nLastRedrawLine=-1;
-        else
-        {
-          nLastRedrawLine=ciLastChar.nLine;
-          if (ae->ptxt->dwWordWrap)
-          {
-            for (lpElement=ciLastChar.lpLine->next; lpElement; lpElement=lpElement->next)
-            {
-              //Don't calculate last visible line. Just take 50 as max lines in page.
-              if (lpElement->nLineBreak == AELB_WRAP)
-                if (++nLastRedrawLine >= ciLastChar.nLine + 50)
-                  break;
-            }
-          }
-        }
-        AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
+        AE_RedrawIndexRange(ae, &ciFirstChar, (nLineCount + nWrapCount)?NULL:&ciLastChar, TRUE);
       }
     }
 
@@ -18570,36 +18538,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           }
           else
           {
-            int nFirstRedrawLine;
-            int nLastRedrawLine;
-
-            nFirstRedrawLine=ciFirstChar.nLine;
-            if (ae->ptxt->dwWordWrap)
-            {
-              for (lpElement=ciFirstChar.lpLine->prev; lpElement; lpElement=lpElement->prev)
-              {
-                if (lpElement->nLineBreak == AELB_WRAP)
-                  if (--nFirstRedrawLine < ae->liFirstDrawLine.nLine)
-                    break;
-              }
-            }
-            if (nLineCount + nWrapCount)
-              nLastRedrawLine=-1;
-            else
-            {
-              nLastRedrawLine=ciLastChar.nLine;
-              if (ae->ptxt->dwWordWrap)
-              {
-                for (lpElement=ciLastChar.lpLine->next; lpElement; lpElement=lpElement->next)
-                {
-                  //Don't calculate last visible line. Just take 50 as max lines in page.
-                  if (lpElement->nLineBreak == AELB_WRAP)
-                    if (++nLastRedrawLine >= ciLastChar.nLine + 50)
-                      break;
-                }
-              }
-            }
-            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
+            AE_RedrawIndexRange(ae, &ciFirstChar, (nLineCount + nWrapCount)?NULL:&ciLastChar, TRUE);
           }
         }
 
