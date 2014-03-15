@@ -796,9 +796,6 @@ BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
-BOOL AkelAdminInit(const wchar_t *wpFile);
-BOOL AkelAdminSend(int nAction, const wchar_t *wpFile);
-void AkelAdminExit();
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir);
 void DropFiles(HDROP hDrop);
 void CheckModificationTime(FRAMEDATA *lpFrame);
@@ -1066,6 +1063,10 @@ void* MemMap(HANDLE hMem, DWORD dwSize);
 BOOL MemUnmap(void *lpMem);
 BOOL MemClose(HANDLE hMem);
 
+BOOL AkelAdminInit(const wchar_t *wpFile);
+BOOL AkelAdminSend(int nAction, const wchar_t *wpFile);
+void AkelAdminExit();
+
 wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wppCmdParamsStart, wchar_t **wppCmdParamsEnd);
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
@@ -1100,7 +1101,6 @@ BOOL IsReadOnly(HWND hWnd);
 int IsFile(const wchar_t *wpFile);
 BOOL IsPathFull(const wchar_t *wpPath);
 BOOL GetFileWin32Data(const wchar_t *wpFile, WIN32_FIND_DATAW *wfd);
-int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirMax);
 BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, int *lpnFileLen);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
