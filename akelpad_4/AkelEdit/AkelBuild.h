@@ -345,6 +345,11 @@ typedef struct _AETHEMEITEMW {
 } AETHEMEITEMW;
 
 typedef struct {
+  AETHEMEITEMW *first;
+  AETHEMEITEMW *last;
+} AESTACKTHEME;
+
+typedef struct {
   HDC hDC;
   AECHARINDEX ciDrawLine;
   INT_PTR nDrawCharOffset;
@@ -939,6 +944,7 @@ BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse);
 void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom);
 void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
+void AE_RedrawIndexRange(AKELEDIT *ae, const AECHARINDEX *ciFirstChar, const AECHARINDEX *ciLastChar, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
