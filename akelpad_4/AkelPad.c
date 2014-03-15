@@ -3418,7 +3418,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_MEMUNMAP)
     {
-      return (LRESULT)MemUnmap((LPCVOID)wParam);
+      return (LRESULT)MemUnmap((void *)wParam);
     }
     if (uMsg == AKD_MEMCLOSE)
     {
