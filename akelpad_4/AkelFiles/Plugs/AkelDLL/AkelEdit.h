@@ -554,7 +554,7 @@
 #define AEGF_URL             5  //URL style font handle.
 
 //AEM_GETCHARSIZE flags
-#define AECS_HEIGHT          0  //Current font character height. lParam not used.
+#define AECS_HEIGHT          0  //Current font character height including line gap. lParam not used.
 #define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
 #define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
 #define AECS_POINTSIZE       3  //Current font point size. lParam not used.
