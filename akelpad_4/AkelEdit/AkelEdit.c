@@ -9910,7 +9910,7 @@ DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRA
 
     if (PtInRect(&ae->rcDraw, ptClient))
     {
-      if (nClientY <= ae->ptxt->nVScrollMax)
+      if (nClientY - ae->rcDraw.top <= ae->ptxt->nVScrollMax)
       {
         if (nResult=AE_GetCharFromPos(ae, nClientX, nClientY, &ciCharIndex, NULL, FALSE))
         {
