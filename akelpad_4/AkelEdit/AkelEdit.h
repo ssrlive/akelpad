@@ -36,7 +36,9 @@
 #ifndef ES_DISABLENOSCROLL
   #define ES_DISABLENOSCROLL  0x00002000  //See AECO_DISABLENOSCROLL.
 #endif
-#define ES_HEAP_SERIALIZE     0x00008000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
+#define ES_GLOBALUNDO         0x00004000  //Use process heap for Undo/Redo instead of window heap. Required for AEM_DETACHUNDO and AEM_ATTACHUNDO.
+                                          //Compatibility: define same as ES_SUNKEN.
+#define ES_HEAPSERIALIZE      0x00008000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
                                           //Compatibility: define same as ES_SAVESEL.
 
 //Strings
@@ -1517,6 +1519,8 @@ typedef struct {
 #define AEM_SETMODIFY             (WM_USER + 2063)
 #define AEM_UNDOBUFFERSIZE        (WM_USER + 2064)
 #define AEM_ISRANGEMODIFIED       (WM_USER + 2065)
+#define AEM_DETACHUNDO            (WM_USER + 2066)
+#define AEM_ATTACHUNDO            (WM_USER + 2067)
 
 //Text coordinates
 #define AEM_EXGETSEL              (WM_USER + 2099)
@@ -3079,6 +3083,46 @@ Example (check is line has been modified):
    ++crLineRange.cpMax;
 
  nLineModified=(int)SendMessage(hWndEdit, AEM_ISRANGEMODIFIED, 0, (LPARAM)&crLineRange);
+
+
+AEM_DETACHUNDO
+______________
+
+Detach undo stack.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Undo stack.
+
+Remarks
+ AEM_DETACHUNDO requires ES_GLOBALUNDO style.
+
+Example:
+ HANDLE hUndoStack;
+
+ hUndoStack=(HANDLE)SendMessage(hWndEdit1, AEM_DETACHUNDO, 0, 0);
+ SendMessage(hWndEdit2, AEM_ATTACHUNDO, 0, (LPARAM)hUndoStack);
+
+
+AEM_ATTACHUNDO
+______________
+
+Attach undo stack.
+
+wParam         == not used.
+(HANDLE)lParam == undo stack returned by AEM_DETACHUNDO. Current undo stack will be replaced with this one.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Remarks
+ AEM_ATTACHUNDO requires ES_GLOBALUNDO style.
+
+Example:
+ See AEM_DETACHUNDO example.
 
 
 AEM_EXGETSEL

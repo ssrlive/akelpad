@@ -454,6 +454,12 @@ typedef struct {
 } AESTACKUNDO;
 
 typedef struct {
+  AEUNDOITEM *first;
+  AEUNDOITEM *last;
+  DWORD dwUndoCount;
+} AEUNDOATTACH;
+
+typedef struct {
   AEURLITEM *first;
   AEURLITEM *last;
 } AESTACKURL;
@@ -694,6 +700,9 @@ typedef struct _AKELEDIT {
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
   //RECT rcCloneMargins;
+
+  //Undo window heap or global heap
+  struct _AKELEDIT *aeUndo;
 } AKELEDIT;
 
 typedef struct {
@@ -826,6 +835,9 @@ void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem);
 void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem);
 UINT_PTR AE_StackUndoSize(AKELEDIT *ae);
 int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange);
+AEUNDOATTACH* AE_StackUndoDetach(AKELEDIT *ae);
+BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach);
+wchar_t* AE_GetAllTextForUndo(AKELEDIT *ae, UINT_PTR *lpdwUndoTextLen);
 void AE_StackUndoGroupStop(AKELEDIT *ae);
 AELINEDATA* AE_StackLineAdd(AKELEDIT *ae);
 AELINEDATA* AE_StackLineInsertBefore(AKELEDIT *ae, AELINEDATA *lpLine);
