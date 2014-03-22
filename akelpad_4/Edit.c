@@ -333,7 +333,10 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   cs.lpszName=NULL;
   cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_MULTILINE|
            ((moCur.dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
-           ((moCur.dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL);
+           ((moCur.dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL)|
+           ((moCur.dwEditStyle & EDS_GLOBALUNDO)?ES_GLOBALUNDO:0)|
+           ((moCur.dwEditStyle & EDS_HEAPSERIALIZE)?ES_HEAPSERIALIZE:0);
+
   cs.x=0;
   cs.y=0;
   cs.cx=rcRect.right;
@@ -3744,6 +3747,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"EditStyle", MOT_DWORD, &mo->dwEditStyle, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD)))
@@ -3979,6 +3984,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwWordBreakCustom), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwPaintOptions), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"EditStyle", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwEditStyle), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"RichEditClass", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, bRichEditClass), sizeof(DWORD)))
     goto Error;

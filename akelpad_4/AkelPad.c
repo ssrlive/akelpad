@@ -778,6 +778,7 @@ void _WinMain()
   //moInit.nStatusUserFormatLen=0;
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
+  //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
   //moInit.wszDateLogFormat[0]=L'\0';
@@ -2285,6 +2286,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return moCur.dwWordBreakCustom;
         if (wParam == MI_PAINTOPTIONS)
           return moCur.dwPaintOptions;
+        if (wParam == MI_EDITSTYLE)
+          return moCur.dwEditStyle;
         if (wParam == MI_RICHEDITCLASS)
           return moCur.bRichEditClass;
         if (wParam == MI_AKELADMINRESIDENT)
@@ -2531,6 +2534,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_PAINTOPTIONS)
         return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_EDITSTYLE)
+        return SetOption(lParam, &moCur.dwEditStyle, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_RICHEDITCLASS)
         return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_AKELADMINRESIDENT)
