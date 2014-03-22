@@ -7032,12 +7032,15 @@ BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach)
   wchar_t *wpUndoText;
   UINT_PTR dwUndoTextLen;
   DWORD dwUndoFlags=0;
+  BOOL bModified;
 
   if (hUndoAttach)
   {
     //Only if ES_GLOBALUNDO was set
     if (ae->aeUndo == NULL)
     {
+      bModified=AE_GetModify(ae);
+
       AE_EmptyUndoBuffer(ae);
       ae->ptxt->hUndoStack.first=hUndoAttach->first;
       ae->ptxt->hUndoStack.last=hUndoAttach->last;
@@ -7074,6 +7077,17 @@ BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach)
             AE_StackUndoGroupStop(ae);
           }
         }
+      }
+
+      if (bModified)
+      {
+        ae->ptxt->lpSavePoint=NULL;
+        ae->ptxt->bSavePointExist=FALSE;
+      }
+      else
+      {
+        ae->ptxt->lpSavePoint=ae->ptxt->lpCurrentUndo;
+        ae->ptxt->bSavePointExist=TRUE;
       }
       return TRUE;
     }
