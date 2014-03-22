@@ -6990,7 +6990,8 @@ AEUNDOATTACH* AE_StackUndoDetach(AKELEDIT *ae)
   UINT_PTR dwUndoTextLen;
   DWORD dwUndoFlags=0;
 
-  if (ae->ptxt->dwUndoLimit)
+  //Only if ES_GLOBALUNDO was set
+  if (ae->aeUndo == NULL)
   {
     AE_StackUndoGroupStop(ae);
 
@@ -7034,32 +7035,48 @@ BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach)
 
   if (hUndoAttach)
   {
-    AE_EmptyUndoBuffer(ae);
-    ae->ptxt->hUndoStack.first=hUndoAttach->first;
-    ae->ptxt->hUndoStack.last=hUndoAttach->last;
-    ae->ptxt->dwUndoCount=hUndoAttach->dwUndoCount;
-    ae->ptxt->lpCurrentUndo=ae->ptxt->hUndoStack.last;
-    AE_HeapFree(NULL, 0, (LPVOID)hUndoAttach);
-
-    //Set undo flags
-    if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) < 0)
-      dwUndoFlags=AEUN_CARETATSTART;
-
-    if (wpUndoText=AE_GetAllTextForUndo(ae, &dwUndoTextLen))
+    //Only if ES_GLOBALUNDO was set
+    if (ae->aeUndo == NULL)
     {
-      if (lpUndoElement=AE_StackUndoItemInsert(ae))
-      {
-        lpUndoElement->dwFlags=AEUN_DELETE|dwUndoFlags;
-        lpUndoElement->nActionStartOffset=0;
-        lpUndoElement->nActionEndOffset=ae->ptxt->nLastCharOffset;
-        lpUndoElement->wpText=wpUndoText;
-        lpUndoElement->dwTextLen=dwUndoTextLen;
-        lpUndoElement->nNewLine=AELB_ASIS;
-      }
-    }
-    AE_StackUndoGroupStop(ae);
+      AE_EmptyUndoBuffer(ae);
+      ae->ptxt->hUndoStack.first=hUndoAttach->first;
+      ae->ptxt->hUndoStack.last=hUndoAttach->last;
+      ae->ptxt->dwUndoCount=hUndoAttach->dwUndoCount;
+      ae->ptxt->lpCurrentUndo=ae->ptxt->hUndoStack.last;
+      AE_HeapFree(NULL, 0, (LPVOID)hUndoAttach);
 
-    return TRUE;
+      //Set undo flags
+      if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) < 0)
+        dwUndoFlags=AEUN_CARETATSTART;
+
+      if (wpUndoText=AE_GetAllTextForUndo(ae, &dwUndoTextLen))
+      {
+        lpUndoElement=ae->ptxt->hUndoStack.last;
+
+        if (lpUndoElement->dwTextLen == dwUndoTextLen && !xmemcmp(lpUndoElement->wpText, wpUndoText, dwUndoTextLen * sizeof(wchar_t)))
+        {
+          //Last detached item is equal to the current text. Remove this item to save memory.
+          AE_StackUndoItemDelete(ae, lpUndoElement);
+          ae->ptxt->lpCurrentUndo=ae->ptxt->hUndoStack.last;
+          AE_HeapFree(ae->aeUndo, 0, (LPVOID)wpUndoText);
+        }
+        else
+        {
+          if (lpUndoElement=AE_StackUndoItemInsert(ae))
+          {
+            lpUndoElement->dwFlags=AEUN_DELETE|dwUndoFlags;
+            lpUndoElement->nActionStartOffset=0;
+            lpUndoElement->nActionEndOffset=ae->ptxt->nLastCharOffset;
+            lpUndoElement->wpText=wpUndoText;
+            lpUndoElement->dwTextLen=dwUndoTextLen;
+            lpUndoElement->nNewLine=AELB_ASIS;
+
+            AE_StackUndoGroupStop(ae);
+          }
+        }
+      }
+      return TRUE;
+    }
   }
   return FALSE;
 }
