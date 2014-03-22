@@ -4747,7 +4747,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else
           {
-            SetModifyStatus(lpFrameCurrent, TRUE);
+            if (lpFrameCurrent->ei.bModified)
+            {
+              //Remove save point
+              SetModifyStatus(lpFrameCurrent, FALSE);
+              SetModifyStatus(lpFrameCurrent, TRUE);
+            }
+            else SetModifyStatus(lpFrameCurrent, TRUE);
           }
         }
         bReopenMsg=FALSE;
