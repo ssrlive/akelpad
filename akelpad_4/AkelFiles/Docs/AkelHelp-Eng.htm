@@ -357,7 +357,7 @@
       </tr>
       <tr>
         <td><b>PaintOptions</b></td>
-        <td>Defines, some text draw settings. Sets by the sum of members:
+        <td>Defines some text draw settings. Sets by the sum of members:
           <br><li>1 - Paint text by groups of characters (default is character by character). With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
           <br><li>2 - Disable drawing new line selection as space character.
           <br><li>4 - Draw newline selection to right edge of text area.
@@ -366,6 +366,14 @@
           <br><li>256 - Show scroll bars only when needed.
           <br><li>512 - Draw thin edit window border.
           <br><li>1024 - Draw no edit window border.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>EditStyle</b></td>
+        <td>Defines some edit window creation flags. Sets by the sum of members:
+          <br><li>1 - Use process heap for Undo buffer instead of window heap. This flag required for work of AEM_DETACHUNDO and AEM_ATTACHUNDO messages, but when closing edit window the memory releasing will be slower.
           <br>
           <br>By default: 0.
         </td>

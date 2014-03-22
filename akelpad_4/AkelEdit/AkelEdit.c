@@ -7058,7 +7058,7 @@ BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach)
 
         if (lpUndoElement->dwTextLen == dwUndoTextLen && !xmemcmp(lpUndoElement->wpText, wpUndoText, dwUndoTextLen * sizeof(wchar_t)))
         {
-          //Last detached item is equal to the current text. Remove this item to save memory.
+          //Last detached undo item is equal to the current text. Remove this item to save memory.
           AE_StackUndoItemDelete(ae, lpUndoElement);
           ae->ptxt->lpCurrentUndo=ae->ptxt->hUndoStack.last;
           AE_HeapFree(ae->aeUndo, 0, (LPVOID)wpUndoText);
