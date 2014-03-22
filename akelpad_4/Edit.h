@@ -373,6 +373,7 @@ typedef struct {
   DWORD dwStatusUserFlags;
   DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
+  DWORD dwEditStyle;
   BOOL bRichEditClass;
   BOOL bAkelAdminResident;
   wchar_t wszDateLogFormat[128];
