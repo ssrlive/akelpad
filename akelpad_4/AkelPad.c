@@ -4745,6 +4745,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
           }
+          else
+          {
+            SetModifyStatus(lpFrameCurrent, TRUE);
+          }
         }
         bReopenMsg=FALSE;
       }
