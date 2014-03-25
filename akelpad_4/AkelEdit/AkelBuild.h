@@ -1060,7 +1060,7 @@ void AE_NotifyMarker(AKELEDIT *ae, BOOL bMouse);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
 void AE_SendEraseBackground(AKELEDIT *ae, HDC hDC);
 LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
+void AE_ChangeTwoBytesOrder(unsigned char *pSrc, UINT_PTR dwSrcSize, unsigned char *pDst);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase);
 
 HRESULT WINAPI AEIDropTarget_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
