@@ -1912,7 +1912,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FILECONTENT *fc=(FILECONTENT *)lParam;
 
-      return ReadFileContent(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
+      return ReadFileContent(fc->hFile, fc->dwMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
+    }
+    if (uMsg == AKD_WRITEFILECONTENT)
+    {
+      FILECONTENT *fc=(FILECONTENT *)lParam;
+
+      return WriteFileContent(fc->hFile, fc->wpContent, fc->dwMax, fc->nCodePage, fc->bBOM);
     }
     if (uMsg == AKD_OPENDOCUMENT ||
         uMsg == AKD_OPENDOCUMENTA ||

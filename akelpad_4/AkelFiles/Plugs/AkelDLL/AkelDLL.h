@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 9, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 9, 3, 0)
 
 
 //// Defines
@@ -991,10 +991,12 @@ typedef struct {
 
 typedef struct {
   HANDLE hFile;          //File handle, returned by CreateFile function.
-  UINT_PTR dwBytesMax;   //Maximum bytes to read, if -1 read entire file.
+  UINT_PTR dwMax;        //AKD_READFILECONTENT: maximum bytes to read, if -1 read entire file.
+                         //AKD_WRITEFILECONTENT: wpContent length in characters. If this value is -1, the wpContent is assumed to be null-terminated and the length is calculated automatically.
   int nCodePage;         //File codepage.
   BOOL bBOM;             //File BOM.
-  wchar_t *wpContent;    //Returned file contents.
+  wchar_t *wpContent;    //AKD_READFILECONTENT: returned file contents.
+                         //AKD_WRITEFILECONTENT: text to save.
 } FILECONTENT;
 
 typedef struct {
@@ -2022,6 +2024,7 @@ typedef struct {
 #define AKD_PARSECMDLINEW          (WM_USER + 125)
 
 //Text retrieval and modification
+#define AKD_WRITEFILECONTENT       (WM_USER + 141)
 #define AKD_DETECTANSITEXT         (WM_USER + 146)
 #define AKD_DETECTUNITEXT          (WM_USER + 147)
 #define AKD_CONVERTANSITEXT        (WM_USER + 148)
@@ -2859,7 +2862,7 @@ Example (bOldWindows == TRUE):
      //Read contents
      if ((fc.hFile=CreateFileA(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       fc.dwBytesMax=(UINT_PTR)-1;
+       fc.dwMax=(UINT_PTR)-1;
        fc.nCodePage=df.nCodePage;
        fc.bBOM=df.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
@@ -2907,7 +2910,7 @@ Example (bOldWindows == FALSE):
      //Read contents
      if ((fc.hFile=CreateFileW(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       fc.dwBytesMax=(UINT_PTR)-1;
+       fc.dwMax=(UINT_PTR)-1;
        fc.nCodePage=df.nCodePage;
        fc.bBOM=df.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
@@ -2934,6 +2937,58 @@ Example (bOldWindows == FALSE):
      SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
    }
  }
+
+
+AKD_WRITEFILECONTENT
+____________________
+
+Write file contents.
+
+lParam                == not used.
+(FILECONTENT *)lParam == pointer to a FILECONTENT structure.
+
+Return Value
+ See ESD_* defines.
+
+Example (bOldWindows == TRUE):
+ int WriteFileContentA(const char *pFile, wchar_t *wpContent, INT_PTR nContentLen, int nCodePage, BOOL bBOM)
+ {
+   FILECONTENT fc;
+   int nResult=0;
+
+   if ((fc.hFile=CreateFileA(pFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+   {
+     fc.wpContent=wpContent;
+     fc.dwMax=nContentLen;
+     fc.nCodePage=nCodePage;
+     fc.bBOM=bBOM;
+     nResult=SendMessage(hMainWnd, AKD_WRITEFILECONTENT, 0, (LPARAM)&fc);
+     CloseHandle(fc.hFile);
+   }
+   return nResult;
+ }
+ //Call WriteFileContentA function
+ WriteFileContentA("C:\\MyFile.txt", L"123", -1, 65001, TRUE);
+
+Example (bOldWindows == FALSE):
+ int WriteFileContentW(const wchar_t *wpFile, wchar_t *wpContent, INT_PTR nContentLen, int nCodePage, BOOL bBOM)
+ {
+   FILECONTENT fc;
+   int nResult=0;
+
+   if ((fc.hFile=CreateFileW(wpFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+   {
+     fc.wpContent=wpContent;
+     fc.dwMax=nContentLen;
+     fc.nCodePage=nCodePage;
+     fc.bBOM=bBOM;
+     nResult=SendMessage(hMainWnd, AKD_WRITEFILECONTENT, 0, (LPARAM)&fc);
+     CloseHandle(fc.hFile);
+   }
+   return nResult;
+ }
+ //Call WriteFileContentW function
+ WriteFileContentW(L"C:\\MyFile.txt", L"123", -1, 65001, TRUE);
 
 
 AKD_OPENDOCUMENT, AKD_OPENDOCUMENTA, AKD_OPENDOCUMENTW

@@ -5,7 +5,7 @@ Changed: in replace dialog, the last used button, becomes locally default button
 Changed: when opening multiple files, message about create new or open binary file uses
          "Yes/No/Cancel" buttons instead of "OK/Cancel". Allows answering "No" to
           continue opening the remaining files.
-Changed: after answer "No" to the question of reopening the modified file, the document
+Changed: after answer "No" to the question of reopening the modified file, document
          marked as changed.
 
 Added: print multiple copies with "Collate" option.

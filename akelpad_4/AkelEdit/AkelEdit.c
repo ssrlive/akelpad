@@ -2806,7 +2806,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else if (gt->codepage == 1201)
     {
       dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
+      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
     }
     else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
 
@@ -2842,7 +2842,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else if (gt->codepage == 1201)
     {
       dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
+      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
     }
     else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
 
@@ -2875,7 +2875,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
       {
         xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
-        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
+        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes, NULL);
         AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, 0, NULL, NULL);
         AE_HeapFree(NULL, 0, (LPVOID)wszText);
       }
@@ -21595,17 +21595,18 @@ LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   return lResult;
 }
 
-void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen)
+void AE_ChangeTwoBytesOrder(unsigned char *pSrc, UINT_PTR dwSrcSize, unsigned char *pDst)
 {
-  unsigned char *lpBufferEnd=lpBuffer + dwBufferLen;
-  unsigned char *lpByte=lpBuffer;
-  unsigned char ch;
+  unsigned char *pLast=pSrc + dwSrcSize - 2;
+  unsigned char *pSrcByte=pSrc;
+  unsigned char *pDstByte=pDst?pDst:pSrc;
+  unsigned char ch2;
 
-  for (; lpByte + 1 < lpBufferEnd; lpByte+=2)
+  while (pSrcByte <= pLast)
   {
-    ch=*lpByte;
-    *lpByte=*(lpByte + 1);
-    *(lpByte + 1)=ch;
+    ch2=*pSrcByte++;
+    *pDstByte++=*pSrcByte++;
+    *pDstByte++=ch2;
   }
 }
 
