@@ -567,13 +567,26 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_EMPTYUNDOBUFFER)
     {
-      if (wParam)
+      if (lParam)
       {
-        if (AE_EditCanRedo(ae))
-          AE_StackRedoDeleteAll(ae, ae->ptxt->lpCurrentUndo);
-      }
-      else AE_EmptyUndoBuffer(ae);
+        AEUNDOATTACH *hUndoAttach=(AEUNDOATTACH *)lParam;
+        AEUNDOITEM *lpUndoItem;
 
+        for (lpUndoItem=hUndoAttach->first; lpUndoItem; lpUndoItem=lpUndoItem->next)
+        {
+          if (lpUndoItem->wpText) AE_HeapFree(ae->aeUndo, 0, (LPVOID)lpUndoItem->wpText);
+        }
+        AE_HeapStackClear(ae->aeUndo, (stack **)&hUndoAttach->first, (stack **)&hUndoAttach->last);
+      }
+      else
+      {
+        if (wParam)
+        {
+          if (AE_EditCanRedo(ae))
+            AE_StackRedoDeleteAll(ae, ae->ptxt->lpCurrentUndo);
+        }
+        else AE_EmptyUndoBuffer(ae);
+      }
       return 0;
     }
     if (uMsg == AEM_STOPGROUPTYPING)
