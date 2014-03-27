@@ -2897,9 +2897,9 @@ ___________________
 
 Erase undo and redo history.
 
-(BOOL)wParam == TRUE   erase only redo history.
-                FALSE  erase undo and redo history.
-lParam       == not used.
+(BOOL)wParam   == TRUE   erase only redo history.
+                  FALSE  erase undo and redo history.
+(HANDLE)lParam == undo stack returned by AEM_DETACHUNDO. If not zero, then wParam is ignored.
 
 Return Value
  Zero.
