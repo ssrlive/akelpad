@@ -1705,6 +1705,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_GetHighLightCharColors(ae, (const AECHARINDEX *)wParam, (AECHARCOLORS *)lParam);
     }
+    if (uMsg == AEM_SCROLLCARETOPTIONS)
+    {
+      AESCROLLCARETOPTIONS *sco=(AESCROLLCARETOPTIONS *)lParam;
+
+      if (wParam)
+      {
+        ae->popt->dwCaretScrollFlags=sco->dwFlags;
+        ae->popt->dwCaretScrollSelFlags=sco->dwSelFlags;
+        ae->popt->dwCaretScrollSelType=sco->dwSelType;
+        ae->popt->nCaretScrollOffsetX=sco->nOffsetX;
+        ae->popt->nCaretScrollOffsetY=sco->nOffsetY;
+      }
+      else
+      {
+        sco->dwFlags=ae->popt->dwCaretScrollFlags;
+        sco->dwSelFlags=ae->popt->dwCaretScrollSelFlags;
+        sco->dwSelType=ae->popt->dwCaretScrollSelType;
+        sco->nOffsetX=ae->popt->nCaretScrollOffsetX;
+        sco->nOffsetY=ae->popt->nCaretScrollOffsetY;
+      }
+      return 0;
+    }
 
     //Draw
     ShowScrollbar:
@@ -3329,7 +3351,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_SCROLLCARET)
   {
-    AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+    AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
     return 0;
   }
   if (uMsg == EM_GETTHUMB)
@@ -9432,7 +9454,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     if (!(dwSelFlags & AESELT_LOCKSCROLL))
     {
       //Set caret position
-      AE_ScrollToCaret(ae, &ae->ptCaret, !(dwSelFlags & AESELT_NOVERTSCROLLCORRECT));
+      AE_ScrollToCaret(ae, &ae->ptCaret, dwSelFlags, dwSelType);
     }
     if (!(dwSelFlags & AESELT_LOCKCARET))
     {
@@ -11937,71 +11959,68 @@ void AE_SetCaretVis(AKELEDIT *ae, const POINT64 *ptCaret)
   }
 }
 
-void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, BOOL bVertCorrect)
+void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, DWORD dwSelFlags, DWORD dwSelType)
 {
-  //X
-  if (ae->bDropping)
+  int nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
+  int nDrawHeight=ae->rcDraw.bottom - ae->rcDraw.top;
+  int nOffsetPixelX=0;
+  int nOffsetPixelY=0;
+
+  if ((dwSelFlags & ae->popt->dwCaretScrollSelFlags) && (dwSelType & ae->popt->dwCaretScrollSelType))
   {
-    if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - ae->ptxt->nAveCharWidth * 3)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + ae->ptxt->nAveCharWidth * 2 + 1, 0));
-    }
-    else if (ptCaret->x < ae->nHScrollPos + ae->ptxt->nAveCharWidth * 2)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - ae->ptxt->nAveCharWidth * 2, 0));
-    }
+    if (ae->popt->dwCaretScrollFlags & AESC_OFFSETPIXELX)
+      nOffsetPixelX=ae->popt->nCaretScrollOffsetX;
+    else if (ae->popt->dwCaretScrollFlags & AESC_OFFSETCHARX)
+      nOffsetPixelX=ae->ptxt->nAveCharWidth * ae->popt->nCaretScrollOffsetX;
+    else if (ae->popt->dwCaretScrollFlags & AESC_OFFSETRECTDIVX)
+      nOffsetPixelX=nDrawWidth / ae->popt->nCaretScrollOffsetX;
+
+    if (ae->popt->dwCaretScrollFlags & AESC_OFFSETPIXELY)
+      nOffsetPixelY=ae->popt->nCaretScrollOffsetY;
+    else if (ae->popt->dwCaretScrollFlags & AESC_OFFSETCHARY)
+      nOffsetPixelY=ae->ptxt->nCharHeight * ae->popt->nCaretScrollOffsetY;
+    else if (ae->popt->dwCaretScrollFlags & AESC_OFFSETRECTDIVY)
+      nOffsetPixelY=nDrawHeight / ae->popt->nCaretScrollOffsetY;
   }
-  else if (ae->dwMouseMoveTimer)
+
+  //X
+  if (ae->dwMouseMoveTimer)
   {
-    if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - ae->ptxt->nAveCharWidth)
+    if (ptCaret->x >= ae->nHScrollPos + nDrawWidth - ae->ptxt->nAveCharWidth - (nOffsetPixelX?nOffsetPixelX:0))
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + 1, 0));
+      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - nDrawWidth + (nOffsetPixelX?nOffsetPixelX:0) + 1, 0));
     }
-    else if (ptCaret->x < ae->nHScrollPos)
+    else if (ptCaret->x < ae->nHScrollPos + (nOffsetPixelX?nOffsetPixelX:0))
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ptCaret->x);
+      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (nOffsetPixelX?nOffsetPixelX:0), 0));
     }
   }
   else
   {
-    if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - ae->ptxt->nAveCharWidth)
+    if (ptCaret->x >= ae->nHScrollPos + nDrawWidth - ae->ptxt->nAveCharWidth - (nOffsetPixelX?nOffsetPixelX:0))
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - nDrawWidth + (nOffsetPixelX?nOffsetPixelX:nDrawWidth / 3) + 1, 0));
     }
-    else if (ptCaret->x < ae->nHScrollPos)
+    else if (ptCaret->x < ae->nHScrollPos + (nOffsetPixelX?nOffsetPixelX:0))
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (nOffsetPixelX?nOffsetPixelX:nDrawWidth / 3), 0));
     }
   }
 
   //Y
-  if (ae->bDropping)
+  if (ptCaret->y >= ae->nVScrollPos + nDrawHeight - ae->ptxt->nCharHeight - (nOffsetPixelY?nOffsetPixelY:0))
   {
-    if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight * 2)
-    {
-      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight * 3 + 1, 0));
-    }
-    else if (ptCaret->y < ae->nVScrollPos + ae->ptxt->nCharHeight)
-    {
-      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - ae->ptxt->nCharHeight * 2, 0));
-    }
+    if ((ae->popt->dwOptions & AECO_VSCROLLBYLINE) || (!(dwSelFlags & AESELT_NOVERTSCROLLCORRECT) && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex)))
+      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - nDrawHeight + ae->ptxt->nCharHeight + (nOffsetPixelY?nOffsetPixelY:ae->ptxt->nCharHeight) + 1, 0));
+    else
+      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - nDrawHeight + (nOffsetPixelY?nOffsetPixelY:ae->ptxt->nCharHeight) + 1, 0));
   }
-  else
+  else if (ptCaret->y < ae->nVScrollPos + (nOffsetPixelY?nOffsetPixelY:0))
   {
-    if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight)
-    {
-      if ((ae->popt->dwOptions & AECO_VSCROLLBYLINE) || (bVertCorrect && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex)))
-        AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight * 2 + 1, 0));
-      else
-        AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight + 1, 0));
-    }
-    else if (ptCaret->y < ae->nVScrollPos)
-    {
-      if (bVertCorrect && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
-        AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - ae->ptxt->nCharHeight, 0));
-      else
-        AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y, 0));
-    }
+    if (!(dwSelFlags & AESELT_NOVERTSCROLLCORRECT) && AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex) && !AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
+      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - ae->ptxt->nCharHeight - (nOffsetPixelY?nOffsetPixelY:0), 0));
+    else
+      AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (nOffsetPixelY?nOffsetPixelY:0), 0));
   }
 }
 
@@ -16393,7 +16412,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       }
       AE_StackUndoGroupStop(ae);
       AE_UpdateScrollBars(ae, SB_BOTH);
-      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+      AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
       ae->nCaretHorzIndent=ae->ptCaret.x;
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -17063,7 +17082,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   if (bUpdateCaret)
   {
     if (!(dwFlags & AEREPT_LOCKSCROLL))
-      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+      AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
     else
       AE_SetScrollPos(ae, nHScrollPos, nVScrollPos);
     ae->nCaretHorzIndent=ae->ptCaret.x;
@@ -17723,7 +17742,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
     if (!(dwDeleteFlags & AEDELT_LOCKSCROLL))
     {
       //Set caret position
-      AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+      AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
     }
     if (!(dwDeleteFlags & AEDELT_LOCKUPDATECARET))
     {
@@ -18684,7 +18703,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
         if (!(dwInsertFlags & AEINST_LOCKSCROLL))
         {
           //Set caret position
-          AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+          AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
         }
         if (!(dwInsertFlags & AEINST_LOCKUPDATECARET))
         {
@@ -19844,7 +19863,7 @@ void AE_EditUndo(AKELEDIT *ae)
       {
         AE_UpdateScrollBars(ae, SB_BOTH);
         if (!(ae->popt->dwOptions & AECO_NOSCROLLDELETEALL) || !(ae->dwNotifyTextChange & AETCT_DELETEALL))
-          AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+          AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
         ae->nCaretHorzIndent=ae->ptCaret.x;
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -19964,7 +19983,7 @@ void AE_EditRedo(AKELEDIT *ae)
       {
         AE_UpdateScrollBars(ae, SB_BOTH);
         if (!(ae->popt->dwOptions & AECO_NOSCROLLDELETEALL) || !(ae->dwNotifyTextChange & AETCT_DELETEALL))
-          AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
+          AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
         ae->nCaretHorzIndent=ae->ptCaret.x;
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -21966,7 +21985,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
 
   if (!pdwEffect || *pdwEffect == DROPEFFECT_NONE)
   {
-    AE_ScrollToCaret(ae, &ae->ptCaret, FALSE);
+    AE_ScrollToCaret(ae, &ae->ptCaret, AESELT_NOVERTSCROLLCORRECT, 0);
     AE_SetCaretPos(ae, &ae->ptCaret);
     ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
   }

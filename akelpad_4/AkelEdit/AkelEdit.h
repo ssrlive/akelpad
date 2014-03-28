@@ -1046,12 +1046,20 @@ typedef struct {
 } AEINDEXSUBTRACT;
 
 typedef struct {
-  DWORD dwFlags;  //[in]     See AESC_* defines.
-  POINT64 ptPos;  //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
-                  //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
-  int nOffsetX;   //[in]     Horizontal scroll offset.
-  int nOffsetY;   //[in]     Vertical scroll offset.
+  DWORD dwFlags;    //[in]     See AESC_* defines.
+  POINT64 ptPos;    //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
+                    //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
+  int nOffsetX;     //[in]     Horizontal scroll offset.
+  int nOffsetY;     //[in]     Vertical scroll offset.
 } AESCROLLTOPOINT;
+
+typedef struct {
+  DWORD dwFlags;    //[in,out] See AESC_OFFSET* defines.
+  DWORD dwSelFlags; //[in,out] See AESELT_* defines.
+  DWORD dwSelType;  //[in,out] See AESCT_* defines.
+  int nOffsetX;     //[in,out] Minimal number of characters to horizontal window edge.
+  int nOffsetY;     //[in,out] Minimal number of lines to vertical window edge.
+} AESCROLLCARETOPTIONS;
 
 typedef struct {
   AEHDOC hDoc;     //Document handle. See AEM_CREATEDOCUMENT message.
@@ -1620,6 +1628,7 @@ typedef struct {
 #define AEM_GETALTLINE            (WM_USER + 2240)
 #define AEM_SETALTLINE            (WM_USER + 2241)
 #define AEM_GETCHARCOLORS         (WM_USER + 2242)
+#define AEM_SCROLLCARETOPTIONS    (WM_USER + 2243)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -4852,6 +4861,29 @@ Example:
  aelc.dwFlags=0;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
+
+
+AEM_SCROLLCARETOPTIONS
+______________________
+
+Retrieve or set scroll to caret options.
+
+(BOOL)wParam                   == TRUE   set caret operation.
+                                  FALSE  retrieve caret operation.
+(AESCROLLCARETOPTIONS *)lParam == pointer to a AESCROLLCARETOPTIONS structure.
+
+Return Value
+ zero
+
+Example:
+ AESCROLLCARETOPTIONS sco;
+
+ sco.dwFlags=AESC_OFFSETCHARX|AESC_OFFSETCHARY;
+ sco.dwSelFlags=0;
+ sco.dwSelType=AESCT_KEYBOARD;
+ sco.nOffsetX=10;
+ sco.nOffsetY=5;
+ SendMessage(hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
 
 
 AEM_SHOWSCROLLBAR
