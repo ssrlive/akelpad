@@ -10681,6 +10681,7 @@ void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret)
   aes.crSel.ciMin=crSel->ciMin;
   aes.crSel.ciMax=crSel->ciMax;
   aes.dwFlags=dwFlags;
+  aes.dwType=0;
   SendMessage(hWnd, AEM_SETSEL, (WPARAM)ciCaret, (LPARAM)&aes);
 }
 
