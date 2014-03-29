@@ -20467,6 +20467,7 @@ BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
     aes->crSel.ciMin=ae->ciSelStartIndex;
     aes->crSel.ciMax=ae->ciSelEndIndex;
     aes->dwFlags=ae->bColumnSel;
+    aes->dwType=0;
   }
   if (lpciCaret)
   {
@@ -20482,16 +20483,16 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   if (!lpciCaret)
   {
     if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, aes->dwType|AESCT_SETSELMESSAGE);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, aes->dwType|AESCT_SETSELMESSAGE);
   }
   else
   {
     if (AEC_IndexCompare(lpciCaret, &aes->crSel.ciMax) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, aes->dwType|AESCT_SETSELMESSAGE);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, aes->dwType|AESCT_SETSELMESSAGE);
   }
 }
 
@@ -21190,10 +21191,13 @@ void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType)
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGING;
     sc.hdr.docFrom=(AEHDOC)ae;
+    sc.crSel.ciMin=ae->ciSelStartIndex;
+    sc.crSel.ciMax=ae->ciSelEndIndex;
+    sc.ciCaret=ae->ciCaretIndex;
     sc.dwType=dwType;
+    sc.bColumnSel=ae->bColumnSel;
     sc.crRichSel.cpMin=ae->nSelStartCharOffset;
     sc.crRichSel.cpMax=ae->nSelEndCharOffset;
-    AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
 }
@@ -21209,10 +21213,13 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGED;
     sc.hdr.docFrom=(AEHDOC)ae;
+    sc.crSel.ciMin=ae->ciSelStartIndex;
+    sc.crSel.ciMax=ae->ciSelEndIndex;
+    sc.ciCaret=ae->ciCaretIndex;
     sc.dwType=ae->dwNotifySelChange;
+    sc.bColumnSel=ae->bColumnSel;
     sc.crRichSel.cpMin=ae->nSelStartCharOffset;
     sc.crRichSel.cpMax=ae->nSelEndCharOffset;
-    AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
 
@@ -21258,10 +21265,13 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGING;
     tc.hdr.docFrom=(AEHDOC)ae;
+    tc.crSel.ciMin=ae->ciSelStartIndex;
+    tc.crSel.ciMax=ae->ciSelEndIndex;
+    tc.ciCaret=ae->ciCaretIndex;
     tc.dwType=ae->dwNotifyTextChange;
+    tc.bColumnSel=ae->bColumnSel;
     tc.crRichSel.cpMin=ae->nSelStartCharOffset;
     tc.crRichSel.cpMax=ae->nSelEndCharOffset;
-    AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 }
@@ -21279,10 +21289,13 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGED;
     tc.hdr.docFrom=(AEHDOC)ae;
+    tc.crSel.ciMin=ae->ciSelStartIndex;
+    tc.crSel.ciMax=ae->ciSelEndIndex;
+    tc.ciCaret=ae->ciCaretIndex;
     tc.dwType=ae->dwNotifyTextChange;
+    tc.bColumnSel=ae->bColumnSel;
     tc.crRichSel.cpMin=ae->nSelStartCharOffset;
     tc.crRichSel.cpMax=ae->nSelEndCharOffset;
-    AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 

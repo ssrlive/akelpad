@@ -5360,7 +5360,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           {
             if (lpFrameCurrent->nSelSubtract)
             {
-              if (xmemcmp(&aensc->aes.crSel, &lpFrameCurrent->crPrevSel, sizeof(AECHARRANGE)))
+              if (xmemcmp(&aensc->crSel, &lpFrameCurrent->crPrevSel, sizeof(AECHARRANGE)))
                 lpFrameCurrent->nSelSubtract=0;
             }
           }
@@ -5373,7 +5373,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
         if (!nMainOnFinish)
         {
-          SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+          SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->crSel, &aensc->ciCaret);
 
           if (!(aensc->dwType & AESCT_WRAP) && !(aensc->dwType & AESCT_UPDATESELECTION))
           {

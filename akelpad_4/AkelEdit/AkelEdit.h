@@ -846,6 +846,7 @@ typedef struct {
 typedef struct {
   AECHARRANGE crSel;  //Characters range.
   DWORD dwFlags;      //See AESELT_* defines.
+  DWORD dwType;       //See AESCT_* defines.
 } AESELECTION;
 
 typedef struct _AEPOINT {
@@ -1054,11 +1055,11 @@ typedef struct {
 } AESCROLLTOPOINT;
 
 typedef struct {
-  DWORD dwFlags;    //[in,out] See AESC_OFFSET* defines.
-  DWORD dwSelFlags; //[in,out] See AESELT_* defines.
-  DWORD dwSelType;  //[in,out] See AESCT_* defines.
-  int nOffsetX;     //[in,out] Minimal number of characters to horizontal window edge.
-  int nOffsetY;     //[in,out] Minimal number of lines to vertical window edge.
+  DWORD dwFlags;    //See AESC_OFFSET* defines.
+  DWORD dwSelFlags; //See AESELT_* defines.
+  DWORD dwSelType;  //See AESCT_* defines.
+  int nOffsetX;     //Minimal number of characters to horizontal window edge.
+  int nOffsetY;     //Minimal number of lines to vertical window edge.
 } AESCROLLCARETOPTIONS;
 
 typedef struct {
@@ -1347,23 +1348,25 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;       //Current selection.
+  AECHARRANGE crSel;     //Current selection.
   AECHARINDEX ciCaret;   //Caret character index position.
   DWORD dwType;          //See AESCT_* defines.
+  BOOL bColumnSel;       //Column selection.
   CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENSELCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;       //Current selection.
+  AECHARRANGE crSel;     //Current selection.
   AECHARINDEX ciCaret;   //Caret character index position.
   DWORD dwType;          //See AETCT_* defines.
+  BOOL bColumnSel;       //Column selection.
   CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENTEXTCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;         //Reserved.
+  AECHARRANGE crSel;       //Reserved.
   AECHARINDEX ciCaret;     //Reserved.
   DWORD dwType;            //See AETCT_* defines.
   const wchar_t *wpText;   //Text to insert.
@@ -1377,7 +1380,7 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;         //Reserved.
+  AECHARRANGE crSel;       //Reserved.
   AECHARINDEX ciCaret;     //Reserved.
   DWORD dwType;            //See AETCT_* defines.
   BOOL bColumnSel;         //Column selection.
@@ -2650,6 +2653,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2681,6 +2685,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2711,6 +2716,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2741,6 +2747,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -3212,6 +3219,7 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&aes.crSel.ciMin);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&aes.crSel.ciMax);
  aes.dwFlags=0;
+ aes.dwType=0;
  SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&aes.crSel.ciMax, (LPARAM)&aes);
 
 

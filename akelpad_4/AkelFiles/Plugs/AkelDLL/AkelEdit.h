@@ -846,6 +846,7 @@ typedef struct {
 typedef struct {
   AECHARRANGE crSel;  //Characters range.
   DWORD dwFlags;      //See AESELT_* defines.
+  DWORD dwType;       //See AESCT_* defines.
 } AESELECTION;
 
 typedef struct _AEPOINT {
@@ -1046,12 +1047,20 @@ typedef struct {
 } AEINDEXSUBTRACT;
 
 typedef struct {
-  DWORD dwFlags;  //[in]     See AESC_* defines.
-  POINT64 ptPos;  //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
-                  //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
-  int nOffsetX;   //[in]     Horizontal scroll offset.
-  int nOffsetY;   //[in]     Vertical scroll offset.
+  DWORD dwFlags;    //[in]     See AESC_* defines.
+  POINT64 ptPos;    //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
+                    //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
+  int nOffsetX;     //[in]     Horizontal scroll offset.
+  int nOffsetY;     //[in]     Vertical scroll offset.
 } AESCROLLTOPOINT;
+
+typedef struct {
+  DWORD dwFlags;    //See AESC_OFFSET* defines.
+  DWORD dwSelFlags; //See AESELT_* defines.
+  DWORD dwSelType;  //See AESCT_* defines.
+  int nOffsetX;     //Minimal number of characters to horizontal window edge.
+  int nOffsetY;     //Minimal number of lines to vertical window edge.
+} AESCROLLCARETOPTIONS;
 
 typedef struct {
   AEHDOC hDoc;     //Document handle. See AEM_CREATEDOCUMENT message.
@@ -1339,23 +1348,25 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;       //Current selection.
+  AECHARRANGE crSel;     //Current selection.
   AECHARINDEX ciCaret;   //Caret character index position.
   DWORD dwType;          //See AESCT_* defines.
+  BOOL bColumnSel;       //Column selection.
   CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENSELCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;       //Current selection.
+  AECHARRANGE crSel;     //Current selection.
   AECHARINDEX ciCaret;   //Caret character index position.
   DWORD dwType;          //See AETCT_* defines.
+  BOOL bColumnSel;       //Column selection.
   CHARRANGE64 crRichSel; //Current selection (RichEdit offset).
 } AENTEXTCHANGE;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;         //Reserved.
+  AECHARRANGE crSel;       //Reserved.
   AECHARINDEX ciCaret;     //Reserved.
   DWORD dwType;            //See AETCT_* defines.
   const wchar_t *wpText;   //Text to insert.
@@ -1369,7 +1380,7 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;         //Reserved.
+  AECHARRANGE crSel;       //Reserved.
   AECHARINDEX ciCaret;     //Reserved.
   DWORD dwType;            //See AETCT_* defines.
   BOOL bColumnSel;         //Column selection.
@@ -1620,6 +1631,7 @@ typedef struct {
 #define AEM_GETALTLINE            (WM_USER + 2240)
 #define AEM_SETALTLINE            (WM_USER + 2241)
 #define AEM_GETCHARCOLORS         (WM_USER + 2242)
+#define AEM_SCROLLCARETOPTIONS    (WM_USER + 2243)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -2641,6 +2653,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2672,6 +2685,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2702,6 +2716,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -2732,6 +2747,7 @@ Example:
  {
    aes.crSel=ft.crFound;
    aes.dwFlags=0;
+   aes.dwType=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -3203,6 +3219,7 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&aes.crSel.ciMin);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&aes.crSel.ciMax);
  aes.dwFlags=0;
+ aes.dwType=0;
  SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&aes.crSel.ciMax, (LPARAM)&aes);
 
 
@@ -4852,6 +4869,29 @@ Example:
  aelc.dwFlags=0;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETCHARCOLORS, (WPARAM)&ciCaret, (LPARAM)&aelc);
+
+
+AEM_SCROLLCARETOPTIONS
+______________________
+
+Retrieve or set scroll to caret options.
+
+(BOOL)wParam                   == TRUE   set caret operation.
+                                  FALSE  retrieve caret operation.
+(AESCROLLCARETOPTIONS *)lParam == pointer to a AESCROLLCARETOPTIONS structure.
+
+Return Value
+ zero
+
+Example:
+ AESCROLLCARETOPTIONS sco;
+
+ sco.dwFlags=AESC_OFFSETCHARX|AESC_OFFSETCHARY;
+ sco.dwSelFlags=0;
+ sco.dwSelType=AESCT_KEYBOARD;
+ sco.nOffsetX=10;
+ sco.nOffsetY=5;
+ SendMessage(hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
 
 
 AEM_SHOWSCROLLBAR
