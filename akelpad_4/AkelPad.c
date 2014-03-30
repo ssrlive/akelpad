@@ -4005,9 +4005,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_CLEAR, (!lpFrameCurrent->ei.bReadOnly && AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))?MF_ENABLED:MF_GRAYED);
 
         EnableMenuItem(hMainMenu, IDM_EDIT_COPY, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
-        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_FIRST_CHAR_MENU, AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED);
 
-        nMenuState=(!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))?MF_GRAYED:MF_ENABLED;
+        nMenuState=AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax)?MF_ENABLED:MF_GRAYED;
+        EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_FIRST_CHAR_MENU, nMenuState);
+        EnableMenuItem(hMainMenu, IDM_EDIT_DELETESELWHITESPACES, nMenuState);
+
+        nMenuState=(!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))?MF_GRAYED:MF_ENABLED;
         EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_TAB_MENU, nMenuState);
         EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_TAB_MENU, nMenuState);
         EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_SPACE_MENU, nMenuState);
@@ -4338,30 +4341,26 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditRecode();
     }
-    else if (wCommand == IDM_EDIT_DELETESELWHITESPACES)
-    {
-      return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_ALLSPACES, L" ");
-    }
     else if (wCommand == IDM_EDIT_INSERT_TAB_MENU ||
              wCommand == IDM_EDIT_INSERT_TAB)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
         return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
       else
-        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_LEADTAB);
+        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_LEADTAB|STRSEL_FULLLINE|STRSEL_MULTILINE);
     }
     else if (wCommand == IDM_EDIT_DELETE_TAB_MENU ||
              wCommand == IDM_EDIT_DELETE_TAB)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
         return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
       else
-        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB);
+        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB|STRSEL_FULLLINE|STRSEL_MULTILINE);
     }
     else if (wCommand == IDM_EDIT_INSERT_SPACE_MENU ||
              wCommand == IDM_EDIT_INSERT_SPACE)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
       {
         if (!IsReadOnly(NULL))
         {
@@ -4369,12 +4368,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return TRUE;
         }
       }
-      else return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
+      else return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
     }
     else if (wCommand == IDM_EDIT_DELETE_SPACE_MENU ||
              wCommand == IDM_EDIT_DELETE_SPACE)
     {
-      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+      if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
       {
         if (!IsReadOnly(NULL))
         {
@@ -4382,7 +4381,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return TRUE;
         }
       }
-      else return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE, L" ");
+      else return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
     }
     else if (wCommand == IDM_EDIT_DELETE_FIRST_CHAR_MENU ||
              wCommand == IDM_EDIT_DELETE_FIRST_CHAR)
@@ -4392,6 +4391,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (wCommand == IDM_EDIT_DELETE_TRAILING_WHITESPACES)
     {
       return DoEditDeleteTrailingWhitespacesW(lpFrameCurrent->ei.hWndEdit);
+    }
+    else if (wCommand == IDM_EDIT_DELETESELWHITESPACES)
+    {
+      return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_ALLSPACES, L" ");
     }
     else if (wCommand == IDM_EDIT_UPPERCASE)
     {
@@ -5652,6 +5655,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_DELETE_SPACE_MENU,
                      IDM_EDIT_DELETE_FIRST_CHAR_MENU,
                      IDM_EDIT_DELETE_TRAILING_WHITESPACES,
+                     IDM_EDIT_DELETESELWHITESPACES,
                      IDM_EDIT_UPPERCASE,
                      IDM_EDIT_LOWERCASE,
                      IDM_EDIT_SENTENCECASE,

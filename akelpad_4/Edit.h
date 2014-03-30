@@ -269,11 +269,13 @@
 
 //Insert/Delete char in selection
 #define STRSEL_CHECK      0x00000001
-#define STRSEL_INSERT     0x00000002
-#define STRSEL_DELETE     0x00000004
-#define STRSEL_LEADTAB    0x00000008
-#define STRSEL_LEADSPACE  0x00000010
-#define STRSEL_ALLSPACES  0x00000020  //Uses only with STRSEL_DELETE.
+#define STRSEL_MULTILINE  0x00000002
+#define STRSEL_FULLLINE   0x00000004
+#define STRSEL_INSERT     0x00000008
+#define STRSEL_DELETE     0x00000010
+#define STRSEL_LEADTAB    0x00000020  //Uses only with STRSEL_DELETE.
+#define STRSEL_LEADSPACE  0x00000040  //Uses only with STRSEL_DELETE.
+#define STRSEL_ALLSPACES  0x00000080  //Uses only with STRSEL_DELETE.
 
 //Selection case
 #define UPPERCASE      1
@@ -727,7 +729,7 @@ void DoEditSelectAll(HWND hWnd);
 void DoEditInsertDate(HWND hWnd);
 void DoEditInsertChar();
 void DoEditRecode();
-BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpString);
+BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpString);
 BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);
 BOOL DoEditChangeCaseW(HWND hWnd, int nCase);
