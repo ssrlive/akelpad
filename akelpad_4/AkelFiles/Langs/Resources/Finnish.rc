@@ -99,7 +99,7 @@ BEGIN
 
             MENUITEM "Poista tyhjät v&älit rivien lopuista\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete all whitespaces",
+            MENUITEM "Delete selection whitespaces",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR

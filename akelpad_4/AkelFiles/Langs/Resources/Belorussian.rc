@@ -98,7 +98,7 @@ BEGIN
 
             MENUITEM "Пры&браць Tab'ы і прабелы ў канцы\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Убрать все Tab'ы и пробелы", 
+            MENUITEM "Убрать Tab'ы и пробелы в выделении", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR

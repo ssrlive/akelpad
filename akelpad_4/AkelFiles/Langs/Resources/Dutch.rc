@@ -101,7 +101,7 @@ BEGIN
 
             MENUITEM "Ver&wijder achterliggende witruimtes\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete all whitespaces",
+            MENUITEM "Delete selection whitespaces",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
