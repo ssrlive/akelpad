@@ -360,6 +360,7 @@ int *lpCodepageTable;
 int nCodepageTableCount;
 int nAnsiCodePage;
 int nOemCodePage;
+DWORD dwMessageFileNameOK=0;
 
 //Recent files
 RECENTFILESTACK hRecentFilesStack={0};
