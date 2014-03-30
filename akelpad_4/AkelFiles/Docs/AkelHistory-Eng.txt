@@ -1,6 +1,7 @@
 
 AkelPad 4.8.8 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
 Changed: in replace dialog, the last used button, becomes locally default button.
 Changed: when opening multiple files, message about create new or open binary file uses
          "Yes/No/Cancel" buttons instead of "OK/Cancel". Allows answering "No" to
@@ -21,6 +22,7 @@ Added: manual parameter "EditStyle" - defines some edit window creation flags.
 Fixed: option "Don't open a program twice" on Win7.
 Fixed: Left key didn't move caret on previous line with option "Caret after end of line".
 Fixed: saving parameters "CmdLineBegin" and "CmdLineEnd".
+Fixed: dialogs that contain AkelEdit control didn't open on Win9x.
 
 
 AkelPad 4.8.7 (Feb 02, 2014)
