@@ -99,7 +99,7 @@ BEGIN
 
             MENUITEM "Smazat mezeru na konci øádkù\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+            MENUITEM "Delete all whitespaces",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
