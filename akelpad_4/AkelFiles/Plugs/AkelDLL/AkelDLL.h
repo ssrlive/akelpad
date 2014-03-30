@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 1)
 
 
 //// Defines
@@ -1681,55 +1681,55 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_INSERT_TAB             4164  //Insert tabulation.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_INSERT_TAB_MENU        4165  //Insert tabulation only if several lines selected.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_TAB             4166  //Delete tabulation.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_TAB_MENU        4167  //Delete tabulation only if several lines selected.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_INSERT_SPACE           4168  //Insert space.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_INSERT_SPACE_MENU      4169  //Insert space only if several lines selected.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_SPACE           4170  //Delete space.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_SPACE_MENU      4171  //Delete space only if several lines selected.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed..
                                               //
 #define IDM_EDIT_DELETE_FIRST_CHAR      4172  //Delete first char.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_FIRST_CHAR_MENU 4173  //Delete first char only if selection not empty.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_DELETE_TRAILING_WHITESPACES 4174  //Delete trailing whitespaces.
-                                                   //Return Value: zero.
+                                                   //Return Value: TRUE - success, FALSE - failed.
                                                    //
 #define IDM_EDIT_UPPERCASE              4175  //Convert text to UPPERCASE.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_LOWERCASE              4176  //Convert text to lowercase.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_SENTENCECASE           4177  //Convert text to Sentence case.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_TITLECASE              4178  //Convert text to Title Case.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_INVERTCASE             4179  //Convert text to iNVERT cASE.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_LOOPCASE               4180  //Cycle case.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_RECODE                 4182  //Recode dialog.
                                               //Return Value: zero.
@@ -1756,6 +1756,9 @@ typedef struct {
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_PASTEAFTER             4193  //Paste text after caret.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_EDIT_DELETESELSPACES        4195  //Delete all spaces in selection.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_AUTOINDENT             4196  //Insert new line with keeping left spaces.
