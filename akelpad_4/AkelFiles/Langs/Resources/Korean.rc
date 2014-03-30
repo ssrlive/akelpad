@@ -86,8 +86,6 @@ BEGIN
         POPUP "선택(&S)"
         BEGIN
             MENUITEM "클립보드 내용 붙여넣기\tAlt+V", IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "탭 들여쓰기 늘임(&B)\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "탭 들여쓰기 줄임(&T)\tShift+Tab", 
@@ -103,6 +101,8 @@ BEGIN
 
             MENUITEM "줄끝 공백 제거(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "대문자로(&U)\tCtrl+6",        IDM_EDIT_UPPERCASE

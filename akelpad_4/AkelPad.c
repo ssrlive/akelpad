@@ -4338,7 +4338,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditRecode();
     }
-    else if (wCommand == IDM_EDIT_DELETESELSPACES)
+    else if (wCommand == IDM_EDIT_DELETESELWHITESPACES)
     {
       return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_ALLSPACES, L" ");
     }

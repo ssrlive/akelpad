@@ -85,8 +85,6 @@ BEGIN
         POPUP "選取項目(&S)"
         BEGIN
             MENUITEM "單欄式貼上\tAlt+V",           IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Tab 縮排(&b)\tTab",           IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "取消 Tab 縮排(&T)\tShift+Tab", 
@@ -101,6 +99,8 @@ BEGIN
 
             MENUITEM "修剪尾端空格(&w)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "全部大寫(&U)\tCtrl+6",        IDM_EDIT_UPPERCASE

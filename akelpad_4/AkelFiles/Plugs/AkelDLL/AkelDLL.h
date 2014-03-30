@@ -1758,7 +1758,7 @@ typedef struct {
 #define IDM_EDIT_PASTEAFTER             4193  //Paste text after caret.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_DELETESELSPACES        4195  //Delete all spaces in selection.
+#define IDM_EDIT_DELETESELWHITESPACES   4195  //Delete all whitespaces in selection.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_AUTOINDENT             4196  //Insert new line with keeping left spaces.

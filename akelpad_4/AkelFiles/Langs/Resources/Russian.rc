@@ -85,8 +85,6 @@ BEGIN
         POPUP "Выде&ление"
         BEGIN
             MENUITEM "Вертикальная вставка\tAlt+V", IDM_EDIT_PASTECOLUMN
-            MENUITEM "Убрать Tab'ы и пробелы в выделении", 
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "&Добавить Tab\tTab",          IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Убрать Tab\tShift+Tab",      IDM_EDIT_DELETE_TAB_MENU
@@ -99,6 +97,8 @@ BEGIN
 
             MENUITEM "Убра&ть Tab'ы и пробелы в конце\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Убрать Tab'ы и пробелы в выделении", 
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "ВСЕ &ПРОПИСНЫЕ\tCtrl+6",      IDM_EDIT_UPPERCASE

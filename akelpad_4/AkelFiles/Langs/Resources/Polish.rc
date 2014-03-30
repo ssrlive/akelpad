@@ -85,8 +85,6 @@ BEGIN
         POPUP "Zaznaczen&ie"
         BEGIN
             MENUITEM "Wkl&ej pionowo\tAlt+V",       IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Dodaj wciêcie &tabem\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Usuñ wciêcie t&abem\tShift+Tab", 
@@ -102,6 +100,8 @@ BEGIN
 
             MENUITEM "Usuñ &bia³e znaki na koñcu\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "&WIELKIE LITERY\tCtrl+6",     IDM_EDIT_UPPERCASE
