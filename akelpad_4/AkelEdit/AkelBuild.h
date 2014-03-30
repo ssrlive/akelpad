@@ -765,7 +765,7 @@ typedef struct {
 
 //// Functions prototypes
 
-BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit);
+BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegRichEdit, BOOL bRegAkelEditW, BOOL bRegRichEditW);
 BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 void AE_RegisterClassCommon(HINSTANCE hInstance);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);

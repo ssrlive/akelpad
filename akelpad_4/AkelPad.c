@@ -1061,8 +1061,13 @@ void _WinMain()
 
   #ifdef AKELEDIT_STATICBUILD
     OleInitialize(0);
-    AE_RegisterClassA(hInstance, TRUE);
-    AE_RegisterClassW(hInstance, TRUE);
+    if (bOldWindows)
+      AE_RegisterClassA(hInstance, TRUE, TRUE, TRUE);
+    else
+    {
+      AE_RegisterClassA(hInstance, TRUE, FALSE, FALSE);
+      AE_RegisterClassW(hInstance, TRUE);
+    }
   #else
     if (!(hAkelLib=LoadLibraryWide(L"AkelEdit.dll")))
     {

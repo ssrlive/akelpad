@@ -101,10 +101,12 @@ HSTACK hAkelEditBitmapDataStack={0};
 HSTACK hAkelEditBitmapDcStack={0};
 HSTACK hAkelEditPensStack={0};
 AESTACKTHEME hAkelEditThemesStack={0};
-ATOM nAkelEditClassAtomA=FALSE;
-ATOM nAkelEditClassAtomW=FALSE;
-ATOM nRichEditClassAtomA=FALSE;
-ATOM nRichEditClassAtomW=FALSE;
+ATOM nAkelEditClassAtomA=0;
+ATOM nRichEditClassAtomA=0;
+ATOM nAkelEditClassAtomW_Ansi=0;
+ATOM nRichEditClassAtomW_Ansi=0;
+ATOM nAkelEditClassAtomW=0;
+ATOM nRichEditClassAtomW=0;
 BOOL bAkelEditWindows9x=-1;
 HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
@@ -143,11 +145,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
   {
     #ifdef AKELEDIT_NOREGISTERRICHEDIT
       OleInitialize(0);
-      AE_RegisterClassA(hinstDLL, FALSE);
+      AE_RegisterClassA(hinstDLL, FALSE, FALSE, FALSE);
       AE_RegisterClassW(hinstDLL, FALSE);
     #else
       OleInitialize(0);
-      AE_RegisterClassA(hinstDLL, TRUE);
+      AE_RegisterClassA(hinstDLL, TRUE, FALSE, FALSE);
       AE_RegisterClassW(hinstDLL, TRUE);
     #endif
   }
@@ -170,7 +172,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 //// AkelEdit control
 
-BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
+BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegRichEdit, BOOL bRegAkelEditW, BOOL bRegRichEditW)
 {
   if (!nAkelEditClassAtomA)
   {
@@ -178,7 +180,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 
     AE_RegisterClassCommon(hInstance);
 
-    //AkelEdit class
+    //AkelEditA class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
     wndclass.cbClsExtra   =0;
@@ -192,18 +194,32 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     if (!(nAkelEditClassAtomA=RegisterClassA(&wndclass)))
       return FALSE;
 
-    //RichEdit class
-    if (bRegisterRichEdit)
+    //RichEdit20A class
+    if (bRegRichEdit)
     {
       wndclass.lpszClassName=AES_RICHEDIT20A;
       if (!(nRichEditClassAtomA=RegisterClassA(&wndclass)))
+        return FALSE;
+    }
+    //AkelEditW class
+    if (bRegAkelEditW)
+    {
+      wndclass.lpszClassName=AES_AKELEDITW_ANSI;
+      if (!(nAkelEditClassAtomW_Ansi=RegisterClassA(&wndclass)))
+        return FALSE;
+    }
+    //RichEdit20W class
+    if (bRegRichEditW)
+    {
+      wndclass.lpszClassName=AES_RICHEDIT20W_ANSI;
+      if (!(nRichEditClassAtomW_Ansi=RegisterClassA(&wndclass)))
         return FALSE;
     }
   }
   return TRUE;
 }
 
-BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
+BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegRichEdit)
 {
   if (!nAkelEditClassAtomW)
   {
@@ -211,7 +227,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 
     AE_RegisterClassCommon(hInstance);
 
-    //AkelEdit class
+    //AkelEditW class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
     wndclass.cbClsExtra   =0;
@@ -225,8 +241,8 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     if (!(nAkelEditClassAtomW=RegisterClassW(&wndclass)))
       return FALSE;
 
-    //RichEdit class
-    if (bRegisterRichEdit)
+    //RichEdit20W class
+    if (bRegRichEdit)
     {
       wndclass.lpszClassName=AES_RICHEDIT20W;
       if (!(nRichEditClassAtomW=RegisterClassW(&wndclass)))
@@ -278,32 +294,64 @@ void AE_RegisterClassCommon(HINSTANCE hInstance)
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
+  BOOL bResult=TRUE;
+
   AE_UnregisterClassCommon(hInstance);
   AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
 
   if (nAkelEditClassAtomA)
   {
     if (UnregisterClassA(AES_AKELEDITA, hInstance))
-      nAkelEditClassAtomA=FALSE;
-    if (UnregisterClassA(AES_RICHEDIT20A, hInstance))
-      nRichEditClassAtomA=FALSE;
+      nAkelEditClassAtomA=0;
+    else
+      bResult=FALSE;
   }
-  return !nAkelEditClassAtomA;
+  if (nRichEditClassAtomA)
+  {
+    if (UnregisterClassA(AES_RICHEDIT20A, hInstance))
+      nRichEditClassAtomA=0;
+    else
+      bResult=FALSE;
+  }
+  if (nAkelEditClassAtomW_Ansi)
+  {
+    if (UnregisterClassA(AES_AKELEDITW_ANSI, hInstance))
+      nAkelEditClassAtomW_Ansi=0;
+    else
+      bResult=FALSE;
+  }
+  if (nRichEditClassAtomW_Ansi)
+  {
+    if (UnregisterClassA(AES_RICHEDIT20W_ANSI, hInstance))
+      nRichEditClassAtomW_Ansi=0;
+    else
+      bResult=FALSE;
+  }
+  return bResult;
 }
 
 BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
+  BOOL bResult=TRUE;
+
   AE_UnregisterClassCommon(hInstance);
   AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
 
   if (nAkelEditClassAtomW)
   {
     if (UnregisterClassW(AES_AKELEDITW, hInstance))
-      nAkelEditClassAtomW=FALSE;
-    if (UnregisterClassW(AES_RICHEDIT20W, hInstance))
-      nRichEditClassAtomW=FALSE;
+      nAkelEditClassAtomW=0;
+    else
+      bResult=FALSE;
   }
-  return !nAkelEditClassAtomW;
+  if (nRichEditClassAtomW)
+  {
+    if (UnregisterClassW(AES_RICHEDIT20W, hInstance))
+      nRichEditClassAtomW=0;
+    else
+      bResult=FALSE;
+  }
+  return bResult;
 }
 
 void AE_UnregisterClassCommon(HINSTANCE hInstance)
