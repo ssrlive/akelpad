@@ -164,6 +164,7 @@ extern int *lpCodepageTable;
 extern int nCodepageTableCount;
 extern int nAnsiCodePage;
 extern int nOemCodePage;
+extern DWORD dwMessageFileNameOK;
 
 //Recent files
 extern RECENTFILESTACK hRecentFilesStack;
@@ -1466,8 +1467,8 @@ BOOL DoFileOpen()
     ofnW.nMaxFile       =OPENFILELIST_SIZE;
     ofnW.lpstrInitialDir=wszOpenDir;
     ofnW.lpstrDefExt    =NULL;
-    ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-    ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
+    ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOVALIDATE;
+    ofnW.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
     ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
     bResult=GetOpenFileNameWide((OPENFILENAMEW *)&ofnW);
@@ -1682,8 +1683,8 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   ofnW.nMaxFile       =MAX_PATH;
   ofnW.lpstrInitialDir=wszSaveDir;
   ofnW.lpstrDefExt    =moCur.wszDefaultSaveExt;
-  ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
-  ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
+  ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE|OFN_NOVALIDATE;
+  ofnW.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
   ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
   bResult=GetSaveFileNameWide((OPENFILENAMEW *)&ofnW);
@@ -7598,7 +7599,7 @@ void StackPageFree(HSTACK *hStack)
 
 //// Code pages
 
-UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hDlgParent;
   static HWND hDlgList;
@@ -7626,6 +7627,9 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   if (uMsg == WM_INITDIALOG)
   {
     DIALOGCODEPAGE *dc;
+
+    if (!dwMessageFileNameOK)
+      dwMessageFileNameOK=RegisterWindowMessageA("commdlg_FileNameOK");
 
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
@@ -7809,6 +7813,51 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       ShowStandardViewMenu((HWND)wParam, hPopupView, lParam != -1);
     }
     return TRUE;
+  }
+  else if (uMsg == dwMessageFileNameOK)
+  {
+    OPENFILENAMEW *ofn=(OPENFILENAMEW *)lParam;
+    wchar_t wszFile[MAX_PATH];
+    wchar_t *wpFile=wszFile;
+    wchar_t *wpCount;
+    BOOL bStream=FALSE;
+
+    if (bOldWindows)
+      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFile, -1, wpFile, MAX_PATH);
+    else
+      wpFile=ofn->lpstrFile;
+
+    //Even if OFN_NOVALIDATE flag is set, dialog validates multiple selection.
+    //So we check only single selection.
+    if ((short)ofn->nFileOffset <= 0 || *(wpFile + ofn->nFileOffset - 1) != L'\0')
+    {
+      for (wpCount=wpFile; *wpCount; ++wpCount)
+      {
+        if (*wpCount == L':')
+        {
+          if (wpCount - wpFile != 1)
+          {
+            bStream=TRUE;
+            continue;
+          }
+        }
+        else if (*wpCount == L'/')
+          *wpCount=L'\\';
+
+        if ((*wpCount == L'\\' && bStream) || *wpCount == L'*' || *wpCount == L'?' || *wpCount == L'\"' || *wpCount == L'<' || *wpCount == L'>' || *wpCount == L'|')
+        {
+          API_LoadStringW(hLangLib, MSG_WRONG_FILENAME, wbuf, BUFFER_SIZE);
+          xprintfW(wszMsg, wbuf, wpFile);
+          API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
+          return 1;
+        }
+      }
+      *++wpCount=L'\0';
+      if (bOldWindows)
+        WideCharToMultiByte(CP_ACP, 0, wpFile, wpCount - wpFile + 1, (char *)ofn->lpstrFile, MAX_PATH, NULL, NULL);
+    }
+    return 0;
   }
   else if (uMsg == WM_NOTIFY)
   {
