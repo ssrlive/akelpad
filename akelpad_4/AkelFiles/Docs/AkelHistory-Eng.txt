@@ -10,7 +10,7 @@ Changed: after answer "No" to the question of reopening the modified file, docum
 
 Added: print multiple copies with "Collate" option.
 Added: "Replace all" without message.
-Added: command 4195 - delete all whitespaces in selection.
+Added: command 4195 and menu item - delete all whitespaces in selection.
 Added: manual parameter for "SingleOpenProgram" with a value of 2 - option "Don't
        open a program twice" works only for the same exe file. Requires run as
        administrator (UAC).

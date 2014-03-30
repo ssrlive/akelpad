@@ -85,6 +85,9 @@ BEGIN
         POPUP "Позна&чене"
         BEGIN
             MENUITEM "Вертикальна вставка\tAlt+V",  IDM_EDIT_PASTECOLUMN
+            MENUITEM "Убрать Tab'ы и пробелы в выделении", 
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "&Додати Tab\tTab",            IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Прибрати Tab\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Д&одати пробіл\tSpace",       IDM_EDIT_INSERT_SPACE_MENU

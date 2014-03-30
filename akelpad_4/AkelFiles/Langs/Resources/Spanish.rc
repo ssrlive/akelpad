@@ -85,6 +85,9 @@ BEGIN
         POPUP "&Selección"
         BEGIN
             MENUITEM "Pegar columna\tAlt+V",        IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "Ta&bulación con sangría\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tabulación sin sangría\tShift+Tab", 

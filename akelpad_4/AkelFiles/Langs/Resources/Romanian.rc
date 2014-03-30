@@ -85,6 +85,9 @@ BEGIN
         POPUP "Textul &Selectat"
         BEGIN
             MENUITEM "Lipeºte Colonar\tAlt+V",      IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "Indenteazã cu Ta&bulatorul\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Autdenteazã cu &Tabulatorul\tShift+Tab", 

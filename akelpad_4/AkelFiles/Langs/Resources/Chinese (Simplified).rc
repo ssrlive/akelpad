@@ -85,6 +85,9 @@ BEGIN
         POPUP "选择(&S)"
         BEGIN
             MENUITEM "列粘贴\tAlt+V",               IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "制表符缩进(&B)\tTab",         IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "制表符反缩进(&T)\tShift+Tab", IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "空格缩进(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU

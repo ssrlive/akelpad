@@ -86,6 +86,9 @@ BEGIN
         POPUP "선택(&S)"
         BEGIN
             MENUITEM "클립보드 내용 붙여넣기\tAlt+V", IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "탭 들여쓰기 늘임(&B)\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "탭 들여쓰기 줄임(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU

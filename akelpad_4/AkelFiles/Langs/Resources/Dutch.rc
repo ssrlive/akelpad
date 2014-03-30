@@ -85,6 +85,9 @@ BEGIN
         POPUP "&Selectie"
         BEGIN
             MENUITEM "Kolomvormig plakken\tAlt+V",  IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "Ta&b insprong vergroten\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tab insprong verkleinen\tShift+Tab", 
