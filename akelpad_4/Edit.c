@@ -1921,7 +1921,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
   {
     if (nAction & STRSEL_CHECK) return TRUE;
 
-    if (!(bColumnSel=(BOOL)SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0)))
+    if (!(bColumnSel=(BOOL)SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0)) && !(nAction & STRSEL_ALLSPACES))
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&crRange.ciMin);
       if (!AEC_IsFirstCharInLine(&crRange.ciMax))
