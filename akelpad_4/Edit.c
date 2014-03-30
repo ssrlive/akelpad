@@ -1892,7 +1892,7 @@ void DoEditRecode()
   }
 }
 
-BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpString)
+BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpString)
 {
   AECHARRANGE crRange;
   AETEXTRANGEW tr;
@@ -1917,11 +1917,11 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
   crRange.ciMin=crCurSel.ciMin;
   crRange.ciMax=crCurSel.ciMax;
 
-  if (crRange.ciMin.nLine != crRange.ciMax.nLine)
+  if (!(nAction & STRSEL_MULTILINE) || crRange.ciMin.nLine != crRange.ciMax.nLine)
   {
     if (nAction & STRSEL_CHECK) return TRUE;
 
-    if (!(bColumnSel=(BOOL)SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0)) && !(nAction & STRSEL_ALLSPACES))
+    if (!(bColumnSel=(BOOL)SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0)) && (nAction & STRSEL_FULLLINE))
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&crRange.ciMin);
       if (!AEC_IsFirstCharInLine(&crRange.ciMax))
@@ -1939,7 +1939,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
       //Save scroll
       nFirstLine=SaveLineScroll(hWnd);
 
-      if (!bColumnSel)
+      if (!bColumnSel && (nAction & STRSEL_FULLLINE))
         SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, NULL);
 
       if (nAction & STRSEL_INSERT)
@@ -19908,9 +19908,9 @@ BOOL IndentTabStop(HWND hWnd, int nAction)
     for (i=0; i < nSpaces; ++i)
       wszSpaces[i]=L' ';
     wszSpaces[i]=L'\0';
-    DoEditInsertStringInSelectionW(hWnd, nAction, wszSpaces);
+    DoEditModifyStringInSelection(hWnd, nAction, wszSpaces);
   }
-  else DoEditInsertStringInSelectionW(hWnd, nAction, L"\t");
+  else DoEditModifyStringInSelection(hWnd, nAction, L"\t");
 
   return TRUE;
 }
