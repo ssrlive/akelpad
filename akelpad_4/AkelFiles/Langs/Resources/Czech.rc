@@ -85,8 +85,6 @@ BEGIN
         POPUP "&Volby"
         BEGIN
             MENUITEM "Vložit sloupec\tAlt+V",       IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Ods&adit text\tTab",          IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Zrušit odsazení textu\tShift+Tab", 
@@ -101,6 +99,8 @@ BEGIN
 
             MENUITEM "Smazat mezeru na konci øádkù\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "&VELKÁ PÍSMENA\tCtrl+6",      IDM_EDIT_UPPERCASE

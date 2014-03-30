@@ -85,8 +85,6 @@ BEGIN
         POPUP "Seleçã&o"
         BEGIN
             MENUITEM "Colar por coluna\tAlt+V",     IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "&Indentar por tabs\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Desindentar por tabs\tShift+Tab", 
@@ -102,6 +100,8 @@ BEGIN
 
             MENUITEM "Apagar espaços ao &final\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "&Tudo maiúsculo\tCtrl+6",     IDM_EDIT_UPPERCASE

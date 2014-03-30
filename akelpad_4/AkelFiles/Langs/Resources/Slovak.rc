@@ -85,8 +85,6 @@ BEGIN
         POPUP "V˝&ber"
         BEGIN
             MENUITEM "Prilepiù stÂpce\tAlt+V",      IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Ods&adiù tabul·tormi\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Zruöiù odsadenie &tab\tShift+Tab", 
@@ -101,6 +99,8 @@ BEGIN
 
             MENUITEM "Vymazaù medzery na konci riadku\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "&VEºK… PÕSMEN¡\tCtrl+6",      IDM_EDIT_UPPERCASE

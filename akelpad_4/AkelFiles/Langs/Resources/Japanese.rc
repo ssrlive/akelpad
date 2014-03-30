@@ -86,8 +86,6 @@ BEGIN
         POPUP "選択範囲(&S)"
         BEGIN
             MENUITEM "箱形貼り付け\tAlt+V",         IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Tab インデント(&B)\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Tab アンインデント(&T)\tShift+Tab", 
@@ -103,6 +101,8 @@ BEGIN
 
             MENUITEM "末尾の空白を除去(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "大文字(&U)\tCtrl+6",          IDM_EDIT_UPPERCASE

@@ -85,8 +85,6 @@ BEGIN
         POPUP "K&ijelölés"
         BEGIN
             MENUITEM "Oszlop beillesztés\tAlt+V",   IDM_EDIT_PASTECOLUMN
-            MENUITEM "Delete selection whitespaces",
-                                                    IDM_EDIT_DELETESELSPACES
             MENUITEM SEPARATOR
             MENUITEM "Ta&bulátor behúzás\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Ta&bulátor behúzás visszavonás\tShift+Tab", 
@@ -101,6 +99,8 @@ BEGIN
 
             MENUITEM "Befejezõ szóköz kivágása\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "NAGYBETÛS\tCtrl+6",           IDM_EDIT_UPPERCASE
