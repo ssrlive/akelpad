@@ -101,7 +101,7 @@ BEGIN
 
             MENUITEM "Tunde Spaþiul Gol &Final\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+            MENUITEM "Delete all whitespaces",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR

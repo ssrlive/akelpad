@@ -98,7 +98,7 @@ BEGIN
 
             MENUITEM "Trim trailing &whitespace\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+            MENUITEM "Delete all whitespaces",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
