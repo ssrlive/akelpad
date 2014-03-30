@@ -85,6 +85,9 @@ BEGIN
         POPUP "&Valinta"
         BEGIN
             MENUITEM "&Liitä sarakkeittain\tAlt+V", IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "&Sarkainsisennys\tTab",       IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Poista sarkainsisennys\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU

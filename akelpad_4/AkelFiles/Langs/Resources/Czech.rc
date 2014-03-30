@@ -85,6 +85,9 @@ BEGIN
         POPUP "&Volby"
         BEGIN
             MENUITEM "Vložit sloupec\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "Ods&adit text\tTab",          IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Zrušit odsazení textu\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU

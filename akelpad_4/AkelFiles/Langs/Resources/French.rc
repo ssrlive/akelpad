@@ -85,6 +85,9 @@ BEGIN
         POPUP "&Sélection"
         BEGIN
             MENUITEM "Coller dans la colonne\tAlt+V", IDM_EDIT_PASTECOLUMN
+            MENUITEM "Delete selection whitespaces",
+                                                    IDM_EDIT_DELETESELSPACES
+            MENUITEM SEPARATOR
             MENUITEM "Décaler à droite d'une ta&bulation\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Décaler à gauche d'une &tabulation\tShift+Tab", 
