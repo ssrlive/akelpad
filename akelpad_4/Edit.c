@@ -5152,6 +5152,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   int nLostCharInLine;
   int nFileLen;
   int nStreamOffset;
+  BOOL bFileExist;
 
   if (!wpFile[0])
   {
@@ -5280,7 +5281,12 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   //Write to file
   for (;;)
   {
-    if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+    if (nStreamOffset)
+      bFileExist=FileExistsWide(wszFile);
+    else
+      bFileExist=(wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES);
+
+    if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
       if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED && IsFile(wszFile) != ERROR_DIRECTORY)
       {
