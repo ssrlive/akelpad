@@ -4338,97 +4338,97 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditRecode();
     }
+    else if (wCommand == IDM_EDIT_DELETESELSPACES)
+    {
+      return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_ALLSPACES, L" ");
+    }
     else if (wCommand == IDM_EDIT_INSERT_TAB_MENU ||
              wCommand == IDM_EDIT_INSERT_TAB)
     {
-      if (lpFrameCurrent->ei.hWndEdit)
-      {
-        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-          InsertTabStop(lpFrameCurrent->ei.hWndEdit);
-        else
-          IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_TAB);
-      }
+      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
+      else
+        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_LEADTAB);
     }
     else if (wCommand == IDM_EDIT_DELETE_TAB_MENU ||
              wCommand == IDM_EDIT_DELETE_TAB)
     {
-      if (lpFrameCurrent->ei.hWndEdit)
-      {
-        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-          InsertTabStop(lpFrameCurrent->ei.hWndEdit);
-        else
-          IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_TAB);
-      }
+      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
+      else
+        return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB);
     }
     else if (wCommand == IDM_EDIT_INSERT_SPACE_MENU ||
              wCommand == IDM_EDIT_INSERT_SPACE)
     {
-      if (lpFrameCurrent->ei.hWndEdit)
+      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
       {
-        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        if (!IsReadOnly(NULL))
         {
-          if (!IsReadOnly(NULL))
-            SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+          return TRUE;
         }
-        else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
       }
+      else return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT, L" ");
     }
     else if (wCommand == IDM_EDIT_DELETE_SPACE_MENU ||
              wCommand == IDM_EDIT_DELETE_SPACE)
     {
-      if (lpFrameCurrent->ei.hWndEdit)
+      if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
       {
-        if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
+        if (!IsReadOnly(NULL))
         {
-          if (!IsReadOnly(NULL))
-            SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+          return TRUE;
         }
-        else DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_SPACE, L" ");
       }
+      else return DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE, L" ");
     }
     else if (wCommand == IDM_EDIT_DELETE_FIRST_CHAR_MENU ||
              wCommand == IDM_EDIT_DELETE_FIRST_CHAR)
     {
-      DoEditDeleteFirstCharW(lpFrameCurrent->ei.hWndEdit);
+      return DoEditDeleteFirstCharW(lpFrameCurrent->ei.hWndEdit);
     }
     else if (wCommand == IDM_EDIT_DELETE_TRAILING_WHITESPACES)
     {
-      DoEditDeleteTrailingWhitespacesW(lpFrameCurrent->ei.hWndEdit);
+      return DoEditDeleteTrailingWhitespacesW(lpFrameCurrent->ei.hWndEdit);
     }
     else if (wCommand == IDM_EDIT_UPPERCASE)
     {
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, UPPERCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, UPPERCASE);
     }
     else if (wCommand == IDM_EDIT_LOWERCASE)
     {
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, LOWERCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, LOWERCASE);
     }
     else if (wCommand == IDM_EDIT_SENTENCECASE)
     {
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SENTENCECASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SENTENCECASE);
     }
     else if (wCommand == IDM_EDIT_TITLECASE)
     {
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, TITLECASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, TITLECASE);
     }
     else if (wCommand == IDM_EDIT_INVERTCASE)
     {
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, INVERTCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, INVERTCASE);
     }
     else if (wCommand == IDM_EDIT_LOOPCASE)
     {
       int nCase=nLoopCase;
+      BOOL bResult;
 
       if (nCase >= INVERTCASE)
         nCase=UPPERCASE;
       else
         ++nCase;
-      DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase);
+      bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase);
       nLoopCase=nCase;
+      return bResult;
     }
     else if (wCommand == IDM_EDIT_INSERTMODE)
     {
-      if (lpFrameCurrent->ei.hWndEdit) SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
+      SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
     }
     else if (wCommand == IDM_EDIT_PASTEANSI)
     {

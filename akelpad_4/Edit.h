@@ -268,11 +268,12 @@
 #define AKDLG_RECODEUPDATE      (WM_USER + 100)
 
 //Insert/Delete char in selection
-#define STRSEL_CHECK   0x00000001
-#define STRSEL_INSERT  0x00000002
-#define STRSEL_DELETE  0x00000004
-#define STRSEL_TAB     0x00000008
-#define STRSEL_SPACE   0x00000010
+#define STRSEL_CHECK      0x00000001
+#define STRSEL_INSERT     0x00000002
+#define STRSEL_DELETE     0x00000004
+#define STRSEL_LEADTAB    0x00000008
+#define STRSEL_LEADSPACE  0x00000010
+#define STRSEL_ALLSPACES  0x00000020  //Uses only with STRSEL_DELETE.
 
 //Selection case
 #define UPPERCASE      1

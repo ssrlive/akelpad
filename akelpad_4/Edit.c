@@ -1959,8 +1959,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
           b=nStringLenAll;
 
-          xmemcpy(wszRange, wpString, nStringBytes);
-          a=nStringLen;
+          goto InsertLineBeginning;
 
           while (b < nBufferLen)
           {
@@ -1989,6 +1988,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
               continue;
             }
 
+            InsertLineBeginning:
             if (b < nBufferLen || bColumnSel)
             {
               xmemcpy(wszRange + a, wpString, nStringBytes);
@@ -2012,69 +2012,67 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
           tr.bFillSpaces=TRUE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
 
-          if (nAction & STRSEL_TAB)
+          if (nAction & STRSEL_ALLSPACES)
           {
-            if (wszRange[b] == L'\t')
-              ++b;
-            else
-              for (i=0; i < lpFrameCurrent->nTabStopSize && wszRange[b] == L' '; ++i, ++b);
-          }
-          else if (nAction & STRSEL_SPACE)
-          {
-            if (wszRange[b] == L' ' || wszRange[b] == L'\t')
-              ++b;
+            while (b < nRangeLen)
+            {
+              if (wszRange[b] == L' ' || wszRange[b] == L'\t')
+                ++b;
+              else
+                wszRange[a++]=wszRange[b++];
+            }
           }
           else
           {
-            if (!xmemcmp(wszRange + b, wpString, nStringBytes))
-              b+=nStringLen;
-          }
+            goto DeleteLineBeginning;
 
-          while (b < nRangeLen)
-          {
-            if (wszRange[b] == L'\r' && wszRange[b + 1] == L'\r' && wszRange[b + 2] == L'\n')
+            while (b < nRangeLen)
             {
-              wszRange[a++]=wszRange[b++];
-              wszRange[a++]=wszRange[b++];
-              wszRange[a++]=wszRange[b++];
-            }
-            else if (wszRange[b] == L'\r' && wszRange[b + 1] == L'\n')
-            {
-              wszRange[a++]=wszRange[b++];
-              wszRange[a++]=wszRange[b++];
-            }
-            else if (wszRange[b] == L'\r')
-            {
-              wszRange[a++]=wszRange[b++];
-            }
-            else if (wszRange[b] == L'\n')
-            {
-              wszRange[a++]=wszRange[b++];
-            }
-            else
-            {
-              wszRange[a++]=wszRange[b++];
-              continue;
-            }
-
-            if (b < nRangeLen)
-            {
-              if (nAction & STRSEL_TAB)
+              if (wszRange[b] == L'\r' && wszRange[b + 1] == L'\r' && wszRange[b + 2] == L'\n')
               {
-                if (wszRange[b] == L'\t')
-                  ++b;
-                else
-                  for (i=0; i < lpFrameCurrent->nTabStopSize && wszRange[b] == L' '; ++i, ++b);
+                wszRange[a++]=wszRange[b++];
+                wszRange[a++]=wszRange[b++];
+                wszRange[a++]=wszRange[b++];
               }
-              else if (nAction & STRSEL_SPACE)
+              else if (wszRange[b] == L'\r' && wszRange[b + 1] == L'\n')
               {
-                if (wszRange[b] == L' ' || wszRange[b] == L'\t')
-                  ++b;
+                wszRange[a++]=wszRange[b++];
+                wszRange[a++]=wszRange[b++];
+              }
+              else if (wszRange[b] == L'\r')
+              {
+                wszRange[a++]=wszRange[b++];
+              }
+              else if (wszRange[b] == L'\n')
+              {
+                wszRange[a++]=wszRange[b++];
               }
               else
               {
-                if (!xmemcmp(wszRange + b, wpString, nStringBytes))
-                  b+=nStringLen;
+                wszRange[a++]=wszRange[b++];
+                continue;
+              }
+
+              DeleteLineBeginning:
+              if (b < nRangeLen)
+              {
+                if (nAction & STRSEL_LEADTAB)
+                {
+                  if (wszRange[b] == L'\t')
+                    ++b;
+                  else
+                    for (i=0; i < lpFrameCurrent->nTabStopSize && wszRange[b] == L' '; ++i, ++b);
+                }
+                else if (nAction & STRSEL_LEADSPACE)
+                {
+                  if (wszRange[b] == L' ' || wszRange[b] == L'\t')
+                    ++b;
+                }
+                else
+                {
+                  if (!xmemcmp(wszRange + b, wpString, nStringBytes))
+                    b+=nStringLen;
+                }
               }
             }
           }
@@ -5047,7 +5045,7 @@ int WriteFileContent(HANDLE hFile, const wchar_t *wpContent, INT_PTR nContentLen
   const wchar_t *wpContentMax;
   const wchar_t *wpBlock;
   unsigned char *pDataToWrite;
-  UINT_PTR dwBlockLen=2048;
+  DWORD dwBlockLen=2048;
   UINT_PTR dwBytesToWrite;
   UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
@@ -5080,7 +5078,7 @@ int WriteFileContent(HANDLE hFile, const wchar_t *wpContent, INT_PTR nContentLen
   for (wpBlock=wpContent; wpBlock < wpContentMax; wpBlock+=dwBlockLen)
   {
     if (wpBlock + dwBlockLen > wpContentMax)
-      dwBlockLen=wpContentMax - wpBlock;
+      dwBlockLen=(DWORD)(wpContentMax - wpBlock);
     pDataToWrite=pcTranslateBuffer;
 
     if (nCodePage == CP_UNICODE_UTF16LE)
