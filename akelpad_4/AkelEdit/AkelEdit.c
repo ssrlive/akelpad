@@ -14962,7 +14962,7 @@ void AE_RedrawIndexRange(AKELEDIT *ae, const AECHARINDEX *ciFirstChar, const AEC
     if (ae->ptxt->dwWordWrap)
     {
       nMaxRedrawLine=nLastRedrawLine + nLinesInPage;
-      for (lpLine=ciLastChar->lpLine->next; lpLine; lpLine=lpLine->next)
+      for (lpLine=ciLastChar->lpLine; lpLine; lpLine=lpLine->next)
       {
         if (lpLine->nLineBreak == AELB_WRAP)
           if (++nLastRedrawLine > nMaxRedrawLine)
