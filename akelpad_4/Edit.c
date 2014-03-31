@@ -2694,106 +2694,55 @@ void DoSettingsPlugins()
 
 void DoSettingsOptions()
 {
+  PROPSHEETHEADERW psh;
+  PROPSHEETPAGEW psp[5];
   DWORD dwInitKeybLayoutOptions=moCur.dwKeybLayoutOptions;
 
-  hHookPropertySheet=SetWindowsHookEx(WH_CBT, CBTPropertySheetProc, NULL, GetCurrentThreadId());
   bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
-  if (bOldWindows)
-  {
-    PROPSHEETHEADERA pshA;
-    PROPSHEETPAGEA pspA[5];
+  xmemset(&psp, 0, sizeof(psp));
+  psp[0].dwSize      =sizeof(PROPSHEETPAGEW);
+  psp[0].dwFlags     =PSP_DEFAULT;
+  psp[0].hInstance   =hLangLib;
+  psp[0].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_GENERAL);
+  psp[0].pfnDlgProc  =(DLGPROC)OptionsGeneralDlgProc;
+  psp[1].dwSize      =sizeof(PROPSHEETPAGEW);
+  psp[1].dwFlags     =PSP_DEFAULT;
+  psp[1].hInstance   =hLangLib;
+  psp[1].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_REGISTRY);
+  psp[1].pfnDlgProc  =(DLGPROC)OptionsRegistryDlgProc;
+  psp[2].dwSize      =sizeof(PROPSHEETPAGEW);
+  psp[2].dwFlags     =PSP_DEFAULT;
+  psp[2].hInstance   =hLangLib;
+  psp[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR1);
+  psp[2].pfnDlgProc  =(DLGPROC)OptionsEditor1DlgProc;
+  psp[3].dwSize      =sizeof(PROPSHEETPAGEW);
+  psp[3].dwFlags     =PSP_DEFAULT;
+  psp[3].hInstance   =hLangLib;
+  psp[3].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR2);
+  psp[3].pfnDlgProc  =(DLGPROC)OptionsEditor2DlgProc;
+  psp[4].dwSize      =sizeof(PROPSHEETPAGEW);
+  psp[4].dwFlags     =PSP_DEFAULT;
+  psp[4].hInstance   =hLangLib;
+  psp[4].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED);
+  psp[4].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProc;
 
-    xmemset(&pspA, 0, sizeof(pspA));
-    pspA[0].dwSize      =sizeof(PROPSHEETPAGEA);
-    pspA[0].dwFlags     =PSP_DEFAULT;
-    pspA[0].hInstance   =hLangLib;
-    pspA[0].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_GENERAL);
-    pspA[0].pfnDlgProc  =(DLGPROC)OptionsGeneralDlgProc;
-    pspA[1].dwSize      =sizeof(PROPSHEETPAGEA);
-    pspA[1].dwFlags     =PSP_DEFAULT;
-    pspA[1].hInstance   =hLangLib;
-    pspA[1].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_REGISTRY);
-    pspA[1].pfnDlgProc  =(DLGPROC)OptionsRegistryDlgProc;
-    pspA[2].dwSize      =sizeof(PROPSHEETPAGEA);
-    pspA[2].dwFlags     =PSP_DEFAULT;
-    pspA[2].hInstance   =hLangLib;
-    pspA[2].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_EDITOR1);
-    pspA[2].pfnDlgProc  =(DLGPROC)OptionsEditor1DlgProc;
-    pspA[3].dwSize      =sizeof(PROPSHEETPAGEA);
-    pspA[3].dwFlags     =PSP_DEFAULT;
-    pspA[3].hInstance   =hLangLib;
-    pspA[3].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_EDITOR2);
-    pspA[3].pfnDlgProc  =(DLGPROC)OptionsEditor2DlgProc;
-    pspA[4].dwSize      =sizeof(PROPSHEETPAGEA);
-    pspA[4].dwFlags     =PSP_DEFAULT;
-    pspA[4].hInstance   =hLangLib;
-    pspA[4].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED);
-    pspA[4].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProc;
+  API_LoadStringW(hLangLib, STR_OPTIONS, wbuf, BUFFER_SIZE);
+  xmemset(&psh, 0, sizeof(PROPSHEETHEADERW));
+  psh.pszCaption  =wbuf;
+  psh.dwSize      =sizeof(PROPSHEETHEADERW);
+  psh.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
+  psh.hwndParent  =hMainWnd;
+  psh.hInstance   =hLangLib;
+  psh.pszIcon     =MAKEINTRESOURCEW(IDI_ICON_MAIN);
+  psh.nPages      =sizeof(psp) / sizeof(PROPSHEETPAGEW);
+  psh.nStartPage  =nPropertyStartPage;
+  psh.ppsp        =&psp[0];
+  psh.pfnCallback =PropSheetProc;
 
-    API_LoadStringA(hLangLib, STR_OPTIONS, buf, BUFFER_SIZE);
-    xmemset(&pshA, 0, sizeof(PROPSHEETHEADERA));
-    pshA.pszCaption  =buf;
-    pshA.dwSize      =(bOldComctl32)?(PROPSHEETHEADERA_V1_SIZE):(sizeof(PROPSHEETHEADERA));
-    pshA.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
-    pshA.hwndParent  =hMainWnd;
-    pshA.hInstance   =hLangLib;
-    pshA.pszIcon     =MAKEINTRESOURCEA(IDI_ICON_MAIN);
-    pshA.nPages      =sizeof(pspA) / sizeof(PROPSHEETPAGEA);
-    pshA.nStartPage  =nPropertyStartPage;
-    pshA.ppsp        =&pspA[0];
-    pshA.pfnCallback =PropSheetProc;
-
-    PropertySheetA(&pshA);
-  }
-  else
-  {
-    PROPSHEETHEADERW pshW;
-    PROPSHEETPAGEW pspW[5];
-
-    xmemset(&pspW, 0, sizeof(pspW));
-    pspW[0].dwSize      =sizeof(PROPSHEETPAGEW);
-    pspW[0].dwFlags     =PSP_DEFAULT;
-    pspW[0].hInstance   =hLangLib;
-    pspW[0].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_GENERAL);
-    pspW[0].pfnDlgProc  =(DLGPROC)OptionsGeneralDlgProc;
-    pspW[1].dwSize      =sizeof(PROPSHEETPAGEW);
-    pspW[1].dwFlags     =PSP_DEFAULT;
-    pspW[1].hInstance   =hLangLib;
-    pspW[1].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_REGISTRY);
-    pspW[1].pfnDlgProc  =(DLGPROC)OptionsRegistryDlgProc;
-    pspW[2].dwSize      =sizeof(PROPSHEETPAGEW);
-    pspW[2].dwFlags     =PSP_DEFAULT;
-    pspW[2].hInstance   =hLangLib;
-    pspW[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR1);
-    pspW[2].pfnDlgProc  =(DLGPROC)OptionsEditor1DlgProc;
-    pspW[3].dwSize      =sizeof(PROPSHEETPAGEW);
-    pspW[3].dwFlags     =PSP_DEFAULT;
-    pspW[3].hInstance   =hLangLib;
-    pspW[3].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR2);
-    pspW[3].pfnDlgProc  =(DLGPROC)OptionsEditor2DlgProc;
-    pspW[4].dwSize      =sizeof(PROPSHEETPAGEW);
-    pspW[4].dwFlags     =PSP_DEFAULT;
-    pspW[4].hInstance   =hLangLib;
-    pspW[4].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED);
-    pspW[4].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProc;
-
-    API_LoadStringW(hLangLib, STR_OPTIONS, wbuf, BUFFER_SIZE);
-    xmemset(&pshW, 0, sizeof(PROPSHEETHEADERW));
-    pshW.pszCaption=wbuf;
-    pshW.dwSize      =sizeof(PROPSHEETHEADERW);
-    pshW.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
-    pshW.hwndParent  =hMainWnd;
-    pshW.hInstance   =hLangLib;
-    pshW.pszIcon     =MAKEINTRESOURCEW(IDI_ICON_MAIN);
-    pshW.nPages      =sizeof(pspW) / sizeof(PROPSHEETPAGEW);
-    pshW.nStartPage  =nPropertyStartPage;
-    pshW.ppsp        =&pspW[0];
-    pshW.pfnCallback =PropSheetProc;
-
-    PropertySheetW(&pshW);
-  }
+  hHookPropertySheet=SetWindowsHookEx(WH_CBT, CBTPropertySheetProc, NULL, GetCurrentThreadId());
+  PropertySheetWide(&psh);
 
   if (dwInitKeybLayoutOptions != moCur.dwKeybLayoutOptions)
   {
@@ -7855,7 +7804,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       *++wpCount=L'\0';
       if (bOldWindows)
-        WideCharToMultiByte(CP_ACP, 0, wpFile, wpCount - wpFile + 1, (char *)ofn->lpstrFile, MAX_PATH, NULL, NULL);
+        WideCharToMultiByte(CP_ACP, 0, wpFile, (int)(wpCount - wpFile + 1), (char *)ofn->lpstrFile, MAX_PATH, NULL, NULL);
     }
     return 0;
   }

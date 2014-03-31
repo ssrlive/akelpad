@@ -187,6 +187,7 @@
 #define LoadStringWide
 #define ModifyMenuWide
 #define PeekMessageWide
+#define PropertySheetWide
 #define RegClearKeyAnsi
 #define RegClearKeyWide
 #define RegCreateKeyExWide

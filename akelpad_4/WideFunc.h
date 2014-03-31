@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.3                    *
+ *                  Wide functions header v2.4                    *
  *                                                                *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -81,13 +81,14 @@ BOOL FileExistsWide(const wchar_t *wpFile);
 BOOL DirExistsAnsi(const char *pDir);
 BOOL DirExistsWide(const wchar_t *wpDir);
 
-//Shell (SHELLWIDEFUNC). Shell32.lib and Comdlg32.lib.
+//Shell (SHELLWIDEFUNC). Shell32.lib, Comdlg32.lib and Comctl32.lib.
 HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t *wpFile, const wchar_t *wpParameters, const wchar_t *wpDirectory, INT nShowCmd);
 BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath);
 LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi);
 BOOL GetOpenFileNameWide(LPOPENFILENAMEW lpofn);
 BOOL GetSaveFileNameWide(LPOPENFILENAMEW lpofn);
 BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave);
+INT_PTR PropertySheetWide(const PROPSHEETHEADERW *pshW);
 UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch);
 
 //Registry (REGWIDEFUNC). Advapi32.lib.
@@ -1116,6 +1117,78 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
       if ((UINT_PTR)lpofn->lpTemplateName > MAXUHALF_PTR)
         FreeAnsi((char *)ofnA.lpTemplateName);
     return bResult;
+  }
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
+
+#if defined PropertySheetWide || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
+#define PropertySheetWide_INCLUDED
+#undef PropertySheetWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+INT_PTR PropertySheetWide(const PROPSHEETHEADERW *pshW)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    return PropertySheetW(pshW);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    PROPSHEETHEADERA pshA;
+    PROPSHEETPAGEA *pspA;
+    PROPSHEETPAGEA *pspCountA;
+    const PROPSHEETPAGEW *pspCountW;
+    DWORD dwPage;
+    INT_PTR nResult=0;
+
+    if (pspA=(PROPSHEETPAGEA *)GlobalAlloc(GPTR, pshW->nPages * pshW->ppsp->dwSize))
+    {
+      for (pspCountW=pshW->ppsp, pspCountA=pspA, dwPage=0; dwPage < pshW->nPages; ++pspCountW, ++pspCountA, ++dwPage)
+      {
+        xmemcpy(pspCountA, pspCountW, sizeof(PROPSHEETPAGEA));
+        pspCountA->dwSize=sizeof(PROPSHEETPAGEA);
+        if (!(pspCountW->dwFlags & PSP_DLGINDIRECT) && (UINT_PTR)pspCountW->pszTemplate > MAXUHALF_PTR)
+          pspCountA->pszTemplate=AllocAnsi(pspCountW->pszTemplate);
+        if ((pspCountW->dwFlags & PSP_USEICONID) && (UINT_PTR)pspCountW->pszIcon > MAXUHALF_PTR)
+          pspCountA->pszIcon=AllocAnsi(pspCountW->pszIcon);
+        if (pspCountW->dwFlags & PSP_USETITLE)
+          pspCountA->pszTitle=AllocAnsi(pspCountW->pszTitle);
+      }
+
+      xmemcpy(&pshA, pshW, PROPSHEETHEADER_V1_SIZE);
+      pshA.dwSize=PROPSHEETHEADER_V1_SIZE;
+      if ((pshW->dwFlags & PSH_USEICONID) && (UINT_PTR)pshW->pszIcon > MAXUHALF_PTR)
+        pshA.pszIcon=AllocAnsi(pshW->pszIcon);
+      if ((UINT_PTR)pshW->pszCaption > MAXUHALF_PTR)
+        pshA.pszCaption=AllocAnsi(pshW->pszCaption);
+      if ((pshW->dwFlags & PSH_USEPSTARTPAGE) && (UINT_PTR)pshW->pStartPage > MAXUHALF_PTR)
+        pshA.pStartPage=AllocAnsi(pshW->pStartPage);
+      pshA.ppsp=pspA;
+
+      nResult=PropertySheetA(&pshA);
+
+      for (pspCountA=pspA, dwPage=0; dwPage < pshW->nPages; ++pspCountA, ++dwPage)
+      {
+        if (pspCountA->pszTemplate && !(pspCountW->dwFlags & PSP_DLGINDIRECT) && (UINT_PTR)pspCountA->pszTemplate > MAXUHALF_PTR)
+          FreeAnsi((char *)pspCountA->pszTemplate);
+        if (pspCountA->pszIcon && (pspCountW->dwFlags & PSP_USEICONID) && (UINT_PTR)pspCountA->pszIcon > MAXUHALF_PTR)
+          FreeAnsi((char *)pspCountA->pszIcon);
+        if (pspCountA->pszTitle)
+          FreeAnsi((char *)pspCountA->pszTitle);
+      }
+      if (pshA.pszIcon && (pshW->dwFlags & PSH_USEICONID) && (UINT_PTR)pshA.pszIcon > MAXUHALF_PTR)
+        FreeAnsi((char *)pshA.pszIcon);
+      if (pshA.pszCaption && (UINT_PTR)pshA.pszCaption > MAXUHALF_PTR)
+        FreeAnsi((char *)pshA.pszCaption);
+      if (pshA.pStartPage && (pshW->dwFlags & PSH_USEPSTARTPAGE) && (UINT_PTR)pshA.pStartPage > MAXUHALF_PTR)
+        FreeAnsi((char *)pshA.pStartPage);
+      GlobalFree((HGLOBAL)pspA);
+    }
+    return nResult;
   }
 
   WideNotInitialized();
