@@ -12,9 +12,11 @@
 
 #define AES_AKELEDITA            "AkelEditA"
 #define AES_AKELEDITA_UNICODE   L"AkelEditA"
+#define AES_AKELEDITW_ANSI       "AkelEditW"
 #define AES_AKELEDITW           L"AkelEditW"
 #define AES_RICHEDIT20A          "RichEdit20A"
 #define AES_RICHEDIT20A_UNICODE L"RichEdit20A"
+#define AES_RICHEDIT20W_ANSI     "RichEdit20W"
 #define AES_RICHEDIT20W         L"RichEdit20W"
 
 //AEM_CONTROLCLASS
