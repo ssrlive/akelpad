@@ -7788,7 +7788,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
         if (!*wpCount)
         {
-          if (ofn->nFileOffset=(int)SendMessageW(hDlgParent, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wbuf))
+          if (ofn->nFileOffset=(WORD)SendMessageW(hDlgParent, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wbuf))
           {
             xprintfW(wbuf + ofn->nFileOffset - 1, L"\\%s", wpFile);
             xstrcpynW(wpFile, wbuf, MAX_PATH);
