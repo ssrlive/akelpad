@@ -7774,7 +7774,28 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (bOldWindows)
       MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFile, -1, wpFile, MAX_PATH);
     else
+    {
       wpFile=ofn->lpstrFile;
+
+      //Fix MS bug: if we enter in file field "x:stream", then we get wpFile without path.
+      if (*(wpFile + 1) == L':' && *(wpFile + 2) != L'\\' && *(wpFile + 2) != L'/')
+      {
+        //Check that it is NTFS stream
+        for (wpCount=wpFile + 3; *wpCount; ++wpCount)
+        {
+          if (*wpCount == L'\\' || *wpCount == L'/')
+            break;
+        }
+        if (!*wpCount)
+        {
+          if (ofn->nFileOffset=(int)SendMessageW(hDlgParent, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wbuf))
+          {
+            xprintfW(wbuf + ofn->nFileOffset - 1, L"\\%s", wpFile);
+            xstrcpynW(wpFile, wbuf, MAX_PATH);
+          }
+        }
+      }
+    }
 
     //Even if OFN_NOVALIDATE flag is set, dialog validates multiple selection.
     //So we check only single selection.
