@@ -57,28 +57,28 @@
 #define RECCE_DIF           0x002
 #define RECCE_MIX           0x004
 #define RECCE_BOUNDARY      0x008
-#define RECCE_STRBEGIN      0x010
-#define RECCE_STREND        0x020
-#define RECCE_RANGEBEGIN    0x040
-#define RECCE_RANGEEND      0x080
-#define RECCE_REF           0x100
+#define RECCE_WORD          0x010
+#define RECCE_STRBEGIN      0x020
+#define RECCE_STREND        0x040
+#define RECCE_RANGEBEGIN    0x080
+#define RECCE_RANGEEND      0x100
+#define RECCE_REF           0x200
 
 //PatEscChar return value
 #define REEC_FIRST      (MAXLONG - 20)
 #define REEC_WRONG      (REEC_FIRST + 0)
 #define REEC_NEWLINE    (REEC_FIRST + 1)
-#define REEC_BOUNDARY   (REEC_FIRST + 2)
-#define REEC_STRBEGIN   (REEC_FIRST + 3)
-#define REEC_STREND     (REEC_FIRST + 4)
-#define REEC_RANGEBEGIN (REEC_FIRST + 5)
-#define REEC_RANGEEND   (REEC_FIRST + 6)
-#define REEC_REF        (REEC_FIRST + 7)
-#define REEC_DIGIT      (REEC_FIRST + 8)
-#define REEC_NONDIGIT   (REEC_FIRST + 9)
-#define REEC_SPACE      (REEC_FIRST + 10)
-#define REEC_NONSPACE   (REEC_FIRST + 11)
-#define REEC_LATIN      (REEC_FIRST + 12)
-#define REEC_NONLATIN   (REEC_FIRST + 13)
+#define REEC_WORD       (REEC_FIRST + 2)
+#define REEC_BOUNDARY   (REEC_FIRST + 3)
+#define REEC_STRBEGIN   (REEC_FIRST + 4)
+#define REEC_STREND     (REEC_FIRST + 5)
+#define REEC_RANGEBEGIN (REEC_FIRST + 6)
+#define REEC_RANGEEND   (REEC_FIRST + 7)
+#define REEC_REF        (REEC_FIRST + 8)
+#define REEC_DIGIT      (REEC_FIRST + 9)
+#define REEC_NONDIGIT   (REEC_FIRST + 10)
+#define REEC_SPACE      (REEC_FIRST + 11)
+#define REEC_NONSPACE   (REEC_FIRST + 12)
 
 //PatStructExec options
 #define REPE_MATCHCASE        0x0001 //Case-sensitive search.
@@ -1240,7 +1240,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           if (dwCmpResult & RECCE_DIF)
             goto EndLoop;
 
-          if (dwCmpResult & RECCE_BOUNDARY)
+          if (dwCmpResult & RECCE_WORD)
+          {
+           if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim) == (*wpPat == L'W'))
+             goto NextChar;
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_BOUNDARY)
           {
             if (PatIsCharBoundary(wpStr, nStrChar, hStack))
             {
@@ -1492,10 +1498,8 @@ int PatEscChar(const wchar_t **wppPat)
         return REEC_SPACE;
       if (nPatChar == L'S')
         return REEC_NONSPACE;
-      if (nPatChar == L'w')
-        return REEC_LATIN;
-      if (nPatChar == L'W')
-        return REEC_NONLATIN;
+      if (nPatChar == L'w' || nPatChar == L'W')
+        return REEC_WORD;
       if (nPatChar == L'b' || nPatChar == L'B')
         return REEC_BOUNDARY;
       if (nPatChar == L'A')
@@ -1564,95 +1568,51 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
         return RECCE_EQUAL|RECCE_MIX;
       }
       *lpnPatChar=L'\0';
-      if (nPatChar == REEC_BOUNDARY)
-        return RECCE_BOUNDARY|RECCE_MIX;
+
       if (nPatChar == REEC_SPACE ||
-          nPatChar == REEC_NONDIGIT ||
-          nPatChar == REEC_NONLATIN)
+          nPatChar == REEC_NONDIGIT)
       {
         return RECCE_EQUAL|RECCE_MIX;
       }
-      if (nPatChar == REEC_STRBEGIN)
-        return RECCE_STRBEGIN|RECCE_MIX;
-      if (nPatChar == REEC_STREND)
-        return RECCE_STREND|RECCE_MIX;
-      if (nPatChar == REEC_RANGEBEGIN)
-        return RECCE_RANGEBEGIN|RECCE_MIX;
-      if (nPatChar == REEC_RANGEEND)
-        return RECCE_RANGEEND|RECCE_MIX;
-      if (nPatChar == REEC_REF)
-        return RECCE_REF|RECCE_MIX;
-      return RECCE_DIF|RECCE_MIX;
+      goto SpecialChars;
     }
     return RECCE_DIF;
   }
 
   if (nPatChar > REEC_WRONG)
   {
-    if (nPatChar >= REEC_DIGIT)
-    {
-      if (nPatChar == REEC_DIGIT)
-      {
-        if (nStrChar < L'0' || nStrChar > L'9')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      else if (nPatChar == REEC_NONDIGIT)
-      {
-        if (nStrChar >= L'0' && nStrChar <= L'9')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      else if (nPatChar == REEC_SPACE)
-      {
-        if (nStrChar != L' ' && nStrChar != L'\f' && nStrChar != L'\n' && nStrChar != L'\r' && nStrChar != L'\t' && nStrChar != L'\v')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      else if (nPatChar == REEC_NONSPACE)
-      {
-        if (nStrChar == L' ' || nStrChar == L'\f' || nStrChar == L'\n' || nStrChar == L'\r' || nStrChar == L'\t' || nStrChar == L'\v')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      else if (nPatChar == REEC_LATIN)
-      {
-        if ((nStrChar < L'A' || nStrChar > L'Z') && (nStrChar < L'a' || nStrChar > L'z') && (nStrChar < L'0' || nStrChar > L'9') && nStrChar != L'_')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      else if (nPatChar == REEC_NONLATIN)
-      {
-        if ((nStrChar >= L'A' && nStrChar <= L'Z') || (nStrChar >= L'a' && nStrChar <= L'z') || (nStrChar >= L'0' && nStrChar <= L'9') || nStrChar == L'_')
-          return RECCE_DIF|RECCE_MIX;
-      }
-      return RECCE_EQUAL|RECCE_MIX;
-    }
-    else if (nPatChar == REEC_NEWLINE)
+    if (nPatChar == REEC_NEWLINE)
     {
       *lpnPatChar=L'\n';
       return RECCE_DIF|RECCE_MIX;
     }
-    else if (nPatChar == REEC_BOUNDARY)
+    *lpnPatChar=L'\0';
+
+    if (nPatChar == REEC_DIGIT)
     {
-      return RECCE_BOUNDARY|RECCE_MIX;
+      if (nStrChar < L'0' || nStrChar > L'9')
+        return RECCE_DIF|RECCE_MIX;
+      return RECCE_EQUAL|RECCE_MIX;
     }
-    else if (nPatChar == REEC_STRBEGIN)
+    else if (nPatChar == REEC_NONDIGIT)
     {
-      return RECCE_STRBEGIN|RECCE_MIX;
+      if (nStrChar >= L'0' && nStrChar <= L'9')
+        return RECCE_DIF|RECCE_MIX;
+      return RECCE_EQUAL|RECCE_MIX;
     }
-    else if (nPatChar == REEC_STREND)
+    else if (nPatChar == REEC_SPACE)
     {
-      return RECCE_STREND|RECCE_MIX;
+      if (nStrChar != L' ' && nStrChar != L'\f' && nStrChar != L'\n' && nStrChar != L'\r' && nStrChar != L'\t' && nStrChar != L'\v')
+        return RECCE_DIF|RECCE_MIX;
+      return RECCE_EQUAL|RECCE_MIX;
     }
-    else if (nPatChar == REEC_RANGEBEGIN)
+    else if (nPatChar == REEC_NONSPACE)
     {
-      return RECCE_RANGEBEGIN|RECCE_MIX;
+      if (nStrChar == L' ' || nStrChar == L'\f' || nStrChar == L'\n' || nStrChar == L'\r' || nStrChar == L'\t' || nStrChar == L'\v')
+        return RECCE_DIF|RECCE_MIX;
+      return RECCE_EQUAL|RECCE_MIX;
     }
-    else if (nPatChar == REEC_RANGEEND)
-    {
-      return RECCE_RANGEEND|RECCE_MIX;
-    }
-    else if (nPatChar == REEC_REF)
-    {
-      return RECCE_REF|RECCE_MIX;
-    }
-    return RECCE_DIF|RECCE_MIX;
+    goto SpecialChars;
   }
 
   //Compare
@@ -1662,6 +1622,23 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
   if (nStrChar != nPatChar && ((dwFlags & RECCF_MATCHCASE) || nStrChar > MAXWORD || nPatChar > MAXWORD || WideCharLower((wchar_t)nStrChar) != WideCharLower((wchar_t)nPatChar)))
     return RECCE_DIF;
   return RECCE_EQUAL;
+
+  SpecialChars:
+  if (nPatChar == REEC_WORD)
+    return RECCE_WORD|RECCE_MIX;
+  if (nPatChar == REEC_BOUNDARY)
+    return RECCE_BOUNDARY|RECCE_MIX;
+  if (nPatChar == REEC_STRBEGIN)
+    return RECCE_STRBEGIN|RECCE_MIX;
+  if (nPatChar == REEC_STREND)
+    return RECCE_STREND|RECCE_MIX;
+  if (nPatChar == REEC_RANGEBEGIN)
+    return RECCE_RANGEBEGIN|RECCE_MIX;
+  if (nPatChar == REEC_RANGEEND)
+    return RECCE_RANGEEND|RECCE_MIX;
+  if (nPatChar == REEC_REF)
+    return RECCE_REF|RECCE_MIX;
+  return RECCE_DIF|RECCE_MIX;
 }
 
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim)
@@ -2313,7 +2290,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           if (dwCmpResult & RECCE_DIF)
             goto EndLoop;
 
-          if (dwCmpResult & RECCE_BOUNDARY)
+          if (dwCmpResult & RECCE_WORD)
+          {
+           if (PatIsCharDelim(nStrChar, hStack->wpDelim, hStack->wpMaxDelim) == (*wpPat == L'W'))
+             goto NextChar;
+            goto EndLoop;
+          }
+          else if (dwCmpResult & RECCE_BOUNDARY)
           {
             if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
             {

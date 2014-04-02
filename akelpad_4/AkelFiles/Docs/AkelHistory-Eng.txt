@@ -8,6 +8,8 @@ Changed: when opening multiple files, message about create new or open binary fi
           continue opening the remaining files.
 Changed: after answer "No" to the question of reopening the modified file, document
          marked as changed.
+Changed: metacharacter \w - matches any word character (any character excluding delimiter).
+Changed: metacharacter \W - matches any non-word character (any delimiter).
 
 Added: print multiple copies with "Collate" option.
 Added: "Replace all" without message.
