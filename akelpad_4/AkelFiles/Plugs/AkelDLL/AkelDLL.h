@@ -2113,7 +2113,7 @@ typedef struct {
 #define AKD_FRAMEINIT              (WM_USER + 271)
 #define AKD_FRAMEAPPLYEDIT         (WM_USER + 272)
 
-//Thread
+//Process and Threads
 #define AKD_MEMCREATE              (WM_USER + 281)
 #define AKD_MEMMAP                 (WM_USER + 282)
 #define AKD_MEMUNMAP               (WM_USER + 283)
@@ -2128,6 +2128,7 @@ typedef struct {
 #define AKD_MESSAGEBOX             (WM_USER + 292)
 #define AKD_GETFOCUS               (WM_USER + 293)
 #define AKD_PEEKMESSAGE            (WM_USER + 294)
+#define AKD_UNIQUEID               (WM_USER + 295)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -4281,6 +4282,21 @@ void WaitForMutex(hMutex)
       break;
   }
 }
+
+
+AKD_UNIQUEID
+____________
+
+Retrieve unique identifier inside current process.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Identifier.
+
+Example:
+ INT_PTR nMyID=SendMessage(pd->hMainWnd, AKD_UNIQUEID, 0, 0);
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW

@@ -40,6 +40,7 @@ extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
 extern BOOL bWindowsNT4;
+extern INT_PTR nUniqueID;
 
 //Buffers
 extern unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
