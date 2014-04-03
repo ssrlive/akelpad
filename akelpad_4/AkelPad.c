@@ -237,6 +237,7 @@ BOOL bOldRichEdit=FALSE;
 BOOL bOldComctl32;
 BOOL bAkelEdit=TRUE;
 BOOL bWindowsNT4=FALSE;
+INT_PTR nUniqueID=9;
 
 //Buffers
 unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
@@ -3504,6 +3505,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PEEKMESSAGE)
     {
       return (LRESULT)PeekMessage((LPMSG)lParam, (HWND)wParam, 0, 0, PM_REMOVE);
+    }
+    if (uMsg == AKD_UNIQUEID)
+    {
+      return ++nUniqueID;
     }
 
     //Plugin options
