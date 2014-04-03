@@ -1140,42 +1140,46 @@ typedef struct _AEWORDITEMW {
 typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *next;
   struct _AEQUOTEITEMA *prev;
-  int nIndex;                //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
-  const char *pQuoteStart;   //Quote start string.
-  int nQuoteStartLen;        //Quote start string length.
-  const char *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
-  int nQuoteEndLen;          //Quote end string length.
-  char chEscape;             //Escape character. If it precedes quote string then quote ignored.
-  const char *pQuoteInclude; //Quote include string.
-  int nQuoteIncludeLen;      //Quote include string length.
-  const char *pQuoteExclude; //Quote exclude string.
-  int nQuoteExcludeLen;      //Quote exclude string length.
-  DWORD dwFlags;             //See AEHLF_* defines.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
-  COLORREF crText;           //Quote text color. If -1, then don't set.
-  COLORREF crBk;             //Quote background color. If -1, then don't set.
-  void *lpQuoteStart;        //Don't use it. For internal code only.
-} AEQUOTEITEMA;
-
-typedef struct _AEQUOTEITEMW {
-  struct _AEQUOTEITEMW *next;
-  struct _AEQUOTEITEMW *prev;
   int nIndex;                   //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
-  const wchar_t *pQuoteStart;   //Quote start string.
+  const char *pQuoteStart;      //Quote start string.
   int nQuoteStartLen;           //Quote start string length.
-  const wchar_t *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
+  const char *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;             //Quote end string length.
-  wchar_t chEscape;             //Escape character. If it precedes quote string then quote ignored.
-  const wchar_t *pQuoteInclude; //Quote include string.
+  char chEscape;                //Escape character. If it precedes quote string then quote ignored.
+  const char *pQuoteInclude;    //Quote include string.
   int nQuoteIncludeLen;         //Quote include string length.
-  const wchar_t *pQuoteExclude; //Quote exclude string.
+  const char *pQuoteExclude;    //Quote exclude string.
   int nQuoteExcludeLen;         //Quote exclude string length.
   DWORD dwFlags;                //See AEHLF_* defines.
   DWORD dwFontStyle;            //See AEHLS_* defines.
   COLORREF crText;              //Quote text color. If -1, then don't set.
   COLORREF crBk;                //Quote background color. If -1, then don't set.
   void *lpQuoteStart;           //Don't use it. For internal code only.
-  void *lpREGroupStack;         //Don't use it. For internal code only.
+  INT_PTR nCompileErrorOffset;  //Contain pQuoteStart offset, if error occurred during compile regular exression pattern.
+} AEQUOTEITEMA;
+
+typedef struct _AEQUOTEITEMW {
+  struct _AEQUOTEITEMW *next;
+  struct _AEQUOTEITEMW *prev;
+  int nIndex;                    //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
+  const wchar_t *pQuoteStart;    //Quote start string.
+  int nQuoteStartLen;            //Quote start string length.
+  const wchar_t *pQuoteEnd;      //Quote end string. If NULL, line end used as quote end.
+  int nQuoteEndLen;              //Quote end string length.
+  wchar_t chEscape;              //Escape character. If it precedes quote string then quote ignored.
+  const wchar_t *pQuoteInclude;  //Quote include string.
+  int nQuoteIncludeLen;          //Quote include string length.
+  const wchar_t *pQuoteExclude;  //Quote exclude string.
+  int nQuoteExcludeLen;          //Quote exclude string length.
+  DWORD dwFlags;                 //See AEHLF_* defines.
+  DWORD dwFontStyle;             //See AEHLS_* defines.
+  COLORREF crText;               //Quote text color. If -1, then don't set.
+  COLORREF crBk;                 //Quote background color. If -1, then don't set.
+  void *lpQuoteStart;            //Don't use it. For internal code only.
+  union {
+    void *lpREGroupStack;        //Don't use it. For internal code only.
+    INT_PTR nCompileErrorOffset; //Contain pQuoteStart offset, if error occurred during compile regular exression pattern.
+  };
 } AEQUOTEITEMW;
 
 typedef struct {
@@ -1188,26 +1192,30 @@ typedef struct {
 typedef struct _AEMARKTEXTITEMA {
   struct _AEMARKTEXTITEMA *next;
   struct _AEMARKTEXTITEMA *prev;
-  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  const char *pMarkText;     //Mark text.
-  int nMarkTextLen;          //Mark text length.
-  DWORD dwFlags;             //See AEHLF_* defines.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
-  COLORREF crText;           //Mark text color. If -1, then don't set.
-  COLORREF crBk;             //Mark background color. If -1, then don't set.
+  int nIndex;                  //Position of the element if positive inserts to begin of stack if negative to end.
+  const char *pMarkText;       //Mark text.
+  int nMarkTextLen;            //Mark text length.
+  DWORD dwFlags;               //See AEHLF_* defines.
+  DWORD dwFontStyle;           //See AEHLS_* defines.
+  COLORREF crText;             //Mark text color. If -1, then don't set.
+  COLORREF crBk;               //Mark background color. If -1, then don't set.
+  INT_PTR nCompileErrorOffset; //Contain pMarkText offset, if error occurred during compile regular exression pattern.
 } AEMARKTEXTITEMA;
 
 typedef struct _AEMARKTEXTITEMW {
   struct _AEMARKTEXTITEMW *next;
   struct _AEMARKTEXTITEMW *prev;
-  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  const wchar_t *pMarkText;  //Mark text.
-  int nMarkTextLen;          //Mark text length.
-  DWORD dwFlags;             //See AEHLF_* defines.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
-  COLORREF crText;           //Mark text color. If -1, then don't set.
-  COLORREF crBk;             //Mark background color. If -1, then don't set.
-  void *lpREGroupStack;      //Don't use it. For internal code only.
+  int nIndex;                    //Position of the element if positive inserts to begin of stack if negative to end.
+  const wchar_t *pMarkText;      //Mark text.
+  int nMarkTextLen;              //Mark text length.
+  DWORD dwFlags;                 //See AEHLF_* defines.
+  DWORD dwFontStyle;             //See AEHLS_* defines.
+  COLORREF crText;               //Mark text color. If -1, then don't set.
+  COLORREF crBk;                 //Mark background color. If -1, then don't set.
+  union {
+    void *lpREGroupStack;        //Don't use it. For internal code only.
+    INT_PTR nCompileErrorOffset; //Contain pMarkText offset, if error occurred during compile regular exression pattern.
+  };
 } AEMARKTEXTITEMW;
 
 typedef struct _AEMARKRANGEITEM {

@@ -2535,6 +2535,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (!AE_HighlightAddQuote(ae, lpTheme, lpQuoteDst, lpQuoteDst))
         {
+          lpQuoteSrc->nCompileErrorOffset=lpQuoteDst->nCompileErrorOffset;
           AE_HighlightDeleteQuote(ae, lpTheme, lpQuoteDst);
           lpQuoteDst=NULL;
         }
@@ -2569,6 +2570,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (!AE_HighlightAddMarkText(ae, lpTheme, lpMarkTextDst, lpMarkTextDst))
         {
+          lpMarkTextSrc->nCompileErrorOffset=lpMarkTextDst->nCompileErrorOffset;
           AE_HighlightDeleteMarkText(ae, lpTheme, lpMarkTextDst);
           lpMarkTextDst=NULL;
         }
@@ -11351,10 +11353,9 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   xmemset(lpWordStack->lpWordLens, 0, MAX_PATH * sizeof(INT_PTR));
 }
 
-AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AEQUOTEITEMW *lpQuoteSrc, AEQUOTEITEMW *lpQuoteDst)
+AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEITEMW *lpQuoteSrc, AEQUOTEITEMW *lpQuoteDst)
 {
   AESTACKQUOTE *lpQuoteStack=lpTheme?&lpTheme->hQuoteStack:&ae->ptxt->hQuoteStack;
-  STACKREGROUP *lpREGroupStack=NULL;
 
   if (!lpQuoteDst)
     lpQuoteDst=AE_HighlightInsertQuote(ae, lpTheme, lpQuoteSrc->nIndex);
@@ -11407,7 +11408,9 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
     if (lpQuoteDst->dwFlags & AEHLF_REGEXP)
     {
       AEREGROUPCOLOR *lpREGroupColor=NULL;
+      STACKREGROUP *lpREGroupStack=NULL;
       REGROUP *lpREGroupRef;
+      INT_PTR nCompileErrorOffset;
       int nIndex;
       const wchar_t *wpCount;
       const wchar_t *wpCountMax;
@@ -11428,9 +11431,10 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AE
           lpREGroupStack->dwOptions|=REO_MATCHCASE;
         lpREGroupStack->wpDelim=NULL;
         lpREGroupStack->wpMaxDelim=NULL;
-        if (PatCompile(lpREGroupStack, lpQuoteDst->pQuoteStart, lpQuoteDst->pQuoteStart + lpQuoteDst->nQuoteStartLen))
+        if (nCompileErrorOffset=PatCompile(lpREGroupStack, lpQuoteDst->pQuoteStart, lpQuoteDst->pQuoteStart + lpQuoteDst->nQuoteStartLen))
         {
           AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
+          lpQuoteSrc->nCompileErrorOffset=nCompileErrorOffset;
           goto FreeQuote;
         }
 
@@ -11677,9 +11681,10 @@ void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HeapStackClear(NULL, (stack **)&lpQuoteStack->first, (stack **)&lpQuoteStack->last);
 }
 
-AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, const AEMARKTEXTITEMW *lpMarkTextSrc, AEMARKTEXTITEMW *lpMarkTextDst)
+AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEMARKTEXTITEMW *lpMarkTextSrc, AEMARKTEXTITEMW *lpMarkTextDst)
 {
   STACKREGROUP *lpREGroupStack=NULL;
+  INT_PTR nCompileErrorOffset;
 
   if (!lpMarkTextDst)
     lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme, lpMarkTextSrc->nIndex);
@@ -11713,9 +11718,10 @@ AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, co
         lpREGroupStack->dwOptions|=REO_MATCHCASE;
       lpREGroupStack->wpDelim=NULL;
       lpREGroupStack->wpMaxDelim=NULL;
-      if (PatCompile(lpREGroupStack, lpMarkTextDst->pMarkText, lpMarkTextDst->pMarkText + lpMarkTextDst->nMarkTextLen))
+      if (nCompileErrorOffset=PatCompile(lpREGroupStack, lpMarkTextDst->pMarkText, lpMarkTextDst->pMarkText + lpMarkTextDst->nMarkTextLen))
       {
         AE_HeapFree(NULL, 0, (LPVOID)lpREGroupStack);
+        lpMarkTextSrc->nCompileErrorOffset=nCompileErrorOffset;
         goto FreeMarkText;
       }
 
