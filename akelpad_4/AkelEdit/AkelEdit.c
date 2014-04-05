@@ -12024,7 +12024,9 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, DWORD dwSelFlags, DW
   int nOffsetPixelX=0;
   int nOffsetPixelY=0;
 
-  if ((dwSelFlags & ae->popt->dwCaretScrollSelFlags) && (dwSelType & ae->popt->dwCaretScrollSelType))
+  if (ae->popt->dwCaretScrollFlags &&
+      (dwSelType & ae->popt->dwCaretScrollSelType) &&
+      (!ae->popt->dwCaretScrollSelFlags || (dwSelFlags & ae->popt->dwCaretScrollSelFlags)))
   {
     if (ae->popt->dwCaretScrollFlags & AESC_OFFSETPIXELX)
       nOffsetPixelX=ae->popt->nCaretScrollOffsetX;
