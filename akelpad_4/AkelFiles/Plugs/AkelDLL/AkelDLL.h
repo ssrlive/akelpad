@@ -849,6 +849,126 @@ typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSu
 // FALSE do default hotkey processing.
 
 typedef struct {
+  HWND hWndEdit;           //Edit window.
+  AEHDOC hDocEdit;         //Edit document.
+  const BYTE *pFile;       //Current editing file.
+                           //  const char *pFile         if bOldWindows == TRUE
+                           //  const wchar_t *pFile      if bOldWindows == FALSE
+  const char *szFile;      //Current editing file (Ansi).
+  const wchar_t *wszFile;  //Current editing file (Unicode).
+  int nCodePage;           //Current code page.
+  BOOL bBOM;               //Current BOM.
+  int nNewLine;            //Current new line format, see NEWLINE_* defines.
+  BOOL bModified;          //File has been modified.
+  BOOL bReadOnly;          //Read only.
+  BOOL bWordWrap;          //Word wrap.
+  BOOL bOvertypeMode;      //Overtype mode.
+  HWND hWndMaster;         //Master window.
+  AEHDOC hDocMaster;       //Master document.
+  HWND hWndClone1;         //First clone window.
+  AEHDOC hDocClone1;       //First clone document.
+  HWND hWndClone2;         //Second clone window.
+  AEHDOC hDocClone2;       //Second clone document.
+  HWND hWndClone3;         //Third clone window.
+  AEHDOC hDocClone3;       //Third clone document.
+} EDITINFO;
+
+typedef struct _RECENTCARETITEM {
+  struct _RECENTCARETITEM *next;
+  struct _RECENTCARETITEM *prev;
+  INT_PTR nCaretOffset;
+} RECENTCARETITEM;
+
+typedef struct {
+  RECENTCARETITEM *first;
+  RECENTCARETITEM *last;
+} STACKRECENTCARET;
+
+typedef struct _FRAMEDATA {
+  struct _FRAMEDATA *next;
+  struct _FRAMEDATA *prev;
+
+  //Edit state external
+  HWND hWndEditParent;                                //Edit parent window.
+  EDITINFO ei;                                        //Edit info.
+  char szFile[MAX_PATH];                              //Frame file (Ansi).
+  wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
+  int nFileLen;                                       //Frame file length.
+  int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
+  HICON hIcon;                                        //Frame icon.
+  int nIconIndex;                                     //Frame ImageList icon index.
+  RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
+  RECT rcMasterWindow;                                //Master window RECT. rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
+
+  //Edit settings (AkelPad)
+  DWORD dwLockInherit;                                //See LI_* defines.
+  LOGFONTW lf;                                        //Edit font.
+  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces.
+  DWORD dwCaretOptions;                               //See CO_* defines.
+  DWORD dwMouseOptions;                               //See MO_* defines.
+  int nClickURL;                                      //Number of clicks to open URL.
+  BOOL bUrlPrefixesEnable;                            //URL prefixes enable.
+  BOOL bUrlDelimitersEnable;                          //URL delimiters enable.
+  BOOL bWordDelimitersEnable;                         //Word delimiters enabled.
+  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled.
+  DWORD dwMappedPrintWidth;                           //Mapped print page width.
+
+  //Edit settings (AkelEdit)
+  RECT rcEditMargins;                                 //Edit margins.
+  int nTabStopSize;                                   //Tab stop size.
+  int nUndoLimit;                                     //Undo limit.
+  BOOL bDetailedUndo;                                 //Detailed undo.
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL.
+  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge.
+  DWORD dwMarker;                                     //Vertical marker, zero if no marker set.
+  int nCaretWidth;                                    //Caret width.
+  DWORD dwAltLineFill;                                //Alternating lines fill interval.
+  DWORD dwAltLineSkip;                                //Alternating lines skip interval.
+  BOOL bAltLineBorder;                                //Draw alternating lines border.
+  DWORD dwLineGap;                                    //Line gap.
+  BOOL bShowURL;                                      //Show URL.
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes.
+  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters.
+  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters.
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
+  wchar_t wszBkImageFile[MAX_PATH];                   //Background image file.
+  int nBkImageAlpha;                                  //Alpha transparency value that ranges from 0 to 255.
+  HBITMAP hBkImageBitmap;                             //Background image handle.
+  AECOLORS aec;                                       //Edit colors.
+
+  //Edit state internal. AKD_FRAMEINIT not copy data below.
+  AEEditProc lpEditProc;                              //Edit window procedure.
+  FILETIME ft;                                        //File time.
+  HKL dwInputLocale;                                  //Keyboard layout.
+  STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
+  RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
+
+  //Find/Replace
+  INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
+  BOOL bCompileErrorReplace;                          //TRUE - error in "ReplaceWith" complitaion, FALSE - error in "FindIt" complitaion.
+
+  //Statusbar
+  AECHARRANGE crPrevSel;
+  INT_PTR nSelSubtract;
+  INT_PTR nCaretRichOffset;
+  INT_PTR nCaretByteOffset;
+  int nCaretChar;
+  int nCaretLine;
+  int nCaretColumn;
+  int nLineCountAll;
+  int nLineCountSel;
+  int nLineSelBegin;
+  int nLineSelEnd;
+  INT_PTR nRichCount;
+  int nFontPoint;
+  BOOL bCapsLock;
+  BOOL bNumLock;
+  BOOL bReachedEOF;
+  INT_PTR nReplaceCount;
+} FRAMEDATA;
+
+typedef struct {
   DWORD cb;                   //Size of the structure.
   HWND hMainWnd;              //Main window.
   DWORD dwAkelDllVersion;     //Current AkelDLL version. Set it to AKELDLL.
@@ -904,6 +1024,7 @@ typedef struct {
   HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
   int nSaveSettings;                //See SS_* defines.
   HWND hMainWnd;                    //Main window.
+  FRAMEDATA *lpFrameData;           //Pointer to a current FRAMEDATA structure.
   HWND hWndEdit;                    //Edit window.
   AEHDOC hDocEdit;                  //Edit document.
   HWND hStatus;                     //StatusBar window.
@@ -1047,125 +1168,6 @@ typedef struct {
   DWORD dwFlags;         //See SD_* defines.
 } SAVEDOCUMENTW;
 
-typedef struct _RECENTCARETITEM {
-  struct _RECENTCARETITEM *next;
-  struct _RECENTCARETITEM *prev;
-  INT_PTR nCaretOffset;
-} RECENTCARETITEM;
-
-typedef struct {
-  RECENTCARETITEM *first;
-  RECENTCARETITEM *last;
-} STACKRECENTCARET;
-
-typedef struct {
-  HWND hWndEdit;           //Edit window.
-  AEHDOC hDocEdit;         //Edit document.
-  const BYTE *pFile;       //Current editing file.
-                           //  const char *pFile         if bOldWindows == TRUE
-                           //  const wchar_t *pFile      if bOldWindows == FALSE
-  const char *szFile;      //Current editing file (Ansi).
-  const wchar_t *wszFile;  //Current editing file (Unicode).
-  int nCodePage;           //Current code page.
-  BOOL bBOM;               //Current BOM.
-  int nNewLine;            //Current new line format, see NEWLINE_* defines.
-  BOOL bModified;          //File has been modified.
-  BOOL bReadOnly;          //Read only.
-  BOOL bWordWrap;          //Word wrap.
-  BOOL bOvertypeMode;      //Overtype mode.
-  HWND hWndMaster;         //Master window.
-  AEHDOC hDocMaster;       //Master document.
-  HWND hWndClone1;         //First clone window.
-  AEHDOC hDocClone1;       //First clone document.
-  HWND hWndClone2;         //Second clone window.
-  AEHDOC hDocClone2;       //Second clone document.
-  HWND hWndClone3;         //Third clone window.
-  AEHDOC hDocClone3;       //Third clone document.
-} EDITINFO;
-
-typedef struct _FRAMEDATA {
-  struct _FRAMEDATA *next;
-  struct _FRAMEDATA *prev;
-
-  //Edit state external
-  HWND hWndEditParent;                                //Edit parent window.
-  EDITINFO ei;                                        //Edit info.
-  char szFile[MAX_PATH];                              //Frame file (Ansi).
-  wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
-  int nFileLen;                                       //Frame file length.
-  int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
-  HICON hIcon;                                        //Frame icon.
-  int nIconIndex;                                     //Frame ImageList icon index.
-  RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
-  RECT rcMasterWindow;                                //Master window RECT. rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
-
-  //Edit settings (AkelPad)
-  DWORD dwLockInherit;                                //See LI_* defines.
-  LOGFONTW lf;                                        //Edit font.
-  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces.
-  DWORD dwCaretOptions;                               //See CO_* defines.
-  DWORD dwMouseOptions;                               //See MO_* defines.
-  int nClickURL;                                      //Number of clicks to open URL.
-  BOOL bUrlPrefixesEnable;                            //URL prefixes enable.
-  BOOL bUrlDelimitersEnable;                          //URL delimiters enable.
-  BOOL bWordDelimitersEnable;                         //Word delimiters enabled.
-  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled.
-  DWORD dwMappedPrintWidth;                           //Mapped print page width.
-
-  //Edit settings (AkelEdit)
-  RECT rcEditMargins;                                 //Edit margins.
-  int nTabStopSize;                                   //Tab stop size.
-  int nUndoLimit;                                     //Undo limit.
-  BOOL bDetailedUndo;                                 //Detailed undo.
-  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL.
-  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge.
-  DWORD dwMarker;                                     //Vertical marker, zero if no marker set.
-  int nCaretWidth;                                    //Caret width.
-  DWORD dwAltLineFill;                                //Alternating lines fill interval.
-  DWORD dwAltLineSkip;                                //Alternating lines skip interval.
-  BOOL bAltLineBorder;                                //Draw alternating lines border.
-  DWORD dwLineGap;                                    //Line gap.
-  BOOL bShowURL;                                      //Show URL.
-  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes.
-  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters.
-  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters.
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
-  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
-  wchar_t wszBkImageFile[MAX_PATH];                   //Background image file.
-  int nBkImageAlpha;                                  //Alpha transparency value that ranges from 0 to 255.
-  HBITMAP hBkImageBitmap;                             //Background image handle.
-  AECOLORS aec;                                       //Edit colors.
-
-  //Edit state internal. AKD_FRAMEINIT not copy data below.
-  AEEditProc lpEditProc;                              //Edit window procedure.
-  FILETIME ft;                                        //File time.
-  HKL dwInputLocale;                                  //Keyboard layout.
-  STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
-  RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
-
-  //Find/Replace
-  INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
-  BOOL bCompileErrorReplace;                          //TRUE - error in "ReplaceWith" complitaion, FALSE - error in "FindIt" complitaion.
-
-  //Statusbar
-  AECHARRANGE crPrevSel;
-  INT_PTR nSelSubtract;
-  INT_PTR nCaretRichOffset;
-  INT_PTR nCaretByteOffset;
-  int nCaretChar;
-  int nCaretLine;
-  int nCaretColumn;
-  int nLineCountAll;
-  int nLineCountSel;
-  int nLineSelBegin;
-  int nLineSelEnd;
-  INT_PTR nRichCount;
-  int nFontPoint;
-  BOOL bCapsLock;
-  BOOL bNumLock;
-  BOOL bReachedEOF;
-  INT_PTR nReplaceCount;
-} FRAMEDATA;
 
 //AKD_SETFRAMEINFO
 typedef struct {

@@ -1059,7 +1059,7 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;    //See AESC_OFFSET* defines.
-  DWORD dwSelFlags; //See AESELT_* defines.
+  DWORD dwSelFlags; //See AESELT_* defines. Can be zero.
   DWORD dwSelType;  //See AESCT_* defines.
   int nOffsetX;     //Minimal number of characters to horizontal window edge.
   int nOffsetY;     //Minimal number of lines to vertical window edge.
