@@ -13417,6 +13417,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.hPluginsStack=&hPluginsStack;
                   pd.nSaveSettings=moCur.nSaveSettings;
                   pd.hMainWnd=hMainWnd;
+                  pd.lpFrameData=lpFrameCurrent;
                   pd.hWndEdit=lpFrameCurrent->ei.hWndEdit;
                   pd.hDocEdit=lpFrameCurrent->ei.hDocEdit;
                   pd.hStatus=hStatus;
