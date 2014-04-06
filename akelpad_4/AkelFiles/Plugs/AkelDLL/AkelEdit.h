@@ -4889,7 +4889,7 @@ Retrieve or set scroll to caret options.
 
 (BOOL)wParam                   == TRUE   set caret operation.
                                   FALSE  retrieve caret operation.
-(AESCROLLCARETOPTIONS *)lParam == pointer to a AESCROLLCARETOPTIONS structure.
+(AESCROLLCARETOPTIONS *)lParam == pointer to a AESCROLLCARETOPTIONS structure. If this parameter is NULL and wParam is TRUE, the caret scroll options are set to its default values.
 
 Return Value
  zero
