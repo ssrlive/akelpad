@@ -1763,11 +1763,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (wParam)
       {
-        ae->popt->dwCaretScrollFlags=sco->dwFlags;
-        ae->popt->dwCaretScrollSelFlags=sco->dwSelFlags;
-        ae->popt->dwCaretScrollSelType=sco->dwSelType;
-        ae->popt->nCaretScrollOffsetX=sco->nOffsetX;
-        ae->popt->nCaretScrollOffsetY=sco->nOffsetY;
+        if (!sco)
+        {
+          ae->popt->dwCaretScrollFlags=0;
+          ae->popt->dwCaretScrollSelFlags=0;
+          ae->popt->dwCaretScrollSelType=0;
+          ae->popt->nCaretScrollOffsetX=0;
+          ae->popt->nCaretScrollOffsetY=0;
+        }
+        else
+        {
+          ae->popt->dwCaretScrollFlags=sco->dwFlags;
+          ae->popt->dwCaretScrollSelFlags=sco->dwSelFlags;
+          ae->popt->dwCaretScrollSelType=sco->dwSelType;
+          ae->popt->nCaretScrollOffsetX=sco->nOffsetX;
+          ae->popt->nCaretScrollOffsetY=sco->nOffsetY;
+        }
       }
       else
       {
