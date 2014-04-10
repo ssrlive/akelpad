@@ -11495,9 +11495,8 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
                       else if (*wpCount == L'#')
                       {
                         ++wpCount;
-                        if (wpCountMax - wpCount < 6) break;
-                        if ((crText=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
-                          wpCount+=6;
+                        if (wpCountMax - wpCount < 3) break;
+                        crText=AE_GetColorFromStr(wpCount, &wpCount);
                       }
                       else break;
 
@@ -11517,9 +11516,8 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
                         else if (*wpCount == L'#')
                         {
                           ++wpCount;
-                          if (wpCountMax - wpCount < 6) break;
-                          if ((crBk=AE_GetColorFromStr(wpCount)) != (DWORD)-1)
-                            wpCount+=6;
+                          if (wpCountMax - wpCount < 3) break;
+                          crBk=AE_GetColorFromStr(wpCount, &wpCount);
                         }
                         else break;
 
@@ -14135,8 +14133,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                         ++wpColor;
                         --nColorLen;
                       }
-                      if (nColorLen == 6)
-                        dwActiveText=AE_GetColorFromStr(wpColor);
+                      if (nColorLen == 6 || nColorLen == 3)
+                        dwActiveText=AE_GetColorFromStr(wpColor, NULL);
                     }
                   }
                   else dwActiveText=lpREGroupColor->crText;
@@ -14153,8 +14151,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                         ++wpColor;
                         --nColorLen;
                       }
-                      if (nColorLen == 6)
-                        dwActiveBk=AE_GetColorFromStr(wpColor);
+                      if (nColorLen == 6 || nColorLen == 3)
+                        dwActiveBk=AE_GetColorFromStr(wpColor, NULL);
                     }
                   }
                   else dwActiveBk=lpREGroupColor->crBk;
@@ -20911,13 +20909,39 @@ COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent)
     return AE_ColorBrightness(crColor, +nPercent * 8);
 }
 
-COLORREF AE_GetColorFromStr(const wchar_t *wpColor)
+COLORREF AE_GetColorFromStr(const wchar_t *wpColor, const wchar_t **wpNext)
 {
   COLORREF crColor;
 
   if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != (DWORD)-1)
-    return RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
-  return (DWORD)-1;
+  {
+    //RRGGBB
+    if (wpNext) *wpNext=wpColor + 6;
+    crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
+  }
+  else
+  {
+    //RGB->RRGGBB
+    wchar_t wszRBG[6];
+    wchar_t *wpRBG=wszRBG;
+    wchar_t *wpMaxRBG=wszRBG + 6;
+
+    while (wpRBG < wpMaxRBG)
+    {
+      if ((*wpColor >= '0' && *wpColor <= '9') ||
+          (*wpColor >= 'a' && *wpColor <= 'f') ||
+          (*wpColor >= 'A' && *wpColor <= 'F'))
+      {
+        *wpRBG++=*wpColor;
+        *wpRBG++=*wpColor++;
+      }
+      else return (COLORREF)-1;
+    }
+    if (wpNext) *wpNext=wpColor;
+    if ((crColor=(COLORREF)hex2decW(wszRBG, 6)) != (COLORREF)-1)
+      crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
+  }
+  return crColor;
 }
 
 BOOL AE_GetBasicCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCOLORS *aecc)
