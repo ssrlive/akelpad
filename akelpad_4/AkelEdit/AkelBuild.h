@@ -1036,7 +1036,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate);
 COLORREF AE_ColorCombine(COLORREF crColor1Cur, COLORREF crColor2NewBase, COLORREF crColor3CurBase);
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent);
 COLORREF AE_ColorSmooth(COLORREF crColor, int nPercent);
-COLORREF AE_GetColorFromStr(const wchar_t *wpColor);
+COLORREF AE_GetColorFromStr(const wchar_t *wpColor, const wchar_t **wpNext);
 BOOL AE_GetBasicCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCOLORS *aecc);
 BOOL AE_GetHighLightCharColors(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARCOLORS *aecc);
 DWORD CALLBACK AE_GetHighLightCharColorCallback(UINT_PTR dwCookie, AECHARRANGE *crAkelRange, CHARRANGE64 *crRichRange, AEHLPAINT *hlp);
