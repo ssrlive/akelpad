@@ -1,7 +1,7 @@
 /*****************************************************************
- *              String functions header v5.5                     *
+ *              String functions header v5.6                     *
  *                                                               *
- * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -1850,8 +1850,8 @@ INT_PTR xatoiA(const char *pStr, const char **pNext)
  *
  *Converts unicode string to integer.
  *
- *[in]  const wchar_t *wpStr  Unicode string number.
- *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
+ *[in]  const wchar_t *wpStr    Unicode string number.
+ *[out] const wchar_t **wpNext  Pointer to the first char after number, can be NULL.
  *
  *Returns: integer.
  *
@@ -1938,8 +1938,8 @@ __int64 xatoi64A(const char *pStr, const char **pNext)
  *
  *Converts unicode string to int64.
  *
- *[in]  const wchar_t *wpStr  Unicode string number.
- *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
+ *[in]  const wchar_t *wpStr    Unicode string number.
+ *[out] const wchar_t **wpNext  Pointer to the first char after number, can be NULL.
  *
  *Returns: 64-bit integer.
  *
