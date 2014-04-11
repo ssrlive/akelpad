@@ -457,15 +457,15 @@
                                                  //  AEQUOTEITEM.pQuoteEnd is a regular exression match map in format:
                                                  //    "\BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk) ..."
                                                  //  Notes:
-                                                 //    Color need to be in #RRGGBB format.
+                                                 //    Color need to be in RRGGBB or RGB format with # prefix or without.
                                                  //    If color equal to zero, then color ignored.
                                                  //    Instead of color backreference can be used.
                                                  //  Example (highlight quoted string):
                                                  //    AEQUOTEITEM.pQuoteStart  (")([^"\\]*(\\.[^"\\]*)*)(")
-                                                 //    AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#0000FF,0) \4=(0,#FF0000,0)
-                                                 //  Example (highlight #RRGGBB word with its color):
-                                                 //    AEQUOTEITEM.pQuoteStart  #[A-F\d]{6}
-                                                 //    AEQUOTEITEM.pQuoteEnd    \0=(0,\0,0)
+                                                 //    AEQUOTEITEM.pQuoteEnd    \1=(0,#FF0000,0) \2=(0,#00F,0) \4=(0,#FF0000,0)
+                                                 //  Example (highlight #RRGGBB or #RGB word with its color):
+                                                 //    AEQUOTEITEM.pQuoteStart  #([A-F\d]{6}|[A-F\d]{3})\b
+                                                 //    AEQUOTEITEM.pQuoteEnd    \0=(0,\1,0)
                                                  //Can be used in AEMARKTEXTITEM.dwFlags.
                                                  //  AEMARKTEXTITEM.pMarkText is a regular exression pattern.
 
