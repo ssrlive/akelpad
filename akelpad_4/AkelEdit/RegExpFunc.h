@@ -35,18 +35,19 @@
 #define REGF_ROOTMULTILINE    0x00004
 #define REGF_AUTOGROUP        0x00010
 #define REGF_OR               0x00020
-#define REGF_POSITIVEFORWARD  0x00040
-#define REGF_NEGATIVEFORWARD  0x00100
-#define REGF_POSITIVEBACKWARD 0x00200
-#define REGF_NEGATIVEBACKWARD 0x00400
-#define REGF_NEGATIVEFIXED    0x00800
-#define REGF_IFPARENT         0x01000
-#define REGF_IFCONDITION      0x02000
-#define REGF_IFTRUE           0x04000
-#define REGF_IFFALSE          0x08000
-#define REGF_REFEXIST         0x10000
-#define REGF_NONGREEDY        0x20000
-#define REGF_ANY              0x40000
+#define REGF_ORPARENT         0x00040
+#define REGF_POSITIVEFORWARD  0x00100
+#define REGF_NEGATIVEFORWARD  0x00200
+#define REGF_POSITIVEBACKWARD 0x00400
+#define REGF_NEGATIVEBACKWARD 0x00800
+#define REGF_NEGATIVEFIXED    0x01000
+#define REGF_IFPARENT         0x02000
+#define REGF_IFCONDITION      0x04000
+#define REGF_IFTRUE           0x08000
+#define REGF_IFFALSE          0x10000
+#define REGF_REFEXIST         0x20000
+#define REGF_NONGREEDY        0x40000
+#define REGF_ANY              0x80000
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -512,6 +513,12 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
     if (*wpPat == L'|')
     {
+      if (!(lpREGroupItem->dwFlags & REGF_OR))
+      {
+        //Set REGF_ORPARENT because PatCloseGroups change wpPatEnd:
+        //str - "123", find "(\d{6}|\d{3})", replace - "x"
+        lpREGroupItem->dwFlags|=REGF_ORPARENT;
+      }
       lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &bGroupNextChars);
 
       //100|ABC(200|300|400)
@@ -1713,7 +1720,7 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
     if (lpREGroupItem->firstChild)
     {
       //If only one children and pattern the same, then remove redundant grouping
-      if (lpREGroupItem->firstChild == lpREGroupItem->lastChild && !(lpREGroupItem->dwFlags & REGF_IFPARENT))
+      if (lpREGroupItem->firstChild == lpREGroupItem->lastChild && !(lpREGroupItem->dwFlags & REGF_IFPARENT) && !(lpREGroupItem->dwFlags & REGF_ORPARENT))
       {
         lpREGroupChild=lpREGroupItem->firstChild;
 
