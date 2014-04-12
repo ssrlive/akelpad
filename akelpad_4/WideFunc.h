@@ -1159,8 +1159,8 @@ INT_PTR PropertySheetWide(const PROPSHEETHEADERW *pshW)
           pspCountA->pszTitle=AllocAnsi(pspCountW->pszTitle);
       }
 
-      xmemcpy(&pshA, pshW, PROPSHEETHEADER_V1_SIZE);
-      pshA.dwSize=PROPSHEETHEADER_V1_SIZE;
+      xmemcpy(&pshA, pshW, 40); //PROPSHEETHEADER_V1_SIZE
+      pshA.dwSize=40; //PROPSHEETHEADER_V1_SIZE
       if ((pshW->dwFlags & PSH_USEICONID) && (UINT_PTR)pshW->pszIcon > MAXUHALF_PTR)
         pshA.pszIcon=AllocAnsi(pshW->pszIcon);
       if ((UINT_PTR)pshW->pszCaption > MAXUHALF_PTR)
