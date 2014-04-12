@@ -100,7 +100,7 @@ BEGIN
 
             MENUITEM "Usuñ &bia³e znaki na koñcu\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+            MENUITEM "Usuñ bia³e znaki w zaznaczeniu",
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -895,7 +895,7 @@ BEGIN
     LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
                     77,171,8
     GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,96,200,66
-    CONTROL         """Zamieñ wszystko"" - zamyka okno dialogowe",
+    CONTROL         """Zamieñ wszystko"" zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Zamieñ wszystko"" bez komunikatu",
@@ -1016,7 +1016,7 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Zaktualizuj %s\n\nAktualna wersja: %d.%d.%d.%d\nWymagana wersja: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Klawisz skrótu jest ju¿ przypisany do ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nie mo¿na otworzyæ pliku ""%s""."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
+    MSG_WRONG_FILENAME      "%s\nB³êdna nazwa pliku."
     MSG_WRONG_STRING        "Nieprawid³owy numer wiersza."
     MSG_LONG_FILELIST       "Wybrano za du¿o plików."
     MSG_DOCUMENT_CHANGED    "Dokument zosta³ zmodyfikowany. Czy zapisaæ zmiany?"
