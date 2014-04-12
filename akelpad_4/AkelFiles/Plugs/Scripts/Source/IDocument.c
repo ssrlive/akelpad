@@ -2688,7 +2688,7 @@ BOOL CALLBACK SubclassCallbackCall(CALLBACKITEM *lpCallback, HWND hWnd, UINT uMs
 
   if (bNextProc)
   {
-    for (lpCallback=g_hSubclassCallbackStack.last; lpCallback; lpCallback->prev)
+    for (lpCallback=g_hSubclassCallbackStack.last; lpCallback; lpCallback=lpCallback->prev)
     {
       if (lpCallback->hHandle == hWnd)
         break;
