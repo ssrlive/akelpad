@@ -1,0 +1,22 @@
+*****************************************************************
+***                SaveFile AkelPad plugin v3.0               ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Additional file saving settings.
+
+
+*** Functions ***
+
+SaveFile::AutoSave
+Autosaving.
+
+SaveFile::SaveNoBOM
+Saves Unicode files without BOM.
+
+SaveFile::Settings
+Settings dialog.

@@ -1,0 +1,225 @@
+*****************************************************************
+***               LineBoard AkelPad plugin v11.7              ***
+*****************************************************************
+
+2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+
+
+*** Описание ***
+
+1. Показывает номера строк и столбцов.
+2. Добавляет поддержку закладок.
+
+Замечания:
+- Если в настройках не указана горячая клавиша для удаления закладки, то
+  горячая клавиша для установки закладки работает как "Установить/Удалить".
+
+
+*** Функции ***
+
+LineBoard::Main
+Главная функция для запуска и остановки плагина.
+
+LineBoard::Settings
+Диалог настроек плагина.
+
+
+*** Внешний вызов ***
+
+Call("LineBoard::Main", 1)
+  Параметры:
+    1
+      Ожидать пока плагин не инициализируется.
+
+Call("LineBoard::Main", 2, *HEIGHT, *ENABLE)
+  Параметры:
+    2
+      Получить высоту линейки.
+    *HEIGHT
+      Указатель на память, которая получает высоту линейки.
+    *ENABLE
+      Необязательный параметр. Указатель на память, которая получает включенность линейки.
+  Пример:
+    WScript.Echo(GetRulerHeight());
+
+    function GetRulerHeight()
+    {
+      var lpHeight;
+      var nHeight=0;
+
+      if (lpHeight=AkelPad.MemAlloc(4 /*sizeof(int)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 2, lpHeight);
+        nHeight=AkelPad.MemRead(lpHeight, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpHeight);
+      }
+      return nHeight;
+    }
+
+Call("LineBoard::Main", 3, HEIGHT)
+  Параметры:
+    3
+      Установить высоту линейки.
+    HEIGHT
+      Высота линейки.
+        Если новое значение линейки совпадает с текущим, то линейка скрывается (устанавливается значение 0).
+        Если -1, то инвертировать включенность линейки.
+
+Call("LineBoard::Main", 4, *BOOL)
+  Параметры:
+    4
+      Показать/Скрыть панель.
+    *BOOL
+      Необязательный параметр. Указатель на переменную, которая получает видимость панели.
+  Пример (получить видимость панели):
+    WScript.Echo(IsLineBoardVisible());
+
+    function IsLineBoardVisible()
+    {
+      var lpVisible;
+      var bVisible=false;
+
+      if (lpVisible=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 4, lpVisible);
+        bVisible=AkelPad.MemRead(lpVisible, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpVisible);
+      }
+      return bVisible;
+    }
+
+Call("LineBoard::Main", 11, WINDOW, DOCUMENT, *RECT)
+  Параметры:
+    11
+      Получить прямоугольник вне панелей.
+    WINDOW
+      Дескриптор окна редактирования.
+    DOCUMENT
+      Дескриптор документа.
+    *RECT
+      Указатель на память, который получает прямоугольник вне панелей.
+        RECT.left - ширина панели строк.
+        RECT.top - высота линейки.
+        RECT.right - правая граница клиентской области окна редактирования.
+        RECT.bottom - нижняя граница клиентской области окна редактирования.
+  Пример:
+    WScript.Echo(GetBoardWidth(AkelPad.GetEditWnd(), 0));
+
+    function GetBoardWidth(hWndEdit, hDocEdit)
+    {
+      var lpRect;
+      var nWidth=0;
+
+      if (lpRect=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 11, hWndEdit, hDocEdit, lpRect);
+        nWidth=AkelPad.MemRead(lpRect + 0 /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpRect);
+      }
+      return nWidth;
+    }
+
+Call("LineBoard::Main", 12, WINDOW, DOCUMENT, *BOOKMARK, *BOOKMARKLENGTH)
+  Параметры:
+    12
+      Получить строку с номерами закладок.
+    WINDOW
+      Дескриптор окна редактирования.
+    DOCUMENT
+      Дескриптор документа.
+    *BOOKMARK
+      Указатель на память, который получает строку с номерами закладок через запятую. Может быть NULL. Тип строки Unicode.
+    *BOOKMARKLENGTH
+      Количество символов в BOOKMARK. Может быть NULL.
+  Пример:
+    WScript.Echo(GetBookmarksString(AkelPad.GetEditWnd(), 0));
+
+    function GetBookmarksString(hWndEdit, hDocEdit)
+    {
+      var pBookmarksStr="";
+      var lpBookmarksStr;
+      var nBookmarksLen;
+      var lpBookmarksLen;
+
+      if (lpBookmarksLen=AkelPad.MemAlloc(4 /*sizeof(int)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 12, hWndEdit, hDocEdit, 0, lpBookmarksLen);
+
+        if ((nBookmarksLen=AkelPad.MemRead(lpBookmarksLen, 3 /*DT_DWORD*/)) > 1)
+        {
+          if (lpBookmarksStr=AkelPad.MemAlloc(nBookmarksLen * 2 /*sizeof(wchar_t)*/))
+          {
+            AkelPad.CallW("LineBoard::Main", 12, hWndEdit, hDocEdit, lpBookmarksStr, 0);
+            pBookmarksStr=AkelPad.MemRead(lpBookmarksStr, 1 /*DT_UNICODE*/);
+            AkelPad.MemFree(lpBookmarksStr);
+          }
+        }
+        AkelPad.MemFree(lpBookmarksLen);
+      }
+      return pBookmarksStr;
+    }
+
+Call("LineBoard::Main", 13, WINDOW, DOCUMENT, "BOOKMARK")
+  Параметры:
+    13
+      Установить закладки.
+    WINDOW
+      Дескриптор окна редактирования.
+    DOCUMENT
+      Дескриптор документа.
+    "BOOKMARK"
+      Строка с номерами закладок через запятую. Например: "10,14,20".
+
+Call("LineBoard::Main", 14, WINDOW, DOCUMENT)
+  Параметры:
+    14
+      Удалить все закладки.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.
+
+Call("LineBoard::Main", 15, WINDOW, DOCUMENT)
+  Параметры:
+    15
+      Установить закладку на текущей строке или переключать закладку, если не установлена горячая клавиша для удаления закладки.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.
+
+Call("LineBoard::Main", 16, WINDOW, DOCUMENT)
+  Параметры:
+    16
+      Удалить закладку текущей строки.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.
+
+Call("LineBoard::Main", 17, WINDOW, DOCUMENT)
+  Параметры:
+    17
+      Отобразить меню закладок.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.
+
+Call("LineBoard::Main", 18, WINDOW, DOCUMENT)
+  Параметры:
+    18
+      Перейти к следующей закладке.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.
+
+Call("LineBoard::Main", 19, WINDOW, DOCUMENT)
+  Параметры:
+    19
+      Перейти к предыдущей закладке.
+    WINDOW
+      Необязательный параметр. Дескриптор окна редактирования.
+    DOCUMENT
+      Необязательный параметр. Дескриптор документа.

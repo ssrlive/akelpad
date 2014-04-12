@@ -1,0 +1,144 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_PLUGIN         ICON    DISCARDABLE     "HexSel.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_HEXSEL DIALOGEX 70, 70, 74, 35
+STYLE WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "",IDC_TITLETEXT,2,1,55,10,SS_SUNKEN
+    CONTROL         "",IDC_CLOSE,"Button",BS_OWNERDRAW,60,1,11,10
+    CONTROL         "",IDC_HEXVIEW,"richedit20w",WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP | 0x2904,2,12,70,21,WS_EX_CLIENTEDGE
+END
+
+IDD_SETUP DIALOG DISCARDABLE  70, 70, 296, 193
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "",IDC_SETUP_DIRECTION_LABEL,9,6,110,55,WS_GROUP
+    CONTROL         "",IDC_SETUP_DIRECTION_AUTO,"Button",BS_AUTORADIOBUTTON,
+                    15,20,95,8
+    CONTROL         "",IDC_SETUP_DIRECTION_STR2HEX,"Button",
+                    BS_AUTORADIOBUTTON,15,33,95,8
+    CONTROL         "",IDC_SETUP_DIRECTION_HEX2STR,"Button",
+                    BS_AUTORADIOBUTTON,15,46,95,8
+    GROUPBOX        "",IDC_SETUP_ENCLOSE_LABEL,9,68,110,52
+    LTEXT           "",IDC_SETUP_PREFIX_LABEL,17,85,43,8
+    EDITTEXT        IDC_SETUP_PREFIX,63,83,47,12,ES_AUTOHSCROLL
+    LTEXT           "",IDC_SETUP_SUFFIX_LABEL,17,101,43,8
+    EDITTEXT        IDC_SETUP_SUFFIX,63,99,47,12,ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_SETUP_SINGLEBYTE_LABEL,135,6,150,55,WS_GROUP
+    CONTROL         "",IDC_SETUP_SINGLEBYTE_AUTO,"Button",BS_AUTORADIOBUTTON,
+                    141,25,135,8
+    CONTROL         "",IDC_SETUP_SINGLEBYTE_MANUAL,"Button",
+                    BS_AUTORADIOBUTTON,141,42,10,8
+    COMBOBOX        IDC_SETUP_SINGLEBYTE_LIST,154,39,123,91,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "",IDC_SETUP_DOUBLEBYTE_LABEL,134,68,151,52,WS_GROUP
+    CONTROL         "1200  (UTF-16 LE)",IDC_SETUP_DOUBLEBYTE_UTF16LE,"Button",
+                    BS_AUTORADIOBUTTON,140,84,135,8
+    CONTROL         "1201  (UTF-16 BE)",IDC_SETUP_DOUBLEBYTE_UTF16BE,"Button",
+                    BS_AUTORADIOBUTTON,140,100,135,8
+    GROUPBOX        "",IDC_SETUP_RADIX_LABEL,9,129,110,54,WS_GROUP
+    CONTROL         "",IDC_SETUP_RADIXHEX,"Button",BS_AUTORADIOBUTTON,15,143,
+                    95,8
+    CONTROL         "",IDC_SETUP_RADIXDEC,"Button",BS_AUTORADIOBUTTON,15,156,
+                    95,8
+    CONTROL         "",IDC_SETUP_RADIXOCT,"Button",BS_AUTORADIOBUTTON,15,169,
+                    95,8
+    PUSHBUTTON      "",IDOK,181,169,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,235,169,50,14,BS_CENTER
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

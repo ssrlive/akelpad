@@ -1,0 +1,131 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_PLUGIN         ICON    DISCARDABLE     "Clipboard.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CAPTURE DIALOGEX 70, 70, 74, 77
+STYLE WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "",IDC_TITLETEXT,2,1,55,10,SS_SUNKEN
+    CONTROL         "",IDC_CAPTURE_CLOSE,"Button",BS_OWNERDRAW,60,1,11,10
+    CONTROL         "",IDC_CAPTURE,"richedit20w",WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP | 0x3104,2,12,70,63,WS_EX_CLIENTEDGE
+END
+
+IDD_SETUP DIALOGEX 70, 70, 208, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CTEXT           "Capture",IDC_SETUP_CAPTURE_TITLE,53,6,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_STATIC,11,25,185,77
+    LTEXT           "",IDC_SETUP_CAPTURE_SEPARATOR_LABEL,23,38,160,8
+    EDITTEXT        IDC_SETUP_CAPTURE_SEPARATOR,20,51,166,12,ES_AUTOHSCROLL
+    LTEXT           "",IDC_SETUP_CAPTURE_SEPARATOR_LEGEND,23,70,160,25
+    CTEXT           "PasteSerial",IDC_SETUP_PASTESERIAL_TITLE,53,113,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_SETUP_PASTESERIAL_GROUP,11,132,185,65
+    LTEXT           "",IDC_SETUP_PASTESERIAL_DELIMSKIP_LABEL,17,147,105,8
+    CONTROL         "HotKey1",IDC_SETUP_PASTESERIAL_DELIMSKIP,"msctls_hotkey32",
+                    WS_BORDER | WS_TABSTOP,127,145,60,14
+    LTEXT           "",IDC_SETUP_PASTESERIAL_DELIMASTAB_LABEL,17,163,105,8
+    CONTROL         "HotKey1",IDC_SETUP_PASTESERIAL_DELIMASTAB,"msctls_hotkey32",
+                    WS_BORDER | WS_TABSTOP,127,160,60,14
+    LTEXT           "",IDC_SETUP_PASTESERIAL_DELIMASIS_LABEL,17,178,105,8
+    CONTROL         "HotKey1",IDC_SETUP_PASTESERIAL_DELIMASIS,"msctls_hotkey32",
+                    WS_BORDER | WS_TABSTOP,127,175,60,14
+    PUSHBUTTON      "",IDOK,49,207,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,103,207,50,14,BS_CENTER
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

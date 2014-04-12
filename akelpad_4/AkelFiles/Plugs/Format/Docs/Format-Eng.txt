@@ -1,0 +1,112 @@
+*****************************************************************
+***                Format AkelPad plugin v2.9                 ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Different operations with text formating.
+
+
+*** Functions ***
+
+Format::LineSortStrAsc
+Sorts lines by string ascending.
+
+Format::LineSortStrDesc
+Sorts lines by string descending.
+
+Format::LineSortIntAsc
+Sorts lines by integer ascending.
+
+Format::LineSortIntDesc
+Sorts lines by integer descending.
+
+Format::LineGetUnique
+Extracts unique lines.
+  Before:
+    123
+    456
+    456
+    789
+  After:
+    123
+    789
+
+Format::LineGetDuplicates
+Extracts duplicate lines.
+  Before:
+    123
+    456
+    456
+    789
+  After:
+    456
+    456
+
+Format::LineRemoveDuplicates
+Removes duplicate lines.
+  Before:
+    123
+    456
+    456
+    789
+  After:
+    123
+    456
+    789
+
+Format::LineReverse
+Reverses line order.
+
+Format::LineFixWrap
+Inserts end-of-line characters in wrap places.
+
+Format::Encrypt
+Encrypt selection text.
+
+Format::Decrypt
+Decrypt selection text.
+
+Format::LinkExtract
+Extracts links from HTML text.
+
+
+*** External call ***
+
+Call("Format::LineSortStrAsc", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineSortStrDesc", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineSortIntAsc", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineSortIntDesc", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineGetUnique", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineGetDuplicates", 1)
+  Parameters:
+    1
+      Case sensitive.
+
+Call("Format::LineRemoveDuplicates", 1)
+  Parameters:
+    1
+      Case sensitive.

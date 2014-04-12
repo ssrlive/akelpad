@@ -1,0 +1,218 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_00             ICON    DISCARDABLE     "00-SyncHorz.ico"
+IDI_ICON_01             ICON    DISCARDABLE     "01-SyncVert.ico"
+IDI_ICON_02             ICON    DISCARDABLE     "02-AutoScroll.ico"
+IDI_ICON_03             ICON    DISCARDABLE     "03-NoScroll.ico"
+IDI_ICON_04             ICON    DISCARDABLE     "04-AlignCaret.ico"
+IDI_ICON_05             ICON    DISCARDABLE     "05-AutoFocus.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SYNCHORZ_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "SyncHorz"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "SyncHorz",IDC_SYNCHORZ_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_SYNCHORZ_GROUP,80,38,170,55
+    CONTROL         "",IDC_SYNCHORZ_MDI,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,56,125,8
+    CONTROL         "",IDC_SYNCHORZ_CLONE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,70,125,8
+END
+
+IDD_SYNCVERT_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "SyncVert"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "SyncVert",IDC_SYNCVERT_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_SYNCVERT_GROUP,80,38,170,55
+    CONTROL         "",IDC_SYNCVERT_MDI,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,56,125,8
+    CONTROL         "",IDC_SYNCVERT_CLONE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,70,125,8
+END
+
+IDD_AUTOSCROLL_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "AutoScroll"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "AutoScroll",IDC_AUTOSCROLL_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_AUTOSCROLL_AUTOSTEP_GROUP,80,38,170,70
+    EDITTEXT        IDC_AUTOSCROLL_STEPTIME_EDIT,103,60,26,13,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    CONTROL         "Spin1",IDC_AUTOSCROLL_STEPTIME_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,130,60,
+                    11,13
+    LTEXT           "",IDC_AUTOSCROLL_STEPTIME_LABEL,150,62,95,8
+    EDITTEXT        IDC_AUTOSCROLL_STEPWIDTH_EDIT,103,82,26,13,
+                    ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_AUTOSCROLL_STEPWIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,130,81,
+                    11,13
+    LTEXT           "",IDC_AUTOSCROLL_STEPWIDTH_LABEL,150,85,95,8
+END
+
+IDD_NOSCROLL_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "NoScroll"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "NoScroll",IDC_NOSCROLL_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_NOSCROLL_GROUP,80,38,170,67
+    CONTROL         "",IDC_NOSCROLL_UNDO,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,55,125,8
+    CONTROL         "",IDC_NOSCROLL_REDO,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,69,125,8
+    CONTROL         "",IDC_NOSCROLL_SELECTALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,103,83,125,8
+END
+
+IDD_ALIGNCARET_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "AlignCaret"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "AlignCaret",IDC_ALIGNCARET_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_ALIGNCARET_GROUP,80,38,170,70
+    EDITTEXT        IDC_ALIGNCARET_OFFSETX_EDIT,103,60,26,13,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    CONTROL         "Spin1",IDC_ALIGNCARET_OFFSETX_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,130,60,
+                    11,13
+    LTEXT           "",IDC_ALIGNCARET_OFFSETX_LABEL,150,62,95,8
+    EDITTEXT        IDC_ALIGNCARET_OFFSETY_EDIT,103,82,26,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_ALIGNCARET_OFFSETY_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,130,81,
+                    11,13
+    LTEXT           "",IDC_ALIGNCARET_OFFSETY_LABEL,150,85,95,8
+END
+
+IDD_AUTOFOCUS_SETUP DIALOGEX 70, 70, 329, 133
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "AutoFocus"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CTEXT           "AutoFocus",IDC_AUTOFOCUS_TITLE,112,9,105,12,
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    GROUPBOX        "",IDC_AUTOFOCUS_GROUP,10,28,309,94
+    CONTROL         "",IDC_AUTOFOCUS_FOCUSBACKGROUND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,26,44,280,8
+    CONTROL         "",IDC_AUTOFOCUS_MOVESCROLLBAR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,26,60,140,8
+    CONTROL         "",IDC_AUTOFOCUS_MOVESCROLLBAR_INVERT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,35,73,70,8
+    CONTROL         "",IDC_AUTOFOCUS_MOVEWITHSHIFT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,169,60,137,8
+    CONTROL         "",IDC_AUTOFOCUS_MOVEWITHSHIFT_INVERT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,179,73,70,8
+    CONTROL         "",IDC_AUTOFOCUS_SWITCHTAB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,26,89,280,8
+    CONTROL         "",IDC_AUTOFOCUS_SWITCHTAB_INVERT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,35,102,70,8
+    CONTROL         "",IDC_AUTOFOCUS_SWITCHTAB_WITHSPIN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,102,191,8
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

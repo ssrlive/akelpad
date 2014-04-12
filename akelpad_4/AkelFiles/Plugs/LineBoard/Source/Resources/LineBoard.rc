@@ -1,0 +1,200 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_PLUGIN         ICON    DISCARDABLE     "LineBoard.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETUP DIALOGEX 70, 70, 307, 307
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "",IDC_PANEL_GROUP,9,6,140,132
+    CONTROL         "",IDC_SHOWBOARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    18,22,123,10
+    CONTROL         "",IDC_TEXTCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,42,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_TEXTCOLOR_LABEL,33,43,107,8
+    CONTROL         "",IDC_BACKGROUNDCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,57,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_BACKGROUNDCOLOR_LABEL,33,58,107,8
+    CONTROL         "",IDC_BORDERCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,72,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_BORDERCOLOR_LABEL,34,73,107,8
+    CONTROL         "",IDC_BOOKMARKTEXTCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,87,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_BOOKMARKTEXTCOLOR_LABEL,34,88,107,8
+    CONTROL         "",IDC_BOOKMARKBACKGROUNDCOLOR_BUTTON,"Button",
+                    BS_OWNERDRAW | WS_TABSTOP,18,101,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_BOOKMARKBACKGROUNDCOLOR_LABEL,34,102,107,8
+    CONTROL         "",IDC_BOOKMARKBORDERCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,116,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_BOOKMARKBORDERCOLOR_LABEL,34,117,107,8
+    GROUPBOX        "",IDC_STATIC,9,134,140,64
+    CONTROL         "",IDC_LINEUNSAVEDCOLOR_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,18,147,10,10
+    CONTROL         "",IDC_LINEUNSAVEDCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,31,146,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_LINEUNSAVEDCOLOR_LABEL,47,147,96,8
+    CONTROL         "",IDC_LINESAVEDCOLOR_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,18,162,10,10
+    CONTROL         "",IDC_LINESAVEDCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,31,161,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_LINESAVEDCOLOR_LABEL,47,162,96,8
+    RTEXT           "",IDC_LINEMODIFICATIONWIDTH_LABEL,19,180,78,8,NOT 
+                    WS_GROUP
+    EDITTEXT        IDC_LINEMODIFICATIONWIDTH_EDIT,102,178,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_LINEMODIFICATIONWIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,123,
+                    178,11,13
+    GROUPBOX        "",IDC_STATIC,9,194,140,83
+    CONTROL         "",IDC_RULERSCALECOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,206,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_RULERSCALECOLOR_LABEL,34,207,107,8
+    CONTROL         "",IDC_RULERCARETCOLOR_BUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,18,221,11,11,WS_EX_STATICEDGE
+    LTEXT           "",IDC_RULERCARETCOLOR_LABEL,34,222,107,8
+    CONTROL         "",IDC_RULERENABLE,"Button",BS_AUTOCHECKBOX | 
+                    BS_RIGHT | WS_TABSTOP,18,240,79,10
+    EDITTEXT        IDC_RULERHEIGHT_EDIT,102,238,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_RULERHEIGHT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,123,
+                    238,11,13
+    RTEXT           "",IDC_RULERCARETWIDTH_LABEL,18,259,79,8,NOT WS_GROUP
+    EDITTEXT        IDC_RULERCARETWIDTH_EDIT,102,257,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_RULERCARETWIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,123,
+                    257,11,13
+    GROUPBOX        "",IDC_BOOKMARK_GROUP,157,6,140,132
+    LTEXT           "",IDC_SETBOOKMARK_LABEL,163,24,51,8
+    CONTROL         "HotKey1",IDC_SETBOOKMARK,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,21,69,14
+    LTEXT           "",IDC_DELBOOKMARK_LABEL,163,42,51,8
+    CONTROL         "HotKey1",IDC_DELBOOKMARK,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,39,69,14
+    LTEXT           "",IDC_DELALLBOOKMARK_LABEL,163,60,51,8
+    CONTROL         "HotKey1",IDC_DELALLBOOKMARK,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,57,69,14
+    LTEXT           "",IDC_BOOKMARKLIST_LABEL,163,82,51,8
+    CONTROL         "HotKey1",IDC_BOOKMARKLIST,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,79,69,14
+    LTEXT           "",IDC_NEXTBOOKMARK_LABEL,163,100,51,8
+    CONTROL         "HotKey1",IDC_NEXTBOOKMARK,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,97,69,14
+    LTEXT           "",IDC_PREVBOOKMARK_LABEL,163,118,51,8
+    CONTROL         "HotKey1",IDC_PREVBOOKMARK,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,218,115,69,14
+    CONTROL         "",IDC_REMEMBERBOOKMARKS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,164,147,135,10
+    CONTROL         "",IDC_BOOKMARKCHARHEIGHT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,164,162,135,10
+    CONTROL         "",IDC_CODERTHEME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    164,177,135,10
+    PUSHBUTTON      "",IDOK,102,286,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,154,286,50,14,BS_CENTER
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SETUP, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 306
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

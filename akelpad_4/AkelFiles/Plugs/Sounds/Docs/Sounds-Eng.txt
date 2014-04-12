@@ -1,0 +1,19 @@
+*****************************************************************
+***                Sounds AkelPad plugin v2.9                 ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Playing sound while typing.
+
+
+*** Functions ***
+
+Sounds::Main
+Main function for start and stop plugin.
+
+Sounds::Settings
+Settings dialog.

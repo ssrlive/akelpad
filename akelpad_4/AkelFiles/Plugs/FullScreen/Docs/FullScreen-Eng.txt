@@ -1,0 +1,16 @@
+*****************************************************************
+***               FullScreen AkelPad plugin v3.6              ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Full screen mode.
+
+
+*** Functions ***
+
+FullScreen::Main
+Main function for start and stop plugin.

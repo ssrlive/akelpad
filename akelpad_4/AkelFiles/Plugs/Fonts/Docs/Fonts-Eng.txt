@@ -1,0 +1,22 @@
+*****************************************************************
+***                Fonts AkelPad plugin v2.3                  ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Dynamical fonts loading without installation in system.
+
+
+*** Functions ***
+
+Fonts::Main
+Main function for start and stop plugin.
+
+
+*** Installation ***
+
+1. Copy "Plugs\*.*" to "{AkelPad}\AkelFiles\Plugs".
+2. Put fonts files in directory "{AkelPad}\AkelFiles\Plugs\Fonts".
