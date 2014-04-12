@@ -2504,7 +2504,7 @@ CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack)
 {
   CALLBACKITEM *lpElement;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(CALLBACKITEM)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(CALLBACKITEM)))
   {
     lpElement->nRefCount=1;
     lpElement->lpStack=hStack;
