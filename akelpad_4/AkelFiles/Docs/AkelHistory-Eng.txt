@@ -1,5 +1,5 @@
 
-AkelPad 4.8.8 ()
+AkelPad 4.8.8 (Apr 12, 2014)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: in replace dialog, the last used button, becomes locally default button.
