@@ -1,0 +1,19 @@
+*****************************************************************
+***            MinimizeToTray AkelPad plugin v4.2             ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Minimizes program to tray.
+
+
+*** Functions ***
+
+MinimizeToTray::Always
+When the user chooses the minimize button, program minimizes to tray.
+
+MinimizeToTray::Now
+Minimizes program to tray immediately.

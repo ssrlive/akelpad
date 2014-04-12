@@ -1,0 +1,54 @@
+*****************************************************************
+***                Explorer AkelPad plugin v5.9               ***
+*****************************************************************
+
+2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+
+
+*** Описание ***
+
+Добавляет панель проводника (основано на коде Selom'а Ofori).
+
+
+*** Функции ***
+
+Explorer::Main
+Главная функция для запуска и остановки плагина.
+
+
+*** Внешний вызов ***
+
+Call("Explorer::Main", 1, "PATH")
+  Параметры:
+    1
+      Открыть диалог и перейти в указанный каталог.
+    "PATH"
+      Каталог, например: "C:\Program Files". Если "", то переход осуществляется к текущему файлу.
+
+Call("Explorer::Main", 2)
+  Параметры:
+    2
+      Обновить список файлов.
+
+Call("Explorer::Main", 3, *WINDOW)
+  Параметры:
+    3
+      Получить дескриптор плавающего окна. Использовать с помощью Scripts плагина.
+    *WINDOW
+      Указатель на переменную, которая получает дескриптор плавающего окна.
+  Пример:
+    WScript.Echo(GetExplorerWindow());
+
+    function GetExplorerWindow()
+    {
+      var lpWnd;
+      var hWnd=0;
+
+      if (lpWnd=AkelPad.MemAlloc(_X64?8:4 /*sizeof(HWND)*/))
+      {
+        AkelPad.CallW("Explorer::Main", 3, lpWnd);
+        hWnd=AkelPad.MemRead(lpWnd, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpWnd);
+      }
+      return hWnd;
+    }

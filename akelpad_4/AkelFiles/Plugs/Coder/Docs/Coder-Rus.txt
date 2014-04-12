@@ -1,0 +1,444 @@
+*****************************************************************
+***                 Coder AkelPad plugin v13.1                ***
+*****************************************************************
+
+2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+
+
+*** Описание ***
+
+Дополнительные возможности для программирования.
+
+
+*** Функции ***
+
+Coder::HighLight
+Подсветка синтаксиса.
+
+Coder::CodeFold
+Поддержка сворачиваемых блоков (фолдинг).
+
+Coder::AutoComplete
+Авто-дополнение - это возможность, позволяющая ускорить процесс
+редактирования. Функция производит замену короткой аббревиатуры
+на блок текста. Например, если Вы набрали "for", во время
+редактирования C++ файла и нажали горячую клавишу (Ctrl+Space по умолчанию),
+"for" раскроется в следующую форму:
+for (; ; )
+{
+}
+
+Coder::Settings
+Диалог настроек плагина.
+
+
+*** Настройки ***
+
+Дополнить со списком:
+Один вариант замены - замена аббревиатуры на блок текста.
+Более одного варианта замены - список аббревиатур для замены.
+
+Дополнить без списка / К следующей позиции:
+Один вариант замены или точное совпадение - замена аббревиатуры на блок текста.
+Более одного варианта замены - передача горячей клавиши для дальнейшей обработки программой.
+После замены - переход на следующую позицию в блоке текста.
+
+К предыдущей позиции:
+Переход на предыдущую позицию в блоке текста.
+
+Сохранять регистр введенных символов:
+Регистр сохраняется только для файлов без синтаксической темы, чтобы форсировано не менять
+регистр введенных символов для любого документа, используем Shift+Enter для выбора из списка.
+
+
+*** Внешний вызов Coder::HighLight ***
+
+Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", TEXTLENGTH)
+  Параметры:
+    2
+      Отметить выделенный текст или указанный текст.
+    "#RRGGBB"
+      Цвет текста, если "0" игнорируется.
+    "#RRGGBB"
+      Цвет фона, если "0" игнорируется.
+    FLAGS (сумма следующих):
+      1  учитывать регистр (по умолчанию).
+      2  регулярные выражения в параметре "TEXT".
+         По умолчанию: 1.
+    FONTSTYLE (один из следующих):
+      0  игнорировать (по умолчанию).
+      1  обычный шрифт.
+      2  жирный шрифт.
+      3  курсивный шрифт.
+      4  жирный курсивный шрифт.
+    ID
+      Идентификатор (по умолчанию -1). Если -1, назначается автоматически.
+    "TEXT"
+      Текст для отметки. Если указан, выделение игнорируется.
+    TEXTLENGTH
+      Длина текста (по умолчанию -1). Если -1, длина текста ограничивается NULL символом.
+  Пример:
+    Call("Coder::HighLight", 2, "#000000", "#9BFF9B", 1, 0, 10)
+
+Call("Coder::HighLight", 3, ID, "#RRGGBB", "#RRGGBB")
+  Параметры:
+    3
+      Снять отметки текста.
+    ID
+      Идентификатор (по умолчанию 0). Если ноль, удалить все отметки.
+      Если -1, удалить автоматически назначенные идентификаторы по цвету.
+      Если -2, удалить отметки выделенного текста.
+    "#RRGGBB"
+      Цвет текста, если "0" игнорируется.
+    "#RRGGBB"
+      Цвет фона, если "0" игнорируется.
+  Пример:
+    Call("Coder::HighLight", 3, 0)
+
+Call("Coder::HighLight", 4, ID, "#RRGGBB", "#RRGGBB", DIRECTION)
+  Параметры:
+    4
+      Найти отметки текста.
+    ID
+      Идентификатор (по умолчанию 0). Если ноль, найти любые отметки.
+      Если -1, найти автоматически назначенные идентификаторы по цвету.
+      Если -2, найти отметки выделенного текста.
+    "#RRGGBB"
+      Цвет текста, если "0" игнорируется.
+    "#RRGGBB"
+      Цвет фона, если "0" игнорируется.
+    DIRECTION (один из следующих):
+      0 найти вниз (по умолчанию).
+      1 найти вверх.
+  Замечание:
+    Поиск возможен только для отметок, не заданных регулярным выражением.
+  Пример:
+    Call("Coder::HighLight", 4, 0, 0, 0, 1)
+
+
+*** Внешний вызов Coder::CodeFold ***
+
+Call("Coder::CodeFold", 1, *WINDOW)
+  Параметры:
+    1
+      Показать/Скрыть список.
+    *WINDOW
+      Необязательный параметр. Указатель на переменную, которая получает дескриптор плавающего окна.
+  Пример (получить дескриптор плавающего окна):
+    WScript.Echo(GetCodeFoldWindow());
+
+    function GetCodeFoldWindow()
+    {
+      var lpWnd;
+      var hWnd=0;
+
+      if (lpWnd=AkelPad.MemAlloc(_X64?8:4 /*sizeof(HWND)*/))
+      {
+        AkelPad.CallW("Coder::CodeFold", 1, lpWnd);
+        hWnd=AkelPad.MemRead(lpWnd, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpWnd);
+      }
+      return hWnd;
+    }
+
+
+*** Внешний вызов Coder::Settings ***
+
+Call("Coder::Settings", 1, "EXTENSION")
+  Параметры:
+    1
+      Установить синтаксическую тему вручную, используя расширение.
+    "EXTENSION"
+      Расширение, например: "html". Ручная установка темы отменяется, если параметр расширения отсутствует.
+      Если параметр расширения равен "?", то документ определяется, как не имеющий темы.
+
+Call("Coder::Settings", 2)
+  Параметры:
+    2
+      Обновить кэш.
+
+Call("Coder::Settings", 3, PAGE)
+  Параметры:
+    3
+      Открыть диалог настроек на указанной странице.
+    PAGE
+      Номер страницы, начиная с нуля.
+
+Call("Coder::Settings", 4, FLAGS, "FILE")
+  Параметры:
+    4
+      Экспорт текста в RTF.
+    FLAGS (сумма следующих):
+         1  Экспортировать в файл.
+        16  Копировать в буфер обмена.
+        32  Заполнить текстовый формат буфера обмена текстом. Задается совместно с 16.
+        64  Заполнить текстовый формат буфера обмена отформатированными данными. Задается совместно с 16.
+       256  Экспортировать цвет выделения текста.
+       512  Экспортировать цвета активной строки.
+      1024  Экспортировать цвета зебры.
+      2048  Не экспортировать основной цвет текста.
+      4096  Не экспортировать основной цвет фона.
+     65536  Экспортировать только выделение. По умолчанию экспортируется выделение, либо весь документ, если нет выделения.
+    131072  Форсировать экспорт всего документа. По умолчанию экспортируется выделение, либо весь документ, если нет выделения.
+            По умолчанию: 16+32=48.
+    "FILE"
+      Файл для экспорта. Используется, если задан флаг 1. По умолчанию открывается диалог для выбора файла.
+
+Call("Coder::Settings", 5, "COLORTHEME")
+  Параметры:
+    5
+      Установить цветовую тему.
+    "COLORTHEME"
+      Имя цветовой темы, например: "Bespin".
+
+Call("Coder::Settings", 6, "ALIAS")
+  Параметры:
+    6
+      Установить синтаксическую тему вручную, используя псевдоним.
+    "ALIAS"
+      Псевдоним, например: ".html". Ручная установка темы отменяется, если параметр псевдонима отсутствует.
+      Если параметр псевдонима равен "?", то документ определяется, как не имеющий темы.
+
+Call("Coder::Settings", 12, "ALIAS", *BOOL)
+  Параметры:
+    12
+      Проверить активность синтаксической темы по псевдониму. Использовать с помощью Scripts плагина.
+    "ALIAS"
+      Псевдоним, например: ".html".
+    *BOOL
+      Указатель на переменную, которая получает активность синтаксической темы.
+  Пример:
+    WScript.Echo(CheckAlias(".html"));
+
+    function CheckAlias(pAlias)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 12, pAlias, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+Call("Coder::Settings", 14, "COLORTHEME", *BOOL)
+  Параметры:
+    14
+      Проверить активность цветовой темы по имени. Использовать с помощью Scripts плагина.
+    "COLORTHEME"
+      Имя цветовой темы, например: "Bespin".
+    *BOOL
+      Указатель на переменную, которая получает активность цветовой темы.
+  Пример:
+    WScript.Echo(CheckVarTheme("Bespin"));
+
+    function CheckVarTheme(pVarTheme)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 14, pVarTheme, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+
+Call("Coder::Settings", 16, WINDOW, *SYNTAXFILE, SYNTAXFILELENGTH)
+  Параметры:
+    16
+      Получить имя синтаксического файла по дескриптору окна. Использовать с помощью Scripts плагина.
+    WINDOW
+      Дескриптор окна редактирования. Если ноль, то используется дескриптор активного окна редактирования.
+    *SYNTAXFILE
+      Указатель на память, которая получает имя синтаксического файла.
+    SYNTAXFILELENGTH
+      Максимальное количество символов, которое может быть скопировано в SYNTAXFILE.
+  Пример:
+    WScript.Echo(GetSyntaxFile(0));
+
+    function GetSyntaxFile(hWndEdit)
+    {
+      var pSyntaxFile="";
+      var lpSyntaxFile;
+
+      if (lpSyntaxFile=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 16, hWndEdit, lpSyntaxFile, 256);
+        pSyntaxFile=AkelPad.MemRead(lpSyntaxFile, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpSyntaxFile);
+      }
+      return pSyntaxFile;
+    }
+
+Call("Coder::Settings", 18, WINDOW, DOCUMENT, *ALIAS, *ALIASLENGTH)
+  Параметры:
+    18
+      Получить псевдоним по дескриптору окна. Использовать с помощью Scripts плагина.
+    WINDOW
+      Дескриптор окна редактирования. Если ноль, то используется дескриптор активного окна редактирования.
+    DOCUMENT
+      Дескриптор документа. Если ноль, то определяется автоматически.
+    *ALIAS
+      Указатель на память, которая получает псевдоним. Может быть NULL.
+    *ALIASLENGTH
+      Указатель на память, которая получает количество скопированных в ALIAS символов. Может быть NULL.
+  Пример:
+    WScript.Echo(GetAlias(0, 0));
+
+    function GetAlias(hWndEdit, hDocEdit)
+    {
+      var pAlias="";
+      var lpAlias;
+
+      if (lpAlias=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 18, hWndEdit, hDocEdit, lpAlias, 0);
+        pAlias=AkelPad.MemRead(lpAlias, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpAlias);
+      }
+      return pAlias;
+    }
+
+
+Call("Coder::Settings", 20, WINDOW, *COLORTHEME, COLORTHEMELENGTH)
+  Параметры:
+    20
+      Получить имя цветовой темы по дескриптору окна. Использовать с помощью Scripts плагина.
+    WINDOW
+      Дескриптор окна редактирования. Если ноль, то используется дескриптор активного окна редактирования.
+    *COLORTHEME
+      Указатель на память, которая получает имя цветовой темы.
+    COLORTHEMELENGTH
+      Максимальное количество символов, которое может быть скопировано в COLORTHEME.
+  Пример:
+    WScript.Echo(GetVarTheme(0));
+
+    function GetVarTheme(hWndEdit)
+    {
+      var pVarTheme="";
+      var lpVarTheme;
+
+      if (lpVarTheme=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 20, hWndEdit, lpVarTheme, 256);
+        pVarTheme=AkelPad.MemRead(lpVarTheme, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarTheme);
+      }
+      return pVarTheme;
+    }
+
+
+Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELENGTH)
+  Параметры:
+    22
+      Получить значение переменной из цветовой темы по дескриптору окна. Использовать с помощью Scripts плагина.
+    WINDOW
+      Дескриптор окна редактирования. Если ноль, то используется дескриптор активного окна редактирования.
+    DOCUMENT
+      Дескриптор документа. Если ноль, то определяется автоматически.
+    "VARNAME"
+      Имя переменной, например: "AutoComplete_Indent".
+    *VARVALUE
+      Указатель на память, которая получает значение переменной.
+    *VARVALUELENGTH
+      Указатель на память, которая получает количество скопированных в VARVALUE символов. Может быть NULL.
+  Пример:
+    WScript.Echo(GetVariable(0, 0, "STR"));
+
+    function GetVariable(hWndEdit, hDocEdit, pVarName)
+    {
+      var pVarValue="";
+      var lpVarValue;
+
+      if (lpVarValue=AkelPad.MemAlloc(32 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 22, hWndEdit, hDocEdit, pVarName, lpVarValue);
+        pVarValue=AkelPad.MemRead(lpVarValue, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarValue);
+      }
+      return pVarValue;
+    }
+
+
+*** Меню для ContextMenu плагина ***
+
+"Отметить" Icon("%a\AkelFiles\Plugs\Coder.dll", 0)
+{
+  "Бирюзовым" Call("Coder::HighLight", 2, 0, "#9BFFFF", 1, 0, 11) Icon("%a\AkelFiles\Plugs\Coder.dll", 6)
+  "Оранжевым" Call("Coder::HighLight", 2, 0, "#FFCD9B", 1, 0, 12) Icon("%a\AkelFiles\Plugs\Coder.dll", 7)
+  "Желтым" Call("Coder::HighLight", 2, 0, "#FFFF9B", 1, 0, 13) Icon("%a\AkelFiles\Plugs\Coder.dll", 8)
+  "Фиолетовым" Call("Coder::HighLight", 2, 0, "#BE7DFF", 1, 0, 14) Icon("%a\AkelFiles\Plugs\Coder.dll", 9)
+  "Зелёным" Call("Coder::HighLight", 2, 0, "#88E188", 1, 0, 15) Icon("%a\AkelFiles\Plugs\Coder.dll", 10)
+  SEPARATOR
+  -"Убрать все отметки" Call("Coder::HighLight", 3, 0) Icon("%a\AkelFiles\Plugs\Coder.dll", 11)
+}
+"Синтаксическая тема" Icon("%a\AkelFiles\Plugs\Coder.dll", 4)
+{
+  "Assembler" Call("Coder::Settings", 1, "asm")
+  "AutoIt" Call("Coder::Settings", 1, "au3")
+  "Bat" Call("Coder::Settings", 1, "bat")
+  "C++" Call("Coder::Settings", 1, "cpp")
+  "Sharp" Call("Coder::Settings", 1, "cs")
+  "CSS" Call("Coder::Settings", 1, "css")
+  "HTML" Call("Coder::Settings", 1, "html")
+  "Ini" Call("Coder::Settings", 1, "ini")
+  "Inno" Call("Coder::Settings", 1, "iss")
+  "JScript" Call("Coder::Settings", 1, "js")
+  "Lua" Call("Coder::Settings", 1, "lua")
+  "NSIS" Call("Coder::Settings", 1, "nsi")
+  "Pascal" Call("Coder::Settings", 1, "dpr")
+  "Perl" Call("Coder::Settings", 1, "pl")
+  "PHP" Call("Coder::Settings", 1, "php")
+  "Python" Call("Coder::Settings", 1, "py")
+  "Resource" Call("Coder::Settings", 1, "rc")
+  "SQL" Call("Coder::Settings", 1, "sql")
+  "VBScript" Call("Coder::Settings", 1, "vbs")
+  "XML" Call("Coder::Settings", 1, "xml")
+  SEPARATOR
+  "Без темы" Call("Coder::Settings", 1, "?")
+}
+"Цветовая тема" Icon("%a\AkelFiles\Plugs\Coder.dll", 5)
+{
+  "Default" Call("Coder::Settings", 5, "Default")
+  SEPARATOR
+  "Active4D" Call("Coder::Settings", 5, "Active4D")
+  "Bespin" Call("Coder::Settings", 5, "Bespin")
+  "Cobalt" Call("Coder::Settings", 5, "Cobalt")
+  "Dawn" Call("Coder::Settings", 5, "Dawn")
+  "Earth" Call("Coder::Settings", 5, "Earth")
+  "iPlastic" Call("Coder::Settings", 5, "iPlastic")
+  "Lazy" Call("Coder::Settings", 5, "Lazy")
+  "Mac Classic" Call("Coder::Settings", 5, "Mac Classic")
+  "Monokai" Call("Coder::Settings", 5, "Monokai")
+  "Solarized Light" Call("Coder::Settings", 5, "Solarized Light")
+  "Solarized Dark" Call("Coder::Settings", 5, "Solarized Dark")
+  "SpaceCadet" Call("Coder::Settings", 5, "SpaceCadet")
+  "Sunburst" Call("Coder::Settings", 5, "Sunburst")
+  "Twilight" Call("Coder::Settings", 5, "Twilight")
+  "Zenburn" Call("Coder::Settings", 5, "Zenburn")
+  SEPARATOR
+  "Настроить..." Call("Coder::Settings")
+}
+
+
+*** Структура cache файла ***
+
+[Cache]
+bat.coder=257CB20001CEE2DA:"*.bat" "*.cmd"
+cpp.coder=DCD8500001CF30A3,1:"*.cpp" "*.c"
+
+cpp.coder
+  Файл синтаксиса.
+DCD8500001CF30A3
+  Время модификации cpp.coder.
+1
+  Необязательный ручной параметр. Если 1, то не обновлять информацию о типах файлов из cpp.coder.
+"*.cpp" "*.c"
+  Типы файлов.

@@ -1,0 +1,441 @@
+*****************************************************************
+***                 Coder AkelPad plugin v13.1                ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Additional features for programming.
+
+
+*** Functions ***
+
+Coder::HighLight
+Syntax highlighting.
+
+Coder::CodeFold
+Code folding support.
+
+Coder::AutoComplete
+Auto-completion is a time-saving feature. Function changes a short
+abbreviation into a text block. For example, if you type "for",
+while editing C++ file and press hotkey (Ctrl+Space by default),
+"for" will expand to the following string:
+for (; ; )
+{
+}
+
+Coder::Settings
+Settings dialog.
+
+
+*** Settings ***
+
+Complete with list:
+One variant - replaces abbreviation with a text block.
+More than one variant - shows the list of abbreviations for replacement.
+
+Complete without list / Go to next position:
+One variant or exact matching - replaces abbreviation with a text block.
+More than one variant - pass hotkey for the further processing by the program.
+After replacement - go to the following position of the text block.
+
+Go to previous position:
+Go to the previous position of the text block.
+
+Save typed symbols case:
+Case saved only for files without syntax theme, to force not change case of typed symbols
+for any document, use Shift+Enter to select from list.
+
+
+*** External call Coder::HighLight ***
+
+Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", TEXTLENGTH)
+  Parameters:
+    2
+      Mark selected text or specified text.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+    FLAGS (sum of the following):
+      1  case sensitive (default).
+      2  regular expressions in "TEXT" parameter.
+         Default: 1.
+    FONTSTYLE (one of the following):
+      0  ignored (default).
+      1  normal.
+      2  bold.
+      3  italic.
+      4  bold italic.
+    ID
+      Mark ID (default is -1). If -1, assigned automatically.
+    "TEXT"
+      Text for mark. If specified, selection is ignored.
+    TEXTLEN
+      Text length (default is -1). If -1, text string is terminated with NULL symbol.
+  Example:
+    Call("Coder::HighLight", 2, "#000000", "#9BFF9B", 1, 0, 1)
+
+Call("Coder::HighLight", 3, ID, "#RRGGBB", "#RRGGBB")
+  Parameters:
+    3
+      Unmark text.
+    ID
+      Mark ID (default is 0). If zero, remove all marks.
+      If -1, remove automatically assigned IDs by color.
+      If -2, remove selected text marks.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+  Example:
+    Call("Coder::HighLight", 3, 0)
+
+Call("Coder::HighLight", 4, ID, "#RRGGBB", "#RRGGBB", DIRECTION)
+  Parameters:
+    4
+      Find marks.
+    ID
+      Mark ID (default is 0). If zero, find any marks.
+      If -1, find automatically assigned IDs by color.
+      If -2, find selected text marks.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+    DIRECTION (one of the following):
+      0 find down (default).
+      1 find up.
+  Note:
+    Search is available only for non-regular expression marks.
+  Example:
+    Call("Coder::HighLight", 4, 0, 0, 0, 1)
+
+
+*** External call Coder::CodeFold ***
+
+Call("Coder::CodeFold", 1, *WINDOW)
+  Parameters:
+    1
+      Show/Hide list.
+    *WINDOW
+      Optional parameter. Pointer to a variable, that receives dockable window handle.
+  Example (get dockable window handle):
+    WScript.Echo(GetCodeFoldWindow());
+
+    function GetCodeFoldWindow()
+    {
+      var lpWnd;
+      var hWnd=0;
+
+      if (lpWnd=AkelPad.MemAlloc(_X64?8:4 /*sizeof(HWND)*/))
+      {
+        AkelPad.CallW("Coder::CodeFold", 1, lpWnd);
+        hWnd=AkelPad.MemRead(lpWnd, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpWnd);
+      }
+      return hWnd;
+    }
+
+
+*** External call Coder::Settings ***
+
+Call("Coder::Settings", 1, "EXTENSION")
+  Parameters:
+    1
+      Set syntax theme manually using extension.
+    "EXTENSION"
+      Extension, for example: "html". Manual theme setting will be canceled if the extension parameter is ommited.
+      If extension parameter equal to "?", then the document is defined as having no theme.
+
+Call("Coder::Settings", 2)
+  Parameters:
+    2
+      Update cache.
+
+Call("Coder::Settings", 3, PAGE)
+  Parameters:
+    3
+      Open settings dialog at specified page.
+    PAGE
+      Zero based page index.
+
+Call("Coder::Settings", 4, FLAGS, "FILE")
+  Parameters:
+    4
+      Export text to RTF.
+    FLAGS (sum of the following):
+         1  Export to file.
+        16  Copy to clipboard.
+        32  Fill plain-text format of clipboard with text. Must be combined with 16.
+        64  Fill plain-text format of clipboard with formated data. Must be combined with 16.
+       256  Export text selection color.
+       512  Export active line colors.
+      1024  Export alternating lines colors.
+      2048  Don't export basic text color.
+      4096  Don't export basic background color.
+     65536  Export only selection. By default exported selection or all document if selection is empty.
+    131072  Force export all document. By default exported selection or all document if selection is empty.
+            Default: 16+32=48.
+    "FILE"
+      File for export. Used, if flag 1 set. By default, open select file dialog.
+
+Call("Coder::Settings", 5, "COLORTHEME")
+  Parameters:
+    5
+      Set color theme.
+    "COLORTHEME"
+      Color theme name, for example: "Bespin".
+
+Call("Coder::Settings", 6, "ALIAS")
+  Parameters:
+    6
+      Set syntax theme manually using alias.
+    "ALIAS"
+      Alias, for example: ".html". Manual theme setting will be canceled if the alias parameter is ommited.
+      If alias parameter equal to "?", then the document is defined as having no theme.
+
+
+Call("Coder::Settings", 12, "ALIAS", *BOOL)
+  Parameters:
+    12
+      Check syntax theme activity by alias. Use with Scripts plugin.
+    "ALIAS"
+      Alias, for example: ".html".
+    *BOOL
+      Pointer to a variable, that receives syntax theme activity.
+  Example:
+    WScript.Echo(CheckAlias(".html"));
+
+    function CheckAlias(pAlias)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 12, pAlias, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+Call("Coder::Settings", 14, "COLORTHEME", *BOOL)
+  Parameters:
+    14
+      Check color theme activity by name. Use with Scripts plugin.
+    "COLORTHEME"
+      Color theme name, for example: "Bespin".
+    *BOOL
+      Pointer to a variable, that receives color theme activity.
+    WScript.Echo(CheckVarTheme("Bespin"));
+  Example:
+    function CheckVarTheme(pVarTheme)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 14, pVarTheme, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+Call("Coder::Settings", 16, WINDOW, *SYNTAXFILE, SYNTAXFILELENGTH)
+  Parameters:
+    16
+      Get syntax file name by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    *SYNTAXFILE
+      Pointer to a buffer, that receives syntax file name.
+    SYNTAXFILELENGTH
+      Maximum number of symbols that SYNTAXFILE can receive.
+  Example:
+    WScript.Echo(GetSyntaxFile(0));
+
+    function GetSyntaxFile(hWndEdit)
+    {
+      var pSyntaxFile="";
+      var lpSyntaxFile;
+
+      if (lpSyntaxFile=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 16, hWndEdit, lpSyntaxFile, 256);
+        pSyntaxFile=AkelPad.MemRead(lpSyntaxFile, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpSyntaxFile);
+      }
+      return pSyntaxFile;
+    }
+
+Call("Coder::Settings", 18, WINDOW, DOCUMENT, *ALIAS, *ALIASLENGTH)
+  Parameters:
+    18
+      Get alias by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    DOCUMENT
+      Edit document handle. If zero then detected automatically.
+    *ALIAS
+      Pointer to a buffer, that receives alias. Can be NULL.
+    *ALIASLENGTH
+      Pointer to a variable, that receives number of copied symbols to ALIAS. Can be NULL.
+  Example:
+    WScript.Echo(GetAlias(0, 0));
+
+    function GetAlias(hWndEdit, hDocEdit)
+    {
+      var pAlias="";
+      var lpAlias;
+
+      if (lpAlias=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 18, hWndEdit, hDocEdit, lpAlias, 0);
+        pAlias=AkelPad.MemRead(lpAlias, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpAlias);
+      }
+      return pAlias;
+    }
+
+Call("Coder::Settings", 20, WINDOW, *COLORTHEME, COLORTHEMELENGTH)
+  Parameters:
+    20
+      Get color theme name by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    *COLORTHEME
+      Pointer to a buffer, that receives color theme name.
+    COLORTHEMELENGTH
+      Maximum number of symbols that COLORTHEME can receive.
+  Example:
+    WScript.Echo(GetVarTheme(0));
+
+    function GetVarTheme(hWndEdit)
+    {
+      var pVarTheme="";
+      var lpVarTheme;
+
+      if (lpVarTheme=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 20, hWndEdit, lpVarTheme, 256);
+        pVarTheme=AkelPad.MemRead(lpVarTheme, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarTheme);
+      }
+      return pVarTheme;
+    }
+
+
+Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELENGTH)
+  Parameters:
+    22
+      Get variable value from color theme by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    DOCUMENT
+      Edit document handle. If zero then detected automatically.
+    "VARNAME"
+      Variable name, for example: "AutoComplete_Indent".
+    *VARVALUE
+      Pointer to a buffer, that receives variable value.
+    *VARVALUELENGTH
+      Pointer to a variable, that receives number of copied symbols to VARVALUE. Can be NULL.
+  Example:
+    WScript.Echo(GetVariable(0, 0, "STR"));
+
+    function GetVariable(hWndEdit, hDocEdit, pVarName)
+    {
+      var pVarValue="";
+      var lpVarValue;
+
+      if (lpVarValue=AkelPad.MemAlloc(32 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 22, hWndEdit, hDocEdit, pVarName, lpVarValue);
+        pVarValue=AkelPad.MemRead(lpVarValue, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarValue);
+      }
+      return pVarValue;
+    }
+
+
+*** Menu for ContextMenu plugin ***
+
+"Mark" Icon("%a\AkelFiles\Plugs\Coder.dll", 0)
+{
+  "Cyan" Call("Coder::HighLight", 2, 0, "#9BFFFF", 1, 0, 11) Icon("%a\AkelFiles\Plugs\Coder.dll", 6)
+  "Orange" Call("Coder::HighLight", 2, 0, "#FFCD9B", 1, 0, 12) Icon("%a\AkelFiles\Plugs\Coder.dll", 7)
+  "Yellow" Call("Coder::HighLight", 2, 0, "#FFFF9B", 1, 0, 13) Icon("%a\AkelFiles\Plugs\Coder.dll", 8)
+  "Violet" Call("Coder::HighLight", 2, 0, "#BE7DFF", 1, 0, 14) Icon("%a\AkelFiles\Plugs\Coder.dll", 9)
+  "Green" Call("Coder::HighLight", 2, 0, "#88E188", 1, 0, 15) Icon("%a\AkelFiles\Plugs\Coder.dll", 10)
+  SEPARATOR
+  -"Remove all marks" Call("Coder::HighLight", 3, 0) Icon("%a\AkelFiles\Plugs\Coder.dll", 11)
+}
+"Syntax theme" Icon("%a\AkelFiles\Plugs\Coder.dll", 4)
+{
+  "Assembler" Call("Coder::Settings", 1, "asm")
+  "AutoIt" Call("Coder::Settings", 1, "au3")
+  "Bat" Call("Coder::Settings", 1, "bat")
+  "C++" Call("Coder::Settings", 1, "cpp")
+  "Sharp" Call("Coder::Settings", 1, "cs")
+  "CSS" Call("Coder::Settings", 1, "css")
+  "HTML" Call("Coder::Settings", 1, "html")
+  "Ini" Call("Coder::Settings", 1, "ini")
+  "Inno" Call("Coder::Settings", 1, "iss")
+  "JScript" Call("Coder::Settings", 1, "js")
+  "Lua" Call("Coder::Settings", 1, "lua")
+  "NSIS" Call("Coder::Settings", 1, "nsi")
+  "Pascal" Call("Coder::Settings", 1, "dpr")
+  "Perl" Call("Coder::Settings", 1, "pl")
+  "PHP" Call("Coder::Settings", 1, "php")
+  "Python" Call("Coder::Settings", 1, "py")
+  "Resource" Call("Coder::Settings", 1, "rc")
+  "SQL" Call("Coder::Settings", 1, "sql")
+  "VBScript" Call("Coder::Settings", 1, "vbs")
+  "XML" Call("Coder::Settings", 1, "xml")
+  SEPARATOR
+  "None" Call("Coder::Settings", 1, "?")
+}
+"Color theme" Icon("%a\AkelFiles\Plugs\Coder.dll", 5)
+{
+  "Default" Call("Coder::Settings", 5, "Default")
+  SEPARATOR
+  "Active4D" Call("Coder::Settings", 5, "Active4D")
+  "Bespin" Call("Coder::Settings", 5, "Bespin")
+  "Cobalt" Call("Coder::Settings", 5, "Cobalt")
+  "Dawn" Call("Coder::Settings", 5, "Dawn")
+  "Earth" Call("Coder::Settings", 5, "Earth")
+  "iPlastic" Call("Coder::Settings", 5, "iPlastic")
+  "Lazy" Call("Coder::Settings", 5, "Lazy")
+  "Mac Classic" Call("Coder::Settings", 5, "Mac Classic")
+  "Monokai" Call("Coder::Settings", 5, "Monokai")
+  "Solarized Light" Call("Coder::Settings", 5, "Solarized Light")
+  "Solarized Dark" Call("Coder::Settings", 5, "Solarized Dark")
+  "SpaceCadet" Call("Coder::Settings", 5, "SpaceCadet")
+  "Sunburst" Call("Coder::Settings", 5, "Sunburst")
+  "Twilight" Call("Coder::Settings", 5, "Twilight")
+  "Zenburn" Call("Coder::Settings", 5, "Zenburn")
+  SEPARATOR
+  "Settings..." Call("Coder::Settings")
+}
+
+
+*** Structure of cache file ***
+
+[Cache]
+bat.coder=257CB20001CEE2DA:"*.bat" "*.cmd"
+cpp.coder=DCD8500001CF30A3,1:"*.cpp" "*.c"
+
+cpp.coder
+  Syntax file.
+DCD8500001CF30A3
+  Modification time of cpp.coder.
+1
+  Optional manual parameter. If 1, then do not update file types information from cpp.coder.
+"*.cpp" "*.c"
+  File types.

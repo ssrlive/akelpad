@@ -1,0 +1,46 @@
+*****************************************************************
+***               Clipboard AkelPad plugin v3.1               ***
+*****************************************************************
+
+2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Work with clipboard.
+
+
+*** Functions ***
+
+Clipboard::Capture
+Capture clipboard.
+
+Clipboard::PasteSerial
+Insert serial number.
+
+Clipboard::SelAutoCopy
+Automatic copy selection.
+
+Clipboard::Paste
+Paste text that was copied outside the SelAutoCopy.
+
+Clipboard::Settings
+Settings dialog.
+
+
+*** Clipboard::PasteSerial ***
+
+Hotkeys (global):
+Ctrl+F9   - insert, skipping delimiters.
+Ctrl+F10  - insert, replacing delimiter with tabulation.
+Ctrl+F11  - insert as is.
+
+Usage:
+1. Start plugin.
+2. Open document from which you want to copy serial.
+3. Switch keyboard layout, usually English (En).
+4. Copy serial number to clipboard, e.g. "1111-2222-3333-4444".
+5. Open window in which you want to paste serial.
+6. Activate first serial number field.
+7. Switch keyboard layout, usually English (En).
+8. Press hotkey, e.g. Ctrl+F9.

@@ -1,0 +1,148 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_FAVADD         ICON    DISCARDABLE     "FavAdd.ico"
+IDI_ICON_FAVMANAGE      ICON    DISCARDABLE     "FavManage.ico"
+IDI_ICON_OPEN           ICON    DISCARDABLE     "Open.ico"
+IDI_ICON_MOVEUP         ICON    DISCARDABLE     "Up.ico"
+IDI_ICON_MOVEDOWN       ICON    DISCARDABLE     "Down.ico"
+IDI_ICON_SORT           ICON    DISCARDABLE     "Sort.ico"
+IDI_ICON_DELETE         ICON    DISCARDABLE     "Delete.ico"
+IDI_ICON_DELETEOLD      ICON    DISCARDABLE     "DeleteOld.ico"
+IDI_ICON_EDIT           ICON    DISCARDABLE     "Edit.ico"
+IDI_ICON_HOLLOW         ICON    DISCARDABLE     "Hollow.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONTEXT DIALOGEX 70, 70, 300, 249
+STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_MENUTYPE,9,10,140,91,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "",IDC_MENUENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    155,12,65,8
+    CONTROL         "",IDC_MENUHIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    223,12,65,8
+    CONTROL         "",IDC_MENUTEXT,"richedit20w",WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP | 0x1104,7,29,285,194,WS_EX_CLIENTEDGE
+    PUSHBUTTON      "",IDC_MENUSHOW,7,230,50,14
+    PUSHBUTTON      "",IDOK,189,230,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,242,230,50,14,BS_CENTER
+END
+
+IDD_FAVLIST DIALOG DISCARDABLE  0, 0, 242, 208
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_ITEM_LIST,6,9,228,137,LBS_SORT | LBS_USETABSTOPS | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_ITEM_STATS,181,151,50,8
+    EDITTEXT        IDC_SEARCH,6,164,228,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SHOWFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,
+                    185,120,10
+    PUSHBUTTON      "",IDCANCEL,186,187,50,14
+END
+
+IDD_FAVEDIT DIALOG DISCARDABLE  0, 0, 260, 94
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "",IDC_FAVNAME_LABEL,9,8,243,8
+    EDITTEXT        IDC_FAVNAME,7,19,246,14,ES_AUTOHSCROLL
+    LTEXT           "",IDC_FAVFILE_LABEL,9,37,243,8
+    EDITTEXT        IDC_FAVFILE,7,48,246,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "",IDOK,150,74,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,203,74,50,14,BS_CENTER
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
