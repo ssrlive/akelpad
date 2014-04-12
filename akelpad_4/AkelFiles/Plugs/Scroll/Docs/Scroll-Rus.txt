@@ -8,8 +8,10 @@
 *** Возможности ***
 
 - Автоматическая прокрутка текста.
-- Установка непрокручиваемых операций.
 - Горизонтальная/вертикальная синхронизация частей разделенного окна или вкладок.
+- Установка непрокручиваемых операций, например, "Выделить всё".
+- Выравнивание каретки.
+- Прокрутка колесиком мыши без передачи фокуса.
 
 
 *** Functions ***
@@ -17,25 +19,35 @@
 Scroll::AutoScroll
 Вкл/выкл автоматическую прокрутку текста.
 
-Scroll::AutoFocus
-Вкл/выкл управление объектом, над которым происходит прокрутка колесиком мыши.
-Поддерживаемые элементы управления:
-AkelEdit, RichEdit20, Edit, SysTreeView32, SysListView32, ListBox, ComboBox, SysTabControl32.
-
-Scroll::NoScroll
-Вкл/выкл обработку непрокручиваемых операций.
-
 Scroll::SyncHorz
 Вкл/выкл горизонтальную синхронизацию.
 
 Scroll::SyncVert
 Вкл/выкл вертикальную синхронизацию.
 
+Scroll::NoScroll
+Вкл/выкл обработку непрокручиваемых операций.
+
+Scroll::AlignCaret
+Вкл/выкл выравнивание каретки.
+  Ручные параметры:
+    AlignCaretFlags
+      См. описание AESCROLLCARETOPTIONS.dwFlags в AkelEdit.h.
+    AlignCaretSelFlags
+      См. описание AESCROLLCARETOPTIONS.dwSelFlags в AkelEdit.h.
+    AlignCaretSelType
+      См. описание AESCROLLCARETOPTIONS.dwSelType в AkelEdit.h.
+
+Scroll::AutoFocus
+Вкл/выкл управление объектом, над которым происходит прокрутка колесиком мыши.
+  Поддерживаемые элементы управления:
+    AkelEdit, RichEdit20, Edit, SysTreeView32, SysListView32, ListBox, ComboBox, SysTabControl32.
+
 Scroll::Settings
 Диалог настроек плагина.
 
 
-*** Внешний вызов (только 4.x.x) ***
+*** Внешний вызов ***
 
 Call("Scroll::Settings", 1, TYPE)
   Параметры:
