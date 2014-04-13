@@ -48,11 +48,13 @@
 
 //Include wide functions
 #define AppendMenuWide
+#define CallWindowProcWide
 #define ComboBox_AddStringWide
 #define CreateProcessWide
 #define DialogBoxWide
 #define ExpandEnvironmentStringsWide
 #define GetKeyNameTextWide
+#define GetWindowLongPtrWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
 #define ListView_InsertColumnWide
@@ -189,12 +191,14 @@ typedef struct {
 
 //Functions prototypes
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewMainFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void HotkeyListFill(HWND hWnd, HSTACK *hStack, const wchar_t *wpFilter);
 int HotkeyListGetIndex(HWND hWnd, HOTKEYITEM *hiElement);
 int HotkeyListSetItem(HWND hWnd, int nIndex, HOTKEYITEM *hiElement, BOOL bNew, const wchar_t *wpFilter);
 void HotkeyListSelItem(HWND hWnd, int nIndex);
 BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewAllKeysFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilter, BOOL bOnlyAssigned);
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -266,6 +270,10 @@ HWND hWndName=NULL;
 HWND hWndCommand=NULL;
 HWND hWndHotkey=NULL;
 HWND hWndHotkeyLabel=NULL;
+HWND hWndMainList=NULL;
+HWND hWndAllKeysList=NULL;
+WNDPROC lpOldMainFilterProc=NULL;
+WNDPROC lpOldAllKeysFilterProc=NULL;
 RECT rcMainMinMaxDialog={442, 315, 0, 0};
 RECT rcMainCurrentDialog={0};
 RECT rcAllKeysMinMaxDialog={301, 163, 0, 0};
@@ -534,7 +542,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndMoveUpHotkey;
   static HWND hWndMoveDownHotkey;
   static HWND hWndDeleteHotkey;
-  static HWND hWndList;
   static HWND hWndAllKeys;
   static HWND hWndClose;
   static HWND hWndFilter;
@@ -542,8 +549,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HOTKEYITEM *hiLastSelItem=NULL;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndList,            DRS_SIZE|DRS_X, 0},
-                             {&hWndList,            DRS_SIZE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndMainList,        DRS_SIZE|DRS_X, 0},
+                             {&hWndMainList,        DRS_SIZE|DRS_Y, 0},
                              {&hWndCommand,         DRS_SIZE|DRS_X, 0},
                              {&hWndHotkeyLabel,     DRS_MOVE|DRS_X, 0},
                              {&hWndHotkeyCode,      DRS_MOVE|DRS_X, 0},
@@ -568,7 +575,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
-    hWndList=GetDlgItem(hDlg, IDC_LIST);
+    hWndMainList=GetDlgItem(hDlg, IDC_LIST);
     hWndName=GetDlgItem(hDlg, IDC_NAME);
     hWndCommand=GetDlgItem(hDlg, IDC_COMMAND);
     hWndHotkeyLabel=GetDlgItem(hDlg, IDC_HOTKEY_LABEL);
@@ -599,7 +606,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     EnableWindow(hWndMoveUpHotkey, FALSE);
     EnableWindow(hWndMoveDownHotkey, FALSE);
     EnableWindow(hWndDeleteHotkey, FALSE);
-    SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+    SendMessage(hWndMainList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
     SetWindowTextWide(hWndFilter, wszMainFilter);
@@ -623,19 +630,19 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_NAME);
       lvc.cx=nColumnWidth1;
       lvc.iSubItem=LVIS_LIST_NAME;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_NAME, &lvc);
+      ListView_InsertColumnWide(hWndMainList, LVIS_LIST_NAME, &lvc);
 
       lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_COMMAND);
       lvc.cx=nColumnWidth2;
       lvc.iSubItem=LVIS_LIST_COMMAND;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_COMMAND, &lvc);
+      ListView_InsertColumnWide(hWndMainList, LVIS_LIST_COMMAND, &lvc);
 
       lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_HOTKEY);
       lvc.cx=nColumnWidth3;
       lvc.iSubItem=LVIS_LIST_HOTKEY;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_HOTKEY, &lvc);
+      ListView_InsertColumnWide(hWndMainList, LVIS_LIST_HOTKEY, &lvc);
     }
     ComboBox_AddStringWide(hWndCommand, L"Command(0)");
     ComboBox_AddStringWide(hWndCommand, L"Exec(`Program.exe`)");
@@ -644,12 +651,16 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ComboBox_AddStringWide(hWndCommand, L"Font(\"FaceName\", 0, 10)");
     ComboBox_AddStringWide(hWndCommand, L"Recode(0, 0)");
     ComboBox_AddStringWide(hWndCommand, L"Insert(\"text\")");
+    ComboBox_AddStringWide(hWndCommand, L"Call(\"Scripts::Main\", 1, \"EvalCmd.js\", `Command(0);`)");
 
-    HotkeyListFill(hWndList, &hHotkeysStack, wszMainFilter);
+    HotkeyListFill(hWndMainList, &hHotkeysStack, wszMainFilter);
+
+    lpOldMainFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndFilter, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hWndFilter, GWLP_WNDPROC, (UINT_PTR)NewMainFilterProc);
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if ((HWND)wParam == hWndList)
+    if ((HWND)wParam == hWndMainList)
     {
       LVHITTESTINFO lvhti;
       LVITEMW lvi;
@@ -661,22 +672,22 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if ((lvhti.iItem=nSelItem) != -1)
         {
           rcItem.left=LVIR_LABEL;
-          SendMessage(hWndList, LVM_GETITEMRECT, (WPARAM)nSelItem, (LPARAM)&rcItem);
+          SendMessage(hWndMainList, LVM_GETITEMRECT, (WPARAM)nSelItem, (LPARAM)&rcItem);
           ptScreen.x=rcItem.left;
           ptScreen.y=rcItem.bottom;
         }
-        ClientToScreen(hWndList, &ptScreen);
+        ClientToScreen(hWndMainList, &ptScreen);
       }
       else
       {
         GetCursorPos(&ptScreen);
         lvhti.pt=ptScreen;
-        ScreenToClient(hWndList, &lvhti.pt);
-        SendMessage(hWndList, LVM_SUBITEMHITTEST, 0, (LPARAM)&lvhti);
+        ScreenToClient(hWndMainList, &lvhti.pt);
+        SendMessage(hWndMainList, LVM_SUBITEMHITTEST, 0, (LPARAM)&lvhti);
 
         lvi.stateMask=LVIS_SELECTED;
         lvi.state=LVIS_SELECTED;
-        SendMessage(hWndList, LVM_SETITEMSTATE, (WPARAM)lvhti.iItem, (LPARAM)&lvi);
+        SendMessage(hWndMainList, LVM_SETITEMSTATE, (WPARAM)lvhti.iItem, (LPARAM)&lvi);
       }
 
       EnableMenuItem(hMenuList, IDC_ITEMRENAME, nSelItem >= 0?MF_ENABLED:MF_GRAYED);
@@ -709,7 +720,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
       {
         if (nSelItem >= 0)
-          SendMessage(hWndList, LVM_EDITLABEL, nSelItem, 0);
+          SendMessage(hWndMainList, LVM_EDITLABEL, nSelItem, 0);
       }
       else if (((NMHDR *)lParam)->code == (UINT)LVN_KEYDOWN)
       {
@@ -871,7 +882,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!bEnable)
     {
       if (hWndFocus == hWndAddModifyHotkey)
-        SetFocus(hWndList);
+        SetFocus(hWndMainList);
     }
     EnableWindow(hWndAddModifyHotkey, bEnable);
   }
@@ -881,7 +892,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EnableWindow(hWndMoveUpHotkey, FALSE);
     else
       EnableWindow(hWndMoveUpHotkey, TRUE);
-    if (SendMessage(hWndList, LVM_GETITEMCOUNT, 0, 0) == nSelItem + 1 || *wszMainFilter)
+    if (SendMessage(hWndMainList, LVM_GETITEMCOUNT, 0, 0) == nSelItem + 1 || *wszMainFilter)
       EnableWindow(hWndMoveDownHotkey, FALSE);
     else
       EnableWindow(hWndMoveDownHotkey, TRUE);
@@ -924,11 +935,11 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nIndex;
 
         GetWindowTextWide(hWndFilter, wszMainFilter, MAX_PATH);
-        HotkeyListFill(hWndList, &hHotkeysStack, wszMainFilter);
+        HotkeyListFill(hWndMainList, &hHotkeysStack, wszMainFilter);
         SendMessage(hDlg, AKDLL_UPDATEMOVE, 0, 0);
 
-        if ((nIndex=HotkeyListGetIndex(hWndList, hiLastSelItem)) != -1)
-          HotkeyListSelItem(hWndList, nIndex);
+        if ((nIndex=HotkeyListGetIndex(hWndMainList, hiLastSelItem)) != -1)
+          HotkeyListSelItem(hWndMainList, nIndex);
         else
           nSelItem=-1;
         SendMessage(hDlg, AKDLL_UPDATESELECTION, 0, 0);
@@ -969,7 +980,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (hiOldElement=StackGetHotkeyByName(&hHotkeysStack, wszHotkeyName))
       {
         bAddHotkey=FALSE;
-        nOldIndex=HotkeyListGetIndex(hWndList, hiOldElement);
+        nOldIndex=HotkeyListGetIndex(hWndMainList, hiOldElement);
       }
 
       //Remove quotes
@@ -1080,11 +1091,11 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         GlobalFree((HGLOBAL)wszHotkeyCommand);
       }
-      nNewIndex=HotkeyListSetItem(hWndList, nOldIndex, hiNewElement, bAddHotkey, NULL);
+      nNewIndex=HotkeyListSetItem(hWndMainList, nOldIndex, hiNewElement, bAddHotkey, NULL);
 
       if (nNewIndex >= 0)
       {
-        HotkeyListSelItem(hWndList, nNewIndex);
+        HotkeyListSelItem(hWndMainList, nNewIndex);
         bListChanged=TRUE;
       }
       PostMessage(hDlg, AKDLL_UPDATEADDMODIFY, 0, 0);
@@ -1093,7 +1104,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_ITEMRENAME)
     {
       if (nSelItem != -1)
-        SendMessage(hWndList, LVM_EDITLABEL, nSelItem, 0);
+        SendMessage(hWndMainList, LVM_EDITLABEL, nSelItem, 0);
     }
     else if (LOWORD(wParam) == IDC_ITEMMOVEUP ||
              LOWORD(wParam) == IDC_ITEMMOVEDOWN)
@@ -1105,21 +1116,21 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nNewIndex;
 
         //Delete
-        SendMessage(hWndList, LVM_DELETEITEM, nOldIndex, 0);
+        SendMessage(hWndMainList, LVM_DELETEITEM, nOldIndex, 0);
 
         //Add
         if (LOWORD(wParam) == IDC_ITEMMOVEUP)
           nNewIndex=max(nOldIndex - 1, 0);
         else
           nNewIndex=nOldIndex + 1;
-        nNewIndex=HotkeyListSetItem(hWndList, nNewIndex, hiOldItem, TRUE, NULL);
+        nNewIndex=HotkeyListSetItem(hWndMainList, nNewIndex, hiOldItem, TRUE, NULL);
 
         //Move item in stack
         StackMoveHotkeyByIndex(&hHotkeysStack, nOldIndex + 1, nNewIndex + 1);
 
         //Select
-        SetFocus(hWndList);
-        HotkeyListSelItem(hWndList, nNewIndex);
+        SetFocus(hWndMainList);
+        HotkeyListSelItem(hWndMainList, nNewIndex);
 
         bListChanged=TRUE;
       }
@@ -1133,12 +1144,12 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Delete
         StackDeleteHotkey(&hHotkeysStack, hiLastSelItem);
         hiLastSelItem=NULL;
-        SendMessage(hWndList, LVM_DELETEITEM, nIndex, 0);
-        nIndex=min(nIndex, (int)SendMessage(hWndList, LVM_GETITEMCOUNT, 0, 0) - 1);
+        SendMessage(hWndMainList, LVM_DELETEITEM, nIndex, 0);
+        nIndex=min(nIndex, (int)SendMessage(hWndMainList, LVM_GETITEMCOUNT, 0, 0) - 1);
 
         //Select
-        SetFocus(hWndList);
-        HotkeyListSelItem(hWndList, nIndex);
+        SetFocus(hWndMainList);
+        HotkeyListSelItem(hWndMainList, nIndex);
         bListChanged=TRUE;
       }
     }
@@ -1165,27 +1176,27 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if (GetFocus() == hWndList)
-        SendMessage(hWndList, LVM_EDITLABEL, nSelItem, 0);
+      if (GetFocus() == hWndMainList)
+        SendMessage(hWndMainList, LVM_EDITLABEL, nSelItem, 0);
     }
     else if (LOWORD(wParam) == IDC_CLOSE ||
              LOWORD(wParam) == IDCANCEL)
     {
       int nWidth;
 
-      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_NAME, 0);
+      nWidth=(int)SendMessage(hWndMainList, LVM_GETCOLUMNWIDTH, LVIS_LIST_NAME, 0);
       if (nColumnWidth1 != nWidth)
       {
         nColumnWidth1=nWidth;
         dwSaveFlags|=OF_MAINRECT;
       }
-      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_COMMAND, 0);
+      nWidth=(int)SendMessage(hWndMainList, LVM_GETCOLUMNWIDTH, LVIS_LIST_COMMAND, 0);
       if (nColumnWidth2 != nWidth)
       {
         nColumnWidth2=nWidth;
         dwSaveFlags|=OF_MAINRECT;
       }
-      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_HOTKEY, 0);
+      nWidth=(int)SendMessage(hWndMainList, LVM_GETCOLUMNWIDTH, LVIS_LIST_HOTKEY, 0);
       if (nColumnWidth3 != nWidth)
       {
         nColumnWidth3=nWidth;
@@ -1246,6 +1257,20 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
 
   return FALSE;
+}
+
+LRESULT CALLBACK NewMainFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_KEYDOWN)
+  {
+    if (wParam == VK_DOWN || wParam == VK_UP)
+    {
+      if (GetFocus() != hWndMainList)
+        SetFocus(hWndMainList);
+      return SendMessage(hWndMainList, uMsg, wParam, lParam);
+    }
+  }
+  return CallWindowProcWide(lpOldMainFilterProc, hWnd, uMsg, wParam, lParam);
 }
 
 void HotkeyListFill(HWND hWnd, HSTACK *hStack, const wchar_t *wpFilter)
@@ -1381,12 +1406,11 @@ BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
-  static HWND hWndList;
   static HWND hWndFilter;
   static HWND hWndOnlyAssigned;
   static HSTACK hAllKeysStack={0};
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
-                             {&hWndList,         DRS_SIZE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndAllKeysList,  DRS_SIZE|DRS_X, 0},
+                             {&hWndAllKeysList,  DRS_SIZE|DRS_Y, 0},
                              {&hWndFilter,       DRS_MOVE|DRS_Y, 0},
                              {&hWndOnlyAssigned, DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
@@ -1397,14 +1421,14 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
-    hWndList=GetDlgItem(hDlg, IDC_ALLKEYS_LIST);
+    hWndAllKeysList=GetDlgItem(hDlg, IDC_ALLKEYS_LIST);
     hWndFilter=GetDlgItem(hDlg, IDC_ALLKEYS_FILTER);
     hWndOnlyAssigned=GetDlgItem(hDlg, IDC_ALLKEYS_ONLYASSIGNED);
 
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_ALLKEYS));
     SetDlgItemTextWide(hDlg, IDC_ALLKEYS_ONLYASSIGNED, GetLangStringW(wLangModule, STRID_ONLYASSIGNED));
 
-    SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+    SendMessage(hWndAllKeysList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
     SetWindowTextWide(hWndFilter, wszAllKeysFilter);
     if (bAllKeysOnlyAssigned) SendMessage(hWndOnlyAssigned, BM_SETCHECK, BST_CHECKED, 0);
 
@@ -1416,21 +1440,24 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_NAME);
       lvc.cx=nAllKeysColumnWidth1;
       lvc.iSubItem=LVIS_LIST_NAME;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_NAME, &lvc);
+      ListView_InsertColumnWide(hWndAllKeysList, LVIS_LIST_NAME, &lvc);
 
       lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_COMMAND);
       lvc.cx=nAllKeysColumnWidth2;
       lvc.iSubItem=LVIS_LIST_COMMAND;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_COMMAND, &lvc);
+      ListView_InsertColumnWide(hWndAllKeysList, LVIS_LIST_COMMAND, &lvc);
 
       lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_HOTKEY);
       lvc.cx=nAllKeysColumnWidth3;
       lvc.iSubItem=LVIS_LIST_HOTKEY;
-      ListView_InsertColumnWide(hWndList, LVIS_LIST_HOTKEY, &lvc);
+      ListView_InsertColumnWide(hWndAllKeysList, LVIS_LIST_HOTKEY, &lvc);
     }
-    FillAllKeysList(hWndList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
+    FillAllKeysList(hWndAllKeysList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
+
+    lpOldAllKeysFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndFilter, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hWndFilter, GWLP_WNDPROC, (UINT_PTR)NewAllKeysFilterProc);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -1440,7 +1467,7 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         NMLISTVIEW *pnmlv=(NMLISTVIEW *)lParam;
 
-        SendMessage(hWndList, LVM_SORTITEMS, pnmlv->iSubItem, (LPARAM)CompareFunc);
+        SendMessage(hWndAllKeysList, LVM_SORTITEMS, pnmlv->iSubItem, (LPARAM)CompareFunc);
       }
       else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
       {
@@ -1455,21 +1482,21 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (HIWORD(wParam) == EN_CHANGE)
       {
         GetWindowTextWide(hWndFilter, wszAllKeysFilter, MAX_PATH);
-        FillAllKeysList(hWndList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
+        FillAllKeysList(hWndAllKeysList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
       }
     }
     else if (LOWORD(wParam) == IDC_ALLKEYS_ONLYASSIGNED)
     {
       bAllKeysOnlyAssigned=(BOOL)SendMessage(hWndOnlyAssigned, BM_GETCHECK, 0, 0);
-      FillAllKeysList(hWndList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
+      FillAllKeysList(hWndAllKeysList, &hAllKeysStack, wszAllKeysFilter, bAllKeysOnlyAssigned);
     }
 
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
-      nAllKeysColumnWidth1=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_NAME, 0);
-      nAllKeysColumnWidth2=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_COMMAND, 0);
-      nAllKeysColumnWidth3=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVIS_LIST_HOTKEY, 0);
+      nAllKeysColumnWidth1=(int)SendMessage(hWndAllKeysList, LVM_GETCOLUMNWIDTH, LVIS_LIST_NAME, 0);
+      nAllKeysColumnWidth2=(int)SendMessage(hWndAllKeysList, LVM_GETCOLUMNWIDTH, LVIS_LIST_COMMAND, 0);
+      nAllKeysColumnWidth3=(int)SendMessage(hWndAllKeysList, LVM_GETCOLUMNWIDTH, LVIS_LIST_HOTKEY, 0);
 
       if (LOWORD(wParam) == IDOK)
       {
@@ -1478,9 +1505,9 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         xmemset(&lvi, 0, sizeof(LVITEMA));
         lvi.mask=LVIF_PARAM;
-        lvi.iItem=(int)SendMessage(hWndList, LVM_GETNEXTITEM, (WPARAM)-1, LVNI_SELECTED);
+        lvi.iItem=(int)SendMessage(hWndAllKeysList, LVM_GETNEXTITEM, (WPARAM)-1, LVNI_SELECTED);
         lvi.iSubItem=LVIS_LIST_NAME;
-        SendMessage(hWndList, LVM_GETITEMA, 0, (LPARAM)&lvi);
+        SendMessage(hWndAllKeysList, LVM_GETITEMA, 0, (LPARAM)&lvi);
         hiElement=(HOTKEYITEM *)lvi.lParam;
 
         if (hiElement)
@@ -1523,6 +1550,20 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
 
   return FALSE;
+}
+
+LRESULT CALLBACK NewAllKeysFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_KEYDOWN)
+  {
+    if (wParam == VK_DOWN || wParam == VK_UP)
+    {
+      if (GetFocus() != hWndAllKeysList)
+        SetFocus(hWndAllKeysList);
+      return SendMessage(hWndAllKeysList, uMsg, wParam, lParam);
+    }
+  }
+  return CallWindowProcWide(lpOldAllKeysFilterProc, hWnd, uMsg, wParam, lParam);
 }
 
 void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilter, BOOL bOnlyAssigned)
