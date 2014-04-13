@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v14.6              ***
+***                 Scripts AkelPad plugin v14.7              ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -1137,7 +1137,7 @@ Arguments
     0x010  //OD_ADT_NOMESSAGES       No messages, if errors in autodetect.
     0x100  //OD_REOPEN               Don't create new MDI window, use the exited one.
     0x200  //OD_NOSCROLL             Don't restore scroll position.
-         //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+           //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
   nCodePage
     File code page, ignored if (nFlags & OD_ADT_DETECT_CODEPAGE)
   bBOM
@@ -1173,13 +1173,14 @@ Arguments
   pFile
     File to read.
   nFlags
-    0x1  //OD_ADT_BINARY_ERROR     Check if file is binary.
-    0x2  //OD_ADT_REG_CODEPAGE     If last open code page found in registry, then it will be
-         //                        used with OD_ADT_DETECT_BOM flag, if not found, then next flags
-         //                        will be used OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
-    0x4  //OD_ADT_DETECT_CODEPAGE  Detect code page.
-    0x8  //OD_ADT_DETECT_BOM       Detect BOM mark.
-         //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+    0x01  //OD_ADT_BINARY_ERROR     Check if file is binary.
+    0x02  //OD_ADT_REG_CODEPAGE     If last open code page found in registry, then it will be
+          //                        used with OD_ADT_DETECT_BOM flag, if not found, then next flags
+          //                        will be used OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
+    0x04  //OD_ADT_DETECT_CODEPAGE  Detect code page.
+    0x08  //OD_ADT_DETECT_BOM       Detect BOM mark.
+    0x10  //OD_ADT_NOMESSAGES       No messages, if errors in autodetect.
+          //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
   nCodePage
     File code page, ignored if (nFlags & OD_ADT_DETECT_CODEPAGE).
   bBOM

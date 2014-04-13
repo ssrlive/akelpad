@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v14.6              ***
+***                 Scripts AkelPad plugin v14.7              ***
 *****************************************************************
 
 2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -1139,7 +1139,7 @@ ________________
     0x010  //OD_ADT_NOMESSAGES       Не выводить сообщения при ошибке автоопределения.
     0x100  //OD_REOPEN               Не создавать новое окно, использовать имеющееся.
     0x200  //OD_NOSCROLL             Не восстанавливать прокрутку текста.
-         //По умолчанию 0xD        (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+           //По умолчанию 0xD        (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
   nCodePage
     Кодировка файла, игнорируется если (nFlags & OD_ADT_DETECT_CODEPAGE)
   bBOM
@@ -1175,13 +1175,14 @@ ________________
   pFile
     Файл для чтения.
   nFlags
-    0x1  //OD_ADT_BINARY_ERROR     Проверить является ли файл бинарным.
-    0x2  //OD_ADT_REG_CODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
-         //                        с флагом OD_ADT_DETECT_BOM, если нет, то следующие флаги будут использованы
-         //                        OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
-    0x4  //OD_ADT_DETECT_CODEPAGE  Определить кодировку.
-    0x8  //OD_ADT_DETECT_BOM       Определить наличие сигнатуры BOM.
-         //По умолчанию 0xD        (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+    0x01  //OD_ADT_BINARY_ERROR     Проверить является ли файл бинарным.
+    0x02  //OD_ADT_REG_CODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
+          //                        с флагом OD_ADT_DETECT_BOM, если нет, то следующие флаги будут использованы
+          //                        OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
+    0x04  //OD_ADT_DETECT_CODEPAGE  Определить кодировку.
+    0x08  //OD_ADT_DETECT_BOM       Определить наличие сигнатуры BOM.
+    0x10  //OD_ADT_NOMESSAGES       Не выводить сообщения при ошибке автоопределения.
+          //По умолчанию 0xD        (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
   nCodePage
     Кодировка файла, игнорируется если (nFlags & OD_ADT_DETECT_CODEPAGE).
   bBOM
