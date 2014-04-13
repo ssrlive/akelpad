@@ -1232,7 +1232,7 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
   UINT_PTR dwFile;
   FILECONTENT fc;
   DWORD dwCreationDisposition;
-  DWORD dwFileAttributes=INVALID_FILE_ATTRIBUTES;
+  DWORD dwAttr=INVALID_FILE_ATTRIBUTES;
 
   if (pvtFile->vt == (VT_VARIANT|VT_BYREF))
     pvtFile=pvtFile->pvarVal;
@@ -1242,24 +1242,25 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
 
   if (pvtFile->vt == VT_BSTR)
   {
-    dwFileAttributes=GetFileAttributesWide((const wchar_t *)dwFile);
-    if (dwFlags & WFF_WRITEREADONLY)
+    if ((dwAttr=GetFileAttributesWide((const wchar_t *)dwFile)) != INVALID_FILE_ATTRIBUTES)
     {
-      if ((dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
-        SetFileAttributesWide((const wchar_t *)dwFile, dwFileAttributes & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
-    }
-    else
-    {
-      if (dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+      if (dwFlags & WFF_WRITEREADONLY)
       {
-        *nResult=ESD_READONLY;
-        return NOERROR;
+        if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
+          SetFileAttributesWide((const wchar_t *)dwFile, dwAttr & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
+      }
+      else
+      {
+        if (dwAttr & FILE_ATTRIBUTE_READONLY)
+        {
+          *nResult=ESD_READONLY;
+          return NOERROR;
+        }
       }
     }
-
     if (dwFlags & WFF_APPENDFILE)
       dwCreationDisposition=OPEN_ALWAYS;
-    else if (FileExistsWide((const wchar_t *)dwFile))
+    else if (dwAttr != INVALID_FILE_ATTRIBUTES)
       dwCreationDisposition=TRUNCATE_EXISTING;
     else
       dwCreationDisposition=CREATE_NEW;
@@ -1283,10 +1284,10 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
     {
       CloseHandle(fc.hFile);
 
-      if (dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+      if (dwAttr != INVALID_FILE_ATTRIBUTES)
       {
-        if ((!(dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) && *nResult == ESD_SUCCESS) || (dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
-          SetFileAttributesWide((const wchar_t *)dwFile, dwFileAttributes|(*nResult == ESD_SUCCESS?FILE_ATTRIBUTE_ARCHIVE:0));
+        if ((!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) && *nResult == ESD_SUCCESS) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
+          SetFileAttributesWide((const wchar_t *)dwFile, dwAttr|(*nResult == ESD_SUCCESS?FILE_ATTRIBUTE_ARCHIVE:0));
       }
     }
   }
