@@ -1,4 +1,10 @@
 
+AkelPad 4.8.9 ()
+----------------------------
+Added: optional parameter for change case commands 4175-4180:
+       1 - change case for current word if no selection.
+
+
 AkelPad 4.8.8 (Apr 12, 2014)
 ----------------------------
 Changed: plugin architecture. Update plugins.
