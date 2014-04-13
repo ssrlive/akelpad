@@ -1140,7 +1140,7 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
     if (nBlockEnd - nBlockBegin < nAutoListAfter)
       return CAWE_AUTOLIST;
   }
-  if (dwFlags & (CAW_COMPLETEEXACT|CAW_COMPLETEONE))
+  if ((dwFlags & CAW_COMPLETEONE) && (dwFlags & CAW_COMPLETEEXACT))
   {
     if (nBlockEnd - nBlockBegin < nCompleteWithoutListAfter)
       return CAWE_COMPLETEEXACT;
