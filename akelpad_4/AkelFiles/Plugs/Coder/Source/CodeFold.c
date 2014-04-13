@@ -22,6 +22,7 @@ PLUGINFUNCTION *pfCodeFold=NULL;
 HWND hWndCodeFoldDlg=NULL;
 HWND hWndCodeFoldList=NULL;
 HWND hWndCodeFoldFilter=NULL;
+WNDPROC lpOldFilterProc=NULL;
 RECT rcCodeFoldCurrentDialog={0};
 RECT rcCodeFoldDockRect={0};
 int nCodeFoldDockSide=DKS_RIGHT;
@@ -346,6 +347,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       bd.dwFlags=BIF_CROSS|BIF_ETCHED;
       SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndTitleClose, (LPARAM)&bd);
     }
+
+    lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndCodeFoldFilter, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hWndCodeFoldFilter, GWLP_WNDPROC, (UINT_PTR)NewFilterProc);
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -616,6 +620,20 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   }
 
   return FALSE;
+}
+
+LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_KEYDOWN)
+  {
+    if (wParam == VK_DOWN || wParam == VK_UP)
+    {
+      if (GetFocus() != hWndCodeFoldList)
+        SetFocus(hWndCodeFoldList);
+      return SendMessage(hWndCodeFoldList, uMsg, wParam, lParam);
+    }
+  }
+  return CallWindowProcWide(lpOldFilterProc, hWnd, uMsg, wParam, lParam);
 }
 
 BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
