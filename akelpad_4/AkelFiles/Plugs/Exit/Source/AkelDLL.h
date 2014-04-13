@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 2)
 
 
 //// Defines
@@ -1715,22 +1715,22 @@ typedef struct {
 #define IDM_EDIT_DELETE_TRAILING_WHITESPACES 4174  //Delete trailing whitespaces.
                                                    //Return Value: TRUE - success, FALSE - failed.
                                                    //
-#define IDM_EDIT_UPPERCASE              4175  //Convert text to UPPERCASE.
+#define IDM_EDIT_UPPERCASE              4175  //Convert text to UPPERCASE. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_LOWERCASE              4176  //Convert text to lowercase.
+#define IDM_EDIT_LOWERCASE              4176  //Convert text to lowercase. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_SENTENCECASE           4177  //Convert text to Sentence case.
+#define IDM_EDIT_SENTENCECASE           4177  //Convert text to Sentence case. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_TITLECASE              4178  //Convert text to Title Case.
+#define IDM_EDIT_TITLECASE              4178  //Convert text to Title Case. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_INVERTCASE             4179  //Convert text to iNVERT cASE.
+#define IDM_EDIT_INVERTCASE             4179  //Convert text to iNVERT cASE. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_LOOPCASE               4180  //Cycle case.
+#define IDM_EDIT_LOOPCASE               4180  //Cycle case. lParam: TRUE - change case for current word if no selection, FALSE - change case for all text if no selection (default).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_RECODE                 4182  //Recode dialog.

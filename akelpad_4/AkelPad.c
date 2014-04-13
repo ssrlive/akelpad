@@ -4410,23 +4410,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_EDIT_UPPERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, UPPERCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, UPPERCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_LOWERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, LOWERCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, LOWERCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_SENTENCECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SENTENCECASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SENTENCECASE, lParam);
     }
     else if (wCommand == IDM_EDIT_TITLECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, TITLECASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, TITLECASE, lParam);
     }
     else if (wCommand == IDM_EDIT_INVERTCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, INVERTCASE);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, INVERTCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_LOOPCASE)
     {
@@ -4437,7 +4437,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nCase=UPPERCASE;
       else
         ++nCase;
-      bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase);
+      bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase, lParam);
       nLoopCase=nCase;
       return bResult;
     }

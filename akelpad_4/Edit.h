@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.8 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.9 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.8 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.8.9 (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
   #define APP_MAIN_CLASSA            "AkelPad4 Library"
@@ -732,7 +732,7 @@ void DoEditRecode();
 BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpString);
 BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);
-BOOL DoEditChangeCaseW(HWND hWnd, int nCase);
+BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord);
 void DoEditFind();
 INT_PTR DoEditFindNextDown(FRAMEDATA *lpFrame);
 INT_PTR DoEditFindNextUp(FRAMEDATA *lpFrame);
