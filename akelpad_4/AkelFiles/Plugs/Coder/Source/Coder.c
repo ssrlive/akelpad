@@ -2326,6 +2326,8 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
   wchar_t wszFile[MAX_PATH];
   const wchar_t *wpFileName;
   wchar_t *wszText;
+  wchar_t *wpTextStart;
+  wchar_t *wpSectionStart;
   wchar_t *wpText;
   wchar_t *wpWildcard;
   wchar_t *wpDelimiter;
@@ -2388,6 +2390,7 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
             ++wpText;
             --dwUnicodeLen;
           }
+          wpTextStart=wpText;
 
           lpLoadSyntaxFile=lpSyntaxFile;
           bSyntaxFileLoadError=FALSE;
@@ -2413,6 +2416,7 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
 
               goto SectionStart;
             }
+            wpSectionStart=wpText;
             GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack);
             if (!NextLine(&wpText)) goto FreeText;
             if (!SkipComment(&wpText)) goto FreeText;
@@ -3745,8 +3749,12 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                 if (wszBlockParsed) GlobalFree((HGLOBAL)wszBlockParsed);
               }
             }
-            else goto FreeText;
-
+            else
+            {
+              xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_UNKNOWNSECTION), lpSyntaxFile->wszSyntaxFileName, wpSectionStart - wpTextStart, wszBuffer);
+              MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+              goto FreeText;
+            }
             goto SectionStart;
           }
           lpLoadSyntaxFile=NULL;
@@ -5553,6 +5561,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043E\x0448\x0438\x0431\x043A\x0443\x0020\x0432\x0020\x0440\x0435\x0433\x0443\x043B\x044F\x0440\x043D\x043E\x043C\x0020\x0432\x044B\x0440\x0430\x0436\x0435\x043D\x0438\x0438 \"%.%ds\"";
     if (nStringID == STRID_REGEXP_FIXEDLENGTH)
       return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x0440\x0435\x0433\x0443\x043B\x044F\x0440\x043D\x043E\x0435\x0020\x0432\x044B\x0440\x0430\x0436\x0435\x043D\x0438\x0435\x0020\x043D\x0435\x0020\x0444\x0438\x043A\x0441\x0438\x0440\x043E\x0432\x0430\x043D\x043D\x043E\x0439\x0020\x0434\x043B\x0438\x043D\x044B \"%.%ds\"";
+    if (nStringID == STRID_UNKNOWNSECTION)
+      return L"\"%s\" (\x0441\x043C\x0435\x0449\x0435\x043D\x0438\x0435 %Id) \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x043E\x0435\x0020\x0438\x043C\x044F\x0020\x0441\x0435\x043A\x0446\x0438\x0438 \"%s\".";
     if (nStringID == STRID_UNKNOWNSYNTAXFILE)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0430\x0441\x0441\x043E\x0446\x0438\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0442\x0435\x043C\x0443 \"%s\" \x0441\x0020\x0444\x0430\x0439\x043B\x043E\x043C \"%s\": \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x0441\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0438\x0439\x0020\x0444\x0430\x0439\x043B.";
     if (nStringID == STRID_UNKNOWNVARTHEME)
@@ -5767,6 +5777,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\"%s\" contain non valid regular expression \"%.%ds\"";
     if (nStringID == STRID_REGEXP_FIXEDLENGTH)
       return L"\"%s\" contain non fixed length regular expression \"%.%ds\"";
+    if (nStringID == STRID_UNKNOWNSECTION)
+      return L"\"%s\" (offset %Id) contain unknown section name \"%s\".";
     if (nStringID == STRID_UNKNOWNSYNTAXFILE)
       return L"Can't link \"%s\" theme to \"%s\" file: unknown syntax file.";
     if (nStringID == STRID_UNKNOWNVARTHEME)
