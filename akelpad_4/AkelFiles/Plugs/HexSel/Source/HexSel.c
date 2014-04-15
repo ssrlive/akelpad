@@ -62,7 +62,8 @@
 #define STRID_OK         16
 #define STRID_CANCEL     17
 
-#define DLLA_HEXSEL_CONVERTTEXT 1
+#define DLLA_HEXSEL_CONVERTTEXT   1
+#define DLLA_HEXSEL_EXCONVERTTEXT 2
 
 #define CP_UNICODE_UCS2_LE  1200
 #define CP_UNICODE_UCS2_BE  1201
@@ -119,11 +120,11 @@ LRESULT CALLBACK NewFrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillCodepageListbox(HWND hWnd, int nCodePage);
 void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
-INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t *wszInput, INT_PTR nInputLen, wchar_t **wppOutput);
+INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nAnsiCP, int nUnicodeCP, wchar_t *wszInput, INT_PTR nInputLen, wchar_t **wppOutput);
 INT_PTR GetHexFromAnsiString(DWORD dwFlags, char *szInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t **wppOutput);
-INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t **wppOutput);
+INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nUnicodeCP, wchar_t **wppOutput);
 INT_PTR GetAnsiStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, char **ppOutput, BOOL bStopOnError);
-INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t **wppOutput, BOOL bStopOnError);
+INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nUnicodeCP, wchar_t **wppOutput, BOOL bStopOnError);
 void FreeHexString(void *lpString);
 INT_PTR dec2oct(INT_PTR nDec);
 INT_PTR oct2dec(INT_PTR nOct);
@@ -151,7 +152,6 @@ HWND hWndEdit;
 HMENU hPopupView;
 HICON hMainIcon;
 BOOL bOldWindows;
-BOOL bAkelEdit;
 int nMDI;
 LANGID wLangModule;
 BOOL bInitCommon=FALSE;
@@ -196,7 +196,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
   {
     INT_PTR nAction=GetExtCallParam(pd->lParam, 1);
 
-    if (nAction == DLLA_HEXSEL_CONVERTTEXT)
+    if (nAction == DLLA_HEXSEL_CONVERTTEXT || nAction == DLLA_HEXSEL_EXCONVERTTEXT)
     {
       DWORD dwFlags=GH_UNICODE|GH_SELECT;
       unsigned char *pPrefix=NULL;
@@ -208,24 +208,52 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       INT_PTR *lpnOutputLen=NULL;
       wchar_t wszPrefix[MAX_PATH];
       wchar_t wszSuffix[MAX_PATH];
+      int nAnsiCP=nHexAnsiCP;
+      int nUnicodeCP=nHexUnicodeCP;
       INT_PTR nOutputLen=0;
 
-      if (IsExtCallParamValid(pd->lParam, 2))
-        dwFlags=(DWORD)GetExtCallParam(pd->lParam, 2);
-      if (IsExtCallParamValid(pd->lParam, 3))
-        pPrefix=(unsigned char *)GetExtCallParam(pd->lParam, 3);
-      if (IsExtCallParamValid(pd->lParam, 4))
-        pSuffix=(unsigned char *)GetExtCallParam(pd->lParam, 4);
-      if (IsExtCallParamValid(pd->lParam, 5))
-        pInput=(unsigned char *)GetExtCallParam(pd->lParam, 5);
-      if (IsExtCallParamValid(pd->lParam, 6))
-        nInputLen=GetExtCallParam(pd->lParam, 6);
-      if (IsExtCallParamValid(pd->lParam, 7))
-        nInputCP=(int)GetExtCallParam(pd->lParam, 7);
-      if (IsExtCallParamValid(pd->lParam, 8))
-        wppOutput=(wchar_t **)GetExtCallParam(pd->lParam, 8);
-      if (IsExtCallParamValid(pd->lParam, 9))
-        lpnOutputLen=(INT_PTR *)GetExtCallParam(pd->lParam, 9);
+      if (nAction == DLLA_HEXSEL_CONVERTTEXT)
+      {
+        if (IsExtCallParamValid(pd->lParam, 2))
+          dwFlags=(DWORD)GetExtCallParam(pd->lParam, 2);
+        if (IsExtCallParamValid(pd->lParam, 3))
+          pPrefix=(unsigned char *)GetExtCallParam(pd->lParam, 3);
+        if (IsExtCallParamValid(pd->lParam, 4))
+          pSuffix=(unsigned char *)GetExtCallParam(pd->lParam, 4);
+        if (IsExtCallParamValid(pd->lParam, 5))
+          pInput=(unsigned char *)GetExtCallParam(pd->lParam, 5);
+        if (IsExtCallParamValid(pd->lParam, 6))
+          nInputLen=GetExtCallParam(pd->lParam, 6);
+        if (IsExtCallParamValid(pd->lParam, 7))
+          nInputCP=(int)GetExtCallParam(pd->lParam, 7);
+        if (IsExtCallParamValid(pd->lParam, 8))
+          wppOutput=(wchar_t **)GetExtCallParam(pd->lParam, 8);
+        if (IsExtCallParamValid(pd->lParam, 9))
+          lpnOutputLen=(INT_PTR *)GetExtCallParam(pd->lParam, 9);
+      }
+      else if (nAction == DLLA_HEXSEL_EXCONVERTTEXT)
+      {
+        if (IsExtCallParamValid(pd->lParam, 2))
+          dwFlags=(DWORD)GetExtCallParam(pd->lParam, 2);
+        if (IsExtCallParamValid(pd->lParam, 3))
+          pPrefix=(unsigned char *)GetExtCallParam(pd->lParam, 3);
+        if (IsExtCallParamValid(pd->lParam, 4))
+          pSuffix=(unsigned char *)GetExtCallParam(pd->lParam, 4);
+        if (IsExtCallParamValid(pd->lParam, 5))
+          nAnsiCP=(int)GetExtCallParam(pd->lParam, 5);
+        if (IsExtCallParamValid(pd->lParam, 6))
+          nUnicodeCP=(int)GetExtCallParam(pd->lParam, 6);
+        if (IsExtCallParamValid(pd->lParam, 7))
+          pInput=(unsigned char *)GetExtCallParam(pd->lParam, 7);
+        if (IsExtCallParamValid(pd->lParam, 8))
+          nInputLen=GetExtCallParam(pd->lParam, 8);
+        if (IsExtCallParamValid(pd->lParam, 9))
+          nInputCP=(int)GetExtCallParam(pd->lParam, 9);
+        if (IsExtCallParamValid(pd->lParam, 10))
+          wppOutput=(wchar_t **)GetExtCallParam(pd->lParam, 10);
+        if (IsExtCallParamValid(pd->lParam, 11))
+          lpnOutputLen=(INT_PTR *)GetExtCallParam(pd->lParam, 11);
+      }
 
       if (pd->hWndEdit)
       {
@@ -249,10 +277,13 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         }
         else xstrcpynW(wszSuffix, wszHexSuffix, MAX_PATH);
 
+        if (nAnsiCP == -2) nAnsiCP=nHexAnsiCP;
+        if (nUnicodeCP == -2) nUnicodeCP=nHexUnicodeCP;
+
         if (!pInput)
         {
           //Convert selection
-          GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, NULL, 0, NULL);
+          GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, nAnsiCP, nUnicodeCP, NULL, 0, NULL);
         }
         else
         {
@@ -271,12 +302,12 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               {
                 if (nWideChars=MultiByteToWideChar(nInputCP, 0, (char *)pInput, (int)nInputLen, wszWideStr, nWideChars))
                   wszWideStr[nWideChars]=L'\0';
-                nOutputLen=GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, wszWideStr, nWideChars, wppOutput);
+                nOutputLen=GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, nAnsiCP, nUnicodeCP, wszWideStr, nWideChars, wppOutput);
                 GlobalFree((HGLOBAL)wszWideStr);
               }
             }
           }
-          else nOutputLen=GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, (wchar_t *)pInput, nInputLen, wppOutput);
+          else nOutputLen=GetHex(pd->hWndEdit, pd->hWndEdit, dwFlags, wszPrefix, wszSuffix, nAnsiCP, nUnicodeCP, (wchar_t *)pInput, nInputLen, wppOutput);
 
           if (lpnOutputLen) *lpnOutputLen=nOutputLen;
         }
@@ -372,10 +403,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SendMessage(hWndHexView, EM_SETUNDOLIMIT, 0, 0);
     SendMessage(hWndHexView, EM_SHOWSCROLLBAR, SB_HORZ, FALSE);
-    if (bAkelEdit)
-      SendMessage(hWndHexView, AEM_SETWORDWRAP, AEWW_WORD, 0);
-    else
-      SendMessage(hWndHexView, EM_SETTARGETDEVICE, (WPARAM)NULL, 0);
+    SendMessage(hWndHexView, AEM_SETWORDWRAP, AEWW_WORD, 0);
     hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
     SendMessage(hWndHexView, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
 
@@ -399,7 +427,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       dwFlags|=GH_RADIXOCT;
     else if (nRadix == RDX_DEC)
       dwFlags|=GH_RADIXDEC;
-    GetHex(hWndHexView, (HWND)wParam, dwFlags, wszHexPrefix, wszHexSuffix, NULL, 0, NULL);
+    GetHex(hWndHexView, (HWND)wParam, dwFlags, wszHexPrefix, wszHexSuffix, nHexAnsiCP, nHexUnicodeCP, NULL, 0, NULL);
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -783,7 +811,7 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen)
   else wszCodePage[0]='\0';
 }
 
-INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t *wszInput, INT_PTR nInputLen, wchar_t **wppOutput)
+INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nAnsiCP, int nUnicodeCP, wchar_t *wszInput, INT_PTR nInputLen, wchar_t **wppOutput)
 {
   EDITINFO ei;
   CHARRANGE64 cr;
@@ -798,7 +826,6 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
   INT_PTR nOutputAnsiLen=0;
   INT_PTR nOutputUnicodeLen=0;
   INT_PTR nCaretOffset=0;
-  int nCodePage;
   int nSuccessCount=0;
   BOOL bStopOnError;
 
@@ -808,22 +835,13 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
     {
       if (!wszIn)
       {
-        if (bAkelEdit)
-        {
-          EXGETTEXTRANGE tr;
+        EXGETTEXTRANGE tr;
 
-          SendMessage(ei.hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
-          tr.pText=NULL;
-          tr.nNewLine=AELB_ASIS;
-          nInputUnicodeLen=SendMessage(hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)ei.hWndEdit, (LPARAM)&tr);
-          wszIn=(wchar_t *)tr.pText;
-        }
-        else
-        {
-          wszIn=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nInputUnicodeLen);
-          SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-          nInputUnicodeLen=cr.cpMax - cr.cpMin;
-        }
+        SendMessage(ei.hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
+        tr.pText=NULL;
+        tr.nNewLine=AELB_ASIS;
+        nInputUnicodeLen=SendMessage(hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)ei.hWndEdit, (LPARAM)&tr);
+        wszIn=(wchar_t *)tr.pText;
       }
       else
       {
@@ -834,14 +852,13 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
       if (nInputUnicodeLen)
       {
         //Use file codepage if not unicode.
-        if (nHexAnsiCP == -1)
+        if (nAnsiCP == -1)
         {
           if (ei.nCodePage != CP_UNICODE_UCS2_LE && ei.nCodePage != CP_UNICODE_UCS2_BE)
-            nCodePage=ei.nCodePage;
+            nAnsiCP=ei.nCodePage;
           else
-            nCodePage=CP_ACP;
+            nAnsiCP=CP_ACP;
         }
-        else nCodePage=nHexAnsiCP;
 
         if (!wppOutput)
         {
@@ -882,11 +899,11 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
             {
               if (nOutputAnsiLen=GetAnsiStringFromHex(dwFlags, wszIn, nInputUnicodeLen, wpPrefix, wpSuffix, &szOut, bStopOnError))
               {
-                nOutputUnicodeLen=MultiByteToWideChar64(nCodePage, 0, szOut, nOutputAnsiLen, NULL, 0);
+                nOutputUnicodeLen=MultiByteToWideChar64(nAnsiCP, 0, szOut, nOutputAnsiLen, NULL, 0);
 
                 if (wszOut=(wchar_t *)GlobalAlloc(GPTR, (nOutputUnicodeLen + 1) * sizeof(wchar_t)))
                 {
-                  MultiByteToWideChar64(nCodePage, 0, szOut, nOutputAnsiLen + 1, wszOut, nOutputUnicodeLen + 1);
+                  MultiByteToWideChar64(nAnsiCP, 0, szOut, nOutputAnsiLen + 1, wszOut, nOutputUnicodeLen + 1);
 
                   if (!wppOutput)
                   {
@@ -905,7 +922,7 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
             //Unicode
             if (dwFlags & GH_UNICODE)
             {
-              if (nOutputUnicodeLen=GetUnicodeStringFromHex(dwFlags, wszIn, nInputUnicodeLen, wpPrefix, wpSuffix, &wszOut, bStopOnError))
+              if (nOutputUnicodeLen=GetUnicodeStringFromHex(dwFlags, wszIn, nInputUnicodeLen, wpPrefix, wpSuffix, nUnicodeCP, &wszOut, bStopOnError))
               {
                 if (!wppOutput)
                 {
@@ -940,11 +957,11 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
 
             if (dwFlags & GH_ANSI)
             {
-              nInputAnsiLen=WideCharToMultiByte64(nCodePage, 0, wszIn, nInputUnicodeLen, NULL, 0, NULL, NULL);
+              nInputAnsiLen=WideCharToMultiByte64(nAnsiCP, 0, wszIn, nInputUnicodeLen, NULL, 0, NULL, NULL);
 
               if (szIn=(char *)GlobalAlloc(GPTR, nInputAnsiLen + 1))
               {
-                WideCharToMultiByte64(nCodePage, 0, wszIn, nInputUnicodeLen + 1, szIn, nInputAnsiLen + 1, NULL, NULL);
+                WideCharToMultiByte64(nAnsiCP, 0, wszIn, nInputUnicodeLen + 1, szIn, nInputAnsiLen + 1, NULL, NULL);
 
                 if (nOutputUnicodeLen=GetHexFromAnsiString(dwFlags, szIn, nInputAnsiLen, wpPrefix, wpSuffix, &wszOut))
                 {
@@ -965,7 +982,7 @@ INT_PTR GetHex(HWND hWndHexView, HWND hWndEdit, DWORD dwFlags, const wchar_t *wp
             //Unicode
             if (dwFlags & GH_UNICODE)
             {
-              if (nOutputUnicodeLen=GetHexFromUnicodeString(dwFlags, wszIn, nInputUnicodeLen, wpPrefix, wpSuffix, &wszOut))
+              if (nOutputUnicodeLen=GetHexFromUnicodeString(dwFlags, wszIn, nInputUnicodeLen, wpPrefix, wpSuffix, nUnicodeCP, &wszOut))
               {
                 if (!wppOutput)
                 {
@@ -1048,8 +1065,8 @@ INT_PTR GetHexFromAnsiString(DWORD dwFlags, char *szInput, INT_PTR nInputLen, co
   INT_PTR a=0;
   INT_PTR b=0;
 
-  nPrefixLen=lstrlenW(wpPrefix);
-  nSuffixLen=lstrlenW(wpSuffix);
+  nPrefixLen=(int)xstrlenW(wpPrefix);
+  nSuffixLen=(int)xstrlenW(wpSuffix);
   nSymbolLen=nPrefixLen + nSuffixLen;
   if ((dwFlags & GH_RADIXDEC) || (dwFlags & GH_RADIXOCT))
     nSymbolLen+=3;
@@ -1085,7 +1102,7 @@ INT_PTR GetHexFromAnsiString(DWORD dwFlags, char *szInput, INT_PTR nInputLen, co
   return b;
 }
 
-INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t **wppOutput)
+INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nUnicodeCP, wchar_t **wppOutput)
 {
   wchar_t *wszOutput;
   wchar_t wchChar='\0';
@@ -1096,8 +1113,8 @@ INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
   INT_PTR a=0;
   INT_PTR b=0;
 
-  nPrefixLen=lstrlenW(wpPrefix);
-  nSuffixLen=lstrlenW(wpSuffix);
+  nPrefixLen=(int)xstrlenW(wpPrefix);
+  nSuffixLen=(int)xstrlenW(wpSuffix);
   nSymbolLen=nPrefixLen + nSuffixLen;
   if ((dwFlags & GH_RADIXDEC) || (dwFlags & GH_RADIXOCT))
     nSymbolLen+=5;
@@ -1112,9 +1129,9 @@ INT_PTR GetHexFromUnicodeString(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
       xmemcpy(wszOutput + b, wpPrefix, nPrefixLen * sizeof(wchar_t));
       b+=nPrefixLen;
 
-      if (nHexUnicodeCP == CP_UNICODE_UCS2_LE)
+      if (nUnicodeCP == CP_UNICODE_UCS2_LE)
         wchChar=wszInput[a];
-      else if (nHexUnicodeCP == CP_UNICODE_UCS2_BE)
+      else if (nUnicodeCP == CP_UNICODE_UCS2_BE)
         wchChar=MAKEWORD(HIBYTE(wszInput[a]), LOBYTE(wszInput[a]));
 
       if (dwFlags & GH_RADIXOCT)
@@ -1151,8 +1168,8 @@ INT_PTR GetAnsiStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen
   INT_PTR a=0;
   INT_PTR b=0;
 
-  nPrefixLen=lstrlenW(wpPrefix);
-  nSuffixLen=lstrlenW(wpSuffix);
+  nPrefixLen=(int)xstrlenW(wpPrefix);
+  nSuffixLen=(int)xstrlenW(wpSuffix);
   nSymbolLen=nPrefixLen + nSuffixLen;
   if ((dwFlags & GH_RADIXDEC) || (dwFlags & GH_RADIXOCT))
   {
@@ -1232,7 +1249,7 @@ INT_PTR GetAnsiStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen
   return b;
 }
 
-INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, wchar_t **wppOutput, BOOL bStopOnError)
+INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen, const wchar_t *wpPrefix, const wchar_t *wpSuffix, int nUnicodeCP, wchar_t **wppOutput, BOOL bStopOnError)
 {
   wchar_t wszHexChar[5];
   wchar_t *wszOutput;
@@ -1245,8 +1262,8 @@ INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
   INT_PTR a=0;
   INT_PTR b=0;
 
-  nPrefixLen=lstrlenW(wpPrefix);
-  nSuffixLen=lstrlenW(wpSuffix);
+  nPrefixLen=(int)xstrlenW(wpPrefix);
+  nSuffixLen=(int)xstrlenW(wpSuffix);
   nSymbolLen=nPrefixLen + nSuffixLen;
   if ((dwFlags & GH_RADIXDEC) || (dwFlags & GH_RADIXOCT))
   {
@@ -1277,7 +1294,7 @@ INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
         }
         else
         {
-          if (nHexUnicodeCP == CP_UNICODE_UCS2_LE)
+          if (nUnicodeCP == CP_UNICODE_UCS2_LE)
           {
             if (a >= nInputLen) break;
             wszHexChar[0]=wszInput[a++];
@@ -1288,7 +1305,7 @@ INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
             if (a >= nInputLen) break;
             wszHexChar[3]=wszInput[a++];
           }
-          else if (nHexUnicodeCP == CP_UNICODE_UCS2_BE)
+          else if (nUnicodeCP == CP_UNICODE_UCS2_BE)
           {
             if (a >= nInputLen) break;
             wszHexChar[2]=wszInput[a++];
@@ -1474,8 +1491,8 @@ void SaveOptions(DWORD dwFlags)
     if (dwFlags & OF_SETTINGS)
     {
       WideOption(hOptions, L"Direction", PO_DWORD, (LPBYTE)&nHexDirection, sizeof(DWORD));
-      WideOption(hOptions, L"Prefix", PO_BINARY, (LPBYTE)wszHexPrefix, (lstrlenW(wszHexPrefix) + 1) * sizeof(wchar_t));
-      WideOption(hOptions, L"Suffix", PO_BINARY, (LPBYTE)wszHexSuffix, (lstrlenW(wszHexSuffix) + 1) * sizeof(wchar_t));
+      WideOption(hOptions, L"Prefix", PO_BINARY, (LPBYTE)wszHexPrefix, ((int)xstrlenW(wszHexPrefix) + 1) * sizeof(wchar_t));
+      WideOption(hOptions, L"Suffix", PO_BINARY, (LPBYTE)wszHexSuffix, ((int)xstrlenW(wszHexSuffix) + 1) * sizeof(wchar_t));
       WideOption(hOptions, L"Ansi", PO_DWORD, (LPBYTE)&nHexAnsiCP, sizeof(DWORD));
       WideOption(hOptions, L"Unicode", PO_DWORD, (LPBYTE)&nHexUnicodeCP, sizeof(DWORD));
       WideOption(hOptions, L"Radix", PO_DWORD, (LPBYTE)&nRadix, sizeof(DWORD));
@@ -1595,7 +1612,6 @@ void InitCommon(PLUGINDATA *pd)
   hWndEdit=pd->hWndEdit;
   hMainIcon=pd->hMainIcon;
   bOldWindows=pd->bOldWindows;
-  bAkelEdit=pd->bAkelEdit;
   nMDI=pd->nMDI;
   wLangModule=PRIMARYLANGID(pd->wLangModule);
   hPopupView=GetSubMenu(pd->hPopupMenu, MENU_POPUP_VIEW);
