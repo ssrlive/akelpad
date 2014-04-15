@@ -1,5 +1,5 @@
 *****************************************************************
-***                   HexSel AkelPad plugin v6.4              ***
+***                   HexSel AkelPad plugin v6.5              ***
 *****************************************************************
 
 2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -75,3 +75,17 @@ Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", "INPUT", INPUTLEN, INPUTCODEP
       }
       return pOutput;
     }
+
+Call("HexSel::Main", 2, FLAGS, "PREFIX", "SUFFIX", ANSICODEPAGE, UNICODECODEPAGE, "INPUT", INPUTLEN, INPUTCODEPAGE, **OUTPUT, *OUTPUTLEN)
+  Параметры:
+    2
+      То же, что и 1, но с дополнительными параметрами: ANSICODEPAGE, UNICODECODEPAGE.
+    ANSICODEPAGE
+      Кодировка для однобайтового преобразования (Ansi).
+      Если -1, кодировка выбирается автоматически.
+      Если -2, использовать текущие настройки плагина.
+      По умолчанию: -2.
+    UNICODECODEPAGE
+      Кодировка для двухбайтового преобразования (Unicode).
+      Если -2, использовать текущие настройки плагина.
+      По умолчанию: -2.

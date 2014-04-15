@@ -1,5 +1,5 @@
 *****************************************************************
-***                   HexSel AkelPad plugin v6.4              ***
+***                   HexSel AkelPad plugin v6.5              ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -75,3 +75,17 @@ Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", INPUTLEN, INPUTCODEPAGE, **OU
       }
       return pOutput;
     }
+
+Call("HexSel::Main", 2, FLAGS, "PREFIX", "SUFFIX", ANSICODEPAGE, UNICODECODEPAGE, "INPUT", INPUTLEN, INPUTCODEPAGE, **OUTPUT, *OUTPUTLEN)
+  Parameters:
+    2
+      Same as 1, but with additional parameters: ANSICODEPAGE, UNICODECODEPAGE.
+    ANSICODEPAGE
+      Codepage for single-byte conversion (Ansi).
+      If -1, codepage automatically selected.
+      If -2, use current plugin settings.
+      Default: -2.
+    UNICODECODEPAGE
+      Codepage for double-byte conversion (Unicode).
+      If -2, use current plugin settings.
+      Default: -2.
