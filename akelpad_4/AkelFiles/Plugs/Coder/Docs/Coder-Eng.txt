@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v13.3                ***
+***                 Coder AkelPad plugin v13.4                ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -198,7 +198,6 @@ Call("Coder::Settings", 6, "ALIAS")
       Alias, for example: ".html". Manual theme setting will be canceled if the alias parameter is ommited.
       If alias parameter equal to "?", then the document is defined as having no theme.
 
-
 Call("Coder::Settings", 12, "ALIAS", *BOOL)
   Parameters:
     12
@@ -331,7 +330,6 @@ Call("Coder::Settings", 20, WINDOW, *COLORTHEME, COLORTHEMELENGTH)
       return pVarTheme;
     }
 
-
 Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELENGTH)
   Parameters:
     22
@@ -378,6 +376,7 @@ Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELEN
 }
 "Syntax theme" Icon("%a\AkelFiles\Plugs\Coder.dll", 4)
 {
+  "1s" Call("Coder::Settings", 1, "1s")
   "Assembler" Call("Coder::Settings", 1, "asm")
   "AutoIt" Call("Coder::Settings", 1, "au3")
   "Bat" Call("Coder::Settings", 1, "bat")
