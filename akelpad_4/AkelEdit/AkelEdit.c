@@ -62,6 +62,10 @@
 #include "StackFunc.h"
 
 //Include string functions
+#ifdef AKELEDIT_LINGUISTICCASING
+  #define WideCharLower_LINGUISTICCASING
+  #define WideCharUpper_LINGUISTICCASING
+#endif
 #define WideCharLower
 #define WideCharUpper
 #define xmemcpy

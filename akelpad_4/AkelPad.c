@@ -48,6 +48,10 @@
 
 //Include string functions
 #ifndef AKELEDIT_STATICBUILD
+  #ifdef AKELPAD_LINGUISTICCASING
+    #define WideCharLower_LINGUISTICCASING
+    #define WideCharUpper_LINGUISTICCASING
+  #endif
   #define WideCharLower
   #define WideCharUpper
   #define xmemcpy
