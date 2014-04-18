@@ -918,10 +918,9 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       RestoreFrameData(lpFrameCurrent, dwFlags);
 
       //Set caption of main window
-      if (lpFrameCurrent->wszFile[0])
+      if (lpFrameCurrent->wszFile[0] || lpFrameCurrent->ei.bModified)
       {
-        //xprintfW(wbuf, L"%s - %s", GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen), APP_MAIN_TITLEW);
-        xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, lpFrameCurrent->wszFile);
+        xprintfW(wbuf, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrameCurrent->wszFile, lpFrameCurrent->ei.bModified?L" *":L"");
         SetWindowTextWide(hMainWnd, wbuf);
       }
       else SetWindowTextWide(hMainWnd, APP_MAIN_TITLEW);
@@ -20461,8 +20460,12 @@ void UpdateAsterisk(FRAMEDATA *lpFrame, BOOL bModified)
       }
       else if (nMDI == WMD_PMDI)
       {
-        xprintfW(wpTitle, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrame->wszFile, bModified?L" *":L"");
-        SetWindowTextWide(hMainWnd, wpTitle);
+        if (lpFrame->wszFile[0] || bModified)
+        {
+          xprintfW(wpTitle, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrame->wszFile, bModified?L" *":L"");
+          SetWindowTextWide(hMainWnd, wpTitle);
+        }
+        else SetWindowTextWide(hMainWnd, APP_MAIN_TITLEW);
       }
       FreeWideStr(wpTitle);
     }
