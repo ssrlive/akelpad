@@ -2235,6 +2235,8 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
         nResult=lpScriptThread->hExecMutex?TRUE:FALSE;
       else if (nOperation == SH_GETLOCKPROGRAMTHREAD)
         nResult=lpScriptThread->hInitMutex?TRUE:FALSE;
+      else if (nOperation == SH_GETSERVICEWINDOW)
+        nResult=(INT_PTR)lpScriptThread->hWndScriptsThreadDummy;
       else if (nOperation == SH_GETNAME)
       {
         vtResult->vt=VT_BSTR;

@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v14.7              ***
+***                 Scripts AkelPad plugin v14.8              ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -2439,6 +2439,9 @@ Arguments
     16  //SH_GETLOCKPROGRAMTHREAD  Lock main thread from waiting this script (when script is called with external call with code 2).
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: true - on, false - off.
+    17  //SH_GETSERVICEWINDOW  Retrieve script service window handle. Automatically created when using WindowSubClass, ThreadHook and RegisterCallback methods.
+        //  vData: script handle. If zero then current script handle is used.
+        //  Return value: script service window handle.
     21  //SH_GETNAME  Retrieve script name.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script name.
