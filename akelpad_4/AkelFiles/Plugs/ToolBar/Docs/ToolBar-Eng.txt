@@ -78,14 +78,14 @@ Button creation:
         method calls the internal command at number 4162. In this case this code
         is responsible for opening a dialog box "Go to line...".
         For the full list of commands: see AkelHelp-Eng.htm or AkelDLL.h in source code of a plugin.
-    Call("Plugin::Function", [additional parameters])
+    Call("Plugin::Function"[, additional parameters])
       Call("Scripts::Main")
         method calls Scripts plugin and Main function.
-    +Call("Plugin::Function", [additional parameters])
+    +Call("Plugin::Function"[, additional parameters])
       +Call("LineBoard::Main")
         method calls LineBoard plugin and Main function. Plug-in will work also after
         program restart.
-    Exec("command line", ["working directory"])
+    Exec("command line"[, "working directory"])
       Exec("notepad.exe")
         method calls notepad.
       Exec(`notepad.exe`)
@@ -96,7 +96,7 @@ Button creation:
         method calls notepad.
       Exec(`rundll32.exe shell32,ShellExec_RunDLL "%f"`, "%d")
         method pass an active file for opening on Windows association.
-    OpenFile("file", [OpenCodepage], [OpenBOM])
+    OpenFile("file"[, OpenCodepage][, OpenBOM])
       "file"
         File to open.
       OpenCodepage
@@ -105,7 +105,7 @@ Button creation:
         File byte order mark. If -1 or not specified, it will be autodetected.
       OpenFile("C:\File.txt", 65001, -1)
         method opens file in UTF-8 codepage.
-    SaveFile("file", [SaveCodepage], [SaveBOM])
+    SaveFile("file"[, SaveCodepage][, SaveBOM])
       "file"
         Save current document to a specified file name.
       SaveCodepage
@@ -134,7 +134,7 @@ Button creation:
         Codepage target. If -1, it will be autodetected.
       Recode(1252, 437)
         method recodes the text from 1252 codepage to 437.
-    Insert("text", [Esc-sequences])
+    Insert("text"[, Esc-sequences])
       "text"
         Inserted text.
       Esc-sequences:
@@ -165,7 +165,7 @@ Button creation:
                  "Settings..." Call("SpecialChar::Settings")
                }
 
-    Icon(["file"], [index])
+    Icon(["file"][, index])
       Icon("Shell32.dll", 47)
         icon located in file Shell32.dll under index 47.
       Icon("%a\AkelFiles\Plugs\Explorer.dll")
