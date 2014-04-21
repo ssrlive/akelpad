@@ -158,6 +158,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define SH_GETLOCKMULTICOPY      14
 #define SH_GETLOCKSCRIPTSQUEUE   15
 #define SH_GETLOCKPROGRAMTHREAD  16
+#define SH_GETSERVICEWINDOW      17
 #define SH_GETNAME               21
 #define SH_GETFILE               22
 #define SH_GETNCLUDE             23
