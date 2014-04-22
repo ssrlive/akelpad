@@ -282,7 +282,7 @@ library Scripts
     HRESULT WindowUnsubClass([in] MYHANDLE hWnd);
 
     //Installs an application-defined hook procedure into a hook chain.
-    HRESULT ThreadHook([in] int idHook, [in] IDispatch *objFunction, [in] DWORD dwThreadId, [out, retval] MYRETHANDLE *hHook);
+    HRESULT ThreadHook([in] int idHook, [in] IDispatch *objCallback, [in] DWORD dwThreadId, [out, retval] MYRETHANDLE *hHook);
 
     //Removes a hook procedure installed in a hook chain.
     HRESULT ThreadUnhook([in] MYHANDLE hHook, [out, retval] BOOL *bResult);
