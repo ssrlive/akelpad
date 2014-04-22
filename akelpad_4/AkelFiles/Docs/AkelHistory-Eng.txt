@@ -1,6 +1,7 @@
 
 AkelPad 4.8.9 ()
 ----------------------------
+Added: command 4194 - paste text taking into account selection case.
 Added: optional parameter for change case commands 4175-4180:
        1 - change case for current word if no selection.
 

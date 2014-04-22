@@ -2046,10 +2046,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!hWnd)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
+      if (lParam & PASTE_CASE)
+        return PasteCase(hWnd, (lParam & PASTE_ANSI));
       if (lParam & PASTE_SINGLELINE)
         return PasteInEditAsRichEdit(hWnd, 0);
-      else
-        return DoEditPaste(hWnd, (DWORD)lParam);
+      return DoEditPaste(hWnd, (DWORD)lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -4414,31 +4415,31 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_EDIT_UPPERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, UPPERCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_UPPERCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_LOWERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, LOWERCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_LOWERCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_SENTENCECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SENTENCECASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_SENTENCECASE, lParam);
     }
     else if (wCommand == IDM_EDIT_TITLECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, TITLECASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_TITLECASE, lParam);
     }
     else if (wCommand == IDM_EDIT_INVERTCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, INVERTCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_INVERTCASE, lParam);
     }
     else if (wCommand == IDM_EDIT_LOOPCASE)
     {
       int nCase=nLoopCase;
       BOOL bResult;
 
-      if (nCase >= INVERTCASE)
-        nCase=UPPERCASE;
+      if (nCase >= SCT_INVERTCASE)
+        nCase=SCT_UPPERCASE;
       else
         ++nCase;
       bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase, lParam);
@@ -4460,6 +4461,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (wCommand == IDM_EDIT_PASTEAFTER)
     {
       return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_AFTER);
+    }
+    else if (wCommand == IDM_EDIT_PASTECASE)
+    {
+      return PasteCase(lpFrameCurrent->ei.hWndEdit, FALSE);
     }
     else if (wCommand == IDM_EDIT_AUTOINDENT)
     {

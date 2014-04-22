@@ -277,12 +277,11 @@
 #define STRSEL_LEADSPACE  0x00000040  //Uses only with STRSEL_DELETE.
 #define STRSEL_ALLSPACES  0x00000080  //Uses only with STRSEL_DELETE.
 
-//Selection case
-#define UPPERCASE      1
-#define LOWERCASE      2
-#define SENTENCECASE   3
-#define TITLECASE      4
-#define INVERTCASE     5
+//DetectCase
+#define DC_UPPERCASE     0x1
+#define DC_LOWERCASE     0x2
+#define DC_SENTENCECASE  0x4
+#define DC_TITLECASE     0x8
 
 //Change font size
 #define FONTSIZE_INCREASE  1
@@ -733,6 +732,8 @@ BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpStri
 BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);
 BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord);
+void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase);
+int DetectCase(const wchar_t *wpText, INT_PTR nTextLen);
 void DoEditFind();
 INT_PTR DoEditFindNextDown(FRAMEDATA *lpFrame);
 INT_PTR DoEditFindNextUp(FRAMEDATA *lpFrame);
@@ -877,7 +878,7 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
 BOOL SetDefButtonStyle(HWND hWnd, HWND hWndNewDef);
 
-void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
+BOOL GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);
 void SetSelRE(HWND hWnd, INT_PTR nSelStart, INT_PTR nSelEnd);
 void ReplaceSelA(HWND hWnd, const char *pData, INT_PTR nDataLen, DWORD dwFlags, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
@@ -895,6 +896,7 @@ INT_PTR ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOO
 INT_PTR ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces);
 BOOL FreeText(LPVOID pText);
 BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght);
+int PasteCase(HWND hWnd, BOOL bAnsi);
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
