@@ -2240,11 +2240,8 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
-  wchar_t *wpStart;
-  wchar_t *wpEnd;
   int nFirstLine=0;
   INT_PTR nRangeLen;
-  INT_PTR i;
   BOOL bSelection;
   BOOL bCaretAtStart=FALSE;
   BOOL bResult=FALSE;
@@ -2282,75 +2279,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
 
   if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS, TRUE))
   {
-    wpStart=wszRange;
-    wpEnd=wpStart + nRangeLen;
-
-    if (nCase == UPPERCASE)
-    {
-      for (i=0; i < nRangeLen; ++i)
-        wszRange[i]=WideCharUpper(wszRange[i]);
-    }
-    else if (nCase == LOWERCASE)
-    {
-      for (i=0; i < nRangeLen; ++i)
-        wszRange[i]=WideCharLower(wszRange[i]);
-    }
-    else if (nCase == SENTENCECASE)
-    {
-      while (wpStart < wpEnd)
-      {
-        while (wpStart < wpEnd && (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart)))
-        {
-          ++wpStart;
-        }
-        if (wpStart < wpEnd)
-        {
-          *wpStart=WideCharUpper(*wpStart);
-          ++wpStart;
-        }
-        while (wpStart < wpEnd && !AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart))
-        {
-          *wpStart=WideCharLower(*wpStart);
-          ++wpStart;
-        }
-      }
-    }
-    else if (nCase == TITLECASE)
-    {
-      while (wpStart < wpEnd)
-      {
-        while (wpStart < wpEnd && AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart))
-        {
-          ++wpStart;
-        }
-        if (wpStart < wpEnd)
-        {
-          *wpStart=WideCharUpper(*wpStart);
-          ++wpStart;
-        }
-        while (wpStart < wpEnd && !AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart))
-        {
-          *wpStart=WideCharLower(*wpStart);
-          ++wpStart;
-        }
-      }
-    }
-    else if (nCase == INVERTCASE)
-    {
-      while (wpStart < wpEnd)
-      {
-        if (WideCharLower(*wpStart) == *wpStart)
-        {
-          *wpStart=WideCharUpper(*wpStart);
-          ++wpStart;
-        }
-        else
-        {
-          *wpStart=WideCharLower(*wpStart);
-          ++wpStart;
-        }
-      }
-    }
+    ConvertCase(wszRange, nRangeLen, nCase);
 
     if (!bSelection)
       SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, &crRange.ciMax);
@@ -2374,6 +2303,144 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
   RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
+}
+
+void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
+{
+  wchar_t *wpText=wszText;
+  const wchar_t *wpTextMax=wszText + nTextLen;
+
+  if (nCase == SCT_UPPERCASE)
+  {
+    for (; wpText < wpTextMax; ++wpText)
+      *wpText=WideCharUpper(*wpText);
+  }
+  else if (nCase == SCT_LOWERCASE)
+  {
+    for (; wpText < wpTextMax; ++wpText)
+      *wpText=WideCharLower(*wpText);
+  }
+  else if (nCase == SCT_SENTENCECASE)
+  {
+    while (wpText < wpTextMax)
+    {
+      while (wpText < wpTextMax && (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText)))
+      {
+        ++wpText;
+      }
+      if (wpText < wpTextMax)
+      {
+        *wpText=WideCharUpper(*wpText);
+        ++wpText;
+      }
+      while (wpText < wpTextMax && !AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText))
+      {
+        *wpText=WideCharLower(*wpText);
+        ++wpText;
+      }
+    }
+  }
+  else if (nCase == SCT_TITLECASE)
+  {
+    while (wpText < wpTextMax)
+    {
+      while (wpText < wpTextMax && AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      {
+        ++wpText;
+      }
+      if (wpText < wpTextMax)
+      {
+        *wpText=WideCharUpper(*wpText);
+        ++wpText;
+      }
+      while (wpText < wpTextMax && !AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      {
+        *wpText=WideCharLower(*wpText);
+        ++wpText;
+      }
+    }
+  }
+  else if (nCase == SCT_INVERTCASE)
+  {
+    for (; wpText < wpTextMax; ++wpText)
+    {
+      if (*wpText == WideCharLower(*wpText))
+        *wpText=WideCharUpper(*wpText);
+      else
+        *wpText=WideCharLower(*wpText);
+    }
+  }
+}
+
+int DetectCase(const wchar_t *wpText, INT_PTR nTextLen)
+{
+  const wchar_t *wpTextMax;
+  DWORD dwCaseType=DC_UPPERCASE|DC_LOWERCASE|DC_SENTENCECASE|DC_TITLECASE;
+  BOOL bStartSentence=TRUE;
+  BOOL bStartTitle=TRUE;
+
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText);
+  wpTextMax=wpText + nTextLen;
+
+  for (; dwCaseType && wpText < wpTextMax; ++wpText)
+  {
+    if (dwCaseType & DC_UPPERCASE)
+    {
+      if (*wpText != WideCharUpper(*wpText))
+        dwCaseType&=~DC_UPPERCASE;
+    }
+    if (dwCaseType & DC_LOWERCASE)
+    {
+      if (*wpText != WideCharLower(*wpText))
+        dwCaseType&=~DC_LOWERCASE;
+    }
+    if (dwCaseType & DC_SENTENCECASE)
+    {
+      if (AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText))
+      {
+        bStartSentence=TRUE;
+      }
+      else if (bStartSentence)
+      {
+        if (!AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+        {
+          if (*wpText != WideCharUpper(*wpText))
+            dwCaseType&=~DC_SENTENCECASE;
+          else
+            bStartSentence=FALSE;
+        }
+      }
+      else if (*wpText != WideCharLower(*wpText))
+        dwCaseType&=~DC_SENTENCECASE;
+    }
+    else if (dwCaseType & DC_TITLECASE)
+    {
+      if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      {
+        bStartTitle=TRUE;
+      }
+      else if (bStartTitle)
+      {
+        if (*wpText != WideCharUpper(*wpText))
+          dwCaseType&=~DC_TITLECASE;
+        else
+          bStartTitle=FALSE;
+      }
+      else if (*wpText != WideCharLower(*wpText))
+        dwCaseType&=~DC_TITLECASE;
+    }
+  }
+
+  if (dwCaseType & DC_UPPERCASE)
+    return SCT_UPPERCASE;
+  if (dwCaseType & DC_LOWERCASE)
+    return SCT_LOWERCASE;
+  if (dwCaseType & DC_SENTENCECASE)
+    return SCT_SENTENCECASE;
+  if (dwCaseType & SCT_TITLECASE)
+    return SCT_TITLECASE;
+  return 0;
 }
 
 void DoEditFind()
@@ -10694,17 +10761,19 @@ BOOL SetDefButtonStyle(HWND hWnd, HWND hWndNewDef)
 
 //// Paste operation
 
-void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret)
+BOOL GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret)
 {
   AESELECTION aes;
+  BOOL bSelExist;
 
-  SendMessage(hWnd, AEM_GETSEL, (WPARAM)ciCaret, (LPARAM)&aes);
+  bSelExist=(BOOL)SendMessage(hWnd, AEM_GETSEL, (WPARAM)ciCaret, (LPARAM)&aes);
   if (crSel)
   {
     crSel->ciMin=aes.crSel.ciMin;
     crSel->ciMax=aes.crSel.ciMax;
   }
   if (bColumnSel) *bColumnSel=(aes.dwFlags & AESELT_COLUMNON);
+  return bSelExist;
 }
 
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret)
@@ -11071,6 +11140,65 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
     CloseClipboard();
   }
   return bResult;
+}
+
+int PasteCase(HWND hWnd, BOOL bAnsi)
+{
+  HGLOBAL hData;
+  LPVOID pData;
+  wchar_t *wszData=NULL;
+  INT_PTR nDataLen;
+  int nCase=0;
+
+  if (OpenClipboard(NULL))
+  {
+    if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        nDataLen=xstrlenW((wchar_t *)pData) + 1;
+        if (wszData=AllocWideStr(nDataLen))
+          xmemcpy(wszData, (wchar_t *)pData, nDataLen * sizeof(wchar_t));
+        GlobalUnlock(hData);
+      }
+    }
+    else if (hData=GetClipboardData(CF_TEXT))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, NULL, 0);
+        if (wszData=AllocWideStr(nDataLen))
+          MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszData, nDataLen);
+        GlobalUnlock(hData);
+      }
+    }
+    CloseClipboard();
+  }
+
+  //Paste
+  if (wszData)
+  {
+    if (--nDataLen > 0)
+    {
+      AECHARRANGE cr;
+      wchar_t *wszSelText=NULL;
+      INT_PTR nSelTextLen;
+      BOOL bColumnSel=FALSE;
+
+      if (GetSel(hWnd, &cr, &bColumnSel, NULL))
+      {
+        if (nSelTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wszSelText, AELB_R, TRUE))
+        {
+          if (nCase=DetectCase(wszSelText, nSelTextLen))
+            ConvertCase(wszData, nDataLen, nCase);
+          if (wszSelText) FreeText(wszSelText);
+        }
+      }
+    }
+    ReplaceSelW(hWnd, wszData, nDataLen, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
+    FreeWideStr(wszData);
+  }
+  return nCase;
 }
 
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)
