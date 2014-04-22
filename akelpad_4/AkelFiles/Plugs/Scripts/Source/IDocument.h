@@ -219,6 +219,11 @@ typedef struct {
   int nElements;
 } POINTERSTACK;
 
+typedef struct {
+  INT_PTR lpProc;
+  BOOL bBusy;
+} CALLBACKBUSYNESS;
+
 typedef struct _MSGINT {
   struct _MSGINT *next;
   struct _MSGINT *prev;
@@ -236,8 +241,9 @@ typedef struct _CALLBACKITEM {
   struct _CALLBACKITEM *prev;
   int nRefCount;
   void *lpStack;
-  int nStaticIndex;
-  HANDLE hHandle;         //HWND, HHOOK or SYSCALLBACK.
+  int nBusyIndex;
+  INT_PTR lpProc;         //SYSCALLBACK, HOOKPROC.
+  HANDLE hHandle;         //HWND, HHOOK.
   IDispatch *objFunction; //Script function.
   UINT_PTR dwData;        //WNDPROC, nArgCount or nRetAddr.
   int nCallbackType;      //See CIT_* defines.
@@ -362,7 +368,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowNextProc(IDocument *this, INT_PTR *lpCa
 HRESULT STDMETHODCALLTYPE Document_WindowNoNextProc(IDocument *this, INT_PTR *lpCallbackItem);
 HRESULT STDMETHODCALLTYPE Document_WindowUnsubClass(IDocument *this, HWND hWnd);
 HRESULT WindowUnsubClass(void *lpScriptThread, HWND hWnd);
-HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objFunction, DWORD dwThreadId, HHOOK *hHook);
+HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, HHOOK *hHook);
 HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlockType, DWORD *dwResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData, int nOperation, VARIANT *vtResult);
@@ -380,11 +386,12 @@ MSGINT* StackGetMessage(MSGINTSTACK *hStack, UINT uMsg);
 void StackDeleteMessage(MSGINTSTACK *hStack, MSGINT *lpMessage);
 void StackFreeMessages(MSGINTSTACK *hStack);
 void StackFillMessages(MSGINTSTACK *hStack, SAFEARRAY *psa);
+int RetriveCallbackProc(CALLBACKBUSYNESS *cb);
 CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack);
 int StackGetCallbackCount(CALLBACKSTACK *hStack, int nCallbackType);
 CALLBACKITEM* StackGetCallbackByHandle(CALLBACKSTACK *hStack, HANDLE hHandle, void *lpScriptThread);
+CALLBACKITEM* StackGetCallbackByProc(CALLBACKSTACK *hStack, INT_PTR lpProc);
 CALLBACKITEM* StackGetCallbackByObject(CALLBACKSTACK *hStack, IDispatch *objFunction);
-CALLBACKITEM* StackGetCallbackByIndex(CALLBACKSTACK *hStack, int nIndex);
 BOOL StackDeleteCallback(CALLBACKITEM *lpElement);
 void StackFreeCallbacks(CALLBACKSTACK *hStack);
 LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

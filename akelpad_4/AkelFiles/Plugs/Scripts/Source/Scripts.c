@@ -1383,7 +1383,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, BOOL bAnsi)
   else if (pvtParameter->vt == VT_DISPATCH)
   {
     if (lpSysCallback=StackGetCallbackByObject(&g_hSysCallbackStack, pvtParameter->pdispVal))
-      dwValue=(UINT_PTR)lpSysCallback->hHandle;
+      dwValue=(UINT_PTR)lpSysCallback->lpProc;
     else
       dwValue=(UINT_PTR)pvtParameter->pdispVal;
   }
