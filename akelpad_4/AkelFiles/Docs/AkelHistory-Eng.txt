@@ -6,6 +6,7 @@ Added: optional parameter for change case commands 4175-4180:
        1 - change case for current word if no selection.
 
 Fixed: metacharacters \w and \W usage in character set [].
+Fixed: default extention in file save dialog.
 Fixed: flag 4 of manual parameter "ShowModify" - modification displaying disappeared
        when switching between tabs (PMDI).
 
