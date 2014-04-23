@@ -2422,7 +2422,7 @@ int DetectSelCase(HWND hWnd)
       else if (wchChar != WideCharLower(wchChar))
         dwCaseType&=~DC_SENTENCECASE;
     }
-    else if (dwCaseType & DC_TITLECASE)
+    if (dwCaseType & DC_TITLECASE)
     {
       if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wchChar))
       {
@@ -2446,7 +2446,7 @@ int DetectSelCase(HWND hWnd)
     return SCT_LOWERCASE;
   if (dwCaseType & DC_SENTENCECASE)
     return SCT_SENTENCECASE;
-  if (dwCaseType & SCT_TITLECASE)
+  if (dwCaseType & DC_TITLECASE)
     return SCT_TITLECASE;
   return SCT_NONE;
 }
