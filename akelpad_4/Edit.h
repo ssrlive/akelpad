@@ -733,7 +733,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd);
 BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd);
 BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord);
 void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase);
-int DetectCase(const wchar_t *wpText, INT_PTR nTextLen);
+int DetectSelCase(HWND hWnd);
 void DoEditFind();
 INT_PTR DoEditFindNextDown(FRAMEDATA *lpFrame);
 INT_PTR DoEditFindNextUp(FRAMEDATA *lpFrame);

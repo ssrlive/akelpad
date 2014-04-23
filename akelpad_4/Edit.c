@@ -2372,62 +2372,70 @@ void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
   }
 }
 
-int DetectCase(const wchar_t *wpText, INT_PTR nTextLen)
+int DetectSelCase(HWND hWnd)
 {
-  const wchar_t *wpTextMax;
+  AECHARRANGE crSel;
   DWORD dwCaseType=DC_UPPERCASE|DC_LOWERCASE|DC_SENTENCECASE|DC_TITLECASE;
+  int nChar;
+  wchar_t wchChar;
+  BOOL bColumnSel;
   BOOL bStartSentence=TRUE;
   BOOL bStartTitle=TRUE;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenW(wpText);
-  wpTextMax=wpText + nTextLen;
+  if (!GetSel(hWnd, &crSel, &bColumnSel, NULL) || bColumnSel)
+    return SCT_NONE;
+  AEC_ValidCharInLine(&crSel.ciMin);
+  AEC_ValidCharInLine(&crSel.ciMax);
 
-  for (; dwCaseType && wpText < wpTextMax; ++wpText)
+  for (; dwCaseType && AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) < 0; AEC_NextChar(&crSel.ciMin))
   {
+    nChar=AEC_CharAtIndex(&crSel.ciMin);
+    if (nChar < 0) nChar=L'\n';
+    wchChar=(wchar_t)nChar;
+
     if (dwCaseType & DC_UPPERCASE)
     {
-      if (*wpText != WideCharUpper(*wpText))
+      if (wchChar != WideCharUpper(wchChar))
         dwCaseType&=~DC_UPPERCASE;
     }
     if (dwCaseType & DC_LOWERCASE)
     {
-      if (*wpText != WideCharLower(*wpText))
+      if (wchChar != WideCharLower(wchChar))
         dwCaseType&=~DC_LOWERCASE;
     }
     if (dwCaseType & DC_SENTENCECASE)
     {
-      if (AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText))
+      if (AKD_wcschr(STR_SENTENCE_DELIMITERSW, wchChar))
       {
         bStartSentence=TRUE;
       }
       else if (bStartSentence)
       {
-        if (!AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+        if (!AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wchChar))
         {
-          if (*wpText != WideCharUpper(*wpText))
+          if (wchChar != WideCharUpper(wchChar))
             dwCaseType&=~DC_SENTENCECASE;
           else
             bStartSentence=FALSE;
         }
       }
-      else if (*wpText != WideCharLower(*wpText))
+      else if (wchChar != WideCharLower(wchChar))
         dwCaseType&=~DC_SENTENCECASE;
     }
     else if (dwCaseType & DC_TITLECASE)
     {
-      if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wchChar))
       {
         bStartTitle=TRUE;
       }
       else if (bStartTitle)
       {
-        if (*wpText != WideCharUpper(*wpText))
+        if (wchChar != WideCharUpper(wchChar))
           dwCaseType&=~DC_TITLECASE;
         else
           bStartTitle=FALSE;
       }
-      else if (*wpText != WideCharLower(*wpText))
+      else if (wchChar != WideCharLower(wchChar))
         dwCaseType&=~DC_TITLECASE;
     }
   }
@@ -2440,7 +2448,7 @@ int DetectCase(const wchar_t *wpText, INT_PTR nTextLen)
     return SCT_SENTENCECASE;
   if (dwCaseType & SCT_TITLECASE)
     return SCT_TITLECASE;
-  return 0;
+  return SCT_NONE;
 }
 
 void DoEditFind()
@@ -11180,20 +11188,8 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
   {
     if (--nDataLen > 0)
     {
-      AECHARRANGE cr;
-      wchar_t *wszSelText=NULL;
-      INT_PTR nSelTextLen;
-      BOOL bColumnSel=FALSE;
-
-      if (GetSel(hWnd, &cr, &bColumnSel, NULL))
-      {
-        if (nSelTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wszSelText, AELB_R, TRUE))
-        {
-          if (nCase=DetectCase(wszSelText, nSelTextLen))
-            ConvertCase(wszData, nDataLen, nCase);
-          if (wszSelText) FreeText(wszSelText);
-        }
-      }
+      if (nCase=DetectSelCase(hWnd))
+        ConvertCase(wszData, nDataLen, nCase);
     }
     ReplaceSelW(hWnd, wszData, nDataLen, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
     FreeWideStr(wszData);
