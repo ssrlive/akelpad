@@ -7852,15 +7852,24 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     OPENFILENAMEW *ofn=(OPENFILENAMEW *)lParam;
     wchar_t wszFile[MAX_PATH];
+    wchar_t wszDefExt[MAX_PATH];
     wchar_t *wpFile=wszFile;
+    const wchar_t *wpDefExt=wszDefExt;
+    wchar_t *wpStream=NULL;
     wchar_t *wpCount;
-    BOOL bStream=FALSE;
 
     if (bOldWindows)
-      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFile, -1, wpFile, MAX_PATH);
+    {
+      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFile, -1, wszFile, MAX_PATH);
+      if (ofn->lpstrDefExt)
+        MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrDefExt, -1, wszDefExt, MAX_PATH);
+      else
+        wpDefExt=NULL;
+    }
     else
     {
       wpFile=ofn->lpstrFile;
+      wpDefExt=ofn->lpstrDefExt;
 
       //Fix MS bug: if we enter in file field "x:stream", then we get wpFile without path.
       if (*(wpFile + 1) == L':' && *(wpFile + 2) != L'\\' && *(wpFile + 2) != L'/')
@@ -7892,14 +7901,14 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (wpCount - wpFile != 1)
           {
-            bStream=TRUE;
+            wpStream=wpCount;
             continue;
           }
         }
         else if (*wpCount == L'/')
           *wpCount=L'\\';
 
-        if ((*wpCount == L'\\' && bStream) || *wpCount == L'*' || *wpCount == L'?' || *wpCount == L'\"' || *wpCount == L'<' || *wpCount == L'>' || *wpCount == L'|')
+        if ((*wpCount == L'\\' && wpStream) || *wpCount == L'*' || *wpCount == L'?' || *wpCount == L'\"' || *wpCount == L'<' || *wpCount == L'>' || *wpCount == L'|')
         {
           API_LoadStringW(hLangLib, MSG_WRONG_FILENAME, wbuf, BUFFER_SIZE);
           xprintfW(wszMsg, wbuf, wpFile);
@@ -7909,6 +7918,12 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
       }
       *++wpCount=L'\0';
+      if (wpDefExt && !ofn->nFileExtension && !wpStream)
+      {
+        *(wpCount - 1)=L'.';
+        wpCount+=xstrcpynW(wpCount, wpDefExt, MAX_PATH - (wpCount - wpFile));
+        *++wpCount=L'\0';
+      }
       if (bOldWindows)
         WideCharToMultiByte(CP_ACP, 0, wpFile, (int)(wpCount - wpFile + 1), (char *)ofn->lpstrFile, MAX_PATH, NULL, NULL);
     }
