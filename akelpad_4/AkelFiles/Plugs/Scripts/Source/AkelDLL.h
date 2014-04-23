@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 3)
 
 
 //// Defines
@@ -691,8 +691,17 @@
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define PASTE_COLUMN     0x00000002  //Paste to column selection.
+#define PASTE_CASE       0x00000800  //Detect selected text case type and paste text with this case.
 #define PASTE_AFTER      0x00001000  //Paste text after caret.
 #define PASTE_SINGLELINE 0x00002000  //Paste multiline text to single line edit control. All new lines replaced with '\r'.
+
+//Selection case type
+#define SCT_NONE           0
+#define SCT_UPPERCASE      1
+#define SCT_LOWERCASE      2
+#define SCT_SENTENCECASE   3
+#define SCT_TITLECASE      4
+#define SCT_INVERTCASE     5
 
 //AKD_RECODESEL flags
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
@@ -1759,6 +1768,9 @@ typedef struct {
                                               //
 #define IDM_EDIT_PASTEAFTER             4193  //Paste text after caret.
                                               //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_EDIT_PASTECASE              4194  //Detect selected text case type and paste text with this case.
+                                              //Return Value: see SCT_* defines.
                                               //
 #define IDM_EDIT_DELETESELWHITESPACES   4195  //Delete all whitespaces in selection.
                                               //Return Value: TRUE - success, FALSE - failed.
