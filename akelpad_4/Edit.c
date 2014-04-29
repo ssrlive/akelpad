@@ -171,8 +171,8 @@ extern DWORD dwMessageFileNameOK;
 extern RECENTFILESTACK hRecentFilesStack;
 
 //Open/Save document
-extern wchar_t wszFilter[MAX_PATH];
-extern int nFilterLen;
+extern wchar_t wszFileFilter[MAX_PATH];
+extern int nFileFilterLen;
 extern BOOL bAutodetect;
 extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
@@ -1462,7 +1462,7 @@ BOOL DoFileOpen()
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
     ofnW.lpstrFile      =wszFileList;
-    ofnW.lpstrFilter    =wszFilter;
+    ofnW.lpstrFilter    =wszFileFilter;
     ofnW.nFilterIndex   =2;
     ofnW.nMaxFile       =OPENFILELIST_SIZE;
     ofnW.lpstrInitialDir=wszOpenDir;
@@ -1678,7 +1678,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   ofnW.hwndOwner      =hMainWnd;
   ofnW.hInstance      =hLangLib;
   ofnW.lpstrFile      =wszSaveFile;
-  ofnW.lpstrFilter    =wszFilter;
+  ofnW.lpstrFilter    =wszFileFilter;
   ofnW.nFilterIndex   =2;
   ofnW.nMaxFile       =MAX_PATH;
   ofnW.lpstrInitialDir=wszSaveDir;
@@ -7853,8 +7853,11 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     OPENFILENAMEW *ofn=(OPENFILENAMEW *)lParam;
     wchar_t wszFile[MAX_PATH];
     wchar_t wszDefExt[MAX_PATH];
+    wchar_t wszFilter[MAX_PATH];
     wchar_t *wpFile=wszFile;
     const wchar_t *wpDefExt=wszDefExt;
+    const wchar_t *wpFilter=wszFilter;
+    const wchar_t *wpFilterExt;
     wchar_t *wpStream=NULL;
     wchar_t *wpCount;
 
@@ -7865,11 +7868,13 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrDefExt, -1, wszDefExt, MAX_PATH);
       else
         wpDefExt=NULL;
+      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFilter, (int)xarraysizeA((char *)ofn->lpstrFilter, NULL), wszFilter, MAX_PATH);
     }
     else
     {
       wpFile=ofn->lpstrFile;
       wpDefExt=ofn->lpstrDefExt;
+      wpFilter=ofn->lpstrFilter;
 
       //Fix MS bug: if we enter in file field "x:stream", then we get wpFile without path.
       if (*(wpFile + 1) == L':' && *(wpFile + 2) != L'\\' && *(wpFile + 2) != L'/')
@@ -7918,10 +7923,18 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
       }
       *++wpCount=L'\0';
-      if (wpDefExt && !ofn->nFileExtension && !wpStream)
+      if (!ofn->nFileExtension && !wpStream)
       {
-        *(wpCount - 1)=L'.';
-        wpCount+=xstrcpynW(wpCount, wpDefExt, MAX_PATH - (wpCount - wpFile));
+        if (wpFilterExt=FindArrayByIndex(wpFilter, ofn->nFilterIndex * 2))
+        {
+          if (xstrcmpiW(wpFilterExt, L"*.*"))
+            wpDefExt=GetFileExt(wpFilterExt, -1);
+          if (wpDefExt)
+          {
+            *(wpCount - 1)=L'.';
+            wpCount+=xstrcpynW(wpCount, wpDefExt, MAX_PATH - (wpCount - wpFile));
+          }
+        }
         *++wpCount=L'\0';
       }
       if (bOldWindows)
@@ -21710,6 +21723,27 @@ void FreeMemorySearch()
 int BytesInString(const wchar_t *wpString)
 {
   return (int)(xstrlenW(wpString) + 1) * sizeof(wchar_t);
+}
+
+const wchar_t* FindArrayByIndex(const wchar_t *wpString, int nIndex)
+{
+  int nCount=1;
+
+  if (nCount < nIndex)
+  {
+    for (;;)
+    {
+      if (*wpString == L'\0')
+      {
+        if (*++wpString == L'\0')
+          return NULL;
+        if (++nCount >= nIndex)
+          break;
+      }
+      ++wpString;
+    }
+  }
+  return wpString;
 }
 
 char* AKD_strchr(const char *s, int c)

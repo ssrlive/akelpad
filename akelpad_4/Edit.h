@@ -1159,6 +1159,7 @@ int MoveTabItem(HWND hWnd, int nIndexOld, int nIndexNew);
 BOOL DeleteTabItem(HWND hWnd, int nIndex);
 void FreeMemorySearch();
 int BytesInString(const wchar_t *wpString);
+const wchar_t* FindArrayByIndex(const wchar_t *wpString, int nIndex);
 char* AKD_strchr(const char *s, int c);
 wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
