@@ -372,8 +372,8 @@ DWORD dwMessageFileNameOK=0;
 RECENTFILESTACK hRecentFilesStack={0};
 
 //Open/Save document
-wchar_t wszFilter[MAX_PATH];
-int nFilterLen;
+wchar_t wszFileFilter[MAX_PATH];
+int nFileFilterLen;
 BOOL bAutodetect=TRUE;
 BOOL bSaveDlg;
 DWORD dwOfnFlags;
@@ -1085,10 +1085,10 @@ void _WinMain()
   #endif
 
   //GetOpenFileName dialog file filter
-  API_LoadStringW(hLangLib, STR_FILE_FILTER, wszFilter, MAX_PATH);
-  for (nFilterLen=0; wszFilter[nFilterLen]; ++nFilterLen)
-    if (wszFilter[nFilterLen] == L'|') wszFilter[nFilterLen]=L'\0';
-  wszFilter[++nFilterLen]=L'\0';
+  API_LoadStringW(hLangLib, STR_FILE_FILTER, wszFileFilter, MAX_PATH);
+  for (nFileFilterLen=0; wszFileFilter[nFileFilterLen]; ++nFileFilterLen)
+    if (wszFileFilter[nFileFilterLen] == L'|') wszFileFilter[nFileFilterLen]=L'\0';
+  wszFileFilter[++nFileFilterLen]=L'\0';
 
   //AkelUpdater path
   xprintfW(wszAkelUpdaterExe, L"%s\\AkelFiles\\AkelUpdater.exe", wszExeDir);
