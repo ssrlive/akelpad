@@ -316,7 +316,7 @@ __________________
 Возвращаемое значение
   0  //ISAEW_NONE     используется контрол RichEdit (AkelPad v3.x.x).
   1  //ISAEW_PROGRAM  используется контрол AkelEdit (AkelPad v4.x.x или выше)
-                      или, если указан дескриптор, то данный дескриптор является AkelEdit окном программы.
+     //               или, если указан дескриптор, то данный дескриптор является AkelEdit окном программы.
   2  //ISAEW_PLUGIN   если указан дескриптор, то данный дескриптор является AkelEdit окном плагина.
 
 Пример:
@@ -2177,7 +2177,7 @@ ________________________
   nFlags
     0x1  //WGM_ENABLE    Устанавливается в любом случае.
     0x2  //WGM_NOKEYSEND Не посылать сообщения клавиш диалогу от дочерних окон
-                         (WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+         //              (WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
          //По умолчанию 0x0.
 
 Возвращаемое значение
