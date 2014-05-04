@@ -387,7 +387,7 @@ void StackDeleteMessage(MSGINTSTACK *hStack, MSGINT *lpMessage);
 void StackFreeMessages(MSGINTSTACK *hStack);
 void StackFillMessages(MSGINTSTACK *hStack, SAFEARRAY *psa);
 int RetriveCallbackProc(CALLBACKBUSYNESS *cb);
-CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack);
+CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack, IDispatch *objCallback);
 int StackGetCallbackCount(CALLBACKSTACK *hStack, int nCallbackType);
 CALLBACKITEM* StackGetCallbackByHandle(CALLBACKSTACK *hStack, HANDLE hHandle, void *lpScriptThread);
 CALLBACKITEM* StackGetCallbackByProc(CALLBACKSTACK *hStack, INT_PTR lpProc);
