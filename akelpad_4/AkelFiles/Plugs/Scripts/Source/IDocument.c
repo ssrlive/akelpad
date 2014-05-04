@@ -1809,10 +1809,9 @@ HRESULT STDMETHODCALLTYPE Document_WindowRegisterDialog(IDocument *this, HWND hD
 
   if (!StackGetCallbackByHandle(&lpScriptThread->hDialogCallbackStack, hDlg, lpScriptThread))
   {
-    if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack))
+    if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, NULL))
     {
       lpCallback->hHandle=(HANDLE)hDlg;
-      lpCallback->objFunction=NULL;
       lpCallback->lpScriptThread=(void *)lpScriptThread;
       lpCallback->nCallbackType=CIT_DIALOG;
       *bResult=TRUE;
@@ -1929,10 +1928,9 @@ HRESULT STDMETHODCALLTYPE Document_WindowSubClass(IDocument *this, HWND hWnd, ID
 
     if (nCallbackType)
     {
-      if (lpCallback=StackInsertCallback(&g_hSubclassCallbackStack))
+      if (lpCallback=StackInsertCallback(&g_hSubclassCallbackStack, objFunction))
       {
         lpCallback->hHandle=(HANDLE)hWnd;
-        lpCallback->objFunction=objFunction;
         lpCallback->dwData=dwData;
         lpCallback->nCallbackType=nCallbackType;
         lpCallback->lpScriptThread=(void *)lpScriptThread;
@@ -2069,13 +2067,11 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
 
       if (*hHook=SetWindowsHookEx(idHook, lpHookProc, NULL, dwThreadId))
       {
-        if (lpCallback=StackInsertCallback(&g_hHookCallbackStack))
+        if (lpCallback=StackInsertCallback(&g_hHookCallbackStack, objCallback))
         {
-          objCallback->lpVtbl->AddRef(objCallback);
           lpCallback->nBusyIndex=nBusyIndex;
           lpCallback->lpProc=(INT_PTR)lpHookProc;
           lpCallback->hHandle=(HANDLE)*hHook;
-          lpCallback->objFunction=objCallback;
           lpCallback->dwData=0;
           lpCallback->nCallbackType=CIT_HOOKCALLBACK;
           lpCallback->lpScriptThread=(void *)lpScriptThread;
@@ -2105,7 +2101,6 @@ HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BO
   {
     if (*bResult=UnhookWindowsHookEx(hHook))
     {
-      lpCallback->objFunction->lpVtbl->Release(lpCallback->objFunction);
       g_cbHook[lpCallback->nBusyIndex].bBusy=FALSE;
       StackDeleteCallback(lpCallback);
     }
@@ -2481,12 +2476,15 @@ int RetriveCallbackProc(CALLBACKBUSYNESS *cb)
   return -1;
 }
 
-CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack)
+CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack, IDispatch *objCallback)
 {
   CALLBACKITEM *lpElement;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(CALLBACKITEM)))
   {
+    if (objCallback)
+      objCallback->lpVtbl->AddRef(objCallback);
+    lpElement->objFunction=objCallback;
     lpElement->nRefCount=1;
     lpElement->lpStack=hStack;
     lpElement->nBusyIndex=-1;
@@ -2550,6 +2548,8 @@ BOOL StackDeleteCallback(CALLBACKITEM *lpElement)
   {
     CALLBACKSTACK *hStack=(CALLBACKSTACK *)lpElement->lpStack;
 
+    if (lpElement->objFunction)
+      lpElement->objFunction->lpVtbl->Release(lpElement->objFunction);
     StackFreeMessages(&lpElement->hMsgIntStack);
     if (!StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement))
       --hStack->nElements;
@@ -2590,11 +2590,11 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     if (lParam)
     {
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
+      IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
 
-      if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack))
+      if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
       {
         lpCallback->hHandle=(HANDLE)hWnd;
-        lpCallback->objFunction=(IDispatch *)cs->lpCreateParams;
         lpCallback->lpScriptThread=(void *)lpScriptThread;
         lpCallback->nCallbackType=CIT_DIALOG;
       }

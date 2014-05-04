@@ -309,13 +309,11 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
       lpCallbackProc=(SYSCALLBACK)g_cbAsm[nBusyIndex].lpProc;
       g_cbAsm[nBusyIndex].bBusy=TRUE;
 
-      if (lpCallback=StackInsertCallback(&g_hSysCallbackStack))
+      if (lpCallback=StackInsertCallback(&g_hSysCallbackStack, objCallback))
       {
-        objCallback->lpVtbl->AddRef(objCallback);
         lpCallback->lpProc=(INT_PTR)lpCallbackProc;
         lpCallback->nBusyIndex=nBusyIndex;
         lpCallback->hHandle=NULL;
-        lpCallback->objFunction=objCallback;
         lpCallback->dwData=nArgCount;
         lpCallback->nCallbackType=CIT_SYSCALLBACK;
         lpCallback->lpScriptThread=(void *)lpScriptThread;
@@ -349,7 +347,6 @@ HRESULT STDMETHODCALLTYPE SystemFunction_UnregisterCallback(ISystemFunction *thi
 
   if (lpCallback=StackGetCallbackByObject(&g_hSysCallbackStack, objFunction))
   {
-    lpCallback->objFunction->lpVtbl->Release(lpCallback->objFunction);
     g_cbAsm[lpCallback->nBusyIndex].bBusy=FALSE;
     StackDeleteCallback(lpCallback);
   }
