@@ -315,7 +315,7 @@ Argumets
 Return Value
   0  //ISAEW_NONE     RichEdit control used (AkelPad v3.x.x).
   1  //ISAEW_PROGRAM  AkelEdit control used (AkelPad v4.x.x or higher)
-                      or, if handle specified, then this handle is the program AkelEdit window.
+     //               or, if handle specified, then this handle is the program AkelEdit window.
   2  //ISAEW_PLUGIN   if handle specified, then this handle is the plugin AkelEdit window (AkelPad v4.x.x or higher).
 
 Example:
@@ -2175,7 +2175,8 @@ Arguments
   nFlags
     0x1  //WGM_ENABLE    Set in any case.
     0x2  //WGM_NOKEYSEND Don't send key messages to dialog from children windows
-                         (WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+         //              (WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+         //Default is 0x0.
 
 Return Value
   Zero.
