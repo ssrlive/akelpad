@@ -16521,8 +16521,8 @@ BOOL ScaleInit(HDC hDC, HWND hWnd)
       ptScale.y=GetDeviceCaps(hNewDC, LOGPIXELSY);
 
       //Align to 16 pixel
-      ptScale.x+=ptScale.x % 16;
-      ptScale.y+=ptScale.y % 16;
+      ptScale.x+=16 - ptScale.x % 16;
+      ptScale.y+=16 - ptScale.y % 16;
     }
     else return FALSE;
 
