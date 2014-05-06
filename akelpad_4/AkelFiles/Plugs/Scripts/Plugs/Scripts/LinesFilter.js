@@ -742,8 +742,8 @@ function ScaleInit(hDC, hWnd)
       ptScale.y=oSys.Call("gdi32::GetDeviceCaps", hNewDC, 90 /*LOGPIXELSY*/);
 
       //Align to 16 pixel
-      ptScale.x+=ptScale.x % 16;
-      ptScale.y+=ptScale.y % 16;
+      if (ptScale.x % 16) ptScale.x+=16 - ptScale.x % 16;
+      if (ptScale.y % 16) ptScale.y+=16 - ptScale.y % 16;
     }
     else return false;
 
