@@ -301,18 +301,19 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
   if (nArgCount >= 0)
   {
     CALLBACKITEM *lpCallback;
-    SYSCALLBACK lpCallbackProc;
     int nBusyIndex;
 
     if ((nBusyIndex=RetriveCallbackProc(g_cbAsm)) >= 0)
     {
-      lpCallbackProc=(SYSCALLBACK)g_cbAsm[nBusyIndex].lpProc;
-      g_cbAsm[nBusyIndex].bBusy=TRUE;
-
-      if (lpCallback=StackInsertCallback(&g_hSysCallbackStack, objCallback))
+      if (lpCallback=StackGetCallbackByObject(&g_hSysCallbackStack, objCallback))
       {
-        lpCallback->lpProc=(INT_PTR)lpCallbackProc;
+        ++lpCallback->nRefCount;
+      }
+      else if (lpCallback=StackInsertCallback(&g_hSysCallbackStack, objCallback))
+      {
+        g_cbAsm[nBusyIndex].bBusy=TRUE;
         lpCallback->nBusyIndex=nBusyIndex;
+        lpCallback->lpProc=g_cbAsm[nBusyIndex].lpProc;
         lpCallback->hHandle=NULL;
         lpCallback->dwData=nArgCount;
         lpCallback->nCallbackType=CIT_SYSCALLBACK;
@@ -347,8 +348,8 @@ HRESULT STDMETHODCALLTYPE SystemFunction_UnregisterCallback(ISystemFunction *thi
 
   if (lpCallback=StackGetCallbackByObject(&g_hSysCallbackStack, objFunction))
   {
-    g_cbAsm[lpCallback->nBusyIndex].bBusy=FALSE;
-    StackDeleteCallback(lpCallback);
+    if (StackDeleteCallback(lpCallback))
+      g_cbAsm[lpCallback->nBusyIndex].bBusy=FALSE;
   }
   return NOERROR;
 }

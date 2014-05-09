@@ -2062,13 +2062,17 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
 
     if ((nBusyIndex=RetriveCallbackProc(g_cbHook)) >= 0)
     {
-      lpHookProc=(HOOKPROC)g_cbHook[nBusyIndex].lpProc;
-      g_cbHook[nBusyIndex].bBusy=TRUE;
-
-      if (*hHook=SetWindowsHookEx(idHook, lpHookProc, NULL, dwThreadId))
+      if (lpCallback=StackGetCallbackByObject(&g_hHookCallbackStack, objCallback))
       {
-        if (lpCallback=StackInsertCallback(&g_hHookCallbackStack, objCallback))
+        ++lpCallback->nRefCount;
+      }
+      else if (lpCallback=StackInsertCallback(&g_hHookCallbackStack, objCallback))
+      {
+        lpHookProc=(HOOKPROC)g_cbHook[nBusyIndex].lpProc;
+
+        if (*hHook=SetWindowsHookEx(idHook, lpHookProc, NULL, dwThreadId))
         {
+          g_cbHook[nBusyIndex].bBusy=TRUE;
           lpCallback->nBusyIndex=nBusyIndex;
           lpCallback->lpProc=(INT_PTR)lpHookProc;
           lpCallback->hHandle=(HANDLE)*hHook;
@@ -2101,8 +2105,8 @@ HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BO
   {
     if (*bResult=UnhookWindowsHookEx(hHook))
     {
-      g_cbHook[lpCallback->nBusyIndex].bBusy=FALSE;
-      StackDeleteCallback(lpCallback);
+      if (StackDeleteCallback(lpCallback))
+        g_cbHook[lpCallback->nBusyIndex].bBusy=FALSE;
     }
   }
   return NOERROR;
@@ -2592,7 +2596,11 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
       IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
 
-      if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
+      if (lpCallback=StackGetCallbackByObject(&lpScriptThread->hDialogCallbackStack, objCallback))
+      {
+        ++lpCallback->nRefCount;
+      }
+      else if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
       {
         lpCallback->hHandle=(HANDLE)hWnd;
         lpCallback->lpScriptThread=(void *)lpScriptThread;
