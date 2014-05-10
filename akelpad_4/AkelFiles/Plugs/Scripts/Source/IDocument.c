@@ -2062,11 +2062,7 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
 
     if ((nBusyIndex=RetriveCallbackProc(g_cbHook)) >= 0)
     {
-      if (lpCallback=StackGetCallbackByObject(&g_hHookCallbackStack, objCallback))
-      {
-        ++lpCallback->nRefCount;
-      }
-      else if (lpCallback=StackInsertCallback(&g_hHookCallbackStack, objCallback))
+      if (lpCallback=StackInsertCallback(&g_hHookCallbackStack, objCallback))
       {
         lpHookProc=(HOOKPROC)g_cbHook[nBusyIndex].lpProc;
 
