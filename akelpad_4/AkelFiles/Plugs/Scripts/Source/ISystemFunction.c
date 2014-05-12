@@ -324,6 +324,11 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
           lpScriptThread->hWndScriptsThreadDummy=CreateScriptsThreadDummyWindow();
         }
       }
+      else
+      {
+        objCallback=NULL;
+        hr=E_OUTOFMEMORY;
+      }
     }
     else
     {
@@ -345,11 +350,13 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
 HRESULT STDMETHODCALLTYPE SystemFunction_UnregisterCallback(ISystemFunction *this, IDispatch *objFunction)
 {
   CALLBACKITEM *lpCallback;
+  int nBusyIndex;
 
   if (lpCallback=StackGetCallbackByObject(&g_hSysCallbackStack, objFunction))
   {
+    nBusyIndex=lpCallback->nBusyIndex;
     if (StackDeleteCallback(lpCallback))
-      g_cbAsm[lpCallback->nBusyIndex].bBusy=FALSE;
+      g_cbAsm[nBusyIndex].bBusy=FALSE;
   }
   return NOERROR;
 }

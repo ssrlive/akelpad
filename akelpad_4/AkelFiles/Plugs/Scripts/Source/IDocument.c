@@ -2096,13 +2096,15 @@ HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BO
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   CALLBACKITEM *lpCallback;
+  int nBusyIndex;
 
   if (lpCallback=StackGetCallbackByHandle(&g_hHookCallbackStack, (HANDLE)hHook, lpScriptThread))
   {
     if (*bResult=UnhookWindowsHookEx(hHook))
     {
+      nBusyIndex=lpCallback->nBusyIndex;
       if (StackDeleteCallback(lpCallback))
-        g_cbHook[lpCallback->nBusyIndex].bBusy=FALSE;
+        g_cbHook[nBusyIndex].bBusy=FALSE;
     }
   }
   return NOERROR;
