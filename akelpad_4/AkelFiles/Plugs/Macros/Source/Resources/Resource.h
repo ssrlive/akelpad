@@ -10,6 +10,7 @@
 #define IDI_ICON_STOPTOEND              106
 #define IDD_MACROS                      1001
 #define IDD_STOP                        1002
+#define IDD_VIEW                        1003
 #define IDC_MACROS_LABEL                1101
 #define IDC_MACROS_LIST                 1102
 #define IDC_PLAY                        1103
@@ -23,8 +24,11 @@
 #define IDC_DELETE                      1111
 #define IDC_HOTKEY                      1112
 #define IDC_ASSIGN                      1113
-#define IDC_CLOSE                       1114
+#define IDC_VIEW                        1114
+#define IDC_CLOSE                       1115
 #define IDC_STOP                        1201
+#define IDC_KEYACT_LIST                 1301
+#define IDC_EXPORT                      1302
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
