@@ -40,6 +40,7 @@
 #define CreateFileWide
 #define DeleteFileWide
 #define DialogBoxWide
+#define DialogBoxParamWide
 #define DispatchMessageWide
 #define FileExistsWide
 #define FindFirstFileWide
@@ -85,16 +86,26 @@
 #define STRID_SAVE              12
 #define STRID_DELETE            13
 #define STRID_ASSIGN            14
-#define STRID_PLUGIN            15
-#define STRID_CLOSE             16
+#define STRID_VIEW              15
+#define STRID_KEY               16
+#define STRID_ACT               17
+#define STRID_EXPORT            18
+#define STRID_PLUGIN            19
+#define STRID_CLOSE             20
 
-#define OF_RECT        0x1
-#define OF_HOTKEYS     0x2
+#define AKDLL_UPDATE (WM_USER + 100)
+
+#define OF_HOTKEYS     0x1
+#define OF_RECT        0x2
+#define OF_VIEWRECT    0x4
 
 #define BUFFER_SIZE             1024
 
 #define LVI_MACRO_FILE          0
 #define LVI_MACRO_HOTKEY        1
+
+#define LVI_VIEW_KEY            0
+#define LVI_VIEW_ACT            1
 
 #define MACRO_TIMEOUT           5000
 
@@ -138,8 +149,8 @@ typedef struct {
 } EXECMACRO;
 
 typedef struct _KEYACT {
-  BYTE bVk;
-  DWORD dwFlags;
+  BYTE bVk;       //Virtual-key code
+  DWORD dwFlags;  //KEYEVENTF_*  for keybd_event
 } KEYACT;
 
 typedef struct _KEYSTRUCT {
@@ -148,26 +159,33 @@ typedef struct _KEYSTRUCT {
   KEYACT ka;
 } KEYSTRUCT;
 
+typedef struct {
+  KEYSTRUCT *first;
+  KEYSTRUCT *last;
+} STACKKEY;
+
 //Functions prototypes
 DWORD WINAPI ThreadProc(LPVOID lpParameter);
 LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK StopDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillMacroList(HWND hWnd);
+void FillKeyactList(HWND hWnd, STACKKEY *hStack);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszMacroName, WORD wHotkey);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
 DWORD WINAPI ExecThreadProc(LPVOID lpParameter);
-KEYSTRUCT* StackHotkeyAdd(HSTACK *hStack, BYTE bVk, DWORD dwFlags);
-void StackHotkeyPress(HSTACK *hStack, BOOL bToEnd, DWORD dwFlags);
-BOOL StackHotkeyRead(HSTACK *hStack, HANDLE hFile);
-BOOL StackHotkeySave(HSTACK *hStack, HANDLE hFile);
-void StackHotkeyFree(HSTACK *hStack);
-BOOL ReadMacroFile(HSTACK *hKeyStack, wchar_t *wpMacro);
-BOOL SaveMacroFile(HSTACK *hRecordStack, wchar_t *wpMacro);
+KEYSTRUCT* StackHotkeyAdd(STACKKEY *hStack, BYTE bVk, DWORD dwFlags);
+void StackHotkeyPress(STACKKEY *hStack, BOOL bToEnd, DWORD dwFlags);
+BOOL StackHotkeyRead(STACKKEY *hStack, HANDLE hFile);
+BOOL StackHotkeySave(STACKKEY *hStack, HANDLE hFile);
+void StackHotkeyFree(STACKKEY *hStack);
+BOOL ReadMacroFile(STACKKEY *hKeyStack, wchar_t *wpMacro);
+BOOL SaveMacroFile(STACKKEY *hRecordStack, wchar_t *wpMacro);
 BOOL DeleteMacroFile(wchar_t *wpMacro);
 void MacroRecord();
 void MacroStop();
-DWORD MacroPlay(HSTACK *hStack, int nRepeat, DWORD dwFlags);
+DWORD MacroPlay(STACKKEY *hStack, int nRepeat, DWORD dwFlags);
 BOOL WaitIdle();
 void ExecMacro(const wchar_t *wpMacro, int nRepeat, DWORD dwFlags);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -210,15 +228,19 @@ char szMacrosDir[MAX_PATH];
 wchar_t wszMacrosDir[MAX_PATH];
 wchar_t wszBuffer[BUFFER_SIZE];
 wchar_t wszLastMacro[MAX_PATH]=L"";
-HSTACK hRecordStack={0};
-HSTACK hLastMacroStack={0};
+STACKKEY hRecordStack={0};
+STACKKEY hLastMacroStack={0};
 HWND hWndMainDlg=NULL;
 HWND hWndStopDlg=NULL;
 HWND hWndMacrosList=NULL;
 RECT rcMainMinMaxDialog={253, 325, 0, 0};
 RECT rcMainCurrentDialog={0};
+RECT rcViewMainMinMaxDialog={253, 325, 0, 0};
+RECT rcViewMainCurrentDialog={0};
 int nColumnWidth1=160;
 int nColumnWidth2=109;
+int nViewColumnWidth1=160;
+int nViewColumnWidth2=109;
 HHOOK hHook=NULL;
 HANDLE hDialogThread=NULL;
 HANDLE hExecThread=NULL;
@@ -458,6 +480,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndDeleteButton;
   static HWND hWndHotkey;
   static HWND hWndAssignButton;
+  static HWND hWndViewButton;
   static HWND hWndCloseButton;
   static HICON hPlayIcon;
   static int nSelItem=-1;
@@ -475,6 +498,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndDeleteButton, DRS_MOVE|DRS_X, 0},
                              {&hWndHotkey,       DRS_MOVE|DRS_X, 0},
                              {&hWndAssignButton, DRS_MOVE|DRS_X, 0},
+                             {&hWndViewButton,   DRS_MOVE|DRS_X, 0},
                              {&hWndCloseButton,  DRS_MOVE|DRS_X, 0},
                              {&hWndCloseButton,  DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
@@ -499,6 +523,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndDeleteButton=GetDlgItem(hDlg, IDC_DELETE);
     hWndHotkey=GetDlgItem(hDlg, IDC_HOTKEY);
     hWndAssignButton=GetDlgItem(hDlg, IDC_ASSIGN);
+    hWndViewButton=GetDlgItem(hDlg, IDC_VIEW);
     hWndCloseButton=GetDlgItem(hDlg, IDC_CLOSE);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
@@ -506,6 +531,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDC_SAVE, GetLangStringW(wLangModule, STRID_SAVE));
     SetDlgItemTextWide(hDlg, IDC_DELETE, GetLangStringW(wLangModule, STRID_DELETE));
     SetDlgItemTextWide(hDlg, IDC_ASSIGN, GetLangStringW(wLangModule, STRID_ASSIGN));
+    SetDlgItemTextWide(hDlg, IDC_VIEW, GetLangStringW(wLangModule, STRID_VIEW));
     SetDlgItemTextWide(hDlg, IDC_CLOSE, GetLangStringW(wLangModule, STRID_CLOSE));
 
     //Set play button icon
@@ -524,15 +550,6 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndRepeatSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SetDlgItemInt(hDlg, IDC_REPEAT, 1, FALSE);
     SendMessage(hWndName, EM_LIMITTEXT, MAX_PATH, 0);
-    EnableWindow(hWndPlayButton, FALSE);
-    EnableWindow(hWndRepeat, FALSE);
-    EnableWindow(hWndRepeatSpin, FALSE);
-    EnableWindow(hWndRecordButton, FALSE);
-    EnableWindow(hWndName, FALSE);
-    EnableWindow(hWndSaveButton, FALSE);
-    EnableWindow(hWndDeleteButton, FALSE);
-    EnableWindow(hWndHotkey, FALSE);
-    EnableWindow(hWndAssignButton, FALSE);
     SendMessage(hWndMacrosList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
 
@@ -550,6 +567,55 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ListView_InsertColumnWide(hWndMacrosList, LVI_MACRO_HOTKEY, &lvc);
 
     FillMacroList(hWndMacrosList);
+    SendMessage(hDlg, AKDLL_UPDATE, 0, 0);
+  }
+  else if (uMsg == AKDLL_UPDATE)
+  {
+    BOOL bEnable;
+
+    if (nSelItem == 0)
+    {
+      if (hRecordStack.last)
+      {
+        bEnable=TRUE;
+        if (GetWindowTextLengthWide(hWndName))
+          EnableWindow(hWndSaveButton, TRUE);
+        else
+          EnableWindow(hWndSaveButton, FALSE);
+      }
+      else
+      {
+        bEnable=FALSE;
+        EnableWindow(hWndSaveButton, FALSE);
+      }
+      EnableWindow(hWndPlayButton, bEnable);
+      EnableWindow(hWndRepeat, bEnable);
+      EnableWindow(hWndRepeatSpin, bEnable);
+      EnableWindow(hWndName, bEnable);
+      EnableWindow(hWndViewButton, bEnable);
+      EnableWindow(hWndRecordButton, TRUE);
+      EnableWindow(hWndDeleteButton, FALSE);
+      EnableWindow(hWndHotkey, FALSE);
+      EnableWindow(hWndAssignButton, FALSE);
+    }
+    else
+    {
+      if (nSelItem > 0)
+        bEnable=TRUE;
+      else
+        bEnable=FALSE;
+
+      EnableWindow(hWndPlayButton, bEnable);
+      EnableWindow(hWndRepeat, bEnable);
+      EnableWindow(hWndRepeatSpin, bEnable);
+      EnableWindow(hWndRecordButton, FALSE);
+      EnableWindow(hWndName, FALSE);
+      EnableWindow(hWndSaveButton, FALSE);
+      EnableWindow(hWndDeleteButton, bEnable);
+      EnableWindow(hWndHotkey, bEnable);
+      EnableWindow(hWndAssignButton, bEnable);
+      EnableWindow(hWndViewButton, bEnable);
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -572,61 +638,13 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           SendMessage(hWndHotkey, HKM_SETHOTKEY, ((NMLISTVIEW *)lParam)->lParam, 0);
           nSelItem=((NMLISTVIEW *)lParam)->iItem;
-
-          if (nSelItem > 0)
-          {
-            EnableWindow(hWndPlayButton, TRUE);
-            EnableWindow(hWndRepeat, TRUE);
-            EnableWindow(hWndRepeatSpin, TRUE);
-            EnableWindow(hWndRecordButton, FALSE);
-            EnableWindow(hWndName, FALSE);
-            EnableWindow(hWndSaveButton, FALSE);
-            EnableWindow(hWndDeleteButton, TRUE);
-            EnableWindow(hWndHotkey, TRUE);
-            EnableWindow(hWndAssignButton, TRUE);
-          }
-          else
-          {
-            if (hRecordStack.last)
-            {
-              EnableWindow(hWndPlayButton, TRUE);
-              EnableWindow(hWndRepeat, TRUE);
-              EnableWindow(hWndRepeatSpin, TRUE);
-              EnableWindow(hWndName, TRUE);
-              if (GetWindowTextLength(hWndName))
-                EnableWindow(hWndSaveButton, TRUE);
-              else
-                EnableWindow(hWndSaveButton, FALSE);
-            }
-            else
-            {
-              EnableWindow(hWndPlayButton, FALSE);
-              EnableWindow(hWndRepeat, FALSE);
-              EnableWindow(hWndRepeatSpin, FALSE);
-              EnableWindow(hWndName, FALSE);
-              EnableWindow(hWndSaveButton, FALSE);
-            }
-            EnableWindow(hWndRecordButton, TRUE);
-            EnableWindow(hWndDeleteButton, FALSE);
-            EnableWindow(hWndHotkey, FALSE);
-            EnableWindow(hWndAssignButton, FALSE);
-          }
         }
         if (((NMLISTVIEW *)lParam)->uOldState & LVIS_SELECTED)
         {
           SendMessage(hWndHotkey, HKM_SETHOTKEY, 0, 0);
           nSelItem=-1;
-
-          EnableWindow(hWndPlayButton, FALSE);
-          EnableWindow(hWndRepeat, FALSE);
-          EnableWindow(hWndRepeatSpin, FALSE);
-          EnableWindow(hWndRecordButton, FALSE);
-          EnableWindow(hWndName, FALSE);
-          EnableWindow(hWndSaveButton, FALSE);
-          EnableWindow(hWndDeleteButton, FALSE);
-          EnableWindow(hWndHotkey, FALSE);
-          EnableWindow(hWndAssignButton, FALSE);
         }
+        PostMessage(hDlg, AKDLL_UPDATE, 0, 0);
       }
       else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
         PostMessage(hDlg, WM_COMMAND, IDC_PLAY, 0);
@@ -676,33 +694,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_RECORD)
     {
       DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_STOP), hDlg, (DLGPROC)StopDlgProc);
-
-      if (hRecordStack.last)
-      {
-        EnableWindow(hWndPlayButton, TRUE);
-        EnableWindow(hWndRepeat, TRUE);
-        EnableWindow(hWndRepeatSpin, TRUE);
-        EnableWindow(hWndName, TRUE);
-        if (GetWindowTextLengthWide(hWndName))
-          EnableWindow(hWndSaveButton, TRUE);
-        else
-          EnableWindow(hWndSaveButton, FALSE);
-      }
-      else
-      {
-        EnableWindow(hWndPlayButton, FALSE);
-        EnableWindow(hWndRepeat, FALSE);
-        EnableWindow(hWndRepeatSpin, FALSE);
-        EnableWindow(hWndName, FALSE);
-        EnableWindow(hWndSaveButton, FALSE);
-      }
+      PostMessage(hDlg, AKDLL_UPDATE, 0, 0);
     }
     else if (LOWORD(wParam) == IDC_NAME)
     {
-      if (GetWindowTextLengthWide(hWndName))
-        EnableWindow(hWndSaveButton, TRUE);
-      else
-        EnableWindow(hWndSaveButton, FALSE);
+      PostMessage(hDlg, AKDLL_UPDATE, 0, 0);
     }
     else if (LOWORD(wParam) == IDC_SAVE)
     {
@@ -719,7 +715,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (SaveMacroFile(&hRecordStack, wszName))
           {
             xstrcpynW(wszLastMacro, wszName, MAX_PATH);
-            xmemcpy(&hLastMacroStack, &hRecordStack, sizeof(HSTACK));
+            xmemcpy(&hLastMacroStack, &hRecordStack, sizeof(STACKKEY));
             hRecordStack.first=0;
             hRecordStack.last=0;
 
@@ -810,6 +806,38 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bListChanged=TRUE;
       }
       else SetFocus(hWndHotkey);
+    }
+    else if (LOWORD(wParam) == IDC_VIEW)
+    {
+      STACKKEY *lpCurStack=NULL;
+      STACKKEY hFileStack={0};
+      wchar_t wszName[MAX_PATH];
+      LVITEMW lvi;
+
+      if (nSelItem == 0)
+      {
+        lpCurStack=&hRecordStack;
+      }
+      else
+      {
+        //Get macro name
+        lvi.mask=LVIF_TEXT;
+        lvi.pszText=wszName;
+        lvi.cchTextMax=MAX_PATH;
+        lvi.iItem=nSelItem;
+        lvi.iSubItem=LVI_MACRO_FILE;
+        ListView_GetItemWide(hWndMacrosList, &lvi);
+
+        if (ReadMacroFile(&hFileStack, wszName))
+          lpCurStack=&hFileStack;
+      }
+
+      if (lpCurStack)
+      {
+        DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_VIEW), hDlg, (DLGPROC)ViewDlgProc, (LPARAM)lpCurStack);
+        if (nSelItem != 0)
+          StackHotkeyFree(lpCurStack);
+      }
     }
     else if (LOWORD(wParam) == IDOK)
     {
@@ -944,6 +972,105 @@ BOOL CALLBACK StopDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
+BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static STACKKEY *lpCurStack;
+  static HICON hPluginIcon;
+  static HWND hWndKeyactList;
+  static HWND hWndExportButton;
+  static HWND hWndCloseButton;
+  static DIALOGRESIZE drs[]={{&hWndKeyactList,   DRS_SIZE|DRS_X, 0},
+                             {&hWndKeyactList,   DRS_SIZE|DRS_Y, 0},
+                             {&hWndExportButton, DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,  DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,  DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    LVCOLUMNW lvc;
+
+    //Load plugin icon
+    hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
+    SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hPluginIcon);
+
+    lpCurStack=(STACKKEY *)lParam;
+    hWndKeyactList=GetDlgItem(hDlg, IDC_KEYACT_LIST);
+    hWndExportButton=GetDlgItem(hDlg, IDC_EXPORT);
+    hWndCloseButton=GetDlgItem(hDlg, IDC_CLOSE);
+
+    SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_VIEW));
+    SetDlgItemTextWide(hDlg, IDC_EXPORT, GetLangStringW(wLangModule, STRID_EXPORT));
+    SetDlgItemTextWide(hDlg, IDC_CLOSE, GetLangStringW(wLangModule, STRID_CLOSE));
+
+    EnableWindow(hWndExportButton, FALSE);
+    SendMessage(hWndKeyactList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+    //Columns
+    lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_KEY);
+    lvc.cx=nViewColumnWidth1;
+    lvc.iSubItem=LVI_VIEW_KEY;
+    ListView_InsertColumnWide(hWndKeyactList, LVI_VIEW_KEY, &lvc);
+
+    lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_ACT);
+    lvc.cx=nViewColumnWidth2;
+    lvc.iSubItem=LVI_VIEW_ACT;
+    ListView_InsertColumnWide(hWndKeyactList, LVI_VIEW_ACT, &lvc);
+
+    FillKeyactList(hWndKeyactList, lpCurStack);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_EXPORT)
+    {
+    }
+    else if (LOWORD(wParam) == IDC_CLOSE ||
+             LOWORD(wParam) == IDOK ||
+             LOWORD(wParam) == IDCANCEL)
+    {
+      int nWidth;
+
+      nWidth=(int)SendMessage(hWndKeyactList, LVM_GETCOLUMNWIDTH, LVI_VIEW_ACT, 0);
+      if (nViewColumnWidth1 != nWidth)
+      {
+        nViewColumnWidth1=nWidth;
+        dwSaveFlags|=OF_VIEWRECT;
+      }
+      nWidth=(int)SendMessage(hWndKeyactList, LVM_GETCOLUMNWIDTH, LVI_VIEW_KEY, 0);
+      if (nViewColumnWidth2 != nWidth)
+      {
+        nViewColumnWidth2=nWidth;
+        dwSaveFlags|=OF_VIEWRECT;
+      }
+
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_CLOSE)
+  {
+    PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+    return TRUE;
+  }
+  else if (uMsg == WM_DESTROY)
+  {
+    //Destroy plugin icon
+    DestroyIcon(hPluginIcon);
+  }
+
+  //Dialog resize messages
+  {
+    DIALOGRESIZEMSG drsm={&drs[0], &rcViewMainMinMaxDialog, &rcViewMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+
+    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+      dwSaveFlags|=OF_VIEWRECT;
+  }
+
+  return FALSE;
+}
+
 BOOL RegisterHotkey(wchar_t *wszMacroName, WORD wHotkey)
 {
   PLUGINFUNCTION *pfElement=NULL;
@@ -1002,7 +1129,6 @@ void FillMacroList(HWND hWnd)
   DWORD dwStyle;
   int nIndexToSelect=-1;
   int nIndex;
-  int i=0;
 
   //Macro files
   xprintfW(wszFindFiles, L"%s\\*.macro", wszMacrosDir);
@@ -1019,7 +1145,7 @@ void FillMacroList(HWND hWnd)
 
         lvi.mask=LVIF_TEXT;
         lvi.pszText=wszBaseName;
-        lvi.iItem=i++;
+        lvi.iItem=0x7FFFFFFF;
         lvi.iSubItem=LVI_MACRO_FILE;
         nIndex=ListView_InsertItemWide(hWnd, &lvi);
 
@@ -1071,6 +1197,32 @@ void FillMacroList(HWND hWnd)
   SendMessage(hWnd, LVM_ENSUREVISIBLE, (WPARAM)max(nIndexToSelect + 1, 0), TRUE);
 }
 
+void FillKeyactList(HWND hWnd, STACKKEY *hStack)
+{
+  KEYSTRUCT *lpElement;
+  wchar_t wszHotkey[MAX_PATH];
+  LVITEMW lvi;
+  int nIndex;
+  WORD wHotkey;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    wHotkey=MAKEWORD(lpElement->ka.bVk, (lpElement->ka.dwFlags & KEYEVENTF_EXTENDEDKEY)?HOTKEYF_EXT:0);
+    GetHotkeyString(wHotkey, wszHotkey);
+    lvi.mask=LVIF_TEXT;
+    lvi.pszText=wszHotkey;
+    lvi.iItem=0x7FFFFFFF;
+    lvi.iSubItem=LVI_VIEW_KEY;
+    nIndex=ListView_InsertItemWide(hWnd, &lvi);
+
+    lvi.mask=LVIF_TEXT;
+    lvi.pszText=(lpElement->ka.dwFlags & KEYEVENTF_KEYUP)?L"Up":L"Down";
+    lvi.iItem=nIndex;
+    lvi.iSubItem=LVI_VIEW_ACT;
+    ListView_SetItemWide(hWnd, &lvi);
+  }
+}
+
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 {
   if (code >= 0)
@@ -1090,9 +1242,7 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
         else if (msg->message == WM_KEYDOWN || msg->message == WM_SYSKEYDOWN)
         {
           if ((msg->lParam >> 30) & 1)
-          {
             StackHotkeyAdd(&hRecordStack, (BYTE)msg->wParam, dwFlags|KEYEVENTF_KEYUP);
-          }
         }
         StackHotkeyAdd(&hRecordStack, (BYTE)msg->wParam, dwFlags);
       }
@@ -1181,7 +1331,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   return 0;
 }
 
-KEYSTRUCT* StackHotkeyAdd(HSTACK *hStack, BYTE bVk, DWORD dwFlags)
+KEYSTRUCT* StackHotkeyAdd(STACKKEY *hStack, BYTE bVk, DWORD dwFlags)
 {
   KEYSTRUCT *lpElement;
 
@@ -1193,9 +1343,9 @@ KEYSTRUCT* StackHotkeyAdd(HSTACK *hStack, BYTE bVk, DWORD dwFlags)
   return lpElement;
 }
 
-void StackHotkeyPress(HSTACK *hStack, BOOL bToEnd, DWORD dwFlags)
+void StackHotkeyPress(STACKKEY *hStack, BOOL bToEnd, DWORD dwFlags)
 {
-  KEYSTRUCT *lpElement=(KEYSTRUCT *)hStack->first;
+  KEYSTRUCT *lpElement=hStack->first;
   HANDLE hScriptsExecMutex;
   BOOL bBusy=FALSE;
 
@@ -1277,7 +1427,7 @@ void StackHotkeyPress(HSTACK *hStack, BOOL bToEnd, DWORD dwFlags)
     MessageBoxW(hMainWnd, GetLangStringW(wLangModule, STRID_THREAD_BUSY), wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
 }
 
-BOOL StackHotkeyRead(HSTACK *hStack, HANDLE hFile)
+BOOL StackHotkeyRead(STACKKEY *hStack, HANDLE hFile)
 {
   KEYSTRUCT *lpElement;
   KEYACT ka;
@@ -1297,12 +1447,12 @@ BOOL StackHotkeyRead(HSTACK *hStack, HANDLE hFile)
   return TRUE;
 }
 
-BOOL StackHotkeySave(HSTACK *hStack, HANDLE hFile)
+BOOL StackHotkeySave(STACKKEY *hStack, HANDLE hFile)
 {
   KEYSTRUCT *lpElement;
   DWORD dwBytesWritten;
 
-  for (lpElement=(KEYSTRUCT *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (!WriteFile(hFile, &lpElement->ka, sizeof(KEYACT), &dwBytesWritten, NULL))
       return FALSE;
@@ -1310,12 +1460,12 @@ BOOL StackHotkeySave(HSTACK *hStack, HANDLE hFile)
   return TRUE;
 }
 
-void StackHotkeyFree(HSTACK *hStack)
+void StackHotkeyFree(STACKKEY *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL ReadMacroFile(HSTACK *hKeyStack, wchar_t *wpMacro)
+BOOL ReadMacroFile(STACKKEY *hKeyStack, wchar_t *wpMacro)
 {
   HANDLE hFile;
   wchar_t wszMacro[MAX_PATH];
@@ -1331,7 +1481,7 @@ BOOL ReadMacroFile(HSTACK *hKeyStack, wchar_t *wpMacro)
   return FALSE;
 }
 
-BOOL SaveMacroFile(HSTACK *hRecordStack, wchar_t *wpMacro)
+BOOL SaveMacroFile(STACKKEY *hRecordStack, wchar_t *wpMacro)
 {
   HANDLE hFile;
   wchar_t wszMacro[MAX_PATH];
@@ -1371,7 +1521,7 @@ void MacroStop()
   }
 }
 
-DWORD MacroPlay(HSTACK *hStack, int nRepeat, DWORD dwFlags)
+DWORD MacroPlay(STACKKEY *hStack, int nRepeat, DWORD dwFlags)
 {
   EDITINFO ei;
   DWORD dwWindowProcessId;
@@ -1719,6 +1869,10 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"/ColumnWidth1", PO_DWORD, (LPBYTE)&nColumnWidth1, sizeof(DWORD));
     WideOption(hOptions, L"/ColumnWidth2", PO_DWORD, (LPBYTE)&nColumnWidth2, sizeof(DWORD));
 
+    WideOption(hOptions, L"/ViewWindowRect", PO_BINARY, (LPBYTE)&rcViewMainCurrentDialog, sizeof(RECT));
+    WideOption(hOptions, L"/ViewColumnWidth1", PO_DWORD, (LPBYTE)&nViewColumnWidth1, sizeof(DWORD));
+    WideOption(hOptions, L"/ViewColumnWidth2", PO_DWORD, (LPBYTE)&nViewColumnWidth2, sizeof(DWORD));
+
     //Macro hotkeys
     {
       WIN32_FIND_DATAW wfd;
@@ -1764,6 +1918,12 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"/WindowRect", PO_BINARY, (LPBYTE)&rcMainCurrentDialog, sizeof(RECT));
       WideOption(hOptions, L"/ColumnWidth1", PO_DWORD, (LPBYTE)&nColumnWidth1, sizeof(DWORD));
       WideOption(hOptions, L"/ColumnWidth2", PO_DWORD, (LPBYTE)&nColumnWidth2, sizeof(DWORD));
+    }
+    if (dwFlags & OF_VIEWRECT)
+    {
+      WideOption(hOptions, L"/ViewWindowRect", PO_BINARY, (LPBYTE)&rcViewMainCurrentDialog, sizeof(RECT));
+      WideOption(hOptions, L"/ViewColumnWidth1", PO_DWORD, (LPBYTE)&nViewColumnWidth1, sizeof(DWORD));
+      WideOption(hOptions, L"/ViewColumnWidth2", PO_DWORD, (LPBYTE)&nViewColumnWidth2, sizeof(DWORD));
     }
     if (dwFlags & OF_HOTKEYS)
     {
@@ -1841,6 +2001,14 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0423\x0434\x0430\x043B\x0438\x0442\x044C";
     if (nStringID == STRID_ASSIGN)
       return L"\x041D\x0430\x0437\x043D\x0430\x0447\x0438\x0442\x044C";
+    if (nStringID == STRID_VIEW)
+      return L"\x041F\x0440\x043E\x0441\x043C\x043E\x0442\x0440...";
+    if (nStringID == STRID_KEY)
+      return L"\x041A\x043B\x0430\x0432\x0438\x0448\x0430";
+    if (nStringID == STRID_ACT)
+      return L"\x0414\x0435\x0439\x0441\x0442\x0432\x0438\x0435";
+    if (nStringID == STRID_EXPORT)
+      return L"\x042D\x043A\x0441\x043F\x043E\x0440\x0442";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_CLOSE)
@@ -1876,6 +2044,14 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Delete";
     if (nStringID == STRID_ASSIGN)
       return L"Assign";
+    if (nStringID == STRID_VIEW)
+      return L"View...";
+    if (nStringID == STRID_KEY)
+      return L"Key";
+    if (nStringID == STRID_ACT)
+      return L"Action";
+    if (nStringID == STRID_EXPORT)
+      return L"Export";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_CLOSE)
