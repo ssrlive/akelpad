@@ -1402,8 +1402,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn, ae->popt->aec.crBasicBk)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn, ae->popt->aec.crBasicBk);
         ae->popt->hActiveColumnPen=lpPenItem->hPen;
 
         ae->ptActiveColumnDraw.x=-1;
@@ -1674,8 +1674,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AEPENITEM *lpPenItem;
 
-      if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker)))
-        lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker);
+      if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker, (COLORREF)-1)))
+        lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker, (COLORREF)-1);
       ae->popt->hColumnMarkerPen=lpPenItem->hPen;
 
       return AE_ColumnMarkerSet(ae, (DWORD)wParam, (int)lParam, FALSE);
@@ -6054,12 +6054,21 @@ void AE_StackDcItemsFree(HSTACK *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor)
+AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor, COLORREF crInvertColor)
 {
   AEPENITEM *lpElement=NULL;
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEPENITEM)))
   {
+    if (crInvertColor != (COLORREF)-1)
+    {
+      //Invert for R2_XORPEN
+      BYTE r=GetRValue(crInvertColor) ^ GetRValue(crPenColor);
+      BYTE g=GetGValue(crInvertColor) ^ GetGValue(crPenColor);
+      BYTE b=GetBValue(crInvertColor) ^ GetBValue(crPenColor);
+
+      crPenColor=RGB(r, g, b);
+    }
     lpElement->crPenColor=crPenColor;
     lpElement->hPen=CreatePen(PS_SOLID, 0, crPenColor);
 
@@ -6068,9 +6077,19 @@ AEPENITEM* AE_StackPenItemInsert(HSTACK *hStack, COLORREF crPenColor)
   return NULL;
 }
 
-AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor)
+AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor, COLORREF crInvertColor)
 {
   AEPENITEM *lpElement;
+
+  if (crInvertColor != (COLORREF)-1)
+  {
+    //Invert for R2_XORPEN
+    BYTE r=GetRValue(crInvertColor) ^ GetRValue(crPenColor);
+    BYTE g=GetGValue(crInvertColor) ^ GetGValue(crPenColor);
+    BYTE b=GetBValue(crInvertColor) ^ GetBValue(crPenColor);
+
+    crPenColor=RGB(r, g, b);
+  }
 
   for (lpElement=(AEPENITEM *)hStack->first; lpElement; lpElement=lpElement->next)
   {
@@ -11879,9 +11898,9 @@ HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crIn
       //Fill line
       for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
       {
-        lpBitmapBits[a + 0]=mod(GetBValue(crInvert) - GetBValue(crBasic));
-        lpBitmapBits[a + 1]=mod(GetGValue(crInvert) - GetGValue(crBasic));
-        lpBitmapBits[a + 2]=mod(GetRValue(crInvert) - GetRValue(crBasic));
+        lpBitmapBits[a + 0]=GetBValue(crInvert) ^ GetBValue(crBasic);
+        lpBitmapBits[a + 1]=GetGValue(crInvert) ^ GetGValue(crBasic);
+        lpBitmapBits[a + 2]=GetRValue(crInvert) ^ GetRValue(crBasic);
         a+=3;
       }
       while (a % 4) lpBitmapBits[a++]=0x00;
@@ -14788,7 +14807,7 @@ void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
     if (hDC || (hDC=GetDC(ae->hWndEdit)))
     {
       hPenOld=(HPEN)SelectObject(hDC, ae->popt->hActiveColumnPen);
-      nModeOld=SetROP2(hDC, R2_NOTXORPEN);
+      nModeOld=SetROP2(hDC, R2_XORPEN);
 
       nTop=max(ae->rcDraw.top, nTop);
       nBottom=min(ae->rcDraw.bottom, nBottom);
@@ -20771,8 +20790,8 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate)
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crActiveColumn, ae->popt->aec.crBasicBk)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn, ae->popt->aec.crBasicBk);
         ae->popt->hActiveColumnPen=lpPenItem->hPen;
       }
     }
@@ -20784,8 +20803,8 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec, BOOL bUpdate)
       {
         AEPENITEM *lpPenItem;
 
-        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker)))
-          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker);
+        if (!(lpPenItem=AE_StackPenItemGet(&hAkelEditPensStack, ae->popt->aec.crColumnMarker, (COLORREF)-1)))
+          lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crColumnMarker, (COLORREF)-1);
         ae->popt->hColumnMarkerPen=lpPenItem->hPen;
       }
     }
