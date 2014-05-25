@@ -3281,10 +3281,12 @@ SESSION* AddCurrentSession(STACKSESSION *hStack, const wchar_t *wpSessionName)
               SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
 
               //Get bookmarks
-              if (delb.wszBookmarks=(wchar_t *)GlobalAlloc(GPTR, nBookmarksLen * sizeof(wchar_t)))
-                SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-
-              wszBookmarks=delb.wszBookmarks;
+              if (nBookmarksLen)
+              {
+                if (delb.wszBookmarks=(wchar_t *)GlobalAlloc(GPTR, nBookmarksLen * sizeof(wchar_t)))
+                  SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+                wszBookmarks=delb.wszBookmarks;
+              }
             }
           }
 
@@ -3352,9 +3354,11 @@ SESSION* AddCurrentSession(STACKSESSION *hStack, const wchar_t *wpSessionName)
             {
               if (hFoldsStack->first)
               {
-                nSize=GetCollapsedFoldsString(hFoldsStack, NULL);
-                if (wszCoderFolds=(wchar_t *)GlobalAlloc(GPTR, nSize * sizeof(wchar_t)))
-                  nSize=GetCollapsedFoldsString(hFoldsStack, wszCoderFolds);
+                if (nSize=GetCollapsedFoldsString(hFoldsStack, NULL))
+                {
+                  if (wszCoderFolds=(wchar_t *)GlobalAlloc(GPTR, nSize * sizeof(wchar_t)))
+                    nSize=GetCollapsedFoldsString(hFoldsStack, wszCoderFolds);
+                }
               }
             }
           }
