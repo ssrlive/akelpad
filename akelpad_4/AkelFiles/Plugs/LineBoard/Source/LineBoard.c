@@ -2618,11 +2618,11 @@ int SetBookmarksString(WINDOWBOARD *wb, const wchar_t *wpString)
   {
     nWrappedLine=(int)SendMessage(wb->hWndEdit, AEM_GETWRAPLINE, xatoiW(wpCount, &wpCount), (LPARAM)NULL);
     StackInsertBookmark(wb, nWrappedLine);
+    ++nCount;
     if (*wpCount == L',')
       ++wpCount;
     else
       break;
-    ++nCount;
   }
   return nCount;
 }
