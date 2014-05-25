@@ -7670,7 +7670,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
     hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX_LABEL);
     hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX);
-    if (moCur.bShowPlacesBar)
+    if (moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)
     {
       hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILECOMBOBOX);
       hOfnDlgEdit=(HWND)SendMessage(hOfnDlgEdit, CBEM_GETEDITCONTROL, 0, 0);
@@ -7679,7 +7679,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     else
     {
       hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILEEDIT);
-      hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
+      hDlgPlacesBar=NULL;
     }
     hDlgCancel=GetDlgItem(hDlgParent, IDCANCEL);
     hWndCodePageLabel=GetDlgItem(hDlg, IDC_OFN_CODEPAGE_LABEL);
@@ -8097,7 +8097,14 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       INT_PTR nPathLen;
       LRESULT lResult;
 
-      if ((nPathLen=(WORD)SendMessageW(hWnd, CDM_GETFILEPATH, MAX_PATH, (LPARAM)wszPath)) > 1)
+      if (bOldWindows)
+      {
+        SendMessageA(hWnd, CDM_GETFILEPATH, BUFFER_SIZE, (WPARAM)buf);
+        nPathLen=(WORD)MultiByteToWideChar(CP_ACP, 0, buf, -1, wszPath, MAX_PATH);
+      }
+      else nPathLen=(WORD)SendMessageW(hWnd, CDM_GETFILEPATH, MAX_PATH, (LPARAM)wszPath);
+
+      if (nPathLen > 1)
       {
         if (wszPath[nPathLen - 2] != L'\\')
         {
