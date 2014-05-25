@@ -113,11 +113,12 @@
 #define PCL_ONMESSAGE       2
 
 //Open file dialog
-#define IDC_OFN_LIST           1120
-#define IDC_OFN_COMBOBOX_LABEL 1089
-#define IDC_OFN_COMBOBOX       1136
-#define IDC_OFN_EDIT           1152
-#define IDC_OFN_PLACESBAR      1184
+#define IDC_OFN_LIST                   1120
+#define IDC_OFN_CODEPAGECOMBOBOX_LABEL 1089
+#define IDC_OFN_CODEPAGECOMBOBOX       1136
+#define IDC_OFN_FILECOMBOBOX           1148
+#define IDC_OFN_FILEEDIT               1152
+#define IDC_OFN_PLACESBAR              1184
 
 //Combobox edit ID
 #define IDC_COMBOBOXEDIT       1001
@@ -833,6 +834,7 @@ void StackPageFree(HSTACK *hStack);
 
 UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxCodepage(HWND hWnd, int *lpCodepageList);
 void FillListBoxCodepage(HWND hWnd, int *lpCodepageList);
 void ClearCombobox(HWND hWnd);
