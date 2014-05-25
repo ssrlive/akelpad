@@ -180,7 +180,9 @@ extern BOOL bOfnBOM;
 extern int nOfnCodePage;
 extern POINT64 ptDocumentPos;
 extern FILESTREAMDATA *lpStreamInData;
+extern HWND hOfnDlgEdit;
 extern WNDPROC lpOldFilePreviewProc;
+extern WNDPROC lpOldFileParentProc;
 
 //AkelAdmin
 extern wchar_t wszAkelAdminExe[MAX_PATH];
@@ -7637,7 +7639,6 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 {
   static HWND hDlgParent;
   static HWND hDlgList;
-  static HWND hDlgEdit;
   static HWND hDlgComboboxLabel;
   static HWND hDlgCombobox;
   static HWND hDlgPlacesBar;
@@ -7667,10 +7668,19 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
-    hDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_EDIT);
-    hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX_LABEL);
-    hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_COMBOBOX);
-    hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
+    hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX_LABEL);
+    hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX);
+    if (moCur.bShowPlacesBar)
+    {
+      hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILECOMBOBOX);
+      hOfnDlgEdit=(HWND)SendMessage(hOfnDlgEdit, CBEM_GETEDITCONTROL, 0, 0);
+      hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
+    }
+    else
+    {
+      hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILEEDIT);
+      hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
+    }
     hDlgCancel=GetDlgItem(hDlgParent, IDCANCEL);
     hWndCodePageLabel=GetDlgItem(hDlg, IDC_OFN_CODEPAGE_LABEL);
     hWndCodePage=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
@@ -7808,6 +7818,9 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       lpOldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
     }
+
+    lpOldFileParentProc=(WNDPROC)GetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC, (UINT_PTR)NewFileParentProc);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -7898,7 +7911,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     //Even if OFN_NOVALIDATE flag is set, dialog validates multiple selection.
     //So we check only single selection.
-    if ((short)ofn->nFileOffset <= 0 || *(wpFile + ofn->nFileOffset - 1) != L'\0')
+    if ((short)ofn->nFileOffset <= 0 || wpFile[ofn->nFileOffset - 1] != L'\0')
     {
       for (wpCount=wpFile; *wpCount; ++wpCount)
       {
@@ -7974,7 +7987,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         if (nMDI)
         {
-          if (GetWindowTextLengthWide(hDlgEdit) > OPENFILELIST_SIZE)
+          if (GetWindowTextLengthWide(hOfnDlgEdit) > OPENFILELIST_SIZE)
           {
             API_LoadStringW(hLangLib, MSG_LONG_FILELIST, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -8071,6 +8084,38 @@ LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   }
 
   return CallWindowProcWide(lpOldFilePreviewProc, hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDOK)
+    {
+      wchar_t wszPath[MAX_PATH];
+      wchar_t wszPathNew[MAX_PATH];
+      INT_PTR nPathLen;
+      LRESULT lResult;
+
+      if ((nPathLen=(WORD)SendMessageW(hWnd, CDM_GETFILEPATH, MAX_PATH, (LPARAM)wszPath)) > 1)
+      {
+        if (wszPath[nPathLen - 2] != L'\\')
+        {
+          if (DirExistsWide(wszPath))
+          {
+            nPathLen=GetWindowTextWide(hOfnDlgEdit, wszPath, MAX_PATH);
+            xprintfW(wszPathNew, L"%s\\", wszPath);
+            SetWindowTextWide(hOfnDlgEdit, wszPathNew);
+            lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
+            SetWindowTextWide(hOfnDlgEdit, wszPath);
+            SendMessage(hOfnDlgEdit, EM_SETSEL, 0, (LPARAM)-1);
+            return lResult;
+          }
+        }
+      }
+    }
+  }
+  return CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)

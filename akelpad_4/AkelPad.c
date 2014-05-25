@@ -381,7 +381,9 @@ BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 POINT64 ptDocumentPos;
 FILESTREAMDATA *lpStreamInData=NULL;
+HWND hOfnDlgEdit;
 WNDPROC lpOldFilePreviewProc;
+WNDPROC lpOldFileParentProc;
 
 //AkelAdmin
 wchar_t wszAkelAdminExe[MAX_PATH];
