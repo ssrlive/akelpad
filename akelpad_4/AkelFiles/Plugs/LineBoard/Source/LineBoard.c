@@ -500,6 +500,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         else if (nAction == DLLA_LINEBOARD_SETBOOKMARKS)
         {
           WINDOWBOARD *lpBoard;
+          FRAMEDATA *lpFrame;
           HWND hWndEdit=NULL;
           AEHDOC hDocEdit=NULL;
           unsigned char *pBookmarks=NULL;
@@ -523,7 +524,10 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 
               if (SetBookmarksString(lpBoard, wpBookmarks))
               {
+                if (lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_BYEDITDOCUMENT, (LPARAM)hDocEdit))
+                  xstrcpynW(lpBoard->wszFile, lpFrame->wszFile, MAX_PATH);
                 SaveRecentFile(lpBoard);
+
                 if (bShowBoard) UpdateEdit(hWndEdit, UE_FIRSTPIXEL);
               }
               if (pd->dwSupport & PDS_STRANSI)
