@@ -372,6 +372,7 @@ DWORD dwMessageFileNameOK=0;
 RECENTFILESTACK hRecentFilesStack={0};
 
 //Open/Save document
+wchar_t wszOfnFile[MAX_PATH];
 wchar_t wszFileFilter[MAX_PATH];
 int nFileFilterLen;
 BOOL bAutodetect=TRUE;
