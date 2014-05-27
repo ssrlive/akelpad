@@ -171,6 +171,7 @@ extern DWORD dwMessageFileNameOK;
 extern RECENTFILESTACK hRecentFilesStack;
 
 //Open/Save document
+extern wchar_t wszOfnFile[MAX_PATH];
 extern wchar_t wszFileFilter[MAX_PATH];
 extern int nFileFilterLen;
 extern BOOL bAutodetect;
@@ -7661,10 +7662,12 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
   if (uMsg == WM_INITDIALOG)
   {
-    DIALOGCODEPAGE *dc;
+    OPENFILENAME_2000W *ofn=(OPENFILENAME_2000W *)lParam;
+    DIALOGCODEPAGE *dc=(DIALOGCODEPAGE *)ofn->lCustData;
 
     if (!dwMessageFileNameOK)
       dwMessageFileNameOK=RegisterWindowMessageA("commdlg_FileNameOK");
+    xstrcpynW(wszOfnFile, ofn->lpstrFile, MAX_PATH);
 
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
@@ -7689,7 +7692,6 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
     //Set dialog codepage
-    dc=(DIALOGCODEPAGE *)((OPENFILENAME_2000W *)lParam)->lCustData;
     nCodePage=lpFrameCurrent->ei.nCodePage;
     bBOM=lpFrameCurrent->ei.bBOM;
     if (dc)
@@ -8093,7 +8095,6 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     if (LOWORD(wParam) == IDOK)
     {
       wchar_t wszPath[MAX_PATH];
-      wchar_t wszPathNew[MAX_PATH];
       INT_PTR nPathLen;
       LRESULT lResult;
 
@@ -8106,18 +8107,19 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (nPathLen > 1)
       {
-        if (wszPath[nPathLen - 2] != L'\\')
+        if (DirExistsWide(wszPath))
         {
-          if (DirExistsWide(wszPath))
+          if (wszPath[nPathLen - 2] != L'\\')
           {
             nPathLen=GetWindowTextWide(hOfnDlgEdit, wszPath, MAX_PATH);
-            xprintfW(wszPathNew, L"%s\\", wszPath);
-            SetWindowTextWide(hOfnDlgEdit, wszPathNew);
-            lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
+            wszPath[nPathLen]=L'\\';
+            wszPath[nPathLen + 1]=L'\0';
             SetWindowTextWide(hOfnDlgEdit, wszPath);
-            SendMessage(hOfnDlgEdit, EM_SETSEL, 0, (LPARAM)-1);
-            return lResult;
           }
+          lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
+          SetWindowTextWide(hOfnDlgEdit, wszOfnFile);
+          SendMessage(hOfnDlgEdit, EM_SETSEL, 0, (LPARAM)-1);
+          return lResult;
         }
       }
     }
