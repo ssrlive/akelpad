@@ -2593,7 +2593,7 @@ int GetBookmarksString(WINDOWBOARD *wb, wchar_t *wszString)
 
   for (lpBookmark=wb->hBookmarkStack.first; lpBookmark; lpBookmark=lpBookmark->next)
   {
-    nUnwrappedLine=(int)SendMessage(wb->hWndEdit, AEM_GETUNWRAPLINE, lpBookmark->lpPoint->ciPoint.nLine, 0);
+    nUnwrappedLine=(int)SendToDoc(wb->hDocEdit, wb->hWndEdit, AEM_GETUNWRAPLINE, lpBookmark->lpPoint->ciPoint.nLine, 0);
     if (wszString)
       nSize+=xitoaW(nUnwrappedLine, wszString + nSize);
     else
@@ -2620,7 +2620,7 @@ int SetBookmarksString(WINDOWBOARD *wb, const wchar_t *wpString)
 
   while (*wpCount >= L'0' && *wpCount <= L'9')
   {
-    nWrappedLine=(int)SendMessage(wb->hWndEdit, AEM_GETWRAPLINE, xatoiW(wpCount, &wpCount), (LPARAM)NULL);
+    nWrappedLine=(int)SendToDoc(wb->hDocEdit, wb->hWndEdit, AEM_GETWRAPLINE, xatoiW(wpCount, &wpCount), (LPARAM)NULL);
     StackInsertBookmark(wb, nWrappedLine);
     ++nCount;
     if (*wpCount == L',')
