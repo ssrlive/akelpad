@@ -8,6 +8,7 @@ Added: optional parameter for change case commands 4175-4180:
 Fixed: mixing caret and active column colors with background.
 Fixed: metacharacters \w and \W usage in character set [].
 Fixed: default extention in file save dialog.
+Fixed: "Search finished" not displayed when cycle searching from the document beginning.
 Fixed: flag 4 of manual parameter "ShowModify" - modification displaying disappeared
        when switching between tabs (PMDI).
 

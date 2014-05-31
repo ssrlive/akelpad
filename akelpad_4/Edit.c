@@ -10078,7 +10078,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
           ft.crSearch.ciMin=ciChar;
           ft.crSearch.ciMax=crCurSel.ciMax;
         }
-        else nAnswer=IDCANCEL;
+        else nAnswer=-1;
       }
       else if (dwFlags & FRF_UP)
       {
@@ -10088,7 +10088,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
           ft.crSearch.ciMin=crCurSel.ciMin;
           ft.crSearch.ciMax=ciChar;
         }
-        else nAnswer=IDCANCEL;
+        else nAnswer=-1;
       }
       if (nAnswer == IDOK && (dwFlags & FRF_CYCLESEARCHPROMPT))
       {
@@ -10103,7 +10103,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
         bCycleCheck=FALSE;
         goto FindIt;
       }
-      else bNoSearchFinishMsg=TRUE;
+      else if (nAnswer == IDCANCEL)
+        bNoSearchFinishMsg=TRUE;
     }
   }
   lpFrame->bReachedEOF=!bFound;
