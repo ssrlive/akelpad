@@ -23,7 +23,7 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
 )
 rc /R /DRC_VERSIONBIT=%BIT% /Fo"Macros.res" "Resources\Macros.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl /O1 %CLFLAGS% Macros.c Macros.res /LD /link kernel32.lib user32.lib comctl32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain
+cl /O1 %CLFLAGS% Macros.c Macros.res /LD /link kernel32.lib user32.lib comctl32.lib comdlg32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
