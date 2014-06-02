@@ -21,16 +21,25 @@
 
 //Include string functions
 #define WideCharLower
+#define xmemset
 #define xmemcpy
+#define xarraysizeA
+#define xarraysizeW
+#define xstrlenA
 #define xstrlenW
 #define xstrcpyW
+#define xstrcpynA
 #define xstrcpynW
 #define xstrcmpiW
+#define xprintfA
 #define xprintfW
 #define xatoiA
 #define xatoiW
+#define xitoaA
 #define xitoaW
+#define xuitoaA
 #define xuitoaW
+#define dec2hexA
 #define dec2hexW
 #include "StrFunc.h"
 
@@ -39,8 +48,8 @@
 #define CreateDirectoryWide
 #define CreateFileWide
 #define DeleteFileWide
-#define DialogBoxWide
 #define DialogBoxParamWide
+#define DialogBoxWide
 #define DispatchMessageWide
 #define FileExistsWide
 #define FindFirstFileWide
@@ -48,6 +57,7 @@
 #define GetFileAttributesWide
 #define GetKeyNameTextWide
 #define GetMessageWide
+#define GetSaveFileNameWide
 #define GetWindowLongPtrWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
@@ -164,6 +174,11 @@ typedef struct {
   KEYSTRUCT *last;
 } STACKKEY;
 
+typedef struct {
+  const wchar_t *wpMacro;
+  STACKKEY *lpStack;
+} MACROFILE;
+
 //Functions prototypes
 DWORD WINAPI ThreadProc(LPVOID lpParameter);
 LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -171,7 +186,8 @@ BOOL CALLBACK StopDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillMacroList(HWND hWnd);
 void FillKeyactList(HWND hWnd, STACKKEY *hStack);
-void FillSendKeys(HWND hWnd, STACKKEY *hStack);
+INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys);
+BOOL IsSingleKey(KEYSTRUCT *lpElement);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszMacroName, WORD wHotkey);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
@@ -817,6 +833,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nSelItem == 0)
       {
+        wszName[0]=L'\0';
         lpCurStack=&hRecordStack;
       }
       else
@@ -835,7 +852,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpCurStack)
       {
-        DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_VIEW), hDlg, (DLGPROC)ViewDlgProc, (LPARAM)lpCurStack);
+        MACROFILE mf;
+
+        mf.wpMacro=wszName;
+        mf.lpStack=lpCurStack;
+        DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_VIEW), hDlg, (DLGPROC)ViewDlgProc, (LPARAM)&mf);
         if (nSelItem != 0)
           StackHotkeyFree(lpCurStack);
       }
@@ -975,7 +996,7 @@ BOOL CALLBACK StopDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static STACKKEY *lpCurStack;
+  static MACROFILE *mf;
   static HICON hPluginIcon;
   static HWND hWndSendKeysEdit;
   static HWND hWndExportButton;
@@ -997,7 +1018,7 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hPluginIcon);
 
-    lpCurStack=(STACKKEY *)lParam;
+    mf=(MACROFILE *)lParam;
     hWndSendKeysEdit=GetDlgItem(hDlg, IDC_SENDKEYS);
     hWndExportButton=GetDlgItem(hDlg, IDC_EXPORT);
     hWndKeyactList=GetDlgItem(hDlg, IDC_KEYACT_LIST);
@@ -1007,7 +1028,6 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDC_EXPORT, GetLangStringW(wLangModule, STRID_EXPORT));
     SetDlgItemTextWide(hDlg, IDC_CLOSE, GetLangStringW(wLangModule, STRID_CLOSE));
 
-    EnableWindow(hWndExportButton, FALSE);
     SendMessage(hWndKeyactList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 
     //Columns
@@ -1023,13 +1043,72 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lvc.iSubItem=LVI_VIEW_ACT;
     ListView_InsertColumnWide(hWndKeyactList, LVI_VIEW_ACT, &lvc);
 
-    FillKeyactList(hWndKeyactList, lpCurStack);
-    FillSendKeys(hWndSendKeysEdit, lpCurStack);
+    FillKeyactList(hWndKeyactList, mf->lpStack);
+
+    //Fill SendKeys string
+    {
+      wchar_t *wszSendKeys;
+      INT_PTR nSendKeysLen;
+
+      nSendKeysLen=FillSendKeys(mf->lpStack, NULL);
+      if (wszSendKeys=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSendKeysLen * sizeof(wchar_t)))
+      {
+        FillSendKeys(mf->lpStack, wszSendKeys);
+        SetWindowTextWide(hWndSendKeysEdit, wszSendKeys);
+        GlobalFree((HGLOBAL)wszSendKeys);
+      }
+      if (!nSendKeysLen)
+        EnableWindow(hWndExportButton, FALSE);
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
     if (LOWORD(wParam) == IDC_EXPORT)
     {
+      OPENFILENAMEW efn;
+      wchar_t wszScriptFile[MAX_PATH];
+      wchar_t *wszSendKeys;
+      char *szText;
+      char *pText;
+      HANDLE hFile;
+      int nText;
+      int nSendKeysLen;
+      DWORD dwBytesWritten;
+
+      xstrcpynW(wszScriptFile, mf->wpMacro, MAX_PATH);
+      xmemset(&efn, 0, sizeof(OPENFILENAMEW));
+      efn.lStructSize  =sizeof(OPENFILENAMEW);
+      efn.hwndOwner    =hDlg;
+      efn.lpstrFile    =wszScriptFile;
+      efn.nMaxFile     =MAX_PATH;
+      efn.lpstrFilter  =L"*.js\0*.js\0*.*\0*.*\0\0";
+      efn.nFilterIndex =1;
+      efn.Flags        =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
+      efn.lpstrDefExt  =L"js";
+
+      GetSaveFileNameWide(&efn);
+
+      if (*wszScriptFile)
+      {
+        if ((hFile=CreateFileWide(wszScriptFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+        {
+          nSendKeysLen=GetWindowTextLengthWide(hWndSendKeysEdit);
+          if (wszSendKeys=(wchar_t *)GlobalAlloc(GPTR, (nSendKeysLen + 1) * sizeof(wchar_t)))
+          {
+            GetWindowTextWide(hWndSendKeysEdit, wszSendKeys, nSendKeysLen + 1);
+            pText="var WshShell=new ActiveXObject(\"WScript.shell\");\r\n\r\nWshShell.SendKeys(\"%S\");\r\n";
+            nText=(int)xprintfA(NULL, pText, wszSendKeys);
+            if (szText=(char *)GlobalAlloc(GPTR, nText + 1))
+            {
+              nText=(int)xprintfA(szText, pText, wszSendKeys);
+              WriteFile(hFile, szText, nText, &dwBytesWritten, NULL);
+              GlobalFree((HGLOBAL)szText);
+            }
+            GlobalFree((HGLOBAL)wszSendKeys);
+          }
+          CloseHandle(hFile);
+        }
+      }
     }
     else if (LOWORD(wParam) == IDC_CLOSE ||
              LOWORD(wParam) == IDOK ||
@@ -1228,22 +1307,21 @@ void FillKeyactList(HWND hWnd, STACKKEY *hStack)
   }
 }
 
-void FillSendKeys(HWND hWnd, STACKKEY *hStack)
+INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys)
 {
   KEYSTRUCT *lpElement;
-  wchar_t wszSendKeys[MAX_PATH];
-  wchar_t *wpSendKeys=wszSendKeys;
+  wchar_t *wpCount=wszSendKeys;
+  wchar_t wchChar;
   INT_PTR nKeyLen;
   BYTE nMod=0;
-  BYTE nGroup=0;
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
-    if (lpElement->ka.dwFlags & KEYEVENTF_KEYUP)
+    if (lpElement->ka.bVk == VK_SHIFT ||
+        lpElement->ka.bVk == VK_CONTROL ||
+        lpElement->ka.bVk == VK_MENU)
     {
-      if (lpElement->ka.bVk == VK_SHIFT ||
-          lpElement->ka.bVk == VK_CONTROL ||
-          lpElement->ka.bVk == VK_MENU)
+      if (lpElement->ka.dwFlags & KEYEVENTF_KEYUP)
       {
         if (lpElement->ka.bVk == VK_SHIFT)
           nMod&=~HOTKEYF_SHIFT;
@@ -1252,148 +1330,175 @@ void FillSendKeys(HWND hWnd, STACKKEY *hStack)
         else if (lpElement->ka.bVk == VK_MENU)
           nMod&=~HOTKEYF_ALT;
 
-        if (nGroup & HOTKEYF_EXT)
+        if (nMod & HOTKEYF_EXT)
         {
-          if (wpSendKeys) *wpSendKeys=L')';
-          ++wpSendKeys;
-          nGroup=nMod;
-        }
-      }
-    }
-    else
-    {
-      if (lpElement->ka.bVk == VK_SHIFT ||
-          lpElement->ka.bVk == VK_CONTROL ||
-          lpElement->ka.bVk == VK_MENU)
-      {
-        if (lpElement->ka.bVk == VK_SHIFT)
-        {
-          *wpSendKeys++=L'+';
-          nMod|=HOTKEYF_SHIFT;
-          nGroup|=HOTKEYF_SHIFT;
-        }
-        else if (lpElement->ka.bVk == VK_CONTROL)
-        {
-          *wpSendKeys++=L'^';
-          nMod|=HOTKEYF_CONTROL;
-          nGroup|=HOTKEYF_CONTROL;
-        }
-        else if (lpElement->ka.bVk == VK_MENU)
-        {
-          *wpSendKeys++=L'%';
-          nMod|=HOTKEYF_ALT;
-          nGroup|=HOTKEYF_ALT;
+          if (wszSendKeys) *wpCount=L')';
+          ++wpCount;
+          nMod&=~HOTKEYF_EXT;
         }
       }
       else
       {
-        if (nGroup && !(nGroup & HOTKEYF_EXT))
-        {
-          if (wpSendKeys) *wpSendKeys=L'(';
-          ++wpSendKeys;
-          nGroup|=HOTKEYF_EXT;
-        }
-        if (lpElement->ka.bVk == VK_BACK)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{BS}");       //{BACKSPACE}, {BKSP}
-        else if (lpElement->ka.bVk == VK_PAUSE)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{BREAK}");
-        else if (lpElement->ka.bVk == VK_CAPITAL)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{CAPSLOCK}");
-        else if (lpElement->ka.bVk == VK_CLEAR)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{DEL}");      //{DELETE}
-        else if (lpElement->ka.bVk == VK_DOWN)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{DOWN}");
-        else if (lpElement->ka.bVk == VK_END)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{END}");
-        else if (lpElement->ka.bVk == VK_RETURN)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{ENTER}");    //~
-        else if (lpElement->ka.bVk == VK_ESCAPE)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{ESC}");
-        else if (lpElement->ka.bVk == VK_HELP)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{HELP}");
-        else if (lpElement->ka.bVk == VK_HOME)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{HOME}");
-        else if (lpElement->ka.bVk == VK_INSERT)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{INS}");      //{INSERT}
-        else if (lpElement->ka.bVk == VK_LEFT)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{LEFT}");
-        else if (lpElement->ka.bVk == VK_NUMLOCK)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{NUMLOCK}");
-        else if (lpElement->ka.bVk == VK_NEXT)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{PGDN}");
-        else if (lpElement->ka.bVk == VK_PRIOR)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{PGUP}");
-        else if (lpElement->ka.bVk == VK_PRINT)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{PRTSC}");
-        else if (lpElement->ka.bVk == VK_RIGHT)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{RIGHT}");
-        else if (lpElement->ka.bVk == VK_SCROLL)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{SCROLLLOCK}");
-        else if (lpElement->ka.bVk == VK_TAB)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{TAB}");
-        else if (lpElement->ka.bVk == VK_UP)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{UP}");
-        else if (lpElement->ka.bVk == VK_F1)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F1}");
-        else if (lpElement->ka.bVk == VK_F2)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F2}");
-        else if (lpElement->ka.bVk == VK_F3)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F3}");
-        else if (lpElement->ka.bVk == VK_F4)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F4}");
-        else if (lpElement->ka.bVk == VK_F5)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F5}");
-        else if (lpElement->ka.bVk == VK_F6)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F6}");
-        else if (lpElement->ka.bVk == VK_F7)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F7}");
-        else if (lpElement->ka.bVk == VK_F8)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F8}");
-        else if (lpElement->ka.bVk == VK_F9)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F9}");
-        else if (lpElement->ka.bVk == VK_F10)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F10}");
-        else if (lpElement->ka.bVk == VK_F11)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F11}");
-        else if (lpElement->ka.bVk == VK_F12)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F12}");
-        else if (lpElement->ka.bVk == VK_F13)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F13}");
-        else if (lpElement->ka.bVk == VK_F14)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F14}");
-        else if (lpElement->ka.bVk == VK_F15)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F15}");
-        else if (lpElement->ka.bVk == VK_F16)
-          nKeyLen=xstrcpyW(wpSendKeys, L"{F16}");
-        else if (lpElement->ka.bVk == L'+')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{+}");
-        else if (lpElement->ka.bVk == L'^')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{^}");
-        else if (lpElement->ka.bVk == L'%')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{%}");
-        else if (lpElement->ka.bVk == L'~')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{~}");
-        else if (lpElement->ka.bVk == L'{')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{{}");
-        else if (lpElement->ka.bVk == L'}')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{}}");
-        else if (lpElement->ka.bVk == L'[')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{[}");
-        else if (lpElement->ka.bVk == L']')
-          nKeyLen=xstrcpyW(wpSendKeys, L"{]}");
-        else if ((lpElement->ka.bVk >= L'0' && lpElement->ka.bVk <= L'9') ||
-                 (lpElement->ka.bVk >= L'A' && lpElement->ka.bVk <= L'Z') ||
-                 lpElement->ka.bVk == VK_SPACE)
-          nKeyLen=xprintfW(wpSendKeys, L"%c", lpElement->ka.bVk);
-        else
-          nKeyLen=xprintfW(wpSendKeys, L"x%02X", lpElement->ka.bVk);
-        wpSendKeys+=nKeyLen;
+        if (lpElement->ka.bVk == VK_SHIFT)
+          nMod|=HOTKEYF_SHIFT;
+        else if (lpElement->ka.bVk == VK_CONTROL)
+          nMod|=HOTKEYF_CONTROL;
+        else if (lpElement->ka.bVk == VK_MENU)
+          nMod|=HOTKEYF_ALT;
       }
     }
-  }
-  *wpSendKeys=L'\0';
+    else if (!(lpElement->ka.dwFlags & KEYEVENTF_KEYUP))
+    {
+      if (nMod && !(nMod & HOTKEYF_EXT))
+      {
+        if (nMod & HOTKEYF_SHIFT)
+        {
+          if (wszSendKeys) *wpCount=L'+';
+          ++wpCount;
+        }
+        if (nMod & HOTKEYF_CONTROL)
+        {
+          if (wszSendKeys) *wpCount=L'^';
+          ++wpCount;
+        }
+        if (nMod & HOTKEYF_ALT)
+        {
+          if (wszSendKeys) *wpCount=L'%';
+          ++wpCount;
+        }
 
-  SetWindowTextWide(hWnd, wszSendKeys);
+        if (!IsSingleKey(lpElement))
+        {
+          if (wszSendKeys) *wpCount=L'(';
+          ++wpCount;
+          nMod|=HOTKEYF_EXT;
+        }
+      }
+      if (lpElement->ka.bVk == VK_BACK)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{BS}");       //{BACKSPACE}, {BKSP}
+      else if (lpElement->ka.bVk == VK_PAUSE)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{BREAK}");
+      else if (lpElement->ka.bVk == VK_CAPITAL)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{CAPSLOCK}");
+      else if (lpElement->ka.bVk == VK_DELETE)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{DEL}");      //{DELETE}
+      else if (lpElement->ka.bVk == VK_DOWN)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{DOWN}");
+      else if (lpElement->ka.bVk == VK_END)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{END}");
+      else if (lpElement->ka.bVk == VK_RETURN)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{ENTER}");    //~
+      else if (lpElement->ka.bVk == VK_ESCAPE)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{ESC}");
+      else if (lpElement->ka.bVk == VK_HELP)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{HELP}");
+      else if (lpElement->ka.bVk == VK_HOME)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{HOME}");
+      else if (lpElement->ka.bVk == VK_INSERT)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{INS}");      //{INSERT}
+      else if (lpElement->ka.bVk == VK_LEFT)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{LEFT}");
+      else if (lpElement->ka.bVk == VK_NUMLOCK)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{NUMLOCK}");
+      else if (lpElement->ka.bVk == VK_NEXT)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{PGDN}");
+      else if (lpElement->ka.bVk == VK_PRIOR)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{PGUP}");
+      else if (lpElement->ka.bVk == VK_PRINT)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{PRTSC}");
+      else if (lpElement->ka.bVk == VK_RIGHT)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{RIGHT}");
+      else if (lpElement->ka.bVk == VK_SCROLL)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{SCROLLLOCK}");
+      else if (lpElement->ka.bVk == VK_TAB)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{TAB}");
+      else if (lpElement->ka.bVk == VK_UP)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{UP}");
+      else if (lpElement->ka.bVk == VK_F1)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F1}");
+      else if (lpElement->ka.bVk == VK_F2)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F2}");
+      else if (lpElement->ka.bVk == VK_F3)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F3}");
+      else if (lpElement->ka.bVk == VK_F4)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F4}");
+      else if (lpElement->ka.bVk == VK_F5)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F5}");
+      else if (lpElement->ka.bVk == VK_F6)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F6}");
+      else if (lpElement->ka.bVk == VK_F7)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F7}");
+      else if (lpElement->ka.bVk == VK_F8)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F8}");
+      else if (lpElement->ka.bVk == VK_F9)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F9}");
+      else if (lpElement->ka.bVk == VK_F10)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F10}");
+      else if (lpElement->ka.bVk == VK_F11)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F11}");
+      else if (lpElement->ka.bVk == VK_F12)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F12}");
+      else if (lpElement->ka.bVk == VK_F13)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F13}");
+      else if (lpElement->ka.bVk == VK_F14)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F14}");
+      else if (lpElement->ka.bVk == VK_F15)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F15}");
+      else if (lpElement->ka.bVk == VK_F16)
+        nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F16}");
+      else if (lpElement->ka.bVk >= L'A' && lpElement->ka.bVk <= L'Z')
+        nKeyLen=xprintfW(wszSendKeys?wpCount:NULL, L"%c", (nMod & HOTKEYF_SHIFT) ? lpElement->ka.bVk : WideCharLower(lpElement->ka.bVk));
+      else
+      {
+        if (bOldWindows)
+          wchChar=LOWORD(MapVirtualKeyA(lpElement->ka.bVk, 2));
+        else
+          wchChar=LOWORD(MapVirtualKeyW(lpElement->ka.bVk, 2));
+
+        if (wchChar == L'+')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{+}");
+        else if (wchChar == L'^')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{^}");
+        else if (wchChar == L'%')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{%}");
+        else if (wchChar == L'~')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{~}");
+        else if (wchChar == L'{')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{{}");
+        else if (wchChar == L'}')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{}}");
+        else if (wchChar == L'[')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{[}");
+        else if (wchChar == L']')
+          nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{]}");
+        else
+          nKeyLen=xprintfW(wszSendKeys?wpCount:NULL, L"%c", wchChar);
+      }
+      if (!wszSendKeys) --nKeyLen;
+      wpCount+=nKeyLen;
+    }
+  }
+  if (wszSendKeys)
+    *wpCount=L'\0';
+  else
+    ++wpCount;
+  return wpCount - wszSendKeys;
+}
+
+BOOL IsSingleKey(KEYSTRUCT *lpElement)
+{
+  while (lpElement=lpElement->next)
+  {
+    if (lpElement->ka.bVk == VK_SHIFT ||
+        lpElement->ka.bVk == VK_CONTROL ||
+        lpElement->ka.bVk == VK_MENU)
+    {
+      break;
+    }
+    else if (!(lpElement->ka.dwFlags & KEYEVENTF_KEYUP))
+      return FALSE;
+  }
+  return TRUE;
 }
 
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
