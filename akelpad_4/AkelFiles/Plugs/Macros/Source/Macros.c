@@ -171,6 +171,7 @@ BOOL CALLBACK StopDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillMacroList(HWND hWnd);
 void FillKeyactList(HWND hWnd, STACKKEY *hStack);
+void FillSendKeys(HWND hWnd, STACKKEY *hStack);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszMacroName, WORD wHotkey);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
@@ -976,12 +977,14 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static STACKKEY *lpCurStack;
   static HICON hPluginIcon;
-  static HWND hWndKeyactList;
+  static HWND hWndSendKeysEdit;
   static HWND hWndExportButton;
+  static HWND hWndKeyactList;
   static HWND hWndCloseButton;
-  static DIALOGRESIZE drs[]={{&hWndKeyactList,   DRS_SIZE|DRS_X, 0},
-                             {&hWndKeyactList,   DRS_SIZE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndSendKeysEdit, DRS_SIZE|DRS_X, 0},
                              {&hWndExportButton, DRS_MOVE|DRS_X, 0},
+                             {&hWndKeyactList,   DRS_SIZE|DRS_X, 0},
+                             {&hWndKeyactList,   DRS_SIZE|DRS_Y, 0},
                              {&hWndCloseButton,  DRS_MOVE|DRS_X, 0},
                              {&hWndCloseButton,  DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
@@ -995,8 +998,9 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hPluginIcon);
 
     lpCurStack=(STACKKEY *)lParam;
-    hWndKeyactList=GetDlgItem(hDlg, IDC_KEYACT_LIST);
+    hWndSendKeysEdit=GetDlgItem(hDlg, IDC_SENDKEYS);
     hWndExportButton=GetDlgItem(hDlg, IDC_EXPORT);
+    hWndKeyactList=GetDlgItem(hDlg, IDC_KEYACT_LIST);
     hWndCloseButton=GetDlgItem(hDlg, IDC_CLOSE);
 
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_VIEW));
@@ -1020,6 +1024,7 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ListView_InsertColumnWide(hWndKeyactList, LVI_VIEW_ACT, &lvc);
 
     FillKeyactList(hWndKeyactList, lpCurStack);
+    FillSendKeys(hWndSendKeysEdit, lpCurStack);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -1221,6 +1226,174 @@ void FillKeyactList(HWND hWnd, STACKKEY *hStack)
     lvi.iSubItem=LVI_VIEW_ACT;
     ListView_SetItemWide(hWnd, &lvi);
   }
+}
+
+void FillSendKeys(HWND hWnd, STACKKEY *hStack)
+{
+  KEYSTRUCT *lpElement;
+  wchar_t wszSendKeys[MAX_PATH];
+  wchar_t *wpSendKeys=wszSendKeys;
+  INT_PTR nKeyLen;
+  BYTE nMod=0;
+  BYTE nGroup=0;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->ka.dwFlags & KEYEVENTF_KEYUP)
+    {
+      if (lpElement->ka.bVk == VK_SHIFT ||
+          lpElement->ka.bVk == VK_CONTROL ||
+          lpElement->ka.bVk == VK_MENU)
+      {
+        if (lpElement->ka.bVk == VK_SHIFT)
+          nMod&=~HOTKEYF_SHIFT;
+        else if (lpElement->ka.bVk == VK_CONTROL)
+          nMod&=~HOTKEYF_CONTROL;
+        else if (lpElement->ka.bVk == VK_MENU)
+          nMod&=~HOTKEYF_ALT;
+
+        if (nGroup & HOTKEYF_EXT)
+        {
+          if (wpSendKeys) *wpSendKeys=L')';
+          ++wpSendKeys;
+          nGroup=nMod;
+        }
+      }
+    }
+    else
+    {
+      if (lpElement->ka.bVk == VK_SHIFT ||
+          lpElement->ka.bVk == VK_CONTROL ||
+          lpElement->ka.bVk == VK_MENU)
+      {
+        if (lpElement->ka.bVk == VK_SHIFT)
+        {
+          *wpSendKeys++=L'+';
+          nMod|=HOTKEYF_SHIFT;
+          nGroup|=HOTKEYF_SHIFT;
+        }
+        else if (lpElement->ka.bVk == VK_CONTROL)
+        {
+          *wpSendKeys++=L'^';
+          nMod|=HOTKEYF_CONTROL;
+          nGroup|=HOTKEYF_CONTROL;
+        }
+        else if (lpElement->ka.bVk == VK_MENU)
+        {
+          *wpSendKeys++=L'%';
+          nMod|=HOTKEYF_ALT;
+          nGroup|=HOTKEYF_ALT;
+        }
+      }
+      else
+      {
+        if (nGroup && !(nGroup & HOTKEYF_EXT))
+        {
+          if (wpSendKeys) *wpSendKeys=L'(';
+          ++wpSendKeys;
+          nGroup|=HOTKEYF_EXT;
+        }
+        if (lpElement->ka.bVk == VK_BACK)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{BS}");       //{BACKSPACE}, {BKSP}
+        else if (lpElement->ka.bVk == VK_PAUSE)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{BREAK}");
+        else if (lpElement->ka.bVk == VK_CAPITAL)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{CAPSLOCK}");
+        else if (lpElement->ka.bVk == VK_CLEAR)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{DEL}");      //{DELETE}
+        else if (lpElement->ka.bVk == VK_DOWN)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{DOWN}");
+        else if (lpElement->ka.bVk == VK_END)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{END}");
+        else if (lpElement->ka.bVk == VK_RETURN)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{ENTER}");    //~
+        else if (lpElement->ka.bVk == VK_ESCAPE)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{ESC}");
+        else if (lpElement->ka.bVk == VK_HELP)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{HELP}");
+        else if (lpElement->ka.bVk == VK_HOME)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{HOME}");
+        else if (lpElement->ka.bVk == VK_INSERT)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{INS}");      //{INSERT}
+        else if (lpElement->ka.bVk == VK_LEFT)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{LEFT}");
+        else if (lpElement->ka.bVk == VK_NUMLOCK)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{NUMLOCK}");
+        else if (lpElement->ka.bVk == VK_NEXT)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{PGDN}");
+        else if (lpElement->ka.bVk == VK_PRIOR)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{PGUP}");
+        else if (lpElement->ka.bVk == VK_PRINT)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{PRTSC}");
+        else if (lpElement->ka.bVk == VK_RIGHT)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{RIGHT}");
+        else if (lpElement->ka.bVk == VK_SCROLL)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{SCROLLLOCK}");
+        else if (lpElement->ka.bVk == VK_TAB)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{TAB}");
+        else if (lpElement->ka.bVk == VK_UP)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{UP}");
+        else if (lpElement->ka.bVk == VK_F1)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F1}");
+        else if (lpElement->ka.bVk == VK_F2)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F2}");
+        else if (lpElement->ka.bVk == VK_F3)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F3}");
+        else if (lpElement->ka.bVk == VK_F4)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F4}");
+        else if (lpElement->ka.bVk == VK_F5)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F5}");
+        else if (lpElement->ka.bVk == VK_F6)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F6}");
+        else if (lpElement->ka.bVk == VK_F7)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F7}");
+        else if (lpElement->ka.bVk == VK_F8)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F8}");
+        else if (lpElement->ka.bVk == VK_F9)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F9}");
+        else if (lpElement->ka.bVk == VK_F10)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F10}");
+        else if (lpElement->ka.bVk == VK_F11)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F11}");
+        else if (lpElement->ka.bVk == VK_F12)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F12}");
+        else if (lpElement->ka.bVk == VK_F13)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F13}");
+        else if (lpElement->ka.bVk == VK_F14)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F14}");
+        else if (lpElement->ka.bVk == VK_F15)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F15}");
+        else if (lpElement->ka.bVk == VK_F16)
+          nKeyLen=xstrcpyW(wpSendKeys, L"{F16}");
+        else if (lpElement->ka.bVk == L'+')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{+}");
+        else if (lpElement->ka.bVk == L'^')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{^}");
+        else if (lpElement->ka.bVk == L'%')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{%}");
+        else if (lpElement->ka.bVk == L'~')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{~}");
+        else if (lpElement->ka.bVk == L'{')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{{}");
+        else if (lpElement->ka.bVk == L'}')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{}}");
+        else if (lpElement->ka.bVk == L'[')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{[}");
+        else if (lpElement->ka.bVk == L']')
+          nKeyLen=xstrcpyW(wpSendKeys, L"{]}");
+        else if ((lpElement->ka.bVk >= L'0' && lpElement->ka.bVk <= L'9') ||
+                 (lpElement->ka.bVk >= L'A' && lpElement->ka.bVk <= L'Z') ||
+                 lpElement->ka.bVk == VK_SPACE)
+          nKeyLen=xprintfW(wpSendKeys, L"%c", lpElement->ka.bVk);
+        else
+          nKeyLen=xprintfW(wpSendKeys, L"x%02X", lpElement->ka.bVk);
+        wpSendKeys+=nKeyLen;
+      }
+    }
+  }
+  *wpSendKeys=L'\0';
+
+  SetWindowTextWide(hWnd, wszSendKeys);
 }
 
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)

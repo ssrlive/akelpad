@@ -27,8 +27,9 @@
 #define IDC_VIEW                        1114
 #define IDC_CLOSE                       1115
 #define IDC_STOP                        1201
-#define IDC_KEYACT_LIST                 1301
+#define IDC_SENDKEYS                    1301
 #define IDC_EXPORT                      1302
+#define IDC_KEYACT_LIST                 1303
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
