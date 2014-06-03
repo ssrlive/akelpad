@@ -366,13 +366,12 @@ int *lpCodepageTable;
 int nCodepageTableCount;
 int nAnsiCodePage;
 int nOemCodePage;
-DWORD dwMessageFileNameOK=0;
 
 //Recent files
 RECENTFILESTACK hRecentFilesStack={0};
 
 //Open/Save document
-wchar_t wszOfnFile[MAX_PATH];
+OPENFILENAME_2000W *ofnStruct;
 wchar_t wszFileFilter[MAX_PATH];
 int nFileFilterLen;
 BOOL bAutodetect=TRUE;
