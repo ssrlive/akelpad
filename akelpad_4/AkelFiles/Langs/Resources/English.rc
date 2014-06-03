@@ -1008,7 +1008,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Hotkey already assigned to ""%s""."
     MSG_CANNOT_OPEN_FILE    "Cannot open file ""%s""."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "Invalid line number."
     MSG_LONG_FILELIST       "Too many files chosen."
     MSG_DOCUMENT_CHANGED    "Document was modified. Do you want to save it?"

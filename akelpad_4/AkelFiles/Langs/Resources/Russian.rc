@@ -1031,7 +1031,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Обновите %s\n\nТекущая версия: %d.%d.%d.%d\nТребуемая версия: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Горячая клавиша уже назначена для ""%s""."
     MSG_CANNOT_OPEN_FILE    "Невозможно открыть файл ""%s""."
-    MSG_WRONG_FILENAME      "%s\nНедопустимое имя файла."
     MSG_WRONG_STRING        "Неправильный номер строки."
     MSG_LONG_FILELIST       "Выбрано слишком много файлов."
     MSG_DOCUMENT_CHANGED    "Документ был изменён. Сохранить?"

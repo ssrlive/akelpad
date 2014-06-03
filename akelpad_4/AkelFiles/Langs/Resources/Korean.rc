@@ -1012,7 +1012,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "업데이트 %s\n\n현재 버젼: %d.%d.%d.%d\n필요한 버젼: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
     MSG_CANNOT_OPEN_FILE    """%s"" 파일을 열 수 없습니다."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "줄번호가 올바르지 않습니다."
     MSG_LONG_FILELIST       "선택한 파일이 너무 많습니다."
     MSG_DOCUMENT_CHANGED    "문서를 수정하셨습니다. 저장하시겠습니까?"

@@ -1037,7 +1037,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Aktualisieren Sie %s\n\nAktuelle Version: %d.%d.%d.%d\nBenötigte Version: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Ein Hotkey wurde bereits ""%s"" zugewiesen."
     MSG_CANNOT_OPEN_FILE    "Die Datei ""%s"" kann nicht geöffnet werden."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "Ungültige Zeilennummer."
     MSG_LONG_FILELIST       "Zu viele Dateien ausgewählt."
     MSG_DOCUMENT_CHANGED    "Die Datei wurde verändert. Änderungen speichern?"

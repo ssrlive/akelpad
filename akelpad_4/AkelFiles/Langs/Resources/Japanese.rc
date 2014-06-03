@@ -1014,7 +1014,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "%s を更新してください。\n\n現在のバージョン: %d.%d.%d.%d\n必要なバージョン: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
     MSG_CANNOT_OPEN_FILE    "ファイル ""%s"" を開けません。"
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "不正な行番号です。"
     MSG_LONG_FILELIST       "選択したファイルの数が多すぎます。"
     MSG_DOCUMENT_CHANGED    "ドキュメントは変更されています。保存しますか?"

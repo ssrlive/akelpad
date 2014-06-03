@@ -22,7 +22,6 @@
 #define MSG_UPDATE_LANGMODULE           57
 #define MSG_HOTKEY_EXISTS               58
 #define MSG_CANNOT_OPEN_FILE            59
-#define MSG_WRONG_FILENAME              60
 #define MSG_WRONG_STRING                61
 #define MSG_LONG_FILELIST               62
 #define MSG_DOCUMENT_CHANGED            63

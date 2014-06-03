@@ -1037,7 +1037,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Atualizar %s\n\nVersão atual: %d.%d.%d.%d\nVersão necessária: %d.%d%d.%d"
     MSG_HOTKEY_EXISTS       "Tecla de atalho já associada ao ""%s""."
     MSG_CANNOT_OPEN_FILE    "Não foi possível abrir o arquivo ""%s""."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "Número de linha inválido."
     MSG_LONG_FILELIST       "Escolhidos arquivos demais."
     MSG_DOCUMENT_CHANGED    "O documento foi alterado. Quer salvá-lo ?"

@@ -1036,7 +1036,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Абнавіце %s\n\nБягучая версія: %d.%d.%d.%d\nПатрабаваная версія: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Гарачая клавіша ўжо прызначаная для ""%s""."
     MSG_CANNOT_OPEN_FILE    "Немагчыма адкрыць файл ""%s""."
-    MSG_WRONG_FILENAME      "%s\nНедопустимое имя файла."
     MSG_WRONG_STRING        "Няправільны нумар радка."
     MSG_LONG_FILELIST       "Вылучана занадта шмат файлаў."
     MSG_DOCUMENT_CHANGED    "Дакумент быў зменены. Захаваць?"
