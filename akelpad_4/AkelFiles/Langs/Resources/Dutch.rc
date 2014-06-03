@@ -1020,7 +1020,6 @@ BEGIN
     MSG_UPDATE_LANGMODULE   "Update %s\n\nActuele versie: %d.%d.%d.%d\nVereiste versie: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "De sneltoets is al toegewezen aan ""%s""."
     MSG_CANNOT_OPEN_FILE    "Kan bestand  ""%s"" niet openen."
-    MSG_WRONG_FILENAME      "%s\nWrong file name."
     MSG_WRONG_STRING        "Ongeldige regel nummer."
     MSG_LONG_FILELIST       "Te veel bestanden gekozen."
     MSG_DOCUMENT_CHANGED    "Document werd gewijzigd. Wilt u het wilt opslaan?"
