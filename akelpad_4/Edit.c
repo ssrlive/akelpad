@@ -165,13 +165,12 @@ extern int *lpCodepageTable;
 extern int nCodepageTableCount;
 extern int nAnsiCodePage;
 extern int nOemCodePage;
-extern DWORD dwMessageFileNameOK;
 
 //Recent files
 extern RECENTFILESTACK hRecentFilesStack;
 
 //Open/Save document
-extern wchar_t wszOfnFile[MAX_PATH];
+extern OPENFILENAME_2000W *ofnStruct;
 extern wchar_t wszFileFilter[MAX_PATH];
 extern int nFileFilterLen;
 extern BOOL bAutodetect;
@@ -1419,7 +1418,7 @@ BOOL CALLBACK EnumThreadWindowsProc(HWND hWnd, LPARAM lParam)
 
 BOOL DoFileOpen()
 {
-  OPENFILENAME_2000W ofnW;
+  OPENFILENAME_2000W ofn;
   wchar_t wszOpenFile[MAX_PATH];
   wchar_t wszOpenDir[MAX_PATH];
   wchar_t *wszFileList;
@@ -1459,22 +1458,23 @@ BOOL DoFileOpen()
     xprintfW(wszFileList, L"%s", GetFileName(wszOpenFile, nFileLen));
 
     //Show dialog
-    xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-    ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
-    ofnW.lCustData      =(LPARAM)&dc;
-    ofnW.hwndOwner      =hMainWnd;
-    ofnW.hInstance      =hLangLib;
-    ofnW.lpstrFile      =wszFileList;
-    ofnW.lpstrFilter    =wszFileFilter;
-    ofnW.nFilterIndex   =2;
-    ofnW.nMaxFile       =OPENFILELIST_SIZE;
-    ofnW.lpstrInitialDir=wszOpenDir;
-    ofnW.lpstrDefExt    =NULL;
-    ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOVALIDATE;
-    ofnW.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
-    ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
+    ofnStruct=&ofn;
+    xmemset(&ofn, 0, sizeof(OPENFILENAME_2000W));
+    ofn.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+    ofn.lCustData      =(LPARAM)&dc;
+    ofn.hwndOwner      =hMainWnd;
+    ofn.hInstance      =hLangLib;
+    ofn.lpstrFile      =wszFileList;
+    ofn.lpstrFilter    =wszFileFilter;
+    ofn.nFilterIndex   =2;
+    ofn.nMaxFile       =OPENFILELIST_SIZE;
+    ofn.lpstrInitialDir=wszOpenDir;
+    ofn.lpstrDefExt    =NULL;
+    ofn.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
+    ofn.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
+    ofn.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
-    bResult=GetOpenFileNameWide((OPENFILENAMEW *)&ofnW);
+    bResult=GetOpenFileNameWide((OPENFILENAMEW *)&ofn);
 
     if (bResult)
     {
@@ -1646,7 +1646,7 @@ BOOL SaveChanged(DWORD dwPrompt)
 
 BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 {
-  OPENFILENAME_2000W ofnW;
+  OPENFILENAME_2000W ofn;
   wchar_t wszSaveFile[MAX_PATH];
   wchar_t wszSaveDir[MAX_PATH];
   DIALOGCODEPAGE dc;
@@ -1675,22 +1675,23 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   if (*wszSaveFile)
     xprintfW(wszSaveFile, L"%s%s", GetFileName(wszSaveFile, nFileLen), GetFileExt(wszSaveFile, nFileLen)?L"":L".");
 
-  xmemset(&ofnW, 0, sizeof(OPENFILENAME_2000W));
-  ofnW.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
-  ofnW.lCustData      =(LPARAM)&dc;
-  ofnW.hwndOwner      =hMainWnd;
-  ofnW.hInstance      =hLangLib;
-  ofnW.lpstrFile      =wszSaveFile;
-  ofnW.lpstrFilter    =wszFileFilter;
-  ofnW.nFilterIndex   =2;
-  ofnW.nMaxFile       =MAX_PATH;
-  ofnW.lpstrInitialDir=wszSaveDir;
-  ofnW.lpstrDefExt    =moCur.wszDefaultSaveExt;
-  ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE|OFN_NOVALIDATE;
-  ofnW.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
-  ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
+  ofnStruct=&ofn;
+  xmemset(&ofn, 0, sizeof(OPENFILENAME_2000W));
+  ofn.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+  ofn.lCustData      =(LPARAM)&dc;
+  ofn.hwndOwner      =hMainWnd;
+  ofn.hInstance      =hLangLib;
+  ofn.lpstrFile      =wszSaveFile;
+  ofn.lpstrFilter    =wszFileFilter;
+  ofn.nFilterIndex   =2;
+  ofn.nMaxFile       =MAX_PATH;
+  ofn.lpstrInitialDir=wszSaveDir;
+  ofn.lpstrDefExt    =moCur.wszDefaultSaveExt;
+  ofn.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
+  ofn.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
+  ofn.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
-  bResult=GetSaveFileNameWide((OPENFILENAMEW *)&ofnW);
+  bResult=GetSaveFileNameWide((OPENFILENAMEW *)&ofn);
 
   if (bResult)
   {
@@ -7662,12 +7663,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
   if (uMsg == WM_INITDIALOG)
   {
-    OPENFILENAME_2000W *ofn=(OPENFILENAME_2000W *)lParam;
-    DIALOGCODEPAGE *dc=(DIALOGCODEPAGE *)ofn->lCustData;
-
-    if (!dwMessageFileNameOK)
-      dwMessageFileNameOK=RegisterWindowMessageA("commdlg_FileNameOK");
-    xstrcpynW(wszOfnFile, ofn->lpstrFile, MAX_PATH);
+    DIALOGCODEPAGE *dc=(DIALOGCODEPAGE *)ofnStruct->lCustData;
 
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
@@ -7863,100 +7859,6 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     return TRUE;
   }
-  else if (uMsg == dwMessageFileNameOK)
-  {
-    OPENFILENAMEW *ofn=(OPENFILENAMEW *)lParam;
-    wchar_t wszFile[MAX_PATH];
-    wchar_t wszDefExt[MAX_PATH];
-    wchar_t wszFilter[MAX_PATH];
-    wchar_t *wpFile=wszFile;
-    const wchar_t *wpDefExt=wszDefExt;
-    const wchar_t *wpFilter=wszFilter;
-    const wchar_t *wpFilterExt;
-    wchar_t *wpStream=NULL;
-    wchar_t *wpCount;
-
-    if (bOldWindows)
-    {
-      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFile, -1, wszFile, MAX_PATH);
-      if (ofn->lpstrDefExt)
-        MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrDefExt, -1, wszDefExt, MAX_PATH);
-      else
-        wpDefExt=NULL;
-      MultiByteToWideChar(CP_ACP, 0, (char *)ofn->lpstrFilter, (int)xarraysizeA((char *)ofn->lpstrFilter, NULL), wszFilter, MAX_PATH);
-    }
-    else
-    {
-      wpFile=ofn->lpstrFile;
-      wpDefExt=ofn->lpstrDefExt;
-      wpFilter=ofn->lpstrFilter;
-
-      //Fix MS bug: if we enter in file field "x:stream", then we get wpFile without path.
-      if (*(wpFile + 1) == L':' && *(wpFile + 2) != L'\\' && *(wpFile + 2) != L'/')
-      {
-        //Check that it is NTFS stream
-        for (wpCount=wpFile + 3; *wpCount; ++wpCount)
-        {
-          if (*wpCount == L'\\' || *wpCount == L'/')
-            break;
-        }
-        if (!*wpCount)
-        {
-          if (ofn->nFileOffset=(WORD)SendMessageW(hDlgParent, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wbuf))
-          {
-            xprintfW(wbuf + ofn->nFileOffset - 1, L"\\%s", wpFile);
-            xstrcpynW(wpFile, wbuf, MAX_PATH);
-          }
-        }
-      }
-    }
-
-    //Even if OFN_NOVALIDATE flag is set, dialog validates multiple selection.
-    //So we check only single selection.
-    if ((short)ofn->nFileOffset <= 0 || wpFile[ofn->nFileOffset - 1] != L'\0')
-    {
-      for (wpCount=wpFile; *wpCount; ++wpCount)
-      {
-        if (*wpCount == L':')
-        {
-          if (wpCount - wpFile != 1)
-          {
-            wpStream=wpCount;
-            continue;
-          }
-        }
-        else if (*wpCount == L'/')
-          *wpCount=L'\\';
-
-        if ((*wpCount == L'\\' && wpStream) || *wpCount == L'*' || *wpCount == L'?' || *wpCount == L'\"' || *wpCount == L'<' || *wpCount == L'>' || *wpCount == L'|')
-        {
-          API_LoadStringW(hLangLib, MSG_WRONG_FILENAME, wbuf, BUFFER_SIZE);
-          xprintfW(wszMsg, wbuf, wpFile);
-          API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-          SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
-          return 1;
-        }
-      }
-      *++wpCount=L'\0';
-      if (!ofn->nFileExtension && !wpStream)
-      {
-        if (wpFilterExt=FindArrayByIndex(wpFilter, ofn->nFilterIndex * 2))
-        {
-          if (xstrcmpiW(wpFilterExt, L"*.*"))
-            wpDefExt=GetFileExt(wpFilterExt, -1);
-          if (wpDefExt)
-          {
-            *(wpCount - 1)=L'.';
-            wpCount+=xstrcpynW(wpCount, wpDefExt, MAX_PATH - (wpCount - wpFile));
-          }
-        }
-        *++wpCount=L'\0';
-      }
-      if (bOldWindows)
-        WideCharToMultiByte(CP_ACP, 0, wpFile, (int)(wpCount - wpFile + 1), (char *)ofn->lpstrFile, MAX_PATH, NULL, NULL);
-    }
-    return 0;
-  }
   else if (uMsg == WM_NOTIFY)
   {
     if (((LPNMHDR)lParam)->code == CDN_FILEOK)
@@ -8096,26 +7998,68 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     {
       wchar_t wszPath[MAX_PATH];
       wchar_t wszFile[MAX_PATH];
-      wchar_t *wpFileName;
+      wchar_t *wpStream=NULL;
+      wchar_t *wpCount;
       INT_PTR nPathLen;
       INT_PTR nFileLen;
       LRESULT lResult;
+      BOOL bUpdateName=FALSE;
 
-      if ((nFileLen=GetWindowTextWide(hOfnDlgEdit, wszFile, MAX_PATH)) &&
-          (nPathLen=GetFullPathNameWide(wszFile, MAX_PATH, wszPath, &wpFileName)))
+      if (nFileLen=GetWindowTextWide(hOfnDlgEdit, wszFile, MAX_PATH))
       {
-        if (DirExistsWide(wszPath))
+        if (xstrcmpinW(L"file:", wszFile, (UINT_PTR)-1))
         {
-          if (wszPath[nPathLen - 1] != L'\\')
+          for (wpCount=wszFile; *wpCount; ++wpCount)
           {
-            wszFile[nFileLen]=L'\\';
-            wszFile[nFileLen + 1]=L'\0';
-            SetWindowTextWide(hOfnDlgEdit, wszFile);
+            if (*wpCount == L':')
+            {
+              //Drive letter
+              if (wszFile + 1 == wpCount && (*(wpCount + 1) == L'\\' || *(wpCount + 1) == L'/'))
+                continue;
+
+              //Stream
+              wpStream=wpCount;
+              continue;
+            }
+            else if (*wpCount == L'/')
+            {
+              *wpCount=L'\\';
+              bUpdateName=TRUE;
+            }
+
+            if ((*wpCount == L'\\' && wpStream) || *wpCount == L'*' || *wpCount == L'?' || *wpCount == L'\"' || *wpCount == L'<' || *wpCount == L'>' || *wpCount == L'|')
+            {
+              wpStream=NULL;
+              break;
+            }
           }
-          lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
-          SetWindowTextWide(hOfnDlgEdit, wszOfnFile);
-          SendMessage(hOfnDlgEdit, EM_SETSEL, 0, (LPARAM)-1);
-          return lResult;
+          if (wpStream)
+          {
+            //Fix MS bug: if we enter in file field "x:stream", then we get "x:\stream".
+            if (*(wszFile + 1) == L':' && *(wszFile + 2) != L'\\')
+            {
+              if ((nPathLen=(WORD)SendMessageW(hWnd, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wszPath)) > 1)
+              {
+                if (wszPath[nPathLen - 2] == L'\\')
+                {
+                  wszPath[nPathLen - 2]=L'\0';
+                  --nPathLen;
+                }
+                xprintfW(wszPath + nPathLen - 1, L"\\%s", wszFile);
+                xstrcpynW(wszFile, wszPath, MAX_PATH);
+                bUpdateName=TRUE;
+              }
+            }
+          }
+          if (bUpdateName)
+            SetWindowTextWide(hOfnDlgEdit, wszFile);
+          if (wpStream)
+          {
+            ofnStruct->Flags|=OFN_NOVALIDATE;
+            lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
+            ofnStruct->Flags&=~OFN_NOVALIDATE;
+            return lResult;
+          }
         }
       }
     }
