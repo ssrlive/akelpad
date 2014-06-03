@@ -8095,30 +8095,15 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     if (LOWORD(wParam) == IDOK)
     {
       wchar_t wszPath[MAX_PATH];
-      wchar_t wszFolder[MAX_PATH];
       wchar_t wszFile[MAX_PATH];
+      wchar_t *wpFileName;
       INT_PTR nPathLen;
-      INT_PTR nFolderLen;
       INT_PTR nFileLen;
       LRESULT lResult;
-	  
-      if (bOldWindows)
-      {
-        SendMessageA(hWnd, CDM_GETFOLDERPATH, BUFFER_SIZE, (WPARAM)buf);
-        nFolderLen=MultiByteToWideChar(CP_ACP, 0, buf, -1, wszFolder, MAX_PATH);
-      }
-      else nFolderLen=SendMessageW(hWnd, CDM_GETFOLDERPATH, MAX_PATH, (LPARAM)wszFolder);
 
-      if (nFolderLen > 1)
+      if ((nFileLen=GetWindowTextWide(hOfnDlgEdit, wszFile, MAX_PATH)) &&
+          (nPathLen=GetFullPathNameWide(wszFile, MAX_PATH, wszPath, &wpFileName)))
       {
-        if (wszFolder[nFolderLen - 2] != L'\\')
-        {
-          wszFolder[nFolderLen - 1]=L'\\';
-          wszFolder[nFolderLen]=L'\0';
-        }
-        nFileLen=GetWindowTextWide(hOfnDlgEdit, wszFile, MAX_PATH);
-        nPathLen=xprintfW(wszPath, L"%s%s", wszFolder, wszFile);
-
         if (DirExistsWide(wszPath))
         {
           if (wszPath[nPathLen - 1] != L'\\')
