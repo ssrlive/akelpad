@@ -21,6 +21,7 @@
 
 //Include string functions
 #define WideCharLower
+#define WideCharUpper
 #define xmemset
 #define xmemcpy
 #define xarraysizeA
@@ -1312,8 +1313,15 @@ INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys)
   KEYSTRUCT *lpElement;
   wchar_t *wpCount=wszSendKeys;
   wchar_t wchChar;
+  HKL hklEnglish;
   INT_PTR nKeyLen;
   BYTE nMod=0;
+
+  //Use English layout cause SendKeys understand only English
+  if (bOldWindows)
+    hklEnglish=LoadKeyboardLayoutA("00000409", 0);
+  else
+    hklEnglish=LoadKeyboardLayoutW(L"00000409", 0);
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
@@ -1446,14 +1454,22 @@ INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys)
         nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F15}");
       else if (lpElement->ka.bVk == VK_F16)
         nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{F16}");
-      else if (lpElement->ka.bVk >= L'A' && lpElement->ka.bVk <= L'Z')
-        nKeyLen=xprintfW(wszSendKeys?wpCount:NULL, L"%c", (nMod & HOTKEYF_SHIFT) ? lpElement->ka.bVk : WideCharLower(lpElement->ka.bVk));
       else
       {
-        if (bOldWindows)
-          wchChar=LOWORD(MapVirtualKeyA(lpElement->ka.bVk, 2));
+        if (hklEnglish)
+        {
+          if (bOldWindows)
+            wchChar=LOWORD(MapVirtualKeyExA(lpElement->ka.bVk, 2, hklEnglish));
+          else
+            wchChar=LOWORD(MapVirtualKeyExW(lpElement->ka.bVk, 2, hklEnglish));
+        }
         else
-          wchChar=LOWORD(MapVirtualKeyW(lpElement->ka.bVk, 2));
+        {
+          if (bOldWindows)
+            wchChar=LOWORD(MapVirtualKeyA(lpElement->ka.bVk, 2));
+          else
+            wchChar=LOWORD(MapVirtualKeyW(lpElement->ka.bVk, 2));
+        }
 
         if (wchChar == L'+')
           nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{+}");
@@ -1472,7 +1488,7 @@ INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys)
         else if (wchChar == L']')
           nKeyLen=xstrcpyW(wszSendKeys?wpCount:NULL, L"{]}");
         else
-          nKeyLen=xprintfW(wszSendKeys?wpCount:NULL, L"%c", wchChar);
+          nKeyLen=xprintfW(wszSendKeys?wpCount:NULL, L"%c", (nMod & HOTKEYF_SHIFT) ? WideCharUpper(wchChar) : WideCharLower(wchChar));
       }
       if (!wszSendKeys) --nKeyLen;
       wpCount+=nKeyLen;
@@ -1482,6 +1498,9 @@ INT_PTR FillSendKeys(STACKKEY *hStack, wchar_t *wszSendKeys)
     *wpCount=L'\0';
   else
     ++wpCount;
+
+  if (hklEnglish)
+    UnloadKeyboardLayout(hklEnglish);
   return wpCount - wszSendKeys;
 }
 
