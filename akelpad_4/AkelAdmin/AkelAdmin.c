@@ -1,7 +1,7 @@
 /***********************************************************************************
  *                      AkelAdmin UAC support for AkelPad                          *
  *                                                                                 *
- * Copyright 2013 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)       *
+ * Copyright 2014 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)       *
  *                                                                                 *
  * License: this source is distributed under "BSD license" conditions.             *
  ***********************************************************************************/
@@ -57,6 +57,12 @@
 #ifndef OWNER_SECURITY_INFORMATION
   #define OWNER_SECURITY_INFORMATION (0x00000001L)
 #endif
+#ifndef SDDL_REVISION_1
+  #define SDDL_REVISION_1 1
+#endif
+#ifndef LOW_INTEGRITY_SDDL_SACL_W
+  #define LOW_INTEGRITY_SDDL_SACL_W L"S:(ML;;NW;;;LW)"
+#endif
 
 typedef struct {
   DWORD dwExitCode;
@@ -85,6 +91,8 @@ BOOL (WINAPI *GetNamedPipeClientProcessIdPtr)(HANDLE, ULONG *);
 DWORD (WINAPI *SetNamedSecurityInfoWPtr)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
 DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL);
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
+BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptorWPtr)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *);
+BOOL (WINAPI *GetSecurityDescriptorSaclPtr)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *);
 
 
 //GCC
@@ -152,6 +160,8 @@ void _WinMain()
               SetNamedSecurityInfoWPtr=(DWORD (WINAPI *)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetNamedSecurityInfoW");
               SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
               SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
+              ConvertStringSecurityDescriptorToSecurityDescriptorWPtr=(BOOL (WINAPI *)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *))GetProcAddress(hAdvApi32, "ConvertStringSecurityDescriptorToSecurityDescriptorW");
+              GetSecurityDescriptorSaclPtr=(BOOL (WINAPI *)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *))GetProcAddress(hAdvApi32, "GetSecurityDescriptorSacl");
 
               if ((hPipeAkelAdmin=CreateNamedPipeW(wszAkelAdminPipe, PIPE_ACCESS_DUPLEX|PIPE_WAIT|WRITE_DAC, 0, PIPE_UNLIMITED_INSTANCES, sizeof(ADMINPIPE), sizeof(ADMINPIPE), 0, NULL)) != INVALID_HANDLE_VALUE)
               {
@@ -276,7 +286,16 @@ void _WinMain()
                           //Decrease file security
                           if (psdCurrentFile)
                           {
-                            if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) == ERROR_SUCCESS)
+                            SECURITY_DESCRIPTOR *psdLowIntegrity=NULL;
+                            PACL pSacl=NULL;
+                            BOOL bSaclPresent=FALSE;
+                            BOOL bSaclDefaulted=FALSE;
+
+                            //Get low integrity to allow write in file on disk root.
+                            if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(LOW_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
+                              GetSecurityDescriptorSaclPtr(psdLowIntegrity, &bSaclPresent, &pSacl, &bSaclDefaulted);
+
+                            if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|LABEL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, pSacl) == ERROR_SUCCESS)
                             {
                               apipe.dwExitCode=0;
                             }
@@ -285,6 +304,8 @@ void _WinMain()
                               wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
                               MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
                             }
+                            if (psdLowIntegrity)
+                              LocalFree(psdLowIntegrity);
                           }
                         }
                         else if (apipe.nAction == AAA_SECURITYRESTORE)
