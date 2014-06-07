@@ -110,7 +110,7 @@ int main()
 void _WinMain()
 {
   wchar_t *wpCmdLine=GetCommandLineW();
-  wchar_t *pArguments=wpCmdLine;
+  const wchar_t *pArguments=wpCmdLine;
   int nAction=0;
   int nExeDirLen;
   DWORD dwExitCode=1;
