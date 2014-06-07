@@ -294,7 +294,7 @@ void _WinMain()
                             BOOL bSaclPresent=FALSE;
                             BOOL bSaclDefaulted=FALSE;
 
-                            //Get low integrity to allow write in file on disk root.
+                            //Get medium integrity to allow write in file on disk root.
                             if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(MEDIUM_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
                               GetSecurityDescriptorSaclPtr(psdLowIntegrity, &bSaclPresent, &pSacl, &bSaclDefaulted);
 
