@@ -63,6 +63,9 @@
 #ifndef LOW_INTEGRITY_SDDL_SACL_W
   #define LOW_INTEGRITY_SDDL_SACL_W L"S:(ML;;NW;;;LW)"
 #endif
+#ifndef MEDIUM_INTEGRITY_SDDL_SACL_W
+  #define MEDIUM_INTEGRITY_SDDL_SACL_W L"S:(ML;;NW;;;ME)"
+#endif
 
 typedef struct {
   DWORD dwExitCode;
@@ -292,7 +295,7 @@ void _WinMain()
                             BOOL bSaclDefaulted=FALSE;
 
                             //Get low integrity to allow write in file on disk root.
-                            if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(LOW_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
+                            if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(MEDIUM_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
                               GetSecurityDescriptorSaclPtr(psdLowIntegrity, &bSaclPresent, &pSacl, &bSaclDefaulted);
 
                             if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|LABEL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, pSacl) == ERROR_SUCCESS)
@@ -322,6 +325,11 @@ void _WinMain()
                           {
                             if (EnablePrivilege(SE_RESTORE_NAME, TRUE))
                             {
+                             if (psdCurrentFile->Control & SE_DACL_AUTO_INHERITED)
+                               psdCurrentFile->Control|=SE_DACL_AUTO_INHERIT_REQ;
+                             if (psdCurrentFile->Control & SE_SACL_AUTO_INHERITED)
+                               psdCurrentFile->Control|=SE_SACL_AUTO_INHERIT_REQ;
+
                               if (SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
                               {
                                 apipe.dwExitCode=0;
