@@ -8060,6 +8060,13 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             ofnStruct->Flags&=~OFN_NOVALIDATE;
             return lResult;
           }
+          else if (GetKeyState(VK_CONTROL) & 0x80)
+          {
+            ofnStruct->Flags|=OFN_NODEREFERENCELINKS;
+            lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
+            ofnStruct->Flags&=~OFN_NODEREFERENCELINKS;
+            return lResult;
+          }
         }
       }
     }
