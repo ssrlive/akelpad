@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 4)
 
 
 //// Defines
@@ -1069,6 +1069,12 @@ typedef struct {
 } UNISTRING;
 
 typedef struct {
+  wchar_t *wszText; //Unicode text.
+  INT_PTR nTextLen; //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nCase;        //See SCT_* defines.
+} CONVERTCASE;
+
+typedef struct {
   DWORD dwLangID;         //Codepage recognition language defined as LANGID. If -1, then use current settings.
   const char *pText;      //Ansi text.
   INT_PTR nTextLen;       //Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
@@ -2042,6 +2048,8 @@ typedef struct {
 
 //Text retrieval and modification
 #define AKD_WRITEFILECONTENT       (WM_USER + 141)
+#define AKD_DETECTSELCASE          (WM_USER + 143)
+#define AKD_CONVERTCASE            (WM_USER + 144)
 #define AKD_DETECTANSITEXT         (WM_USER + 146)
 #define AKD_DETECTUNITEXT          (WM_USER + 147)
 #define AKD_CONVERTANSITEXT        (WM_USER + 148)
@@ -2745,12 +2753,49 @@ Example:
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
+AKD_DETECTSELCASE
+_________________
+
+Detect selection case.
+
+(HWND)wParam == edit window, NULL for current edit window.
+lParam       == not used.
+
+Return Value
+ See SCT_* defines.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_DETECTSELCASE, (WPARAM)NULL, 0);
+
+
+AKD_CONVERTCASE
+_______________
+
+Convert case of the text.
+
+wParam                == not used.
+(CONVERTCASE *)lParam == pointer to a CONVERTCASE structure.
+
+Return Value
+ Zero.
+
+Example:
+ CONVERTCASE cc;
+ wchar_t wszText[MAX_PATH];
+
+ lstrcpynW(wszText, L"My text", MAX_PATH);
+ cc.wszText=wszText;
+ cc.nTextLen=-1;
+ cc.nCase=SCT_UPPERCASE;
+ SendMessage(pd->hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
+
+
 AKD_DETECTANSITEXT
 __________________
 
 Detect codepage of ansi text.
 
-lParam                   == not used.
+wParam                   == not used.
 (DETECTANSITEXT *)lParam == pointer to a DETECTANSITEXT structure.
 
 Return Value
@@ -2772,7 +2817,7 @@ _________________
 
 Detect ansi codepage of unicode text.
 
-lParam                  == not used.
+wParam                  == not used.
 (DETECTUNITEXT *)lParam == pointer to a DETECTUNITEXT structure.
 
 Return Value
@@ -2794,7 +2839,7 @@ ___________________
 
 Change codepage of ansi text.
 
-lParam                    == not used.
+wParam                    == not used.
 (CONVERTANSITEXT *)lParam == pointer to a CONVERTANSITEXT structure.
 
 Return Value
@@ -2816,7 +2861,7 @@ __________________
 
 Change codepage of unicode text.
 
-lParam                   == not used.
+wParam                   == not used.
 (CONVERTUNITEXT *)lParam == pointer to a CONVERTUNITEXT structure.
 
 Return Value
@@ -2838,7 +2883,7 @@ ______________  _______________  _______________
 
 Detect codepage of a file.
 
-lParam               == not used.
+wParam               == not used.
 (DETECTFILE *)lParam == pointer to a DETECTFILE structure.
 
 Return Value
@@ -2853,7 +2898,7 @@ ___________________
 
 Read contents of a file.
 
-lParam                == not used.
+wParam                == not used.
 (FILECONTENT *)lParam == pointer to a FILECONTENT structure.
 
 Return Value
@@ -2962,7 +3007,7 @@ ____________________
 
 Write file contents.
 
-lParam                == not used.
+wParam                == not used.
 (FILECONTENT *)lParam == pointer to a FILECONTENT structure.
 
 Return Value
