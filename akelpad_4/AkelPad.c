@@ -1881,6 +1881,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Text retrieval and modification
+    if (uMsg == AKD_DETECTSELCASE)
+    {
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      return DetectSelCase(hWnd);
+    }
+    if (uMsg == AKD_CONVERTCASE)
+    {
+      CONVERTCASE *cc=(CONVERTCASE *)lParam;
+
+      ConvertCase(cc->wszText, cc->nTextLen, cc->nCase);
+      return 0;
+    }
     if (uMsg == AKD_DETECTANSITEXT)
     {
       DETECTANSITEXT *dat=(DETECTANSITEXT *)lParam;

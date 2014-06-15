@@ -2312,7 +2312,11 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
 void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
 {
   wchar_t *wpText=wszText;
-  const wchar_t *wpTextMax=wszText + nTextLen;
+  const wchar_t *wpTextMax;
+
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText);
+  wpTextMax=wpText + nTextLen;
 
   if (nCase == SCT_UPPERCASE)
   {
