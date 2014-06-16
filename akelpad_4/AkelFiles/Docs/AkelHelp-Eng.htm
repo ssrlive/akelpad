@@ -1865,6 +1865,49 @@
       <td>If the condition is satisfied, the pattern-true is used; otherwise the pattern-false (if present) is used. Condition can be pattern or a number of backreference, which will be checked for match success. For example, '(a)?b(?(1)c|d)' matches the "abc" in "abc" and "bd" in "zbd". Because, if "а" found, then trying to find "с" after "b", if "а" not found, then trying to find "d" after "b".</td>
     </tr>
     <tr>
+      <td>(?<i>options</i>)</td>
+      <td>
+        Options applies to the current group, if specified at the beginning of a special pattern, for example, 'a(?i:b)c' applies to "b" or to the next group, if specified separately, for example, 'a(?i)bc' applies to "bc".
+        <br>Possible to use several options at once, for example, 'a(?im-Us)bc'.
+        <br>
+        <br>
+        <table>
+          <tr>
+            <td>(?i)</td>
+            <td>case insensitive.</td>
+          </tr>
+          <tr>
+            <td>(?m)</td>
+            <td>multiline search (default).</td>
+          </tr>
+          <tr>
+            <td>(?s)</td>
+            <td>dot '.' matches any single character (default).</td>
+          </tr>
+          <tr>
+            <td>(?U)</td>
+            <td>invert greediness.</td>
+          </tr>
+          <tr>
+            <td>(?-i)</td>
+            <td>match case.</td>
+          </tr>
+          <tr>
+            <td>(?-m)</td>
+            <td>turn off multiline search. '^' matches document beginning and '$' matches document end.</td>
+          </tr>
+          <tr>
+            <td>(?-s)</td>
+            <td>dot '.' matches any single character, except newline character.</td>
+          </tr>
+          <tr>
+            <td>(?-U)</td>
+            <td>turn off greediness inversion.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
       <td><i>x</i>|<i>y</i></td>
       <td>Matches either <i>x</i> or <i>y</i>. For example, 'z|food' matches "z" or "food". '(z|f)ood' matches "zood" or "food".</td>
     </tr>
