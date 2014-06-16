@@ -39,7 +39,7 @@
 #define REGF_AUTOGROUP        0x00001000
 #define REGF_OR               0x00002000
 #define REGF_ORPARENT         0x00004000
-#define REGF_ONLYMODIFIERS    0x00008000
+#define REGF_ONLYOPTIONS      0x00008000
 #define REGF_POSITIVEFORWARD  0x00010000
 #define REGF_NEGATIVEFORWARD  0x00020000
 #define REGF_POSITIVEBACKWARD 0x00040000
@@ -330,6 +330,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   int nPatChar;
   int nPatRefIndex;
   BOOL bClassOpen=FALSE;
+  BOOL bUnset;
+  BOOL bOptions;
 
   if (wpPat == wpMaxPat)
     return 0;
@@ -619,7 +621,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       if (!lpREGroupItem->wpPatEnd)
         lpREGroupItem->wpPatEnd=wpPat;
       lpREGroupItem->wpPatRight=wpPat + 1;
-      if (!(lpREGroupItem->dwFlags & REGF_ONLYMODIFIERS) && lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
+      if (!(lpREGroupItem->dwFlags & REGF_ONLYOPTIONS) && lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
         goto Error;
 
       if (lpREGroupItem->parent->nGroupLen != -1)
@@ -805,17 +807,14 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
         if (*wpPat == L'?')
         {
-          BOOL bUnset;
-          BOOL bModifiers;
-
           if (lpREGroupItem->dwFlags & REGF_IFPARENT)
             goto Error;
           --nIndex;
           lpREGroupNew->nIndex=-1;
           ++wpPat;
 
-          //Modifiers
-          bModifiers=FALSE;
+          //Options
+          bOptions=FALSE;
           bUnset=FALSE;
 
           for (;;)
@@ -831,7 +830,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
                 lpREGroupNew->dwFlags|=REGF_MATCHCASE;
               else
                 lpREGroupNew->dwFlags&=~REGF_MATCHCASE;
-              bModifiers=TRUE;
+              bOptions=TRUE;
             }
             else if (*wpPat == L'm')
             {
@@ -839,7 +838,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
                 lpREGroupNew->dwFlags&=~REGF_MULTILINE;
               else
                 lpREGroupNew->dwFlags|=REGF_MULTILINE;
-              bModifiers=TRUE;
+              bOptions=TRUE;
             }
             else if (*wpPat == L's')
             {
@@ -847,7 +846,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
                 lpREGroupNew->dwFlags|=REGF_NONEWLINEDOT;
               else
                 lpREGroupNew->dwFlags&=~REGF_NONEWLINEDOT;
-              bModifiers=TRUE;
+              bOptions=TRUE;
             }
             else if (*wpPat == L'U')
             {
@@ -855,15 +854,15 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
                 lpREGroupNew->dwFlags&=~REGF_INVERTGREEDY;
               else
                 lpREGroupNew->dwFlags|=REGF_INVERTGREEDY;
-              bModifiers=TRUE;
+              bOptions=TRUE;
             }
             else break;
 
             if (++wpPat >= wpMaxPat) goto Error;
           }
-          if (bModifiers && *wpPat == L')')
+          if (bOptions && *wpPat == L')')
           {
-            lpREGroupNew->dwFlags|=REGF_ONLYMODIFIERS;
+            lpREGroupNew->dwFlags|=REGF_ONLYOPTIONS;
             lpREGroupNew->wpPatStart=wpPat;
             lpREGroupItem=lpREGroupNew;
             lpREGroupNextAuto=lpREGroupNew;
