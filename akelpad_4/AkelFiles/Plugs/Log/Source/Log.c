@@ -2812,7 +2812,7 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
       {
         pgs.lpREGroupStack=pe.lpREGroupStack;
         pgs.wpStr=oe->wszPatTagFile;
-        pgs.wpMaxStr=pgs.wpStr + lstrlenW(pgs.wpStr);
+        pgs.wpMaxStr=pgs.wpStr + xstrlenW(pgs.wpStr);
         pgs.wszResult=NULL;
         if (nSize=SendMessage(hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs))
         {
@@ -2828,7 +2828,7 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
       {
         pgs.lpREGroupStack=pe.lpREGroupStack;
         pgs.wpStr=oe->wszPatTagLine;
-        pgs.wpMaxStr=pgs.wpStr + lstrlenW(pgs.wpStr);
+        pgs.wpMaxStr=pgs.wpStr + xstrlenW(pgs.wpStr);
         pgs.wszResult=NULL;
         if (nSize=SendMessage(hMainWnd, AKD_PATGROUPSTR, 0, (LPARAM)&pgs))
         {
