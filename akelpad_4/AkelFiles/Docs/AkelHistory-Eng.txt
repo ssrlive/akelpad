@@ -4,6 +4,7 @@ AkelPad 4.8.9 ()
 Added: command 4194 - paste text taking into account selection case.
 Added: optional parameter for change case commands 4175-4180:
        1 - change case for current word if no selection.
+Added: (?options) possibility to set options for groups individually.
 Added: now "AkelAdmin.exe" provides the ability to modify a file on disk root (UAC).
 Added: to directly open the *.lnk or *.url from file open dialog, need to click
        on "Open" button while holding Ctrl.
