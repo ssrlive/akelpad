@@ -145,9 +145,11 @@
 #endif
 
 #define TXT_DEFAULT_HOTKEYS \
-L"\"Case Loop\" Command(4180) Hotkey(0)\r\
-\"Notepad\" Exec(\"notepad.exe\") Hotkey(0)\r\
-\"Hex Convert\" Call(\"HexSel::Main\", 1) Hotkey(0)"
+L"\"Notepad\" Exec(\"notepad.exe\") Hotkey(0)\r\
+\"Case Loop\" Command(4180) Hotkey(0)\r\
+\"Paste Case\" Command(4194) Hotkey(0)\r\
+\"Last Script\" Call(\"Scripts::Main\", 1, \"\") Hotkey(0)\r\
+\"Hex Convert\" Call(\"HexSel::Main\", 2, 24, \"\\x\", \"\", -2, 1200) Hotkey(0)"
 
 typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
