@@ -5089,7 +5089,7 @@ int WriteFileContent(HANDLE hFile, const wchar_t *wpContent, INT_PTR nContentLen
   const wchar_t *wpBlock;
   unsigned char *pDataToWrite;
   DWORD dwBlockLen=2048;
-  UINT_PTR dwBytesToWrite;
+  UINT_PTR dwBytesToWrite=0;
   UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
   int nWrite=0;
@@ -11189,7 +11189,7 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
   HGLOBAL hData;
   LPVOID pData;
   wchar_t *wszData=NULL;
-  INT_PTR nDataLen;
+  INT_PTR nDataLen=0;
   int nCase=0;
 
   if (OpenClipboard(NULL))
