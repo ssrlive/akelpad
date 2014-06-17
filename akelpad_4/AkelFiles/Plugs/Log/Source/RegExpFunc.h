@@ -975,6 +975,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   int nRefIndex;
   INT_PTR nRefLen;
   DWORD dwCmpResult=0;
+  BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
   int nNegativeFixed=0;
@@ -1078,120 +1079,153 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       if (wpPat == wpNextGroup)
       {
-        if (lpREGroupNext->dwFlags & REGF_OR)
-        {
-          bExclude=FALSE;
+        bMatched=FALSE;
+        goto FirstCheck;
 
-          for (;;)
+        for (;;)
+        {
+          if (!bMatched)
           {
-            if (!bExclude)
+            FirstCheck:
+            if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
             {
-              if (PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
+              const wchar_t *wpCount=wpStr;
+              INT_PTR nCount=lpREGroupNext->nGroupLen;
+
+              //Find start position
+              while (nCount > 0 && wpCount > hStack->wpText)
               {
-                wpStr=lpREGroupNext->wpStrEnd;
-                bExclude=TRUE;
+                --wpCount;
+                --nCount;
               }
-            }
-            if (lpREGroupNext->next && (lpREGroupNext->next->dwFlags & REGF_OR))
-              lpREGroupNext=lpREGroupNext->next;
-            else
-              break;
-          }
-          if (!bExclude) goto EndLoop;
-        }
-        else
-        {
-          if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
-          {
-            const wchar_t *wpCount=wpStr;
-            INT_PTR nCount=lpREGroupNext->nGroupLen;
 
-            //Find start position
-            while (nCount > 0 && wpCount > hStack->wpText)
-            {
-              --wpCount;
-              --nCount;
+              if (lpREGroupItem->dwFlags & REGF_REFEXIST)
+              {
+                //Set wpStrStart for possible backreferences in child AE_PatExec.
+                lpREGroupItem->wpStrStart=wpCount;
+              }
+              if (!nCount && PatExec(hStack, lpREGroupNext, wpCount, wpMaxStr))
+              {
+                if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
+                {
+                  lpREGroupItem->wpStrStart=wpStr;
+                  lpREGroupItem->wpStrEnd=wpStr;
+                  lpREGroupItem->nStrLen=0;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              else
+              {
+                if (lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD)
+                {
+                  lpREGroupItem->wpStrStart=wpStr;
+                  lpREGroupItem->wpStrEnd=wpStr;
+                  lpREGroupItem->nStrLen=0;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              if (lpREGroupNext->dwFlags & REGF_OR)
+              {
+                bMatched=TRUE;
+                goto NextOR;
+              }
+              goto NextGroup;
             }
 
             if (lpREGroupItem->dwFlags & REGF_REFEXIST)
             {
-              //Set wpStrStart for possible backreferences in child AE_PatExec.
-              lpREGroupItem->wpStrStart=wpCount;
+              //Set wpStrStart for possible backreferences in child PatExec.
+              lpREGroupItem->wpStrStart=wpStrStart;
             }
-            if (!nCount && PatExec(hStack, lpREGroupNext, wpCount, wpMaxStr))
+            if (lpREGroupNext->dwFlags & REGF_IFPARENT)
             {
-              if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
+              if (lpREGroupNext->firstChild->conditionRef ?
+                    lpREGroupNext->firstChild->conditionRef->nStrLen :
+                    PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
               {
-                lpREGroupItem->wpStrStart=wpStr;
-                lpREGroupItem->wpStrEnd=wpStr;
-                lpREGroupItem->nStrLen=0;
-                goto EndLoop;
-              }
-            }
-            else
-            {
-              if (lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD)
-              {
-                lpREGroupItem->wpStrStart=wpStr;
-                lpREGroupItem->wpStrEnd=wpStr;
-                lpREGroupItem->nStrLen=0;
-                goto EndLoop;
-              }
-            }
-            goto NextGroup;
-          }
-
-          if (lpREGroupItem->dwFlags & REGF_REFEXIST)
-          {
-            //Set wpStrStart for possible backreferences in child PatExec.
-            lpREGroupItem->wpStrStart=wpStrStart;
-          }
-          if (lpREGroupNext->dwFlags & REGF_IFPARENT)
-          {
-            if (lpREGroupNext->firstChild->conditionRef ?
-                  lpREGroupNext->firstChild->conditionRef->nStrLen :
-                  PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
-            {
-              if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                goto EndLoop;
-              lpREGroupNextNext=lpREGroupNext->firstChild->next;
-            }
-            else
-            {
-              if (lpREGroupNext->firstChild->next->next)
-                lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
-              else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                lpREGroupNextNext=lpREGroupNext->firstChild->next;
-              else goto EndLoop;
-            }
-            if (!PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
-              goto EndLoop;
-            lpREGroupNext->wpStrStart=lpREGroupNextNext->wpStrStart;
-            lpREGroupNext->wpStrEnd=lpREGroupNextNext->wpStrEnd;
-            lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
-            wpStr=lpREGroupNextNext->wpStrEnd;
-            goto NextGroup;
-          }
-          if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
-          {
-            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
-            {
-              if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
-              {
-                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
                 {
-                  lpREGroupNext=lpREGroupNextNext;
-                  wpStr=lpREGroupNextNext->wpStrEnd;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
                 }
-                goto NextGroup;
+                lpREGroupNextNext=lpREGroupNext->firstChild->next;
+              }
+              else
+              {
+                if (lpREGroupNext->firstChild->next->next)
+                  lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+                else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                  lpREGroupNextNext=lpREGroupNext->firstChild->next;
+                else
+                {
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              if (!PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
+              {
+                if (lpREGroupNext->dwFlags & REGF_OR)
+                  goto NextOR;
+                goto EndLoop;
+              }
+              lpREGroupNext->wpStrStart=lpREGroupNextNext->wpStrStart;
+              lpREGroupNext->wpStrEnd=lpREGroupNextNext->wpStrEnd;
+              lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+              wpStr=lpREGroupNextNext->wpStrEnd;
+              if (lpREGroupNext->dwFlags & REGF_OR)
+              {
+                bMatched=TRUE;
+                goto NextOR;
+              }
+              goto NextGroup;
+            }
+            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
+            {
+              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              {
+                if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+                {
+                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                  {
+                    lpREGroupNext=lpREGroupNextNext;
+                    wpStr=lpREGroupNextNext->wpStrEnd;
+                  }
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                  {
+                    bMatched=TRUE;
+                    goto NextOR;
+                  }
+                  goto NextGroup;
+                }
               }
             }
+            if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
+            {
+              if (lpREGroupNext->dwFlags & REGF_OR)
+                goto NextOR;
+              goto EndLoop;
+            }
+            wpStr=lpREGroupNext->wpStrEnd;
+            if (lpREGroupNext->dwFlags & REGF_OR)
+            {
+              bMatched=TRUE;
+              goto NextOR;
+            }
+            goto NextGroup;
           }
-          if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
-            goto EndLoop;
-
-          wpStr=lpREGroupNext->wpStrEnd;
+          NextOR:
+          if (lpREGroupNext->next && (lpREGroupNext->next->dwFlags & REGF_OR))
+            lpREGroupNext=lpREGroupNext->next;
+          else
+            break;
         }
+        if (!bMatched) goto EndLoop;
 
         NextGroup:
         wpPat=lpREGroupNext->wpPatRight;
@@ -2030,6 +2064,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   int nCurMatch=0;
   int nRefIndex;
   DWORD dwCmpResult=0;
+  BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
   int nNegativeFixed=0;
@@ -2119,120 +2154,152 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       if (wpPat == wpNextGroup)
       {
-        if (lpREGroupNext->dwFlags & REGF_OR)
-        {
-          bExclude=FALSE;
+        bMatched=FALSE;
+        goto FirstCheck;
 
-          for (;;)
+        for (;;)
+        {
+          if (!bMatched)
           {
-            if (!bExclude)
+            FirstCheck:
+            if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
             {
-              if (AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
-              {
-                ciStr=lpREGroupNext->ciStrEnd;
-                nStrLen+=lpREGroupNext->nStrLen;
-                bExclude=TRUE;
-              }
-            }
-            if (lpREGroupNext->next && (lpREGroupNext->next->dwFlags & REGF_OR))
-              lpREGroupNext=lpREGroupNext->next;
-            else
-              break;
-          }
-          if (!bExclude) goto EndLoop;
-        }
-        else
-        {
-          if (lpREGroupNext->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
-          {
-            AECHARINDEX ciCount=ciStr;
-            INT_PTR nCount=lpREGroupNext->nGroupLen;
+              AECHARINDEX ciCount=ciStr;
+              INT_PTR nCount=lpREGroupNext->nGroupLen;
 
-            //Find start position
-            while (nCount > 0 && AEC_PrevChar(&ciCount)) --nCount;
+              //Find start position
+              while (nCount > 0 && AEC_PrevChar(&ciCount)) --nCount;
+
+              if (lpREGroupItem->dwFlags & REGF_REFEXIST)
+              {
+                //Set ciStrStart for possible backreferences in child AE_PatExec.
+                lpREGroupItem->ciStrStart=ciCount;
+              }
+              if (!nCount && AE_PatExec(hStack, lpREGroupNext, &ciCount, &ciMaxStr))
+              {
+                if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
+                {
+                  lpREGroupItem->ciStrStart=ciStr;
+                  lpREGroupItem->ciStrEnd=ciStr;
+                  lpREGroupItem->nStrLen=0;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              else
+              {
+                if (lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD)
+                {
+                  lpREGroupItem->ciStrStart=ciStr;
+                  lpREGroupItem->ciStrEnd=ciStr;
+                  lpREGroupItem->nStrLen=0;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              if (lpREGroupNext->dwFlags & REGF_OR)
+              {
+                bMatched=TRUE;
+                goto NextOR;
+              }
+              goto NextGroup;
+            }
 
             if (lpREGroupItem->dwFlags & REGF_REFEXIST)
             {
               //Set ciStrStart for possible backreferences in child AE_PatExec.
-              lpREGroupItem->ciStrStart=ciCount;
+              lpREGroupItem->ciStrStart=ciStrStart;
             }
-            if (!nCount && AE_PatExec(hStack, lpREGroupNext, &ciCount, &ciMaxStr))
+            if (lpREGroupNext->dwFlags & REGF_IFPARENT)
             {
-              if (lpREGroupNext->dwFlags & REGF_NEGATIVEBACKWARD)
+              if (lpREGroupNext->firstChild->conditionRef ?
+                    lpREGroupNext->firstChild->conditionRef->nStrLen :
+                    AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
               {
-                lpREGroupItem->ciStrStart=ciStr;
-                lpREGroupItem->ciStrEnd=ciStr;
-                lpREGroupItem->nStrLen=0;
-                goto EndLoop;
-              }
-            }
-            else
-            {
-              if (lpREGroupNext->dwFlags & REGF_POSITIVEBACKWARD)
-              {
-                lpREGroupItem->ciStrStart=ciStr;
-                lpREGroupItem->ciStrEnd=ciStr;
-                lpREGroupItem->nStrLen=0;
-                goto EndLoop;
-              }
-            }
-            goto NextGroup;
-          }
-
-          if (lpREGroupItem->dwFlags & REGF_REFEXIST)
-          {
-            //Set ciStrStart for possible backreferences in child AE_PatExec.
-            lpREGroupItem->ciStrStart=ciStrStart;
-          }
-          if (lpREGroupNext->dwFlags & REGF_IFPARENT)
-          {
-            if (lpREGroupNext->firstChild->conditionRef ?
-                  lpREGroupNext->firstChild->conditionRef->nStrLen :
-                  AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
-            {
-              if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                goto EndLoop;
-              lpREGroupNextNext=lpREGroupNext->firstChild->next;
-            }
-            else
-            {
-              if (lpREGroupNext->firstChild->next->next)
-                lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
-              else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                lpREGroupNextNext=lpREGroupNext->firstChild->next;
-              else goto EndLoop;
-            }
-            if (!AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
-              goto EndLoop;
-            lpREGroupNext->ciStrStart=lpREGroupNextNext->ciStrStart;
-            lpREGroupNext->ciStrEnd=lpREGroupNextNext->ciStrEnd;
-            lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
-            ciStr=lpREGroupNextNext->ciStrEnd;
-            nStrLen+=lpREGroupNextNext->nStrLen;
-            goto NextGroup;
-          }
-          if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
-          {
-            if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
-            {
-              if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
-              {
-                if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
                 {
-                  lpREGroupNext=lpREGroupNextNext;
-                  ciStr=lpREGroupNextNext->ciStrEnd;
-                  nStrLen+=lpREGroupNextNext->nStrLen;
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
                 }
-                goto NextGroup;
+                lpREGroupNextNext=lpREGroupNext->firstChild->next;
+              }
+              else
+              {
+                if (lpREGroupNext->firstChild->next->next)
+                  lpREGroupNextNext=lpREGroupNext->firstChild->next->next;
+                else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
+                  lpREGroupNextNext=lpREGroupNext->firstChild->next;
+                else
+                {
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                    goto NextOR;
+                  goto EndLoop;
+                }
+              }
+              if (!AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
+              {
+                if (lpREGroupNext->dwFlags & REGF_OR)
+                  goto NextOR;
+                goto EndLoop;
+              }
+              lpREGroupNext->ciStrStart=lpREGroupNextNext->ciStrStart;
+              lpREGroupNext->ciStrEnd=lpREGroupNextNext->ciStrEnd;
+              lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+              ciStr=lpREGroupNextNext->ciStrEnd;
+              nStrLen+=lpREGroupNextNext->nStrLen;
+              if (lpREGroupNext->dwFlags & REGF_OR)
+              {
+                bMatched=TRUE;
+                goto NextOR;
+              }
+              goto NextGroup;
+            }
+            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
+            {
+              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              {
+                if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+                {
+                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
+                  {
+                    lpREGroupNext=lpREGroupNextNext;
+                    ciStr=lpREGroupNextNext->ciStrEnd;
+                    nStrLen+=lpREGroupNextNext->nStrLen;
+                  }
+                  if (lpREGroupNext->dwFlags & REGF_OR)
+                  {
+                    bMatched=TRUE;
+                    goto NextOR;
+                  }
+                  goto NextGroup;
+                }
               }
             }
+            if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
+            {
+              if (lpREGroupNext->dwFlags & REGF_OR)
+                goto NextOR;
+              goto EndLoop;
+            }
+            ciStr=lpREGroupNext->ciStrEnd;
+            nStrLen+=lpREGroupNext->nStrLen;
+            if (lpREGroupNext->dwFlags & REGF_OR)
+            {
+              bMatched=TRUE;
+              goto NextOR;
+            }
+            goto NextGroup;
           }
-          if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
-            goto EndLoop;
-
-          ciStr=lpREGroupNext->ciStrEnd;
-          nStrLen+=lpREGroupNext->nStrLen;
+          NextOR:
+          if (lpREGroupNext->next && (lpREGroupNext->next->dwFlags & REGF_OR))
+            lpREGroupNext=lpREGroupNext->next;
+          else
+            break;
         }
+        if (!bMatched) goto EndLoop;
 
         NextGroup:
         wpPat=lpREGroupNext->wpPatRight;
