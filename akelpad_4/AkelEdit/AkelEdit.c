@@ -7222,7 +7222,7 @@ wchar_t* AE_GetAllTextForUndo(AKELEDIT *ae, UINT_PTR *lpdwUndoTextLen)
 {
   AECHARINDEX ciRangeStart;
   AECHARINDEX ciRangeEnd;
-  wchar_t *wpUndoText;
+  wchar_t *wpUndoText=NULL;
   UINT_PTR dwUndoTextLen;
 
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciRangeStart);
