@@ -6,6 +6,8 @@ Added: optional parameter for change case commands 4175-4180:
        1 - change case for current word if no selection.
 Added: (?options) possibility to set options for groups individually.
 Added: (?>pattern) atomic group.
+Added: possibility to use lookbehind search in conditional pattern, for example,
+       "(?(?<=a)b|c)".
 Added: now "AkelAdmin.exe" provides the ability to modify a file on disk root (UAC).
 Added: to directly open the *.lnk or *.url from file open dialog, need to click
        on "Open" button while holding Ctrl.
