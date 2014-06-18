@@ -45,14 +45,15 @@
 #define REGF_POSITIVEBACKWARD 0x00040000
 #define REGF_NEGATIVEBACKWARD 0x00080000
 #define REGF_NEGATIVEFIXED    0x00100000
-#define REGF_IFPARENT         0x00200000
-#define REGF_IFCONDITION      0x00400000
-#define REGF_IFTRUE           0x00800000
-#define REGF_IFFALSE          0x01000000
-#define REGF_REFEXIST         0x02000000
-#define REGF_NONGREEDY        0x04000000
-#define REGF_INVERTGREEDY     0x08000000
-#define REGF_ANY              0x10000000
+#define REGF_ATOMIC           0x00200000
+#define REGF_IFPARENT         0x00400000
+#define REGF_IFCONDITION      0x00800000
+#define REGF_IFTRUE           0x01000000
+#define REGF_IFFALSE          0x02000000
+#define REGF_REFEXIST         0x04000000
+#define REGF_NONGREEDY        0x08000000
+#define REGF_INVERTGREEDY     0x10000000
+#define REGF_ANY              0x20000000
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -582,7 +583,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupNew->nMinMatch=1;
         lpREGroupNew->nMaxMatch=1;
         lpREGroupNew->nIndex=-1;
-        lpREGroupNew->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY);
+        lpREGroupNew->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY|REGF_ATOMIC);
         lpREGroupNew->dwFlags|=REGF_OR;
 
         lpREGroupItem=lpREGroupNew;
@@ -598,6 +599,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupItem->wpPatEnd=wpPat;
         lpREGroupItem->wpPatRight=wpPat;
         lpREGroupItem=lpREGroupItem->parent;
+        if (!(lpREGroupItem->dwFlags & REGF_ATOMIC))
+        {
+          //str - "abc", find "a(bc|b)c"
+          lpREGroupNextAuto=lpREGroupItem;
+        }
 
         //Close groups for parent
         lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &lpREGroupNextAuto);
@@ -897,6 +903,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             //Non-capture negative foreward group
             lpREGroupNew->dwFlags|=REGF_NEGATIVEFORWARD;
           }
+          else if (*wpPat == L'>')
+          {
+            //Atomic group
+            lpREGroupNew->dwFlags|=REGF_ATOMIC;
+          }
           else if (*wpPat == L'^')
           {
             lpREGroupNew->nIndex=++nIndex;
@@ -1062,10 +1073,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         if (wpStr >= wpMaxStr)
           goto EndLoop;
 
-        if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY))
+        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
+            //str - "abc", find "a(bc|b)c"
+            (lpREGroupItem->dwFlags & REGF_OR)) &&
+            //str - "123", find "(?>\d+?)3"
+            !(lpREGroupItem->dwFlags & REGF_ATOMIC))
         {
-          //Next group for check must not have REGF_OR flag:
-          //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
             //Check nStrLen for \d+Z? in 123Z
@@ -1191,7 +1204,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               }
               goto NextGroup;
             }
-            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
+            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY) &&
+                //str - "123", find "(?>\d+?)3"
+                !(lpREGroupNext->dwFlags & REGF_ATOMIC))
             {
               if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
               {
@@ -2153,10 +2168,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
           goto EndLoop;
 
-        if ((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY))
+        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
+            //str - "abc", find "a(bc|b)c"
+            (lpREGroupItem->dwFlags & REGF_OR)) &&
+            //str - "123", find "(?>\d+?)3"
+            !(lpREGroupItem->dwFlags & REGF_ATOMIC))
         {
-          //Next group for check must not have REGF_OR flag:
-          //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
             //Check nStrLen for \d+Z? in 123Z
@@ -2279,7 +2296,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               }
               goto NextGroup;
             }
-            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
+            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY) &&
+                //str - "123", find "(?>\d+?)3"
+                !(lpREGroupNext->dwFlags & REGF_ATOMIC))
             {
               if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
               {
