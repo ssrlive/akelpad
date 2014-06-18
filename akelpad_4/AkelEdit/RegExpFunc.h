@@ -285,7 +285,7 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
 BOOL PatIsInNonCapture(REGROUP *lpREGroupItem);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
-REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem);
+REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem);
 REGROUP* PatPrevGroup(REGROUP *lpREGroupItem);
 INT_PTR PatGroupStr(PATGROUPSTR *pgs);
 void PatReset(STACKREGROUP *hStack);
@@ -978,6 +978,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
+  BOOL bNonGreedyMismatch=FALSE;
   int nNegativeFixed=0;
 
   lpREGroupItem->nStrLen=0;
@@ -1065,11 +1066,16 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           //Next group for check must not have REGF_OR flag:
           //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
-          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+          if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
             //Check nStrLen for \d+Z? in 123Z
             if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            {
+              bNonGreedyMismatch=FALSE;
               goto EndLoop;
+            }
+            //str "AAB123", find "(A+?|.*?)123", wrong match - "B123", right match - "AAB123"
+            bNonGreedyMismatch=TRUE;
           }
         }
         //Prevent infinite loop "($a*)+"
@@ -1187,7 +1193,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             }
             if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
             {
-              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
               {
                 if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
                 {
@@ -1509,6 +1515,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     lpREGroupItem->wpStrEnd=wpMinStr;
     lpREGroupItem->nStrLen=0;
   }
+  if (bNonGreedyMismatch)
+    return FALSE;
   return TRUE;
 }
 
@@ -1930,12 +1938,20 @@ REGROUP* PatNextGroup(REGROUP *lpREGroupItem)
   return lpREGroupItem;
 }
 
-REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem)
+REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
 {
   do
   {
+    Loop:
     if (lpREGroupItem->next)
+    {
+      if (lpREGroupItem->next->dwFlags & REGF_OR)
+      {
+        lpREGroupItem=lpREGroupItem->next;
+        goto Loop;
+      }
       return lpREGroupItem->next;
+    }
   }
   while (lpREGroupItem=lpREGroupItem->parent);
 
@@ -2067,6 +2083,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
+  BOOL bNonGreedyMismatch=FALSE;
   int nNegativeFixed=0;
 
   lpREGroupItem->nStrLen=0;
@@ -2140,11 +2157,16 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         {
           //Next group for check must not have REGF_OR flag:
           //str - "BBAAABB", find "(A+)|(B+)", replace - "[\2]"
-          if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupItem)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+          if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
             //Check nStrLen for \d+Z? in 123Z
             if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            {
+              bNonGreedyMismatch=FALSE;
               goto EndLoop;
+            }
+            //str "AAB123", find "(A+?|.*?)123", wrong match - "B123", right match - "AAB123"
+            bNonGreedyMismatch=TRUE;
           }
         }
         //Prevent infinite loop "($a*)+"
@@ -2259,7 +2281,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             }
             if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY))
             {
-              if ((lpREGroupNextNext=PatNextGroupNoChild(lpREGroupNext)) && !(lpREGroupNextNext->dwFlags & REGF_OR))
+              if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
               {
                 if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
                 {
@@ -2611,6 +2633,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     lpREGroupItem->ciStrEnd=ciMinStr;
     lpREGroupItem->nStrLen=0;
   }
+  if (bNonGreedyMismatch)
+    return FALSE;
   return TRUE;
 }
 
