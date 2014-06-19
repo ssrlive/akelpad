@@ -46,6 +46,18 @@ void _WinMain()
   DWORD dwOptions=REPE_MATCHCASE|REPE_GLOBAL|REPE_MULTILINE;
 
   nLine=__LINE__;
+  TextReplaceRE(L"1234567890 1234567890", L"(23)(.*)(89)", L"[\\1]<\\3>", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1[23]<89>0 1[23]<89>0")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"100 200 ABC400 ABC300 ABC200 ABC500", L"100|ABC(200|300|400)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] 200 [x] [x] [x] ABC500")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"100 200 ABC400 ABC300 ABC200 ABC500", L"100|ABC(200|300|400)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[] 200 [400] [300] [200] ABC500")) goto Error;
+
+  nLine=__LINE__;
   TextReplaceRE(L"BBAAABB", L"(A+)|(B+)", L"[\\2]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[BB][][BB]")) goto Error;
 
@@ -60,6 +72,102 @@ void _WinMain()
   nLine=__LINE__;
   TextReplaceRE(L"mam,pap", L"(?(?<=a)m|p)", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"ma[x],[x]ap")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"mam,pap", L"(?(?<=a)m)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ma[x],pap")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"129", L"\\d{1,3}?9", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc aBC ABC", L"a(?i)bc", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x] [x] ABC")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc aBC ABC", L"a(?i:b)c", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x] aBC ABC")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc aBC ABC", L"a(?i)b(?-i)c", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x] aBC ABC")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc\naBC ABC", L"a(?-s).*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]\n[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc\naBC ABC", L"(?im-s)^A.*$", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]\n[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"1299", L"(?U)\\d+9", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]9")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc\naBC ABC", L"(?-m)^a.*$", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc aBc\naBC ABC", L"^a.*$", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]\n[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC", L"^.*$", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"3513b 3512b", L"\\d+(?<=12)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"3513b [x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123", L"(?>\\d+?)3", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123 789", L"(?:\\d)(\\d)\\d", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[2] [8]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123 789", L"\\d(\\d)(?=[^\\d])", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1[3] 789")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123 789", L"\\d(\\d)(?=[^\\d]|$)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1[3] 7[9]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123ABC 789DEF", L"\\d(\\d)(?=ABC)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1[3]ABC 789DEF")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123ABC 789DEF", L"\\d(\\d)(?!ABC)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[2]3ABC [8]9DEF")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC123 DEF789", L"(?<=EF)(\\d+)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ABC123 DEF[789]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC123 DEF789", L"(?<!EF)(\\d+)", L"[\\1]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ABC[123] DEF7[89]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC123 DEF789", L"(?^ABC)(\\d\\d\\d)", L"[\\1]<\\2>", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ABC123 [DEF]<789>")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC", L"(?^AB)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"A[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC", L"(?^A|B)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"($a*)+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"abc[x]")) goto Error;
 
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);

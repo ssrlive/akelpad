@@ -36,20 +36,10 @@ Call("Macros::Main", 1, "NAME", REPEAT, FLAGS)
       Execution flags (default is 0).
         1  //EMF_SCRIPTSNOSYNC  Don't wait script completion.
 
-
 Call("Macros::Main", 2, "TOOLBAR_HANDLE", "TOOLBAR_ITEMID")
   Parameters:
     2
       Record macro. Called from ToolBar plugin.
-    "TOOLBAR_HANDLE"
-      Tool bar ID (handle).
-    "TOOLBAR_ITEMID"
-      Button item ID.
-
-Call("Macros::Main", 3, "TOOLBAR_HANDLE", "TOOLBAR_ITEMID")
-  Parameters:
-    3
-      Execute recorded macro to the end. Called from ToolBar plugin.
     "TOOLBAR_HANDLE"
       Tool bar ID (handle).
     "TOOLBAR_ITEMID"
