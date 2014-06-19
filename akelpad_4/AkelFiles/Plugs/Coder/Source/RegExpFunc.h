@@ -2890,7 +2890,7 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
         if (lpREGroupRef=PatGetGroup(pe->lpREGroupStack, nIndex))
         {
           //PatExec not reset previous backreferences, so check it.
-          //str - "[a]c[/a] [b]c[/b]", find - "\[(/??)b\]", replace - "[\1a]"
+          //str - "[a]c[/a] [b]c[/b]", find - "\[(/?)b\]", replace - "[\1a]"
           if (lpREGroupRef->wpStrEnd > pe->lpREGroupStack->first->wpStrStart ||
               (lpREGroupRef->wpStrEnd == pe->lpREGroupStack->first->wpStrStart && (lpREGroupRef->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))))
           {
@@ -2956,7 +2956,7 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
         if (lpREGroupRef=PatGetGroup(pe->lpREGroupStack, nIndex))
         {
           //AE_PatExec not reset previous backreferences, so check it.
-          //str - "[a]c[/a] [b]c[/b]", find - "\[(/??)b\]", replace - "[\1a]"
+          //str - "[a]c[/a] [b]c[/b]", find - "\[(/?)b\]", replace - "[\1a]"
           nCompare=AEC_IndexCompare(&lpREGroupRef->ciStrEnd, &pe->lpREGroupStack->first->ciStrStart);
 
           if (nCompare > 0 || (nCompare == 0 && (lpREGroupRef->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))))
