@@ -193,6 +193,10 @@ void _WinMain()
   TextReplaceRE(L"[a]c[/a] [b]c[/b]", L"\\[(/?)b\\]", L"[\\1a]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[a]c[/a] [a]c[/a]")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"aa bb cc", L"([ab])[\\1]", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x] cc")) goto Error;
+
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);
   goto Quit;
