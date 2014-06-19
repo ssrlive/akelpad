@@ -2065,7 +2065,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (lParam & PASTE_CASE)
-        return PasteCase(hWnd, (lParam & PASTE_ANSI));
+        return PasteCase(hWnd, (DWORD)(lParam & PASTE_ANSI));
       if (lParam & PASTE_SINGLELINE)
         return PasteInEditAsRichEdit(hWnd, 0);
       return DoEditPaste(hWnd, (DWORD)lParam);
@@ -4433,23 +4433,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_EDIT_UPPERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_UPPERCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_UPPERCASE, (BOOL)lParam);
     }
     else if (wCommand == IDM_EDIT_LOWERCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_LOWERCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_LOWERCASE, (BOOL)lParam);
     }
     else if (wCommand == IDM_EDIT_SENTENCECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_SENTENCECASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_SENTENCECASE, (BOOL)lParam);
     }
     else if (wCommand == IDM_EDIT_TITLECASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_TITLECASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_TITLECASE, (BOOL)lParam);
     }
     else if (wCommand == IDM_EDIT_INVERTCASE)
     {
-      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_INVERTCASE, lParam);
+      return DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, SCT_INVERTCASE, (BOOL)lParam);
     }
     else if (wCommand == IDM_EDIT_LOOPCASE)
     {
@@ -4460,7 +4460,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nCase=SCT_UPPERCASE;
       else
         ++nCase;
-      bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase, lParam);
+      bResult=DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase, (BOOL)lParam);
       nLoopCase=nCase;
       return bResult;
     }
