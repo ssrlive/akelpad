@@ -11210,7 +11210,7 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
       {
         nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, NULL, 0);
         if (wszData=AllocWideStr(nDataLen))
-          MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszData, nDataLen);
+          MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszData, (int)nDataLen);
         GlobalUnlock(hData);
       }
     }
