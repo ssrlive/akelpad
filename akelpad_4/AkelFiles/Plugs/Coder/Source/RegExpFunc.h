@@ -528,6 +528,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         //Set REGF_ORPARENT because PatCloseGroups change wpPatEnd:
         //str - "123", find "(\d{6}|\d{3})", replace - "x"
         lpREGroupItem->dwFlags|=REGF_ORPARENT;
+        lpREGroupItem->nGroupLen=-1;
       }
       lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &lpREGroupNextAuto);
 
@@ -1074,9 +1075,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
 
-        if (wpStr >= wpMaxStr)
-          goto EndLoop;
-
         if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
@@ -1095,6 +1093,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             bNonGreedyMismatch=TRUE;
           }
         }
+        //str - ".*$", find "abc"
+        if (wpStr >= wpMaxStr)
+          goto EndLoop;
         //Prevent infinite loop "($a*)+"
         if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
@@ -2126,9 +2127,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
 
-        if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-          goto EndLoop;
-
         if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
@@ -2147,6 +2145,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             bNonGreedyMismatch=TRUE;
           }
         }
+        //str - ".*$", find "abc"
+        if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+          goto EndLoop;
         //Prevent infinite loop "($a*)+"
         if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
