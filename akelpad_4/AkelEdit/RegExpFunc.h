@@ -425,6 +425,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
           {
             nPatChar=(int)hex2decW(wpStrTmp, (wpPat - 1) - wpStrTmp);
+            if (nPatChar == -1)
+            {
+              wpPat=wpStrTmp;
+              goto Error;
+            }
             if (nPatChar <= MAXWORD)
               lpREGroupItem->nGroupLen+=1;
             else
@@ -2853,13 +2858,16 @@ INT_PTR PatReplace(PATREPLACE *pr)
         pr->ciRightStr=pep.ciRightStr;
       #endif
     }
+  }
+  pr->nErrorOffset=pe.nErrorOffset;
+
+  if (!pe.nErrorOffset)
+  {
     if (pep.wszBuf)
       *pep.wpBufCount=L'\0';
     else
       ++pep.wpBufCount;
   }
-  else pr->nErrorOffset=pe.nErrorOffset;
-
   PatStructFree(&pe);
 
   return (INT_PTR)(pep.wpBufCount - pep.wszBuf);
