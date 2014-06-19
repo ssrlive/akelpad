@@ -169,6 +169,30 @@ void _WinMain()
   TextReplaceRE(L"abc", L"($a*)+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"abc[x]")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"abc ABC", L"[\\w]+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L".*123)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"123Z 123", L"\\d+Z?", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"AAB123", L"(A+?|.*?)123", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"", L"$", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"[a]c[/a] [b]c[/b]", L"\\[(/?)b\\]", L"[\\1a]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[a]c[/a] [a]c[/a]")) goto Error;
+
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);
   goto Quit;
