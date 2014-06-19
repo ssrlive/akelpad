@@ -1,5 +1,5 @@
 @ECHO OFF
-set VCDIR=c:\Program Files\Microsoft Visual C++ Toolkit 2003
+set VCDIR=c:\Program Files\Microsoft Platform SDK
 set MSSDK=c:\Program Files\Microsoft Platform SDK
 set CLFLAGS=/Wall /WX /wd4100 /wd4201 /wd4204 /wd4255 /wd4310 /wd4619 /wd4668 /wd4701 /wd4706 /wd4711 /wd4820 /wd4826
 set BIT=64
