@@ -1027,7 +1027,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   {
     //Find start position
     for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && --wpStr >= hStack->wpText; --nPrevStrLen);
-    if (nPrevStrLen) goto EndLoop;
+    if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
   }
 
   BeginLoop:
@@ -1458,6 +1458,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       }
       return TRUE;
     }
+    EndLoopAfterNegativeFixed:
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
       if (lpREGroupItem->dwFlags & (REGF_NEGATIVEFORWARD|REGF_NEGATIVEBACKWARD))
@@ -2091,7 +2092,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   {
     //Find start position
     for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && AEC_PrevChar(&ciStr); --nPrevStrLen);
-    if (nPrevStrLen) goto EndLoop;
+    if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
   }
 
   BeginLoop:
@@ -2541,6 +2542,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       return TRUE;
     }
+    EndLoopAfterNegativeFixed:
     if (nCurMatch < lpREGroupItem->nMinMatch)
     {
       if (lpREGroupItem->dwFlags & (REGF_NEGATIVEFORWARD|REGF_NEGATIVEBACKWARD))
