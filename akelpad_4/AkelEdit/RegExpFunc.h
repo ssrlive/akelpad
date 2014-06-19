@@ -533,7 +533,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         //Set REGF_ORPARENT because PatCloseGroups change wpPatEnd:
         //str - "123", find "(\d{6}|\d{3})", replace - "x"
         lpREGroupItem->dwFlags|=REGF_ORPARENT;
-        lpREGroupItem->nGroupLen=-1;
       }
       lpREGroupItem=PatCloseGroups(lpREGroupItem, wpPat, wpPat + 1, &lpREGroupNextAuto);
 
