@@ -54,7 +54,7 @@ void _WinMain()
 
   //Test window create
   {
-    WNDCLASSW wndclass={0};
+    WNDCLASSW wndclass;
 
     wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
     wndclass.lpfnWndProc  =TestProc;
