@@ -281,7 +281,7 @@ int PatEscChar(const wchar_t **wppPat);
 DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPatChar);
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
 int PatRefIndex(const wchar_t **wppPat);
-INT_PTR PatRefMatch(STACKREGROUP *hStack, const wchar_t *wpStr, int nRefIndex);
+INT_PTR PatCmpStr(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr);
 REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const wchar_t *wpPatRight, REGROUP **lppREGroupNextAuto);
 BOOL PatIsInNonCapture(REGROUP *lpREGroupItem);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
@@ -297,7 +297,7 @@ void PatFree(STACKREGROUP *hStack);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
   BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
-  INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, const AECHARINDEX *ciMaxStr, int nRefIndex);
+  INT_PTR AE_PatCmpStr(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
   void AE_PatReset(STACKREGROUP *hStack);
 #endif
@@ -1308,11 +1308,14 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             else if (dwCmpResult & RECCE_REF)
             {
               nRefIndex=(int)xatoiW(wpPat, &wpPat);
-              nRefLen=PatRefMatch(hStack, wpStr, nRefIndex);
-              if (nRefLen == 1)
+              if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
               {
-                --wpPat;
-                goto ClassMatch;
+                nRefLen=PatCmpStr(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
+                if (nRefLen == 1)
+                {
+                  --wpPat;
+                  goto ClassMatch;
+                }
               }
               continue;
             }
@@ -1348,8 +1351,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           else if (dwCmpResult & RECCE_REF)
           {
             nRefIndex=(int)xatoiW(wpPat, &wpPat);
-            nRefLen=PatRefMatch(hStack, wpStr, nRefIndex);
-            if (!nRefLen) goto EndLoop;
+            if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+            {
+              nRefLen=PatCmpStr(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
+              if (!nRefLen) goto EndLoop;
+            }
+            else goto EndLoop;
+
             wpStr+=nRefLen;
             continue;
           }
@@ -1776,23 +1784,19 @@ int PatRefIndex(const wchar_t **wppPat)
   return nIndex;
 }
 
-INT_PTR PatRefMatch(STACKREGROUP *hStack, const wchar_t *wpStr, int nRefIndex)
+INT_PTR PatCmpStr(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr)
 {
-  REGROUP *lpREGroupRef;
-  INT_PTR nRefLen=0;
+  INT_PTR nStrLen1=wpStrEnd1 - wpStrStart1;
 
-  if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+  if (nStrLen1 >= 0 && nStrLen1 <= wpMaxStr - wpStrStart2 &&
+      ((dwFlags & REGF_MATCHCASE) ?
+       !xstrcmpnW(wpStrStart1, wpStrStart2, nStrLen1) :
+       !xstrcmpinW(wpStrStart1, wpStrStart2, nStrLen1)))
   {
-    nRefLen=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
-    if (nRefLen && ((lpREGroupRef->dwFlags & REGF_MATCHCASE)?
-                     (!xstrcmpnW(lpREGroupRef->wpStrStart, wpStr, nRefLen)) :
-                     (!xstrcmpinW(lpREGroupRef->wpStrStart, wpStr, nRefLen))))
-    {
-      //Matched
-    }
-    else nRefLen=0;
+    //Matched
+    return nStrLen1;
   }
-  return nRefLen;
+  return 0;
 }
 
 REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const wchar_t *wpPatRight, REGROUP **lppREGroupNextAuto)
@@ -2378,11 +2382,14 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             else if (dwCmpResult & RECCE_REF)
             {
               nRefIndex=(int)xatoiW(wpPat, &wpPat);
-              nRefLen=AE_PatRefMatch(hStack, &ciStr, NULL, &ciMaxStr, nRefIndex);
-              if (nRefLen == 1)
+              if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
               {
-                --wpPat;
-                goto ClassMatch;
+                nRefLen=AE_PatCmpStr(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, NULL, &ciMaxStr);
+                if (nRefLen == 1)
+                {
+                  --wpPat;
+                  goto ClassMatch;
+                }
               }
               continue;
             }
@@ -2419,8 +2426,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           else if (dwCmpResult & RECCE_REF)
           {
             nRefIndex=(int)xatoiW(wpPat, &wpPat);
-            nRefLen=AE_PatRefMatch(hStack, &ciStr, &ciStr, &ciMaxStr, nRefIndex);
-            if (!nRefLen) goto EndLoop;
+            if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+            {
+              nRefLen=AE_PatCmpStr(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, &ciStr, &ciMaxStr);
+              if (!nRefLen) goto EndLoop;
+            }
+            else goto EndLoop;
+
             nStrLen+=nRefLen;
             continue;
           }
@@ -2615,48 +2627,42 @@ AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
-INT_PTR AE_PatRefMatch(STACKREGROUP *hStack, const AECHARINDEX *ciStrIn, AECHARINDEX *ciStrOut, const AECHARINDEX *ciMaxStr, int nRefIndex)
+INT_PTR AE_PatCmpStr(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr)
 {
-  AECHARINDEX ciStrCount;
-  AECHARINDEX ciGroupCount;
-  REGROUP *lpREGroupRef;
-  INT_PTR nRefLen=0;
-  int nGroupChar;
-  int nStrChar;
+  AECHARINDEX ciStrCount1=*ciStrStart1;
+  AECHARINDEX ciStrCount2=*ciStrStart2;
+  INT_PTR nStrLen2=0;
+  int nStrChar1;
+  int nStrChar2;
 
-  if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
+  while (AEC_IndexCompare(&ciStrCount1, ciStrEnd1) < 0 && AEC_IndexCompare(&ciStrCount2, ciMaxStr) < 0)
   {
-    ciStrCount=*ciStrIn;
-    ciGroupCount=lpREGroupRef->ciStrStart;
+    nStrChar1=AE_PatStrChar(&ciStrCount1);
+    nStrChar2=AE_PatStrChar(&ciStrCount2);
+    if (nStrChar1 < 0) nStrChar1=L'\n';
+    if (nStrChar2 < 0) nStrChar2=L'\n';
 
-    while (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0 && AEC_IndexCompare(&ciStrCount, ciMaxStr) < 0)
+    if (((dwFlags & REGF_MATCHCASE) || nStrChar2 > MAXWORD || nStrChar1 > MAXWORD) ?
+         nStrChar2 != nStrChar1 :
+         WideCharLower((wchar_t)nStrChar2) != WideCharLower((wchar_t)nStrChar1))
     {
-      nStrChar=AE_PatStrChar(&ciStrCount);
-      nGroupChar=AE_PatStrChar(&ciGroupCount);
-      if (nStrChar < 0) nStrChar=L'\n';
-      if (nGroupChar < 0) nGroupChar=L'\n';
-
-      if (((lpREGroupRef->dwFlags & REGF_MATCHCASE) || nStrChar > MAXWORD || nGroupChar > MAXWORD) ?
-           nStrChar != nGroupChar :
-           WideCharLower((wchar_t)nStrChar) != WideCharLower((wchar_t)nGroupChar))
-      {
-        nRefLen=0;
-        goto End;
-      }
-
-      AEC_NextChar(&ciStrCount);
-      AEC_NextChar(&ciGroupCount);
-      if (nStrChar <= MAXWORD)
-        nRefLen+=1;
-      else
-        nRefLen+=2;
+      nStrLen2=0;
+      goto End;
     }
-    if (AEC_IndexCompare(&ciGroupCount, &lpREGroupRef->ciStrEnd) < 0)
-      nRefLen=0;
+
+    AEC_NextChar(&ciStrCount1);
+    AEC_NextChar(&ciStrCount2);
+    if (nStrChar2 <= MAXWORD)
+      nStrLen2+=1;
+    else
+      nStrLen2+=2;
   }
+  if (AEC_IndexCompare(&ciStrCount1, ciStrEnd1) < 0)
+    nStrLen2=0;
+
   End:
-  if (nRefLen && ciStrOut) *ciStrOut=ciStrCount;
-  return nRefLen;
+  if (nStrLen2 && ciStrEnd2) *ciStrEnd2=ciStrCount2;
+  return nStrLen2;
 }
 
 REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
