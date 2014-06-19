@@ -2603,8 +2603,7 @@ _______________  _______________  ________________
 Get procedure from main window subclass chain.
 
 (int)wParam            == index of procedure in chain.
-                          If positive search from top.
-                          If negative from beginning
+                          If positive search from first element, if negative from last element.
 (WNDPROCDATA **)lParam == procedure data.
 
 Return Value
@@ -2653,8 +2652,7 @@ __________________  __________________  ___________________
 Get return procedure from main window subclass chain. This procedure calls after message have been processed.
 
 (int)wParam               == index of procedure in chain.
-                             If positive search from top.
-                             If negative from beginning.
+                             If positive search from first element, if negative from last element.
 (WNDPROCRETDATA **)lParam == procedure data.
 
 Return Value
