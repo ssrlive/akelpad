@@ -763,10 +763,6 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         goto Error;
       if (!lpREGroupNew->nMinMatch && !lpREGroupNew->nMaxMatch)
         goto Error;
-      if ((DWORD)lpREGroupNew->nMaxMatch > 1 &&
-          ((lpREGroupNew->wpPatEnd - 1 >= lpREGroupNew->wpPatStart && (*(lpREGroupNew->wpPatEnd - 1) == L'$' || *(lpREGroupNew->wpPatEnd - 1) == L'^')) ||
-           (lpREGroupNew->wpPatEnd - 2 >= lpREGroupNew->wpPatStart && *(lpREGroupNew->wpPatEnd - 2) == L'\\' && (*(lpREGroupNew->wpPatEnd - 1) == L'b' || *(lpREGroupNew->wpPatEnd - 1) == L'B'))))
-        goto Error;
       if (lpREGroupNew->nMinMatch != 1 || lpREGroupNew->nMaxMatch != 1)
         lpREGroupNextAuto=lpREGroupNew;
       wpCharStart=NULL;

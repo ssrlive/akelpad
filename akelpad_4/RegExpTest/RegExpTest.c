@@ -166,10 +166,6 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"A[x]")) goto Error;
 
   nLine=__LINE__;
-  TextReplaceRE(L"ABC", L"(?^A|B)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"")) goto Error;
-
-  nLine=__LINE__;
   TextReplaceRE(L"abc", L"($a*)+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"abc[x]")) goto Error;
 
@@ -198,9 +194,11 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"[x] [x] cc")) goto Error;
 
   nLine=__LINE__;
-  TextReplaceRE(L"abc", L".*123)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"")) goto Error;
+  TextReplaceRE(L" 123 123 123x", L"( 123\\b)+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] 123x")) goto Error;
 
+
+  //Test compile errors
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;
@@ -327,6 +325,82 @@ void _WinMain()
 
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"(a)(?(1)b|c|d)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a(?=b)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a(?!b)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a(?<=b)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a(?<!b)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"?", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"{", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a{a}", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a{1,a}", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a{2,1}", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a{0}", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?<=a+)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?<!a+)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?^a+)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?a)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?<a)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L".*123)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;
 
   //Success
