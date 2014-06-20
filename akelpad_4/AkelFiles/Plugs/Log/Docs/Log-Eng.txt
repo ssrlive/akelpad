@@ -36,11 +36,11 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
       Regular expression pattern. Applied to each output line to jump to the text from the panel.
     "RETAGS"
       Pattern matches map.
-        /FILE=$1         file to jump.
-        /GOTOLINE=$2:$3  line and column to jump.
-        /GOTOBYTE=$2     byte offset to jump.
-        /GOTOCHAR=$2     character offset to jump.
-        /FRAME=$1        frame data handle to jump.
+        /FILE=\1         file to jump.
+        /GOTOLINE=\2:\3  line and column to jump.
+        /GOTOBYTE=\2     byte offset to jump.
+        /GOTOCHAR=\2     character offset to jump.
+        /FRAME=\1        frame data handle to jump.
     INPUTCODEPAGE
       Codepage of the input text for executed file.
       If -1, codepage will be autodetected.

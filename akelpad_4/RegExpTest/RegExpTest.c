@@ -329,10 +329,6 @@ void _WinMain()
   TextReplaceRE(L"abc", L"(a)(?(1)b|c|d)", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;
 
-  nLine=__LINE__;
-  TextReplaceRE(L"abc", L"(a)(?(1)|)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"")) goto Error;
-
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);
   goto Quit;
