@@ -76,6 +76,7 @@ typedef struct {
 
 
 //Functions prototypes
+DWORD WINAPI ThreadProc(LPVOID lpParameter);
 BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
@@ -86,6 +87,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
 wchar_t wszBuffer[BUFFER_SIZE];
 wchar_t wszAkelAdminPipe[32];
 HINSTANCE hInstance;
+HANDLE hThread=NULL;
+DWORD dwThreadId;
+DWORD dwExitCode=1;
+DWORD dwInitProcessId;
 HWND hPipeAkelAdmin;
 LANGID wLangModule=0;
 
@@ -113,7 +118,6 @@ void _WinMain()
   const wchar_t *pArguments=wpCmdLine;
   int nAction=0;
   int nExeDirLen;
-  DWORD dwExitCode=1;
 
   //Get program HINSTANCE
   hInstance=GetModuleHandleW(NULL);
@@ -142,236 +146,20 @@ void _WinMain()
           //Second argument is caller process id.
           if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
           {
-            HANDLE hPipeAkelAdmin;
-            HANDLE hMutex;
-            HMODULE hKernel32;
-            HMODULE hAdvApi32;
-            DWORD dwInitProcessId;
-            DWORD dwClientProcessId;
-
             dwInitProcessId=(DWORD)xatoiW(wszBuffer, NULL);
 
-            if (hMutex=OpenEventW(EVENT_MODIFY_STATE, FALSE, STR_AKELADMIN))
+            if (hThread=CreateThread(NULL, 0, ThreadProc, NULL, 0, &dwThreadId))
             {
-              wsprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMIN, dwInitProcessId);
+              //Wait for hThread and process messages to avoid busy cursor.
+              MSG msg;
 
-              //Get functions addresses
-              hKernel32=GetModuleHandleW(L"kernel32.dll");
-              GetNamedPipeClientProcessIdPtr=(BOOL (WINAPI *)(HANDLE, ULONG *))GetProcAddress(hKernel32, "GetNamedPipeClientProcessId");
-
-              hAdvApi32=GetModuleHandleW(L"advapi32.dll");
-              SetNamedSecurityInfoWPtr=(DWORD (WINAPI *)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetNamedSecurityInfoW");
-              SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
-              SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
-              ConvertStringSecurityDescriptorToSecurityDescriptorWPtr=(BOOL (WINAPI *)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *))GetProcAddress(hAdvApi32, "ConvertStringSecurityDescriptorToSecurityDescriptorW");
-              GetSecurityDescriptorSaclPtr=(BOOL (WINAPI *)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *))GetProcAddress(hAdvApi32, "GetSecurityDescriptorSacl");
-
-              if ((hPipeAkelAdmin=CreateNamedPipeW(wszAkelAdminPipe, PIPE_ACCESS_DUPLEX|PIPE_WAIT|WRITE_DAC, 0, PIPE_UNLIMITED_INSTANCES, sizeof(ADMINPIPE), sizeof(ADMINPIPE), 0, NULL)) != INVALID_HANDLE_VALUE)
+              while (MsgWaitForMultipleObjects(1, &hThread, FALSE, INFINITE, QS_ALLINPUT) != WAIT_OBJECT_0)
               {
-                ACL *pEveryoneACL=NULL;
-                EXPLICIT_ACCESSW eal[1];
-                SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
-                SID *pSIDEveryone=NULL;
-                SECURITY_DESCRIPTOR *psdCurrentFile=NULL;
-                wchar_t wszCurrentFile[MAX_PATH];
-                BOOL bChangeAccessResult=FALSE;
-
-                //Specify the DACL to use. Create a SID for the Everyone group.
-                if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
+                while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
                 {
-                  eal[0].grfAccessPermissions=GENERIC_ALL;
-                  eal[0].grfAccessMode=SET_ACCESS;
-                  eal[0].grfInheritance=NO_INHERITANCE;
-                  eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
-                  eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
-                  eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
-                  eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
-                  eal[0].Trustee.pMultipleTrustee=NULL;
-
-                  if (SetEntriesInAclWPtr(1, eal, NULL, &pEveryoneACL) == ERROR_SUCCESS)
-                  {
-                    if (SetSecurityInfoPtr(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) == ERROR_SUCCESS)
-                      bChangeAccessResult=TRUE;
-                  }
+                  TranslateMessage(&msg);
+                  DispatchMessageW(&msg);
                 }
-                if (!bChangeAccessResult)
-                  MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORSETPIPESECURITY), STR_AKELADMIN, MB_ICONERROR);
-
-                //Signal mutex
-                SetEvent(hMutex);
-
-                //Wait for client connect with CreateFile
-                for (;;)
-                {
-                  ADMINPIPE apipe;
-                  DWORD dwBytesRead;
-                  DWORD dwBytesWritten;
-                  BOOL bBreak=FALSE;
-
-                  //If a client connects before the ConnectNamedPipe is called, the function returns zero and GetLastError returns ERROR_PIPE_CONNECTED
-                  if (ConnectNamedPipe(hPipeAkelAdmin, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
-                  {
-                    //Wait for client WriteFile
-                    if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
-                    {
-                      apipe.dwExitCode=1;
-
-                      //Accept connection only from initial caller that runs this process
-                      if (!GetNamedPipeClientProcessIdPtr || (GetNamedPipeClientProcessIdPtr(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
-                      {
-                        if (apipe.nAction == AAA_EXIT)
-                        {
-                          //Unload process
-                          bBreak=TRUE;
-                          apipe.dwExitCode=0;
-                        }
-                        else if (apipe.nAction == AAA_CREATEFILE)
-                        {
-                          HANDLE hFile;
-
-                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                          //Create new file
-                          if ((hFile=CreateFileW(apipe.wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
-                          {
-                            CloseHandle(hFile);
-                            apipe.dwExitCode=0;
-                          }
-                          else
-                          {
-                            wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORCREATEFILE), apipe.wszFile);
-                            MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                          }
-                        }
-                        else if (apipe.nAction == AAA_SECURITYGET)
-                        {
-                          SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                                   GROUP_SECURITY_INFORMATION|
-                                                   LABEL_SECURITY_INFORMATION|
-                                                   OWNER_SECURITY_INFORMATION;
-                          DWORD dwSize=0;
-
-                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                          //Retrieve file security
-                          if (!psdCurrentFile)
-                          {
-                            GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
-
-                            if (dwSize)
-                            {
-                              if (psdCurrentFile=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
-                              {
-                                if (GetFileSecurityW(apipe.wszFile, ssi, psdCurrentFile, dwSize, &dwSize))
-                                {
-                                  lstrcpynW(wszCurrentFile, apipe.wszFile, MAX_PATH);
-                                  apipe.dwExitCode=0;
-                                }
-                                else
-                                {
-                                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
-                                  MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                                }
-                              }
-                            }
-
-                            if (apipe.dwExitCode)
-                            {
-                              GlobalFree(psdCurrentFile);
-                              psdCurrentFile=NULL;
-                            }
-                          }
-                        }
-                        else if (apipe.nAction == AAA_SECURITYSETEVERYONE)
-                        {
-                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                          //Decrease file security
-                          if (psdCurrentFile)
-                          {
-                            SECURITY_DESCRIPTOR *psdLowIntegrity=NULL;
-                            PACL pSacl=NULL;
-                            BOOL bSaclPresent=FALSE;
-                            BOOL bSaclDefaulted=FALSE;
-
-                            //Get medium integrity to allow write in file on disk root.
-                            if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(MEDIUM_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
-                              GetSecurityDescriptorSaclPtr(psdLowIntegrity, &bSaclPresent, &pSacl, &bSaclDefaulted);
-
-                            if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|LABEL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, pSacl) == ERROR_SUCCESS)
-                            {
-                              apipe.dwExitCode=0;
-                            }
-                            else
-                            {
-                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
-                              MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                            }
-                            if (psdLowIntegrity)
-                              LocalFree(psdLowIntegrity);
-                          }
-                        }
-                        else if (apipe.nAction == AAA_SECURITYRESTORE)
-                        {
-                          SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
-                                                   GROUP_SECURITY_INFORMATION|
-                                                   LABEL_SECURITY_INFORMATION|
-                                                   OWNER_SECURITY_INFORMATION;
-
-                          wLangModule=PRIMARYLANGID(apipe.dwLangModule);
-
-                          //Restore file security
-                          if (psdCurrentFile)
-                          {
-                            if (EnablePrivilege(SE_RESTORE_NAME, TRUE))
-                            {
-                             if (psdCurrentFile->Control & SE_DACL_AUTO_INHERITED)
-                               psdCurrentFile->Control|=SE_DACL_AUTO_INHERIT_REQ;
-                             if (psdCurrentFile->Control & SE_SACL_AUTO_INHERITED)
-                               psdCurrentFile->Control|=SE_SACL_AUTO_INHERIT_REQ;
-
-                              if (SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
-                              {
-                                apipe.dwExitCode=0;
-                              }
-                              else
-                              {
-                                wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
-                                MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                              }
-                              EnablePrivilege(SE_RESTORE_NAME, FALSE);
-                            }
-                            else
-                            {
-                              wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETPRIVILEGE), wszCurrentFile);
-                              MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
-                            }
-                          }
-                        }
-                        else if (apipe.nAction == AAA_SECURITYFREE)
-                        {
-                          //Free security buffer
-                          if (psdCurrentFile)
-                          {
-                            GlobalFree(psdCurrentFile);
-                            psdCurrentFile=NULL;
-                            apipe.dwExitCode=0;
-                          }
-                        }
-                      }
-                      WriteFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
-                      FlushFileBuffers(hPipeAkelAdmin);
-                    }
-                    DisconnectNamedPipe(hPipeAkelAdmin);
-                    if (bBreak) break;
-                  }
-                }
-                dwExitCode=0;
-
-                if (psdCurrentFile) GlobalFree(psdCurrentFile);
-                if (pEveryoneACL) LocalFree(pEveryoneACL);
-                if (pSIDEveryone) FreeSid(pSIDEveryone);
-                CloseHandle(hPipeAkelAdmin);
               }
             }
           }
@@ -385,6 +173,246 @@ void _WinMain()
   else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORWIN), STR_AKELADMIN, MB_ICONEXCLAMATION);
 
   ExitProcess(dwExitCode);
+}
+
+DWORD WINAPI ThreadProc(LPVOID lpParameter)
+{
+  HANDLE hPipeAkelAdmin;
+  HANDLE hMutex;
+  HMODULE hKernel32;
+  HMODULE hAdvApi32;
+  DWORD dwClientProcessId;
+
+  if (hMutex=OpenEventW(EVENT_MODIFY_STATE, FALSE, STR_AKELADMIN))
+  {
+    wsprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMIN, dwInitProcessId);
+
+    //Get functions addresses
+    hKernel32=GetModuleHandleW(L"kernel32.dll");
+    GetNamedPipeClientProcessIdPtr=(BOOL (WINAPI *)(HANDLE, ULONG *))GetProcAddress(hKernel32, "GetNamedPipeClientProcessId");
+
+    hAdvApi32=GetModuleHandleW(L"advapi32.dll");
+    SetNamedSecurityInfoWPtr=(DWORD (WINAPI *)(wchar_t *, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetNamedSecurityInfoW");
+    SetSecurityInfoPtr=(DWORD (WINAPI *)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION, PSID, PSID, PACL, PACL))GetProcAddress(hAdvApi32, "SetSecurityInfo");
+    SetEntriesInAclWPtr=(DWORD (WINAPI *)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *))GetProcAddress(hAdvApi32, "SetEntriesInAclW");
+    ConvertStringSecurityDescriptorToSecurityDescriptorWPtr=(BOOL (WINAPI *)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *))GetProcAddress(hAdvApi32, "ConvertStringSecurityDescriptorToSecurityDescriptorW");
+    GetSecurityDescriptorSaclPtr=(BOOL (WINAPI *)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *))GetProcAddress(hAdvApi32, "GetSecurityDescriptorSacl");
+
+    if ((hPipeAkelAdmin=CreateNamedPipeW(wszAkelAdminPipe, PIPE_ACCESS_DUPLEX|PIPE_WAIT|WRITE_DAC, 0, PIPE_UNLIMITED_INSTANCES, sizeof(ADMINPIPE), sizeof(ADMINPIPE), 0, NULL)) != INVALID_HANDLE_VALUE)
+    {
+      ACL *pEveryoneACL=NULL;
+      EXPLICIT_ACCESSW eal[1];
+      SID_IDENTIFIER_AUTHORITY SIDAuthWorld=SECURITY_WORLD_SID_AUTHORITY;
+      SID *pSIDEveryone=NULL;
+      SECURITY_DESCRIPTOR *psdCurrentFile=NULL;
+      wchar_t wszCurrentFile[MAX_PATH];
+      BOOL bChangeAccessResult=FALSE;
+
+      //Specify the DACL to use. Create a SID for the Everyone group.
+      if (AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, (void **)&pSIDEveryone))
+      {
+        eal[0].grfAccessPermissions=GENERIC_ALL;
+        eal[0].grfAccessMode=SET_ACCESS;
+        eal[0].grfInheritance=NO_INHERITANCE;
+        eal[0].Trustee.TrusteeForm=TRUSTEE_IS_SID;
+        eal[0].Trustee.TrusteeType=TRUSTEE_IS_WELL_KNOWN_GROUP;
+        eal[0].Trustee.ptstrName=(wchar_t *)pSIDEveryone;
+        eal[0].Trustee.MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
+        eal[0].Trustee.pMultipleTrustee=NULL;
+
+        if (SetEntriesInAclWPtr(1, eal, NULL, &pEveryoneACL) == ERROR_SUCCESS)
+        {
+          if (SetSecurityInfoPtr(hPipeAkelAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, NULL) == ERROR_SUCCESS)
+            bChangeAccessResult=TRUE;
+        }
+      }
+      if (!bChangeAccessResult)
+        MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORSETPIPESECURITY), STR_AKELADMIN, MB_ICONERROR);
+
+      //Signal mutex
+      SetEvent(hMutex);
+
+      //Wait for client connect with CreateFile
+      for (;;)
+      {
+        ADMINPIPE apipe;
+        DWORD dwBytesRead;
+        DWORD dwBytesWritten;
+        BOOL bBreak=FALSE;
+
+        //If a client connects before the ConnectNamedPipe is called, the function returns zero and GetLastError returns ERROR_PIPE_CONNECTED
+        if (ConnectNamedPipe(hPipeAkelAdmin, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
+        {
+          //Wait for client WriteFile
+          if (ReadFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesRead, NULL))
+          {
+            apipe.dwExitCode=1;
+
+            //Accept connection only from initial caller that runs this process
+            if (!GetNamedPipeClientProcessIdPtr || (GetNamedPipeClientProcessIdPtr(hPipeAkelAdmin, &dwClientProcessId) && dwClientProcessId == dwInitProcessId))
+            {
+              if (apipe.nAction == AAA_EXIT)
+              {
+                //Unload process
+                bBreak=TRUE;
+                apipe.dwExitCode=0;
+              }
+              else if (apipe.nAction == AAA_CREATEFILE)
+              {
+                HANDLE hFile;
+
+                wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                //Create new file
+                if ((hFile=CreateFileW(apipe.wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+                {
+                  CloseHandle(hFile);
+                  apipe.dwExitCode=0;
+                }
+                else
+                {
+                  wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORCREATEFILE), apipe.wszFile);
+                  MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                }
+              }
+              else if (apipe.nAction == AAA_SECURITYGET)
+              {
+                SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                         GROUP_SECURITY_INFORMATION|
+                                         LABEL_SECURITY_INFORMATION|
+                                         OWNER_SECURITY_INFORMATION;
+                DWORD dwSize=0;
+
+                wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                //Retrieve file security
+                if (!psdCurrentFile)
+                {
+                  GetFileSecurityW(apipe.wszFile, ssi, NULL, 0, &dwSize);
+
+                  if (dwSize)
+                  {
+                    if (psdCurrentFile=(SECURITY_DESCRIPTOR *)GlobalAlloc(GMEM_FIXED, dwSize))
+                    {
+                      if (GetFileSecurityW(apipe.wszFile, ssi, psdCurrentFile, dwSize, &dwSize))
+                      {
+                        lstrcpynW(wszCurrentFile, apipe.wszFile, MAX_PATH);
+                        apipe.dwExitCode=0;
+                      }
+                      else
+                      {
+                        wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETFILESECURITY), apipe.wszFile);
+                        MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                      }
+                    }
+                  }
+
+                  if (apipe.dwExitCode)
+                  {
+                    GlobalFree(psdCurrentFile);
+                    psdCurrentFile=NULL;
+                  }
+                }
+              }
+              else if (apipe.nAction == AAA_SECURITYSETEVERYONE)
+              {
+                wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                //Decrease file security
+                if (psdCurrentFile)
+                {
+                  SECURITY_DESCRIPTOR *psdLowIntegrity=NULL;
+                  PACL pSacl=NULL;
+                  BOOL bSaclPresent=FALSE;
+                  BOOL bSaclDefaulted=FALSE;
+
+                  //Get medium integrity to allow write in file on disk root.
+                  if (ConvertStringSecurityDescriptorToSecurityDescriptorWPtr(MEDIUM_INTEGRITY_SDDL_SACL_W, SDDL_REVISION_1, &psdLowIntegrity, NULL))
+                    GetSecurityDescriptorSaclPtr(psdLowIntegrity, &bSaclPresent, &pSacl, &bSaclDefaulted);
+
+                  if (SetNamedSecurityInfoWPtr(apipe.wszFile, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|LABEL_SECURITY_INFORMATION, NULL, NULL, pEveryoneACL, pSacl) == ERROR_SUCCESS)
+                  {
+                    apipe.dwExitCode=0;
+                  }
+                  else
+                  {
+                    wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), apipe.wszFile);
+                    MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                  }
+                  if (psdLowIntegrity)
+                    LocalFree(psdLowIntegrity);
+                }
+              }
+              else if (apipe.nAction == AAA_SECURITYRESTORE)
+              {
+                SECURITY_INFORMATION ssi=DACL_SECURITY_INFORMATION|
+                                         GROUP_SECURITY_INFORMATION|
+                                         LABEL_SECURITY_INFORMATION|
+                                         OWNER_SECURITY_INFORMATION;
+
+                wLangModule=PRIMARYLANGID(apipe.dwLangModule);
+
+                //Restore file security
+                if (psdCurrentFile)
+                {
+                  if (EnablePrivilege(SE_RESTORE_NAME, TRUE))
+                  {
+                   if (psdCurrentFile->Control & SE_DACL_AUTO_INHERITED)
+                     psdCurrentFile->Control|=SE_DACL_AUTO_INHERIT_REQ;
+                   if (psdCurrentFile->Control & SE_SACL_AUTO_INHERITED)
+                     psdCurrentFile->Control|=SE_SACL_AUTO_INHERIT_REQ;
+
+                    if (SetFileSecurityW(wszCurrentFile, ssi, psdCurrentFile))
+                    {
+                      apipe.dwExitCode=0;
+                    }
+                    else
+                    {
+                      wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORSETFILESECURITY), wszCurrentFile);
+                      MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                    }
+                    EnablePrivilege(SE_RESTORE_NAME, FALSE);
+                  }
+                  else
+                  {
+                    wsprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ERRORGETPRIVILEGE), wszCurrentFile);
+                    MessageBoxW(NULL, wszBuffer, STR_AKELADMIN, MB_ICONERROR);
+                  }
+                }
+              }
+              else if (apipe.nAction == AAA_SECURITYFREE)
+              {
+                //Free security buffer
+                if (psdCurrentFile)
+                {
+                  GlobalFree(psdCurrentFile);
+                  psdCurrentFile=NULL;
+                  apipe.dwExitCode=0;
+                }
+              }
+            }
+            WriteFile(hPipeAkelAdmin, &apipe, sizeof(ADMINPIPE), &dwBytesWritten, NULL);
+            FlushFileBuffers(hPipeAkelAdmin);
+          }
+          DisconnectNamedPipe(hPipeAkelAdmin);
+          if (bBreak) break;
+        }
+      }
+      dwExitCode=0;
+
+      if (psdCurrentFile) GlobalFree(psdCurrentFile);
+      if (pEveryoneACL) LocalFree(pEveryoneACL);
+      if (pSIDEveryone) FreeSid(pSIDEveryone);
+      CloseHandle(hPipeAkelAdmin);
+    }
+  }
+
+  if (hThread)
+  {
+    CloseHandle(hThread);
+    hThread=NULL;
+  }
+  return 0;
 }
 
 BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable)
