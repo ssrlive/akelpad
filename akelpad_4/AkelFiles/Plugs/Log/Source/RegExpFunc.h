@@ -281,7 +281,7 @@ int PatEscChar(const wchar_t **wppPat);
 DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPatChar);
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
 int PatRefIndex(const wchar_t **wppPat);
-INT_PTR PatCmpStr(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr);
+INT_PTR PatStrCmp(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr);
 REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const wchar_t *wpPatRight, REGROUP **lppREGroupNextAuto);
 BOOL PatIsInNonCapture(REGROUP *lpREGroupItem);
 REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
@@ -297,7 +297,7 @@ void PatFree(STACKREGROUP *hStack);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
   BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
-  INT_PTR AE_PatCmpStr(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
+  INT_PTR AE_PatStrCmp(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
   void AE_PatReset(STACKREGROUP *hStack);
 #endif
@@ -1305,7 +1305,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               nRefIndex=(int)xatoiW(wpPat, &wpPat);
               if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
               {
-                nRefLen=PatCmpStr(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
+                nRefLen=PatStrCmp(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
                 if (nRefLen == 1)
                 {
                   --wpPat;
@@ -1348,7 +1348,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             nRefIndex=(int)xatoiW(wpPat, &wpPat);
             if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
             {
-              nRefLen=PatCmpStr(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
+              nRefLen=PatStrCmp(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
               if (!nRefLen) goto EndLoop;
             }
             else goto EndLoop;
@@ -1779,7 +1779,7 @@ int PatRefIndex(const wchar_t **wppPat)
   return nIndex;
 }
 
-INT_PTR PatCmpStr(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr)
+INT_PTR PatStrCmp(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr)
 {
   INT_PTR nStrLen1=wpStrEnd1 - wpStrStart1;
 
@@ -2379,7 +2379,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               nRefIndex=(int)xatoiW(wpPat, &wpPat);
               if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
               {
-                nRefLen=AE_PatCmpStr(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, NULL, &ciMaxStr);
+                nRefLen=AE_PatStrCmp(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, NULL, &ciMaxStr);
                 if (nRefLen == 1)
                 {
                   --wpPat;
@@ -2423,7 +2423,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             nRefIndex=(int)xatoiW(wpPat, &wpPat);
             if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
             {
-              nRefLen=AE_PatCmpStr(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, &ciStr, &ciMaxStr);
+              nRefLen=AE_PatStrCmp(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, &ciStr, &ciMaxStr);
               if (!nRefLen) goto EndLoop;
             }
             else goto EndLoop;
@@ -2622,7 +2622,7 @@ AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
-INT_PTR AE_PatCmpStr(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr)
+INT_PTR AE_PatStrCmp(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr)
 {
   AECHARINDEX ciStrCount1=*ciStrStart1;
   AECHARINDEX ciStrCount2=*ciStrStart2;
