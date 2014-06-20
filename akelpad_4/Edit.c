@@ -8018,7 +8018,7 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             if (*wpCount == L':')
             {
               //Drive letter
-              if (wszFile + 1 == wpCount && (*(wpCount + 1) == L'\\' || *(wpCount + 1) == L'/'))
+              if ((wszFile + 1 == wpCount && (*(wpCount + 1) == L'\\' || *(wpCount + 1) == L'/')) || *(wpCount + 1) == L'\0')
                 continue;
 
               //Stream
