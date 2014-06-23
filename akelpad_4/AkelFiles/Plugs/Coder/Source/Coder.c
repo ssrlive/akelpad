@@ -5661,6 +5661,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041F\x043E\x043A\x0430\x0437\x0430\x0442\x044C\x0020\x043F\x043E\x0441\x043B\x0435";
     if (nStringID == STRID_AFTERCHAR_POST)
       return L"\x0441\x0438\x043C\x0432\x043E\x043B\x043E\x0432";
+    if (nStringID == STRID_TRANSPARENCY)
+      return L"\x041F\x0440\x043E\x0437\x0440\x0430\x0447\x043D\x043E\x0441\x0442\x044C";
+    if (nStringID == STRID_ALPHA)
+      return L"\x0410\x043B\x044C\x0444\x0430";
     if (nStringID == STRID_HOTKEYS)
       return L"\x0413\x043E\x0440\x044F\x0447\x0438\x0435\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438";
     if (nStringID == STRID_COMPLETEWITHLIST)
@@ -5877,6 +5881,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Show after";
     if (nStringID == STRID_AFTERCHAR_POST)
       return L"characters";
+    if (nStringID == STRID_TRANSPARENCY)
+      return L"Transparency";
+    if (nStringID == STRID_ALPHA)
+      return L"Alpha";
     if (nStringID == STRID_HOTKEYS)
       return L"Hotkeys";
     if (nStringID == STRID_COMPLETEWITHLIST)

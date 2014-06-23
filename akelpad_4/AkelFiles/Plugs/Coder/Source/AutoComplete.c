@@ -28,6 +28,8 @@ WNDPROC OldListBoxProc=NULL;
 HHOOK hHook=NULL;
 BOOL bAutoListEnable=TRUE;
 int nAutoListAfter=2;
+BOOL bAlphaListEnable=FALSE;
+int nAlphaListValue=220;
 int nCompleteWithoutListAfter=2;
 BOOL bOneWithoutListAndCompleteNext=TRUE;
 DWORD dwCompleteWithList=544;  //"Ctrl+Space"
@@ -56,6 +58,7 @@ PLUGINFUNCTION *pfwCompleteWithList=NULL;
 PLUGINFUNCTION *pfwCompleteWithoutList=NULL;
 PLUGINFUNCTION *pfwCompleteNext=NULL;
 PLUGINFUNCTION *pfwCompletePrev=NULL;
+BOOL (WINAPI *SetLayeredWindowAttributesPtr)(HWND, COLORREF, BYTE, DWORD);
 
 
 //Plugin extern function
@@ -165,6 +168,10 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static HWND hWndAutoListPostLabel;
   static HWND hWndAutoListAfter;
   static HWND hWndAutoListAfterSpin;
+  static HWND hWndAlphaListEnable;
+  static HWND hWndAlphaListLabel;
+  static HWND hWndAlphaListValue;
+  static HWND hWndAlphaListValueSpin;
   static HWND hWndCompleteWithList;
   static HWND hWndCompleteWithoutList;
   static HWND hWndCompleteWithoutListAfter;
@@ -172,17 +179,28 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static HWND hWndCompleteNextCheck;
   static HWND hWndCompleteNext;
   static HWND hWndCompletePrev;
+  static BOOL bAutoListEnableDlg;
+  static BOOL bAlphaListEnableDlg;
+  static BOOL bOneWithoutListAndCompleteNextDlg;
   static BOOL bInitDialog;
+  static BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
     bInitDialog=TRUE;
+    bAutoListEnableDlg=bAutoListEnable;
+    bAlphaListEnableDlg=bAlphaListEnable;
+    bOneWithoutListAndCompleteNextDlg=bOneWithoutListAndCompleteNext;
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndAutoListEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_ENABLE);
     hWndAutoListPreLabel=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_PRELABEL);
     hWndAutoListPostLabel=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_POSTLABEL);
     hWndAutoListAfter=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER);
     hWndAutoListAfterSpin=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_SPIN);
+    hWndAlphaListEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALIST_ENABLE);
+    hWndAlphaListLabel=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE_LABEL);
+    hWndAlphaListValue=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE);
+    hWndAlphaListValueSpin=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE_SPIN);
     hWndCompleteWithList=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHLIST);
     hWndCompleteWithoutList=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLIST);
     hWndCompleteWithoutListAfter=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLISTAFTER);
@@ -191,6 +209,13 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     hWndCompleteNext=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETENEXT);
     hWndCompletePrev=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEPREV);
 
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_GROUP, GetLangStringW(wLangModule, STRID_AUTOLIST));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_ENABLE, GetLangStringW(wLangModule, STRID_ENABLE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_PRELABEL, GetLangStringW(wLangModule, STRID_AUTOLIST_PRE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_POSTLABEL, GetLangStringW(wLangModule, STRID_AFTERCHAR_POST));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALIST_GROUP, GetLangStringW(wLangModule, STRID_TRANSPARENCY));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALIST_ENABLE, GetLangStringW(wLangModule, STRID_ENABLE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE_LABEL, GetLangStringW(wLangModule, STRID_ALPHA));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYGROUP, GetLangStringW(wLangModule, STRID_HOTKEYS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHLIST_LABEL, GetLangStringW(wLangModule, STRID_COMPLETEWITHLIST));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLIST_LABEL, GetLangStringW(wLangModule, STRID_COMPLETEWITHOUTLIST));
@@ -198,17 +223,18 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLISTAFTER_POSTLABEL, GetLangStringW(wLangModule, STRID_AFTERCHAR_POST));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETENEXT_CHECK, GetLangStringW(wLangModule, STRID_COMPLETENEXT));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEPREV_LABEL, GetLangStringW(wLangModule, STRID_COMPLETEPREV));
-    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_GROUP, GetLangStringW(wLangModule, STRID_AUTOLIST));
-    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_ENABLE, GetLangStringW(wLangModule, STRID_ENABLE));
-    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_PRELABEL, GetLangStringW(wLangModule, STRID_AUTOLIST_PRE));
-    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER_POSTLABEL, GetLangStringW(wLangModule, STRID_AFTERCHAR_POST));
 
-    if (bAutoListEnable) SendMessage(hWndAutoListEnable, BM_SETCHECK, BST_CHECKED, 0);
+    if (bAutoListEnableDlg) SendMessage(hWndAutoListEnable, BM_SETCHECK, BST_CHECKED, 0);
     SendMessage(hWndAutoListAfterSpin, UDM_SETBUDDY, (WPARAM)hWndAutoListAfter, 0);
     SendMessage(hWndAutoListAfterSpin, UDM_SETRANGE, 0, MAKELONG(99, 1));
     SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER, nAutoListAfter, FALSE);
 
-    if (bOneWithoutListAndCompleteNext) SendMessage(hWndCompleteNextCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (bAlphaListEnableDlg) SendMessage(hWndAlphaListEnable, BM_SETCHECK, BST_CHECKED, 0);
+    SendMessage(hWndAlphaListValueSpin, UDM_SETBUDDY, (WPARAM)hWndAlphaListValue, 0);
+    SendMessage(hWndAlphaListValueSpin, UDM_SETRANGE, 0, MAKELONG(255, 0));
+    SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE, nAlphaListValue, FALSE);
+
+    if (bOneWithoutListAndCompleteNextDlg) SendMessage(hWndCompleteNextCheck, BM_SETCHECK, BST_CHECKED, 0);
     SendMessage(hWndCompleteWithoutListAfterSpin, UDM_SETBUDDY, (WPARAM)hWndCompleteWithoutListAfter, 0);
     SendMessage(hWndCompleteWithoutListAfterSpin, UDM_SETRANGE, 0, MAKELONG(99, 1));
     SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLISTAFTER, nCompleteWithoutListAfter, FALSE);
@@ -222,6 +248,7 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndCompletePrev, pfwCompletePrev?dwCompletePrev:0);
 
     SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_AUTOLIST_ENABLE, 0);
+    SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_ALPHALIST_ENABLE, 0);
     SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETENEXT_CHECK, 0);
     bInitDialog=FALSE;
   }
@@ -242,17 +269,30 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
     if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_AUTOLIST_ENABLE)
     {
-      bAutoListEnable=(BOOL)SendMessage(hWndAutoListEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndAutoListAfter, bAutoListEnable);
-      EnableWindow(hWndAutoListAfterSpin, bAutoListEnable);
-      EnableWindow(hWndAutoListPreLabel, bAutoListEnable);
-      EnableWindow(hWndAutoListPostLabel, bAutoListEnable);
+      bAutoListEnableDlg=(BOOL)SendMessage(hWndAutoListEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndAutoListAfter, bAutoListEnableDlg);
+      EnableWindow(hWndAutoListAfterSpin, bAutoListEnableDlg);
+      EnableWindow(hWndAutoListPreLabel, bAutoListEnableDlg);
+      EnableWindow(hWndAutoListPostLabel, bAutoListEnableDlg);
+    }
+    else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ALPHALIST_ENABLE)
+    {
+      bAlphaListEnableDlg=(BOOL)SendMessage(hWndAlphaListEnable, BM_GETCHECK, 0, 0);
+      bState=bAlphaListEnableDlg;
+      if (!SetLayeredWindowAttributesPtr)
+      {
+        bState=FALSE;
+        EnableWindow(hWndAlphaListEnable, FALSE);
+      }
+      EnableWindow(hWndAlphaListValue, bState);
+      EnableWindow(hWndAlphaListValueSpin, bState);
+      EnableWindow(hWndAlphaListLabel, bState);
     }
     else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLIST)
     {
       WORD dwHotkey;
 
-      if (bOneWithoutListAndCompleteNext)
+      if (bOneWithoutListAndCompleteNextDlg)
       {
         dwHotkey=(WORD)SendMessage(hWndCompleteWithoutList, HKM_GETHOTKEY, 0, 0);
         SendMessage(hWndCompleteNext, HKM_SETHOTKEY, dwHotkey, 0);
@@ -260,13 +300,13 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     }
     else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETENEXT_CHECK)
     {
-      bOneWithoutListAndCompleteNext=(BOOL)SendMessage(hWndCompleteNextCheck, BM_GETCHECK, 0, 0);
+      bOneWithoutListAndCompleteNextDlg=(BOOL)SendMessage(hWndCompleteNextCheck, BM_GETCHECK, 0, 0);
 
-      if (bOneWithoutListAndCompleteNext)
+      if (bOneWithoutListAndCompleteNextDlg)
         SendMessage(hWndCompleteNext, HKM_SETHOTKEY, dwCompleteWithoutList, 0);
       else
         SendMessage(hWndCompleteNext, HKM_SETHOTKEY, dwCompleteNext, 0);
-      EnableWindow(hWndCompleteNext, !bOneWithoutListAndCompleteNext);
+      EnableWindow(hWndCompleteNext, !bOneWithoutListAndCompleteNextDlg);
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -280,12 +320,20 @@ BOOL CALLBACK AutoCompleteSetup1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     {
       PSHNOTIFY *pshn=(PSHNOTIFY *)lParam;
 
+      bAutoListEnable=bAutoListEnableDlg;
       nAutoListAfter=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_AUTOLISTAFTER, NULL, FALSE);
+
+      bAlphaListEnable=bAlphaListEnableDlg;
+      nAlphaListValue=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_ALPHALISTVALUE, NULL, FALSE);
+      if (nAlphaListValue < 0) nAlphaListValue=0;
+      if (nAlphaListValue > 255) nAlphaListValue=255;
+      if (nAlphaListValue == 0 || nAlphaListValue == 255) bAlphaListEnable=FALSE;
 
       nCompleteWithoutListAfter=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_HOTKEYCOMPLETEWITHOUTLISTAFTER, NULL, FALSE);
 
       dwCompleteWithList=(WORD)SendMessage(hWndCompleteWithList, HKM_GETHOTKEY, 0, 0);
       dwCompleteWithoutList=(WORD)SendMessage(hWndCompleteWithoutList, HKM_GETHOTKEY, 0, 0);
+      bOneWithoutListAndCompleteNext=bOneWithoutListAndCompleteNextDlg;
       if (!bOneWithoutListAndCompleteNext)
         dwCompleteNext=(WORD)SendMessage(hWndCompleteNext, HKM_GETHOTKEY, 0, 0);
       dwCompletePrev=(WORD)SendMessage(hWndCompletePrev, HKM_GETHOTKEY, 0, 0);
@@ -324,11 +372,17 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static HWND hWndAddHighLightWords;
   static HWND hWndRightDelimitersEnable;
   static HWND hWndSyntaxDelimitersEnable;
+  static BOOL bAddDocumentWordsDlg;
+  static BOOL bMaxDocumentEnableDlg;
+  static BOOL bCompleteNonSyntaxDocumentDlg;
   static BOOL bInitDialog;
 
   if (uMsg == WM_INITDIALOG)
   {
     bInitDialog=TRUE;
+    bAddDocumentWordsDlg=bAddDocumentWords;
+    bMaxDocumentEnableDlg=bMaxDocumentEnable;
+    bCompleteNonSyntaxDocumentDlg=bCompleteNonSyntaxDocument;
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndAddDocumentWords=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS);
     hWndCompleteNonSyntaxDocument=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT);
@@ -350,10 +404,10 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_RIGHTDELIMITERS_ENABLE, GetLangStringW(wLangModule, STRID_RIGHTDELIMITERS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_SYNTAXDELIMITERS_ENABLE, GetLangStringW(wLangModule, STRID_SYNTAXDELIMITERS));
 
-    if (bAddDocumentWords) SendMessage(hWndAddDocumentWords, BM_SETCHECK, BST_CHECKED, 0);
-    if (bMaxDocumentEnable) SendMessage(hWndMaxDocumentEnable, BM_SETCHECK, BST_CHECKED, 0);
+    if (bAddDocumentWordsDlg) SendMessage(hWndAddDocumentWords, BM_SETCHECK, BST_CHECKED, 0);
+    if (bMaxDocumentEnableDlg) SendMessage(hWndMaxDocumentEnable, BM_SETCHECK, BST_CHECKED, 0);
     SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, nMaxDocumentChars, FALSE);
-    if (bCompleteNonSyntaxDocument) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCompleteNonSyntaxDocumentDlg) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveTypedCase) SendMessage(hWndSaveTypedCase, BM_SETCHECK, BST_CHECKED, 0);
 
     if (bAddHighLightWords) SendMessage(hWndAddHighLightWords, BM_SETCHECK, BST_CHECKED, 0);
@@ -382,14 +436,14 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE ||
         LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT)
     {
-      bAddDocumentWords=(BOOL)SendMessage(hWndAddDocumentWords, BM_GETCHECK, 0, 0);
-      bMaxDocumentEnable=(BOOL)SendMessage(hWndMaxDocumentEnable, BM_GETCHECK, 0, 0);
-      bCompleteNonSyntaxDocument=(BOOL)SendMessage(hWndCompleteNonSyntaxDocument, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndMaxDocumentEnable, bAddDocumentWords);
-      EnableWindow(hWndMaxDocumentChars, bAddDocumentWords && bMaxDocumentEnable);
-      EnableWindow(hWndMaxDocumentPostLabel, bAddDocumentWords && bMaxDocumentEnable);
-      EnableWindow(hWndCompleteNonSyntaxDocument, bAddDocumentWords);
-      EnableWindow(hWndSaveTypedCase, bAddDocumentWords && bCompleteNonSyntaxDocument);
+      bAddDocumentWordsDlg=(BOOL)SendMessage(hWndAddDocumentWords, BM_GETCHECK, 0, 0);
+      bMaxDocumentEnableDlg=(BOOL)SendMessage(hWndMaxDocumentEnable, BM_GETCHECK, 0, 0);
+      bCompleteNonSyntaxDocumentDlg=(BOOL)SendMessage(hWndCompleteNonSyntaxDocument, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndMaxDocumentEnable, bAddDocumentWordsDlg);
+      EnableWindow(hWndMaxDocumentChars, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
+      EnableWindow(hWndMaxDocumentPostLabel, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
+      EnableWindow(hWndCompleteNonSyntaxDocument, bAddDocumentWordsDlg);
+      EnableWindow(hWndSaveTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg);
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -403,6 +457,9 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     {
       PSHNOTIFY *pshn=(PSHNOTIFY *)lParam;
 
+      bAddDocumentWords=bAddDocumentWordsDlg;
+      bMaxDocumentEnable=bMaxDocumentEnableDlg;
+      bCompleteNonSyntaxDocument=bCompleteNonSyntaxDocumentDlg;
       nMaxDocumentChars=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, NULL, FALSE);
       bSaveTypedCase=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
 
@@ -437,7 +494,18 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 {
   static BOOL bTextTypeChar;
 
-  if (uMsg == WM_COMMAND)
+  if (uMsg == AKDN_FRAME_ACTIVATE)
+  {
+    if (hWndAutoComplete)
+      SendMessage(hWndAutoComplete, WM_CLOSE, 0, 0);
+
+    if (lpCurrentBlockElement)
+    {
+      StackResetHotSpot(lpCurrentBlockElement);
+      lpCurrentBlockElement=NULL;
+    }
+  }
+  else if (uMsg == WM_COMMAND)
   {
     if (LOWORD(wParam) == ID_EDIT || (HWND)*lResult)
     {
@@ -1176,7 +1244,7 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
   {
     if (!wszTitlePart[0] || lpBlockInfo)
     {
-      hWndAutoComplete=CreateWindowExWide(0,
+      hWndAutoComplete=CreateWindowExWide((bAlphaListEnable && SetLayeredWindowAttributesPtr)?WS_EX_LAYERED:0,
                             AUTOCOMPLETEW,
                             NULL,
                             WS_POPUP|WS_THICKFRAME,
@@ -1196,6 +1264,12 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
         nIndex=wszTitlePart[0]?0:-1;
         SetSelListbox(nIndex);
         ShowWindow(hWndAutoComplete, SW_SHOWNOACTIVATE);
+        if (bAlphaListEnable && SetLayeredWindowAttributesPtr)
+        {
+          SetLayeredWindowAttributesPtr(hWndAutoComplete, 0, 0, LWA_ALPHA);
+          UpdateWindow(hWndAutoComplete);
+          SetLayeredWindowAttributesPtr(hWndAutoComplete, 0, (BYTE)nAlphaListValue, LWA_ALPHA);
+        }
 
         bFirstListBoxKey=TRUE;
         hHook=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetWindowThreadProcessId(hWndEdit, NULL));
@@ -2208,6 +2282,8 @@ void ReadAutoCompleteOptions(HANDLE hOptions)
 {
   WideOption(hOptions, L"AutoListEnable", PO_DWORD, (LPBYTE)&bAutoListEnable, sizeof(DWORD));
   WideOption(hOptions, L"AutoListAfter", PO_DWORD, (LPBYTE)&nAutoListAfter, sizeof(DWORD));
+  WideOption(hOptions, L"AlphaListEnable", PO_DWORD, (LPBYTE)&bAlphaListEnable, sizeof(DWORD));
+  WideOption(hOptions, L"AlphaListValue", PO_DWORD, (LPBYTE)&nAlphaListValue, sizeof(DWORD));
   WideOption(hOptions, L"AutoCompleteWindowRect", PO_BINARY, (LPBYTE)&rcAutoComplete, sizeof(RECT));
   WideOption(hOptions, L"CompleteWithList", PO_DWORD, (LPBYTE)&dwCompleteWithList, sizeof(DWORD));
   WideOption(hOptions, L"CompleteWithoutList", PO_DWORD, (LPBYTE)&dwCompleteWithoutList, sizeof(DWORD));
@@ -2235,6 +2311,8 @@ void SaveAutoCompleteOptions(HANDLE hOptions, DWORD dwFlags)
   {
     WideOption(hOptions, L"AutoListEnable", PO_DWORD, (LPBYTE)&bAutoListEnable, sizeof(DWORD));
     WideOption(hOptions, L"AutoListAfter", PO_DWORD, (LPBYTE)&nAutoListAfter, sizeof(DWORD));
+    WideOption(hOptions, L"AlphaListEnable", PO_DWORD, (LPBYTE)&bAlphaListEnable, sizeof(DWORD));
+    WideOption(hOptions, L"AlphaListValue", PO_DWORD, (LPBYTE)&nAlphaListValue, sizeof(DWORD));
     WideOption(hOptions, L"CompleteWithList", PO_DWORD, (LPBYTE)&dwCompleteWithList, sizeof(DWORD));
     WideOption(hOptions, L"CompleteWithoutList", PO_DWORD, (LPBYTE)&dwCompleteWithoutList, sizeof(DWORD));
     WideOption(hOptions, L"CompleteWithoutListAfter", PO_DWORD, (LPBYTE)&nCompleteWithoutListAfter, sizeof(DWORD));
@@ -2308,6 +2386,14 @@ void InitAutoComplete()
     wndclass.lpszMenuName =NULL;
     wndclass.lpszClassName=AUTOCOMPLETEW;
     RegisterClassWide(&wndclass);
+  }
+
+  //Get functions addresses
+  {
+    HMODULE hUser32;
+
+    hUser32=GetModuleHandleA("user32.dll");
+    SetLayeredWindowAttributesPtr=(BOOL (WINAPI *)(HWND, COLORREF, BYTE, DWORD))GetProcAddress(hUser32, "SetLayeredWindowAttributes");
   }
 }
 

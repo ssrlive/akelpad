@@ -8,20 +8,22 @@
 #define STRID_AUTOLIST                   302
 #define STRID_AUTOLIST_PRE               303
 #define STRID_AFTERCHAR_POST             304
-#define STRID_COMPLETEWITHLIST           305
-#define STRID_COMPLETEWITHOUTLIST        306
-#define STRID_COMPLETEWITHOUTLIST_PRE    307
-#define STRID_COMPLETENEXT               308
-#define STRID_COMPLETEPREV               309
-#define STRID_DOCUMENT                   310
-#define STRID_ADDDOCUMENTWORDS           311
-#define STRID_COMPLETENONSYNTAXDOCUMENT  312
-#define STRID_SAVETYPEDCASE              313
-#define STRID_MAXDOCUMENT                314
-#define STRID_CHARS                      315
-#define STRID_ADDHIGHLIGHTWORDS          316
-#define STRID_RIGHTDELIMITERS            317
-#define STRID_SYNTAXDELIMITERS           318
+#define STRID_TRANSPARENCY               305
+#define STRID_ALPHA                      306
+#define STRID_COMPLETEWITHLIST           307
+#define STRID_COMPLETEWITHOUTLIST        308
+#define STRID_COMPLETEWITHOUTLIST_PRE    309
+#define STRID_COMPLETENEXT               310
+#define STRID_COMPLETEPREV               311
+#define STRID_DOCUMENT                   312
+#define STRID_ADDDOCUMENTWORDS           313
+#define STRID_COMPLETENONSYNTAXDOCUMENT  314
+#define STRID_SAVETYPEDCASE              315
+#define STRID_MAXDOCUMENT                316
+#define STRID_CHARS                      317
+#define STRID_ADDHIGHLIGHTWORDS          318
+#define STRID_RIGHTDELIMITERS            319
+#define STRID_SYNTAXDELIMITERS           320
 
 #define DLLA_AUTOCOMPLETE_ADDWINDOW 50
 #define DLLA_AUTOCOMPLETE_DELWINDOW 51
@@ -57,6 +59,12 @@
 
 #ifndef WM_MOUSEWHEEL
   #define WM_MOUSEWHEEL 0x020A
+#endif
+#ifndef LWA_ALPHA
+  #define LWA_ALPHA 0x00000002
+#endif
+#ifndef WS_EX_LAYERED
+  #define WS_EX_LAYERED 0x00080000
 #endif
 
 
