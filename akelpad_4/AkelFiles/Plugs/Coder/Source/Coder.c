@@ -1681,6 +1681,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         LVHITTESTINFO lvhti;
         LVITEMW lvi;
+        VARINFO *lpVarInfo;
         COLORREF crColor;
 
         GetCursorPos(&lvhti.pt);
@@ -1693,7 +1694,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           {
             if (lvhti.iSubItem == LVSI_LIST_COLOR)
             {
-              lvi.mask=LVIF_TEXT;
+              lvi.mask=LVIF_TEXT|LVIF_PARAM;
               lvi.pszText=wszBuffer;
               lvi.cchTextMax=BUFFER_SIZE;
               lvi.iItem=lvhti.iItem;
@@ -1707,6 +1708,14 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
                   {
                     wszBuffer[0]=L'#';
                     GetStrFromColor(crColor, wszBuffer + 1);
+                    if (lpVarInfo=(VARINFO *)lvi.lParam)
+                    {
+                      GlobalFree((HGLOBAL)lpVarInfo->wpVarValue);
+                      lpVarInfo->nVarValueLen=(int)xstrlenW(wszBuffer);
+                      if (lpVarInfo->wpVarValue=(wchar_t *)GlobalAlloc(GPTR, (lpVarInfo->nVarValueLen + 1) * sizeof(wchar_t)))
+                        xstrcpynW(lpVarInfo->wpVarValue, wszBuffer, lpVarInfo->nVarValueLen + 1);
+                    }
+                    lvi.mask&=~LVIF_PARAM;
                     ListView_SetItemWide(hWndVarThemeList, &lvi);
                     SendMessage(hWndVarThemeList, LVM_UPDATE, (WPARAM)lvhti.iItem, 0);
 
