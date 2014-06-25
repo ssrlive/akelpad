@@ -8059,6 +8059,7 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             SetWindowTextWide(hOfnDlgEdit, wszFile);
           if (wpStream)
           {
+            //Not work in Win7
             ofnStruct->Flags|=OFN_NOVALIDATE;
             lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
             ofnStruct->Flags&=~OFN_NOVALIDATE;
@@ -8066,6 +8067,7 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           }
           else if (GetKeyState(VK_CONTROL) & 0x80)
           {
+            //Not work in Win7
             ofnStruct->Flags|=OFN_NODEREFERENCELINKS;
             lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
             ofnStruct->Flags&=~OFN_NODEREFERENCELINKS;
