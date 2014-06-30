@@ -20378,15 +20378,27 @@ void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSec
 
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
 {
-  WIN32_FIND_DATAW wfd;
   HANDLE hFile;
 
-  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
+  if ((hFile=CreateFileWide(wpFile, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
   {
-    *ft=wfd.ftLastWriteTime;
-    FindClose(hFile);
+    GetFileTime(hFile, NULL, NULL, ft);
+    CloseHandle(hFile);
     return TRUE;
   }
+
+  ////FindFirstFile not equal to GetFileTime if time zone was changed.
+  ////See "File Times and Daylight Saving Time" on MSDN.
+  //{
+  //  WIN32_FIND_DATAW wfd;
+  //
+  //  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
+  //  {
+  //    *ft=wfd.ftLastWriteTime;
+  //    FindClose(hFile);
+  //    return TRUE;
+  //  }
+  //}
   return FALSE;
 }
 
