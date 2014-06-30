@@ -5196,7 +5196,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 {
   wchar_t wszFile[MAX_PATH];
   WIN32_FIND_DATAW wfd;
-  FILETIME ftLastWriteTime;
   HANDLE hFile;
   FILESTREAMDATA fsd;
   UINT_PTR dwBytesWritten;
@@ -5416,10 +5415,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     break;
   }
   if (hFile != INVALID_HANDLE_VALUE)
-  {
-    GetFileTime(hFile, NULL, NULL, &ftLastWriteTime);
     CloseHandle(hFile);
-  }
 
   //Change back file attributes
   if (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
@@ -5458,7 +5454,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
           nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
 
-          lpFrameCurrent->ft=ftLastWriteTime;
+          if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
+          GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
+          if (nStreamOffset) wszFile[nStreamOffset]=L':';
+
           SetModifyStatus(lpFrameCurrent, FALSE);
           SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
@@ -5482,6 +5481,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         }
         else
         {
+          FILETIME ft;
           FRAMEDATA *lpFrame;
 
           if (lpFrame=GetFrameDataFromEditWindow(hWnd))
@@ -5489,10 +5489,14 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             //Compare
             nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
 
+            if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
+            GetFileWriteTimeWide(wszFile, &ft);
+            if (nStreamOffset) wszFile[nStreamOffset]=L':';
+
             SetModifyStatus(lpFrame, FALSE);
             lpFrame->ei.nCodePage=nCodePage;
             lpFrame->ei.bBOM=bBOM;
-            lpFrame->ft=ftLastWriteTime;
+            lpFrame->ft=ft;
 
             if (nFileCmp)
             {
@@ -20376,24 +20380,25 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
 {
   HANDLE hFile;
 
-  if ((hFile=CreateFileWide(wpFile, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+  //FindFirstFile not equal to GetFileTime if time zone was changed,
+  //because FindFirstFile gets file time from cache.
+  //See "File Times and Daylight Saving Time" on MSDN.
   {
-    GetFileTime(hFile, NULL, NULL, ft);
-    CloseHandle(hFile);
-    return TRUE;
+    WIN32_FIND_DATAW wfd;
+
+    if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
+    {
+      *ft=wfd.ftLastWriteTime;
+      FindClose(hFile);
+      return TRUE;
+    }
   }
 
-  ////FindFirstFile not equal to GetFileTime if time zone was changed.
-  ////See "File Times and Daylight Saving Time" on MSDN.
+  //if ((hFile=CreateFileWide(wpFile, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
   //{
-  //  WIN32_FIND_DATAW wfd;
-  //
-  //  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
-  //  {
-  //    *ft=wfd.ftLastWriteTime;
-  //    FindClose(hFile);
-  //    return TRUE;
-  //  }
+  //  GetFileTime(hFile, NULL, NULL, ft);
+  //  CloseHandle(hFile);
+  //  return TRUE;
   //}
   return FALSE;
 }
