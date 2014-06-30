@@ -5196,6 +5196,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 {
   wchar_t wszFile[MAX_PATH];
   WIN32_FIND_DATAW wfd;
+  FILETIME ftLastWriteTime;
   HANDLE hFile;
   FILESTREAMDATA fsd;
   UINT_PTR dwBytesWritten;
@@ -5415,7 +5416,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     break;
   }
   if (hFile != INVALID_HANDLE_VALUE)
+  {
+    GetFileTime(hFile, NULL, NULL, &ftLastWriteTime);
     CloseHandle(hFile);
+  }
 
   //Change back file attributes
   if (wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
@@ -5454,10 +5458,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
           nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
 
-          if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
-          GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
-          if (nStreamOffset) wszFile[nStreamOffset]=L':';
-
+          lpFrameCurrent->ft=ftLastWriteTime;
           SetModifyStatus(lpFrameCurrent, FALSE);
           SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
@@ -5481,7 +5482,6 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         }
         else
         {
-          FILETIME ft;
           FRAMEDATA *lpFrame;
 
           if (lpFrame=GetFrameDataFromEditWindow(hWnd))
@@ -5489,14 +5489,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             //Compare
             nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
 
-            if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
-            GetFileWriteTimeWide(wszFile, &ft);
-            if (nStreamOffset) wszFile[nStreamOffset]=L':';
-
             SetModifyStatus(lpFrame, FALSE);
             lpFrame->ei.nCodePage=nCodePage;
             lpFrame->ei.bBOM=bBOM;
-            lpFrame->ft=ft;
+            lpFrame->ft=ftLastWriteTime;
 
             if (nFileCmp)
             {
