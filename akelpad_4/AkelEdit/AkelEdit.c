@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.8.9                               *
+ *                      AkelEdit text control v1.9.0                               *
  *                                                                                 *
  * Copyright 2007-2014 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -19053,6 +19053,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
         if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
           break;
+        AE_PatReset(&hREGroupStack);
       }
       PatFree(&hREGroupStack);
     }
