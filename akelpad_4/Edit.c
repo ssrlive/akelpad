@@ -4350,6 +4350,11 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     dwMsgFlags=MB_OKCANCEL;
   bFileExist=GetFullName(wpFile, wszFile, MAX_PATH, &nFileLen);
   nStreamOffset=GetFileStreamOffset(wszFile, nFileLen);
+  if (IsEditActive(hWnd))
+  {
+    if (!nMDI && !(nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile)))
+      dwFlags|=OD_REOPEN;
+  }
 
   //Notification message
   if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
@@ -4418,13 +4423,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       //File exists
       if (!(dwFlags & OD_REOPEN) && moCur.bSingleOpenFile)
       {
-        if (!nMDI && xstrcmpiW(wszFile, lpFrameCurrent->wszFile))
+        if (!nMDI && nFileCmp)
         {
           if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszFile)) &&
               (hWndFriend=GetParent(hWndFriend)))
           {
             ActivateWindow(hWndFriend);
-            OpenDocumentSend(hWndFriend, NULL, wszFile, dwFlags, nCodePage, bBOM, FALSE);
+            OpenDocumentSend(hWndFriend, NULL, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM, FALSE);
             nResult=EOD_WINDOW_EXIST;
             goto End;
           }
@@ -4609,7 +4614,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     if (fsd.bResult)
     {
-      //Compare paths
+      //Compare
       nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
 
       if (nFileCmp || lpFrameCurrent->ei.nCodePage != nCodePage)
