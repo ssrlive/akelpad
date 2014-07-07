@@ -19053,7 +19053,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
         if (AEC_IndexCompare(&ciCount, &ciCountEnd) > 0)
           break;
-        AE_PatReset(&hREGroupStack);
+        //AE_PatReset(&hREGroupStack);
       }
       PatFree(&hREGroupStack);
     }
