@@ -779,7 +779,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupNew->dwFlags^=REGF_NONGREEDY;
 
       lpREGroupNew->wpPatRight=wpPat;
-      if (lpREGroupNew->nMinMatch == lpREGroupNew->nMaxMatch)
+      if (lpREGroupNew->nMinMatch == lpREGroupNew->nMaxMatch && lpREGroupItem->nGroupLen != -1 && lpREGroupNew->nGroupLen != -1)
       {
         lpREGroupItem->nGroupLen+=lpREGroupNew->nGroupLen * (lpREGroupNew->nMinMatch - 1);
         lpREGroupNew->nGroupLen=lpREGroupNew->nGroupLen * lpREGroupNew->nMinMatch;
