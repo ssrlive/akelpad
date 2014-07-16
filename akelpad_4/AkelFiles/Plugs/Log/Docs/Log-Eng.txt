@@ -1,5 +1,5 @@
 *****************************************************************
-***                  Log AkelPad plugin v3.9                  ***
+***                  Log AkelPad plugin v4.0                  ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -57,6 +57,7 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
         16  No scroll to the end.
         32  Wrap lines.
         64  Create, but don't show output panel. Requires closing through Call("Log::Output", 6).
+       128  Close output panel, if application exit code equal to zero.
 
       4096  Source input - selection or all document if selection is empty.
       8192  Source input - all document.

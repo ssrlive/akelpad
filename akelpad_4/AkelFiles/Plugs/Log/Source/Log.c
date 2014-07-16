@@ -153,6 +153,7 @@
 #define DKT_NOUNLOAD       0x1
 #define DKT_ONMAINFINISH   0x2
 #define DKT_KEEPAUTOLOAD   0x4
+#define DKT_WAITTHREAD     0x8
 
 //dwWatchScrollEnd
 #define WSE_NO     0
@@ -174,6 +175,7 @@
 #define OUTF_NOSCROLL        0x00000010
 #define OUTF_WRAP            0x00000020
 #define OUTF_HIDEPANEL       0x00000040
+#define OUTF_CLOSENOERROR    0x00000080
 //Input source. Default is no input.
 #define OUTF_SOURCESELDOC    0x00001000
 #define OUTF_SOURCEONLYDOC   0x00002000
@@ -230,6 +232,7 @@ typedef struct {
   HANDLE hInitMutex;
   HANDLE hProcess;
   DWORD dwProcessId;
+  DWORD dwExitCode;
   DWORD dwTimeOut;
   DWORD dwExecState;
   int nPrevFirstVisLine;
@@ -1134,6 +1137,12 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_CLOSE ||
              LOWORD(wParam) == IDCANCEL)
     {
+      if (lParam & DKT_WAITTHREAD)
+      {
+        if (hExecThread)
+          WaitForSingleObject(hExecThread, INFINITE);
+      }
+
       if (!(lParam & DKT_ONMAINFINISH))
         RemoveCoderAlias();
 
@@ -2187,7 +2196,14 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   {
     //Send notification
     if (hWndDockDlg)
-      PostMessage(hWndDockDlg, AKDLL_EXECSTOP, 0, 0);
+    {
+      if ((oe->dwOutputFlags & OUTF_CLOSENOERROR) && oe->dwExitCode == 0)
+      {
+        //DestroyDock
+        PostMessage(hWndDockDlg, WM_COMMAND, IDCANCEL, DKT_KEEPAUTOLOAD|DKT_WAITTHREAD);
+      }
+      else PostMessage(hWndDockDlg, AKDLL_EXECSTOP, 0, 0);
+    }
   }
 
   if (hExecThread)
@@ -2504,6 +2520,8 @@ BOOL ExecuteToWindow(OUTPUTEXEC *oe)
         //Stop execution
         bResult=OutputStop(pi.hProcess, TRUE);
 
+        oe->dwExitCode=0;
+        GetExitCodeProcess(pi.hProcess, &oe->dwExitCode);
         CloseHandle(pi.hProcess);
         oe->hProcess=NULL;
         oe->dwProcessId=0;
