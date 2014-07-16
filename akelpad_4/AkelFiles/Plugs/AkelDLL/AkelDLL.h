@@ -1952,12 +1952,9 @@ typedef struct {
 #define IDM_UPDATE                      4353  //Open AkelUpdater.
                                               //Return Value: zero.
                                               //
-#define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.
-                                              //Return Value: zero.
-                                              //
-#define IDM_INTERNAL_CANTOPEN_MSG       4602  //Internal command.
-                                              //Return Value: zero.
-                                              //
+#define IDM_INTERNAL_CHECKMODIFICATIONTIME 4601  //Internal command.
+                                                 //Return Value: zero.
+                                                 //
 #define IDM_INTERNAL_ERRORIO_MSG        4603  //Internal command.
                                               //Return Value: zero.
                                               //

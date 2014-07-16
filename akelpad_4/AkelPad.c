@@ -468,8 +468,7 @@ AECHARINDEX ciCurCaret={0};
 int nLoopCase=0;
 DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bRecentCaretMsg=FALSE;
-BOOL bReopenMsg=FALSE;
-BOOL bLockWatchFile=FALSE;
+BOOL bCheckingModificationTime=FALSE;
 WNDPROC lpOldEditProc;
 
 //Execute
@@ -1845,11 +1844,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hDlgModeless && nModelessType != MLT_CUSTOM)
           SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
 
-        if (!bLockWatchFile)
-        {
-          //Check modification time
-          CheckModificationTime(lpFrameCurrent);
-        }
+        if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingModificationTime)
+          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKMODIFICATIONTIME, (LPARAM)lpFrameCurrent);
       }
       return 0;
     }
@@ -4782,42 +4778,73 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoHelpAbout();
       return 0;
     }
-    else if (wCommand == IDM_INTERNAL_REOPEN_MSG)
+    else if (wCommand == IDM_INTERNAL_CHECKMODIFICATIONTIME)
     {
-      if (bReopenMsg)
+      if (!bCheckingModificationTime)
       {
+        bCheckingModificationTime=TRUE;
+
         if (!nMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
         {
-          API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
-          xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
-          if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
+          if (IsAllowWatchFile(lpFrameCurrent))
           {
-            OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
-          }
-          else
-          {
-            if (lpFrameCurrent->ei.bModified)
+            FILETIME ftTmp;
+            BOOL bWriteTime;
+
+            if (!FileExistsWide(lpFrameCurrent->wszFile))
             {
-              //Remove save point
-              SetModifyStatus(lpFrameCurrent, FALSE);
-              SetModifyStatus(lpFrameCurrent, TRUE);
+              xmemset(&lpFrameCurrent->ft, 0, sizeof(FILETIME));
+
+              //Free mouse
+              if (GetCapture())
+                ReleaseCapture();
+              SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+
+              API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+              xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
+              API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
             }
-            else SetModifyStatus(lpFrameCurrent, TRUE);
+            else
+            {
+              if (lpFrameCurrent->nStreamOffset) lpFrameCurrent->wszFile[lpFrameCurrent->nStreamOffset]=L'\0';
+              bWriteTime=GetFileWriteTimeWide(lpFrameCurrent->wszFile, &ftTmp);
+              if (lpFrameCurrent->nStreamOffset) lpFrameCurrent->wszFile[lpFrameCurrent->nStreamOffset]=L':';
+
+              if (bWriteTime)
+              {
+                if (CompareFileTime(&lpFrameCurrent->ft, &ftTmp))
+                {
+                  lpFrameCurrent->ft=ftTmp;
+
+                  //Free mouse
+                  if (GetCapture())
+                    ReleaseCapture();
+                  SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+
+                  API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
+                  xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
+                  if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
+                  {
+                    OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+                  }
+                  else
+                  {
+                    if (lpFrameCurrent->ei.bModified)
+                    {
+                      //Remove save point
+                      SetModifyStatus(lpFrameCurrent, FALSE);
+                      SetModifyStatus(lpFrameCurrent, TRUE);
+                    }
+                    else SetModifyStatus(lpFrameCurrent, TRUE);
+                  }
+                }
+              }
+              else xmemset(&lpFrameCurrent->ft, 0, sizeof(FILETIME));
+            }
           }
         }
-        bReopenMsg=FALSE;
+        bCheckingModificationTime=FALSE;
       }
-      return 0;
-    }
-    else if (wCommand == IDM_INTERNAL_CANTOPEN_MSG)
-    {
-      if (!nMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
-      {
-        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-        xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
-        API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-      }
-      return 0;
     }
     else if (wCommand == IDM_INTERNAL_ERRORIO_MSG)
     {
@@ -4967,7 +4994,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Show "No to all" button if necessary
         if (nDocumentsModified > 1)
           dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
-        bLockWatchFile=TRUE;
 
         for (;;)
         {
@@ -4981,7 +5007,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
         dwChangedPrompt=0;
-        bLockWatchFile=FALSE;
 
         return bResult;
       }
@@ -4990,8 +5015,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         FRAMEDATA *lpFrameInit=lpFrameCurrent;
         BOOL bBreak=FALSE;
         BOOL bResult=TRUE;
-
-        bLockWatchFile=TRUE;
 
         while (!bBreak)
         {
@@ -5008,8 +5031,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
           }
         }
-        bLockWatchFile=FALSE;
-
         return bResult;
       }
       if (nMDI == WMD_MDI)
@@ -5042,7 +5063,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Show "No to all" button if necessary
         if (nDocumentsModified > 1)
           dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
-        bLockWatchFile=TRUE;
 
         while (lpFrameCurrent->hWndEditParent)
         {
@@ -5053,7 +5073,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
         dwChangedPrompt=0;
-        bLockWatchFile=FALSE;
 
         return bResult;
       }
@@ -5181,7 +5200,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Show "No to all" button if necessary
       if (nDocumentsModified > 1)
         dwChangedPrompt|=PROMPT_NOTOALLBUTTON;
-      bLockWatchFile=TRUE;
 
       while (lpFrameCurrent->hWndEditParent)
       {
@@ -5196,7 +5214,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           break;
       }
       dwChangedPrompt=0;
-      bLockWatchFile=FALSE;
 
       if (!nMainOnFinish)
         return bEndSession?0:1;
@@ -5296,11 +5313,8 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       if (lpFrameCurrent->ei.hWndEdit)
         SetFocus(lpFrameCurrent->ei.hWndEdit);
 
-      if (!bFrameActivating && !bLockWatchFile)
-      {
-        //Check modification time
-        CheckModificationTime(lpFrameCurrent);
-      }
+      if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingModificationTime && !bFrameActivating)
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKMODIFICATIONTIME, (LPARAM)lpFrameCurrent);
     }
   }
   else if (uMsg == WM_CONTEXTMENU)

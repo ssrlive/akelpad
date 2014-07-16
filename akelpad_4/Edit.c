@@ -267,8 +267,7 @@ extern AECHARINDEX ciCurCaret;
 extern int nLoopCase;
 extern DWORD dwWordBreakDefault;
 extern BOOL bRecentCaretMsg;
-extern BOOL bReopenMsg;
-extern BOOL bLockWatchFile;
+extern BOOL bCheckingModificationTime;
 extern WNDPROC lpOldEditProc;
 
 //Execute
@@ -5679,53 +5678,11 @@ void DropFiles(HDROP hDrop)
   DragFinish(hDrop);
 }
 
-//For WMD_PMDI required: lpFrame == lpFrameCurrent
-void CheckModificationTime(FRAMEDATA *lpFrame)
+BOOL IsAllowWatchFile(FRAMEDATA *lpFrame)
 {
   if (moCur.bWatchFile && lpFrame->wszFile[0] && (lpFrame->ft.dwLowDateTime || lpFrame->ft.dwHighDateTime))
-  {
-    FILETIME ftTmp;
-    BOOL bWriteTime;
-
-    if (!FileExistsWide(lpFrame->wszFile))
-    {
-      xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
-
-      //Free mouse
-      if (GetCapture())
-        ReleaseCapture();
-      SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-
-      SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame);
-    }
-    else
-    {
-      if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset]=L'\0';
-      bWriteTime=GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp);
-      if (lpFrame->nStreamOffset) lpFrame->wszFile[lpFrame->nStreamOffset]=L':';
-
-      if (bWriteTime)
-      {
-        if (CompareFileTime(&lpFrame->ft, &ftTmp))
-        {
-          lpFrame->ft=ftTmp;
-
-          if (!bReopenMsg)
-          {
-            bReopenMsg=TRUE;
-
-            //Free mouse
-            if (GetCapture())
-              ReleaseCapture();
-            SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-
-            SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
-          }
-        }
-      }
-      else xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
-    }
-  }
+    return TRUE;
+  return FALSE;
 }
 
 BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
