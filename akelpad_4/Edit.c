@@ -267,7 +267,7 @@ extern AECHARINDEX ciCurCaret;
 extern int nLoopCase;
 extern DWORD dwWordBreakDefault;
 extern BOOL bRecentCaretMsg;
-extern BOOL bCheckingModificationTime;
+extern BOOL bCheckingWriteTime;
 extern WNDPROC lpOldEditProc;
 
 //Execute
