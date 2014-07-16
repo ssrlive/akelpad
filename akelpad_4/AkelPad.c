@@ -468,7 +468,7 @@ AECHARINDEX ciCurCaret={0};
 int nLoopCase=0;
 DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bRecentCaretMsg=FALSE;
-BOOL bCheckingModificationTime=FALSE;
+BOOL bCheckingWriteTime=FALSE;
 WNDPROC lpOldEditProc;
 
 //Execute
@@ -1844,8 +1844,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hDlgModeless && nModelessType != MLT_CUSTOM)
           SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
 
-        if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingModificationTime)
-          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKMODIFICATIONTIME, (LPARAM)lpFrameCurrent);
+        if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingWriteTime)
+          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
       }
       return 0;
     }
@@ -4778,11 +4778,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoHelpAbout();
       return 0;
     }
-    else if (wCommand == IDM_INTERNAL_CHECKMODIFICATIONTIME)
+    else if (wCommand == IDM_INTERNAL_CHECKWRITETIME)
     {
-      if (!bCheckingModificationTime)
+      if (!bCheckingWriteTime)
       {
-        bCheckingModificationTime=TRUE;
+        bCheckingWriteTime=TRUE;
 
         if (!nMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
         {
@@ -4843,7 +4843,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
           }
         }
-        bCheckingModificationTime=FALSE;
+        bCheckingWriteTime=FALSE;
       }
     }
     else if (wCommand == IDM_INTERNAL_ERRORIO_MSG)
@@ -5313,8 +5313,8 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       if (lpFrameCurrent->ei.hWndEdit)
         SetFocus(lpFrameCurrent->ei.hWndEdit);
 
-      if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingModificationTime && !bFrameActivating)
-        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKMODIFICATIONTIME, (LPARAM)lpFrameCurrent);
+      if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingWriteTime && !bFrameActivating)
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
     }
   }
   else if (uMsg == WM_CONTEXTMENU)
