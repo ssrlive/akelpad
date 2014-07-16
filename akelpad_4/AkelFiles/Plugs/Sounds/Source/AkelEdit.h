@@ -3125,6 +3125,7 @@ Return Value
 
 Remarks
  AEM_DETACHUNDO requires ES_GLOBALUNDO style.
+ If undo stack not attached by AEM_ATTACHUNDO, then it must be released by AEM_EMPTYUNDOBUFFER.
 
 Example:
  HANDLE hUndoStack;
