@@ -2275,8 +2275,11 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
     {
       crRange.ciMin=ciCurCaret;
       crRange.ciMax=ciCurCaret;
-      SendMessage(hWnd, AEM_GETPREVBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_MINMOVE, (LPARAM)&crRange.ciMin);
-      SendMessage(hWnd, AEM_GETNEXTBREAK, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_MINMOVE, (LPARAM)&crRange.ciMax);
+
+      if (!SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crRange.ciMin))
+        SendMessage(hWnd, AEM_GETPREVBREAK, AEWB_LEFTWORDSTART, (LPARAM)&crRange.ciMin);
+      if (!SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
+        SendMessage(hWnd, AEM_GETNEXTBREAK, AEWB_RIGHTWORDEND, (LPARAM)&crRange.ciMax);
     }
     else
     {
