@@ -1478,6 +1478,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         AE_UpdateCaret(ae, ae->bFocus);
       }
+      if (!(dwOptionsExOld & AECOE_DETECTURL) != !(dwOptionsExNew & AECOE_DETECTURL))
+      {
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+        AE_StackCloneUpdate(ae);
+      }
       return ae->popt->dwOptionsEx;
     }
     if (uMsg == AEM_GETCARETWIDTH)
@@ -15526,7 +15531,10 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (dwFlags & AEWB_MINMOVE)
-    AEC_PrevCharEx(&ciCount, &ciCount);
+  {
+    if (!AEC_PrevCharEx(&ciCount, &ciCount))
+      return 0;
+  }
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
@@ -15670,7 +15678,10 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
 
   if (dwFlags & AEWB_MINMOVE)
-    AEC_NextCharEx(&ciCount, &ciCount);
+  {
+    if (!AEC_NextCharEx(&ciCount, &ciCount))
+      return 0;
+  }
 
   if (ciCount.nCharInLine <= 0)
   {
