@@ -171,7 +171,8 @@ extern RECENTFILESTACK hRecentFilesStack;
 
 //Open/Save document
 extern OPENFILENAME_2000W *ofnStruct;
-extern wchar_t wszStream[MAX_PATH];
+extern wchar_t *wszOfnFileList;
+extern wchar_t wszOfnStream[MAX_PATH];
 extern wchar_t wszFileFilter[MAX_PATH];
 extern int nFileFilterLen;
 extern BOOL bAutodetect;
@@ -179,6 +180,7 @@ extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
+extern int nOfnStreamOffset;
 extern POINT64 ptDocumentPos;
 extern FILESTREAMDATA *lpStreamInData;
 extern HWND hOfnDlgEdit;
@@ -1421,7 +1423,7 @@ BOOL DoFileOpen()
   OPENFILENAME_2000W ofn;
   wchar_t wszOpenFile[MAX_PATH];
   wchar_t wszOpenDir[MAX_PATH];
-  wchar_t *wszFileList;
+  const wchar_t *wpFileName;
   DIALOGCODEPAGE dc;
   int nFileLen;
   int nOpen;
@@ -1431,7 +1433,7 @@ BOOL DoFileOpen()
 
   if (nMDI == WMD_SDI && !SaveChanged(0)) return FALSE;
 
-  if (wszFileList=AllocWideStr(OPENFILELIST_SIZE))
+  if (wszOfnFileList=AllocWideStr(OPENFILELIST_SIZE))
   {
     FileDialog:
     bSaveDlg=FALSE;
@@ -1441,12 +1443,6 @@ BOOL DoFileOpen()
 
     //Initial directory
     nFileLen=(int)xstrcpynW(wszOpenFile, lpFrameCurrent->wszFile, MAX_PATH);
-    if (lpFrameCurrent->nStreamOffset)
-    {
-      wszOpenFile[lpFrameCurrent->nStreamOffset]=L'\0';
-      wszOpenFile[lpFrameCurrent->nStreamOffset + 1]=L'\0';
-      nFileLen=lpFrameCurrent->nStreamOffset;
-    }
     if (*wszOpenFile)
     {
       GetFileDir(wszOpenFile, nFileLen, wszOpenDir, MAX_PATH);
@@ -1456,17 +1452,23 @@ BOOL DoFileOpen()
     else xstrcpynW(wszOpenDir, moCur.wszLastDir, MAX_PATH);
 
     //Initial file
-    xprintfW(wszFileList, L"%s", GetFileName(wszOpenFile, nFileLen));
+    wpFileName=GetFileName(wszOpenFile, nFileLen);
+    xstrcpynW(wszOfnFileList, wpFileName, MAX_PATH);
+    if (lpFrameCurrent->nStreamOffset)
+    {
+      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszOpenFile);
+      wszOfnFileList[nOfnStreamOffset]=L'\0';
+    }
 
     //Show dialog
     ofnStruct=&ofn;
     xmemset(&ofn, 0, sizeof(OPENFILENAME_2000W));
-    wszStream[0]=L'\0';
+    wszOfnStream[0]=L'\0';
     ofn.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
     ofn.lCustData      =(LPARAM)&dc;
     ofn.hwndOwner      =hMainWnd;
     ofn.hInstance      =hLangLib;
-    ofn.lpstrFile      =wszFileList;
+    ofn.lpstrFile      =wszOfnFileList;
     ofn.lpstrFilter    =wszFileFilter;
     ofn.nFilterIndex   =2;
     ofn.nMaxFile       =OPENFILELIST_SIZE;
@@ -1487,7 +1489,7 @@ BOOL DoFileOpen()
       {
         wchar_t wszFile[MAX_PATH];
         wchar_t wszString[MAX_PATH];
-        wchar_t *wpFile=wszFileList + xstrlenW(wszFileList) + 1;
+        wchar_t *wpFile=wszOfnFileList + xstrlenW(wszOfnFileList) + 1;
         MSG msg;
         int nFiles=0;
         int nFileCount=0;
@@ -1497,13 +1499,13 @@ BOOL DoFileOpen()
           //Multiple files selected
           bSingleFile=FALSE;
           if (*(wpFile - 2) == L'\\') *(wpFile - 2)=L'\0';
-          xstrcpynW(moCur.wszLastDir, wszFileList, MAX_PATH);
+          xstrcpynW(moCur.wszLastDir, wszOfnFileList, MAX_PATH);
 
           //Get files count
           if (moCur.bStatusBar)
           {
             API_LoadStringW(hLangLib, STR_COUNT, wszString, MAX_PATH);
-            xarraysizeW(wszFileList, &nFiles);
+            xarraysizeW(wszOfnFileList, &nFiles);
 
             //First element in array is directory.
             --nFiles;
@@ -1516,7 +1518,7 @@ BOOL DoFileOpen()
             else
             {
               nFileLen=(int)xstrlenW(wpFile);
-              xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
+              xprintfW(wszFile, L"%s\\%s", wszOfnFileList, wpFile);
             }
             nOpen=OpenDocument(NULL, wszFile, dwOfnFlags|(*(wpFile + nFileLen + 1)?OD_MULTIFILE:0), nOfnCodePage, bOfnBOM);
             if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
@@ -1550,16 +1552,16 @@ BOOL DoFileOpen()
 
       if (bSingleFile)
       {
-        GetFileDir(wszFileList, -1, moCur.wszLastDir, MAX_PATH);
+        GetFileDir(wszOfnFileList, -1, moCur.wszLastDir, MAX_PATH);
 
-        if (wszStream[0])
+        if (wszOfnStream[0])
         {
-          nFileLen=(int)xstrlenW(wszFileList);
-          if (wszFileList[nFileLen - 1] == L'.')
-            wszFileList[--nFileLen]=L'\0';
-          xprintfW(wszFileList + nFileLen, L":%.%ds", sizeof(wszFileList) / sizeof(wchar_t) - nFileLen - 1,  wszStream);
+          nFileLen=(int)xstrlenW(wszOfnFileList);
+          if (wszOfnFileList[nFileLen - 1] == L'.')
+            wszOfnFileList[--nFileLen]=L'\0';
+          xprintfW(wszOfnFileList + nFileLen, L":%.%ds", sizeof(wszOfnFileList) / sizeof(wchar_t) - nFileLen - 1,  wszOfnStream);
         }
-        nOpen=OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
+        nOpen=OpenDocument(NULL, wszOfnFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
           bResult=FALSE;
       }
@@ -1569,7 +1571,7 @@ BOOL DoFileOpen()
       //Restart dialog
       goto FileDialog;
     }
-    FreeWideStr(wszFileList);
+    FreeWideStr(wszOfnFileList);
   }
   return bResult;
 }
@@ -1652,72 +1654,87 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   OPENFILENAME_2000W ofn;
   wchar_t wszSaveFile[MAX_PATH];
   wchar_t wszSaveDir[MAX_PATH];
+  const wchar_t *wpFileName;
   DIALOGCODEPAGE dc;
   int nFileLen;
   BOOL bShowPlacesBarInit;
-  BOOL bResult;
+  BOOL bResult=FALSE;
 
-  FileDialog:
-  bSaveDlg=TRUE;
-  dc.nCodePage=nDialogCodePage;
-  dc.bBOM=bDialogBOM;
-  bShowPlacesBarInit=moCur.bShowPlacesBar;
-
-  //Initial directory
-  nFileLen=(int)xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
-  if (lpFrameCurrent->nStreamOffset) wszSaveFile[lpFrameCurrent->nStreamOffset]=L'_';
-  if (*wszSaveFile)
+  if (wszOfnFileList=AllocWideStr(MAX_PATH))
   {
-    GetFileDir(wszSaveFile, nFileLen, wszSaveDir, MAX_PATH);
-    if (!DirExistsWide(wszSaveDir))
-      xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
-  }
-  else xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
+    FileDialog:
+    bSaveDlg=TRUE;
+    dc.nCodePage=nDialogCodePage;
+    dc.bBOM=bDialogBOM;
+    bShowPlacesBarInit=moCur.bShowPlacesBar;
 
-  //Initial file
-  if (*wszSaveFile)
-    xprintfW(wszSaveFile, L"%s%s", GetFileName(wszSaveFile, nFileLen), GetFileExt(wszSaveFile, nFileLen)?L"":L".");
-
-  ofnStruct=&ofn;
-  xmemset(&ofn, 0, sizeof(OPENFILENAME_2000W));
-  wszStream[0]=L'\0';
-  ofn.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
-  ofn.lCustData      =(LPARAM)&dc;
-  ofn.hwndOwner      =hMainWnd;
-  ofn.hInstance      =hLangLib;
-  ofn.lpstrFile      =wszSaveFile;
-  ofn.lpstrFilter    =wszFileFilter;
-  ofn.nFilterIndex   =2;
-  ofn.nMaxFile       =MAX_PATH;
-  ofn.lpstrInitialDir=wszSaveDir;
-  ofn.lpstrDefExt    =moCur.wszDefaultSaveExt;
-  ofn.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
-  ofn.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
-  ofn.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
-
-  bResult=GetSaveFileNameWide((OPENFILENAMEW *)&ofn);
-
-  if (bResult)
-  {
-    GetCurrentDirectoryWide(MAX_PATH, moCur.wszLastDir);
-    SetCurrentDirectoryWide(wszExeDir);
-
-    if (wszStream[0])
+    //Initial directory
+    nFileLen=(int)xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
+    if (*wszSaveFile)
     {
-      nFileLen=(int)xstrlenW(wszSaveFile);
-      if (wszSaveFile[nFileLen - 1] == L'.')
-        wszSaveFile[--nFileLen]=L'\0';
-      xprintfW(wszSaveFile + nFileLen, L":%.%ds", sizeof(wszSaveFile) / sizeof(wchar_t) - nFileLen - 1,  wszStream);
+      GetFileDir(wszSaveFile, nFileLen, wszSaveDir, MAX_PATH);
+      if (!DirExistsWide(wszSaveDir))
+        xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
     }
-    if (!SaveDocument(NULL, wszSaveFile, nOfnCodePage, bOfnBOM, SD_UPDATE))
-      return TRUE;
+    else xstrcpynW(wszSaveDir, moCur.wszLastDir, MAX_PATH);
+
+    //Initial file
+    wpFileName=GetFileName(wszSaveFile, nFileLen);
+    xstrcpynW(wszOfnFileList, wpFileName, MAX_PATH);
+    if (lpFrameCurrent->nStreamOffset)
+    {
+      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszSaveFile);
+      wszOfnFileList[nOfnStreamOffset]=L'\0';
+    }
+    else if (*wszSaveFile && !GetFileExt(wszSaveFile, nFileLen))
+    {
+      //Append dot to filename for file without extention
+      //to avoid appending default extention during "Save as".
+      xprintfW(wszOfnFileList, L"%s.", wpFileName);
+    }
+
+    ofnStruct=&ofn;
+    xmemset(&ofn, 0, sizeof(OPENFILENAME_2000W));
+    wszOfnStream[0]=L'\0';
+    ofn.lStructSize    =(moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)?sizeof(OPENFILENAME_2000W):sizeof(OPENFILENAMEW);
+    ofn.lCustData      =(LPARAM)&dc;
+    ofn.hwndOwner      =hMainWnd;
+    ofn.hInstance      =hLangLib;
+    ofn.lpstrFile      =wszOfnFileList;
+    ofn.lpstrFilter    =wszFileFilter;
+    ofn.nFilterIndex   =2;
+    ofn.nMaxFile       =MAX_PATH;
+    ofn.lpstrInitialDir=wszSaveDir;
+    ofn.lpstrDefExt    =moCur.wszDefaultSaveExt;
+    ofn.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT|OFN_NOTESTFILECREATE;
+    ofn.lpfnHook       =(LPOFNHOOKPROC)FileDlgProc;
+    ofn.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
+
+    bResult=GetSaveFileNameWide((OPENFILENAMEW *)&ofn);
+
+    if (bResult)
+    {
+      GetCurrentDirectoryWide(MAX_PATH, moCur.wszLastDir);
+      SetCurrentDirectoryWide(wszExeDir);
+
+      if (wszOfnStream[0])
+      {
+        nFileLen=(int)xstrlenW(wszOfnFileList);
+        if (wszOfnFileList[nFileLen - 1] == L'.')
+          wszOfnFileList[--nFileLen]=L'\0';
+        xprintfW(wszOfnFileList + nFileLen, L":%.%ds", sizeof(wszOfnFileList) / sizeof(wchar_t) - nFileLen - 1,  wszOfnStream);
+      }
+      if (SaveDocument(NULL, wszOfnFileList, nOfnCodePage, bOfnBOM, SD_UPDATE) != ESD_SUCCESS)
+        bResult=FALSE;
+    }
+    else if (moCur.bShowPlacesBar != bShowPlacesBarInit)
+    {
+      //Restart dialog
+      goto FileDialog;
+    }
+    FreeWideStr(wszOfnFileList);
   }
-  else if (moCur.bShowPlacesBar != bShowPlacesBarInit)
-  {
-    //Restart dialog
-    goto FileDialog;
-  }
-  return FALSE;
+  return bResult;
 }
 
 BOOL DoFileSaveAllAs()
@@ -7797,9 +7814,17 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       lpOldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
     }
+    if (lpFrameCurrent->nStreamOffset)
+      PostMessage(hDlg, AKDLG_SETSTREAM, 0, 0);
 
     lpOldFileParentProc=(WNDPROC)GetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC);
     SetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC, (UINT_PTR)NewFileParentProc);
+  }
+  else if (uMsg == AKDLG_SETSTREAM)
+  {
+    wszOfnFileList[nOfnStreamOffset]=L':';
+    SetWindowTextWide(hOfnDlgEdit, wszOfnFileList);
+    SendMessage(hOfnDlgEdit, EM_SETSEL, 0, -1);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -8017,7 +8042,7 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             //In Win7 not work flag changing after dialog create: "ofnStruct->Flags|=OFN_NOVALIDATE;",
             //so we remember stream here (to append it after dialog close) and send file name
             //to dialog without stream, but with dot at the end to avoid lpstrDefExt appending.
-            xstrcpynW(wszStream, wpStream + 1, MAX_PATH);
+            xstrcpynW(wszOfnStream, wpStream + 1, MAX_PATH);
             *wpStream=L'.';
             *(wpStream + 1)=L'\0';
             bUpdateName=TRUE;
@@ -8028,7 +8053,7 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           {
             lResult=CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
             *wpStream=L':';
-            *(wpStream + 1)=wszStream[0];
+            *(wpStream + 1)=wszOfnStream[0];
             SetWindowTextWide(hOfnDlgEdit, wszFile);
             return lResult;
           }

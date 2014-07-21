@@ -144,6 +144,9 @@
 #define FS_FONTITALIC      3
 #define FS_FONTBOLDITALIC  4
 
+//File dialog notifications
+#define AKDLG_SETSTREAM                (WM_USER + 100)
+
 //Print preview dialog notifications
 #define AKDLG_PREVIEWKEYDOWN           (WM_USER + 100) //lParam - WM_KEYDOWN's lParam, wParam - control handle.
 #define AKDLG_PREVIEWMOUSEWHEEL        (WM_USER + 151) //lParam - WM_MOUSEWHEEL's lParam, wParam - control handle.
