@@ -183,6 +183,7 @@ extern int nOfnCodePage;
 extern int nOfnStreamOffset;
 extern POINT64 ptDocumentPos;
 extern FILESTREAMDATA *lpStreamInData;
+extern HWND hOfnDlgCombo;
 extern HWND hOfnDlgEdit;
 extern WNDPROC lpOldFilePreviewProc;
 extern WNDPROC lpOldFileParentProc;
@@ -1459,6 +1460,7 @@ BOOL DoFileOpen()
       nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszOpenFile);
       wszOfnFileList[nOfnStreamOffset]=L'\0';
     }
+    else nOfnStreamOffset=0;
 
     //Show dialog
     ofnStruct=&ofn;
@@ -1686,11 +1688,15 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
       nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszSaveFile);
       wszOfnFileList[nOfnStreamOffset]=L'\0';
     }
-    else if (*wszSaveFile && !GetFileExt(wszSaveFile, nFileLen))
+    else
     {
-      //Append dot to filename for file without extention
-      //to avoid appending default extention during "Save as".
-      xprintfW(wszOfnFileList, L"%s.", wpFileName);
+      if (*wszSaveFile && !GetFileExt(wszSaveFile, nFileLen))
+      {
+        //Append dot to filename for file without extention
+        //to avoid appending default extention during "Save as".
+        xprintfW(wszOfnFileList, L"%s.", wpFileName);
+      }
+      nOfnStreamOffset=0;
     }
 
     ofnStruct=&ofn;
@@ -7669,12 +7675,13 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hDlgCombobox=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX);
     if (moCur.bShowPlacesBar && !bOldWindows && !bWindowsNT4)
     {
-      hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILECOMBOBOX);
-      hOfnDlgEdit=(HWND)SendMessage(hOfnDlgEdit, CBEM_GETEDITCONTROL, 0, 0);
+      hOfnDlgCombo=GetDlgItem(hDlgParent, IDC_OFN_FILECOMBOBOX);
+      hOfnDlgEdit=(HWND)SendMessage(hOfnDlgCombo, CBEM_GETEDITCONTROL, 0, 0);
       hDlgPlacesBar=GetDlgItem(hDlgParent, IDC_OFN_PLACESBAR);
     }
     else
     {
+      hOfnDlgCombo=NULL;
       hOfnDlgEdit=GetDlgItem(hDlgParent, IDC_OFN_FILEEDIT);
       hDlgPlacesBar=NULL;
     }
@@ -7814,17 +7821,9 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       lpOldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
       SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
     }
-    if (lpFrameCurrent->nStreamOffset)
-      PostMessage(hDlg, AKDLG_SETSTREAM, 0, 0);
 
     lpOldFileParentProc=(WNDPROC)GetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC);
     SetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC, (UINT_PTR)NewFileParentProc);
-  }
-  else if (uMsg == AKDLG_SETSTREAM)
-  {
-    wszOfnFileList[nOfnStreamOffset]=L':';
-    SetWindowTextWide(hOfnDlgEdit, wszOfnFileList);
-    SendMessage(hOfnDlgEdit, EM_SETSEL, 0, -1);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -7998,8 +7997,29 @@ LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_COMMAND)
+  if (uMsg == AKDLG_SETSTREAM)
   {
+    if (nOfnStreamOffset)
+    {
+      wszOfnFileList[nOfnStreamOffset]=L':';
+      SetWindowTextWide(hOfnDlgEdit, wszOfnFileList);
+      SendMessage(hOfnDlgEdit, EM_SETSEL, 0, -1);
+      nOfnStreamOffset=0;
+    }
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (nOfnStreamOffset)
+    {
+      if (hOfnDlgCombo ? hOfnDlgCombo == (HWND)lParam : hOfnDlgEdit == (HWND)lParam)
+      {
+        if (hOfnDlgCombo ? HIWORD(wParam) == CBN_EDITCHANGE : HIWORD(wParam) == EN_CHANGE)
+        {
+          if (lpFrameCurrent->nStreamOffset && nOfnStreamOffset)
+            PostMessage(hWnd, AKDLG_SETSTREAM, 0, 0);
+        }
+      }
+    }
     if (LOWORD(wParam) == IDOK)
     {
       wchar_t wszFile[MAX_PATH];

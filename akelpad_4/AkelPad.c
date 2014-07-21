@@ -384,6 +384,7 @@ int nOfnCodePage;
 int nOfnStreamOffset;
 POINT64 ptDocumentPos;
 FILESTREAMDATA *lpStreamInData=NULL;
+HWND hOfnDlgCombo;
 HWND hOfnDlgEdit;
 WNDPROC lpOldFilePreviewProc;
 WNDPROC lpOldFileParentProc;
