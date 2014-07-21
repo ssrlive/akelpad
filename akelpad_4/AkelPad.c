@@ -372,7 +372,8 @@ RECENTFILESTACK hRecentFilesStack={0};
 
 //Open/Save document
 OPENFILENAME_2000W *ofnStruct;
-wchar_t wszStream[MAX_PATH];
+wchar_t *wszOfnFileList;
+wchar_t wszOfnStream[MAX_PATH];
 wchar_t wszFileFilter[MAX_PATH];
 int nFileFilterLen;
 BOOL bAutodetect=TRUE;
@@ -380,6 +381,7 @@ BOOL bSaveDlg;
 DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
+int nOfnStreamOffset;
 POINT64 ptDocumentPos;
 FILESTREAMDATA *lpStreamInData=NULL;
 HWND hOfnDlgEdit;
