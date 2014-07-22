@@ -341,10 +341,19 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
   LONG nChar;
   EXCEPINFO ei;
 
-  //Get message text
+  //Error info
   xmemset(&ei, 0, sizeof(EXCEPINFO));
   scriptError->lpVtbl->GetSourcePosition(scriptError, &dwIncludeIndex, &nLine, &nChar);
   scriptError->lpVtbl->GetExceptionInfo(scriptError, &ei);
+
+  if (lpScriptThread->bQuiting)
+  {
+    //Just in case - SCRIPT_E_PROPAGATE must disconnecting without enter here.
+    lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
+    return S_OK;
+  }
+
+  //Message text
   if (!*wszErrorMsg)
   {
     if (ei.bstrDescription)
@@ -550,8 +559,15 @@ HRESULT STDMETHODCALLTYPE SiteDebug_GetRootApplicationNode(IActiveScriptSiteDebu
 
 HRESULT STDMETHODCALLTYPE SiteDebug_OnScriptErrorDebug(IActiveScriptSiteDebug *this, IActiveScriptErrorDebug *pErrorDebug, BOOL *pfEnterDebugger, BOOL *pfCallOnScriptErrorWhenContinuing)
 {
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealActiveScriptSiteDebug *)this)->lpScriptThread;
+
   if (pfEnterDebugger)
-    *pfEnterDebugger=TRUE;
+  {
+    if (lpScriptThread->bQuiting)
+      *pfEnterDebugger=FALSE;
+    else
+      *pfEnterDebugger=TRUE;
+  }
   if (pfCallOnScriptErrorWhenContinuing)
     *pfCallOnScriptErrorWhenContinuing=TRUE;
   return S_OK;

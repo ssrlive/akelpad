@@ -233,6 +233,8 @@ HRESULT STDMETHODCALLTYPE WScript_Quit(IWScript *this, int nErrorCode)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealWScript *)this)->lpScriptThread;
 
-  lpScriptThread->objActiveScript->lpVtbl->Close(lpScriptThread->objActiveScript);
-  return NOERROR;
+  lpScriptThread->bQuiting=TRUE;
+  //This error code disconnect script (skipping OnScriptError).
+  //If we return E_FAIL, then debugger will start before execution go to OnScriptError.
+  return SCRIPT_E_PROPAGATE;
 }
