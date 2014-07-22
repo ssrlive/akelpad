@@ -105,6 +105,7 @@ typedef struct _SCRIPTTHREAD {
   HANDLE hExecMutex;
   BOOL bSingleCopy;
   BOOL bWaiting;
+  BOOL bQuiting;
   HANDLE hThread;
   DWORD dwThreadID;
   IActiveScript *objActiveScript;
@@ -158,6 +159,10 @@ typedef struct {
 #ifndef LVS_EX_FULLROWSELECT
   #define LVS_EX_FULLROWSELECT 0x00000020
 #endif
+#ifndef SCRIPT_E_PROPAGATE
+  #define SCRIPT_E_PROPAGATE 0x80020102L
+#endif
+
 
 //Global variables
 extern char szBuffer[BUFFER_SIZE];
