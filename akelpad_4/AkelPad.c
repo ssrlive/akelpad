@@ -616,8 +616,11 @@ void _WinMain()
   hHeap=GetProcessHeap();
   dwProcessId=GetCurrentProcessId();
 
+  //Initialize WideFunc.h header
+  WideInitialize();
+
   //Is unicode Windows
-  bOldWindows=!GetWindowsDirectoryW(NULL, 0);
+  bOldWindows=WideGlobal_bOldWindows;
 
   //Is Windows NT4?
   if (!bOldWindows)
@@ -636,9 +639,6 @@ void _WinMain()
 
     dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
   }
-
-  //Initialize WideFunc.h header
-  WideInitialize();
 
   //Fill MAINCREATE if not DLL build
   #ifndef AKELPAD_DLLBUILD
