@@ -3,6 +3,8 @@ AkelPad 4.9.0 ()
 ----------------------------
 Added: possibility in file open/save dialog to specify NTFS file stream on Win7.
 
+Fixed: saving NTFS file stream in protected file (UAC).
+
 
 AkelPad 4.8.9 (Jun 20, 2014)
 ----------------------------
