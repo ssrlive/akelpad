@@ -5361,11 +5361,12 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || (wfd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))
       SetFileAttributesWide(wszFile, wfd.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
   }
-  if (nStreamOffset) wszFile[nStreamOffset]=L':';
 
   //Write to file
   for (;;)
   {
+    if (nStreamOffset) wszFile[nStreamOffset]=L':';
+
     if (nStreamOffset)
       bFileExist=FileExistsWide(wszFile);
     else
@@ -5375,6 +5376,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     {
       if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED && IsFile(wszFile) != ERROR_DIRECTORY)
       {
+        if (nStreamOffset) wszFile[nStreamOffset]=L'\0';
+
         //Allow all access to the file (UAC).
         if (AkelAdminInit(wszFile))
         {
@@ -5396,6 +5399,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             continue;
           }
         }
+        if (nStreamOffset) wszFile[nStreamOffset]=L':';
       }
       API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, wszFile);
