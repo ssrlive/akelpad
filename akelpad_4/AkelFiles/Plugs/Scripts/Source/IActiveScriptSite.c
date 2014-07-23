@@ -348,7 +348,7 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
 
   if (lpScriptThread->bQuiting)
   {
-    //Just in case - SCRIPT_E_PROPAGATE must disconnecting without enter here.
+    //Just in case - SCRIPT_E_PROPAGATE must disconnect without enter here.
     lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
     return S_OK;
   }
