@@ -1,7 +1,7 @@
 
 AkelPad 4.9.0 ()
 ----------------------------
-Changed: regular expression quantifiers now have standard greediness. To make it
+Changed: regular expression quantifiers now have classic greediness. To make it
          possessive (old behaviour) use "+" after quantifier, like, "\d*+".
 
 Added: possibility in file open/save dialog to specify NTFS file stream on Win7.
