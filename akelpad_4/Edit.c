@@ -10177,9 +10177,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpMaxPat=wszFindItEsc + nFindItLenEsc;
     pr.wpRep=wszReplaceWithEsc;
     pr.wpMaxRep=wszReplaceWithEsc + nReplaceWithLenEsc;
-    pr.dwOptions=(dwFlags & FRF_MATCHCASE?REPE_MATCHCASE:0) |
-                 (dwFlags & FRF_REGEXPNONEWLINEDOT?REPE_NONEWLINEDOT:0) |
-                 REPE_MULTILINE;
+    pr.dwOptions=(dwFlags & FRF_MATCHCASE?RESE_MATCHCASE:0) |
+                 (dwFlags & FRF_REGEXPNONEWLINEDOT?RESE_NONEWLINEDOT:0) |
+                 RESE_MULTILINE;
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
     pr.wpNewLine=GetNewLineString(lpFrame->ei.nNewLine);
@@ -10287,7 +10287,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
       sreg.first=0;
       sreg.last=0;
-      sreg.dwOptions=pr.dwOptions & (REPE_MATCHCASE|REPE_MULTILINE|REPE_WHOLEWORD|REPE_NONEWLINEDOT);
+      sreg.dwOptions=pr.dwOptions & (RESE_MATCHCASE|RESE_MULTILINE|RESE_WHOLEWORD|RESE_NONEWLINEDOT);
       sreg.wpDelim=pr.wpDelim;
       sreg.wpMaxDelim=pr.wpMaxDelim;
       if (lpFrame->nCompileErrorOffset=PatCompile(&sreg, pr.wpPat, pr.wpMaxPat))
@@ -10322,9 +10322,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
         pr.wpText=wszFullText;
         pr.wpMaxText=pr.wpMaxStr;
-        pr.dwOptions|=REPE_GLOBAL;
+        pr.dwOptions|=RESE_GLOBAL;
         if (dwFlags & FRF_WHOLEWORD)
-          pr.dwOptions|=REPE_WHOLEWORD;
+          pr.dwOptions|=RESE_WHOLEWORD;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
@@ -10526,7 +10526,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.wpMaxStr=NULL;
         pr.ciStr=crCurSel.ciMin;
         pr.ciMaxStr=crCurSel.ciMax;
-        pr.dwOptions|=REPE_ISMATCH;
+        pr.dwOptions|=RESE_ISMATCH;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
@@ -21513,7 +21513,7 @@ void UpdateTitle(FRAMEDATA *lpFrame)
         pr.wpMaxPat=pr.wpPat + xstrlenW(pr.wpPat);
         pr.wpRep=moCur.wszTabNameRep;
         pr.wpMaxRep=pr.wpRep + xstrlenW(pr.wpRep);
-        pr.dwOptions=REPE_ISMATCH;
+        pr.dwOptions=RESE_ISMATCH;
         pr.wpDelim=NULL;
         pr.wpNewLine=NULL;
         pr.wszResult=wszTabName;
