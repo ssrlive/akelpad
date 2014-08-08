@@ -1457,7 +1457,7 @@ BOOL DoFileOpen()
     xstrcpynW(wszOfnFileList, wpFileName, MAX_PATH);
     if (lpFrameCurrent->nStreamOffset)
     {
-      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszOpenFile);
+      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (int)(wpFileName - wszOpenFile);
       wszOfnFileList[nOfnStreamOffset]=L'\0';
     }
     else nOfnStreamOffset=0;
@@ -1685,7 +1685,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     xstrcpynW(wszOfnFileList, wpFileName, MAX_PATH);
     if (lpFrameCurrent->nStreamOffset)
     {
-      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (wpFileName - wszSaveFile);
+      nOfnStreamOffset=lpFrameCurrent->nStreamOffset - (int)(wpFileName - wszSaveFile);
       wszOfnFileList[nOfnStreamOffset]=L'\0';
     }
     else
