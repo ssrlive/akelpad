@@ -1824,6 +1824,7 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   MARKTEXT *lpNextMarkText;
   AEMARKTEXTITEMW *lpMarkItem;
   AECHARINDEX ciCount;
+  BOOL bMatched;
 
   if (!lpHighlightWindow->hMarkTextsStack.first)
     return FALSE;
@@ -1845,10 +1846,18 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
 
       if (lpMarkText->dwMarkID != MARKID_SELECTION)
       {
-        ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-        ft.pText=lpMarkItem->pMarkText;
-        ft.dwTextLen=lpMarkItem->nMarkTextLen;
-        if (IsMatch(&ft, &crSel.ciMin) && !AEC_IndexCompare(&ft.crFound.ciMax, &crSel.ciMax))
+        if (lpMarkItem->dwFlags & AEHLF_REGEXP)
+        {
+          bMatched=IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &crSel.ciMin);
+        }
+        else
+        {
+          ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+          ft.pText=lpMarkItem->pMarkText;
+          ft.dwTextLen=lpMarkItem->nMarkTextLen;
+          bMatched=IsMatch(&ft, &crSel.ciMin);
+        }
+        if (bMatched && !AEC_IndexCompare(&ft.crFound.ciMax, &crSel.ciMax))
         {
           dwColorText=lpMarkItem->crText;
           dwColorBk=lpMarkItem->crBk;
@@ -1874,8 +1883,16 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   {
     if (lpSingleMarkText)
     {
-      if (IsMatch(&ft, &ciCount))
-        goto Find;
+      if (lpMarkItem->dwFlags & AEHLF_REGEXP)
+      {
+        if (IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &ciCount))
+          goto Find;
+      }
+      else
+      {
+        if (IsMatch(&ft, &ciCount))
+          goto Find;
+      }
     }
     else
     {
@@ -1890,11 +1907,19 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
               ((dwColorText == (DWORD)-1 || lpMarkItem->crText == dwColorText) &&
                (dwColorBk == (DWORD)-1 || lpMarkItem->crBk == dwColorBk)))
           {
-            ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-            ft.pText=lpMarkItem->pMarkText;
-            ft.dwTextLen=lpMarkItem->nMarkTextLen;
-            if (IsMatch(&ft, &ciCount))
-              goto Find;
+            if (lpMarkItem->dwFlags & AEHLF_REGEXP)
+            {
+              if (IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &ciCount))
+                goto Find;
+            }
+            else
+            {
+              ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+              ft.pText=lpMarkItem->pMarkText;
+              ft.dwTextLen=lpMarkItem->nMarkTextLen;
+              if (IsMatch(&ft, &ciCount))
+                goto Find;
+            }
           }
         }
       }
