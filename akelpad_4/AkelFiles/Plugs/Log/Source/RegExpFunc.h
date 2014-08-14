@@ -51,9 +51,9 @@
 #define REGF_IFTRUE           0x01000000
 #define REGF_IFFALSE          0x02000000
 #define REGF_REFEXIST         0x04000000
-#define REGF_NONGREEDY        0x08000000
-#define REGF_INVERTGREEDY     0x10000000
-#define REGF_ANY              0x20000000
+#define REGF_GREEDY           0x10000000
+#define REGF_POSSESSIVE       0x20000000
+#define REGF_INVERTGREEDY     0x40000000
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -88,16 +88,16 @@
 #define REEC_NONSPACE   (REEC_FIRST + 12)
 
 //PatStructExec options
-#define REPE_MATCHCASE        0x0001 //Case-sensitive search.
-#define REPE_MULTILINE        0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
-#define REPE_WHOLEWORD        0x0004 //Whole word match.
-#define REPE_NONEWLINEDOT     0x0008 //Symbol . specifies any character except new line.
-#define REPE_GLOBAL           0x1000 //Search all possible occurrences. If not specified then find only first occurrence.
-#define REPE_ISMATCH          0x2000 //Find first occurrence that should located at the beginning of the string. Cannot be combined with REPE_GLOBAL.
+#define RESE_MATCHCASE        0x0001 //Case-sensitive search.
+#define RESE_MULTILINE        0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
+#define RESE_WHOLEWORD        0x0004 //Whole word match.
+#define RESE_NONEWLINEDOT     0x0008 //Symbol . specifies any character except new line.
+#define RESE_GLOBAL           0x1000 //Search all possible occurrences. If not specified then find only first occurrence.
+#define RESE_ISMATCH          0x2000 //Find first occurrence that should located at the beginning of the string. Cannot be combined with RESE_GLOBAL.
 
 //PatStructExec callback return value
-#define REPEC_CONTINUE  0  //Find next match.
-#define REPEC_STOP      -1 //Stop search.
+#define RESEC_CONTINUE  0  //Find next match.
+#define RESEC_STOP      -1 //Stop search.
 
 #ifndef __AKELEDIT_H__
   #define AELB_R        5  //"\r" new line.
@@ -152,6 +152,8 @@ typedef struct _REGROUP {
   INT_PTR nStrLen;               //Matched string length.
   int nMinMatch;                 //Minimum group match.
   int nMaxMatch;                 //Maximum group match, -1 if unlimited.
+  int nCurMatch;                 //Current recursive self parent group match.
+  int nSelfParent;               //Count of recursive self parent execution.
   DWORD dwFlags;                 //See REGF_* defines.
   int nIndex;                    //Group index, -1 if not captured.
   struct _REGROUP *conditionRef; //REGF_IFCONDITION group.
@@ -168,6 +170,7 @@ typedef struct {
   const wchar_t *wpMaxText;      //PatExec: Text end.
   INT_PTR nMaxBackward;          //Maximum backward group length.
   int nLastIndex;                //Last captured index.
+  int nDeepness;                 //For debugging.
 } STACKREGROUP;
 
 
@@ -177,7 +180,7 @@ typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL b
 //bMatched        TRUE  - lpREGroupRoot->wpStrStart and lpREGroupRoot->wpStrEnd are valid.
 //                FALSE - pe->wpStr is valid.
 //Return Value
-// See REPEC_* defines.
+// See RESEC_* defines.
 
 typedef struct {
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if PatStructExec called for the first time.
@@ -198,7 +201,7 @@ typedef struct {
     INT_PTR nAlignB2;
     int nAlignB3;
   #endif
-  DWORD dwOptions;              //See REPE_* defines.
+  DWORD dwOptions;              //See RESE_* defines.
   const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
@@ -228,7 +231,7 @@ typedef struct {
   #endif
   const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;           //See REPE_* defines.
+  DWORD dwOptions;           //See RESE_* defines.
   const wchar_t *wpDelim;    //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   const wchar_t *wpNewLine;  //New line string. If NULL, default will be used "\r\n".
@@ -559,7 +562,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupOr->nMinMatch=1;
           lpREGroupOr->nMaxMatch=1;
           lpREGroupOr->nIndex=-1;
+          lpREGroupOr->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY|REGF_ATOMIC);
           lpREGroupOr->dwFlags|=REGF_OR;
+          //Always positive in alternations
+          if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD))
+            lpREGroupOr->dwFlags|=REGF_POSITIVEFORWARD;
 
           //Change parent for childrens
           for (lpREGroupNew=lpREGroupItem->firstChild; lpREGroupNew; lpREGroupNew=lpREGroupNew->next)
@@ -590,6 +597,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupNew->nIndex=-1;
         lpREGroupNew->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY|REGF_ATOMIC);
         lpREGroupNew->dwFlags|=REGF_OR;
+        //Always positive in alternations
+        if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD))
+          lpREGroupNew->dwFlags|=REGF_POSITIVEFORWARD;
 
         lpREGroupItem=lpREGroupNew;
       }
@@ -707,6 +717,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupNew->wpPatLeft=wpClassStart;
           lpREGroupNew->wpPatStart=wpClassStart;
           lpREGroupNew->wpPatEnd=wpClassEnd;
+          lpREGroupNew->nMinMatch=1;
+          lpREGroupNew->nMaxMatch=1;
           lpREGroupNew->nGroupLen=1;
           lpREGroupNew->nIndex=-1;
           lpREGroupNew->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY);
@@ -721,11 +733,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           lpREGroupNew->wpPatLeft=wpCharStart;
           lpREGroupNew->wpPatStart=wpCharStart;
           lpREGroupNew->wpPatEnd=wpPat;
+          lpREGroupNew->nMinMatch=1;
+          lpREGroupNew->nMaxMatch=1;
           lpREGroupNew->nGroupLen=1;
           lpREGroupNew->nIndex=-1;
           lpREGroupNew->dwFlags=lpREGroupItem->dwFlags & (REGF_MATCHCASE|REGF_MULTILINE|REGF_NONEWLINEDOT|REGF_INVERTGREEDY);
-          if (*wpCharStart == L'.' && wpPat - wpCharStart == 1)
-            lpREGroupNew->dwFlags|=REGF_ANY;
         }
       }
       else goto Error;
@@ -737,17 +749,17 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       }
       else if (*wpPat == L'+')
       {
-        lpREGroupNew->nMinMatch=1;
+        lpREGroupNew->nMinMatch*=1;
         lpREGroupNew->nMaxMatch=-1;
       }
       else if (*wpPat == L'?')
       {
         lpREGroupNew->nMinMatch=0;
-        lpREGroupNew->nMaxMatch=1;
+        lpREGroupNew->nMaxMatch*=1;
       }
       else if (*wpPat == L'{')
       {
-        lpREGroupNew->nMinMatch=(int)xatoiW(++wpPat, &wpPat);
+        lpREGroupNew->nMinMatch*=(int)xatoiW(++wpPat, &wpPat);
         if (*wpPat == L'}')
           lpREGroupNew->nMaxMatch=lpREGroupNew->nMinMatch;
         else if (*wpPat == L',')
@@ -755,7 +767,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           if (*++wpPat == L'}')
             lpREGroupNew->nMaxMatch=-1;
           else
-            lpREGroupNew->nMaxMatch=(int)xatoiW(wpPat, &wpPat);
+            lpREGroupNew->nMaxMatch*=(int)xatoiW(wpPat, &wpPat);
         }
         else goto Error;
       }
@@ -767,16 +779,23 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         lpREGroupNextAuto=lpREGroupNew;
       wpCharStart=NULL;
 
-      //Greedy flag
-      if (lpREGroupNew->dwFlags & REGF_ANY)
-        lpREGroupNew->dwFlags|=REGF_NONGREEDY;
+      //Greedy
+      if (lpREGroupNew->nMinMatch != lpREGroupNew->nMaxMatch)
+        lpREGroupNew->dwFlags|=REGF_GREEDY;
       if (*++wpPat == L'?')
       {
-        lpREGroupNew->dwFlags|=REGF_NONGREEDY;
+        //Lazy
+        lpREGroupNew->dwFlags&=~REGF_GREEDY;
+        ++wpPat;
+      }
+      else if (*wpPat == L'+')
+      {
+        //Possessive
+        lpREGroupNew->dwFlags|=REGF_POSSESSIVE;
         ++wpPat;
       }
       if (lpREGroupNew->dwFlags & REGF_INVERTGREEDY)
-        lpREGroupNew->dwFlags^=REGF_NONGREEDY;
+        lpREGroupNew->dwFlags^=REGF_GREEDY;
 
       lpREGroupNew->wpPatRight=wpPat;
       if (lpREGroupNew->nMinMatch == lpREGroupNew->nMaxMatch && lpREGroupItem->nGroupLen != -1 && lpREGroupNew->nGroupLen != -1)
@@ -957,6 +976,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
   if (lpREGroupItem->parent)
     goto Error;
   hStack->nLastIndex=nIndex;
+  #ifdef _DEBUG
+    hStack->nDeepness=0;
+  #endif
   return 0;
 
   Error:
@@ -975,28 +997,34 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpMinStr=wpStr;
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
+  const wchar_t *wpGreedyStrEnd=NULL;
   INT_PTR nPrevStrLen;
+  INT_PTR nRefLen;
   int nStrChar;
   int nCharSize=0;
   int nPatChar;
   int nPatNextChar;
   wchar_t wchCaseChar;
-  int nCurMatch=0;
+  int nCurMatch;
   int nRefIndex;
-  INT_PTR nRefLen;
   DWORD dwCmpResult=0;
+  int nNextMatched=-1;
   BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
-  BOOL bNonGreedyMismatch=FALSE;
   int nNegativeFixed=0;
 
+  #ifdef _DEBUG
+    ++hStack->nDeepness;
+  #endif
   lpREGroupItem->nStrLen=0;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
+    nCurMatch=0;
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
+    lpREGroupItem->nCurMatch=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -1009,8 +1037,31 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       {
         if (PatExec(hStack, lpREGroupItem, wpStr, wpMaxStr))
         {
+          if (hStack->dwOptions & REO_WHOLEWORD)
+          {
+            PatStrChar(lpREGroupItem->wpStrStart, wpMaxStr, &nStrChar);
+            if (PatIsCharBoundary(lpREGroupItem->wpStrStart, nStrChar, hStack))
+            {
+              if (lpREGroupItem->wpStrEnd >= hStack->wpMaxText)
+              {
+                //Match
+              }
+              else
+              {
+                PatStrChar(lpREGroupItem->wpStrEnd, wpMaxStr, &nStrChar);
+                if (!PatIsCharBoundary(lpREGroupItem->wpStrEnd, nStrChar, hStack))
+                  goto RootReset;
+              }
+            }
+            else goto RootReset;
+          }
           bResult=TRUE;
           break;
+
+          RootReset:
+          lpREGroupItem->wpStrStart=wpStr;
+          lpREGroupItem->wpStrEnd=wpStr;
+          lpREGroupItem->nCurMatch=0;
         }
         if (lpREGroupItem->dwFlags & REGF_ROOTMULTILINE)
         {
@@ -1023,11 +1074,32 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       return bResult;
     }
   }
-  else if (lpREGroupItem->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
+  else
   {
-    //Find start position
-    for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && --wpStr >= hStack->wpText; --nPrevStrLen);
-    if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
+    if (lpREGroupItem->nSelfParent)
+    {
+      nCurMatch=lpREGroupItem->nCurMatch;
+      //str - "abc", find "($a*)+"
+      if (wpStr <= lpREGroupItem->wpStrStart)
+        goto EndLoop;
+    }
+    else nCurMatch=0;
+
+    if (lpREGroupItem->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
+    {
+      //Find start position
+      for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && --wpStr >= hStack->wpText; --nPrevStrLen);
+      if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
+    }
+    if (!lpREGroupItem->nMinMatch &&
+        //str - "123", find "(?>\d+?)3"
+        !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
+    {
+      lpREGroupItem->wpStrStart=wpStr;
+      lpREGroupItem->wpStrEnd=wpStr;
+      lpREGroupItem->nStrLen=0;
+      goto MatchNext;
+    }
   }
 
   BeginLoop:
@@ -1048,61 +1120,55 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       if (wpPat >= wpMaxPat)
       {
         Match:
-        if (hStack->dwOptions & REO_WHOLEWORD)
-        {
-          PatStrChar(wpStrStart, wpMaxStr, &nStrChar);
-          if (PatIsCharBoundary(wpStrStart, nStrChar, hStack))
-          {
-            if (wpStr >= hStack->wpMaxText)
-            {
-              //Match
-            }
-            else
-            {
-              PatStrChar(wpStr, wpMaxStr, &nStrChar);
-              if (!PatIsCharBoundary(wpStr, nStrChar, hStack))
-                goto EndLoop;
-            }
-          }
-          else goto EndLoop;
-        }
         ++nCurMatch;
-        if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
+        if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
           goto EndLoop;
         MatchFixed:
-        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
 
-        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
+        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
-            !(lpREGroupItem->dwFlags & REGF_ATOMIC))
+            !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
         {
+          MatchNext:
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
-            //Check nStrLen for \d+Z? in 123Z
-            if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            nNextMatched=PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr);
+
+            if (lpREGroupNextNext->nSelfParent)
             {
-              bNonGreedyMismatch=FALSE;
-              goto EndLoop;
+              //Restore data after PatExec
+              lpREGroupItem->wpStrStart=wpStrStart;
+              lpREGroupItem->wpStrEnd=wpStr;
+              lpREGroupItem->nStrLen=wpStr - wpStrStart;
+
+              --lpREGroupNextNext->nCurMatch;
+              --lpREGroupNextNext->nSelfParent;
             }
-            //str "AAB123", find "(A+?|.*?)123", wrong match - "B123", right match - "AAB123"
-            bNonGreedyMismatch=TRUE;
+            //Check nStrLen for \d+Z? in 123Z
+            if (nNextMatched && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            {
+              if (!(lpREGroupItem->dwFlags & REGF_GREEDY))
+                goto EndLoop;
+              wpGreedyStrEnd=wpStr;
+            }
           }
         }
+        else nNextMatched=-1;
+
         //str - ".*$", find "abc"
         if (wpStr >= wpMaxStr)
-          goto EndLoop;
-        //Prevent infinite loop "($a*)+"
-        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }
       if (wpPat == wpNextGroup)
       {
+        if (lpREGroupNext->dwFlags & REGF_ONLYOPTIONS)
+          goto NextGroup;
         bMatched=FALSE;
         goto FirstCheck;
 
@@ -1116,6 +1182,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               //Set wpStrStart for possible backreferences in child PatExec.
               lpREGroupItem->wpStrStart=wpStrStart;
             }
+            //str - "a1a2a3a4", find "(a.*?){2}"
+            //str - "a1a2a3a4", find "(a.*?){2}\w"
+            lpREGroupItem->nCurMatch=nCurMatch;
+            lpREGroupNext->wpStrStart=wpStr;
+            lpREGroupNext->nCurMatch=0;
+
             if (lpREGroupNext->dwFlags & REGF_IFPARENT)
             {
               if (lpREGroupNext->firstChild->conditionRef ?
@@ -1152,6 +1224,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               lpREGroupNext->wpStrStart=lpREGroupNextNext->wpStrStart;
               lpREGroupNext->wpStrEnd=lpREGroupNextNext->wpStrEnd;
               lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+              lpREGroupNext->nCurMatch=lpREGroupNextNext->nCurMatch;
               wpStr=lpREGroupNextNext->wpStrEnd;
               if (lpREGroupNext->dwFlags & REGF_OR)
               {
@@ -1160,28 +1233,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               }
               goto NextGroup;
             }
-            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY) &&
-                //str - "123", find "(?>\d+?)3"
-                !(lpREGroupNext->dwFlags & REGF_ATOMIC))
-            {
-              if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
-              {
-                if (PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
-                {
-                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
-                  {
-                    lpREGroupNext=lpREGroupNextNext;
-                    wpStr=lpREGroupNextNext->wpStrEnd;
-                  }
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                  {
-                    bMatched=TRUE;
-                    goto NextOR;
-                  }
-                  goto NextGroup;
-                }
-              }
-            }
+
             if (!PatExec(hStack, lpREGroupNext, wpStr, wpMaxStr))
             {
               if (lpREGroupNext->dwFlags & REGF_OR)
@@ -1202,7 +1254,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           else
             break;
         }
-        if (!bMatched) goto EndLoop;
+        if (bMatched)
+        {
+          if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
+            goto ReturnFalse;
+        }
+        else goto EndLoop;
 
         NextGroup:
         wpPat=lpREGroupNext->wpPatRight;
@@ -1415,7 +1472,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         do
         {
           if (wpStr >= wpMaxStr)
-            return FALSE;
+            goto ReturnFalse;
 
           nPatChar=PatEscChar(&wpPat);
 
@@ -1437,7 +1494,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               if (wpStr + nRefLen < wpMaxStr)
                 wpStr+=nRefLen;
               else
-                return FALSE;
+                goto ReturnFalse;
             }
             continue;
           }
@@ -1457,14 +1514,14 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         goto MatchFixed;
       }
       if (nNegativeFixed < lpREGroupItem->nMinMatch)
-        return FALSE;
+        goto ReturnFalse;
       if (!nNegativeFixed)
       {
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStrStart;
         lpREGroupItem->nStrLen=0;
       }
-      return TRUE;
+      goto ReturnTrue;
     }
     EndLoopAfterNegativeFixed:
     if (nCurMatch < lpREGroupItem->nMinMatch)
@@ -1474,9 +1531,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrStart=wpMinStr;
         lpREGroupItem->wpStrEnd=wpMinStr;
         lpREGroupItem->nStrLen=0;
-        return TRUE;
+        goto ReturnTrue;
       }
-      return FALSE;
+      goto ReturnFalse;
     }
     if (!nCurMatch)
     {
@@ -1487,7 +1544,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   }
   if (lpREGroupItem->dwFlags & (REGF_NEGATIVEFORWARD|REGF_NEGATIVEBACKWARD))
   {
-    return FALSE;
+    goto ReturnFalse;
   }
   if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_POSITIVEBACKWARD))
   {
@@ -1495,9 +1552,24 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     lpREGroupItem->wpStrEnd=wpMinStr;
     lpREGroupItem->nStrLen=0;
   }
-  if (bNonGreedyMismatch)
-    return FALSE;
+  if (wpGreedyStrEnd)
+  {
+    lpREGroupItem->wpStrEnd=wpGreedyStrEnd;
+    goto ReturnTrue;
+  }
+  if (nNextMatched == FALSE)
+    goto ReturnFalse;
+  ReturnTrue:
+  #ifdef _DEBUG
+    --hStack->nDeepness;
+  #endif
   return TRUE;
+
+  ReturnFalse:
+  #ifdef _DEBUG
+    --hStack->nDeepness;
+  #endif
+  return FALSE;
 }
 
 int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar)
@@ -1916,7 +1988,7 @@ REGROUP* PatNextGroup(REGROUP *lpREGroupItem)
 
 REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
 {
-  do
+  for (;;)
   {
     Loop:
     if (lpREGroupItem->next)
@@ -1928,9 +2000,20 @@ REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
       }
       return lpREGroupItem->next;
     }
-  }
-  while (lpREGroupItem=lpREGroupItem->parent);
+    if (!(lpREGroupItem=lpREGroupItem->parent))
+      break;
 
+    //nSelfParent
+    if (lpREGroupItem->parent &&
+        //str - "dac", find "(a|d)+"
+        !(lpREGroupItem->dwFlags & REGF_ORPARENT) &&
+        (DWORD)lpREGroupItem->nCurMatch + 1 < (DWORD)lpREGroupItem->nMaxMatch)
+    {
+      ++lpREGroupItem->nCurMatch;
+      ++lpREGroupItem->nSelfParent;
+      break;
+    }
+  }
   return lpREGroupItem;
 }
 
@@ -2042,6 +2125,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   AECHARINDEX ciMinStr=*ciInput;
   AECHARINDEX ciMaxStr=*ciMaxInput;
   AECHARINDEX ciStrStart=ciStr;
+  AECHARINDEX ciGreedyStrEnd;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpPatChar;
@@ -2053,21 +2137,27 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   int nPatChar;
   int nPatNextChar;
   wchar_t wchCaseChar;
-  int nCurMatch=0;
+  int nCurMatch;
   int nRefIndex;
   DWORD dwCmpResult=0;
+  int nNextMatched=-1;
   BOOL bMatched;
   BOOL bExclude;
   BOOL bNewLoop;
-  BOOL bNonGreedyMismatch=FALSE;
   int nNegativeFixed=0;
 
+  #ifdef _DEBUG
+    ++hStack->nDeepness;
+  #endif
   lpREGroupItem->nStrLen=0;
+  ciGreedyStrEnd.lpLine=NULL;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
+    nCurMatch=0;
     lpREGroupItem->ciStrStart=ciStr;
     lpREGroupItem->ciStrEnd=ciStr;
+    lpREGroupItem->nCurMatch=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -2080,8 +2170,19 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       {
         if (AE_PatExec(hStack, lpREGroupItem, &ciStr, &ciMaxStr))
         {
+          if (hStack->dwOptions & REO_WHOLEWORD)
+          {
+            if (!AE_PatIsCharBoundary(&lpREGroupItem->ciStrStart, hStack->wpDelim, hStack->wpMaxDelim) ||
+                !AE_PatIsCharBoundary(&lpREGroupItem->ciStrEnd, hStack->wpDelim, hStack->wpMaxDelim))
+              goto RootReset;
+          }
           bResult=TRUE;
           break;
+
+          RootReset:
+          lpREGroupItem->ciStrStart=ciStr;
+          lpREGroupItem->ciStrEnd=ciStr;
+          lpREGroupItem->nCurMatch=0;
         }
         if (lpREGroupItem->dwFlags & REGF_ROOTMULTILINE)
           AEC_NextLine(&ciStr);
@@ -2092,11 +2193,32 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       return bResult;
     }
   }
-  else if (lpREGroupItem->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
+  else
   {
-    //Find start position
-    for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && AEC_PrevChar(&ciStr); --nPrevStrLen);
-    if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
+    if (lpREGroupItem->nSelfParent)
+    {
+      nCurMatch=lpREGroupItem->nCurMatch;
+      //str - "abc", find "($a*)+"
+      if (AEC_IndexCompare(&ciStr, &lpREGroupItem->ciStrStart) <= 0)
+        goto EndLoop;
+    }
+    else nCurMatch=0;
+
+    if (lpREGroupItem->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
+    {
+      //Find start position
+      for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && AEC_PrevChar(&ciStr); --nPrevStrLen);
+      if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
+    }
+    if (!lpREGroupItem->nMinMatch &&
+        //str - "123", find "(?>\d+?)3"
+        !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
+    {
+      lpREGroupItem->ciStrStart=ciStr;
+      lpREGroupItem->ciStrEnd=ciStr;
+      lpREGroupItem->nStrLen=0;
+      goto MatchNext;
+    }
   }
 
   BeginLoop:
@@ -2117,49 +2239,55 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       if (wpPat >= wpMaxPat)
       {
         Match:
-        if (hStack->dwOptions & REO_WHOLEWORD)
-        {
-          if (!AE_PatIsCharBoundary(&ciStrStart, hStack->wpDelim, hStack->wpMaxDelim) ||
-              !AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
-            goto EndLoop;
-        }
         ++nCurMatch;
-        if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
+        if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
           goto EndLoop;
         MatchFixed:
-        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
 
-        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch && (lpREGroupItem->dwFlags & REGF_NONGREEDY)) ||
+        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
-            !(lpREGroupItem->dwFlags & REGF_ATOMIC))
+            !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
         {
+          MatchNext:
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
-            //Check nStrLen for \d+Z? in 123Z
-            if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            nNextMatched=AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr);
+
+            if (lpREGroupNextNext->nSelfParent)
             {
-              bNonGreedyMismatch=FALSE;
-              goto EndLoop;
+              //Restore data after PatExec
+              lpREGroupItem->ciStrStart=ciStrStart;
+              lpREGroupItem->ciStrEnd=ciStr;
+              lpREGroupItem->nStrLen=nStrLen;
+
+              --lpREGroupNextNext->nCurMatch;
+              --lpREGroupNextNext->nSelfParent;
             }
-            //str "AAB123", find "(A+?|.*?)123", wrong match - "B123", right match - "AAB123"
-            bNonGreedyMismatch=TRUE;
+            //Check nStrLen for \d+Z? in 123Z
+            if (nNextMatched && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
+            {
+              if (!(lpREGroupItem->dwFlags & REGF_GREEDY))
+                goto EndLoop;
+              ciGreedyStrEnd=ciStr;
+            }
           }
         }
+        else nNextMatched=-1;
+
         //str - ".*$", find "abc"
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-          goto EndLoop;
-        //Prevent infinite loop "($a*)+"
-        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }
       if (wpPat == wpNextGroup)
       {
+        if (lpREGroupNext->dwFlags & REGF_ONLYOPTIONS)
+          goto NextGroup;
         bMatched=FALSE;
         goto FirstCheck;
 
@@ -2173,6 +2301,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               //Set ciStrStart for possible backreferences in child AE_PatExec.
               lpREGroupItem->ciStrStart=ciStrStart;
             }
+            //str - "a1a2a3a4", find "(a.*?){2}"
+            //str - "a1a2a3a4", find "(a.*?){2}\w"
+            lpREGroupItem->nCurMatch=nCurMatch;
+            lpREGroupNext->ciStrStart=ciStr;
+            lpREGroupNext->nCurMatch=0;
+
             if (lpREGroupNext->dwFlags & REGF_IFPARENT)
             {
               if (lpREGroupNext->firstChild->conditionRef ?
@@ -2209,6 +2343,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               lpREGroupNext->ciStrStart=lpREGroupNextNext->ciStrStart;
               lpREGroupNext->ciStrEnd=lpREGroupNextNext->ciStrEnd;
               lpREGroupNext->nStrLen=lpREGroupNextNext->nStrLen;
+              lpREGroupNext->nCurMatch=lpREGroupNextNext->nCurMatch;
               ciStr=lpREGroupNextNext->ciStrEnd;
               nStrLen+=lpREGroupNextNext->nStrLen;
               if (lpREGroupNext->dwFlags & REGF_OR)
@@ -2218,29 +2353,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               }
               goto NextGroup;
             }
-            if (!lpREGroupNext->nMinMatch && (lpREGroupNext->dwFlags & REGF_NONGREEDY) &&
-                //str - "123", find "(?>\d+?)3"
-                !(lpREGroupNext->dwFlags & REGF_ATOMIC))
-            {
-              if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupNext))
-              {
-                if (AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr) && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
-                {
-                  if (lpREGroupNext->parent == lpREGroupNextNext->parent)
-                  {
-                    lpREGroupNext=lpREGroupNextNext;
-                    ciStr=lpREGroupNextNext->ciStrEnd;
-                    nStrLen+=lpREGroupNextNext->nStrLen;
-                  }
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                  {
-                    bMatched=TRUE;
-                    goto NextOR;
-                  }
-                  goto NextGroup;
-                }
-              }
-            }
+
             if (!AE_PatExec(hStack, lpREGroupNext, &ciStr, &ciMaxStr))
             {
               if (lpREGroupNext->dwFlags & REGF_OR)
@@ -2262,7 +2375,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           else
             break;
         }
-        if (!bMatched) goto EndLoop;
+        if (bMatched)
+        {
+          if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
+            goto ReturnFalse;
+        }
+        else goto EndLoop;
 
         NextGroup:
         wpPat=lpREGroupNext->wpPatRight;
@@ -2319,20 +2437,18 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
       //Compare char
       nPatChar=0;
+      nStrChar=AE_PatStrChar(&ciStr);
 
       if (*wpPat == L'.')
       {
         if (lpREGroupItem->dwFlags & REGF_NONEWLINEDOT)
         {
           //Any character except new line
-          nStrChar=AE_PatStrChar(&ciStr);
           if (nStrChar < 0) goto EndLoop;
         }
       }
       else if (*wpPat == L'[')
       {
-        nStrChar=AE_PatStrChar(&ciStr);
-
         if (*++wpPat == L'^')
         {
           bExclude=TRUE;
@@ -2404,7 +2520,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       }
       else
       {
-        nStrChar=AE_PatStrChar(&ciStr);
         dwCmpResult=PatCharCmp(&wpPat, nStrChar, (lpREGroupItem->dwFlags & REGF_MATCHCASE), &nPatChar);
 
         if (!(dwCmpResult & RECCE_EQUAL))
@@ -2496,7 +2611,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         do
         {
           if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-            return FALSE;
+            goto ReturnFalse;
 
           nPatChar=PatEscChar(&wpPat);
 
@@ -2517,7 +2632,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               for (nPrevStrLen=lpREGroupRef->nStrLen; nPrevStrLen > 0; --nPrevStrLen)
               {
                 if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-                  return FALSE;
+                  goto ReturnFalse;
                 AE_PatNextChar(&ciStr);
                 ++nStrLen;
               }
@@ -2545,14 +2660,14 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         goto MatchFixed;
       }
       if (nNegativeFixed < lpREGroupItem->nMinMatch)
-        return FALSE;
+        goto ReturnFalse;
       if (!nNegativeFixed)
       {
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStrStart;
         lpREGroupItem->nStrLen=0;
       }
-      return TRUE;
+      goto ReturnTrue;
     }
     EndLoopAfterNegativeFixed:
     if (nCurMatch < lpREGroupItem->nMinMatch)
@@ -2562,9 +2677,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         lpREGroupItem->ciStrStart=ciMinStr;
         lpREGroupItem->ciStrEnd=ciMinStr;
         lpREGroupItem->nStrLen=0;
-        return TRUE;
+        goto ReturnTrue;
       }
-      return FALSE;
+      goto ReturnFalse;
     }
     if (!nCurMatch)
     {
@@ -2575,7 +2690,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   }
   if (lpREGroupItem->dwFlags & (REGF_NEGATIVEFORWARD|REGF_NEGATIVEBACKWARD))
   {
-    return FALSE;
+    goto ReturnFalse;
   }
   if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_POSITIVEBACKWARD))
   {
@@ -2583,9 +2698,24 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     lpREGroupItem->ciStrEnd=ciMinStr;
     lpREGroupItem->nStrLen=0;
   }
-  if (bNonGreedyMismatch)
-    return FALSE;
+  if (ciGreedyStrEnd.lpLine)
+  {
+    lpREGroupItem->ciStrEnd=ciGreedyStrEnd;
+    goto ReturnTrue;
+  }
+  if (nNextMatched == FALSE)
+    goto ReturnFalse;
+  ReturnTrue:
+  #ifdef _DEBUG
+    --hStack->nDeepness;
+  #endif
   return TRUE;
+
+  ReturnFalse:
+  #ifdef _DEBUG
+    --hStack->nDeepness;
+  #endif
+  return FALSE;
 }
 
 int AE_PatStrChar(const AECHARINDEX *ciChar)
@@ -2705,7 +2835,7 @@ int PatStructExec(PATEXEC *pe)
     {
       pe->lpREGroupStack->first=0;
       pe->lpREGroupStack->last=0;
-      pe->lpREGroupStack->dwOptions=pe->dwOptions & (REPE_MATCHCASE|REPE_MULTILINE|REPE_WHOLEWORD|REPE_NONEWLINEDOT);
+      pe->lpREGroupStack->dwOptions=pe->dwOptions & (RESE_MATCHCASE|RESE_MULTILINE|RESE_WHOLEWORD|RESE_NONEWLINEDOT);
       pe->lpREGroupStack->wpDelim=pe->wpDelim;
       pe->lpREGroupStack->wpMaxDelim=pe->wpDelim?pe->wpMaxDelim:NULL;
       pe->lpREGroupStack->wpText=pe->wpText;
@@ -2716,12 +2846,12 @@ int PatStructExec(PATEXEC *pe)
   }
   if (!(lpREGroupRoot=pe->lpREGroupStack->first))
     return 0;
-  if (pe->dwOptions & REPE_ISMATCH)
+  if (pe->dwOptions & RESE_ISMATCH)
   {
     lpREGroupRoot->dwFlags&=~REGF_ROOTANY;
     nMaxMatchCount=1;
   }
-  else if (!(pe->dwOptions & REPE_GLOBAL))
+  else if (!(pe->dwOptions & RESE_GLOBAL))
     nMaxMatchCount=1;
 
   if (pe->wpStr)
@@ -2732,31 +2862,27 @@ int PatStructExec(PATEXEC *pe)
     //Patterns for check with <= or == sign:
     //str - "any", find - ".*", replace - "A\0Z"
     //str - "", find - "$", replace - "ZZZ"
-    if (wpStrNext <= pe->wpMaxStr)
+    while (wpStrNext <= pe->wpMaxStr)
     {
-      do
+      if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
+        ++nMatchCount;
+
+      if (pe->lpCallback)
       {
-        if (bMatched=PatExec(pe->lpREGroupStack, lpREGroupRoot, wpStrNext, pe->wpMaxStr))
-          ++nMatchCount;
-
-        if (pe->lpCallback)
-        {
-          if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
-            return nMatchCount;
-        }
-
-        //Find next match
-        if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
-          break;
-        pe->wpStr=lpREGroupRoot->wpStrEnd;
-        wpStrNext=lpREGroupRoot->wpStrEnd;
-        if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
-          wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
-        pe->lpREGroupStack->dwOptions|=REO_NOSTARTRANGEBEGIN;
-
-        PatReset(pe->lpREGroupStack);
+        if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == RESEC_STOP)
+          return nMatchCount;
       }
-      while (wpStrNext < pe->wpMaxStr);
+
+      //Find next match
+      if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
+        break;
+      pe->wpStr=lpREGroupRoot->wpStrEnd;
+      wpStrNext=lpREGroupRoot->wpStrEnd;
+      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+        wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
+      pe->lpREGroupStack->dwOptions|=REO_NOSTARTRANGEBEGIN;
+
+      PatReset(pe->lpREGroupStack);
     }
   }
   else
@@ -2764,30 +2890,26 @@ int PatStructExec(PATEXEC *pe)
     #ifdef __AKELEDIT_H__
     AECHARINDEX ciStrNext=pe->ciStr;
 
-    if (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) <= 0)
+    while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) <= 0)
     {
-      do
+      if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
+        ++nMatchCount;
+
+      if (pe->lpCallback)
       {
-        if (bMatched=AE_PatExec(pe->lpREGroupStack, lpREGroupRoot, &ciStrNext, &pe->ciMaxStr))
-          ++nMatchCount;
-
-        if (pe->lpCallback)
-        {
-          if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == REPEC_STOP)
-            return nMatchCount;
-        }
-
-        //Find next match
-        if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
-          break;
-        pe->ciStr=lpREGroupRoot->ciStrEnd;
-        ciStrNext=lpREGroupRoot->ciStrEnd;
-        if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
-          AEC_NextChar(&ciStrNext);
-
-        AE_PatReset(pe->lpREGroupStack);
+        if (pe->lpCallback(pe, lpREGroupRoot, bMatched) == RESEC_STOP)
+          return nMatchCount;
       }
-      while (AEC_IndexCompare(&ciStrNext, &pe->ciMaxStr) < 0);
+
+      //Find next match
+      if (!bMatched || (DWORD)nMatchCount >= (DWORD)nMaxMatchCount)
+        break;
+      pe->ciStr=lpREGroupRoot->ciStrEnd;
+      ciStrNext=lpREGroupRoot->ciStrEnd;
+      if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
+        AEC_NextChar(&ciStrNext);
+
+      AE_PatReset(pe->lpREGroupStack);
     }
     #endif
   }
@@ -2937,7 +3059,7 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
     pep->wpBufCount+=pe->wpMaxStr - pe->wpStr;
     pep->wpRightStr=pe->wpMaxStr;
   }
-  return REPEC_CONTINUE;
+  return RESEC_CONTINUE;
 }
 
 #ifdef __AKELEDIT_H__
@@ -3000,7 +3122,7 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
     pep->wpBufCount+=AE_PatStrCopy(&pe->ciStr, &pe->ciMaxStr, pep->wszBuf?pep->wpBufCount:NULL, NULL);
     pep->ciRightStr=pe->ciMaxStr;
   }
-  return REPEC_CONTINUE;
+  return RESEC_CONTINUE;
 }
 
 INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarget, const wchar_t *wpTargetMax)
@@ -3163,7 +3285,7 @@ void main()
     pe.wpMaxText=pe.wpMaxStr;
     pe.wpPat=L"(23)(.*)(89)";
     pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
-    pe.dwOptions=REPE_MATCHCASE;
+    pe.dwOptions=RESE_MATCHCASE;
     pe.wpDelim=NULL;
     pe.lpCallback=NULL;
 
@@ -3206,7 +3328,7 @@ void main()
     pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
     pr.wpRep=L"\\1abc\\3";
     pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
-    pr.dwOptions=REPE_GLOBAL|REPE_MULTILINE;
+    pr.dwOptions=RESE_GLOBAL|RESE_MULTILINE;
     pr.wpDelim=NULL;
     pr.wpNewLine=NULL;
     pr.wszResult=NULL;
