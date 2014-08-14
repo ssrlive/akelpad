@@ -101,44 +101,37 @@
 // Trace(34+56)+26
 // Результат: 116
 
-//Options
-var bHex=false;
-
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
-var oSys=AkelPad.SystemFunction();
-var pScriptName=WScript.ScriptName;
 var pSelText=AkelPad.GetSelText();
+var bHex=false;
+var nResult=0;
+var nError;
 var WM_USER=1024;
 
-if (hMainWnd)
+if (pSelText)
 {
-  var nResult=0;
-  var nError;
+  pSelText=pSelText.replace(/(\d),(\d)/g, "$1.$2");
+  if (pSelText.substr(0, 2) == "0x")
+    bHex=true;
 
-  if (pSelText)
+  try
   {
-    if (pSelText.substr(0, 2) == "0x")
-      bHex=true;
-
-    try
+    with (Math)
     {
-      with (Math)
-      {
-        nResult=eval(pSelText);
-      }
+      nResult=eval(pSelText);
     }
-    catch (nError)
-    {
-      AkelPad.MessageBox(hMainWnd, nError.description, pScriptName, 16 /*MB_ICONERROR*/);
-      WScript.Quit();
-    }
-    Trace(nResult, GetLangString(1));
   }
-  else
+  catch (nError)
   {
-    AkelPad.MessageBox(hMainWnd, GetLangString(0), pScriptName, 48 /*MB_ICONEXCLAMATION*/);
+    AkelPad.MessageBox(hMainWnd, nError.description, WScript.ScriptName, 16 /*MB_ICONERROR*/);
+    WScript.Quit();
   }
+  Trace(nResult, GetLangString(1));
+}
+else
+{
+  AkelPad.MessageBox(hMainWnd, GetLangString(0), WScript.ScriptName, 48 /*MB_ICONEXCLAMATION*/);
 }
 
 
@@ -152,7 +145,7 @@ function Trace(nResult, pLabel)
     if (nResult < 0) nResult=(0xFFFFFFFF + 1) + nResult;
     nResult="0x" + nResult.toString(16).toUpperCase();
   }
-  if (nValue=AkelPad.InputBox(hMainWnd, pScriptName, pLabel, nResult))
+  if (nValue=AkelPad.InputBox(hMainWnd, WScript.ScriptName, pLabel, nResult))
     return parseInt(nValue);
   return nResult;
 }
