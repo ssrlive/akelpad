@@ -109,8 +109,6 @@ Call("Coder::HighLight", 4, ID, "#RRGGBB", "#RRGGBB", DIRECTION)
     DIRECTION (one of the following):
       0 find down (default).
       1 find up.
-  Note:
-    Search is available only for non-regular expression marks.
   Example:
     Call("Coder::HighLight", 4, 0, 0, 0, 1)
 
