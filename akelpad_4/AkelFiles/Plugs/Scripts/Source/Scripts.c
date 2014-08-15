@@ -99,7 +99,7 @@ DWORD dwSaveFlags=0;
 HWND hWndMainDlg=NULL;
 HWND hWndScriptsList=NULL;
 WNDPROC lpOldFilterProc=NULL;
-RECT rcMainMinMaxDialog={253, 365, 0, 0};
+RECT rcMainMinMaxDialog={253, 337, 0, 0};
 RECT rcMainCurrentDialog={0};
 int nColumnWidth1=163;
 int nColumnWidth2=109;
@@ -231,7 +231,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndDebugJITCheck;
   static HWND hWndDebugJITFromStartCheck;
   static HWND hWndDebugCodeCheck;
-  static HWND hWndDebugCodeEdit;
+  static HWND hWndDebugCodeButton;
   static HWND hWndCloseButton;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
@@ -248,7 +248,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndDebugJITCheck,          DRS_MOVE|DRS_X, 0},
                              {&hWndDebugJITFromStartCheck, DRS_MOVE|DRS_X, 0},
                              {&hWndDebugCodeCheck,         DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeEdit,          DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugCodeButton,        DRS_MOVE|DRS_X, 0},
                              {&hWndCloseButton,            DRS_MOVE|DRS_X, 0},
                              {&hWndCloseButton,            DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
@@ -271,7 +271,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndDebugJITCheck=GetDlgItem(hDlg, IDC_DEBUG_JIT_CHECK);
     hWndDebugJITFromStartCheck=GetDlgItem(hDlg, IDC_DEBUG_JITFROMSTART_CHECK);
     hWndDebugCodeCheck=GetDlgItem(hDlg, IDC_DEBUG_CODE_CHECK);
-    hWndDebugCodeEdit=GetDlgItem(hDlg, IDC_DEBUG_CODE_EDIT);
+    hWndDebugCodeButton=GetDlgItem(hDlg, IDC_DEBUG_CODE_BUTTON);
     hWndCloseButton=GetDlgItem(hDlg, IDC_CLOSE);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
@@ -281,7 +281,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDC_DEBUG_GROUP, GetLangStringW(wLangModule, STRID_DEBUG));
     SetDlgItemTextWide(hDlg, IDC_DEBUG_JIT_CHECK, GetLangStringW(wLangModule, STRID_JIT));
     SetDlgItemTextWide(hDlg, IDC_DEBUG_JITFROMSTART_CHECK, GetLangStringW(wLangModule, STRID_FROMSTART));
-    SetDlgItemTextWide(hDlg, IDC_DEBUG_CODE_CHECK, GetLangStringW(wLangModule, STRID_CODE));
     SetDlgItemTextWide(hDlg, IDC_CLOSE, GetLangStringW(wLangModule, STRID_CLOSE));
 
     EnableWindow(hWndExecButton, FALSE);
@@ -300,9 +299,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (bGlobalDebugEnable)
       SendMessage(hWndDebugCodeCheck, BM_SETCHECK, BST_CHECKED, 0);
     else
-      EnableWindow(hWndDebugCodeEdit, FALSE);
+      EnableWindow(hWndDebugCodeButton, FALSE);
     xprintfW(wszBuffer, L"0x%x", dwGlobalDebugCode);
-    SetWindowTextWide(hWndDebugCodeEdit, wszBuffer);
+    SetWindowTextWide(hWndDebugCodeButton, wszBuffer);
 
     //Columns
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
@@ -427,7 +426,23 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bState;
 
       bState=(BOOL)SendMessage(hWndDebugCodeCheck, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndDebugCodeEdit, bState);
+      EnableWindow(hWndDebugCodeButton, bState);
+    }
+    else if (LOWORD(wParam) == IDC_DEBUG_CODE_BUTTON)
+    {
+      DWORD dwDebugCode=dwGlobalDebugCode;
+
+      if (DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_CODE), hDlg, (DLGPROC)CodeDlgProc, (LPARAM)&dwDebugCode))
+      {
+        if (dwGlobalDebugCode != dwDebugCode)
+        {
+          dwGlobalDebugCode=dwDebugCode;
+          dwSaveFlags|=OF_DEBUG;
+
+          xprintfW(wszBuffer, L"0x%x", dwGlobalDebugCode);
+          SetWindowTextWide(hWndDebugCodeButton, wszBuffer);
+        }
+      }
     }
     else if (LOWORD(wParam) == IDC_EXEC ||
              LOWORD(wParam) == IDC_EDIT ||
@@ -438,7 +453,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nWidth;
       BOOL bDebugEnable;
       DWORD dwDebugFlags;
-      INT_PTR nDebugCode;
 
       nWidth=(int)SendMessage(hWndScriptsList, LVM_GETCOLUMNWIDTH, LVI_SCRIPT_FILE, 0);
       if (nColumnWidth1 != nWidth)
@@ -474,22 +488,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bGlobalDebugEnable != bDebugEnable)
       {
         bGlobalDebugEnable=bDebugEnable;
-        dwSaveFlags|=OF_DEBUG;
-      }
-
-      GetWindowTextWide(hWndDebugCodeEdit, wszBuffer, BUFFER_SIZE);
-      if (wszBuffer[0] == L'0' && wszBuffer[1] == L'x')
-      {
-        nDebugCode=hex2decW(wszBuffer + 2, -1);
-        if (nDebugCode < 0) nDebugCode=0;
-      }
-      else
-      {
-        nDebugCode=xatoiW(wszBuffer, NULL);
-      }
-      if (dwGlobalDebugCode != (DWORD)nDebugCode)
-      {
-        dwGlobalDebugCode=(DWORD)nDebugCode;
         dwSaveFlags|=OF_DEBUG;
       }
 
@@ -541,6 +539,81 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       dwSaveFlags|=OF_RECT;
   }
 
+  return FALSE;
+}
+
+BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndMemReadCheck;
+  static HWND hWndMemWriteCheck;
+  static HWND hWndMemFreeCheck;
+  static HWND hWndMemLeakCheck;
+  static HWND hWndSysCallCheck;
+  static HWND hWndOK;
+  static HWND hWndCancel;
+  static DWORD *lpdwDebugCode;
+  static DWORD dwDebugCode;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    lpdwDebugCode=(DWORD *)lParam;
+    dwDebugCode=*lpdwDebugCode;
+
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hPluginIcon);
+    hWndMemReadCheck=GetDlgItem(hDlg, IDC_CODE_MEMREAD_CHECK);
+    hWndMemWriteCheck=GetDlgItem(hDlg, IDC_CODE_MEMWRITE_CHECK);
+    hWndMemFreeCheck=GetDlgItem(hDlg, IDC_CODE_MEMFREE_CHECK);
+    hWndMemLeakCheck=GetDlgItem(hDlg, IDC_CODE_MEMLEAK_CHECK);
+    hWndSysCallCheck=GetDlgItem(hDlg, IDC_CODE_SYSCALL_CHECK);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
+    SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_CODE));
+    SetDlgItemTextWide(hDlg, IDC_CODE_MEMREAD_CHECK, GetLangStringW(wLangModule, STRID_CODE_MEMREAD));
+    SetDlgItemTextWide(hDlg, IDC_CODE_MEMWRITE_CHECK, GetLangStringW(wLangModule, STRID_CODE_MEMWRITE));
+    SetDlgItemTextWide(hDlg, IDC_CODE_MEMFREE_CHECK, GetLangStringW(wLangModule, STRID_CODE_MEMFREE));
+    SetDlgItemTextWide(hDlg, IDC_CODE_MEMLEAK_CHECK, GetLangStringW(wLangModule, STRID_CODE_MEMLEAK));
+    SetDlgItemTextWide(hDlg, IDC_CODE_SYSCALL_CHECK, GetLangStringW(wLangModule, STRID_CODE_SYSCALL));
+    SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
+    SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
+
+    if (dwDebugCode & DBG_MEMREAD)
+      SendMessage(hWndMemReadCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwDebugCode & DBG_MEMWRITE)
+      SendMessage(hWndMemWriteCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwDebugCode & DBG_MEMFREE)
+      SendMessage(hWndMemFreeCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwDebugCode & DBG_MEMLEAK)
+      SendMessage(hWndMemLeakCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwDebugCode & DBG_SYSCALL)
+      SendMessage(hWndSysCallCheck, BM_SETCHECK, BST_CHECKED, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDOK)
+    {
+      dwDebugCode=0;
+      if (SendMessage(hWndMemReadCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwDebugCode|=DBG_MEMREAD;
+      if (SendMessage(hWndMemWriteCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwDebugCode|=DBG_MEMWRITE;
+      if (SendMessage(hWndMemFreeCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwDebugCode|=DBG_MEMFREE;
+      if (SendMessage(hWndMemLeakCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwDebugCode|=DBG_MEMLEAK;
+      if (SendMessage(hWndSysCallCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwDebugCode|=DBG_SYSCALL;
+      *lpdwDebugCode=dwDebugCode;
+
+      EndDialog(hDlg, 1);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
   return FALSE;
 }
 
@@ -1730,7 +1803,17 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_FROMSTART)
       return L"\x0421\x0020\x043D\x0430\x0447\x0430\x043B\x0430";
     if (nStringID == STRID_CODE)
-      return L"\x041A\x043E\x0434:";
+      return L"\x041A\x043E\x0434";
+    if (nStringID == STRID_CODE_MEMREAD)
+      return L"\x041E\x0442\x043B\x0430\x0434\x0438\x0442\x044C\x0020\x0447\x0442\x0435\x043D\x0438\x0435\x0020\x043F\x0430\x043C\x044F\x0442\x0438";
+    if (nStringID == STRID_CODE_MEMWRITE)
+      return L"\x041E\x0442\x043B\x0430\x0434\x0438\x0442\x044C\x0020\x0437\x0430\x043F\x0438\x0441\x044C\x0020\x043F\x0430\x043C\x044F\x0442\x0438";
+    if (nStringID == STRID_CODE_MEMFREE)
+      return L"\x041E\x0442\x043B\x0430\x0434\x0438\x0442\x044C\x0020\x043E\x0441\x0432\x043E\x0431\x043E\x0436\x0434\x0435\x043D\x0438\x0435\x0020\x043F\x0430\x043C\x044F\x0442\x0438";
+    if (nStringID == STRID_CODE_MEMLEAK)
+      return L"\x041E\x0442\x043B\x0430\x0434\x0438\x0442\x044C\x0020\x0443\x0442\x0435\x0447\x043A\x0443\x0020\x043F\x0430\x043C\x044F\x0442\x0438";
+    if (nStringID == STRID_CODE_SYSCALL)
+      return L"\x041E\x0442\x043B\x0430\x0434\x0438\x0442\x044C\x0020\x0432\x044B\x0437\x043E\x0432\x0020\x0441\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0445\x0020\x0444\x0443\x043D\x043A\x0446\x0438\x0439";
     if (nStringID == STRID_DEBUG_MEMLOCATE)
       return L"\x0423\x043A\x0430\x0437\x0430\x0442\x0435\x043B\x044C (%d) \x043D\x0435\x0020\x043D\x0430\x0445\x043E\x0434\x0438\x0442\x0441\x044F\x0020\x0432\x0020\x043F\x0430\x043C\x044F\x0442\x0438\x002C\x0020\x0432\x044B\x0434\x0435\x043B\x0435\x043D\x043D\x043E\x0439\x0020\x0441\x0020\x043F\x043E\x043C\x043E\x0449\x044C\x044E AkelPad.MemAlloc.";
     if (nStringID == STRID_DEBUG_MEMREAD)
@@ -1741,9 +1824,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0423\x043A\x0430\x0437\x0430\x0442\x0435\x043B\x044C (%d) \x043D\x0435\x0020\x0431\x044B\x043B\x0020\x043F\x043E\x043B\x0443\x0447\x0435\x043D\x0020\x0441\x0020\x043F\x043E\x043C\x043E\x0449\x044C\x044E AkelPad.MemAlloc.";
     if (nStringID == STRID_DEBUG_MEMLEAK)
       return L"\x041D\x0435\x0020\x0432\x044B\x0437\x0432\x0430\x043D\x043E AkelPad.MemFree \x0434\x043B\x044F (%d) \x043E\x0431\x044A\x0435\x043A\x0442\x043E\x0432\x002C\x0020\x043F\x043E\x043B\x0443\x0447\x0435\x043D\x043D\x044B\x0445\x0020\x0441\x0020\x043F\x043E\x043C\x043E\x0449\x044C\x044E\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x002E\x004D\x0065\x006D\x0041\x006C\x006C\x006F\x0063\x002E";
-    if (nStringID == STRID_DEBUG_SYSCALLDLL)
+    if (nStringID == STRID_DEBUG_SYSCALL)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0444\x0430\x0439\x043B \"%s\".";
-    if (nStringID == STRID_DEBUG_SYSCALLFUNCTION)
+    if (nStringID == STRID_DEBUG_SYSFUNCTION)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0430\x0020\x0444\x0443\x043D\x043A\x0446\x0438\x044F \"%s\" \x0432\x0020\x0444\x0430\x0439\x043B\x0435 \"%s\".";
     if (nStringID == STRID_SCRIPT)
       return L"\x0421\x043A\x0440\x0438\x043F\x0442";
@@ -1797,7 +1880,17 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_FROMSTART)
       return L"From start";
     if (nStringID == STRID_CODE)
-      return L"Code:";
+      return L"Code";
+    if (nStringID == STRID_CODE_MEMREAD)
+      return L"Debug memory read";
+    if (nStringID == STRID_CODE_MEMWRITE)
+      return L"Debug memory write";
+    if (nStringID == STRID_CODE_MEMFREE)
+      return L"Debug memory free";
+    if (nStringID == STRID_CODE_MEMLEAK)
+      return L"Debug memory leak";
+    if (nStringID == STRID_CODE_SYSCALL)
+      return L"Debug system function call";
     if (nStringID == STRID_DEBUG_MEMLOCATE)
       return L"Pointer (%d) is not located in memory that was allocated with AkelPad.MemAlloc.";
     if (nStringID == STRID_DEBUG_MEMREAD)
@@ -1808,9 +1901,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Pointer (%d) has not been received with AkelPad.MemAlloc.";
     if (nStringID == STRID_DEBUG_MEMLEAK)
       return L"AkelPad.MemFree is not called for (%d) objects received with AkelPad.MemAlloc.";
-    if (nStringID == STRID_DEBUG_SYSCALLDLL)
+    if (nStringID == STRID_DEBUG_SYSCALL)
       return L"Cannot find file \"%s\".";
-    if (nStringID == STRID_DEBUG_SYSCALLFUNCTION)
+    if (nStringID == STRID_DEBUG_SYSFUNCTION)
       return L"Cannot find function \"%s\" in file \"%s\".";
     if (nStringID == STRID_SCRIPT)
       return L"Script";
