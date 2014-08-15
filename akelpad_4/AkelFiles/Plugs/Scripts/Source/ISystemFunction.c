@@ -251,12 +251,12 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
   {
     if (!hModule)
     {
-      xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_SYSCALLDLL), wszDll);
+      xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_SYSCALL), wszDll);
       return E_POINTER;
     }
     if (!lpProcedure)
     {
-      xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_SYSCALLFUNCTION), wszFunction, wszDll);
+      xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_SYSFUNCTION), wszFunction, wszDll);
       return E_POINTER;
     }
   }

@@ -36,25 +36,30 @@
 #define STRID_JIT                   11
 #define STRID_FROMSTART             12
 #define STRID_CODE                  13
-#define STRID_DEBUG_MEMLOCATE       14
-#define STRID_DEBUG_MEMREAD         15
-#define STRID_DEBUG_MEMWRITE        16
-#define STRID_DEBUG_MEMFREE         17
-#define STRID_DEBUG_MEMLEAK         18
-#define STRID_DEBUG_SYSCALLDLL      19
-#define STRID_DEBUG_SYSCALLFUNCTION 20
-#define STRID_SCRIPT                21
-#define STRID_HOTKEY                22
-#define STRID_STATUS                23
-#define STRID_RUNNING               24
-#define STRID_WAITING               25
-#define STRID_EXEC                  26
-#define STRID_EDIT                  27
-#define STRID_ASSIGN                28
-#define STRID_PLUGIN                29
-#define STRID_OK                    30
-#define STRID_CANCEL                31
-#define STRID_CLOSE                 32
+#define STRID_CODE_MEMREAD          14
+#define STRID_CODE_MEMWRITE         15
+#define STRID_CODE_MEMFREE          16
+#define STRID_CODE_MEMLEAK          17
+#define STRID_CODE_SYSCALL          18
+#define STRID_DEBUG_MEMLOCATE       19
+#define STRID_DEBUG_MEMREAD         20
+#define STRID_DEBUG_MEMWRITE        21
+#define STRID_DEBUG_MEMFREE         22
+#define STRID_DEBUG_MEMLEAK         23
+#define STRID_DEBUG_SYSCALL         24
+#define STRID_DEBUG_SYSFUNCTION     25
+#define STRID_SCRIPT                26
+#define STRID_HOTKEY                27
+#define STRID_STATUS                28
+#define STRID_RUNNING               29
+#define STRID_WAITING               30
+#define STRID_EXEC                  31
+#define STRID_EDIT                  32
+#define STRID_ASSIGN                33
+#define STRID_PLUGIN                34
+#define STRID_OK                    35
+#define STRID_CANCEL                36
+#define STRID_CLOSE                 37
 
 #define OF_RECT        0x1
 #define OF_LASTSCRIPT  0x2
@@ -194,6 +199,7 @@ extern BOOL bGlobalDebugJITEnable;
 
 //Functions prototypes
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
 void FillScriptList(HWND hWnd, const wchar_t *wpFilter);

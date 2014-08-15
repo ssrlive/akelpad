@@ -6,6 +6,7 @@
 #define IDI_ICON_PLUGIN                 101
 #define IDD_SCRIPTS                     1101
 #define IDD_INPUTBOX                    1102
+#define IDD_CODE                        1103
 #define IDC_SCRIPTS_LIST                1201
 #define IDC_SCRIPTS_FILTER              1202
 #define IDC_CHANGELIST_GROUP            1203
@@ -18,10 +19,20 @@
 #define IDC_DEBUG_JIT_CHECK             1210
 #define IDC_DEBUG_JITFROMSTART_CHECK    1211
 #define IDC_DEBUG_CODE_CHECK            1212
-#define IDC_DEBUG_CODE_EDIT             1213
+#define IDC_DEBUG_CODE_BUTTON           1213
 #define IDC_CLOSE                       1214
 #define IDC_INPUTBOX_LABEL              1301
 #define IDC_INPUTBOX_EDIT               1302
+#define IDC_CODE_MEMREAD_STATIC         1401   
+#define IDC_CODE_MEMREAD_CHECK          1402 
+#define IDC_CODE_MEMWRITE_STATIC        1403
+#define IDC_CODE_MEMWRITE_CHECK         1404
+#define IDC_CODE_MEMFREE_STATIC         1405
+#define IDC_CODE_MEMFREE_CHECK          1406
+#define IDC_CODE_MEMLEAK_STATIC         1407
+#define IDC_CODE_MEMLEAK_CHECK          1408
+#define IDC_CODE_SYSCALL_STATIC         1409
+#define IDC_CODE_SYSCALL_CHECK          1410
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -30,7 +41,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
 #define _APS_NEXT_COMMAND_VALUE         12001
-#define _APS_NEXT_CONTROL_VALUE         13004
+#define _APS_NEXT_CONTROL_VALUE         13001
 #define _APS_NEXT_SYMED_VALUE           14001
 #endif
 #endif
