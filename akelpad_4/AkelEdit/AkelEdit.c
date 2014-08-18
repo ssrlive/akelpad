@@ -11484,7 +11484,7 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
           lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
         }
 
-        //REPE_ISMATCH
+        //RESE_ISMATCH
         lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
 
         //Parse pQuoteEnd: \BackRef1=(FontStyle,ColorText,ColorBk) \BackRef2=(FontStyle,ColorText,ColorBk)
@@ -11769,7 +11769,7 @@ AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AE
         lpREGroupStack->wpMaxDelim=lpREGroupStack->wpDelim + ae->popt->nWordDelimitersLen;
       }
 
-      //REPE_ISMATCH
+      //RESE_ISMATCH
       lpREGroupStack->first->dwFlags&=~REGF_ROOTANY;
 
       lpMarkTextDst->lpREGroupStack=(void *)lpREGroupStack;
