@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v3.7                  *
+ *                 AkelUpdater NSIS plugin v4.1                  *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -698,7 +698,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (lpPluginItem && lpPluginItem->dwError)
             {
               //Wrong plugin
-              SetWindowLongA(hDlg, DWLP_MSGRESULT, 1);
+              SetWindowLongA(hDlg, DWL_MSGRESULT, 1);
               return TRUE;
             }
 
