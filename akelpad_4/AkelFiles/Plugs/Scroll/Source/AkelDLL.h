@@ -4899,7 +4899,7 @@ Example:
  pe.wpMaxText=pe.wpMaxStr;
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
- pe.dwOptions=REPE_MATCHCASE;
+ pe.dwOptions=RESE_MATCHCASE;
  pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
@@ -4953,7 +4953,7 @@ Example:
  pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
  pr.wpRep=L"\\1abc\\3";
  pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
- pr.dwOptions=REPE_GLOBAL|REPE_MULTILINE;
+ pr.dwOptions=RESE_GLOBAL|RESE_MULTILINE;
  pr.wpDelim=NULL;
  pr.wpNewLine=NULL;
  pr.wszResult=NULL;
@@ -4990,7 +4990,7 @@ Example:
  pe.wpMaxText=pe.wpMaxStr;
  pe.wpPat=L"(23)(.*)(89)";
  pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
- pe.dwOptions=REPE_MATCHCASE;
+ pe.dwOptions=RESE_MATCHCASE;
  pe.wpDelim=NULL;
  pe.lpCallback=NULL;
 
