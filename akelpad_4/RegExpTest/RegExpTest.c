@@ -284,6 +284,18 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"[BB][][BB]")) goto Error;
 
   nLine=__LINE__;
+  TextReplaceRE(L"bc de", L"([bc]|x)*+\\s", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]de")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abbc abcc", L"a(bc|b)+c", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abbc abcc", L"a(b|bc)+c", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x] [x]c")) goto Error;
+
+  nLine=__LINE__;
   TextReplaceRE(L"abc abcc", L"a(bc|b)c", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x] [x]")) goto Error;
 
