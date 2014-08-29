@@ -812,6 +812,7 @@ BOOL IsAllowWatchFile(FRAMEDATA *lpFrame);
 BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL GetPrinter(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent);
 BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent);
 BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent);
 DWORD GetMappedPrintWidth(HWND hWnd);
