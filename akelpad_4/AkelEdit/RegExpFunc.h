@@ -996,6 +996,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   REGROUP *lpREGroupNext;
   REGROUP *lpREGroupNextNext;
   REGROUP *lpREGroupRef;
+  REGROUP *lpREGroupOrMatch;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpPatChar;
@@ -1003,7 +1004,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
   const wchar_t *wpGreedyStrEnd=NULL;
-  const wchar_t *wpLastMatchStr;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
   int nStrChar;
@@ -1014,7 +1014,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   int nCurMatch;
   int nRefIndex;
   DWORD dwCmpResult=0;
-  DWORD dwLastMatchLen;
   int nNextMatched=-1;
   BOOL bMatched;
   BOOL bLastMatched;
@@ -1178,8 +1177,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         if (lpREGroupNext->dwFlags & REGF_ONLYOPTIONS)
           goto NextGroup;
         bMatched=FALSE;
-        wpLastMatchStr=NULL;
-        dwLastMatchLen=(DWORD)-1;
+        lpREGroupOrMatch=NULL;
         goto FirstCheck;
 
         for (;;)
@@ -1252,11 +1250,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             }
             if (lpREGroupNext->dwFlags & REGF_OR)
             {
-              if ((DWORD)lpREGroupNext->nStrLen < dwLastMatchLen || (bLastMatched & REE_NEXTMATCH))
-              {
-                wpLastMatchStr=lpREGroupNext->wpStrEnd;
-                dwLastMatchLen=lpREGroupNext->nStrLen;
-              }
+              if (!lpREGroupOrMatch || lpREGroupNext->nStrLen < lpREGroupOrMatch->nStrLen || (bLastMatched & REE_NEXTMATCH))
+                lpREGroupOrMatch=lpREGroupNext;
               bMatched=bLastMatched;
               goto NextOR;
             }
@@ -1271,10 +1266,10 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         if (bMatched)
         {
-          if (wpLastMatchStr)
-            wpStr=wpLastMatchStr;
           if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
             goto ReturnFalse;
+          if (lpREGroupOrMatch)
+            wpStr=lpREGroupOrMatch->wpStrEnd;
         }
         else goto EndLoop;
 
@@ -2142,12 +2137,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   REGROUP *lpREGroupNext;
   REGROUP *lpREGroupNextNext;
   REGROUP *lpREGroupRef;
+  REGROUP *lpREGroupOrMatch;
   AECHARINDEX ciStr=*ciInput;
   AECHARINDEX ciMinStr=*ciInput;
   AECHARINDEX ciMaxStr=*ciMaxInput;
   AECHARINDEX ciStrStart=ciStr;
   AECHARINDEX ciGreedyStrEnd;
-  AECHARINDEX ciLastMatchStr;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpPatChar;
@@ -2162,7 +2157,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   int nCurMatch;
   int nRefIndex;
   DWORD dwCmpResult=0;
-  DWORD dwLastMatchLen;
   int nNextMatched=-1;
   BOOL bMatched;
   BOOL bLastMatched;
@@ -2313,8 +2307,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         if (lpREGroupNext->dwFlags & REGF_ONLYOPTIONS)
           goto NextGroup;
         bMatched=FALSE;
-        ciLastMatchStr.lpLine=NULL;
-        dwLastMatchLen=(DWORD)-1;
+        lpREGroupOrMatch=NULL;
         goto FirstCheck;
 
         for (;;)
@@ -2388,11 +2381,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             }
             if (lpREGroupNext->dwFlags & REGF_OR)
             {
-              if ((DWORD)lpREGroupNext->nStrLen < dwLastMatchLen || (bLastMatched & REE_NEXTMATCH))
-              {
-                ciLastMatchStr=lpREGroupNext->ciStrEnd;
-                dwLastMatchLen=lpREGroupNext->nStrLen;
-              }
+              if (!lpREGroupOrMatch || lpREGroupNext->nStrLen < lpREGroupOrMatch->nStrLen || (bLastMatched & REE_NEXTMATCH))
+                lpREGroupOrMatch=lpREGroupNext;
               bMatched=bLastMatched;
               goto NextOR;
             }
@@ -2408,13 +2398,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         if (bMatched)
         {
-          if (ciLastMatchStr.lpLine)
-          {
-            ciStr=ciLastMatchStr;
-            nStrLen+=dwLastMatchLen;
-          }
           if (lpREGroupItem->dwFlags & REGF_NEGATIVEFORWARD)
             goto ReturnFalse;
+          if (lpREGroupOrMatch)
+          {
+            ciStr=lpREGroupOrMatch->ciStrEnd;
+            nStrLen+=lpREGroupOrMatch->nStrLen;
+          }
         }
         else goto EndLoop;
 
