@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 6)
 
 
 //// Defines
@@ -3313,10 +3313,11 @@ ________________
 Get print information.
 
 (PRINTINFO *)lParam == pointer to a PRINTINFO structure.
-lParam              == not used.
+(BOOL)lParam        == TRUE  initialize PRINTINFO structure with default printer data. Release PRINTINFO.hDC when structure not needed.
+                       FALSE get PRINTINFO structure as is.
 
 Return Value
- Zero.
+ Zero or if lParam is non-zero then TRUE - success, FALSE - failed.
 
 Example:
  PRINTINFO pi;

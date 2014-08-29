@@ -2197,6 +2197,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       PRINTINFO *info=(PRINTINFO *)wParam;
 
       xmemcpy(info, &prninfo, sizeof(PRINTINFO));
+      if (lParam)
+        return GetPrinter(hMainWnd, info, TRUE);
       return 0;
     }
     if (uMsg == AKD_SETPRINTINFO)

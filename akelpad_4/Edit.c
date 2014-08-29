@@ -1811,16 +1811,8 @@ int DoFilePrint(FRAMEDATA *lpFrame, BOOL bSilent)
     prninfo.dwPrintFlags&=~PD_NOSELECTION;
 
   //Choose printer
-  if (bOldWindows)
-  {
-    if (!GetPrinterA(hMainWnd, &prninfo, bSilent))
-      return 0;
-  }
-  else
-  {
-    if (!GetPrinterW(hMainWnd, &prninfo, bSilent))
-      return 0;
-  }
+  if (!GetPrinter(hMainWnd, &prninfo, bSilent))
+    return 0;
 
   if (prninfo.hDC)
   {
@@ -6224,6 +6216,14 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
   return FALSE;
 }
 
+BOOL GetPrinter(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
+{
+  if (bOldWindows)
+    return GetPrinterA(hWndOwner, prninfo, bSilent);
+  else
+    return GetPrinterW(hWndOwner, prninfo, bSilent);
+}
+
 BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
 {
   PRINTDLGA pdA;
@@ -6349,16 +6349,8 @@ DWORD GetMappedPrintWidth(HWND hWnd)
   int nAveCharWidth;
   DWORD dwWidth=0;
 
-  if (bOldWindows)
-  {
-    if (!GetPrinterA(hMainWnd, &prninfo, TRUE))
-      return 0;
-  }
-  else
-  {
-    if (!GetPrinterW(hMainWnd, &prninfo, TRUE))
-      return 0;
-  }
+  if (!GetPrinter(hMainWnd, &prninfo, TRUE))
+    return 0;
 
   if (prninfo.hDC)
   {
@@ -7137,16 +7129,8 @@ BOOL PreviewInit(HWND hWndSelection)
   //Get printer DC
   if (!prninfo.hDC)
   {
-    if (bOldWindows)
-    {
-      if (!GetPrinterA(hMainWnd, &prninfo, TRUE))
-        return 0;
-    }
-    else
-    {
-      if (!GetPrinterW(hMainWnd, &prninfo, TRUE))
-        return 0;
-    }
+    if (!GetPrinter(hMainWnd, &prninfo, TRUE))
+      return 0;
   }
 
   if (prninfo.hDC)
