@@ -1672,7 +1672,7 @@ MARKTEXT* StackGetMarkByColorID(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMark
   {
     for (lpMarkText=lpHighlightWindow->hMarkTextsStack.first; lpMarkText; lpMarkText=lpMarkText->next)
     {
-      if (lpMarkText->dwMarkID >= MARKID_AUTOMIN)
+      if (lpMarkText->dwMarkID >= MARKID_AUTOMIN && lpMarkText->dwMarkID <= MARKID_AUTOMAX)
       {
         lpMarkItem=(AEMARKTEXTITEMW *)lpMarkText->hMarkTextHandle;
 
@@ -1727,8 +1727,7 @@ DWORD StackAssignMarkID(HIGHLIGHTWINDOW *lpHighlightWindow)
 
   for (lpMarkText=lpHighlightWindow->hMarkTextsStack.first; lpMarkText; lpMarkText=lpMarkText->next)
   {
-    //Reserve 10 internal IDs
-    if (lpMarkText->dwMarkID < (DWORD)-10)
+    if (lpMarkText->dwMarkID < MARKID_AUTOMAX)
     {
       if (lpMarkText->dwMarkID >= dwMarkID)
         dwMarkID=lpMarkText->dwMarkID + 1;
@@ -1867,7 +1866,7 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
     }
     if (dwMarkID) return FALSE;
   }
-  if (dwMarkID > 0 && dwMarkID < MARKID_AUTOMIN)
+  if (dwMarkID != 0 && dwMarkID != MARKID_AUTOASSIGN)
   {
     if (lpSingleMarkText=StackGetMarkByColorID(lpHighlightWindow, dwMarkID, dwColorText, dwColorBk))
     {
@@ -1903,9 +1902,9 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
 
         if (lpMarkText->dwMarkID != MARKID_SELECTION)
         {
-          if ((dwMarkID == 0 || (dwMarkID == MARKID_AUTOASSIGN && lpMarkText->dwMarkID >= MARKID_AUTOMIN)) &&
-              ((dwColorText == (DWORD)-1 || lpMarkItem->crText == dwColorText) &&
-               (dwColorBk == (DWORD)-1 || lpMarkItem->crBk == dwColorBk)))
+          if ((dwMarkID == 0 || (dwMarkID == MARKID_AUTOASSIGN && lpMarkText->dwMarkID >= MARKID_AUTOMIN && lpMarkText->dwMarkID <= MARKID_AUTOMAX)) &&
+              (dwColorText == (DWORD)-1 || lpMarkItem->crText == dwColorText) &&
+              (dwColorBk == (DWORD)-1 || lpMarkItem->crBk == dwColorBk))
           {
             if (lpMarkItem->dwFlags & AEHLF_REGEXP)
             {
