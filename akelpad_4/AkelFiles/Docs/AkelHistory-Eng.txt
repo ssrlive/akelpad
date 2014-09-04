@@ -7,6 +7,7 @@ Changed: regular expression quantifiers now have classic greediness. To make it
 Added: possibility in file open/save dialog to specify NTFS file stream on Win7.
 
 Fixed: saving NTFS file stream in protected file (UAC).
+Fixed: command 4198 could not update active column position.
 
 
 AkelPad 4.8.9 (Jun 20, 2014)
@@ -20,7 +21,7 @@ Added: possibility to use lookbehind search in conditional pattern, for example,
        "(?(?<=a)b|c)".
 Added: now "AkelAdmin.exe" provides the ability to modify a file on disk root (UAC).
 Added: to directly open the *.lnk or *.url from file open dialog, need to click
-       on "Open" button while holding Ctrl.
+       on "Open" button while holding Ctrl (WinXP).
 
 Fixed: mixing caret and active column colors with background.
 Fixed: metacharacters \w and \W usage in character set [].
