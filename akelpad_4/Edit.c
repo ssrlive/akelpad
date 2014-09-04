@@ -3086,7 +3086,20 @@ BOOL DoNonMenuSelJumpCaret(HWND hWnd)
       lpciNewCaret=&crCurSel.ciMax;
 
     SetSel(hWnd, &crCurSel, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, lpciNewCaret);
-    ScrollCaret(hWnd);
+    if (!ScrollCaret(hWnd))
+    {
+      //Post WM_PAINT if necessary
+      if (!GetUpdateRect(hWnd, NULL, FALSE))
+      {
+        RECT rc;
+
+        rc.left=0;
+        rc.top=0;
+        rc.right=1;
+        rc.bottom=1;
+        InvalidateRect(hWnd, &rc, FALSE);
+      }
+    }
   }
   return (lpciNewCaret == &crCurSel.ciMin);
 }
