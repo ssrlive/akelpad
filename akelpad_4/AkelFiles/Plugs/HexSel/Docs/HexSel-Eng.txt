@@ -39,7 +39,7 @@ Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", INPUTLEN, INPUTCODEPAGE, **OU
       Text for convertion.
     INPUTLEN
       Text length (default is -1). If -1, text string is terminated with NULL symbol.
-    INPUTCODEPAGE (для Win9x/Me)
+    INPUTCODEPAGE (for Win9x/Me)
       Text for convertion codepage. By default ANSI system codepage is used.
     **OUTPUT
       Pointer to a pointer to a buffer, that receives convertion result. String type is Unicode.
