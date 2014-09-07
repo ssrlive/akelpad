@@ -4401,7 +4401,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!IsReadOnly(NULL))
         {
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+          MSG msg;
+
+          xmemset(&msg, 0, sizeof(MSG));
+          msg.hwnd=lpFrameCurrent->ei.hWndEdit;
+          msg.message=WM_KEYDOWN;
+          msg.wParam=VK_SPACE;
+          msg.lParam=0x00390001;
+          TranslateMessage(&msg);
+          DispatchMessageWide(&msg);
+
+          msg.hwnd=lpFrameCurrent->ei.hWndEdit;
+          msg.message=WM_KEYUP;
+          msg.wParam=VK_SPACE;
+          msg.lParam=0xC0390001;
+          TranslateMessage(&msg);
+          DispatchMessageWide(&msg);
+
+          //SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
           return TRUE;
         }
       }
