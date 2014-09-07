@@ -410,6 +410,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
 void SetEditWindowSettings(FRAMEDATA *lpFrame)
 {
   DWORD dwOptions;
+  DWORD dwOptionsEx;
 
   if (lpFrame->dwLockInherit & LI_FONT)
     xmemcpy(&lpFrame->lf, &fdDefault.lf, sizeof(LOGFONTW));
@@ -429,6 +430,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   SetEditNotify(lpFrame->ei.hWndEdit);
 
   dwOptions=AECO_NOCOLUMNPASTEHOTKEY;
+  dwOptionsEx=0;
   if (lpFrame->bDetailedUndo)
     dwOptions|=AECO_DETAILEDUNDO;
   if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
@@ -455,6 +457,10 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_MARGINSELUNWRAPLINE;
   if (lpFrame->dwMouseOptions & MO_MBUTTONDOWNNOSCROLL)
     dwOptions|=AECO_MBUTTONDOWNNOSCROLL;
+  if (lpFrame->dwMouseOptions & MO_INVERTHORZWHEEL)
+    dwOptionsEx|=AECOE_INVERTHORZWHEEL;
+  if (lpFrame->dwMouseOptions & MO_INVERTVERTWHEEL)
+    dwOptionsEx|=AECOE_INVERTVERTWHEEL;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
@@ -464,6 +470,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   if (moCur.dwPaintOptions & PAINT_NOMARKERAFTERLASTLINE)
     dwOptions|=AECO_NOMARKERAFTERLASTLINE;
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+  if (dwOptionsEx)
+    SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, dwOptionsEx);
 
   //Font
   SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
