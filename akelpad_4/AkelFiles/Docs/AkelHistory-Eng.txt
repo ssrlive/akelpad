@@ -5,6 +5,9 @@ Changed: regular expression quantifiers now have classic greediness. To make it
          possessive (old behaviour) use "+" after quantifier, like, "\d*+".
 
 Added: possibility in file open/save dialog to specify NTFS file stream on Win7.
+Added: flags for manual parameter "MouseOptions":
+       256 - invert mouse horizontal wheel;
+       512 - invert mouse vertical wheel.
 
 Fixed: saving NTFS file stream in protected file (UAC).
 Fixed: command 4198 could not update active column position.

@@ -4586,7 +4586,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
       if (!dwLines) dwLines=3;
 
-      if ((short)HIWORD(wParam) < 0)
+      if (!(ae->popt->dwOptionsEx & AECOE_INVERTVERTWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
       {
         if (dwLines == (DWORD)-1)
           AE_VScroll(ae, SB_PAGEDOWN, 0);
@@ -4609,7 +4609,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &dwChars, 0);
       if (!dwChars) dwChars=3;
 
-      if ((short)HIWORD(wParam) < 0)
+      if (!(ae->popt->dwOptionsEx & AECOE_INVERTHORZWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
       {
         if (dwChars == (DWORD)-1)
           AE_HScroll(ae, SB_PAGELEFT, 0);
