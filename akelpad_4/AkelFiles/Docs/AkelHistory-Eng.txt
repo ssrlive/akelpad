@@ -10,6 +10,7 @@ Added: flags for manual parameter "MouseOptions":
        512 - invert mouse vertical wheel.
 
 Fixed: saving NTFS file stream in protected file (UAC).
+Fixed: pressing space as a part of the symbol input on special keyboard layouts.
 Fixed: command 4198 could not update active column position.
 
 
