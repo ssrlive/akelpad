@@ -230,6 +230,8 @@
 #define AECOE_LOCKSELECTION           0x00000002  //Prevent selection changing. Use it with AECO_READONLY flag.
 #define AECOE_OVERTYPE                0x00000004  //Turn on overtype mode instead of insert mode.
 #define AECOE_ALTDECINPUT             0x00000008  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECOE_INVERTHORZWHEEL         0x00000010  //Invert mouse horizontal wheel.
+#define AECOE_INVERTVERTWHEEL         0x00000020  //Invert mouse vertical wheel.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
