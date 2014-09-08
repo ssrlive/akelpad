@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.8.8"
+  !define PRODUCT_VERSION "4.9.0"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -182,6 +182,9 @@ LangString UninstallSuccess ${LANG_ENGLISH} 'Uninstall was completed successfull
 LangString UninstallSuccess ${LANG_RUSSIAN} 'Удаление программы успешно завершено.'
 
 Function .onInit
+  #GetUserDefaultLangID() for $LANGUAGE
+  ;System::Call "kernel32::GetUserDefaultLangID() i .a"
+
   !if ${PRODUCT_BIT} == "64"
     ${IfNot} ${RunningX64}
       MessageBox MB_OK|MB_ICONEXCLAMATION "$(No64bit)"
