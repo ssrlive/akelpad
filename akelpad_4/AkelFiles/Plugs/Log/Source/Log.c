@@ -2812,7 +2812,7 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
     pe.wpMaxText=pe.wpMaxStr;
     pe.wpPat=oe->wszPattern;
     pe.wpMaxPat=oe->wszPattern + xstrlenW(oe->wszPattern);
-    pe.dwOptions=REPE_MATCHCASE;
+    pe.dwOptions=RESE_MATCHCASE;
     pe.wpDelim=NULL;
     pe.wpMaxDelim=NULL;
     pe.lpCallback=NULL;

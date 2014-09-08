@@ -1,5 +1,5 @@
 
-AkelPad 4.9.0 ()
+AkelPad 4.9.0 (Sep 08, 2014)
 ----------------------------
 Changed: regular expression quantifiers now have classic greediness. To make it
          possessive (old behaviour) use "+" after quantifier, like, "\d*+".
