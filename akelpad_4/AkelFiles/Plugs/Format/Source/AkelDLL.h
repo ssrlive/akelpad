@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 7)
 
 
 //// Defines
@@ -470,6 +470,8 @@
 #define MO_NOWHEELFONTCHANGE     0x00000020  //Don't change font size with middle button scroll and Ctrl key.
 #define MO_MARGINSELUNWRAPLINE   0x00000040  //Left margin line selection with mouse selects all wrapped line.
 #define MO_MBUTTONDOWNNOSCROLL   0x00000080  //No scrolling after WM_MBUTTONDOWN message.
+#define MO_INVERTHORZWHEEL       0x00000100  //Invert mouse horizontal wheel.
+#define MO_INVERTVERTWHEEL       0x00000200  //Invert mouse vertical wheel.
 
 //Keyboard layout options
 #define KLO_REMEMBERLAYOUT     0x00000001  //Remember keyboard layout for each tab (MDI).
