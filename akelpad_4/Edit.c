@@ -19649,11 +19649,13 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     if (lpFrame->dwMouseOptions != (DWORD)dwData)
     {
       DWORD dwAddOptions;
+      DWORD dwAddOptionsEx;
       DWORD dwCurOptions;
 
       lpFrame->dwMouseOptions=(DWORD)dwData;
 
       dwAddOptions=0;
+      dwAddOptionsEx=0;
       if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
         dwAddOptions|=AECO_NOMARGINSEL;
       if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
@@ -19668,9 +19670,18 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
         dwAddOptions|=AECO_MARGINSELUNWRAPLINE;
       if (lpFrame->dwMouseOptions & MO_MBUTTONDOWNNOSCROLL)
         dwAddOptions|=AECO_MBUTTONDOWNNOSCROLL;
+      if (lpFrame->dwMouseOptions & MO_INVERTHORZWHEEL)
+        dwAddOptionsEx|=AECOE_INVERTHORZWHEEL;
+      if (lpFrame->dwMouseOptions & MO_INVERTVERTWHEEL)
+        dwAddOptionsEx|=AECOE_INVERTVERTWHEEL;
+
       dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
       dwCurOptions&=~AECO_NOMARGINSEL & ~AECO_LBUTTONUPCONTINUECAPTURE & ~AECO_DISABLEDRAG & ~AECO_RBUTTONDOWNMOVECARET & ~AECO_NONEWLINEMOUSESELECT & ~AECO_MARGINSELUNWRAPLINE & ~AECO_MBUTTONDOWNNOSCROLL;
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_EXGETOPTIONS, 0, 0);
+      dwCurOptions&=~AECOE_INVERTHORZWHEEL & ~AECOE_INVERTVERTWHEEL;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptionsEx);
 
       return TRUE;
     }
