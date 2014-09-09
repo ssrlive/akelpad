@@ -400,6 +400,10 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"A[x]")) goto Error;
 
   nLine=__LINE__;
+  TextReplaceRE(L"ABC123 DEF789", L"(?^ABC){2}(\\d\\d\\d)", L"[\\1]<\\2>", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ABC1[23 DEF]<789>")) goto Error;
+
+  nLine=__LINE__;
   TextReplaceRE(L"abc", L"($a*)+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"abc[x]")) goto Error;
 
