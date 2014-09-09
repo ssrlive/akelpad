@@ -45,6 +45,10 @@ void _WinMain()
   int nLine=0;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC", L"(?^AB)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"A[x]")) goto Error;
+
   //Test compilation
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
@@ -392,12 +396,20 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"ABC[123] DEF7[89]")) goto Error;
 
   nLine=__LINE__;
-  TextReplaceRE(L"ABC123 DEF789", L"(?^ABC)(\\d\\d\\d)", L"[\\1]<\\2>", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"ABC123 [DEF]<789>")) goto Error;
+  TextReplaceRE(L"A", L"(?^A)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"A")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"B", L"(?^A)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"ABC", L"(?^AB)", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"A[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ABC123 DEF789", L"(?^ABC)(\\d\\d\\d)", L"[\\1]<\\2>", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"ABC123 [DEF]<789>")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"ABC123 DEF789", L"(?^ABC){2}(\\d\\d\\d)", L"[\\1]<\\2>", dwOptions, &wpResult);
