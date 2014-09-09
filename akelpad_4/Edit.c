@@ -4367,7 +4367,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   HWND hWndFriend=NULL;
   int nResult=EOD_SUCCESS;
   int nDetect;
-  int nFileCmp;
+  int nFileCmp=0;
   int nFileLen;
   int nStreamOffset;
   int nChoice;
