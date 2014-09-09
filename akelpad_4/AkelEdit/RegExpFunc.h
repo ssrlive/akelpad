@@ -1019,7 +1019,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   BOOL bLastMatched;
   BOOL bExclude;
   int nNegativeFixed=0;
-  INT_PTR nNegStrLen=-1;
 
   #ifdef _DEBUG
     ++hStack->nDeepness;
@@ -1474,7 +1473,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     EndLoop:
     if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
     {
-      if (nCurMatch == nNegativeFixed && (wpStr - wpStrStart) > nNegStrLen)
+      if (nCurMatch == nNegativeFixed && wpPat < wpMaxPat)
       {
         wpPat=wpPatChar;
 
@@ -1520,7 +1519,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
 
         ++nNegativeFixed;
         ++nCurMatch;
-        nNegStrLen=(wpStr - wpStrStart);
         goto MatchFixed;
       }
       if (nNegativeFixed < lpREGroupItem->nMinMatch)
@@ -2161,7 +2159,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   BOOL bExclude;
   BOOL bNewLoop;
   int nNegativeFixed=0;
-  INT_PTR nNegStrLen=-1;
 
   #ifdef _DEBUG
     ++hStack->nDeepness;
@@ -2628,7 +2625,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     EndLoop:
     if (lpREGroupItem->dwFlags & REGF_NEGATIVEFIXED)
     {
-      if (nCurMatch == nNegativeFixed && nStrLen > nNegStrLen)
+      if (nCurMatch == nNegativeFixed && wpPat < wpMaxPat)
       {
         wpPat=wpPatChar;
 
@@ -2681,7 +2678,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
 
         ++nNegativeFixed;
         ++nCurMatch;
-        nNegStrLen=nStrLen;
         goto MatchFixed;
       }
       if (nNegativeFixed < lpREGroupItem->nMinMatch)
