@@ -4188,13 +4188,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_FILE_SAVEALL)
     {
-      if (nDocumentsModified)
+      if (!nMDI)
       {
-        if (!nMDI)
-        {
-          return DoFileSave();
-        }
-        else
+        return DoFileSave();
+      }
+      else
+      {
+        if (nDocumentsModified)
         {
           FRAMEDATA *lpFrameInit=lpFrameCurrent;
 

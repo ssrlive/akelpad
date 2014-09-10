@@ -1,4 +1,9 @@
 
+AkelPad 4.9.1 ()
+----------------------------
+Fixed: command 4110 didn't work for SDI.
+
+
 AkelPad 4.9.0 (Sep 08, 2014)
 ----------------------------
 Changed: regular expression quantifiers now have classic greediness. To make it
