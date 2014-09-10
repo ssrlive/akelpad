@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Exit AkelPad plugin v4.0                  ***
+***                 Exit AkelPad plugin v4.1                  ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -8,7 +8,8 @@
 *** Features ***
 
 1. Prompt message box on exit.
-2. Change ESC key action.
+2. Send command line on exit.
+3. Change ESC key action.
 
 
 *** Functions ***
