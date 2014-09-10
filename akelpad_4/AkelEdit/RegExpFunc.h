@@ -1130,8 +1130,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           ++nCurMatch;
           goto EndLoop;
         }
-        ++nCurMatch;
         MatchFixed:
+        ++nCurMatch;
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
@@ -1525,7 +1525,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         while (wpPat < wpMaxPat);
 
-        ++nCurMatch;
         goto MatchFixed;
       }
       MismatchFixed:
@@ -2268,6 +2267,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           goto EndLoop;
         }
         MatchFixed:
+        ++nCurMatch;
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
@@ -2691,7 +2691,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         while (wpPat < wpMaxPat);
 
-        ++nCurMatch;
         goto MatchFixed;
       }
       MismatchFixed:
