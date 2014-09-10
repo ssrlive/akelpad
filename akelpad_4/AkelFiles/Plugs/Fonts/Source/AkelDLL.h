@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 8)
 
 
 //// Defines
@@ -573,10 +573,11 @@
 #define INI_STRINGUNICODE   4
 
 //Options flags
-#define POB_READ     0x01  //Begins read options.
-#define POB_SAVE     0x02  //Begins save options.
-#define POB_CLEAR    0x04  //Begins new save options (POB_SAVE|POB_CLEAR).
-#define POB_SCRIPTS  0x10  //Begins Scripts plugin options.
+#define POB_READ      0x01  //Begins read options.
+#define POB_SAVE      0x02  //Begins save options.
+#define POB_CLEAR     0x04  //Begins new save options (POB_SAVE|POB_CLEAR).
+#define POB_SCRIPTS   0x10  //Begins Scripts plugin options.
+#define POB_NOSCRIPTS 0x20  //Ignore POB_SCRIPTS.
 
 //Option type
 #define PO_DWORD     1   //32-bit number.
