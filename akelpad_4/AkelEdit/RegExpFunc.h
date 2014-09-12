@@ -1004,6 +1004,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   const wchar_t *wpStrStart=wpStr;
   const wchar_t *wpNextGroup;
   const wchar_t *wpGreedyStrEnd=NULL;
+  const wchar_t *wpBackupStrStart;
+  const wchar_t *wpBackupStrEnd;
+  INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
   int nStrChar;
@@ -1022,13 +1025,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   #ifdef _DEBUG
     ++hStack->nDeepness;
   #endif
-  lpREGroupItem->nStrLen=0;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
   {
     nCurMatch=0;
     lpREGroupItem->wpStrStart=wpStr;
     lpREGroupItem->wpStrEnd=wpStr;
+    lpREGroupItem->nStrLen=0;
     lpREGroupItem->nCurMatch=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
@@ -1100,11 +1103,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         //str - "123", find "(?>\d+?)3"
         !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
     {
+      nPrevStrLen=-1;
       lpREGroupItem->wpStrStart=wpStr;
       lpREGroupItem->wpStrEnd=wpStr;
       lpREGroupItem->nStrLen=0;
       goto MatchNext;
     }
+    lpREGroupItem->nStrLen=0;
   }
 
   BeginLoop:
@@ -1132,6 +1137,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         MatchFixed:
         ++nCurMatch;
+        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->wpStrStart=wpStrStart;
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
@@ -1145,6 +1151,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           MatchNext:
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
+            if (lpREGroupNextNext->nSelfParent)
+            {
+              //Save data before PatExec
+              wpBackupStrStart=lpREGroupNextNext->wpStrStart;
+              wpBackupStrEnd=lpREGroupNextNext->wpStrEnd;
+              nBackupStrLen=lpREGroupNextNext->nStrLen;
+            }
             nNextMatched=PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr);
 
             if (lpREGroupNextNext->nSelfParent)
@@ -1153,6 +1166,10 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               lpREGroupItem->wpStrStart=wpStrStart;
               lpREGroupItem->wpStrEnd=wpStr;
               lpREGroupItem->nStrLen=wpStr - wpStrStart;
+
+              lpREGroupNextNext->wpStrStart=wpBackupStrStart;
+              lpREGroupNextNext->wpStrEnd=wpBackupStrEnd;
+              lpREGroupNextNext->nStrLen=nBackupStrLen;
 
               --lpREGroupNextNext->nCurMatch;
               --lpREGroupNextNext->nSelfParent;
@@ -1168,8 +1185,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         }
         else nNextMatched=-1;
 
-        //str - ".*$", find "abc"
+        //str - "abc", find ".*$"
         if (wpStr >= wpMaxStr)
+          goto EndLoop;
+        //Prevent infinite loop: str - "yAy", find "((y)?)*"
+        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }
@@ -2146,11 +2166,14 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   AECHARINDEX ciMaxStr=*ciMaxInput;
   AECHARINDEX ciStrStart=ciStr;
   AECHARINDEX ciGreedyStrEnd;
+  AECHARINDEX ciBackupStrStart;
+  AECHARINDEX ciBackupStrEnd;
   const wchar_t *wpPat;
   const wchar_t *wpMaxPat=lpREGroupItem->wpPatEnd;
   const wchar_t *wpPatChar=NULL;
   const wchar_t *wpNextGroup;
   INT_PTR nStrLen=0;
+  INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
   int nStrChar;
@@ -2169,7 +2192,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   #ifdef _DEBUG
     ++hStack->nDeepness;
   #endif
-  lpREGroupItem->nStrLen=0;
   ciGreedyStrEnd.lpLine=NULL;
 
   if (lpREGroupItem->dwFlags & REGF_ROOTITEM)
@@ -2177,6 +2199,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     nCurMatch=0;
     lpREGroupItem->ciStrStart=ciStr;
     lpREGroupItem->ciStrEnd=ciStr;
+    lpREGroupItem->nStrLen=0;
     lpREGroupItem->nCurMatch=0;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
@@ -2234,11 +2257,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         //str - "123", find "(?>\d+?)3"
         !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
     {
+      nPrevStrLen=-1;
       lpREGroupItem->ciStrStart=ciStr;
       lpREGroupItem->ciStrEnd=ciStr;
       lpREGroupItem->nStrLen=0;
       goto MatchNext;
     }
+    lpREGroupItem->nStrLen=0;
   }
 
   BeginLoop:
@@ -2268,6 +2293,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         MatchFixed:
         ++nCurMatch;
+        nPrevStrLen=lpREGroupItem->nStrLen;
         lpREGroupItem->ciStrStart=ciStrStart;
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
@@ -2281,6 +2307,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           MatchNext:
           if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
           {
+            if (lpREGroupNextNext->nSelfParent)
+            {
+              //Save data before PatExec
+              ciBackupStrStart=lpREGroupNextNext->ciStrStart;
+              ciBackupStrEnd=lpREGroupNextNext->ciStrEnd;
+              nBackupStrLen=lpREGroupNextNext->nStrLen;
+            }
             nNextMatched=AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr);
 
             if (lpREGroupNextNext->nSelfParent)
@@ -2289,6 +2322,10 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               lpREGroupItem->ciStrStart=ciStrStart;
               lpREGroupItem->ciStrEnd=ciStr;
               lpREGroupItem->nStrLen=nStrLen;
+
+              lpREGroupNextNext->ciStrStart=ciBackupStrStart;
+              lpREGroupNextNext->ciStrEnd=ciBackupStrEnd;
+              lpREGroupNextNext->nStrLen=nBackupStrLen;
 
               --lpREGroupNextNext->nCurMatch;
               --lpREGroupNextNext->nSelfParent;
@@ -2304,8 +2341,11 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         }
         else nNextMatched=-1;
 
-        //str - ".*$", find "abc"
+        //str - "abc", find ".*$"
         if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+          goto EndLoop;
+        //Prevent infinite loop: str - "yAy", find "((y)?)*"
+        if (lpREGroupItem->nStrLen == nPrevStrLen)
           goto EndLoop;
         goto BeginLoop;
       }

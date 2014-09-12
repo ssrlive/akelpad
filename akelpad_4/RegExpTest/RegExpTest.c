@@ -45,10 +45,6 @@ void _WinMain()
   int nLine=0;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
-  nLine=__LINE__;
-  TextReplaceRE(L"ABC", L"(?^AB)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"A[x]")) goto Error;
-
   //Test compilation
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
@@ -258,6 +254,14 @@ void _WinMain()
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"(a*)+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x][x]b[x]c[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"A", L"((\")?)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]A[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"yAy", L"((y)?)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x][x]A[x][x]")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"123489 7890", L"(23)(.*?)(89)", L"[\\1]<\\3>", dwOptions, &wpResult);
