@@ -460,6 +460,10 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"[x] 123x")) goto Error;
 
   nLine=__LINE__;
+  TextReplaceRE(L"A", L"(A*+B?)*+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x][x]")) goto Error;
+
+  nLine=__LINE__;
   TextReplaceRE(L"a123a456a789", L"(a(.*?)){3}", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]")) goto Error;
 
