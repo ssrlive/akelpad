@@ -43,6 +43,7 @@ void _WinMain()
   char szMsg[MAX_PATH];
   wchar_t *wpResult=NULL;
   int nLine=0;
+  int nStartTime;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
   //Test compilation
@@ -559,6 +560,13 @@ void _WinMain()
   TextReplaceRE(L"a1a2a3a", L"(a.+?)\\d", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]a3a")) goto Error;
 
+  //Test performance
+  nStartTime=GetTickCount();
+  nLine=__LINE__;
+  TextReplaceRE(L"abcdefigklogndmkeie", L"([^\"]*(\"\")?)*", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x][x]")) goto Error;
+  if (GetTickCount() - nStartTime > 100) goto BadTime;
+
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);
   goto Quit;
@@ -566,6 +574,12 @@ void _WinMain()
   Error:
   wsprintfA(szMsg, "Test failed on line %d", nLine + 1);
   MessageBoxA(NULL, szMsg, "RegExpTest", MB_OK|MB_ICONERROR);
+  goto Quit;
+
+  BadTime:
+  wsprintfA(szMsg, "Performance test failed on line %d", nLine + 1);
+  MessageBoxA(NULL, szMsg, "RegExpTest", MB_OK|MB_ICONERROR);
+  goto Quit;
 
   Quit:
   if (wpResult) GlobalFree((HGLOBAL)wpResult);
