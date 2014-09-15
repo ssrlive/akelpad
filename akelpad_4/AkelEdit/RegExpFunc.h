@@ -2944,7 +2944,7 @@ REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
 
   for (lpREGroupItem=hStack->first; lpREGroupItem; lpREGroupItem=PatNextGroup(lpREGroupItem))
   {
-    if (lpREGroupItem->dwUserData)
+    if (lpREGroupItem->dwUserData && lpREGroupItem->nStrLen)
     {
       if (AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrStart) >= 0 && AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrEnd) < 0)
         break;
