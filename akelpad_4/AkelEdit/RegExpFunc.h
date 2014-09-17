@@ -1188,6 +1188,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                 goto EndLoop;
               wpGreedyStrEnd=wpStr;
             }
+            //str - "long string", find - "([^#]*@?)*"
             if (nNextMatched & REE_ENDSTRING)
               goto EndLoop;
           }
@@ -2407,6 +2408,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 goto EndLoop;
               ciGreedyStrEnd=ciStr;
             }
+            //str - "long string", find - "([^#]*@?)*"
             if (nNextMatched & REE_ENDSTRING)
               goto EndLoop;
           }
