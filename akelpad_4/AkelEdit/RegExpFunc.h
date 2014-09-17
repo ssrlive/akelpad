@@ -59,6 +59,7 @@
 #define REE_FALSE             0x0
 #define REE_TRUE              0x1
 #define REE_NEXTMATCH         0x2
+#define REE_ENDSTRING         0x4
 
 //PatCharCmp flags
 #define RECCF_MATCHCASE     0x01 //Case-sensitive search.
@@ -1187,6 +1188,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                 goto EndLoop;
               wpGreedyStrEnd=wpStr;
             }
+            if (nNextMatched & REE_ENDSTRING)
+              goto EndLoop;
           }
         }
         else nNextMatched=-1;
@@ -1606,9 +1609,13 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   #ifdef _DEBUG
     --hStack->nDeepness;
   #endif
-  if (nNextMatched > 0)
-    return REE_TRUE|REE_NEXTMATCH;
-  return REE_TRUE;
+  if (nNextMatched <= 0)
+    nNextMatched=REE_TRUE;
+  else
+    nNextMatched|=REE_NEXTMATCH;
+  if (wpStr >= wpMaxStr)
+    nNextMatched|=REE_ENDSTRING;
+  return nNextMatched;
 
   ReturnFalse:
   #ifdef _DEBUG
@@ -2020,10 +2027,10 @@ REGROUP* PatGetMatchedGroup(STACKREGROUP *hStack, int nIndex)
 {
   //str - "A", find - "((A)\s+)?A", replace - "[\2]"
   REGROUP *lpREGroupItem;
-  
+
   if (nIndex > hStack->nLastIndex)
     return NULL;
-  
+
   for (lpREGroupItem=hStack->first; lpREGroupItem;)
   {
     if (lpREGroupItem->nStrLen)
@@ -2400,6 +2407,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 goto EndLoop;
               ciGreedyStrEnd=ciStr;
             }
+            if (nNextMatched & REE_ENDSTRING)
+              goto EndLoop;
           }
         }
         else nNextMatched=-1;
@@ -2849,9 +2858,13 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   #ifdef _DEBUG
     --hStack->nDeepness;
   #endif
-  if (nNextMatched > 0)
-    return REE_TRUE|REE_NEXTMATCH;
-  return REE_TRUE;
+  if (nNextMatched <= 0)
+    nNextMatched=REE_TRUE;
+  else
+    nNextMatched|=REE_NEXTMATCH;
+  if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+    nNextMatched|=REE_ENDSTRING;
+  return nNextMatched;
 
   ReturnFalse:
   #ifdef _DEBUG
