@@ -563,7 +563,7 @@ void _WinMain()
   //Test performance
   nStartTime=GetTickCount();
   nLine=__LINE__;
-  TextReplaceRE(L"abcdefigklogndmkeie", L"([^\"]*(\"\")?)*", L"[x]", dwOptions, &wpResult);
+  TextReplaceRE(L"Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplaceable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.", L"([^#]*@?)*", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x][x]")) goto Error;
   if (GetTickCount() - nStartTime > 100) goto BadTime;
 
