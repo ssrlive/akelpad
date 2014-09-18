@@ -1,5 +1,5 @@
 *****************************************************************
-***                Scroll AkelPad plugin v2.7                 ***
+***                Scroll AkelPad plugin v2.9                 ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
