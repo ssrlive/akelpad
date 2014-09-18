@@ -6144,7 +6144,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0410\x043B\x044C\x0444\x0430";
     if (nStringID == STRID_HLBASECOLORS)
       return L"\x0418\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x0442\x044C\x0020\x0446\x0432\x0435\x0442\x0020\x0434\x043B\x044F\x0020\x043F\x0443\x043D\x043A\x0442\x0430\x0020\x0438\x0437\x0020\x0431\x0430\x0437\x044B\x0020\x0048\x0069\x0067\x0068\x004C\x0069\x0067\x0068\x0074\x0027\x0430";
-    if (nStringID == STRID_NOMARKIFICON)
+    if (nStringID == STRID_NOSYMBOLMARK)
       return L"\x0411\x0435\x0437\x0020\x043E\x0442\x043C\x0435\x0442\x043A\x0438\x0020\x0441\x0438\x043C\x0432\x043E\x043B\x043E\x043C\x0020\x0028\x002B\x002A\x0029\x002C\x0020\x0435\x0441\x043B\x0438\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0441\x044F\x0020\x0438\x043A\x043E\x043D\x043A\x0430\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
     if (nStringID == STRID_HOTKEYS)
       return L"\x0413\x043E\x0440\x044F\x0447\x0438\x0435\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438";
@@ -6370,7 +6370,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Alpha";
     if (nStringID == STRID_HLBASECOLORS)
       return L"Use item colors from HighLight base";
-    if (nStringID == STRID_NOMARKIFICON)
+    if (nStringID == STRID_NOSYMBOLMARK)
       return L"No symbol mark (+*) if icon used in list";
     if (nStringID == STRID_HOTKEYS)
       return L"Hotkeys";
