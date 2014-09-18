@@ -4862,7 +4862,7 @@ void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIcon
   End:
   if (*wpText == L')')
     ++wpText;
-  *wppText=wpText;
+  if (wppText) *wppText=wpText;
 }
 
 void FreeMethodParameters(STACKEXTPARAM *hParamStack)

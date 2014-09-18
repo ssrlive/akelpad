@@ -422,7 +422,7 @@ DWORD dwGotoType=GT_LINE;
 
 //Options dialog
 HHOOK hHookPropertySheet;
-HWND hPropertyTab;
+HWND hWndPropTab;
 int nPropertyStartPage=0;
 BOOL bOptionsSave;
 BOOL bOptionsRestart;
