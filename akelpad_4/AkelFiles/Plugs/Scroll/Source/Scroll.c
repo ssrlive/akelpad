@@ -103,6 +103,9 @@
 #ifndef IDI_ICON_MAIN
   #define IDI_ICON_MAIN 1001
 #endif
+#ifndef PSCB_BUTTONPRESSED
+  #define PSCB_BUTTONPRESSED 3
+#endif
 #ifndef WM_MOUSEHWHEEL
   #define WM_MOUSEHWHEEL  0x020E
 #endif
@@ -834,10 +837,8 @@ void SettingsSheet(int nStartPage)
   //Destroy image list
   if (hImageList)
   {
-    ImageList_Destroy(hImageList);
-    //DestroyIcon(hIconHighLight);
-    //DestroyIcon(hIconCodeFold);
-    //DestroyIcon(hIconOutput);
+    if (ImageList_Destroy(hImageList))
+      hImageList=NULL;
   }
 }
 
@@ -868,23 +869,34 @@ LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam)
 
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
 {
-  //Remove "?"
+  static HWND hWndPropTab;
+
   if (uMsg == PSCB_PRECREATE)
   {
+    //Remove "?"
     ((DLGTEMPLATE *)lParam)->style&=~DS_CONTEXTHELP;
   }
   else if (uMsg == PSCB_INITIALIZED)
   {
     HIMAGELIST hImageListOld;
-    HWND hWndPropTab;
 
     hWndPropSheet=hDlg;
 
+    //Set 32-bit hImageList
     if (hWndPropTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0))
     {
-      hImageListOld=(HIMAGELIST)SendMessage(hWndPropTab, TCM_GETIMAGELIST, 0, 0);
-      SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
+      hImageListOld=(HIMAGELIST)SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
       if (hImageListOld) ImageList_Destroy(hImageListOld);
+    }
+  }
+  else if (uMsg == PSCB_BUTTONPRESSED)
+  {
+    if (lParam == PSBTN_OK ||
+        lParam == PSBTN_CANCEL ||
+        lParam == PSBTN_FINISH)
+    {
+      //Detach hImageList otherwise ImageList_Destroy failed
+      SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)NULL);
     }
   }
   return TRUE;
