@@ -1009,12 +1009,8 @@ void SettingsSheet(int nStartPage)
   //Destroy image list
   if (hImageList)
   {
-    ImageList_Destroy(hImageList);
-    //DestroyIcon(hIconHighLight);
-    //DestroyIcon(hIconCodeFold1);
-    //DestroyIcon(hIconCodeFold2);
-    //DestroyIcon(hIconAutoComplete1);
-    //DestroyIcon(hIconAutoComplete2);
+    if (ImageList_Destroy(hImageList))
+      hImageList=NULL;
   }
 }
 
@@ -1045,23 +1041,34 @@ LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam)
 
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
 {
-  //Remove "?"
+  static HWND hWndPropTab;
+
   if (uMsg == PSCB_PRECREATE)
   {
+    //Remove "?"
     ((DLGTEMPLATE *)lParam)->style&=~DS_CONTEXTHELP;
   }
   else if (uMsg == PSCB_INITIALIZED)
   {
     HIMAGELIST hImageListOld;
-    HWND hWndPropTab;
 
     hWndPropSheet=hDlg;
 
+    //Set 32-bit hImageList
     if (hWndPropTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0))
     {
-      hImageListOld=(HIMAGELIST)SendMessage(hWndPropTab, TCM_GETIMAGELIST, 0, 0);
-      SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
+      hImageListOld=(HIMAGELIST)SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
       if (hImageListOld) ImageList_Destroy(hImageListOld);
+    }
+  }
+  else if (uMsg == PSCB_BUTTONPRESSED)
+  {
+    if (lParam == PSBTN_OK ||
+        lParam == PSBTN_CANCEL ||
+        lParam == PSBTN_FINISH)
+    {
+      //Detach hImageList otherwise ImageList_Destroy failed
+      SendMessage(hWndPropTab, TCM_SETIMAGELIST, 0, (LPARAM)NULL);
     }
   }
   return TRUE;
@@ -3648,10 +3655,12 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                 lpSyntaxFile->nCompleteListFontSize=0;
                 lpSyntaxFile->wszCompleteListFaceName[0]=L'\0';
                 lpSyntaxFile->nCompleteListLineGap=0;
-                lpSyntaxFile->nCompleteListTextMargin=0;
                 lpSyntaxFile->wszCompleteListBlockIcon[0]=L'\0';
+                lpSyntaxFile->dwCompleteListBlockIconMargins=0;
                 lpSyntaxFile->wszCompleteListHlBaseIcon[0]=L'\0';
+                lpSyntaxFile->dwCompleteListHlBaseIconMargins=0;
                 lpSyntaxFile->wszCompleteListDocWordIcon[0]=L'\0';
+                lpSyntaxFile->dwCompleteListDocWordIconMargins=0;
                 lpSyntaxFile->dwCompleteListIcons=0;
                 lpSyntaxFile->dwCompleteListBasicTextColor=(DWORD)-1;
                 lpSyntaxFile->dwCompleteListBasicBkColor=(DWORD)-1;
@@ -3682,18 +3691,18 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                   lpSyntaxFile->nCompleteListLineGap=(int)xatoiW(wszBuffer, NULL);
                 }
 
-                //Text margin
-                if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                {
-                  lpSyntaxFile->nCompleteListTextMargin=(int)xatoiW(wszBuffer, NULL);
-                }
-
                 //Block icon
                 if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                 {
                   xstrcpynW(lpSyntaxFile->wszCompleteListBlockIcon, wszBuffer, MAX_PATH);
                   if (*lpSyntaxFile->wszCompleteListBlockIcon)
                     lpSyntaxFile->dwCompleteListIcons|=BIT_BLOCK;
+                }
+
+                //Block icon margins
+                if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                {
+                  StrToArray(wszBuffer, &lpSyntaxFile->dwCompleteListBlockIconMargins, sizeof(DWORD), sizeof(WORD), NULL);
                 }
 
                 //HighLight base icon
@@ -3704,12 +3713,24 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                     lpSyntaxFile->dwCompleteListIcons|=BIT_HLBASE;
                 }
 
+                //HighLight base icon margins
+                if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                {
+                  StrToArray(wszBuffer, &lpSyntaxFile->dwCompleteListHlBaseIconMargins, sizeof(DWORD), sizeof(WORD), NULL);
+                }
+
                 //Document word icon
                 if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                 {
                   xstrcpynW(lpSyntaxFile->wszCompleteListDocWordIcon, wszBuffer, MAX_PATH);
                   if (*lpSyntaxFile->wszCompleteListDocWordIcon)
                     lpSyntaxFile->dwCompleteListIcons|=BIT_DOCWORD;
+                }
+
+                //Document word icon margins
+                if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                {
+                  StrToArray(wszBuffer, &lpSyntaxFile->dwCompleteListDocWordIconMargins, sizeof(DWORD), sizeof(WORD), NULL);
                 }
 
                 //List basic text color
@@ -4071,11 +4092,11 @@ void StackFreeSyntaxFiles(HSTACK *hStack)
     if (lpElement->hCompleteListFont)
       DeleteObject(lpElement->hCompleteListFont);
     if (lpElement->hCompleteListBlockIcon)
-      DeleteObject(lpElement->hCompleteListBlockIcon);
+      DestroyIcon(lpElement->hCompleteListBlockIcon);
     if (lpElement->hCompleteListHlBaseIcon)
-      DeleteObject(lpElement->hCompleteListHlBaseIcon);
+      DestroyIcon(lpElement->hCompleteListHlBaseIcon);
     if (lpElement->hCompleteListDocWordIcon)
-      DeleteObject(lpElement->hCompleteListDocWordIcon);
+      DestroyIcon(lpElement->hCompleteListDocWordIcon);
 
     StackFreeTitle(&lpElement->hTitleStack);
     StackFreeBlock(&lpElement->hBlockStack);
@@ -5331,6 +5352,23 @@ INT_PTR GetEscapeParam(const wchar_t *wpText, const wchar_t **wpParamStart, cons
   return *wpParamEnd - *wpParamStart;
 }
 
+int StrToArray(const wchar_t *wpStr, void *lpArray, INT_PTR nArraySize, int nArrayItemSize, const wchar_t **wpNextStr)
+{
+  const wchar_t *wpCount;
+  BYTE *lpCount=lpArray;
+  BYTE *lpMaxArray=lpCount + nArraySize;
+  INT_PTR nNumber;
+
+  for (wpCount=wpStr; *wpCount && lpCount < lpMaxArray; ++wpCount, lpCount+=nArrayItemSize)
+  {
+    nNumber=xatoiW(wpCount, &wpCount);
+    xmemcpy(lpCount, &nNumber, nArrayItemSize);
+    if (*wpCount != L';') break;
+  }
+  if (wpNextStr) *wpNextStr=wpCount;
+  return wpCount - wpStr;
+}
+
 BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
 {
   COLORREF crCustColors[16];
@@ -6105,9 +6143,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_ALPHA)
       return L"\x0410\x043B\x044C\x0444\x0430";
     if (nStringID == STRID_HLBASECOLORS)
-      return L"\x0418\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x0442\x044C\x0020\x0446\x0432\x0435\x0442\x0020\x043F\x0443\x043D\x043A\x0442\x0430\x0020\x0438\x0437\x0020\x0431\x0430\x0437\x044B\x0020\x0048\x0069\x0067\x0068\x004C\x0069\x0067\x0068\x0074\x0027\x0430";
+      return L"\x0418\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x0442\x044C\x0020\x0446\x0432\x0435\x0442\x0020\x0434\x043B\x044F\x0020\x043F\x0443\x043D\x043A\x0442\x0430\x0020\x0438\x0437\x0020\x0431\x0430\x0437\x044B\x0020\x0048\x0069\x0067\x0068\x004C\x0069\x0067\x0068\x0074\x0027\x0430";
     if (nStringID == STRID_NOMARKIFICON)
-      return L"\x0411\x0435\x0437\x0020\x043E\x0442\x043C\x0435\x0442\x043A\x0438\x0020\x0441\x0438\x043C\x0432\x043E\x043B\x043E\x043C\x002C\x0020\x0435\x0441\x043B\x0438\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0441\x044F\x0020\x0438\x043A\x043E\x043D\x043A\x0430\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
+      return L"\x0411\x0435\x0437\x0020\x043E\x0442\x043C\x0435\x0442\x043A\x0438\x0020\x0441\x0438\x043C\x0432\x043E\x043B\x043E\x043C\x0020\x0028\x002B\x002A\x0029\x002C\x0020\x0435\x0441\x043B\x0438\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0441\x044F\x0020\x0438\x043A\x043E\x043D\x043A\x0430\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
     if (nStringID == STRID_HOTKEYS)
       return L"\x0413\x043E\x0440\x044F\x0447\x0438\x0435\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438";
     if (nStringID == STRID_COMPLETEWITHLIST)
@@ -6333,7 +6371,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_HLBASECOLORS)
       return L"Use item colors from HighLight base";
     if (nStringID == STRID_NOMARKIFICON)
-      return L"No symbol mark if icon used in list";
+      return L"No symbol mark (+*) if icon used in list";
     if (nStringID == STRID_HOTKEYS)
       return L"Hotkeys";
     if (nStringID == STRID_COMPLETEWITHLIST)

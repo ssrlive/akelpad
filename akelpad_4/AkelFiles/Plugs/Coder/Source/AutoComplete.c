@@ -542,7 +542,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
     {
       if (HIWORD(wParam) == EN_CHANGE)
       {
-        if (GetFocus() == (HWND)lParam)
+        if (!bCompletingTitle && GetFocus() == (HWND)lParam)
         {
           CHARRANGE64 cr;
 
@@ -666,7 +666,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
       {
         AENTEXTINSERT *aenti=(AENTEXTINSERT *)lParam;
 
-        if (GetFocus() == aenti->hdr.hwndFrom)
+        if (!bCompletingTitle && GetFocus() == aenti->hdr.hwndFrom)
         {
           hWndEdit=aenti->hdr.hwndFrom;
 
@@ -718,7 +718,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
       else if (((NMHDR *)lParam)->code == AEN_TEXTDELETEBEGIN)
       {
         //Update hotspots
-        if (lpCurrentBlockElement)
+        if (!bCompletingTitle && lpCurrentBlockElement)
         {
           AENTEXTDELETE *aentd=(AENTEXTDELETE *)lParam;
           HOTSPOT *lpHotSpot=NULL;
@@ -983,8 +983,7 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
          lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor != (DWORD)-1 ||
          lpSyntaxFileAutoComplete->dwCompleteListSelTextColor != (DWORD)-1 ||
          lpSyntaxFileAutoComplete->dwCompleteListSelBkColor != (DWORD)-1)) ||
-         lpSyntaxFileAutoComplete->dwCompleteListIcons ||
-         lpSyntaxFileAutoComplete->nCompleteListTextMargin))
+         lpSyntaxFileAutoComplete->dwCompleteListIcons))
     {
       //ListBox background
       if (bCompleteListSystemColors || lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor == (DWORD)-1)
@@ -1082,6 +1081,7 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
   else if (uMsg == WM_DRAWITEM)
   {
     DRAWITEMSTRUCT *dis=(DRAWITEMSTRUCT *)lParam;
+    DWORD dwIconMargins=0;
     HICON hIcon=NULL;
     COLORREF crText;
     COLORREF crBk;
@@ -1139,13 +1139,22 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
         {
           nIconSize=SIZE_ICON;
           if (lpBlockInfo->dwStructType & BIT_BLOCK)
+          {
             hIcon=lpSyntaxFileAutoComplete->hCompleteListBlockIcon;
+            dwIconMargins=lpSyntaxFileAutoComplete->dwCompleteListBlockIconMargins;
+          }
           else if (lpBlockInfo->dwStructType & BIT_HLBASE)
+          {
             hIcon=lpSyntaxFileAutoComplete->hCompleteListHlBaseIcon;
+            dwIconMargins=lpSyntaxFileAutoComplete->dwCompleteListHlBaseIconMargins;
+          }
           else if (lpBlockInfo->dwStructType & BIT_DOCWORD)
+          {
             hIcon=lpSyntaxFileAutoComplete->hCompleteListDocWordIcon;
+            dwIconMargins=lpSyntaxFileAutoComplete->dwCompleteListDocWordIconMargins;
+          }
           if (hIcon)
-            DrawIconEx(dis->hDC, dis->rcItem.left, dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nIconSize / 2, hIcon, nIconSize, nIconSize, 0, 0, DI_NORMAL);
+            DrawIconEx(dis->hDC, dis->rcItem.left + LOWORD(dwIconMargins), dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nIconSize / 2, hIcon, nIconSize, nIconSize, 0, 0, DI_NORMAL);
         }
 
         //Draw text
@@ -1161,7 +1170,7 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
           bHideMark=TRUE;
         else
           bHideMark=FALSE;
-        TextOutW(dis->hDC, dis->rcItem.left + nIconSize + lpSyntaxFileAutoComplete->nCompleteListTextMargin, dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nCharHeight / 2, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen - (bHideMark?1:0));
+        TextOutW(dis->hDC, dis->rcItem.left + LOWORD(dwIconMargins) + nIconSize + HIWORD(dwIconMargins), dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nCharHeight / 2, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen - (bHideMark?1:0));
 
         SetBkMode(dis->hDC, nModeBkOld);
         if (hBrushBk) DeleteObject(hBrushBk);
