@@ -1476,10 +1476,11 @@ void GetPosFromChar(HWND hWnd, int nCharIndex, POINT *pt, TEXTMETRICA *tm)
 }
 */
 
-WORDINFO* StackInsertWord(STACKWORD *hStack, int nWordLen)
+WORDINFO* StackInsertWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack, int nWordLen)
 {
   WORDINFO *lpElement1;
   WORDINFO *lpElement2=NULL;
+  WORDORDER *lpWordOrder=NULL;
 
   if ((DWORD)nWordLen < sizeof(hStack->lpWordLens) / sizeof(INT_PTR))
   {
@@ -1502,7 +1503,13 @@ WORDINFO* StackInsertWord(STACKWORD *hStack, int nWordLen)
     StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(WORDINFO));
 
     if (lpElement2)
+    {
       hStack->lpWordLens[nWordLen]=(INT_PTR)lpElement2;
+
+      //Remember initial order
+      if (!StackInsertIndex((stack **)&hOrderStack->first, (stack **)&hOrderStack->last, (stack **)&lpWordOrder, -1, sizeof(WORDORDER)))
+        lpWordOrder->lpWordInfo=lpElement2;
+    }
   }
   return lpElement2;
 }
@@ -1535,7 +1542,7 @@ WORDINFO* StackGetWord(STACKWORD *hStack, wchar_t *wpWord, int nWordLen)
   return NULL;
 }
 
-void StackFreeWord(STACKWORD *hStack)
+void StackFreeWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack)
 {
   WORDINFO *lpElement=(WORDINFO *)hStack->first;
 
@@ -1547,6 +1554,8 @@ void StackFreeWord(STACKWORD *hStack)
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   xmemset(hStack->lpWordLens, 0, sizeof(hStack->lpWordLens));
+
+  StackClear((stack **)&hOrderStack->first, (stack **)&hOrderStack->last);
 }
 
 QUOTEINFO* StackInsertQuote(STACKQUOTE *hStack, int nQuoteStartLen)
@@ -1821,7 +1830,7 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   MARKTEXT *lpSingleMarkText=NULL;
   MARKTEXT *lpMarkText;
   MARKTEXT *lpNextMarkText;
-  AEMARKTEXTITEMW *lpMarkItem;
+  AEMARKTEXTITEMW *lpMarkItem=NULL;
   AECHARINDEX ciCount;
   BOOL bMatched;
 

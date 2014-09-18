@@ -30,21 +30,22 @@
 #define STRID_MENU_CLEARITEM        66
 #define STRID_VARIABLE              67
 #define STRID_VALUE                 68
-#define STRID_LOWPRIORITY           69
-#define STRID_COLOR                 70
-#define STRID_SYNTAXFILE            71
-#define STRID_VARTHEMENAME          72
-#define STRID_ADDVAR                73
-#define STRID_EDITVAR               74
-#define STRID_LOSTPROMPT            75
-#define STRID_OVERWRITEPROMPT       76
-#define STRID_DELETEPROMPT          77
-#define STRID_VARMISSING            78
-#define STRID_REGEXP_COMPILEERROR   79
-#define STRID_REGEXP_FIXEDLENGTH    80
-#define STRID_UNKNOWNSECTION        81
-#define STRID_UNKNOWNSYNTAXFILE     82
-#define STRID_UNKNOWNVARTHEME       83
+#define STRID_MAKEGLOBAL            69
+#define STRID_LOWPRIORITY           70
+#define STRID_COLOR                 71
+#define STRID_SYNTAXFILE            72
+#define STRID_VARTHEMENAME          73
+#define STRID_ADDVAR                74
+#define STRID_EDITVAR               75
+#define STRID_LOSTPROMPT            76
+#define STRID_OVERWRITEPROMPT       77
+#define STRID_DELETEPROMPT          78
+#define STRID_VARMISSING            79
+#define STRID_REGEXP_COMPILEERROR   80
+#define STRID_REGEXP_FIXEDLENGTH    81
+#define STRID_UNKNOWNSECTION        82
+#define STRID_UNKNOWNSYNTAXFILE     83
+#define STRID_UNKNOWNVARTHEME       84
 
 #define DLLA_CODER_SETEXTENSION     1
 #define DLLA_CODER_CLEARCACHE       2
@@ -239,10 +240,15 @@ typedef struct _MANUALSET {
 } MANUALSET;
 
 typedef struct {
-  INT_PTR first;
-  INT_PTR last;
+  INT_PTR first; //WORDINFO *
+  INT_PTR last;  //WORDINFO *
   INT_PTR lpWordLens[MAX_PATH];
 } STACKWORD;
+
+typedef struct {
+  INT_PTR first; //WORDORDER *
+  INT_PTR last;  //WORDORDER *
+} STACKWORDORDER;
 
 typedef struct {
   INT_PTR first;
@@ -316,6 +322,7 @@ typedef struct _SYNTAXFILE {
   STACKWILDCARD hWildcardStack;
   STACKDELIM hDelimiterStack;
   STACKWORD hWordStack;
+  STACKWORDORDER hWordOrderStack;
   STACKQUOTE hQuoteStack;
   STACKSKIP hSkipStack;
   HSTACK hSkipStartStack;
@@ -327,6 +334,7 @@ typedef struct _SYNTAXFILE {
   wchar_t wszSyntaxFileName[MAX_PATH];
   VARTHEME *lpVarThemeLink;
   HANDLE hThemeHighLight;
+  //HighLight
   DWORD dwFontFlags;
   LOGFONTW lfFont;
   AECOLORS aecColors;
@@ -336,24 +344,44 @@ typedef struct _SYNTAXFILE {
   DWORD dwAutoMarkFontStyle;
   DWORD dwAutoMarkTextColor;
   DWORD dwAutoMarkBkColor;
-  DWORD dwPanelFirstBkColor;
-  DWORD dwPanelSecondBkColor;
-  DWORD dwPanelNormalFoldColor;
-  DWORD dwPanelActiveFoldColor;
-  DWORD dwPanelNormalNodeOpenBkColor;
-  DWORD dwPanelNormalNodeCloseBkColor;
-  DWORD dwPanelActiveNodeOpenBkColor;
-  DWORD dwPanelActiveNodeCloseBkColor;
-  DWORD dwPanelNormalNodeOpenSignColor;
-  DWORD dwPanelNormalNodeCloseSignColor;
-  DWORD dwPanelActiveNodeOpenSignColor;
-  DWORD dwPanelActiveNodeCloseSignColor;
-  DWORD dwListTextColor;
-  DWORD dwListBkColor;
+  //CodeFold
+  DWORD dwFoldPanelFirstBkColor;
+  DWORD dwFoldPanelSecondBkColor;
+  DWORD dwFoldPanelNormalFoldColor;
+  DWORD dwFoldPanelActiveFoldColor;
+  DWORD dwFoldPanelNormalNodeOpenBkColor;
+  DWORD dwFoldPanelNormalNodeCloseBkColor;
+  DWORD dwFoldPanelActiveNodeOpenBkColor;
+  DWORD dwFoldPanelActiveNodeCloseBkColor;
+  DWORD dwFoldPanelNormalNodeOpenSignColor;
+  DWORD dwFoldPanelNormalNodeCloseSignColor;
+  DWORD dwFoldPanelActiveNodeOpenSignColor;
+  DWORD dwFoldPanelActiveNodeCloseSignColor;
+  DWORD dwFoldListTextColor;
+  DWORD dwFoldListBkColor;
   DWORD dwTagMarkFlags;
   DWORD dwTagMarkFontStyle;
   DWORD dwTagMarkTextColor;
   DWORD dwTagMarkBkColor;
+  //AutoComplete
+  DWORD dwCompleteListFontStyle;
+  int nCompleteListFontSize;
+  wchar_t wszCompleteListFaceName[LF_FACESIZE];
+  HFONT hCompleteListFont;
+  int nCompleteListLineGap;
+  int nCompleteListTextMargin;
+  wchar_t wszCompleteListBlockIcon[MAX_PATH];
+  wchar_t wszCompleteListHlBaseIcon[MAX_PATH];
+  wchar_t wszCompleteListDocWordIcon[MAX_PATH];
+  DWORD dwCompleteListIcons;
+  HICON hCompleteListBlockIcon;
+  HICON hCompleteListHlBaseIcon;
+  HICON hCompleteListDocWordIcon;
+  DWORD dwCompleteListBasicTextColor;
+  DWORD dwCompleteListBasicBkColor;
+  DWORD dwCompleteListSelTextColor;
+  DWORD dwCompleteListSelBkColor;
+  //Other
   FILETIME ftTimeStamp;
   BOOL bReserveCacheWildcard;
   BOOL bExists;
@@ -440,6 +468,13 @@ HWND GetFocusEdit();
 void UpdateEdit(HWND hWnd, DWORD dwFlags);
 void UpdateEditAndClones(HWND hWnd, DWORD dwFlags);
 void UpdateEditAll(DWORD dwFlags);
+HFONT CreateFontMethod(const wchar_t *wpFaceName, DWORD dwFontStyle, int nPointSize);
+HICON GetIconMethod(wchar_t *wszIconFile, int nFileIconIndex, BOOL bBigIcons);
+void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
+int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
+INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput);
+INT_PTR UnescapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput);
+INT_PTR GetEscapeParam(const wchar_t *wpText, const wchar_t **wpParamStart, const wchar_t **wpParamEnd, const wchar_t **wpTextNext);
 BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor);
 void GetPosFromChar(HWND hWnd, INT_PTR nCharIndex, POINT *pt);
 
@@ -562,7 +597,19 @@ CodeFold_TagMarkTextColor 0\r\
 CodeFold_TagMarkBkColor #E3CCFF\r"
 
 #define TXT_DEFAULT_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor 0\r\
+AutoComplete_ListBasicBkColor 0\r\
+AutoComplete_ListSelTextColor 0\r\
+AutoComplete_ListSelBkColor 0\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_DEFAULT_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor 0\r\
@@ -649,7 +696,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #2FB1FF\r"
 
 #define TXT_ACTIVE4D_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #000000\r\
+AutoComplete_ListBasicBkColor #FFFFFF\r\
+AutoComplete_ListSelTextColor #000000\r\
+AutoComplete_ListSelBkColor #A5B0A2\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_ACTIVE4D_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #000000\r\
@@ -736,7 +795,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #605620\r"
 
 #define TXT_BESPIN_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #E8E2DD\r\
+AutoComplete_ListBasicBkColor #2B211C\r\
+AutoComplete_ListSelTextColor #FFFFFF\r\
+AutoComplete_ListSelBkColor #846759\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_BESPIN_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #E8E2DD\r\
@@ -823,7 +894,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #433B3D\r"
 
 #define TXT_COBALT_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #FFFFFF\r\
+AutoComplete_ListBasicBkColor #002240\r\
+AutoComplete_ListSelTextColor #FFFFFF\r\
+AutoComplete_ListSelBkColor #86543A\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_COBALT_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #FFFFFF\r\
@@ -910,7 +993,19 @@ CodeFold_TagMarkTextColor #080808\r\
 CodeFold_TagMarkBkColor #BAE2FA\r"
 
 #define TXT_DAWN_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #080808\r\
+AutoComplete_ListBasicBkColor #F9F9F9\r\
+AutoComplete_ListSelTextColor #080808\r\
+AutoComplete_ListSelBkColor #B9CAFA\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_DAWN_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #080808\r\
@@ -997,7 +1092,19 @@ CodeFold_TagMarkTextColor #000000\r\
 CodeFold_TagMarkBkColor #B0EAFF\r"
 
 #define TXT_EARTH_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #000000\r\
+AutoComplete_ListBasicBkColor #FFFFFF\r\
+AutoComplete_ListSelTextColor #000000\r\
+AutoComplete_ListSelBkColor #B5CCE3\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_EARTH_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #000000\r\
@@ -1084,7 +1191,19 @@ CodeFold_TagMarkTextColor #000000\r\
 CodeFold_TagMarkBkColor #D4E2F5\r"
 
 #define TXT_IPLASTIC_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #000000\r\
+AutoComplete_ListBasicBkColor #EEEEEE\r\
+AutoComplete_ListSelTextColor #000000\r\
+AutoComplete_ListSelBkColor #BAD6FD\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_IPLASTIC_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #000000\r\
@@ -1171,7 +1290,19 @@ CodeFold_TagMarkTextColor #000000\r\
 CodeFold_TagMarkBkColor #FAD872\r"
 
 #define TXT_LAZY_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #000000\r\
+AutoComplete_ListBasicBkColor #FFFFFF\r\
+AutoComplete_ListSelTextColor #000000\r\
+AutoComplete_ListSelBkColor #E3FC8D\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_LAZY_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #000000\r\
@@ -1258,7 +1389,19 @@ CodeFold_TagMarkTextColor #000000\r\
 CodeFold_TagMarkBkColor #D8FF95\r"
 
 #define TXT_MACCLASSIC_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #000000\r\
+AutoComplete_ListBasicBkColor #FFFFFF\r\
+AutoComplete_ListSelTextColor #000000\r\
+AutoComplete_ListSelBkColor #C4DCFF\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_MACCLASSIC_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #000000\r\
@@ -1345,7 +1488,19 @@ CodeFold_TagMarkTextColor #F8F8F2\r\
 CodeFold_TagMarkBkColor #75715E\r"
 
 #define TXT_MONOKAI_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #F8F8F2\r\
+AutoComplete_ListBasicBkColor #272822\r\
+AutoComplete_ListSelTextColor #F8F8F2\r\
+AutoComplete_ListSelBkColor #49483E\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_MONOKAI_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #F8F8F2\r\
@@ -1432,7 +1587,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #ABC9D4\r"
 
 #define TXT_SOLARIZEDLIGHT_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #586E75\r\
+AutoComplete_ListBasicBkColor #FDF6E3\r\
+AutoComplete_ListSelTextColor #586E75\r\
+AutoComplete_ListSelBkColor #FFFFFF\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_SOLARIZEDLIGHT_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #586E75\r\
@@ -1519,7 +1686,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #105A5D\r"
 
 #define TXT_SOLARIZEDDARK_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #839496\r\
+AutoComplete_ListBasicBkColor #002B36\r\
+AutoComplete_ListSelTextColor #FFFFFF\r\
+AutoComplete_ListSelBkColor #586E75\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_SOLARIZEDDARK_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #839496\r\
@@ -1606,7 +1785,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #003040\r"
 
 #define TXT_SPACECADET_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #DDE6CF\r\
+AutoComplete_ListBasicBkColor #0D0D0D\r\
+AutoComplete_ListSelTextColor #DDE6CF\r\
+AutoComplete_ListSelBkColor #40002F\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_SPACECADET_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #DDE6CF\r\
@@ -1693,7 +1884,19 @@ CodeFold_TagMarkTextColor #F8F8F8\r\
 CodeFold_TagMarkBkColor #3D4B63\r"
 
 #define TXT_SUNBURST_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #F8F8F8\r\
+AutoComplete_ListBasicBkColor #060606\r\
+AutoComplete_ListSelTextColor #F8F8F8\r\
+AutoComplete_ListSelBkColor #2C3033\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_SUNBURST_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #F8F8F8\r\
@@ -1780,7 +1983,19 @@ CodeFold_TagMarkTextColor #F8F8F8\r\
 CodeFold_TagMarkBkColor #27303F\r"
 
 #define TXT_TWILIGHT_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #F8F8F8\r\
+AutoComplete_ListBasicBkColor #141414\r\
+AutoComplete_ListSelTextColor #F8F8F8\r\
+AutoComplete_ListSelBkColor #3C4043\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_TWILIGHT_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #F8F8F8\r\
@@ -1867,7 +2082,19 @@ CodeFold_TagMarkTextColor #FFFFFF\r\
 CodeFold_TagMarkBkColor #3F706B\r"
 
 #define TXT_ZENBURN_VARTHEME_AUTOCOMPLETE \
-L"AutoComplete_Indent \"  \"\r"
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListTextMargin 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListBasicTextColor #FFFFFF\r\
+AutoComplete_ListBasicBkColor #3F3F3F\r\
+AutoComplete_ListSelTextColor #DFDFBF\r\
+AutoComplete_ListSelBkColor #585858\r\
+AutoComplete_Indent \"  \"\r"
 
 #define TXT_ZENBURN_VARTHEME_LINEBOARD \
 L"LineBoard_TextColor #FFFFFF\r\
