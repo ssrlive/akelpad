@@ -30,6 +30,9 @@ BOOL bAutoListEnable=TRUE;
 int nAutoListAfter=2;
 BOOL bAlphaListEnable=FALSE;
 int nAlphaListValue=220;
+BOOL bCompleteListSystemColors=FALSE;
+BOOL bCompleteListItemHlBaseColors=TRUE;
+BOOL bCompleteListNoMarkIfIcon=FALSE;
 int nCompleteWithoutListAfter=2;
 BOOL bOneWithoutListAndCompleteNext=TRUE;
 DWORD dwCompleteWithList=544;  //"Ctrl+Space"
@@ -370,11 +373,16 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static HWND hWndMaxDocumentChars;
   static HWND hWndMaxDocumentPostLabel;
   static HWND hWndAddHighLightWords;
+  static HWND hWndListItemHlBaseColorsEnable;
+  static HWND hWndListSysColorsEnable;
+  static HWND hWndListNoMarkIfIconEnable;
   static HWND hWndRightDelimitersEnable;
   static HWND hWndSyntaxDelimitersEnable;
   static BOOL bAddDocumentWordsDlg;
   static BOOL bMaxDocumentEnableDlg;
   static BOOL bCompleteNonSyntaxDocumentDlg;
+  static BOOL bAddHighLightWordsDlg;
+  static BOOL bCompleteListSystemColorsDlg;
   static BOOL bInitDialog;
 
   if (uMsg == WM_INITDIALOG)
@@ -383,6 +391,9 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     bAddDocumentWordsDlg=bAddDocumentWords;
     bMaxDocumentEnableDlg=bMaxDocumentEnable;
     bCompleteNonSyntaxDocumentDlg=bCompleteNonSyntaxDocument;
+    bAddHighLightWordsDlg=bAddHighLightWords;
+    bCompleteListSystemColorsDlg=bCompleteListSystemColors;
+
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndAddDocumentWords=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS);
     hWndCompleteNonSyntaxDocument=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT);
@@ -391,6 +402,9 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     hWndMaxDocumentChars=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS);
     hWndMaxDocumentPostLabel=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_POSTLABEL);
     hWndAddHighLightWords=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS);
+    hWndListItemHlBaseColorsEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTITEMHLBASECOLORS_ENABLE);
+    hWndListSysColorsEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTSYSCOLORS_ENABLE);
+    hWndListNoMarkIfIconEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTNOMARKIFICON_ENABLE);
     hWndRightDelimitersEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_RIGHTDELIMITERS_ENABLE);
     hWndSyntaxDelimitersEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_SYNTAXDELIMITERS_ENABLE);
 
@@ -401,20 +415,27 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE, GetLangStringW(wLangModule, STRID_MAXDOCUMENT));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_POSTLABEL, GetLangStringW(wLangModule, STRID_CHARS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS, GetLangStringW(wLangModule, STRID_ADDHIGHLIGHTWORDS));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTITEMHLBASECOLORS_ENABLE, GetLangStringW(wLangModule, STRID_HLBASECOLORS));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTSYSCOLORS_ENABLE, GetLangStringW(wLangModule, STRID_LISTSYSTEMCOLORS));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_LISTNOMARKIFICON_ENABLE, GetLangStringW(wLangModule, STRID_NOMARKIFICON));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_RIGHTDELIMITERS_ENABLE, GetLangStringW(wLangModule, STRID_RIGHTDELIMITERS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_SYNTAXDELIMITERS_ENABLE, GetLangStringW(wLangModule, STRID_SYNTAXDELIMITERS));
 
-    if (bAddDocumentWordsDlg) SendMessage(hWndAddDocumentWords, BM_SETCHECK, BST_CHECKED, 0);
-    if (bMaxDocumentEnableDlg) SendMessage(hWndMaxDocumentEnable, BM_SETCHECK, BST_CHECKED, 0);
+    if (bAddDocumentWords) SendMessage(hWndAddDocumentWords, BM_SETCHECK, BST_CHECKED, 0);
+    if (bMaxDocumentEnable) SendMessage(hWndMaxDocumentEnable, BM_SETCHECK, BST_CHECKED, 0);
     SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, nMaxDocumentChars, FALSE);
-    if (bCompleteNonSyntaxDocumentDlg) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCompleteNonSyntaxDocument) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveTypedCase) SendMessage(hWndSaveTypedCase, BM_SETCHECK, BST_CHECKED, 0);
 
     if (bAddHighLightWords) SendMessage(hWndAddHighLightWords, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCompleteListItemHlBaseColors) SendMessage(hWndListItemHlBaseColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCompleteListSystemColors) SendMessage(hWndListSysColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCompleteListNoMarkIfIcon) SendMessage(hWndListNoMarkIfIconEnable, BM_SETCHECK, BST_CHECKED, 0);
     if (bRightDelimitersEnable) SendMessage(hWndRightDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
     if (bSyntaxDelimitersEnable) SendMessage(hWndSyntaxDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS, 0);
+    SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS, 0);
     bInitDialog=FALSE;
   }
   else if (uMsg == WM_COMMAND)
@@ -445,6 +466,13 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
       EnableWindow(hWndCompleteNonSyntaxDocument, bAddDocumentWordsDlg);
       EnableWindow(hWndSaveTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg);
     }
+    else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS ||
+             LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_LISTSYSCOLORS_ENABLE)
+    {
+      bAddHighLightWordsDlg=(BOOL)SendMessage(hWndAddHighLightWords, BM_GETCHECK, 0, 0);
+      bCompleteListSystemColorsDlg=(BOOL)SendMessage(hWndListSysColorsEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndListItemHlBaseColorsEnable, bAddHighLightWordsDlg && !bCompleteListSystemColorsDlg);
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -463,7 +491,10 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
       nMaxDocumentChars=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, NULL, FALSE);
       bSaveTypedCase=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
 
-      bAddHighLightWords=(BOOL)SendMessage(hWndAddHighLightWords, BM_GETCHECK, 0, 0);
+      bAddHighLightWords=bAddHighLightWordsDlg;
+      bCompleteListItemHlBaseColors=(BOOL)SendMessage(hWndListItemHlBaseColorsEnable, BM_GETCHECK, 0, 0);
+      bCompleteListSystemColors=bCompleteListSystemColorsDlg;
+      bCompleteListNoMarkIfIcon=(BOOL)SendMessage(hWndListNoMarkIfIconEnable, BM_GETCHECK, 0, 0);
       bRightDelimitersEnable=(BOOL)SendMessage(hWndRightDelimitersEnable, BM_GETCHECK, 0, 0);
       bSyntaxDelimitersEnable=(BOOL)SendMessage(hWndSyntaxDelimitersEnable, BM_GETCHECK, 0, 0);
 
@@ -814,7 +845,7 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
                 {
                   BLOCKINFO *lpBlockInfo;
 
-                  if (lpBlockInfo=GetBlockListbox())
+                  if (lpBlockInfo=GetDataListbox(-1))
                   {
                     if (GetKeyState(VK_SHIFT) < 0)
                       bSaveTypedCaseOnce=TRUE;
@@ -936,24 +967,101 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 {
   static POINT ptResizeHitOffset={0};
   static int nResizeHit=0;
+  static int nCharHeight;
+  static HBRUSH hListBoxBrush;
 
   if (uMsg == WM_CREATE)
   {
+    wchar_t wszIconFile[MAX_PATH];
     HFONT hListboxFont;
+    COLORREF crBk;
+    int nItemHeight;
+    int nFileIconIndex;
+
+    if (lpSyntaxFileAutoComplete && ((!bCompleteListSystemColors &&
+        (lpSyntaxFileAutoComplete->dwCompleteListBasicTextColor != (DWORD)-1 ||
+         lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor != (DWORD)-1 ||
+         lpSyntaxFileAutoComplete->dwCompleteListSelTextColor != (DWORD)-1 ||
+         lpSyntaxFileAutoComplete->dwCompleteListSelBkColor != (DWORD)-1)) ||
+         lpSyntaxFileAutoComplete->dwCompleteListIcons ||
+         lpSyntaxFileAutoComplete->nCompleteListTextMargin))
+    {
+      //ListBox background
+      if (bCompleteListSystemColors || lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor == (DWORD)-1)
+        crBk=GetSysColor(COLOR_WINDOW);
+      else
+        crBk=lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor;
+      hListBoxBrush=CreateSolidBrush(crBk);
+    }
+    else hListBoxBrush=NULL;
 
     hWndListBox=CreateWindowExWide(0,
                             L"LISTBOX",
                             NULL,
                             WS_CHILD|WS_VSCROLL|WS_VISIBLE|
-                            LBS_DISABLENOSCROLL|LBS_NOINTEGRALHEIGHT|LBS_SORT,
+                            LBS_DISABLENOSCROLL|LBS_NOINTEGRALHEIGHT|(hListBoxBrush?LBS_OWNERDRAWFIXED:0),
                             0, 0, 0, 0,
                             hWnd,
                             (HMENU)(UINT_PTR)IDC_LIST,
                             hInstanceDLL,
                             NULL);
 
-    hListboxFont=(HFONT)SendMessage(hWndEdit, AEM_GETFONT, AEGF_CURRENT, 0);
+    //Font
+    if (lpSyntaxFileAutoComplete && lpSyntaxFileAutoComplete->hCompleteListFont)
+      hListboxFont=lpSyntaxFileAutoComplete->hCompleteListFont;
+    else
+    {
+      if (lpSyntaxFileAutoComplete && (*lpSyntaxFileAutoComplete->wszCompleteListFaceName || lpSyntaxFileAutoComplete->nCompleteListFontSize || lpSyntaxFileAutoComplete->dwCompleteListFontStyle))
+      {
+        lpSyntaxFileAutoComplete->hCompleteListFont=CreateFontMethod(lpSyntaxFileAutoComplete->wszCompleteListFaceName, lpSyntaxFileAutoComplete->dwCompleteListFontStyle, lpSyntaxFileAutoComplete->nCompleteListFontSize);
+        hListboxFont=lpSyntaxFileAutoComplete->hCompleteListFont;
+      }
+      else hListboxFont=(HFONT)SendMessage(hWndEdit, AEM_GETFONT, AEGF_CURRENT, 0);
+    }
     SendMessage(hWndListBox, WM_SETFONT, (WPARAM)hListboxFont, TRUE);
+
+    //Icons
+    if (lpSyntaxFileAutoComplete)
+    {
+      if ((lpSyntaxFileAutoComplete->dwCompleteListIcons & BIT_BLOCK) && !lpSyntaxFileAutoComplete->hCompleteListBlockIcon)
+      {
+        GetIconParameters(lpSyntaxFileAutoComplete->wszCompleteListBlockIcon, wszIconFile, MAX_PATH, &nFileIconIndex, NULL);
+        lpSyntaxFileAutoComplete->hCompleteListBlockIcon=GetIconMethod(wszIconFile, nFileIconIndex, FALSE);
+      }
+      if ((lpSyntaxFileAutoComplete->dwCompleteListIcons & BIT_HLBASE) && !lpSyntaxFileAutoComplete->hCompleteListHlBaseIcon)
+      {
+        GetIconParameters(lpSyntaxFileAutoComplete->wszCompleteListHlBaseIcon, wszIconFile, MAX_PATH, &nFileIconIndex, NULL);
+        lpSyntaxFileAutoComplete->hCompleteListHlBaseIcon=GetIconMethod(wszIconFile, nFileIconIndex, FALSE);
+      }
+      if ((lpSyntaxFileAutoComplete->dwCompleteListIcons & BIT_DOCWORD) && !lpSyntaxFileAutoComplete->hCompleteListDocWordIcon)
+      {
+        GetIconParameters(lpSyntaxFileAutoComplete->wszCompleteListDocWordIcon, wszIconFile, MAX_PATH, &nFileIconIndex, NULL);
+        lpSyntaxFileAutoComplete->hCompleteListDocWordIcon=GetIconMethod(wszIconFile, nFileIconIndex, FALSE);
+      }
+    }
+
+    //Height
+    {
+      SIZE sizeChar={0};
+      HDC hDC;
+      HFONT hFontOld;
+
+      if (hDC=GetDC(hWndListBox))
+      {
+        hFontOld=(HFONT)SelectObject(hDC, hListboxFont);
+        GetTextExtentPoint32W(hDC, L"A", 1, &sizeChar);
+        if (hFontOld) SelectObject(hDC, hFontOld);
+        ReleaseDC(hWndListBox, hDC);
+      }
+      nCharHeight=sizeChar.cy;
+      nItemHeight=nCharHeight;
+    }
+    if (lpSyntaxFileAutoComplete && lpSyntaxFileAutoComplete->dwCompleteListIcons)
+      nItemHeight=max(nItemHeight, SIZE_ICON);
+    if (lpSyntaxFileAutoComplete && lpSyntaxFileAutoComplete->nCompleteListLineGap)
+      nItemHeight+=lpSyntaxFileAutoComplete->nCompleteListLineGap;
+    if (SendMessage(hWndListBox, LB_GETITEMHEIGHT, 0, 0) < nItemHeight)
+      SendMessage(hWndListBox, LB_SETITEMHEIGHT, 0, nItemHeight);
 
     OldListBoxProc=(WNDPROC)GetWindowLongPtrWide(hWndListBox, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndListBox, GWLP_WNDPROC, (UINT_PTR)NewListboxProc);
@@ -965,6 +1073,100 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
       SetWindowPos(hWndListBox, NULL, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOMOVE);
     }
     return FALSE;
+  }
+  else if (uMsg == WM_CTLCOLORLISTBOX)
+  {
+    if (hListBoxBrush)
+      return (LRESULT)hListBoxBrush;
+  }
+  else if (uMsg == WM_DRAWITEM)
+  {
+    DRAWITEMSTRUCT *dis=(DRAWITEMSTRUCT *)lParam;
+    HICON hIcon=NULL;
+    COLORREF crText;
+    COLORREF crBk;
+    COLORREF crHlBk=(DWORD)-1;
+    HBRUSH hBrushBk=NULL;
+    int nModeBkOld;
+    int nIconSize=0;
+    BLOCKINFO *lpBlockInfo;
+    WORDINFO *lpWordInfo=NULL;
+    BOOL bHideMark;
+
+    if (dis->CtlID == IDC_LIST)
+    {
+      if (lpBlockInfo=GetDataListbox(dis->itemID))
+      {
+        //Set background
+        if (bCompleteListItemHlBaseColors && (lpBlockInfo->dwStructType & BIT_HLBASE))
+          lpWordInfo=(WORDINFO *)lpBlockInfo->lpRef;
+
+        if (dis->itemState & ODS_SELECTED)
+        {
+          if (bCompleteListSystemColors || lpSyntaxFileAutoComplete->dwCompleteListSelTextColor == (DWORD)-1)
+            crText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+          else
+            crText=lpSyntaxFileAutoComplete->dwCompleteListSelTextColor;
+
+          if (bCompleteListSystemColors || lpSyntaxFileAutoComplete->dwCompleteListSelBkColor == (DWORD)-1)
+            crBk=GetSysColor(COLOR_HIGHLIGHT);
+          else
+            crBk=lpSyntaxFileAutoComplete->dwCompleteListSelBkColor;
+          hBrushBk=CreateSolidBrush(crBk);
+        }
+        else
+        {
+          if (!bCompleteListSystemColors && lpWordInfo && lpWordInfo->dwColor1 != (DWORD)-1)
+            crText=lpWordInfo->dwColor1;
+          else if (!bCompleteListSystemColors && lpSyntaxFileAutoComplete->dwCompleteListBasicTextColor != (DWORD)-1)
+            crText=lpSyntaxFileAutoComplete->dwCompleteListBasicTextColor;
+          else
+            crText=GetSysColor(COLOR_WINDOWTEXT);
+
+          if (!bCompleteListSystemColors && lpWordInfo && lpWordInfo->dwColor2 != (DWORD)-1)
+            crHlBk=lpWordInfo->dwColor2;
+          if (!bCompleteListSystemColors && lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor != (DWORD)-1)
+            crBk=lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor;
+          else
+            crBk=GetSysColor(COLOR_WINDOW);
+          hBrushBk=CreateSolidBrush(crBk);
+        }
+        FillRect(dis->hDC, &dis->rcItem, hBrushBk);
+        nModeBkOld=SetBkMode(dis->hDC, TRANSPARENT);
+
+        //Draw icon
+        if (lpSyntaxFileAutoComplete->dwCompleteListIcons & lpBlockInfo->dwStructType)
+        {
+          nIconSize=SIZE_ICON;
+          if (lpBlockInfo->dwStructType & BIT_BLOCK)
+            hIcon=lpSyntaxFileAutoComplete->hCompleteListBlockIcon;
+          else if (lpBlockInfo->dwStructType & BIT_HLBASE)
+            hIcon=lpSyntaxFileAutoComplete->hCompleteListHlBaseIcon;
+          else if (lpBlockInfo->dwStructType & BIT_DOCWORD)
+            hIcon=lpSyntaxFileAutoComplete->hCompleteListDocWordIcon;
+          if (hIcon)
+            DrawIconEx(dis->hDC, dis->rcItem.left, dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nIconSize / 2, hIcon, nIconSize, nIconSize, 0, 0, DI_NORMAL);
+        }
+
+        //Draw text
+        SetTextColor(dis->hDC, crText);
+        if (crHlBk != (DWORD)-1)
+        {
+          SetBkMode(dis->hDC, OPAQUE);
+          SetBkColor(dis->hDC, crHlBk);
+        }
+        else SetBkColor(dis->hDC, crBk);
+
+        if (bCompleteListNoMarkIfIcon && hIcon && (lpBlockInfo->dwStructType & (BIT_HLBASE|BIT_DOCWORD)))
+          bHideMark=TRUE;
+        else
+          bHideMark=FALSE;
+        TextOutW(dis->hDC, dis->rcItem.left + nIconSize + lpSyntaxFileAutoComplete->nCompleteListTextMargin, dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top) / 2 - nCharHeight / 2, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen - (bHideMark?1:0));
+
+        SetBkMode(dis->hDC, nModeBkOld);
+        if (hBrushBk) DeleteObject(hBrushBk);
+      }
+    }
   }
   else if (uMsg == WM_MOUSEACTIVATE)
   {
@@ -1101,6 +1303,7 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
   {
     hWndAutoComplete=NULL;
     hWndListBox=NULL;
+    if (hListBoxBrush) DeleteObject(hListBoxBrush);
   }
 
   return DefWindowProcWide(hWnd, uMsg, wParam, lParam);
@@ -1138,7 +1341,7 @@ LRESULT CALLBACK NewListboxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     BLOCKINFO *lpBlockInfo;
 
-    if (lpBlockInfo=GetBlockListbox())
+    if (lpBlockInfo=GetDataListbox(-1))
     {
       if (GetKeyState(VK_SHIFT) < 0)
         bSaveTypedCaseOnce=TRUE;
@@ -1244,6 +1447,10 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
   {
     if (!wszTitlePart[0] || lpBlockInfo)
     {
+      lpSyntaxFileAutoComplete=lpSyntaxFile;
+      nWindowBlockBegin=nBlockBegin;
+      nWindowBlockEnd=nBlockEnd;
+
       hWndAutoComplete=CreateWindowExWide((bAlphaListEnable && SetLayeredWindowAttributesPtr)?WS_EX_LAYERED:0,
                             AUTOCOMPLETEW,
                             NULL,
@@ -1253,10 +1460,6 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
                             NULL,
                             hInstanceDLL,
                             NULL);
-
-      lpSyntaxFileAutoComplete=lpSyntaxFile;
-      nWindowBlockBegin=nBlockBegin;
-      nWindowBlockEnd=nBlockEnd;
 
       if (MoveAutoCompleteWindow())
       {
@@ -1331,48 +1534,47 @@ void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wcha
 
   if (lpSyntaxFile)
   {
-    //Use ListBox_AddString to sort words from HighLight base
-    if (bAddHighLightWords)
-    {
-      WORDINFO *lpWordElement=(WORDINFO *)lpSyntaxFile->hWordStack.first;
-      int nItem;
-
-      while (lpWordElement)
-      {
-        if (!xstrcmpinW(wpTitlePart, lpWordElement->wpWord, (UINT_PTR)-1))
-        {
-          xprintfW(wszBuffer, L"%s*", lpWordElement->wpWord);
-          if ((nItem=ListBox_AddStringWide(hWndListBox, wszBuffer)) != LB_ERR)
-            SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpWordElement);
-        }
-        lpWordElement=lpWordElement->next;
-      }
-    }
-
-    //Use hBlockStack.last because ListBox_InsertString to zero index reverse items order
-    lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hBlockStack.last;
+    //Blocks
+    lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hBlockStack.first;
 
     while (lpBlockElement)
     {
       if (!xstrcmpinW(wpTitlePart, lpBlockElement->wpTitle, (UINT_PTR)-1))
       {
-        if ((nItem=ListBox_InsertStringWide(hWndListBox, 0, lpBlockElement->wpTitle)) != LB_ERR)
+        if ((nItem=ListBox_AddStringWide(hWndListBox, lpBlockElement->wpTitle)) != LB_ERR)
           SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpBlockElement);
       }
-      lpBlockElement=lpBlockElement->prev;
+      lpBlockElement=lpBlockElement->next;
     }
 
     if (!wpTitlePart[0])
     {
-      //Use hBlockStack.last because ListBox_InsertString to zero index reverse items order
-      lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hExactBlockStack.last;
+      lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hExactBlockStack.first;
 
       while (lpBlockElement)
       {
-        if ((nItem=ListBox_InsertStringWide(hWndListBox, 0, lpBlockElement->wpTitle)) != LB_ERR)
+        if ((nItem=ListBox_AddStringWide(hWndListBox, lpBlockElement->wpTitle)) != LB_ERR)
           SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpBlockElement);
 
-        lpBlockElement=lpBlockElement->prev;
+        lpBlockElement=lpBlockElement->next;
+      }
+    }
+
+    //Words from HighLight base
+    if (bAddHighLightWords)
+    {
+      WORDORDER *lpWordOrder=(WORDORDER *)lpSyntaxFile->hWordOrderStack.first;
+      int nItem;
+
+      while (lpWordOrder)
+      {
+        if (!xstrcmpinW(wpTitlePart, lpWordOrder->lpWordInfo->wpWord, (UINT_PTR)-1))
+        {
+          xprintfW(wszBuffer, L"%s*", lpWordOrder->lpWordInfo->wpWord);
+          if ((nItem=ListBox_AddStringWide(hWndListBox, wszBuffer)) != LB_ERR)
+            SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpWordOrder->lpWordInfo);
+        }
+        lpWordOrder=lpWordOrder->next;
       }
     }
   }
@@ -1388,7 +1590,7 @@ void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wcha
       if (!xstrcmpinW(wpTitlePart, lpDocWordInfo->wpDocWord, (UINT_PTR)-1))
       {
         xprintfW(wszBuffer, L"%s+", lpDocWordInfo->wpDocWord);
-        if ((nItem=ListBox_InsertStringWide(hWndListBox, -1, wszBuffer)) != LB_ERR)
+        if ((nItem=ListBox_AddStringWide(hWndListBox, wszBuffer)) != LB_ERR)
           SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpDocWordInfo);
       }
       lpDocWordInfo=lpDocWordInfo->next;
@@ -1420,14 +1622,16 @@ void SetSelListbox(int nIndex)
   }
 }
 
-BLOCKINFO* GetBlockListbox()
+BLOCKINFO* GetDataListbox(int nItem)
 {
   BLOCKINFO *lpBlock;
   WORDINFO *lpHighLightWord;
   DOCWORDINFO *lpDocWord;
-  int nItem;
 
-  if ((nItem=(int)SendMessage(hWndListBox, LB_GETCURSEL, 0, 0)) != LB_ERR)
+  if (nItem == -1)
+    nItem=(int)SendMessage(hWndListBox, LB_GETCURSEL, 0, 0);
+
+  if (nItem != LB_ERR)
   {
     lpBlock=(BLOCKINFO *)SendMessage(hWndListBox, LB_GETITEMDATA, nItem, 0);
 
@@ -1445,17 +1649,19 @@ BLOCKINFO* GetBlockListbox()
       biDocWordBlock.wpBlock=lpDocWord->wpDocWord;
       biDocWordBlock.nBlockLen=lpDocWord->nDocWordLen;
       biDocWordBlock.nLinesInBlock=1;
+      biDocWordBlock.lpRef=lpDocWord;
       return &biDocWordBlock;
     }
 
     //Item data is WORDINFO pointer
     lpHighLightWord=(WORDINFO *)lpBlock;
-    biHighLightBlock.dwStructType=BIT_HIGHLIGHT;
+    biHighLightBlock.dwStructType=BIT_HLBASE;
     biHighLightBlock.nTitleLen=(int)xprintfW(wszHighLightTitle, L"%s*", lpHighLightWord->wpWord);
     biHighLightBlock.wpTitle=wszHighLightTitle;
     biHighLightBlock.wpBlock=lpHighLightWord->wpWord;
     biHighLightBlock.nBlockLen=lpHighLightWord->nWordLen;
     biHighLightBlock.nLinesInBlock=1;
+    biHighLightBlock.lpRef=lpHighLightWord;
     return &biHighLightBlock;
   }
   return NULL;
@@ -1963,6 +2169,7 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, co
             biHighLightBlock.wpBlock=lpWordElement->wpWord;
             biHighLightBlock.nBlockLen=lpWordElement->nWordLen;
             biHighLightBlock.nLinesInBlock=1;
+            biHighLightBlock.lpRef=lpWordElement;
             return &biHighLightBlock;
           }
         }
@@ -2008,6 +2215,7 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, co
           biDocWordBlock.wpBlock=lpDocWordInfo->wpDocWord;
           biDocWordBlock.nBlockLen=lpDocWordInfo->nDocWordLen;
           biDocWordBlock.nLinesInBlock=1;
+          biDocWordBlock.lpRef=lpDocWordInfo;
           return &biDocWordBlock;
         }
       }
@@ -2297,6 +2505,9 @@ void ReadAutoCompleteOptions(HANDLE hOptions)
   WideOption(hOptions, L"MaxDocumentEnable", PO_DWORD, (LPBYTE)&bMaxDocumentEnable, sizeof(DWORD));
   WideOption(hOptions, L"MaxDocumentChars", PO_DWORD, (LPBYTE)&nMaxDocumentChars, sizeof(DWORD));
   WideOption(hOptions, L"AddHighLightWords", PO_DWORD, (LPBYTE)&bAddHighLightWords, sizeof(DWORD));
+  WideOption(hOptions, L"CompleteListItemHlBaseColors", PO_DWORD, (LPBYTE)&bCompleteListItemHlBaseColors, sizeof(DWORD));
+  WideOption(hOptions, L"CompleteListSystemColors", PO_DWORD, (LPBYTE)&bCompleteListSystemColors, sizeof(DWORD));
+  WideOption(hOptions, L"CompleteListNoMarkIfIcon", PO_DWORD, (LPBYTE)&bCompleteListNoMarkIfIcon, sizeof(DWORD));
   WideOption(hOptions, L"RightDelimitersEnable", PO_DWORD, (LPBYTE)&bRightDelimitersEnable, sizeof(DWORD));
   WideOption(hOptions, L"SyntaxDelimitersEnable", PO_DWORD, (LPBYTE)&bSyntaxDelimitersEnable, sizeof(DWORD));
 }
@@ -2325,6 +2536,9 @@ void SaveAutoCompleteOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"MaxDocumentEnable", PO_DWORD, (LPBYTE)&bMaxDocumentEnable, sizeof(DWORD));
     WideOption(hOptions, L"MaxDocumentChars", PO_DWORD, (LPBYTE)&nMaxDocumentChars, sizeof(DWORD));
     WideOption(hOptions, L"AddHighLightWords", PO_DWORD, (LPBYTE)&bAddHighLightWords, sizeof(DWORD));
+    WideOption(hOptions, L"CompleteListItemHlBaseColors", PO_DWORD, (LPBYTE)&bCompleteListItemHlBaseColors, sizeof(DWORD));
+    WideOption(hOptions, L"CompleteListSystemColors", PO_DWORD, (LPBYTE)&bCompleteListSystemColors, sizeof(DWORD));
+    WideOption(hOptions, L"CompleteListNoMarkIfIcon", PO_DWORD, (LPBYTE)&bCompleteListNoMarkIfIcon, sizeof(DWORD));
     WideOption(hOptions, L"RightDelimitersEnable", PO_DWORD, (LPBYTE)&bRightDelimitersEnable, sizeof(DWORD));
     WideOption(hOptions, L"SyntaxDelimitersEnable", PO_DWORD, (LPBYTE)&bSyntaxDelimitersEnable, sizeof(DWORD));
   }

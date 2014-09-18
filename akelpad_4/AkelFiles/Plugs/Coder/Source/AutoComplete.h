@@ -10,26 +10,30 @@
 #define STRID_AFTERCHAR_POST             304
 #define STRID_TRANSPARENCY               305
 #define STRID_ALPHA                      306
-#define STRID_COMPLETEWITHLIST           307
-#define STRID_COMPLETEWITHOUTLIST        308
-#define STRID_COMPLETEWITHOUTLIST_PRE    309
-#define STRID_COMPLETENEXT               310
-#define STRID_COMPLETEPREV               311
-#define STRID_DOCUMENT                   312
-#define STRID_ADDDOCUMENTWORDS           313
-#define STRID_COMPLETENONSYNTAXDOCUMENT  314
-#define STRID_SAVETYPEDCASE              315
-#define STRID_MAXDOCUMENT                316
-#define STRID_CHARS                      317
-#define STRID_ADDHIGHLIGHTWORDS          318
-#define STRID_RIGHTDELIMITERS            319
-#define STRID_SYNTAXDELIMITERS           320
+#define STRID_HLBASECOLORS               307
+#define STRID_NOMARKIFICON               308
+#define STRID_COMPLETEWITHLIST           309
+#define STRID_COMPLETEWITHOUTLIST        310
+#define STRID_COMPLETEWITHOUTLIST_PRE    311
+#define STRID_COMPLETENEXT               312
+#define STRID_COMPLETEPREV               313
+#define STRID_DOCUMENT                   314
+#define STRID_ADDDOCUMENTWORDS           315
+#define STRID_COMPLETENONSYNTAXDOCUMENT  316
+#define STRID_SAVETYPEDCASE              317
+#define STRID_MAXDOCUMENT                318
+#define STRID_CHARS                      319
+#define STRID_ADDHIGHLIGHTWORDS          320
+#define STRID_RIGHTDELIMITERS            321
+#define STRID_SYNTAXDELIMITERS           322
 
 #define DLLA_AUTOCOMPLETE_ADDWINDOW 50
 #define DLLA_AUTOCOMPLETE_DELWINDOW 51
 
 #define SIZE_MINX      30
 #define SIZE_MINY      30
+
+#define SIZE_ICON      16
 
 //CreateAutoCompleteWindow flags
 #define CAW_COMPLETEONE    0x1
@@ -49,9 +53,9 @@
 
 //BLOCKINFO structure types
 #define BIT_BLOCK          0x1
-#define BIT_DOCWORD        0x2
-#define BIT_NOSYNTAXFILE   0x4
-#define BIT_HIGHLIGHT      0x8
+#define BIT_HLBASE         0x2
+#define BIT_DOCWORD        0x4
+#define BIT_NOSYNTAXFILE   0x8
 
 #define AUTOCOMPLETEA   "AutoComplete"
 #define AUTOCOMPLETEW  L"AutoComplete"
@@ -87,6 +91,7 @@ typedef struct _BLOCKINFO {
   int nLinesInBlock;
   HSTACK hHotSpotStack;
   INT_PTR nHotSpotBlockBegin;
+  void *lpRef;
 } BLOCKINFO;
 
 typedef struct _BLOCKINFOHANDLE {
@@ -142,7 +147,7 @@ void CloseAutoCompleteWindow();
 //AutoComplete window listbox
 void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart);
 void SetSelListbox(int nIndex);
-BLOCKINFO* GetBlockListbox();
+BLOCKINFO* GetDataListbox(int nItem);
 
 //Scheme
 int ParseBlock(SYNTAXFILE *lpScheme, HSTACK *hHotSpotStack, const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput, int *nOutputLines);

@@ -363,7 +363,7 @@ void UninitCodeFold(DWORD dwFlags);
 extern STACKFOLDWINDOW hFoldWindowsStack;
 extern FOLDWINDOW *lpCurrentFoldWindow;
 extern HWND hWndCodeFoldList;
-extern DWORD dwListTextColor;
-extern DWORD dwListBkColor;
+extern DWORD dwFoldListTextColor;
+extern DWORD dwFoldListBkColor;
 
 #endif
