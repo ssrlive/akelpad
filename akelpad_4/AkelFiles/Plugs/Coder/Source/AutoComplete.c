@@ -550,14 +550,14 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
     {
       if (HIWORD(wParam) == EN_CHANGE)
       {
-        if (!bCompletingTitle && GetFocus() == (HWND)lParam)
+        if (GetFocus() == (HWND)lParam)
         {
           CHARRANGE64 cr;
 
           hWndEdit=(HWND)lParam;
           SendMessage(hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-          if (!bAkelEdit || bTextTypeChar)
+          if (bTextTypeChar)
           {
             if (hWndAutoComplete)
             {
@@ -623,7 +623,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
               }
             }
           }
-          else
+          else if (!bCompletingTitle)
           {
             if (hWndAutoComplete)
               SendMessage(hWndAutoComplete, WM_CLOSE, 0, 0);
@@ -674,7 +674,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
       {
         AENTEXTINSERT *aenti=(AENTEXTINSERT *)lParam;
 
-        if (!bCompletingTitle && GetFocus() == aenti->hdr.hwndFrom)
+        if (GetFocus() == aenti->hdr.hwndFrom)
         {
           hWndEdit=aenti->hdr.hwndFrom;
 
@@ -726,7 +726,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
       else if (((NMHDR *)lParam)->code == AEN_TEXTDELETEBEGIN)
       {
         //Update hotspots
-        if (!bCompletingTitle && lpCurrentBlockElement)
+        if (lpCurrentBlockElement)
         {
           AENTEXTDELETE *aentd=(AENTEXTDELETE *)lParam;
           HOTSPOT *lpHotSpot=NULL;
@@ -1886,16 +1886,17 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
     {
       bCompletingTitle=TRUE;
 
-      if (bAkelEdit)
+      if (lpBlockInfo->master)
+        lpBlockMaster=lpBlockInfo->master;
+      else
+        lpBlockMaster=lpBlockInfo;
+
+      if (lpBlockInfo->dwStructType & BIT_BLOCK)
       {
         if (lpCurrentBlockElement)
           StackResetHotSpot(lpCurrentBlockElement);
         lpCurrentBlockElement=NULL;
       }
-      if (lpBlockInfo->master)
-        lpBlockMaster=lpBlockInfo->master;
-      else
-        lpBlockMaster=lpBlockInfo;
 
       //Smart complete multiple abbreviations, like $~GetAkelDir $~AkelPad.GetAkelDir.
       //Avoid expanding "AkelPad.GetAkel" to "AkelPad.AkelPad.GetAkelDir();".
@@ -2023,11 +2024,9 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
         cr.cpMax=nMin + lpHotSpot->nHotSpotPos + lpHotSpot->nHotSpotLen;
         SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
       }
-      if (bAkelEdit)
-      {
-        lpBlockMaster->nHotSpotBlockBegin=nMin;
+      lpBlockMaster->nHotSpotBlockBegin=nMin;
+      if (!lpCurrentBlockElement)
         lpCurrentBlockElement=lpBlockMaster;
-      }
 
       if (wpIndentBlock != lpBlockMaster->wpBlock)
         GlobalFree((HGLOBAL)wpIndentBlock);
