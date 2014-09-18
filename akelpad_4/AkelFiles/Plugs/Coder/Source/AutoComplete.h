@@ -11,7 +11,7 @@
 #define STRID_TRANSPARENCY               305
 #define STRID_ALPHA                      306
 #define STRID_HLBASECOLORS               307
-#define STRID_NOMARKIFICON               308
+#define STRID_NOSYMBOLMARK               308
 #define STRID_COMPLETEWITHLIST           309
 #define STRID_COMPLETEWITHOUTLIST        310
 #define STRID_COMPLETEWITHOUTLIST_PRE    311
@@ -56,6 +56,11 @@
 #define BIT_HLBASE         0x2
 #define BIT_DOCWORD        0x4
 #define BIT_NOSYNTAXFILE   0x8
+
+//dwCompleteListSymbolMark
+#define CLSM_NOMARK        0x0
+#define CLSM_NOMARKIFICON  0x1
+#define CLSM_MARK          0x2
 
 #define AUTOCOMPLETEA   "AutoComplete"
 #define AUTOCOMPLETEW  L"AutoComplete"
