@@ -1162,11 +1162,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               wpBackupStrStart=lpREGroupNextNext->wpStrStart;
               wpBackupStrEnd=lpREGroupNextNext->wpStrEnd;
               nBackupStrLen=lpREGroupNextNext->nStrLen;
-            }
-            nNextMatched=PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr);
 
-            if (lpREGroupNextNext->nSelfExec)
-            {
+              nNextMatched=PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr);
+
               //Restore data after PatExec
               lpREGroupItem->wpStrStart=wpStrStart;
               lpREGroupItem->wpStrEnd=wpStr;
@@ -1181,6 +1179,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               --lpREGroupNextNext->nSelfMatch;
               --lpREGroupNextNext->nSelfExec;
             }
+            else
+            {
+              nNextMatched=PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr);
+            }
+
             //Check nStrLen for \d+Z? in 123Z
             if (nNextMatched && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
             {
@@ -2380,11 +2383,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               ciBackupStrStart=lpREGroupNextNext->ciStrStart;
               ciBackupStrEnd=lpREGroupNextNext->ciStrEnd;
               nBackupStrLen=lpREGroupNextNext->nStrLen;
-            }
-            nNextMatched=AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr);
 
-            if (lpREGroupNextNext->nSelfExec)
-            {
+              nNextMatched=AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr);
+
               //Restore data after PatExec
               lpREGroupItem->ciStrStart=ciStrStart;
               lpREGroupItem->ciStrEnd=ciStr;
@@ -2401,6 +2402,11 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               --lpREGroupNextNext->nSelfMatch;
               --lpREGroupNextNext->nSelfExec;
             }
+            else
+            {
+              nNextMatched=AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr);
+            }
+
             //Check nStrLen for \d+Z? in 123Z
             if (nNextMatched && (lpREGroupNextNext->nStrLen || lpREGroupNextNext->nMinMatch))
             {
