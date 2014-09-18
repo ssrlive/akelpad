@@ -5352,7 +5352,7 @@ INT_PTR GetEscapeParam(const wchar_t *wpText, const wchar_t **wpParamStart, cons
   return *wpParamEnd - *wpParamStart;
 }
 
-int StrToArray(const wchar_t *wpStr, void *lpArray, INT_PTR nArraySize, int nArrayItemSize, const wchar_t **wpNextStr)
+INT_PTR StrToArray(const wchar_t *wpStr, void *lpArray, INT_PTR nArraySize, int nArrayItemSize, const wchar_t **wpNextStr)
 {
   const wchar_t *wpCount;
   BYTE *lpCount=lpArray;

@@ -474,7 +474,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput);
 INT_PTR UnescapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput);
 INT_PTR GetEscapeParam(const wchar_t *wpText, const wchar_t **wpParamStart, const wchar_t **wpParamEnd, const wchar_t **wpTextNext);
-int StrToArray(const wchar_t *wpStr, void *lpArray, INT_PTR nArraySize, int nArrayItemSize, const wchar_t **wpNextStr);
+INT_PTR StrToArray(const wchar_t *wpStr, void *lpArray, INT_PTR nArraySize, int nArrayItemSize, const wchar_t **wpNextStr);
 BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor);
 void GetPosFromChar(HWND hWnd, INT_PTR nCharIndex, POINT *pt);
 
