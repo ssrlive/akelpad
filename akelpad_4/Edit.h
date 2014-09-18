@@ -137,13 +137,6 @@
 #define EXTPARAM_CHAR     1
 #define EXTPARAM_INT      2
 
-//Font styles
-#define FS_NONE            0
-#define FS_FONTNORMAL      1
-#define FS_FONTBOLD        2
-#define FS_FONTITALIC      3
-#define FS_FONTBOLDITALIC  4
-
 //File dialog notifications
 #define AKDLG_SETSTREAM                (WM_USER + 100)
 

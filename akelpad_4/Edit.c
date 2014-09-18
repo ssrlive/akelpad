@@ -221,7 +221,7 @@ extern DWORD dwGotoType;
 
 //Options dialog
 extern HHOOK hHookPropertySheet;
-extern HWND hPropertyTab;
+extern HWND hWndPropTab;
 extern int nPropertyStartPage;
 extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
@@ -14506,7 +14506,7 @@ int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
   }
   else if (uMsg == PSCB_INITIALIZED)
   {
-    hPropertyTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0);
+    hWndPropTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0);
   }
   return TRUE;
 }
@@ -14672,7 +14672,7 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
-      nPropertyStartPage=(int)SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+      nPropertyStartPage=(int)SendMessage(hWndPropTab, TCM_GETCURSEL, 0, 0);
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
@@ -14963,7 +14963,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   {
     if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
-      nPropertyStartPage=(int)SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+      nPropertyStartPage=(int)SendMessage(hWndPropTab, TCM_GETCURSEL, 0, 0);
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
@@ -15243,7 +15243,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
-      nPropertyStartPage=(int)SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+      nPropertyStartPage=(int)SendMessage(hWndPropTab, TCM_GETCURSEL, 0, 0);
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
@@ -15471,7 +15471,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
-      nPropertyStartPage=(int)SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+      nPropertyStartPage=(int)SendMessage(hWndPropTab, TCM_GETCURSEL, 0, 0);
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
@@ -15604,7 +15604,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   {
     if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
-      nPropertyStartPage=(int)SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+      nPropertyStartPage=(int)SendMessage(hWndPropTab, TCM_GETCURSEL, 0, 0);
     }
     else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
@@ -19045,10 +19045,10 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
             ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
           }
         }
-        if (dwFontStyle != FS_NONE)
+        if (dwFontStyle != AEHLS_NONE)
         {
-          lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
-          lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+          lpFrameCurrent->lf.lfWeight=(dwFontStyle == AEHLS_FONTBOLD || dwFontStyle == AEHLS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+          lpFrameCurrent->lf.lfItalic=(dwFontStyle == AEHLS_FONTITALIC || dwFontStyle == AEHLS_FONTBOLDITALIC)?TRUE:FALSE;
         }
         if (*wpFaceName != L'\0')
         {
