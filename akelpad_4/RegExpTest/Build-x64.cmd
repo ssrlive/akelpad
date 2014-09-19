@@ -23,6 +23,7 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
 )
 if exist RegExpTest.exe del RegExpTest.exe
 cl /O1 %CLFLAGS% RegExpTest.c /link kernel32.lib user32.lib /SUBSYSTEM:WINDOWS /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:_WinMain
+if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
 if exist RegExpTest.obj del RegExpTest.obj
