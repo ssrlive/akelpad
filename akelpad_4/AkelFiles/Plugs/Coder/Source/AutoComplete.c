@@ -991,7 +991,8 @@ LRESULT CALLBACK AutoCompleteWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
          lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor != (DWORD)-1 ||
          lpSyntaxFileAutoComplete->dwCompleteListSelTextColor != (DWORD)-1 ||
          lpSyntaxFileAutoComplete->dwCompleteListSelBkColor != (DWORD)-1)) ||
-         lpSyntaxFileAutoComplete->dwCompleteListIcons))
+         lpSyntaxFileAutoComplete->dwCompleteListIcons ||
+         bCompleteListItemHlBaseColors))
     {
       //ListBox background
       if (bCompleteListSystemColors || lpSyntaxFileAutoComplete->dwCompleteListBasicBkColor == (DWORD)-1)
