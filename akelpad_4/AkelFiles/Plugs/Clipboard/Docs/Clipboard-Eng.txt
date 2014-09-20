@@ -1,5 +1,5 @@
 *****************************************************************
-***               Clipboard AkelPad plugin v3.1               ***
+***               Clipboard AkelPad plugin v3.2               ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)

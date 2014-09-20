@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 0, 0, 8)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 0)
 
 
 //// Defines
@@ -415,6 +415,8 @@
 #define FI_COLORS               137
 #define FI_BKIMAGEFILE          140
 #define FI_BKIMAGEALPHA         141
+#define FI_STRUCTSIZE           150
+#define FI_FRAMEID              151
 
 //AKD_SETFRAMEINFO type.
 #define FIS_TABSTOPSIZE          1   //(int)FRAMEINFO.dwData - tabulation size in characters.
@@ -900,6 +902,10 @@ typedef struct _FRAMEDATA {
   struct _FRAMEDATA *next;
   struct _FRAMEDATA *prev;
 
+  //Frame ident
+  DWORD cb;                                           //Size of the structure.
+  INT_PTR nFrameID;                                   //Unique frame identifier inside current process.
+
   //Edit state external
   HWND hWndEditParent;                                //Edit parent window.
   EDITINFO ei;                                        //Edit info.
@@ -978,6 +984,12 @@ typedef struct _FRAMEDATA {
   BOOL bNumLock;
   BOOL bReachedEOF;
   INT_PTR nReplaceCount;
+
+  //Reserved
+  INT_PTR nReserved1;                                 //Reserved for later use.
+  INT_PTR nReserved2;                                 //Reserved for later use.
+  INT_PTR nReserved3;                                 //Reserved for later use.
+  INT_PTR nReserved4;                                 //Reserved for later use.
 } FRAMEDATA;
 
 typedef struct {

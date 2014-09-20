@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Exit AkelPad plugin v4.1                  ***
+***                 Exit AkelPad plugin v4.2                  ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)

@@ -720,6 +720,8 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), offsetof(FRAMEDATA, lpEditProc) - sizeof(HSTACK));
 
   //Initialize own settings
+  lpFrameTarget->cb=sizeof(FRAMEDATA);
+  lpFrameTarget->nFrameID=++nUniqueID;
   lpFrameTarget->hWndEditParent=NULL;
   lpFrameTarget->ei.hWndEdit=NULL;
   lpFrameTarget->ei.hDocEdit=NULL;

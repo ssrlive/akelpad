@@ -1,5 +1,5 @@
 *****************************************************************
-***                Format AkelPad plugin v2.9                 ***
+***                Format AkelPad plugin v3.0                 ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)

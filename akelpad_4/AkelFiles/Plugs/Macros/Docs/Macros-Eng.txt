@@ -1,5 +1,5 @@
 *****************************************************************
-***                Macros AkelPad plugin v5.7                 ***
+***                Macros AkelPad plugin v5.8                 ***
 *****************************************************************
 
 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
