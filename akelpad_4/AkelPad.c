@@ -2989,6 +2989,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (nType == FI_BKIMAGEALPHA)
           *lpdwData=(UINT_PTR)lpFrame->nBkImageAlpha;
+        else if (nType == FI_STRUCTSIZE)
+          *lpdwData=(UINT_PTR)lpFrame->cb;
+        else if (nType == FI_FRAMEID)
+          *lpdwData=(UINT_PTR)lpFrame->nFrameID;
 
         if (wParam > 0xFFFF)
           return dwSize;
