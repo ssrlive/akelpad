@@ -110,6 +110,13 @@
   #define AELB_N        6  //"\n" new line.
   #define AELB_RN       7  //"\r\n" new line.
   #define AELB_RRN      8  //"\r\r\n" new line.
+
+  //For alignment
+  typedef struct {
+    int nLine;
+    void *lpLine;
+    int nCharInLine;
+  } AECHARINDEX;
 #endif
 
 #ifndef AEC_IsSurrogate
@@ -144,17 +151,8 @@ typedef struct _REGROUP {
   const wchar_t *wpPatRight;
   const wchar_t *wpStrStart;     //PatExec: Begin of matched string.
   const wchar_t *wpStrEnd;       //PatExec: End of matched string.
-  #ifdef __AKELEDIT_H__
-    AECHARINDEX ciStrStart;      //AE_PatExec: Begin of matched string.
-    AECHARINDEX ciStrEnd;        //AE_PatExec: End of matched string.
-  #else
-    int nAlignA1;
-    INT_PTR nAlignA2;
-    int nAlignA3;
-    int nAlignB1;
-    INT_PTR nAlignB2;
-    int nAlignB3;
-  #endif
+  AECHARINDEX ciStrStart;        //AE_PatExec: Begin of matched string.
+  AECHARINDEX ciStrEnd;          //AE_PatExec: End of matched string.
   INT_PTR nStrLen;               //Matched string length.
   int nMinMatch;                 //Minimum group match.
   int nMaxMatch;                 //Maximum group match, -1 if unlimited.
@@ -196,17 +194,8 @@ typedef struct {
   const wchar_t *wpMaxStr;      //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
   const wchar_t *wpText;        //PatExec: Text begin. Valid if wpStr is not NULL.
   const wchar_t *wpMaxText;     //PatExec: Text end. Valid if wpStr is not NULL.
-  #ifdef __AKELEDIT_H__
-    AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
-    AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
-  #else
-    int nAlignA1;
-    INT_PTR nAlignA2;
-    int nAlignA3;
-    int nAlignB1;
-    INT_PTR nAlignB2;
-    int nAlignB3;
-  #endif
+  AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
+  AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
   DWORD dwOptions;              //See RESE_* defines.
   const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
@@ -224,17 +213,8 @@ typedef struct {
   const wchar_t *wpMaxStr;   //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
   const wchar_t *wpText;     //PatExec: Text begin. Valid if wpStr is not NULL.
   const wchar_t *wpMaxText;  //PatExec: Text end. Valid if wpStr is not NULL.
-  #ifdef __AKELEDIT_H__
-    AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
-    AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
-  #else
-    int nAlignA1;
-    INT_PTR nAlignA2;
-    int nAlignA3;
-    int nAlignB1;
-    INT_PTR nAlignB2;
-    int nAlignB3;
-  #endif
+  AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
+  AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
   const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
   DWORD dwOptions;           //See RESE_* defines.
@@ -245,17 +225,8 @@ typedef struct {
   int nReplaceCount;         //Receives replace count number.
   const wchar_t *wpLeftStr;  //PatExec: First replace occurrence in string.
   const wchar_t *wpRightStr; //PatExec: Unmatched right part of string.
-  #ifdef __AKELEDIT_H__
-    AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
-    AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
-  #else
-    int nAlignC1;
-    INT_PTR nAlignC2;
-    int nAlignC3;
-    int nAlignD1;
-    INT_PTR nAlignD2;
-    int nAlignD3;
-  #endif
+  AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
+  AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
   wchar_t *wszResult;        //Buffer that received replace result. If NULL, PatReplace returns required buffer size in characters.
 } PATREPLACE;
 
@@ -264,13 +235,7 @@ typedef struct {
   const wchar_t *wpMaxRep;
   const wchar_t *wpNewLine;
   const wchar_t *wpRightStr;
-  #ifdef __AKELEDIT_H__
-    AECHARINDEX ciRightStr;
-  #else
-    int nAlign1;
-    INT_PTR nAlign2;
-    int nAlign3;
-  #endif
+  AECHARINDEX ciRightStr;
   wchar_t *wszBuf;
   wchar_t *wpBufCount;
 } PATEXECPARAM;
