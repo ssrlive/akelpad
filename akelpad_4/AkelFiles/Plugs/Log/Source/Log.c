@@ -4,8 +4,8 @@
 #include "StrFunc.h"
 #include "x64Func.h"
 #include "WideFunc.h"
-#include "RegExpFunc.h"
 #include "AkelEdit.h"
+#include "RegExpFunc.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
 
