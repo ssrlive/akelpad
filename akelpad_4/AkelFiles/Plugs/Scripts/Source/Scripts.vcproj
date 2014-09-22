@@ -663,11 +663,29 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="ML64.exe /c ISystemFunction64.asm"
+						Outputs="ISystemFunction64.obj"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="MASM"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="ML64.exe /c ISystemFunction64.asm"
+						Outputs="ISystemFunction64.obj"
 					/>
 				</FileConfiguration>
 			</File>
