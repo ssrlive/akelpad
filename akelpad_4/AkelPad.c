@@ -3556,9 +3556,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_NOSCRIPTS))?L"Scripts\\":L"", (char *)lParam);
+              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
             else
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%s", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_NOSCRIPTS))?L"Scripts\\":L"", (wchar_t *)lParam);
+              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%s", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
           }
           else xprintfW(rh->wszKey, L"%s\\Options", APP_REGHOMEW);
 
@@ -3596,9 +3596,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_NOSCRIPTS))?L"Scripts\\":L"", (char *)lParam);
+              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
             else
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_NOSCRIPTS))?L"Scripts\\":L"", (wchar_t *)lParam);
+              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
           }
           else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
 
