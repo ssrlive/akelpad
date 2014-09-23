@@ -167,19 +167,11 @@ HRESULT STDMETHODCALLTYPE WScript_ScriptName(IWScript *this, BSTR *wpScriptName)
 HRESULT STDMETHODCALLTYPE WScript_ScriptBaseName(IWScript *this, BSTR *wpScriptBaseName)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealWScript *)this)->lpScriptThread;
-  const wchar_t *wpExt;
   HRESULT hr=NOERROR;
 
-  if (wpExt=GetFileExt(lpScriptThread->wszScriptName, -1))
-  {
-    if (!(*wpScriptBaseName=SysAllocStringLen(lpScriptThread->wszScriptName, (UINT)(wpExt - lpScriptThread->wszScriptName) - 1)))
-      hr=E_OUTOFMEMORY;
-  }
-  else
-  {
-    if (!(*wpScriptBaseName=SysAllocString(lpScriptThread->wszScriptName)))
-      hr=E_OUTOFMEMORY;
-  }
+  if (!(*wpScriptBaseName=SysAllocString(lpScriptThread->wszScriptBaseName)))
+    hr=E_OUTOFMEMORY;
+
   return hr;
 }
 

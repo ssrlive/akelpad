@@ -2200,6 +2200,13 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
         nResult=lpScriptThread->hInitMutex?TRUE:FALSE;
       else if (nOperation == SH_GETSERVICEWINDOW)
         nResult=(INT_PTR)lpScriptThread->hWndScriptsThreadDummy;
+      else if (nOperation == SH_GETBASENAME)
+      {
+        vtResult->vt=VT_BSTR;
+        if (!(vtResult->bstrVal=SysAllocString(lpScriptThread->wszScriptBaseName)))
+          hr=E_OUTOFMEMORY;
+        return hr;
+      }
       else if (nOperation == SH_GETNAME)
       {
         vtResult->vt=VT_BSTR;

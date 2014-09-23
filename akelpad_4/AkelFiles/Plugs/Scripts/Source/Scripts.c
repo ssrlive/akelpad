@@ -945,6 +945,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
 
       wpFileName=GetFileNameWide(es->wpScript, -1);
       xstrcpynW(lpScriptThread->wszScriptName, wpFileName, MAX_PATH);
+      GetBaseName(lpScriptThread->wszScriptName, lpScriptThread->wszScriptBaseName, MAX_PATH);
       xprintfW(lpScriptThread->wszScriptFile, L"%s\\%s", wszScriptsDir, es->wpScript);
     }
     if (es->wpArguments)
@@ -1531,6 +1532,31 @@ INT_PTR ReadFileContent(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM
     }
   }
   return nResult;
+}
+
+int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+{
+  int nFileLen=(int)xstrlenW(wpFile);
+  int nEndOffset=-1;
+  int i;
+
+  for (i=nFileLen - 1; i >= 0; --i)
+  {
+    if (wpFile[i] == L'\\')
+      break;
+
+    if (nEndOffset == -1)
+    {
+      if (wpFile[i] == L'.')
+        nEndOffset=i;
+    }
+  }
+  ++i;
+  if (nEndOffset == -1) nEndOffset=nFileLen;
+  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
+  xstrcpynW(wszBaseName, wpFile + i, nBaseNameMaxLen);
+
+  return nBaseNameMaxLen;
 }
 
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)

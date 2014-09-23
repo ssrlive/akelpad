@@ -122,6 +122,7 @@ typedef struct _SCRIPTTHREAD {
   IRealActiveScriptSiteWindow MyActiveScriptSiteWindow;
   IRealActiveScriptSiteDebug MyActiveScriptSiteDebug;
   wchar_t wszScriptName[MAX_PATH];
+  wchar_t wszScriptBaseName[MAX_PATH];
   wchar_t wszScriptFile[MAX_PATH];
   wchar_t wszScriptInclude[MAX_PATH];
   HARGSTACK hArgStack;
@@ -231,6 +232,7 @@ UINT_PTR GetVariantInt(VARIANT *vt);
 UINT_PTR GetVariantValue(VARIANT *pvtParameter, BOOL bAnsi);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 INT_PTR ReadFileContent(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
+int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
 const char* GetFileNameAnsi(const char *pFile, int nFileLen);
 const wchar_t* GetFileNameWide(const wchar_t *wpFile, int nFileLen);

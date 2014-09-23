@@ -1764,12 +1764,12 @@ ______________________________
 
 Аргументы
   pScriptBaseName
-    Имя скрипта без расширения.
+    Имя скрипта без расширения. Если "", использовать текущее имя скрипта.
   nFlags
-    0x1  //POB_READ      Начать операции чтения.
-    0x2  //POB_SAVE      Начать операции записи.
-    0x4  //POB_CLEAR     Начать операции записи с очисткой (POB_SAVE|POB_CLEAR).
-    0x20 //POB_NOSCRIPTS Настройки плагина, pScriptBaseName - имя плагина без расширения.
+    0x1  //POB_READ   Начать операции чтения.
+    0x2  //POB_SAVE   Начать операции записи.
+    0x4  //POB_CLEAR  Начать операции записи с очисткой (POB_SAVE|POB_CLEAR).
+    0x20 //POB_PLUGS  Настройки плагина, pScriptBaseName - имя плагина без расширения.
 
 Возвращаемое значение
   Число. Дескриптор настроек.
@@ -1789,25 +1789,37 @@ _____________________________
   pOptionName
     Имя настройки.
   nType
-    1   //PO_DWORD   Прочитать четырехбайтовое число (DWORD).
-    2   //PO_BINARY  Прочитать бинарные данные.
-    3   //PO_STRING  Прочитать строку.
+    1   //PO_DWORD         Прочитать четырехбайтовое число (DWORD).
+    2   //PO_BINARY        Прочитать бинарные данные. Возвращается указатель на бинарные данные, который необходимо освободить с помощью AkelPad.MemFree.
+    3   //PO_STRING        Прочитать строку.
+    10  //PO_BINARYSTRING  Прочитать текст (обычно многострочный), который был сохранен как бинарные данные.
+    11  //PO_BINARYSIZE    Получить размер бинарных данных в байтах.
   vDefault
     Данные по умолчанию.
 
 Возвращаемое значение
   Строка, либо число.
 
-Пример:
+Пример (прочитать настройки скрипта):
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x1 /*POB_READ*/))
+  if (oSet.Begin("", 0x1 /*POB_READ*/))
   {
     pString=oSet.Read("String", 3 /*PO_STRING*/);
     bMultiline=oSet.Read("Multiline", 1 /*PO_DWORD*/);
-
     oSet.End();
   }
+
+Пример (прочитать настройки плагина):
+  var oSet=AkelPad.ScriptSettings();
+  var pText="";
+
+  if (oSet.Begin("Toolbar", 0x1|0x20 /*POB_READ|POB_PLUGS*/))
+  {
+    pText=oSet.Read("ToolBarText", 10 /*PO_BINARYSTRING*/);
+    oSet.End();
+  }
+  WScript.Echo(pText.substr(0,500));
 
 
 AkelPad.ScriptSettings().Write
@@ -1827,7 +1839,7 @@ ______________________________
   vData
     Данные для записи.
   nDataSize
-    Размер данных для записи в байтах. Может не указываться при PO_DWORD или PO_STRING (по умолчанию -1).
+    Размер данных для записи в байтах (по умолчанию -1).
 
 Возвращаемое значение
   Число. Размер записанных данных в байтах.
@@ -1835,11 +1847,10 @@ ______________________________
 Пример:
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+  if (oSet.Begin("", 0x2 /*POB_SAVE*/))
   {
     oSet.Write("String", 3 /*PO_STRING*/, "Str1");
     oSet.Write("Sensitive", 1 /*PO_DWORD*/, true);
-
     oSet.End();
   }
 
@@ -1862,11 +1873,10 @@ _______________________________
 Пример:
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+  if (oSet.Begin("", 0x2 /*POB_SAVE*/))
   {
     oSet.Delete("String");
     oSet.Delete("Sensitive");
-
     oSet.End();
   }
 
@@ -2446,6 +2456,9 @@ ____________________
     17  //SH_GETSERVICEWINDOW  Получить дескриптор служебного окна потока скрипта. Автоматически создается при использовании методов WindowSubClass, ThreadHook и RegisterCallback.
         //  vData: дескриптор скрипта. Если ноль, то используется дескриптор текущего скрипта.
         //  Возвращаемое значение: дескриптор служебного окна потока скрипта.
+    20  //SH_GETBASENAME  Получить имя скрипта без расширения.
+        //  vData: дескриптор скрипта. Если ноль, то используется дескриптор текущего скрипта.
+        //  Возвращаемое значение: имя скрипта без расширения.
     21  //SH_GETNAME  Получить имя скрипта.
         //  vData: дескриптор скрипта. Если ноль, то используется дескриптор текущего скрипта.
         //  Возвращаемое значение: имя скрипта.
