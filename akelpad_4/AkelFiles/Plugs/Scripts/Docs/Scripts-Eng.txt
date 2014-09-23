@@ -1762,12 +1762,12 @@ Begin settings operations.
 
 Arguments
   pScriptBaseName
-    Script name without extension.
+    Script name without extension. If "", use current script name.
   nFlags
-    0x1  //POB_READ      Begins read options.
-    0x2  //POB_SAVE      Begins save options.
-    0x4  //POB_CLEAR     Begins new save options (POB_SAVE|POB_CLEAR).
-    0x20 //POB_NOSCRIPTS Plugin settings, pScriptBaseName - plugin name without extension.
+    0x1  //POB_READ   Begins read options.
+    0x2  //POB_SAVE   Begins save options.
+    0x4  //POB_CLEAR  Begins new save options (POB_SAVE|POB_CLEAR).
+    0x20 //POB_PLUGS  Plugin settings, pScriptBaseName - plugin name without extension.
 
 Return Value
   Number. Settings handle.
@@ -1787,25 +1787,37 @@ Arguments
   pOptionName
     Option name.
   nType
-    1   //PO_DWORD   Read 32-bit number (DWORD).
-    2   //PO_BINARY  Read binary data in any form.
-    3   //PO_STRING  Read string.
+    1   //PO_DWORD         Read 32-bit number (DWORD).
+    2   //PO_BINARY        Read binary data. Returned pointer to the binary data, which must be released with AkelPad.MemFree.
+    3   //PO_STRING        Read string.
+    10  //PO_BINARYSTRING  Read string (usually multiline), which was saved as binary data.
+    11  //PO_BINARYSIZE    Retrieve binary data size in bytes.
   vDefault
     Default data.
 
 Return Value
   String or number.
 
-Example:
+Example (read script options):
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x1 /*POB_READ*/))
+  if (oSet.Begin("", 0x1 /*POB_READ*/))
   {
     pString=oSet.Read("String", 3 /*PO_STRING*/);
     bMultiline=oSet.Read("Multiline", 1 /*PO_DWORD*/);
-
     oSet.End();
   }
+
+Example (read plugin options):
+  var oSet=AkelPad.ScriptSettings();
+  var pText="";
+
+  if (oSet.Begin("Toolbar", 0x1|0x20 /*POB_READ|POB_PLUGS*/))
+  {
+    pText=oSet.Read("ToolBarText", 10 /*PO_BINARYSTRING*/);
+    oSet.End();
+  }
+  WScript.Echo(pText.substr(0,500));
 
 
 AkelPad.ScriptSettings().Write
@@ -1825,7 +1837,7 @@ Arguments
   vData
     Data to write.
   nDataSize
-    Data size in bytes. Can be omitted if PO_DWORD or PO_STRING used (default is -1).
+    Data size in bytes (default is -1).
 
 Return Value
   Number. Written data size in bytes.
@@ -1833,11 +1845,10 @@ Return Value
 Example:
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+  if (oSet.Begin("", 0x2 /*POB_SAVE*/))
   {
     oSet.Write("String", 3 /*PO_STRING*/, "Str1");
     oSet.Write("Sensitive", 1 /*PO_DWORD*/, true);
-
     oSet.End();
   }
 
@@ -1860,11 +1871,10 @@ Return Value
 Example:
   var oSet=AkelPad.ScriptSettings();
 
-  if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+  if (oSet.Begin("", 0x2 /*POB_SAVE*/))
   {
     oSet.Delete("String");
     oSet.Delete("Sensitive");
-
     oSet.End();
   }
 
@@ -2444,6 +2454,9 @@ Arguments
     17  //SH_GETSERVICEWINDOW  Retrieve script service window handle. Automatically created when using WindowSubClass, ThreadHook and RegisterCallback methods.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script service window handle.
+    20  //SH_GETBASENAME  Retrieve script name without extension.
+        //  vData: script handle. If zero then current script handle is used.
+        //  Return value: script name without extension
     21  //SH_GETNAME  Retrieve script name.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script name.

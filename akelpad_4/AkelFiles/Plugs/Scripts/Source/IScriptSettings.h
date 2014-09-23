@@ -1,6 +1,10 @@
 #ifndef _ISCRIPTSETTINGS_H_
 #define _ISCRIPTSETTINGS_H_
 
+//ScriptSettings().Read
+#define PO_BINARYSTRING 10
+#define PO_BINARYSIZE   11
+
 // IScriptSettings's VTable
 #undef INTERFACE
 #define INTERFACE IScriptSettings
