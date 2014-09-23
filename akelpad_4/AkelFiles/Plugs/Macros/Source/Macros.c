@@ -2119,18 +2119,18 @@ void PosWindowToCorner(HWND hWndOwner, HWND hWndChild)
 
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
 {
-  int nFileLen=lstrlenW(wpFile);
+  int nFileLen=(int)xstrlenW(wpFile);
   int nEndOffset=-1;
   int i;
 
   for (i=nFileLen - 1; i >= 0; --i)
   {
-    if (wpFile[i] == '\\')
+    if (wpFile[i] == L'\\')
       break;
 
     if (nEndOffset == -1)
     {
-      if (wpFile[i] == '.')
+      if (wpFile[i] == L'.')
         nEndOffset=i;
     }
   }
