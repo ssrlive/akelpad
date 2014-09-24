@@ -4,12 +4,14 @@ set PLUGINNAME=Sounds
 ::### x86 ###::
 call Build.cmd /S /B
 if not %ERRORLEVEL% == 0 goto ERROR
+mkdir "..\Plugs"
 move "%PLUGINNAME%.dll" "..\Plugs"
 if not %ERRORLEVEL% == 0 goto ERROR
 
 ::### x64 ###::
 call Build-x64.cmd /S /B
 if not %ERRORLEVEL% == 0 goto ERROR
+mkdir "..\Plugs64"
 move "%PLUGINNAME%.dll" "..\Plugs64"
 if not %ERRORLEVEL% == 0 goto ERROR
 
