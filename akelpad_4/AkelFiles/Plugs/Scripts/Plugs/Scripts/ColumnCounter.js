@@ -1,3 +1,9 @@
+// Name: ColumnCounter.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Column selection counter.
 //
 // How to use:

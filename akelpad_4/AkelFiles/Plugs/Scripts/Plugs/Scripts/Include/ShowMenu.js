@@ -1,3 +1,9 @@
+// Name: ShowMenu.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Show custom popup menu. Script implemented as the library for using in other scripts.
 //// Отображение пользовательского меню. Скрипт реализован как библиотека для использования другими скриптами.
 //

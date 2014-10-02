@@ -1,3 +1,9 @@
+// Name: SearchReplace.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Search and replace using regular expressions.
 //
 // Example for "Replace with function" option:
@@ -103,6 +109,7 @@ var DRS_Y    =0x8;  //Y value
 
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
+var hWndEdit=AkelPad.GetEditWnd();
 var oSys=AkelPad.SystemFunction();
 var oSet=AkelPad.ScriptSettings();
 var pScriptName=WScript.ScriptName;
@@ -168,7 +175,7 @@ var bMessageBox=false;
 var bCloseDialog=false;
 var i;
 
-if (hMainWnd)
+if (hWndEdit)
 {
   if (AkelPad.WindowRegisterClass(pClassName))
   {
