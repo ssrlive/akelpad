@@ -1,3 +1,9 @@
+// Name: Keyboard.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Convert keyboard layout or transliterate text.
 //
 // Arguments:
@@ -37,7 +43,7 @@ var nSelEnd;
 var nFirstLine;
 var pSelText;
 
-if (hMainWnd)
+if (hWndEdit)
 {
   //Show menu
   if (pType == "")

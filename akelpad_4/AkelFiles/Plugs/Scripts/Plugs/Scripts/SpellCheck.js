@@ -1,13 +1,20 @@
+// Name: SpellCheck.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Spell check using Microsoft Word.
 //// Проверка орфографии, используя Microsoft Word.
 
 //Variables
 var Word=new ActiveXObject("Word.application");
 var hMainWnd=AkelPad.GetMainWnd();
+var hWndEdit=AkelPad.GetEditWnd();
 var oSys=AkelPad.SystemFunction();
 var pSelText=AkelPad.GetSelText();
 
-if (hMainWnd)
+if (hWndEdit)
 {
   if (Word)
   {

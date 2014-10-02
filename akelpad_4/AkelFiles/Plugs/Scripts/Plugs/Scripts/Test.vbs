@@ -1,4 +1,10 @@
-'''' VBScript test file
+' Name: Test.vbs
+' Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+' Version: 1.0
+' Authors: Shengalts Aleksander aka Instructor
+'
+'
+'' VBScript test file
 
 'Defines
 Const WM_COMMAND=273

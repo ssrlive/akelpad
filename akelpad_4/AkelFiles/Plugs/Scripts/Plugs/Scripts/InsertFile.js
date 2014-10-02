@@ -1,3 +1,9 @@
+// Name: InsertFile.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Insert contents of a file.
 //// Вставить содержимое файла.
 
@@ -7,11 +13,12 @@ var nFilterIndex=2;
 
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
+var hWndEdit=AkelPad.GetEditWnd();
 var pInitialFile=AkelPad.GetEditFile(0);
 var pFile;
 var pText;
 
-if (hMainWnd)
+if (hWndEdit)
 {
   if (pFile=FileDialog(true, hMainWnd, pInitialFile, pFilter, nFilterIndex))
   {

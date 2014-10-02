@@ -1,3 +1,9 @@
+// Name: LinesFilter.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Filter lines using regular expressions.
 //// ќтфильтровать строки, использу€ регул€рные выражени€.
 
@@ -24,6 +30,7 @@ var IDC_STATIC         =-1;
 
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
+var hWndEdit=AkelPad.GetEditWnd();
 var oSys=AkelPad.SystemFunction();
 var oSet=AkelPad.ScriptSettings();
 var pScriptName=WScript.ScriptName;
@@ -49,7 +56,7 @@ var lpFindStrings=[];
 var pFindIt="";
 var nFindItLength;
 
-if (hMainWnd)
+if (hWndEdit)
 {
   if (ScriptEngineMajorVersion() <= 5 && ScriptEngineMinorVersion() < 5)
   {

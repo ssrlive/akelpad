@@ -1,3 +1,9 @@
+// Name: InsertDate.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Insert time and date in specified format.
 //
 // Time:
@@ -37,11 +43,11 @@ if (WScript.Arguments.length)
   pFormat=WScript.Arguments(0);
 
 //Variables
-var hMainWnd=AkelPad.GetMainWnd();
+var hWndEdit=AkelPad.GetEditWnd();
 var oSys=AkelPad.SystemFunction();
 var pTime;
 
-if (hMainWnd)
+if (hWndEdit)
 {
   pTime=TimeFormat(pFormat);
   AkelPad.ReplaceSel(pTime);

@@ -1,3 +1,9 @@
+// Name: EvalCmd.js
+// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// Version: 1.0
+// Authors: Shengalts Aleksander aka Instructor
+//
+//
 //// Evaluates an expression passed through command line.
 //
 // Variables:
