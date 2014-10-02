@@ -567,6 +567,12 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"[x][x]")) goto Error;
   if (GetTickCount() - nStartTime > 100) goto BadTime;
 
+  nStartTime=GetTickCount();
+  nLine=__LINE__;
+  TextReplaceRE(L"Notepad is a wonderful editor", L"(\\s*+\\S+)+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+  if (GetTickCount() - nStartTime > 100) goto BadTime;
+
   //Success
   MessageBoxA(NULL, "All tests passed", "RegExpTest", MB_OK|MB_ICONINFORMATION);
   goto Quit;
