@@ -2065,7 +2065,7 @@ REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
     if (lpREGroupNext->parent &&
         //str - "dac", find "(a|d)+"
         !(lpREGroupNext->dwFlags & REGF_ORPARENT) &&
-        (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMaxMatch)
+        (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMinMatch)
     {
       //str - "A", find "(A*+B?)*+"
       if (lpREGroupNext->nSelfExec == 0)
