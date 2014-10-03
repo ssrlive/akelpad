@@ -286,9 +286,9 @@ WNDPROC lpfnEditProc;
 WNDPROCRET lpfnEditProcRet;
 
 //Plugins
-HSTACK hPluginsStack={0};
-HSTACK hPluginListStack={0};
-HSTACK hHandlesStack={0};
+STACKPLUGINFUNCTION hPluginsStack={0};
+STACKPLUGINLIST hPluginListStack={0};
+STACKPLUGINHANDLE hHandlesStack={0};
 RECT rcPluginsMinMaxDialog={274, 192, 0, 0};
 BOOL bSavePluginsStackOnExit=FALSE;
 WNDPROC lpOldHotkeyInputProc=NULL;
@@ -351,12 +351,12 @@ HCURSOR hCursorClone=NULL;
 int nLastSplit=0;
 
 //Docks
-HDOCK hDocksStack={0};
+STACKDOCK hDocksStack={0};
 NSIZE nsSize;
 WNDPROC lpOldCloseButtonProc=NULL;
 
 //Owner-drawn buttons
-HSTACK hButtonDrawStack={0};
+STACKBUTTONDRAW hButtonDrawStack={0};
 
 //Codepages
 int *lpCodepageList=NULL;
@@ -368,7 +368,7 @@ int nAnsiCodePage;
 int nOemCodePage;
 
 //Recent files
-RECENTFILESTACK hRecentFilesStack={0};
+STACKRECENTFILE hRecentFilesStack={0};
 
 //Open/Save document
 OPENFILENAME_2000W *ofnStruct;
@@ -428,9 +428,9 @@ BOOL bOptionsSave;
 BOOL bOptionsRestart;
 
 //Font/Color
-HSTACK hFontsStack={0};
-HSTACK hThemesStack={0};
-HSTACK hBkImagesStack={0};
+STACKFONT hFontsStack={0};
+STACKCOLORTHEME hThemesStack={0};
+STACKBKIMAGE hBkImagesStack={0};
 COLORREF crCustColors[16]={0};
 RECT rcColorsMinMaxDialog={362, 333, 0, 0};
 AECOLORS aecDefault;
@@ -439,8 +439,8 @@ AECOLORS aecDefault;
 HWND hWndPreviewEdit=NULL;
 HWND hWndPreviewDlg=NULL;
 HWND hWndZoomEdit;
-HSTACK hPreviewAllPagesStack={0};
-HSTACK hPreviewSelPagesStack={0};
+STACKPRINTPAGE hPreviewAllPagesStack={0};
+STACKPRINTPAGE hPreviewSelPagesStack={0};
 RECT rcPreviewDialog={0};
 RECT rcPreviewWindow={0};
 RECT rcPreviewPaper={0};
@@ -484,11 +484,10 @@ int nExeDirLen;
 wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
-HSTACK hFramesStack={0};
+STACKFRAMEDATA hFramesStack={0};
 FRAMEDATA fdInit;
 FRAMEDATA fdDefault;
 FRAMEDATA *lpFrameCurrent=&fdDefault;
-FRAMEDATA *lpFramePrevious=NULL;
 int nMDI=WMD_SDI;
 HWND hMdiClient=NULL;
 BOOL bMdiMaximize=-1;
@@ -3091,7 +3090,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == RF_GET)
       {
-        RECENTFILESTACK **rfs=(RECENTFILESTACK **)lParam;
+        STACKRECENTFILE **rfs=(STACKRECENTFILE **)lParam;
 
         if (rfs) *rfs=&hRecentFilesStack;
         return moCur.nRecentFiles;
@@ -3106,14 +3105,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (wParam == RF_READ)
       {
-        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
         if (!rfs) rfs=&hRecentFilesStack;
         return RecentFilesRead(rfs);
       }
       else if (wParam == RF_SAVE)
       {
-        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
         if (!rfs) rfs=&hRecentFilesStack;
         RecentFilesSave(rfs);
@@ -3121,14 +3120,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (wParam == RF_CLEAR)
       {
-        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
         if (!rfs) rfs=&hRecentFilesStack;
         RecentFilesZero(rfs);
       }
       else if (wParam == RF_DELETEOLD)
       {
-        RECENTFILESTACK *rfs=(RECENTFILESTACK *)lParam;
+        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
         if (!rfs) rfs=&hRecentFilesStack;
         return RecentFilesDeleteOld(rfs);

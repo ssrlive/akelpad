@@ -136,22 +136,22 @@
 
 //AKD_RECENTFILES flags
 #define RF_GET             1  //Retrieve current recent files info.
-                              //(RECENTFILESTACK **)lParam is a pointer to a variable that receive pointer to a RECENTFILESTACK structure, can be NULL.
+                              //(STACKRECENTFILE **)lParam is a pointer to a variable that receive pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is maximum number of recent files.
 #define RF_SET             2  //Set recent files number.
                               //(int)lParam is maximum number of recent files.
                               //Return value is zero.
 #define RF_READ            3  //Read recent files from registry.
-                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
+                              //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is number of records read.
 #define RF_SAVE            4  //Save recent files to registry.
-                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
+                              //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is zero.
 #define RF_CLEAR           5  //Clear recent files stack. Use RF_SAVE to save result.
-                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
+                              //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is zero.
 #define RF_DELETEOLD       6  //Delete non-existent recent files records. Use RF_SAVE to save result.
-                              //(RECENTFILESTACK *)lParam is a pointer to a RECENTFILESTACK structure, can be NULL.
+                              //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is number of records deleted.
 #define RF_FINDINDEX       7  //Find item index in recent files stack by file name.
                               //(wchar_t *)lParam is a pointer to a file name.
@@ -1024,55 +1024,60 @@ typedef struct _PLUGINFUNCTION {
 } PLUGINFUNCTION;
 
 typedef struct {
-  DWORD cb;                         //Size of the structure.
-  DWORD dwSupport;                  //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
-  const BYTE *pFunction;            //Called function name, format "Plugin::Function".
-                                    //  const char *pFunction     if bOldWindows == TRUE
-                                    //  const wchar_t *pFunction  if bOldWindows == FALSE
-  const char *szFunction;           //Called function name (Ansi).
-  const wchar_t *wszFunction;       //Called function name (Unicode).
-  HINSTANCE hInstanceDLL;           //DLL instance.
-  PLUGINFUNCTION *lpPluginFunction; //Pointer to a PLUGINFUNCTION structure.
-  int nUnload;                      //See UD_* defines.
-  BOOL bInMemory;                   //Plugin already loaded.
-  BOOL bOnStart;                    //Indicates when function has been called:
-                                    //  TRUE  if function called on start-up.
-                                    //  FALSE if function called manually.
-  LPARAM lParam;                    //Input data.
-  const BYTE *pAkelDir;             //AkelPad directory.
-                                    //  const char *pAkelDir      if bOldWindows == TRUE
-                                    //  const wchar_t *pAkelDir   if bOldWindows == FALSE
-  const char *szAkelDir;            //AkelPad directory (Ansi).
-  const wchar_t *wszAkelDir;        //AkelPad directory (Unicode).
-  HINSTANCE hInstanceEXE;           //EXE instance.
-  HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
-  int nSaveSettings;                //See SS_* defines.
-  HWND hMainWnd;                    //Main window.
-  FRAMEDATA *lpFrameData;           //Pointer to a current FRAMEDATA structure.
-  HWND hWndEdit;                    //Edit window.
-  AEHDOC hDocEdit;                  //Edit document.
-  HWND hStatus;                     //StatusBar window.
-  HWND hMdiClient;                  //MDI client window (if nMDI == WMD_MDI).
-  HWND hTab;                        //Tab window        (if nMDI == WMD_MDI || nMDI == WMD_PMDI).
-  HMENU hMainMenu;                  //Main menu.
-  HMENU hMenuRecentFiles;           //Recent files menu.
-  HMENU hMenuLanguage;              //Language menu.
-  HMENU hPopupMenu;                 //Right click menu.
-  HICON hMainIcon;                  //Main window icon handle.
-  HACCEL hGlobalAccel;              //Global accelerator table (highest priority).
-  HACCEL hMainAccel;                //Main accelerator table (lowest priority).
-  BOOL bOldWindows;                 //Non-Unicode Windows.
-  BOOL bOldRichEdit;                //Riched20.dll lower then 5.30 (v3.0).
-  BOOL bOldComctl32;                //Comctl32.dll lower then 4.71.
-  BOOL bAkelEdit;                   //AkelEdit control is used.
-  int nMDI;                         //Window mode, see WMD_* defines.
-  const BYTE *pLangModule;          //Language module.
-                                    //  const char *pLangModule      if bOldWindows == TRUE
-                                    //  const wchar_t *pLangModule   if bOldWindows == FALSE
-  const char *szLangModule;         //Language module (Ansi).
-  const wchar_t *wszLangModule;     //Language module (Unicode).
-  LANGID wLangSystem;               //System language ID.
-  LANGID wLangModule;               //Language module language ID.
+  PLUGINFUNCTION *first;
+  PLUGINFUNCTION *last;
+} STACKPLUGINFUNCTION;
+
+typedef struct {
+  DWORD cb;                           //Size of the structure.
+  DWORD dwSupport;                    //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
+  const BYTE *pFunction;              //Called function name, format "Plugin::Function".
+                                      //  const char *pFunction     if bOldWindows == TRUE
+                                      //  const wchar_t *pFunction  if bOldWindows == FALSE
+  const char *szFunction;             //Called function name (Ansi).
+  const wchar_t *wszFunction;         //Called function name (Unicode).
+  HINSTANCE hInstanceDLL;             //DLL instance.
+  PLUGINFUNCTION *lpPluginFunction;   //Pointer to a PLUGINFUNCTION structure.
+  int nUnload;                        //See UD_* defines.
+  BOOL bInMemory;                     //Plugin already loaded.
+  BOOL bOnStart;                      //Indicates when function has been called:
+                                      //  TRUE  if function called on start-up.
+                                      //  FALSE if function called manually.
+  LPARAM lParam;                      //Input data.
+  const BYTE *pAkelDir;               //AkelPad directory.
+                                      //  const char *pAkelDir      if bOldWindows == TRUE
+                                      //  const wchar_t *pAkelDir   if bOldWindows == FALSE
+  const char *szAkelDir;              //AkelPad directory (Ansi).
+  const wchar_t *wszAkelDir;          //AkelPad directory (Unicode).
+  HINSTANCE hInstanceEXE;             //EXE instance.
+  STACKPLUGINFUNCTION *hPluginsStack; //Plugins stack.
+  int nSaveSettings;                  //See SS_* defines.
+  HWND hMainWnd;                      //Main window.
+  FRAMEDATA *lpFrameData;             //Pointer to a current FRAMEDATA structure.
+  HWND hWndEdit;                      //Edit window.
+  AEHDOC hDocEdit;                    //Edit document.
+  HWND hStatus;                       //StatusBar window.
+  HWND hMdiClient;                    //MDI client window (if nMDI == WMD_MDI).
+  HWND hTab;                          //Tab window        (if nMDI == WMD_MDI || nMDI == WMD_PMDI).
+  HMENU hMainMenu;                    //Main menu.
+  HMENU hMenuRecentFiles;             //Recent files menu.
+  HMENU hMenuLanguage;                //Language menu.
+  HMENU hPopupMenu;                   //Right click menu.
+  HICON hMainIcon;                    //Main window icon handle.
+  HACCEL hGlobalAccel;                //Global accelerator table (highest priority).
+  HACCEL hMainAccel;                  //Main accelerator table (lowest priority).
+  BOOL bOldWindows;                   //Non-Unicode Windows.
+  BOOL bOldRichEdit;                  //Riched20.dll lower then 5.30 (v3.0).
+  BOOL bOldComctl32;                  //Comctl32.dll lower then 4.71.
+  BOOL bAkelEdit;                     //AkelEdit control is used.
+  int nMDI;                           //Window mode, see WMD_* defines.
+  const BYTE *pLangModule;            //Language module.
+                                      //  const char *pLangModule      if bOldWindows == TRUE
+                                      //  const wchar_t *pLangModule   if bOldWindows == FALSE
+  const char *szLangModule;           //Language module (Ansi).
+  const wchar_t *wszLangModule;       //Language module (Unicode).
+  LANGID wLangSystem;                 //System language ID.
+  LANGID wLangModule;                 //Language module language ID.
 } PLUGINDATA;
 
 typedef struct {
@@ -1354,7 +1359,7 @@ typedef struct _RECENTFILE {
   int nCodePage;              //Recent file codepages.
   INT_PTR cpMin;              //First character in selection range.
   INT_PTR cpMax;              //Last character in selection range.
-  HSTACK lpParamsStack;       //Additional parameters storage (RECENTFILEPARAMSTACK structure).
+  HSTACK lpParamsStack;       //Additional parameters storage (STACKRECENTFILEPARAM structure).
 } RECENTFILE;
 
 typedef struct {
@@ -1362,7 +1367,7 @@ typedef struct {
   RECENTFILE *last;           //Pointer to the last RECENTFILE structure.
   int nElements;              //Items in stack.
   DWORD dwSaveTime;           //GetTickCount() for the last recent files save operation.
-} RECENTFILESTACK;
+} STACKRECENTFILE;
 
 typedef struct _RECENTFILEPARAM {
   struct _RECENTFILEPARAM *next;
@@ -1375,7 +1380,7 @@ typedef struct _RECENTFILEPARAM {
 typedef struct {
   RECENTFILEPARAM *first;
   RECENTFILEPARAM *last;
-} RECENTFILEPARAMSTACK;
+} STACKRECENTFILEPARAM;
 
 typedef struct {
   DWORD dwFlags;            //See FRF_* defines.
@@ -3606,7 +3611,7 @@ Return Value
  Depend on RF_* define.
 
 Example:
- RECENTFILESTACK *rfs;
+ STACKRECENTFILE *rfs;
  RECENTFILE *rf;
  int nMaxRecentFiles;
 
