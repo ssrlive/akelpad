@@ -1006,8 +1006,8 @@ int DestroyFrameWindow(FRAMEDATA *lpFrame)
       //Get previous frame
       if (lpFrame == lpFrameCurrent)
       {
-        if (lpFramePrevious)
-          lpFrameToActivate=lpFramePrevious;
+        if (lpFrame->next)
+          lpFrameToActivate=lpFrame->next;
         else
           lpFrameToActivate=StackFrameGetNext(&hFramesStack, lpFrame, TRUE);
       }
@@ -1076,7 +1076,7 @@ int DestroyFrameWindow(FRAMEDATA *lpFrame)
 
         //Activate previous window
         if (lpFrameToActivate)
-          ActivateFrameWindow(lpFrameToActivate, FWA_NOTIFY_AFTERDESTROY);
+          ActivateFrameWindow(lpFrameToActivate, FWA_NOTIFY_AFTERDESTROY|FWA_NOUPDATEORDER);
       }
     }
     return FWDE_SUCCESS;

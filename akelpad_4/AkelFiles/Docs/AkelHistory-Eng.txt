@@ -4,6 +4,7 @@ AkelPad 4.9.1 ()
 Changed: plugin architecture. Update plugins.
 
 Fixed: command 4110 didn't work for SDI.
+Fixed: switching on previous tab after closing current one (PMDI).
 
 
 AkelPad 4.9.0 (Sep 08, 2014)
