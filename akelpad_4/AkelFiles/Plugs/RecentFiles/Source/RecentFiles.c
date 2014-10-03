@@ -78,16 +78,16 @@
 //Functions prototypes
 BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-int StackImportRecentFiles(RECENTFILESTACK *rfsPlugin);
-void StackExportRecentFiles(RECENTFILESTACK *rfsPlugin);
-RECENTFILE* StackGetRecentFile(RECENTFILESTACK *rfsPlugin, int nIndex);
-int StackSortRecentFiles(RECENTFILESTACK *rfsPlugin, int nUpDown);
-void StackFreeRecentFiles(RECENTFILESTACK *rfsPlugin);
-void FillRecentFilesListBox(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bOnlyNames);
-int MoveListBoxItem(RECENTFILESTACK *rfsPlugin, HWND hWnd, int nOldIndex, int nNewIndex);
-BOOL ShiftListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bMoveDown);
-int DeleteListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd);
-int DeleteListBoxOldItems(RECENTFILESTACK *rfsPlugin, HWND hWnd);
+int StackImportRecentFiles(STACKRECENTFILE *rfsPlugin);
+void StackExportRecentFiles(STACKRECENTFILE *rfsPlugin);
+RECENTFILE* StackGetRecentFile(STACKRECENTFILE *rfsPlugin, int nIndex);
+int StackSortRecentFiles(STACKRECENTFILE *rfsPlugin, int nUpDown);
+void StackFreeRecentFiles(STACKRECENTFILE *rfsPlugin);
+void FillRecentFilesListBox(STACKRECENTFILE *rfsPlugin, HWND hWnd, BOOL bOnlyNames);
+int MoveListBoxItem(STACKRECENTFILE *rfsPlugin, HWND hWnd, int nOldIndex, int nNewIndex);
+BOOL ShiftListBoxSelItems(STACKRECENTFILE *rfsPlugin, HWND hWnd, BOOL bMoveDown);
+int DeleteListBoxSelItems(STACKRECENTFILE *rfsPlugin, HWND hWnd);
+int DeleteListBoxOldItems(STACKRECENTFILE *rfsPlugin, HWND hWnd);
 int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListBoxSelItems(int **lpSelItems);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
@@ -118,7 +118,7 @@ BOOL bInitMain=FALSE;
 DWORD dwSaveFlags=0;
 RECT rcMainMinMaxDialog={305, 183, 0, 0};
 RECT rcMainCurrentDialog={0};
-RECENTFILESTACK hRecentFilesStack={0};
+STACKRECENTFILE hRecentFilesStack={0};
 HWND hToolbar=NULL;
 HIMAGELIST hImageList=NULL;
 BOOL bOnlyNames=FALSE;
@@ -593,7 +593,7 @@ LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     return CallWindowProcW(OldListBoxProc, hWnd, uMsg, wParam, lParam);
 }
 
-int StackImportRecentFiles(RECENTFILESTACK *rfsPlugin)
+int StackImportRecentFiles(STACKRECENTFILE *rfsPlugin)
 {
   EDITINFO ei;
   int nCurItem=-1;
@@ -605,9 +605,9 @@ int StackImportRecentFiles(RECENTFILESTACK *rfsPlugin)
   return nCurItem;
 }
 
-void StackExportRecentFiles(RECENTFILESTACK *rfsPlugin)
+void StackExportRecentFiles(STACKRECENTFILE *rfsPlugin)
 {
-  RECENTFILESTACK *rfsProgram;
+  STACKRECENTFILE *rfsProgram;
 
   if (SendMessage(hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rfsProgram))
   {
@@ -620,7 +620,7 @@ void StackExportRecentFiles(RECENTFILESTACK *rfsPlugin)
   }
 }
 
-RECENTFILE* StackGetRecentFile(RECENTFILESTACK *rfsPlugin, int nIndex)
+RECENTFILE* StackGetRecentFile(STACKRECENTFILE *rfsPlugin, int nIndex)
 {
   RECENTFILE *lpElement=NULL;
 
@@ -628,7 +628,7 @@ RECENTFILE* StackGetRecentFile(RECENTFILESTACK *rfsPlugin, int nIndex)
   return lpElement;
 }
 
-int StackSortRecentFiles(RECENTFILESTACK *rfsPlugin, int nUpDown)
+int StackSortRecentFiles(STACKRECENTFILE *rfsPlugin, int nUpDown)
 {
   RECENTFILE *tmp1;
   RECENTFILE *tmp2;
@@ -655,12 +655,12 @@ int StackSortRecentFiles(RECENTFILESTACK *rfsPlugin, int nUpDown)
   return 0;
 }
 
-void StackFreeRecentFiles(RECENTFILESTACK *rfsPlugin)
+void StackFreeRecentFiles(STACKRECENTFILE *rfsPlugin)
 {
   SendMessage(hMainWnd, AKD_RECENTFILES, RF_CLEAR, (LPARAM)rfsPlugin);
 }
 
-void FillRecentFilesListBox(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bOnlyNames)
+void FillRecentFilesListBox(STACKRECENTFILE *rfsPlugin, HWND hWnd, BOOL bOnlyNames)
 {
   RECENTFILE *lpElement;
   int nItem=0;
@@ -676,7 +676,7 @@ void FillRecentFilesListBox(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bOnlyNam
   }
 }
 
-int MoveListBoxItem(RECENTFILESTACK *rfsPlugin, HWND hWnd, int nOldIndex, int nNewIndex)
+int MoveListBoxItem(STACKRECENTFILE *rfsPlugin, HWND hWnd, int nOldIndex, int nNewIndex)
 {
   RECENTFILE *lpElement;
   wchar_t *wpText;
@@ -698,7 +698,7 @@ int MoveListBoxItem(RECENTFILESTACK *rfsPlugin, HWND hWnd, int nOldIndex, int nN
   return nIndex;
 }
 
-BOOL ShiftListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bMoveDown)
+BOOL ShiftListBoxSelItems(STACKRECENTFILE *rfsPlugin, HWND hWnd, BOOL bMoveDown)
 {
   int *lpSelItems;
   int nSelCount;
@@ -759,7 +759,7 @@ BOOL ShiftListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd, BOOL bMoveDown)
   return bResult;
 }
 
-int DeleteListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd)
+int DeleteListBoxSelItems(STACKRECENTFILE *rfsPlugin, HWND hWnd)
 {
   RECENTFILE *lpElement;
   int *lpSelItems;
@@ -790,7 +790,7 @@ int DeleteListBoxSelItems(RECENTFILESTACK *rfsPlugin, HWND hWnd)
   return nSelCount;
 }
 
-int DeleteListBoxOldItems(RECENTFILESTACK *rfsPlugin, HWND hWnd)
+int DeleteListBoxOldItems(STACKRECENTFILE *rfsPlugin, HWND hWnd)
 {
   RECENTFILE *lpElement;
   RECENTFILE *lpElementNext;

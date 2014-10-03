@@ -85,9 +85,9 @@ extern WNDPROC lpfnEditProc;
 extern WNDPROCRET lpfnEditProcRet;
 
 //Plugins
-extern HSTACK hPluginsStack;
-extern HSTACK hPluginListStack;
-extern HSTACK hHandlesStack;
+extern STACKPLUGINFUNCTION hPluginsStack;
+extern STACKPLUGINLIST hPluginListStack;
+extern STACKPLUGINHANDLE hHandlesStack;
 extern RECT rcPluginsMinMaxDialog;
 extern BOOL bSavePluginsStackOnExit;
 extern WNDPROC lpOldHotkeyInputProc;
@@ -150,12 +150,12 @@ extern HCURSOR hCursorClone;
 extern int nLastSplit;
 
 //Docks
-extern HDOCK hDocksStack;
+extern STACKDOCK hDocksStack;
 extern NSIZE nsSize;
 extern WNDPROC lpOldCloseButtonProc;
 
 //Owner-drawn buttons
-extern HSTACK hButtonDrawStack;
+extern STACKBUTTONDRAW hButtonDrawStack;
 
 //Codepages
 extern int *lpCodepageList;
@@ -167,7 +167,7 @@ extern int nAnsiCodePage;
 extern int nOemCodePage;
 
 //Recent files
-extern RECENTFILESTACK hRecentFilesStack;
+extern STACKRECENTFILE hRecentFilesStack;
 
 //Open/Save document
 extern OPENFILENAME_2000W *ofnStruct;
@@ -227,9 +227,9 @@ extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
 //Font/Color
-extern HSTACK hFontsStack;
-extern HSTACK hThemesStack;
-extern HSTACK hBkImagesStack;
+extern STACKFONT hFontsStack;
+extern STACKCOLORTHEME hThemesStack;
+extern STACKBKIMAGE hBkImagesStack;
 extern COLORREF crCustColors[16];
 extern RECT rcColorsMinMaxDialog;
 extern AECOLORS aecDefault;
@@ -238,8 +238,8 @@ extern AECOLORS aecDefault;
 extern HWND hWndPreviewEdit;
 extern HWND hWndPreviewDlg;
 extern HWND hWndZoomEdit;
-extern HSTACK hPreviewAllPagesStack;
-extern HSTACK hPreviewSelPagesStack;
+extern STACKPRINTPAGE hPreviewAllPagesStack;
+extern STACKPRINTPAGE hPreviewSelPagesStack;
 extern RECT rcPreviewDialog;
 extern RECT rcPreviewWindow;
 extern RECT rcPreviewPaper;
@@ -282,11 +282,10 @@ extern wchar_t wszExeDir[MAX_PATH];
 extern int nExeDirLen;
 
 //Mdi
-extern HSTACK hFramesStack;
+extern STACKFRAMEDATA hFramesStack;
 extern FRAMEDATA fdInit;
 extern FRAMEDATA fdDefault;
 extern FRAMEDATA *lpFrameCurrent;
-extern FRAMEDATA *lpFramePrevious;
 extern int nMDI;
 extern HWND hMdiClient;
 extern BOOL bMdiMaximize;
@@ -899,6 +898,7 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
 FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
+  FRAMEDATA *lpFramePrevious;
 
   bFrameActivating=TRUE;
 
@@ -1093,8 +1093,8 @@ BOOL FrameNoWindows()
   }
   else
   {
-    if (lpFrameCurrent == (FRAMEDATA *)hFramesStack.first &&
-        lpFrameCurrent == (FRAMEDATA *)hFramesStack.last &&
+    if (lpFrameCurrent == hFramesStack.first &&
+        lpFrameCurrent == hFramesStack.last &&
         !lpFrameCurrent->ei.bModified &&
         !lpFrameCurrent->ei.wszFile[0])
     {
@@ -6418,7 +6418,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   DOCINFOW diW;
   POINT ptScreenDpi={0};
   POINT ptPrintDpi;
-  PRINTPAGE *lpElement;
+  PRINTPAGE *lpPrintPage;
   AECHARRANGE crInitText;
   AECHARRANGE crInitPage;
   AEHPRINT hPrintDoc;
@@ -6543,18 +6543,18 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           {
             if (dwFlags & PRND_SELECTION)
             {
-              if (lpElement=StackPageInsert(&hPreviewSelPagesStack))
+              if (lpPrintPage=StackPageInsert(&hPreviewSelPagesStack))
               {
-                lpElement->crText.ciMin=prn->crText.ciMin;
-                lpElement->crText.ciMax=prn->crText.ciMax;
+                lpPrintPage->crText.ciMin=prn->crText.ciMin;
+                lpPrintPage->crText.ciMax=prn->crText.ciMax;
               }
             }
             else
             {
-              if (lpElement=StackPageInsert(&hPreviewAllPagesStack))
+              if (lpPrintPage=StackPageInsert(&hPreviewAllPagesStack))
               {
-                lpElement->crText.ciMin=prn->crText.ciMin;
-                lpElement->crText.ciMax=prn->crText.ciMax;
+                lpPrintPage->crText.ciMin=prn->crText.ciMin;
+                lpPrintPage->crText.ciMax=prn->crText.ciMax;
               }
             }
           }
@@ -7197,13 +7197,13 @@ LRESULT CALLBACK PreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ps.rcPaint.right - ps.rcPaint.left > 0 &&
           ps.rcPaint.bottom - ps.rcPaint.top > 0)
       {
-        PRINTPAGE *lpElement;
+        PRINTPAGE *lpPrintPage;
         HENHMETAFILE hMetaFile;
         HDC hMetaDC;
         RECT rcMeta;
 
-        if ((bPreviewSelection == FALSE && (lpElement=StackPageGet(&hPreviewAllPagesStack, nPreviewPageCur))) ||
-            (bPreviewSelection == TRUE && (lpElement=StackPageGet(&hPreviewSelPagesStack, nPreviewPageCur))))
+        if ((bPreviewSelection == FALSE && (lpPrintPage=StackPageGet(&hPreviewAllPagesStack, nPreviewPageCur))) ||
+            (bPreviewSelection == TRUE && (lpPrintPage=StackPageGet(&hPreviewSelPagesStack, nPreviewPageCur))))
         {
           //Create the EMF in memory
           rcMeta.left=0;
@@ -7217,8 +7217,8 @@ LRESULT CALLBACK PreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           //Print page on metafile device
           prn.hPrinterDC=hMetaDC;
-          prn.crText.ciMin=lpElement->crText.ciMin;
-          prn.crText.ciMax=lpElement->crText.ciMax;
+          prn.crText.ciMin=lpPrintPage->crText.ciMin;
+          prn.crText.ciMax=lpPrintPage->crText.ciMax;
           PrintDocument(hWndPreviewEdit, &prn, (bOldWindows?PRND_ANSI:0)|PRND_RANGE|PRND_ONEPAGE, nPreviewPageCur - 1);
           hMetaFile=CloseEnhMetaFile(hMetaDC);
 
@@ -7610,41 +7610,40 @@ int RectH(const RECT *rc)
   return rc->bottom - rc->top;
 }
 
-PRINTPAGE* StackPageInsert(HSTACK *hStack)
+PRINTPAGE* StackPageInsert(STACKPRINTPAGE *hStack)
 {
-  PRINTPAGE *lpElement;
+  PRINTPAGE *lpPrintPage;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
-    return lpElement;
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpPrintPage, -1, sizeof(PRINTPAGE)))
+    return lpPrintPage;
   return NULL;
 }
 
-PRINTPAGE* StackPageGet(HSTACK *hStack, int nPage)
+PRINTPAGE* StackPageGet(STACKPRINTPAGE *hStack, int nPage)
 {
-  PRINTPAGE *lpElement;
+  PRINTPAGE *lpPrintPage;
 
-  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpElement, nPage))
-    return lpElement;
+  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpPrintPage, nPage))
+    return lpPrintPage;
   return NULL;
 }
 
-int StackPageFind(HSTACK *hStack, const AECHARINDEX *ciPos)
+int StackPageFind(STACKPRINTPAGE *hStack, const AECHARINDEX *ciPos)
 {
-  PRINTPAGE *lpElement=(PRINTPAGE *)hStack->first;
+  PRINTPAGE *lpPrintPage;
   int nIndex=0;
 
-  while (lpElement)
+  for (lpPrintPage=hStack->first; lpPrintPage; lpPrintPage=lpPrintPage->next)
   {
-    if (AEC_IndexCompare(ciPos, &lpElement->crText.ciMin) < 0)
+    if (AEC_IndexCompare(ciPos, &lpPrintPage->crText.ciMin) < 0)
       return nIndex;
 
     ++nIndex;
-    lpElement=lpElement->next;
   }
   return nIndex;
 }
 
-void StackPageFree(HSTACK *hStack)
+void StackPageFree(STACKPRINTPAGE *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -11468,7 +11467,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
 
 //// Recent files
 
-RECENTFILE* RecentFilesInsert(RECENTFILESTACK *hStack, int nIndex)
+RECENTFILE* RecentFilesInsert(STACKRECENTFILE *hStack, int nIndex)
 {
   RECENTFILE *lpRecentFile=NULL;
 
@@ -11478,14 +11477,14 @@ RECENTFILE* RecentFilesInsert(RECENTFILESTACK *hStack, int nIndex)
   return lpRecentFile;
 }
 
-void RecentFilesDelete(RECENTFILESTACK *hStack, RECENTFILE *lpRecentFile)
+void RecentFilesDelete(STACKRECENTFILE *hStack, RECENTFILE *lpRecentFile)
 {
   StackRecentFileParamFree(lpRecentFile);
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpRecentFile);
   --hStack->nElements;
 }
 
-void RecentFilesZero(RECENTFILESTACK *hStack)
+void RecentFilesZero(STACKRECENTFILE *hStack)
 {
   RECENTFILE *lpRecentFile;
 
@@ -11556,7 +11555,7 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   return lpRecentFile;
 }
 
-void RecentFilesRefresh(RECENTFILESTACK *hStack)
+void RecentFilesRefresh(STACKRECENTFILE *hStack)
 {
   RecentFilesZero(hStack);
   RecentFilesRead(hStack);
@@ -11572,7 +11571,7 @@ void RecentFilesRefresh(RECENTFILESTACK *hStack)
   }
 }
 
-int RecentFilesDeleteOld(RECENTFILESTACK *hStack)
+int RecentFilesDeleteOld(STACKRECENTFILE *hStack)
 {
   RECENTFILE *lpRecentFile;
   RECENTFILE *lpNextRecentFile;
@@ -11592,7 +11591,7 @@ int RecentFilesDeleteOld(RECENTFILESTACK *hStack)
   return nDead;
 }
 
-int RecentFilesRead(RECENTFILESTACK *hStack)
+int RecentFilesRead(STACKRECENTFILE *hStack)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
@@ -11704,7 +11703,7 @@ int RecentFilesRead(RECENTFILESTACK *hStack)
   return i;
 }
 
-void RecentFilesSave(RECENTFILESTACK *hStack)
+void RecentFilesSave(STACKRECENTFILE *hStack)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
@@ -12939,17 +12938,15 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void FillComboboxThemes(HWND hWnd)
 {
-  COLORTHEME *ctElement=(COLORTHEME *)hThemesStack.first;
+  COLORTHEME *ctElement;
 
-  while (ctElement)
+  for (ctElement=hThemesStack.first; ctElement; ctElement=ctElement->next)
   {
     ComboBox_AddStringWide(hWnd, ctElement->wszName);
-
-    ctElement=ctElement->next;
   }
 }
 
-COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nBkImageAlpha, int nIndex)
+COLORTHEME* StackThemeAdd(STACKCOLORTHEME *hStack, const wchar_t *wpName, AECOLORS *aec, const wchar_t *wpFile, int nBkImageAlpha, int nIndex)
 {
   COLORTHEME *ctElement;
 
@@ -12964,27 +12961,25 @@ COLORTHEME* StackThemeAdd(HSTACK *hStack, const wchar_t *wpName, AECOLORS *aec, 
   return ctElement;
 }
 
-COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName)
+COLORTHEME* StackThemeGetByName(STACKCOLORTHEME *hStack, const wchar_t *wpName)
 {
-  COLORTHEME *ctElement=(COLORTHEME *)hStack->first;
+  COLORTHEME *ctElement;
   int nNameLen=(int)xstrlenW(wpName);
 
-  while (ctElement)
+  for (ctElement=hStack->first; ctElement; ctElement=ctElement->next)
   {
     if (ctElement->nNameLen == nNameLen)
       if (!xstrcmpiW(ctElement->wszName, wpName))
         return ctElement;
-
-    ctElement=ctElement->next;
   }
   return NULL;
 }
 
-COLORTHEME* StackThemeGetByData(HSTACK *hStack, AECOLORS *aec, const wchar_t *wpBkImageFile, int nBkImageAlpha)
+COLORTHEME* StackThemeGetByData(STACKCOLORTHEME *hStack, AECOLORS *aec, const wchar_t *wpBkImageFile, int nBkImageAlpha)
 {
   COLORTHEME *ctElement;
 
-  for (ctElement=(COLORTHEME *)hStack->first; ctElement; ctElement=ctElement->next)
+  for (ctElement=hStack->first; ctElement; ctElement=ctElement->next)
   {
     if (!xmemcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)) &&
         !xstrcmpiW(ctElement->wszBkImageFile, wpBkImageFile) &&
@@ -12994,12 +12989,12 @@ COLORTHEME* StackThemeGetByData(HSTACK *hStack, AECOLORS *aec, const wchar_t *wp
   return NULL;
 }
 
-void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement)
+void StackThemeDelete(STACKCOLORTHEME *hStack, COLORTHEME *ctElement)
 {
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)ctElement);
 }
 
-void StackThemeFree(HSTACK *hStack)
+void StackThemeFree(STACKCOLORTHEME *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -13059,7 +13054,7 @@ void ReadThemes(MAINOPTIONS *mo)
 
 BOOL SaveThemes(int nSaveSettings)
 {
-  COLORTHEME *ctElement=(COLORTHEME *)hThemesStack.first;
+  COLORTHEME *ctElement=hThemesStack.first;
   HKEY hKey;
   INISECTION *lpIniSection;
   DWORD dwSizeData=sizeof(COLORTHEME) - offsetof(COLORTHEME, aec);
@@ -13119,15 +13114,15 @@ BOOL SaveThemes(int nSaveSettings)
 
 //// Background image
 
-BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile)
+BKIMAGEITEM* StackBkImageInsert(STACKBKIMAGE *hStack, const wchar_t *wpFile)
 {
-  BKIMAGEITEM *lpElement=NULL;
+  BKIMAGEITEM *lpBkImage=NULL;
   wchar_t wszFileExp[MAX_PATH];
   const wchar_t *wpExt;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BKIMAGEITEM)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpBkImage, -1, sizeof(BKIMAGEITEM)))
   {
-    xstrcpynW(lpElement->wszBkImageFile, wpFile, MAX_PATH);
+    xstrcpynW(lpBkImage->wszBkImageFile, wpFile, MAX_PATH);
     TranslateFileString(wpFile, wszFileExp, MAX_PATH);
 
     if ((wpExt=GetFileExt(wpFile, -1)) && !xstrcmpiW(L"bmp", wpExt))
@@ -13135,20 +13130,20 @@ BKIMAGEITEM* StackBkImageInsert(HSTACK *hStack, const wchar_t *wpFile)
       if (bOldWindows)
       {
         WideCharToMultiByte(CP_ACP, 0, wszFileExp, -1, buf, MAX_PATH, NULL, NULL);
-        lpElement->hBkImageBitmap=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+        lpBkImage->hBkImageBitmap=(HBITMAP)LoadImageA(NULL, buf, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
       }
-      else lpElement->hBkImageBitmap=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+      else lpBkImage->hBkImageBitmap=(HBITMAP)LoadImageW(NULL, wszFileExp, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
     }
-    else lpElement->hBkImageBitmap=LoadPictureFile(wszFileExp);
+    else lpBkImage->hBkImageBitmap=LoadPictureFile(wszFileExp);
   }
-  return lpElement;
+  return lpBkImage;
 }
 
-BKIMAGEITEM* StackBkImageGet(HSTACK *hStack, const wchar_t *wpFile)
+BKIMAGEITEM* StackBkImageGet(STACKBKIMAGE *hStack, const wchar_t *wpFile)
 {
   BKIMAGEITEM *lpBkImage;
 
-  for (lpBkImage=(BKIMAGEITEM *)hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
+  for (lpBkImage=hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
   {
     if (!xstrcmpiW(lpBkImage->wszBkImageFile, wpFile))
       return lpBkImage;
@@ -13156,11 +13151,11 @@ BKIMAGEITEM* StackBkImageGet(HSTACK *hStack, const wchar_t *wpFile)
   return NULL;
 }
 
-void StackBkImageFree(HSTACK *hStack)
+void StackBkImageFree(STACKBKIMAGE *hStack)
 {
   BKIMAGEITEM *lpBkImage;
 
-  for (lpBkImage=(BKIMAGEITEM *)hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
+  for (lpBkImage=hStack->first; lpBkImage; lpBkImage=lpBkImage->next)
   {
     if (lpBkImage->hBkImageBitmap) DeleteObject(lpBkImage->hBkImageBitmap);
   }
@@ -13169,16 +13164,16 @@ void StackBkImageFree(HSTACK *hStack)
 
 BOOL SetBkImage(FRAMEDATA *lpFrame, const wchar_t *wpFile, int nBkImageAlpha)
 {
-  BKIMAGEITEM *bkfi;
+  BKIMAGEITEM *lpBkImage;
 
   xstrcpynW(lpFrame->wszBkImageFile, wpFile, MAX_PATH);
   lpFrame->nBkImageAlpha=nBkImageAlpha;
 
   if (*lpFrame->wszBkImageFile)
   {
-    if (!(bkfi=StackBkImageGet(&hBkImagesStack, lpFrame->wszBkImageFile)))
-      bkfi=StackBkImageInsert(&hBkImagesStack, lpFrame->wszBkImageFile);
-    lpFrame->hBkImageBitmap=bkfi->hBkImageBitmap;
+    if (!(lpBkImage=StackBkImageGet(&hBkImagesStack, lpFrame->wszBkImageFile)))
+      lpBkImage=StackBkImageInsert(&hBkImagesStack, lpFrame->wszBkImageFile);
+    lpFrame->hBkImageBitmap=lpBkImage->hBkImageBitmap;
   }
   else lpFrame->hBkImageBitmap=NULL;
 
@@ -13257,41 +13252,38 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo)
   }
 }
 
-PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen)
+PLUGINFUNCTION* StackPluginFind(STACKPLUGINFUNCTION *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
 
   if (!wpPluginFunction) return NULL;
   if (nPluginFunctionLen == -1)
     nPluginFunctionLen=(int)xstrlenW(wpPluginFunction);
 
-  while (pfElement)
+  for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
   {
     if (pfElement->nFunctionLen == nPluginFunctionLen)
     {
       if (!xstrcmpiW(pfElement->wszFunction, wpPluginFunction))
         break;
     }
-    pfElement=pfElement->next;
   }
   return pfElement;
 }
 
-PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey)
+PLUGINFUNCTION* StackHotkeyFind(STACKPLUGINFUNCTION *hStack, WORD wHotkey)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
 
-  while (pfElement)
+  for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
   {
     if (pfElement->wHotkey == wHotkey)
         break;
-
-    pfElement=pfElement->next;
   }
   return pfElement;
 }
 
-PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bAutoLoad, PLUGINPROC PluginProc, void *lpParameter)
+PLUGINFUNCTION* StackPluginAdd(STACKPLUGINFUNCTION *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bAutoLoad, PLUGINPROC PluginProc, void *lpParameter)
 {
   PLUGINFUNCTION *pfElement;
 
@@ -13314,15 +13306,15 @@ PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, 
   return pfElement;
 }
 
-void StackPluginDelete(HSTACK *hStack, PLUGINFUNCTION *pfElement)
+void StackPluginDelete(STACKPLUGINFUNCTION *hStack, PLUGINFUNCTION *pfElement)
 {
   if (!pfElement->nRefCount)
     StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
 }
 
-BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
+BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
   HKEY hKey;
   INISECTION *lpIniSection;
   DWORD dwHotkey;
@@ -13348,7 +13340,7 @@ BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
       StackDeleteIniSection(&hIniFile, lpIniSection, TRUE);
   }
 
-  while (pfElement)
+  for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
   {
     if (IsMainFunctionW(pfElement->wszFunction))
     {
@@ -13368,7 +13360,6 @@ BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
         }
       }
     }
-    pfElement=pfElement->next;
   }
 
   if (nSaveSettings == SS_REGISTRY)
@@ -13384,14 +13375,14 @@ BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings)
   return bResult;
 }
 
-void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
+void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
   PLUGINFUNCTION *pfNextElement;
   wchar_t wszDLL[MAX_PATH];
   wchar_t wszPlugin[MAX_PATH];
 
-  while (pfElement)
+  for (pfElement=hStack->first; pfElement; pfElement=pfNextElement)
   {
     pfNextElement=pfElement->next;
 
@@ -13413,22 +13404,21 @@ void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
         }
       }
     }
-    pfElement=pfNextElement;
   }
 }
 
-void StackPluginFree(HSTACK *hStack)
+void StackPluginFree(STACKPLUGINFUNCTION *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-void CallPluginsOnStart(HSTACK *hStack)
+void CallPluginsOnStart(STACKPLUGINFUNCTION *hStack)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
   PLUGINFUNCTION *pfNextElement;
   PLUGINCALLSENDW pcs;
 
-  while (pfElement)
+  for (pfElement=hStack->first; pfElement; pfElement=pfNextElement)
   {
     pfNextElement=pfElement->next;
 
@@ -13439,7 +13429,6 @@ void CallPluginsOnStart(HSTACK *hStack)
       pcs.dwSupport=0;
       CallPluginSend(&pfElement, &pcs, DLLCF_ONPROGRAMLOAD);
     }
-    pfElement=pfNextElement;
   }
 }
 
@@ -13832,7 +13821,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
 
         if (FreeLibrary(hInstanceDLL))
         {
-          PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hPluginsStack.first;
+          PLUGINFUNCTION *pfElement=hPluginsStack.first;
           PLUGINFUNCTION *pfNextElement;
           UNISTRING us;
 
@@ -13864,9 +13853,9 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
   return FALSE;
 }
 
-int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg)
+int TranslateMessageHotkey(STACKPLUGINFUNCTION *hStack, LPMSG lpMsg)
 {
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfElement;
   BYTE nMod=0;
   WORD wHotkey;
   int nResult;
@@ -13880,7 +13869,7 @@ int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg)
     if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
     wHotkey=MAKEWORD(lpMsg->wParam, nMod);
 
-    while (pfElement)
+    for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
     {
       if (pfElement->wHotkey == wHotkey)
       {
@@ -13893,7 +13882,6 @@ int TranslateMessageHotkey(HSTACK *hStack, LPMSG lpMsg)
           break;
         return TRUE;
       }
-      pfElement=pfElement->next;
     }
     nResult=FALSE;
     SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&nResult);
@@ -14134,7 +14122,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      PLUGINLISTITEM *pliElement=(PLUGINLISTITEM *)hPluginListStack.first;
+      PLUGINLISTITEM *pliElement=hPluginListStack.first;
 
       while (pliElement)
       {
@@ -14394,7 +14382,7 @@ BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam)
   return TRUE;
 }
 
-PLUGINLISTITEM* GetPluginListItem(HSTACK *hStack, int nIndex)
+PLUGINLISTITEM* GetPluginListItem(STACKPLUGINLIST *hStack, int nIndex)
 {
   PLUGINLISTITEM *pliElement;
 
@@ -14403,7 +14391,7 @@ PLUGINLISTITEM* GetPluginListItem(HSTACK *hStack, int nIndex)
   return NULL;
 }
 
-void FreePluginList(HSTACK *hStack)
+void FreePluginList(STACKPLUGINLIST *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -16579,129 +16567,124 @@ int ScaleY(int y)
 
 //// Dockable windows
 
-DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData)
+DOCK* StackDockAdd(STACKDOCK *hDocks, DOCK *dkData)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+  DOCK *lpDock;
   int nIndex=1;
 
-  while (dkElement)
+  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
   {
-    if (dkData->nSide == dkElement->nSide)
+    if (dkData->nSide == lpDock->nSide)
     {
       if (dkData->nSide == DKS_LEFT)
       {
-        if (dkData->rcSize.left < dkElement->rcSize.left)
+        if (dkData->rcSize.left < lpDock->rcSize.left)
           break;
       }
       else if (dkData->nSide == DKS_RIGHT)
       {
-        if (dkData->rcSize.left > dkElement->rcSize.left)
+        if (dkData->rcSize.left > lpDock->rcSize.left)
           break;
       }
       else if (dkData->nSide == DKS_TOP)
       {
-        if (dkData->rcSize.top < dkElement->rcSize.top)
+        if (dkData->rcSize.top < lpDock->rcSize.top)
           break;
       }
       else if (dkData->nSide == DKS_BOTTOM)
       {
-        if (dkData->rcSize.top > dkElement->rcSize.top)
+        if (dkData->rcSize.top > lpDock->rcSize.top)
           break;
       }
     }
-    else if (dkData->nSide < dkElement->nSide)
+    else if (dkData->nSide < lpDock->nSide)
       break;
 
     ++nIndex;
-
-    dkElement=dkElement->next;
   }
 
-  if (!StackInsertIndex((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack **)&dkElement, nIndex, sizeof(DOCK)))
+  if (!StackInsertIndex((stack **)&hDocks->first, (stack **)&hDocks->last, (stack **)&lpDock, nIndex, sizeof(DOCK)))
   {
-    dkElement->dwFlags=dkData->dwFlags;
-    dkElement->hWnd=dkData->hWnd;
-    dkElement->nSide=dkData->nSide;
-    dkElement->rcSize=dkData->rcSize;
-    dkElement->rcDragDrop=dkData->rcDragDrop;
+    lpDock->dwFlags=dkData->dwFlags;
+    lpDock->hWnd=dkData->hWnd;
+    lpDock->nSide=dkData->nSide;
+    lpDock->rcSize=dkData->rcSize;
+    lpDock->rcDragDrop=dkData->rcDragDrop;
   }
-  return dkElement;
+  return lpDock;
 }
 
-int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide)
+int DockSetSide(STACKDOCK *hDocks, DOCK *dkData, int nSide)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+  DOCK *lpDock;
   int nIndex=1;
 
-  while (dkElement)
+  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
   {
-    if (nSide == dkElement->nSide)
+    if (nSide == lpDock->nSide)
     {
-      if (dkData != dkElement)
+      if (dkData != lpDock)
       {
         if (nSide == DKS_LEFT)
         {
-          if (dkData->rcSize.left <= dkElement->rcSize.left)
+          if (dkData->rcSize.left <= lpDock->rcSize.left)
             break;
         }
         if (nSide == DKS_RIGHT)
         {
-          if (dkData->rcSize.left >= dkElement->rcSize.left)
+          if (dkData->rcSize.left >= lpDock->rcSize.left)
             break;
         }
         else if (nSide == DKS_TOP)
         {
-          if (dkData->rcSize.top <= dkElement->rcSize.top)
+          if (dkData->rcSize.top <= lpDock->rcSize.top)
             break;
         }
         else if (nSide == DKS_BOTTOM)
         {
-          if (dkData->rcSize.top >= dkElement->rcSize.top)
+          if (dkData->rcSize.top >= lpDock->rcSize.top)
             break;
         }
       }
     }
     else
     {
-      if (nSide < dkElement->nSide)
+      if (nSide < lpDock->nSide)
         break;
-      if (dkData == dkElement)
+      if (dkData == lpDock)
         --nIndex;
     }
     ++nIndex;
-
-    dkElement=dkElement->next;
   }
   dkData->nSide=nSide;
 
-  return StackMoveIndex((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack *)dkData, nIndex);
+  return StackMoveIndex((stack **)&hDocks->first, (stack **)&hDocks->last, (stack *)dkData, nIndex);
 }
 
-DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild)
+DOCK* StackDockFindWindow(STACKDOCK *hDocks, HWND hWnd, BOOL bChild)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+  DOCK *lpDock;
 
   if (hWnd)
   {
-    while (dkElement)
+    for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
     {
-      if (dkElement->hWnd)
+      if (lpDock->hWnd)
       {
-        if (dkElement->hWnd == hWnd || (bChild && IsChild(dkElement->hWnd, hWnd)))
-          return dkElement;
+        if (lpDock->hWnd == hWnd || (bChild && IsChild(lpDock->hWnd, hWnd)))
+          return lpDock;
       }
-      dkElement=dkElement->next;
     }
   }
   return NULL;
 }
 
-HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
+HWND StackDockNextWindow(STACKDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
 {
   if (bPrevious)
   {
     if (!dkData)
-      dkData=(DOCK *)hDocks->hStack.last;
+      dkData=(DOCK *)hDocks->last;
     else
       dkData=dkData->prev;
 
@@ -16716,7 +16699,7 @@ HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
   else
   {
     if (!dkData)
-      dkData=(DOCK *)hDocks->hStack.first;
+      dkData=(DOCK *)hDocks->first;
     else
       dkData=dkData->next;
 
@@ -16731,47 +16714,46 @@ HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
   return NULL;
 }
 
-DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *ptScreen)
+DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+  DOCK *lpDock;
   RECT rc;
 
-  while (dkElement)
+  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
   {
-    if (dkElement->hWnd)
+    if (lpDock->hWnd)
     {
-      if (GetWindowRect(dkElement->hWnd, &rc))
+      if (GetWindowRect(lpDock->hWnd, &rc))
       {
         if (PtInRect(&rc, *ptScreen))
-          return dkElement;
+          return lpDock;
       }
     }
-    dkElement=dkElement->next;
   }
   return NULL;
 }
 
-void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
+void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+  DOCK *lpDock;
   RECT rcDock;
 
-  while (dkElement)
+  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
   {
-    if (dkElement->nSide > nSide) break;
+    if (lpDock->nSide > nSide) break;
 
-    if (dkElement->nSide == nSide)
+    if (lpDock->nSide == nSide)
     {
-      if (!(dkElement->dwFlags & DKF_HIDDEN))
+      if (!(lpDock->dwFlags & DKF_HIDDEN))
       {
-        if (dkElement->rcSize.right || dkElement->rcSize.bottom)
+        if (lpDock->rcSize.right || lpDock->rcSize.bottom)
         {
           rcDock.left=ns->rcCurrent.left;
           rcDock.top=ns->rcCurrent.top;
-          rcDock.right=dkElement->rcSize.right;
-          rcDock.bottom=dkElement->rcSize.bottom;
+          rcDock.right=lpDock->rcSize.right;
+          rcDock.bottom=lpDock->rcSize.bottom;
 
-          if (dkElement->nSide == DKS_LEFT)
+          if (lpDock->nSide == DKS_LEFT)
           {
             if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
               rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
@@ -16781,7 +16763,7 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
             ns->rcCurrent.left+=rcDock.right;
             ns->rcCurrent.right-=rcDock.right;
           }
-          else if (dkElement->nSide == DKS_TOP)
+          else if (lpDock->nSide == DKS_TOP)
           {
             if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
               rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
@@ -16791,7 +16773,7 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
             ns->rcCurrent.top+=rcDock.bottom;
             ns->rcCurrent.bottom-=rcDock.bottom;
           }
-          else if (dkElement->nSide == DKS_RIGHT)
+          else if (lpDock->nSide == DKS_RIGHT)
           {
             if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
               rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
@@ -16801,7 +16783,7 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
             ns->rcCurrent.right-=rcDock.right;
             rcDock.left=ns->rcCurrent.left + ns->rcCurrent.right;
           }
-          else if (dkElement->nSide == DKS_BOTTOM)
+          else if (lpDock->nSide == DKS_BOTTOM)
           {
             if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
               rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
@@ -16812,42 +16794,40 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
             rcDock.top=ns->rcCurrent.top + ns->rcCurrent.bottom;
           }
 
-          if (dkElement->hWnd)
+          if (lpDock->hWnd)
           {
-            if (dkElement->nSide == DKS_LEFT ||
-                dkElement->nSide == DKS_RIGHT)
+            if (lpDock->nSide == DKS_LEFT ||
+                lpDock->nSide == DKS_RIGHT)
             {
-              if (hDocksStack.nSizingSide) dkElement->rcSize.left=rcDock.left;
-              MoveWindow(dkElement->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
-              RedrawWindow(dkElement->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+              if (hDocksStack.nSizingSide) lpDock->rcSize.left=rcDock.left;
+              MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
+              RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
             }
-            else if (dkElement->nSide == DKS_TOP ||
-                     dkElement->nSide == DKS_BOTTOM)
+            else if (lpDock->nSide == DKS_TOP ||
+                     lpDock->nSide == DKS_BOTTOM)
             {
-              if (hDocksStack.nSizingSide) dkElement->rcSize.top=rcDock.top;
-              MoveWindow(dkElement->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
-              RedrawWindow(dkElement->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+              if (hDocksStack.nSizingSide) lpDock->rcSize.top=rcDock.top;
+              MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
+              RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
             }
           }
         }
       }
     }
-
-    dkElement=dkElement->next;
   }
 }
 
-void StackDockDelete(HDOCK *hDocks, DOCK *dkData)
+void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData)
 {
-  StackDelete((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack *)dkData);
+  StackDelete((stack **)&hDocks->first, (stack **)&hDocks->last, (stack *)dkData);
 }
 
-void StackDockFree(HDOCK *hDocks)
+void StackDockFree(STACKDOCK *hDocks)
 {
-  StackClear((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last);
+  StackClear((stack **)&hDocks->first, (stack **)&hDocks->last);
 }
 
-BOOL TranslateMessageDialog(HDOCK *hDocks, LPMSG lpMsg)
+BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
 {
   if (hDlgModeless && IsDialogMessageWide(hDlgModeless, lpMsg))
   {
@@ -16859,22 +16839,21 @@ BOOL TranslateMessageDialog(HDOCK *hDocks, LPMSG lpMsg)
   }
   else
   {
-    DOCK *dkElement=(DOCK *)hDocks->hStack.first;
+    DOCK *lpDock;
 
-    while (dkElement)
+    for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
     {
-      if (!(dkElement->dwFlags & DKF_OWNTHREAD))
+      if (!(lpDock->dwFlags & DKF_OWNTHREAD))
       {
-        if (dkElement->hWnd && IsDialogMessageWide(dkElement->hWnd, lpMsg))
+        if (lpDock->hWnd && IsDialogMessageWide(lpDock->hWnd, lpMsg))
         {
           if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
           {
-            SendMessageWide(dkElement->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+            SendMessageWide(lpDock->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
           }
           return TRUE;
         }
       }
-      dkElement=dkElement->next;
     }
   }
   return FALSE;
@@ -16892,17 +16871,17 @@ int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WND
 {
   if (!NewProcData || !*NewProcData)
   {
-    WNDPROCDATA *lpElement;
+    WNDPROCDATA *lpWndProcData;
 
-    if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(WNDPROCDATA)))
+    if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpWndProcData, 1, sizeof(WNDPROCDATA)))
     {
-      lpElement->CurProc=NewProc;
-      if (lpElement->next)
+      lpWndProcData->CurProc=NewProc;
+      if (lpWndProcData->next)
       {
-        lpElement->next->PrevProc=NewProc;
-        lpElement->NextProc=lpElement->next->CurProc;
+        lpWndProcData->next->PrevProc=NewProc;
+        lpWndProcData->NextProc=lpWndProcData->next->CurProc;
       }
-      if (NewProcData) *NewProcData=lpElement;
+      if (NewProcData) *NewProcData=lpWndProcData;
     }
   }
   else
@@ -16939,18 +16918,17 @@ void StackProcFree(HSTACK *hStack)
 
 //// Handles stack
 
-PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule)
+PLUGINHANDLE* StackHandleIncrease(STACKPLUGINHANDLE *hStack, HMODULE hModule)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
+  PLUGINHANDLE *phElement;
 
-  while (phElement)
+  for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
     if (phElement->hModule == hModule)
     {
       phElement->nCount+=1;
       return phElement;
     }
-    phElement=phElement->next;
   }
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&phElement, -1, sizeof(PLUGINHANDLE)))
@@ -16961,11 +16939,11 @@ PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule)
   return phElement;
 }
 
-PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule)
+PLUGINHANDLE* StackHandleDecrease(STACKPLUGINHANDLE *hStack, HMODULE hModule)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
+  PLUGINHANDLE *phElement;
 
-  while (phElement)
+  for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
     if (phElement->hModule == hModule)
     {
@@ -16977,22 +16955,20 @@ PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule)
       }
       return phElement;
     }
-    phElement=phElement->next;
   }
   return NULL;
 }
 
-void StackHandleFree(HSTACK *hStack)
+void StackHandleFree(STACKPLUGINHANDLE *hStack)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
+  PLUGINHANDLE *phElement;
 
-  while (phElement)
+  for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
     while (phElement->nCount > 0 && FreeLibrary(phElement->hModule))
     {
       phElement->nCount-=1;
     }
-    phElement=phElement->next;
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -17000,15 +16976,15 @@ void StackHandleFree(HSTACK *hStack)
 
 //// MDI windows
 
-FRAMEDATA* StackFrameInsert(HSTACK *hStack)
+FRAMEDATA* StackFrameInsert(STACKFRAMEDATA *hStack)
 {
-  FRAMEDATA *lpElement=NULL;
+  FRAMEDATA *lpFrame=NULL;
 
-  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FRAMEDATA));
-  return lpElement;
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpFrame, -1, sizeof(FRAMEDATA));
+  return lpFrame;
 }
 
-FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex)
+FRAMEDATA* StackFrameGetByIndex(STACKFRAMEDATA *hStack, int nIndex)
 {
   FRAMEDATA *lpFrame;
 
@@ -17017,11 +16993,11 @@ FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex)
   return NULL;
 }
 
-FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDocEdit)
+FRAMEDATA* StackFrameGetByHandle(STACKFRAMEDATA *hStack, AEHDOC hDocEdit)
 {
   FRAMEDATA *lpFrame;
 
-  for (lpFrame=(FRAMEDATA *)hStack->last; lpFrame; lpFrame=lpFrame->prev)
+  for (lpFrame=hStack->last; lpFrame; lpFrame=lpFrame->prev)
   {
     if (lpFrame->ei.hDocEdit == hDocEdit)
       return lpFrame;
@@ -17029,7 +17005,7 @@ FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDocEdit)
   return NULL;
 }
 
-FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen)
+FRAMEDATA* StackFrameGetByName(STACKFRAMEDATA *hStack, const wchar_t *wpFileName, int nFileNameLen)
 {
   FRAMEDATA *lpFrame;
 
@@ -17045,7 +17021,7 @@ FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nF
     }
   }
 
-  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
+  for (lpFrame=hStack->first; lpFrame; lpFrame=lpFrame->next)
   {
     if (lpFrame->nFileLen == nFileNameLen)
     {
@@ -17056,37 +17032,32 @@ FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nF
   return NULL;
 }
 
-FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev)
+FRAMEDATA* StackFrameGetNext(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, BOOL bPrev)
 {
-  if (!bPrev)
+  if (lpFrame)
   {
-    if (lpFrame)
+    if (bPrev)
     {
-      if (!lpFrame->next)
-        return (FRAMEDATA *)hStack->first;
-      else
-        return lpFrame->next;
-    }
-  }
-  else
-  {
-    if (lpFrame)
-    {
-      if (!lpFrame->prev)
-        return (FRAMEDATA *)hStack->last;
-      else
+      if (lpFrame->prev)
         return lpFrame->prev;
+      return hStack->last;
+    }
+    else
+    {
+      if (lpFrame->next)
+        return lpFrame->next;
+      return hStack->first;
     }
   }
   return NULL;
 }
 
-DWORD StackFrameGetIndex(HSTACK *hStack, FRAMEDATA *lpFramePointer)
+DWORD StackFrameGetIndex(STACKFRAMEDATA *hStack, FRAMEDATA *lpFramePointer)
 {
   FRAMEDATA *lpFrame;
   DWORD dwIndex=1;
 
-  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
+  for (lpFrame=hStack->first; lpFrame; lpFrame=lpFrame->next)
   {
     if (lpFrame == lpFramePointer)
       return dwIndex;
@@ -17095,11 +17066,11 @@ DWORD StackFrameGetIndex(HSTACK *hStack, FRAMEDATA *lpFramePointer)
   return 0;
 }
 
-FRAMEDATA* StackFrameIsValid(HSTACK *hStack, FRAMEDATA *lpFramePointer)
+FRAMEDATA* StackFrameIsValid(STACKFRAMEDATA *hStack, FRAMEDATA *lpFramePointer)
 {
   FRAMEDATA *lpFrame;
 
-  for (lpFrame=(FRAMEDATA *)hStack->first; lpFrame; lpFrame=lpFrame->next)
+  for (lpFrame=hStack->first; lpFrame; lpFrame=lpFrame->next)
   {
     if (lpFrame == lpFramePointer)
       return lpFrame;
@@ -17107,12 +17078,12 @@ FRAMEDATA* StackFrameIsValid(HSTACK *hStack, FRAMEDATA *lpFramePointer)
   return NULL;
 }
 
-void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex)
+void StackFrameMove(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, int nIndex)
 {
   StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame, nIndex);
 }
 
-void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame)
+void StackFrameDelete(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame)
 {
   StackRecentCaretFree(&lpFrame->hRecentCaretStack);
   if (lpFrame == lpFrameCurrent)
@@ -17120,7 +17091,7 @@ void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame)
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame);
 }
 
-void StackFramesFree(HSTACK *hStack)
+void StackFramesFree(STACKFRAMEDATA *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -17128,34 +17099,32 @@ void StackFramesFree(HSTACK *hStack)
 
 //// Owner-drawn buttons
 
-BUTTONDRAWITEM* StackButtonDrawInsert(HSTACK *hStack)
+BUTTONDRAWITEM* StackButtonDrawInsert(STACKBUTTONDRAW *hStack)
 {
-  BUTTONDRAWITEM *lpElement=NULL;
+  BUTTONDRAWITEM *lpButtonDraw=NULL;
 
-  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BUTTONDRAWITEM));
-  return lpElement;
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpButtonDraw, -1, sizeof(BUTTONDRAWITEM));
+  return lpButtonDraw;
 }
 
-BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd)
+BUTTONDRAWITEM* StackButtonDrawGet(STACKBUTTONDRAW *hStack, HWND hWnd)
 {
-  BUTTONDRAWITEM *lpButtonDraw=(BUTTONDRAWITEM *)hStack->last;
+  BUTTONDRAWITEM *lpButtonDraw;
 
-  while (lpButtonDraw)
+  for (lpButtonDraw=hStack->last; lpButtonDraw; lpButtonDraw=lpButtonDraw->prev)
   {
     if (lpButtonDraw->hWnd == hWnd)
       return lpButtonDraw;
-
-    lpButtonDraw=lpButtonDraw->prev;
   }
   return NULL;
 }
 
-void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw)
+void StackButtonDrawDelete(STACKBUTTONDRAW *hStack, BUTTONDRAWITEM *lpButtonDraw)
 {
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpButtonDraw);
 }
 
-void StackButtonDrawFree(HSTACK *hStack)
+void StackButtonDrawFree(STACKBUTTONDRAW *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -17197,10 +17166,10 @@ void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd)
 
 RECENTCARETITEM* StackRecentCaretInsert(STACKRECENTCARET *hStack)
 {
-  RECENTCARETITEM *lpElement=NULL;
+  RECENTCARETITEM *lpRecentCaret=NULL;
 
-  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(RECENTCARETITEM));
-  return lpElement;
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpRecentCaret, -1, sizeof(RECENTCARETITEM));
+  return lpRecentCaret;
 }
 
 void StackRecentCaretFree(STACKRECENTCARET *hStack)
@@ -17901,12 +17870,12 @@ int* SetStatusParts(STACKSTATUSPART *lpStatusStack)
 
 STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack)
 {
-  STATUSPART *lpElement=NULL;
+  STATUSPART *lpStatusPart=NULL;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(STATUSPART)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpStatusPart, -1, sizeof(STATUSPART)))
   {
     ++hStack->nElements;
-    return lpElement;
+    return lpStatusPart;
   }
   return NULL;
 }
@@ -18184,58 +18153,55 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
 
 ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen)
 {
-  ASSOCICON *lpElement=NULL;
+  ASSOCICON *lpAssocIcon=NULL;
 
   if (nFileLen == -1)
     nFileLen=(int)xstrlenW(wpFile);
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICON)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpAssocIcon, -1, sizeof(ASSOCICON)))
   {
     if (wpFile)
     {
-      xstrcpynW(lpElement->wszFile, wpFile, MAX_PATH);
-      lpElement->nFileLen=nFileLen;
-      lpElement->wpExt=GetAssociatedIconW(lpElement->wszFile, NULL, NULL, NULL, &lpElement->hIcon);
+      xstrcpynW(lpAssocIcon->wszFile, wpFile, MAX_PATH);
+      lpAssocIcon->nFileLen=nFileLen;
+      lpAssocIcon->wpExt=GetAssociatedIconW(lpAssocIcon->wszFile, NULL, NULL, NULL, &lpAssocIcon->hIcon);
     }
-    if (lpElement->hIcon)
+    if (lpAssocIcon->hIcon)
     {
       ++hStack->nValidIcons;
-      lpElement->nIconIndex=hStack->nValidIcons;
+      lpAssocIcon->nIconIndex=hStack->nValidIcons;
     }
-    return lpElement;
+    return lpAssocIcon;
   }
   return NULL;
 }
 
 ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt)
 {
-  ASSOCICON *lpElement=hStack->first->next;
+  ASSOCICON *lpAssocIcon;
 
   if (nFileLen == -1)
     nFileLen=(int)xstrlenW(wpFile);
 
-  while (lpElement)
+  for (lpAssocIcon=hStack->first->next; lpAssocIcon; lpAssocIcon=lpAssocIcon->next)
   {
-    if ((lpElement->wpExt && !xstrcmpiW(lpElement->wpExt, wpExt)) ||
-        (!lpElement->wpExt && lpElement->nFileLen == nFileLen &&
-                              !xstrcmpiW(lpElement->wszFile, wpFile)))
+    if ((lpAssocIcon->wpExt && !xstrcmpiW(lpAssocIcon->wpExt, wpExt)) ||
+        (!lpAssocIcon->wpExt && lpAssocIcon->nFileLen == nFileLen &&
+                              !xstrcmpiW(lpAssocIcon->wszFile, wpFile)))
     {
-      return lpElement;
+      return lpAssocIcon;
     }
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
 void StackIconsFree(STACKASSOCICON *hStack)
 {
-  ASSOCICON *lpElement=(ASSOCICON *)hStack->first->next;
+  ASSOCICON *lpAssocIcon;
 
-  while (lpElement)
+  for (lpAssocIcon=hStack->first->next; lpAssocIcon; lpAssocIcon=lpAssocIcon->next)
   {
-    if (lpElement->hIcon) DestroyIcon(lpElement->hIcon);
-
-    lpElement=lpElement->next;
+    if (lpAssocIcon->hIcon) DestroyIcon(lpAssocIcon->hIcon);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   hStack->nValidIcons=0;
@@ -18247,55 +18213,53 @@ void StackIconsFree(STACKASSOCICON *hStack)
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont)
 {
-  FONTITEM *fi;
+  FONTITEM *fiElement;
 
-  if (!(fi=StackFontItemGet(&hFontsStack, lfFont)))
-    fi=StackFontItemInsert(&hFontsStack, lfFont);
-  SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-  return fi->hFont;
+  if (!(fiElement=StackFontItemGet(&hFontsStack, lfFont)))
+    fiElement=StackFontItemInsert(&hFontsStack, lfFont);
+  SendMessage(hWnd, WM_SETFONT, (WPARAM)fiElement->hFont, FALSE);
+  return fiElement->hFont;
 }
 
-FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont)
+FONTITEM* StackFontItemInsert(STACKFONT *hStack, const LOGFONTW *lfFont)
 {
-  FONTITEM *lpElement=NULL;
+  FONTITEM *fiElement=NULL;
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FONTITEM)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&fiElement, -1, sizeof(FONTITEM)))
   {
-    xmemcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
-    lpElement->hFont=(HFONT)CreateFontIndirectWide(&lpElement->lfFont);
-    return lpElement;
+    xmemcpy(&fiElement->lfFont, lfFont, sizeof(LOGFONTW));
+    fiElement->hFont=(HFONT)CreateFontIndirectWide(&fiElement->lfFont);
+    return fiElement;
   }
   return NULL;
 }
 
-FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont)
+FONTITEM* StackFontItemGet(STACKFONT *hStack, const LOGFONTW *lfFont)
 {
-  FONTITEM *lpElement=(FONTITEM *)hStack->first;
+  FONTITEM *fiElement;
 
-  while (lpElement)
+  for (fiElement=hStack->first; fiElement; fiElement=fiElement->next)
   {
-    if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
-        lpElement->lfFont.lfWeight == lfFont->lfWeight &&
-        lpElement->lfFont.lfItalic == lfFont->lfItalic &&
-        lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
+    if (fiElement->lfFont.lfHeight == lfFont->lfHeight &&
+        fiElement->lfFont.lfWeight == lfFont->lfWeight &&
+        fiElement->lfFont.lfItalic == lfFont->lfItalic &&
+        fiElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
-      if (!xstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
-        return lpElement;
+      if (!xstrcmpiW(fiElement->lfFont.lfFaceName, lfFont->lfFaceName))
+        return fiElement;
     }
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
-void StackFontItemsFree(HSTACK *hStack)
+void StackFontItemsFree(STACKFONT *hStack)
 {
-  FONTITEM *lpElement=(FONTITEM *)hStack->first;
+  FONTITEM *fiElement;
 
-  while (lpElement)
+  for (fiElement=hStack->first; fiElement; fiElement=fiElement->next)
   {
-    if (lpElement->hFont) DeleteObject(lpElement->hFont);
+    if (fiElement->hFont) DeleteObject(fiElement->hFont);
 
-    lpElement=lpElement->next;
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -20951,15 +20915,15 @@ HWND NextDialog(BOOL bPrevious)
   else
   {
     //Dockable windows
-    DOCK *dkElement=NULL;
+    DOCK *lpDock=NULL;
     HWND hWndFocus=GetFocus();
 
     if (hWndFocus)
     {
       if (!IsEditActive(hWndFocus) && hWndFocus != hMdiClient)
-        dkElement=StackDockFindWindow(&hDocksStack, hWndFocus, TRUE);
+        lpDock=StackDockFindWindow(&hDocksStack, hWndFocus, TRUE);
 
-      hWndNext=StackDockNextWindow(&hDocksStack, dkElement, bPrevious);
+      hWndNext=StackDockNextWindow(&hDocksStack, lpDock, bPrevious);
     }
     if (!hWndNext) hWndNext=hMainWnd;
     SetFocus(hWndNext);
