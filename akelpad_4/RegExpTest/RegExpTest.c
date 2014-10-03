@@ -560,6 +560,18 @@ void _WinMain()
   TextReplaceRE(L"a1a2a3a", L"(a.+?)\\d", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]a3a")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"a123a456a789", L"(a\\d+)++a", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"a123a456a789")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"a123a456a789", L"(a\\d+)+?a", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]456a789")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"a123a456a789", L"(a\\d+)+a", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]789")) goto Error;
+
   //Test performance
   nStartTime=GetTickCount();
   nLine=__LINE__;

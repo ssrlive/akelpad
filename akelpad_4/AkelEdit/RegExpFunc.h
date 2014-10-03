@@ -262,7 +262,7 @@ REGROUP* PatGetGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* PatGetMatchedGroup(STACKREGROUP *hStack, int nIndex);
 REGROUP* PatNextGroup(REGROUP *lpREGroupItem);
 REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem);
-REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem);
+REGROUP* PatNextGroupForExec(REGROUP *lpREGroupItem);
 REGROUP* PatPrevGroup(REGROUP *lpREGroupItem);
 INT_PTR PatGroupStr(PATGROUPSTR *pgs);
 void PatReset(STACKREGROUP *hStack);
@@ -276,7 +276,7 @@ void PatFree(STACKREGROUP *hStack);
   INT_PTR AE_PatStrCmp(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
   INT_PTR AE_PatStrSub(const AECHARINDEX *ciStart, const AECHARINDEX *ciEnd);
   REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
-  REGROUP* AE_PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem);
+  REGROUP* AE_PatNextGroupForExec(REGROUP *lpREGroupItem);
   void AE_PatReset(STACKREGROUP *hStack);
 #endif
 
@@ -1119,7 +1119,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
         {
           MatchNext:
-          if (lpREGroupNextNext=PatNextGroupNoChildNoOR(lpREGroupItem))
+          if (lpREGroupNextNext=PatNextGroupForExec(lpREGroupItem))
           {
             if (lpREGroupNextNext->nSelfExec)
             {
@@ -2042,8 +2042,9 @@ REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem)
   return lpREGroupItem;
 }
 
-REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
+REGROUP* PatNextGroupForExec(REGROUP *lpREGroupItem)
 {
+  //No childrens, no REGF_OR
   REGROUP *lpREGroupNext=lpREGroupItem;
 
   for (;;)
@@ -2062,30 +2063,35 @@ REGROUP* PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
       break;
 
     //nSelfExec
-    if (lpREGroupNext->parent &&
-        //str - "dac", find "(a|d)+"
-        !(lpREGroupNext->dwFlags & REGF_ORPARENT) &&
-        (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMinMatch)
+    if (lpREGroupNext->parent)
     {
-      //str - "A", find "(A*+B?)*+"
-      if (lpREGroupNext->nSelfExec == 0)
-      {
-        //Deny execute parent if children not match anything
-        if (lpREGroupItem->wpStrEnd <= lpREGroupNext->wpStrStart)
-          return NULL;
-      }
-      else
-      {
-        //Deny execute parent if no progress since last exec
-        if (lpREGroupItem->wpStrEnd <= lpREGroupNext->wpStrEnd)
-          return NULL;
-      }
-      lpREGroupNext->wpStrEnd=lpREGroupItem->wpStrEnd;
-      lpREGroupNext->nStrLen=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+      if (lpREGroupNext->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE))
+        return NULL;
 
-      ++lpREGroupNext->nSelfMatch;
-      ++lpREGroupNext->nSelfExec;
-      break;
+      //str - "dac", find "(a|d)+"
+      if (!(lpREGroupNext->dwFlags & REGF_ORPARENT) &&
+        (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMinMatch)
+      {
+        //str - "A", find "(A*+B?)*+"
+        if (lpREGroupNext->nSelfExec == 0)
+        {
+          //Deny execute parent if children not match anything
+          if (lpREGroupItem->wpStrEnd <= lpREGroupNext->wpStrStart)
+            return NULL;
+        }
+        else
+        {
+          //Deny execute parent if no progress since last exec
+          if (lpREGroupItem->wpStrEnd <= lpREGroupNext->wpStrEnd)
+            return NULL;
+        }
+        lpREGroupNext->wpStrEnd=lpREGroupItem->wpStrEnd;
+        lpREGroupNext->nStrLen=lpREGroupNext->wpStrEnd - lpREGroupNext->wpStrStart;
+
+        ++lpREGroupNext->nSelfMatch;
+        ++lpREGroupNext->nSelfExec;
+        break;
+      }
     }
   }
   return lpREGroupNext;
@@ -2340,7 +2346,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
         {
           MatchNext:
-          if (lpREGroupNextNext=AE_PatNextGroupNoChildNoOR(lpREGroupItem))
+          if (lpREGroupNextNext=AE_PatNextGroupForExec(lpREGroupItem))
           {
             if (lpREGroupNextNext->nSelfExec)
             {
@@ -2981,8 +2987,9 @@ REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
   return lpREGroupItem;
 }
 
-REGROUP* AE_PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
+REGROUP* AE_PatNextGroupForExec(REGROUP *lpREGroupItem)
 {
+  //No childrens, no REGF_OR
   REGROUP *lpREGroupNext=lpREGroupItem;
 
   for (;;)
@@ -3001,31 +3008,36 @@ REGROUP* AE_PatNextGroupNoChildNoOR(REGROUP *lpREGroupItem)
       break;
 
     //nSelfExec
-    if (lpREGroupNext->parent &&
-        //str - "dac", find "(a|d)+"
-        !(lpREGroupNext->dwFlags & REGF_ORPARENT) &&
-        (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMaxMatch)
+    if (lpREGroupNext->parent)
     {
-      //str - "A", find "(A*+B?)*+"
-      if (lpREGroupNext->nSelfExec == 0)
-      {
-        //Deny execute parent if children not match anything
-        if (AEC_IndexCompare(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrStart) <= 0)
-          return NULL;
-        lpREGroupNext->nStrLen=AE_PatStrSub(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrStart);
-      }
-      else
-      {
-        //Deny execute parent if no progress since last exec
-        if (AEC_IndexCompare(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrEnd) <= 0)
-          return NULL;
-        lpREGroupNext->nStrLen+=AE_PatStrSub(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrEnd);
-      }
-      lpREGroupNext->ciStrEnd=lpREGroupItem->ciStrEnd;
+      if (lpREGroupNext->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE))
+        return NULL;
 
-      ++lpREGroupNext->nSelfMatch;
-      ++lpREGroupNext->nSelfExec;
-      break;
+      //str - "dac", find "(a|d)+"
+      if (!(lpREGroupNext->dwFlags & REGF_ORPARENT) &&
+          (DWORD)lpREGroupNext->nSelfMatch + 1 < (DWORD)lpREGroupNext->nMinMatch)
+      {
+        //str - "A", find "(A*+B?)*+"
+        if (lpREGroupNext->nSelfExec == 0)
+        {
+          //Deny execute parent if children not match anything
+          if (AEC_IndexCompare(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrStart) <= 0)
+            return NULL;
+          lpREGroupNext->nStrLen=AE_PatStrSub(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrStart);
+        }
+        else
+        {
+          //Deny execute parent if no progress since last exec
+          if (AEC_IndexCompare(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrEnd) <= 0)
+            return NULL;
+          lpREGroupNext->nStrLen+=AE_PatStrSub(&lpREGroupItem->ciStrEnd, &lpREGroupNext->ciStrEnd);
+        }
+        lpREGroupNext->ciStrEnd=lpREGroupItem->ciStrEnd;
+
+        ++lpREGroupNext->nSelfMatch;
+        ++lpREGroupNext->nSelfExec;
+        break;
+      }
     }
   }
   return lpREGroupNext;
