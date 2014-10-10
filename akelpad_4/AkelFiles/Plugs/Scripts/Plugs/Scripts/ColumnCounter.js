@@ -139,7 +139,7 @@ if (hWndEdit)
       while (++nIndex < pLinesArray.length)
 
       pSelText=pLinesArray.join("\r");
-      AkelPad.ReplaceSel(pSelText, true);
+      AkelPad.ReplaceSel(pSelText, -2);
     }
   }
   else AkelPad.MessageBox(hMainWnd, GetLangString(0), WScript.ScriptName, 48 /*MB_ICONEXCLAMATION*/);

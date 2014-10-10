@@ -104,6 +104,8 @@ RECT rcMainCurrentDialog={0};
 int nColumnWidth1=163;
 int nColumnWidth2=109;
 int nColumnWidth3=70;
+BOOL bOpeningDlg=FALSE;
+BOOL bContentFilterEnable=FALSE;
 DWORD dwGlobalDebugJIT=JIT_FROMSTART;
 BOOL bGlobalDebugEnable=FALSE;
 DWORD dwGlobalDebugCode=0;
@@ -114,6 +116,7 @@ wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
 wchar_t wszLastScript[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
+wchar_t wszContentFilter[MAX_PATH]=L"";
 HTHREADSTACK hThreadStack={0};
 SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
 HANDLE hExecThread=NULL;
@@ -222,6 +225,8 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndScriptsFilter;
+  static HWND hWndScriptsContentFilterEnable;
+  static HWND hWndScriptsContentFilterButton;
   static HWND hWndChangeListGroup;
   static HWND hWndExecButton;
   static HWND hWndEditButton;
@@ -235,33 +240,40 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCloseButton;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndScriptsList,            DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsList,            DRS_SIZE|DRS_Y, 0},
-                             {&hWndScriptsFilter,          DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsFilter,          DRS_MOVE|DRS_Y, 0},
-                             {&hWndChangeListGroup,        DRS_MOVE|DRS_X, 0},
-                             {&hWndExecButton,             DRS_MOVE|DRS_X, 0},
-                             {&hWndEditButton,             DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndAssignButton,           DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugGroup,             DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITCheck,          DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITFromStartCheck, DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeCheck,         DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeButton,        DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,            DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,            DRS_MOVE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndScriptsList,                DRS_SIZE|DRS_X, 0},
+                             {&hWndScriptsList,                DRS_SIZE|DRS_Y, 0},
+                             {&hWndScriptsFilter,              DRS_SIZE|DRS_X, 0},
+                             {&hWndScriptsFilter,              DRS_MOVE|DRS_Y, 0},
+                             {&hWndScriptsContentFilterEnable, DRS_MOVE|DRS_X, 0},
+                             {&hWndScriptsContentFilterEnable, DRS_MOVE|DRS_Y, 0},
+                             {&hWndScriptsContentFilterButton, DRS_MOVE|DRS_X, 0},
+                             {&hWndScriptsContentFilterButton, DRS_MOVE|DRS_Y, 0},
+                             {&hWndChangeListGroup,            DRS_MOVE|DRS_X, 0},
+                             {&hWndExecButton,                 DRS_MOVE|DRS_X, 0},
+                             {&hWndEditButton,                 DRS_MOVE|DRS_X, 0},
+                             {&hWndHotkey,                     DRS_MOVE|DRS_X, 0},
+                             {&hWndAssignButton,               DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugGroup,                 DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugJITCheck,              DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugJITFromStartCheck,     DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugCodeCheck,             DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugCodeButton,            DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,                DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,                DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
     LVCOLUMNW lvc;
 
+    bOpeningDlg=TRUE;
     hWndMainDlg=hDlg;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hPluginIcon);
     hWndScriptsList=GetDlgItem(hDlg, IDC_SCRIPTS_LIST);
     hWndScriptsFilter=GetDlgItem(hDlg, IDC_SCRIPTS_FILTER);
+    hWndScriptsContentFilterEnable=GetDlgItem(hDlg, IDC_SCRIPTS_CONTENTFILTER_ENABLE);
+    hWndScriptsContentFilterButton=GetDlgItem(hDlg, IDC_SCRIPTS_CONTENTFILTER_BUTTON);
     hWndChangeListGroup=GetDlgItem(hDlg, IDC_CHANGELIST_GROUP);
     hWndExecButton=GetDlgItem(hDlg, IDC_EXEC);
     hWndEditButton=GetDlgItem(hDlg, IDC_EDIT);
@@ -289,6 +301,14 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     EnableWindow(hWndAssignButton, FALSE);
     SendMessage(hWndScriptsList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
+
+    if (bContentFilterEnable)
+      SendMessage(hWndScriptsContentFilterEnable, BM_SETCHECK, BST_CHECKED, 0);
+    else
+      EnableWindow(hWndScriptsContentFilterButton, FALSE);
+    //Set button text
+    xprintfW(wszBuffer, L"%s%s", GetLangStringW(wLangModule, STRID_CONTAIN), *wszContentFilter?L" *":L"");
+    SetWindowTextWide(hWndScriptsContentFilterButton, wszBuffer);
 
     if (dwGlobalDebugJIT & JIT_DEBUG)
       SendMessage(hWndDebugJITCheck, BM_SETCHECK, BST_CHECKED, 0);
@@ -324,10 +344,12 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ListView_InsertColumnWide(hWndScriptsList, LVI_SCRIPT_STATUS, &lvc);
 
     SetWindowTextWide(hWndScriptsFilter, wszFilter);
-    FillScriptList(hWndScriptsList, wszFilter);
+    FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
 
     lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC, (UINT_PTR)NewFilterProc);
+
+    bOpeningDlg=FALSE;
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -368,8 +390,37 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (HIWORD(wParam) == EN_CHANGE)
       {
+        if (!bOpeningDlg)
+        {
+          SendMessage(hWndScriptsContentFilterEnable, BM_SETCHECK, BST_UNCHECKED, 0);
+          bContentFilterEnable=FALSE;
+          EnableWindow(hWndScriptsContentFilterButton, bContentFilterEnable);
+        }
         GetWindowTextWide(hWndScriptsFilter, wszFilter, MAX_PATH);
-        FillScriptList(hWndScriptsList, wszFilter);
+        FillScriptList(hWndScriptsList, wszFilter, NULL);
+      }
+    }
+    else if (LOWORD(wParam) == IDC_SCRIPTS_CONTENTFILTER_ENABLE)
+    {
+      bContentFilterEnable=(BOOL)SendMessage(hWndScriptsContentFilterEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndScriptsContentFilterButton, bContentFilterEnable);
+      if (*wszContentFilter) FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
+    }
+    else if (LOWORD(wParam) == IDC_SCRIPTS_CONTENTFILTER_BUTTON)
+    {
+      VARIANT vtResult;
+
+      Document_InputBox(NULL, hDlg, (BSTR)GetLangStringW(wLangModule, STRID_CONTAIN), (BSTR)L"", wszContentFilter, &vtResult);
+
+      if (vtResult.vt == VT_BSTR)
+      {
+        xstrcpynW(wszContentFilter, vtResult.bstrVal, MAX_PATH);
+        SysFreeString(vtResult.bstrVal);
+        FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
+
+        //Set button text
+        xprintfW(wszBuffer, L"%s%s", GetLangStringW(wLangModule, STRID_CONTAIN), *wszContentFilter?L" *":L"");
+        SetWindowTextWide(hWndScriptsContentFilterButton, wszBuffer);
       }
     }
     else if (LOWORD(wParam) == IDC_ASSIGN)
@@ -521,7 +572,22 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (LOWORD(wParam) == IDC_EXEC)
         ExecScript(wszLastScript, NULL, FALSE);
       else if (LOWORD(wParam) == IDC_EDIT)
+      {
         EditScript(wszLastScript);
+
+        //Find text, if content filter exist
+        if (bContentFilterEnable && *wszContentFilter)
+        {
+          INT_PTR nResult;
+          BSTR wszContentFilterSys;
+
+          if (wszContentFilterSys=SysAllocString(wszContentFilter))
+          {
+            Document_TextFind(NULL, NULL, wszContentFilterSys, FRF_BEGINNING|FRF_DOWN, &nResult);
+            SysFreeString(wszContentFilterSys);
+          }
+        }
+      }
       return TRUE;
     }
   }
@@ -678,15 +744,18 @@ BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey)
   }
 }
 
-void FillScriptList(HWND hWnd, const wchar_t *wpFilter)
+void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContentFilter)
 {
   SCRIPTTHREAD *lpScriptThread;
+  PLUGINFUNCTION *pfElement;
   WIN32_FIND_DATAW wfd;
   HANDLE hFind;
   wchar_t wszFindFiles[MAX_PATH];
   wchar_t wszHotkey[MAX_PATH];
   const wchar_t *wpExt;
+  wchar_t *wpContent;
   LVITEMW lvi;
+  INT_PTR nContentLen;
   int nIndexToSelect=-1;
   int nIndex;
   int i=0;
@@ -704,56 +773,65 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter)
     {
       if (wfd.cFileName[0] == '.' && (wfd.cFileName[1] == '\0' || (wfd.cFileName[1] == '.' && wfd.cFileName[2] == '\0'))) continue;
 
-      if (wpExt=GetFileExt(wfd.cFileName, -1))
+      if (!(wpExt=GetFileExt(wfd.cFileName, -1)))
+        continue;
+      if (xstrcmpiW(wpExt, L"js") && xstrcmpiW(wpExt, L"vbs"))
+        continue;
+      if (wpFilter && *wpFilter && !xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL))
+        continue;
+      if (bContentFilterEnable && wpContentFilter && *wpContentFilter)
       {
-        if ((!xstrcmpiW(wpExt, L"js") || !xstrcmpiW(wpExt, L"vbs")) &&
-            (!wpFilter || !*wpFilter || xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL)))
+        xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
+        if (nContentLen=ReadFileContent(wszFindFiles, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
         {
-          PLUGINFUNCTION *pfElement=NULL;
-
-          lvi.mask=LVIF_TEXT;
-          lvi.pszText=wfd.cFileName;
-          lvi.iItem=i++;
-          lvi.iSubItem=LVI_SCRIPT_FILE;
-          nIndex=ListView_InsertItemWide(hWnd, &lvi);
-
-          if (nIndexToSelect < 0)
-          {
-            if (!xstrcmpiW(wfd.cFileName, wszLastScript))
-              nIndexToSelect=nIndex;
-          }
-          else if (nIndexToSelect >= nIndex)
-            ++nIndexToSelect;
-
-          //Find hotkey
-          xprintfW(wszBuffer, L"Scripts::Main::%s", wfd.cFileName);
-          pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wszBuffer, 0);
-
-          if (pfElement)
-          {
-            lvi.mask=LVIF_PARAM;
-            lvi.iItem=nIndex;
-            lvi.iSubItem=LVI_SCRIPT_FILE;
-            lvi.lParam=pfElement->wHotkey;
-            ListView_SetItemWide(hWnd, &lvi);
-
-            GetHotkeyString(pfElement->wHotkey, wszHotkey);
-            lvi.mask=LVIF_TEXT;
-            lvi.pszText=wszHotkey;
-            lvi.iItem=nIndex;
-            lvi.iSubItem=LVI_SCRIPT_HOTKEY;
-            ListView_SetItemWide(hWnd, &lvi);
-          }
-
-          if (lpScriptThread=StackGetScriptThreadByName(&hThreadStack, wfd.cFileName))
-          {
-            lvi.mask=LVIF_TEXT;
-            lvi.pszText=(wchar_t *)(lpScriptThread->bWaiting?GetLangStringW(wLangModule, STRID_WAITING):GetLangStringW(wLangModule, STRID_RUNNING));
-            lvi.iItem=nIndex;
-            lvi.iSubItem=LVI_SCRIPT_STATUS;
-            ListView_SetItemWide(hWnd, &lvi);
-          }
+          if (!xstrstrW(wpContent, nContentLen, wpContentFilter, -1, FALSE, NULL, NULL))
+            nContentLen=0;
+          SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
         }
+        if (!nContentLen) continue;
+      }
+
+      lvi.mask=LVIF_TEXT;
+      lvi.pszText=wfd.cFileName;
+      lvi.iItem=i++;
+      lvi.iSubItem=LVI_SCRIPT_FILE;
+      nIndex=ListView_InsertItemWide(hWnd, &lvi);
+
+      if (nIndexToSelect < 0)
+      {
+        if (!xstrcmpiW(wfd.cFileName, wszLastScript))
+          nIndexToSelect=nIndex;
+      }
+      else if (nIndexToSelect >= nIndex)
+        ++nIndexToSelect;
+
+      //Find hotkey
+      xprintfW(wszBuffer, L"Scripts::Main::%s", wfd.cFileName);
+      pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wszBuffer, 0);
+
+      if (pfElement)
+      {
+        lvi.mask=LVIF_PARAM;
+        lvi.iItem=nIndex;
+        lvi.iSubItem=LVI_SCRIPT_FILE;
+        lvi.lParam=pfElement->wHotkey;
+        ListView_SetItemWide(hWnd, &lvi);
+
+        GetHotkeyString(pfElement->wHotkey, wszHotkey);
+        lvi.mask=LVIF_TEXT;
+        lvi.pszText=wszHotkey;
+        lvi.iItem=nIndex;
+        lvi.iSubItem=LVI_SCRIPT_HOTKEY;
+        ListView_SetItemWide(hWnd, &lvi);
+      }
+
+      if (lpScriptThread=StackGetScriptThreadByName(&hThreadStack, wfd.cFileName))
+      {
+        lvi.mask=LVIF_TEXT;
+        lvi.pszText=(wchar_t *)(lpScriptThread->bWaiting?GetLangStringW(wLangModule, STRID_WAITING):GetLangStringW(wLangModule, STRID_RUNNING));
+        lvi.iItem=nIndex;
+        lvi.iSubItem=LVI_SCRIPT_STATUS;
+        ListView_SetItemWide(hWnd, &lvi);
       }
     }
     while (FindNextFileWide(hFind, &wfd));
@@ -1637,6 +1715,27 @@ DWORD ScrollCaret(HWND hWnd)
   return (DWORD)SendMessage(hWnd, AEM_SCROLLTOPOINT, 0, (LPARAM)&stp);
 }
 
+int SaveLineScroll(HWND hWnd)
+{
+  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+  return (int)SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
+}
+
+void RestoreLineScroll(HWND hWnd, int nBeforeLine)
+{
+  if ((int)SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != nBeforeLine)
+  {
+    POINT64 ptScrollPos;
+
+    ptScrollPos.x=-1;
+    ptScrollPos.y=SendMessage(hWnd, AEM_VPOSFROMLINE, AECT_GLOBAL, nBeforeLine);
+    SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
+  }
+  SendMessage(hWnd, AEM_UPDATECARET, 0, 0);
+  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+  InvalidateRect(hWnd, NULL, TRUE);
+}
+
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
@@ -1864,6 +1963,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0420\x0430\x0431\x043E\x0442\x0430\x0435\x0442";
     if (nStringID == STRID_WAITING)
       return L"\x041E\x0436\x0438\x0434\x0430\x0435\x0442";
+    if (nStringID == STRID_CONTAIN)
+      return L"\x0421\x043E\x0434\x0435\x0440\x0436\x0438\x0442";
     if (nStringID == STRID_EXEC)
       return L"\x0417\x0430\x043F\x0443\x0441\x0442\x0438\x0442\x044C";
     if (nStringID == STRID_EDIT)
@@ -1941,6 +2042,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Running";
     if (nStringID == STRID_WAITING)
       return L"Waiting";
+    if (nStringID == STRID_CONTAIN)
+      return L"Contain";
     if (nStringID == STRID_EXEC)
       return L"Exec";
     if (nStringID == STRID_EDIT)

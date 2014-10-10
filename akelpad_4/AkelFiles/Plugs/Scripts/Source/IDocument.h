@@ -47,7 +47,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_SetSel)(THIS_ INT_PTR, INT_PTR, DWORD, DWORD) PURE;
   STDMETHOD_(HRESULT, Document_GetSelText)(THIS_ int, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetTextRange)(THIS_ INT_PTR, INT_PTR, int, BSTR *) PURE;
-  STDMETHOD_(HRESULT, Document_ReplaceSel)(THIS_ BSTR, BOOL) PURE;
+  STDMETHOD_(HRESULT, Document_ReplaceSel)(THIS_ BSTR, int) PURE;
   STDMETHOD_(HRESULT, Document_TextFind)(THIS_ HWND, BSTR, DWORD, INT_PTR *) PURE;
   STDMETHOD_(HRESULT, Document_TextReplace)(THIS_ HWND, BSTR, BSTR, DWORD, BOOL, INT_PTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetClipboardText)(THIS_ BOOL, BSTR *) PURE;
@@ -132,6 +132,11 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 //Document_WriteFile flags
 #define WFF_WRITEREADONLY  0x1
 #define WFF_APPENDFILE     0x2
+
+//Document_ReplaceSel selection type
+#define RST_NONE                 0
+#define RST_SELECT               -1
+#define RST_SELECTRESTORESCROLL  -2
 
 //Document_WindowSubClass window handle
 #define WSC_MAINPROC     1
@@ -324,7 +329,7 @@ HRESULT STDMETHODCALLTYPE Document_SetSel(IDocument *this, INT_PTR nSelStart, IN
 HRESULT STDMETHODCALLTYPE Document_GetSelText(IDocument *this, int nNewLine, BSTR *wpText);
 HRESULT STDMETHODCALLTYPE Document_GetTextRange(IDocument *this, INT_PTR nRangeStart, INT_PTR nRangeEnd, int nNewLine, BSTR *wpText);
 HRESULT GetTextRange(HWND hWnd, INT_PTR nRangeStart, INT_PTR nRangeEnd, int nNewLine, BOOL bColumnSel, BSTR *wpText);
-HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, BOOL bSelect);
+HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, int nSelect);
 HRESULT STDMETHODCALLTYPE Document_TextFind(IDocument *this, HWND hWnd, BSTR wpFindIt, DWORD dwFlags, INT_PTR *nResult);
 HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, HWND hWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFlags, BOOL bAll, INT_PTR *nResult);
 HRESULT STDMETHODCALLTYPE Document_GetClipboardText(IDocument *this, BOOL bAnsi, BSTR *wpText);

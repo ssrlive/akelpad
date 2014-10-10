@@ -53,13 +53,14 @@
 #define STRID_STATUS                28
 #define STRID_RUNNING               29
 #define STRID_WAITING               30
-#define STRID_EXEC                  31
-#define STRID_EDIT                  32
-#define STRID_ASSIGN                33
-#define STRID_PLUGIN                34
-#define STRID_OK                    35
-#define STRID_CANCEL                36
-#define STRID_CLOSE                 37
+#define STRID_CONTAIN               31
+#define STRID_EXEC                  32
+#define STRID_EDIT                  33
+#define STRID_ASSIGN                34
+#define STRID_PLUGIN                35
+#define STRID_OK                    36
+#define STRID_CANCEL                37
+#define STRID_CLOSE                 38
 
 #define OF_RECT        0x1
 #define OF_LASTSCRIPT  0x2
@@ -203,7 +204,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
-void FillScriptList(HWND hWnd, const wchar_t *wpFilter);
+void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContentFilter);
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
@@ -238,6 +239,8 @@ const char* GetFileNameAnsi(const char *pFile, int nFileLen);
 const wchar_t* GetFileNameWide(const wchar_t *wpFile, int nFileLen);
 int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen);
 DWORD ScrollCaret(HWND hWnd);
+int SaveLineScroll(HWND hWnd);
+void RestoreLineScroll(HWND hWnd, int nBeforeLine);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);

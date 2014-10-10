@@ -151,7 +151,7 @@ library Scripts
     HRESULT GetTextRange([in] MYINT nRangeStart, [in] MYINT nRangeEnd, [in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
 
     //Replace selection.
-    HRESULT ReplaceSel([in] BSTR wpText, [in, defaultvalue(FALSE)] BOOL bSelect);
+    HRESULT ReplaceSel([in] BSTR wpText, [in, defaultvalue(0)] int nSelect);
 
     //Find text.
     HRESULT TextFind([in] MYHANDLE hWnd, [in] BSTR wpFindIt, [in] DWORD dwFlags, [out, retval] MYRETINT *nResult);
