@@ -752,14 +752,15 @@ __________________
 
 Replace selection.
 
-  ReplaceSel(pText[, bSelect]);
+  ReplaceSel(pText[, nSelect]);
 
 Arguments
   pText
     Text to replace with.
-  bSelect
-    true   select inserted text.
-    false  don't select inserted text (default).
+  nSelect
+     0  //RST_NONE                 don't select inserted text (default).
+    -1  //RST_SELECT               select inserted text.
+    -2  //RST_SELECTRESTORESCROLL  select inserted text and restore scroll position.
 
 Return Value
   Zero.

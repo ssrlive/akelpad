@@ -52,7 +52,7 @@ if (hWndEdit)
       {
         if (AkelPad.MessageBox(hMainWnd, GetLangString(3), WScript.ScriptName, 36 /*MB_ICONQUESTION|MB_YESNO*/) == 6 /*IDYES*/)
         {
-          AkelPad.ReplaceSel(pTextOut.substr(0, pTextOut.length - 1), true);
+          AkelPad.ReplaceSel(pTextOut.substr(0, pTextOut.length - 1), -2);
         }
       }
     }

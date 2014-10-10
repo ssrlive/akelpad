@@ -8,7 +8,7 @@
 //// Вставить содержимое файла.
 
 //Options
-var pFilter="Text files (*.txt)\x00*.txt\x00All Files (*.*)\x00*.*\x00\x00";
+var pFilter=GetLangString(0);
 var nFilterIndex=2;
 
 //Variables
@@ -24,7 +24,7 @@ if (hWndEdit)
   {
     if (pText=AkelPad.ReadFile(pFile))
     {
-      AkelPad.ReplaceSel(pText, true);
+      AkelPad.ReplaceSel(pText, -2);
     }
   }
 }
@@ -87,4 +87,21 @@ function FileDialog(bOpenTrueSaveFalse, hWnd, pInitialFile, pFilter, nFilterInde
     AkelPad.MemFree(lpFilterBuffer);
   }
   return pResultFile;
+}
+
+function GetLangString(nStringID)
+{
+  var nLangID=AkelPad.GetLangId(1 /*LANGID_PRIMARY*/);
+
+  if (nLangID == 0x19) //LANG_RUSSIAN
+  {
+    if (nStringID == 0)
+      return "\u0422\u0435\u043A\u0441\u0442\u043E\u0432\u044B\u0435\u0020\u0444\u0430\u0439\u043B\u044B\u0020(*.txt)\x00*.txt\x00\u0412\u0441\u0435\u0020\u0444\u0430\u0439\u043B\u044B (*.*)\x00*.*\x00\x00";
+  }
+  else
+  {
+    if (nStringID == 0)
+      return "Text files (*.txt)\x00*.txt\x00All Files (*.*)\x00*.*\x00\x00";
+  }
+  return "";
 }

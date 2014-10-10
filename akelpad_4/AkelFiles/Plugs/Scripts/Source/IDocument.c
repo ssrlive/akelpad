@@ -789,7 +789,7 @@ HRESULT GetTextRange(HWND hWnd, INT_PTR nRangeStart, INT_PTR nRangeEnd, int nNew
   return hr;
 }
 
-HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, BOOL bSelect)
+HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, int nSelect)
 {
   HWND hWndCurEdit;
 
@@ -801,6 +801,13 @@ HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, BOOL
       AESELECTION aesInitial;
       AESELECTION aesNew;
       AECHARINDEX ciInitialCaret;
+      int nFirstLine;
+
+      if (nSelect == RST_SELECTRESTORESCROLL)
+      {
+        //Save scroll
+        nFirstLine=SaveLineScroll(hWndCurEdit);
+      }
 
       SendMessage(hWndCurEdit, AEM_GETSEL, (WPARAM)&ciInitialCaret, (LPARAM)&aesInitial);
       rs.pText=wpText;
@@ -811,7 +818,7 @@ HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, BOOL
       rs.ciInsertEnd=&aesNew.crSel.ciMax;
       SendMessage(hWndCurEdit, AEM_REPLACESELW, 0, (LPARAM)&rs);
 
-      if (bSelect)
+      if (nSelect == RST_SELECT || nSelect == RST_SELECTRESTORESCROLL)
       {
         aesNew.dwFlags=aesInitial.dwFlags;
         aesNew.dwType=aesInitial.dwType;
@@ -819,6 +826,11 @@ HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, BOOL
           SendMessage(hWndCurEdit, AEM_SETSEL, (WPARAM)&aesNew.crSel.ciMin, (LPARAM)&aesNew);
         else
           SendMessage(hWndCurEdit, AEM_SETSEL, (WPARAM)&aesNew.crSel.ciMax, (LPARAM)&aesNew);
+      }
+      if (nSelect == RST_SELECTRESTORESCROLL)
+      {
+        //Restore scroll
+        RestoreLineScroll(hWndCurEdit, nFirstLine);
       }
     }
   }

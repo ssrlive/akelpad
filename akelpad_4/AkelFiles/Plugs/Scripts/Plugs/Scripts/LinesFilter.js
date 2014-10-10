@@ -501,9 +501,9 @@ function LinesFilter(bAllDocuments)
   var pSelText;
   var pArray;
   var pResult;
+  var nFirstLine;
   var nSelStart;
   var nSelEnd;
-  var nFirstLine;
   var bAtLineStart=false;
   var bAtLineEnd=false;
   var i;
@@ -520,6 +520,7 @@ function LinesFilter(bAllDocuments)
   for (;;)
   {
     hWndEditCur=AkelPad.GetEditWnd();
+    nFirstLine=SaveLineScroll(hWndEditCur);
     nSelStart=AkelPad.GetSelStart();
     nSelEnd=AkelPad.GetSelEnd();
     if (nSelStart == nSelEnd)
@@ -541,8 +542,7 @@ function LinesFilter(bAllDocuments)
       pResult=pSelText.replace(oPattern, "");
     }
 
-    nFirstLine=SaveLineScroll(hWndEditCur);
-    AkelPad.ReplaceSel(pResult, true);
+    AkelPad.ReplaceSel(pResult);
     RestoreLineScroll(hWndEditCur, nFirstLine);
 
     if (bAllDocuments)
