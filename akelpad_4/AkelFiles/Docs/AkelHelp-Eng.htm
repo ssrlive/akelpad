@@ -222,11 +222,29 @@
           <br>
           <div style="margin-top:10px">Variables available for use in methods:</div>
 
-          <div style="margin-left:30px;margin-top:10px">%%f - active file</div>
-          <div style="margin-left:30px">%%d - directory of active file</div>
-          <div style="margin-left:30px">%%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
-          <div style="margin-left:30px">%%%% - % symbol</div>
-          <div style="margin-left:30px">%system variable% (i.e. <i>Environment</i> variable)</div>
+          <table cellspacing=0 cellpadding=5 border=1>
+            <tr>
+              <td>Normal usage</td>
+              <td>Batch files (bat,cmd)</td>
+            </tr>
+            <tr>
+              <td>
+                <div style="margin-left:30px">%f - active file</div>
+                <div style="margin-left:30px">%d - directory of active file</div>
+                <div style="margin-left:30px">%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
+                <div style="margin-left:30px">%% - % symbol</div>
+                <div style="margin-left:30px">%system variable% (i.e. <i>environment</i> variable)</div>
+              </td>
+              <td>
+                <div style="margin-left:30px">%%f - active file</div>
+                <div style="margin-left:30px">%%d - directory of active file</div>
+                <div style="margin-left:30px">%%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
+                <div style="margin-left:30px">%%%% - % symbol</div>
+                <div style="margin-left:30px">%system variable% (i.e. <i>environment</i> variable)</div>
+              </td>
+            </tr>
+          </table>
+
         </td>
       </tr>
     </table>
