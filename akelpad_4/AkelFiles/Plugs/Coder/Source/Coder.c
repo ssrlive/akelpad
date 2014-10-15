@@ -161,6 +161,7 @@ int nVarThemesInternalCount=0;
 POINT ptTopVarIndex={0};
 BOOL bTopVarOpenScroll;
 BOOL bSyntaxFileLoadError;
+BOOL bSyntaxFileLoadMute=FALSE;
 WNDPROCDATA *NewMainProcData=NULL;
 WNDPROCDATA *NewFrameProcData=NULL;
 WNDPROCDATA *NewEditProcData=NULL;
@@ -4785,7 +4786,8 @@ int GetWord(wchar_t *wpText, wchar_t *wszWord, int nWordLenMax, wchar_t **wpNext
       {
         ++wpCount;
         xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_VARMISSING), lpLoadSyntaxFile?lpLoadSyntaxFile->wszSyntaxFileName:L"", wpCount - wpText, wpText, ((VARTHEME *)lpVarStack->lpVarThemeOwner)->wszVarThemeName);
-        MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+        if (!bSyntaxFileLoadMute && MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
+          bSyntaxFileLoadMute=TRUE;
         bSyntaxFileLoadError=TRUE;
         wpText=wpCount;
       }
@@ -4839,7 +4841,8 @@ INT_PTR ExpandVars(const wchar_t *wpString, INT_PTR nStringLen, wchar_t *wszBuff
       {
         ++wpVarCount;
         xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_VARMISSING), lpLoadSyntaxFile?lpLoadSyntaxFile->wszSyntaxFileName:L"", wpVarCount - wpSource, wpSource, ((VARTHEME *)lpVarStack->lpVarThemeOwner)->wszVarThemeName);
-        MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+        if (!bSyntaxFileLoadMute && MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
+          bSyntaxFileLoadMute=TRUE;
         bSyntaxFileLoadError=TRUE;
         wpSource=wpVarCount;
       }
@@ -5458,6 +5461,7 @@ void ReadSyntaxFiles()
     xprintfW(wszBuffer, L"%s\\cache", wszCoderDir);
     hIniFile=(HINIFILE)SendMessage(hMainWnd, AKD_INIOPENW, POB_READ, (LPARAM)wszBuffer);
   }
+  bSyntaxFileLoadMute=FALSE;
 
   if (hIniFile)
   {
@@ -6033,7 +6037,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_DELETEPROMPT)
       return L"\x0412\x044B\x0020\x0443\x0432\x0435\x0440\x0435\x043D\x044B\x002C\x0020\x0447\x0442\x043E\x0020\x0445\x043E\x0442\x0438\x0442\x0435\x0020\x0443\x0434\x0430\x043B\x0438\x0442\x044C\x0020\x0442\x0435\x043C\x0443 \"%s\"?";
     if (nStringID == STRID_VARMISSING)
-      return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x0443\x044E\x0020\x043F\x0435\x0440\x0435\x043C\x0435\x043D\x043D\x0443\x044E \"%.%ds\", \x043A\x043E\x0442\x043E\x0440\x0430\x044F\x0020\x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442\x0020\x0432\x0020\x0430\x043A\x0442\x0438\x0432\x043D\x043E\x0439\x0020\x0442\x0435\x043C\x0435 \"%s\".";
+      return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x0443\x044E\x0020\x043F\x0435\x0440\x0435\x043C\x0435\x043D\x043D\x0443\x044E \"%.%ds\", \x043A\x043E\x0442\x043E\x0440\x0430\x044F\x0020\x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442\x0020\x0432\x0020\x0430\x043A\x0442\x0438\x0432\x043D\x043E\x0439\x0020\x0442\x0435\x043C\x0435 \"%s\". \x041F\x0440\x043E\x0434\x043E\x043B\x0436\x0438\x0442\x044C\x003F";
     if (nStringID == STRID_REGEXP_COMPILEERROR)
       return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043E\x0448\x0438\x0431\x043A\x0443\x0020\x0432\x0020\x0440\x0435\x0433\x0443\x043B\x044F\x0440\x043D\x043E\x043C\x0020\x0432\x044B\x0440\x0430\x0436\x0435\x043D\x0438\x0438 \"%.%ds\"";
     if (nStringID == STRID_REGEXP_FIXEDLENGTH)
@@ -6259,7 +6263,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_DELETEPROMPT)
       return L"Are you sure you want to delete \"%s\" theme?";
     if (nStringID == STRID_VARMISSING)
-      return L"\"%s\" contain unknown variable \"%.%ds\" that doesn't exist in current theme \"%s\".";
+      return L"\"%s\" contain unknown variable \"%.%ds\" that doesn't exist in current theme \"%s\". Continue?";
     if (nStringID == STRID_REGEXP_COMPILEERROR)
       return L"\"%s\" contain non valid regular expression \"%.%ds\"";
     if (nStringID == STRID_REGEXP_FIXEDLENGTH)
