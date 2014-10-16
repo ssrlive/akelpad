@@ -18829,6 +18829,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   EXTPARAM *lpParameter;
   const wchar_t *wpAction;
   DWORD dwAction=0;
+  DWORD dwResult=0;
 
   if (*wpMethod == L'/')
     ++wpMethod;
@@ -18836,6 +18837,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   if (!xstrcmpinW(L"Show(", wpMethod, (UINT_PTR)-1))
   {
     DWORD dwCmdShow=(DWORD)xatoiW(wpMethod + 5, NULL);
+
     ShowWindow(hMainWnd, dwCmdShow);
   }
   else if (!xstrcmpinW(L"Command(", wpMethod, (UINT_PTR)-1))
@@ -18869,6 +18871,19 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   else if (!xstrcmpinW(L"Insert(", wpMethod, (UINT_PTR)-1))
   {
     dwAction=EXTACT_INSERT;
+  }
+  else if (!xstrcmpinW(L"Var(", wpMethod, (UINT_PTR)-1))
+  {
+    DWORD dwVarFlags=(DWORD)xatoiW(wpMethod + 4, NULL);
+
+    if (!(dwVarFlags & CLVF_SYSTEM))
+      dwCmdLineOptions|=CLO_VARNOSYSTEM;
+    else
+      dwCmdLineOptions&=~CLO_VARNOSYSTEM;
+    if (!(dwVarFlags & CLVF_AKELPAD))
+      dwCmdLineOptions|=CLO_VARNOAKELPAD;
+    else
+      dwCmdLineOptions&=~CLO_VARNOAKELPAD;
   }
 
   if (dwAction)
@@ -18974,7 +18989,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
           dwFlags|=OD_ADT_DETECT_BOM;
         nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNO && nOpen != EOD_WINDOW_EXIST)
-          return PCLE_END;
+          dwResult=PCLE_END;
       }
       else if (dwAction == EXTACT_SAVEFILE)
       {
@@ -18983,7 +18998,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         if (bBOM == -1)
           bBOM=lpFrameCurrent->ei.bBOM;
         if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
-          return PCLE_END;
+          dwResult=PCLE_END;
       }
     }
     else if (dwAction == EXTACT_FONT)
@@ -19083,7 +19098,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
     }
     FreeMethodParameters(&hParamStack);
   }
-  return 0;
+  return dwResult;
 }
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
@@ -19163,21 +19178,30 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
   wchar_t *wpSource;
   wchar_t *wszTarget;
   wchar_t *wpTarget;
-  int nStringLen;
+  int nSourceLen;
   int nTargetLen=0;
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
     if (lpParameter->dwType == EXTPARAM_CHAR)
     {
-      //Expand environment strings
-      nStringLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
-
-      if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
+      if (!(dwCmdLineOptions & CLO_VARNOSYSTEM))
       {
-        ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nStringLen);
+        //Expand environment strings
+        nSourceLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
+        if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nSourceLen * sizeof(wchar_t)))
+          nSourceLen=ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nSourceLen);
+      }
+      else
+      {
+        nSourceLen=xstrlenW(lpParameter->wpString) + 1;
+        if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nSourceLen * sizeof(wchar_t)))
+          nSourceLen=xstrcpynW(wszSource, lpParameter->wpString, nSourceLen);
+      }
 
-        //Expand plugin variables
+      //Expand AkelPad variables
+      if (!(dwCmdLineOptions & CLO_VARNOAKELPAD))
+      {
         wszTarget=NULL;
         wpTarget=NULL;
 
@@ -19238,32 +19262,38 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
             break;
           }
         }
-
-        if (wszTarget)
-        {
-          if (lpParameter->pExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->pExpanded);
-            lpParameter->pExpanded=NULL;
-          }
-          if (lpParameter->wpExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-            lpParameter->wpExpanded=NULL;
-          }
-          lpParameter->wpExpanded=wszTarget;
-          lpParameter->nExpandedUnicodeLen=nTargetLen;
-
-          if (bOldWindows)
-          {
-            lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
-            if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
-          }
-        }
-        GlobalFree((HGLOBAL)wszSource);
       }
+      else
+      {
+        wszTarget=wszSource;
+        nTargetLen=nSourceLen;
+      }
+
+      if (wszTarget)
+      {
+        if (lpParameter->pExpanded)
+        {
+          GlobalFree((HGLOBAL)lpParameter->pExpanded);
+          lpParameter->pExpanded=NULL;
+        }
+        if (lpParameter->wpExpanded)
+        {
+          GlobalFree((HGLOBAL)lpParameter->wpExpanded);
+          lpParameter->wpExpanded=NULL;
+        }
+        lpParameter->wpExpanded=wszTarget;
+        lpParameter->nExpandedUnicodeLen=nTargetLen;
+
+        if (bOldWindows)
+        {
+          lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
+          if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
+            WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
+          if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
+        }
+      }
+      if (wszSource != wszTarget)
+        GlobalFree((HGLOBAL)wszSource);
     }
   }
 }

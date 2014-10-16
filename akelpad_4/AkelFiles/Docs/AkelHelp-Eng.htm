@@ -219,7 +219,15 @@
           <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
             <div style="margin-left:60px">method replaces selection with "123".</div>
 
-          <br>
+          <div style="margin-top:10px"><li><b>/Var(Flags)</b></div>
+          <div style="margin-left:30px">Flags to use variables for the following command line methods. Set by the sum of members:</div>
+            <div style="margin-left:60px">0 don't expand variables.</div>
+            <div style="margin-left:60px">1 expand system variables (for example, %windir%).</div>
+            <div style="margin-left:60px">2 expand program variables %f,%d,%a. If flag set, then symbol % specified as %%.</div>
+            <div style="margin-left:60px">By default: 1+2=3.</div>
+          <div style="margin-left:30px">/Var(0) /OpenFile("1%a%2.txt")</div>
+            <div style="margin-left:60px">open file "1%a%2.txt".</div>
+
           <div style="margin-top:10px">Variables available for use in methods:</div>
 
           <table cellspacing=0 cellpadding=5 border=1>

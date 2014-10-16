@@ -112,6 +112,10 @@
 #define PCL_ONSHOW          1
 #define PCL_ONMESSAGE       2
 
+//Command line variable flags
+#define CLVF_SYSTEM          0x1
+#define CLVF_AKELPAD         0x2
+
 //Open file dialog
 #define IDC_OFN_LIST                   1120
 #define IDC_OFN_CODEPAGECOMBOBOX_LABEL 1089
