@@ -219,7 +219,15 @@
           <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
             <div style="margin-left:60px">метод заменяет выделение на "123".</div>
 
-          <br>
+          <div style="margin-top:10px"><li><b>/Var(Флаги)</b></div>
+          <div style="margin-left:30px">Флаги использования переменных для методов следующих далее в командной строке. Задается суммой членов:</div>
+            <div style="margin-left:60px">0 не разворачивать переменные.</div>
+            <div style="margin-left:60px">1 разворачивать системные переменные (например, %windir%).</div>
+            <div style="margin-left:60px">2 разворачивать переменные программы %f,%d,%a. Если флаг задан, то символ % указывается как %%.</div>
+            <div style="margin-left:60px">По умолчанию: 1+2=3.</div>
+          <div style="margin-left:30px">/Var(0) /OpenFile("1%a%2.txt")</div>
+            <div style="margin-left:60px">открыть файл "1%a%2.txt".</div>
+
           <div style="margin-top:10px">Переменные в методах:</div>
 
           <table cellspacing=0 cellpadding=5 border=1>
