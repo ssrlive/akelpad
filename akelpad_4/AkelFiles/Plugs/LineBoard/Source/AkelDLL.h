@@ -47,14 +47,16 @@
 #define HKO_HOTKEYSPLUGIN         2  //Hotkey assigned to Hotkeys plugin command.
 
 //Command line options
-#define CLO_NONOTEPADCMD          0x01  //Don't use MS Notepad compatibility mode when parse command line parameters.
-#define CLO_GLOBALPRINT           0x02  //Next opened file will be printed.
-#define CLO_MSGOPENCREATEYES      0x04  //Silently create new file, if doesn't exist.
-#define CLO_MSGOPENCREATENO       0x08  //Don't create new file, if doesn't exist.
-#define CLO_MSGOPENBINARYYES      0x10  //Silently open file, if binary.
-#define CLO_MSGOPENBINARYNO       0x20  //Don't open file, if binary.
-#define CLO_MSGSAVELOSTSYMBOLSYES 0x40  //Silently save file, even if symbols will be lost.
-#define CLO_MSGSAVELOSTSYMBOLSNO  0x80  //Don't save file, if symbols will be lost.
+#define CLO_NONOTEPADCMD          0x0001  //Don't use MS Notepad compatibility mode when parse command line parameters.
+#define CLO_GLOBALPRINT           0x0002  //Next opened file will be printed.
+#define CLO_MSGOPENCREATEYES      0x0004  //Silently create new file, if doesn't exist.
+#define CLO_MSGOPENCREATENO       0x0008  //Don't create new file, if doesn't exist.
+#define CLO_MSGOPENBINARYYES      0x0010  //Silently open file, if binary.
+#define CLO_MSGOPENBINARYNO       0x0020  //Don't open file, if binary.
+#define CLO_MSGSAVELOSTSYMBOLSYES 0x0040  //Silently save file, even if symbols will be lost.
+#define CLO_MSGSAVELOSTSYMBOLSNO  0x0080  //Don't save file, if symbols will be lost.
+#define CLO_VARNOSYSTEM           0x1000  //Don't expand system variables (for example, %windir%).
+#define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
 //AKD_PARSECMDLINE return value
 #define PCLE_QUIT    0x01  //Stop parsing command line parameters and close program.
