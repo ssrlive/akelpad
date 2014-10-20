@@ -251,7 +251,7 @@ wchar_t wszPluginTitle[MAX_PATH];
 HANDLE hHeap;
 HINSTANCE hInstanceEXE;
 HINSTANCE hInstanceDLL;
-HSTACK *hPluginsStack;
+STACKPLUGINFUNCTION *hPluginsStack;
 HWND hMainWnd;
 HWND hMdiClient;
 HMENU hMainMenu;
@@ -609,7 +609,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     EnableWindow(hWndMoveUpHotkey, FALSE);
     EnableWindow(hWndMoveDownHotkey, FALSE);
     EnableWindow(hWndDeleteHotkey, FALSE);
-    SendMessage(hWndMainList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+    SendMessage(hWndMainList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP);
 
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
     SetWindowTextWide(hWndFilter, wszMainFilter);
@@ -1431,7 +1431,7 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_ALLKEYS));
     SetDlgItemTextWide(hDlg, IDC_ALLKEYS_ONLYASSIGNED, GetLangStringW(wLangModule, STRID_ONLYASSIGNED));
 
-    SendMessage(hWndAllKeysList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+    SendMessage(hWndAllKeysList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP);
     SetWindowTextWide(hWndFilter, wszAllKeysFilter);
     if (bAllKeysOnlyAssigned) SendMessage(hWndOnlyAssigned, BM_SETCHECK, BST_CHECKED, 0);
 
@@ -1708,7 +1708,7 @@ void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilt
     wchar_t *wpStrEnd;
     int nFound;
 
-    for (pfElement=(PLUGINFUNCTION *)hPluginsStack->first; pfElement; pfElement=pfElement->next)
+    for (pfElement=hPluginsStack->first; pfElement; pfElement=pfElement->next)
     {
       dwHotkey=pfElement->wHotkey;
 
