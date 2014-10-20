@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v5.7                     *
+ *              String functions header v5.8                     *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1082,6 +1082,17 @@ INT_PTR xstrlenW(const wchar_t *wpString)
 #undef xstrcmpA
 int xstrcmpA(const char *pString1, const char *pString2)
 {
+  if (!pString1)
+  {
+    if (!pString2) return 0;
+    return -1;
+  }
+  if (!pString2)
+  {
+    if (!pString1) return 0;
+    return 1;
+  }
+
   while (*pString1)
   {
     if (*pString1 != *pString2)
@@ -1115,6 +1126,17 @@ int xstrcmpA(const char *pString1, const char *pString2)
 #undef xstrcmpW
 int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
 {
+  if (!wpString1)
+  {
+    if (!wpString2) return 0;
+    return -1;
+  }
+  if (!wpString2)
+  {
+    if (!wpString1) return 0;
+    return 1;
+  }
+
   while (*wpString1)
   {
     if (*wpString1 != *wpString2)
@@ -1149,6 +1171,17 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
 int xstrcmpiA(const char *pString1, const char *pString2)
 {
   INT_PTR nCompare;
+
+  if (!pString1)
+  {
+    if (!pString2) return 0;
+    return -1;
+  }
+  if (!pString2)
+  {
+    if (!pString1) return 0;
+    return 1;
+  }
 
   while (*pString1)
   {
@@ -1187,6 +1220,17 @@ int xstrcmpiA(const char *pString1, const char *pString2)
 int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
 {
   INT_PTR nCompare;
+
+  if (!wpString1)
+  {
+    if (!wpString2) return 0;
+    return -1;
+  }
+  if (!wpString2)
+  {
+    if (!wpString1) return 0;
+    return 1;
+  }
 
   while (*wpString1)
   {
@@ -1397,6 +1441,8 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
+  if (!pSrc)
+    return 0;
   if (!pDest)
     return xstrlenA(pSrc) + 1;
   if (pDest == pSrc)
@@ -1433,6 +1479,8 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
+  if (!wpSrc)
+    return 0;
   if (!wpDest)
     return xstrlenW(wpSrc) + 1;
   if (wpDest == wpSrc)
@@ -1471,12 +1519,12 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
+  if (!pSrc || !dwMaxLength)
+    return 0;
   if (!pDest)
     return xstrlenA(pSrc) + 1;
   if (pDest == pSrc)
     return xstrlenA(pSrc);
-  if (!dwMaxLength)
-    return 0;
 
   while (*pSrc && --dwMaxLength)
     *pDest++=*pSrc++;
@@ -1511,12 +1559,12 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
+  if (!wpSrc || !dwMaxLength)
+    return 0;
   if (!wpDest)
     return xstrlenW(wpSrc) + 1;
   if (wpDest == wpSrc)
     return xstrlenW(wpSrc);
-  if (!dwMaxLength)
-    return 0;
 
   while (*wpSrc && --dwMaxLength)
     *wpDest++=*wpSrc++;
@@ -1563,7 +1611,8 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
 
   if (nStrLen == -1)
     nStrLen=(int)xstrlenA(pStr);
-  if (!nStrLen) return FALSE;
+  if (!pText || !nStrLen)
+    return FALSE;
   if (nTextLen == -1)
     nTextLen=xstrlenA(pText) + 1;
   pStrMax=pStr + nStrLen;
@@ -1629,7 +1678,8 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
 
   if (nStrLen == -1)
     nStrLen=(int)xstrlenW(wpStr);
-  if (!nStrLen) return FALSE;
+  if (!wpText || !nStrLen)
+    return FALSE;
   if (nTextLen == -1)
     nTextLen=xstrlenW(wpText) + 1;
   wpStrMax=wpStr + nStrLen;
@@ -1710,7 +1760,8 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
 
   if (nItLen == -1)
     nItLen=(int)xstrlenA(pIt);
-  if (!nItLen) goto End;
+  if (!pText || !nItLen)
+    goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenA(pWith);
   if (nTextLen == -1)
@@ -1801,7 +1852,8 @@ int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int n
 
   if (nItLen == -1)
     nItLen=(int)xstrlenW(wpIt);
-  if (!nItLen) goto End;
+  if (!pText || !nItLen)
+    goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
   if (nTextLen == -1)
