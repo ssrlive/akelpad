@@ -85,7 +85,21 @@ Button creation:
       +Call("LineBoard::Main")
         method calls LineBoard plugin and Main function. Plug-in will work also after
         program restart.
-    Exec("command line"[, "working directory"])
+    Exec("command line"[, "working directory"][, Wait][, WindowStyle])
+      "command line"
+        Command line string.
+      "working directory"
+        Working directory string. Default is "".
+      Wait
+        Wait until the program finishes. 1 - wait, 0 - return immediately (default).
+      WindowStyle (one of the following):
+        0 hidden window.
+        1 window as is (by default).
+        2 minimized window.
+        3 maximized window.
+        6 minimized, inactive window.
+        9 non-maximized window.
+        Note: programs could ignore this parameter.
       Exec("notepad.exe")
         method calls notepad.
       Exec(`notepad.exe`)

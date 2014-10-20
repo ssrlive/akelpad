@@ -1775,6 +1775,7 @@ void CallToolbar(TOOLBARDATA *hToolbarData, int nItem)
       wchar_t *wpCmdLine=NULL;
       wchar_t *wpWorkDir=NULL;
       BOOL bWait=FALSE;
+      int nShowWindow=-1;
 
       ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
@@ -1783,11 +1784,18 @@ void CallToolbar(TOOLBARDATA *hToolbarData, int nItem)
         wpWorkDir=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 3))
         bWait=(BOOL)lpParameter->nNumber;
+      if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 4))
+        nShowWindow=(int)lpParameter->nNumber;
 
       if (wpCmdLine)
       {
         xmemset(&si, 0, sizeof(STARTUPINFOW));
         si.cb=sizeof(STARTUPINFOW);
+        if (nShowWindow >= 0)
+        {
+          si.dwFlags=STARTF_USESHOWWINDOW;
+          si.wShowWindow=(WORD)nShowWindow;
+        }
         if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
         {
           if (bWait)
