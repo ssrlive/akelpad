@@ -1925,7 +1925,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_DETECTFILEW)
     {
       DETECTFILEW *dc=(DETECTFILEW *)lParam;
-      wchar_t *wpFile=AllocWideStr(MAX_PATH);
+      wchar_t *wpFile=API_AllocWide(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
@@ -1934,7 +1934,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpFile, L"%s", (wchar_t *)dc->pFile);
       nResult=AutodetectCodePage(wpFile, NULL, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
 
-      FreeWideStr(wpFile);
+      API_FreeWide(wpFile);
       return nResult;
     }
     if (uMsg == AKD_READFILECONTENT)
@@ -1954,8 +1954,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPENDOCUMENTW)
     {
       OPENDOCUMENTW *od=(OPENDOCUMENTW *)lParam;
-      wchar_t *wpFile=AllocWideStr(MAX_PATH);
-      wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
+      wchar_t *wpFile=API_AllocWide(MAX_PATH);
+      wchar_t *wpWorkDir=API_AllocWide(MAX_PATH);
       int nResult=0;
 
       if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged(0))
@@ -1975,8 +1975,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nResult=OpenDocument((HWND)wParam, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
         if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
       }
-      FreeWideStr(wpFile);
-      FreeWideStr(wpWorkDir);
+      API_FreeWide(wpFile);
+      API_FreeWide(wpWorkDir);
       return nResult;
     }
     if (uMsg == AKD_SAVEDOCUMENT ||
@@ -1984,7 +1984,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_SAVEDOCUMENTW)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
-      wchar_t *wpFile=AllocWideStr(MAX_PATH);
+      wchar_t *wpFile=API_AllocWide(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_SAVEDOCUMENTA || (bOldWindows && uMsg == AKD_SAVEDOCUMENT))
@@ -1993,7 +1993,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpFile, L"%s", (wchar_t *)sd->pFile);
       nResult=SaveDocument((HWND)wParam, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
 
-      FreeWideStr(wpFile);
+      API_FreeWide(wpFile);
       return nResult;
     }
     if (uMsg == AKD_GETTEXTLENGTH)
@@ -2168,7 +2168,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_GOTOA ||
         uMsg == AKD_GOTOW)
     {
-      wchar_t *wpString=AllocWideStr(MAX_PATH);
+      wchar_t *wpString=API_AllocWide(MAX_PATH);
       BOOL bResult;
 
       if (uMsg == AKD_GOTOA || (bOldWindows && uMsg == AKD_GOTO))
@@ -2177,7 +2177,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpString, L"%s", (wchar_t *)lParam);
       bResult=GoTo((DWORD)wParam, wpString);
 
-      FreeWideStr(wpString);
+      API_FreeWide(wpString);
       return bResult;
     }
     if (uMsg == AKD_RECODESEL)
@@ -3181,15 +3181,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (lpRecentFileParam)
         {
-          if (lpRecentFileParam->pParamName) FreeWideStr(lpRecentFileParam->pParamName);
-          if (lpRecentFileParam->pParamValue) FreeWideStr(lpRecentFileParam->pParamValue);
+          if (lpRecentFileParam->pParamName) API_FreeWide(lpRecentFileParam->pParamName);
+          if (lpRecentFileParam->pParamValue) API_FreeWide(lpRecentFileParam->pParamValue);
 
           nParamNameLen=(int)xstrlenW(rfp->pParamName);
-          if (lpRecentFileParam->pParamName=AllocWideStr(nParamNameLen + 1))
+          if (lpRecentFileParam->pParamName=API_AllocWide(nParamNameLen + 1))
             xstrcpynW(lpRecentFileParam->pParamName, rfp->pParamName, nParamNameLen + 1);
 
           nParamValueLen=(int)xstrlenW(rfp->pParamValue);
-          if (lpRecentFileParam->pParamValue=AllocWideStr(nParamValueLen + 1))
+          if (lpRecentFileParam->pParamValue=API_AllocWide(nParamValueLen + 1))
             xstrcpynW(lpRecentFileParam->pParamValue, rfp->pParamValue, nParamValueLen + 1);
         }
         return (LRESULT)lpRecentFileParam;
@@ -3388,7 +3388,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)StackFrameGetByIndex(&hFramesStack, (int)lParam);
       if (wParam == FWF_BYFILENAME)
       {
-        wchar_t *wpFileName=AllocWideStr(MAX_PATH);
+        wchar_t *wpFileName=API_AllocWide(MAX_PATH);
         FRAMEDATA *lpResult;
         int nFileNameLen;
 
@@ -3398,7 +3398,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nFileNameLen=(int)xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
         lpResult=StackFrameGetByName(&hFramesStack, wpFileName, nFileNameLen);
 
-        FreeWideStr(wpFileName);
+        API_FreeWide(wpFileName);
         return (LRESULT)lpResult;
       }
       if (wParam == FWF_BYEDITWINDOW)
@@ -3787,7 +3787,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIGETSECTIONW)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
-      wchar_t *wpSection=AllocWideStr(MAX_PATH);
+      wchar_t *wpSection=API_AllocWide(MAX_PATH);
       int nSectionLen;
       INISECTION *lpResult;
 
@@ -3797,7 +3797,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nSectionLen=(int)xprintfW(wpSection, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniSectionW(&ih->hIniFile, wpSection, nSectionLen, FALSE);
 
-      FreeWideStr(wpSection);
+      API_FreeWide(wpSection);
       return (LRESULT)lpResult;
     }
     if (uMsg == AKD_INICLEARSECTION ||
@@ -3813,7 +3813,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIGETKEYW)
     {
       INISECTION *lpIniSection=(INISECTION *)wParam;
-      wchar_t *wpKey=AllocWideStr(MAX_PATH);
+      wchar_t *wpKey=API_AllocWide(MAX_PATH);
       int nKeyLen;
       INIKEY *lpResult;
 
@@ -3823,7 +3823,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nKeyLen=(int)xprintfW(wpKey, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniKeyW(lpIniSection, wpKey, nKeyLen, FALSE);
 
-      FreeWideStr(wpKey);
+      API_FreeWide(wpKey);
       return (LRESULT)lpResult;
     }
     if (uMsg == AKD_INIDELETEKEY)
@@ -3839,8 +3839,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=AllocWideStr(MAX_PATH);
-      wchar_t *wpKey=AllocWideStr(MAX_PATH);
+      wchar_t *wpSection=API_AllocWide(MAX_PATH);
+      wchar_t *wpKey=API_AllocWide(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_INIGETVALUEA || (bOldWindows && uMsg == AKD_INIGETVALUE))
@@ -3855,8 +3855,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       nResult=IniGetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
-      FreeWideStr(wpSection);
-      FreeWideStr(wpKey);
+      API_FreeWide(wpSection);
+      API_FreeWide(wpKey);
       return (LRESULT)nResult;
     }
     if (uMsg == AKD_INISETVALUE ||
@@ -3865,8 +3865,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=AllocWideStr(MAX_PATH);
-      wchar_t *wpKey=AllocWideStr(MAX_PATH);
+      wchar_t *wpSection=API_AllocWide(MAX_PATH);
+      wchar_t *wpKey=API_AllocWide(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_INISETVALUEA || (bOldWindows && uMsg == AKD_INISETVALUE))
@@ -3881,8 +3881,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       nResult=IniSetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
-      FreeWideStr(wpSection);
-      FreeWideStr(wpKey);
+      API_FreeWide(wpSection);
+      API_FreeWide(wpKey);
       return (LRESULT)nResult;
     }
     if (uMsg == AKD_INICLOSE)
@@ -3971,8 +3971,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       OPENDOCUMENTPOSTA *odpA=(OPENDOCUMENTPOSTA *)cds->lpData;
       OPENDOCUMENTPOSTW *odpW=(OPENDOCUMENTPOSTW *)cds->lpData;
-      wchar_t *wpFile=AllocWideStr(MAX_PATH);
-      wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
+      wchar_t *wpFile=API_AllocWide(MAX_PATH);
+      wchar_t *wpWorkDir=API_AllocWide(MAX_PATH);
 
       if ((odpA->hWnd && !IsEditActive(odpA->hWnd)) || nMDI || SaveChanged(0))
       {
@@ -3991,8 +3991,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nResult=OpenDocument(odpA->hWnd, wpFile, odpA->dwFlags, odpA->nCodePage, odpA->bBOM);
         if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
       }
-      FreeWideStr(wpFile);
-      FreeWideStr(wpWorkDir);
+      API_FreeWide(wpFile);
+      API_FreeWide(wpWorkDir);
     }
     else if (cds->dwData == CD_PARSECMDLINEW)
     {
@@ -4919,14 +4919,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (nMDI || SaveChanged(0))
       {
         RECENTFILE *lpRecentFile;
-        wchar_t *wpFile=AllocWideStr(MAX_PATH);
+        wchar_t *wpFile=API_AllocWide(MAX_PATH);
 
         if (lpRecentFile=RecentFilesFindByIndex(wCommand - IDM_RECENT_FILES - 1))
         {
           xstrcpynW(wpFile, lpRecentFile->wszFile, MAX_PATH);
           nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
         }
-        FreeWideStr(wpFile);
+        API_FreeWide(wpFile);
       }
       return nOpen;
     }

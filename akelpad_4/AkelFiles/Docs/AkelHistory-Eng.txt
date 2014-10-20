@@ -5,6 +5,7 @@ Changed: plugin architecture. Update plugins.
 
 Added: command line method /Var() to change variables usage for the following command line
        methods.
+Added: parameter for show window in specified style in command line method /Exec().
 
 Fixed: command 4110 didn't work for SDI.
 Fixed: switching on previous tab after closing current one (PMDI).

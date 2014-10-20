@@ -1226,7 +1226,7 @@ HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD d
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
-wchar_t* AllocWideStr(SIZE_T dwSize);
-BOOL FreeWideStr(wchar_t *wpVar);
+wchar_t* API_AllocWide(SIZE_T dwSize);
+BOOL API_FreeWide(wchar_t *wpVar);
 
 #endif
