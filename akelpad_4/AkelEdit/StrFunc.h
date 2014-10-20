@@ -1852,7 +1852,7 @@ int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int n
 
   if (nItLen == -1)
     nItLen=(int)xstrlenW(wpIt);
-  if (!pText || !nItLen)
+  if (!wpText || !nItLen)
     goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
