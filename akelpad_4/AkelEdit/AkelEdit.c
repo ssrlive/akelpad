@@ -5643,7 +5643,7 @@ AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone)
       //aeClone->rcDraw.right=aeClone->rcEdit.right - (aeMaster->rcEdit.right - aeMaster->rcDraw.right);
       //aeClone->rcDraw.bottom=aeClone->rcEdit.bottom - (aeMaster->rcEdit.bottom - aeMaster->rcDraw.bottom);
 
-      //Copy selection info
+      //Copy selection and scroll info
       xmemcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->lpEditProc - (BYTE *)&aeMaster->liFirstDrawLine);
 
       AE_UpdateScrollBars(aeClone, SB_BOTH);

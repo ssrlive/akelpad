@@ -1223,10 +1223,21 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
+  AESELECTION aes;
+  AECHARINDEX ciCaret;
+  POINT64 ptDocumentPos;
+  BOOL bChangeView=FALSE;
+
   bEditOnFinish=TRUE;
 
   if (lpFrame->ei.hWndMaster)
   {
+    if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndMaster != lpFrame->ei.hWndEdit)
+    {
+      SendMessage(lpFrame->ei.hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+      bChangeView=TRUE;
+    }
     if (dwFlags & CN_CLONE1)
     {
       if (lpFrame->ei.hWndClone1)
@@ -1325,6 +1336,13 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       lpFrameCurrent->ei.hWndMaster=NULL;
       lpFrameCurrent->ei.hDocMaster=NULL;
     }
+    if (bChangeView)
+    {
+      aes.dwFlags|=AESELT_LOCKSCROLL;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+    }
+
     if (nMainOnFinish != MOF_DESTROY)
     {
       SplitVisUpdate(lpFrame);
