@@ -2,6 +2,7 @@
 AkelPad 4.9.1 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
+Changed: when active split window is closed selection and scrolling is retained.
 
 Added: command line method /Var() to change variables usage for the following command line
        methods.
