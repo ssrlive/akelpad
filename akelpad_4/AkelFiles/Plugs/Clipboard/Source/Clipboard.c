@@ -12,7 +12,9 @@
 //Include string functions
 #define xmemcpy
 #define xmemset
+#define xstrlenA
 #define xstrlenW
+#define xstrcpynA
 #define xstrcpynW
 #define xatoiW
 #define xitoaW
@@ -665,7 +667,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   {
                     if (pData=GlobalLock(hData))
                     {
-                      nDataLen=lstrlenA((char *)pData) + 1;
+                      nDataLen=xstrlenA((char *)pData) + 1;
 
                       if (szSerial=(char *)GlobalAlloc(GPTR, nDataLen))
                       {
@@ -906,51 +908,33 @@ void SaveClipboard(UINT uFormat, wchar_t **wpData, char **pData)
   {
     if (!IsClipboardFormatAvailable(uFormat))
     {
+      if (*wpData)
+      {
+        GlobalFree((HGLOBAL)*wpData);
+        *wpData=NULL;
+      }
+      if (*pData)
+      {
+        GlobalFree((HGLOBAL)*pData);
+        *pData=NULL;
+      }
       if (hDataSource=GetClipboardData(CF_UNICODETEXT))
       {
         if (pDataSource=GlobalLock(hDataSource))
         {
-          nLen=lstrlenW((wchar_t *)pDataSource + 1) * sizeof(wchar_t);
-
-          if (*wpData)
-          {
-            GlobalFree((HGLOBAL)*wpData);
-            *wpData=NULL;
-          }
-          if (*pData)
-          {
-            GlobalFree((HGLOBAL)*pData);
-            *pData=NULL;
-          }
-
-          if (*wpData=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen))
-          {
-            xmemcpy(*wpData, pDataSource, nLen);
-          }
+          nLen=xstrlenW((wchar_t *)pDataSource) + 1;
+          if (*wpData=(wchar_t *)GlobalAlloc(GMEM_FIXED, nLen * sizeof(wchar_t)))
+            xstrcpynW(*wpData, pDataSource, nLen);
           GlobalUnlock(hDataSource);
         }
       }
-      else if (hDataSource=GetClipboardData(CF_TEXT))
+      if (hDataSource=GetClipboardData(CF_TEXT))
       {
         if (pDataSource=GlobalLock(hDataSource))
         {
-          nLen=lstrlenA((char *)pDataSource) + 1;
-
-          if (*wpData)
-          {
-            GlobalFree((HGLOBAL)*wpData);
-            *wpData=NULL;
-          }
-          if (*pData)
-          {
-            GlobalFree((HGLOBAL)*pData);
-            *pData=NULL;
-          }
-
+          nLen=xstrlenA((char *)pDataSource) + 1;
           if (*pData=(char *)GlobalAlloc(GMEM_FIXED, nLen))
-          {
-            xmemcpy(*pData, pDataSource, nLen);
-          }
+            xstrcpynA(*pData, pDataSource, nLen);
           GlobalUnlock(hDataSource);
         }
       }
@@ -1178,7 +1162,7 @@ void SaveOptions(DWORD dwFlags)
     }
     if (dwFlags & OF_CAPTURE_SETTINGS)
     {
-      WideOption(hOptions, L"Separator", PO_BINARY, (LPBYTE)wszCaptureSeparator, (lstrlenW(wszCaptureSeparator) + 1) * sizeof(wchar_t));
+      WideOption(hOptions, L"Separator", PO_BINARY, (LPBYTE)wszCaptureSeparator, (xstrlenW(wszCaptureSeparator) + 1) * sizeof(wchar_t));
     }
     if (dwFlags & OF_PASTESERIAL_SETTINGS)
     {
