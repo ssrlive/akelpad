@@ -668,11 +668,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (pData=GlobalLock(hData))
                     {
                       nDataLen=xstrlenA((char *)pData) + 1;
-
                       if (szSerial=(char *)GlobalAlloc(GPTR, nDataLen))
-                      {
-                        lstrcpynA(szSerial, (char *)pData, nDataLen);
-                      }
+                        xstrcpynA(szSerial, (char *)pData, nDataLen);
                       GlobalUnlock(hData);
                     }
                   }
@@ -928,7 +925,7 @@ void SaveClipboard(UINT uFormat, wchar_t **wpData, char **pData)
           GlobalUnlock(hDataSource);
         }
       }
-      if (hDataSource=GetClipboardData(CF_TEXT))
+      else if (hDataSource=GetClipboardData(CF_TEXT))
       {
         if (pDataSource=GlobalLock(hDataSource))
         {
