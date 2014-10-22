@@ -1,15 +1,13 @@
-// Name: ShowMenu.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
+//
+// Description(1033): Show custom popup menu. Script implemented as the library for using in other scripts.
+// Description(1049): Отображение пользовательского меню. Скрипт реализован как библиотека для использования другими скриптами.
 //
 //
-//// Show custom popup menu. Script implemented as the library for using in other scripts.
-//// Отображение пользовательского меню. Скрипт реализован как библиотека для использования другими скриптами.
-//
-//
-//// Menu example at caret position (CaretMenu.js):
-//// Пример меню на позиции каретки (CaretMenu.js):
+// Menu example at caret position (CaretMenu.js):
+// Пример меню на позиции каретки (CaretMenu.js):
 //
 //  //Include
 //  if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
@@ -40,8 +38,8 @@
 //    WScript.Echo("Item index: " + nItem + "\nItem name: " + lpItems[nItem][0] + "\nItem ID: " + lpItems[nItem][2]);
 //
 //
-//// Toolbar button menu example (ToolbarItemMenu.js):
-//// Пример меню для кнопки панели инструментов (ToolbarItemMenu.js):
+// Toolbar button menu example (ToolbarItemMenu.js):
+// Пример меню для кнопки панели инструментов (ToolbarItemMenu.js):
 //
 //  //Arguments
 //  if (WScript.Arguments.length < 2) WScript.Quit();
@@ -65,8 +63,8 @@
 //    WScript.Echo("Item index: " + nItem + "\nItem value: " + lpItems[nItem][2]);
 //
 //
-//// Toolbar plugin item:
-//// Пункт Toolbar плагина:
+// Toolbar plugin item:
+// Пункт Toolbar плагина:
 //  -"Button menu" Call("Scripts::Main", 1, "ToolbarItemMenu.js", `"%m" "%i"`) Icon(0)
 
 //Menu item flags

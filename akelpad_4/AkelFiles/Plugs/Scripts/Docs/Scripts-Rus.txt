@@ -67,6 +67,35 @@ Call("Scripts::Main", 3, "SCRIPT")
       Имя файла скрипта. Если "", то используется последний обработанный скрипт.
 
 
+*** Служебная информация в скрипте ***
+
+В начале скрипта в комментариях возможно указывать служебную информацию, которая
+выводится в списке скриптов (необходимо включить соответствующие колонки правым
+кликом мыши по шапке списка), а также используется AkelUpdater'ом при обновлении.
+
+Сайт:
+// http://akelpad.sourceforge.net/...
+
+Версия:
+// Version: ...
+
+Автор:
+// Author: ...
+
+Описание (вариант 1):
+//// Search and replace using regular expressions.
+
+Описание (вариант 2):
+// *** Search and replace using regular expressions. ***
+
+Описание на указанном языке (вариант 3):
+// Description(1033): Search and replace using regular expressions.
+// Description(1049): Поиск/замена с использованием регулярных выражений.
+
+Список идентификаторов языка (Locale IDs Assigned by Microsoft):
+http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
+
+
 *** Список методов (методы, не привязанные к окну AkelPad'а, отмечены как +ActiveX) ***
 
 AkelPad.GetMainWnd

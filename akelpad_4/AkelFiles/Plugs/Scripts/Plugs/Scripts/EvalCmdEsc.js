@@ -1,10 +1,10 @@
-// Name: EvalCmdEsc.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
+// Description(1033): Evaluates an escaped expression passed through command line.
+// Description(1049): Обработать экранированное выражение, переданное через командную строку.
 //
-//// Evaluates an escaped expression passed through command line.
 //
 // Variables:
 // %%f  active file.
@@ -16,8 +16,6 @@
 // Example:
 //  Call("Scripts::Main", 1, "EvalCmdEsc.js", `AkelPad.OpenFile("C:\File.txt")`)
 //
-//
-//// Обработать экранированное выражение, переданное через командную строку.
 //
 // Переменные:
 // %%f  активный файл.

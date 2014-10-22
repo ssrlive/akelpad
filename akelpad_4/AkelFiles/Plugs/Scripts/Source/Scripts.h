@@ -48,30 +48,52 @@
 #define STRID_DEBUG_MEMLEAK         23
 #define STRID_DEBUG_SYSCALL         24
 #define STRID_DEBUG_SYSFUNCTION     25
-#define STRID_SCRIPT                26
-#define STRID_HOTKEY                27
-#define STRID_STATUS                28
-#define STRID_RUNNING               29
-#define STRID_WAITING               30
-#define STRID_CONTAIN               31
-#define STRID_EXEC                  32
-#define STRID_EDIT                  33
-#define STRID_ASSIGN                34
-#define STRID_PLUGIN                35
-#define STRID_OK                    36
-#define STRID_CANCEL                37
-#define STRID_CLOSE                 38
+#define STRID_COLUMNS               26
+#define STRID_BUFFER                27
+#define STRID_MENU_OPENSITE         28
+#define STRID_MENU_ITEMMOVEUP       29
+#define STRID_MENU_ITEMMOVEDOWN     30
+#define STRID_SCRIPT                31
+#define STRID_HOTKEY                32
+#define STRID_STATUS                33
+#define STRID_VERSION               34
+#define STRID_AUTHOR                35
+#define STRID_DESCRIPTION           36
+#define STRID_SITE                  37
+#define STRID_RUNNING               38
+#define STRID_WAITING               39
+#define STRID_CONTAIN               40
+#define STRID_EXEC                  41
+#define STRID_EDIT                  42
+#define STRID_ASSIGN                43
+#define STRID_PLUGIN                44
+#define STRID_OK                    45
+#define STRID_CANCEL                46
+#define STRID_CLOSE                 47
 
-#define OF_RECT        0x1
-#define OF_LASTSCRIPT  0x2
-#define OF_HOTKEYS     0x4
-#define OF_DEBUG       0x8
-
-#define LVI_SCRIPT_FILE         0
-#define LVI_SCRIPT_HOTKEY       1
-#define LVI_SCRIPT_STATUS       2
+#define OF_RECT        0x01
+#define OF_COLUMNS     0x02
+#define OF_LASTSCRIPT  0x04
+#define OF_HOTKEYS     0x08
+#define OF_DEBUG       0x10
 
 #define BUFFER_SIZE             1024
+
+#define LVI_SCRIPT        0
+#define LVI_HOTKEY        1
+#define LVI_STATUS        2
+#define LVI_VERSION       3
+#define LVI_AUTHOR        4
+#define LVI_DESCRIPTION   5
+#define LVI_SITE          6
+
+#define LVCOLF_VISIBLE    0x1
+#define LVCOLF_CONTENT    0x2
+
+#define CCOLF_VERSION     0x1
+#define CCOLF_AUTHOR      0x2
+#define CCOLF_DESCRIPTION 0x4
+#define CCOLF_SITE        0x8
 
 #define JIT_NONE        0x0
 #define JIT_DEBUG       0x1
@@ -154,6 +176,30 @@ typedef struct {
   int nElements;
 } HTHREADSTACK;
 
+typedef struct {
+  int nID;
+  int nWidth;
+  DWORD dwFlags;
+} LISTVIEWCOLUMN;
+
+typedef struct {
+  wchar_t *wpScript;
+  WORD wHotkey;
+  wchar_t *wpHotkey;
+  wchar_t *wpStatus;
+  wchar_t *wpVersion;
+  wchar_t *wpAuthor;
+  wchar_t *wpDescription;
+  wchar_t *wpSite;
+} LISTVIEWITEMPARAM;
+
+typedef struct {
+  const wchar_t *wpKey;
+  INT_PTR nKeyLen;
+  wchar_t **wppValue;
+  INT_PTR *lpnValueLen;
+} CONTENTKEY;
+
 #ifndef INVALID_FILE_ATTRIBUTES
   #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
 #endif
@@ -201,10 +247,19 @@ extern BOOL bGlobalDebugJITEnable;
 
 //Functions prototypes
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int SetColumnItem(HWND hWnd, int nIndex, LISTVIEWCOLUMN *lpColumn, BOOL bCheck);
 BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
+void CreateColumns(HWND hWnd);
+LISTVIEWCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex);
+LISTVIEWCOLUMN* GetColumnByIndex(int nColumnIndex);
 void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContentFilter);
+void FreeScriptList(HWND hWnd);
+LISTVIEWITEMPARAM* GetItemParam(HWND hWnd, int nIndex);
+int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith);
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
@@ -242,6 +297,8 @@ DWORD ScrollCaret(HWND hWnd);
 int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
+BOOL FreeWideStr(wchar_t *wpWideStr);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);

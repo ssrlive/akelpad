@@ -1,11 +1,9 @@
-// Name: InsertFile.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
-//
-//// Insert contents of a file.
-//// Вставить содержимое файла.
+// Description(1033): Insert contents of a file.
+// Description(1049): Вставить содержимое файла.
 
 //Options
 var pFilter=GetLangString(0);

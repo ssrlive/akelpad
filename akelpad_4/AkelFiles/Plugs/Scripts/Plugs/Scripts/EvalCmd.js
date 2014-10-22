@@ -1,10 +1,10 @@
-// Name: EvalCmd.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
+// Description(1033): Evaluates an expression passed through command line.
+// Description(1049): Обработать выражение, переданное через командную строку.
 //
-//// Evaluates an expression passed through command line.
 //
 // Variables:
 // %%f active file.
@@ -14,8 +14,6 @@
 // Example:
 //  Call("Scripts::Main", 1, "EvalCmd.js", `AkelPad.ReplaceSel("Line 1\nLine 2");`)
 //
-//
-//// Обработать выражение, переданное через командную строку.
 //
 // Переменные:
 // %%f  активный файл.
