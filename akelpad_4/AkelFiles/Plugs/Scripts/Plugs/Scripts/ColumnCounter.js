@@ -1,10 +1,10 @@
-// Name: ColumnCounter.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
+// Description(1033): Column selection counter.
+// Description(1049): Увеличение чисел (счетчик) вертикального выделения.
 //
-//// Column selection counter.
 //
 // How to use:
 // Select column with numbers for processing.
@@ -21,8 +21,6 @@
 // If selected only single line, then selected number will be increased at defined step.
 // If step equal to zero, then it will be automatically calculated as the difference between second and first number.
 //
-//
-//// Увеличение чисел (счетчик) вертикального выделения.
 //
 // Как использовать:
 // Выделите вертикальный блок с числами, которые необходимо преобразовать.

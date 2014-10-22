@@ -1,11 +1,9 @@
-// Name: RenameFile.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
-//
-//// Rename current editing file
-//// Переименовать текущий файл.
+// Description(1033): Rename current editing file.
+// Description(1049): Переименовать текущий файл.
 
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();

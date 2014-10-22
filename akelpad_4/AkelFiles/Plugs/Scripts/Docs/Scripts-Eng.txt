@@ -66,6 +66,35 @@ Call("Scripts::Main", 3, "SCRIPT")
       Script file. If "", then last processed script used.
 
 
+*** Service information in script ***
+
+At the script beginning in the comments possible to set service information, which
+appear in the scripts list (appropriate columns must be enabled by mouse right click
+on the list header) and also used when updating with AkelUpdater.
+
+Site:
+// http://akelpad.sourceforge.net/...
+
+Version:
+// Version: ...
+
+Author:
+// Author: ...
+
+Description (variant 1):
+//// Search and replace using regular expressions.
+
+Description (variant 2):
+// *** Search and replace using regular expressions. ***
+
+Description on specified language (variant 3):
+// Description(1033): Search and replace using regular expressions.
+// Description(1049): Поиск/замена с использованием регулярных выражений.
+
+Language identifiers list (Locale IDs Assigned by Microsoft):
+http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
+
+
 *** Methods list (methods that not attached to the AkelPad window, marked as +ActiveX) ***
 
 AkelPad.GetMainWnd

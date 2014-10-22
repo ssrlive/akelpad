@@ -1,10 +1,10 @@
-// Name: SearchReplace.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
+// Description(1033): Search and replace using regular expressions.
+// Description(1049): Поиск/замена с использованием регулярных выражений.
 //
-//// Search and replace using regular expressions.
 //
 // Example for "Replace with function" option:
 //   What: \d+
@@ -13,8 +13,6 @@
 //   What: \d+
 //   With: var n = parseInt($0); return n >= 20 ? 20 : ++n;
 //
-//
-//// Поиск/замена с использованием регулярных выражений.
 //
 // Пример опции "Заменять на функцию":
 //   Что: \d+

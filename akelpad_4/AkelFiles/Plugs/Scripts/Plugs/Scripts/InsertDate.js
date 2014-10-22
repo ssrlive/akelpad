@@ -1,10 +1,10 @@
-// Name: InsertDate.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
+// Description(1033): Insert time and date in specified format.
+// Description(1049): ¬ставить дату и врем€ в заданном формате.
 //
-//// Insert time and date in specified format.
 //
 // Time:
 // h   Hours with no leading zero for single-digit hours; 12-hour clock.
@@ -33,9 +33,6 @@
 //
 // Example:
 // "H:mm:ss dd MMMM yyyy" -> "12:50:24 07 January 2008"
-//
-//
-//// ¬ставить дату и врем€ в заданном формате.
 
 //Options
 var pFormat="H:mm dd.MM.yyyy";

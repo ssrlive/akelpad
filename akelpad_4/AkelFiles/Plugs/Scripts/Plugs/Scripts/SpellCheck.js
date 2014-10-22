@@ -1,11 +1,9 @@
-// Name: SpellCheck.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
-//
-//// Spell check using Microsoft Word.
-//// Проверка орфографии, используя Microsoft Word.
+// Description(1033): Spell check using Microsoft Word.
+// Description(1049): Проверка орфографии, используя Microsoft Word.
 
 //Variables
 var Word=new ActiveXObject("Word.application");

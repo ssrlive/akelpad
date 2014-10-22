@@ -1,10 +1,9 @@
-// Name: Test.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
-//
-//// JScript test file
+// Description(1033): JScript test file.
+// Description(1049): Тестовый файл JScript.
 
 //Defines
 var WM_COMMAND=273

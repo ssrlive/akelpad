@@ -1,11 +1,9 @@
-// Name: LinesFilter.js
-// Site: http://akelpad.sourceforge.net/en/plugins.php#Scripts
+// http://akelpad.sourceforge.net/en/plugins.php#Scripts
 // Version: 1.0
-// Authors: Shengalts Aleksander aka Instructor
+// Author: Shengalts Aleksander aka Instructor
 //
-//
-//// Filter lines using regular expressions.
-//// ќтфильтровать строки, использу€ регул€рные выражени€.
+// Description(1033): Filter lines using regular expressions.
+// Description(1049): ќтфильтровать строки, использу€ регул€рные выражени€.
 
 //Actions
 var ACTL_INCLUDE=1;
