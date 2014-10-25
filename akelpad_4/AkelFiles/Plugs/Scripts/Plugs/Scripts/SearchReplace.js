@@ -2,9 +2,8 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
-// Description(1033): Search and replace using regular expressions.
-// Description(1049): Поиск/замена с использованием регулярных выражений.
 //
+// Description(1033): Search and replace using regular expressions.
 //
 // Example for "Replace with function" option:
 //   What: \d+
@@ -13,6 +12,8 @@
 //   What: \d+
 //   With: var n = parseInt($0); return n >= 20 ? 20 : ++n;
 //
+//
+// Description(1049): Поиск/замена с использованием регулярных выражений.
 //
 // Пример опции "Заменять на функцию":
 //   Что: \d+

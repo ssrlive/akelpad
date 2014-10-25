@@ -2,9 +2,8 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
-// Description(1033): Text calculator (based on wisgest code).
-// Description(1049): Текстовый калькулятор (основан на коде wisgest'a).
 //
+// Description(1033): Text calculator (based on wisgest code).
 //
 // How to use:
 // Select expression and call script.
@@ -55,6 +54,8 @@
 // Trace(34+56)+26
 // Result: 116
 //
+//
+// Description(1049): Текстовый калькулятор (основан на коде wisgest'a).
 //
 // Как использовать:
 // Выделите выражение и вызовите скрипт.
