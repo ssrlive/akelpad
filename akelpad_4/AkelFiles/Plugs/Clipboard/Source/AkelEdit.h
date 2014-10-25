@@ -211,7 +211,7 @@
 #define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define AECO_RBUTTONDOWNMOVECARET     0x00040000  //WM_RBUTTONDOWN message moves caret to a click position.
 #define AECO_MBUTTONDOWNNOSCROLL      0x00080000  //No scrolling after WM_MBUTTONDOWN message.
-#define AECO_MARGINSELUNWRAPLINE      0x00100000  //Left margin line selection with mouse selects all wrapped line.
+#define AECO_SELUNWRAPLINE            0x00100000  //Line selection with mouse selects all wrapped line.
 #define AECO_NOMARGINSEL              0x00200000  //Disables left margin line selection with mouse.
 #define AECO_NOMARKERMOVE             0x00400000  //Disables changing position of column marker with mouse and shift button.
 #define AECO_NOMARKERAFTERLASTLINE    0x00800000  //Disables marker painting after last line.
