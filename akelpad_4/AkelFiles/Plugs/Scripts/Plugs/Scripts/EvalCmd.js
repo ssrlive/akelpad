@@ -2,26 +2,27 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
-// Description(1033): Evaluates an expression passed through command line.
-// Description(1049): Обработать выражение, переданное через командную строку.
 //
+// Description(1033): Evaluates an expression passed through command line.
 //
 // Variables:
-// %%f active file.
-// %%d directory of active file.
-// %%a AkelPad's directory.
+//   %%f active file.
+//   %%d directory of active file.
+//   %%a AkelPad's directory.
 //
 // Example:
-//  Call("Scripts::Main", 1, "EvalCmd.js", `AkelPad.ReplaceSel("Line 1\nLine 2");`)
+//   Call("Scripts::Main", 1, "EvalCmd.js", `AkelPad.ReplaceSel("Line 1\nLine 2");`)
 //
+//
+// Description(1049): Обработать выражение, переданное через командную строку.
 //
 // Переменные:
-// %%f  активный файл.
-// %%d  директория активного файла.
-// %%a  директория AkelPad'а.
+//   %%f  активный файл.
+//   %%d  директория активного файла.
+//   %%a  директория AkelPad'а.
 //
 // Пример:
-//  Call("Scripts::Main", 1, "EvalCmd.js", `AkelPad.ReplaceSel("Line 1\nLine 2");`)
+//   Call("Scripts::Main", 1, "EvalCmd.js", `AkelPad.ReplaceSel("Line 1\nLine 2");`)
 
 var pArgLine;
 

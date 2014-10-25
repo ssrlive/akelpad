@@ -2,9 +2,8 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
-// Description(1033): Convert keyboard layout or transliterate text.
-// Description(1049): Исправляет раскладку клавиатуры или транслитерирует текст.
 //
+// Description(1033): Convert keyboard layout or transliterate text.
 //
 // Arguments:
 // -Type=Layout       -Convert keyboard layout.
@@ -16,6 +15,8 @@
 // -"Convert layout" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
 // -"Transliteration" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
 //
+//
+// Description(1049): Исправляет раскладку клавиатуры или транслитерирует текст.
 //
 // Аргументы:
 // -Type=Layout       -Исправление раскладки клавиатуры.

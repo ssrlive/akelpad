@@ -1362,7 +1362,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
           nContentLen=nContentBuffer;
 
         xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
-        if (nContentLen=ReadFileContent(wszFindFiles, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)nContentLen))
+        if (nContentLen=ReadFileContent(wszFindFiles, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)nContentLen))
         {
           if (bContentFilter)
           {

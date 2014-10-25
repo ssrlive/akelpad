@@ -2,70 +2,70 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
+//
 // Description(1033): Show custom popup menu. Script implemented as the library for using in other scripts.
 // Description(1049): Отображение пользовательского меню. Скрипт реализован как библиотека для использования другими скриптами.
-//
 //
 // Menu example at caret position (CaretMenu.js):
 // Пример меню на позиции каретки (CaretMenu.js):
 //
-//  //Include
-//  if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
+//   //Include
+//   if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
 //
-//  //Variables
-//  var lpItems;
-//  var nItem;
+//   //Variables
+//   var lpItems;
+//   var nItem;
 //
-//  lpItems=[["ItemA", MF_NORMAL, 101],
-//           ["ItemB", MF_SUBMENU],
-//             ["ItemB-1", MF_NORMAL, 102],
-//             ["ItemB-2", MF_NORMAL, 103],
-//             ["ItemB-3", MF_NORMAL|MF_LAST, 104],
-//           ["ItemC", MF_NORMAL, 105],
-//           ["", MF_SEPARATOR],
-//           ["ItemD", MF_NORMAL|MF_GRAYED, 106],
-//           ["ItemF", MF_SUBMENU],
-//             ["ItemF-1", MF_NORMAL|MF_CHECKED, 107],
-//             ["ItemF-2", MF_NORMAL, 108],
-//             ["ItemF-3", MF_SUBMENU|MF_LAST],
-//               ["ItemF-3a", MF_NORMAL, 109],
-//               ["ItemF-3b", MF_NORMAL|MF_LAST, 110]];
+//   lpItems=[["ItemA", MF_NORMAL, 101],
+//            ["ItemB", MF_SUBMENU],
+//              ["ItemB-1", MF_NORMAL, 102],
+//              ["ItemB-2", MF_NORMAL, 103],
+//              ["ItemB-3", MF_NORMAL|MF_LAST, 104],
+//            ["ItemC", MF_NORMAL, 105],
+//            ["", MF_SEPARATOR],
+//            ["ItemD", MF_NORMAL|MF_GRAYED, 106],
+//            ["ItemF", MF_SUBMENU],
+//              ["ItemF-1", MF_NORMAL|MF_CHECKED, 107],
+//              ["ItemF-2", MF_NORMAL, 108],
+//              ["ItemF-3", MF_SUBMENU|MF_LAST],
+//                ["ItemF-3a", MF_NORMAL, 109],
+//                ["ItemF-3b", MF_NORMAL|MF_LAST, 110]];
 //
-//  nItem=ShowMenu(lpItems, POS_CARET, POS_CARET);
-//  if (nItem == -1)
-//    WScript.Echo("Nothing selected");
-//  else
-//    WScript.Echo("Item index: " + nItem + "\nItem name: " + lpItems[nItem][0] + "\nItem ID: " + lpItems[nItem][2]);
+//   nItem=ShowMenu(lpItems, POS_CARET, POS_CARET);
+//   if (nItem == -1)
+//     WScript.Echo("Nothing selected");
+//   else
+//     WScript.Echo("Item index: " + nItem + "\nItem name: " + lpItems[nItem][0] + "\nItem ID: " + lpItems[nItem][2]);
 //
 //
 // Toolbar button menu example (ToolbarItemMenu.js):
 // Пример меню для кнопки панели инструментов (ToolbarItemMenu.js):
 //
-//  //Arguments
-//  if (WScript.Arguments.length < 2) WScript.Quit();
-//  var hToolbarHandle=parseInt(WScript.Arguments(0));
-//  var nToolbarItemID=parseInt(WScript.Arguments(1));
+//   //Arguments
+//   if (WScript.Arguments.length < 2) WScript.Quit();
+//   var hToolbarHandle=parseInt(WScript.Arguments(0));
+//   var nToolbarItemID=parseInt(WScript.Arguments(1));
 //
-//  //Include
-//  if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
+//   //Include
+//   if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
 //
-//  //Variables
-//  var lpItems;
-//  var nItem;
-//  var ptPoint=GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
+//   //Variables
+//   var lpItems;
+//   var nItem;
+//   var ptPoint=GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
 //
-//  lpItems=[["ItemA", MF_NORMAL, "Value1"],
-//           ["", MF_SEPARATOR],
-//           ["ItemB", MF_NORMAL|MF_CHECKED|MF_USECHECKBITMAPS, "Value2"]];
+//   lpItems=[["ItemA", MF_NORMAL, "Value1"],
+//            ["", MF_SEPARATOR],
+//            ["ItemB", MF_NORMAL|MF_CHECKED|MF_USECHECKBITMAPS, "Value2"]];
 //
-//  nItem=ShowMenu(lpItems, ptPoint.x, ptPoint.y);
-//  if (nItem != -1)
-//    WScript.Echo("Item index: " + nItem + "\nItem value: " + lpItems[nItem][2]);
+//   nItem=ShowMenu(lpItems, ptPoint.x, ptPoint.y);
+//   if (nItem != -1)
+//     WScript.Echo("Item index: " + nItem + "\nItem value: " + lpItems[nItem][2]);
 //
 //
 // Toolbar plugin item:
 // Пункт Toolbar плагина:
-//  -"Button menu" Call("Scripts::Main", 1, "ToolbarItemMenu.js", `"%m" "%i"`) Icon(0)
+//   -"Button menu" Call("Scripts::Main", 1, "ToolbarItemMenu.js", `"%m" "%i"`) Icon(0)
 
 //Menu item flags
 var MF_NORMAL          =0x00000; //Normal item.

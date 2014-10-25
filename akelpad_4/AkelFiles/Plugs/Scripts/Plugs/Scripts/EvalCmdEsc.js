@@ -2,30 +2,31 @@
 // Version: 1.0
 // Author: Shengalts Aleksander aka Instructor
 //
-// Description(1033): Evaluates an escaped expression passed through command line.
-// Description(1049): Обработать экранированное выражение, переданное через командную строку.
 //
+// Description(1033): Evaluates an escaped expression passed through command line.
 //
 // Variables:
-// %%f  active file.
-// %%d  directory of active file.
-// %%a  AkelPad's directory.
-// %%xx escape symbol xx is equivalent to the hexadecimal number representing the character.
-//      For example, "%%5Cn" equal to new line character "\n".
+//   %%f  active file.
+//   %%d  directory of active file.
+//   %%a  AkelPad's directory.
+//   %%xx escape symbol xx is equivalent to the hexadecimal number representing the character.
+//        For example, "%%5Cn" equal to new line character "\n".
 //
 // Example:
-//  Call("Scripts::Main", 1, "EvalCmdEsc.js", `AkelPad.OpenFile("C:\File.txt")`)
+//   Call("Scripts::Main", 1, "EvalCmdEsc.js", `AkelPad.OpenFile("C:\File.txt")`)
 //
+//
+// Description(1049): Обработать экранированное выражение, переданное через командную строку.
 //
 // Переменные:
-// %%f  активный файл.
-// %%d  директория активного файла.
-// %%a  директория AkelPad'а.
-// %%xx символ экранирования xx эквивалентно шестнадцатеричному коду символа.
-//      Например, "%%5Cn" эквивалентно символу новой строки "\n".
+//   %%f  активный файл.
+//   %%d  директория активного файла.
+//   %%a  директория AkelPad'а.
+//   %%xx символ экранирования xx эквивалентно шестнадцатеричному коду символа.
+//        Например, "%%5Cn" эквивалентно символу новой строки "\n".
 //
 // Пример:
-//  Call("Scripts::Main", 1, "EvalCmdEsc.js", `AkelPad.OpenFile("C:\File.txt")`)
+//   Call("Scripts::Main", 1, "EvalCmdEsc.js", `AkelPad.OpenFile("C:\File.txt")`)
 
 var pArgLine;
 
