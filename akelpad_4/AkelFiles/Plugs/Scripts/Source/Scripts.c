@@ -182,12 +182,12 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       {
         if (pd->dwSupport & PDS_STRANSI)
         {
-          if (nScriptLen=xstrlenA((char *)pScript))
+          if (nScriptLen=(int)xstrlenA((char *)pScript))
           {
             if (wpScript=(wchar_t *)GlobalAlloc(GPTR, (nScriptLen + 1) * sizeof(wchar_t)))
               MultiByteToWideChar(CP_ACP, 0, (char *)pScript, nScriptLen + 1, wpScript, nScriptLen + 1);
           }
-          if (nArgumentsLen=xstrlenA((char *)pArguments))
+          if (nArgumentsLen=(int)xstrlenA((char *)pArguments))
           {
             if (wpArguments=(wchar_t *)GlobalAlloc(GPTR, (nArgumentsLen + 1) * sizeof(wchar_t)))
               MultiByteToWideChar(CP_ACP, 0, (char *)pArguments, nArgumentsLen + 1, wpArguments, nArgumentsLen + 1);
