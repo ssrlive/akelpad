@@ -2,6 +2,8 @@
 AkelPad 4.9.1 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
+Changed: flag 64 of manual parameter "MouseOptions" now applies for any types of line
+         mouse selection.
 Changed: when active split window is closed selection and scrolling is retained.
 
 Added: command line method /Var() to change variables usage for the following command line
