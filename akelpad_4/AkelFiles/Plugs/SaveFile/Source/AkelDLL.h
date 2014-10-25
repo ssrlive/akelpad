@@ -2598,8 +2598,8 @@ ____________________
 
 Notification message, sends to the main procedure before messagebox is open.
 
-(HWND)wParam == parent window of the messagebox.
-lParam       == not used.
+(HWND)wParam  == parent window of the messagebox.
+(DWORD)lParam == last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
 
 Return Value
  Zero.
@@ -2610,8 +2610,8 @@ __________________
 
 Notification message, sends to the main procedure after messagebox is closed.
 
-(HWND)wParam == parent window of the messagebox.
-lParam       == not used.
+(int)wParam   == MessageBox call result.
+(DWORD)lParam == same value as lParam of AKDN_MESSAGEBOXBEGIN.
 
 Return Value
  Zero.
