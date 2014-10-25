@@ -105,9 +105,10 @@
 #define EOD_STOP                 -15        //Stopped from AKDN_OPENDOCUMENT_START.
 #define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
 #define EOD_DOCUMENTS_LIMIT      -17        //Documents limit reached in MDI mode.
-#define EOD_MSGNO                -20        //File is skipped.
-#define EOD_MSGCANCELCREATE      -21        //User press cancel in message "Create new file?".
-#define EOD_MSGCANCELBINARY      -22        //User press cancel in message "Binary file. Continue?".
+#define EOD_MSGCANCELCREATE      -21        //User press Cancel in message "Create new file?".
+#define EOD_MSGCANCELBINARY      -22        //User press Cancel in message "Binary file. Continue?".
+#define EOD_MSGNOCREATE          -23        //User press No in message "Create new file?".
+#define EOD_MSGNOBINARY          -24        //User press No in message "Binary file. Continue?".
 
 //Save document flags
 #define SD_UPDATE            0x00000001  //Update file info.
