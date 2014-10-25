@@ -4176,6 +4176,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
+      int nLineCapture=0;
 
       if (GetKeyState(VK_MENU) < 0)
         bAlt=TRUE;
@@ -4228,36 +4229,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         //Start margin selection capture
         else if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
         {
-          AECHARRANGE cr;
-          AECHARINDEX ciCharIndex;
-
-          if (!ae->dwMouseMoveTimer)
-          {
-            //Timer
-            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
-          }
-
-          AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
-          if (ae->popt->dwOptions & AECO_MARGINSELUNWRAPLINE)
-          {
-            AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
-            AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-          }
-          else
-          {
-            cr.ciMin=ciCharIndex;
-            cr.ciMax=ciCharIndex;
-            cr.ciMin.nCharInLine=0;
-          }
-          if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax))
-            cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
-
-          ae->ciMouseSelClick=ciCharIndex;
-          ae->ciMouseSelStart=cr.ciMin;
-          ae->ciMouseSelEnd=cr.ciMax;
-          ae->dwMouseSelType=AEMSS_LINES;
-          AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK);
+          nLineCapture=AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK;
         }
         //Start drag source capture
         else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
@@ -4344,28 +4316,43 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         else
         {
-          AECHARRANGE cr;
-          AECHARINDEX ciCharIndex;
+          nLineCapture=AESCT_MOUSETRIPLECLK;
+        }
+      }
 
-          if (!ae->dwMouseMoveTimer)
-          {
-            //Timer
-            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
-          }
+      if (nLineCapture)
+      {
+        AECHARRANGE cr;
+        AECHARINDEX ciCharIndex;
 
-          AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
+        if (!ae->dwMouseMoveTimer)
+        {
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
+        }
+
+        AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
+        if (ae->popt->dwOptions & AECO_SELUNWRAPLINE)
+        {
           AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
           AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-          if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
-            AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
-
-          ae->ciMouseSelClick=ciCharIndex;
-          ae->ciMouseSelStart=cr.ciMin;
-          ae->ciMouseSelEnd=cr.ciMax;
-          ae->dwMouseSelType=AEMSS_LINES;
-          AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSETRIPLECLK);
         }
+        else
+        {
+          cr.ciMin=ciCharIndex;
+          cr.ciMax=ciCharIndex;
+          cr.ciMin.nCharInLine=0;
+          cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+        }
+        if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
+          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
+
+        ae->ciMouseSelClick=ciCharIndex;
+        ae->ciMouseSelStart=cr.ciMin;
+        ae->ciMouseSelEnd=cr.ciMax;
+        ae->dwMouseSelType=AEMSS_LINES;
+        AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, nLineCapture);
       }
       return 0;
     }
@@ -9616,21 +9603,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
   {
     nPosResult=AE_GetCharFromPos(ae, ptPos->x, ptPos->y, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
-    if (ae->nCurrentCursor == AECC_MARGIN && (dwMouseSelType & AEMSS_WORDS))
+    if (ae->nCurrentCursor == AECC_MARGIN)
       dwMouseSelType=AEMSS_LINES;
-
-    //if ((dwMouseSelType & AEMSS_WORDS) && (dwMouseSelType & AEMSS_LBUTTONUP))
-    //{
-    //  if (bShift)
-    //  {
-    //    if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ciCharIndex) ||
-    //        !AEC_IndexCompare(&ae->ciSelEndIndex, &ciCharIndex))
-    //    {
-    //      ae->dwMouseSelType=AEMSS_CHARS;
-    //      dwMouseSelType=AEMSS_CHARS;
-    //    }
-    //  }
-    //}
 
     //One click (capture)
     if (dwMouseSelType & AEMSS_CHARS)
@@ -9644,19 +9618,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         else
           ciSelEnd=ae->ciSelEndIndex;
 
-        //Margin selection
-        if (ae->nCurrentCursor == AECC_MARGIN)
-        {
-          if (AEC_IndexCompare(&ciCharIndex, &ciSelEnd) < 0)
-            ciCharIndex.nCharInLine=0;
-          else
-          {
-            if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
-              ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
-          }
-        }
-        //Characters selection
-        else if (!AEC_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
+        if (!AEC_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
           if (ptPos->x < ae->rcDraw.left)
           {
@@ -9717,7 +9679,12 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelClick) < 0)
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelStart) < 0)
-            ciCharIndex.nCharInLine=0;
+          {
+            if (ae->popt->dwOptions & AECO_SELUNWRAPLINE)
+              AEC_WrapLineBeginEx(&ciCharIndex, &ciCharIndex);
+            else
+              ciCharIndex.nCharInLine=0;
+          }
           else
             ciCharIndex=ae->ciMouseSelStart;
           ciSelEnd=ae->ciMouseSelEnd;
@@ -9726,8 +9693,12 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AEC_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) >= 0)
           {
-            if ((ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT) || !AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex))
+            if (ae->popt->dwOptions & AECO_SELUNWRAPLINE)
+              AEC_WrapLineEndEx(&ciCharIndex, &ciCharIndex);
+            else
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
+            if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
+              AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIndex, &ciCharIndex);
           }
           else
             ciCharIndex=ae->ciMouseSelEnd;
