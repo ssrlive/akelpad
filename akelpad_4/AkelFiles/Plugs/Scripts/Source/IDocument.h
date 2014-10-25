@@ -124,6 +124,9 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define ISAEW_PROGRAM      1
 #define ISAEW_PLUGIN       2
 
+//Document_SetEditWnd window handle
+#define SEW_FOCUS          1
+
 //Document_GetLangId type
 #define LANGID_FULL        0
 #define LANGID_PRIMARY     1
