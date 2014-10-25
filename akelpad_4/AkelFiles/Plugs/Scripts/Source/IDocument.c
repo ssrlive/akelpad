@@ -1588,7 +1588,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, INT_PTR nPointer, DW
   if (dwType == DT_ANSI)
   {
     if (nDataLen == -1)
-      nStringLen=xstrlenA((char *)nPointer);
+      nStringLen=(int)xstrlenA((char *)nPointer);
     else
       nStringLen=nDataLen;
 
@@ -1610,7 +1610,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, INT_PTR nPointer, DW
   else if (dwType == DT_UNICODE)
   {
     if (nDataLen == -1)
-      nStringLen=xstrlenW((wchar_t *)nPointer);
+      nStringLen=(int)xstrlenW((wchar_t *)nPointer);
     else
       nStringLen=nDataLen;
 

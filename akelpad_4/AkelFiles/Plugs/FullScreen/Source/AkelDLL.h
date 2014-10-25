@@ -69,13 +69,14 @@
 #define MOF_DESTROY     2 //Processing AKDN_MAIN_ONFINISH message.
 
 //Autodetect flags
-#define ADT_BINARY_ERROR        0x00000001  //Check if file is binary.
-#define ADT_REG_CODEPAGE        0x00000002  //If last open code page found in registry, then it will be
-                                            //used with ADT_DETECT_BOM flag. If not found, then next flags
-                                            //will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
-#define ADT_DETECT_CODEPAGE     0x00000004  //Detect code page.
-#define ADT_DETECT_BOM          0x00000008  //Detect BOM mark.
-#define ADT_NOMESSAGES          0x00000010  //No messages, if errors in autodetect.
+#define ADT_BINARY_ERROR     0x00000001  //Check if file is binary.
+#define ADT_REG_CODEPAGE     0x00000002  //If last open code page found in registry, then it will be
+                                         //used with ADT_DETECT_BOM flag. If not found, then next flags
+                                         //will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
+#define ADT_DETECT_CODEPAGE  0x00000004  //Detect code page.
+#define ADT_DETECT_BOM       0x00000008  //Detect BOM mark.
+#define ADT_NOMESSAGES       0x00000010  //No messages, if errors in autodetect.
+#define ADT_ONLYBOM          0x00000020  //Detect code page only if BOM mark is present, otherwise default codepage is used.
 
 //Autodetect errors
 #define EDT_SUCCESS        0   //Success.
@@ -85,14 +86,15 @@
 #define EDT_BINARY        -4   //File is binary.
 
 //Open document flags
-#define OD_ADT_BINARY_ERROR      ADT_BINARY_ERROR     //See ADT_BINARY_ERROR.
-#define OD_ADT_REG_CODEPAGE      ADT_REG_CODEPAGE     //See ADT_REG_CODEPAGE.
-#define OD_ADT_DETECT_CODEPAGE   ADT_DETECT_CODEPAGE  //See ADT_DETECT_CODEPAGE.
-#define OD_ADT_DETECT_BOM        ADT_DETECT_BOM       //See ADT_DETECT_BOM.
-#define OD_ADT_NOMESSAGES        ADT_NOMESSAGES       //See ADT_NOMESSAGES.
-#define OD_REOPEN                0x00000100           //Don't create new MDI window, use the exited one.
-#define OD_NOSCROLL              0x00000200           //Don't restore scroll position.
-#define OD_MULTIFILE             0x00000400           //More documents is on queue. Use MB_YESNOCANCEL instead of MB_OKCANCEL.
+#define OD_ADT_BINARY_ERROR     ADT_BINARY_ERROR     //See ADT_BINARY_ERROR.
+#define OD_ADT_REG_CODEPAGE     ADT_REG_CODEPAGE     //See ADT_REG_CODEPAGE.
+#define OD_ADT_DETECT_CODEPAGE  ADT_DETECT_CODEPAGE  //See ADT_DETECT_CODEPAGE.
+#define OD_ADT_DETECT_BOM       ADT_DETECT_BOM       //See ADT_DETECT_BOM.
+#define OD_ADT_NOMESSAGES       ADT_NOMESSAGES       //See ADT_NOMESSAGES.
+#define OD_ADT_ONLYBOM          ADT_ONLYBOM          //See ADT_ONLYBOM.
+#define OD_REOPEN               0x00000100           //Don't create new MDI window, use the exited one.
+#define OD_NOSCROLL             0x00000200           //Don't restore scroll position.
+#define OD_MULTIFILE            0x00000400           //More documents is on queue. Use MB_YESNOCANCEL instead of MB_OKCANCEL.
 
 //Open document errors
 #define EOD_SUCCESS              0          //Success.

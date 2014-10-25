@@ -28,9 +28,11 @@
 #define IDC_INPUTBOX_LABEL              1301
 #define IDC_INPUTBOX_EDIT               1302
 #define IDC_COLUMNS_LIST                1401
-#define IDC_COLUMNS_ITEMMOVEUP          1402
-#define IDC_COLUMNS_ITEMMOVEDOWN        1403
-#define IDC_COLUMNS_BUFFER_LABEL        1404
+#define IDC_COLUMNS_BUFFER_LABEL        1402
+#define IDC_COLUMNS_BUFFER_EDIT         1403
+#define IDC_COLUMNS_BUFFER_SPIN         1404
+#define IDC_COLUMNS_ITEMMOVEUP          1405
+#define IDC_COLUMNS_ITEMMOVEDOWN        1406
 #define IDC_CODE_MEMREAD_STATIC         1501
 #define IDC_CODE_MEMREAD_CHECK          1502
 #define IDC_CODE_MEMWRITE_STATIC        1503
@@ -41,8 +43,6 @@
 #define IDC_CODE_MEMLEAK_CHECK          1508
 #define IDC_CODE_SYSCALL_STATIC         1509
 #define IDC_CODE_SYSCALL_CHECK          1510
-#define IDC_COLUMNS_BUFFER_EDIT         3604
-#define IDC_COLUMNS_BUFFER_SPIN         3605
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -51,7 +51,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
 #define _APS_NEXT_COMMAND_VALUE         12001
-#define _APS_NEXT_CONTROL_VALUE         13002
+#define _APS_NEXT_CONTROL_VALUE         13001
 #define _APS_NEXT_SYMED_VALUE           14001
 #endif
 #endif

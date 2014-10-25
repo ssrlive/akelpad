@@ -1165,6 +1165,7 @@ Arguments
     0x004  //OD_ADT_DETECT_CODEPAGE  Detect code page.
     0x008  //OD_ADT_DETECT_BOM       Detect BOM mark.
     0x010  //OD_ADT_NOMESSAGES       No messages, if errors in autodetect.
+    0x020  //OD_ADT_ONLYBOM          Detect code page only if BOM mark is present, otherwise default codepage is used.
     0x100  //OD_REOPEN               Don't create new MDI window, use the exited one.
     0x200  //OD_NOSCROLL             Don't restore scroll position.
            //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
@@ -1211,6 +1212,7 @@ Arguments
     0x04  //OD_ADT_DETECT_CODEPAGE  Detect code page.
     0x08  //OD_ADT_DETECT_BOM       Detect BOM mark.
     0x10  //OD_ADT_NOMESSAGES       No messages, if errors in autodetect.
+    0x20  //OD_ADT_ONLYBOM          Detect code page only if BOM mark is present, otherwise default codepage is used.
           //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
   nCodePage
     File code page, ignored if (nFlags & OD_ADT_DETECT_CODEPAGE).
