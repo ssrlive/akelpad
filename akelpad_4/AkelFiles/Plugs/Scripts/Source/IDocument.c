@@ -310,8 +310,8 @@ HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, HWND hWnd, int *n
     char szName[MAX_PATH];
 
     if (GetClassNameA(hWnd, szName, MAX_PATH) &&
-        (xstrcmpinA("AkelEdit", szName, (DWORD)-1) ||
-         xstrcmpinA("RichEdit20", szName, (DWORD)-1)))
+        (!xstrcmpinA("AkelEdit", szName, (DWORD)-1) ||
+         !xstrcmpinA("RichEdit20", szName, (DWORD)-1)))
     {
       if (SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_BYEDITWINDOW, (LPARAM)hWnd))
         *nIsAkelEdit=ISAEW_PROGRAM;
@@ -342,9 +342,11 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, HWND hWnd, HWND *
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   int nIsAkelEdit;
 
+  if ((INT_PTR)hWnd == SEW_FOCUS)
+    hWnd=(HWND)SendMessage(hMainWnd, AKD_GETFOCUS, 0, 0);
   Document_IsAkelEdit(this, hWnd, &nIsAkelEdit);
 
-  if (nIsAkelEdit == ISAEW_PLUGIN)
+  if (hWnd && nIsAkelEdit != ISAEW_NONE)
     lpScriptThread->hWndPluginEdit=hWnd;
   else
     lpScriptThread->hWndPluginEdit=NULL;

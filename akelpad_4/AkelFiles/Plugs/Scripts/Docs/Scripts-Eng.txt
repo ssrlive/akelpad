@@ -391,9 +391,10 @@ GetSelStart, GetSelEnd, SetSel, GetSelText, GetTextRange, ReplaceSel will use th
 
 Argumets
   hHandle
-    Edit window handle. If zero or hHandle is not AkelEdit/RichEdit20 window or
-    hHandle is standard edit window, then handles management is taken by program and
-    zero is returned.
+    Edit window handle or the following value:
+      1   //SEW_FOCUS  Use window handle that has focus.
+    If zero or hHandle is not AkelEdit/RichEdit20 window,
+    then handles management is taken by program and zero is returned.
 
 Return Value
   Number. Active edit window handle.
