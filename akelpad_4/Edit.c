@@ -8610,7 +8610,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       }
     }
   }
-  if (ADT_ONLYBOM) goto Free;
+  if (dwFlags & ADT_ONLYBOM) goto Free;
 
   if ((dwFlags & ADT_BINARY_ERROR) || (dwFlags & ADT_DETECT_CODEPAGE))
   {
@@ -11271,6 +11271,49 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
     API_FreeWide(wszData);
   }
   return nCase;
+}
+
+INT_PTR SetClipboardText(const wchar_t *wpText)
+{
+  HGLOBAL hDataA=NULL;
+  HGLOBAL hDataW=NULL;
+  LPVOID pData;
+  INT_PTR nUnicodeLen=0;
+  INT_PTR nAnsiLen;
+
+  if (!wpText) wpText=L"";
+
+  if (OpenClipboard(NULL))
+  {
+    //Unicode
+    nUnicodeLen=xstrlenW(wpText) + 1;
+
+    if (hDataW=GlobalAlloc(GMEM_MOVEABLE, nUnicodeLen * sizeof(wchar_t)))
+    {
+      if (pData=GlobalLock(hDataW))
+      {
+        xmemcpy(pData, wpText, nUnicodeLen * sizeof(wchar_t));
+        GlobalUnlock(hDataW);
+      }
+    }
+
+    //ANSI
+    nAnsiLen=WideCharToMultiByte(CP_ACP, 0, wpText, nUnicodeLen, NULL, 0, NULL, NULL);
+
+    if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
+    {
+      if (pData=GlobalLock(hDataA))
+      {
+        WideCharToMultiByte(CP_ACP, 0, wpText, nUnicodeLen, (char *)pData, nAnsiLen, NULL, NULL);
+        GlobalUnlock(hDataA);
+      }
+    }
+    EmptyClipboard();
+    if (hDataW) SetClipboardData(CF_UNICODETEXT, hDataW);
+    if (hDataA) SetClipboardData(CF_TEXT, hDataA);
+    CloseClipboard();
+  }
+  return nUnicodeLen;
 }
 
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)

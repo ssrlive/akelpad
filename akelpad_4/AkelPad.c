@@ -4057,6 +4057,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_EDIT_INSERT_SPACE_MENU, nMenuState);
         EnableMenuItem(hMainMenu, IDM_EDIT_DELETE_SPACE_MENU, nMenuState);
       }
+      if (nMDI)
+      {
+        EnableMenuItem(hMainMenu, IDM_WINDOW_FRAMECLONE, (!moCur.bSingleOpenFile && lpFrameCurrent->ei.hWndEdit && lpFrameCurrent->wszFile[0])?MF_ENABLED:MF_GRAYED);
+      }
       EnableMenuItem(hMainMenu, IDM_OPTIONS_EXEC, (*moCur.wszExecuteCommand)?MF_ENABLED:MF_GRAYED);
       EnableMenuItem(hMainMenu, IDM_MANUAL, GetUserManual(NULL, BUFFER_SIZE)?MF_ENABLED:MF_GRAYED);
       EnableMenuItem(hMainMenu, IDM_UPDATE, FileExistsWide(wszAkelUpdaterExe)?MF_ENABLED:MF_GRAYED);
@@ -5059,6 +5063,28 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return bResult;
       }
+      else if (wCommand == IDM_WINDOW_FRAMECLONE)
+      {
+        FRAMEDATA *lpFrameClone=NULL;
+        AESELECTION aes;
+        AECHARINDEX ciCaret;
+        POINT64 ptDocumentPos;
+
+        if (!moCur.bSingleOpenFile && lpFrameCurrent->ei.hWndEdit && lpFrameCurrent->wszFile[0])
+        {
+          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+
+          if (OpenDocument(NULL, lpFrameCurrent->wszFile, OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM) == EOD_SUCCESS)
+          {
+            lpFrameClone=lpFrameCurrent;
+            aes.dwFlags|=AESELT_LOCKSCROLL|AESELT_INDEXUPDATE;
+            SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+            SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+          }
+        }
+        return (LRESULT)lpFrameClone;
+      }
       if (nMDI == WMD_MDI)
       {
         //WMD_MDI only
@@ -5102,6 +5128,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return bResult;
       }
+    }
+    else if (wCommand == IDM_WINDOW_COPYPATH)
+    {
+      return (LRESULT)SetClipboardText(lpFrameCurrent->wszFile);
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -5756,6 +5786,8 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_WINDOW_FRAMECLOSE,
                      IDM_WINDOW_FRAMECLOSEALL,
                      IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE,
+                     IDM_WINDOW_FRAMECLONE,
+                     IDM_WINDOW_COPYPATH,
                      0};
     int i;
 

@@ -189,6 +189,9 @@ BEGIN
         MENUITEM "Sulje kaikki paitsi &aktiivinen", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "Vali&tse ikkuna...",          IDM_WINDOW_MDILIST
     END
     POPUP "&Ohje"

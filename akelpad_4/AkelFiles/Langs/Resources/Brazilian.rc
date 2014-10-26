@@ -188,6 +188,9 @@ BEGIN
         MENUITEM "Fechar todos",                IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Fechar todos exceto o atual", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "Selecionar Janela...",        IDM_WINDOW_MDILIST
     END
     POPUP "A&juda"

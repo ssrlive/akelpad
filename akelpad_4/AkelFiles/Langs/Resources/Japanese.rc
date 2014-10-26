@@ -187,6 +187,9 @@ BEGIN
         MENUITEM "全て閉じる",                  IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "最前面以外を全て閉じる",      IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "ウィンドウを選択...",         IDM_WINDOW_MDILIST
     END
     POPUP "ヘルプ(&H)"

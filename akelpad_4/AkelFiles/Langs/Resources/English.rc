@@ -98,7 +98,8 @@ BEGIN
 
             MENUITEM "Trim trailing &whitespace\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -183,7 +184,10 @@ BEGIN
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
-        MENUITEM "Select Window...",            IDM_WINDOW_MDILIST
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
+        MENUITEM "&Select Window...",           IDM_WINDOW_MDILIST
     END
     POPUP "&Help"
     BEGIN
@@ -478,7 +482,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Find"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -515,7 +519,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -1011,11 +1015,11 @@ BEGIN
     MSG_WRONG_STRING        "Invalid line number."
     MSG_LONG_FILELIST       "Too many files chosen."
     MSG_DOCUMENT_CHANGED    "Document was modified. Do you want to save it?"
-    MSG_FILE_DOES_NOT_EXIST "Create new file ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Create new file ""%s""?"
     MSG_RECENTFILES_DELETED "Deleted records: %d"
     MSG_SEARCH_ENDED        "Search finished."
     MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"

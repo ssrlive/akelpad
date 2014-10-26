@@ -185,6 +185,9 @@ BEGIN
         MENUITEM "Зачыніць усё, акрамя актыўнага", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Кло&нировать",                IDM_WINDOW_FRAMECLONE
+        MENUITEM "Ко&пировать путь",            IDM_WINDOW_COPYPATH
         MENUITEM "Выбар акна...",               IDM_WINDOW_MDILIST
     END
     POPUP "&Даведка"
