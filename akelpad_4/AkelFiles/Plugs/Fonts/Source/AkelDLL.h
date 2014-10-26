@@ -1944,6 +1944,12 @@ typedef struct {
 #define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents.
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
+#define IDM_WINDOW_FRAMECLONE           4322  //Clone current MDI window.
+                                              //Return Value: pointer to a new FRAMEDATA structure.
+                                              //
+#define IDM_WINDOW_COPYPATH             4323  //Copy current window file path to clipboard.
+                                              //Return Value: number of copied character including null character.
+                                              //
 #define IDM_WINDOW_FILECLOSE            4324  //Close file.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //

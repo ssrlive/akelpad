@@ -191,6 +191,9 @@ BEGIN
         MENUITEM "Fermer tout",                 IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Fermer tout sauf actif",      IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "Sélectionner une fenêtre...", IDM_WINDOW_MDILIST
     END
     POPUP "&Aide"

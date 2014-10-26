@@ -191,6 +191,9 @@ BEGIN
         MENUITEM "Zavrieù vöetky okrem aktÌvneho", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "V˝ber okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "&PomocnÌk"

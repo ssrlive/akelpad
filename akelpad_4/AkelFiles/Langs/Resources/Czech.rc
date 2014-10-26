@@ -187,6 +187,9 @@ BEGIN
         MENUITEM "Zavøít vše",                  IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Zavøít neaktivní",            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "Výbìr okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "&Nápovìda"

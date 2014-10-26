@@ -188,6 +188,9 @@ BEGIN
         MENUITEM "Az aktív kivételével zárja be mind", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "Ablakválasztás...",           IDM_WINDOW_MDILIST
     END
     POPUP "S&úgó"

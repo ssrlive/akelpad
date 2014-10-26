@@ -941,6 +941,7 @@ INT_PTR ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL 
 BOOL FreeText(LPVOID pText);
 BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght);
 int PasteCase(HWND hWnd, BOOL bAnsi);
+INT_PTR SetClipboardText(const wchar_t *wpText);
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

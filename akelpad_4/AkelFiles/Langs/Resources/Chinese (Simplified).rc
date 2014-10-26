@@ -182,6 +182,9 @@ BEGIN
         MENUITEM "全部关闭",                    IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "除活动外全部关闭",            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
+        MENUITEM SEPARATOR
+        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
         MENUITEM "选择窗口...",                 IDM_WINDOW_MDILIST
     END
     POPUP "帮助(&H)"
