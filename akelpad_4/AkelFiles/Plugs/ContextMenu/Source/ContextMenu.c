@@ -5948,9 +5948,8 @@ SET(4)\r\
     \"\x0026\x041A\x0430\x0441\x043A\x0430\x0434\x043E\x043C\" Command(4309)\r\
     SEPARATOR1\r\
 UNSET(4)\r\
-SET(32, \"%a\\AkelFiles\\Plugs\\Scripts.dll\")\r\
-    -\"\x041A\x043E\x043F\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x043F\x0443\x0442\x044C\" Call(\"Scripts::Main\", 1, \"EvalCmd.js\", `AkelPad.SetClipboardText(AkelPad.GetEditFile(0));`)\r\
-UNSET(32)\r\
+\"\x041A\x043B\x043E\x043D\x0438\x0440\x043E\x0432\x0430\x0442\x044C\" Command(4322)\r\
+\"\x041A\x043E\x043F\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x043F\x0443\x0442\x044C\" Command(4323)\r\
 \"\x041C\x0435\x043D\x044E\x0020\x043F\x0440\x043E\x0432\x043E\x0434\x043D\x0438\x043A\x0430\"\r\
 {\r\
     EXPLORER\r\
@@ -6515,9 +6514,8 @@ SET(4)\r\
     \"&Cascade\" Command(4309)\r\
     SEPARATOR1\r\
 UNSET(4)\r\
-SET(32, \"%a\\AkelFiles\\Plugs\\Scripts.dll\")\r\
-    -\"Copy path\" Call(\"Scripts::Main\", 1, \"EvalCmd.js\", `AkelPad.SetClipboardText(AkelPad.GetEditFile(0));`)\r\
-UNSET(32)\r\
+\"Clone\" Command(4322)\r\
+\"Copy path\" Command(4323)\r\
 \"Explorer menu\"\r\
 {\r\
     EXPLORER\r\
