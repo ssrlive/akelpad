@@ -5074,11 +5074,10 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
   return 0;
 }
 
-UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wppContent)
 {
   unsigned char *szBuffer;
-  wchar_t *wszBuffer=NULL;
-  UINT_PTR dwFileSize;
+  wchar_t *wszBuffer=*wppContent;
   UINT_PTR dwBufferBytes;
   UINT_PTR dwBytesRead;
   UINT_PTR dwCharsConverted=0;
@@ -5104,18 +5103,19 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
       }
     }
   }
+  if (dwBytesMax == (UINT_PTR)-1)
+    dwBytesMax=GetFileSize64(hFile);
 
-  if ((dwFileSize=GetFileSize64(hFile)) != (UINT_PTR)-1)
+  if (dwBytesMax != (UINT_PTR)-1)
   {
-    if (dwBytesMax == (UINT_PTR)-1)
-      dwBytesMax=dwFileSize;
-
     if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
       dwBufferBytes=dwBytesMax;
     else
       dwBufferBytes=dwBytesMax * sizeof(wchar_t);
 
-    if (wszBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferBytes + sizeof(wchar_t)))
+    if (!wszBuffer)
+      wszBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferBytes + sizeof(wchar_t));
+    if (wszBuffer)
     {
       if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
         szBuffer=(unsigned char *)wszBuffer;
@@ -5155,7 +5155,7 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
       }
     }
   }
-  *wpContent=wszBuffer;
+  *wppContent=wszBuffer;
   return dwCharsConverted;
 }
 

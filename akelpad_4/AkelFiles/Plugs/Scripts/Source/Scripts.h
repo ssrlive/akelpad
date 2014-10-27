@@ -287,7 +287,7 @@ void StackFreeArguments(HARGSTACK *hStack);
 UINT_PTR GetVariantInt(VARIANT *vt);
 UINT_PTR GetVariantValue(VARIANT *pvtParameter, BOOL bAnsi);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
-INT_PTR ReadFileContent(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
+INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
 const char* GetFileNameAnsi(const char *pFile, int nFileLen);
