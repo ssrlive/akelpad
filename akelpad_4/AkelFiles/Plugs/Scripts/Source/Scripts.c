@@ -728,9 +728,6 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
-  static HWND hWndBufferLabel;
-  static HWND hWndBufferEdit;
-  static HWND hWndBufferSpin;
   static HWND hWndOK;
   static HWND hWndCancel;
   static HMENU hMenuList;
@@ -741,21 +738,14 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hPluginIcon);
     hWndList=GetDlgItem(hDlg, IDC_COLUMNS_LIST);
-    hWndBufferLabel=GetDlgItem(hDlg, IDC_COLUMNS_BUFFER_LABEL);
-    hWndBufferEdit=GetDlgItem(hDlg, IDC_COLUMNS_BUFFER_EDIT);
-    hWndBufferSpin=GetDlgItem(hDlg, IDC_COLUMNS_BUFFER_SPIN);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_COLUMNS));
-    SetDlgItemTextWide(hDlg, IDC_COLUMNS_BUFFER_LABEL, GetLangStringW(wLangModule, STRID_BUFFER));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
-    SendMessage(hWndBufferSpin, UDM_SETRANGE32, (WPARAM)-1, 99999);
-    SendMessage(hWndBufferSpin, UDM_SETBUDDY, (WPARAM)hWndBufferEdit, 0);
-    SetDlgItemInt(hDlg, IDC_COLUMNS_BUFFER_EDIT, nContentBuffer, TRUE);
 
     if (hMenuList=CreatePopupMenu())
     {
@@ -842,9 +832,6 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (((NMLISTVIEW *)lParam)->hdr.code == LVN_ITEMCHANGED)
       {
-        LISTVIEWCOLUMN *lpColumnCount;
-        BOOL bReadContent=FALSE;
-
         if (pnmlv->uNewState & LVIS_SELECTED)
         {
           nSelItem=pnmlv->iItem;
@@ -860,19 +847,6 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else
             lpColumn->dwFlags&=~LVCOLF_VISIBLE;
         }
-
-        //Enable content buffer
-        for (lpColumnCount=lpColumnsDlg; lpColumnCount->nID >= 0; ++lpColumnCount)
-        {
-          if ((lpColumnCount->dwFlags & LVCOLF_VISIBLE) && (lpColumnCount->dwFlags & LVCOLF_CONTENT))
-          {
-            bReadContent=TRUE;
-            break;
-          }
-        }
-        EnableWindow(hWndBufferLabel, bReadContent);
-        EnableWindow(hWndBufferEdit, bReadContent);
-        EnableWindow(hWndBufferSpin, bReadContent);
       }
       else if (((NMHDR *)lParam)->code == (UINT)LVN_KEYDOWN)
       {
@@ -995,9 +969,6 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       //Last item ID must be -1
       lpColumns[nIndex].nID=-1;
-
-      //Content buffer size
-      nContentBuffer=GetDlgItemInt(hDlg, IDC_COLUMNS_BUFFER_EDIT, NULL, TRUE);
 
       EndDialog(hDlg, 1);
       return TRUE;
@@ -1254,7 +1225,10 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   wchar_t *wpMaxCount;
   wchar_t *wpValue;
   wchar_t *wpValueEnd;
-  wchar_t *wpContent;
+  wchar_t *wpLineEnd;
+  wchar_t *wszContentBuffer=NULL;
+  wchar_t *wpContent=NULL;
+  wchar_t *wpMaxContent;
   static wchar_t *wpVersion;
   static wchar_t *wpAuthor;
   static wchar_t *wpDescription;
@@ -1262,6 +1236,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   const wchar_t *wpComment;
   LVITEMW lvi;
   INT_PTR nContentLen;
+  INT_PTR nBytesToRead;
   static INT_PTR nVersionLen;
   static INT_PTR nAuthorLen;
   static INT_PTR nDescriptionLen;
@@ -1314,9 +1289,20 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
 
   //Content filter
   if (bContentFilterEnable && wpContentFilter && *wpContentFilter)
+  {
     bContentFilter=TRUE;
+    nBytesToRead=-1;
+  }
   else
+  {
     bContentFilter=FALSE;
+    nBytesToRead=512;
+    if (dwContentInfo)
+    {
+      wszContentBuffer=GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
+      wpMaxContent=wszContentBuffer + 65536;
+    }
+  }
 
   //Script files
   xprintfW(wszFindFiles, L"%s\\*.*", wszScriptsDir);
@@ -1341,6 +1327,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       }
       else continue;
 
+      //Filter check (without contents)
       if (!dwContentInfo && wpFilter && *wpFilter)
       {
         if (!xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL))
@@ -1353,7 +1340,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       bBOM=FALSE;
       ck[0].wpKey=wpComment;
       ck[0].nKeyLen=nCommentLen;
-      wpContent=NULL;
+      wpContent=wszContentBuffer;
       wpVersion=NULL;
       wpAuthor=NULL;
       wpDescription=NULL;
@@ -1362,26 +1349,45 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
 
       if (dwContentInfo || bContentFilter)
       {
-        if (bContentFilter)
-          nContentLen=-1;
-        else
-          nContentLen=512;
-
         xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
-        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nContentLen))
+        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
         {
           if (bContentFilter)
           {
             if (!xstrstrW(wpContent, nContentLen, wpContentFilter, -1, FALSE, NULL, NULL))
-              nContentLen=0;
+              goto NextFile;
           }
-          if (nContentLen && dwContentInfo)
+          if (dwContentInfo)
           {
             wpCount=wpContent;
             wpMaxCount=wpContent + nContentLen;
 
-            while (wpCount < wpMaxCount)
+            while (nBytesToRead == -1 ? wpCount < wpMaxCount : nContentLen)
             {
+              wpLineEnd=wpCount;
+
+              for (;;)
+              {
+                //Make sure we have all line in buffer
+                while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && *wpLineEnd != L'\0') ++wpLineEnd;
+                if (!*wpLineEnd && nBytesToRead != -1)
+                {
+                  wpContent=wpMaxCount;
+                  if (wpContent + nBytesToRead <= wpMaxContent)
+                  {
+                    //Read next block to wszContentBuffer
+                    if (nContentLen=ReadFileContent(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+                    {
+                      //Now wpCount could point to "\r|\n"
+                      while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+                      wpMaxCount=wpContent + nContentLen;
+                      continue;
+                    }
+                  }
+                }
+                break;
+              }
+
               //Skip spaces at line start
               while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
 
@@ -1406,8 +1412,8 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
                     while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
                   }
                   wpValue=wpCount;
-                  while (*wpCount != L'\r' && *wpCount != L'\n' && *wpCount != L'\0') ++wpCount;
-                  wpValueEnd=wpCount;
+                  wpValueEnd=wpLineEnd;
+                  wpCount=wpLineEnd;
 
                   //Trim trailing spaces
                   while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
@@ -1443,20 +1449,18 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
                   break;
                 }
               }
-              while (*wpCount != L'\r' && *wpCount != L'\n' && *wpCount != L'\0') ++wpCount;
+              wpCount=wpLineEnd;
               while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+
+              //Break if all info is received
+              if (wpVersion && wpAuthor && wpDescription && wDescriptionLang == wLangModule && wpSite)
+                break;
             }
           }
-
-          if (!wpVersion && !wpAuthor && !wpDescription && !wpSite)
-          {
-            SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
-            wpContent=NULL;
-          }
         }
-        if (!nContentLen) continue;
       }
 
+      //Filter check (with contents)
       if (dwContentInfo && wpFilter && *wpFilter)
       {
         if (!xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL) &&
@@ -1465,8 +1469,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
             !xstrstrW(wpDescription, nDescriptionLen, wpFilter, -1, FALSE, NULL, NULL) &&
             !xstrstrW(wpSite, nSiteLen, wpFilter, -1, FALSE, NULL, NULL))
         {
-          if (wpContent) SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
-          continue;
+          goto NextFile;
         }
       }
 
@@ -1585,12 +1588,24 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
         if (!xstrcmpiW(wfd.cFileName, wszLastScript))
           lpLastScriptItemParam=lpItemParam;
       }
-      if (wpContent) SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
+
+      NextFile:
+      if (hFile)
+      {
+        CloseHandle(hFile);
+        hFile=NULL;
+      }
+      if (!wszContentBuffer && wpContent)
+      {
+        SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
+        wpContent=NULL;
+      }
     }
     while (FindNextFileWide(hFind, &wfd));
 
     FindClose(hFind);
   }
+  if (wszContentBuffer) GlobalFree((HGLOBAL)wszContentBuffer);
 
   //Sort items
   if (lpColumnCount=GetColumnByID(nSortColumn, NULL))
@@ -2802,8 +2817,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0430\x0020\x0444\x0443\x043D\x043A\x0446\x0438\x044F \"%s\" \x0432\x0020\x0444\x0430\x0439\x043B\x0435 \"%s\".";
     if (nStringID == STRID_COLUMNS)
       return L"\x041A\x043E\x043B\x043E\x043D\x043A\x0438";
-    if (nStringID == STRID_BUFFER)
-      return L"\x0411\x0443\x0444\x0435\x0440:";
     if (nStringID == STRID_MENU_OPENSITE)
       return L"\x041E\x0442\x043A\x0440\x044B\x0442\x044C\x0020\x0441\x0430\x0439\x0442";
     if (nStringID == STRID_MENU_ITEMMOVEUP)
@@ -2899,8 +2912,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Cannot find function \"%s\" in file \"%s\".";
     if (nStringID == STRID_COLUMNS)
       return L"Columns";
-    if (nStringID == STRID_BUFFER)
-      return L"Buffer:";
     if (nStringID == STRID_MENU_OPENSITE)
       return L"Open site";
     if (nStringID == STRID_MENU_ITEMMOVEUP)
