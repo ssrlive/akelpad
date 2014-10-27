@@ -8534,6 +8534,10 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
 
     if (hFile != INVALID_HANDLE_VALUE)
     {
+      //Read file only for BOM detecting
+      if ((dwFlags & ADT_ONLYBOM) && !(dwFlags & ADT_BINARY_ERROR))
+        dwBytesToCheck=4;
+
       if (pBuffer=(unsigned char *)API_HeapAlloc(hHeap, 0, dwBytesToCheck + 1))
       {
         if (!ReadFile64(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
@@ -8610,7 +8614,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       }
     }
   }
-  if (dwFlags & ADT_ONLYBOM) goto Free;
+  if (dwFlags & ADT_ONLYBOM)
+    dwFlags&=~ADT_DETECT_CODEPAGE & ~ADT_DETECT_BOM;
 
   if ((dwFlags & ADT_BINARY_ERROR) || (dwFlags & ADT_DETECT_CODEPAGE))
   {
