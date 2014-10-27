@@ -115,7 +115,6 @@ LISTVIEWCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LVCOLF_VISIBLE},
 int nSortColumn=LVI_SCRIPT;
 BOOL bOpeningDlg=FALSE;
 BOOL bContentFilterEnable=FALSE;
-int nContentBuffer=512;
 DWORD dwGlobalDebugJIT=JIT_FROMSTART;
 BOOL bGlobalDebugEnable=FALSE;
 DWORD dwGlobalDebugCode=0;
@@ -2421,10 +2420,7 @@ INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, i
 
   //Detect codepage
   df.pFile=wpFile;
-  if (!(dwFlags & ADT_BINARY_ERROR) && (dwFlags & ADT_ONLYBOM))
-    df.dwBytesToCheck=4;
-  else
-    df.dwBytesToCheck=1024;
+  df.dwBytesToCheck=1024;
   df.dwFlags=dwFlags;
   df.nCodePage=lpnCodePage?*lpnCodePage:0;
   df.bBOM=lpbBOM?*lpbBOM:0;
@@ -2640,7 +2636,6 @@ void ReadOptions(DWORD dwFlags)
   {
     WideOption(hOptions, L"/WindowRect", PO_BINARY, (LPBYTE)&rcMainCurrentDialog, sizeof(RECT));
     WideOption(hOptions, L"/Columns", PO_BINARY, (LPBYTE)&lpColumns, sizeof(lpColumns));
-    WideOption(hOptions, L"/ContentBuffer", PO_BINARY, (LPBYTE)&nContentBuffer, sizeof(DWORD));
     WideOption(hOptions, L"/GlobalDebugJIT", PO_DWORD, (LPBYTE)&dwGlobalDebugJIT, sizeof(DWORD));
     WideOption(hOptions, L"/GlobalDebugEnable", PO_DWORD, (LPBYTE)&bGlobalDebugEnable, sizeof(DWORD));
     WideOption(hOptions, L"/GlobalDebugCode", PO_DWORD, (LPBYTE)&dwGlobalDebugCode, sizeof(DWORD));
@@ -2698,7 +2693,6 @@ void SaveOptions(DWORD dwFlags)
     if (dwFlags & OF_COLUMNS)
     {
       WideOption(hOptions, L"/Columns", PO_BINARY, (LPBYTE)&lpColumns, sizeof(lpColumns));
-      WideOption(hOptions, L"/ContentBuffer", PO_BINARY, (LPBYTE)&nContentBuffer, sizeof(DWORD));
     }
     if (dwFlags & OF_DEBUG)
     {
