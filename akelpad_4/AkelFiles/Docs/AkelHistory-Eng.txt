@@ -8,6 +8,7 @@ Changed: when active split window is closed selection and scrolling is retained.
 
 Added: command line method /Var() to change variables usage for the following command line
        methods.
+Added: parameter for show window in specified style in command line method /Exec().
 Added: command 4322 and menu item - clone current tab.
 Added: command 4323 and menu item - copy current tab file path.
 
