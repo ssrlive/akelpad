@@ -1209,7 +1209,7 @@ HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, BOO
     xprintfW(lpScriptThread->wszScriptInclude, L"%s\\AkelFiles\\Plugs\\Scripts\\Include\\%s", wszAkelPadDir, wpFileName);
     xstrcpynW(lpIncludeItem->wszInclude, lpScriptThread->wszScriptInclude, MAX_PATH);
 
-    if (ReadFileContent(lpScriptThread->wszScriptInclude, OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, 0, &wpContent, (UINT_PTR)-1))
+    if (ReadFileContent(NULL, lpScriptThread->wszScriptInclude, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent, (UINT_PTR)-1))
     {
       lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
       if ((hr=lpScriptThread->objActiveScriptParse->lpVtbl->ParseScriptText(lpScriptThread->objActiveScriptParse, wpContent, NULL, NULL, NULL, lpScriptThread->hIncludesStack.nElements, 0, 0, NULL, NULL)) == S_OK)
@@ -1261,7 +1261,7 @@ HRESULT STDMETHODCALLTYPE Document_ReadFile(IDocument *this, BSTR wpFile, DWORD 
 
   *wpText=NULL;
 
-  nContentLen=ReadFileContent(wpFile, dwFlags, nCodePage, bBOM, &wpContent, (UINT_PTR)nBytesMax);
+  nContentLen=ReadFileContent(NULL, wpFile, dwFlags, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesMax);
 
   if (wpContent)
   {

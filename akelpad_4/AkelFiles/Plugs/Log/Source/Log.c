@@ -2028,6 +2028,7 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
             fc.dwMax=dwBlockSize;
             fc.nCodePage=ei.nCodePage;
             fc.bBOM=ei.bBOM;
+            fc.wpContent=NULL;
             if (dwBlockLen=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
             {
               if (!dwCurPointer)

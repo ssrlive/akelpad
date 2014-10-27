@@ -1156,7 +1156,8 @@ typedef struct {
                          //AKD_WRITEFILECONTENT: wpContent length in characters. If this value is -1, the wpContent is assumed to be null-terminated and the length is calculated automatically.
   int nCodePage;         //File codepage.
   BOOL bBOM;             //File BOM.
-  wchar_t *wpContent;    //AKD_READFILECONTENT: returned file contents.
+  wchar_t *wpContent;    //AKD_READFILECONTENT: returned file contents. On input points to text buffer or NULL if buffer must be allocated automatically.
+                         //                     Automatically allocated buffer must be released with AKD_FREETEXT.
                          //AKD_WRITEFILECONTENT: text to save.
 } FILECONTENT;
 
@@ -2929,7 +2930,6 @@ wParam                == not used.
 
 Return Value
  Number of wide characters copied to a FILECONTENT.wpContent buffer.
- When you no longer need the buffer, call the AKD_FREETEXT function to delete it.
 
 Example (bOldWindows == TRUE):
  int ReadFileContentA(const char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)

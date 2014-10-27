@@ -1246,6 +1246,7 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   LISTVIEWITEMPARAM *lpLastScriptItemParam=NULL;
   WIN32_FIND_DATAW wfd;
   HANDLE hFind;
+  HANDLE hFile;
   wchar_t wszFindFiles[MAX_PATH];
   wchar_t wszHotkey[MAX_PATH];
   const wchar_t *wpExt;
@@ -1273,6 +1274,8 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   int nIndexToSelect=-1;
   int nItemCount=0;
   int nIndex;
+  int nCodePage;
+  BOOL bBOM;
   BOOL bContentFilter;
   CONTENTKEY *ckCount;
   CONTENTKEY ck[]={{NULL, 0, &wpDescription, &nDescriptionLen},
@@ -1345,6 +1348,9 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       }
 
       //Script content
+      hFile=NULL;
+      nCodePage=0;
+      bBOM=FALSE;
       ck[0].wpKey=wpComment;
       ck[0].nKeyLen=nCommentLen;
       wpContent=NULL;
@@ -1359,10 +1365,10 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
         if (bContentFilter)
           nContentLen=-1;
         else
-          nContentLen=nContentBuffer;
+          nContentLen=512;
 
         xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
-        if (nContentLen=ReadFileContent(wszFindFiles, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)nContentLen))
+        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nContentLen))
         {
           if (bContentFilter)
           {
@@ -1923,7 +1929,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Run script
       if (!bMainOnFinish)
       {
-        wchar_t *wpContent;
+        wchar_t *wpContent=NULL;
         const wchar_t *wpExt;
         char szExt[MAX_PATH];
         GUID guidEngine;
@@ -1934,7 +1940,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
           WideCharToMultiByte(CP_ACP, 0, --wpExt, -1, szExt, MAX_PATH, NULL, NULL);
           if (GetScriptEngineA(szExt, &guidEngine) == S_OK)
           {
-            if (nContentLen=ReadFileContent(lpScriptThread->wszScriptFile, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
+            if (nContentLen=ReadFileContent(NULL, lpScriptThread->wszScriptFile, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
             {
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;
@@ -2384,37 +2390,49 @@ int GetHotkeyString(WORD wHotkey, wchar_t *wszString)
   return nResult;
 }
 
-INT_PTR ReadFileContent(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent, UINT_PTR dwBytesMax)
+INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wppContent, UINT_PTR dwBytesMax)
 {
   DETECTFILEW df;
   FILECONTENT fc;
   INT_PTR nResult=0;
 
-  *wpContent=NULL;
+  if (lphFile)
+    fc.hFile=*lphFile;
+  else
+    fc.hFile=NULL;
 
   //Detect codepage
   df.pFile=wpFile;
-  df.dwBytesToCheck=1024;
+  if (!(dwFlags & ADT_BINARY_ERROR) && (dwFlags & ADT_ONLYBOM))
+    df.dwBytesToCheck=4;
+  else
+    df.dwBytesToCheck=1024;
   df.dwFlags=dwFlags;
-  df.nCodePage=nCodePage;
-  df.bBOM=bBOM;
-  if (SendMessage(hMainWnd, AKD_DETECTFILEW, 0, (LPARAM)&df) == EDT_SUCCESS)
+  df.nCodePage=lpnCodePage?*lpnCodePage:0;
+  df.bBOM=lpbBOM?*lpbBOM:0;
+  if (!fc.hFile)
   {
-    //Read contents
-    if ((fc.hFile=CreateFileWide(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
-    {
-      fc.dwMax=dwBytesMax;
-      fc.nCodePage=df.nCodePage;
-      fc.bBOM=df.bBOM;
-      if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
-      {
-        CloseHandle(fc.hFile);
-        fc.hFile=NULL;
+    if (SendMessage(hMainWnd, AKD_DETECTFILEW, 0, (LPARAM)&df) == EDT_SUCCESS)
+      fc.hFile=CreateFileWide(df.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+  }
 
-        *wpContent=fc.wpContent;
-      }
-      if (fc.hFile) CloseHandle(fc.hFile);
+  //Read contents
+  if (fc.hFile && fc.hFile != INVALID_HANDLE_VALUE)
+  {
+    fc.dwMax=dwBytesMax;
+    fc.nCodePage=df.nCodePage;
+    fc.bBOM=df.bBOM;
+    fc.wpContent=*wppContent;
+    if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+    {
+      if (!*wppContent) *wppContent=fc.wpContent;
     }
+    if (lpnCodePage) *lpnCodePage=df.nCodePage;
+    if (lpbBOM) *lpbBOM=df.bBOM;
+    if (!lphFile)
+      CloseHandle(fc.hFile);
+    else
+      *lphFile=fc.hFile;
   }
   return nResult;
 }
