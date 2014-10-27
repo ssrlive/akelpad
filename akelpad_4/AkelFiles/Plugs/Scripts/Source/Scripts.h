@@ -56,8 +56,8 @@
 #define STRID_HOTKEY                31
 #define STRID_STATUS                32
 #define STRID_VERSION               33
-#define STRID_AUTHOR                34
-#define STRID_DESCRIPTION           35
+#define STRID_DESCRIPTION           34
+#define STRID_AUTHOR                35
 #define STRID_SITE                  36
 #define STRID_RUNNING               37
 #define STRID_WAITING               38
@@ -82,16 +82,16 @@
 #define LVI_HOTKEY        1
 #define LVI_STATUS        2
 #define LVI_VERSION       3
-#define LVI_AUTHOR        4
-#define LVI_DESCRIPTION   5
+#define LVI_DESCRIPTION   4
+#define LVI_AUTHOR        5
 #define LVI_SITE          6
 
 #define LVCOLF_VISIBLE    0x1
 #define LVCOLF_CONTENT    0x2
 
 #define CCOLF_VERSION     0x1
-#define CCOLF_AUTHOR      0x2
-#define CCOLF_DESCRIPTION 0x4
+#define CCOLF_DESCRIPTION 0x2
+#define CCOLF_AUTHOR      0x4
 #define CCOLF_SITE        0x8
 
 #define JIT_NONE        0x0
@@ -187,8 +187,8 @@ typedef struct {
   wchar_t *wpHotkey;
   wchar_t *wpStatus;
   wchar_t *wpVersion;
-  wchar_t *wpAuthor;
   wchar_t *wpDescription;
+  wchar_t *wpAuthor;
   wchar_t *wpSite;
 } LISTVIEWITEMPARAM;
 

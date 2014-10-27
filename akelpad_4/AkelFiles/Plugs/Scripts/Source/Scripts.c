@@ -108,9 +108,9 @@ LISTVIEWCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LVCOLF_VISIBLE},
                             {LVI_VERSION,     70,  LVCOLF_CONTENT},
                             {LVI_HOTKEY,      109, LVCOLF_VISIBLE},
                             {LVI_STATUS,      70,  LVCOLF_VISIBLE},
-                            {LVI_AUTHOR,      70,  LVCOLF_CONTENT},
                             {LVI_DESCRIPTION, 300, LVCOLF_CONTENT},
-                            {LVI_SITE,        70, LVCOLF_CONTENT},
+                            {LVI_AUTHOR,      70,  LVCOLF_CONTENT},
+                            {LVI_SITE,        70,  LVCOLF_CONTENT},
                             {-1, 0, 0}};
 int nSortColumn=LVI_SCRIPT;
 BOOL bOpeningDlg=FALSE;
@@ -710,13 +710,13 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
   {
     return xstrcmpiW(lpItemParam1->wpVersion, lpItemParam2->wpVersion);
   }
-  if (lpColumn->nID == LVI_AUTHOR)
-  {
-    return xstrcmpiW(lpItemParam1->wpAuthor, lpItemParam2->wpAuthor);
-  }
   if (lpColumn->nID == LVI_DESCRIPTION)
   {
     return xstrcmpiW(lpItemParam1->wpDescription, lpItemParam2->wpDescription);
+  }
+  if (lpColumn->nID == LVI_AUTHOR)
+  {
+    return xstrcmpiW(lpItemParam1->wpAuthor, lpItemParam2->wpAuthor);
   }
   if (lpColumn->nID == LVI_SITE)
   {
@@ -1230,16 +1230,16 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   wchar_t *wpContent=NULL;
   wchar_t *wpMaxContent;
   static wchar_t *wpVersion;
-  static wchar_t *wpAuthor;
   static wchar_t *wpDescription;
+  static wchar_t *wpAuthor;
   static wchar_t *wpSite;
   const wchar_t *wpComment;
   LVITEMW lvi;
   INT_PTR nContentLen;
   INT_PTR nBytesToRead;
   static INT_PTR nVersionLen;
-  static INT_PTR nAuthorLen;
   static INT_PTR nDescriptionLen;
+  static INT_PTR nAuthorLen;
   static INT_PTR nSiteLen;
   DWORD dwContentInfo;
   int nCommentLen;
@@ -1277,10 +1277,10 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       {
         if (lpColumnCount->nID == LVI_VERSION)
           dwContentInfo|=CCOLF_VERSION;
-        else if (lpColumnCount->nID == LVI_AUTHOR)
-          dwContentInfo|=CCOLF_AUTHOR;
         else if (lpColumnCount->nID == LVI_DESCRIPTION)
           dwContentInfo|=CCOLF_DESCRIPTION;
+        else if (lpColumnCount->nID == LVI_AUTHOR)
+          dwContentInfo|=CCOLF_AUTHOR;
         else if (lpColumnCount->nID == LVI_SITE)
           dwContentInfo|=CCOLF_SITE;
       }
@@ -1342,8 +1342,8 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       ck[0].nKeyLen=nCommentLen;
       wpContent=wszContentBuffer;
       wpVersion=NULL;
-      wpAuthor=NULL;
       wpDescription=NULL;
+      wpAuthor=NULL;
       wpSite=NULL;
       wDescriptionLang=0;
 
@@ -1453,7 +1453,10 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
               while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
 
               //Break if all info is received
-              if (wpVersion && wpAuthor && wpDescription && wDescriptionLang == wLangModule && wpSite)
+              if ((!(dwContentInfo & CCOLF_VERSION) || wpVersion) &&
+                  (!(dwContentInfo & CCOLF_DESCRIPTION) || (wpDescription && wDescriptionLang == wLangModule)) &&
+                  (!(dwContentInfo & CCOLF_AUTHOR) || wpAuthor) &&
+                  (!(dwContentInfo & CCOLF_SITE) || wpSite))
                 break;
             }
           }
@@ -1465,8 +1468,8 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       {
         if (!xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL) &&
             !xstrstrW(wpVersion, nVersionLen, wpFilter, -1, FALSE, NULL, NULL) &&
-            !xstrstrW(wpAuthor, nAuthorLen, wpFilter, -1, FALSE, NULL, NULL) &&
             !xstrstrW(wpDescription, nDescriptionLen, wpFilter, -1, FALSE, NULL, NULL) &&
+            !xstrstrW(wpAuthor, nAuthorLen, wpFilter, -1, FALSE, NULL, NULL) &&
             !xstrstrW(wpSite, nSiteLen, wpFilter, -1, FALSE, NULL, NULL))
         {
           goto NextFile;
@@ -1480,10 +1483,10 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
 
       if (wpVersion)
         CopyWideStr(wpVersion, nVersionLen, &lpItemParam->wpVersion);
-      if (wpAuthor)
-        CopyWideStr(wpAuthor, nAuthorLen, &lpItemParam->wpAuthor);
       if (wpDescription)
         CopyWideStr(wpDescription, nDescriptionLen, &lpItemParam->wpDescription);
+      if (wpAuthor)
+        CopyWideStr(wpAuthor, nAuthorLen, &lpItemParam->wpAuthor);
       if (wpSite)
         CopyWideStr(wpSite, nSiteLen, &lpItemParam->wpSite);
 
@@ -1536,21 +1539,21 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
               lvi.iSubItem=nColumnIndex;
             }
           }
-          else if (lpColumnCount->nID == LVI_AUTHOR)
-          {
-            if (lpItemParam->wpAuthor)
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpAuthor;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
           else if (lpColumnCount->nID == LVI_DESCRIPTION)
           {
             if (lpItemParam->wpDescription)
             {
               lvi.mask=LVIF_TEXT;
               lvi.pszText=lpItemParam->wpDescription;
+              lvi.iSubItem=nColumnIndex;
+            }
+          }
+          else if (lpColumnCount->nID == LVI_AUTHOR)
+          {
+            if (lpItemParam->wpAuthor)
+            {
+              lvi.mask=LVIF_TEXT;
+              lvi.pszText=lpItemParam->wpAuthor;
               lvi.iSubItem=nColumnIndex;
             }
           }
@@ -1640,8 +1643,8 @@ void FreeScriptList(HWND hWnd)
     FreeWideStr(lpItemParam->wpHotkey);
     FreeWideStr(lpItemParam->wpStatus);
     FreeWideStr(lpItemParam->wpVersion);
-    FreeWideStr(lpItemParam->wpAuthor);
     FreeWideStr(lpItemParam->wpDescription);
+    FreeWideStr(lpItemParam->wpAuthor);
     FreeWideStr(lpItemParam->wpSite);
     GlobalFree((HGLOBAL)lpItemParam);
   }
@@ -2831,10 +2834,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0442\x0430\x0442\x0443\x0441";
     if (nStringID == STRID_VERSION)
       return L"\x0412\x0435\x0440\x0441\x0438\x044F";
-    if (nStringID == STRID_AUTHOR)
-      return L"\x0410\x0432\x0442\x043E\x0440";
     if (nStringID == STRID_DESCRIPTION)
       return L"\x041E\x043F\x0438\x0441\x0430\x043D\x0438\x0435";
+    if (nStringID == STRID_AUTHOR)
+      return L"\x0410\x0432\x0442\x043E\x0440";
     if (nStringID == STRID_SITE)
       return L"\x0421\x0430\x0439\x0442";
     if (nStringID == STRID_RUNNING)
@@ -2926,10 +2929,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"State";
     if (nStringID == STRID_VERSION)
       return L"Version";
-    if (nStringID == STRID_AUTHOR)
-      return L"Author";
     if (nStringID == STRID_DESCRIPTION)
       return L"Description";
+    if (nStringID == STRID_AUTHOR)
+      return L"Author";
     if (nStringID == STRID_SITE)
       return L"Site";
     if (nStringID == STRID_RUNNING)
