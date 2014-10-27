@@ -237,7 +237,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
                  [GetLangString(STRID_TEMPLATE2), "(^[ \\t]+)|([ \\t]+$)", "", "rm"],
                  [GetLangString(STRID_TEMPLATE3), "[^\\n]", " ", "r"]];
 
-    if (oSet.Begin(WScript.ScriptBaseName, 0x1 /*POB_READ*/))
+    if (oSet.Begin("", 0x1 /*POB_READ*/))
     {
       //Read settings
       bRegExp=oSet.Read("RegExp", 1 /*PO_DWORD*/);
@@ -1237,7 +1237,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       }
     }
 
-    if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+    if (oSet.Begin("", 0x2 /*POB_SAVE*/))
     {
       //Save settings
       if (nDirection != DN_DOWN) nDirection&=~DN_DOWN;

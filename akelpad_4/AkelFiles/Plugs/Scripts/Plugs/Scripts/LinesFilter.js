@@ -113,7 +113,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
   if (uMsg == 1)  //WM_CREATE
   {
     //Read settings
-    if (oSet.Begin(WScript.ScriptBaseName, 0x1 /*POB_READ*/))
+    if (oSet.Begin("", 0x1 /*POB_READ*/))
     {
       bRegExp=oSet.Read("RegExp", 1 /*PO_DWORD*/);
       bSensitive=oSet.Read("Sensitive", 1 /*PO_DWORD*/);
@@ -465,7 +465,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
   }
   else if (uMsg == 16)  //WM_CLOSE
   {
-    if (oSet.Begin(WScript.ScriptBaseName, 0x2 /*POB_SAVE*/))
+    if (oSet.Begin("", 0x2 /*POB_SAVE*/))
     {
       //Save settings
       oSet.Write("RegExp", 1 /*PO_DWORD*/, bRegExp);
