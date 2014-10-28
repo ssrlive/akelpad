@@ -3881,9 +3881,9 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                       for (lpTitleInfo=(TITLEINFO *)hTitleStack.first; lpTitleInfo; lpTitleInfo=lpTitleInfo->next)
                       {
                         if (lpTitleInfo->bExactTitle)
-                          lpBlockInfo=StackInsertBlock(&lpSyntaxFile->hExactBlockStack);
+                          lpBlockInfo=StackInsertExactBlock(&lpSyntaxFile->hExactBlockStack);
                         else
-                          lpBlockInfo=StackInsertAndSortBlock(&lpSyntaxFile->hBlockStack, lpTitleInfo->wpTitle, lpTitleInfo->nTitleLen);
+                          lpBlockInfo=StackInsertBlock(&lpSyntaxFile->hBlockStack, &lpSyntaxFile->hBlockOrderStack, lpTitleInfo->wpTitle, lpTitleInfo->nTitleLen);
 
                         if (lpBlockInfo)
                         {
@@ -4100,8 +4100,8 @@ void StackFreeSyntaxFiles(HSTACK *hStack)
       DestroyIcon(lpElement->hCompleteListDocWordIcon);
 
     StackFreeTitle(&lpElement->hTitleStack);
-    StackFreeBlock(&lpElement->hBlockStack);
-    StackFreeBlock(&lpElement->hExactBlockStack);
+    StackFreeBlock(&lpElement->hBlockStack, &lpElement->hBlockOrderStack);
+    StackFreeBlock(&lpElement->hExactBlockStack, NULL);
 
     lpElement=lpElement->next;
   }

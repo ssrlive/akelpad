@@ -99,6 +99,12 @@ typedef struct _BLOCKINFO {
   void *lpRef;
 } BLOCKINFO;
 
+typedef struct _BLOCKORDER {
+  struct _BLOCKORDER *next;
+  struct _BLOCKORDER *prev;
+  BLOCKINFO *lpBlockInfo;
+} BLOCKORDER;
+
 typedef struct _BLOCKINFOHANDLE {
   struct _BLOCKINFOHANDLE *next;
   struct _BLOCKINFOHANDLE *prev;
@@ -127,7 +133,7 @@ typedef struct {
   DOCWORDINFO *first;
   DOCWORDINFO *last;
   INT_PTR lpSorted[FIRST_NONLATIN + 1];
-} HDOCWORDS;
+} STACKDOCWORDS;
 
 
 //// Prototypes
@@ -150,7 +156,7 @@ BOOL MoveAutoCompleteWindow();
 void CloseAutoCompleteWindow();
 
 //AutoComplete window listbox
-void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart);
+void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart);
 void SetSelListbox(int nIndex);
 BLOCKINFO* GetDataListbox(int nItem);
 
@@ -166,11 +172,11 @@ BOOL GetEditTitlePart(STACKDELIM *hDelimiterStack, wchar_t *wszTitle, int nTitle
 void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax);
 
 //Block
-BLOCKINFO* StackInsertBlock(STACKBLOCK *hBlockStack);
-BLOCKINFO* StackInsertAndSortBlock(STACKBLOCK *hBlockStack, wchar_t *wpTitle, int nTitleLen);
+BLOCKINFO* StackInsertExactBlock(STACKBLOCK *hStack);
+BLOCKINFO* StackInsertBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack, wchar_t *wpTitle, int nTitleLen);
 BLOCKINFO* StackGetExactBlock(SYNTAXFILE *lpSyntaxFile, AECHARINDEX *ciCaret, INT_PTR nCaretOffset, INT_PTR *nMin, INT_PTR *nMax);
-BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne);
-void StackFreeBlock(STACKBLOCK *hBlockStack);
+BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne);
+void StackFreeBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack);
 
 //Hot spot
 HOTSPOT* StackInsertHotSpot(HSTACK *hStack, int nHotSpotPos);
@@ -180,10 +186,10 @@ void StackResetHotSpot(BLOCKINFO *lpBlockInfo);
 void StackFreeHotSpot(HSTACK *hStack);
 
 //Document words
-void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen);
-DOCWORDINFO* StackInsertDocWord(HDOCWORDS *hStack, wchar_t *wpWordDoc, int nWordDocLen);
-DOCWORDINFO* StackGetDocWord(HDOCWORDS *hStack, const wchar_t *wpDocWord, int nDocWordLen);
-void StackFreeDocWord(HDOCWORDS *hStack);
+void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen);
+DOCWORDINFO* StackInsertDocWord(STACKDOCWORDS *hStack, wchar_t *wpWordDoc, int nWordDocLen);
+DOCWORDINFO* StackGetDocWord(STACKDOCWORDS *hStack, const wchar_t *wpDocWord, int nDocWordLen);
+void StackFreeDocWord(STACKDOCWORDS *hStack);
 
 //Options
 void ReadAutoCompleteOptions(HANDLE hOptions);

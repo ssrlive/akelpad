@@ -17,7 +17,7 @@
 
 //// Global variables
 SYNTAXFILE *lpSyntaxFileAutoComplete=NULL;
-HDOCWORDS hDocWordsStack={0};
+STACKDOCWORDS hDocWordsStack={0};
 BLOCKINFO *lpCurrentBlockElement=NULL;
 INT_PTR nWindowBlockBegin=0;
 INT_PTR nWindowBlockEnd=0;
@@ -1543,9 +1543,8 @@ void CloseAutoCompleteWindow()
     StackFreeDocWord(&hDocWordsStack);
 }
 
-void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart)
+void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart)
 {
-  BLOCKINFO *lpBlockElement;
   int nItem;
 
   SendMessage(hWndListBox, LB_RESETCONTENT, 0, 0);
@@ -1553,21 +1552,21 @@ void FillListbox(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wcha
   if (lpSyntaxFile)
   {
     //Blocks
-    lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hBlockStack.first;
+    BLOCKORDER *lpBlockOrder=(BLOCKORDER *)lpSyntaxFile->hBlockOrderStack.first;
 
-    while (lpBlockElement)
+    while (lpBlockOrder)
     {
-      if (!xstrcmpinW(wpTitlePart, lpBlockElement->wpTitle, (UINT_PTR)-1))
+      if (!xstrcmpinW(wpTitlePart, lpBlockOrder->lpBlockInfo->wpTitle, (UINT_PTR)-1))
       {
-        if ((nItem=ListBox_AddStringWide(hWndListBox, lpBlockElement->wpTitle)) != LB_ERR)
-          SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpBlockElement);
+        if ((nItem=ListBox_AddStringWide(hWndListBox, lpBlockOrder->lpBlockInfo->wpTitle)) != LB_ERR)
+          SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpBlockOrder->lpBlockInfo);
       }
-      lpBlockElement=lpBlockElement->next;
+      lpBlockOrder=lpBlockOrder->next;
     }
 
     if (!wpTitlePart[0])
     {
-      lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hExactBlockStack.first;
+      BLOCKINFO *lpBlockElement=(BLOCKINFO *)lpSyntaxFile->hExactBlockStack.first;
 
       while (lpBlockElement)
       {
@@ -2037,29 +2036,30 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
   }
 }
 
-BLOCKINFO* StackInsertBlock(STACKBLOCK *hBlockStack)
+BLOCKINFO* StackInsertExactBlock(STACKBLOCK *hStack)
 {
   BLOCKINFO *lpElementNew=NULL;
 
-  if (!StackInsertBefore((stack **)&hBlockStack->first, (stack **)&hBlockStack->last, (stack *)NULL, (stack **)&lpElementNew, sizeof(BLOCKINFO)))
+  if (!StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)NULL, (stack **)&lpElementNew, sizeof(BLOCKINFO)))
     lpElementNew->dwStructType=BIT_BLOCK;
   return lpElementNew;
 }
 
-BLOCKINFO* StackInsertAndSortBlock(STACKBLOCK *hBlockStack, wchar_t *wpTitle, int nTitleLen)
+BLOCKINFO* StackInsertBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack, wchar_t *wpTitle, int nTitleLen)
 {
-  BLOCKINFO *lpElement=(BLOCKINFO *)hBlockStack->first;
+  BLOCKINFO *lpElement=(BLOCKINFO *)hStack->first;
   BLOCKINFO *lpElementNew=NULL;
+  BLOCKORDER *lpBlockOrder=NULL;
   wchar_t wchFirstLowerChar=WideCharLower(*wpTitle);
 
   if (wchFirstLowerChar < FIRST_NONLATIN)
   {
-    if (hBlockStack->lpSorted[wchFirstLowerChar])
-      lpElement=(BLOCKINFO *)hBlockStack->lpSorted[wchFirstLowerChar];
+    if (hStack->lpSorted[wchFirstLowerChar])
+      lpElement=(BLOCKINFO *)hStack->lpSorted[wchFirstLowerChar];
     else
-      lpElement=(BLOCKINFO *)hBlockStack->first;
+      lpElement=(BLOCKINFO *)hStack->first;
   }
-  else lpElement=(BLOCKINFO *)hBlockStack->lpSorted[FIRST_NONLATIN];
+  else lpElement=(BLOCKINFO *)hStack->lpSorted[FIRST_NONLATIN];
 
   while (lpElement)
   {
@@ -2070,23 +2070,27 @@ BLOCKINFO* StackInsertAndSortBlock(STACKBLOCK *hBlockStack, wchar_t *wpTitle, in
     }
     lpElement=lpElement->next;
   }
-  StackInsertBefore((stack **)&hBlockStack->first, (stack **)&hBlockStack->last, (stack *)lpElement, (stack **)&lpElementNew, sizeof(BLOCKINFO));
+  StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement, (stack **)&lpElementNew, sizeof(BLOCKINFO));
 
   if (lpElementNew)
   {
     if (wchFirstLowerChar < FIRST_NONLATIN)
     {
-      if (!hBlockStack->lpSorted[wchFirstLowerChar] || (INT_PTR)lpElement == hBlockStack->lpSorted[wchFirstLowerChar])
-        hBlockStack->lpSorted[wchFirstLowerChar]=(INT_PTR)lpElementNew;
+      if (!hStack->lpSorted[wchFirstLowerChar] || (INT_PTR)lpElement == hStack->lpSorted[wchFirstLowerChar])
+        hStack->lpSorted[wchFirstLowerChar]=(INT_PTR)lpElementNew;
     }
     else
     {
-      if (!hBlockStack->lpSorted[FIRST_NONLATIN] || (INT_PTR)lpElement == hBlockStack->lpSorted[FIRST_NONLATIN])
-        hBlockStack->lpSorted[FIRST_NONLATIN]=(INT_PTR)lpElementNew;
+      if (!hStack->lpSorted[FIRST_NONLATIN] || (INT_PTR)lpElement == hStack->lpSorted[FIRST_NONLATIN])
+        hStack->lpSorted[FIRST_NONLATIN]=(INT_PTR)lpElementNew;
     }
 
     lpElementNew->dwStructType=BIT_BLOCK;
     lpElementNew->wchFirstLowerChar=wchFirstLowerChar;
+
+    //Remember initial order
+    if (!StackInsertIndex((stack **)&hOrderStack->first, (stack **)&hOrderStack->last, (stack **)&lpBlockOrder, -1, sizeof(BLOCKORDER)))
+      lpBlockOrder->lpBlockInfo=lpElementNew;
   }
   return lpElementNew;
 }
@@ -2128,7 +2132,7 @@ BLOCKINFO* StackGetExactBlock(SYNTAXFILE *lpSyntaxFile, AECHARINDEX *ciCaret, IN
   return NULL;
 }
 
-BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne)
+BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne)
 {
   BLOCKINFO *lpBlockElement;
   wchar_t wchFirstLowerChar=WideCharLower(*wpTitlePart);
@@ -2166,8 +2170,13 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, co
     //HighLight words
     if (bAddHighLightWords)
     {
-      WORDINFO *lpHighLightWord=(WORDINFO *)lpSyntaxFile->hWordStack.first;
+      WORDINFO *lpHighLightWord=NULL;
       WORDINFO *lpTmp;
+
+      if ((DWORD)nTitlePartLen < sizeof(lpSyntaxFile->hWordStack.lpWordLens) / sizeof(INT_PTR))
+        lpHighLightWord=(WORDINFO *)lpSyntaxFile->hWordStack.lpWordLens[nTitlePartLen];
+      if (!lpHighLightWord)
+        lpHighLightWord=(WORDINFO *)lpSyntaxFile->hWordStack.first;
 
       while (lpHighLightWord)
       {
@@ -2222,6 +2231,8 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, co
             return &biHighLightBlock;
           }
         }
+        else break;
+
         lpHighLightWord=lpHighLightWord->next;
       }
     }
@@ -2282,9 +2293,9 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, co
   return NULL;
 }
 
-void StackFreeBlock(STACKBLOCK *hBlockStack)
+void StackFreeBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack)
 {
-  BLOCKINFO *lpElement=(BLOCKINFO *)hBlockStack->first;
+  BLOCKINFO *lpElement=(BLOCKINFO *)hStack->first;
 
   while (lpElement)
   {
@@ -2297,7 +2308,10 @@ void StackFreeBlock(STACKBLOCK *hBlockStack)
     }
     lpElement=lpElement->next;
   }
-  StackClear((stack **)&hBlockStack->first, (stack **)&hBlockStack->last);
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+
+  if (hOrderStack)
+    StackClear((stack **)&hOrderStack->first, (stack **)&hOrderStack->last);
 }
 
 HOTSPOT* StackInsertHotSpot(HSTACK *hStack, int nHotSpotPos)
@@ -2390,7 +2404,7 @@ void StackFreeHotSpot(HSTACK *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen)
+void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen)
 {
   STACKDELIM *hDelimiterStack=NULL;
   DOCWORDINFO *lpDocWordInfo;
@@ -2468,7 +2482,7 @@ void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, HDOCWORDS *hDocWordsStack, const
   }
 }
 
-DOCWORDINFO* StackInsertDocWord(HDOCWORDS *hStack, wchar_t *wpDocWord, int nDocWordLen)
+DOCWORDINFO* StackInsertDocWord(STACKDOCWORDS *hStack, wchar_t *wpDocWord, int nDocWordLen)
 {
   DOCWORDINFO *lpElement=hStack->first;
   DOCWORDINFO *lpElementNew=NULL;
@@ -2513,7 +2527,7 @@ DOCWORDINFO* StackInsertDocWord(HDOCWORDS *hStack, wchar_t *wpDocWord, int nDocW
   return lpElementNew;
 }
 
-DOCWORDINFO* StackGetDocWord(HDOCWORDS *hStack, const wchar_t *wpDocWord, int nDocWordLen)
+DOCWORDINFO* StackGetDocWord(STACKDOCWORDS *hStack, const wchar_t *wpDocWord, int nDocWordLen)
 {
   DOCWORDINFO *lpElement;
 
@@ -2528,7 +2542,7 @@ DOCWORDINFO* StackGetDocWord(HDOCWORDS *hStack, const wchar_t *wpDocWord, int nD
   return NULL;
 }
 
-void StackFreeDocWord(HDOCWORDS *hStack)
+void StackFreeDocWord(STACKDOCWORDS *hStack)
 {
   DOCWORDINFO *lpElement;
 
