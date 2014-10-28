@@ -308,10 +308,15 @@ typedef struct {
 } STACKTITLE;
 
 typedef struct _STACKBLOCK {
-  INT_PTR first;
-  INT_PTR last;
+  INT_PTR first; //BLOCKINFO *
+  INT_PTR last;  //BLOCKINFO *
   INT_PTR lpSorted[FIRST_NONLATIN + 1];
 } STACKBLOCK;
+
+typedef struct {
+  INT_PTR first; //BLOCKORDER *
+  INT_PTR last;  //BLOCKORDER *
+} STACKBLOCKORDER;
 
 typedef struct _SYNTAXFILE {
   struct _SYNTAXFILE *next;
@@ -328,6 +333,7 @@ typedef struct _SYNTAXFILE {
   STACKTITLE hTitleStack;
   STACKBLOCK hBlockStack;
   STACKBLOCK hExactBlockStack;
+  STACKBLOCKORDER hBlockOrderStack;
   wchar_t wszSyntaxFileName[MAX_PATH];
   VARTHEME *lpVarThemeLink;
   HANDLE hThemeHighLight;

@@ -1555,7 +1555,8 @@ void StackFreeWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   xmemset(hStack->lpWordLens, 0, sizeof(hStack->lpWordLens));
 
-  StackClear((stack **)&hOrderStack->first, (stack **)&hOrderStack->last);
+  if (hOrderStack)
+    StackClear((stack **)&hOrderStack->first, (stack **)&hOrderStack->last);
 }
 
 QUOTEINFO* StackInsertQuote(STACKQUOTE *hStack, int nQuoteStartLen)
