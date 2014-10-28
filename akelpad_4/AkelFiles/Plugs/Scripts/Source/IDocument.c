@@ -2529,6 +2529,18 @@ int StackGetCallbackCount(CALLBACKSTACK *hStack, int nCallbackType)
   return nCount;
 }
 
+BOOL StackIsCallback(CALLBACKSTACK *hStack, void *lpScriptThread)
+{
+  CALLBACKITEM *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->lpScriptThread == lpScriptThread)
+      return TRUE;
+  }
+  return FALSE;
+}
+
 CALLBACKITEM* StackGetCallbackByHandle(CALLBACKSTACK *hStack, HANDLE hHandle, void *lpScriptThread)
 {
   CALLBACKITEM *lpElement;
@@ -2868,17 +2880,14 @@ LRESULT CALLBACK SubclassSend(CALLBACKITEM *lpCallback, HWND hWnd, UINT uMsg, WP
   LRESULT lResult=0;
 
   //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
-  //if (lpScriptThread->dwMessageLoop)
+  if (!lpCallback->hMsgIntStack.nElements || StackGetMessage(&lpCallback->hMsgIntStack, uMsg))
   {
-    if (!lpCallback->hMsgIntStack.nElements || StackGetMessage(&lpCallback->hMsgIntStack, uMsg))
-    {
-      msgs.lpCallback=lpCallback;
-      msgs.hWnd=hWnd;
-      msgs.uMsg=uMsg;
-      msgs.wParam=wParam;
-      msgs.lParam=lParam;
-      lResult=SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_SUBCLASSSEND, 0, (LPARAM)&msgs);
-    }
+    msgs.lpCallback=lpCallback;
+    msgs.hWnd=hWnd;
+    msgs.uMsg=uMsg;
+    msgs.wParam=wParam;
+    msgs.lParam=lParam;
+    lResult=SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_SUBCLASSSEND, 0, (LPARAM)&msgs);
   }
   return lResult;
 }
@@ -3045,15 +3054,12 @@ LRESULT CALLBACK HookCallbackCommonProc(int nCallbackIndex, int nCode, WPARAM wP
       MSGSEND msgs;
 
       //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
-      //if (lpScriptThread->dwMessageLoop)
-      {
-        msgs.lpCallback=lpCallback;
-        msgs.hWnd=NULL;
-        msgs.uMsg=nCode;
-        msgs.wParam=wParam;
-        msgs.lParam=lParam;
-        SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_HOOKSEND, 0, (LPARAM)&msgs);
-      }
+      msgs.lpCallback=lpCallback;
+      msgs.hWnd=NULL;
+      msgs.uMsg=nCode;
+      msgs.wParam=wParam;
+      msgs.lParam=lParam;
+      SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_HOOKSEND, 0, (LPARAM)&msgs);
     }
     return CallNextHookEx((HHOOK)lpCallback->hHandle, nCode, wParam, lParam);
   }
@@ -3087,33 +3093,29 @@ LRESULT CALLBACK ScriptsThreadProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)msgs->lpCallback->lpScriptThread;
     LRESULT lResult=0;
 
-    //Now we in plugin thread - call procedure in script
     if (lpScriptThread)
     {
-      //if (lpScriptThread->dwMessageLoop)
-      {
-        lpScriptThread->bBusy=TRUE;
-        CallScriptProc(msgs->lpCallback->objFunction, (HWND)msgs->hWnd, msgs->uMsg, msgs->wParam, msgs->lParam, &lResult);
-        lpScriptThread->bBusy=FALSE;
-      }
+      //Now we in plugin thread - call procedure in script
+      lpScriptThread->bBusy=TRUE;
+      CallScriptProc(msgs->lpCallback->objFunction, (HWND)msgs->hWnd, msgs->uMsg, msgs->wParam, msgs->lParam, &lResult);
+      lpScriptThread->bBusy=FALSE;
     }
     return lResult;
   }
   else if (uMsg == AKDLL_HOOKSEND)
   {
     MSGSEND *msgs=(MSGSEND *)lParam;
-    SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)msgs->lpCallback->lpScriptThread;
+    SCRIPTTHREAD *lpScriptThread;
     LRESULT lResult=0;
 
-    //Now we in plugin thread - call procedure in script
-    if (lpScriptThread)
+    //Execution can come here after Document_ThreadUnhook was called
+    if (StackIsCallback(&g_hHookCallbackStack, msgs->lpCallback))
     {
-      //if (lpScriptThread->dwMessageLoop)
-      {
-        lpScriptThread->bBusy=TRUE;
-        CallScriptProc(msgs->lpCallback->objFunction, NULL, msgs->uMsg, msgs->wParam, msgs->lParam, &lResult);
-        lpScriptThread->bBusy=FALSE;
-      }
+      //Now we in plugin thread - call procedure in script
+      lpScriptThread=(SCRIPTTHREAD *)msgs->lpCallback->lpScriptThread;
+      lpScriptThread->bBusy=TRUE;
+      CallScriptProc(msgs->lpCallback->objFunction, NULL, msgs->uMsg, msgs->wParam, msgs->lParam, &lResult);
+      lpScriptThread->bBusy=FALSE;
     }
     return lResult;
   }
