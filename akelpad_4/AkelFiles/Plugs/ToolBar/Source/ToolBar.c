@@ -1388,10 +1388,13 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
       }
     }
   }
-  if (lpLastButton)
-    lpLastButton->tbb.fsState|=TBSTATE_WRAP;
-  if (hToolbarData->last)
-    hToolbarData->last->tbb.fsState&=~TBSTATE_WRAP;
+  if (hRowListStack.nElements)
+  {
+    if (lpLastButton)
+      lpLastButton->tbb.fsState|=TBSTATE_WRAP;
+    if (hToolbarData->last)
+      hToolbarData->last->tbb.fsState&=~TBSTATE_WRAP;
+  }
   return TRUE;
 
   Error:
@@ -1570,7 +1573,12 @@ void SetToolbarButtons(TOOLBARDATA *hToolbarData)
     if (lpButton->tbb.fsState & TBSTATE_WRAP)
     {
       if (nToolbarSide == TBSIDE_TOP || nToolbarSide == TBSIDE_BOTTOM)
-        sizeToolbar.cy+=sizeButtons.cy + ((lpButton->tbb.fsStyle & TBSTYLE_SEP)?8:0);
+      {
+        if (lpButton->next)
+          sizeToolbar.cy+=sizeButtons.cy + ((lpButton->tbb.fsStyle & TBSTYLE_SEP)?8:0);
+        else
+          sizeToolbar.cy+=(lpButton->tbb.fsStyle & TBSTYLE_SEP)?2:0;
+      }
     }
     else if (nToolbarSide == TBSIDE_LEFT || nToolbarSide == TBSIDE_RIGHT)
       lpButton->tbb.fsState|=TBSTATE_WRAP;
