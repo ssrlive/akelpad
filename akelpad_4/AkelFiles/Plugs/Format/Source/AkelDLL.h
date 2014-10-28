@@ -705,6 +705,13 @@
 #define PASTE_AFTER      0x00001000  //Paste text after caret.
 #define PASTE_SINGLELINE 0x00002000  //Paste multiline text to single line edit control. All new lines replaced with '\r'.
 
+//IDM_WINDOW_COPYPATH
+#define CPF_FULLPATH     0
+#define CPF_DIR          1
+#define CPF_FILENAME     2
+#define CPF_FILEBASENAME 3
+#define CPF_FILEEXT      4
+
 //Selection case type
 #define SCT_NONE           0
 #define SCT_UPPERCASE      1
@@ -1948,7 +1955,7 @@ typedef struct {
 #define IDM_WINDOW_FRAMECLONE           4322  //Clone current MDI window.
                                               //Return Value: pointer to a new FRAMEDATA structure.
                                               //
-#define IDM_WINDOW_COPYPATH             4323  //Copy current window file path to clipboard.
+#define IDM_WINDOW_COPYPATH             4323  //Copy current window file path to clipboard. lParam: see CPF_* defines.
                                               //Return Value: number of copied character including null character.
                                               //
 #define IDM_WINDOW_FILECLOSE            4324  //Close file.
