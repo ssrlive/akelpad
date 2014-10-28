@@ -5131,6 +5131,29 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_WINDOW_COPYPATH)
     {
+      if (lParam == CPF_DIR)
+      {
+        GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wbuf, BUFFER_SIZE);
+        return (LRESULT)SetClipboardText(wbuf);
+      }
+      if (lParam == CPF_FILENAME)
+      {
+        const wchar_t *wpFileName=GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
+
+        return (LRESULT)SetClipboardText(wpFileName);
+      }
+      if (lParam == CPF_FILEBASENAME)
+      {
+        GetBaseName(lpFrameCurrent->wszFile, wbuf, BUFFER_SIZE);
+        return (LRESULT)SetClipboardText(wbuf);
+      }
+      if (lParam == CPF_FILEEXT)
+      {
+        const wchar_t *wpExt=GetFileExt(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
+
+        return (LRESULT)SetClipboardText(wpExt);
+      }
+      //CPF_FULLPATH
       return (LRESULT)SetClipboardText(lpFrameCurrent->wszFile);
     }
   }
