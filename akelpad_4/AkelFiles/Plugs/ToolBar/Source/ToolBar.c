@@ -183,7 +183,7 @@ typedef struct {
   HIMAGELIST hImageList;
   int nRows;
   int nSepRows;
-} TOOLBARDATA;
+} STACKTOOLBAR;
 
 typedef struct _ROWITEM {
   struct _ROWITEM *next;
@@ -220,24 +220,24 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CreateToolbarWindow();
-BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText);
+BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText);
 DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags);
 int ParseRows(STACKROW *lpRowListStack);
 ROWITEM* GetRow(STACKROW *lpRowListStack, int nRow);
 TOOLBARITEM* GetFirstToolbarItemOfNextRow(ROWITEM *lpRowItem);
 void FreeRows(STACKROW *lpRowListStack);
-void FreeToolbarData(TOOLBARDATA *hToolbarData);
-void SetToolbarButtons(TOOLBARDATA *hToolbarData);
+void FreeToolbarData(STACKTOOLBAR *hStack);
+void SetToolbarButtons(STACKTOOLBAR *hStack);
 void ClearToolbarButtons();
-void UpdateToolbar(TOOLBARDATA *hToolbarData);
+void UpdateToolbar(STACKTOOLBAR *hStack);
 void ViewItemCode(TOOLBARITEM *lpButton);
-void CallToolbar(TOOLBARDATA *hToolbarData, int nItem);
+void CallToolbar(STACKTOOLBAR *hStack, int nItem);
 void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY);
 void DestroyToolbarWindow(BOOL bDestroyBG);
-TOOLBARITEM* StackInsertBeforeButton(TOOLBARDATA *hToolbarData, TOOLBARITEM *lpInsertBefore);
-TOOLBARITEM* StackGetButtonByID(TOOLBARDATA *hToolbarData, int nItemID);
-TOOLBARITEM* StackGetButtonByIndex(TOOLBARDATA *hToolbarData, int nIndex);
-void StackFreeButton(TOOLBARDATA *hToolbarData);
+TOOLBARITEM* StackInsertBeforeButton(STACKTOOLBAR *hStack, TOOLBARITEM *lpInsertBefore);
+TOOLBARITEM* StackGetButtonByID(STACKTOOLBAR *hStack, int nItemID);
+TOOLBARITEM* StackGetButtonByIndex(STACKTOOLBAR *hStack, int nIndex);
+void StackFreeButton(STACKTOOLBAR *hStack);
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, HWND hToolbar, int nButtonID, const RECT *lprcButton);
@@ -294,7 +294,7 @@ char szExeDir[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
 char *szToolBarText=NULL;
 wchar_t *wszToolBarText=NULL;
-TOOLBARDATA hToolbarData={0};
+STACKTOOLBAR hStackToolbar={0};
 wchar_t wszRowList[MAX_PATH]=L"";
 STACKROW hRowListStack={0};
 HWND hToolbarBG=NULL;
@@ -540,7 +540,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDOK)
       {
-        TOOLBARDATA hTestStack={0};
+        STACKTOOLBAR hTestStack={0};
         wchar_t *wszTest;
         int nValue;
 
@@ -610,10 +610,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //Success
-          FreeToolbarData(&hToolbarData);
+          FreeToolbarData(&hStackToolbar);
           HeapFree(hHeap, 0, wszToolBarText);
           wszToolBarText=wszTest;
-          hToolbarData=hTestStack;
+          xmemcpy(&hStackToolbar, &hTestStack, sizeof(STACKTOOLBAR));
           bUpdate=TRUE;
         }
         dwSaveFlags|=OF_LISTTEXT|OF_SETTINGS;
@@ -822,7 +822,7 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   }
   else if (uMsg == AKDLL_REFRESH)
   {
-    if (hToolbar) UpdateToolbar(&hToolbarData);
+    if (hToolbar) UpdateToolbar(&hStackToolbar);
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -841,7 +841,7 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       TOOLBARITEM *lpButton;
 
-      if (lpButton=StackGetButtonByID(&hToolbarData, (int)((NMHDR *)lParam)->idFrom))
+      if (lpButton=StackGetButtonByID(&hStackToolbar, (int)((NMHDR *)lParam)->idFrom))
       {
         //WideCharToMultiByte(CP_ACP, 0, lpButton->wszButtonItem, -1, ((NMTTDISPINFOA *)lParam)->szText, 80, NULL, NULL);
         WideCharToMultiByte(CP_ACP, 0, lpButton->wszButtonItem, -1, szBuffer, BUFFER_SIZE, NULL, NULL);
@@ -852,7 +852,7 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       TOOLBARITEM *lpButton;
 
-      if (lpButton=StackGetButtonByID(&hToolbarData, (int)((NMHDR *)lParam)->idFrom))
+      if (lpButton=StackGetButtonByID(&hStackToolbar, (int)((NMHDR *)lParam)->idFrom))
       {
         //xstrcpynW(((NMTTDISPINFOW *)lParam)->szText, lpButton->wszButtonItem, 80);
         ((NMTTDISPINFOW *)lParam)->lpszText=lpButton->wszButtonItem;
@@ -863,7 +863,7 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
       TOOLBARITEM *lpButton;
       RECT rcButton;
 
-      if (lpButton=StackGetButtonByID(&hToolbarData, ((NMTOOLBARA *)lParam)->iItem))
+      if (lpButton=StackGetButtonByID(&hStackToolbar, ((NMTOOLBARA *)lParam)->iItem))
       {
         SendMessage(hToolbar, TB_GETRECT, ((NMTOOLBARA *)lParam)->iItem, (LPARAM)&rcButton);
         ClientToScreen(hToolbar, (LPPOINT)&rcButton.left);
@@ -886,7 +886,7 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     if ((HWND)lParam == hToolbar)
     {
-      CallToolbar(&hToolbarData, LOWORD(wParam));
+      CallToolbar(&hStackToolbar, LOWORD(wParam));
       return TRUE;
     }
   }
@@ -898,7 +898,7 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
   if (uMsg == WM_PAINT)
   {
-    if (bNewComctl32 && hToolbarData.nSepRows && hRowListStack.nElements != 1)
+    if (bNewComctl32 && hStackToolbar.nSepRows && hRowListStack.nElements != 1)
     {
       //On ComCtl32.dll version 6.10 horizontal separator (TBSTATE_WRAP + TBSTYLE_SEP)
       //erased if window moved outside the screen and then moved back.
@@ -939,7 +939,7 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     nIndex=(int)SendMessage(hToolbar, TB_HITTEST, 0, (LPARAM)&pt);
     if (nIndex < 0) nIndex=(0 - nIndex) - 1;
 
-    lpButton=StackGetButtonByIndex(&hToolbarData, nIndex);
+    lpButton=StackGetButtonByIndex(&hStackToolbar, nIndex);
     ViewItemCode(lpButton);
     return 0;
   }
@@ -1005,15 +1005,15 @@ BOOL CreateToolbarWindow()
   SendMessage(hToolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
 
   ParseRows(&hRowListStack);
-  if (!CreateToolbarData(&hToolbarData, wszToolBarText))
+  if (!CreateToolbarData(&hStackToolbar, wszToolBarText))
     bResult=FALSE;
 
-  SetToolbarButtons(&hToolbarData);
-  UpdateToolbar(&hToolbarData);
+  SetToolbarButtons(&hStackToolbar);
+  UpdateToolbar(&hStackToolbar);
   return bResult;
 }
 
-BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
+BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
 {
   ROWITEM *lpRowItem=NULL;
   TOOLBARITEM *lpButton;
@@ -1058,16 +1058,16 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
       sizeIcon.cx=16;
       sizeIcon.cy=16;
     }
-    hToolbarData->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
-    ImageList_SetBkColor(hToolbarData->hImageList, GetSysColor(COLOR_BTNFACE));
+    hStack->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
+    ImageList_SetBkColor(hStack->hImageList, GetSysColor(COLOR_BTNFACE));
 
     //Rows
-    hToolbarData->nRows=1;
-    hToolbarData->nSepRows=0;
+    hStack->nRows=1;
+    hStack->nSepRows=0;
 
     if (hRowListStack.nElements)
     {
-      if (lpRowItem=GetRow(&hRowListStack, hToolbarData->nRows))
+      if (lpRowItem=GetRow(&hRowListStack, hStack->nRows))
       {
         lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
         bInRow=TRUE;
@@ -1133,7 +1133,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
       {
         if (bInRow && (!bPrevSeparator || !xstrcmpW(wszButtonItem, L"SEPARATOR")))
         {
-          if (lpButton=StackInsertBeforeButton(hToolbarData, lpNextRowItemFirstButton))
+          if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
           {
             lpLastButton=lpButton;
             if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
@@ -1161,14 +1161,14 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
           {
             lpLastButton->tbb.fsState|=TBSTATE_WRAP;
             if (lpLastButton->tbb.fsStyle & TBSTYLE_SEP)
-              ++hToolbarData->nSepRows;
+              ++hStack->nSepRows;
           }
           bMethod=TRUE;
-          ++hToolbarData->nRows;
+          ++hStack->nRows;
 
           if (hRowListStack.nElements)
           {
-            if (lpRowItem=GetRow(&hRowListStack, hToolbarData->nRows))
+            if (lpRowItem=GetRow(&hRowListStack, hStack->nRows))
             {
               lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
               bInRow=TRUE;
@@ -1215,7 +1215,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
 
                     if (hIcon)
                     {
-                      ImageList_AddIcon(hToolbarData->hImageList, hIcon);
+                      ImageList_AddIcon(hStack->hImageList, hIcon);
                       DestroyIcon(hIcon);
                     }
                   }
@@ -1235,7 +1235,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
 
                         if (hIcon)
                         {
-                          ImageList_AddIcon(hToolbarData->hImageList, hIcon);
+                          ImageList_AddIcon(hStack->hImageList, hIcon);
                           DestroyIcon(hIcon);
                         }
                       }
@@ -1291,7 +1291,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
                 {
                   if (bInRow)
                   {
-                    if (lpButton=StackInsertBeforeButton(hToolbarData, lpNextRowItemFirstButton))
+                    if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
                     {
                       lpLastButton=lpButton;
                       if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
@@ -1356,7 +1356,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
               if (!lpButton)
               {
                 //Method "Menu()" without action
-                if (lpButton=StackInsertBeforeButton(hToolbarData, lpNextRowItemFirstButton))
+                if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
                 {
                   lpLastButton=lpButton;
                   if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
@@ -1399,8 +1399,8 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
   {
     if (lpLastButton)
       lpLastButton->tbb.fsState|=TBSTATE_WRAP;
-    if (hToolbarData->last)
-      hToolbarData->last->tbb.fsState&=~TBSTATE_WRAP;
+    if (hStack->last && hRowListStack.last->lpFirstToolbarItem)
+      hStack->last->tbb.fsState&=~TBSTATE_WRAP;
   }
   else
   {
@@ -1409,7 +1409,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
 
     if (nToolbarSide == TBSIDE_BOTTOM)
     {
-      if (hToolbarData->first && (hToolbarData->first->tbb.fsState & TBSTATE_WRAP))
+      if (hStack->first && (hStack->first->tbb.fsState & TBSTATE_WRAP))
       {
         if (dwStyle & CCS_NODIVIDER)
           SetWindowLongPtrWide(hToolbar, GWL_STYLE, dwStyle & ~CCS_NODIVIDER);
@@ -1543,19 +1543,19 @@ void FreeRows(STACKROW *lpRowListStack)
   lpRowListStack->nElements=0;
 }
 
-void FreeToolbarData(TOOLBARDATA *hToolbarData)
+void FreeToolbarData(STACKTOOLBAR *hStack)
 {
-  StackFreeButton(hToolbarData);
-  if (hToolbarData->hImageList)
+  StackFreeButton(hStack);
+  if (hStack->hImageList)
   {
-    ImageList_Destroy(hToolbarData->hImageList);
-    hToolbarData->hImageList=NULL;
+    ImageList_Destroy(hStack->hImageList);
+    hStack->hImageList=NULL;
   }
-  hToolbarData->nRows=0;
-  hToolbarData->nSepRows=0;
+  hStack->nRows=0;
+  hStack->nSepRows=0;
 }
 
-void SetToolbarButtons(TOOLBARDATA *hToolbarData)
+void SetToolbarButtons(STACKTOOLBAR *hStack)
 {
   TOOLBARITEM *lpButton;
   int nArrorWidth;
@@ -1582,9 +1582,9 @@ void SetToolbarButtons(TOOLBARDATA *hToolbarData)
   }
   nMaxRowWidth=sizeButtons.cx;
   SendMessage(hToolbar, TB_SETBUTTONSIZE, 0, MAKELONG(sizeButtons.cx, sizeButtons.cy));
-  SendMessage(hToolbar, TB_SETIMAGELIST, 0, (LPARAM)hToolbarData->hImageList);
+  SendMessage(hToolbar, TB_SETIMAGELIST, 0, (LPARAM)hStack->hImageList);
 
-  for (lpButton=hToolbarData->first; lpButton; lpButton=lpButton->next)
+  for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
   {
     lpButton->nButtonWidth=sizeButtons.cx;
     if (lpButton->tbb.fsStyle & TBSTYLE_DROPDOWN)
@@ -1633,10 +1633,10 @@ void ClearToolbarButtons()
   while (SendMessage(hToolbar, TB_DELETEBUTTON, 0, 0));
 }
 
-void UpdateToolbar(TOOLBARDATA *hToolbarData)
+void UpdateToolbar(STACKTOOLBAR *hStack)
 {
   EDITINFO ei;
-  TOOLBARITEM *lpButton=(TOOLBARITEM *)hToolbarData->first;
+  TOOLBARITEM *lpButton=hStack->first;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
 
@@ -1728,7 +1728,7 @@ void ViewItemCode(TOOLBARITEM *lpButton)
     PostMessage(hWndMainDlg, AKDLL_SELTEXT, 0, 0);
 }
 
-void CallToolbar(TOOLBARDATA *hToolbarData, int nItem)
+void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 {
   TOOLBARITEM *lpElement;
   EXTPARAM *lpParameter;
@@ -1736,7 +1736,7 @@ void CallToolbar(TOOLBARDATA *hToolbarData, int nItem)
   RECT rcButton;
   int nButtonID;
 
-  if (lpElement=StackGetButtonByID(hToolbarData, nItem))
+  if (lpElement=StackGetButtonByID(hStack, nItem))
   {
     if (GetKeyState(VK_CONTROL) & 0x80)
     {
@@ -2065,7 +2065,7 @@ void DestroyToolbarWindow(BOOL bDestroyBG)
 {
   DestroyWindow(hToolbar);
   hToolbar=NULL;
-  FreeToolbarData(&hToolbarData);
+  FreeToolbarData(&hStackToolbar);
 
   if (bDestroyBG)
   {
@@ -2075,55 +2075,49 @@ void DestroyToolbarWindow(BOOL bDestroyBG)
   }
 }
 
-TOOLBARITEM* StackInsertBeforeButton(TOOLBARDATA *hToolbarData, TOOLBARITEM *lpInsertBefore)
+TOOLBARITEM* StackInsertBeforeButton(STACKTOOLBAR *hStack, TOOLBARITEM *lpInsertBefore)
 {
   TOOLBARITEM *lpElement=NULL;
 
-  StackInsertBefore((stack **)&hToolbarData->first, (stack **)&hToolbarData->last, (stack *)lpInsertBefore, (stack **)&lpElement, sizeof(TOOLBARITEM));
+  StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpInsertBefore, (stack **)&lpElement, sizeof(TOOLBARITEM));
   return lpElement;
 }
 
-TOOLBARITEM* StackGetButtonByID(TOOLBARDATA *hToolbarData, int nItemID)
+TOOLBARITEM* StackGetButtonByID(STACKTOOLBAR *hStack, int nItemID)
 {
-  TOOLBARITEM *lpElement=(TOOLBARITEM *)hToolbarData->first;
+  TOOLBARITEM *lpElement;
 
-  while (lpElement)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->tbb.idCommand == nItemID)
       return lpElement;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
-TOOLBARITEM* StackGetButtonByIndex(TOOLBARDATA *hToolbarData, int nIndex)
+TOOLBARITEM* StackGetButtonByIndex(STACKTOOLBAR *hStack, int nIndex)
 {
-  TOOLBARITEM *lpElement=(TOOLBARITEM *)hToolbarData->first;
+  TOOLBARITEM *lpElement;
   int nCount=0;
 
-  while (lpElement)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (nCount++ == nIndex)
       return lpElement;
-
-    lpElement=lpElement->next;
   }
   return NULL;
 }
 
-void StackFreeButton(TOOLBARDATA *hToolbarData)
+void StackFreeButton(STACKTOOLBAR *hStack)
 {
-  TOOLBARITEM *lpElement=(TOOLBARITEM *)hToolbarData->first;
+  TOOLBARITEM *lpElement;
 
-  while (lpElement)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     FreeMethodParameters(&lpElement->hParamStack);
     FreeMethodParameters(&lpElement->hParamMenuName);
-
-    lpElement=lpElement->next;
   }
-  StackClear((stack **)&hToolbarData->first, (stack **)&hToolbarData->last);
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
