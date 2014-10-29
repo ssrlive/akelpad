@@ -238,7 +238,8 @@ DWORD dwCmdShow=SW_SHOWNORMAL;
 DWORD dwExeVersion=0;
 BOOL bOldWindows;
 BOOL bOldRichEdit=FALSE;
-BOOL bOldComctl32;
+BOOL bOldComctl32=FALSE;
+BOOL dwVerComctl32=0;
 BOOL bAkelEdit=TRUE;
 BOOL bWindowsNT4=FALSE;
 INT_PTR nUniqueID=9;
@@ -629,7 +630,7 @@ void _WinMain()
 
     ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
     GetVersionEx(&ovi);
-    if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+    if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT && ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)
       bWindowsNT4=TRUE;
   }
 
@@ -1028,6 +1029,7 @@ void _WinMain()
     bOldComctl32=TRUE;
   else
     bOldComctl32=FALSE;
+  dwVerComctl32=MAKELONG(nMajor, nMinor);
 
   //Get functions addresses
   hUser32=GetModuleHandleA("user32.dll");
@@ -2262,8 +2264,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)bOldWindows;
         if (wParam == MI_OLDRICHEDIT)
           return (LRESULT)bOldRichEdit;
-        if (wParam == MI_OLDCOMCTL32)
-          return (LRESULT)bOldComctl32;
+        if (wParam == MI_VERCOMCTL32)
+          return (LRESULT)dwVerComctl32;
         if (wParam == MI_AKELEDIT)
           return (LRESULT)bAkelEdit;
         if (wParam == MI_MDI)

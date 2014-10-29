@@ -38,6 +38,7 @@ extern DWORD dwExeVersion;
 extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
+extern DWORD dwVerComctl32;
 extern BOOL bAkelEdit;
 extern BOOL bWindowsNT4;
 extern INT_PTR nUniqueID;
@@ -13679,7 +13680,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.hMainAccel=hMainAccel;
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
-                  pd.bOldComctl32=bOldComctl32;
+                  pd.dwVerComctl32=dwVerComctl32;
                   pd.bAkelEdit=bAkelEdit;
                   pd.nMDI=nMDI;
                   pd.pLangModule=bOldWindows?(LPBYTE)moCur.szLangModule:(LPBYTE)moCur.wszLangModule;
