@@ -914,6 +914,18 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  if (uMsg == WM_PAINT)
+  {
+    static BOOL bUpdating;
+    
+    if (!bUpdating)
+    {
+      bUpdating=TRUE;
+      InvalidateRect(hWnd, NULL, FALSE);
+      UpdateWindow(hWnd);
+      bUpdating=FALSE;
+    }
+  }
   if (uMsg == WM_LBUTTONDBLCLK)
   {
     POINT pt={LOWORD(lParam), HIWORD(lParam)};
@@ -970,7 +982,7 @@ BOOL CreateToolbarWindow()
     hToolbarBG=CreateWindowExWide(0,
                           TOOLBARBACKGROUNDW,
                           NULL,
-                          WS_CHILD|WS_VISIBLE,
+                          WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN,
                           0, 0, 0, 0,
                           hMainWnd,
                           NULL,
@@ -985,12 +997,12 @@ BOOL CreateToolbarWindow()
   else if (nToolbarSide == TBSIDE_RIGHT)
     dwStyle=CCS_VERT|CCS_NODIVIDER|CCS_NOPARENTALIGN|CCS_NORESIZE;
   else if (nToolbarSide == TBSIDE_BOTTOM)
-    dwStyle=CCS_BOTTOM|CCS_NODIVIDER|CCS_NOPARENTALIGN|CCS_NORESIZE;
+    dwStyle=CCS_BOTTOM|/*CCS_NODIVIDER|*/CCS_NOPARENTALIGN|CCS_NORESIZE;
 
   hToolbar=CreateWindowExWide(0,
                         L"ToolbarWindow32",
                         NULL,
-                        WS_CHILD|WS_VISIBLE|TBSTYLE_TOOLTIPS|TBSTYLE_TRANSPARENT|
+                        WS_CHILD|WS_VISIBLE|TBSTYLE_TOOLTIPS|/*TBSTYLE_TRANSPARENT|TBSTYLE_CUSTOMERASE|*/
                         (bFlatButtons?TBSTYLE_FLAT:0)|dwStyle,
                         0, 0, 0, 0,
                         hToolbarBG,
@@ -1036,6 +1048,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
   DWORD dwAction;
   DWORD dwNewFlags;
   DWORD dwSetFlags=0;
+  DWORD dwStyle;
   int nPlus;
   int nMinus;
   int nFileIconIndex;
@@ -1395,6 +1408,24 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
     if (hToolbarData->last)
       hToolbarData->last->tbb.fsState&=~TBSTATE_WRAP;
   }
+  else
+  {
+    dwStyle=(DWORD)GetWindowLongPtrWide(hToolbar, GWL_STYLE);
+
+    if (nToolbarSide == TBSIDE_BOTTOM)
+    {
+      if (hToolbarData->first && (hToolbarData->first->tbb.fsState & TBSTATE_WRAP))
+      {
+        if (dwStyle & CCS_NODIVIDER)
+          SetWindowLongPtrWide(hToolbar, GWL_STYLE, dwStyle & ~CCS_NODIVIDER);
+      }
+      else
+      {
+        if (!(dwStyle & CCS_NODIVIDER))
+          SetWindowLongPtrWide(hToolbar, GWL_STYLE, dwStyle|CCS_NODIVIDER);
+      }
+    }
+  }
   return TRUE;
 
   Error:
@@ -1574,10 +1605,15 @@ void SetToolbarButtons(TOOLBARDATA *hToolbarData)
     {
       if (nToolbarSide == TBSIDE_TOP || nToolbarSide == TBSIDE_BOTTOM)
       {
-        if (lpButton->next)
+        if (lpButton->prev && lpButton->next)
           sizeToolbar.cy+=sizeButtons.cy + ((lpButton->tbb.fsStyle & TBSTYLE_SEP)?8:0);
         else
+        {
           sizeToolbar.cy+=(lpButton->tbb.fsStyle & TBSTYLE_SEP)?2:0;
+          //First button with TBSTYLE_SEP signal to remove
+          //CCS_NODIVIDER style and don't add this button.
+          if (!lpButton->prev) continue;
+        }
       }
     }
     else if (nToolbarSide == TBSIDE_LEFT || nToolbarSide == TBSIDE_RIGHT)
