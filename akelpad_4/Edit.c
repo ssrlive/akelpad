@@ -41,6 +41,7 @@ extern BOOL bOldComctl32;
 extern DWORD dwVerComctl32;
 extern BOOL bAkelEdit;
 extern BOOL bWindowsNT4;
+extern BOOL bWindows7;
 extern INT_PTR nUniqueID;
 
 //Buffers
