@@ -88,8 +88,6 @@ HINSTANCE hInstanceDLL=NULL;
 HWND hMainWnd=NULL;
 HACCEL hGlobalAccel;
 BOOL bOldWindows;
-BOOL bOldRichEdit;
-BOOL bOldComctl32;
 BOOL bAkelEdit;
 int nMDI;
 LANGID wLangModule;
@@ -2974,15 +2972,9 @@ void InitCommon(PLUGINDATA *pd)
   hInstanceDLL=pd->hInstanceDLL;
   hMainWnd=pd->hMainWnd;
   hGlobalAccel=pd->hGlobalAccel;
-  bOldWindows=pd->bOldWindows;
-  bOldRichEdit=pd->bOldRichEdit;
-  bOldComctl32=pd->bOldComctl32;
   bAkelEdit=pd->bAkelEdit;
   nMDI=pd->nMDI;
   wLangModule=pd->wLangModule;
-
-  //Initialize WideFunc.h header
-  WideInitialize();
 
   //Plugin name
   {
@@ -3030,6 +3022,10 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
+    //Initialize WideFunc.h header
+    WideInitialize();
+    bOldWindows=WideGlobal_bOldWindows;
+
     hInstanceDLL=hinstDLL;
     MyIClassFactoryObj.lpVtbl=NULL;
     DisableThreadLibraryCalls(hinstDLL);

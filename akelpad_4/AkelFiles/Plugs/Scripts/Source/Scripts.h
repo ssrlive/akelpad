@@ -227,8 +227,6 @@ extern HWND hMainWnd;
 extern HACCEL hGlobalAccel;
 extern BOOL bOldWindows;
 extern BOOL bOldWindows;
-extern BOOL bOldRichEdit;
-extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
 extern int nMDI;
 extern LANGID wLangModule;
