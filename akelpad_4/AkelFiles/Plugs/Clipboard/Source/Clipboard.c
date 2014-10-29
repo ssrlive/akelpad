@@ -659,7 +659,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 HGLOBAL hData;
                 LPVOID pData;
-                int nDataLen;
+                INT_PTR nDataLen;
 
                 if (OpenClipboard(NULL))
                 {
@@ -899,7 +899,7 @@ void SaveClipboard(UINT uFormat, wchar_t **wpData, char **pData)
 {
   HGLOBAL hDataSource;
   LPVOID pDataSource;
-  int nLen;
+  INT_PTR nLen;
 
   if (OpenClipboard(NULL))
   {
@@ -1159,7 +1159,7 @@ void SaveOptions(DWORD dwFlags)
     }
     if (dwFlags & OF_CAPTURE_SETTINGS)
     {
-      WideOption(hOptions, L"Separator", PO_BINARY, (LPBYTE)wszCaptureSeparator, (xstrlenW(wszCaptureSeparator) + 1) * sizeof(wchar_t));
+      WideOption(hOptions, L"Separator", PO_BINARY, (LPBYTE)wszCaptureSeparator, ((int)xstrlenW(wszCaptureSeparator) + 1) * sizeof(wchar_t));
     }
     if (dwFlags & OF_PASTESERIAL_SETTINGS)
     {
