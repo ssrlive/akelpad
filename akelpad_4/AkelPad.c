@@ -1155,6 +1155,7 @@ void _WinMain()
   wndclassW.hIcon        =hMainIcon;
   wndclassW.hCursor      =LoadCursor(NULL, IDC_ARROW);
   wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+  //wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
   wndclassW.lpszMenuName =NULL;
   wndclassW.lpszClassName=APP_MAIN_CLASSW;
   if (!RegisterClassWide(&wndclassW)) goto Quit;
