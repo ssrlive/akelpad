@@ -242,6 +242,7 @@ BOOL bOldComctl32=FALSE;
 BOOL dwVerComctl32=0;
 BOOL bAkelEdit=TRUE;
 BOOL bWindowsNT4=FALSE;
+BOOL bWindows7=FALSE;
 INT_PTR nUniqueID=9;
 
 //Buffers
@@ -630,8 +631,13 @@ void _WinMain()
 
     ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
     GetVersionEx(&ovi);
-    if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT && ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)
-      bWindowsNT4=TRUE;
+    if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+    {
+      if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)
+        bWindowsNT4=TRUE;
+      else if (ovi.dwMajorVersion >= 6)
+        bWindows7=TRUE;
+    }
   }
 
   //Get program version
@@ -1156,8 +1162,11 @@ void _WinMain()
   wndclassW.hInstance    =hInstance;
   wndclassW.hIcon        =hMainIcon;
   wndclassW.hCursor      =LoadCursor(NULL, IDC_ARROW);
-  wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
-  //wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
+  //HOLLOW_BRUSH on Win7 with aero cause black flickering
+  if (bWindows7)
+    wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
+  else
+    wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
   wndclassW.lpszMenuName =NULL;
   wndclassW.lpszClassName=APP_MAIN_CLASSW;
   if (!RegisterClassWide(&wndclassW)) goto Quit;
