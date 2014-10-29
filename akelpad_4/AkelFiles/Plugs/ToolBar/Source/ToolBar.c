@@ -181,6 +181,8 @@ typedef struct {
   TOOLBARITEM *first;
   TOOLBARITEM *last;
   HIMAGELIST hImageList;
+  int nRows;
+  int nSepRows;
 } TOOLBARDATA;
 
 typedef struct _ROWITEM {
@@ -282,7 +284,7 @@ HMENU hPopupEdit;
 HICON hMainIcon;
 HACCEL hGlobalAccel;
 BOOL bOldWindows;
-BOOL bAkelEdit;
+BOOL bNewComctl32;
 int nMDI;
 LANGID wLangModule;
 BOOL bInitCommon=FALSE;
@@ -518,13 +520,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         crExtSetSel.cpMax=SendMessage(hWndToolBarText, EM_LINEINDEX, nLine, 0) + SendMessage(hWndToolBarText, EM_LINELENGTH, crExtSetSel.cpMin, 0);
       }
 
-      if (bAkelEdit)
-      {
-        if ((nLockScroll=(int)SendMessage(hWndToolBarText, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
-          SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-      }
+      if ((nLockScroll=(int)SendMessage(hWndToolBarText, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
+        SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, TRUE);
       SendMessage(hWndToolBarText, EM_SETSEL, crExtSetSel.cpMax, crExtSetSel.cpMin);
-      if (bAkelEdit && nLockScroll == -1)
+      if (nLockScroll == -1)
       {
         SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, FALSE);
         ScrollCaret(hWndToolBarText);
@@ -789,30 +788,13 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
   {
     if (cwprs->wParam == ID_EDIT)
     {
-      if (bAkelEdit)
-      {
-        if (((NMHDR *)cwprs->lParam)->code == AEN_MODIFY)
-        {
-          PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
-        }
-      }
-      if (((NMHDR *)cwprs->lParam)->code == EN_SELCHANGE)
+      if (((NMHDR *)cwprs->lParam)->code == AEN_MODIFY)
       {
         PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
       }
-    }
-
-    if (!bAkelEdit)
-    {
-      if (cwprs->wParam == ID_STATUS)
+      else if (((NMHDR *)cwprs->lParam)->code == EN_SELCHANGE)
       {
-        if (((NMHDR *)cwprs->lParam)->code == (UINT)NM_DBLCLK)
-        {
-          if (((NMMOUSE *)cwprs->lParam)->dwItemSpec == 3)
-          {
-            PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
-          }
-        }
+        PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
       }
     }
   }
@@ -916,17 +898,22 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
   if (uMsg == WM_PAINT)
   {
-    static BOOL bUpdating;
-    
-    if (!bUpdating)
+    if (bNewComctl32 && hToolbarData.nSepRows && hRowListStack.nElements != 1)
     {
-      bUpdating=TRUE;
-      InvalidateRect(hWnd, NULL, FALSE);
-      UpdateWindow(hWnd);
-      bUpdating=FALSE;
+      //On ComCtl32.dll version 6.10 horizontal separator (TBSTATE_WRAP + TBSTYLE_SEP)
+      //erased if window moved outside the screen and then moved back.
+      static BOOL bUpdating;
+
+      if (!bUpdating)
+      {
+        bUpdating=TRUE;
+        InvalidateRect(hWnd, NULL, FALSE);
+        UpdateWindow(hWnd);
+        bUpdating=FALSE;
+      }
     }
   }
-  if (uMsg == WM_LBUTTONDBLCLK)
+  else if (uMsg == WM_LBUTTONDBLCLK)
   {
     POINT pt={LOWORD(lParam), HIWORD(lParam)};
 
@@ -1055,7 +1042,6 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
   int nItemBitmap=0;
   int nItemCommand=0;
   int nMessageID;
-  int nRow=1;
   BOOL bMethod;
   BOOL bPrevSeparator=FALSE;
   BOOL bInRow=TRUE;
@@ -1075,9 +1061,13 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
     hToolbarData->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
     ImageList_SetBkColor(hToolbarData->hImageList, GetSysColor(COLOR_BTNFACE));
 
+    //Rows
+    hToolbarData->nRows=1;
+    hToolbarData->nSepRows=0;
+
     if (hRowListStack.nElements)
     {
-      if (lpRowItem=GetRow(&hRowListStack, nRow))
+      if (lpRowItem=GetRow(&hRowListStack, hToolbarData->nRows))
       {
         lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
         bInRow=TRUE;
@@ -1168,13 +1158,17 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
         if (!xstrcmpW(wszButtonItem, L"BREAK"))
         {
           if (lpLastButton)
+          {
             lpLastButton->tbb.fsState|=TBSTATE_WRAP;
+            if (lpLastButton->tbb.fsStyle & TBSTYLE_SEP)
+              ++hToolbarData->nSepRows;
+          }
           bMethod=TRUE;
-          ++nRow;
+          ++hToolbarData->nRows;
 
           if (hRowListStack.nElements)
           {
-            if (lpRowItem=GetRow(&hRowListStack, nRow))
+            if (lpRowItem=GetRow(&hRowListStack, hToolbarData->nRows))
             {
               lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
               bInRow=TRUE;
@@ -1410,6 +1404,7 @@ BOOL CreateToolbarData(TOOLBARDATA *hToolbarData, const wchar_t *wpText)
   }
   else
   {
+    //First button with TBSTATE_WRAP + TBSTYLE_SEP skipped in SetToolbarButtons.
     dwStyle=(DWORD)GetWindowLongPtrWide(hToolbar, GWL_STYLE);
 
     if (nToolbarSide == TBSIDE_BOTTOM)
@@ -1551,7 +1546,13 @@ void FreeRows(STACKROW *lpRowListStack)
 void FreeToolbarData(TOOLBARDATA *hToolbarData)
 {
   StackFreeButton(hToolbarData);
-  ImageList_Destroy(hToolbarData->hImageList);
+  if (hToolbarData->hImageList)
+  {
+    ImageList_Destroy(hToolbarData->hImageList);
+    hToolbarData->hImageList=NULL;
+  }
+  hToolbarData->nRows=0;
+  hToolbarData->nSepRows=0;
 }
 
 void SetToolbarButtons(TOOLBARDATA *hToolbarData)
@@ -1610,8 +1611,8 @@ void SetToolbarButtons(TOOLBARDATA *hToolbarData)
         else
         {
           sizeToolbar.cy+=(lpButton->tbb.fsStyle & TBSTYLE_SEP)?2:0;
-          //First button with TBSTYLE_SEP signal to remove
-          //CCS_NODIVIDER style and don't add this button.
+          //First button with TBSTATE_WRAP + TBSTYLE_SEP signal to remove CCS_NODIVIDER
+          //style (already done in CreateToolbarData) and don't add this button.
           if (!lpButton->prev) continue;
         }
       }
@@ -3317,13 +3318,18 @@ void InitCommon(PLUGINDATA *pd)
   hMainIcon=pd->hMainIcon;
   hGlobalAccel=pd->hGlobalAccel;
   bOldWindows=pd->bOldWindows;
-  bAkelEdit=pd->bAkelEdit;
   nMDI=pd->nMDI;
   wLangModule=PRIMARYLANGID(pd->wLangModule);
   hHeap=GetProcessHeap();
 
   //Initialize WideFunc.h header
   WideInitialize();
+
+  //Is Comctl32.dll 6.10 or higher
+  if (LOWORD(pd->dwVerComctl32) > 6 || (LOWORD(pd->dwVerComctl32) == 6 && HIWORD(pd->dwVerComctl32) >= 10))
+    bNewComctl32=TRUE;
+  else
+    bNewComctl32=FALSE;
 
   //Plugin name
   {

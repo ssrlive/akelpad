@@ -208,7 +208,7 @@
 #define MI_ACCELMAIN                 33   //Return: main accelerator table (lowest priority).
 #define MI_OLDWINDOWS                41   //Return: non-Unicode Windows.
 #define MI_OLDRICHEDIT               42   //Return: riched20.dll lower then 5.30 (v3.0).
-#define MI_OLDCOMCTL32               43   //Return: comctl32.dll lower then 4.71.
+#define MI_VERCOMCTL32               43   //Return: comctl32.dll version set as MAKELONG(major,minor).
 #define MI_AKELEDIT                  44   //Return: AkelEdit control is used.
 #define MI_MDI                       45   //Return: window mode, see WMD_* defines.
 #define MI_LANGMODULEA               51   //Return: copied chars. (char *)lParam - buffer that receives language module string.
@@ -1079,9 +1079,9 @@ typedef struct {
   HACCEL hGlobalAccel;                //Global accelerator table (highest priority).
   HACCEL hMainAccel;                  //Main accelerator table (lowest priority).
   BOOL bOldWindows;                   //Non-Unicode Windows.
-  BOOL bOldRichEdit;                  //Riched20.dll lower then 5.30 (v3.0).
-  BOOL bOldComctl32;                  //Comctl32.dll lower then 4.71.
-  BOOL bAkelEdit;                     //AkelEdit control is used.
+  BOOL bOldRichEdit;                  //Riched20.dll lower then 5.30 (v3.0). Always FALSE.
+  DWORD dwVerComctl32;                //Comctl32.dll version set as MAKELONG(major,minor).
+  BOOL bAkelEdit;                     //AkelEdit control is used. Always TRUE.
   int nMDI;                           //Window mode, see WMD_* defines.
   const BYTE *pLangModule;            //Language module.
                                       //  const char *pLangModule      if bOldWindows == TRUE
