@@ -27,8 +27,6 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_GetInstanceDll,
   Document_GetLangId,
   Document_IsOldWindows,
-  Document_IsOldRichEdit,
-  Document_IsOldComctl32,
   Document_IsAkelEdit,
   Document_IsMDI,
   Document_GetEditWnd,
@@ -288,18 +286,6 @@ HRESULT STDMETHODCALLTYPE Document_GetLangId(IDocument *this, int nType, int *nL
 HRESULT STDMETHODCALLTYPE Document_IsOldWindows(IDocument *this, BOOL *bIsOld)
 {
   *bIsOld=bOldWindows;
-  return NOERROR;
-}
-
-HRESULT STDMETHODCALLTYPE Document_IsOldRichEdit(IDocument *this, BOOL *bIsOld)
-{
-  *bIsOld=bOldRichEdit;
-  return NOERROR;
-}
-
-HRESULT STDMETHODCALLTYPE Document_IsOldComctl32(IDocument *this, BOOL *bIsOld)
-{
-  *bIsOld=bOldComctl32;
   return NOERROR;
 }
 

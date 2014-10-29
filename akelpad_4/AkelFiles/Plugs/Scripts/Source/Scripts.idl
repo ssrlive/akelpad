@@ -84,12 +84,6 @@ library Scripts
     //Is non-Unicode Windows.
     HRESULT IsOldWindows([out, retval] BOOL *bIsOld);
 
-    //Is riched20.dll lower then 5.30 (v3.0).
-    HRESULT IsOldRichEdit([out, retval] BOOL *bIsOld);
-
-    //Is comctl32.dll lower then 4.71.
-    HRESULT IsOldComctl32([out, retval] BOOL *bIsOld);
-
     //Is AkelEdit control used.
     HRESULT IsAkelEdit([in, defaultvalue(0)] MYHANDLE hWnd, [out, retval] int *nIsAkelEdit);
 

@@ -25,8 +25,6 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_GetInstanceDll)(THIS_ INT_PTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetLangId)(THIS_ int, int *) PURE;
   STDMETHOD_(HRESULT, Document_IsOldWindows)(THIS_ BOOL *) PURE;
-  STDMETHOD_(HRESULT, Document_IsOldRichEdit)(THIS_ BOOL *) PURE;
-  STDMETHOD_(HRESULT, Document_IsOldComctl32)(THIS_ BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_IsAkelEdit)(THIS_ HWND, int *) PURE;
   STDMETHOD_(HRESULT, Document_IsMDI)(THIS_ int *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditWnd)(THIS_ HWND *) PURE;
@@ -310,8 +308,6 @@ HRESULT STDMETHODCALLTYPE Document_GetInstanceExe(IDocument *this, INT_PTR *hIns
 HRESULT STDMETHODCALLTYPE Document_GetInstanceDll(IDocument *this, INT_PTR *hInstance);
 HRESULT STDMETHODCALLTYPE Document_GetLangId(IDocument *this, int nType, int *nLangModule);
 HRESULT STDMETHODCALLTYPE Document_IsOldWindows(IDocument *this, BOOL *bIsOld);
-HRESULT STDMETHODCALLTYPE Document_IsOldRichEdit(IDocument *this, BOOL *bIsOld);
-HRESULT STDMETHODCALLTYPE Document_IsOldComctl32(IDocument *this, BOOL *bIsOld);
 HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, HWND hWnd, int *nIsAkelEdit);
 HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI);
 HRESULT STDMETHODCALLTYPE Document_GetEditFile(IDocument *this, HWND hWnd, BSTR *wpFile);

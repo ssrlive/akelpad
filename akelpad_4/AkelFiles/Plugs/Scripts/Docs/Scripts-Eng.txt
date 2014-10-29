@@ -101,10 +101,8 @@ AkelPad.GetMainWnd
 AkelPad.GetAkelDir
 AkelPad.GetInstanceExe
 AkelPad.GetInstanceDll                       +ActiveX
-AkelPad.GetLangId                            +ActiveX
+AkelPad.GetLangId
 AkelPad.IsOldWindows                         +ActiveX
-AkelPad.IsOldRichEdit
-AkelPad.IsOldComctl32
 AkelPad.IsAkelEdit
 AkelPad.IsMDI
 AkelPad.GetEditWnd
@@ -298,36 +296,6 @@ Return Value
 
 Example:
   var bOldWindows=AkelPad.IsOldWindows();
-
-
-AkelPad.IsOldRichEdit
-_____________________
-
-Is riched20.dll lower then 5.30 (v3.0).
-
-  IsOldRichEdit();
-
-Return Value
-  true   riched20.dll lower then 5.30 (v2.0).
-  false  riched20.dll not lower then 5.30 (v3.0, v4.0).
-
-Example:
-  var bOldRichEdit=AkelPad.IsOldRichEdit();
-
-
-AkelPad.IsOldComctl32
-_____________________
-
-Is comctl32.dll lower then 4.71.
-
-  IsOldComctl32();
-
-Return Value
-  true   comctl32.dll lower then 4.71.
-  false  comctl32.dll not lower then 4.71.
-
-Example:
-  var bOldComctl32=AkelPad.IsOldComctl32();
 
 
 AkelPad.IsAkelEdit
