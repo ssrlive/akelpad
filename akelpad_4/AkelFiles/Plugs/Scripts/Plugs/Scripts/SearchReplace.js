@@ -1443,7 +1443,7 @@ function SearchReplace()
 
   try
   {
-    oPattern=new RegExp((bRegExp?pFindIt:PatternToString(pFindIt)), (bSensitive?"":"i") + ((nButton == BT_FINDALL || nButton == BT_REPLACEALL || nDirection & DN_UP)?"g":"") + (bMultiline?"m":""));
+    oPattern=new RegExp((bRegExp?pFindIt:EscRegExp(pFindIt)), (bSensitive?"":"i") + ((nButton == BT_FINDALL || nButton == BT_REPLACEALL || nDirection & DN_UP)?"g":"") + (bMultiline?"m":""));
   }
   catch (oError)
   {
@@ -2094,19 +2094,9 @@ function TranslateEscapeString(pString)
   return pString;
 }
 
-function PatternToString(pPattern)
+function EscRegExp(pString)
 {
-  var pString="";
-  var pCharCode;
-  var i;
-
-  for (i=0; i < pPattern.length; ++i)
-  {
-    pCharCode=pPattern.charCodeAt(i).toString(16);
-    while (pCharCode.length < 4) pCharCode="0" + pCharCode;
-    pString=pString + "\\u" + pCharCode;
-  }
-  return pString;
+  return pString.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
 }
 
 function LOWORD(dwNumber)

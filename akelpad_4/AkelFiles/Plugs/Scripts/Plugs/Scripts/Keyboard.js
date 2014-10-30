@@ -152,7 +152,7 @@ function ConvertLayout(pText, pArraySource, pArrayTarget)
 
   for (i=0; i < pArraySource.length; ++i)
   {
-    oPattern=new RegExp(PatternToString(pArraySource[i]), "g");
+    oPattern=new RegExp(EscRegExp(pArraySource[i]), "g");
     pText=pText.replace(oPattern, pArrayTarget[i]);
   }
   return pText;
@@ -165,30 +165,20 @@ function Transliterate(pText, pArraySource, pArrayTarget)
 
   for (i=0; i < pArraySource.length; ++i)
   {
-    oPattern=new RegExp(PatternToString(pArraySource[i]), "g");
+    oPattern=new RegExp(EscRegExp(pArraySource[i]), "g");
     pText=pText.replace(oPattern, pArrayTarget[i]);
   }
   for (i=0; i < pArraySource.length; ++i)
   {
-    oPattern=new RegExp(PatternToString(pArraySource[i]), "gi");
+    oPattern=new RegExp(EscRegExp(pArraySource[i]), "gi");
     pText=pText.replace(oPattern, pArrayTarget[i].substr(0, 1).toUpperCase() + pArrayTarget[i].substr(1));
   }
   return pText;
 }
 
-function PatternToString(pPattern)
+function EscRegExp(pString)
 {
-  var pString="";
-  var pCharCode;
-  var i;
-
-  for (i=0; i < pPattern.length; ++i)
-  {
-    pCharCode=pPattern.charCodeAt(i).toString(16);
-    while (pCharCode.length < 4) pCharCode="0" + pCharCode;
-    pString=pString + "\\u" + pCharCode;
-  }
-  return pString;
+  return pString.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
 }
 
 function GetCaretPos(hWndEdit, ptPoint)
