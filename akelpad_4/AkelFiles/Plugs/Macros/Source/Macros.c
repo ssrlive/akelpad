@@ -214,7 +214,7 @@ int MoveListViewItem(HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL IsCaretAtLastLine();
 BOOL IsCaretAtLastEmptyLine();
 void PosWindowToCorner(HWND hWndOwner, HWND hWndChild);
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -1222,7 +1222,7 @@ void FillMacroList(HWND hWnd)
   {
     do
     {
-      GetBaseName(wfd.cFileName, wszBaseName, MAX_PATH);
+      GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
 
       //Find hotkey
       {
@@ -2117,29 +2117,23 @@ void PosWindowToCorner(HWND hWndOwner, HWND hWndChild)
   SetWindowPos(hWndChild, NULL, rcOwner.right - (rcChild.right - rcChild.left), rcOwner.top, 0, 0, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOSIZE);
 }
 
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax)
 {
-  int nFileLen=(int)xstrlenW(wpFile);
-  int nEndOffset=-1;
-  int i;
+  const wchar_t *wpCount;
+  const wchar_t *wpExt=NULL;
 
-  for (i=nFileLen - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == L'\\')
+    if (*wpCount == L'\\')
       break;
-
-    if (nEndOffset == -1)
-    {
-      if (wpFile[i] == L'.')
-        nEndOffset=i;
-    }
+    if (!wpExt && *wpCount == L'.')
+      wpExt=wpCount;
   }
-  ++i;
-  if (nEndOffset == -1) nEndOffset=nFileLen;
-  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
-  xstrcpynW(wszBaseName, wpFile + i, nBaseNameMaxLen);
-
-  return nBaseNameMaxLen;
+  ++wpCount;
+  if (!wpExt) wpExt=wpFile + nFileLen;
+  return (int)xstrcpynW(wszBaseName, wpCount, min(nBaseNameMax, wpExt - wpCount + 1));
 }
 
 
@@ -2183,7 +2177,7 @@ void ReadOptions(DWORD dwFlags)
       {
         do
         {
-          GetBaseName(wfd.cFileName, wszBaseName, MAX_PATH);
+          GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
 
           //Read and register hotkey
           {

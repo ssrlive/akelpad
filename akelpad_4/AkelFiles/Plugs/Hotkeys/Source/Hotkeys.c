@@ -222,7 +222,7 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText);
 int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
 BOOL SkipComment(const wchar_t **wpText);
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen);
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
 wchar_t* AllocControlText(HWND hWnd, int *lpnTextLen);
@@ -2599,19 +2599,22 @@ BOOL SkipComment(const wchar_t **wpText)
   return TRUE;
 }
 
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
 {
   const wchar_t *wpCount;
 
   if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
-  if (wszFileDir) wszFileDir[0]=L'\0';
 
   for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
     if (*wpCount == L'\\')
-      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, (DWORD)(wpCount - wpFile) + 1));
+    {
+      --wpCount;
+      break;
+    }
   }
-  return 0;
+  ++wpCount;
+  return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
 }
 
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret)

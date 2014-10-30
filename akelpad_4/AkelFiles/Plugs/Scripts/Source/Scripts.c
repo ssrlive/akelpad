@@ -1851,7 +1851,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
 
       wpFileName=GetFileNameWide(es->wpScript, -1);
       xstrcpynW(lpScriptThread->wszScriptName, wpFileName, MAX_PATH);
-      GetBaseName(lpScriptThread->wszScriptName, lpScriptThread->wszScriptBaseName, MAX_PATH);
+      GetBaseName(lpScriptThread->wszScriptName, -1, lpScriptThread->wszScriptBaseName, MAX_PATH);
       xprintfW(lpScriptThread->wszScriptFile, L"%s\\%s", wszScriptsDir, es->wpScript);
     }
     if (es->wpArguments)
@@ -2449,29 +2449,41 @@ INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, i
   return nResult;
 }
 
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
 {
-  int nFileLen=(int)xstrlenW(wpFile);
-  int nEndOffset=-1;
-  int i;
+  const wchar_t *wpCount;
 
-  for (i=nFileLen - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == L'\\')
-      break;
-
-    if (nEndOffset == -1)
+    if (*wpCount == L'\\')
     {
-      if (wpFile[i] == L'.')
-        nEndOffset=i;
+      --wpCount;
+      break;
     }
   }
-  ++i;
-  if (nEndOffset == -1) nEndOffset=nFileLen;
-  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
-  xstrcpynW(wszBaseName, wpFile + i, nBaseNameMaxLen);
+  ++wpCount;
+  return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
+}
 
-  return nBaseNameMaxLen;
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax)
+{
+  const wchar_t *wpCount;
+  const wchar_t *wpExt=NULL;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
+  {
+    if (*wpCount == L'\\')
+      break;
+    if (!wpExt && *wpCount == L'.')
+      wpExt=wpCount;
+  }
+  ++wpCount;
+  if (!wpExt) wpExt=wpFile + nFileLen;
+  return (int)xstrcpynW(wszBaseName, wpCount, min(nBaseNameMax, wpExt - wpCount + 1));
 }
 
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
