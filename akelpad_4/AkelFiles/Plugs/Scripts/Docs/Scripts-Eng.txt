@@ -109,6 +109,7 @@ AkelPad.GetEditWnd
 AkelPad.SetEditWnd
 AkelPad.GetEditDoc
 AkelPad.GetEditFile
+AkelPad.GetFilePath                          +ActiveX
 AkelPad.GetEditCodePage
 AkelPad.GetEditBOM
 AkelPad.GetEditNewLine
@@ -421,6 +422,29 @@ Return Value
 
 Example:
   var pEditFile=AkelPad.GetEditFile(0);
+
+
+AkelPad.GetFilePath
+___________________
+
+Get file path part.
+
+  GetFilePath(pFile, nPart);
+
+Arguments
+  pFile
+    File path.
+  nPart
+    1  //CPF_DIR           Directory.
+    2  //CPF_FILENAME      File name.
+    3  //CPF_FILEBASENAME  File base name.
+    4  //CPF_FILEEXT       File extension.
+
+Return Value
+  String. File path part.
+
+Example:
+  var pFileName=AkelPad.GetFilePath("c:\\WINDOWS\\notepad.exe", 2 /*CPF_FILENAME*/);
 
 
 AkelPad.GetEditCodePage

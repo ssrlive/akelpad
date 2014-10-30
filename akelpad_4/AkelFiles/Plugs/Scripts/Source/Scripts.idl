@@ -102,6 +102,9 @@ library Scripts
     //Get file name.
     HRESULT GetEditFile([in] MYHANDLE hWnd, [out, retval] BSTR *wpFile);
 
+    //Get file path.
+    HRESULT GetFilePath([in] BSTR wpFile, [in] int nPart, [out, retval] BSTR *wpPath);
+
     //Get file code page.
     HRESULT GetEditCodePage([in] MYHANDLE hWnd, [out, retval] int *nCodePage);
 

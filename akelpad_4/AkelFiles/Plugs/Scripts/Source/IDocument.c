@@ -33,6 +33,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_SetEditWnd,
   Document_GetEditDoc,
   Document_GetEditFile,
+  Document_GetFilePath,
   Document_GetEditCodePage,
   Document_GetEditBOM,
   Document_GetEditNewLine,
@@ -362,6 +363,43 @@ HRESULT STDMETHODCALLTYPE Document_GetEditFile(IDocument *this, HWND hWnd, BSTR 
   if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)hWnd, (LPARAM)&ei))
   {
     if (!(*wpFile=SysAllocString(ei.wszFile)))
+      hr=E_OUTOFMEMORY;
+  }
+  return hr;
+}
+
+HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int nPart, BSTR *wpPath)
+{
+  int nFileLen;
+  HRESULT hr=NOERROR;
+
+  *wpPath=NULL;
+  nFileLen=SysStringLen(wpFile);
+
+  if (nPart == CPF_DIR)
+  {
+    GetFileDir(wpFile, nFileLen, wszBuffer, BUFFER_SIZE);
+    if (!(*wpPath=SysAllocString(wszBuffer)))
+      hr=E_OUTOFMEMORY;
+  }
+  else if (nPart == CPF_FILENAME)
+  {
+    const wchar_t *wpFileName=GetFileNameWide(wpFile, nFileLen);
+
+    if (!(*wpPath=SysAllocString(wpFileName)))
+      hr=E_OUTOFMEMORY;
+  }
+  else if (nPart == CPF_FILEBASENAME)
+  {
+    GetBaseName(wpFile, nFileLen, wszBuffer, BUFFER_SIZE);
+    if (!(*wpPath=SysAllocString(wszBuffer)))
+      hr=E_OUTOFMEMORY;
+  }
+  else if (nPart == CPF_FILEEXT)
+  {
+    const wchar_t *wpExt=GetFileExt(wpFile, nFileLen);
+
+    if (!(*wpPath=SysAllocString(wpExt)))
       hr=E_OUTOFMEMORY;
   }
   return hr;
