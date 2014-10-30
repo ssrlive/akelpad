@@ -513,7 +513,7 @@ function LinesFilter(bAllDocuments)
     else if (pFindIt.charAt(pFindIt.length - 1) == "$")
       bAtLineEnd=true;
   }
-  oPattern=new RegExp((bAtLineStart?"":"^.*") + "(" + (bRegExp?pFindIt:PatternToString(pFindIt)) + ")" + (bAtLineEnd?"":".*$") + "\n?", "gm" + (bSensitive?"":"i"));
+  oPattern=new RegExp((bAtLineStart?"":"^.*") + "(" + (bRegExp?pFindIt:EscRegExp(pFindIt)) + ")" + (bAtLineEnd?"":".*$") + "\n?", "gm" + (bSensitive?"":"i"));
 
   for (;;)
   {
@@ -703,19 +703,9 @@ function SelCompliteLine(hWnd, nMinSel, nMaxSel)
   return 0;
 }
 
-function PatternToString(pPattern)
+function EscRegExp(pString)
 {
-  var pString="";
-  var pCharCode;
-  var i;
-
-  for (i=0; i < pPattern.length; ++i)
-  {
-    pCharCode=pPattern.charCodeAt(i).toString(16);
-    while (pCharCode.length < 4) pCharCode="0" + pCharCode;
-    pString=pString + "\\u" + pCharCode;
-  }
-  return pString;
+  return pString.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
 }
 
 function LOWORD(dwNumber)
