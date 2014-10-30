@@ -1522,9 +1522,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   if (!pSrc || !dwMaxLength)
     return 0;
   if (!pDest)
-    return xstrlenA(pSrc) + 1;
-  if (pDest == pSrc)
-    return xstrlenA(pSrc);
+    return min((INT_PTR)dwMaxLength, xstrlenA(pSrc) + 1);
 
   while (*pSrc && --dwMaxLength)
     *pDest++=*pSrc++;
@@ -1562,9 +1560,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   if (!wpSrc || !dwMaxLength)
     return 0;
   if (!wpDest)
-    return xstrlenW(wpSrc) + 1;
-  if (wpDest == wpSrc)
-    return xstrlenW(wpSrc);
+    return min((INT_PTR)dwMaxLength, xstrlenW(wpSrc) + 1);
 
   while (*wpSrc && --dwMaxLength)
     *wpDest++=*wpSrc++;

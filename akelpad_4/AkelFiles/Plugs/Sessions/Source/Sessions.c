@@ -407,7 +407,7 @@ void SkipSpaces(const wchar_t **wppText);
 
 BOOL IsPathFull(const wchar_t *wpPath);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax);
 BOOL CreateDirectoryRecursive(const wchar_t *wpPath);
 void DropFiles(HDROP hDrop, HWND hWndItemsList);
 int IsFile(const wchar_t *wpFile);
@@ -3174,7 +3174,7 @@ void LoadSessions(STACKSESSION *hStack)
     {
       if (wfd.cFileName[0] == L'.' && (wfd.cFileName[1] == L'\0' || (wfd.cFileName[1] == L'.' && wfd.cFileName[2] == L'\0'))) continue;
 
-      GetBaseName(wfd.cFileName, wszBaseName, MAX_PATH);
+      GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
 
       if (ss=AddEmptySession(hStack, wszBaseName))
       {
@@ -4639,29 +4639,23 @@ const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
   return wpFile;
 }
 
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax)
 {
-  int nFileLen=(int)xstrlenW(wpFile);
-  int nEndOffset=-1;
-  int i;
+  const wchar_t *wpCount;
+  const wchar_t *wpExt=NULL;
 
-  for (i=nFileLen - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == L'\\')
+    if (*wpCount == L'\\')
       break;
-
-    if (nEndOffset == -1)
-    {
-      if (wpFile[i] == L'.')
-        nEndOffset=i;
-    }
+    if (!wpExt && *wpCount == L'.')
+      wpExt=wpCount;
   }
-  ++i;
-  if (nEndOffset == -1) nEndOffset=nFileLen;
-  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
-  xstrcpynW(wszBaseName, wpFile + i, nBaseNameMaxLen);
-
-  return nBaseNameMaxLen;
+  ++wpCount;
+  if (!wpExt) wpExt=wpFile + nFileLen;
+  return (int)xstrcpynW(wszBaseName, wpCount, min(nBaseNameMax, wpExt - wpCount + 1));
 }
 
 BOOL CreateDirectoryRecursive(const wchar_t *wpPath)

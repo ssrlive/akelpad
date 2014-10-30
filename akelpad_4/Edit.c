@@ -12034,7 +12034,7 @@ void LanguageMenu()
     {
       if (!xstrcmpiW(moCur.wszLangModule, wfd.cFileName))
         nCommand=IDM_LANGUAGE + i;
-      GetBaseName(wfd.cFileName, wbuf, BUFFER_SIZE);
+      GetBaseName(wfd.cFileName, -1, wbuf, BUFFER_SIZE);
       InsertMenuWide(hMainMenu, IDM_LANGUAGE, MF_BYCOMMAND|MF_STRING, IDM_LANGUAGE + i, wbuf);
       ++i;
     }
@@ -13883,7 +13883,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
 
       if (GetModuleFileNameWide(hInstanceDLL, wbuf, BUFFER_SIZE))
       {
-        GetBaseName(wbuf, wszPluginName, MAX_PATH);
+        GetBaseName(wbuf, -1, wszPluginName, MAX_PATH);
         xprintfW(wszPluginName, L"%s::", wszPluginName);
         WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
 
@@ -14356,7 +14356,7 @@ void FillPluginList(HWND hWnd)
       {
         if (GetProcAddress(hInstance, "DllAkelPadID"))
         {
-          GetBaseName(wfd.cFileName, wszBaseName, MAX_PATH);
+          GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
           pld.pBaseName=(unsigned char *)wszBaseName;
           GetExportNames(hInstance, FillPluginListProc, (LPARAM)&pld);
         }
@@ -20330,19 +20330,22 @@ BOOL GetFileWin32Data(const wchar_t *wpFile, WIN32_FIND_DATAW *wfd)
   return FALSE;
 }
 
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirMax)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
 {
   const wchar_t *wpCount;
 
   if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
-  if (wszFileDir) wszFileDir[0]=L'\0';
 
   for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
     if (*wpCount == L'\\')
-      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirMax, (DWORD)(wpCount - wpFile) + 1));
+    {
+      --wpCount;
+      break;
+    }
   }
-  return 0;
+  ++wpCount;
+  return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
 }
 
 BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, int *lpnFileLen)
@@ -20385,29 +20388,23 @@ const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
   return wpFile;
 }
 
-int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax)
 {
-  int nFileLen=(int)xstrlenW(wpFile);
-  int nEndOffset=-1;
-  int i;
+  const wchar_t *wpCount;
+  const wchar_t *wpExt=NULL;
 
-  for (i=nFileLen - 1; i >= 0; --i)
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
-    if (wpFile[i] == L'\\')
+    if (*wpCount == L'\\')
       break;
-
-    if (nEndOffset == -1)
-    {
-      if (wpFile[i] == L'.')
-        nEndOffset=i;
-    }
+    if (!wpExt && *wpCount == L'.')
+      wpExt=wpCount;
   }
-  ++i;
-  if (nEndOffset == -1) nEndOffset=nFileLen;
-  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
-  xstrcpynW(wszBaseName, wpFile + i, nBaseNameMaxLen);
-
-  return nBaseNameMaxLen;
+  ++wpCount;
+  if (!wpExt) wpExt=wpFile + nFileLen;
+  return (int)xstrcpynW(wszBaseName, wpCount, min(nBaseNameMax, wpExt - wpCount + 1));
 }
 
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
@@ -20645,7 +20642,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
         else if (*wpSource == L'd' || *wpSource == L'D')
         {
           ++wpSource;
-          if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (DWORD)(wpTargetMax - wpTarget)) - !wszBuffer;
+          if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (int)(wpTargetMax - wpTarget)) - !wszBuffer;
         }
         else if (*wpSource == L'a' || *wpSource == L'A')
         {

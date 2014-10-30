@@ -198,7 +198,7 @@ int FilterGroupToString(FILTERGROUP *lpFilterGroup, wchar_t *wszString, int nStr
 void FilterStringToStack(const wchar_t *wpString, HFILTERGROUPSTACK *hStack);
 int FilterStringToGroup(const wchar_t *wpString, FILTERGROUP *lpFilterGroup);
 BOOL FileMaskCmp(const wchar_t *wpMaskStr, const wchar_t *wpFileStr);
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen);
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 BOOL IsDirEmpty(const wchar_t *wpDir);
 BOOL TrimTrailBackSlash(wchar_t *wszDir);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
@@ -2187,19 +2187,22 @@ BOOL FileMaskCmp(const wchar_t *wpMaskStr, const wchar_t *wpFileStr)
   return !*wpMaskStr;
 }
 
-int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, DWORD dwFileDirLen)
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
 {
   const wchar_t *wpCount;
 
   if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
-  if (wszFileDir) wszFileDir[0]=L'\0';
 
   for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
   {
     if (*wpCount == L'\\')
-      return (int)xstrcpynW(wszFileDir, wpFile, min(dwFileDirLen, (DWORD)(wpCount - wpFile) + 1));
+    {
+      --wpCount;
+      break;
+    }
   }
-  return 0;
+  ++wpCount;
+  return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
 }
 
 BOOL IsDirEmpty(const wchar_t *wpDir)

@@ -5156,7 +5156,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (lParam == CPF_FILEBASENAME)
       {
-        GetBaseName(lpFrameCurrent->wszFile, wbuf, BUFFER_SIZE);
+        GetBaseName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wbuf, BUFFER_SIZE);
         return (LRESULT)SetClipboardText(wbuf);
       }
       if (lParam == CPF_FILEEXT)
