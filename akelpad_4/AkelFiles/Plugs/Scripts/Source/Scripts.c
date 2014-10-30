@@ -1682,7 +1682,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Send WM_CLOSE to scripts dialogs or
     //post quit message to message loop and
     //wait for thread finished.
-    if (IsAnyMessageLoop())
+    if (hThreadStack.nElements)
     {
       int nCloseOK;
       int nCloseERR;
@@ -1744,7 +1744,7 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
   {
     UINT_PTR dwElapsed=GetTickCount() - dwWaitScriptTimerStart;
 
-    if (!IsAnyMessageLoop() || dwElapsed > 10000)
+    if (!hThreadStack.nElements || dwElapsed > 10000)
     {
       KillTimer(NULL, dwWaitScriptTimerId);
       dwWaitScriptTimerId=0;
@@ -1942,7 +1942,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       }
 
       //Run script
-      if (!bMainOnFinish)
+      if (!lpScriptThread->bQuiting && !bMainOnFinish)
       {
         wchar_t *wpContent=NULL;
         const wchar_t *wpExt;
@@ -1983,6 +1983,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     }
 
     FreeScriptResources(lpScriptThread, (lpScriptThread->dwDebug & DBG_MEMLEAK));
+    StackDeleteScriptThread(lpScriptThread);
   }
   else SetEvent(es->hInitMutex);
 
@@ -2089,16 +2090,15 @@ void FreeScriptResources(SCRIPTTHREAD *lpScriptThread, BOOL bDebug)
     CloseHandle(lpScriptThread->hExecMutex);
     lpScriptThread->hExecMutex=NULL;
   }
-  StackDeleteScriptThread(lpScriptThread);
 }
 
 BOOL CloseScriptThread(SCRIPTTHREAD *lpScriptThread)
 {
   CALLBACKITEM *lpCallback;
   CALLBACKITEM *lpNextCallback;
-  BOOL bResult=TRUE;
-  BOOL bTerminated=FALSE;
+  BOOL bFreeResources=FALSE;
   BOOL bPostQuit=TRUE;
+  BOOL bResult=TRUE;
 
   //Close dialogs by sending WM_CLOSE. Script must call oSys.Call("user32::PostQuitMessage", 0) itself.
   for (lpCallback=lpScriptThread->hDialogCallbackStack.first; lpCallback; lpCallback=lpNextCallback)
@@ -2117,20 +2117,32 @@ BOOL CloseScriptThread(SCRIPTTHREAD *lpScriptThread)
       {
         //Thread can be terminated outside of the program
         StackDeleteCallback(lpCallback);
-        bTerminated=TRUE;
+        bFreeResources=TRUE;
       }
       bPostQuit=FALSE;
     }
   }
 
-  //Script has message loop - send quit mesage.
   if (bPostQuit)
   {
     if (lpScriptThread->hWndScriptsThreadDummy && lpScriptThread->dwMessageLoop)
+    {
+      //Script has message loop - send quit mesage.
       SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_POSTQUIT, 0, 0);
+    }
+    else
+    {
+      //Script is not begin to run and waiting for other script.
+      //Inside FreeScriptResources SetEvent is called.
+      if (lpScriptThread->bWaiting)
+      {
+        lpScriptThread->bQuiting=TRUE;
+        bFreeResources=TRUE;
+      }
+    }
   }
 
-  if (bTerminated && !lpScriptThread->hDialogCallbackStack.nElements)
+  if (bFreeResources && !lpScriptThread->hDialogCallbackStack.nElements)
   {
     FreeScriptResources(lpScriptThread, FALSE);
   }
@@ -2153,7 +2165,6 @@ void CloseScriptThreadAll(int *nCloseOK, int *nCloseERR)
     else
       ++*nCloseERR;
 
-    //Assign lpNextElement here cause after CloseScriptThread lpElement->next could be changed.
     lpNextElement=lpElement->next;
     StackDeleteScriptThread(lpElement);
   }
@@ -2170,18 +2181,6 @@ void PostQuitScriptAll()
     if (lpElement->hWndScriptsThreadDummy && lpElement->dwMessageLoop)
       SendMessage(lpElement->hWndScriptsThreadDummy, AKDLL_POSTQUIT, 0, 0);
   }
-}
-
-BOOL IsAnyMessageLoop()
-{
-  SCRIPTTHREAD *lpElement;
-
-  for (lpElement=hThreadStack.first; lpElement; lpElement=lpElement->next)
-  {
-    if (lpElement->dwMessageLoop)
-      return TRUE;
-  }
-  return FALSE;
 }
 
 void ShowScriptWindows(SCRIPTTHREAD *lpScriptThread, BOOL bShow)
@@ -3056,6 +3055,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
       if (lpScriptThreadActiveX)
       {
         FreeScriptResources(lpScriptThreadActiveX, (lpScriptThreadActiveX->dwDebug & DBG_MEMLEAK));
+        StackDeleteScriptThread(lpScriptThreadActiveX);
         lpScriptThreadActiveX=NULL;
       }
       StackFreeCallbacks(&g_hHookCallbackStack);

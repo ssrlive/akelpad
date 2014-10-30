@@ -273,7 +273,6 @@ void FreeScriptResources(SCRIPTTHREAD *lpScriptThread, BOOL bDebug);
 BOOL CloseScriptThread(SCRIPTTHREAD *lpScriptThread);
 void CloseScriptThreadAll(int *nCloseOK, int *nCloseERR);
 void PostQuitScriptAll();
-BOOL IsAnyMessageLoop();
 void ShowScriptWindows(SCRIPTTHREAD *lpScriptThread, BOOL bShow);
 void ShowScriptWindowsAll(BOOL bShow);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
