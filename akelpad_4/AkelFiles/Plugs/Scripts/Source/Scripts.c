@@ -2467,6 +2467,34 @@ int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFi
   return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
 }
 
+const char* GetFileNameAnsi(const char *pFile, int nFileLen)
+{
+  const char *pCount;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenA(pFile);
+
+  for (pCount=pFile + nFileLen - 1; pCount >= pFile; --pCount)
+  {
+    if (*pCount == '\\')
+      return pCount + 1;
+  }
+  return pFile;
+}
+
+const wchar_t* GetFileNameWide(const wchar_t *wpFile, int nFileLen)
+{
+  const wchar_t *wpCount;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
+  {
+    if (*wpCount == L'\\')
+      return wpCount + 1;
+  }
+  return wpFile;
+}
+
 int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax)
 {
   const wchar_t *wpCount;
@@ -2498,34 +2526,6 @@ const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
     if (*wpCount == L'\\') break;
   }
   return NULL;
-}
-
-const char* GetFileNameAnsi(const char *pFile, int nFileLen)
-{
-  const char *pCount;
-
-  if (nFileLen == -1) nFileLen=(int)xstrlenA(pFile);
-
-  for (pCount=pFile + nFileLen - 1; pCount >= pFile; --pCount)
-  {
-    if (*pCount == '\\')
-      return pCount + 1;
-  }
-  return pFile;
-}
-
-const wchar_t* GetFileNameWide(const wchar_t *wpFile, int nFileLen)
-{
-  const wchar_t *wpCount;
-
-  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
-
-  for (wpCount=wpFile + nFileLen - 1; wpCount >= wpFile; --wpCount)
-  {
-    if (*wpCount == L'\\')
-      return wpCount + 1;
-  }
-  return wpFile;
 }
 
 int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen)

@@ -31,6 +31,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_SetEditWnd)(THIS_ HWND, HWND *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditDoc)(THIS_ INT_PTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditFile)(THIS_ HWND, BSTR *) PURE;
+  STDMETHOD_(HRESULT, Document_GetFilePath)(THIS_ BSTR, int, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditCodePage)(THIS_ HWND, int *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditBOM)(THIS_ HWND, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditNewLine)(THIS_ HWND, int *) PURE;
@@ -311,6 +312,7 @@ HRESULT STDMETHODCALLTYPE Document_IsOldWindows(IDocument *this, BOOL *bIsOld);
 HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, HWND hWnd, int *nIsAkelEdit);
 HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI);
 HRESULT STDMETHODCALLTYPE Document_GetEditFile(IDocument *this, HWND hWnd, BSTR *wpFile);
+HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int nPart, BSTR *wpPath);
 HRESULT STDMETHODCALLTYPE Document_GetEditCodePage(IDocument *this, HWND hWnd, int *nCodePage);
 HRESULT STDMETHODCALLTYPE Document_GetEditBOM(IDocument *this, HWND hWnd, BOOL *bBOM);
 HRESULT STDMETHODCALLTYPE Document_GetEditNewLine(IDocument *this, HWND hWnd, int *nNewLine);
