@@ -2553,13 +2553,13 @@ int StackGetCallbackCount(CALLBACKSTACK *hStack, int nCallbackType)
   return nCount;
 }
 
-BOOL StackIsCallback(CALLBACKSTACK *hStack, void *lpScriptThread)
+BOOL StackIsCallback(CALLBACKSTACK *hStack, CALLBACKITEM *lpCallback)
 {
   CALLBACKITEM *lpElement;
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
-    if (lpElement->lpScriptThread == lpScriptThread)
+    if (lpElement == lpCallback)
       return TRUE;
   }
   return FALSE;

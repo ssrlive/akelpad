@@ -73,9 +73,9 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
   HRESULT nResult=E_FAIL;
   DWORD dwDebugApplicationCookie=0;
   MYDWORD_PTR dwDebugSourceContext=0;
-  BOOL bInitDebugJIT=FALSE;
 
   nCoInit=CoInitialize(0);
+  st->bInitDebugJIT=FALSE;
 
   if (st->dwDebugJIT & JIT_DEBUG)
   {
@@ -96,7 +96,7 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
                 {
                   if (st->objDebugDocumentHelper->lpVtbl->SetDocumentAttr(st->objDebugDocumentHelper, TEXT_DOC_ATTR_READONLY) == S_OK)
                   {
-                    bInitDebugJIT=TRUE;
+                    st->bInitDebugJIT=TRUE;
                   }
                 }
               }
@@ -105,7 +105,7 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
         }
       }
     }
-    if (!bInitDebugJIT)
+    if (!st->bInitDebugJIT)
       MessageBoxW(hMainWnd, GetLangStringW(wLangModule, STRID_DEBUG_ERROR), wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
   }
 
@@ -131,8 +131,10 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
               st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"AkelPad", SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK &&
               st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"Constants", SCRIPTITEM_GLOBALMEMBERS|SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK)
           {
-            if (bInitDebugJIT)
+            if (st->bInitDebugJIT)
             {
+              st->bInitDebugJIT=FALSE;
+
               if (st->objDebugDocumentHelper->lpVtbl->AddUnicodeText(st->objDebugDocumentHelper, st->wpScriptText) == S_OK)
               {
                 if (st->objDebugDocumentHelper->lpVtbl->DefineScriptBlock(st->objDebugDocumentHelper, 0, (ULONG)st->nScriptTextLen, st->objActiveScript, FALSE, &dwDebugSourceContext) == S_OK)
@@ -279,7 +281,7 @@ HRESULT STDMETHODCALLTYPE QueryInterface(IActiveScriptSite *this, REFIID riid, v
   else if (AKD_IsEqualIID(riid, &IID_IActiveScriptSiteDebug))
   {
     lpScriptThread=(SCRIPTTHREAD *)((IRealActiveScriptSite *)this)->lpScriptThread;
-    if (lpScriptThread->dwDebugJIT & JIT_DEBUG)
+    if ((lpScriptThread->dwDebugJIT & JIT_DEBUG) && lpScriptThread->bInitDebugJIT)
     {
       *ppv=&lpScriptThread->MyActiveScriptSiteDebug;
       SiteDebug_AddRef(*ppv);
