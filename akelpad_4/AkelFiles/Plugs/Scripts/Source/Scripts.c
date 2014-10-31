@@ -16,6 +16,7 @@
 #define StackInsertIndex
 #define StackDelete
 #define StackJoin
+#define StackCopy
 #define StackClear
 #include "StackFunc.h"
 

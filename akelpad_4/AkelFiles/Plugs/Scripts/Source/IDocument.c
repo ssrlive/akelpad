@@ -1812,8 +1812,10 @@ HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, 
   return hr;
 }
 
-HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, WORD *wAtom)
+HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom)
 {
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+  CALLBACKITEM *lpCallback;
   WNDCLASSW wndclass;
 
   wndclass.style        =CS_HREDRAW|CS_VREDRAW;
@@ -1826,14 +1828,41 @@ HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpC
   wndclass.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_BTNFACE + 1);
   wndclass.lpszMenuName =NULL;
   wndclass.lpszClassName=wpClassName;
-  *wAtom=RegisterClassWide(&wndclass);
+  if (*wAtom=RegisterClassWide(&wndclass))
+  {
+    if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, NULL))
+    {
+      lpCallback->hHandle=(HANDLE)NULL;
+      lpCallback->dwData=*wAtom;
+      lpCallback->lpScriptThread=(void *)lpScriptThread;
+      lpCallback->nCallbackType=CIT_DIALOG;
+      lpCallback->wpClassName=SysAllocString(wpClassName);
 
+      StackFillMessages(&lpCallback->hMsgIntStack, *psa);
+    }
+  }
   return NOERROR;
 }
 
 HRESULT STDMETHODCALLTYPE Document_WindowUnregisterClass(IDocument *this, BSTR wpClassName, BOOL *bResult)
 {
-  *bResult=UnregisterClassWide(wpClassName, hInstanceDLL);
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+  CALLBACKITEM *lpCallback;
+  CALLBACKITEM *lpCount;
+  CALLBACKITEM *lpNextCount;
+
+  if (lpCallback=StackGetCallbackByClass(&lpScriptThread->hDialogCallbackStack, wpClassName))
+  {
+    if (*bResult=UnregisterClassWide((wchar_t *)lpCallback->dwData, hInstanceDLL))
+    {
+      for (lpCount=lpScriptThread->hDialogCallbackStack.first; lpCount; lpCount=lpNextCount)
+      {
+        lpNextCount=lpCount->next;
+        if (lpCount->wpClassName && lpCount->dwData == lpCallback->dwData)
+          StackDeleteCallback(lpCount);
+      }
+    }
+  }
 
   return NOERROR;
 }
@@ -2608,9 +2637,33 @@ CALLBACKITEM* StackGetCallbackByObject(CALLBACKSTACK *hStack, IDispatch *objFunc
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->objFunction == objFunction)
-      return lpElement;
+      break;
   }
-  return NULL;
+  return lpElement;
+}
+
+CALLBACKITEM* StackGetCallbackByData(CALLBACKSTACK *hStack, UINT_PTR dwData)
+{
+  CALLBACKITEM *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->dwData == dwData)
+      break;
+  }
+  return lpElement;
+}
+
+CALLBACKITEM* StackGetCallbackByClass(CALLBACKSTACK *hStack, const wchar_t *wpClassName)
+{
+  CALLBACKITEM *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (!xstrcmpiW(lpElement->wpClassName, wpClassName))
+      break;
+  }
+  return lpElement;
 }
 
 BOOL StackDeleteCallback(CALLBACKITEM *lpElement)
@@ -2622,6 +2675,9 @@ BOOL StackDeleteCallback(CALLBACKITEM *lpElement)
     if (lpElement->objFunction)
       lpElement->objFunction->lpVtbl->Release(lpElement->objFunction);
     StackFreeMessages(&lpElement->hMsgIntStack);
+    if (lpElement->wpClassName)
+      SysFreeString(lpElement->wpClassName);
+
     if (!StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement))
       --hStack->nElements;
     return TRUE;
@@ -2662,16 +2718,45 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     {
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
       IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
+      CALLBACKITEM *lpNewCallback;
+      ATOM wAtom;
 
-      if (lpCallback=StackGetCallbackByObject(&lpScriptThread->hDialogCallbackStack, objCallback))
+      if (objCallback)
       {
-        ++lpCallback->nRefCount;
-      }
-      else if (lpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
-      {
-        lpCallback->hHandle=(HANDLE)hWnd;
-        lpCallback->lpScriptThread=(void *)lpScriptThread;
-        lpCallback->nCallbackType=CIT_DIALOG;
+        if (lpCallback=StackGetCallbackByObject(&lpScriptThread->hDialogCallbackStack, objCallback))
+        {
+          ++lpCallback->nRefCount;
+        }
+        else
+        {
+          wAtom=(ATOM)GetClassLongA(hWnd, GCW_ATOM);
+
+          if (lpCallback=StackGetCallbackByData(&lpScriptThread->hDialogCallbackStack, wAtom))
+          {
+            if (!lpCallback->hHandle)
+            {
+              //First window associated with wAtom.
+              objCallback->lpVtbl->AddRef(objCallback);
+              lpCallback->objFunction=objCallback;
+              lpCallback->hHandle=(HANDLE)hWnd;
+            }
+            else
+            {
+              if (lpNewCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
+              {
+                //Next windows associated with wAtom.
+                lpNewCallback->hHandle=(HANDLE)hWnd;
+                lpNewCallback->dwData=wAtom;
+                lpNewCallback->lpScriptThread=(void *)lpScriptThread;
+                lpNewCallback->nCallbackType=CIT_DIALOG;
+  
+                //Copy message filter
+                StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpNewCallback->hMsgIntStack.first, (stack **)&lpNewCallback->hMsgIntStack.last, sizeof(MSGINT));
+                lpNewCallback->hMsgIntStack.nElements=lpCallback->hMsgIntStack.nElements;
+              }
+            }
+          }
+        }
       }
     }
     SendMessage(hWnd, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hPluginIcon);
@@ -2689,15 +2774,15 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   {
     if (lpCallback->objFunction)
     {
-      //Message procedure in script
-      lpScriptThread->bBusy=TRUE;
-      CallScriptProc(lpCallback->objFunction, hWnd, uMsg, wParam, lParam, &lResult);
-      lpScriptThread->bBusy=FALSE;
+      if (!lpCallback->hMsgIntStack.nElements || StackGetMessage(&lpCallback->hMsgIntStack, uMsg))
+      {
+        //Message procedure in script
+        lpScriptThread->bBusy=TRUE;
+        CallScriptProc(lpCallback->objFunction, hWnd, uMsg, wParam, lParam, &lResult);
+        lpScriptThread->bBusy=FALSE;
+      }
     }
-    if (uMsg == WM_NCDESTROY)
-      StackDeleteCallback(lpCallback);
-    if (lResult)
-      return lResult;
+    if (lResult) return lResult;
   }
 
   return DefWindowProcWide(hWnd, uMsg, wParam, lParam);

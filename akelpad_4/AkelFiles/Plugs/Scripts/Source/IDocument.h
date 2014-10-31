@@ -80,7 +80,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_VarType)(THIS_ VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgLine)(THIS_ BOOL, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgValue)(THIS_ BSTR, VARIANT, VARIANT *) PURE;
-  STDMETHOD_(HRESULT, Document_WindowRegisterClass)(THIS_ BSTR, WORD *) PURE;
+  STDMETHOD_(HRESULT, Document_WindowRegisterClass)(THIS_ BSTR, SAFEARRAY **, WORD *) PURE;
   STDMETHOD_(HRESULT, Document_WindowUnregisterClass)(THIS_ BSTR, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_WindowRegisterDialog)(THIS_ HWND, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_WindowUnregisterDialog)(THIS_ HWND, BOOL *) PURE;
@@ -253,10 +253,11 @@ typedef struct _CALLBACKITEM {
   INT_PTR lpProc;         //SYSCALLBACK, HOOKPROC.
   HANDLE hHandle;         //HWND, HHOOK.
   IDispatch *objFunction; //Script function.
-  UINT_PTR dwData;        //WNDPROC, nArgCount or nRetAddr.
+  UINT_PTR dwData;        //Depend on nCallbackType.
   int nCallbackType;      //See CIT_* defines.
   void *lpScriptThread;
   MSGINTSTACK hMsgIntStack;
+  wchar_t *wpClassName;
   BOOL bNoNextProc;
   BOOL bShow;
 } CALLBACKITEM;
@@ -365,7 +366,7 @@ HRESULT STDMETHODCALLTYPE Document_Debug(IDocument *this, DWORD dwDebug, DWORD *
 HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int *nType);
 HRESULT STDMETHODCALLTYPE Document_GetArgLine(IDocument *this, BOOL bNoEncloseQuotes, BSTR *wpArgLine);
 HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, VARIANT vtDefault, VARIANT *vtResult);
-HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, WORD *wAtom);
+HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom);
 HRESULT STDMETHODCALLTYPE Document_WindowUnregisterClass(IDocument *this, BSTR wpClassName, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterDialog(IDocument *this, HWND hDlg, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_WindowUnregisterDialog(IDocument *this, HWND hDlg, BOOL *bResult);
@@ -400,6 +401,8 @@ BOOL StackIsCallback(CALLBACKSTACK *hStack, CALLBACKITEM *lpCallback);
 CALLBACKITEM* StackGetCallbackByHandle(CALLBACKSTACK *hStack, HANDLE hHandle, void *lpScriptThread);
 CALLBACKITEM* StackGetCallbackByProc(CALLBACKSTACK *hStack, INT_PTR lpProc);
 CALLBACKITEM* StackGetCallbackByObject(CALLBACKSTACK *hStack, IDispatch *objFunction);
+CALLBACKITEM* StackGetCallbackByData(CALLBACKSTACK *hStack, UINT_PTR dwData);
+CALLBACKITEM* StackGetCallbackByClass(CALLBACKSTACK *hStack, const wchar_t *wpClassName);
 BOOL StackDeleteCallback(CALLBACKITEM *lpElement);
 void StackFreeCallbacks(CALLBACKSTACK *hStack);
 LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
