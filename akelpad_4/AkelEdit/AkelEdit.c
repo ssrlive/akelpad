@@ -10983,7 +10983,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
 
         if (AEC_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0)
           goto SetEmptyFirstDelim;
-        if ((qm->lpQuote && !AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax)) ||
+        if ((!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax)) ||
             (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFold.cpMax)
         {
           if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE))
