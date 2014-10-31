@@ -308,7 +308,7 @@ int nSidePriority=TSP_TOPBOTTOM;
 SIZE sizeToolbar={0};
 SIZE sizeButtons={0};
 CHARRANGE64 crExtSetSel={0};
-DWORD dwPaintTimerId=0;
+UINT_PTR dwPaintTimerId=0;
 HANDLE hThread=NULL;
 DWORD dwThreadId;
 HWND hWndMainDlg=NULL;
