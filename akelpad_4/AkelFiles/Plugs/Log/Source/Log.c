@@ -359,7 +359,6 @@ HINSTANCE hInstanceDLL;
 HINSTANCE hInstanceEXE;
 HWND hMainWnd;
 BOOL bOldWindows;
-BOOL bOldComctl32;
 int nMDI;
 LANGID wLangModule;
 BOOL bInitCommon=FALSE;
@@ -3591,7 +3590,6 @@ void InitCommon(PLUGINDATA *pd)
   hInstanceEXE=pd->hInstanceEXE;
   hMainWnd=pd->hMainWnd;
   bOldWindows=pd->bOldWindows;
-  bOldComctl32=pd->bOldComctl32;
   nMDI=pd->nMDI;
   wLangModule=PRIMARYLANGID(pd->wLangModule);
 
