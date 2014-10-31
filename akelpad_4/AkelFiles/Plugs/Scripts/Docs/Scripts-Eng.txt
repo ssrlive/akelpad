@@ -1925,11 +1925,13 @@ ___________________________
 
 Register window class.
 
-  WindowRegisterClass(pClassName);
+  WindowRegisterClass(pClassName[, ...]);
 
 Arguments
   pClassName
     Class name to register.
+  ...
+    Message filter. Will come only specified messages. If not specified, all messages will come.
 
 Return Value
   Number. Class atom that uniquely identifies the class being registered.

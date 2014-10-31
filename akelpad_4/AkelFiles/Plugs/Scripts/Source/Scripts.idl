@@ -252,7 +252,7 @@ library Scripts
     HRESULT GetArgValue([in] BSTR wpArgName, [in] VARIANT vtDefault, [out, retval] VARIANT *vtResult);
 
     //Register window class.
-    HRESULT WindowRegisterClass([in] BSTR wpClassName, [out, retval] WORD *wAtom);
+    [vararg] HRESULT WindowRegisterClass([in] BSTR wpClassName, [in] SAFEARRAY(VARIANT) *psa, [out, retval] WORD *wAtom);
 
     //Unregister window class.
     HRESULT WindowUnregisterClass([in] BSTR wpClassName, [out, retval] BOOL *bResult);
