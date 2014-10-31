@@ -10,8 +10,8 @@ var hMainWnd=AkelPad.GetMainWnd();
 var hWndEdit=AkelPad.GetEditWnd();
 var oSys=AkelPad.SystemFunction();
 var pFileFullName=AkelPad.GetEditFile(0);
-var pFileName=GetFileName(pFileFullName);
-var pFileDir=GetFileDir(pFileFullName);
+var pFileName=AkelPad.GetFilePath(pFileFullName, 2 /*CPF_FILENAME*/);
+var pFileDir=AkelPad.GetFilePath(pFileFullName, 1 /*CPF_DIR*/);
 var pNewFileFullName="";
 var lpPoint64;
 var lpSel;
@@ -90,24 +90,6 @@ function IsFileExist(pFile)
   if (oSys.Call("kernel32::GetFileAttributes" + _TCHAR, pFile) == -1)
     return false;
   return true;
-}
-
-function GetFileName(pFile)
-{
-  var nOffset=pFile.lastIndexOf("\\");
-
-  if (nOffset != -1)
-    pFile=pFile.substr(nOffset + 1);
-  return pFile;
-}
-
-function GetFileDir(pFile)
-{
-  var nOffset=pFile.lastIndexOf("\\");
-
-  if (nOffset != -1)
-    return pFile.substr(0, nOffset);
-  return "";
 }
 
 function GetLangString(nStringID)
