@@ -218,6 +218,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs);
 LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+VOID CALLBACK PaintTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 
 BOOL CreateToolbarWindow();
 BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText);
@@ -307,6 +308,7 @@ int nSidePriority=TSP_TOPBOTTOM;
 SIZE sizeToolbar={0};
 SIZE sizeButtons={0};
 CHARRANGE64 crExtSetSel={0};
+DWORD dwPaintTimerId=0;
 HANDLE hThread=NULL;
 DWORD dwThreadId;
 HWND hWndMainDlg=NULL;
@@ -902,15 +904,9 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       //On ComCtl32.dll version 6.10 horizontal separator (TBSTATE_WRAP + TBSTYLE_SEP)
       //erased if window moved outside the screen and then moved back.
-      static BOOL bUpdating;
-
-      if (!bUpdating)
-      {
-        bUpdating=TRUE;
-        InvalidateRect(hWnd, NULL, FALSE);
-        UpdateWindow(hWnd);
-        bUpdating=FALSE;
-      }
+      //Use timer for more soft update not often than 100 ms.
+      if (!dwPaintTimerId)
+        dwPaintTimerId=SetTimer(NULL, 0, 100, (TIMERPROC)PaintTimerProc);
     }
   }
   else if (uMsg == WM_LBUTTONDBLCLK)
@@ -944,6 +940,18 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     return 0;
   }
   return CallWindowProcWide(lpOldToolbarProc, hWnd, uMsg, wParam, lParam);
+}
+
+VOID CALLBACK PaintTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+{
+  if (dwPaintTimerId)
+  {
+    InvalidateRect(hToolbar, NULL, FALSE);
+    UpdateWindow(hToolbar);
+
+    KillTimer(NULL, dwPaintTimerId);
+    dwPaintTimerId=0;
+  }
 }
 
 BOOL CreateToolbarWindow()
