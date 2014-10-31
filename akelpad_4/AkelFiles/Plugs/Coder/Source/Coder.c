@@ -135,7 +135,6 @@ HICON hMainIcon;
 HWND hMdiClient;
 BOOL bOldWindows;
 BOOL bOldRichEdit;
-BOOL bOldComctl32;
 BOOL bAkelEdit;
 int nMDI;
 LANGID wLangModule;
@@ -6438,7 +6437,6 @@ void InitCommon(PLUGINDATA *pd)
   hMainIcon=pd->hMainIcon;
   bOldWindows=pd->bOldWindows;
   bOldRichEdit=pd->bOldRichEdit;
-  bOldComctl32=pd->bOldComctl32;
   bAkelEdit=pd->bAkelEdit;
   nMDI=pd->nMDI;
   wLangModule=PRIMARYLANGID(pd->wLangModule);
