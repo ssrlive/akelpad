@@ -2085,7 +2085,7 @@ HRESULT WindowUnsubClass(void *lpScriptThread, HWND hWnd)
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, HHOOK *hHook)
+HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, SAFEARRAY **psa, HHOOK *hHook)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   HRESULT hr=NOERROR;
@@ -2110,7 +2110,18 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
           lpCallback->nBusyIndex=nBusyIndex;
           lpCallback->lpProc=(INT_PTR)lpHookProc;
           lpCallback->hHandle=(HANDLE)*hHook;
+          //dwData is the offset to message identifier
           lpCallback->dwData=0;
+          if (idHook == WH_CALLWNDPROC)
+             lpCallback->dwData=offsetof(CWPSTRUCT, message);
+          else if (idHook == WH_CALLWNDPROCRET)
+             lpCallback->dwData=offsetof(CWPRETSTRUCT, message);
+          else if (idHook == WH_GETMESSAGE ||
+                   idHook == WH_MSGFILTER ||
+                   idHook == WH_SYSMSGFILTER)
+          {
+             lpCallback->dwData=offsetof(MSG, message);
+          }
           lpCallback->nCallbackType=CIT_HOOKCALLBACK;
           lpCallback->lpScriptThread=(void *)lpScriptThread;
 
@@ -2118,6 +2129,7 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
           {
             lpScriptThread->hWndScriptsThreadDummy=CreateScriptsThreadDummyWindow();
           }
+          StackFillMessages(&lpCallback->hMsgIntStack, *psa);
         }
       }
     }
@@ -2899,13 +2911,14 @@ BOOL CALLBACK SubclassFrameCall(CALLBACKITEM *lpCallback, HWND hWnd, UINT uMsg, 
 
 LRESULT CALLBACK SubclassSend(CALLBACKITEM *lpCallback, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)lpCallback->lpScriptThread;
-  MSGSEND msgs;
   LRESULT lResult=0;
 
   //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
   if (!lpCallback->hMsgIntStack.nElements || StackGetMessage(&lpCallback->hMsgIntStack, uMsg))
   {
+    SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)lpCallback->lpScriptThread;
+    MSGSEND msgs;
+
     msgs.lpCallback=lpCallback;
     msgs.hWnd=hWnd;
     msgs.uMsg=uMsg;
@@ -3074,16 +3087,22 @@ LRESULT CALLBACK HookCallbackCommonProc(int nCallbackIndex, int nCode, WPARAM wP
   {
     if (nCode >= 0)
     {
-      SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)lpCallback->lpScriptThread;
-      MSGSEND msgs;
+      if (!lpCallback->hMsgIntStack.nElements || !lpCallback->dwData || StackGetMessage(&lpCallback->hMsgIntStack, *(UINT *)((BYTE *)lParam + lpCallback->dwData)))
+      {
+        SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)lpCallback->lpScriptThread;
+        MSGSEND msgs;
 
-      //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
-      msgs.lpCallback=lpCallback;
-      msgs.hWnd=NULL;
-      msgs.uMsg=nCode;
-      msgs.wParam=wParam;
-      msgs.lParam=lParam;
-      SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_HOOKSEND, 0, (LPARAM)&msgs);
+        if (lpScriptThread->hWndScriptsThreadDummy)
+        {
+          //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
+          msgs.lpCallback=lpCallback;
+          msgs.hWnd=NULL;
+          msgs.uMsg=nCode;
+          msgs.wParam=wParam;
+          msgs.lParam=lParam;
+          SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_HOOKSEND, 0, (LPARAM)&msgs);
+        }
+      }
     }
     return CallNextHookEx((HHOOK)lpCallback->hHandle, nCode, wParam, lParam);
   }
