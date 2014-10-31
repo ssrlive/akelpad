@@ -396,7 +396,7 @@ void StackFillMessages(MSGINTSTACK *hStack, SAFEARRAY *psa);
 int RetriveCallbackProc(CALLBACKBUSYNESS *cb);
 CALLBACKITEM* StackInsertCallback(CALLBACKSTACK *hStack, IDispatch *objCallback);
 int StackGetCallbackCount(CALLBACKSTACK *hStack, int nCallbackType);
-BOOL StackIsCallback(CALLBACKSTACK *hStack, void *lpScriptThread);
+BOOL StackIsCallback(CALLBACKSTACK *hStack, CALLBACKITEM *lpCallback);
 CALLBACKITEM* StackGetCallbackByHandle(CALLBACKSTACK *hStack, HANDLE hHandle, void *lpScriptThread);
 CALLBACKITEM* StackGetCallbackByProc(CALLBACKSTACK *hStack, INT_PTR lpProc);
 CALLBACKITEM* StackGetCallbackByObject(CALLBACKSTACK *hStack, IDispatch *objFunction);
