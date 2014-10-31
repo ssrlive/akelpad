@@ -2354,7 +2354,7 @@ __________________
 
 Install hook for thread.
 
-  ThreadHook(nId, lpFunction, nThreadId);
+  ThreadHook(nId, lpFunction, nThreadId[, ...]);
 
 Arguments
   nId
@@ -2363,6 +2363,9 @@ Arguments
     Function with 3 arguments, which will be called.
   nThreadId
     Thread identifier. Global hook installing is not supported.
+  ...
+    Message filter. Will come only specified messages. If not specified, all messages will come.
+    nId must be one of the following values: WH_CALLWNDPROC, WH_CALLWNDPROCRET, WH_GETMESSAGE, WH_MSGFILTER, WH_SYSMSGFILTER.
 
 Return Value
   Number. Hook handle.
@@ -2376,7 +2379,7 @@ Example:
   var dwMainThreadID=oSys.Call("user32::GetWindowThreadProcessId", hMainWnd, 0);
   var hHook;
 
-  if (hHook=AkelPad.ThreadHook(3 /*WH_GETMESSAGE*/, HookCallback, dwMainThreadID))
+  if (hHook=AkelPad.ThreadHook(3 /*WH_GETMESSAGE*/, HookCallback, dwMainThreadID, 0x100 /*WM_KEYDOWN*/))
   {
     //Message loop
     AkelPad.WindowGetMessage();

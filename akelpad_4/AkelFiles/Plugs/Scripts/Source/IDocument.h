@@ -89,7 +89,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_WindowNextProc)(THIS_ INT_PTR *, HWND, UINT, WPARAM, LPARAM, LRESULT *) PURE;
   STDMETHOD_(HRESULT, Document_WindowNoNextProc)(THIS_ INT_PTR *) PURE;
   STDMETHOD_(HRESULT, Document_WindowUnsubClass)(THIS_ HWND) PURE;
-  STDMETHOD_(HRESULT, Document_ThreadHook)(THIS_ int, IDispatch *, DWORD, HHOOK *) PURE;
+  STDMETHOD_(HRESULT, Document_ThreadHook)(THIS_ int, IDispatch *, DWORD, SAFEARRAY **, HHOOK *) PURE;
   STDMETHOD_(HRESULT, Document_ThreadUnhook)(THIS_ HHOOK, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptNoMutex)(THIS_ DWORD, DWORD *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptHandle)(THIS_ VARIANT, int, VARIANT *) PURE;
@@ -375,7 +375,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowNextProc(IDocument *this, INT_PTR *lpCa
 HRESULT STDMETHODCALLTYPE Document_WindowNoNextProc(IDocument *this, INT_PTR *lpCallbackItem);
 HRESULT STDMETHODCALLTYPE Document_WindowUnsubClass(IDocument *this, HWND hWnd);
 HRESULT WindowUnsubClass(void *lpScriptThread, HWND hWnd);
-HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, HHOOK *hHook);
+HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, SAFEARRAY **psa, HHOOK *hHook);
 HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlockType, DWORD *dwResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData, int nOperation, VARIANT *vtResult);

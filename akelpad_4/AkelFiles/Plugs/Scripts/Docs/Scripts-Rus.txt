@@ -2356,7 +2356,7 @@ __________________
 
 Установить хук для потока.
 
-  ThreadHook(nId, lpFunction, nThreadId);
+  ThreadHook(nId, lpFunction, nThreadId[, ...]);
 
 Аргументы
   nId
@@ -2365,6 +2365,9 @@ __________________
     Функция с 3 параметрами, куда будут приходить вызовы.
   nThreadId
     Идентификатор потока. Установка глобального хука не поддерживается.
+  ...
+    Фильтр сообщений. Будут приходить только указанные сообщения. Если не указан, будут приходить все сообщения.
+    nId должен быть одним из следующих значений: WH_CALLWNDPROC, WH_CALLWNDPROCRET, WH_GETMESSAGE, WH_MSGFILTER, WH_SYSMSGFILTER.
 
 Возвращаемое значение
   Число. Дескриптор хука.
@@ -2378,7 +2381,7 @@ __________________
   var dwMainThreadID=oSys.Call("user32::GetWindowThreadProcessId", hMainWnd, 0);
   var hHook;
 
-  if (hHook=AkelPad.ThreadHook(3 /*WH_GETMESSAGE*/, HookCallback, dwMainThreadID))
+  if (hHook=AkelPad.ThreadHook(3 /*WH_GETMESSAGE*/, HookCallback, dwMainThreadID, 0x100 /*WM_KEYDOWN*/))
   {
     //Message loop
     AkelPad.WindowGetMessage();
