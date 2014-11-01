@@ -1850,15 +1850,18 @@ HRESULT STDMETHODCALLTYPE Document_WindowUnregisterClass(IDocument *this, BSTR w
   CALLBACKITEM *lpCallback;
   CALLBACKITEM *lpCount;
   CALLBACKITEM *lpNextCount;
+  ATOM wAtom;
 
   if (lpCallback=StackGetCallbackByClass(&lpScriptThread->hDialogCallbackStack, wpClassName))
   {
-    if (*bResult=UnregisterClassWide((wchar_t *)lpCallback->dwData, hInstanceDLL))
+    wAtom=(ATOM)lpCallback->dwData;
+
+    if (*bResult=UnregisterClassWide((wchar_t *)(UINT_PTR)wAtom, hInstanceDLL))
     {
       for (lpCount=lpScriptThread->hDialogCallbackStack.first; lpCount; lpCount=lpNextCount)
       {
         lpNextCount=lpCount->next;
-        if (lpCount->wpClassName && lpCount->dwData == lpCallback->dwData)
+        if (lpCount->wpClassName && lpCount->dwData == wAtom)
           StackDeleteCallback(lpCount);
       }
     }
