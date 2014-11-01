@@ -115,7 +115,6 @@ var pScriptName=WScript.ScriptName;
 var hInstanceDLL=AkelPad.GetInstanceDll();
 var nAkelEdit=AkelPad.IsAkelEdit();
 var pClassName="AkelPad::Scripts::" + pScriptName + "::" + oSys.Call("kernel32::GetCurrentProcessId");
-var hWndStatus=0;
 var hWndProgress=0;
 var hWndOutput=0;
 var hWndDialog;
@@ -1686,11 +1685,8 @@ function SearchReplace()
         {
           //Show progress bar and lock main window
           if (!hWndProgress)
-          {
-            //hWndProgress=AkelPad.SendMessage(hMainWnd, 1222 /*AKD_GETMAININFO*/, 10 /*MI_WNDPROGRESS*/, 0);
-            if (hWndStatus=oSys.Call("user32::GetDlgItem", hMainWnd, 10002 /*ID_STATUS*/))
-              hWndProgress=oSys.Call("user32::GetDlgItem", hWndStatus, 10004 /*ID_PROGRESS*/);
-          }
+            hWndProgress=AkelPad.SendMessage(hMainWnd, 1222 /*AKD_GETMAININFO*/, 10 /*MI_WNDPROGRESS*/, 0);
+
           if (hWndProgress)
           {
             //First progress
