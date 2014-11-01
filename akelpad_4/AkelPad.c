@@ -3486,11 +3486,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_STRLENA)
     {
-      return lstrlenA((char *)wParam);
+      return xstrlenA((char *)wParam);
     }
     if (uMsg == AKD_STRLENW)
     {
-      return lstrlenW((wchar_t *)wParam);
+      return xstrlenW((wchar_t *)wParam);
     }
     if (uMsg == AKD_CREATEWINDOW)
     {
@@ -3565,7 +3565,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           rh->dwType=(DWORD)wParam;
 
-          if (lParam)
+          if (!(rh->dwType & POB_PROGRAM) && lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
               xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
@@ -3605,7 +3605,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           ih->dwType=(DWORD)wParam;
 
-          if (lParam)
+          if (!(ih->dwType & POB_PROGRAM) && lParam)
           {
             if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
               xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
@@ -3623,7 +3623,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             INISECTION *lpIniSection;
 
-            if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", lstrlenW(L"Options"), FALSE))
+            if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", xstrlenW(L"Options"), FALSE))
               StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
           }
         }
