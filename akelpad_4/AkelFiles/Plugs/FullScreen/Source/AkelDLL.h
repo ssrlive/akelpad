@@ -583,8 +583,9 @@
 #define POB_READ      0x01  //Begins read options.
 #define POB_SAVE      0x02  //Begins save options.
 #define POB_CLEAR     0x04  //Begins new save options (POB_SAVE|POB_CLEAR).
-#define POB_SCRIPTS   0x10  //Begins Scripts plugin options.
-#define POB_PLUGS     0x20  //Ignore POB_SCRIPTS.
+#define POB_SCRIPTS   0x10  //Begins script options.
+#define POB_PLUGS     0x20  //Begins plugin options. Ignore POB_SCRIPTS.
+#define POB_PROGRAM   0x40  //Begins program options. Ignore POB_PLUGS and POB_SCRIPTS.
 
 //Option type
 #define PO_DWORD     1   //32-bit number.

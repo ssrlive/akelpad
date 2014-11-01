@@ -1790,10 +1790,11 @@ Arguments
   pScriptBaseName
     Script name without extension. If "", use current script name.
   nFlags
-    0x1  //POB_READ   Begins read options.
-    0x2  //POB_SAVE   Begins save options.
-    0x4  //POB_CLEAR  Begins new save options (POB_SAVE|POB_CLEAR).
-    0x20 //POB_PLUGS  Plugin settings, pScriptBaseName - plugin name without extension.
+    0x01 //POB_READ     Begins read options.
+    0x02 //POB_SAVE     Begins save options.
+    0x04 //POB_CLEAR    Begins new save options (POB_SAVE|POB_CLEAR).
+    0x20 //POB_PLUGS    Plugin settings, pScriptBaseName - plugin name without extension.
+    0x40 //POB_PROGRAM  Program settings, pScriptBaseName - ignored.
 
 Return Value
   Number. Settings handle.

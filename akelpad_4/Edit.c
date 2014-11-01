@@ -3638,11 +3638,11 @@ INIKEY* IniOpenKeyA(INIFILE *hIniFile, const char *pSection, const char *pKey, B
 {
   INISECTION *lpIniSection;
 
-  if (!(lpIniSection=StackOpenIniSectionA(hIniFile, pSection, lstrlenA(pSection), bCreate)))
+  if (!(lpIniSection=StackOpenIniSectionA(hIniFile, pSection, xstrlenA(pSection), bCreate)))
     return 0;
   if (lppIniSection)
     *lppIniSection=lpIniSection;
-  return StackOpenIniKeyA(lpIniSection, pKey, lstrlenA(pKey), bCreate);
+  return StackOpenIniKeyA(lpIniSection, pKey, xstrlenA(pKey), bCreate);
 }
 
 INIKEY* IniOpenKeyW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, BOOL bCreate, INISECTION **lppIniSection)
@@ -11186,7 +11186,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
         char *pTargetCount;
         int nTargetLen;
 
-        nTargetLen=lstrlenA(pSource);
+        nTargetLen=xstrlenA(pSource);
         if (nMaxLenght > 0)
         {
           if (nTargetLen > nMaxLenght)
