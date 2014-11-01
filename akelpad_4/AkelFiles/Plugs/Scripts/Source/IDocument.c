@@ -2140,7 +2140,7 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
           lpCallback->lpProc=(INT_PTR)lpHookProc;
           lpCallback->hHandle=(HANDLE)*hHook;
           //dwData is the offset to message identifier
-          lpCallback->dwData=0;
+          lpCallback->dwData=(UINT_PTR)-1;
           if (idHook == WH_CALLWNDPROC)
              lpCallback->dwData=offsetof(CWPSTRUCT, message);
           else if (idHook == WH_CALLWNDPROCRET)
@@ -3172,7 +3172,7 @@ LRESULT CALLBACK HookCallbackCommonProc(int nCallbackIndex, int nCode, WPARAM wP
   {
     if (nCode >= 0)
     {
-      if (!lpCallback->hMsgIntStack.nElements || !lpCallback->dwData || StackGetMessage(&lpCallback->hMsgIntStack, *(UINT *)((BYTE *)lParam + lpCallback->dwData)))
+      if (!lpCallback->hMsgIntStack.nElements || lpCallback->dwData == (UINT_PTR)-1 || StackGetMessage(&lpCallback->hMsgIntStack, *(UINT *)((BYTE *)lParam + lpCallback->dwData)))
       {
         SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)lpCallback->lpScriptThread;
         MSGSEND msgs;
