@@ -36,36 +36,6 @@
 //     WScript.Echo("Nothing selected");
 //   else
 //     WScript.Echo("Item index: " + nItem + "\nItem name: " + lpItems[nItem][0] + "\nItem ID: " + lpItems[nItem][2]);
-//
-//
-// Toolbar button menu example (ToolbarItemMenu.js):
-// Пример меню для кнопки панели инструментов (ToolbarItemMenu.js):
-//
-//   //Arguments
-//   if (WScript.Arguments.length < 2) WScript.Quit();
-//   var hToolbarHandle=parseInt(WScript.Arguments(0));
-//   var nToolbarItemID=parseInt(WScript.Arguments(1));
-//
-//   //Include
-//   if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
-//
-//   //Variables
-//   var lpItems;
-//   var nItem;
-//   var ptPoint=GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
-//
-//   lpItems=[["ItemA", MF_NORMAL, "Value1"],
-//            ["", MF_SEPARATOR],
-//            ["ItemB", MF_NORMAL|MF_CHECKED|MF_USECHECKBITMAPS, "Value2"]];
-//
-//   nItem=ShowMenu(lpItems, ptPoint.x, ptPoint.y);
-//   if (nItem != -1)
-//     WScript.Echo("Item index: " + nItem + "\nItem value: " + lpItems[nItem][2]);
-//
-//
-// Toolbar plugin item:
-// Пункт Toolbar плагина:
-//   -"Button menu" Call("Scripts::Main", 1, "ToolbarItemMenu.js", `"%m" "%i"`) Icon(0)
 
 //Menu item flags
 var MF_NORMAL          =0x00000; //Normal item.
@@ -91,6 +61,7 @@ function ShowMenu(lpItemsArray, X, Y)
 {
   //Variables
   var hMainWnd=AkelPad.GetMainWnd();
+  var hWndEdit=AkelPad.GetEditWnd();
   var oSys=AkelPad.SystemFunction();
   var lpMenuArray=[];
   var nMenuCount;
@@ -174,14 +145,14 @@ function ShowMenu(lpItemsArray, X, Y)
       if (X < 0 || Y < 0)
       {
         if (X == POS_CARET || Y == POS_CARET)
-          ptPoint=GetCaretPos(AkelPad.GetEditWnd());
+          ptPoint=GetCaretPos(hWndEdit);
         else if (X == POS_CURSOR || Y == POS_CURSOR)
           ptPoint=GetCursorPos();
 
         if (X < 0) X=ptPoint.x;
         if (Y < 0) Y=ptPoint.y;
       }
-      nResult=oSys.Call("user32::TrackPopupMenu", lpMenuArray[0][MENU], 0x100|0x80|0x2 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_RIGHTBUTTON*/, X, Y, 0, hWndHidden, 0);
+      nResult=oSys.Call("user32::TrackPopupMenu", lpMenuArray[0][MENU], 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_RIGHTBUTTON*/, X, Y, 0, hWndHidden, 0);
 
       //Clean up
       oSys.Call("user32::DestroyMenu", lpMenuArray[0][MENU]);
@@ -199,19 +170,22 @@ function GetCaretPos(hWndEdit)
   ptPoint.x=0;
   ptPoint.y=0;
 
-  if (lpPoint=AkelPad.MemAlloc(8 /*sizeof(POINT)*/))
+  if (hWndEdit)
   {
-    //Caret position
-    AkelPad.SendMessage(hWndEdit, 3190 /*AEM_GETCARETPOS*/, lpPoint, 0);
-    ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
-    ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
-    AkelPad.MemFree(lpPoint);
+    if (lpPoint=AkelPad.MemAlloc(8 /*sizeof(POINT)*/))
+    {
+      //Caret position
+      AkelPad.SendMessage(hWndEdit, 3190 /*AEM_GETCARETPOS*/, lpPoint, 0);
+      ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
+      ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
+      AkelPad.MemFree(lpPoint);
 
-    //Caret bottom
-    ptPoint.y+=AkelPad.SendMessage(hWndEdit, 3188 /*AEM_GETCHARSIZE*/, 0 /*AECS_HEIGHT*/, 0);
+      //Caret bottom
+      ptPoint.y+=AkelPad.SendMessage(hWndEdit, 3188 /*AEM_GETCHARSIZE*/, 0 /*AECS_HEIGHT*/, 0);
 
-    //In screen coordinates
-    ClientToScreen(hWndEdit, ptPoint);
+      //In screen coordinates
+      ClientToScreen(hWndEdit, ptPoint);
+    }
   }
   return ptPoint;
 }
@@ -232,31 +206,6 @@ function GetCursorPos()
     ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
     ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
     AkelPad.MemFree(lpPoint);
-  }
-  return ptPoint;
-}
-
-function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
-{
-  var ptPoint=[];
-  var lpRect;
-
-  ptPoint.x=0;
-  ptPoint.y=0;
-
-  if (hToolbarHandle && nToolbarItemID)
-  {
-    if (lpRect=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
-    {
-      //Get Toolbar button position
-      AkelPad.SendMessage(hToolbarHandle, 1075 /*TB_GETRECT*/, nToolbarItemID, lpRect);
-      ptPoint.x=AkelPad.MemRead(lpRect, 3 /*DT_DWORD*/);
-      ptPoint.y=AkelPad.MemRead(lpRect + 12, 3 /*DT_DWORD*/);
-      AkelPad.MemFree(lpRect);
-
-      //In screen coordinates
-      ClientToScreen(hToolbarHandle, ptPoint);
-    }
   }
   return ptPoint;
 }
