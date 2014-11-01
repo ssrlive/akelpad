@@ -2721,7 +2721,7 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     {
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
       IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
-      CALLBACKITEM *lpTmpCallback;
+      CALLBACKITEM *lpNewCallback;
       ATOM wAtom;
 
       if (objCallback)
@@ -2734,29 +2734,26 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (!lpCallback->hHandle)
           {
             //First window associated with wAtom.
+            //Fill empty callback allocated in WindowRegisterClass.
             objCallback->lpVtbl->AddRef(objCallback);
             lpCallback->objFunction=objCallback;
             lpCallback->hHandle=(HANDLE)hWnd;
           }
           else
           {
-            if (lpTmpCallback=StackGetCallbackByHandle(&lpScriptThread->hDialogCallbackStack, hWnd, lpScriptThread))
+            //Second, third, etc. window associated with wAtom.
+            if (lpNewCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
             {
-              ++lpTmpCallback->nRefCount;
-            }
-            else if (lpTmpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
-            {
-              //Next windows associated with wAtom.
-              lpTmpCallback->hHandle=(HANDLE)hWnd;
-              lpTmpCallback->dwData=wAtom;
-              lpTmpCallback->lpScriptThread=(void *)lpScriptThread;
-              lpTmpCallback->nCallbackType=CIT_DIALOG;
+              lpNewCallback->hHandle=(HANDLE)hWnd;
+              lpNewCallback->dwData=wAtom;
+              lpNewCallback->lpScriptThread=(void *)lpScriptThread;
+              lpNewCallback->nCallbackType=CIT_DIALOG;
 
               //Copy message filter
-              StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpTmpCallback->hMsgIntStack.first, (stack **)&lpTmpCallback->hMsgIntStack.last, sizeof(MSGINT));
-              lpTmpCallback->hMsgIntStack.nElements=lpCallback->hMsgIntStack.nElements;
+              StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpNewCallback->hMsgIntStack.first, (stack **)&lpNewCallback->hMsgIntStack.last, sizeof(MSGINT));
+              lpNewCallback->hMsgIntStack.nElements=lpCallback->hMsgIntStack.nElements;
             }
-            lpCallback=lpTmpCallback;
+            lpCallback=lpNewCallback;
           }
         }
       }
