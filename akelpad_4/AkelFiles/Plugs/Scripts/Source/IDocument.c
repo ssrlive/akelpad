@@ -2718,43 +2718,42 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     {
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
       IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
-      CALLBACKITEM *lpNewCallback;
+      CALLBACKITEM *lpTmpCallback;
       ATOM wAtom;
 
       if (objCallback)
       {
-        if (lpCallback=StackGetCallbackByObject(&lpScriptThread->hDialogCallbackStack, objCallback))
-        {
-          ++lpCallback->nRefCount;
-        }
-        else
-        {
-          wAtom=(ATOM)GetClassLongA(hWnd, GCW_ATOM);
+        //Check that class registered by WindowRegisterClass.
+        wAtom=(ATOM)GetClassLongA(hWnd, GCW_ATOM);
 
-          if (lpCallback=StackGetCallbackByData(&lpScriptThread->hDialogCallbackStack, wAtom))
+        if (lpCallback=StackGetCallbackByData(&lpScriptThread->hDialogCallbackStack, wAtom))
+        {
+          if (!lpCallback->hHandle)
           {
-            if (!lpCallback->hHandle)
+            //First window associated with wAtom.
+            objCallback->lpVtbl->AddRef(objCallback);
+            lpCallback->objFunction=objCallback;
+            lpCallback->hHandle=(HANDLE)hWnd;
+          }
+          else
+          {
+            if (lpTmpCallback=StackGetCallbackByHandle(&lpScriptThread->hDialogCallbackStack, hWnd, lpScriptThread))
             {
-              //First window associated with wAtom.
-              objCallback->lpVtbl->AddRef(objCallback);
-              lpCallback->objFunction=objCallback;
-              lpCallback->hHandle=(HANDLE)hWnd;
+              ++lpTmpCallback->nRefCount;
             }
-            else
+            else if (lpTmpCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
             {
-              if (lpNewCallback=StackInsertCallback(&lpScriptThread->hDialogCallbackStack, objCallback))
-              {
-                //Next windows associated with wAtom.
-                lpNewCallback->hHandle=(HANDLE)hWnd;
-                lpNewCallback->dwData=wAtom;
-                lpNewCallback->lpScriptThread=(void *)lpScriptThread;
-                lpNewCallback->nCallbackType=CIT_DIALOG;
-  
-                //Copy message filter
-                StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpNewCallback->hMsgIntStack.first, (stack **)&lpNewCallback->hMsgIntStack.last, sizeof(MSGINT));
-                lpNewCallback->hMsgIntStack.nElements=lpCallback->hMsgIntStack.nElements;
-              }
+              //Next windows associated with wAtom.
+              lpTmpCallback->hHandle=(HANDLE)hWnd;
+              lpTmpCallback->dwData=wAtom;
+              lpTmpCallback->lpScriptThread=(void *)lpScriptThread;
+              lpTmpCallback->nCallbackType=CIT_DIALOG;
+
+              //Copy message filter
+              StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpTmpCallback->hMsgIntStack.first, (stack **)&lpTmpCallback->hMsgIntStack.last, sizeof(MSGINT));
+              lpTmpCallback->hMsgIntStack.nElements=lpCallback->hMsgIntStack.nElements;
             }
+            lpCallback=lpTmpCallback;
           }
         }
       }
