@@ -7,8 +7,6 @@
 //
 // How to use:
 // Select column with numbers for processing.
-//
-// Description:
 // First selected line number is a initial number.
 // Each next line will be increased at defined step.
 //  3    3     -9    -9     08    08     0x08     0x08
@@ -25,8 +23,6 @@
 //
 // Как использовать:
 // Выделите вертикальный блок с числами, которые необходимо преобразовать.
-//
-// Описание:
 // Число в первой выделенной строке является начальным числом.
 // Каждая последующая строка будет увеличена на величину назначенного шага.
 //  3    3     -9    -9     08    08     0x08     0x08
