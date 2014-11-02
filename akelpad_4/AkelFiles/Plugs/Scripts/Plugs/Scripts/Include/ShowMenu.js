@@ -210,6 +210,31 @@ function GetCursorPos()
   return ptPoint;
 }
 
+function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
+{
+  var ptPoint=[];
+  var lpRect;
+
+  ptPoint.x=0;
+  ptPoint.y=0;
+
+  if (hToolbarHandle && nToolbarItemID)
+  {
+    if (lpRect=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
+    {
+      //Get Toolbar button position
+      AkelPad.SendMessage(hToolbarHandle, 1075 /*TB_GETRECT*/, nToolbarItemID, lpRect);
+      ptPoint.x=AkelPad.MemRead(lpRect + 0 /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+      ptPoint.y=AkelPad.MemRead(lpRect + 12 /*offsetof(RECT, bottom)*/, 3 /*DT_DWORD*/);
+      AkelPad.MemFree(lpRect);
+
+      //In screen coordinates
+      ClientToScreen(hToolbarHandle, ptPoint);
+    }
+  }
+  return ptPoint;
+}
+
 function ClientToScreen(hWnd, ptPoint)
 {
   var oSys=AkelPad.SystemFunction();
