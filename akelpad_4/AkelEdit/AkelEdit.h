@@ -2900,7 +2900,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_UNDO, 0, 0);
@@ -2915,7 +2916,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_REDO, 0, 0);

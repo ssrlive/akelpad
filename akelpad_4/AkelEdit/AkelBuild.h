@@ -653,6 +653,7 @@ typedef struct _AKELEDIT {
   DWORD dwImeChar;
   BOOL bImeComposition;
   int nAltChar;
+  BOOL bBeepEnable;
 
   //Notification
   DWORD dwNotifyFlags;
@@ -1012,13 +1013,14 @@ BOOL AE_GetModify(AKELEDIT *ae);
 void AE_SetModify(AKELEDIT *ae, BOOL bState);
 void AE_EmptyUndoBuffer(AKELEDIT *ae);
 BOOL AE_IsReadOnly(AKELEDIT *ae);
+BOOL AE_MessageBeep(AKELEDIT *ae, UINT uType);
 BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl);
 void AE_ImeComplete(AKELEDIT *ae);
 BOOL AE_EditCanPaste(AKELEDIT *ae);
 BOOL AE_EditCanRedo(AKELEDIT *ae);
 BOOL AE_EditCanUndo(AKELEDIT *ae);
-void AE_EditUndo(AKELEDIT *ae);
-void AE_EditRedo(AKELEDIT *ae);
+BOOL AE_EditUndo(AKELEDIT *ae);
+BOOL AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
 void AE_EditCopyToClipboard(AKELEDIT *ae);
 BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags);
