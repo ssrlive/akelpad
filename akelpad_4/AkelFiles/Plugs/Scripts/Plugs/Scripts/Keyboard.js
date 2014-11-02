@@ -32,6 +32,9 @@
 var pType=AkelPad.GetArgValue("Type", "").toLowerCase();
 var pDirection=AkelPad.GetArgValue("Direction", "").toLowerCase();
 
+//Include
+if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
+
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
 var hWndEdit=AkelPad.GetEditWnd();
@@ -44,50 +47,39 @@ var pSelText;
 
 if (hWndEdit)
 {
-  //Show menu
   if (pType == "")
   {
-    var hWndHidden;
-    var hMenu;
+    var aItems=[];
     var nItem;
-    var ptPoint=[];
 
-    if (hWndHidden=oSys.Call("user32::CreateWindowEx" + _TCHAR, 0, "Static", 0, 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 0, 0, 0, 0, hMainWnd, 0, hInstanceDLL, 0))
+    //Show menu
+    aItems[0]=["Cnhjrf->Строка", MF_NORMAL, 0];
+    aItems[1]=["Ыекштп->String", MF_NORMAL, 1];
+    aItems[2]=["Stroka->Строка", MF_NORMAL, 2];
+    aItems[3]=["Строка->Stroka", MF_NORMAL, 3];
+
+    if ((nItem=ShowMenu(aItems, POS_CARET, POS_CARET)) != -1)
     {
-      oSys.Call("user32::SetFocus", hWndHidden);
-      GetCaretPos(hWndEdit, ptPoint);
-
-      if (hMenu=oSys.Call("user32::CreatePopupMenu"))
+      if (nItem == 0)
       {
-        oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, 1, "Cnhjrf->Строка");
-        oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, 2, "Ыекштп->String");
-        oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, 3, "Stroka->Строка");
-        oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, 4, "Строка->Stroka");
-        nItem=oSys.Call("user32::TrackPopupMenu", hMenu, 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON*/, ptPoint.x, ptPoint.y, 0, hWndHidden, 0);
-
-        if (nItem == 1)
-        {
-          pType="layout";
-          pDirection="en->ru";
-        }
-        else if (nItem == 2)
-        {
-          pType="layout";
-          pDirection="ru->en";
-        }
-        else if (nItem == 3)
-        {
-          pType="translit";
-          pDirection="en->ru";
-        }
-        else if (nItem == 4)
-        {
-          pType="translit";
-          pDirection="ru->en";
-        }
-        oSys.Call("user32::DestroyMenu", hMenu);
+        pType="layout";
+        pDirection="en->ru";
       }
-      oSys.Call("user32::DestroyWindow", hWndHidden);
+      else if (nItem == 1)
+      {
+        pType="layout";
+        pDirection="ru->en";
+      }
+      else if (nItem == 2)
+      {
+        pType="translit";
+        pDirection="en->ru";
+      }
+      else if (nItem == 3)
+      {
+        pType="translit";
+        pDirection="ru->en";
+      }
     }
   }
   if (!pType) WScript.Quit();
