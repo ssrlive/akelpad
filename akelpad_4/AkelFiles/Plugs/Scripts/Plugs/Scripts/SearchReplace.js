@@ -718,7 +718,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     ////Button window FindAll
 
     //Check that Log.dll exists
-    bLogPluginExists=oSys.Call("kernel32::GetFileAttributes" + _TCHAR, AkelPad.GetAkelDir(4 /*ADTYPE_PLUGS*/) + "\\Log.dll") != -1;
+    bLogPluginExists=IsFileExist(AkelPad.GetAkelDir(4 /*ADTYPE_PLUGS*/) + "\\Log.dll");
 
     //Create window
     hWndFindAllButton=oSys.Call("user32::CreateWindowEx" + _TCHAR,
@@ -1990,6 +1990,13 @@ function CenterWindow(hWndParent, hWnd)
 
     AkelPad.MemFree(lpRect);
   }
+}
+
+function IsFileExist(pFile)
+{
+  if (oSys.Call("kernel32::GetFileAttributes" + _TCHAR, pFile) == -1)
+    return false;
+  return true;
 }
 
 function GetOutputWindow()
