@@ -11,7 +11,7 @@
 // -Direction=En->Ru  -From English to Russian.
 // -Direction=Ru->En  -From Russian to English.
 //
-// Examples:
+// Usage:
 // -"Convert layout" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
 // -"Transliteration" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
 //
@@ -24,7 +24,7 @@
 // -Direction=En->Ru  -Èç àíãëèéñêîãî â ğóññêèé.
 // -Direction=Ru->En  -Èç ğóññêîãî â àíãëèéñêèé.
 //
-// Ïğèìåğû:
+// Ïğèìåíåíèå:
 // -"Èñïğàâèòü íàáîğ" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
 // -"Òğàíñëèòåğàöèÿ" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
 
