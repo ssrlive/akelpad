@@ -244,59 +244,68 @@
 #define AEMOD_CONTROL           0x4  //CTRL key
 
 //AEM_GETLINENUMBER flags
-#define AEGL_LINECOUNT              0  //Total number of text lines. If the control has no text, the return value is 1.
-#define AEGL_FIRSTSELLINE           1  //First line of the selection.
-#define AEGL_LASTSELLINE            2  //Last line of the selection.
-#define AEGL_CARETLINE              3  //Caret line.
-#define AEGL_FIRSTVISIBLELINE       4  //First visible line.
-#define AEGL_LASTVISIBLELINE        5  //Last visible line.
-#define AEGL_FIRSTFULLVISIBLELINE   6  //First fully visible line.
-#define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
-#define AEGL_LINEUNWRAPCOUNT       11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
-#define AEGL_UNWRAPSELMULTILINE    12  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
+#define AEGL_LINECOUNT                 0  //Total number of text lines. If the control has no text, the return value is 1.
+#define AEGL_FIRSTSELLINE              1  //First line of the selection.
+#define AEGL_LASTSELLINE               2  //Last line of the selection.
+#define AEGL_CARETLINE                 3  //Caret line.
+#define AEGL_FIRSTVISIBLELINE          4  //First visible line.
+#define AEGL_LASTVISIBLELINE           5  //Last visible line.
+#define AEGL_FIRSTFULLVISIBLELINE      6  //First fully visible line.
+#define AEGL_LASTFULLVISIBLELINE       7  //Last fully visible line.
+#define AEGL_LINEUNWRAPCOUNT          11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
+#define AEGL_UNWRAPSELMULTILINE       12  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
+                                          //  Next flags require RichEdit offset in lParam.
+#define AEGI_LINEFROMRICHOFFSET       20  //Line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset). Equivalent to EM_EXLINEFROMCHAR.
+#define AEGI_UNWRAPLINEFROMRICHOFFSET 21  //Unwrapped line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset).
 
 //AEM_GETINDEX and AEM_GETRICHOFFSET flags
-#define AEGI_FIRSTCHAR              1  //First character.
-#define AEGI_LASTCHAR               2  //Last character.
-#define AEGI_FIRSTSELCHAR           3  //First character of the selection.
-#define AEGI_LASTSELCHAR            4  //Last character of the selection.
-#define AEGI_CARETCHAR              5  //Caret character.
-#define AEGI_FIRSTVISIBLECHAR       6  //First visible character, collapsed lines are skipped.
-#define AEGI_LASTVISIBLECHAR        7  //Last visible character, collapsed lines are skipped.
-#define AEGI_FIRSTFULLVISIBLECHAR   8  //First fully visible character, collapsed lines are skipped.
-#define AEGI_LASTFULLVISIBLECHAR    9  //Last fully visible character, collapsed lines are skipped.
-#define AEGI_FIRSTVISIBLELINE      10  //First character of the first visible line, collapsed lines are skipped.
-#define AEGI_LASTVISIBLELINE       11  //Last character of the last visible line, collapsed lines are skipped.
-#define AEGI_FIRSTFULLVISIBLELINE  12  //First character of the first fully visible line, collapsed lines are skipped.
-#define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
-                                       //
-//Next flags require pointer to the input index in lParam.
-#define AEGI_VALIDCHARINLINE       15  //Correct character to make sure that it is on line.
-                                       //For better performance use AEC_ValidCharInLine instead.
-#define AEGI_LINEBEGIN             16  //First character in line.
-                                       //
-#define AEGI_LINEEND               17  //Last character in line.
-                                       //
-#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-                                       //For better performance use AEC_WrapLineBeginEx instead.
-#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-                                       //For better performance use AEC_WrapLineEndEx instead.
-#define AEGI_NEXTCHARINLINE        20  //Next character in line.
-                                       //For better performance use AEC_NextCharInLineEx instead.
-#define AEGI_PREVCHARINLINE        21  //Previous character in line.
-                                       //For better performance use AEC_PrevCharInLineEx instead.
-#define AEGI_NEXTCHAR              22  //Next wide character.
-                                       //For better performance use AEC_NextCharEx instead.
-#define AEGI_PREVCHAR              23  //Previous wide character.
-                                       //For better performance use AEC_PrevCharEx instead.
-#define AEGI_NEXTLINE              24  //First character of the next line.
-                                       //For better performance use AEC_NextLineEx instead.
-#define AEGI_PREVLINE              25  //First character of the previous line.
-                                       //For better performance use AEC_PrevLineEx instead.
-#define AEGI_NEXTUNCOLLAPSEDCHAR   26  //Next wide character, collapsed lines are skipped.
-#define AEGI_PREVUNCOLLAPSEDCHAR   27  //Previous wide character, collapsed lines are skipped.
-#define AEGI_NEXTUNCOLLAPSEDLINE   28  //First character of the next line, collapsed lines are skipped.
-#define AEGI_PREVUNCOLLAPSEDLINE   29  //First character of the previous line, collapsed lines are skipped.
+#define AEGI_FIRSTCHAR                 1  //First character.
+#define AEGI_LASTCHAR                  2  //Last character.
+#define AEGI_FIRSTSELCHAR              3  //First character of the selection.
+#define AEGI_LASTSELCHAR               4  //Last character of the selection.
+#define AEGI_CARETCHAR                 5  //Caret character.
+#define AEGI_FIRSTVISIBLECHAR          6  //First visible character, collapsed lines are skipped.
+#define AEGI_LASTVISIBLECHAR           7  //Last visible character, collapsed lines are skipped.
+#define AEGI_FIRSTFULLVISIBLECHAR      8  //First fully visible character, collapsed lines are skipped.
+#define AEGI_LASTFULLVISIBLECHAR       9  //Last fully visible character, collapsed lines are skipped.
+#define AEGI_FIRSTVISIBLELINE         10  //First character of the first visible line, collapsed lines are skipped.
+#define AEGI_LASTVISIBLELINE          11  //Last character of the last visible line, collapsed lines are skipped.
+#define AEGI_FIRSTFULLVISIBLELINE     12  //First character of the first fully visible line, collapsed lines are skipped.
+#define AEGI_LASTFULLVISIBLELINE      13  //Last character of the last fully visible line, collapsed lines are skipped.
+                                          //  Next flags require in lParam:
+                                          //    AEM_GETINDEX - pointer to a AECHARINDEX structure.
+                                          //    AEM_GETRICHOFFSET - RichEdit offset.
+#define AEGI_VALIDCHARINLINE          15  //Correct character to make sure that it is on line.
+                                          //For better performance use AEC_ValidCharInLine instead.
+#define AEGI_LINEBEGIN                16  //First character in line.
+                                          //
+#define AEGI_LINEEND                  17  //Last character in line.
+                                          //
+#define AEGI_WRAPLINEBEGIN            18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
+                                          //For better performance use AEC_WrapLineBeginEx instead.
+#define AEGI_WRAPLINEEND              19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
+                                          //For better performance use AEC_WrapLineEndEx instead.
+#define AEGI_NEXTCHARINLINE           20  //Next character in line.
+                                          //For better performance use AEC_NextCharInLineEx instead.
+#define AEGI_PREVCHARINLINE           21  //Previous character in line.
+                                          //For better performance use AEC_PrevCharInLineEx instead.
+#define AEGI_NEXTCHAR                 22  //Next wide character.
+                                          //For better performance use AEC_NextCharEx instead.
+#define AEGI_PREVCHAR                 23  //Previous wide character.
+                                          //For better performance use AEC_PrevCharEx instead.
+#define AEGI_NEXTLINE                 24  //First character of the next line.
+                                          //For better performance use AEC_NextLineEx instead.
+#define AEGI_PREVLINE                 25  //First character of the previous line.
+                                          //For better performance use AEC_PrevLineEx instead.
+#define AEGI_NEXTUNCOLLAPSEDCHAR      26  //Next wide character, collapsed lines are skipped.
+#define AEGI_PREVUNCOLLAPSEDCHAR      27  //Previous wide character, collapsed lines are skipped.
+#define AEGI_NEXTUNCOLLAPSEDLINE      28  //First character of the next line, collapsed lines are skipped.
+#define AEGI_PREVUNCOLLAPSEDLINE      29  //First character of the previous line, collapsed lines are skipped.
+                                          //  Next flags require in lParam:
+                                          //    AEM_GETINDEX - not supported.
+                                          //    AEM_GETRICHOFFSET - line number.
+#define AEGI_RICHOFFSETFROMLINE       40  //First character (RichEdit offset) of the specified line. lParam is line number (if -1 caret line). Equivalent to EM_LINEINDEX.
+#define AEGI_RICHOFFSETFROMUNWRAPLINE 41  //First character (RichEdit offset) of the specified unwrapped line. lParam is line number.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
@@ -3275,8 +3284,8 @@ _________________
 
 Retrieve the specified line number.
 
-(int)wParam == see AEGL_* defines.
-lParam      == not used.
+(int)wParam     == see AEGL_* defines.
+(INT_PTR)lParam == input character RichEdit offset, if required.
 
 Return Value
  Zero based line number.
