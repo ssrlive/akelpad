@@ -613,13 +613,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_UNDO)
     {
-      AE_EditUndo(ae);
-      return 0;
+      return AE_EditUndo(ae);
     }
     if (uMsg == AEM_REDO)
     {
-      AE_EditRedo(ae);
-      return 0;
+      return AE_EditRedo(ae);
     }
     if (uMsg == AEM_EMPTYUNDOBUFFER)
     {
@@ -3112,13 +3110,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_UNDO)
   {
-    AE_EditUndo(ae);
-    return 0;
+    return AE_EditUndo(ae);
   }
   if (uMsg == EM_REDO)
   {
-    AE_EditRedo(ae);
-    return 0;
+    return AE_EditRedo(ae);
   }
   if (uMsg == EM_GETMODIFY)
   {
@@ -3671,8 +3667,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_UNDO)
   {
-    AE_EditUndo(ae);
-    return 0;
+    return AE_EditUndo(ae);
   }
   else if (uMsg == WM_GETTEXTLENGTH)
   {
@@ -3747,6 +3742,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
+      BOOL bResult;
 
       if (GetKeyState(VK_MENU) < 0)
         bAlt=TRUE;
@@ -3797,8 +3793,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
 
       //Process virtual key
-      if (AE_KeyDown(ae, (int)wParam, bAlt, bShift, bControl))
-        return 0;
+      ae->bBeepEnable=TRUE;
+      bResult=AE_KeyDown(ae, (int)wParam, bAlt, bShift, bControl);
+      ae->bBeepEnable=FALSE;
+      if (bResult) return 0;
     }
     else if (uMsg == WM_CHAR)
     {
@@ -19422,10 +19420,16 @@ BOOL AE_IsReadOnly(AKELEDIT *ae)
 {
   if (ae->popt->dwOptions & AECO_READONLY)
   {
-    if (!(ae->popt->dwOptions & AECO_DISABLEBEEP))
-      MessageBeep(MB_OK);
+    AE_MessageBeep(ae, MB_OK);
     return TRUE;
   }
+  return FALSE;
+}
+
+BOOL AE_MessageBeep(AKELEDIT *ae, UINT uType)
+{
+  if (ae->bBeepEnable && !(ae->popt->dwOptions & AECO_DISABLEBEEP))
+    return MessageBeep(uType);
   return FALSE;
 }
 
@@ -19767,7 +19771,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if ((bShift || !AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex)) &&
           !AEC_IndexCompare(&ciCharIn, &ciCharOut))
       {
-        MessageBeep(MB_OK);
+        AE_MessageBeep(ae, MB_OK);
       }
     }
 
@@ -19863,7 +19867,7 @@ BOOL AE_EditCanUndo(AKELEDIT *ae)
   return FALSE;
 }
 
-void AE_EditUndo(AKELEDIT *ae)
+BOOL AE_EditUndo(AKELEDIT *ae)
 {
   AEUNDOITEM *lpCurElement;
   AEUNDOITEM *lpNextElement;
@@ -19875,7 +19879,8 @@ void AE_EditUndo(AKELEDIT *ae)
   int nFirstVisibleLine=0;
   BOOL bColumnSel;
 
-  if (AE_IsReadOnly(ae)) return;
+  if (AE_IsReadOnly(ae) || !AE_EditCanUndo(ae))
+    return FALSE;
   AE_NotifyChanging(ae, AETCT_UNDO);
   AE_StackUndoGroupStop(ae);
   lpCurElement=ae->ptxt->lpCurrentUndo;
@@ -19987,9 +19992,10 @@ void AE_EditUndo(AKELEDIT *ae)
   }
 
   AE_NotifyChanged(ae); //AETCT_UNDO
+  return TRUE;
 }
 
-void AE_EditRedo(AKELEDIT *ae)
+BOOL AE_EditRedo(AKELEDIT *ae)
 {
   AEUNDOITEM *lpCurElement=ae->ptxt->lpCurrentUndo;
   AEUNDOITEM *lpNextElement;
@@ -20001,7 +20007,8 @@ void AE_EditRedo(AKELEDIT *ae)
   int nFirstVisibleLine=0;
   BOOL bColumnSel;
 
-  if (AE_IsReadOnly(ae)) return;
+  if (AE_IsReadOnly(ae) || !AE_EditCanRedo(ae))
+    return FALSE;
   AE_NotifyChanging(ae, AETCT_REDO);
 
   if (!lpCurElement)
@@ -20107,6 +20114,7 @@ void AE_EditRedo(AKELEDIT *ae)
   }
 
   AE_NotifyChanged(ae); //AETCT_REDO
+  return TRUE;
 }
 
 void AE_EditCut(AKELEDIT *ae)
@@ -20471,7 +20479,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
         }
       }
     }
-    else if (!(ae->popt->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+    else AE_MessageBeep(ae, MB_OK);
   }
   else
   {
@@ -20535,7 +20543,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
         }
       }
     }
-    else if (!(ae->popt->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+    else AE_MessageBeep(ae, MB_OK);
   }
   else
   {
