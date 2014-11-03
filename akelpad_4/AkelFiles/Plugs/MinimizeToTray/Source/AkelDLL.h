@@ -211,6 +211,7 @@
 #define MI_VERCOMCTL32               43   //Return: comctl32.dll version set as MAKELONG(major,minor).
 #define MI_AKELEDIT                  44   //Return: AkelEdit control is used.
 #define MI_MDI                       45   //Return: window mode, see WMD_* defines.
+#define MI_LANGHANDLE                50   //Return: language module handle.
 #define MI_LANGMODULEA               51   //Return: copied chars. (char *)lParam - buffer that receives language module string.
 #define MI_LANGMODULEW               52   //Return: copied chars. (wchar_t *)lParam - buffer that receives language module string.
 #define MI_LANGIDSYSTEM              53   //Return: system language ID.
@@ -1084,11 +1085,12 @@ typedef struct {
   DWORD dwVerComctl32;                //Comctl32.dll version set as MAKELONG(major,minor).
   BOOL bAkelEdit;                     //AkelEdit control is used. Always TRUE.
   int nMDI;                           //Window mode, see WMD_* defines.
-  const BYTE *pLangModule;            //Language module.
+  const BYTE *pLangModule;            //Language module file name.
                                       //  const char *pLangModule      if bOldWindows == TRUE
                                       //  const wchar_t *pLangModule   if bOldWindows == FALSE
-  const char *szLangModule;           //Language module (Ansi).
-  const wchar_t *wszLangModule;       //Language module (Unicode).
+  const char *szLangModule;           //Language module file name (Ansi).
+  const wchar_t *wszLangModule;       //Language module file name (Unicode).
+  HMODULE hLangModule;                //Language module handle.
   LANGID wLangSystem;                 //System language ID.
   LANGID wLangModule;                 //Language module language ID.
 } PLUGINDATA;
