@@ -8228,6 +8228,8 @@ INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
         ciChar.nLine=ae->ciCaretIndex.nLine;
         ciChar.lpLine=ae->ciCaretIndex.lpLine;
         ciChar.nCharInLine=0;
+        if (nType == AEGI_RICHOFFSETFROMUNWRAPLINE)
+          AEC_WrapLineBeginEx(&ciChar, &ciChar);
       }
       else
       {
