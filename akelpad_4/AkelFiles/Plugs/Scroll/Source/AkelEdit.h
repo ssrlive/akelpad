@@ -275,7 +275,7 @@
                                           //  Next flags require in lParam:
                                           //    AEM_GETINDEX - pointer to a AECHARINDEX structure.
                                           //    AEM_GETRICHOFFSET - RichEdit offset.
-#define AEGI_VALIDCHARINLINE          15  //Correct character to make sure that it is on line.
+#define AEGI_VALIDCHARINLINE          15  //Correct character to make sure that it is on line. AEM_GETRICHOFFSET - not supported.
                                           //For better performance use AEC_ValidCharInLine instead.
 #define AEGI_LINEBEGIN                16  //First character in line.
                                           //
