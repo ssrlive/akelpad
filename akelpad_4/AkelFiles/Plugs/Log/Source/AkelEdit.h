@@ -305,7 +305,7 @@
                                           //    AEM_GETINDEX - not supported.
                                           //    AEM_GETRICHOFFSET - line number.
 #define AEGI_RICHOFFSETFROMLINE       40  //First character (RichEdit offset) of the specified line. lParam is line number (if -1 caret line). Equivalent to EM_LINEINDEX.
-#define AEGI_RICHOFFSETFROMUNWRAPLINE 41  //First character (RichEdit offset) of the specified unwrapped line. lParam is line number.
+#define AEGI_RICHOFFSETFROMUNWRAPLINE 41  //First character (RichEdit offset) of the specified unwrapped line. lParam is line number (if -1 caret line).
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
