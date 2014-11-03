@@ -2296,7 +2296,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   return bResult;
 }
 
-BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
+BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelAllTextIfNoSel)
 {
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
@@ -2317,7 +2317,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
-    if (bSelCurWord)
+    if (bSelAllTextIfNoSel)
+    {
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
+    }
+    else
     {
       crRange.ciMin=ciCurCaret;
       crRange.ciMax=ciCurCaret;
@@ -2326,11 +2331,6 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelCurWord)
         SendMessage(hWnd, AEM_GETPREVBREAK, AEWB_LEFTWORDSTART, (LPARAM)&crRange.ciMin);
       if (!SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
         SendMessage(hWnd, AEM_GETNEXTBREAK, AEWB_RIGHTWORDEND, (LPARAM)&crRange.ciMax);
-    }
-    else
-    {
-      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
-      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
     }
     bSelection=FALSE;
   }
