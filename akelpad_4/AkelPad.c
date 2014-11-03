@@ -268,7 +268,7 @@ DWORD dwCmdLineOptions=0;
 BOOL bCmdLineQuitAsEnd=FALSE;
 
 //Language
-HMODULE hLangLib;
+HMODULE hLangModule;
 DWORD dwLangSystem;
 DWORD dwLangModule;
 int nLangModuleCount=0;
@@ -1043,7 +1043,7 @@ void _WinMain()
   GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
   //Load DLL's
-  hLangLib=hInstance;
+  hLangModule=hInstance;
   dwLangModule=RC_VERSIONLANGID;
 
   if (*moCur.wszLangModule)
@@ -1060,17 +1060,17 @@ void _WinMain()
 
     if (bResult && MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
     {
-      if (!(hLangLib=LoadLibraryWide(wbuf)))
+      if (!(hLangModule=LoadLibraryWide(wbuf)))
       {
-        hLangLib=hInstance;
-        API_LoadString(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
+        hLangModule=hInstance;
+        API_LoadString(hLangModule, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
         xprintfW(wszMsg, wbuf, moCur.wszLangModule);
         API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
     }
     else
     {
-      API_LoadString(hLangLib, MSG_UPDATE_LANGMODULE, wbuf, BUFFER_SIZE);
+      API_LoadString(hLangModule, MSG_UPDATE_LANGMODULE, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, moCur.wszLangModule,
                              nMajor, nMinor, nRelease, nBuild,
                              LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
@@ -1090,7 +1090,7 @@ void _WinMain()
   #else
     if (!(hAkelLib=LoadLibraryWide(L"AkelEdit.dll")))
     {
-      API_LoadString(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
+      API_LoadString(hLangModule, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, L"AkelEdit.dll");
       API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       goto Quit;
@@ -1098,7 +1098,7 @@ void _WinMain()
   #endif
 
   //GetOpenFileName dialog file filter
-  API_LoadString(hLangLib, STR_FILE_FILTER, wszFileFilter, MAX_PATH);
+  API_LoadString(hLangModule, STR_FILE_FILTER, wszFileFilter, MAX_PATH);
   for (nFileFilterLen=0; wszFileFilter[nFileFilterLen]; ++nFileFilterLen)
     if (wszFileFilter[nFileFilterLen] == L'|') wszFileFilter[nFileFilterLen]=L'\0';
   wszFileFilter[++nFileFilterLen]=L'\0';
@@ -1108,38 +1108,38 @@ void _WinMain()
 
   if (bOldWindows)
   {
-    hGlobalAccel=API_LoadAcceleratorsA(hLangLib, MAKEINTRESOURCEA(IDA_ACCEL_GLOBAL));
-    hMainAccel=API_LoadAcceleratorsA(hLangLib, MAKEINTRESOURCEA(IDA_ACCEL_MAIN));
-    hMainIcon=API_LoadIconA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_MAIN));
-    hMainMenu=API_LoadMenuA(hLangLib, MAKEINTRESOURCEA(IDM_MENU_MAIN));
-    hPopupMenu=API_LoadMenuA(hLangLib, MAKEINTRESOURCEA(IDM_MENU_POPUP));
+    hGlobalAccel=API_LoadAcceleratorsA(hLangModule, MAKEINTRESOURCEA(IDA_ACCEL_GLOBAL));
+    hMainAccel=API_LoadAcceleratorsA(hLangModule, MAKEINTRESOURCEA(IDA_ACCEL_MAIN));
+    hMainIcon=API_LoadIconA(hLangModule, MAKEINTRESOURCEA(IDI_ICON_MAIN));
+    hMainMenu=API_LoadMenuA(hLangModule, MAKEINTRESOURCEA(IDM_MENU_MAIN));
+    hPopupMenu=API_LoadMenuA(hLangModule, MAKEINTRESOURCEA(IDM_MENU_POPUP));
     hCursorSizeWE=LoadCursor(NULL, IDC_SIZEWE);
     hCursorSizeNS=LoadCursor(NULL, IDC_SIZENS);
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
-    hCursorHandOpen=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
-    hCursorHandClose=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandOpen=(HCURSOR)API_LoadImageA(hLangModule, MAKEINTRESOURCEA(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandClose=(HCURSOR)API_LoadImageA(hLangModule, MAKEINTRESOURCEA(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
     if (nMDI)
     {
-      hIconEmpty=(HICON)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
-      hCursorDragMove=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_DRAGMOVE), IMAGE_CURSOR, 0, 0, 0);
+      hIconEmpty=(HICON)API_LoadImageA(hLangModule, MAKEINTRESOURCEA(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
+      hCursorDragMove=(HCURSOR)API_LoadImageA(hLangModule, MAKEINTRESOURCEA(IDC_CURSOR_DRAGMOVE), IMAGE_CURSOR, 0, 0, 0);
     }
   }
   else
   {
-    hGlobalAccel=API_LoadAcceleratorsW(hLangLib, MAKEINTRESOURCEW(IDA_ACCEL_GLOBAL));
-    hMainAccel=API_LoadAcceleratorsW(hLangLib, MAKEINTRESOURCEW(IDA_ACCEL_MAIN));
-    hMainIcon=API_LoadIconW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_MAIN));
-    hMainMenu=API_LoadMenuW(hLangLib, MAKEINTRESOURCEW(IDM_MENU_MAIN));
-    hPopupMenu=API_LoadMenuW(hLangLib, MAKEINTRESOURCEW(IDM_MENU_POPUP));
+    hGlobalAccel=API_LoadAcceleratorsW(hLangModule, MAKEINTRESOURCEW(IDA_ACCEL_GLOBAL));
+    hMainAccel=API_LoadAcceleratorsW(hLangModule, MAKEINTRESOURCEW(IDA_ACCEL_MAIN));
+    hMainIcon=API_LoadIconW(hLangModule, MAKEINTRESOURCEW(IDI_ICON_MAIN));
+    hMainMenu=API_LoadMenuW(hLangModule, MAKEINTRESOURCEW(IDM_MENU_MAIN));
+    hPopupMenu=API_LoadMenuW(hLangModule, MAKEINTRESOURCEW(IDM_MENU_POPUP));
     hCursorSizeWE=LoadCursor(NULL, IDC_SIZEWE);
     hCursorSizeNS=LoadCursor(NULL, IDC_SIZENS);
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
-    hCursorHandOpen=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
-    hCursorHandClose=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandOpen=(HCURSOR)API_LoadImageW(hLangModule, MAKEINTRESOURCEW(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandClose=(HCURSOR)API_LoadImageW(hLangModule, MAKEINTRESOURCEW(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
     if (nMDI)
     {
-      hIconEmpty=(HICON)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
-      hCursorDragMove=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_DRAGMOVE), IMAGE_CURSOR, 0, 0, 0);
+      hIconEmpty=(HICON)API_LoadImageW(hLangModule, MAKEINTRESOURCEW(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
+      hCursorDragMove=(HCURSOR)API_LoadImageW(hLangModule, MAKEINTRESOURCEW(IDC_CURSOR_DRAGMOVE), IMAGE_CURSOR, 0, 0, 0);
     }
   }
 
@@ -1243,7 +1243,7 @@ void _WinMain()
     }
     if (bMsgStatus == -1)
     {
-      API_LoadString(hLangLib, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
+      API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
       API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     }
   }
@@ -1302,7 +1302,7 @@ void WinMainCleanUp()
   StackProcFree(&hEditProcRetStack);
   StackProcFree(&hFrameProcStack);
   StackProcFree(&hFrameProcRetStack);
-  if (hLangLib && hLangLib != hInstance) FreeLibrary(hLangLib);
+  if (hLangModule && hLangModule != hInstance) FreeLibrary(hLangModule);
   #ifdef AKELEDIT_STATICBUILD
     AE_UnregisterClassA(hInstance);
     AE_UnregisterClassW(hInstance);
@@ -2279,6 +2279,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)bAkelEdit;
         if (wParam == MI_MDI)
           return (LRESULT)nMDI;
+        if (wParam == MI_LANGHANDLE)
+          return (LRESULT)hLangModule;
         if (wParam == MI_LANGMODULEA)
           return xstrcpynA((void *)lParam, moCur.szLangModule, MAX_PATH);
         if (wParam == MI_LANGMODULEW)
@@ -2474,7 +2476,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (nMDI != lParam)
         {
-          //API_LoadString(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
           //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           moCur.nMDI=(int)lParam;
           return TRUE;
@@ -2486,7 +2488,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (SetOption(lParam, moCur.szLangModule, sizeof(moCur.szLangModule), INI_STRINGANSI))
         {
           MultiByteToWideChar(CP_ACP, 0, moCur.szLangModule, -1, moCur.wszLangModule, MAX_PATH);
-          //API_LoadString(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
           //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           return TRUE;
         }
@@ -2497,7 +2499,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (SetOption(lParam, moCur.wszLangModule, sizeof(moCur.wszLangModule), INI_STRINGUNICODE))
         {
           WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
-          //API_LoadString(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
           //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           return TRUE;
         }
@@ -4742,7 +4744,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nMDI != nMode)
       {
-        API_LoadString(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+        API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
         API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         moCur.nMDI=nMode;
       }
@@ -4842,7 +4844,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 ReleaseCapture();
               SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
 
-              API_LoadString(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+              API_LoadString(hLangModule, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
               xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
               API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
             }
@@ -4863,7 +4865,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     ReleaseCapture();
                   SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
 
-                  API_LoadString(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
+                  API_LoadString(hLangModule, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
                   xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
                   if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
                   {
@@ -4892,7 +4894,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!nMainOnFinish)
       {
-        API_LoadString(hLangLib, MSG_ERROR_IO, wszMsg, BUFFER_SIZE);
+        API_LoadString(hLangModule, MSG_ERROR_IO, wszMsg, BUFFER_SIZE);
         API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       }
       return 0;
@@ -4924,7 +4926,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesSave(&hRecentFilesStack);
         bMenuRecentFiles=TRUE;
       }
-      API_LoadString(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
+      API_LoadString(hLangModule, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, nDead);
       API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
       return nDead;
@@ -4962,7 +4964,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xstrcpynW(moCur.wszLangModule, wbuf2, MAX_PATH);
       }
       WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
-      API_LoadString(hLangLib, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+      API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
       API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       return 0;
     }
@@ -5468,7 +5470,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                                 {IDNO,  MAKEINTRESOURCEW(STR_MESSAGEBOX_CONTINUE),  0},
                                 {0, 0, 0}};
 
-        API_LoadString(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
+        API_LoadString(hLangModule, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
         if (MessageBoxCustom(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_ICONERROR, NULL, &bmb[0]) == IDYES)
           ExitProcess(0);
       }
