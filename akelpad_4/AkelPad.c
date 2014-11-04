@@ -410,7 +410,6 @@ int nModelessType=MLT_NONE;
 RECT rcRecodeMinMaxDialog={246, 264, 0, 0};
 
 //Find/Replace dialog
-RECT rcFindAndReplaceDlg={0};
 wchar_t *wszFindText=NULL;
 wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
@@ -418,10 +417,6 @@ int nReplaceTextLen=0;
 BOOL bNoSearchFinishMsg=FALSE;
 WORD wLastReplaceButtonID=IDC_SEARCH_FIND_BUTTON;
 WNDPROC lpOldComboboxEdit;
-
-//Go to line dialog
-RECT rcGotoDlg={0};
-DWORD dwGotoType=GT_LINE;
 
 //Options dialog
 HHOOK hHookPropertySheet;
@@ -840,9 +835,6 @@ void _WinMain()
   //moInit.bSaveInReadOnlyMsg=FALSE;
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
 
-  //--Search dialog--
-  moInit.dwSearchOptions=FRF_DOWN;
-
   //--Open file dialog--
   //moInit.wszLastDir[0]=L'\0';
   moInit.bShowPlacesBar=TRUE;
@@ -856,8 +848,19 @@ void _WinMain()
   xstrcpyW(moInit.wszPrintFooter, STR_PRINT_FOOTERW);
   //moInit.bPrintFontEnable=FALSE;
 
+  //--Modeless dialog--
+  //moInit.bModelessSavePos=FALSE;
+
   //--Recode dialog--
   //xmemset(&moInit.rcRecodeCurrentDialog, 0, sizeof(RECT));
+
+  //--Search dialog--
+  //xmemset(&moInit.rcSearchCurrentDialog, 0, sizeof(RECT));
+  moInit.dwSearchOptions=FRF_DOWN;
+
+  //--Go to line dialog--
+  //xmemset(&moInit.rcGotoCurrentDialog, 0, sizeof(RECT));
+  moInit.dwGotoOptions=GT_LINE;
 
   //--Colors dialog--
   //xmemset(&moInit.rcColorsCurrentDialog, 0, sizeof(RECT));

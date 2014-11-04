@@ -916,6 +916,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
     CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+    CONTROL         "Save position of modeless dialogs",
+                    IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,169,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
