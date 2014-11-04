@@ -423,15 +423,23 @@ typedef struct {
   BOOL bSaveInReadOnlyMsg;
   wchar_t wszDefaultSaveExt[MAX_PATH];
 
-  //Search dialog
+  //Modeless dialog
+  BOOL bModelessSavePos;
+
+  //Recode dialog
+  RECT rcRecodeCurrentDialog;
+
+  //Find/Replace dialog
+  RECT rcSearchCurrentDialog;
   DWORD dwSearchOptions;
+
+  //Go to line dialog
+  RECT rcGotoCurrentDialog;
+  DWORD dwGotoOptions;
 
   //Open file dialog
   wchar_t wszLastDir[MAX_PATH];
   BOOL bShowPlacesBar;
-
-  //Recode dialog
-  RECT rcRecodeCurrentDialog;
 
   //Print dialog
   RECT rcPrintMargins;
@@ -945,7 +953,7 @@ INT_PTR SetClipboardText(const wchar_t *wpText);
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
+BOOL GoTo(DWORD dwGotoOptions, const wchar_t *wpString);
 
 RECENTFILE* RecentFilesInsert(STACKRECENTFILE *hStack, int nIndex);
 void RecentFilesDelete(STACKRECENTFILE *hStack, RECENTFILE *lpRecentFile);

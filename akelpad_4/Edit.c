@@ -209,7 +209,6 @@ extern int nModelessType;
 extern RECT rcRecodeMinMaxDialog;
 
 //Find/Replace dialog
-extern RECT rcFindAndReplaceDlg;
 extern wchar_t *wszFindText;
 extern wchar_t *wszReplaceText;
 extern int nFindTextLen;
@@ -217,10 +216,6 @@ extern int nReplaceTextLen;
 extern BOOL bNoSearchFinishMsg;
 extern WORD wLastReplaceButtonID;
 extern WNDPROC lpOldComboboxEdit;
-
-//Go to line dialog
-extern RECT rcGotoDlg;
-extern DWORD dwGotoType;
 
 //Options dialog
 extern HHOOK hHookPropertySheet;
@@ -3961,9 +3956,6 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"SaveInReadOnlyMsg", MOT_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
     ReadOption(&oh, L"DefaultSaveExt", MOT_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
 
-    //Search dialog
-    ReadOption(&oh, L"SearchOptions", MOT_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
-
     //Open file dialog
     ReadOption(&oh, L"LastDirectory", MOT_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
     ReadOption(&oh, L"ShowPlacesBar", MOT_DWORD, &mo->bShowPlacesBar, sizeof(DWORD));
@@ -3979,8 +3971,21 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"PrintFont", MOT_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName));
     ReadOption(&oh, L"PrintFontFace", MOT_STRING, mo->lfPrintFont.lfFaceName, sizeof(mo->lfPrintFont.lfFaceName));
 
+    //Modeless dialog
+    ReadOption(&oh, L"ModelessSavePos", MOT_DWORD, &mo->bModelessSavePos, sizeof(DWORD));
+
     //Recode dialog
     ReadOption(&oh, L"RecodeDialog", MOT_BINARY, &mo->rcRecodeCurrentDialog, sizeof(RECT));
+
+    //Search dialog
+    ReadOption(&oh, L"SearchOptions", MOT_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
+    if (mo->bModelessSavePos)
+      ReadOption(&oh, L"SearchDialog", MOT_BINARY, &mo->rcSearchCurrentDialog, sizeof(RECT));
+
+    //Goto dialog
+    ReadOption(&oh, L"GotoOptions", MOT_DWORD, &mo->dwGotoOptions, sizeof(DWORD));
+    if (mo->bModelessSavePos)
+      ReadOption(&oh, L"GotoDialog", MOT_BINARY, &mo->rcGotoCurrentDialog, sizeof(RECT));
 
     //Colors dialog
     ReadOption(&oh, L"ColorsDialog", MOT_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT));
@@ -4264,10 +4269,6 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"DefaultSaveExt", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszDefaultSaveExt), BytesInString(mo->wszDefaultSaveExt)))
     goto Error;
 
-  //Search dialog
-  if (!SaveOption(&oh, L"SearchOptions", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwSearchOptions), sizeof(DWORD)))
-    goto Error;
-
   //Open file dialog
   if (!SaveOption(&oh, L"LastDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszLastDir), BytesInString(mo->wszLastDir)))
     goto Error;
@@ -4294,9 +4295,31 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"PrintFontFace", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, lfPrintFont.lfFaceName), BytesInString(mo->lfPrintFont.lfFaceName)))
     goto Error;
 
+  //Modeless dialog
+  if (!SaveOption(&oh, L"ModelessSavePos", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bModelessSavePos), sizeof(DWORD)))
+    goto Error;
+
   //Recode dialog
   if (!SaveOption(&oh, L"RecodeDialog", MOT_BINARY|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, rcRecodeCurrentDialog), sizeof(RECT)))
     goto Error;
+
+  //Search dialog
+  if (!SaveOption(&oh, L"SearchOptions", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwSearchOptions), sizeof(DWORD)))
+    goto Error;
+  if (mo->bModelessSavePos)
+  {
+    if (!SaveOption(&oh, L"SearchDialog", MOT_BINARY|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, rcSearchCurrentDialog), sizeof(RECT)))
+      goto Error;
+  }
+
+  //Goto dialog
+  if (!SaveOption(&oh, L"GotoOptions", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, dwGotoOptions), sizeof(DWORD)))
+    goto Error;
+  if (mo->bModelessSavePos)
+  {
+    if (!SaveOption(&oh, L"GotoDialog", MOT_BINARY|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, rcGotoCurrentDialog), sizeof(RECT)))
+      goto Error;
+  }
 
   //Colors dialog
   if (!SaveOption(&oh, L"ColorsDialog", MOT_BINARY|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, rcColorsCurrentDialog), sizeof(RECT)))
@@ -9336,6 +9359,12 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    if (hWndFind || moCur.bModelessSavePos)
+    {
+      EnsureWindowInMonitor(&moCur.rcSearchCurrentDialog);
+      if (moCur.rcSearchCurrentDialog.right && moCur.rcSearchCurrentDialog.bottom)
+        SetWindowPos(hDlg, 0, moCur.rcSearchCurrentDialog.left, moCur.rcSearchCurrentDialog.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+    }
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndFind=GetDlgItem(hDlg, IDC_SEARCH_FIND);
     hWndFindNextButton=GetDlgItem(hDlg, IDC_SEARCH_FIND_BUTTON);
@@ -9426,8 +9455,6 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
       }
     }
-    if (rcFindAndReplaceDlg.right && rcFindAndReplaceDlg.bottom)
-      SetWindowPos(hDlg, 0, rcFindAndReplaceDlg.left, rcFindAndReplaceDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
   }
@@ -9813,7 +9840,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         moCur.dwSearchOptions&=~FRF_SELECTION;
       if (moCur.nSearchStrings)
         SaveComboboxSearch(hWndFind, hWndReplace);
-      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
+      GetWindowPos(hDlg, NULL, &moCur.rcSearchCurrentDialog);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       nModelessType=MLT_NONE;
@@ -11362,20 +11389,23 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    if (hWndNumber || moCur.bModelessSavePos)
+    {
+      EnsureWindowInMonitor(&moCur.rcGotoCurrentDialog);
+      if (moCur.rcGotoCurrentDialog.right && moCur.rcGotoCurrentDialog.bottom)
+        SetWindowPos(hDlg, 0, moCur.rcGotoCurrentDialog.left, moCur.rcGotoCurrentDialog.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+    }
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndNumber=GetDlgItem(hDlg, IDC_GOTO_NUMBER);
     hWndLine=GetDlgItem(hDlg, IDC_GOTO_LINE);
     hWndOffset=GetDlgItem(hDlg, IDC_GOTO_OFFSET);
 
-    if (rcGotoDlg.right && rcGotoDlg.bottom)
-      SetWindowPos(hDlg, 0, rcGotoDlg.left, rcGotoDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
-
-    if (dwGotoType & GT_LINE)
+    if (moCur.dwGotoOptions & GT_LINE)
     {
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_LINE, 0);
     }
-    else if (dwGotoType & GT_OFFSETBYTE)
+    else if (moCur.dwGotoOptions & GT_OFFSETBYTE)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_OFFSET, 0);
@@ -11387,11 +11417,11 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         LOWORD(wParam) == IDC_GOTO_OFFSET)
     {
       if (LOWORD(wParam) == IDC_GOTO_LINE)
-        dwGotoType=GT_LINE;
+        moCur.dwGotoOptions=GT_LINE;
       else if (LOWORD(wParam) == IDC_GOTO_OFFSET)
-        dwGotoType=GT_OFFSETBYTE;
+        moCur.dwGotoOptions=GT_OFFSETBYTE;
 
-      if (dwGotoType & GT_LINE)
+      if (moCur.dwGotoOptions & GT_LINE)
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
@@ -11407,7 +11437,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(hWndNumber, EM_SETSEL, 0, nNumberLen);
         }
       }
-      else if (dwGotoType & GT_OFFSETBYTE)
+      else if (moCur.dwGotoOptions & GT_OFFSETBYTE)
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
@@ -11422,7 +11452,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (GetWindowTextWide(hWndNumber, wbuf, BUFFER_SIZE))
       {
-        if (!GoTo(dwGotoType, wbuf))
+        if (!GoTo(moCur.dwGotoOptions, wbuf))
         {
           API_LoadString(hLangModule, MSG_WRONG_STRING, wszMsg, BUFFER_SIZE);
           API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
@@ -11432,7 +11462,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
-      GetWindowPos(hDlg, NULL, &rcGotoDlg);
+      GetWindowPos(hDlg, NULL, &moCur.rcGotoCurrentDialog);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       nModelessType=MLT_NONE;
@@ -11442,9 +11472,9 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
+BOOL GoTo(DWORD dwGotoOptions, const wchar_t *wpString)
 {
-  if (wpString && ((dwGotoType & GT_LINE) || (dwGotoType & GT_OFFSETBYTE) || (dwGotoType & GT_OFFSETCHAR)))
+  if (wpString && ((dwGotoOptions & GT_LINE) || (dwGotoOptions & GT_OFFSETBYTE) || (dwGotoOptions & GT_OFFSETCHAR)))
   {
     AECHARRANGE cr;
     wchar_t wszFirst[MAX_PATH];
@@ -11473,7 +11503,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
 
     nFirst=(int)xatoiW(wszFirst, NULL);
 
-    if (dwGotoType & GT_LINE)
+    if (dwGotoOptions & GT_LINE)
     {
       //Line
       if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
@@ -11504,7 +11534,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
       else
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
     }
-    else if (dwGotoType & GT_OFFSETBYTE)
+    else if (dwGotoOptions & GT_OFFSETBYTE)
     {
       if (nFirst >= 0)
       {
@@ -11517,7 +11547,7 @@ BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
         IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nFirst + 1, AELB_ASIS);
       }
     }
-    else if (dwGotoType & GT_OFFSETCHAR)
+    else if (dwGotoOptions & GT_OFFSETCHAR)
     {
       SetSelRE(lpFrameCurrent->ei.hWndEdit, nFirst, nFirst);
       return TRUE;
@@ -12209,6 +12239,12 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    if (hWndOK || moCur.bModelessSavePos)
+    {
+      EnsureWindowInMonitor(&moCur.rcRecodeCurrentDialog);
+      if (moCur.rcRecodeCurrentDialog.right && moCur.rcRecodeCurrentDialog.bottom)
+        SetWindowPos(hDlg, 0, moCur.rcRecodeCurrentDialog.left, moCur.rcRecodeCurrentDialog.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+    }
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndCodePageFromList=GetDlgItem(hDlg, IDC_RECODE_CODEPAGEFROM_LIST);
     hWndCodePageToList=GetDlgItem(hDlg, IDC_RECODE_CODEPAGETO_LIST);
@@ -12216,8 +12252,6 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCodePagePreview=GetDlgItem(hDlg, IDC_RECODE_PREVIEW);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
-
-    EnsureWindowInMonitor(&moCur.rcRecodeCurrentDialog);
 
     API_LoadString(hLangModule, STR_AUTODETECT, wbuf, BUFFER_SIZE);
     SetWindowTextWide(hWndCodePageAutodetect, wbuf);
@@ -15610,6 +15644,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndInSelIfSel;
   static HWND hWndCycleSearch;
   static HWND hWndCycleSearchPrompt;
+  static HWND hWndModelessSavePos;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -15625,6 +15660,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
     hWndCycleSearchPrompt=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCHPROMPT);
+    hWndModelessSavePos=GetDlgItem(hDlg, IDC_OPTIONS_MODELESSSAVEPOS);
 
     if (moCur.dwKeybLayoutOptions & KLO_SWITCHLAYOUT)
       SendMessage(hWndSwitchKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
@@ -15646,6 +15682,8 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndCycleSearch, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & FRF_CYCLESEARCHPROMPT)
       SendMessage(hWndCycleSearchPrompt, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.bModelessSavePos)
+      SendMessage(hWndModelessSavePos, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt);
 
@@ -15720,6 +15758,9 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         moCur.dwSearchOptions|=FRF_CYCLESEARCHPROMPT;
       else
         moCur.dwSearchOptions&=~FRF_CYCLESEARCHPROMPT;
+
+      //Save position of modeless dialogs
+      moCur.bModelessSavePos=(BOOL)SendMessage(hWndModelessSavePos, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
