@@ -2581,11 +2581,11 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 
 void ReadOptions(DWORD dwFlags)
 {
+  wchar_t wszScriptFile[MAX_PATH];
   HANDLE hOptions;
   int nIndex;
-  int nSize;
-  wchar_t wszScriptFile[MAX_PATH];
   int nBufferBytes=BUFFER_SIZE * sizeof(wchar_t);
+  DWORD dwHotkey;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
@@ -2596,20 +2596,17 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"/GlobalDebugCode", PO_DWORD, (LPBYTE)&dwGlobalDebugCode, sizeof(DWORD));
     WideOption(hOptions, L"/LastScript", PO_STRING, (LPBYTE)wszLastScript, MAX_PATH * sizeof(wchar_t));
 
-    for (nIndex=0; nSize=(int)WideOption(hOptions, (wchar_t *)(UINT_PTR)nIndex, PO_ENUM, (LPBYTE)wszBuffer, nBufferBytes) >= 0; ++nIndex)
+    for (nIndex=0; WideOption(hOptions, (wchar_t *)(UINT_PTR)nIndex, PO_ENUM, (LPBYTE)wszBuffer, nBufferBytes) >= 0; ++nIndex)
     {
-      if (nSize && wszBuffer[0] != L'/')
+      if (wszBuffer[0] && wszBuffer[0] != L'/')
       {
-        xprintfW(wszScriptFile, L"%s\\*.*", wszScriptsDir, wszBuffer);
+        xprintfW(wszScriptFile, L"%s\\%s", wszScriptsDir, wszBuffer);
   
         if (FileExistsWide(wszScriptFile))
         {
-          DWORD dwHotkey=0;
-    
-          if (hOptions)
-            WideOption(hOptions, wszBuffer, PO_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD));
-          if (dwHotkey)
-            RegisterHotkey(wszBuffer, LOWORD(dwHotkey));
+          dwHotkey=0;
+          WideOption(hOptions, wszBuffer, PO_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD));
+          if (dwHotkey) RegisterHotkey(wszBuffer, LOWORD(dwHotkey));
         }
       }
     }
