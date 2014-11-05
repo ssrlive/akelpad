@@ -189,8 +189,8 @@ BEGIN
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM SEPARATOR
-        MENUITEM "Clo&ne",                      IDM_WINDOW_FRAMECLONE
-        MENUITEM "Co&py path",                  IDM_WINDOW_COPYPATH
+        MENUITEM "Sklo&nuj",                      IDM_WINDOW_FRAMECLONE
+        MENUITEM "Ko&piuj œcie¿kê",                  IDM_WINDOW_COPYPATH
         MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "Pomo&c"
@@ -911,7 +911,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
     CONTROL         "Zapytanie",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
-    CONTROL         "Save position of modeless dialogs",
+    CONTROL         "Pamiêtaj po³o¿enie niemodalnych okien dialogowych",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,169,185,10
 END
