@@ -2478,18 +2478,16 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
     //OF_LISTTEXT
-    dwSize=(DWORD)WideOption(hOptions, L"SpecialCharText", PO_BINARY, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(int)WideOption(hOptions, L"SpecialCharText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszSpecialCharText=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize))
+      if (wszSpecialCharText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
-        WideOption(hOptions, L"SpecialCharText", PO_BINARY, (LPBYTE)wszSpecialCharText, dwSize);
+        WideOption(hOptions, L"SpecialCharText", PO_BINARY, (LPBYTE)wszSpecialCharText, nSize);
       }
     }
 
@@ -2503,9 +2501,9 @@ void ReadOptions(DWORD dwFlags)
 
   if (!wszSpecialCharText)
   {
-    dwSize=(DWORD)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTSPECIALCHARS));
+    nSize=(int)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTSPECIALCHARS));
 
-    if (wszSpecialCharText=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize * sizeof(wchar_t)))
+    if (wszSpecialCharText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize * sizeof(wchar_t)))
     {
       xprintfW(wszSpecialCharText, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTSPECIALCHARS));
     }

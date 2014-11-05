@@ -2279,7 +2279,7 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
@@ -2293,24 +2293,20 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"FilterOptions", PO_DWORD, (LPBYTE)&nFilterType, sizeof(DWORD));
 
     //Include filter
-    dwSize=(DWORD)WideOption(hOptions, L"FilterInclude", PO_STRING, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(int)WideOption(hOptions, L"FilterInclude", PO_STRING, NULL, 0)) > 0)
     {
-      if (wszFilterInclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize))
+      if (wszFilterInclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
-        WideOption(hOptions, L"FilterInclude", PO_STRING, (LPBYTE)wszFilterInclude, dwSize);
+        WideOption(hOptions, L"FilterInclude", PO_STRING, (LPBYTE)wszFilterInclude, nSize);
       }
     }
 
     //Exclude filter
-    dwSize=(DWORD)WideOption(hOptions, L"FilterExclude", PO_STRING, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(int)WideOption(hOptions, L"FilterExclude", PO_STRING, NULL, 0)) > 0)
     {
-      if (wszFilterExclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize))
+      if (wszFilterExclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
-        WideOption(hOptions, L"FilterExclude", PO_STRING, (LPBYTE)wszFilterExclude, dwSize);
+        WideOption(hOptions, L"FilterExclude", PO_STRING, (LPBYTE)wszFilterExclude, nSize);
       }
     }
 
@@ -2320,10 +2316,10 @@ void ReadOptions(DWORD dwFlags)
   //Default include filter
   if (!wszFilterInclude)
   {
-    dwSize=(DWORD)xprintfW(NULL, L"%s%s", GetLangStringW(wLangModule, STRID_DEFAULTINCLUDE),
-                                          GetLangStringW(wLangModule, STRID_DEFAULTCODER));
+    nSize=(int)xprintfW(NULL, L"%s%s", GetLangStringW(wLangModule, STRID_DEFAULTINCLUDE),
+                                       GetLangStringW(wLangModule, STRID_DEFAULTCODER));
 
-    if (wszFilterInclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize * sizeof(wchar_t)))
+    if (wszFilterInclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize * sizeof(wchar_t)))
     {
       xprintfW(wszFilterInclude, L"%s%s", GetLangStringW(wLangModule, STRID_DEFAULTINCLUDE),
                                           GetLangStringW(wLangModule, STRID_DEFAULTCODER));
@@ -2333,9 +2329,9 @@ void ReadOptions(DWORD dwFlags)
   //Default exclude filter
   if (!wszFilterExclude)
   {
-    dwSize=(DWORD)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTEXCLUDE));
+    nSize=(int)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTEXCLUDE));
 
-    if (wszFilterExclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize * sizeof(wchar_t)))
+    if (wszFilterExclude=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize * sizeof(wchar_t)))
     {
       xprintfW(wszFilterExclude, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTEXCLUDE));
     }

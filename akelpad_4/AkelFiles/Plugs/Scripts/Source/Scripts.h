@@ -86,13 +86,18 @@
 #define LVI_AUTHOR        5
 #define LVI_SITE          6
 
-#define LVCOLF_VISIBLE    0x1
-#define LVCOLF_CONTENT    0x2
+//List columns flags
+#define LCF_VISIBLE    0x1
+#define LCF_CONTENT    0x2
 
-#define CCOLF_VERSION     0x1
-#define CCOLF_DESCRIPTION 0x2
-#define CCOLF_AUTHOR      0x4
-#define CCOLF_SITE        0x8
+//List columns name
+#define LCN_SCRIPT      0x01
+#define LCN_HOTKEY      0x02
+#define LCN_STATUS      0x04
+#define LCN_VERSION     0x08
+#define LCN_DESCRIPTION 0x10
+#define LCN_AUTHOR      0x20
+#define LCN_SITE        0x40
 
 #define JIT_NONE        0x0
 #define JIT_DEBUG       0x1
@@ -179,9 +184,11 @@ typedef struct {
   int nID;
   int nWidth;
   DWORD dwFlags;
-} LISTVIEWCOLUMN;
+} LISTCOLUMN;
 
-typedef struct {
+typedef struct _LISTITEM {
+  struct _LISTITEM *next;
+  struct _LISTITEM *prev;
   wchar_t *wpScript;
   WORD wHotkey;
   wchar_t *wpHotkey;
@@ -190,7 +197,14 @@ typedef struct {
   wchar_t *wpDescription;
   wchar_t *wpAuthor;
   wchar_t *wpSite;
-} LISTVIEWITEMPARAM;
+} LISTITEM;
+
+typedef struct {
+  LISTITEM *first;
+  LISTITEM *last;
+  LISTITEM *lpLastScript;
+  int nElements;
+} STACKLISTITEM;
 
 typedef struct {
   const wchar_t *wpKey;
@@ -246,16 +260,18 @@ extern BOOL bGlobalDebugJITEnable;
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-int SetColumnItem(HWND hWnd, int nIndex, LISTVIEWCOLUMN *lpColumn, BOOL bCheck);
+int SetColumnItem(HWND hWnd, int nIndex, LISTCOLUMN *lpColumn, BOOL bCheck);
 BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
 void CreateColumns(HWND hWnd);
-LISTVIEWCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex);
-LISTVIEWCOLUMN* GetColumnByIndex(int nColumnIndex);
-void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContentFilter);
-void FreeScriptList(HWND hWnd);
-LISTVIEWITEMPARAM* GetItemParam(HWND hWnd, int nIndex);
+LISTCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex);
+LISTCOLUMN* GetColumnByIndex(int nColumnIndex);
+void FillScriptList(STACKLISTITEM *hStack, HWND hWnd, const wchar_t *wpFilter);
+void StackFillListItem(STACKLISTITEM *hStack);
+LISTITEM* StackInsertListItem(STACKLISTITEM *hStack);
+void StackFreeListItem(STACKLISTITEM *hStack);
+LISTITEM* GetItemParam(HWND hWnd, int nIndex);
 int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith);
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

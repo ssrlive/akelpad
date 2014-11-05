@@ -103,17 +103,17 @@ HWND hWndScriptsList=NULL;
 WNDPROC lpOldFilterProc=NULL;
 RECT rcMainMinMaxDialog={253, 337, 0, 0};
 RECT rcMainCurrentDialog={0};
-LISTVIEWCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LVCOLF_VISIBLE},
-                            {LVI_VERSION,     70,  LVCOLF_CONTENT},
-                            {LVI_HOTKEY,      109, LVCOLF_VISIBLE},
-                            {LVI_STATUS,      70,  LVCOLF_VISIBLE},
-                            {LVI_DESCRIPTION, 300, LVCOLF_CONTENT},
-                            {LVI_AUTHOR,      70,  LVCOLF_CONTENT},
-                            {LVI_SITE,        70,  LVCOLF_CONTENT},
-                            {-1, 0, 0}};
+STACKLISTITEM hListItemStack={0};
+LISTCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LCF_VISIBLE},
+                        {LVI_VERSION,     70,  LCF_CONTENT},
+                        {LVI_HOTKEY,      109, LCF_VISIBLE},
+                        {LVI_STATUS,      70,  LCF_VISIBLE},
+                        {LVI_DESCRIPTION, 300, LCF_CONTENT},
+                        {LVI_AUTHOR,      70,  LCF_CONTENT},
+                        {LVI_SITE,        70,  LCF_CONTENT},
+                        {-1, 0, 0}};
 int nSortColumn=LVI_SCRIPT;
 BOOL bOpeningDlg=FALSE;
-BOOL bContentFilterEnable=FALSE;
 DWORD dwGlobalDebugJIT=JIT_FROMSTART;
 BOOL bGlobalDebugEnable=FALSE;
 DWORD dwGlobalDebugCode=0;
@@ -124,7 +124,6 @@ wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
 wchar_t wszLastScript[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
-wchar_t wszContentFilter[MAX_PATH]=L"";
 HTHREADSTACK hThreadStack={0};
 SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
 HANDLE hExecThread=NULL;
@@ -233,8 +232,6 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndScriptsFilter;
-  static HWND hWndScriptsContentFilterEnable;
-  static HWND hWndScriptsContentFilterButton;
   static HWND hWndChangeListGroup;
   static HWND hWndExecButton;
   static HWND hWndEditButton;
@@ -249,26 +246,22 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuList;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndScriptsList,                DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsList,                DRS_SIZE|DRS_Y, 0},
-                             {&hWndScriptsFilter,              DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsFilter,              DRS_MOVE|DRS_Y, 0},
-                             {&hWndScriptsContentFilterEnable, DRS_MOVE|DRS_X, 0},
-                             {&hWndScriptsContentFilterEnable, DRS_MOVE|DRS_Y, 0},
-                             {&hWndScriptsContentFilterButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndScriptsContentFilterButton, DRS_MOVE|DRS_Y, 0},
-                             {&hWndChangeListGroup,            DRS_MOVE|DRS_X, 0},
-                             {&hWndExecButton,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndEditButton,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,                     DRS_MOVE|DRS_X, 0},
-                             {&hWndAssignButton,               DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugGroup,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITCheck,              DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITFromStartCheck,     DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeCheck,             DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeButton,            DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,                DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,                DRS_MOVE|DRS_Y, 0},
+  static DIALOGRESIZE drs[]={{&hWndScriptsList,            DRS_SIZE|DRS_X, 0},
+                             {&hWndScriptsList,            DRS_SIZE|DRS_Y, 0},
+                             {&hWndScriptsFilter,          DRS_SIZE|DRS_X, 0},
+                             {&hWndScriptsFilter,          DRS_MOVE|DRS_Y, 0},
+                             {&hWndChangeListGroup,        DRS_MOVE|DRS_X, 0},
+                             {&hWndExecButton,             DRS_MOVE|DRS_X, 0},
+                             {&hWndEditButton,             DRS_MOVE|DRS_X, 0},
+                             {&hWndHotkey,                 DRS_MOVE|DRS_X, 0},
+                             {&hWndAssignButton,           DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugGroup,             DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugJITCheck,          DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugJITFromStartCheck, DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugCodeCheck,         DRS_MOVE|DRS_X, 0},
+                             {&hWndDebugCodeButton,        DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,            DRS_MOVE|DRS_X, 0},
+                             {&hWndCloseButton,            DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -279,8 +272,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hPluginIcon);
     hWndScriptsList=GetDlgItem(hDlg, IDC_SCRIPTS_LIST);
     hWndScriptsFilter=GetDlgItem(hDlg, IDC_SCRIPTS_FILTER);
-    hWndScriptsContentFilterEnable=GetDlgItem(hDlg, IDC_SCRIPTS_CONTENTFILTER_ENABLE);
-    hWndScriptsContentFilterButton=GetDlgItem(hDlg, IDC_SCRIPTS_CONTENTFILTER_BUTTON);
     hWndChangeListGroup=GetDlgItem(hDlg, IDC_CHANGELIST_GROUP);
     hWndExecButton=GetDlgItem(hDlg, IDC_EXEC);
     hWndEditButton=GetDlgItem(hDlg, IDC_EDIT);
@@ -309,14 +300,6 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndScriptsList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP);
     SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
 
-    if (bContentFilterEnable)
-      SendMessage(hWndScriptsContentFilterEnable, BM_SETCHECK, BST_CHECKED, 0);
-    else
-      EnableWindow(hWndScriptsContentFilterButton, FALSE);
-    //Set button text
-    xprintfW(wszBuffer, L"%s%s", GetLangStringW(wLangModule, STRID_CONTAIN), *wszContentFilter?L" *":L"");
-    SetWindowTextWide(hWndScriptsContentFilterButton, wszBuffer);
-
     if (dwGlobalDebugJIT & JIT_DEBUG)
       SendMessage(hWndDebugJITCheck, BM_SETCHECK, BST_CHECKED, 0);
     else
@@ -335,10 +318,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AppendMenuWide(hMenuList, MF_STRING, IDC_SCRIPTS_OPENSITE, GetLangStringW(wLangModule, STRID_MENU_OPENSITE));
     }
 
-    CreateColumns(hWndScriptsList);
-
     SetWindowTextWide(hWndScriptsFilter, wszFilter);
-    FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
+    CreateColumns(hWndScriptsList);
+    StackFillListItem(&hListItemStack);
+    FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
 
     lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC, (UINT_PTR)NewFilterProc);
@@ -379,7 +362,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_COLUMNS), hDlg, (DLGPROC)ColumnsDlgProc))
           {
             CreateColumns(hWndScriptsList);
-            FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
+            StackFillListItem(&hListItemStack);
+            FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
             dwSaveFlags|=OF_COLUMNS;
           }
           bShowMenu=FALSE;
@@ -404,10 +388,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (bShowMenu)
       {
-        LISTVIEWITEMPARAM *lpItemParam;
+        LISTITEM *lpListItem=GetItemParam(hWndScriptsList, nSelItem);
 
-        lpItemParam=GetItemParam(hWndScriptsList, nSelItem);
-        EnableMenuItem(hMenuList, IDC_SCRIPTS_OPENSITE, (lpItemParam && lpItemParam->wpSite)?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMenuList, IDC_SCRIPTS_OPENSITE, (lpListItem && lpListItem->wpSite)?MF_ENABLED:MF_GRAYED);
         TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen.x, ptScreen.y, 0, hDlg, NULL);
       }
     }
@@ -420,12 +403,12 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (pnmlv->hdr.code == LVN_ITEMCHANGED)
       {
-        LISTVIEWITEMPARAM *lpItemParam=(LISTVIEWITEMPARAM *)pnmlv->lParam;
+        LISTITEM *lpListItem=(LISTITEM *)pnmlv->lParam;
 
         if (pnmlv->uNewState & LVIS_SELECTED)
         {
           nSelItem=pnmlv->iItem;
-          SendMessage(hWndHotkey, HKM_SETHOTKEY, lpItemParam->wHotkey, 0);
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, lpListItem->wHotkey, 0);
 
           EnableWindow(hWndExecButton, TRUE);
           EnableWindow(hWndEditButton, TRUE);
@@ -445,12 +428,13 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (((NMHDR *)lParam)->code == LVN_COLUMNCLICK)
       {
-        LISTVIEWCOLUMN *lpColumn;
+        LISTCOLUMN *lpColumn;
 
         if (lpColumn=GetColumnByIndex(pnmlv->iSubItem))
         {
           nSortColumn=lpColumn->nID;
           SendMessage(hWndScriptsList, LVM_SORTITEMS, (LPARAM)lpColumn, (LPARAM)CompareFunc);
+          nSelItem=(int)SendMessage(hWndScriptsList, LVM_GETNEXTITEM, (WPARAM)-1, LVNI_SELECTED);
         }
       }
       else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
@@ -463,10 +447,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (LOWORD(wParam) == IDC_SCRIPTS_OPENSITE)
     {
-      LISTVIEWITEMPARAM *lpItemParam;
+      LISTITEM *lpListItem;
 
-      if (lpItemParam=GetItemParam(hWndScriptsList, nSelItem))
-        ShellExecuteWide(hDlg, L"open", lpItemParam->wpSite, NULL, NULL, SW_MAXIMIZE);
+      if (lpListItem=GetItemParam(hWndScriptsList, nSelItem))
+        ShellExecuteWide(hDlg, L"open", lpListItem->wpSite, NULL, NULL, SW_MAXIMIZE);
     }
     else if (LOWORD(wParam) == IDC_SCRIPTS_FILTER)
     {
@@ -474,62 +458,34 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!bOpeningDlg)
         {
-          SendMessage(hWndScriptsContentFilterEnable, BM_SETCHECK, BST_UNCHECKED, 0);
-          bContentFilterEnable=FALSE;
-          EnableWindow(hWndScriptsContentFilterButton, bContentFilterEnable);
-
           GetWindowTextWide(hWndScriptsFilter, wszFilter, MAX_PATH);
-          FillScriptList(hWndScriptsList, wszFilter, NULL);
+          FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
         }
-      }
-    }
-    else if (LOWORD(wParam) == IDC_SCRIPTS_CONTENTFILTER_ENABLE)
-    {
-      bContentFilterEnable=(BOOL)SendMessage(hWndScriptsContentFilterEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndScriptsContentFilterButton, bContentFilterEnable);
-      if (*wszContentFilter) FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
-    }
-    else if (LOWORD(wParam) == IDC_SCRIPTS_CONTENTFILTER_BUTTON)
-    {
-      VARIANT vtResult;
-
-      Document_InputBox(NULL, hDlg, (BSTR)GetLangStringW(wLangModule, STRID_CONTAIN), (BSTR)L"", wszContentFilter, &vtResult);
-
-      if (vtResult.vt == VT_BSTR)
-      {
-        xstrcpynW(wszContentFilter, vtResult.bstrVal, MAX_PATH);
-        SysFreeString(vtResult.bstrVal);
-        FillScriptList(hWndScriptsList, wszFilter, wszContentFilter);
-
-        //Set button text
-        xprintfW(wszBuffer, L"%s%s", GetLangStringW(wLangModule, STRID_CONTAIN), *wszContentFilter?L" *":L"");
-        SetWindowTextWide(hWndScriptsContentFilterButton, wszBuffer);
       }
     }
     else if (LOWORD(wParam) == IDC_ASSIGN)
     {
-      LISTVIEWITEMPARAM *lpItemParam;
+      LISTITEM *lpListItem;
       WORD wHotkey;
-      wchar_t wszHotkey[MAX_PATH];
       int nColumnIndex;
 
-      lpItemParam=GetItemParam(hWndScriptsList, nSelItem);
+      lpListItem=GetItemParam(hWndScriptsList, nSelItem);
 
       //Get script hotkey
       wHotkey=(WORD)SendMessage(hWndHotkey, HKM_GETHOTKEY, 0, 0);
 
       //Register hotkey
-      if (RegisterHotkey(lpItemParam->wpScript, wHotkey))
+      if (RegisterHotkey(lpListItem->wpScript, wHotkey))
       {
         if (GetColumnByID(LVI_HOTKEY, &nColumnIndex))
         {
           LVITEMW lvi;
 
-          GetHotkeyString(wHotkey, wszHotkey);
-          lpItemParam->wHotkey=wHotkey;
-          CopyWideStr(wszHotkey, -1, &lpItemParam->wpHotkey);
+          lpListItem->wHotkey=wHotkey;
+          GetHotkeyString(wHotkey, wszBuffer);
+          CopyWideStr(wszBuffer, -1, &lpListItem->wpHotkey);
           lvi.mask=LVIF_TEXT;
-          lvi.pszText=lpItemParam->wpHotkey;
+          lvi.pszText=lpListItem->wpHotkey;
           lvi.iItem=nSelItem;
           lvi.iSubItem=nColumnIndex;
           ListView_SetItemWide(hWndScriptsList, &lvi);
@@ -577,8 +533,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
              LOWORD(wParam) == IDC_CLOSE ||
              LOWORD(wParam) == IDCANCEL)
     {
-      LISTVIEWCOLUMN *lpColumnCount;
-      LISTVIEWITEMPARAM *lpItemParam;
+      LISTCOLUMN *lpColumnCount;
+      LISTITEM *lpListItem;
       BOOL bDebugEnable;
       DWORD dwDebugFlags;
       int nWidth;
@@ -587,7 +543,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Get columns width
       for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
       {
-        if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+        if (lpColumnCount->dwFlags & LCF_VISIBLE)
         {
           nWidth=(int)SendMessage(hWndScriptsList, LVM_GETCOLUMNWIDTH, nColumnIndex++, 0);
           if (lpColumnCount->nWidth != nWidth)
@@ -616,16 +572,16 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwSaveFlags|=OF_DEBUG;
       }
 
-      if (bListChanged || LOWORD(wParam) == IDC_CLOSE)
+      if (bListChanged)
       {
-        dwSaveFlags|=OF_LASTSCRIPT|OF_HOTKEYS;
+        dwSaveFlags|=OF_HOTKEYS;
       }
       if (LOWORD(wParam) == IDC_EXEC ||
           LOWORD(wParam) == IDC_EDIT)
       {
-        if (lpItemParam=GetItemParam(hWndScriptsList, nSelItem))
+        if (lpListItem=GetItemParam(hWndScriptsList, nSelItem))
         {
-          xstrcpynW(wszLastScript, lpItemParam->wpScript, MAX_PATH);
+          xstrcpynW(wszLastScript, lpListItem->wpScript, MAX_PATH);
           dwSaveFlags|=OF_LASTSCRIPT;
         }
       }
@@ -636,7 +592,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Free items data
-      FreeScriptList(hWndScriptsList);
+      StackFreeListItem(&hListItemStack);
 
       //End dialog
       EndDialog(hDlg, 0);
@@ -645,22 +601,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (LOWORD(wParam) == IDC_EXEC)
         ExecScript(wszLastScript, NULL, FALSE);
       else if (LOWORD(wParam) == IDC_EDIT)
-      {
         EditScript(wszLastScript);
-
-        //Find text, if content filter exist
-        if (bContentFilterEnable && *wszContentFilter)
-        {
-          INT_PTR nResult;
-          BSTR wszContentFilterSys;
-
-          if (wszContentFilterSys=SysAllocString(wszContentFilter))
-          {
-            Document_TextFind(NULL, NULL, wszContentFilterSys, FRF_BEGINNING|FRF_DOWN, &nResult);
-            SysFreeString(wszContentFilterSys);
-          }
-        }
-      }
       return TRUE;
     }
   }
@@ -688,37 +629,37 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-  LISTVIEWITEMPARAM *lpItemParam1=(LISTVIEWITEMPARAM *)lParam1;
-  LISTVIEWITEMPARAM *lpItemParam2=(LISTVIEWITEMPARAM *)lParam2;
-  LISTVIEWCOLUMN *lpColumn=(LISTVIEWCOLUMN *)lParamSort;
+  LISTITEM *lpListItem1=(LISTITEM *)lParam1;
+  LISTITEM *lpListItem2=(LISTITEM *)lParam2;
+  LISTCOLUMN *lpColumn=(LISTCOLUMN *)lParamSort;
 
   if (lpColumn->nID == LVI_SCRIPT)
   {
-    return xstrcmpiW(lpItemParam1->wpScript, lpItemParam2->wpScript);
+    return xstrcmpiW(lpListItem1->wpScript, lpListItem2->wpScript);
   }
   if (lpColumn->nID == LVI_HOTKEY)
   {
-    return xstrcmpiW(lpItemParam1->wpHotkey, lpItemParam2->wpHotkey);
+    return xstrcmpiW(lpListItem1->wpHotkey, lpListItem2->wpHotkey);
   }
   if (lpColumn->nID == LVI_STATUS)
   {
-    return xstrcmpiW(lpItemParam1->wpStatus, lpItemParam2->wpStatus);
+    return xstrcmpiW(lpListItem1->wpStatus, lpListItem2->wpStatus);
   }
   if (lpColumn->nID == LVI_VERSION)
   {
-    return xstrcmpiW(lpItemParam1->wpVersion, lpItemParam2->wpVersion);
+    return xstrcmpiW(lpListItem1->wpVersion, lpListItem2->wpVersion);
   }
   if (lpColumn->nID == LVI_DESCRIPTION)
   {
-    return xstrcmpiW(lpItemParam1->wpDescription, lpItemParam2->wpDescription);
+    return xstrcmpiW(lpListItem1->wpDescription, lpListItem2->wpDescription);
   }
   if (lpColumn->nID == LVI_AUTHOR)
   {
-    return xstrcmpiW(lpItemParam1->wpAuthor, lpItemParam2->wpAuthor);
+    return xstrcmpiW(lpListItem1->wpAuthor, lpListItem2->wpAuthor);
   }
   if (lpColumn->nID == LVI_SITE)
   {
-    return xstrcmpiW(lpItemParam1->wpSite, lpItemParam2->wpSite);
+    return xstrcmpiW(lpListItem1->wpSite, lpListItem2->wpSite);
   }
   return 0;
 }
@@ -730,7 +671,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static HMENU hMenuList;
   static int nSelItem;
-  static LISTVIEWCOLUMN *lpColumnsDlg;
+  static LISTCOLUMN *lpColumnsDlg;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -755,7 +696,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       RECT rcList;
       LVCOLUMNW lvc;
-      LISTVIEWCOLUMN *lpColumnCount;
+      LISTCOLUMN *lpColumnCount;
       int nIndex=0;
 
       GetClientRect(hWndList, &rcList);
@@ -768,7 +709,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xmemcpy(lpColumnsDlg, lpColumns, sizeof(lpColumns));
       for (lpColumnCount=lpColumnsDlg; lpColumnCount->nID >= 0; ++lpColumnCount)
       {
-        SetColumnItem(hWndList, nIndex, lpColumnCount, (lpColumnCount->dwFlags & LVCOLF_VISIBLE));
+        SetColumnItem(hWndList, nIndex, lpColumnCount, (lpColumnCount->dwFlags & LCF_VISIBLE));
         ++nIndex;
       }
     }
@@ -815,7 +756,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (wParam == IDC_COLUMNS_LIST)
     {
       NMLISTVIEW *pnmlv=(NMLISTVIEW *)lParam;
-      LISTVIEWCOLUMN *lpColumn=(LISTVIEWCOLUMN *)pnmlv->lParam;
+      LISTCOLUMN *lpColumn=(LISTCOLUMN *)pnmlv->lParam;
 
       if (pnmlv->hdr.code == LVN_ITEMCHANGING)
       {
@@ -841,9 +782,9 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (pnmlv->uNewState & LVIS_STATEIMAGEMASK)
         {
           if (((pnmlv->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1)
-            lpColumn->dwFlags|=LVCOLF_VISIBLE;
+            lpColumn->dwFlags|=LCF_VISIBLE;
           else
-            lpColumn->dwFlags&=~LVCOLF_VISIBLE;
+            lpColumn->dwFlags&=~LCF_VISIBLE;
         }
       }
       else if (((NMHDR *)lParam)->code == (UINT)LVN_KEYDOWN)
@@ -894,9 +835,9 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (lplvcd->iSubItem == 0)
           {
-            LISTVIEWCOLUMN *lpColumn=(LISTVIEWCOLUMN *)lplvcd->nmcd.lItemlParam;
+            LISTCOLUMN *lpColumn=(LISTCOLUMN *)lplvcd->nmcd.lItemlParam;
 
-            if (lpColumn && (lpColumn->dwFlags & LVCOLF_CONTENT))
+            if (lpColumn && (lpColumn->dwFlags & LCF_CONTENT))
             {
               lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
               lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
@@ -937,7 +878,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nNewIndex=max(nOldIndex - 1, 0);
         else
           nNewIndex=nOldIndex + 1;
-        nNewIndex=SetColumnItem(hWndList, nNewIndex, (LISTVIEWCOLUMN *)lvi.lParam, ((lvi.state & LVIS_STATEIMAGEMASK) >> 12) - 1);
+        nNewIndex=SetColumnItem(hWndList, nNewIndex, (LISTCOLUMN *)lvi.lParam, ((lvi.state & LVIS_STATEIMAGEMASK) >> 12) - 1);
 
         //Select
         SetFocus(hWndList);
@@ -949,7 +890,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDOK)
     {
       LVITEMW lvi;
-      LISTVIEWCOLUMN *lpColumnCount;
+      LISTCOLUMN *lpColumnCount;
       int nIndex=0;
 
       for (;;)
@@ -961,8 +902,8 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!ListView_GetItemWide(hWndList, &lvi))
           break;
 
-        if (lpColumnCount=(LISTVIEWCOLUMN *)lvi.lParam)
-          xmemcpy(&lpColumns[nIndex], lpColumnCount, sizeof(LISTVIEWCOLUMN));
+        if (lpColumnCount=(LISTCOLUMN *)lvi.lParam)
+          xmemcpy(&lpColumns[nIndex], lpColumnCount, sizeof(LISTCOLUMN));
         ++nIndex;
       }
       //Last item ID must be -1
@@ -988,7 +929,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-int SetColumnItem(HWND hWnd, int nIndex, LISTVIEWCOLUMN *lpColumn, BOOL bCheck)
+int SetColumnItem(HWND hWnd, int nIndex, LISTCOLUMN *lpColumn, BOOL bCheck)
 {
   LVITEMW lvi;
 
@@ -1151,7 +1092,7 @@ BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey)
 void CreateColumns(HWND hWnd)
 {
   LVCOLUMNW lvc;
-  LISTVIEWCOLUMN *lpColumnCount;
+  LISTCOLUMN *lpColumnCount;
   int nColumnIndex=0;
 
   //Remove all columns
@@ -1160,7 +1101,7 @@ void CreateColumns(HWND hWnd)
   //Insert new columns
   for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
   {
-    if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
       lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
       lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_SCRIPT + lpColumnCount->nID);
@@ -1171,14 +1112,14 @@ void CreateColumns(HWND hWnd)
   }
 }
 
-LISTVIEWCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex)
+LISTCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex)
 {
-  LISTVIEWCOLUMN *lpColumnCount;
+  LISTCOLUMN *lpColumnCount;
   int nColumnIndex=0;
 
   for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
   {
-    if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
       if (lpColumnCount->nID == nID)
         break;
@@ -1189,14 +1130,14 @@ LISTVIEWCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex)
   return lpColumnCount;
 }
 
-LISTVIEWCOLUMN* GetColumnByIndex(int nColumnIndex)
+LISTCOLUMN* GetColumnByIndex(int nColumnIndex)
 {
-  LISTVIEWCOLUMN *lpColumnCount;
+  LISTCOLUMN *lpColumnCount;
   int nCount=0;
 
   for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
   {
-    if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
       if (nCount == nColumnIndex)
         break;
@@ -1206,18 +1147,153 @@ LISTVIEWCOLUMN* GetColumnByIndex(int nColumnIndex)
   return lpColumnCount;
 }
 
-void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContentFilter)
+void FillScriptList(STACKLISTITEM *hStack, HWND hWnd, const wchar_t *wpFilter)
+{
+  LISTCOLUMN *lpColumnCount;
+  LISTITEM *lpListItem;
+  LVITEMW lvi;
+  int nColumnIndex;
+  int nIndexToSelect=-1;
+  int nItemCount=0;
+  int nIndex;
+
+  //Clear contents
+  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+  SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
+
+  for (lpListItem=hStack->first; lpListItem; lpListItem=lpListItem->next)
+  {
+    //Filter check (with contents)
+    if (wpFilter && *wpFilter)
+    {
+      if (!xstrstrW(lpListItem->wpScript, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpHotkey, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpStatus, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpVersion, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpDescription, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpAuthor, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+          !xstrstrW(lpListItem->wpSite, -1, wpFilter, -1, FALSE, NULL, NULL))
+      {
+        continue;
+      }
+    }
+
+    nColumnIndex=0;
+    nIndex=nItemCount;
+
+    for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
+    {
+      if (lpColumnCount->dwFlags & LCF_VISIBLE)
+      {
+        lvi.iItem=nIndex;
+
+        if (lpColumnCount->nID == LVI_SCRIPT)
+        {
+          lvi.mask=LVIF_TEXT;
+          lvi.pszText=lpListItem->wpScript;
+          lvi.iSubItem=nColumnIndex;
+        }
+        else if (lpColumnCount->nID == LVI_HOTKEY)
+        {
+          lvi.mask=LVIF_TEXT;
+          lvi.pszText=lpListItem->wpHotkey;
+          lvi.iSubItem=nColumnIndex;
+        }
+        else if (lpColumnCount->nID == LVI_STATUS)
+        {
+          lvi.mask=LVIF_TEXT;
+          lvi.pszText=lpListItem->wpStatus;
+          lvi.iSubItem=nColumnIndex;
+        }
+        else if (lpColumnCount->nID == LVI_VERSION)
+        {
+          if (lpListItem->wpVersion)
+          {
+            lvi.mask=LVIF_TEXT;
+            lvi.pszText=lpListItem->wpVersion;
+            lvi.iSubItem=nColumnIndex;
+          }
+        }
+        else if (lpColumnCount->nID == LVI_DESCRIPTION)
+        {
+          if (lpListItem->wpDescription)
+          {
+            lvi.mask=LVIF_TEXT;
+            lvi.pszText=lpListItem->wpDescription;
+            lvi.iSubItem=nColumnIndex;
+          }
+        }
+        else if (lpColumnCount->nID == LVI_AUTHOR)
+        {
+          if (lpListItem->wpAuthor)
+          {
+            lvi.mask=LVIF_TEXT;
+            lvi.pszText=lpListItem->wpAuthor;
+            lvi.iSubItem=nColumnIndex;
+          }
+        }
+        else if (lpColumnCount->nID == LVI_SITE)
+        {
+          if (lpListItem->wpSite)
+          {
+            lvi.mask=LVIF_TEXT;
+            lvi.pszText=lpListItem->wpSite;
+            lvi.iSubItem=nColumnIndex;
+          }
+        }
+        else
+        {
+          lvi.mask=LVIF_TEXT;
+          lvi.pszText=(wchar_t *)L"<>";
+          lvi.iSubItem=nColumnIndex;
+        }
+        if (!nColumnIndex++)
+          nIndex=ListView_InsertItemWide(hWnd, &lvi);
+        else
+          ListView_SetItemWide(hWnd, &lvi);
+      }
+    }
+    lvi.mask=LVIF_PARAM;
+    lvi.iItem=nIndex;
+    lvi.iSubItem=0;
+    lvi.lParam=(LPARAM)lpListItem;
+    ListView_SetItemWide(hWnd, &lvi);
+
+    ++nItemCount;
+  }
+
+  //Sort items
+  if (lpColumnCount=GetColumnByID(nSortColumn, NULL))
+    SendMessage(hWnd, LVM_SORTITEMS, (LPARAM)lpColumnCount, (LPARAM)CompareFunc);
+
+  if (hStack->lpLastScript)
+  {
+    LVFINDINFOA lvfi;
+
+    lvfi.flags=LVFI_PARAM;
+    lvfi.lParam=(LPARAM)hStack->lpLastScript;
+    nIndexToSelect=(int)SendMessage(hWnd, LVM_FINDITEMA, (WPARAM)-1, (LPARAM)&lvfi);
+  }
+
+  lvi.stateMask=LVIS_SELECTED|LVIS_FOCUSED;
+  lvi.state=LVIS_SELECTED|LVIS_FOCUSED;
+  SendMessage(hWnd, LVM_SETITEMSTATE, (WPARAM)max(nIndexToSelect, 0), (LPARAM)&lvi);
+  SendMessage(hWnd, LVM_ENSUREVISIBLE, (WPARAM)max(nIndexToSelect, 0), TRUE);
+
+  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+  InvalidateRect(hWnd, NULL, TRUE);
+}
+
+void StackFillListItem(STACKLISTITEM *hStack)
 {
   SCRIPTTHREAD *lpScriptThread;
   PLUGINFUNCTION *pfElement;
-  LISTVIEWCOLUMN *lpColumnCount;
-  LISTVIEWITEMPARAM *lpItemParam;
-  LISTVIEWITEMPARAM *lpLastScriptItemParam=NULL;
+  LISTCOLUMN *lpColumnCount;
+  LISTITEM *lpListItem;
   WIN32_FIND_DATAW wfd;
   HANDLE hFind;
   HANDLE hFile;
   wchar_t wszFindFiles[MAX_PATH];
-  wchar_t wszHotkey[MAX_PATH];
   const wchar_t *wpExt;
   wchar_t *wpCount;
   wchar_t *wpMaxCount;
@@ -1232,24 +1308,20 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
   static wchar_t *wpAuthor;
   static wchar_t *wpSite;
   const wchar_t *wpComment;
-  LVITEMW lvi;
+  const wchar_t *wpStatus;
   INT_PTR nContentLen;
   INT_PTR nBytesToRead;
   static INT_PTR nVersionLen;
   static INT_PTR nDescriptionLen;
   static INT_PTR nAuthorLen;
   static INT_PTR nSiteLen;
-  DWORD dwContentInfo;
+  DWORD dwAllColumns;
+  DWORD dwContentColumns;
   int nCommentLen;
   LANGID wLang;
   LANGID wDescriptionLang;
-  int nColumnIndex;
-  int nIndexToSelect=-1;
-  int nItemCount=0;
-  int nIndex;
   int nCodePage;
   BOOL bBOM;
-  BOOL bContentFilter;
   CONTENTKEY *ckCount;
   CONTENTKEY ck[]={{NULL, 0, &wpDescription, &nDescriptionLen},
                    {L"***", 3, &wpDescription, &nDescriptionLen},
@@ -1259,47 +1331,41 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
                    {L"http://akelpad.sourceforge.net/", 31, &wpSite, &nSiteLen},
                    {0,0,0}};
 
-  //Clear contents
-  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-  FreeScriptList(hWndScriptsList);
-  SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
+  //Clear stack
+  StackFreeListItem(&hListItemStack);
 
-  //Find content columns
-  dwContentInfo=0;
+  //Find columns
+  dwAllColumns=0;
+  dwContentColumns=0;
 
   for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
   {
-    if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
-      if (lpColumnCount->dwFlags & LVCOLF_CONTENT)
-      {
-        if (lpColumnCount->nID == LVI_VERSION)
-          dwContentInfo|=CCOLF_VERSION;
-        else if (lpColumnCount->nID == LVI_DESCRIPTION)
-          dwContentInfo|=CCOLF_DESCRIPTION;
-        else if (lpColumnCount->nID == LVI_AUTHOR)
-          dwContentInfo|=CCOLF_AUTHOR;
-        else if (lpColumnCount->nID == LVI_SITE)
-          dwContentInfo|=CCOLF_SITE;
-      }
+      if (lpColumnCount->nID == LVI_SCRIPT)
+        dwAllColumns|=LCN_SCRIPT;
+      else if (lpColumnCount->nID == LVI_HOTKEY)
+        dwAllColumns|=LCN_HOTKEY;
+      else if (lpColumnCount->nID == LVI_STATUS)
+        dwAllColumns|=LCN_STATUS;
+      else if (lpColumnCount->nID == LVI_VERSION)
+        dwContentColumns|=LCN_VERSION;
+      else if (lpColumnCount->nID == LVI_DESCRIPTION)
+        dwContentColumns|=LCN_DESCRIPTION;
+      else if (lpColumnCount->nID == LVI_AUTHOR)
+        dwContentColumns|=LCN_AUTHOR;
+      else if (lpColumnCount->nID == LVI_SITE)
+        dwContentColumns|=LCN_SITE;
     }
   }
+  dwAllColumns|=dwContentColumns;
 
-  //Content filter
-  if (bContentFilterEnable && wpContentFilter && *wpContentFilter)
+  //Content buffer
+  if (dwContentColumns)
   {
-    bContentFilter=TRUE;
-    nBytesToRead=-1;
-  }
-  else
-  {
-    bContentFilter=FALSE;
+    wszContentBuffer=GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
+    wpMaxContent=wszContentBuffer + 65536;
     nBytesToRead=512;
-    if (dwContentInfo)
-    {
-      wszContentBuffer=GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
-      wpMaxContent=wszContentBuffer + 65536;
-    }
   }
 
   //Script files
@@ -1325,13 +1391,6 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       }
       else continue;
 
-      //Filter check (without contents)
-      if (!dwContentInfo && wpFilter && *wpFilter)
-      {
-        if (!xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL))
-          continue;
-      }
-
       //Script content
       hFile=NULL;
       nCodePage=0;
@@ -1345,261 +1404,154 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
       wpSite=NULL;
       wDescriptionLang=0;
 
-      if (dwContentInfo || bContentFilter)
+      if (dwContentColumns)
       {
         xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
         if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
         {
-          if (bContentFilter)
-          {
-            if (!xstrstrW(wpContent, nContentLen, wpContentFilter, -1, FALSE, NULL, NULL))
-              goto NextFile;
-          }
-          if (dwContentInfo)
-          {
-            wpCount=wpContent;
-            wpMaxCount=wpContent + nContentLen;
+          wpCount=wpContent;
+          wpMaxCount=wpContent + nContentLen;
 
-            while (nBytesToRead == -1 ? wpCount < wpMaxCount : nContentLen)
+          while (nBytesToRead == -1 ? wpCount < wpMaxCount : nContentLen)
+          {
+            wpLineEnd=wpCount;
+
+            for (;;)
             {
-              wpLineEnd=wpCount;
-
-              for (;;)
+              //Make sure we have all line in buffer
+              while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && *wpLineEnd != L'\0') ++wpLineEnd;
+              if (!*wpLineEnd && nBytesToRead != -1)
               {
-                //Make sure we have all line in buffer
-                while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && *wpLineEnd != L'\0') ++wpLineEnd;
-                if (!*wpLineEnd && nBytesToRead != -1)
+                wpContent=wpMaxCount;
+                if (wpContent + nBytesToRead <= wpMaxContent)
                 {
-                  wpContent=wpMaxCount;
-                  if (wpContent + nBytesToRead <= wpMaxContent)
+                  //Read next block to wszContentBuffer
+                  if (nContentLen=ReadFileContent(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
                   {
-                    //Read next block to wszContentBuffer
-                    if (nContentLen=ReadFileContent(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
-                    {
-                      //Now wpCount could point to "\r|\n"
-                      while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
-                      wpMaxCount=wpContent + nContentLen;
-                      continue;
-                    }
+                    //Now wpCount could point to "\r|\n"
+                    while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+                    wpMaxCount=wpContent + nContentLen;
+                    continue;
                   }
                 }
-                break;
               }
+              break;
+            }
 
-              //Skip spaces at line start
-              while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+            //Skip spaces at line start
+            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
 
-              //Line must start with comment
-              if (xstrcmpinW(wpComment, wpCount, (UINT_PTR)-1))
-                break;
-              wpCount+=nCommentLen;
+            //Line must start with comment
+            if (xstrcmpinW(wpComment, wpCount, (UINT_PTR)-1))
+              break;
+            wpCount+=nCommentLen;
 
-              //Skip spaces
-              while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+            //Skip spaces
+            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
 
-              for (ckCount=ck; ckCount->wpKey; ++ckCount)
+            for (ckCount=ck; ckCount->wpKey; ++ckCount)
+            {
+              wpValue=*ckCount->wppValue;
+
+              if ((!wpValue || (ckCount->wppValue == &wpDescription && wDescriptionLang != wLangModule)) &&
+                  !xstrcmpinW(ckCount->wpKey, wpCount, (UINT_PTR)-1))
               {
-                wpValue=*ckCount->wppValue;
-
-                if ((!wpValue || (ckCount->wppValue == &wpDescription && wDescriptionLang != wLangModule)) &&
-                    !xstrcmpinW(ckCount->wpKey, wpCount, (UINT_PTR)-1))
+                if (ckCount->wppValue != &wpSite)
                 {
-                  if (ckCount->wppValue != &wpSite)
-                  {
-                    wpCount+=ckCount->nKeyLen;
-                    while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-                  }
-                  wpValue=wpCount;
-                  wpValueEnd=wpLineEnd;
-                  wpCount=wpLineEnd;
+                  wpCount+=ckCount->nKeyLen;
+                  while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+                }
+                wpValue=wpCount;
+                wpValueEnd=wpLineEnd;
+                wpCount=wpLineEnd;
 
+                //Trim trailing spaces
+                while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
+                  --wpValueEnd;
+                if (ckCount->wppValue == &wpDescription)
+                {
+                  if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
+                  {
+                    wLang=(WORD)xatoiW(wpValue, &wpValue);
+                    if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
+                      break;
+                    wDescriptionLang=wLang;
+
+                    if (!xstrcmpinW(L"):", wpValue, (UINT_PTR)-1))
+                      wpValue+=2;
+                    while (*wpValue == L' ' || *wpValue == L'\t') ++wpValue;
+                  }
+                  else
+                  {
+                    if (wDescriptionLang) break;
+                    wDescriptionLang=wLangModule;
+                  }
+
+                  //*** Description *** -> Description
+                  if (wpValueEnd - ckCount->nKeyLen >= wpValue && !xstrcmpinW(ckCount->wpKey, wpValueEnd - ckCount->nKeyLen, (UINT_PTR)-1))
+                    wpValueEnd-=ckCount->nKeyLen;
                   //Trim trailing spaces
                   while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
                     --wpValueEnd;
-                  if (ckCount->wppValue == &wpDescription)
-                  {
-                    if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
-                    {
-                      wLang=(WORD)xatoiW(wpValue, &wpValue);
-                      if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
-                        break;
-                      wDescriptionLang=wLang;
-
-                      if (!xstrcmpinW(L"):", wpValue, (UINT_PTR)-1))
-                        wpValue+=2;
-                      while (*wpValue == L' ' || *wpValue == L'\t') ++wpValue;
-                    }
-                    else
-                    {
-                      if (wDescriptionLang) break;
-                      wDescriptionLang=wLangModule;
-                    }
-
-                    //*** Description *** -> Description
-                    if (wpValueEnd - ckCount->nKeyLen >= wpValue && !xstrcmpinW(ckCount->wpKey, wpValueEnd - ckCount->nKeyLen, (UINT_PTR)-1))
-                      wpValueEnd-=ckCount->nKeyLen;
-                    //Trim trailing spaces
-                    while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
-                      --wpValueEnd;
-                  }
-                  *ckCount->wppValue=wpValue;
-                  *ckCount->lpnValueLen=wpValueEnd - wpValue;
-                  break;
                 }
-              }
-              wpCount=wpLineEnd;
-              while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
-
-              //Break if all info is received
-              if ((!(dwContentInfo & CCOLF_VERSION) || wpVersion) &&
-                  (!(dwContentInfo & CCOLF_DESCRIPTION) || (wpDescription && wDescriptionLang == wLangModule)) &&
-                  (!(dwContentInfo & CCOLF_AUTHOR) || wpAuthor) &&
-                  (!(dwContentInfo & CCOLF_SITE) || wpSite))
+                *ckCount->wppValue=wpValue;
+                *ckCount->lpnValueLen=wpValueEnd - wpValue;
                 break;
+              }
             }
+            wpCount=wpLineEnd;
+            while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+
+            //Break if all info is received
+            if ((!(dwContentColumns & LCN_VERSION) || wpVersion) &&
+                (!(dwContentColumns & LCN_DESCRIPTION) || (wpDescription && wDescriptionLang == wLangModule)) &&
+                (!(dwContentColumns & LCN_AUTHOR) || wpAuthor) &&
+                (!(dwContentColumns & LCN_SITE) || wpSite))
+              break;
           }
+          CloseHandle(hFile);
         }
       }
 
-      //Filter check (with contents)
-      if (dwContentInfo && wpFilter && *wpFilter)
+      if (lpListItem=StackInsertListItem(&hListItemStack))
       {
-        if (!xstrstrW(wfd.cFileName, -1, wpFilter, -1, FALSE, NULL, NULL) &&
-            !xstrstrW(wpVersion, nVersionLen, wpFilter, -1, FALSE, NULL, NULL) &&
-            !xstrstrW(wpDescription, nDescriptionLen, wpFilter, -1, FALSE, NULL, NULL) &&
-            !xstrstrW(wpAuthor, nAuthorLen, wpFilter, -1, FALSE, NULL, NULL) &&
-            !xstrstrW(wpSite, nSiteLen, wpFilter, -1, FALSE, NULL, NULL))
+        if (dwAllColumns & LCN_SCRIPT)
+          CopyWideStr(wfd.cFileName, -1, &lpListItem->wpScript);
+        if (dwAllColumns & LCN_HOTKEY)
         {
-          goto NextFile;
+          //Find hotkey
+          xprintfW(wszBuffer, L"Scripts::Main::%s", wfd.cFileName);
+          pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wszBuffer, 0);
+
+          if (pfElement)
+          {
+            lpListItem->wHotkey=pfElement->wHotkey;
+            GetHotkeyString(lpListItem->wHotkey, wszBuffer);
+            CopyWideStr(wszBuffer, -1, &lpListItem->wpHotkey);
+          }
         }
-      }
-
-      nColumnIndex=0;
-      nIndex=nItemCount;
-      if (!(lpItemParam=(LISTVIEWITEMPARAM *)GlobalAlloc(GPTR, sizeof(LISTVIEWITEMPARAM))))
-        continue;
-
-      if (wpVersion)
-        CopyWideStr(wpVersion, nVersionLen, &lpItemParam->wpVersion);
-      if (wpDescription)
-        CopyWideStr(wpDescription, nDescriptionLen, &lpItemParam->wpDescription);
-      if (wpAuthor)
-        CopyWideStr(wpAuthor, nAuthorLen, &lpItemParam->wpAuthor);
-      if (wpSite)
-        CopyWideStr(wpSite, nSiteLen, &lpItemParam->wpSite);
-
-      for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
-      {
-        if (lpColumnCount->dwFlags & LVCOLF_VISIBLE)
+        if (dwAllColumns & LCN_STATUS)
         {
-          lvi.iItem=nIndex;
-
-          if (lpColumnCount->nID == LVI_SCRIPT)
+          if (lpScriptThread=StackGetScriptThreadByName(&hThreadStack, wfd.cFileName))
           {
-            CopyWideStr(wfd.cFileName, -1, &lpItemParam->wpScript);
-            lvi.mask=LVIF_TEXT;
-            lvi.pszText=lpItemParam->wpScript;
-            lvi.iSubItem=nColumnIndex;
+            wpStatus=(wchar_t *)(lpScriptThread->bWaiting?GetLangStringW(wLangModule, STRID_WAITING):GetLangStringW(wLangModule, STRID_RUNNING));
+            CopyWideStr(wpStatus, -1, &lpListItem->wpStatus);
           }
-          else if (lpColumnCount->nID == LVI_HOTKEY)
-          {
-            //Find hotkey
-            xprintfW(wszBuffer, L"Scripts::Main::%s", wfd.cFileName);
-            pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wszBuffer, 0);
-
-            if (pfElement)
-            {
-              GetHotkeyString(pfElement->wHotkey, wszHotkey);
-              lpItemParam->wHotkey=pfElement->wHotkey;
-              CopyWideStr(wszHotkey, -1, &lpItemParam->wpHotkey);
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpHotkey;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
-          else if (lpColumnCount->nID == LVI_STATUS)
-          {
-            if (lpScriptThread=StackGetScriptThreadByName(&hThreadStack, wfd.cFileName))
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=(wchar_t *)(lpScriptThread->bWaiting?GetLangStringW(wLangModule, STRID_WAITING):GetLangStringW(wLangModule, STRID_RUNNING));
-              lvi.iSubItem=LVI_STATUS;
-
-              CopyWideStr(lvi.pszText, -1, &lpItemParam->wpStatus);
-            }
-          }
-          else if (lpColumnCount->nID == LVI_VERSION)
-          {
-            if (lpItemParam->wpVersion)
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpVersion;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
-          else if (lpColumnCount->nID == LVI_DESCRIPTION)
-          {
-            if (lpItemParam->wpDescription)
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpDescription;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
-          else if (lpColumnCount->nID == LVI_AUTHOR)
-          {
-            if (lpItemParam->wpAuthor)
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpAuthor;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
-          else if (lpColumnCount->nID == LVI_SITE)
-          {
-            if (lpItemParam->wpSite)
-            {
-              lvi.mask=LVIF_TEXT;
-              lvi.pszText=lpItemParam->wpSite;
-              lvi.iSubItem=nColumnIndex;
-            }
-          }
-          else
-          {
-            lvi.mask=LVIF_TEXT;
-            lvi.pszText=(wchar_t *)L"<>";
-            lvi.iSubItem=nColumnIndex;
-          }
-          if (!nColumnIndex++)
-            nIndex=ListView_InsertItemWide(hWnd, &lvi);
-          else
-            ListView_SetItemWide(hWnd, &lvi);
         }
-      }
-      ++nItemCount;
+        if (wpVersion)
+          CopyWideStr(wpVersion, nVersionLen, &lpListItem->wpVersion);
+        if (wpDescription)
+          CopyWideStr(wpDescription, nDescriptionLen, &lpListItem->wpDescription);
+        if (wpAuthor)
+          CopyWideStr(wpAuthor, nAuthorLen, &lpListItem->wpAuthor);
+        if (wpSite)
+          CopyWideStr(wpSite, nSiteLen, &lpListItem->wpSite);
 
-      lvi.mask=LVIF_PARAM;
-      lvi.iItem=nIndex;
-      lvi.iSubItem=0;
-      lvi.lParam=(LPARAM)lpItemParam;
-      ListView_SetItemWide(hWnd, &lvi);
-
-      if (!lpLastScriptItemParam)
-      {
-        if (!xstrcmpiW(wfd.cFileName, wszLastScript))
-          lpLastScriptItemParam=lpItemParam;
-      }
-
-      NextFile:
-      if (hFile)
-      {
-        CloseHandle(hFile);
-        hFile=NULL;
-      }
-      if (!wszContentBuffer && wpContent)
-      {
-        SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
-        wpContent=NULL;
+        if (!hStack->lpLastScript)
+        {
+          if (!xstrcmpiW(wfd.cFileName, wszLastScript))
+            hStack->lpLastScript=lpListItem;
+        }
       }
     }
     while (FindNextFileWide(hFind, &wfd));
@@ -1607,48 +1559,37 @@ void FillScriptList(HWND hWnd, const wchar_t *wpFilter, const wchar_t *wpContent
     FindClose(hFind);
   }
   if (wszContentBuffer) GlobalFree((HGLOBAL)wszContentBuffer);
-
-  //Sort items
-  if (lpColumnCount=GetColumnByID(nSortColumn, NULL))
-    SendMessage(hWnd, LVM_SORTITEMS, (LPARAM)lpColumnCount, (LPARAM)CompareFunc);
-
-  if (lpLastScriptItemParam)
-  {
-    LVFINDINFOA lvfi;
-
-    lvfi.flags=LVFI_PARAM;
-    lvfi.lParam=(LPARAM)lpLastScriptItemParam;
-    nIndexToSelect=(int)SendMessage(hWnd, LVM_FINDITEMA, (WPARAM)-1, (LPARAM)&lvfi);
-  }
-
-  lvi.stateMask=LVIS_SELECTED|LVIS_FOCUSED;
-  lvi.state=LVIS_SELECTED|LVIS_FOCUSED;
-  SendMessage(hWnd, LVM_SETITEMSTATE, (WPARAM)max(nIndexToSelect, 0), (LPARAM)&lvi);
-  SendMessage(hWnd, LVM_ENSUREVISIBLE, (WPARAM)max(nIndexToSelect, 0), TRUE);
-
-  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, TRUE);
 }
 
-void FreeScriptList(HWND hWnd)
+LISTITEM* StackInsertListItem(STACKLISTITEM *hStack)
 {
-  LISTVIEWITEMPARAM *lpItemParam;
-  int nIndex;
+  LISTITEM *lpElement=NULL;
 
-  for (nIndex=0; lpItemParam=GetItemParam(hWnd, nIndex); ++nIndex)
-  {
-    FreeWideStr(lpItemParam->wpScript);
-    FreeWideStr(lpItemParam->wpHotkey);
-    FreeWideStr(lpItemParam->wpStatus);
-    FreeWideStr(lpItemParam->wpVersion);
-    FreeWideStr(lpItemParam->wpDescription);
-    FreeWideStr(lpItemParam->wpAuthor);
-    FreeWideStr(lpItemParam->wpSite);
-    GlobalFree((HGLOBAL)lpItemParam);
-  }
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(LISTITEM)))
+    ++hStack->nElements;
+  return lpElement;
 }
 
-LISTVIEWITEMPARAM* GetItemParam(HWND hWnd, int nIndex)
+void StackFreeListItem(STACKLISTITEM *hStack)
+{
+  LISTITEM *lpListItem;
+
+  for (lpListItem=hStack->first; lpListItem; lpListItem=lpListItem->next)
+  {
+    FreeWideStr(lpListItem->wpScript);
+    FreeWideStr(lpListItem->wpHotkey);
+    FreeWideStr(lpListItem->wpStatus);
+    FreeWideStr(lpListItem->wpVersion);
+    FreeWideStr(lpListItem->wpDescription);
+    FreeWideStr(lpListItem->wpAuthor);
+    FreeWideStr(lpListItem->wpSite);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->lpLastScript=NULL;
+  hStack->nElements=0;
+}
+
+LISTITEM* GetItemParam(HWND hWnd, int nIndex)
 {
   LVITEMW lvi;
 
@@ -1660,7 +1601,7 @@ LISTVIEWITEMPARAM* GetItemParam(HWND hWnd, int nIndex)
   lvi.lParam=0;
   ListView_GetItemWide(hWnd, &lvi);
 
-  return (LISTVIEWITEMPARAM *)lvi.lParam;
+  return (LISTITEM *)lvi.lParam;
 }
 
 int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith)
@@ -2641,6 +2582,10 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
+  int nIndex;
+  int nSize;
+  wchar_t wszScriptFile[MAX_PATH];
+  int nBufferBytes=BUFFER_SIZE * sizeof(wchar_t);
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
@@ -2651,38 +2596,21 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"/GlobalDebugCode", PO_DWORD, (LPBYTE)&dwGlobalDebugCode, sizeof(DWORD));
     WideOption(hOptions, L"/LastScript", PO_STRING, (LPBYTE)wszLastScript, MAX_PATH * sizeof(wchar_t));
 
-    //Scripts hotkeys
+    for (nIndex=0; nSize=(int)WideOption(hOptions, (wchar_t *)(UINT_PTR)nIndex, PO_ENUM, (LPBYTE)wszBuffer, nBufferBytes) >= 0; ++nIndex)
     {
-      WIN32_FIND_DATAW wfd;
-      HANDLE hFind;
-      wchar_t wszFindFiles[MAX_PATH];
-      const wchar_t *wpExt;
-
-      xprintfW(wszFindFiles, L"%s\\*.*", wszScriptsDir);
-
-      if ((hFind=FindFirstFileWide(wszFindFiles, &wfd)) != INVALID_HANDLE_VALUE)
+      if (nSize && wszBuffer[0] != L'/')
       {
-        do
+        xprintfW(wszScriptFile, L"%s\\*.*", wszScriptsDir, wszBuffer);
+  
+        if (FileExistsWide(wszScriptFile))
         {
-          if (wfd.cFileName[0] == '.' && (wfd.cFileName[1] == '\0' || (wfd.cFileName[1] == '.' && wfd.cFileName[2] == '\0'))) continue;
-
-          if (wpExt=GetFileExt(wfd.cFileName, -1))
-          {
-            if (!xstrcmpiW(wpExt, L"js") ||
-                !xstrcmpiW(wpExt, L"vbs"))
-            {
-              DWORD dwHotkey=0;
-
-              if (hOptions)
-                WideOption(hOptions, wfd.cFileName, PO_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD));
-              if (dwHotkey)
-                RegisterHotkey(wfd.cFileName, LOWORD(dwHotkey));
-            }
-          }
+          DWORD dwHotkey=0;
+    
+          if (hOptions)
+            WideOption(hOptions, wszBuffer, PO_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD));
+          if (dwHotkey)
+            RegisterHotkey(wszBuffer, LOWORD(dwHotkey));
         }
-        while (FindNextFileWide(hFind, &wfd));
-
-        FindClose(hFind);
       }
     }
 
@@ -2694,7 +2622,11 @@ void SaveOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
 
-  if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_SAVE|((dwFlags & OF_HOTKEYS)?POB_CLEAR:0), (LPARAM)wszPluginName))
+  //Clean save if hotkeys changed
+  if (dwFlags & OF_HOTKEYS)
+    dwFlags=(DWORD)-1;
+
+  if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_SAVE|(dwFlags == (DWORD)-1?POB_CLEAR:0), (LPARAM)wszPluginName))
   {
     if (dwFlags & OF_RECT)
     {

@@ -1713,18 +1713,16 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
-    dwSize=(DWORD)WideOption(hOptions, L"SoundText", PO_BINARY, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(DWORD)WideOption(hOptions, L"SoundText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszSoundText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize + sizeof(wchar_t)))
+      if (wszSoundText=(wchar_t *)HeapAlloc(hHeap, 0, nSize + sizeof(wchar_t)))
       {
-        WideOption(hOptions, L"SoundText", PO_BINARY, (LPBYTE)wszSoundText, dwSize);
-        wszSoundText[dwSize / sizeof(wchar_t)]=L'\0';
+        WideOption(hOptions, L"SoundText", PO_BINARY, (LPBYTE)wszSoundText, nSize);
+        wszSoundText[nSize / sizeof(wchar_t)]=L'\0';
       }
     }
 

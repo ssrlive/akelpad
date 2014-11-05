@@ -5254,76 +5254,76 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
     //Manual menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"ManualMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"ManualMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszManualText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszManualText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"ManualMenuText", PO_BINARY, (LPBYTE)wszManualText, dwSize);
+        WideOption(hOptions, L"ManualMenuText", PO_BINARY, (LPBYTE)wszManualText, nSize);
       }
     }
 
     //Main menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"MainMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"MainMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszMainText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszMainText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"MainMenuText", PO_BINARY, (LPBYTE)wszMainText, dwSize);
+        WideOption(hOptions, L"MainMenuText", PO_BINARY, (LPBYTE)wszMainText, nSize);
       }
     }
     WideOption(hOptions, L"MainMenuEnable", PO_DWORD, (LPBYTE)&bMenuMainEnable, sizeof(DWORD));
     WideOption(hOptions, L"MainMenuHide", PO_DWORD, (LPBYTE)&bMenuMainHide, sizeof(DWORD));
 
     //Edit menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"EditMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"EditMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszEditText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszEditText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"EditMenuText", PO_BINARY, (LPBYTE)wszEditText, dwSize);
+        WideOption(hOptions, L"EditMenuText", PO_BINARY, (LPBYTE)wszEditText, nSize);
       }
     }
     WideOption(hOptions, L"EditMenuEnable", PO_DWORD, (LPBYTE)&bMenuEditEnable, sizeof(DWORD));
 
     //Tab menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"TabMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"TabMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszTabText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszTabText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"TabMenuText", PO_BINARY, (LPBYTE)wszTabText, dwSize);
+        WideOption(hOptions, L"TabMenuText", PO_BINARY, (LPBYTE)wszTabText, nSize);
       }
     }
     WideOption(hOptions, L"TabMenuEnable", PO_DWORD, (LPBYTE)&bMenuTabEnable, sizeof(DWORD));
 
     //Link menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"UrlMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"UrlMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszUrlText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszUrlText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"UrlMenuText", PO_BINARY, (LPBYTE)wszUrlText, dwSize);
+        WideOption(hOptions, L"UrlMenuText", PO_BINARY, (LPBYTE)wszUrlText, nSize);
       }
     }
     WideOption(hOptions, L"UrlMenuEnable", PO_DWORD, (LPBYTE)&bMenuUrlEnable, sizeof(DWORD));
 
     //Recent files menu
-    if (dwSize=(DWORD)WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszRecentFilesText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszRecentFilesText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, (LPBYTE)wszRecentFilesText, dwSize);
+        WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, (LPBYTE)wszRecentFilesText, nSize);
       }
     }
     WideOption(hOptions, L"RecentFilesMenuEnable", PO_DWORD, (LPBYTE)&bMenuRecentFilesEnable, sizeof(DWORD));
 
     //Favourites
-    if (dwSize=(DWORD)WideOption(hOptions, L"FavText", PO_BINARY, NULL, 0))
+    if ((nSize=(int)WideOption(hOptions, L"FavText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszFavText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize))
+      if (wszFavText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
       {
-        WideOption(hOptions, L"FavText", PO_BINARY, (LPBYTE)wszFavText, dwSize);
+        WideOption(hOptions, L"FavText", PO_BINARY, (LPBYTE)wszFavText, nSize);
       }
     }
     WideOption(hOptions, L"FavShowFile", PO_DWORD, (LPBYTE)&bFavShowFile, sizeof(DWORD));

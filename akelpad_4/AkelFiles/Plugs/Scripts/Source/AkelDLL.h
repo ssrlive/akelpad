@@ -593,6 +593,7 @@
 #define PO_BINARY    2   //Binary data in any form.
 #define PO_STRING    3   //Null-terminated string.
 #define PO_REMOVE    10  //Delete option.
+#define PO_ENUM      11  //Enumerate option names. PLUGINOPTION.pOptionName is the zero based index of the option. Valid only for POB_READ.
 
 //Support flags
 #define PDS_SUPPORTALL   0x00000000  //Function support everything (default).
@@ -4657,7 +4658,7 @@ Read or save plugin option.
 (PLUGINOPTION *)lParam == pointer to a PLUGINOPTION structure.
 
 Return Value
- Size of the data copied to the buffer.
+ Size of the data copied to the buffer. -1 if error.
 
 Example:
  See AKD_BEGINOPTIONS examples.
@@ -4877,7 +4878,7 @@ Retrieve ini value.
 (INIVALUE *)lParam == pointer to a INIVALUE structure.
 
 Return Value
- Size of the data copied to the buffer.
+ Size of the data copied to the buffer. -1 if error.
 
 Example:
  See AKD_INIOPEN examples.
