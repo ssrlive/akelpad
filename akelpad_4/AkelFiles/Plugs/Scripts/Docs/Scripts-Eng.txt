@@ -1808,17 +1808,18 @@ _____________________________
 
 Read option.
 
-  Read(pOptionName, nType[, vDefault]);
+  Read(vOptionName, nType[, vDefault]);
 
 Arguments
-  pOptionName
-    Option name.
+  vOptionName
+    Option name as string or index as number.
   nType
     1   //PO_DWORD         Read 32-bit number (DWORD).
     2   //PO_BINARY        Read binary data. Returned pointer to the binary data, which must be released with AkelPad.MemFree.
     3   //PO_STRING        Read string.
-    10  //PO_BINARYSTRING  Read string (usually multiline), which was saved as binary data.
-    11  //PO_BINARYSIZE    Retrieve binary data size in bytes.
+    11  //PO_ENUM          Retrieve option name by index. Index passed in vOptionName.
+    20  //PO_BINARYSTRING  Read string (usually multiline), which was saved as binary data.
+    21  //PO_BINARYSIZE    Retrieve binary data size in bytes.
   vDefault
     Default data.
 
@@ -1839,12 +1840,30 @@ Example (read plugin options):
   var oSet=AkelPad.ScriptSettings();
   var pText="";
 
-  if (oSet.Begin("Toolbar", 0x1|0x20 /*POB_READ|POB_PLUGS*/))
+  if (oSet.Begin("Toolbar", 0x21 /*POB_READ|POB_PLUGS*/))
   {
     pText=oSet.Read("ToolBarText", 10 /*PO_BINARYSTRING*/);
     oSet.End();
   }
   WScript.Echo(pText.substr(0,500));
+
+Example (enumerate plugin option names):
+  var hMainWnd=AkelPad.GetMainWnd();
+  var oSet=AkelPad.ScriptSettings();
+  var pOption;
+  var nIndex;
+
+  if (oSet.Begin("Scripts", 0x21 /*POB_READ|POB_PLUGS*/))
+  {
+    for (nIndex=0; ; ++nIndex)
+    {
+      if ((pOption=oSet.Read(nIndex, 11 /*PO_ENUM*/)) == undefined)
+        break;
+      if (AkelPad.MessageBox(hMainWnd, pOption + "\n\nFind next?", WScript.ScriptName, 4 /*MB_YESNO*/) == 7 /*IDNO*/)
+        break;
+    }
+    oSet.End();
+  }
 
 
 AkelPad.ScriptSettings().Write
