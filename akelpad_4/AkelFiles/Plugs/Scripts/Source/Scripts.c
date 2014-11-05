@@ -408,7 +408,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (pnmlv->uNewState & LVIS_SELECTED)
         {
           nSelItem=pnmlv->iItem;
-          SendMessage(hWndHotkey, HKM_SETHOTKEY, lpListItem->wHotkey, 0);
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, lpListItem->dwHotkey, 0);
 
           EnableWindow(hWndExecButton, TRUE);
           EnableWindow(hWndEditButton, TRUE);
@@ -481,7 +481,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           LVITEMW lvi;
 
-          lpListItem->wHotkey=wHotkey;
+          lpListItem->dwHotkey=wHotkey;
           GetHotkeyString(wHotkey, wszBuffer);
           CopyWideStr(wszBuffer, -1, &lpListItem->wpHotkey);
           lvi.mask=LVIF_TEXT;
@@ -1525,8 +1525,8 @@ void StackFillListItem(STACKLISTITEM *hStack)
 
           if (pfElement)
           {
-            lpListItem->wHotkey=pfElement->wHotkey;
-            GetHotkeyString(lpListItem->wHotkey, wszBuffer);
+            lpListItem->dwHotkey=pfElement->wHotkey;
+            GetHotkeyString((WORD)lpListItem->dwHotkey, wszBuffer);
             CopyWideStr(wszBuffer, -1, &lpListItem->wpHotkey);
           }
         }
@@ -2601,7 +2601,7 @@ void ReadOptions(DWORD dwFlags)
       if (wszBuffer[0] && wszBuffer[0] != L'/')
       {
         xprintfW(wszScriptFile, L"%s\\%s", wszScriptsDir, wszBuffer);
-  
+
         if (FileExistsWide(wszScriptFile))
         {
           dwHotkey=0;
@@ -2645,41 +2645,12 @@ void SaveOptions(DWORD dwFlags)
     }
     if (dwFlags & OF_HOTKEYS)
     {
-      WIN32_FIND_DATAW wfd;
-      HANDLE hFind;
-      wchar_t wszFindFiles[MAX_PATH];
-      const wchar_t *wpExt;
+      LISTITEM *lpListItem;
 
-      //Script files
-      xprintfW(wszFindFiles, L"%s\\*.*", wszScriptsDir);
-
-      if ((hFind=FindFirstFileWide(wszFindFiles, &wfd)) != INVALID_HANDLE_VALUE)
+      for (lpListItem=hListItemStack.first; lpListItem; lpListItem=lpListItem->next)
       {
-        do
-        {
-          if (wfd.cFileName[0] == '.' && (wfd.cFileName[1] == '\0' || (wfd.cFileName[1] == '.' && wfd.cFileName[2] == '\0'))) continue;
-
-          if (wpExt=GetFileExt(wfd.cFileName, -1))
-          {
-            if (!xstrcmpiW(wpExt, L"js") || !xstrcmpiW(wpExt, L"vbs"))
-            {
-              //Find hotkey
-              PLUGINFUNCTION *pfElement=NULL;
-
-              xprintfW(wszBuffer, L"Scripts::Main::%s", wfd.cFileName);
-              pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wszBuffer, 0);
-
-              //Save hotkey
-              if (pfElement)
-              {
-                WideOption(hOptions, wfd.cFileName, PO_DWORD, (LPBYTE)&pfElement->wHotkey, sizeof(WORD));
-              }
-            }
-          }
-        }
-        while (FindNextFileWide(hFind, &wfd));
-
-        FindClose(hFind);
+        if (lpListItem->dwHotkey)
+          WideOption(hOptions, lpListItem->wpScript, PO_DWORD, (LPBYTE)&lpListItem->dwHotkey, sizeof(DWORD));
       }
     }
 

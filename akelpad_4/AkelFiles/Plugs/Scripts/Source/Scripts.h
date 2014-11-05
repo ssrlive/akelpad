@@ -190,7 +190,7 @@ typedef struct _LISTITEM {
   struct _LISTITEM *next;
   struct _LISTITEM *prev;
   wchar_t *wpScript;
-  WORD wHotkey;
+  DWORD dwHotkey;
   wchar_t *wpHotkey;
   wchar_t *wpStatus;
   wchar_t *wpVersion;
