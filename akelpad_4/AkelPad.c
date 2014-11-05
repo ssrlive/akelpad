@@ -3659,6 +3659,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (moCur.nSaveSettings == SS_REGISTRY)
       {
         REGHANDLE *rh=(REGHANDLE *)wParam;
+        BYTE *lpData;
         DWORD dwSize;
 
         if (po->dwType == PO_DWORD)
@@ -3674,9 +3675,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (po->dwType == PO_ENUM)
             {
-              dwSize=po->dwData;
-              if (RegEnumValueWide(rh->hKey, (DWORD)(UINT_PTR)wpOptionName, (wchar_t *)po->lpData, &dwSize, NULL, &dwType, NULL, NULL) == ERROR_SUCCESS)
-                nResult=dwSize;
+              if (!po->lpData)
+              {
+                //RegEnumValue not accept NULL
+                lpData=(LPBYTE)wbuf;
+                dwSize=BUFFER_SIZE;
+              }
+              else
+              {
+                lpData=po->lpData;
+                dwSize=po->dwData;
+              }
+              if (RegEnumValueWide(rh->hKey, (DWORD)(UINT_PTR)wpOptionName, (wchar_t *)lpData, &dwSize, NULL, &dwType, NULL, NULL) == ERROR_SUCCESS)
+                nResult=(dwSize + 1) * sizeof(wchar_t);
               else
                 nResult=-1;
             }
