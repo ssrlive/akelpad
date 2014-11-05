@@ -4584,66 +4584,62 @@ Begins read or save plugin or program options.
 Return Value
  HANDLE.
 
-Example read (bOldWindows == TRUE):
- PLUGINOPTIONA po;
- HANDLE hOptions;
- char szDir[MAX_PATH];
-
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)"SaveFile"))
- {
-   po.pOptionName="SaveDir";
-   po.dwType=PO_STRING;
-   po.lpData=(LPBYTE)szDir;
-   po.dwData=MAX_PATH;
-   SendMessage(pd->hMainWnd, AKD_OPTION, (WPARAM)hOptions, (LPARAM)&po);
-
-   SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
- }
-
-Example read (bOldWindows == FALSE):
+Example read:
  PLUGINOPTIONW po;
  HANDLE hOptions;
  wchar_t wszDir[MAX_PATH];
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)L"SaveFile"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)L"SaveFile"))
  {
    po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)wszDir;
    po.dwData=MAX_PATH * sizeof(wchar_t);
-   SendMessage(pd->hMainWnd, AKD_OPTION, (WPARAM)hOptions, (LPARAM)&po);
+   SendMessage(pd->hMainWnd, AKD_OPTIONW, (WPARAM)hOptions, (LPARAM)&po);
 
    SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
  }
 
-Example save (bOldWindows == TRUE):
- PLUGINOPTIONA po;
- HANDLE hOptions;
- char szDir[MAX_PATH]="C:\\Temp";
-
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)"SaveFile"))
- {
-   po.pOptionName="SaveDir";
-   po.dwType=PO_STRING;
-   po.lpData=(LPBYTE)szDir;
-   po.dwData=lstrlenA(szDir) + 1;
-   SendMessage(pd->hMainWnd, AKD_OPTION, (WPARAM)hOptions, (LPARAM)&po);
-
-   SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
- }
-
-Example save (bOldWindows == FALSE):
+Example save:
  PLUGINOPTIONW po;
  HANDLE hOptions;
  wchar_t wszDir[MAX_PATH]=L"C:\\Temp";
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)L"SaveFile"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONSW, POB_SAVE, (LPARAM)L"SaveFile"))
  {
    po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)wszDir;
    po.dwData=(lstrlenW(wszDir) + 1) * sizeof(wchar_t);
-   SendMessage(pd->hMainWnd, AKD_OPTION, (WPARAM)hOptions, (LPARAM)&po);
+   SendMessage(pd->hMainWnd, AKD_OPTIONW, (WPARAM)hOptions, (LPARAM)&po);
+
+   SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
+ }
+
+Example enumerate:
+ PLUGINOPTIONW po;
+ HANDLE hOptions;
+ wchar_t wszOption[MAX_PATH];
+ int nOptionBytes=MAX_PATH * sizeof(wchar_t);
+ int nIndex;
+
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
+ {
+   for (nIndex=0; ; ++nIndex)
+   {
+     po.pOptionName=(wchar_t *)(UINT_PTR)nIndex;
+     po.dwType=PO_ENUM;
+     po.lpData=(LPBYTE)wszOption;
+     po.dwData=nOptionBytes;
+     if (SendMessage(pd->hMainWnd, AKD_OPTIONW, (WPARAM)hOptions, (LPARAM)&po) < 0)
+       break;
+
+     if (wszOption[0])
+     {
+       if (MessageBoxW(pd->hMainWnd, wszOption, L"Find next?", MB_YESNO) == IDNO)
+         break;
+     }
+   }
 
    SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
  }
