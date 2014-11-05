@@ -2856,19 +2856,17 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
     //Hotkeys data
-    dwSize=(DWORD)WideOption(hOptions, L"HotkeyText", PO_BINARY, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(int)WideOption(hOptions, L"HotkeyText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszHotkeyText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize + sizeof(wchar_t)))
+      if (wszHotkeyText=(wchar_t *)HeapAlloc(hHeap, 0, nSize + sizeof(wchar_t)))
       {
-        WideOption(hOptions, L"HotkeyText", PO_BINARY, (LPBYTE)wszHotkeyText, dwSize);
-        wszHotkeyText[dwSize / sizeof(wchar_t)]=L'\0';
+        WideOption(hOptions, L"HotkeyText", PO_BINARY, (LPBYTE)wszHotkeyText, nSize);
+        wszHotkeyText[nSize / sizeof(wchar_t)]=L'\0';
       }
     }
 

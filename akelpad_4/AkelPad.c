@@ -3619,7 +3619,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
 
-          if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
+          if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
           {
             API_HeapFree(hHeap, 0, (LPVOID)ih);
             ih=NULL;
@@ -3628,7 +3628,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             INISECTION *lpIniSection;
 
-            if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", xstrlenW(L"Options"), FALSE))
+            if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", xstrlenW(L"Options"), FALSE))
               StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
           }
         }
@@ -3640,14 +3640,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPTIONW)
     {
       PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
+      wchar_t *wpOptionName;
       DWORD dwType=0;
-      DWORD dwResult=0;
+      int nResult=0;
       BOOL bAnsi;
 
       if (uMsg == AKD_OPTIONA || (bOldWindows && uMsg == AKD_OPTION))
+      {
         bAnsi=TRUE;
+        wpOptionName=AllocWide((char *)po->pOptionName);
+      }
       else
+      {
         bAnsi=FALSE;
+        wpOptionName=(wchar_t *)po->pOptionName;
+      }
 
       if (moCur.nSaveSettings == SS_REGISTRY)
       {
@@ -3665,46 +3672,35 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (po->dwType != PO_REMOVE)
           {
-            dwSize=po->dwData;
-            if (bAnsi)
+            if (po->dwType == PO_ENUM)
             {
-              if (RegQueryValueExA(rh->hKey, (char *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-                dwResult=dwSize;
+              dwSize=po->dwData;
+              if (RegEnumValueWide(rh->hKey, (DWORD)(UINT_PTR)wpOptionName, (wchar_t *)po->lpData, &dwSize, NULL, &dwType, NULL, NULL) == ERROR_SUCCESS)
+                nResult=dwSize;
+              else
+                nResult=-1;
             }
             else
             {
-              if (RegQueryValueExWide(rh->hKey, (wchar_t *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-                dwResult=dwSize;
+              dwSize=po->dwData;
+              if (RegQueryValueExWide(rh->hKey, wpOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+                nResult=dwSize;
+              else
+                nResult=-1;
             }
           }
         }
         else if (rh->dwType & POB_SAVE)
         {
-          if (bAnsi)
+          if (po->dwType == PO_REMOVE)
           {
-            if (po->dwType == PO_REMOVE)
-            {
-              if (RegDeleteValueA(rh->hKey, (char *)po->pOptionName) == ERROR_SUCCESS)
-                dwResult=TRUE;
-            }
-            else
-            {
-              if (RegSetValueExA(rh->hKey, (char *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-                dwResult=TRUE;
-            }
+            if (RegDeleteValueWide(rh->hKey, wpOptionName) == ERROR_SUCCESS)
+              nResult=TRUE;
           }
           else
           {
-            if (po->dwType == PO_REMOVE)
-            {
-              if (RegDeleteValueWide(rh->hKey, (wchar_t *)po->pOptionName) == ERROR_SUCCESS)
-                dwResult=TRUE;
-            }
-            else
-            {
-              if (RegSetValueExWide(rh->hKey, (wchar_t *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-                dwResult=TRUE;
-            }
+            if (RegSetValueExWide(rh->hKey, wpOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+              nResult=TRUE;
           }
         }
       }
@@ -3723,31 +3719,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (po->dwType != PO_REMOVE)
           {
-            if (bAnsi)
-              dwResult=IniGetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            if (po->dwType == PO_ENUM)
+              nResult=IniEnumKey(&ih->hIniFile, L"Options", (int)(UINT_PTR)wpOptionName, (LPBYTE)po->lpData, po->dwData);
             else
-              dwResult=IniGetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+              nResult=IniGetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
           }
         }
         else if (ih->dwType & POB_SAVE)
         {
-          if (bAnsi)
-          {
-            if (po->dwType == PO_REMOVE)
-              dwResult=IniDelKeyA(&ih->hIniFile, "Options", (char *)po->pOptionName);
-            else
-              dwResult=IniSetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
-          }
+          if (po->dwType == PO_REMOVE)
+            nResult=IniDelKey(&ih->hIniFile, L"Options", wpOptionName);
           else
-          {
-            if (po->dwType == PO_REMOVE)
-              dwResult=IniDelKeyW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName);
-            else
-              dwResult=IniSetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
-          }
+            nResult=IniSetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
       }
-      return dwResult;
+      if (bAnsi)
+        FreeWide(wpOptionName);
+      return nResult;
     }
     if (uMsg == AKD_ENDOPTIONS)
     {
@@ -3770,7 +3758,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
             bResult=TRUE;
           else if (ih->dwType & POB_SAVE)
-            bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);
+            bResult=SaveIni(&ih->hIniFile, ih->wszIniFile);
           StackFreeIni(&ih->hIniFile);
           API_HeapFree(hHeap, 0, (LPVOID)ih);
         }
@@ -3792,7 +3780,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
           xprintfW(ih->wszIniFile, L"%s", (wchar_t *)lParam);
 
-        if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
+        if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
         {
           API_HeapFree(hHeap, 0, (LPVOID)ih);
           ih=NULL;
@@ -3813,7 +3801,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nSectionLen=(int)xprintfW(wpSection, L"%S", (char *)lParam);
       else
         nSectionLen=(int)xprintfW(wpSection, L"%s", (wchar_t *)lParam);
-      lpResult=StackOpenIniSectionW(&ih->hIniFile, wpSection, nSectionLen, FALSE);
+      lpResult=StackOpenIniSection(&ih->hIniFile, wpSection, nSectionLen, FALSE);
 
       API_FreeWide(wpSection);
       return (LRESULT)lpResult;
@@ -3839,7 +3827,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nKeyLen=(int)xprintfW(wpKey, L"%S", (char *)lParam);
       else
         nKeyLen=(int)xprintfW(wpKey, L"%s", (wchar_t *)lParam);
-      lpResult=StackOpenIniKeyW(lpIniSection, wpKey, nKeyLen, FALSE);
+      lpResult=StackOpenIniKey(lpIniSection, wpKey, nKeyLen, FALSE);
 
       API_FreeWide(wpKey);
       return (LRESULT)lpResult;
@@ -3871,7 +3859,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
         xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
       }
-      nResult=IniGetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      nResult=IniGetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
       API_FreeWide(wpSection);
       API_FreeWide(wpKey);
@@ -3897,7 +3885,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
         xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
       }
-      nResult=IniSetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      nResult=IniSetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
       API_FreeWide(wpSection);
       API_FreeWide(wpKey);
@@ -3913,7 +3901,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
           bResult=TRUE;
         else if (ih->dwType & POB_SAVE)
-          bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);
+          bResult=SaveIni(&ih->hIniFile, ih->wszIniFile);
         StackFreeIni(&ih->hIniFile);
         API_HeapFree(hHeap, 0, (LPVOID)ih);
       }

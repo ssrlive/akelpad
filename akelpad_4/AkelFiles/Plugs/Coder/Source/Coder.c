@@ -5799,7 +5799,7 @@ void ReadOptions(DWORD dwFlags)
   VARTHEME *lpVarTheme;
   wchar_t wszVarThemeName[MAX_PATH];
   wchar_t *wszVarThemeValue=NULL;
-  DWORD dwSize;
+  int nSize;
   int a;
   int b;
 
@@ -5819,12 +5819,12 @@ void ReadOptions(DWORD dwFlags)
               wszVarThemeName[0]=L'/';
               xstrcpynW(wszVarThemeName + 1, wszBuffer + a, (b - a) + 1);
 
-              if (dwSize=(DWORD)WideOption(hOptions, wszVarThemeName, PO_BINARY, (LPBYTE)NULL, 0))
+              if ((nSize=(int)WideOption(hOptions, wszVarThemeName, PO_BINARY, (LPBYTE)NULL, 0)) > 0)
               {
-                if (wszVarThemeValue=(wchar_t *)GlobalAlloc(GPTR, dwSize + sizeof(wchar_t)))
+                if (wszVarThemeValue=(wchar_t *)GlobalAlloc(GPTR, nSize + sizeof(wchar_t)))
                 {
-                  WideOption(hOptions, wszVarThemeName, PO_BINARY, (LPBYTE)wszVarThemeValue, dwSize);
-                  wszVarThemeValue[dwSize / sizeof(wchar_t)]=L'\0';
+                  WideOption(hOptions, wszVarThemeName, PO_BINARY, (LPBYTE)wszVarThemeValue, nSize);
+                  wszVarThemeValue[nSize / sizeof(wchar_t)]=L'\0';
 
                   if (lpVarTheme=StackInsertVarTheme(&hVarThemesStack, -1))
                   {
@@ -5850,12 +5850,12 @@ void ReadOptions(DWORD dwFlags)
     }
     if ((dwFlags & OF_GENERAL_GLOBALTHEME) || (dwFlags & OF_GENERAL_ALLTHEMES))
     {
-      if (dwSize=(DWORD)WideOption(hOptions, L"VarThemeGlobal", PO_BINARY, (LPBYTE)NULL, 0))
+      if ((nSize=(int)WideOption(hOptions, L"VarThemeGlobal", PO_BINARY, (LPBYTE)NULL, 0)) > 0)
       {
-        if (wszVarThemeValue=(wchar_t *)GlobalAlloc(GPTR, dwSize + sizeof(wchar_t)))
+        if (wszVarThemeValue=(wchar_t *)GlobalAlloc(GPTR, nSize + sizeof(wchar_t)))
         {
-          WideOption(hOptions, L"VarThemeGlobal", PO_BINARY, (LPBYTE)wszVarThemeValue, dwSize);
-          wszVarThemeValue[dwSize / sizeof(wchar_t)]=L'\0';
+          WideOption(hOptions, L"VarThemeGlobal", PO_BINARY, (LPBYTE)wszVarThemeValue, nSize);
+          wszVarThemeValue[nSize / sizeof(wchar_t)]=L'\0';
 
           ParseStringToVars(&hVarThemeGlobal.hVarStack, wszVarThemeValue);
           GlobalFree((HGLOBAL)wszVarThemeValue);
@@ -5864,10 +5864,10 @@ void ReadOptions(DWORD dwFlags)
     }
     if (dwFlags & OF_GENERAL_THEMELINK)
     {
-      if (dwSize=(DWORD)WideOption(hOptions, L"VarThemeLink", PO_STRING, (LPBYTE)NULL, 0))
+      if ((nSize=(int)WideOption(hOptions, L"VarThemeLink", PO_STRING, (LPBYTE)NULL, 0)) > 0)
       {
-        if (wszVarThemeLink=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize))
-          WideOption(hOptions, L"VarThemeLink", PO_STRING, (LPBYTE)wszVarThemeLink, dwSize);
+        if (wszVarThemeLink=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
+          WideOption(hOptions, L"VarThemeLink", PO_STRING, (LPBYTE)wszVarThemeLink, nSize);
       }
     }
     if (dwFlags & OF_GENERAL_SETTINGS)

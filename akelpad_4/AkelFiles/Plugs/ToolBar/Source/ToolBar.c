@@ -2830,18 +2830,16 @@ INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BY
 void ReadOptions(DWORD dwFlags)
 {
   HANDLE hOptions;
-  DWORD dwSize;
+  int nSize;
 
   if (hOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, POB_READ, (LPARAM)wszPluginName))
   {
-    dwSize=(DWORD)WideOption(hOptions, L"ToolBarText", PO_BINARY, NULL, 0);
-
-    if (dwSize)
+    if ((nSize=(int)WideOption(hOptions, L"ToolBarText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize + sizeof(wchar_t)))
+      if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, nSize + sizeof(wchar_t)))
       {
-        WideOption(hOptions, L"ToolBarText", PO_BINARY, (LPBYTE)wszToolBarText, dwSize);
-        wszToolBarText[dwSize / sizeof(wchar_t)]=L'\0';
+        WideOption(hOptions, L"ToolBarText", PO_BINARY, (LPBYTE)wszToolBarText, nSize);
+        wszToolBarText[nSize / sizeof(wchar_t)]=L'\0';
       }
     }
 
@@ -2858,9 +2856,9 @@ void ReadOptions(DWORD dwFlags)
 
   if (!wszToolBarText)
   {
-    dwSize=(DWORD)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTMENU));
+    nSize=(int)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTMENU));
 
-    if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize * sizeof(wchar_t)))
+    if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, nSize * sizeof(wchar_t)))
     {
       xprintfW(wszToolBarText, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTMENU));
     }
