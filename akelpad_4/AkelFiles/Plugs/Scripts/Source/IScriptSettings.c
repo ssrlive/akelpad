@@ -129,15 +129,21 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScr
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, BSTR wpOptionName, DWORD dwType, VARIANT vtDefault, VARIANT *vtData)
+HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtOptionName, DWORD dwType, VARIANT vtDefault, VARIANT *vtData)
 {
   HANDLE hOptions=((IRealScriptSettings *)this)->hOptions;
+  VARIANT *pvtOptionName=&vtOptionName;
+  const wchar_t *wpOptionName;
   unsigned char *lpData;
   INT_PTR nDataSize;
   DWORD dwOptionType=dwType;
   HRESULT hr=NOERROR;
 
   VariantInit(vtData);
+
+  if (pvtOptionName->vt == (VT_VARIANT|VT_BYREF))
+    pvtOptionName=pvtOptionName->pvarVal;
+  wpOptionName=(wchar_t *)GetVariantValue(pvtOptionName, FALSE);
 
   if (dwType == PO_BINARYSIZE)
   {
@@ -161,7 +167,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, BSTR wpOpti
     #endif
     return hr;
   }
-  if (nDataSize)
+  if (nDataSize >= 0)
   {
     if (lpData=(unsigned char *)GlobalAlloc(GPTR, nDataSize))
     {
@@ -183,7 +189,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, BSTR wpOpti
         #endif
         lpData=NULL;
       }
-      else if (dwType == PO_STRING)
+      else if (dwType == PO_STRING || dwType == PO_ENUM)
       {
         vtData->vt=VT_BSTR;
         if (!(vtData->bstrVal=SysAllocStringLen((wchar_t *)lpData, (UINT)(nDataSize / sizeof(wchar_t)) - 1)))

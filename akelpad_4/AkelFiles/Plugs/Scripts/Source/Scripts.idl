@@ -298,13 +298,13 @@ library Scripts
     //Begin settings operations.
     HRESULT Begin([in] BSTR wpScriptName, [in] DWORD dwFlags, [out, retval] MYRETHANDLE *hOptions);
 
-    //Read option"
-    HRESULT Read([in] BSTR wpOptionName, [in] DWORD dwType, [in, optional] VARIANT vtDefault, [out, retval] VARIANT *vtData);
+    //Read option.
+    HRESULT Read([in] VARIANT vtOptionName, [in] DWORD dwType, [in, optional] VARIANT vtDefault, [out, retval] VARIANT *vtData);
 
-    //Write option"
+    //Write option.
     HRESULT Write([in] BSTR wpOptionName, [in] DWORD dwType, [in] VARIANT vtData, [in, defaultvalue(-1)] int nDataSize, [out, retval] int *nResult);
 
-    //Delete option"
+    //Delete option.
     HRESULT Delete([in] BSTR wpOptionName, [out, retval] BOOL *bResult);
 
     //End settings operations.

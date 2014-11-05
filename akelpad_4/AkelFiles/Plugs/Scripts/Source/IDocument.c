@@ -2237,9 +2237,10 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
   HRESULT hr=NOERROR;
   VARIANT *pvtData=&vtData;
 
+  VariantInit(vtResult);
+
   if (pvtData->vt == (VT_VARIANT|VT_BYREF))
     pvtData=pvtData->pvarVal;
-  VariantInit(vtResult);
 
   if (nOperation == SH_FIRSTSCRIPT)
   {

@@ -1810,17 +1810,18 @@ _____________________________
 
 Прочитать настройку.
 
-  Read(pOptionName, nType[, vDefault]);
+  Read(vOptionName, nType[, vDefault]);
 
 Аргументы
-  pOptionName
-    Имя настройки.
+  vOptionName
+    Имя настройки как строка или индекс как число.
   nType
     1   //PO_DWORD         Прочитать четырехбайтовое число (DWORD).
     2   //PO_BINARY        Прочитать бинарные данные. Возвращается указатель на бинарные данные, который необходимо освободить с помощью AkelPad.MemFree.
     3   //PO_STRING        Прочитать строку.
-    10  //PO_BINARYSTRING  Прочитать текст (обычно многострочный), который был сохранен как бинарные данные.
-    11  //PO_BINARYSIZE    Получить размер бинарных данных в байтах.
+    11  //PO_ENUM          Получить имя настройки по индексу. Индекс передается в vOptionName.
+    20  //PO_BINARYSTRING  Прочитать текст (обычно многострочный), который был сохранен как бинарные данные.
+    21  //PO_BINARYSIZE    Получить размер бинарных данных в байтах.
   vDefault
     Данные по умолчанию.
 
@@ -1841,12 +1842,30 @@ _____________________________
   var oSet=AkelPad.ScriptSettings();
   var pText="";
 
-  if (oSet.Begin("Toolbar", 0x1|0x20 /*POB_READ|POB_PLUGS*/))
+  if (oSet.Begin("Toolbar", 0x21 /*POB_READ|POB_PLUGS*/))
   {
     pText=oSet.Read("ToolBarText", 10 /*PO_BINARYSTRING*/);
     oSet.End();
   }
   WScript.Echo(pText.substr(0,500));
+
+Пример (перебрать имена настроек плагина):
+  var hMainWnd=AkelPad.GetMainWnd();
+  var oSet=AkelPad.ScriptSettings();
+  var pOption;
+  var nIndex;
+
+  if (oSet.Begin("Scripts", 0x21 /*POB_READ|POB_PLUGS*/))
+  {
+    for (nIndex=0; ; ++nIndex)
+    {
+      if ((pOption=oSet.Read(nIndex, 11 /*PO_ENUM*/)) == undefined)
+        break;
+      if (AkelPad.MessageBox(hMainWnd, pOption + "\n\nFind next?", WScript.ScriptName, 4 /*MB_YESNO*/) == 7 /*IDNO*/)
+        break;
+    }
+    oSet.End();
+  }
 
 
 AkelPad.ScriptSettings().Write
