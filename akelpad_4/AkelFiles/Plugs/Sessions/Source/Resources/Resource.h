@@ -67,10 +67,11 @@
 #define IDC_SETTINGS_SAVEALIAS          1423
 #define IDC_SETTINGS_SAVEFOLDS          1424
 #define IDC_SETTINGS_SAVEMARKS          1425
+#define IDC_SETTINGS_SAVERELATIVE       1426
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
