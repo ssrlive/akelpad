@@ -40,6 +40,7 @@
 #define xarraysizeA
 #define xarraysizeW
 #define xstrcmpiW
+#define xstrcmpinW
 #define xstrcmpnW
 #define xstrcpynW
 #define xstrlenW
@@ -143,19 +144,20 @@
 #define STRID_SAVEALIAS               46
 #define STRID_SAVEFOLDS               47
 #define STRID_SAVEMARKS               48
-#define STRID_PLUGIN                  49
-#define STRID_OK                      50
-#define STRID_CANCEL                  51
-#define STRID_CLOSE                   52
-#define STRID_CURRENTSESSION          53
-#define STRID_ALREADY_EXIST           54
-#define STRID_RENAME_ERROR            55
-#define STRID_SESSION_CHANGED         56
-#define STRID_CONFIRM_DELETE          57
-#define STRID_RESTARTPROGRAM          58
-#define STRID_SDI_ISNTSUPPORTED       59
-#define STRID_FILTER                  60
-#define STRID_DROPTOCURRENT           61
+#define STRID_SAVERELATIVE            49
+#define STRID_PLUGIN                  50
+#define STRID_OK                      51
+#define STRID_CANCEL                  52
+#define STRID_CLOSE                   53
+#define STRID_CURRENTSESSION          54
+#define STRID_ALREADY_EXIST           55
+#define STRID_RENAME_ERROR            56
+#define STRID_SESSION_CHANGED         57
+#define STRID_CONFIRM_DELETE          58
+#define STRID_RESTARTPROGRAM          59
+#define STRID_SDI_ISNTSUPPORTED       60
+#define STRID_FILTER                  61
+#define STRID_DROPTOCURRENT           62
 
 #define DLLA_SESSIONS_OPEN          1
 #define DLLA_SESSIONS_SAVE          2
@@ -484,6 +486,7 @@ HCURSOR hCursorDragMove;
 SESSIONITEM *siDraggingCursor=NULL;
 HIMAGELIST hImageList=NULL;
 DWORD dwSaveData=SSD_ACTIVE|SSD_CODEPAGE|SSD_SELECTION|SSD_WORDWRAP|SSD_READONLY|SSD_OVERTYPE|SSD_BOOKMARKS|SSD_CODERALIAS|SSD_CODERFOLDS|SSD_CODERMARKS;
+BOOL bSaveRelative=TRUE;
 WNDPROC OldTreeViewProc;
 WNDPROCDATA *NewMainProcData=NULL;
 
@@ -2026,6 +2029,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveAlias;
   static HWND hWndSaveFolds;
   static HWND hWndSaveMarks;
+  static HWND hWndSaveRelative;
   int nState;
 
   if (uMsg == WM_INITDIALOG)
@@ -2053,6 +2057,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveAlias=GetDlgItem(hDlg, IDC_SETTINGS_SAVEALIAS);
     hWndSaveFolds=GetDlgItem(hDlg, IDC_SETTINGS_SAVEFOLDS);
     hWndSaveMarks=GetDlgItem(hDlg, IDC_SETTINGS_SAVEMARKS);
+    hWndSaveRelative=GetDlgItem(hDlg, IDC_SETTINGS_SAVERELATIVE);
 
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_SETTINGS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVESESSIONS_GROUP, GetLangStringW(wLangModule, STRID_SAVESESSIONS));
@@ -2078,6 +2083,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEALIAS, GetLangStringW(wLangModule, STRID_SAVEALIAS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEFOLDS, GetLangStringW(wLangModule, STRID_SAVEFOLDS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEMARKS, GetLangStringW(wLangModule, STRID_SAVEMARKS));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVERELATIVE, GetLangStringW(wLangModule, STRID_SAVERELATIVE));
 
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
@@ -2121,6 +2127,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (dwSaveData & SSD_CODERALIAS) SendMessage(hWndSaveAlias, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODERFOLDS) SendMessage(hWndSaveFolds, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODERMARKS) SendMessage(hWndSaveMarks, BM_SETCHECK, BST_CHECKED, 0);
+
+    if (bSaveRelative) SendMessage(hWndSaveRelative, BM_SETCHECK, BST_CHECKED, 0);
 
     PostMessage(hDlg, WM_COMMAND, IDC_SETTINGS_OPENONSTART, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_SETTINGS_SAVEONEXIT, 0);
@@ -2205,6 +2213,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         dwSaveData|=SSD_CODERFOLDS;
       if (SendMessage(hWndSaveMarks, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveData|=SSD_CODERMARKS;
+
+      bSaveRelative=(BOOL)SendMessage(hWndSaveRelative, BM_GETCHECK, 0, 0);
 
       //Restart message
       if (bRestart)
@@ -3061,6 +3071,11 @@ void SaveSessionFile(SESSION *ss)
         else
         {
           //File
+          if (bSaveRelative)
+          {
+            if (!xstrcmpinW(wszExeDir, si->wszItemFile, (UINT_PTR)-1))
+              xprintfW(si->wszItemFile, L"%%a%s", si->wszItemFile + xstrlenW(wszExeDir));
+          }
           nDataSize=xprintfW(wszData, L"%s%.%ds%s\r\n%.%ds/Name=\"%s\" /Active=%d /Codepage=%d /Selection=%Id-%Id /FirstVisChar=%Id /WordWrap=%d /ReadOnly=%d /Overtype=%d /Bookmarks=%s /CoderAlias=%s /Folds=%s /Marks=%s\r\n",
                                       (si->prev && !si->prev->dwFolderFlags)?L"\r\n":L"", nLevel * 2, wszSpacesIndent, si->wszItemFile, nLevel * 2, wszSpacesIndent, si->wszName, si->nTabActive, si->nCodePage, si->nSelStart, si->nSelEnd, si->nFirstVisChar, si->bWordWrap, si->bReadOnly, si->bOvertypeMode, si->wszBookmarks, wszCoderAlias, si->wszCoderFolds, si->wszCoderMarks);
         }
@@ -4856,6 +4871,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"SaveOnExitSession", PO_STRING, (LPBYTE)wszSaveOnExit, sizeof(wszSaveOnExit));
     WideOption(hOptions, L"ShowPath", PO_DWORD, (LPBYTE)&bShowPath, sizeof(DWORD));
     WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
+    WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
     WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
     WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nDialogType, sizeof(DWORD));
 
@@ -4885,6 +4901,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveOnExitSession", PO_STRING, (LPBYTE)wszSaveOnExit, ((int)xstrlenW(wszSaveOnExit) + 1) * sizeof(wchar_t));
       WideOption(hOptions, L"ShowPath", PO_DWORD, (LPBYTE)&bShowPath, sizeof(DWORD));
       WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
+      WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
       WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
       if (nNewDialogType)
         WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nNewDialogType, sizeof(DWORD));
@@ -5014,6 +5031,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0432\x0435\x0440\x043D\x0443\x0442\x044B\x0435\x0020\x0431\x043B\x043E\x043A\x0438 Coder";
     if (nStringID == STRID_SAVEMARKS)
       return L"\x041E\x0442\x043C\x0435\x0442\x043A\x0438\x0020\x0442\x0435\x043A\x0441\x0442\x0430 Coder";
+    if (nStringID == STRID_SAVERELATIVE)
+      return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043F\x0443\x0442\x044C\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430\x0020\x043A\x0430\x043A\x0020\x0025\x0061";
     if (nStringID == STRID_OK)
       return L"\x004F\x004B";
     if (nStringID == STRID_CANCEL)
@@ -5139,6 +5158,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Coder collapsed folds";
     if (nStringID == STRID_SAVEMARKS)
       return L"Coder text marks";
+    if (nStringID == STRID_SAVERELATIVE)
+      return L"Save AkelPad path as %a";
     if (nStringID == STRID_OK)
       return L"OK";
     if (nStringID == STRID_CANCEL)
