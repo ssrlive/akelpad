@@ -141,6 +141,37 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
   pv->pPluginName="Scripts";
 }
 
+void __declspec(dllexport) DllAkelUpdaterFill(HWND hDlg, HWND hWndList, STACKLISTITEM *hListItemStack, LISTCOLUMN *lpColumns)
+{
+  wchar_t wszPlugs[MAX_PATH];
+  wchar_t wszDLL[MAX_PATH];
+
+  if (!wLangModule)
+    wLangModule=GetUserDefaultLangID();
+  if (!wszScriptsDir[0])
+  {
+    if (GetModuleFileNameWide(hInstanceDLL, wszDLL, MAX_PATH))
+      if (GetFileDir(wszDLL, -1, wszPlugs, MAX_PATH))
+        xprintfW(wszScriptsDir, L"%s\\Scripts", wszPlugs);
+  }
+  if (wszScriptsDir[0])
+  {
+    if (!hMainWnd)
+      hMainWnd=hDlg;
+    CreateColumns(hWndList, lpColumns);
+    StackFillListItem(hListItemStack, lpColumns);
+    FillScriptList(hListItemStack, lpColumns, hWndList, NULL);
+    if (hMainWnd == hDlg)
+      hMainWnd=NULL;
+  }
+}
+
+void __declspec(dllexport) DllAkelUpdaterFree(STACKLISTITEM *hListItemStack)
+{
+  //Free items data
+  StackFreeListItem(hListItemStack);
+}
+
 //Plugin extern function
 void __declspec(dllexport) Main(PLUGINDATA *pd)
 {
@@ -319,9 +350,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     SetWindowTextWide(hWndScriptsFilter, wszFilter);
-    CreateColumns(hWndScriptsList);
-    StackFillListItem(&hListItemStack);
-    FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
+    CreateColumns(hWndScriptsList, lpColumns);
+    StackFillListItem(&hListItemStack, lpColumns);
+    FillScriptList(&hListItemStack, lpColumns, hWndScriptsList, wszFilter);
 
     lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC, (UINT_PTR)NewFilterProc);
@@ -361,9 +392,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_COLUMNS), hDlg, (DLGPROC)ColumnsDlgProc))
           {
-            CreateColumns(hWndScriptsList);
-            StackFillListItem(&hListItemStack);
-            FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
+            CreateColumns(hWndScriptsList, lpColumns);
+            StackFillListItem(&hListItemStack, lpColumns);
+            FillScriptList(&hListItemStack, lpColumns, hWndScriptsList, wszFilter);
             dwSaveFlags|=OF_COLUMNS;
           }
           bShowMenu=FALSE;
@@ -459,7 +490,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!bOpeningDlg)
         {
           GetWindowTextWide(hWndScriptsFilter, wszFilter, MAX_PATH);
-          FillScriptList(&hListItemStack, hWndScriptsList, wszFilter);
+          FillScriptList(&hListItemStack, lpColumns, hWndScriptsList, wszFilter);
         }
       }
     }
@@ -1089,7 +1120,7 @@ BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey)
   }
 }
 
-void CreateColumns(HWND hWnd)
+void CreateColumns(HWND hWnd, LISTCOLUMN *lpColumns)
 {
   LVCOLUMNW lvc;
   LISTCOLUMN *lpColumnCount;
@@ -1147,7 +1178,7 @@ LISTCOLUMN* GetColumnByIndex(int nColumnIndex)
   return lpColumnCount;
 }
 
-void FillScriptList(STACKLISTITEM *hStack, HWND hWnd, const wchar_t *wpFilter)
+void FillScriptList(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns, HWND hWnd, const wchar_t *wpFilter)
 {
   LISTCOLUMN *lpColumnCount;
   LISTITEM *lpListItem;
@@ -1284,7 +1315,7 @@ void FillScriptList(STACKLISTITEM *hStack, HWND hWnd, const wchar_t *wpFilter)
   InvalidateRect(hWnd, NULL, TRUE);
 }
 
-void StackFillListItem(STACKLISTITEM *hStack)
+void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
 {
   SCRIPTTHREAD *lpScriptThread;
   PLUGINFUNCTION *pfElement;
@@ -1332,7 +1363,7 @@ void StackFillListItem(STACKLISTITEM *hStack)
                    {0,0,0}};
 
   //Clear stack
-  StackFreeListItem(&hListItemStack);
+  StackFreeListItem(hStack);
 
   //Find columns
   dwAllColumns=0;
@@ -1513,7 +1544,7 @@ void StackFillListItem(STACKLISTITEM *hStack)
         }
       }
 
-      if (lpListItem=StackInsertListItem(&hListItemStack))
+      if (lpListItem=StackInsertListItem(hStack))
       {
         if (dwAllColumns & LCN_SCRIPT)
           CopyWideStr(wfd.cFileName, -1, &lpListItem->wpScript);
