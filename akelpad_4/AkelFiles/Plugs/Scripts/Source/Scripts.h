@@ -19,9 +19,9 @@
 #include "IServer.h"
 
 //Defines
-#define DLLA_SCRIPTS_EXEC      1
-#define DLLA_SCRIPTS_EXECWAIT  2
-#define DLLA_SCRIPTS_EDIT      3
+#define DLLA_SCRIPTS_EXEC        1
+#define DLLA_SCRIPTS_EXECWAIT    2
+#define DLLA_SCRIPTS_EDIT        3
 
 #define STRID_ARCHITECTURE_MISMATCH 1
 #define STRID_HOTKEY_EXISTS         2
@@ -78,6 +78,7 @@
 
 #define BUFFER_SIZE             1024
 
+//List columns
 #define LVI_SCRIPT        0
 #define LVI_HOTKEY        1
 #define LVI_STATUS        2
@@ -189,6 +190,8 @@ typedef struct {
 typedef struct _LISTITEM {
   struct _LISTITEM *next;
   struct _LISTITEM *prev;
+  int nCompare;           //For AkelUpdater
+  DWORD dwError;          //For AkelUpdater
   wchar_t *wpScript;
   DWORD dwHotkey;
   wchar_t *wpHotkey;
@@ -264,11 +267,11 @@ int SetColumnItem(HWND hWnd, int nIndex, LISTCOLUMN *lpColumn, BOOL bCheck);
 BOOL CALLBACK CodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
-void CreateColumns(HWND hWnd);
+void CreateColumns(HWND hWnd, LISTCOLUMN *lpColumns);
 LISTCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex);
 LISTCOLUMN* GetColumnByIndex(int nColumnIndex);
-void FillScriptList(STACKLISTITEM *hStack, HWND hWnd, const wchar_t *wpFilter);
-void StackFillListItem(STACKLISTITEM *hStack);
+void FillScriptList(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns, HWND hWnd, const wchar_t *wpFilter);
+void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns);
 LISTITEM* StackInsertListItem(STACKLISTITEM *hStack);
 void StackFreeListItem(STACKLISTITEM *hStack);
 LISTITEM* GetItemParam(HWND hWnd, int nIndex);
