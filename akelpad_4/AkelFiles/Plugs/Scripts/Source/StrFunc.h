@@ -44,8 +44,8 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2);
 INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
 INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength);
 INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
-BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
-BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
+BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, const char **pStrBegin, const char **pStrEnd);
+BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, const wchar_t **wpStrBegin, const wchar_t **wpStrEnd);
 int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, const char *pWith, int nWithLen, BOOL bSensitive, char *szResult, INT_PTR *nResultLen);
 int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, INT_PTR *nResultLen);
 
@@ -1575,18 +1575,18 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *
  *Find substring in string.
  *
- * [in] const char *pText  Text.
- * [in] INT_PTR nTextLen   Text length.
- *                          If this value is -1, the string is assumed to be null-terminated
- *                          and the length is calculated automatically.
- * [in] const char *pStr   Find it.
- * [in] int nStrLen        Find it length.
- *                          If this value is -1, the string is assumed to be null-terminated
- *                          and the length is calculated automatically.
- * [in] BOOL bSensitive    TRUE   case sensitive.
- *                         FALSE  case insensitive.
- *[out] char **pStrBegin   Pointer to the first char of pStr, can be NULL.
- *[out] char **pStrEnd     Pointer to the first char after pStr, can be NULL.
+ * [in] const char *pText       Text.
+ * [in] INT_PTR nTextLen        Text length.
+ *                               If this value is -1, the string is assumed to be null-terminated
+ *                               and the length is calculated automatically.
+ * [in] const char *pStr        Find it.
+ * [in] int nStrLen             Find it length.
+ *                               If this value is -1, the string is assumed to be null-terminated
+ *                               and the length is calculated automatically.
+ * [in] BOOL bSensitive         TRUE   case sensitive.
+ *                              FALSE  case insensitive.
+ *[out] const char **pStrBegin  Pointer to the first char of pStr, can be NULL.
+ *[out] const char **pStrEnd    Pointer to the first char after pStr, can be NULL.
  *
  *Returns:  TRUE  pStr is found.
  *          FALSE pStr isn't found.
@@ -1597,7 +1597,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
 #undef xstrstrA
-BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, char **pStrBegin, char **pStrEnd)
+BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, const char **pStrBegin, const char **pStrEnd)
 {
   const char *pTextMax;
   const char *pTextCount;
@@ -1624,13 +1624,15 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
     {
       if (++pStrCount >= pStrMax)
       {
-        if (pStrBegin) *pStrBegin=(char *)pTextCount;
-        if (pStrEnd) *pStrEnd=(char *)pMatchCount + 1;
+        if (pStrBegin) *pStrBegin=pTextCount;
+        if (pStrEnd) *pStrEnd=pMatchCount + 1;
         return TRUE;
       }
       if (++pMatchCount >= pTextMax) break;
     }
   }
+  if (pStrBegin) *pStrBegin=pTextMax;
+  if (pStrEnd) *pStrEnd=pTextMax;
   return FALSE;
 }
 #endif
@@ -1641,18 +1643,18 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
  *
  *Find substring in unicode string.
  *
- * [in] const wchar_t *wpText  Text.
- * [in] INT_PTR nTextLen       Text length.
- *                              If this value is -1, the string is assumed to be null-terminated
- *                              and the length is calculated automatically.
- * [in] const wchar_t *wpStr   Find it.
- * [in] int nStrLen            Find it length.
- *                              If this value is -1, the string is assumed to be null-terminated
- *                              and the length is calculated automatically.
- * [in] BOOL bSensitive        TRUE   case sensitive.
- *                             FALSE  case insensitive.
- *[out] wchar_t **wpStrBegin   Pointer to the first char of wpStr, can be NULL.
- *[out] wchar_t **wpStrEnd     Pointer to the first char after wpStr, can be NULL.
+ * [in] const wchar_t *wpText       Text.
+ * [in] INT_PTR nTextLen            Text length.
+ *                                   If this value is -1, the string is assumed to be null-terminated
+ *                                   and the length is calculated automatically.
+ * [in] const wchar_t *wpStr        Find it.
+ * [in] int nStrLen                 Find it length.
+ *                                   If this value is -1, the string is assumed to be null-terminated
+ *                                   and the length is calculated automatically.
+ * [in] BOOL bSensitive             TRUE   case sensitive.
+ *                                  FALSE  case insensitive.
+ *[out] const wchar_t **wpStrBegin  Pointer to the first char of wpStr, can be NULL.
+ *[out] const wchar_t **wpStrEnd    Pointer to the first char after wpStr, can be NULL.
  *
  *Returns:  TRUE  wpStr is found.
  *          FALSE wpStr isn't found.
@@ -1664,7 +1666,7 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
 #if defined xstrstrW || defined ALLSTRFUNC
 #define xstrstrW_INCLUDED
 #undef xstrstrW
-BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd)
+BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, const wchar_t **wpStrBegin, const wchar_t **wpStrEnd)
 {
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
@@ -1698,13 +1700,15 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
     {
       if (++wpStrCount >= wpStrMax)
       {
-        if (wpStrBegin) *wpStrBegin=(wchar_t *)wpTextCount;
-        if (wpStrEnd) *wpStrEnd=(wchar_t *)wpMatchCount + 1;
+        if (wpStrBegin) *wpStrBegin=wpTextCount;
+        if (wpStrEnd) *wpStrEnd=wpMatchCount + 1;
         return TRUE;
       }
       if (++wpMatchCount >= wpTextMax) break;
     }
   }
+  if (wpStrBegin) *wpStrBegin=wpTextMax;
+  if (wpStrEnd) *wpStrEnd=wpTextMax;
   return FALSE;
 }
 #endif

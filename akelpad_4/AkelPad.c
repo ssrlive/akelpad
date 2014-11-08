@@ -1941,16 +1941,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_DETECTFILEW)
     {
       DETECTFILEW *dc=(DETECTFILEW *)lParam;
-      wchar_t *wpFile=API_AllocWide(MAX_PATH);
+      wchar_t *wpFile;
       int nResult;
 
       if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
-        xprintfW(wpFile, L"%S", (char *)dc->pFile);
+        wpFile=AllocWide((char *)dc->pFile);
       else
-        xprintfW(wpFile, L"%s", (wchar_t *)dc->pFile);
+        wpFile=(wchar_t *)dc->pFile;
+
       nResult=AutodetectCodePage(wpFile, NULL, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
 
-      API_FreeWide(wpFile);
+      if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
+        FreeWide(wpFile);
       return nResult;
     }
     if (uMsg == AKD_READFILECONTENT)
