@@ -158,9 +158,12 @@ void __declspec(dllexport) DllAkelUpdaterFill(HWND hDlg, HWND hWndList, STACKLIS
   {
     if (!hMainWnd)
       hMainWnd=hDlg;
-    CreateColumns(hWndList, lpColumns);
     StackFillListItem(hListItemStack, lpColumns);
-    FillScriptList(hListItemStack, lpColumns, hWndList, NULL);
+    if (hWndList)
+    {
+      CreateColumns(hWndList, lpColumns);
+      FillScriptList(hListItemStack, lpColumns, hWndList, NULL);
+    }
     if (hMainWnd == hDlg)
       hMainWnd=NULL;
   }
@@ -350,8 +353,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     SetWindowTextWide(hWndScriptsFilter, wszFilter);
-    CreateColumns(hWndScriptsList, lpColumns);
     StackFillListItem(&hListItemStack, lpColumns);
+    CreateColumns(hWndScriptsList, lpColumns);
     FillScriptList(&hListItemStack, lpColumns, hWndScriptsList, wszFilter);
 
     lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC);
@@ -392,8 +395,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_COLUMNS), hDlg, (DLGPROC)ColumnsDlgProc))
           {
-            CreateColumns(hWndScriptsList, lpColumns);
             StackFillListItem(&hListItemStack, lpColumns);
+            CreateColumns(hWndScriptsList, lpColumns);
             FillScriptList(&hListItemStack, lpColumns, hWndScriptsList, wszFilter);
             dwSaveFlags|=OF_COLUMNS;
           }
