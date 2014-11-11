@@ -16,6 +16,8 @@ Added: command 4322 and menu item - clone current tab.
 Added: command 4323 and menu item - copy current tab file path.
 Added: setting for saving position of modeless dialogs ("Recode...", "Find...",
        "Replace...", "Go to...").
+Added: flag 32 in the manual parameter "PaintOptions" - paint all symbols, including
+       proportional fonts, with fixed width (maximum width from "A-Z").
 
 Fixed: command 4110 didn't work for SDI.
 Fixed: switching on previous tab after closing current one (PMDI).

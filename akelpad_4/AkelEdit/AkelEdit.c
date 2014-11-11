@@ -1168,6 +1168,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nCharHeight;
       if (wParam == AECS_AVEWIDTH)
         return ae->ptxt->nAveCharWidth;
+      if (wParam == AECS_MAXWIDTH)
+        return ae->ptxt->nMaxCharWidth;
       if (wParam == AECS_INDEXWIDTH)
       {
         AECHARINDEX *ciChar=(AECHARINDEX *)lParam;
@@ -9222,11 +9224,37 @@ void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
   if (bRedraw) InvalidateRect(ae->hWndEdit, NULL, TRUE);
 }
 
+void AE_GetFontCharWidth(AKELEDIT *ae, HDC hDC)
+{
+  SIZE64 sizeWidth;
+  HDC hTempDC=ae->hDC;
+  int nStrLen=52;
+  const wchar_t *wpStr=L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  const wchar_t *wpMaxStr=wpStr + nStrLen;
+  const wchar_t *wpCount;
+
+  ae->hDC=hDC;
+  ae->ptxt->nMaxCharWidth=0;
+  ae->ptxt->nAveCharWidth=0;
+  AE_GetTextExtentPoint32(ae, wpStr, nStrLen, &sizeWidth);
+  for (wpCount=wpStr; wpCount < wpMaxStr; ++wpCount)
+  {
+    if (ae->ptxt->nMaxCharWidth < ae->ptxt->lpCharWidths[*wpCount])
+      ae->ptxt->nMaxCharWidth=ae->ptxt->lpCharWidths[*wpCount];
+    ae->ptxt->nAveCharWidth+=ae->ptxt->lpCharWidths[*wpCount];
+  }
+  ae->ptxt->nAveCharWidth/=nStrLen;
+
+  AE_GetTextExtentPoint32(ae, L" ", 1, &sizeWidth);
+  ae->ptxt->nSpaceCharWidth=sizeWidth.cx;
+  ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
+  ae->hDC=hTempDC;
+}
+
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   AEFONTITEMA *fi;
   TEXTMETRICA tmEdit;
-  SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
   HFONT hFontOld=NULL;
@@ -9263,12 +9291,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     ae->ptxt->nPointSize=MulDiv(mod(ae->ptxt->lfFontA.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
-    GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-    ae->ptxt->nAveCharWidth=sizeWidth.cx / 52;
-    GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
-    ae->ptxt->nSpaceCharWidth=sizeWidth.cx;
-    ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
-
+    AE_GetFontCharWidth(ae, hDC);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
     if (!ae->hDC)
@@ -9283,7 +9306,6 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   AEFONTITEMW *fi;
   TEXTMETRICW tmEdit;
-  SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
   HFONT hFontOld=NULL;
@@ -9320,12 +9342,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     ae->ptxt->nPointSize=MulDiv(mod(ae->ptxt->lfFontW.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
-    GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-    ae->ptxt->nAveCharWidth=sizeWidth.cx / 52;
-    GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
-    ae->ptxt->nSpaceCharWidth=sizeWidth.cx;
-    ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
-
+    AE_GetFontCharWidth(ae, hDC);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
     if (!ae->hDC)
@@ -12735,7 +12752,6 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
   AEFONTITEMA *fi;
   TEXTMETRICA tmEditA;
   TEXTMETRICA tmPrintA;
-  SIZE sizeWidth;
   HDC hEditDC;
   HFONT hEditFontOld;
   HFONT hPrintFontOld;
@@ -12785,13 +12801,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintA.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditA.tmHeight);
     ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
-    GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-    ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
+    AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
     prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
-    GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
-    ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
     prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
-    ph->aePrint.ptxt->nTabWidth=ph->aePrint.ptxt->nSpaceCharWidth * ph->aePrint.ptxt->nTabStop;
     prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
 
     //Return font
@@ -12813,7 +12825,6 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
   AEFONTITEMW *fi;
   TEXTMETRICW tmEditW;
   TEXTMETRICW tmPrintW;
-  SIZE sizeWidth;
   HDC hEditDC;
   HFONT hEditFontOld;
   HFONT hPrintFontOld;
@@ -12863,13 +12874,9 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintW.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditW.tmHeight);
     ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
-    GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-    ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
+    AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
     prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
-    GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
-    ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
     prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
-    ph->aePrint.ptxt->nTabWidth=ph->aePrint.ptxt->nSpaceCharWidth * ph->aePrint.ptxt->nTabStop;
     prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
 
     //Return font
@@ -13076,7 +13083,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else
     {
-      if (AE_GetIndex(&ph->aePrint, (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)?AEGI_NEXTUNCOLLAPSEDLINE:AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin))
+      if (AE_GetIndex(&ph->aePrint, (ae->popt->dwOptionsEx & AECOE_NOPRINTCOLLAPSED)?AEGI_NEXTUNCOLLAPSEDLINE:AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin))
         bContinuePrint=TRUE;
       else
         bContinuePrint=FALSE;
@@ -13794,6 +13801,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
 void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 {
   RECT rcTextOut;
+  SIZE sizeChar;
   HBRUSH hBrush;
   HFONT hFontPrev;
   char *szText;
@@ -13802,6 +13810,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   int nTextLen=to->ciDrawLine.nCharInLine - (int)(to->wpStartDraw - to->ciDrawLine.lpLine->wpLine);
   int nTextWidth=(int)(to->nDrawLineWidth - to->nStartDrawWidth);
   int nCharLen;
+  int nLeftOffset;
   int nBytes;
   int i;
   DWORD dwFontStyle;
@@ -13920,14 +13929,24 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
           {
             if (nCharLen=AEC_CopyChar(NULL, nTextLen - i, wpText + i))
             {
+              if (ae->popt->dwOptions & AECO_PAINTFIXED)
+              {
+                if (nCharLen > 1)
+                  GetTextExtentPoint32W(to->hDC, wpText + i, nCharLen, &sizeChar);
+                else
+                  sizeChar.cx=ae->ptxt->nMaxCharWidth;
+                nLeftOffset=sizeChar.cx / 2 - ae->ptxt->lpCharWidths[wpText[i]] / 2;
+              }
+              else nLeftOffset=0;
+
               if (!(to->dwPrintFlags & AEPRN_ANSI))
               {
-                TextOutW(to->hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
+                TextOutW(to->hDC, rcTextOut.left + nLeftOffset, rcTextOut.top, wpText + i, nCharLen);
               }
               else
               {
                 nBytes=WideCharToMultiByte(CP_ACP, 0, wpText + i, 1, szChar, sizeof(szChar), NULL, NULL);
-                TextOutA(to->hDC, rcTextOut.left, rcTextOut.top, szChar, nBytes);
+                TextOutA(to->hDC, rcTextOut.left + nLeftOffset, rcTextOut.top, szChar, nBytes);
               }
               rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, 0);
               i+=nCharLen - 1;
@@ -15105,7 +15124,10 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
   {
     if (ae->ptxt->lpCharWidths[wpString[i]])
     {
-      nStringWidth+=ae->ptxt->lpCharWidths[wpString[i]];
+      if (ae->popt->dwOptions & AECO_PAINTFIXED)
+        nStringWidth+=ae->ptxt->nMaxCharWidth;
+      else
+        nStringWidth+=ae->ptxt->lpCharWidths[wpString[i]];
       ++nResult;
     }
     else
@@ -15128,7 +15150,10 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
               {
                 GetTextExtentPoint32W(hDC, wpString + i, 2, &sizeChar);
                 ++i;
-                nStringWidth+=sizeChar.cx;
+                if (ae->popt->dwOptions & AECO_PAINTFIXED)
+                  nStringWidth+=ae->ptxt->nMaxCharWidth;
+                else
+                  nStringWidth+=sizeChar.cx;
                 ++nResult;
               }
             }
@@ -15137,7 +15162,10 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
           {
             GetTextExtentPoint32W(hDC, &wpString[i], 1, &sizeChar);
             ae->ptxt->lpCharWidths[wpString[i]]=(WORD)sizeChar.cx;
-            nStringWidth+=sizeChar.cx;
+            if (ae->popt->dwOptions & AECO_PAINTFIXED)
+              nStringWidth+=ae->ptxt->nMaxCharWidth;
+            else
+              nStringWidth+=sizeChar.cx;
             ++nResult;
           }
         }

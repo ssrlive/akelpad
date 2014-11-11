@@ -460,6 +460,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptionsEx|=AECOE_INVERTVERTWHEEL;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
+  if (moCur.dwPaintOptions & PAINT_PAINTFIXED)
+    dwOptions|=AECO_PAINTFIXED;
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
     dwOptions|=AECO_NONEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
