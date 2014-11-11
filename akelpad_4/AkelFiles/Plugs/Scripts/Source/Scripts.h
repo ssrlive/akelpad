@@ -190,8 +190,6 @@ typedef struct {
 typedef struct _LISTITEM {
   struct _LISTITEM *next;
   struct _LISTITEM *prev;
-  int nCompare;           //For AkelUpdater
-  DWORD dwError;          //For AkelUpdater
   wchar_t *wpScript;
   DWORD dwHotkey;
   wchar_t *wpHotkey;
