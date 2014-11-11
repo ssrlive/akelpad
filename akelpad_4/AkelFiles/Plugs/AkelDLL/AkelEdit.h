@@ -223,7 +223,7 @@
 #define AECO_NODCBUFFER               0x20000000  //Don't use device context output buffering in AE_Paint. Cause edit window flashing.
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-#define AECO_NOPRINTCOLLAPSED         0x80000000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+#define AECO_PAINTFIXED               0x80000000  //Paint all symbols, including proportional fonts, with fixed width (maximum width from "A-Z"). Cannot be combined with AECO_PAINTGROUP.
 
 //AEM_EXSETOPTIONS flags
 #define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
@@ -232,6 +232,7 @@
 #define AECOE_ALTDECINPUT             0x00000008  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECOE_INVERTHORZWHEEL         0x00000010  //Invert mouse horizontal wheel.
 #define AECOE_INVERTVERTWHEEL         0x00000020  //Invert mouse vertical wheel.
+#define AECOE_NOPRINTCOLLAPSED        0x00001000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -571,11 +572,12 @@
 
 //AEM_GETCHARSIZE flags
 #define AECS_HEIGHT          0  //Current font character height including line gap. lParam not used.
-#define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
+#define AECS_AVEWIDTH        1  //Current font latin character average width. lParam not used.
 #define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
 #define AECS_POINTSIZE       3  //Current font point size. lParam not used.
 #define AECS_SPACEWIDTH      4  //Current font space width. lParam not used.
 #define AECS_TABWIDTH        5  //Current font tabulation width. lParam not used.
+#define AECS_MAXWIDTH        6  //Current font latin character maximum width. lParam not used.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
