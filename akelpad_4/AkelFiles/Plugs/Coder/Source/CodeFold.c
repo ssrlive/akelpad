@@ -1938,14 +1938,14 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
     if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, hWnd, NULL))
     {
-      dwOptions=(DWORD)SendMessage(hWnd, AEM_GETOPTIONS, 0, 0);
+      dwOptions=(DWORD)SendMessage(hWnd, AEM_EXGETOPTIONS, 0, 0);
 
-      if (!bNoPrintCollapsed != !(dwOptions & AECO_NOPRINTCOLLAPSED))
+      if (!bNoPrintCollapsed != !(dwOptions & AECOE_NOPRINTCOLLAPSED))
       {
         if (bNoPrintCollapsed)
-          SendMessage(hWnd, AEM_SETOPTIONS, AECOOP_OR, AECO_NOPRINTCOLLAPSED);
+          SendMessage(hWnd, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_NOPRINTCOLLAPSED);
         else
-          SendMessage(hWnd, AEM_SETOPTIONS, AECOOP_XOR, AECO_NOPRINTCOLLAPSED);
+          SendMessage(hWnd, AEM_EXSETOPTIONS, AECOOP_XOR, AECOE_NOPRINTCOLLAPSED);
         lpFoldWindow->bReturnPrintOption=TRUE;
       }
       else lpFoldWindow->bReturnPrintOption=FALSE;
@@ -1960,9 +1960,9 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       if (lpFoldWindow->bReturnPrintOption)
       {
         if (bNoPrintCollapsed)
-          SendMessage(hWnd, AEM_SETOPTIONS, AECOOP_XOR, AECO_NOPRINTCOLLAPSED);
+          SendMessage(hWnd, AEM_EXSETOPTIONS, AECOOP_XOR, AECOE_NOPRINTCOLLAPSED);
         else
-          SendMessage(hWnd, AEM_SETOPTIONS, AECOOP_OR, AECO_NOPRINTCOLLAPSED);
+          SendMessage(hWnd, AEM_EXSETOPTIONS, AECOOP_OR, AECOE_NOPRINTCOLLAPSED);
       }
     }
   }
