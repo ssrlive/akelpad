@@ -18544,30 +18544,28 @@ wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wpp
 
 char* GetCommandLineParamsA()
 {
-  char *lpCmdLine=GetCommandLineA();
+  char *pCmdLine=GetCommandLineA();
 
-  if (*lpCmdLine++ == '\"')
-    while (*lpCmdLine != '\"' && *lpCmdLine != '\0') ++lpCmdLine;
+  if (*pCmdLine == '\"')
+    while (*++pCmdLine != '\"' && *pCmdLine != '\0');
   else
-    while (*lpCmdLine != ' ' && *lpCmdLine != '\0') ++lpCmdLine;
-  if (*lpCmdLine != '\0')
-    while (*++lpCmdLine == ' ');
-
-  return lpCmdLine;
+    while (*++pCmdLine != ' ' && *pCmdLine != '\0');
+  if (*pCmdLine == '\"')
+    while (*++pCmdLine == ' ');
+  return pCmdLine;
 }
 
 wchar_t* GetCommandLineParamsW()
 {
-  wchar_t *lpwCmdLine=GetCommandLineW();
+  wchar_t *wpCmdLine=GetCommandLineW();
 
-  if (*lpwCmdLine++ == L'\"')
-    while (*lpwCmdLine != L'\"' && *lpwCmdLine != L'\0') ++lpwCmdLine;
+  if (*wpCmdLine == L'\"')
+    while (*++wpCmdLine != L'\"' && *wpCmdLine != L'\0');
   else
-    while (*lpwCmdLine != L' ' && *lpwCmdLine != L'\0') ++lpwCmdLine;
-  if (*lpwCmdLine != L'\0')
-    while (*++lpwCmdLine == L' ');
-
-  return lpwCmdLine;
+    while (*++wpCmdLine != L' ' && *wpCmdLine != L'\0');
+  if (*wpCmdLine == L'\"')
+    while (*++wpCmdLine == L' ');
+  return wpCmdLine;
 }
 
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
