@@ -89,23 +89,27 @@
 #define STRID_COPIES           4
 #define STRID_LATEST           5
 #define STRID_CURRENT          6
-#define STRID_MIRROR           7
-#define STRID_LANGUAGE         8
-#define STRID_SELECT           9
-#define STRID_ERRORNOTINLIST   10
-#define STRID_ERRORNOTPLUGIN   11
-#define STRID_ERRORCANTLOAD    12
-#define STRID_ERRORCOUNT       13
-#define STRID_UPDATE           14
-#define STRID_CANCEL           15
+#define STRID_DESCRIPTION      7
+#define STRID_AUTHOR           8
+#define STRID_MIRROR           9
+#define STRID_LANGUAGE         10
+#define STRID_SELECT           11
+#define STRID_ERRORNOTINLIST   12
+#define STRID_ERRORNOTPLUGIN   13
+#define STRID_ERRORCANTLOAD    14
+#define STRID_ERRORCOUNT       15
+#define STRID_UPDATE           16
+#define STRID_CANCEL           17
 
-#define AKDLL_SHOWWINDOW    (WM_USER + 1)
-#define AKDLL_UPDATESTATUS  (WM_USER + 2)
+#define AKDLL_SHOWWINDOW    (WM_USER + 100)
+#define AKDLL_UPDATESTATUS  (WM_USER + 101)
 
 //Plugins list
-#define LVSI_NAME     0
-#define LVSI_LATEST   1
-#define LVSI_CURRENT  2
+#define LVSI_NAME         0
+#define LVSI_LATEST       1
+#define LVSI_CURRENT      2
+#define LVSI_DESCRIPTION  3
+#define LVSI_AUTHOR       4
 
 #define LT_MAIN    1
 #define LT_SCRIPTS 2
@@ -263,6 +267,8 @@ typedef struct _FILEITEM {
   wchar_t wszName[MAX_PATH];
   wchar_t wszCurVer[MAX_PATH];
   wchar_t wszLastVer[MAX_PATH];
+  wchar_t wszDescription[MAX_PATH];
+  wchar_t wszAuthor[MAX_PATH];
   struct _FILEITEM *mainScript;
   struct _FILEITEM *firstCopy;
   struct _FILEITEM *lastCopy;
@@ -473,6 +479,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static LVITEMW lvi;
   static HICON hIconDlg;
+  static BOOL bLockUpdateStatus;
   static DIALOGRESIZE drs[]={{&hWndGroupExe,       DRS_SIZE|DRS_X, 0},
                              {&hWndListExe,        DRS_SIZE|DRS_X, 0},
                              {&hWndMirrorLabel,    DRS_MOVE|DRS_X, 0},
@@ -506,8 +513,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndUpdate=GetDlgItem(hDlg, IDOK);
     hWndScripts=GetDlgItem(hDlg, IDC_SCRIPTS);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
-    SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
-    SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
+    SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
+    SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
 
     xprintfW(wszBuf, L"AkelUpdater %s", wszInputVersion);
     SetWindowTextWide(hDlg, wszBuf);
@@ -566,13 +573,13 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_LATEST);
-    lvc.cx=105;
+    lvc.cx=83;
     lvc.iSubItem=LVSI_LATEST;
     ListView_InsertColumnWide(hWndListDll, LVSI_LATEST, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_CURRENT);
-    lvc.cx=62;
+    lvc.cx=83;
     lvc.iSubItem=LVSI_CURRENT;
     ListView_InsertColumnWide(hWndListDll, LVSI_CURRENT, &lvc);
 
@@ -635,30 +642,33 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == AKDLL_UPDATESTATUS)
   {
-    FILEITEM *lpFileItem;
-    int nAllItemsCount=0;
-    int nSelCount=0;
-    int nErrorsCount=0;
-
-    for (lpFileItem=hFileStack.first; lpFileItem; lpFileItem=lpFileItem->next)
+    if (!bLockUpdateStatus)
     {
-      if (lpFileItem->nCompare == CR_INSTALLEDNEWER ||
-          lpFileItem->dwError == PE_NOTPLUGIN ||
-          lpFileItem->dwError == PE_CANTLOAD)
+      FILEITEM *lpFileItem;
+      int nAllItemsCount=0;
+      int nSelCount=0;
+      int nErrorsCount=0;
+
+      for (lpFileItem=hFileStack.first; lpFileItem; lpFileItem=lpFileItem->next)
       {
-        ++nErrorsCount;
+        if (lpFileItem->nCompare == CR_INSTALLEDNEWER ||
+            lpFileItem->dwError == PE_NOTPLUGIN ||
+            lpFileItem->dwError == PE_CANTLOAD)
+        {
+          ++nErrorsCount;
+        }
+        if (lpFileItem->bChecked)
+          ++nSelCount;
+        ++nAllItemsCount;
       }
-      if (lpFileItem->bChecked)
-        ++nSelCount;
-      ++nAllItemsCount;
+      if (nErrorsCount)
+        xprintfW(wszBuf2, L"(%s: %d)   ", GetLangStringW(wLangSystem, STRID_ERRORCOUNT), nErrorsCount);
+      else
+        wszBuf2[0]=L'\0';
+      xprintfW(wszBuf, L"%s%d / %d", wszBuf2, nSelCount, nAllItemsCount);
+      SetWindowTextWide(hWndListStatusInfo, wszBuf);
+      EnableWindow(hWndUpdate, nSelCount);
     }
-    if (nErrorsCount)
-      xprintfW(wszBuf2, L"(%s: %d)   ", GetLangStringW(wLangSystem, STRID_ERRORCOUNT), nErrorsCount);
-    else
-      wszBuf2[0]=L'\0';
-    xprintfW(wszBuf, L"%s%d / %d", wszBuf2, nSelCount, nAllItemsCount);
-    SetWindowTextWide(hWndListStatusInfo, wszBuf);
-    EnableWindow(hWndUpdate, nSelCount);
   }
   else if (uMsg == WM_COPYDATA)
   {
@@ -692,6 +702,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             else
               lpbSelectAll=&bSelectAllDll;
           }
+          bLockUpdateStatus=TRUE;
 
           for (nIndex=0; nIndex < nMaxIndex; ++nIndex)
           {
@@ -703,6 +714,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ListView_SetItemWide(pnmlv->hdr.hwndFrom, &lvi);
           }
           *lpbSelectAll=!*lpbSelectAll;
+
+          bLockUpdateStatus=FALSE;
+          PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
         }
       }
       else if (pnmlv->hdr.code == LVN_ITEMCHANGING)
@@ -1020,8 +1034,8 @@ void ParseLst(HWND hDlg)
     HMODULE hInstance;
     LISTCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LCF_VISIBLE},
                             {LVI_VERSION,     70,  LCF_VISIBLE|LCF_CONTENT},
-                            //{LVI_DESCRIPTION, 300, LCF_VISIBLE|LCF_CONTENT},
-                            //{LVI_AUTHOR,      70,  LCF_VISIBLE|LCF_CONTENT},
+                            {LVI_DESCRIPTION, 300, LCF_VISIBLE|LCF_CONTENT},
+                            {LVI_AUTHOR,      70,  LCF_VISIBLE|LCF_CONTENT},
                             //{LVI_SITE,        70,  LCF_VISIBLE|LCF_CONTENT},
                             {-1, 0, 0}};
 
@@ -1074,7 +1088,11 @@ void ParseLst(HWND hDlg)
                         lpMainScript->nType=FIT_SCRIPTS;
                         xstrcpynW(lpMainScript->wszLastVer, wszString, MAX_PATH);
                         if (lpScriptItem=StackScriptGet(&hScriptsStack, wszName))
+                        {
                           xstrcpynW(lpMainScript->wszCurVer, lpScriptItem->wpVersion, MAX_PATH);
+                          xstrcpynW(lpMainScript->wszDescription, lpScriptItem->wpDescription, MAX_PATH);
+                          xstrcpynW(lpMainScript->wszAuthor, lpScriptItem->wpAuthor, MAX_PATH);
+                        }
                       }
 
                       //Script's additional files
@@ -1170,6 +1188,25 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
   }
   if (hWndListDll)
   {
+    if (bScripts)
+    {
+      lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+      lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_DESCRIPTION);
+      lvc.cx=460;
+      lvc.iSubItem=LVSI_DESCRIPTION;
+      ListView_InsertColumnWide(hWndListDll, LVSI_DESCRIPTION, &lvc);
+
+      lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+      lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_AUTHOR);
+      lvc.cx=130;
+      lvc.iSubItem=LVSI_AUTHOR;
+      ListView_InsertColumnWide(hWndListDll, LVSI_AUTHOR, &lvc);
+    }
+    else
+    {
+      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVSI_AUTHOR, 0);
+      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVSI_DESCRIPTION, 0);
+    }
     xprintfW(wszBuf, L"%s%s", GetLangStringW(wLangSystem, bScripts?STRID_SCRIPT:STRID_PLUGIN), (!bScripts && !bInputNoCopies)?GetLangStringW(wLangSystem, STRID_COPIES):NULL);
     lvc.mask=LVCF_TEXT;
     lvc.pszText=(wchar_t *)wszBuf;
@@ -1248,6 +1285,21 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     lvi.iItem=nIndex;
     lvi.iSubItem=LVSI_CURRENT;
     ListView_SetItemWide(hWndList, &lvi);
+
+    if (bScripts)
+    {
+      lvi.mask=LVIF_TEXT;
+      lvi.pszText=lpFileItem->wszDescription;
+      lvi.iItem=nIndex;
+      lvi.iSubItem=LVSI_DESCRIPTION;
+      ListView_SetItemWide(hWndList, &lvi);
+
+      lvi.mask=LVIF_TEXT;
+      lvi.pszText=lpFileItem->wszAuthor;
+      lvi.iItem=nIndex;
+      lvi.iSubItem=LVSI_AUTHOR;
+      ListView_SetItemWide(hWndList, &lvi);
+    }
 
     if (lpFileItem->nCompare == CR_INSTALLEDOLDER)
     {
@@ -2122,6 +2174,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041F\x043E\x0441\x043B\x0435\x0434\x043D\x044F\x044F";
     if (nStringID == STRID_CURRENT)
       return L"\x0422\x0435\x043A\x0443\x0449\x0430\x044F";
+    if (nStringID == STRID_DESCRIPTION)
+      return L"\x041E\x043F\x0438\x0441\x0430\x043D\x0438\x0435";
+    if (nStringID == STRID_AUTHOR)
+      return L"\x0410\x0432\x0442\x043E\x0440";
     if (nStringID == STRID_MIRROR)
       return L"\x0417\x0435\x0440\x043A\x0430\x043B\x043E";
     if (nStringID == STRID_LANGUAGE)
@@ -2157,6 +2213,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Latest";
     if (nStringID == STRID_CURRENT)
       return L"Current";
+    if (nStringID == STRID_DESCRIPTION)
+      return L"Description";
+    if (nStringID == STRID_AUTHOR)
+      return L"Author";
     if (nStringID == STRID_MIRROR)
       return L"Mirror";
     if (nStringID == STRID_LANGUAGE)
