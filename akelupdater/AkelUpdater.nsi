@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "4.1"
+!define PRODUCT_VERSION "5.0"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -75,8 +75,6 @@ LangString not_in_folder ${LANG_ENGLISH} 'AkelUpdater should be in AkelFiles fol
 LangString not_in_folder ${LANG_RUSSIAN} 'AkelUpdater должен находиться в папке AkelFiles.'
 LangString download_error ${LANG_ENGLISH} 'Download error'
 LangString download_error ${LANG_RUSSIAN} 'Ошибка скачивания'
-LangString open_file_error ${LANG_ENGLISH} 'File open error.'
-LangString open_file_error ${LANG_RUSSIAN} 'Ошибка открытия файла.'
 LangString nothing_selected ${LANG_ENGLISH} 'Nothing is selected.'
 LangString nothing_selected ${LANG_RUSSIAN} 'Ничего не выбрано.'
 LangString download_finished ${LANG_ENGLISH} 'Updates downloading finished.'
@@ -118,11 +116,8 @@ Var BITSUFFIXSLASH
 Var PLUGINCOUNT
 Var PLUGINCOPY
 Var PLUGINCOPIES
-Var NOSUPPORT64BIT
-Var UPDATENAME
-Var UPDATENEWVER
-Var UPDATECURVER
-Var UPDATECOMPARE
+Var SCRIPTSPACK
+Var WORDCOUNT
 Var LANGEXIST
 Var ZIPMIRROR
 Var ZIPLANG
@@ -130,11 +125,10 @@ Var DLONLY
 Var AUTO
 Var NORUN
 Var NOCOPIES
+Var DLSCRIPTSPROC
 Var ZIPXLANG
 Var UNZIP
 Var NOTEPAD
-Var FILEHANDLE
-Var FILELINE
 Var LASTEXTRACTERROR
 
 Function .onInit
@@ -315,15 +309,11 @@ Function .onInit
     File "/oname=$PLUGINSDIR\AkelUpdaterHelp.exe" "AkelUpdaterHelp.exe"
   ${EndIf}
 
-  ;Fill stack with versions
-  Call FillStack
-  ${If} ${Errors}
-    MessageBox MB_OK|MB_ICONEXCLAMATION '$(open_file_error)'
-    Quit
-  ${EndIf}
+  ;When user press "Scripts" call this address
+  GetFunctionAddress $DLSCRIPTSPROC DownloadScriptsProc
 
   ;Show dialog (Result: $0="ExeVersion|DllCount", $1="Download mirror", $2="Language")
-  AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $EXEBIT $AUTO $NOCOPIES "$PLUGINSDIR\AkelUpdaterHelp.exe"
+  AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $EXEBIT $AUTO $NOCOPIES $PLUGINSDIR $DLSCRIPTSPROC "AkelUpdaterHelp.exe"
   StrCpy $ZIPMIRROR $1
   StrCpy $ZIPLANG $2
 
@@ -413,88 +403,33 @@ Function .onInit
   ${EndIf}
 FunctionEnd
 
-Function FillStack
-  FileOpen $FILEHANDLE "$PLUGINSDIR\versions.lst" r
-  ${If} ${Errors}
-    return
-  ${EndIf}
+Function DownloadScriptsProc
+  Pop $SCRIPTSPACK
 
-  ${Do}
-    FileRead $FILEHANDLE $FILELINE
-    ${If} ${Errors}
-      ${Break}
-    ${EndIf}
-
-    ${If} $EXEBIT == 64
-      ${If} $NOSUPPORT64BIT == ''
-        ${WordFind} "$FILELINE" "$$NoSupport64Bit=" "E+1}" $NOSUPPORT64BIT
-        ${If} ${Errors}
-          StrCpy $NOSUPPORT64BIT ''
-        ${Else}
-          ${Continue}
-        ${EndIf}
-      ${EndIf}
-    ${EndIf}
-
-    ${WordFind2X} "$FILELINE" "$$" "Ver=" "E+1" $UPDATENAME
-    ${If} ${Errors}
-      ${Continue}
-    ${EndIf}
-
-    ${WordFind2X} "$FILELINE" "'" "'" "E+1" $UPDATENEWVER
-    ${If} ${Errors}
-      ${Continue}
-    ${EndIf}
-
-    ${If} $EXEBIT == 64
-      ${WordFind} "$NOSUPPORT64BIT" "$UPDATENAME" "E+1{" $0
-      ${IfNot} ${Errors}
-        ${Continue}
-      ${EndIf}
-    ${EndIf}
-
-    StrCpy $0 $UPDATENAME -1
-    ${If} $0 == "AkelPad"
-      StrCpy $NOTEPAD 0
-      ${GetFileVersion} "$AKELPADDIR\AkelPad.exe" $UPDATECURVER
+  ;Download "KDJ.lst", "Infocatcher.lst" and so on
+  ${If} $SCRIPTSPACK != ""
+    ;Add urls for inetc::get
+    Push "/END"
+    StrCpy $WORDCOUNT 1
+    ${Do}
+      ;KDJ|Infocatcher|Instructor|VladSh
+      ${WordFind} "$SCRIPTSPACK" "|" "E-$WORDCOUNT" $1
       ${If} ${Errors}
-        ${GetFileVersion} "$AKELPADDIR\notepad.exe" $UPDATECURVER
-        IfErrors Empty
-        StrCpy $NOTEPAD 1
+        ${Break}
       ${EndIf}
-
-      StrCpy $0 $UPDATENAME '' -1
-      StrCpy $1 $UPDATECURVER 1
-      ${If} $0 == $1
-        StrCpy $UPDATENAME $UPDATENAME -1
-        StrCpy $UPDATECURVER $UPDATECURVER -2
-      ${Else}
-        ${Continue}
-      ${EndIf}
-    ${Else}
-      ${GetFileVersion} "$AKELPLUGSDIR\$UPDATENAME.dll" $UPDATECURVER
-      StrCpy $UPDATECURVER $UPDATECURVER -4
-      IfErrors Empty
+      Push "$PLUGINSDIR\$1.lst"
+      Push "http://akelpad.sourceforge.net/files/plugs/Scripts/$1.lst"
+      IntOp $WORDCOUNT $WORDCOUNT + 1
+    ${Loop}
+    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                       $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                       /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)"
+    Pop $0
+    ${If} $0 != "OK"
+      MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
+      Quit
     ${EndIf}
-
-    ${VersionCompare} "$UPDATENEWVER" "$UPDATECURVER" $UPDATECOMPARE
-    ;0  Versions are equal
-    ;1  Version1 is newer
-    ;2  Version2 is newer
-    goto PushString
-
-    Empty:
-    StrCpy $UPDATECURVER ""
-    StrCpy $UPDATECOMPARE 3
-
-    PushString:
-    Push $UPDATECOMPARE
-    Push $UPDATECURVER
-    Push $UPDATENEWVER
-    Push $UPDATENAME
-  ${Loop}
-
-  FileClose $FILEHANDLE
+  ${EndIf}
 FunctionEnd
 
 Section
@@ -509,6 +444,12 @@ Section
   SendMessage $0 ${WM_SETTEXT} 1 'STR:$(run)'
   ${If} $NORUN == 0
     SendMessage $0 ${BM_SETCHECK} 1 0
+  ${EndIf}
+
+  ;Detect notepad replacement
+  ${If} ${FileExists} "$AKELPADDIR\notepad.exe"
+  ${AndIfNot} ${FileExists} "$AKELPADDIR\AkelPad.exe"
+    StrCpy $NOTEPAD "1"
   ${EndIf}
 
   ;Extract "AkelPad-x.x.x-bin-lng.zip"

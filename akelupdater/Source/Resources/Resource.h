@@ -7,16 +7,17 @@
 #define IDC_GROUP_EXE                   1101
 #define IDC_LIST_EXE                    1102
 #define IDC_LIST_DLL                    1103
-#define IDC_LIST_INFO                   1104
-#define IDC_SELECTED                    1105
-#define IDC_MIRROR                      1106
-#define IDC_LANGUAGE                    1107
-#define IDC_MIRROR_LABEL                1108
-#define IDC_LANGUAGE_LABEL              1109
+#define IDC_LIST_CHECKINFO              1104
+#define IDC_LIST_STATUSINFO             1105
+#define IDC_MIRROR_LABEL                1106
+#define IDC_MIRROR                      1107
+#define IDC_LANGUAGE_LABEL              1108
+#define IDC_LANGUAGE                    1109
+#define IDC_SCRIPTS                     1110
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

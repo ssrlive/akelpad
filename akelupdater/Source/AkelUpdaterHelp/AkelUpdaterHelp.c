@@ -5,9 +5,9 @@
 
 
 //Include string functions
-#define xatoiA
-#define xstrcpynA
-#define xstrlenA
+#define xatoiW
+#define xstrcpynW
+#define xstrlenW
 #include "..\StrFunc.h"
 
 //Defines
@@ -17,12 +17,12 @@
 #define PE_CANTLOAD          3
 
 typedef struct {
-  char szPluginName[MAX_PATH];
+  wchar_t wszName[MAX_PATH];
   DWORD dwError;
 } DLLINFO;
 
 //Functions prototypes
-int GetCommandLineArgA(char *pCmdLine, char *szArg, int nArgMax, char **pNextArg);
+int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 
 //GCC
 #ifdef __GNUC__
@@ -39,32 +39,31 @@ void _WinMain()
   DLLINFO di;
   HMODULE hInstance;
   HWND hWndSend=NULL;
-  char *pCmdLine=GetCommandLineA();
-  char *pArguments=pCmdLine;
-  char szWindow[MAX_PATH];
-  char szFile[MAX_PATH];
+  wchar_t *wpArguments=GetCommandLineW();
+  wchar_t wszWindow[MAX_PATH];
+  wchar_t wszFile[MAX_PATH];
   void (*DllAkelPadID)(PLUGINVERSION *pv);
 
   di.dwError=PE_CANTLOAD;
 
   //Skip executable
-  GetCommandLineArgA(pArguments, NULL, 0, &pArguments);
+  GetCommandLineArg(wpArguments, NULL, 0, &wpArguments);
 
   //First argument is window handle
-  if (GetCommandLineArgA(pArguments, szWindow, MAX_PATH, &pArguments))
+  if (GetCommandLineArg(wpArguments, wszWindow, MAX_PATH, &wpArguments))
   {
-    hWndSend=(HWND)xatoiA(szWindow, NULL);
+    hWndSend=(HWND)xatoiW(wszWindow, NULL);
 
     //Second argument is dll file to check
-    if (GetCommandLineArgA(pArguments, szFile, MAX_PATH, &pArguments))
+    if (GetCommandLineArg(wpArguments, wszFile, MAX_PATH, &wpArguments))
     {
-      if (hInstance=LoadLibraryA(szFile))
+      if (hInstance=LoadLibraryW(wszFile))
       {
         if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
         {
           DllAkelPadID(&pv);
 
-          xstrcpynA(di.szPluginName, pv.pPluginName, MAX_PATH);
+          MultiByteToWideChar(CP_ACP, 0, pv.pPluginName, -1, di.wszName, MAX_PATH);
           di.dwError=PE_NONE;
         }
         else di.dwError=PE_NOTPLUGIN;
@@ -88,50 +87,50 @@ void _WinMain()
   ExitProcess(0);
 }
 
-int GetCommandLineArgA(char *pCmdLine, char *szArg, int nArgMax, char **pNextArg)
+int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg)
 {
-  char *pCount=pCmdLine;
-  char *pArgSet=szArg;
-  char *pArgSetMax=szArg + nArgMax - 1;
-  char chInitStopChar;
-  char chCurStopChar;
+  const wchar_t *wpCount=wpCmdLine;
+  wchar_t *wpArgSet=wszArg;
+  wchar_t *wpArgSetMax=wszArg + nArgMax - 1;
+  wchar_t wchInitStopChar;
+  wchar_t wchCurStopChar;
 
-  while (*pCount == ' ') ++pCount;
+  while (*wpCount == L' ') ++wpCount;
 
-  if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-    chInitStopChar=*pCount++;
+  if (*wpCount == L'\"' || *wpCount == L'\'' || *wpCount == L'`')
+    wchInitStopChar=*wpCount++;
   else
-    chInitStopChar=' ';
-  chCurStopChar=chInitStopChar;
+    wchInitStopChar=L' ';
+  wchCurStopChar=wchInitStopChar;
 
-  for (; *pCount; ++pCount)
+  for (; *wpCount; ++wpCount)
   {
-    if (chCurStopChar == ' ')
+    if (wchCurStopChar == L' ')
     {
-      if (*pCount == ' ')
+      if (*wpCount == L' ')
         break;
-      if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-        chCurStopChar=*pCount;
+      if (*wpCount == L'\"' || *wpCount == L'\'' || *wpCount == L'`')
+        wchCurStopChar=*wpCount;
     }
-    else if (chCurStopChar == *pCount)
+    else if (wchCurStopChar == *wpCount)
     {
-      if (chCurStopChar == chInitStopChar)
+      if (wchCurStopChar == wchInitStopChar)
         break;
-      chCurStopChar=' ';
+      wchCurStopChar=L' ';
     }
 
-    if (pArgSet < pArgSetMax)
+    if (wpArgSet < wpArgSetMax)
     {
-      if (szArg) *pArgSet=*pCount;
-      ++pArgSet;
+      if (wszArg) *wpArgSet=*wpCount;
+      ++wpArgSet;
     }
   }
-  if (szArg) *pArgSet='\0';
+  if (wszArg) *wpArgSet=L'\0';
 
-  if (pNextArg)
+  if (wpNextArg)
   {
-    if (*pCount) ++pCount;
-    for (*pNextArg=pCount; **pNextArg == ' '; ++*pNextArg);
+    if (*wpCount) ++wpCount;
+    for (*wpNextArg=wpCount; **wpNextArg == L' '; ++*wpNextArg);
   }
-  return (int)(pArgSet - szArg);
+  return (int)(wpArgSet - wszArg);
 }
