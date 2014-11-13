@@ -293,7 +293,8 @@ Function .onInit
 
   ;Download "versions.lst"
   ${If} $DEBUG == 1
-    CopyFiles /SILENT "$AKELPADDIR\*.lst" "$PLUGINSDIR"
+    CopyFiles /SILENT "$AKELPADDIR\versions.lst" "$PLUGINSDIR"
+    CopyFiles /SILENT "$AKELPADDIR\*.ini" "$PLUGINSDIR"
   ${Else}
     inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
                $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
@@ -437,7 +438,7 @@ Function DownloadScriptsProc
     ${EndIf}
   ${EndIf}
 
-  ;Download "KDJ.lst" (or "KDJ.zip"), "Infocatcher.lst" (or "Infocatcher.zip") and so on
+  ;Download "KDJ.ini" (or "KDJ.zip"), "Infocatcher.ini" (or "Infocatcher.zip") and so on
   ${If} $SCRIPTSPACK != ""
     ;Add urls for inetc::get
     Push "/END"
