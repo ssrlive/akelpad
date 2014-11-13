@@ -75,8 +75,6 @@ LangString not_in_folder ${LANG_ENGLISH} 'AkelUpdater should be in AkelFiles fol
 LangString not_in_folder ${LANG_RUSSIAN} 'AkelUpdater должен находиться в папке AkelFiles.'
 LangString download_error ${LANG_ENGLISH} 'Download error'
 LangString download_error ${LANG_RUSSIAN} 'Ошибка скачивания'
-LangString nothing_selected ${LANG_ENGLISH} 'Nothing is selected.'
-LangString nothing_selected ${LANG_RUSSIAN} 'Ничего не выбрано.'
 LangString download_finished ${LANG_ENGLISH} 'Updates downloading finished.'
 LangString download_finished ${LANG_RUSSIAN} 'Скачивание обновлений закончено.'
 LangString done ${LANG_ENGLISH} 'Done'
@@ -85,6 +83,8 @@ LangString language ${LANG_RUSSIAN} 'языковой модуль'
 LangString language ${LANG_ENGLISH} 'language module'
 LangString plugin ${LANG_RUSSIAN} 'плагин'
 LangString plugin ${LANG_ENGLISH} 'plugin'
+LangString script ${LANG_RUSSIAN} 'скрипт'
+LangString script ${LANG_ENGLISH} 'script'
 LangString error ${LANG_ENGLISH} 'Error'
 LangString error ${LANG_RUSSIAN} 'Ошибка'
 LangString close ${LANG_ENGLISH} '&Close'
@@ -107,7 +107,11 @@ Var AKELPADDIR
 Var AKELFILESDIR
 Var AKELLANGSDIR
 Var AKELPLUGSDIR
-Var AKELPLUGIN
+Var AKELSCRIPTSDIR
+Var LISTITEM
+Var ITEMTYPE
+Var ITEMPACK
+Var ITEMNAME
 Var EXEVERSIONFULL
 Var EXEVERSIONMAJOR
 Var EXEBIT
@@ -117,6 +121,7 @@ Var PLUGINCOUNT
 Var PLUGINCOPY
 Var PLUGINCOPIES
 Var SCRIPTSPACK
+Var EXTENSION
 Var WORDCOUNT
 Var LANGEXIST
 Var ZIPMIRROR
@@ -180,6 +185,7 @@ Function .onInit
   StrCpy $AKELFILESDIR $EXEDIR
   StrCpy $AKELLANGSDIR "$AKELFILESDIR\Langs"
   StrCpy $AKELPLUGSDIR "$AKELFILESDIR\Plugs"
+  StrCpy $AKELSCRIPTSDIR "$AKELPLUGSDIR\Scripts"
   ${GetParent} $EXEDIR $AKELPADDIR
   ${GetFileName} $EXEDIR $0
   ${If} $0 != "AkelFiles"
@@ -314,13 +320,12 @@ Function .onInit
 
   ;Show dialog (Result: $0="ExeVersion|DllCount", $1="Download mirror", $2="Language")
   AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $EXEBIT $AUTO $NOCOPIES $PLUGINSDIR $DLSCRIPTSPROC "AkelUpdaterHelp.exe"
-  StrCpy $ZIPMIRROR $1
-  StrCpy $ZIPLANG $2
-
-  ${If} $0 == "0|0"
-    MessageBox MB_OK|MB_ICONEXCLAMATION '$(nothing_selected)'
+  Pop $R0
+  ${If} $R0 == 0
     Quit
   ${EndIf}
+  StrCpy $ZIPMIRROR $1
+  StrCpy $ZIPLANG $2
 
   ${WordFind} "$0" "|" "E+1" $EXEVERSIONFULL
   ${If} ${Errors}
@@ -405,8 +410,18 @@ FunctionEnd
 
 Function DownloadScriptsProc
   Pop $SCRIPTSPACK
+  Pop $EXTENSION
 
-  ;Download "KDJ.lst", "Infocatcher.lst" and so on
+  ${If} $EXTENSION == "zip"
+    ;Create save to directory
+    CreateDirectory $SAVEDIR
+    ${IfNot} ${FileExists} "$SAVEDIR\*.*"
+      MessageBox MB_OK|MB_ICONEXCLAMATION '$(dir_not_exist): "$SAVEDIR"'
+      Quit
+    ${EndIf}
+  ${EndIf}
+
+  ;Download "KDJ.lst" (or "KDJ.zip"), "Infocatcher.lst" (or "Infocatcher.zip") and so on
   ${If} $SCRIPTSPACK != ""
     ;Add urls for inetc::get
     Push "/END"
@@ -417,8 +432,12 @@ Function DownloadScriptsProc
       ${If} ${Errors}
         ${Break}
       ${EndIf}
-      Push "$PLUGINSDIR\$1.lst"
-      Push "http://akelpad.sourceforge.net/files/plugs/Scripts/$1.lst"
+      ${If} $EXTENSION == "zip"
+        Push "$SAVEDIR\$1.$EXTENSION"
+      ${Else}
+        Push "$PLUGINSDIR\$1.$EXTENSION"
+      ${EndIf}
+      Push "http://akelpad.sourceforge.net/files/plugs/Scripts/$1.$EXTENSION"
       IntOp $WORDCOUNT $WORDCOUNT + 1
     ${Loop}
     inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
@@ -496,47 +515,64 @@ Section
 
   ;Get AkelUpdater::List items
   ${Do}
-    Pop $AKELPLUGIN
+    Pop $LISTITEM
     ${If} ${Errors}
       ${Break}
     ${EndIf}
 
-    ${WordFind} "$AKELPLUGIN" "|" "E+1}" $PLUGINCOPIES
+    ${WordFind} "$LISTITEM" "|" "+1" $ITEMTYPE
+    ${WordFind} "$LISTITEM" "|" "+2" $ITEMPACK
+    ${WordFind} "$LISTITEM" "|" "+3" $ITEMNAME
+    ${WordFind} "$LISTITEM" "|" "E+3}" $PLUGINCOPIES
     ${If} ${Errors}
       StrCpy $PLUGINCOPIES ''
     ${EndIf}
-    ${WordFind} "$AKELPLUGIN" "|" "+1{" $AKELPLUGIN
 
-    ;Update plugin
-    Push /END
-    AkelUpdater::ParseAndPush "$UNZIP"
-    IfFileExists "$AKELFILESDIR\Docs\$AKELPLUGIN-$ZIPXLANG.txt" +2
-    Push "/x=Docs\$AKELPLUGIN-$ZIPXLANG.txt"
-    nsUnzip::Extract "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"
-    Pop $0
-    ${If} $0 != 0
-      DetailPrint "$(error) ($0): $AKELPLUGIN $(plugin)"
-      StrCpy $LASTEXTRACTERROR $0
-      ${Continue}
-    ${Else}
-      DetailPrint "$(done): $AKELPLUGIN $(plugin)"
+    ${If} $ITEMTYPE == 3
+      ;Update script
+      Push /END
+      AkelUpdater::ParseAndPush "$UNZIP"
+      nsUnzip::Extract "$SAVEDIR\$ITEMPACK.zip" "/d=$AKELSCRIPTSDIR" /C "$ITEMNAME"
+      Pop $0
+      ${If} $0 != 0
+        DetailPrint "$(error) ($0): $ITEMNAME $(script)"
+        StrCpy $LASTEXTRACTERROR $0
+        ${Continue}
+      ${Else}
+        DetailPrint "$(done): $ITEMNAME $(script)"
+      ${EndIf}
+    ${ElseIf} $ITEMTYPE == 2
+      ;Update plugin
+      Push /END
+      AkelUpdater::ParseAndPush "$UNZIP"
+      IfFileExists "$AKELFILESDIR\Docs\$ITEMNAME-$ZIPXLANG.txt" +2
+      Push "/x=Docs\$ITEMNAME-$ZIPXLANG.txt"
+      nsUnzip::Extract "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" "/d=$AKELFILESDIR" /C "Docs\$ITEMNAME*" "Plugs\$ITEMNAME*"
+      Pop $0
+      ${If} $0 != 0
+        DetailPrint "$(error) ($0): $ITEMNAME $(plugin)"
+        StrCpy $LASTEXTRACTERROR $0
+        ${Continue}
+      ${Else}
+        DetailPrint "$(done): $ITEMNAME $(plugin)"
+      ${EndIf}
+  
+      ;Update plugin copies
+      ${Do}
+        ${If} $PLUGINCOPIES == ''
+          ${Break}
+        ${EndIf}
+        ${WordFind} "$PLUGINCOPIES" "|" "+1{" $PLUGINCOPY
+        ${WordFind} "$PLUGINCOPIES" "|" "E+1}" $PLUGINCOPIES
+        ${If} ${Errors}
+          StrCpy $PLUGINCOPIES ''
+        ${EndIf}
+        SetDetailsPrint textonly
+        CopyFiles /SILENT "$AKELPLUGSDIR\$ITEMNAME.dll" "$AKELPLUGSDIR\$PLUGINCOPY.dll"
+        SetDetailsPrint both
+        DetailPrint "$(done): $PLUGINCOPY ($ITEMNAME $(plugin))"
+      ${Loop}
     ${EndIf}
-
-    ;Update plugin copies
-    ${Do}
-      ${If} $PLUGINCOPIES == ''
-        ${Break}
-      ${EndIf}
-      ${WordFind} "$PLUGINCOPIES" "|" "+1{" $PLUGINCOPY
-      ${WordFind} "$PLUGINCOPIES" "|" "E+1}" $PLUGINCOPIES
-      ${If} ${Errors}
-        StrCpy $PLUGINCOPIES ''
-      ${EndIf}
-      SetDetailsPrint textonly
-      CopyFiles /SILENT "$AKELPLUGSDIR\$AKELPLUGIN.dll" "$AKELPLUGSDIR\$PLUGINCOPY.dll"
-      SetDetailsPrint both
-      DetailPrint "$(done): $PLUGINCOPY ($AKELPLUGIN $(plugin))"
-    ${Loop}
   ${Loop}
 
   ${If} $AUTO == 1
