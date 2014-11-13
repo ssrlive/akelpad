@@ -85,6 +85,8 @@ LangString plugin ${LANG_RUSSIAN} 'плагин'
 LangString plugin ${LANG_ENGLISH} 'plugin'
 LangString script ${LANG_RUSSIAN} 'скрипт'
 LangString script ${LANG_ENGLISH} 'script'
+LangString for_script ${LANG_RUSSIAN} 'для скрипта'
+LangString for_script ${LANG_ENGLISH} 'for script'
 LangString error ${LANG_ENGLISH} 'Error'
 LangString error ${LANG_RUSSIAN} 'Ошибка'
 LangString close ${LANG_ENGLISH} '&Close'
@@ -135,6 +137,7 @@ Var ZIPXLANG
 Var UNZIP
 Var NOTEPAD
 Var LASTEXTRACTERROR
+Var DEBUG
 
 Function .onInit
   #Help message
@@ -194,7 +197,12 @@ Function .onInit
   ${EndIf}
 
   InitPluginsDir
-  StrCpy $SAVEDIR $PLUGINSDIR
+  StrCpy $DEBUG 0
+  ${If} $DEBUG == 1
+    StrCpy $SAVEDIR $AKELPADDIR
+  ${Else}
+    StrCpy $SAVEDIR $PLUGINSDIR
+  ${EndIf}
   StrCpy $EXEBIT 0
   StrCpy $ZIPLANG $(lng)
   StrCpy $DLONLY 0
@@ -284,15 +292,18 @@ Function .onInit
   ${EndIf}
 
   ;Download "versions.lst"
-  ;File "/oname=$PLUGINSDIR\versions.lst" "versions.lst"
-  inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-             $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-             /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-             "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
-  Pop $0
-  ${If} $0 != "OK"
-    MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
-    Quit
+  ${If} $DEBUG == 1
+    CopyFiles /SILENT "$AKELPADDIR\*.lst" "$PLUGINSDIR"
+  ${Else}
+    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+               $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+               /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+               "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
+    Pop $0
+    ${If} $0 != "OK"
+      MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
+      Quit
+    ${EndIf}
   ${EndIf}
 
   ;Initialize AkelUpdater.dll variables
@@ -360,44 +371,45 @@ Function .onInit
 
   ;Download "AkelPad-x.x.x-bin-lng.zip"
   ${If} $EXEVERSIONFULL != 0
-    ;File "/oname=$SAVEDIR\AkelPad-4.2.1-bin-eng.zip" "AkelPad-4.2.1-bin-eng.zip"
-    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-               $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-               /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-               "http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$EXEVERSIONMAJOR/$EXEVERSIONFULL$BITSUFFIXSLASH/AkelPad-$EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" /end
-    Pop $0
-    ${If} $0 != "OK"
-      MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
-      Quit
-    ${EndIf}
-
-    ;Download "LangsPack.zip"
-    ${If} ${FileExists} "$AKELLANGSDIR\*.dll"
-      StrCpy $LANGEXIST "true"
-      ;File "/oname=$SAVEDIR\LangsPack.zip" "LangsPack.zip"
+    ${If} $DEBUG != 1
       inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
                  $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
                  /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-                 "http://akelpad.sourceforge.net/files/langs/LangsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" /end
+                 "http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$EXEVERSIONMAJOR/$EXEVERSIONFULL$BITSUFFIXSLASH/AkelPad-$EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" /end
       Pop $0
       ${If} $0 != "OK"
         MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
         Quit
+      ${EndIf}
+
+      ;Download "LangsPack.zip"
+      ${If} ${FileExists} "$AKELLANGSDIR\*.dll"
+        StrCpy $LANGEXIST "true"
+        inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                   $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                   /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                   "http://akelpad.sourceforge.net/files/langs/LangsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" /end
+        Pop $0
+        ${If} $0 != "OK"
+          MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
+          Quit
+        ${EndIf}
       ${EndIf}
     ${EndIf}
   ${EndIf}
 
   ;Download "PlugsPack.zip"
   ${If} $PLUGINCOUNT != 0
-    ;File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
-    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-               $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-               /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-               "http://akelpad.sourceforge.net/files/plugs/PlugsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" /end
-    Pop $0
-    ${If} $0 != "OK"
-      MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
-      Quit
+    ${If} $DEBUG != 1
+      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                 "http://akelpad.sourceforge.net/files/plugs/PlugsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" /end
+      Pop $0
+      ${If} $0 != "OK"
+        MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
+        Quit
+      ${EndIf}
     ${EndIf}
   ${EndIf}
 
@@ -411,6 +423,10 @@ FunctionEnd
 Function DownloadScriptsProc
   Pop $SCRIPTSPACK
   Pop $EXTENSION
+
+  ${If} $DEBUG == 1
+    Return
+  ${EndIf}
 
   ${If} $EXTENSION == "zip"
     ;Create save to directory
@@ -529,17 +545,23 @@ Section
     ${EndIf}
 
     ${If} $ITEMTYPE == 3
+    ${OrIf} $ITEMTYPE == 4
       ;Update script
+      ${If} $ITEMTYPE == 3
+        StrCpy $R0 $(script)
+      ${Elseif} $ITEMTYPE == 4
+        StrCpy $R0 $(for_script)
+      ${EndIf}
       Push /END
       AkelUpdater::ParseAndPush "$UNZIP"
       nsUnzip::Extract "$SAVEDIR\$ITEMPACK.zip" "/d=$AKELSCRIPTSDIR" /C "$ITEMNAME"
       Pop $0
       ${If} $0 != 0
-        DetailPrint "$(error) ($0): $ITEMNAME $(script)"
+        DetailPrint "$(error) ($0): $ITEMNAME $R0"
         StrCpy $LASTEXTRACTERROR $0
         ${Continue}
       ${Else}
-        DetailPrint "$(done): $ITEMNAME $(script)"
+        DetailPrint "$(done): $ITEMNAME $R0"
       ${EndIf}
     ${ElseIf} $ITEMTYPE == 2
       ;Update plugin
@@ -556,7 +578,7 @@ Section
       ${Else}
         DetailPrint "$(done): $ITEMNAME $(plugin)"
       ${EndIf}
-  
+
       ;Update plugin copies
       ${Do}
         ${If} $PLUGINCOPIES == ''
