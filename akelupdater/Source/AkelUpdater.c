@@ -204,9 +204,10 @@ __INST_LAST
 };
 
 //FILEITEM.nType
-#define FIT_AKELPAD 1
-#define FIT_PLUGS   2
-#define FIT_SCRIPTS 3
+#define FIT_AKELPAD   1
+#define FIT_PLUGIN    2
+#define FIT_SCRIPT    3
+#define FIT_FORSCRIPT 4
 
 //Scripts list columns
 #define LVI_SCRIPT        0
@@ -872,13 +873,13 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpFileItem->nChecked > 0)
         {
-          if (lpFileItem->nType == FIT_SCRIPTS)
+          if (lpFileItem->nType == FIT_SCRIPT)
           {
             //Get checked pack
             if (!(lpPackItem=StackFileGet(&hPackStack, lpFileItem->wszPack)))
               lpPackItem=StackFileInsert(&hPackStack, lpFileItem->wszPack);
           }
-          else if (lpFileItem->nType == FIT_PLUGS)
+          else if (lpFileItem->nType == FIT_PLUGIN)
           {
             ++nCountDLL;
           }
@@ -1052,13 +1053,13 @@ void ParseLst(HWND hDlg)
                       }
                       else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
                       {
-                        lpFileItem->nType=FIT_PLUGS;
+                        lpFileItem->nType=FIT_PLUGIN;
                         lpFileItemScripts=lpFileItem;
                         xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                       }
                       else
                       {
-                        lpFileItem->nType=FIT_PLUGS;
+                        lpFileItem->nType=FIT_PLUGIN;
                         xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                       }
                     }
@@ -1139,7 +1140,7 @@ void ParseLst(HWND hDlg)
                         lpMainScript=StackFileInsert(&hFileStack, wszName);
                       if (lpMainScript)
                       {
-                        lpMainScript->nType=FIT_SCRIPTS;
+                        lpMainScript->nType=FIT_SCRIPT;
                         xstrcpynW(lpMainScript->wszLastVer, wszString, MAX_PATH);
                         xstrcpynW(lpMainScript->wszPack, wszPack, MAX_PATH);
 
@@ -1159,7 +1160,11 @@ void ParseLst(HWND hDlg)
                           if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
                             lpFileItem=StackFileInsert(&hFileStack, wszName);
                           if (lpFileItem)
+                          {
+                            lpFileItem->nType=FIT_FORSCRIPT;
                             lpFileItem->mainScript=lpMainScript;
+                            xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
+                          }
                           if (!GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
                             break;
                         }
@@ -1288,8 +1293,8 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     {
       if (!hWndListDll) continue;
       if (lpFileItem->mainScript) continue;
-      if ((lpFileItem->nType == FIT_SCRIPTS && !bScripts) ||
-          (lpFileItem->nType == FIT_PLUGS && bScripts))
+      if ((lpFileItem->nType == FIT_SCRIPT && !bScripts) ||
+          (lpFileItem->nType == FIT_PLUGIN && bScripts))
           continue;
       hWndList=hWndListDll;
     }
@@ -1689,7 +1694,7 @@ void StackFilesFill(STACKFILEITEM *hStack)
 
         if (lpFileItem)
         {
-          lpFileItem->nType=FIT_PLUGS;
+          lpFileItem->nType=FIT_PLUGIN;
 
           //Is copy?
           GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
