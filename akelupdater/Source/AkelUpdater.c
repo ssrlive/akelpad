@@ -1732,6 +1732,7 @@ void StackFilesFill(STACKFILEITEM *hStack)
             xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName,  GetLangStringW(wLangSystem, STRID_ERRORCANTLOAD));
           else
             xprintfW(lpFileItem->wszError, L"%s", lpFileItem->wszName);
+          lpFileItem->nType=FIT_PLUGIN;
           lpFileItem->dwError=diGlobal.dwError;
         }
       }
