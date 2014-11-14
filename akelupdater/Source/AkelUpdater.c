@@ -1215,9 +1215,12 @@ void CompareItems()
     if (!lpFileItem->wszLastVer[0])
     {
       //Unofficial file
-      xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangSystem, STRID_ERRORNOTINLIST));
-      lpFileItem->dwError=PE_NOTINLIST;
-      lpFileItem->nChecked=0;
+      if (!lpFileItem->dwError)
+      {
+        xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangSystem, STRID_ERRORNOTINLIST));
+        lpFileItem->dwError=PE_NOTINLIST;
+        lpFileItem->nChecked=0;
+      }
     }
     else
     {
