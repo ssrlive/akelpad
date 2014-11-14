@@ -1128,7 +1128,7 @@ void ParseLst(HWND hDlg)
                 wpLineEnd=wpCount;
                 while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && wpLineEnd < wpMaxContent) ++wpLineEnd;
 
-                if (wpCount < wpLineEnd)
+                if (wpCount < wpLineEnd && *wpCount != L';')
                 {
                   if (*wpCount == L'[' && *(wpLineEnd - 1) == L']')
                   {
