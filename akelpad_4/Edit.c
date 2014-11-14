@@ -461,7 +461,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
   if (moCur.dwPaintOptions & PAINT_PAINTFIXED)
-    dwOptions|=AECO_PAINTFIXED;
+      SendMessage(lpFrame->ei.hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)-AECS_MAXWIDTH, 0);
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
     dwOptions|=AECO_NONEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
