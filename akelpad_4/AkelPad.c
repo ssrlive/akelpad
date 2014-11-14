@@ -792,6 +792,7 @@ void _WinMain()
   //moInit.nStatusUserFormatLen=0;
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
+  //moInit.nFixedCharWidth=0;
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
@@ -2344,6 +2345,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return moCur.dwWordBreakCustom;
         if (wParam == MI_PAINTOPTIONS)
           return moCur.dwPaintOptions;
+        if (wParam == MI_FIXEDCHARWIDTH)
+          return moCur.nFixedCharWidth;
         if (wParam == MI_EDITSTYLE)
           return moCur.dwEditStyle;
         if (wParam == MI_RICHEDITCLASS)
@@ -2592,6 +2595,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_PAINTOPTIONS)
         return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+      if (wParam == MIS_FIXEDCHARWIDTH)
+        return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_EDITSTYLE)
         return SetOption(lParam, &moCur.dwEditStyle, sizeof(DWORD), INI_DWORD);
       if (wParam == MIS_RICHEDITCLASS)

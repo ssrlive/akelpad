@@ -9279,7 +9279,7 @@ int AE_GetFixedCharWidth(AKELEDIT *ae)
     if (ae->ptxt->nInitFixedCharWidth == -AECS_MAXWIDTH)
       return ae->ptxt->nMaxCharWidth;
   }
-  else ae->ptxt->nInitFixedCharWidth;
+  else return ae->ptxt->nInitFixedCharWidth;
 
   return 0;
 }

@@ -4926,7 +4926,7 @@ Example:
 AEM_FIXEDCHARWIDTH
 __________________
 
-Set fixed character width. All symbols, including proportional fonts, will be paint with this width.
+Set fixed character width. All symbols, including proportional fonts, will be paint in this width.
 
 (int)wParam  == character width or one of the following values:
                 -AECS_AVEWIDTH   font latin character average width.
