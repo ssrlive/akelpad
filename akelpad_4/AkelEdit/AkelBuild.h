@@ -494,6 +494,9 @@ typedef struct {
   int nSpaceCharWidth;
   int nTabWidth;
   int nTabStop;
+  int nInitFixedCharWidth;
+  int nFixedCharWidth;
+  int nFixedTabWidth;
   WORD *lpCharWidths;
   AELINEINDEX liMaxWidthLine;
 
@@ -871,6 +874,7 @@ void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELIN
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage, int *lpdwCharInLine);
 void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw);
 void AE_GetFontCharWidth(AKELEDIT *ae, HDC hDC);
+int AE_GetFixedCharWidth(AKELEDIT *ae);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, INT_PTR nSelStartX, INT_PTR nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);

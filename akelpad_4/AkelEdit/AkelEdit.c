@@ -1168,8 +1168,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nCharHeight;
       if (wParam == AECS_AVEWIDTH)
         return ae->ptxt->nAveCharWidth;
-      if (wParam == AECS_MAXWIDTH)
-        return ae->ptxt->nMaxCharWidth;
       if (wParam == AECS_INDEXWIDTH)
       {
         AECHARINDEX *ciChar=(AECHARINDEX *)lParam;
@@ -1180,9 +1178,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (ciChar->lpLine->wpLine[ciChar->nCharInLine] == L'\t')
           {
             AE_GetPosFromChar(ae, ciChar, &ptGlobal, NULL);
-            return ae->ptxt->nTabWidth - ptGlobal.x % ae->ptxt->nTabWidth;
+            return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, ptGlobal.x);
           }
-          else return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, 0);
+          return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, 0);
         }
         return 0;
       }
@@ -1192,6 +1190,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nSpaceCharWidth;
       if (wParam == AECS_TABWIDTH)
         return ae->ptxt->nTabWidth;
+      if (wParam == AECS_MAXWIDTH)
+        return ae->ptxt->nMaxCharWidth;
+      if (wParam == AECS_FIXEDCHARWIDTH)
+        return ae->ptxt->nInitFixedCharWidth;
+      if (wParam == AECS_FIXEDTABWIDTH)
+        return ae->ptxt->nFixedTabWidth;
       return 0;
     }
     if (uMsg == AEM_GETSTRWIDTH)
@@ -1444,6 +1448,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         ae->ptxt->nTabStop=nTabStop;
         ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
+        if (ae->ptxt->nFixedCharWidth)
+          ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;
 
         AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
         ae->ptCaret.x=0;
@@ -1725,6 +1731,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         sco->nOffsetY=ae->popt->nCaretScrollOffsetY;
       }
       return 0;
+    }
+    if (uMsg == AEM_FIXEDCHARWIDTH)
+    {
+      int nPrevWidth=ae->ptxt->nInitFixedCharWidth;
+
+      ae->ptxt->nInitFixedCharWidth=wParam;
+      ae->ptxt->nFixedCharWidth=AE_GetFixedCharWidth(ae);
+      ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;
+      return nPrevWidth;
     }
 
     //Draw
@@ -9248,7 +9263,25 @@ void AE_GetFontCharWidth(AKELEDIT *ae, HDC hDC)
   AE_GetTextExtentPoint32(ae, L" ", 1, &sizeWidth);
   ae->ptxt->nSpaceCharWidth=sizeWidth.cx;
   ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
+  ae->ptxt->nFixedCharWidth=AE_GetFixedCharWidth(ae);
+  ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;
   ae->hDC=hTempDC;
+}
+
+int AE_GetFixedCharWidth(AKELEDIT *ae)
+{
+  if (ae->ptxt->nInitFixedCharWidth < 0)
+  {
+    if (ae->ptxt->nInitFixedCharWidth == -AECS_AVEWIDTH)
+      return ae->ptxt->nAveCharWidth;
+    if (ae->ptxt->nInitFixedCharWidth == -AECS_SPACEWIDTH)
+      return ae->ptxt->nSpaceCharWidth;
+    if (ae->ptxt->nInitFixedCharWidth == -AECS_MAXWIDTH)
+      return ae->ptxt->nMaxCharWidth;
+  }
+  else ae->ptxt->nInitFixedCharWidth;
+
+  return 0;
 }
 
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
@@ -12802,9 +12835,18 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
-    prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
-    prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
-    prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+    if (ae->ptxt->nFixedCharWidth)
+    {
+      prn->nAveCharWidth=ph->aePrint.ptxt->nFixedCharWidth;
+      prn->nSpaceCharWidth=ph->aePrint.ptxt->nFixedCharWidth;
+      prn->nTabWidth=ph->aePrint.ptxt->nFixedTabWidth;
+    }
+    else
+    {
+      prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
+      prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
+      prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+    }
 
     //Return font
     if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
@@ -12875,9 +12917,18 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
-    prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
-    prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
-    prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+    if (ae->ptxt->nFixedCharWidth)
+    {
+      prn->nAveCharWidth=ph->aePrint.ptxt->nFixedCharWidth;
+      prn->nSpaceCharWidth=ph->aePrint.ptxt->nFixedCharWidth;
+      prn->nTabWidth=ph->aePrint.ptxt->nFixedTabWidth;
+    }
+    else
+    {
+      prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
+      prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
+      prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+    }
 
     //Return font
     if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
@@ -13575,7 +13626,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                   {
                     rcSpace.left=rcSpace.right;
                     rcSpace.top=(int)to.ptFirstCharInLine.y;
-                    rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * ae->ptxt->nSpaceCharWidth;
+                    rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelStart - to.ciDrawLine.lpLine->nLineLen) * (ae->ptxt->nFixedCharWidth?ae->ptxt->nFixedCharWidth:ae->ptxt->nSpaceCharWidth);
                     rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                     AE_FillRectWithBorder(ae, to.hDC, &rcSpace, hbrDefaultBk, hbrBorderTop, hbrBorderBottom);
                   }
@@ -13585,7 +13636,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
                     {
                       rcSpace.left=rcSpace.right;
                       rcSpace.top=(int)to.ptFirstCharInLine.y;
-                      rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
+                      rcSpace.right=rcSpace.left + (to.ciDrawLine.lpLine->nSelEnd - max(to.ciDrawLine.lpLine->nSelStart, to.ciDrawLine.lpLine->nLineLen)) * (ae->ptxt->nFixedCharWidth?ae->ptxt->nFixedCharWidth:ae->ptxt->nSpaceCharWidth);
                       rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
                       AE_FillRect(ae, to.hDC, &rcSpace, hbrSelBk);
                     }
@@ -13929,13 +13980,13 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
           {
             if (nCharLen=AEC_CopyChar(NULL, nTextLen - i, wpText + i))
             {
-              if (ae->popt->dwOptions & AECO_PAINTFIXED)
+              if (ae->ptxt->nFixedCharWidth)
               {
                 if (nCharLen > 1)
                   GetTextExtentPoint32W(to->hDC, wpText + i, nCharLen, &sizeChar);
                 else
-                  sizeChar.cx=ae->ptxt->nMaxCharWidth;
-                nLeftOffset=sizeChar.cx / 2 - ae->ptxt->lpCharWidths[wpText[i]] / 2;
+                  sizeChar.cx=ae->ptxt->lpCharWidths[wpText[i]];
+                nLeftOffset=ae->ptxt->nFixedCharWidth / 2 - sizeChar.cx / 2;
               }
               else nLeftOffset=0;
 
@@ -15124,8 +15175,8 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
   {
     if (ae->ptxt->lpCharWidths[wpString[i]])
     {
-      if (ae->popt->dwOptions & AECO_PAINTFIXED)
-        nStringWidth+=ae->ptxt->nMaxCharWidth;
+      if (ae->ptxt->nFixedCharWidth)
+        nStringWidth+=ae->ptxt->nFixedCharWidth;
       else
         nStringWidth+=ae->ptxt->lpCharWidths[wpString[i]];
       ++nResult;
@@ -15148,12 +15199,14 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
             {
               if (AE_IsHighSurrogate(wpString[i]) && AE_IsLowSurrogate(wpString[i + 1]))
               {
-                GetTextExtentPoint32W(hDC, wpString + i, 2, &sizeChar);
-                ++i;
-                if (ae->popt->dwOptions & AECO_PAINTFIXED)
-                  nStringWidth+=ae->ptxt->nMaxCharWidth;
+                if (ae->ptxt->nFixedCharWidth)
+                  nStringWidth+=ae->ptxt->nFixedCharWidth;
                 else
+                {
+                  GetTextExtentPoint32W(hDC, wpString + i, 2, &sizeChar);
                   nStringWidth+=sizeChar.cx;
+                }
+                ++i;
                 ++nResult;
               }
             }
@@ -15162,8 +15215,8 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
           {
             GetTextExtentPoint32W(hDC, &wpString[i], 1, &sizeChar);
             ae->ptxt->lpCharWidths[wpString[i]]=(WORD)sizeChar.cx;
-            if (ae->popt->dwOptions & AECO_PAINTFIXED)
-              nStringWidth+=ae->ptxt->nMaxCharWidth;
+            if (ae->ptxt->nFixedCharWidth)
+              nStringWidth+=ae->ptxt->nFixedCharWidth;
             else
               nStringWidth+=sizeChar.cx;
             ++nResult;
@@ -15192,7 +15245,11 @@ int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, INT_PTR nCharExtent)
   int nCharLen;
 
   if (*wpChar == L'\t')
+  {
+    if (ae->ptxt->nFixedCharWidth)
+      return (int)(ae->ptxt->nFixedTabWidth - nCharExtent % ae->ptxt->nFixedTabWidth);
     return (int)(ae->ptxt->nTabWidth - nCharExtent % ae->ptxt->nTabWidth);
+  }
 
   if (AE_IsHighSurrogate(*wpChar))
   {
@@ -15228,8 +15285,11 @@ INT_PTR AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, INT_P
         nStringWidth+=sizeChar.cx;
       nStringCount=i + 1;
 
-      if (nTabWidth=(int)(ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth))
-        nStringWidth+=nTabWidth;
+      if (ae->ptxt->nFixedCharWidth)
+        nTabWidth=(int)(ae->ptxt->nFixedTabWidth - nStringWidth % ae->ptxt->nFixedTabWidth);
+      else
+        nTabWidth=(int)(ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth);
+      nStringWidth+=nTabWidth;
     }
   }
   if (AE_GetTextExtentPoint32(ae, wpString + nStringCount, i - nStringCount, &sizeChar))
@@ -15290,12 +15350,12 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT64 *pt
       if (nStartChar < ciInitial.lpLine->nLineLen)
         nStringWidth+=AE_GetStringWidth(ae, ciInitial.lpLine->wpLine + nStartChar, min(ciInitial.nCharInLine, ciInitial.lpLine->nLineLen) - nStartChar, nStringWidth);
       if (ciInitial.nCharInLine > ciInitial.lpLine->nLineLen)
-        nStringWidth+=(ciInitial.nCharInLine - max(ciInitial.lpLine->nLineLen, nStartChar)) * ae->ptxt->nSpaceCharWidth;
+        nStringWidth+=(ciInitial.nCharInLine - max(ciInitial.lpLine->nLineLen, nStartChar)) * (ae->ptxt->nFixedCharWidth?ae->ptxt->nFixedCharWidth:ae->ptxt->nSpaceCharWidth);
     }
     else if (nOffset < 0)
     {
       if (nStartChar > ciInitial.lpLine->nLineLen)
-        nStringWidth-=(nStartChar - max(ciInitial.lpLine->nLineLen, ciInitial.nCharInLine)) * ae->ptxt->nSpaceCharWidth;
+        nStringWidth-=(nStartChar - max(ciInitial.lpLine->nLineLen, ciInitial.nCharInLine)) * (ae->ptxt->nFixedCharWidth?ae->ptxt->nFixedCharWidth:ae->ptxt->nSpaceCharWidth);
 
       if (ciInitial.nCharInLine < ciInitial.lpLine->nLineLen)
       {
@@ -15398,7 +15458,10 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent,
         {
           if (bColumnSel)
           {
-            nCharWidth=ae->ptxt->nSpaceCharWidth;
+            if (ae->ptxt->nFixedCharWidth)
+              nCharWidth=ae->ptxt->nFixedCharWidth;
+            else
+              nCharWidth=ae->ptxt->nSpaceCharWidth;
             nStringWidth+=nCharWidth;
           }
           else
@@ -15461,7 +15524,10 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent,
         {
           if (bColumnSel)
           {
-            nCharWidth=ae->ptxt->nSpaceCharWidth;
+            if (ae->ptxt->nFixedCharWidth)
+              nCharWidth=ae->ptxt->nFixedCharWidth;
+            else
+              nCharWidth=ae->ptxt->nSpaceCharWidth;
             nStringWidth-=nCharWidth;
           }
           else
@@ -18264,7 +18330,10 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
             }
             else
             {
-              nInsertCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nSpaceCharWidth);
+              if (ae->ptxt->nFixedCharWidth)
+                nInsertCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nFixedCharWidth);
+              else
+                nInsertCharInLine=(int)(ptInsertFrom.x / ae->ptxt->nSpaceCharWidth);
 
               lpNewElement->nLineWidth=-1;
               lpNewElement->nLineBreak=nLineBreak;
