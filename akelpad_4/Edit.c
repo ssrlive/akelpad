@@ -460,8 +460,6 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptionsEx|=AECOE_INVERTVERTWHEEL;
   if (moCur.dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
-  if (moCur.dwPaintOptions & PAINT_PAINTFIXED)
-      SendMessage(lpFrame->ei.hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)-AECS_MAXWIDTH, 0);
   if (moCur.dwPaintOptions & PAINT_NONEWLINEDRAW)
     dwOptions|=AECO_NONEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
@@ -473,6 +471,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, dwOptionsEx);
 
   //Font
+  if (moCur.nFixedCharWidth)
+    SendMessage(lpFrame->ei.hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)moCur.nFixedCharWidth, 0);
   SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
   UpdateMappedPrintWidth(lpFrame);
 
@@ -3778,6 +3778,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"FixedCharWidth", MOT_DWORD, &mo->nFixedCharWidth, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"EditStyle", MOT_DWORD, &mo->dwEditStyle, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
@@ -4025,6 +4027,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwWordBreakCustom), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwPaintOptions), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"FixedCharWidth", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, nFixedCharWidth), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"EditStyle", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwEditStyle), sizeof(DWORD)))
     goto Error;

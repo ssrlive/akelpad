@@ -393,10 +393,20 @@
           <br><li>4 - Draw newline selection to right edge of text area.
           <br><li>8 - Hides the selection when the control loses the input focus.
           <br><li>16 - Disable marker painting after last line.
-          <br><li>32 - Paint all symbols, including proportional fonts, with fixed width (maximum width from "A-Z"). Cannot be combined with 1.
           <br><li>256 - Show scroll bars only when needed.
           <br><li>512 - Draw thin edit window border.
           <br><li>1024 - Draw no edit window border.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>FixedCharWidth</b></td>
+        <td>Defines fixed character width. All symbols, including proportional fonts, will be paint in this width. Special values:
+          <br><li>-1 - font latin character average width.
+          <br><li>-4 - font space width.
+          <br><li>-6 - font latin character maximum width.
+          <br><li>0 - disable fixed width.
           <br>
           <br>By default: 0.
         </td>

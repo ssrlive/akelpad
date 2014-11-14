@@ -376,6 +376,7 @@ typedef struct {
   DWORD dwStatusUserFlags;
   DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
+  int nFixedCharWidth;
   DWORD dwEditStyle;
   BOOL bRichEditClass;
   BOOL bAkelAdminResident;
