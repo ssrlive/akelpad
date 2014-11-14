@@ -1219,8 +1219,8 @@ void CompareItems()
       {
         xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangSystem, STRID_ERRORNOTINLIST));
         lpFileItem->dwError=PE_NOTINLIST;
-        lpFileItem->nChecked=0;
       }
+      lpFileItem->nChecked=0;
     }
     else
     {
