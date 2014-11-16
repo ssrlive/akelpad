@@ -13666,7 +13666,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                 }
                 else
                 {
-                  if (!(pd.dwSupport & PDS_SILENT))
+                  if (!(pcs->dwSupport & PDS_SILENT))
                   {
                     API_LoadString(hLangModule, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
                     xprintfW(wszMsg, wbuf, wszPlugin, wszFunction, wszDLL);
@@ -13679,7 +13679,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
               }
               else
               {
-                if (!(pd.dwSupport & PDS_SILENT))
+                if (!(pcs->dwSupport & PDS_SILENT))
                 {
                   API_LoadString(hLangModule, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
                   xprintfW(wszMsg, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
@@ -13691,7 +13691,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
             }
             else
             {
-              if (!(pd.dwSupport & PDS_SILENT))
+              if (!(pcs->dwSupport & PDS_SILENT))
               {
                 API_LoadString(hLangModule, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
                 xprintfW(wszMsg, wbuf, wszDLL);
@@ -13702,7 +13702,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
           }
           else
           {
-            if (!(pd.dwSupport & PDS_SILENT))
+            if (!(pcs->dwSupport & PDS_SILENT))
             {
               wchar_t wszStr[MAX_PATH];
   
@@ -13722,7 +13722,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
         }
         else
         {
-          if (!(pd.dwSupport & PDS_SILENT))
+          if (!(pcs->dwSupport & PDS_SILENT))
           {
             API_LoadString(hLangModule, MSG_PLUGIN_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
             xprintfW(wszMsg, wbuf, wszDLL);
@@ -13736,7 +13736,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
       }
       else
       {
-        if (!(pd.dwSupport & PDS_SILENT))
+        if (!(pcs->dwSupport & PDS_SILENT))
         {
           API_LoadString(hLangModule, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
           xprintfW(wszMsg, wbuf, wszDLL);
@@ -18971,21 +18971,19 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 
       ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
 
-      if (nStructSize=StructMethodParameters(&hParamStack, NULL))
+      nStructSize=StructMethodParameters(&hParamStack, NULL);
+      if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
       {
-        if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+        pcs.pFunction=hParamStack.first->wpString;
+        if (nStructSize > 0)
         {
-          pcs.pFunction=hParamStack.first->wpString;
-          if (nStructSize > (INT_PTR)sizeof(INT_PTR))
-          {
-            pcs.lParam=(LPARAM)lpStruct;
-            StructMethodParameters(&hParamStack, lpStruct);
-          }
-          else pcs.lParam=0;
-
-          CallPluginSend(NULL, &pcs, 0);
-          GlobalFree((HGLOBAL)lpStruct);
+          pcs.lParam=(LPARAM)lpStruct;
+          StructMethodParameters(&hParamStack, lpStruct);
         }
+        else pcs.lParam=0;
+
+        CallPluginSend(NULL, &pcs, 0);
+        GlobalFree((HGLOBAL)lpStruct);
       }
     }
     else if (dwAction == EXTACT_EXEC)
@@ -19369,7 +19367,7 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
   int nElementOffset;
   int nStringOffset=0;
 
-  if (hParamStack->nElements)
+  if (hParamStack->nElements > 1)
   {
     //nStringOffset is pointer to memory where first string will be copied
     nElementOffset=0;
