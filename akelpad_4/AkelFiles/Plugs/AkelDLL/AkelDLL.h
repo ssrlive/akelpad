@@ -34,7 +34,7 @@
 #define URL_DELIMITERS_SIZE     128
 
 //Unload plugin flag
-#define UD_FAILED                -1  //Operation failed. Don't use it.
+#define UD_FAILED                -1  //Operation failed.
 #define UD_UNLOAD                 0  //Unload plugin (default).
 #define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status.
 #define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status.
@@ -606,10 +606,13 @@
 #define PDS_NOMDI        0x00000010  //Function doesn't support MDI mode.
 #define PDS_NOPMDI       0x00000020  //Function doesn't support PMDI mode.
 #define PDS_NORICHEDIT   0x00000040  //Reserved.
+#define PDS_SILENT       0x08000000  //Flag is set if caller don't want to get error messages. Instead of UD_FAILED, negative value will be returned depending on error message.
+                                     //To get error message: if (pd->nUnload < 0) LoadString(pd->hLangModule, -pd->nUnload, wszMsg, MAX_PATH);
 #define PDS_GETSUPPORT   0x10000000  //Flag is set if caller wants to get PDS_* flags without function execution.
 #define PDS_STRANSI      0x20000000  //Flag is set if caller passes Ansi strings in external call arguments (PLUGINDATA.lParam).
 #define PDS_STRWIDE      0x40000000  //Flag is set if caller passes Unicode strings in external call arguments (PLUGINDATA.lParam).
                                      //If PDS_STRANSI and PDS_STRWIDE not specified then one of these flags will be set automatically depending on Windows version.
+#define PDS_POSTMESSAGE  0x80000000  //Flag automatically sets by AkelPad if plugin called with PostMessage.
 
 //AKD_DLLCALL flags
 #define DLLCF_ONPROGRAMLOAD   0x001  //Don't use it. For internal code only.
@@ -1022,6 +1025,50 @@ typedef struct {
   const char *pPluginName;    //Plugin unique name.
 } PLUGINVERSION;
 
+typedef struct {
+  const char *pFunction;      //Function name, format "Plugin::Function".
+  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
+                              //FALSE if function has no autoload flag.
+  PLUGINPROC PluginProc;      //Function procedure.
+  void *lpParameter;          //Procedure parameter.
+} PLUGINADDA;
+
+typedef struct {
+  const wchar_t *pFunction;   //Function name, format "Plugin::Function".
+  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
+                              //FALSE if function has no autoload flag.
+  PLUGINPROC PluginProc;      //Function procedure.
+  void *lpParameter;          //Procedure parameter.
+} PLUGINADDW;
+
+typedef struct {
+  const char *pFunction;      //Function name, format "Plugin::Function".
+  LPARAM lParam;              //Input data.
+  DWORD dwSupport;            //See PDS_* defines.
+  INT_PTR nResult;            //Can be used for interplugin communication.
+} PLUGINCALLSENDA;
+
+typedef struct {
+  const wchar_t *pFunction;   //Function name, format L"Plugin::Function".
+  LPARAM lParam;              //Input data.
+  DWORD dwSupport;            //See PDS_* defines.
+  INT_PTR nResult;            //Can be used for interplugin communication.
+} PLUGINCALLSENDW;
+
+typedef struct {
+  LPARAM lParam;                //Input data.
+  char szFunction[MAX_PATH];    //Function name, format "Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
+} PLUGINCALLPOSTA;
+
+typedef struct {
+  LPARAM lParam;                //Input data.
+  wchar_t szFunction[MAX_PATH]; //Function name, format L"Plugin::Function".
+  DWORD dwSupport;              //See PDS_* defines.
+} PLUGINCALLPOSTW;
+
 typedef struct _PLUGINFUNCTION {
   struct _PLUGINFUNCTION *next;
   struct _PLUGINFUNCTION *prev;
@@ -1047,12 +1094,14 @@ typedef struct {
 
 typedef struct {
   DWORD cb;                           //Size of the structure.
+  PLUGINCALLSENDW *pcs;               //Pointer to a PLUGINCALLSENDW structure.
   DWORD dwSupport;                    //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
   const BYTE *pFunction;              //Called function name, format "Plugin::Function".
                                       //  const char *pFunction     if bOldWindows == TRUE
                                       //  const wchar_t *pFunction  if bOldWindows == FALSE
   const char *szFunction;             //Called function name (Ansi).
   const wchar_t *wszFunction;         //Called function name (Unicode).
+  LPARAM lParam;                      //Input data.
   HINSTANCE hInstanceDLL;             //DLL instance.
   PLUGINFUNCTION *lpPluginFunction;   //Pointer to a PLUGINFUNCTION structure.
   int nUnload;                        //See UD_* defines.
@@ -1060,7 +1109,6 @@ typedef struct {
   BOOL bOnStart;                      //Indicates when function has been called:
                                       //  TRUE  if function called on start-up.
                                       //  FALSE if function called manually.
-  LPARAM lParam;                      //Input data.
   const BYTE *pAkelDir;               //AkelPad directory.
                                       //  const char *pAkelDir      if bOldWindows == TRUE
                                       //  const wchar_t *pAkelDir   if bOldWindows == FALSE
@@ -1249,48 +1297,6 @@ typedef struct _WNDPROCRETDATA {
   WNDPROCRET NextProc;
   WNDPROCRET PrevProc;
 } WNDPROCRETDATA;
-
-typedef struct {
-  const char *pFunction;      //Function name, format "Plugin::Function".
-  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
-                              //FALSE if function has no autoload flag.
-  PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter.
-} PLUGINADDA;
-
-typedef struct {
-  const wchar_t *pFunction;   //Function name, format "Plugin::Function".
-  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;             //TRUE  if function has autoload flag.
-                              //FALSE if function has no autoload flag.
-  PLUGINPROC PluginProc;      //Function procedure.
-  void *lpParameter;          //Procedure parameter.
-} PLUGINADDW;
-
-typedef struct {
-  const char *pFunction;      //Function name, format "Plugin::Function".
-  LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //See PDS_* defines.
-} PLUGINCALLSENDA;
-
-typedef struct {
-  const wchar_t *pFunction;   //Function name, format L"Plugin::Function".
-  LPARAM lParam;              //Input data.
-  DWORD dwSupport;            //See PDS_* defines.
-} PLUGINCALLSENDW;
-
-typedef struct {
-  LPARAM lParam;                //Input data.
-  char szFunction[MAX_PATH];    //Function name, format "Plugin::Function".
-  DWORD dwSupport;              //See PDS_* defines.
-} PLUGINCALLPOSTA;
-
-typedef struct {
-  LPARAM lParam;                //Input data.
-  wchar_t szFunction[MAX_PATH]; //Function name, format L"Plugin::Function".
-  DWORD dwSupport;              //See PDS_* defines.
-} PLUGINCALLPOSTW;
 
 typedef struct {
   const char *pOptionName;       //Option name.

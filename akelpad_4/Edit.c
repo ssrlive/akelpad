@@ -13560,10 +13560,11 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
   PLUGINVERSION pv;
   PLUGINDATA pd;
   BOOL bInMemory=TRUE;
-  BOOL bCalled=FALSE;
   int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
+
+  pd.nUnload=UD_FAILED;
 
   if (pcs->pFunction)
   {
@@ -13607,6 +13608,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
                   pd.cb=sizeof(PLUGINDATA);
+                  pd.pcs=pcs;
                   pd.dwSupport=pcs->dwSupport;
                   if (!(pd.dwSupport & PDS_STRANSI) && !(pd.dwSupport & PDS_STRWIDE))
                     pd.dwSupport|=bOldWindows?PDS_STRANSI:PDS_STRWIDE;
@@ -13661,69 +13663,90 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                       (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
                       (pd.nUnload & UD_NONUNLOAD_UNCHANGE))
                     return pd.nUnload;
-                  bCalled=TRUE;
                 }
                 else
                 {
-                  API_LoadString(hLangModule, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
-                  xprintfW(wszMsg, wbuf, wszPlugin, wszFunction, wszDLL);
-                  API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-                  if (bInMemory) return UD_FAILED;
+                  if (!(pd.dwSupport & PDS_SILENT))
+                  {
+                    API_LoadString(hLangModule, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
+                    xprintfW(wszMsg, wbuf, wszPlugin, wszFunction, wszDLL);
+                    API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                  }
+                  else pd.nUnload=-MSG_FUNCTION_NOT_FOUND;
+
+                  if (bInMemory) return pd.nUnload;
                 }
               }
               else
               {
-                API_LoadString(hLangModule, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
-                xprintfW(wszMsg, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
-                                       LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
-                API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+                if (!(pd.dwSupport & PDS_SILENT))
+                {
+                  API_LoadString(hLangModule, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
+                  xprintfW(wszMsg, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                         LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+                  API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+                }
+                else pd.nUnload=-MSG_UPDATE_PROGRAM;
               }
             }
             else
             {
-              API_LoadString(hLangModule, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-              xprintfW(wszMsg, wbuf, wszDLL);
-              API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+              if (!(pd.dwSupport & PDS_SILENT))
+              {
+                API_LoadString(hLangModule, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+                xprintfW(wszMsg, wbuf, wszDLL);
+                API_MessageBox(hMainWnd, wszMsg, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
+              }
+              else pd.nUnload=-MSG_PROGRAM_IS_NOT_SUPPORTED;
             }
           }
           else
           {
-            wchar_t wszStr[MAX_PATH];
-
-            if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
-              xstrcpynW(wszStr, wszPluginWord, MAX_PATH);
-            else
-              xstrcpynW(wszStr, L"AkelPad", MAX_PATH);
-            API_LoadString(hLangModule, MSG_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
-            xprintfW(wszMsg, wbuf, wszStr,
-                                   LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
-                                   wszPlugin,
-                                   LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
-            API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+            if (!(pd.dwSupport & PDS_SILENT))
+            {
+              wchar_t wszStr[MAX_PATH];
+  
+              if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
+                xstrcpynW(wszStr, wszPluginWord, MAX_PATH);
+              else
+                xstrcpynW(wszStr, L"AkelPad", MAX_PATH);
+              API_LoadString(hLangModule, MSG_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
+              xprintfW(wszMsg, wbuf, wszStr,
+                                     LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
+                                     wszPlugin,
+                                     LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
+              API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+            }
+            else pd.nUnload=-MSG_UPDATE_PLUGIN;
           }
         }
         else
         {
-          API_LoadString(hLangModule, MSG_PLUGIN_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-          xprintfW(wszMsg, wbuf, wszDLL);
-          API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          if (!(pd.dwSupport & PDS_SILENT))
+          {
+            API_LoadString(hLangModule, MSG_PLUGIN_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+            xprintfW(wszMsg, wbuf, wszDLL);
+            API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          }
+          else pd.nUnload=-MSG_PLUGIN_IS_NOT_SUPPORTED;
         }
 
         if (FreeLibrary(hModule))
-        {
           StackHandleDecrease(&hHandlesStack, hModule);
-          if (bCalled) return pd.nUnload; //UD_UNLOAD
-        }
       }
       else
       {
-        API_LoadString(hLangModule, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-        xprintfW(wszMsg, wbuf, wszDLL);
-        API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        if (!(pd.dwSupport & PDS_SILENT))
+        {
+          API_LoadString(hLangModule, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+          xprintfW(wszMsg, wbuf, wszDLL);
+          API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        }
+        else pd.nUnload=-MSG_CANNOT_OPEN_FILE;
       }
     }
   }
-  return UD_FAILED;
+  return pd.nUnload;
 }
 
 DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
@@ -13821,7 +13844,7 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallPostW->lParam;
-      pcsW.dwSupport=lpCallPostW->dwSupport;
+      pcsW.dwSupport=lpCallPostW->dwSupport|PDS_POSTMESSAGE;
       CallPluginSend(NULL, &pcsW, (DWORD)lpMsg->wParam);
       GlobalFree((HGLOBAL)lpMsg->lParam);
     }

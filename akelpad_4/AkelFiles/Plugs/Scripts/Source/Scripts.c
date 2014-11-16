@@ -202,12 +202,12 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       wchar_t *wpArguments=NULL;
       int nScriptLen=0;
       int nArgumentsLen=0;
-      int nWait=0;
+      int nWaitExec=0;
 
       if (nAction == DLLA_SCRIPTS_EXECWAIT ||
           nAction == DLLA_SCRIPTS_EXECMAINTHREAD)
       {
-        nWait=nAction;
+        nWaitExec=(int)nAction;
         if (!(pd->dwSupport & PDS_POSTMESSAGE))
           pcs=pd->pcs;
       }
@@ -246,7 +246,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         if (nAction == DLLA_SCRIPTS_EDIT)
           EditScript(wpScript);
         else
-          ExecScript(wpScript, wpArguments, nWait, pcs);
+          ExecScript(wpScript, wpArguments, nWaitExec, pcs);
 
         //Returned from script execution
         if (lpScriptThread=StackGetScriptThreadByPCS(&hThreadStack, pcs))
