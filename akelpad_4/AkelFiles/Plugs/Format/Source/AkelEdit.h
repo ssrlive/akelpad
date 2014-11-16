@@ -223,7 +223,6 @@
 #define AECO_NODCBUFFER               0x20000000  //Don't use device context output buffering in AE_Paint. Cause edit window flashing.
 #define AECO_PAINTGROUP               0x40000000  //Paint text by group of characters (default is character by character).
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-#define AECO_PAINTFIXED               0x80000000  //Paint all symbols, including proportional fonts, with fixed width (maximum width from "A-Z"). Cannot be combined with AECO_PAINTGROUP.
 
 //AEM_EXSETOPTIONS flags
 #define AECOE_DETECTURL               0x00000001  //Enables detection and highlighting of URLs by an edit control.
@@ -578,6 +577,8 @@
 #define AECS_SPACEWIDTH      4  //Current font space width. lParam not used.
 #define AECS_TABWIDTH        5  //Current font tabulation width. lParam not used.
 #define AECS_MAXWIDTH        6  //Current font latin character maximum width. lParam not used.
+#define AECS_FIXEDCHARWIDTH  7  //Fixed character width that was set with AEM_FIXEDCHARWIDTH. lParam not used.
+#define AECS_FIXEDTABWIDTH   8  //Fixed tabulation width that was set with AEM_FIXEDCHARWIDTH. lParam not used.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
@@ -1656,6 +1657,7 @@ typedef struct {
 #define AEM_SETALTLINE            (WM_USER + 2241)
 #define AEM_GETCHARCOLORS         (WM_USER + 2242)
 #define AEM_SCROLLCARETOPTIONS    (WM_USER + 2243)
+#define AEM_FIXEDCHARWIDTH        (WM_USER + 2244)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -4919,6 +4921,28 @@ Example:
  sco.nOffsetX=10;
  sco.nOffsetY=5;
  SendMessage(hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
+
+
+AEM_FIXEDCHARWIDTH
+__________________
+
+Set fixed character width. All symbols, including proportional fonts, will be paint in this width.
+
+(int)wParam  == character width or one of the following values:
+                -AECS_AVEWIDTH   font latin character average width.
+                -AECS_SPACEWIDTH font space width.
+                -AECS_MAXWIDTH   font latin character maximum width.
+                0                disable fixed width.
+lParam       == not used.
+
+Return Value
+ Previous fixed width.
+
+Remarks
+ To retrieve current fixed width use AEM_GETCHARSIZE.
+
+Example:
+ SendMessage(hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)-AECS_MAXWIDTH, 0);
 
 
 AEM_SHOWSCROLLBAR
