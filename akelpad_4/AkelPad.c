@@ -1386,9 +1386,11 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallSend->lParam;
       pcsW.dwSupport=lpCallSend->dwSupport;
+      pcsW.nResult=lpCallSend->nResult;
       nResult=CallPluginSend(NULL, &pcsW, (DWORD)wParam);
 
       lpCallSend->dwSupport=pcsW.dwSupport;
+      lpCallSend->nResult=pcsW.nResult;
       return nResult;
     }
     else if (uMsg == AKD_DLLFIND ||
