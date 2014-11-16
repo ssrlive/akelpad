@@ -1716,7 +1716,7 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
 
         if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
           wpFunction=lpParameter->wpString;
-        if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
+        if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 2))
           nDllAction=(int)lpParameter->nNumber;
 
         if (wpFunction)
@@ -3051,7 +3051,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
-    -\"\x041F\x0430\x043D\x0435\x043B\x044C CodeFold\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
+    \"\x041F\x0430\x043D\x0435\x043B\x044C CodeFold\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 " L"\
@@ -3090,9 +3090,9 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Macros.dll\")\r\
     -\"\x041C\x0430\x043A\x0440\x043E\x0441\x044B...\" Call(\"Macros::Main\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 0)\r\
-    -\"\x0417\x0430\x043F\x0438\x0441\x0430\x0442\x044C\" Call(\"Macros::Main\", 2, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 1)\r\
-    -\"\x0412\x043E\x0441\x043F\x0440\x043E\x0438\x0437\x0432\x0435\x0441\x0442\x0438\x0020\x043E\x0434\x0438\x043D\x0020\x0440\x0430\x0437\" Call(\"Macros::Main\", 1, \"\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 3)\r\
-    -\"\x0412\x043E\x0441\x043F\x0440\x043E\x0438\x0437\x0432\x0435\x0441\x0442\x0438\x0020\x0434\x043E\x0020\x043A\x043E\x043D\x0446\x0430\" Call(\"Macros::Main\", 3, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 4)\r\
+    \"\x0417\x0430\x043F\x0438\x0441\x0430\x0442\x044C\" Call(\"Macros::Main\", 2, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 1)\r\
+    \"\x0412\x043E\x0441\x043F\x0440\x043E\x0438\x0437\x0432\x0435\x0441\x0442\x0438\x0020\x043E\x0434\x0438\x043D\x0020\x0440\x0430\x0437\" Call(\"Macros::Main\", 1, \"\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 3)\r\
+    \"\x0412\x043E\x0441\x043F\x0440\x043E\x0438\x0437\x0432\x0435\x0441\x0442\x0438\x0020\x0434\x043E\x0020\x043A\x043E\x043D\x0446\x0430\" Call(\"Macros::Main\", 3, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 4)\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 " L"\
@@ -3240,7 +3240,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
-    -\"CodeFold panel\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
+    \"CodeFold panel\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 " L"\
@@ -3279,9 +3279,9 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Macros.dll\")\r\
     -\"Macros...\" Call(\"Macros::Main\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 0)\r\
-    -\"Record\" Call(\"Macros::Main\", 2, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 1)\r\
-    -\"Play once\" Call(\"Macros::Main\", 1, \"\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 3)\r\
-    -\"Play to the end\" Call(\"Macros::Main\", 3, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 4)\r\
+    \"Record\" Call(\"Macros::Main\", 2, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 1)\r\
+    \"Play once\" Call(\"Macros::Main\", 1, \"\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 3)\r\
+    \"Play to the end\" Call(\"Macros::Main\", 3, \"%m\", \"%i\") Icon(\"%a\\AkelFiles\\Plugs\\Macros.dll\", 4)\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 " L"\
