@@ -206,6 +206,7 @@ typedef struct {
   unsigned char *pPosY;
   INT_PTR nMenuIndex;
   unsigned char *pMenuName;
+  INT_PTR *lpnMenuHeight;
 } DLLEXTCONTEXTMENU;
 
 #define DLLA_CONTEXTMENU_SHOWSUBMENU   1
@@ -233,7 +234,8 @@ void ClearToolbarButtons();
 void UpdateToolbar(STACKTOOLBAR *hStack);
 void ViewItemCode(TOOLBARITEM *lpButton);
 void CallToolbar(STACKTOOLBAR *hStack, int nItem);
-void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY);
+void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, int *lpnMenuHeight);
+int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton);
 void DestroyToolbarWindow(BOOL bDestroyBG);
 TOOLBARITEM* StackInsertBeforeButton(STACKTOOLBAR *hStack, TOOLBARITEM *lpInsertBefore);
 TOOLBARITEM* StackGetButtonByID(STACKTOOLBAR *hStack, int nItemID);
@@ -864,22 +866,26 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       TOOLBARITEM *lpButton;
       RECT rcButton;
+      int nPosX;
+      int nPosY;
 
       if (lpButton=StackGetButtonByID(&hStackToolbar, ((NMTOOLBARA *)lParam)->iItem))
       {
         SendMessage(hToolbar, TB_GETRECT, ((NMTOOLBARA *)lParam)->iItem, (LPARAM)&rcButton);
         ClientToScreen(hToolbar, (LPPOINT)&rcButton.left);
         ClientToScreen(hToolbar, (LPPOINT)&rcButton.right);
+        nPosX=rcButton.left;
+        nPosY=GetMenuPosY(lpButton, &rcButton);
 
         if (!lpButton->hParamMenuName.first)
         {
           //IDM_FILE_OPEN
-          TrackPopupMenu(hMenuRecentFiles, TPM_LEFTBUTTON, rcButton.left, rcButton.bottom, 0, hMainWnd, NULL);
+          TrackPopupMenu(hMenuRecentFiles, TPM_LEFTBUTTON, nPosX, nPosY, 0, hMainWnd, NULL);
         }
         else
         {
           //ContextMenu::Show
-          CallContextMenuShow(lpButton, rcButton.left, rcButton.bottom);
+          CallContextMenuShow(lpButton, nPosX, nPosY, NULL);
         }
       }
     }
@@ -2028,12 +2034,15 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
     }
     else if (lpElement->dwAction == EXTACT_MENU)
     {
-      CallContextMenuShow(lpElement, rcButton.left, rcButton.bottom);
+      int nPosX=rcButton.left;
+      int nPosY=GetMenuPosY(lpElement, &rcButton);
+
+      CallContextMenuShow(lpElement, nPosX, nPosY, NULL);
     }
   }
 }
 
-void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY)
+void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, int *lpnMenuHeight)
 {
   if (lpButton->hParamMenuName.first)
   {
@@ -2061,12 +2070,51 @@ void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY)
     decm.pPosY=szBottom;
     decm.nMenuIndex=-1;
     decm.pMenuName=pMenuName;
+    decm.lpnMenuHeight=lpnMenuHeight;
 
     pcs.pFunction=L"ContextMenu::Show";
     pcs.lParam=(LPARAM)&decm;
     pcs.dwSupport=0;
     SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
   }
+}
+
+int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton)
+{
+  int nMaxY;
+  int nPosY;
+  int nMenuHeight=0;
+
+  nPosY=rcButton->bottom;
+
+  if (nToolbarSide == TBSIDE_BOTTOM)
+  {
+    //Get menu height
+    if (!lpButton->hParamMenuName.first)
+    {
+      //IDM_FILE_OPEN
+      STACKRECENTFILE *rfs;
+
+      if (SendMessage(hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rfs))
+        nMenuHeight=rfs->nElements * GetSystemMetrics(SM_CYMENU);
+    }
+    else
+    {
+      //ContextMenu::Show
+      CallContextMenuShow(lpButton, 0, 0, &nMenuHeight);
+    }
+
+    //Correct y-position
+    nMaxY=GetSystemMetrics(SM_CYSCREEN);
+
+    if (nPosY + nMenuHeight > nMaxY)
+    {
+      nPosY=rcButton->top;
+      if (nPosY + nMenuHeight <= nMaxY)
+        nPosY=rcButton->top - nMenuHeight;
+    }
+  }
+  return nPosY;
 }
 
 void DestroyToolbarWindow(BOOL bDestroyBG)
