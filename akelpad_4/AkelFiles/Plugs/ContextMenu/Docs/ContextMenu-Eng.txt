@@ -299,7 +299,7 @@ Call("ContextMenu::Main", 10)
 
 *** External call ContextMenu::Show ***
 
-Call("ContextMenu::Show", 1, "X", "Y", INDEX, "SUBMENU")
+Call("ContextMenu::Show", 1, "X", "Y", INDEX, "SUBMENU", *MENUHEIGHT)
   Parameters:
     1
       Open user menu at specified position.
@@ -311,6 +311,8 @@ Call("ContextMenu::Show", 1, "X", "Y", INDEX, "SUBMENU")
       Open only specified submenu by number. If -1, show all menu (default).
     "SUBMENU"
       Open only specified submenu by name. INDEX must be equal to -1.
+    *MENUHEIGHT
+      Pointer to a buffer, that receives menu height. If specified, then menu not open.
   Remarks:
     - If X and Y equal to "-1", then edit window left-top corner position is used.
     - If X and Y equal to "-2", then edit window right-top corner position is used.
