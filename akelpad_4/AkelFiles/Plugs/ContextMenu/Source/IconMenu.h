@@ -1,5 +1,5 @@
 /******************************************************************
- *                 IconMenu functions header v2.2                 *
+ *                 IconMenu functions header v2.3                 *
  *                                                                *
  *  2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
@@ -60,6 +60,7 @@ typedef struct _ICONMENUITEM {
   INT_PTR nIconIndex;
   int nIconWidth;
   int nIconHeight;
+  int nItemHeight;
   UINT uFlags;
   UINT_PTR dwItemID;
   wchar_t wszStr[MAX_PATH];
@@ -348,6 +349,15 @@ void IconMenu_GetSubMenuSize(ICONMENUSUBMENU *lpSubMenu)
         lpMenuItem->nTabWidth=sizeWidth.cx;
       }
       lpSubMenu->nTabWidthMax=max(lpMenuItem->nTabWidth, lpSubMenu->nTabWidthMax);
+
+      //Item height
+      if (!lpMenuItem->nItemHeight)
+      {
+        if (lpMenuItem->uFlags & MF_SEPARATOR)
+          lpMenuItem->nItemHeight=(ICONMENU_CYICONMARGIN + lpMenuHandle->nTextHeight + ICONMENU_CYICONMARGIN) / 2 + 1;
+        else
+          lpMenuItem->nItemHeight=ICONMENU_CYICONMARGIN + max(lpMenuHandle->nTextHeight, lpMenuItem->nIconHeight) + ICONMENU_CYICONMARGIN;
+      }
     }
 
     if (hMenuFontOld) SelectObject(hDC, hMenuFontOld);
@@ -845,10 +855,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpSubMenu=(ICONMENUSUBMENU *)lpMenuItem->hIconSubMenu;
         lpMenuHandle=(ICONMENUHANDLE *)lpSubMenu->hIconMenu;
 
-        if (lpMenuItem->uFlags & MF_SEPARATOR)
-          lpmis->itemHeight=(ICONMENU_CYICONMARGIN + lpMenuHandle->nTextHeight + ICONMENU_CYICONMARGIN) / 2 + 1;
-        else
-          lpmis->itemHeight=ICONMENU_CYICONMARGIN + max(lpMenuHandle->nTextHeight, lpMenuItem->nIconHeight) + ICONMENU_CYICONMARGIN;
+        lpmis->itemHeight=lpMenuItem->nItemHeight;
         lpmis->itemWidth=lpSubMenu->nTextOffsetMax + lpMenuItem->nStrWidth + (lpSubMenu->nTabWidthMax?(ICONMENU_FROMSTRING_TOTAB + lpSubMenu->nTabWidthMax):0) + ICONMENU_FROMTAB_TOMENUEDGE;
         return TRUE;
       }
