@@ -1967,37 +1967,32 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
         {
           //Function is running therefore call plugin through PostMessage.
           //Because called function can unload itself with unsublass (AKD_SETMAINPROC) and AKDN_HOTKEY can go to unloaded memory.
-          if (nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL))
+          nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL);
+          if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
           {
-            if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
+            xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
+            if (nStructSize > 0)
             {
-              xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
-              if (nStructSize > (INT_PTR)sizeof(INT_PTR))
-              {
-                pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
-                StructMethodParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
-              }
-              else pcp->lParam=0;
-
-              PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
+              pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
+              StructMethodParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
             }
+            else pcp->lParam=0;
+
+            PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
           }
         }
         else
         {
           //Function is not running therefore call plugin through SendMessage and check UD_HOTKEY_DODEFAULT flag.
-          pcs.pFunction=wpFunction;
-          pcs.lParam=0;
-          pcs.dwSupport=0;
-
           if (nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL))
           {
-            if (nStructSize > (INT_PTR)sizeof(INT_PTR))
-            {
-              pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize);
+            if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
               StructMethodParameters(&lpElement->hParamStack, (unsigned char *)pcs.lParam);
-            }
           }
+          else pcs.lParam=0;
+
+          pcs.pFunction=wpFunction;
+          pcs.dwSupport=0;
           nCallResult=SendMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)&pcs);
           if (nCallResult > 0 && (nCallResult & UD_HOTKEY_DODEFAULT))
             return 0;
@@ -2456,7 +2451,7 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
   int nElementOffset;
   int nStringOffset=0;
 
-  if (hParamStack->nElements)
+  if (hParamStack->nElements > 1)
   {
     //nStringOffset is pointer to memory where first string will be copied
     nElementOffset=0;
