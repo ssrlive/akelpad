@@ -287,6 +287,9 @@ library Scripts
     //Remove synchronization object.
     HRESULT ScriptNoMutex([in, defaultvalue(0x1)] DWORD dwUnlockType, [out, retval] DWORD *dwResult);
 
+    //Set script exit code.
+    HRESULT ScriptExitCode([in] MYINT nExitCode, [out, retval] BOOL *bResult);
+
     //Different operations with script.
     HRESULT ScriptHandle([in] VARIANT vtData, [in] int nOperation, [out, retval] VARIANT *vtResult);
   };

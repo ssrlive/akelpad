@@ -57,7 +57,7 @@ Call("Scripts::Main", 1, "SCRIPT", "ARGUMENTS")
     Call("Scripts::Main", 1, "InsertDate.js", `"dd MMMM yyyy"`)
 
 Call("Scripts::Main", 2, "SCRIPT", "ARGUMENTS")
-  То же, что и предыдущий, но ожидать завершения скрипта.
+  То же, что и 1, но ожидать завершения скрипта.
 
 Call("Scripts::Main", 3, "SCRIPT")
   Параметры:
@@ -65,6 +65,10 @@ Call("Scripts::Main", 3, "SCRIPT")
       Открыть скрипт на редактирование.
     "SCRIPT"
       Имя файла скрипта. Если "", то используется последний обработанный скрипт.
+
+Call("Scripts::Main", 4, "SCRIPT", "ARGUMENTS")
+  То же, что и 2, но выполнить скрипт в главном потоке, а не создавать новый.
+  Не рекомендуется использовать для скриптов содержащих AkelPad.WindowGetMessage().
 
 
 *** Служебная информация в скрипте ***
@@ -181,6 +185,7 @@ AkelPad.WindowUnsubClass                     +ActiveX
 AkelPad.ThreadHook                           +ActiveX
 AkelPad.ThreadUnhook                         +ActiveX
 AkelPad.ScriptNoMutex
+AkelPad.ScriptExitCode
 AkelPad.ScriptHandle                         +ActiveX
 _TCHAR                                       +ActiveX используется как AkelPad.Constants._TCHAR
 vbTCHAR                                      +ActiveX используется как AkelPad.Constants.vbTCHAR
@@ -246,8 +251,8 @@ ______________________
   var hInstance=AkelPad.GetInstanceExe();
 
 
-AkelPad.GetInstanceDll
-______________________
+AkelPad.GetInstanceDll (+ActiveX)
+_________________________________
 
 Определить дескриптор библиотеки (DLL).
 
@@ -285,8 +290,8 @@ _________________
     WScript.Echo("Другой");
 
 
-AkelPad.IsOldWindows
-____________________
+AkelPad.IsOldWindows (+ActiveX)
+_______________________________
 
 Проверить поддержку юникода в Windows.
 
@@ -425,8 +430,8 @@ ___________________
   var pEditFile=AkelPad.GetEditFile(0);
 
 
-AkelPad.GetFilePath
-___________________
+AkelPad.GetFilePath (+ActiveX)
+______________________________
 
 Получить часть пути файла.
 
@@ -569,8 +574,8 @@ ____________________
   AkelPad.SetFrameInfo(0, 1 /*FIS_TABSTOPSIZE*/, 4);
 
 
-AkelPad.SendMessage
-___________________
+AkelPad.SendMessage (+ActiveX)
+______________________________
 
 Послать сообщение.
 
@@ -594,8 +599,8 @@ ___________________
   AkelPad.SendMessage(hMainWnd, 273 /*WM_COMMAND*/, 4101 /*IDM_FILE_NEW*/, 0);
 
 
-AkelPad.MessageBox
-__________________
+AkelPad.MessageBox (+ActiveX)
+_____________________________
 
 Показать сообщение.
 
@@ -642,8 +647,8 @@ __________________
   WScript.Echo("Button ID=" + nChoice);
 
 
-AkelPad.InputBox
-________________
+AkelPad.InputBox (+ActiveX)
+___________________________
 
 Диалог ввода строки.
 
@@ -871,8 +876,8 @@ ___________________
   AkelPad.TextReplace(hWndEdit, "МойТекстДляПоиска", "МойТекстДляЗамены", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, true);
 
 
-AkelPad.GetClipboardText
-________________________
+AkelPad.GetClipboardText (+ActiveX)
+___________________________________
 
 Получить текст из буфера обмена.
 
@@ -890,8 +895,8 @@ ________________________
   var pClipboardText=AkelPad.GetClipboardText();
 
 
-AkelPad.SetClipboardText
-________________________
+AkelPad.SetClipboardText (+ActiveX)
+___________________________________
 
 Установить текст в буфер обмена.
 
@@ -1011,8 +1016,8 @@ _______________
 Тоже, что и AkelPad.CallEx, но форсируется использование Unicode строк при вызове плагина.
 
 
-AkelPad.Exec
-____________
+AkelPad.Exec (+ActiveX)
+_______________________
 
 Запустить программу.
 
@@ -1291,8 +1296,8 @@ ________________
   var nResult=AkelPad.SaveFile(hWndEdit, "C:\\MyFile.txt");
 
 
-AkelPad.SystemFunction
-______________________
+AkelPad.SystemFunction (+ActiveX)
+_________________________________
 
 Создать объект системной функции.
 
@@ -1305,8 +1310,8 @@ ______________________
   var oSys=AkelPad.SystemFunction();
 
 
-AkelPad.SystemFunction().AddParameter
-_____________________________________
+AkelPad.SystemFunction().AddParameter (+ActiveX)
+________________________________________________
 
 Добавить параметр в функцию.
 
@@ -1323,8 +1328,8 @@ _____________________________________
   См. AkelPad.SystemFunction().Call пример со старым синтаксисом.
 
 
-AkelPad.SystemFunction().Call
-_____________________________
+AkelPad.SystemFunction().Call (+ActiveX)
+________________________________________
 
 Вызвать системную функцию.
 
@@ -1354,8 +1359,8 @@ _____________________________
   oSys.Call("user32::ShowWindow");
 
 
-AkelPad.SystemFunction().GetLastError
-_____________________________________
+AkelPad.SystemFunction().GetLastError (+ActiveX)
+________________________________________________
 
 Определить последнюю ошибку вызванной системной функции.
 
@@ -1372,8 +1377,8 @@ _____________________________________
   nError=oSys.GetLastError();
 
 
-AkelPad.SystemFunction().RegisterCallback
-_________________________________________
+AkelPad.SystemFunction().RegisterCallback (+ActiveX)
+____________________________________________________
 
 Зарегистрировать функцию обратного вызова.
 
@@ -1441,8 +1446,8 @@ _________________________________________
   End Function
 
 
-AkelPad.SystemFunction().UnregisterCallback
-___________________________________________
+AkelPad.SystemFunction().UnregisterCallback (+ActiveX)
+______________________________________________________
 
 Удалить регистрацию функции обратного вызова.
 
@@ -1459,8 +1464,8 @@ ___________________________________________
   См. пример RegisterCallback.
 
 
-AkelPad.MemAlloc
-________________
+AkelPad.MemAlloc (+ActiveX)
+___________________________
 
 Выделить память.
 
@@ -1497,8 +1502,8 @@ ________________
   }
 
 
-AkelPad.MemCopy
-_______________
+AkelPad.MemCopy (+ActiveX)
+__________________________
 
 Копировать память.
 
@@ -1527,8 +1532,8 @@ _______________
   См. пример MemAlloc.
 
 
-AkelPad.MemRead
-_______________
+AkelPad.MemRead (+ActiveX)
+__________________________
 
 Прочитать память.
 
@@ -1564,8 +1569,8 @@ _______________
   }
 
 
-AkelPad.MemStrPtr
-_________________
+AkelPad.MemStrPtr (+ActiveX)
+____________________________
 
 Получить указатель на двухбайтовую строку в скрипте.
 
@@ -1583,8 +1588,8 @@ _________________
   AkelPad.SendMessage(hMainWnd, 1206 /*AKD_GOTOW*/, 0x1 /*GT_LINE*/, AkelPad.MemStrPtr("10:3"));
 
 
-AkelPad.MemFree
-_______________
+AkelPad.MemFree (+ActiveX)
+__________________________
 
 Освободить память.
 
@@ -1601,8 +1606,8 @@ _______________
   См. пример MemAlloc.
 
 
-AkelPad.DebugJIT
-________________
+AkelPad.DebugJIT (+ActiveX)
+___________________________
 
 Точка останова. Вызвать программу отладки.
 
@@ -1612,8 +1617,8 @@ ________________
   Ноль.
 
 
-AkelPad.Debug
-_____________
+AkelPad.Debug (+ActiveX)
+________________________
 
 Отладить использование памяти.
 
@@ -1644,8 +1649,8 @@ _____________
   }
 
 
-AkelPad.VarType
-_______________
+AkelPad.VarType (+ActiveX)
+__________________________
 
 Получить тип переменной.
 
@@ -1942,8 +1947,8 @@ ____________________________
   См. примеры Read, Write и Delete.
 
 
-AkelPad.WindowRegisterClass
-___________________________
+AkelPad.WindowRegisterClass (+ActiveX)
+______________________________________
 
 Зарегистрировать класс окна.
 
@@ -2092,8 +2097,8 @@ ___________________________
   End Function
 
 
-AkelPad.WindowUnregisterClass
-_____________________________
+AkelPad.WindowUnregisterClass (+ActiveX)
+________________________________________
 
 Отменить регистрацию класса окна.
 
@@ -2111,8 +2116,8 @@ _____________________________
   См. пример WindowRegisterClass.
 
 
-AkelPad.WindowRegisterDialog
-____________________________
+AkelPad.WindowRegisterDialog (+ActiveX)
+_______________________________________
 
 Зарегистрировать диалог для обработки в цикле сообщений. Используется в случае, если диалог создан без WindowRegisterClass.
 
@@ -2206,8 +2211,8 @@ ____________________________
   }
 
 
-AkelPad.WindowUnregisterDialog
-______________________________
+AkelPad.WindowUnregisterDialog (+ActiveX)
+_________________________________________
 
 Отменить регистрацию диалога.
 
@@ -2225,8 +2230,8 @@ ______________________________
   См. пример WindowRegisterDialog.
 
 
-AkelPad.WindowGetMessage
-________________________
+AkelPad.WindowGetMessage (+ActiveX)
+___________________________________
 
 Обработать сообщения потока (цикл сообщений).
 
@@ -2246,8 +2251,8 @@ ________________________
   См. пример WindowRegisterClass.
 
 
-AkelPad.WindowSubClass
-______________________
+AkelPad.WindowSubClass (+ActiveX)
+_________________________________
 
 Установить перехватчик сообщений окна.
 
@@ -2308,8 +2313,8 @@ ______________________
   }
 
 
-AkelPad.WindowNextProc
-______________________
+AkelPad.WindowNextProc (+ActiveX)
+_________________________________
 
 Послать сообщение следующей процедуре в цепи.
 
@@ -2334,8 +2339,8 @@ ______________________
   См. пример WindowSubClass.
 
 
-AkelPad.WindowNoNextProc
-________________________
+AkelPad.WindowNoNextProc (+ActiveX)
+___________________________________
 
 Предотвращает отсыл текущего сообщения следующей процедуре в цепи.
 
@@ -2352,8 +2357,8 @@ ________________________
   См. пример WindowSubClass.
 
 
-AkelPad.WindowUnsubClass
-________________________
+AkelPad.WindowUnsubClass (+ActiveX)
+___________________________________
 
 Удалить перехватчик сообщений окна.
 
@@ -2373,8 +2378,8 @@ ________________________
   См. пример WindowSubClass.
 
 
-AkelPad.ThreadHook
-__________________
+AkelPad.ThreadHook (+ActiveX)
+_____________________________
 
 Установить хук для потока.
 
@@ -2427,8 +2432,8 @@ __________________
   }
 
 
-AkelPad.ThreadUnhook
-____________________
+AkelPad.ThreadUnhook (+ActiveX)
+_______________________________
 
 Удалить хук из потока.
 
@@ -2466,8 +2471,27 @@ _____________________
   AkelPad.ScriptNoMutex();
 
 
-AkelPad.ScriptHandle
-____________________
+AkelPad.ScriptExitCode
+______________________
+
+Установить код выхода из скрипта. Только для внешнего вызова скрипта с кодом 2 или 4.
+
+  ScriptExitCode([nExitCode]);
+
+Аргументы
+  nExitCode
+    Код выхода из скрипта.
+
+Возвращаемое значение
+  true   успешно.
+  false  вызывающий поток вышел из процедуры внешнего вызова.
+
+Пример:
+  AkelPad.ScriptExitCode(1);
+
+
+AkelPad.ScriptHandle (+ActiveX)
+_______________________________
 
 Позволяет взаимодействовать с другими работающими скриптами.
 
@@ -2570,8 +2594,8 @@ ____________________
   }
 
 
-_TCHAR
-______
+_TCHAR (+ActiveX)
+_________________
 
 Константа, определяющая окончание системных функций. Используется для метода AkelPad.SystemFunction().Call.
 
@@ -2596,14 +2620,14 @@ ______
   }
 
 
-vbTCHAR
-_______
+vbTCHAR (+ActiveX)
+__________________
 
 Тоже, что и _TCHAR. Используется для VBScript.
 
 
-_TSTR
-_____
+_TSTR (+ActiveX)
+________________
 
 Константа, определяющая тип строки. Используется для методов MemCopy и MemRead.
 
@@ -2617,14 +2641,14 @@ _____
   См. пример _TCHAR.
 
 
-vbTSTR
-______
+vbTSTR (+ActiveX)
+_________________
 
 Тоже, что и _TSTR. Используется для VBScript.
 
 
-_TSIZE
-______
+_TSIZE (+ActiveX)
+_________________
 
 Константа, определяющая размер символа в байтах. Используется для метода MemAlloc.
 
@@ -2638,14 +2662,14 @@ ______
   См. пример _TCHAR.
 
 
-vbTSIZE
-_______
+vbTSIZE (+ActiveX)
+__________________
 
 Тоже, что и _TSIZE. Используется для VBScript.
 
 
-_X64
-____
+_X64 (+ActiveX)
+_______________
 
 Константа, определяющая битность программы - x86 или x64.
 
@@ -2662,8 +2686,8 @@ ____
     WScript.Echo("x86 версия");
 
 
-vbX64
-_____
+vbX64 (+ActiveX)
+________________
 
 Тоже, что и _X64. Используется для VBScript.
 

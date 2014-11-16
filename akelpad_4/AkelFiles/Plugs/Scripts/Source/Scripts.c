@@ -191,18 +191,26 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 
     if (nAction == DLLA_SCRIPTS_EXEC ||
         nAction == DLLA_SCRIPTS_EXECWAIT ||
-        nAction == DLLA_SCRIPTS_EDIT)
+        nAction == DLLA_SCRIPTS_EDIT ||
+        nAction == DLLA_SCRIPTS_EXECMAINTHREAD)
     {
+      PLUGINCALLSENDW *pcs=NULL;
+      SCRIPTTHREAD *lpScriptThread;
       unsigned char *pScript=NULL;
       unsigned char *pArguments=NULL;
       wchar_t *wpScript=NULL;
       wchar_t *wpArguments=NULL;
       int nScriptLen=0;
       int nArgumentsLen=0;
-      BOOL bWait=FALSE;
+      int nWait=0;
 
-      if (nAction == DLLA_SCRIPTS_EXECWAIT)
-        bWait=TRUE;
+      if (nAction == DLLA_SCRIPTS_EXECWAIT ||
+          nAction == DLLA_SCRIPTS_EXECMAINTHREAD)
+      {
+        nWait=nAction;
+        if (!(pd->dwSupport & PDS_POSTMESSAGE))
+          pcs=pd->pcs;
+      }
 
       if (IsExtCallParamValid(pd->lParam, 2))
         pScript=(unsigned char *)GetExtCallParam(pd->lParam, 2);
@@ -238,7 +246,11 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         if (nAction == DLLA_SCRIPTS_EDIT)
           EditScript(wpScript);
         else
-          ExecScript(wpScript, wpArguments, bWait);
+          ExecScript(wpScript, wpArguments, nWait, pcs);
+
+        //Returned from script execution
+        if (lpScriptThread=StackGetScriptThreadByPCS(&hThreadStack, pcs))
+          lpScriptThread->pcs=NULL;
 
         //if (xstrcmpiW(wpScript, wszLastScript))
         //{
@@ -633,7 +645,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Execute
       if (LOWORD(wParam) == IDC_EXEC)
-        ExecScript(wszLastScript, NULL, FALSE);
+        ExecScript(wszLastScript, NULL, FALSE, NULL);
       else if (LOWORD(wParam) == IDC_EDIT)
         EditScript(wszLastScript);
       return TRUE;
@@ -1735,7 +1747,7 @@ BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
 {
   wchar_t *wpName=(wchar_t *)lpParameter;
 
-  ExecScript(wpName, NULL, FALSE);
+  ExecScript(wpName, NULL, FALSE, NULL);
   return TRUE;
 }
 
@@ -1753,7 +1765,7 @@ int EditScript(wchar_t *wpScript)
   return (int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 }
 
-void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, BOOL bWaitExec)
+void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINCALLSENDW *pcs)
 {
   SCRIPTTHREAD *lpScriptThread;
   EXECSCRIPT es;
@@ -1773,32 +1785,41 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, BOOL bWaitExec)
       es.wpArguments=wszArguments;
       es.nArgumentsLen=(int)xstrlenW(wszArguments);
       es.hInitMutex=hInitMutex;
-      es.bWaitForScriptSignal=bWaitExec;
+      es.nWaitForScriptSignal=nWaitExec;
+      es.pcs=pcs;
 
-      if (hExecThread=CreateThread(NULL, 0, ExecThreadProc, &es, 0, &dwExecThreadId))
+      if (nWaitExec == DLLA_SCRIPTS_EXECMAINTHREAD)
       {
-        if (bWaitExec)
+        hExecThread=GetCurrentThread();
+        ExecThreadProc(&es);
+      }
+      else
+      {
+        if (hExecThread=CreateThread(NULL, 0, ExecThreadProc, &es, 0, &dwExecThreadId))
         {
-          //Wait for hInitMutex and process messages.
-          MSG msg;
-          BOOL bExitLoop=FALSE;
-
-          for (;;)
+          if (nWaitExec == DLLA_SCRIPTS_EXECWAIT)
           {
-            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+            //Wait for hInitMutex and process messages.
+            MSG msg;
+            BOOL bExitLoop=FALSE;
+
+            for (;;)
             {
-              if (msg.message == WM_QUIT)
-                bExitLoop=TRUE;
-              else
-                SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+              while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+              {
+                if (msg.message == WM_QUIT)
+                  bExitLoop=TRUE;
+                else
+                  SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+              }
+              if (bExitLoop)
+                break;
+              if (MsgWaitForMultipleObjects(1, &hInitMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+                break;
             }
-            if (bExitLoop)
-              break;
-            if (MsgWaitForMultipleObjects(1, &hInitMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
-              break;
           }
+          else WaitForSingleObject(hInitMutex, INFINITE);
         }
-        else WaitForSingleObject(hInitMutex, INFINITE);
       }
     }
     CloseHandle(hInitMutex);
@@ -1811,6 +1832,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   SCRIPTTHREAD *lpScriptThread;
   HANDLE hThread=hExecThread;
   DWORD dwThreadID=GetCurrentThreadId();
+  int nWaitForScriptSignal=es->nWaitForScriptSignal;
 
   if (lpScriptThread=StackInsertScriptThread(&hThreadStack))
   {
@@ -1820,6 +1842,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       lpScriptThread->dwDebug=dwGlobalDebugCode;
     if (dwGlobalDebugJIT & JIT_DEBUG)
       lpScriptThread->dwDebugJIT=dwGlobalDebugJIT;
+    lpScriptThread->pcs=es->pcs;
 
     if (es->wpScript)
     {
@@ -1893,7 +1916,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Protect from double execution
       lpScriptThread->hExecMutex=CreateEventA(NULL, FALSE, FALSE, pMutexExecName);
 
-      if (!es->bWaitForScriptSignal)
+      if (!nWaitForScriptSignal)
       {
         //Thread is initialized now unlock main thread
         SetEvent(es->hInitMutex);
@@ -1961,16 +1984,23 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     FreeScriptResources(lpScriptThread, (lpScriptThread->dwDebug & DBG_MEMLEAK));
     StackDeleteScriptThread(lpScriptThread);
   }
-  else SetEvent(es->hInitMutex);
-
-  //Free thread handle
-  hExecThread=NULL;
-  dwExecThreadId=0;
-
-  if (hThread)
+  else
   {
-    CloseHandle(hThread);
-    hThread=NULL;
+    if (es->hInitMutex)
+      SetEvent(es->hInitMutex);
+  }
+
+  if (nWaitForScriptSignal != DLLA_SCRIPTS_EXECMAINTHREAD)
+  {
+    //Free thread handle
+    hExecThread=NULL;
+    dwExecThreadId=0;
+
+    if (hThread)
+    {
+      CloseHandle(hThread);
+      hThread=NULL;
+    }
   }
   return 0;
 }
@@ -2012,6 +2042,18 @@ SCRIPTTHREAD* StackGetScriptThreadByName(HTHREADSTACK *hStack, const wchar_t *wp
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (!xstrcmpiW(lpElement->wszScriptName, wpScriptName))
+      return lpElement;
+  }
+  return NULL;
+}
+
+SCRIPTTHREAD* StackGetScriptThreadByPCS(HTHREADSTACK *hStack, PLUGINCALLSENDW *pcs)
+{
+  SCRIPTTHREAD *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->pcs == pcs)
       return lpElement;
   }
   return NULL;
