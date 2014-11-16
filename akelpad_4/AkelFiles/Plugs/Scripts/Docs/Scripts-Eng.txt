@@ -56,7 +56,7 @@ Call("Scripts::Main", 1, "SCRIPT", "ARGUMENTS")
     Call("Scripts::Main", 1, "InsertDate.js", `"dd MMMM yyyy"`)
 
 Call("Scripts::Main", 2, "SCRIPT", "ARGUMENTS")
-  Same as previous, but wait for script completion.
+  Same as 1, but wait for script completion.
 
 Call("Scripts::Main", 3, "SCRIPT")
   Parameters:
@@ -64,6 +64,10 @@ Call("Scripts::Main", 3, "SCRIPT")
       Open script for editing.
     "SCRIPT"
       Script file. If "", then last processed script used.
+
+Call("Scripts::Main", 4, "SCRIPT", "ARGUMENTS")
+  Same as 2, but execute script in main thread without creating the new one.
+  Not recommended for scripts contained AkelPad.WindowGetMessage().
 
 
 *** Service information in script ***
@@ -180,6 +184,7 @@ AkelPad.WindowUnsubClass                     +ActiveX
 AkelPad.ThreadHook                           +ActiveX
 AkelPad.ThreadUnhook                         +ActiveX
 AkelPad.ScriptNoMutex
+AkelPad.ScriptExitCode
 AkelPad.ScriptHandle                         +ActiveX
 _TCHAR                                       +ActiveX uses as AkelPad.Constants._TCHAR
 vbTCHAR                                      +ActiveX uses as AkelPad.Constants.vbTCHAR
@@ -245,8 +250,8 @@ Example:
   var hInstance=AkelPad.GetInstanceExe();
 
 
-AkelPad.GetInstanceDll
-______________________
+AkelPad.GetInstanceDll (+ActiveX)
+_________________________________
 
 Get DLL instance handle.
 
@@ -284,8 +289,8 @@ Example:
     WScript.Echo("Other");
 
 
-AkelPad.IsOldWindows
-____________________
+AkelPad.IsOldWindows (+ActiveX)
+_______________________________
 
 Is non-Unicode Windows.
 
@@ -424,8 +429,8 @@ Example:
   var pEditFile=AkelPad.GetEditFile(0);
 
 
-AkelPad.GetFilePath
-___________________
+AkelPad.GetFilePath (+ActiveX)
+______________________________
 
 Get file path part.
 
@@ -568,8 +573,8 @@ Example:
   AkelPad.SetFrameInfo(0, 1 /*FIS_TABSTOPSIZE*/, 4);
 
 
-AkelPad.SendMessage
-___________________
+AkelPad.SendMessage (+ActiveX)
+______________________________
 
 Send message.
 
@@ -593,8 +598,8 @@ Example:
   AkelPad.SendMessage(hMainWnd, 273 /*WM_COMMAND*/, 4101 /*IDM_FILE_NEW*/, 0);
 
 
-AkelPad.MessageBox
-__________________
+AkelPad.MessageBox (+ActiveX)
+_____________________________
 
 Show message.
 
@@ -641,8 +646,8 @@ Example (extended dialog):
   WScript.Echo("Button ID=" + nChoice);
 
 
-AkelPad.InputBox
-________________
+AkelPad.InputBox (+ActiveX)
+___________________________
 
 Input dialog box.
 
@@ -870,8 +875,8 @@ Example:
   AkelPad.TextReplace(hWndEdit, "MySearchString", "MyReplaceText", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, true);
 
 
-AkelPad.GetClipboardText
-________________________
+AkelPad.GetClipboardText (+ActiveX)
+___________________________________
 
 Get clipboard text.
 
@@ -889,8 +894,8 @@ Example:
   var pClipboardText=AkelPad.GetClipboardText();
 
 
-AkelPad.SetClipboardText
-________________________
+AkelPad.SetClipboardText (+ActiveX)
+___________________________________
 
 Set clipboard text.
 
@@ -1010,8 +1015,8 @@ _______________
 Same as AkelPad.CallEx, but force to use Unicode stings during plugin call.
 
 
-AkelPad.Exec
-____________
+AkelPad.Exec (+ActiveX)
+_______________________
 
 Execute program.
 
@@ -1289,8 +1294,8 @@ Example:
   var nResult=AkelPad.SaveFile(hWndEdit, "C:\\MyFile.txt");
 
 
-AkelPad.SystemFunction
-______________________
+AkelPad.SystemFunction (+ActiveX)
+_________________________________
 
 Create system function object.
 
@@ -1303,8 +1308,8 @@ Example:
   var oSys=AkelPad.SystemFunction();
 
 
-AkelPad.SystemFunction().AddParameter
-_____________________________________
+AkelPad.SystemFunction().AddParameter (+ActiveX)
+________________________________________________
 
 Add function parameter.
 
@@ -1321,8 +1326,8 @@ Example:
   See AkelPad.SystemFunction().Call old syntax example.
 
 
-AkelPad.SystemFunction().Call
-_____________________________
+AkelPad.SystemFunction().Call (+ActiveX)
+________________________________________
 
 Call system function.
 
@@ -1352,8 +1357,8 @@ Example (old syntax):
   oSys.Call("user32::ShowWindow");
 
 
-AkelPad.SystemFunction().GetLastError
-_____________________________________
+AkelPad.SystemFunction().GetLastError (+ActiveX)
+________________________________________________
 
 Get call function last error.
 
@@ -1370,8 +1375,8 @@ Example:
   nError=oSys.GetLastError();
 
 
-AkelPad.SystemFunction().RegisterCallback
-_________________________________________
+AkelPad.SystemFunction().RegisterCallback (+ActiveX)
+____________________________________________________
 
 Register callback function.
 
@@ -1439,8 +1444,8 @@ Example (callback under VBScript):
   End Function
 
 
-AkelPad.SystemFunction().UnregisterCallback
-___________________________________________
+AkelPad.SystemFunction().UnregisterCallback (+ActiveX)
+______________________________________________________
 
 Remove callback function registration.
 
@@ -1457,8 +1462,8 @@ Example:
   See RegisterCallback example.
 
 
-AkelPad.MemAlloc
-________________
+AkelPad.MemAlloc (+ActiveX)
+___________________________
 
 Allocate memory.
 
@@ -1495,8 +1500,8 @@ Example:
   }
 
 
-AkelPad.MemCopy
-_______________
+AkelPad.MemCopy (+ActiveX)
+__________________________
 
 Copy memory.
 
@@ -1525,8 +1530,8 @@ Example:
   See MemAlloc example.
 
 
-AkelPad.MemRead
-_______________
+AkelPad.MemRead (+ActiveX)
+__________________________
 
 Read memory.
 
@@ -1562,8 +1567,8 @@ Example:
   }
 
 
-AkelPad.MemStrPtr
-_________________
+AkelPad.MemStrPtr (+ActiveX)
+____________________________
 
 Get pointer to a script unicode string.
 
@@ -1581,8 +1586,8 @@ Example:
   AkelPad.SendMessage(hMainWnd, 1206 /*AKD_GOTOW*/, 0x1 /*GT_LINE*/, AkelPad.MemStrPtr("10:3"));
 
 
-AkelPad.MemFree
-_______________
+AkelPad.MemFree (+ActiveX)
+__________________________
 
 Free memory.
 
@@ -1599,8 +1604,8 @@ Example:
   See MemAlloc example.
 
 
-AkelPad.DebugJIT
-________________
+AkelPad.DebugJIT (+ActiveX)
+___________________________
 
 Breakpoint. Causes break into the debugger.
 
@@ -1610,8 +1615,8 @@ Return Value
   Zero.
 
 
-AkelPad.Debug
-_____________
+AkelPad.Debug (+ActiveX)
+________________________
 
 Debug memory usage.
 
@@ -1642,8 +1647,8 @@ Example:
   }
 
 
-AkelPad.VarType
-_______________
+AkelPad.VarType (+ActiveX)
+__________________________
 
 Retrieve variable type.
 
@@ -1940,8 +1945,8 @@ Example:
   See Read, Write and Delete examples.
 
 
-AkelPad.WindowRegisterClass
-___________________________
+AkelPad.WindowRegisterClass (+ActiveX)
+______________________________________
 
 Register window class.
 
@@ -2090,8 +2095,8 @@ Example (VBScript):
   End Function
 
 
-AkelPad.WindowUnregisterClass
-_____________________________
+AkelPad.WindowUnregisterClass (+ActiveX)
+________________________________________
 
 Unregister window class.
 
@@ -2109,8 +2114,8 @@ Example:
   See WindowRegisterClass example.
 
 
-AkelPad.WindowRegisterDialog
-____________________________
+AkelPad.WindowRegisterDialog (+ActiveX)
+_______________________________________
 
 Register dialog for message loop. Used if dialog created without WindowRegisterClass.
 
@@ -2204,8 +2209,8 @@ Example:
   }
 
 
-AkelPad.WindowUnregisterDialog
-______________________________
+AkelPad.WindowUnregisterDialog (+ActiveX)
+_________________________________________
 
 Unregister dialog.
 
@@ -2223,8 +2228,8 @@ Example:
   See WindowRegisterDialog example.
 
 
-AkelPad.WindowGetMessage
-________________________
+AkelPad.WindowGetMessage (+ActiveX)
+___________________________________
 
 Process thread messages (message loop).
 
@@ -2244,8 +2249,8 @@ Example:
   See WindowRegisterClass example.
 
 
-AkelPad.WindowSubClass
-______________________
+AkelPad.WindowSubClass (+ActiveX)
+_________________________________
 
 Install capture for window messages.
 
@@ -2306,8 +2311,8 @@ Example:
   }
 
 
-AkelPad.WindowNextProc
-______________________
+AkelPad.WindowNextProc (+ActiveX)
+_________________________________
 
 Send message to the next procedure in chain.
 
@@ -2332,8 +2337,8 @@ Example:
   See WindowSubClass example.
 
 
-AkelPad.WindowNoNextProc
-________________________
+AkelPad.WindowNoNextProc (+ActiveX)
+___________________________________
 
 Prevent sending current message to the next procedure in chain.
 
@@ -2350,8 +2355,8 @@ Example:
   See WindowSubClass example.
 
 
-AkelPad.WindowUnsubClass
-________________________
+AkelPad.WindowUnsubClass (+ActiveX)
+___________________________________
 
 Remove capture for window messages.
 
@@ -2371,8 +2376,8 @@ Example:
   See WindowSubClass example.
 
 
-AkelPad.ThreadHook
-__________________
+AkelPad.ThreadHook (+ActiveX)
+_____________________________
 
 Install hook for thread.
 
@@ -2425,8 +2430,8 @@ Example:
   }
 
 
-AkelPad.ThreadUnhook
-____________________
+AkelPad.ThreadUnhook (+ActiveX)
+_______________________________
 
 Remove hook from thread.
 
@@ -2464,8 +2469,27 @@ Example:
   AkelPad.ScriptNoMutex();
 
 
-AkelPad.ScriptHandle
-____________________
+AkelPad.ScriptExitCode
+______________________
+
+Set script exit code. Only if script is called with external call with code 2 or 4.
+
+  ScriptExitCode([nExitCode]);
+
+Arguments
+  nExitCode
+    Script exit code.
+
+Return Value
+  true   success.
+  false  calling thread came out of the external procedure call.
+
+Example:
+  AkelPad.ScriptExitCode(1);
+
+
+AkelPad.ScriptHandle (+ActiveX)
+_______________________________
 
 Allows to interact with the other running scripts.
 
@@ -2568,8 +2592,8 @@ Example (deny changing font size by scrolling mouse wheel with Ctrl key):
   }
 
 
-_TCHAR
-______
+_TCHAR (+ActiveX)
+_________________
 
 Constant that determines the end of system functions. Uses for AkelPad.SystemFunction().Call method.
 
@@ -2594,14 +2618,14 @@ Example:
   }
 
 
-vbTCHAR
-_______
+vbTCHAR (+ActiveX)
+__________________
 
 Same as _TCHAR. Uses for VBScript.
 
 
-_TSTR
-_____
+_TSTR (+ActiveX)
+________________
 
 Constant that determines the string type. Uses for MemCopy and MemRead methods.
 
@@ -2615,14 +2639,14 @@ Example:
   See _TCHAR example.
 
 
-vbTSTR
-______
+vbTSTR (+ActiveX)
+_________________
 
 Same as _TSTR. Uses for VBScript.
 
 
-_TSIZE
-______
+_TSIZE (+ActiveX)
+_________________
 
 Constant that determines the size of symbol in bytes. Uses for MemAlloc method.
 
@@ -2636,14 +2660,14 @@ Example:
   See _TCHAR example.
 
 
-vbTSIZE
-_______
+vbTSIZE (+ActiveX)
+__________________
 
 Same as _TSIZE. Uses for VBScript.
 
 
-_X64
-____
+_X64 (+ActiveX)
+_______________
 
 Constant that determines the program bits type - x86 or x64.
 
@@ -2660,8 +2684,8 @@ Example:
     WScript.Echo("x86 version");
 
 
-vbX64
-_____
+vbX64 (+ActiveX)
+________________
 
 Same as _X64. Uses for VBScript.
 

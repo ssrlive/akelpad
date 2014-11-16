@@ -92,6 +92,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_ThreadHook)(THIS_ int, IDispatch *, DWORD, SAFEARRAY **, HHOOK *) PURE;
   STDMETHOD_(HRESULT, Document_ThreadUnhook)(THIS_ HHOOK, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptNoMutex)(THIS_ DWORD, DWORD *) PURE;
+  STDMETHOD_(HRESULT, Document_ScriptExitCode)(THIS_ INT_PTR, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptHandle)(THIS_ VARIANT, int, VARIANT *) PURE;
 };
 
@@ -379,6 +380,7 @@ HRESULT WindowUnsubClass(void *lpScriptThread, HWND hWnd);
 HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDispatch *objCallback, DWORD dwThreadId, SAFEARRAY **psa, HHOOK *hHook);
 HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, HHOOK hHook, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlockType, DWORD *dwResult);
+HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, INT_PTR nExitCode, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData, int nOperation, VARIANT *vtResult);
 HWND GetCurEdit(IDocument *this);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);

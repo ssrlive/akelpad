@@ -94,6 +94,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_ThreadHook,
   Document_ThreadUnhook,
   Document_ScriptNoMutex,
+  Document_ScriptExitCode,
   Document_ScriptHandle
 };
 
@@ -2228,6 +2229,20 @@ HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlock
       *dwResult|=ULT_UNLOCKPROGRAMTHREAD;
     }
   }
+  return NOERROR;
+}
+
+HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, INT_PTR nExitCode, BOOL *bResult)
+{
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+
+  if (lpScriptThread->pcs)
+  {
+    lpScriptThread->pcs->nResult=nExitCode;
+    *bResult=TRUE;
+  }
+  else *bResult=FALSE;
+
   return NOERROR;
 }
 

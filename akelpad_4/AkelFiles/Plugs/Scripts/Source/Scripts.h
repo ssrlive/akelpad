@@ -19,9 +19,10 @@
 #include "IServer.h"
 
 //Defines
-#define DLLA_SCRIPTS_EXEC        1
-#define DLLA_SCRIPTS_EXECWAIT    2
-#define DLLA_SCRIPTS_EDIT        3
+#define DLLA_SCRIPTS_EXEC           1
+#define DLLA_SCRIPTS_EXECWAIT       2
+#define DLLA_SCRIPTS_EDIT           3
+#define DLLA_SCRIPTS_EXECMAINTHREAD 4
 
 #define STRID_ARCHITECTURE_MISMATCH 1
 #define STRID_HOTKEY_EXISTS         2
@@ -109,7 +110,8 @@ typedef struct {
   wchar_t *wpArguments;
   int nArgumentsLen;
   HANDLE hInitMutex;
-  BOOL bWaitForScriptSignal;
+  BOOL nWaitForScriptSignal;
+  PLUGINCALLSENDW *pcs;
 } EXECSCRIPT;
 
 typedef struct _SCRIPTARG {
@@ -139,6 +141,7 @@ typedef struct _SCRIPTTHREAD {
   BOOL bSingleCopy;
   BOOL bWaiting;
   BOOL bQuiting;
+  PLUGINCALLSENDW *pcs;
   HANDLE hThread;
   DWORD dwThreadID;
   IActiveScript *objActiveScript;
@@ -279,12 +282,13 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
 int EditScript(wchar_t *wpScript);
-void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, BOOL bWaitExec);
+void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, BOOL bWaitExec, PLUGINCALLSENDW *pcs);
 DWORD WINAPI ExecThreadProc(LPVOID lpParameter);
 SCRIPTTHREAD* StackInsertScriptThread(HTHREADSTACK *hStack);
 SCRIPTTHREAD* StackGetScriptThreadCurrent();
 SCRIPTTHREAD* StackGetScriptThreadByID(HTHREADSTACK *hStack, DWORD dwThreadID);
 SCRIPTTHREAD* StackGetScriptThreadByName(HTHREADSTACK *hStack, const wchar_t *wpScriptName);
+SCRIPTTHREAD* StackGetScriptThreadByPCS(HTHREADSTACK *hStack, PLUGINCALLSENDW *pcs);
 BOOL StackDeleteScriptThread(SCRIPTTHREAD *lpScriptThread);
 void FreeScriptResources(SCRIPTTHREAD *lpScriptThread, BOOL bDebug);
 BOOL CloseScriptThread(SCRIPTTHREAD *lpScriptThread);
