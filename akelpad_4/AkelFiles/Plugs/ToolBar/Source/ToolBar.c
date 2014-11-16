@@ -1711,15 +1711,18 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
       {
         PLUGINFUNCTION *pf;
         wchar_t *wpFunction=NULL;
+        int nDllAction=0;
         BOOL bChecked;
 
         if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
           wpFunction=lpParameter->wpString;
+        if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
+          nDllAction=(int)lpParameter->nNumber;
 
         if (wpFunction)
         {
           bChecked=FALSE;
-          if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0))
+          if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
             if (pf->bRunning) bChecked=TRUE;
           SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, bChecked);
         }
@@ -1810,20 +1813,18 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       {
         ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
 
-        if (nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL))
+        nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL);
+        if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
         {
-          if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
+          xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
+          if (nStructSize > 0)
           {
-            xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
-            if (nStructSize > (INT_PTR)sizeof(INT_PTR))
-            {
-              pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
-              StructMethodParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
-            }
-            else pcp->lParam=0;
-
-            PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
+            pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
+            StructMethodParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
           }
+          else pcp->lParam=0;
+
+          PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
         }
       }
     }
@@ -2393,7 +2394,7 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
   int nElementOffset;
   int nStringOffset=0;
 
-  if (hParamStack->nElements)
+  if (hParamStack->nElements > 1)
   {
     //nStringOffset is pointer to memory where first string will be copied
     nElementOffset=0;
