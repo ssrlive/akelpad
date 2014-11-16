@@ -1,7 +1,7 @@
 /******************************************************************
- *                 IconMenu functions header v2.1                 *
+ *                 IconMenu functions header v2.3                 *
  *                                                                *
- *  2012 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ *  2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
  *                                                                *
  *           Header provide support for images in menu.           *
@@ -60,6 +60,7 @@ typedef struct _ICONMENUITEM {
   INT_PTR nIconIndex;
   int nIconWidth;
   int nIconHeight;
+  int nItemHeight;
   UINT uFlags;
   UINT_PTR dwItemID;
   wchar_t wszStr[MAX_PATH];
@@ -348,6 +349,15 @@ void IconMenu_GetSubMenuSize(ICONMENUSUBMENU *lpSubMenu)
         lpMenuItem->nTabWidth=sizeWidth.cx;
       }
       lpSubMenu->nTabWidthMax=max(lpMenuItem->nTabWidth, lpSubMenu->nTabWidthMax);
+
+      //Item height
+      if (!lpMenuItem->nItemHeight)
+      {
+        if (lpMenuItem->uFlags & MF_SEPARATOR)
+          lpMenuItem->nItemHeight=(ICONMENU_CYICONMARGIN + lpMenuHandle->nTextHeight + ICONMENU_CYICONMARGIN) / 2 + 1;
+        else
+          lpMenuItem->nItemHeight=ICONMENU_CYICONMARGIN + max(lpMenuHandle->nTextHeight, lpMenuItem->nIconHeight) + ICONMENU_CYICONMARGIN;
+      }
     }
 
     if (hMenuFontOld) SelectObject(hDC, hMenuFontOld);
@@ -845,10 +855,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpSubMenu=(ICONMENUSUBMENU *)lpMenuItem->hIconSubMenu;
         lpMenuHandle=(ICONMENUHANDLE *)lpSubMenu->hIconMenu;
 
-        if (lpMenuItem->uFlags & MF_SEPARATOR)
-          lpmis->itemHeight=(ICONMENU_CYICONMARGIN + lpMenuHandle->nTextHeight + ICONMENU_CYICONMARGIN) / 2 + 1;
-        else
-          lpmis->itemHeight=ICONMENU_CYICONMARGIN + max(lpMenuHandle->nTextHeight, lpMenuItem->nIconHeight) + ICONMENU_CYICONMARGIN;
+        lpmis->itemHeight=lpMenuItem->nItemHeight;
         lpmis->itemWidth=lpSubMenu->nTextOffsetMax + lpMenuItem->nStrWidth + (lpSubMenu->nTabWidthMax?(ICONMENU_FROMSTRING_TOTAB + lpSubMenu->nTabWidthMax):0) + ICONMENU_FROMTAB_TOMENUEDGE;
         return TRUE;
       }
@@ -880,6 +887,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RECT rcItem;
         RECT rcImageRect;
         RECT rcImageEdge;
+        RECT rcArrow;
         COLORREF crText;
         COLORREF crBk;
         COLORREF crIconEdge;
@@ -888,6 +896,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int y;
         DWORD dwFlags=0;
         BOOL bShowPrefixAlways=FALSE;
+        BOOL bArrow=FALSE;
 
         lpSubMenu=(ICONMENUSUBMENU *)lpMenuItem->hIconSubMenu;
         lpMenuHandle=(ICONMENUHANDLE *)lpSubMenu->hIconMenu;
@@ -1186,20 +1195,21 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //Draw standard submenu arrow
+          bArrow=FALSE;
           if (lpMenuItem->uFlags & MF_POPUP)
           {
             if (IconMenu_hUxTheme)
             {
-              RECT rcArrow;
               SIZE sizeArrow;
 
-              if (IconMenu_GetThemePartSize(IconMenu_hUxTheme, hMemDC, 16 /*MENU_POPUPSUBMENU*/, 0, NULL, 1 /*TS_TRUE*/, &sizeArrow) == S_OK)
+              if (IconMenu_GetThemePartSize(IconMenu_hUxTheme, hMemDC, 16 /*MENU_POPUPSUBMENU*/, (lpdis->itemState & ODS_GRAYED)?2 /*MSM_DISABLED*/:1 /*MSM_NORMAL*/, NULL, 1 /*TS_TRUE*/, &sizeArrow) == S_OK)
               {
                 rcArrow.left=rcItem.right - sizeArrow.cx * 2 + sizeArrow.cx / 2;
                 rcArrow.top=rcItem.top + (rcItem.bottom - rcItem.top) / 2 - sizeArrow.cy / 2 - 2;
                 rcArrow.right=rcArrow.left + sizeArrow.cx;
                 rcArrow.bottom=rcArrow.top + sizeArrow.cy;
                 IconMenu_DrawThemeBackground(IconMenu_hUxTheme, hMemDC, 16 /*MENU_POPUPSUBMENU*/, (lpdis->itemState & ODS_GRAYED)?2 /*MSM_DISABLED*/:1 /*MSM_NORMAL*/, &rcArrow, NULL);
+                bArrow=TRUE;
               }
             }
           }
@@ -1207,13 +1217,11 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Copy from memory DC
           BitBlt(lpdis->hDC, lpdis->rcItem.left, lpdis->rcItem.top, rcItem.right, rcItem.bottom, hMemDC, 0, 0, SRCCOPY);
 
-          if (lpMenuItem->uFlags & MF_POPUP)
+          if (bArrow)
           {
-            if (IconMenu_hUxTheme)
-            {
-              //Prevent system to draw submenu arrow
-              ExcludeClipRect(lpdis->hDC, lpdis->rcItem.left, lpdis->rcItem.top, lpdis->rcItem.right, lpdis->rcItem.bottom);
-            }
+            //Prevent system to draw submenu arrow
+            ExcludeClipRect(lpdis->hDC, lpdis->rcItem.left + rcArrow.left, lpdis->rcItem.top, lpdis->rcItem.right, lpdis->rcItem.bottom);
+            bArrow=FALSE;
           }
 
           SelectObject(hMemDC, hOldFont);
