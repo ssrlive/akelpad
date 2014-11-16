@@ -187,7 +187,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Кло&нировать",                IDM_WINDOW_FRAMECLONE
         MENUITEM "Ко&пировать путь",            IDM_WINDOW_COPYPATH
-        MENUITEM "Выбор окна...",               IDM_WINDOW_MDILIST
+        MENUITEM "Выбор &окна...",              IDM_WINDOW_MDILIST
     END
     POPUP "&Справка"
     BEGIN

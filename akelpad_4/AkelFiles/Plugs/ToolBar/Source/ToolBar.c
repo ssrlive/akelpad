@@ -234,7 +234,7 @@ void ClearToolbarButtons();
 void UpdateToolbar(STACKTOOLBAR *hStack);
 void ViewItemCode(TOOLBARITEM *lpButton);
 void CallToolbar(STACKTOOLBAR *hStack, int nItem);
-void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, int *lpnMenuHeight);
+void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, INT_PTR *lpnMenuHeight);
 int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton);
 void DestroyToolbarWindow(BOOL bDestroyBG);
 TOOLBARITEM* StackInsertBeforeButton(STACKTOOLBAR *hStack, TOOLBARITEM *lpInsertBefore);
@@ -2042,7 +2042,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
   }
 }
 
-void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, int *lpnMenuHeight)
+void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, INT_PTR *lpnMenuHeight)
 {
   if (lpButton->hParamMenuName.first)
   {
@@ -2082,8 +2082,8 @@ void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, int *lpnMe
 int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton)
 {
   int nMaxY;
-  int nPosY;
-  int nMenuHeight=0;
+  INT_PTR nPosY;
+  INT_PTR nMenuHeight=0;
 
   nPosY=rcButton->bottom;
 
@@ -2114,7 +2114,7 @@ int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton)
         nPosY=rcButton->top - nMenuHeight;
     }
   }
-  return nPosY;
+  return (int)nPosY;
 }
 
 void DestroyToolbarWindow(BOOL bDestroyBG)
