@@ -2087,7 +2087,7 @@ int GetMenuPosY(TOOLBARITEM *lpButton, RECT *rcButton)
 
   nPosY=rcButton->bottom;
 
-  if (nToolbarSide == TBSIDE_BOTTOM)
+  if (nToolbarSide != TBSIDE_TOP)
   {
     //Get menu height
     if (!lpButton->hParamMenuName.first)
