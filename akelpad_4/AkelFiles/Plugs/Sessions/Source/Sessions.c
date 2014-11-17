@@ -4620,11 +4620,12 @@ INT_PTR GetEscapeParam(const wchar_t *wpText, const wchar_t **wpParamStart, cons
   return *wpParamEnd - *wpParamStart;
 }
 
-BOOL NextLine(const wchar_t **wppText)
+BOOL NextLine(const wchar_t **wpText)
 {
-  while (**wppText != L'\r' && **wppText != L'\0') ++*wppText;
-  if (**wppText == L'\0') return FALSE;
-  if (*++*wppText == L'\n') ++*wppText;
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
+  if (**wpText == L'\0') return FALSE;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
   return TRUE;
 }
 
