@@ -1869,8 +1869,8 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
   BLOCKINFO *lpBlockMaster;
   BLOCKINFOHANDLE *lpBlockHandle;
   HOTSPOT *lpHotSpot;
-  wchar_t *wpStrBegin;
-  wchar_t *wpStrEnd;
+  const wchar_t *wpStrBegin;
+  const wchar_t *wpStrEnd;
   wchar_t *wpLine;
   wchar_t *wpIndentBlock=NULL;
   int nMinLine;
