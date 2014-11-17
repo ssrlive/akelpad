@@ -212,7 +212,7 @@ int HexCharToValue(const wchar_t **wpText);
 int ValueToHexChar(int nValue, wchar_t *wszHexChar);
 int ValueToNormalChar(int nValue, wchar_t *wszNormalChar);
 void SkipWhitespace(const wchar_t **wpText);
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces);
 BOOL GetCharColor(HWND hWndEdit, INT_PTR nCharOffset, AECHARCOLORS *aecc);
 COLORREF GetColorFromStrAnsi(char *pColor);
@@ -2150,9 +2150,9 @@ void CreateSpecialCharStack(STACKSPECIALCHAR *hStack, const wchar_t *wpText)
 
   if (wpText)
   {
-    while (*wpText)
+    for (; *wpText; NextLine(&wpText))
     {
-      NextString(wpText, sc.wszName, MAX_PATH, &wpText, NULL);
+      GetWord(wpText, sc.wszName, MAX_PATH, &wpText, NULL);
 
       SkipWhitespace(&wpText);
       sc.nOldChar=HexCharToValue(&wpText);
@@ -2187,8 +2187,6 @@ void CreateSpecialCharStack(STACKSPECIALCHAR *hStack, const wchar_t *wpText)
         if (pscChar->nOldChar == SC_INDENTLINE)
           pscIndentLine=pscChar;
       }
-
-      SkipWhitespace(&wpText);
     }
   }
 }
@@ -2247,50 +2245,46 @@ int ValueToNormalChar(int nValue, wchar_t *wszNormalChar)
 
 void SkipWhitespace(const wchar_t **wpText)
 {
-  while (**wpText == L' ' || **wpText == L'\t' || **wpText == L'\r' || **wpText == L'\n') ++*wpText;
+  while (**wpText == L' ' || **wpText == L'\t') ++*wpText;
 }
 
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus)
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote)
 {
-  int i;
+  const wchar_t *wpCount;
+  wchar_t wchStopChar;
 
-  while (*wpText == L' ' || *wpText == L'\t' || *wpText == L'\r' || *wpText == L'\n') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  if (*wpText == L'-')
+  if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
-    if (nMinus) *nMinus=1;
-    ++wpText;
-  }
-  else
-  {
-    if (nMinus) *nMinus=0;
-  }
+    if (lpbQuote) *lpbQuote=TRUE;
+    wchStopChar=*wpText;
+    wpCount=++wpText;
 
-  if (*wpText == L'\"')
-  {
-    ++wpText;
-    i=0;
+    //Parse: "param" or 'param' or `param`
+    while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
 
-    while (*wpText != L'\"' && *wpText != L'\0')
+    if (wppNextWord)
     {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
+      *wppNextWord=wpCount;
+      if (*wpCount == wchStopChar)
+        ++*wppNextWord;
     }
   }
   else
   {
-    i=0;
+    if (lpbQuote) *lpbQuote=FALSE;
+    wpCount=wpText;
 
-    while (*wpText != L' ' && *wpText != L'\r' && *wpText != L'\0')
-    {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
-    }
+    //Parse: param1 param2 param3
+    while (*wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
+
+    if (wppNextWord)
+      *wppNextWord=wpCount;
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
 }
 
 BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces)

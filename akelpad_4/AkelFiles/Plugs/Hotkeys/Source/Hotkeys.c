@@ -219,8 +219,9 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText);
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
+BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
@@ -1706,8 +1707,8 @@ void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilt
   {
     PLUGINFUNCTION *pfElement;
     DWORD dwHotkey;
-    wchar_t *wpStrBegin;
-    wchar_t *wpStrEnd;
+    const wchar_t *wpStrBegin;
+    const wchar_t *wpStrEnd;
     int nFound;
 
     for (pfElement=hPluginsStack->first; pfElement; pfElement=pfElement->next)
@@ -1824,18 +1825,17 @@ void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText)
   const wchar_t *wpCommand;
   DWORD dwAction;
   int nPlus;
-  int nMinus;
 
   if (wpText)
   {
-    while (*wpText)
+    for (; *wpText; NextLine(&wpText))
     {
       //Name
       if (!SkipComment(&wpText)) break;
-      NextString(wpText, wszHotkeyName, MAX_PATH, &wpText, &nMinus);
+      GetWord(wpText, wszHotkeyName, MAX_PATH, &wpText);
 
       //AutoLoad
-      while (*wpText == L' ' || *wpText == L'\t' || *wpText == L'\r' || *wpText == L'\n') ++wpText;
+      while (*wpText == L' ' || *wpText == L'\t') ++wpText;
       wpCommand=wpText;
 
       if (*wpText == L'+')
@@ -2517,64 +2517,70 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
   hParamStack->nElements=0;
 }
 
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText)
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
 {
-  int i=0;
+  const wchar_t *wpCount;
 
-  while (*wpText == L'\"' || *wpText == L' ' || *wpText == L'\t') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  while (*wpText != L'(' && *wpText != L'\r' && *wpText != L'\0')
+  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
   {
-    if (i < nStrLen) wszStr[i++]=*wpText;
-    ++wpText;
+    if (*wpCount == L'(')
+    {
+      if (wppText)
+        *wppText=wpCount + 1;
+      return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
+    }
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return 0;
 }
 
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus)
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote)
 {
-  int i;
+  const wchar_t *wpCount;
+  wchar_t wchStopChar;
 
-  while (*wpText == L' ' || *wpText == L'\t' || *wpText == L'\r' || *wpText == L'\n') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  if (*wpText == L'-')
+  if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
-    if (nMinus) *nMinus=1;
-    ++wpText;
-  }
-  else
-  {
-    if (nMinus) *nMinus=0;
-  }
+    if (lpbQuote) *lpbQuote=TRUE;
+    wchStopChar=*wpText;
+    wpCount=++wpText;
 
-  if (*wpText == L'\"')
-  {
-    ++wpText;
-    i=0;
+    //Parse: "param" or 'param' or `param`
+    while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
 
-    while (*wpText != L'\"' && *wpText != L'\0')
+    if (wppNextWord)
     {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
+      *wppNextWord=wpCount;
+      if (*wpCount == wchStopChar)
+        ++*wppNextWord;
     }
   }
   else
   {
-    i=0;
+    if (lpbQuote) *lpbQuote=FALSE;
+    wpCount=wpText;
 
-    while (*wpText != L' ' && *wpText != L'\r' && *wpText != L'\0')
-    {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
-    }
+    //Parse: param1 param2 param3
+    while (*wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
+
+    if (wppNextWord)
+      *wppNextWord=wpCount;
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
+}
+
+BOOL NextLine(const wchar_t **wpText)
+{
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
+  if (**wpText == L'\0') return FALSE;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
+  return TRUE;
 }
 
 BOOL SkipComment(const wchar_t **wpText)
@@ -2585,7 +2591,8 @@ BOOL SkipComment(const wchar_t **wpText)
 
     if (**wpText == L';' || **wpText == L'#')
     {
-      while (**wpText != L'\r' && **wpText != L'\0') ++*wpText;
+      if (!NextLine(wpText))
+        return FALSE;
     }
     else break;
   }

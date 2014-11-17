@@ -75,7 +75,7 @@ Special menu items:
       SET(8)
         when copying text from the main menu, don't capture the hotkey.
       SET(16)
-        don't use the icons for menu items.
+        don't use the icons for menu. It is necessary to locate SET(16) before the first menu item and UNSET(16) right after the last.
       SET(32, "%a\AkelFiles\Plugs\Scripts.dll")
         ignore following lines, if "Scripts.dll" file doesn't exist.
   UNSET(flags)

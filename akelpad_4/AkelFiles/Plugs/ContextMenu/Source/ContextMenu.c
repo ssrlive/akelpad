@@ -89,51 +89,52 @@
 #define DLLA_CONTEXTMENU_SHOWSUBMENU  1
 #define DLLA_CONTEXTMENU_SHOWMAINMENU 2
 
-#define STRID_MANUAL                          1 
-#define STRID_MENUMAIN                        2 
-#define STRID_MENUEDIT                        3 
-#define STRID_MENUTAB                         4 
-#define STRID_MENUURL                         5 
-#define STRID_MENURECENTFILES                 6 
-#define STRID_ENABLE                          7 
-#define STRID_HIDE                            8 
-#define STRID_SHOW                            9 
+#define STRID_MANUAL                          1
+#define STRID_MENUMAIN                        2
+#define STRID_MENUEDIT                        3
+#define STRID_MENUTAB                         4
+#define STRID_MENUURL                         5
+#define STRID_MENURECENTFILES                 6
+#define STRID_ENABLE                          7
+#define STRID_HIDE                            8
+#define STRID_SHOW                            9
 #define STRID_AUTOLOAD                        10
 #define STRID_NOSUBMENUINDEX                  11
 #define STRID_NOSUBMENUNAME                   12
-#define STRID_PARSEMSG_NONPARENT              13
-#define STRID_PARSEMSG_UNKNOWNMETHOD          14
-#define STRID_PARSEMSG_METHODALREADYDEFINED   15
-#define STRID_PARSEMSG_NOMETHOD               16
-#define STRID_PARSEMSG_UNNAMEDSUBMENU         17
-#define STRID_PARSEMSG_NOOPENBRACKET          18
-#define STRID_PARSEMSG_NOOPENSET              19
-#define STRID_CHECKIF_UNKNOWNMETHOD           20
-#define STRID_CHECKIF_NOCLOSEPARENTHESIS      21
-#define STRID_CHECKIF_UNKNOWNSIGN             22
-#define STRID_MENU_OPEN                       23
-#define STRID_MENU_MOVEUP                     24
-#define STRID_MENU_MOVEDOWN                   25
-#define STRID_MENU_SORT                       26
-#define STRID_MENU_DELETE                     27
-#define STRID_MENU_DELETEOLD                  28
-#define STRID_MENU_EDIT                       29
-#define STRID_FAVOURITES                      30
-#define STRID_SHOWFILE                        31
-#define STRID_FAVADDING                       32
-#define STRID_FAVEDITING                      33
-#define STRID_FAVNAME                         34
-#define STRID_FAVFILE                         35
-#define STRID_PLUGIN                          36
-#define STRID_OK                              37
-#define STRID_CANCEL                          38
-#define STRID_CLOSE                           39
-#define STRID_DEFAULTMANUAL                   40
-#define STRID_DEFAULTMAIN                     41
-#define STRID_DEFAULTEDIT                     42
-#define STRID_DEFAULTTAB                      43
-#define STRID_DEFAULTURL                      44
-#define STRID_DEFAULTRECENTFILES              45
+#define STRID_PARSEMSG_UNKNOWNSPECIAL         13
+#define STRID_PARSEMSG_NONPARENT              14
+#define STRID_PARSEMSG_UNKNOWNMETHOD          15
+#define STRID_PARSEMSG_METHODALREADYDEFINED   16
+#define STRID_PARSEMSG_NOMETHOD               17
+#define STRID_PARSEMSG_UNNAMEDSUBMENU         18
+#define STRID_PARSEMSG_NOOPENBRACKET          19
+#define STRID_PARSEMSG_NOOPENSET              20
+#define STRID_CHECKIF_UNKNOWNMETHOD           21
+#define STRID_CHECKIF_NOCLOSEPARENTHESIS      22
+#define STRID_CHECKIF_UNKNOWNSIGN             23
+#define STRID_MENU_OPEN                       24
+#define STRID_MENU_MOVEUP                     25
+#define STRID_MENU_MOVEDOWN                   26
+#define STRID_MENU_SORT                       27
+#define STRID_MENU_DELETE                     28
+#define STRID_MENU_DELETEOLD                  29
+#define STRID_MENU_EDIT                       30
+#define STRID_FAVOURITES                      31
+#define STRID_SHOWFILE                        32
+#define STRID_FAVADDING                       33
+#define STRID_FAVEDITING                      34
+#define STRID_FAVNAME                         35
+#define STRID_FAVFILE                         36
+#define STRID_PLUGIN                          37
+#define STRID_OK                              38
+#define STRID_CANCEL                          39
+#define STRID_CLOSE                           40
+#define STRID_DEFAULTMANUAL                   41
+#define STRID_DEFAULTMAIN                     42
+#define STRID_DEFAULTEDIT                     43
+#define STRID_DEFAULTTAB                      44
+#define STRID_DEFAULTURL                      45
+#define STRID_DEFAULTRECENTFILES              46
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -511,8 +512,8 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText);
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
 INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
@@ -2498,17 +2499,20 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
   const wchar_t *wpCount=wpText;
   const wchar_t *wpLineBegin=wpText;
   const wchar_t *wpErrorBegin=wpText;
+  wchar_t *wpFileName;
   DWORD dwAction=0;
   DWORD dwNewFlags;
   DWORD dwSetFlags=0;
-  int nFlagCountNoSDISkip=0;
-  int nFlagCountNoMDISkip=0;
-  int nFlagCountNoPMDISkip=0;
+  int nFlagCountNoSDI=0;
+  int nFlagCountNoMDI=0;
+  int nFlagCountNoPMDI=0;
+  int nFlagCountNoIcons=0;
   int nFlagCountNoFileExistAll=0;
   int nFlagCountNoFileExistSkip=0;
-  int nFlagCountStateIfAll=0;
+  int nFlagCountStateIf=0;
   STATEIF *lpStateIf=NULL;
   int nPrevSeparator=0;
+  BOOL bQuote;
   BOOL bMethod;
   BOOL bMainMenuParent;
   int nPlus;
@@ -2549,44 +2553,35 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
       if (!SkipComment(&wpCount)) break;
       wpLineBegin=wpCount;
 
-      if (*wpCount == L'{')
-      {
-        if (!IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST|CCMS_STATEIF))
-        {
-          wpErrorBegin=wpCount++;
-          nMessageID=STRID_PARSEMSG_UNNAMEDSUBMENU;
-          goto Error;
-        }
-      }
-      NextString(wpCount, wszMenuItem, MAX_PATH, &wpCount, &nMinus);
-
       //Set options
-      if (!xstrcmpnW(L"SET(", wpLineBegin, (UINT_PTR)-1))
+      if (!xstrcmpnW(L"SET(", wpCount, (UINT_PTR)-1))
       {
-        dwNewFlags=(DWORD)xatoiW(wpLineBegin + 4, &wpCount);
+        dwNewFlags=(DWORD)xatoiW(wpCount + 4, &wpCount);
         while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
         if (*wpCount == L',') ++wpCount;
 
         if (dwNewFlags & CCMS_NOSDI)
-          ++nFlagCountNoSDISkip;
+          ++nFlagCountNoSDI;
         if (dwNewFlags & CCMS_NOMDI)
-          ++nFlagCountNoMDISkip;
+          ++nFlagCountNoMDI;
         if (dwNewFlags & CCMS_NOPMDI)
-          ++nFlagCountNoPMDISkip;
+          ++nFlagCountNoPMDI;
+        if (dwNewFlags & CCMS_NOICONS)
+        {
+          bUseIcons=FALSE;
+          ++nFlagCountNoIcons;
+        }
         if (dwNewFlags & CCMS_NOFILEEXIST)
         {
           if (dwSetFlags & CCMS_NOFILEEXIST)
             ++nFlagCountNoFileExistSkip;
           else
           {
-            wchar_t wszPath[MAX_PATH];
-            wchar_t *wpFileName;
-  
-            if (NextString(wpCount, wszPath, MAX_PATH, &wpCount, NULL))
+            if (GetWord(wpCount, wszMenuItem, MAX_PATH, &wpCount, &bQuote) && bQuote)
             {
-              if (TranslateFileString(wszPath, wszBuffer, BUFFER_SIZE))
+              if (TranslateFileString(wszMenuItem, wszBuffer, BUFFER_SIZE))
               {
-                if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszPath, &wpFileName))
+                if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszMenuItem, &wpFileName))
                   dwNewFlags&=~CCMS_NOFILEEXIST;
               }
             }
@@ -2619,379 +2614,394 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
             nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
             goto Error;
           }
-          ++nFlagCountStateIfAll;
+          ++nFlagCountStateIf;
         }
         dwSetFlags|=dwNewFlags;
-        while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-        if (*wpCount == L')') ++wpCount;
-
-        if (IsFlagOn(dwSetFlags, CCMS_NOICONS))
-          bUseIcons=FALSE;
+        if (!NextLine(&wpCount)) break;
         if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
           continue;
         goto CheckSubmenuClose;
       }
-      else if (!xstrcmpnW(L"UNSET(", wpLineBegin, (UINT_PTR)-1))
+      else if (!xstrcmpnW(L"UNSET(", wpCount, (UINT_PTR)-1))
       {
-        dwNewFlags=(DWORD)xatoiW(wpLineBegin + 6, &wpCount);
+        dwNewFlags=(DWORD)xatoiW(wpCount + 6, &wpCount);
 
         if (dwNewFlags & CCMS_NOSDI)
         {
-          if (nFlagCountNoSDISkip > 0)
-          {
-            if (--nFlagCountNoSDISkip > 0)
-              dwNewFlags&=~CCMS_NOSDI;
-          }        
-          else goto UnsetError;
+          if (nFlagCountNoSDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoSDI > 0)
+            dwNewFlags&=~CCMS_NOSDI;
         }
         if (dwNewFlags & CCMS_NOMDI)
         {
-          if (nFlagCountNoMDISkip > 0)
-          {
-            if (--nFlagCountNoMDISkip > 0)
-              dwNewFlags&=~CCMS_NOMDI;
-          }        
-          else goto UnsetError;
+          if (nFlagCountNoMDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoMDI > 0)
+            dwNewFlags&=~CCMS_NOMDI;
         }
         if (dwNewFlags & CCMS_NOPMDI)
         {
-          if (nFlagCountNoPMDISkip > 0)
-          {
-            if (--nFlagCountNoPMDISkip > 0)
-              dwNewFlags&=~CCMS_NOPMDI;
-          }        
-          else goto UnsetError;
+          if (nFlagCountNoPMDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoPMDI > 0)
+            dwNewFlags&=~CCMS_NOPMDI;
+        }
+        if (dwNewFlags & CCMS_NOICONS)
+        {
+          if (nFlagCountNoIcons <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoIcons > 0)
+            dwNewFlags&=~CCMS_NOICONS;
+          else
+            bUseIcons=TRUE;
         }
         if (dwNewFlags & CCMS_NOFILEEXIST)
         {
-          if (nFlagCountNoFileExistSkip > 0 && --nFlagCountNoFileExistSkip > 0)
+          if (--nFlagCountNoFileExistAll < 0)
+            goto UnsetError;
+          if (--nFlagCountNoFileExistSkip > 0)
             dwNewFlags&=~CCMS_NOFILEEXIST;
-          if (--nFlagCountNoFileExistAll < 0) goto UnsetError;
         }
         if (dwNewFlags & CCMS_STATEIF)
         {
+          if (--nFlagCountStateIf < 0)
+            goto UnsetError;
           if (lpStateIf)
             lpStateIf=lpStateIf->prev;
           if (lpStateIf)
             dwNewFlags&=~CCMS_STATEIF;
-          if (--nFlagCountStateIfAll < 0) goto UnsetError;
         }
-        goto UnsetFlags;
+        dwSetFlags&=~dwNewFlags;
+        if (!NextLine(&wpCount)) break;
+        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+          continue;
+        goto CheckSubmenuClose;
 
         UnsetError:
         nMessageID=STRID_PARSEMSG_NOOPENSET;
         goto Error;
-
-        UnsetFlags:
-        dwSetFlags&=~dwNewFlags;
-        while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-        if (*wpCount == L')') ++wpCount;
-
-        if (!IsFlagOn(dwSetFlags, CCMS_NOICONS))
-          bUseIcons=TRUE;
-        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
-        {
-          if (!NextLine(&wpCount)) break;
-          continue;
-        }
-        goto CheckSubmenuClose;
       }
+      //Skip line if skip flag set
       if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
       {
         if (!NextLine(&wpCount)) break;
         continue;
       }
 
-      //Item name is special string
-      if (!xstrcmpW(wszMenuItem, L"SEPARATOR"))
+      if (*wpCount == L'{')
       {
-        InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, -1, MF_BYPOSITION|MF_SEPARATOR, IDM_SEPARATOR, NULL);
-        ++nSubMenuIndex;
-        ++nSubMenuCodeItem;
-        nPrevSeparator=IDM_SEPARATOR;
-        bMethod=TRUE;
+        wpErrorBegin=wpCount++;
+        nMessageID=STRID_PARSEMSG_UNNAMEDSUBMENU;
+        goto Error;
       }
-      else if (!xstrcmpW(wszMenuItem, L"SEPARATOR1"))
+      if (*wpCount == L'-')
       {
-        if (!nPrevSeparator && nSubMenuCodeItem)
+        nMinus=1;
+        ++wpCount;
+      }
+      else nMinus=0;
+      GetWord(wpCount, wszMenuItem, MAX_PATH, &wpCount, &bQuote);
+
+      if (!bQuote)
+      {
+        //Special item
+        if (!xstrcmpW(wszMenuItem, L"SEPARATOR"))
         {
-          InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, -1, MF_BYPOSITION|MF_SEPARATOR, IDM_SEPARATOR1, NULL);
+          InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, -1, MF_BYPOSITION|MF_SEPARATOR, IDM_SEPARATOR, NULL);
           ++nSubMenuIndex;
           ++nSubMenuCodeItem;
-        }
-        nPrevSeparator=IDM_SEPARATOR1;
-        bMethod=TRUE;
-      }
-      else
-      {
-        nPrevSeparator=0;
-
-        if (!xstrcmpW(wszMenuItem, L"EXPLORER"))
-        {
-          hMenuStack->hExplorerSubMenu=hSubMenu;
-          hMenuStack->nExplorerFirstIndex=nSubMenuIndex;
-          hMenuStack->nExplorerLastIndex=-1;
-          ++nSubMenuCodeItem;
+          nPrevSeparator=IDM_SEPARATOR;
           bMethod=TRUE;
         }
-        else if (!xstrcmpW(wszMenuItem, L"FAVOURITES"))
+        else if (!xstrcmpW(wszMenuItem, L"SEPARATOR1"))
         {
-          hMenuStack->hFavouritesSubMenu=hSubMenu;
-          hMenuStack->nFavouritesFirstIndex=nSubMenuIndex;
-          hMenuStack->nFavouritesLastIndex=-1;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"RECENTFILES"))
-        {
-          hMenuStack->hRecentFilesSubMenu=hSubMenu;
-          hMenuStack->nRecentFilesFirstIndex=nSubMenuIndex;
-          hMenuStack->nRecentFilesLastIndex=-1;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"LANGUAGES"))
-        {
-          hMenuStack->hLanguagesSubMenu=hSubMenu;
-          hMenuStack->nLanguagesFirstIndex=nSubMenuIndex;
-          hMenuStack->nLanguagesLastIndex=-1;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"OPENCODEPAGES"))
-        {
-          hMenuStack->hOpenCodepagesSubMenu=hSubMenu;
-          hMenuStack->nOpenCodepagesFirstIndex=nSubMenuIndex;
-          hMenuStack->nOpenCodepagesLastIndex=-1;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"SAVECODEPAGES"))
-        {
-          hMenuStack->hSaveCodepagesSubMenu=hSubMenu;
-          hMenuStack->nSaveCodepagesFirstIndex=nSubMenuIndex;
-          hMenuStack->nSaveCodepagesLastIndex=-1;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"MDIDOCUMENTS"))
-        {
-          hMenuStack->hMdiDocumentsSubMenu=hSubMenu;
-          ++nSubMenuCodeItem;
-          bMethod=TRUE;
-        }
-        else if (!xstrcmpW(wszMenuItem, L"CLEAR"))
-        {
-          hMenuStack->bClearMainMenu=TRUE;
+          if (!nPrevSeparator && nSubMenuCodeItem)
+          {
+            InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, -1, MF_BYPOSITION|MF_SEPARATOR, IDM_SEPARATOR1, NULL);
+            ++nSubMenuIndex;
+            ++nSubMenuCodeItem;
+          }
+          nPrevSeparator=IDM_SEPARATOR1;
           bMethod=TRUE;
         }
         else
         {
-          //Item name is normal string
-          while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+          nPrevSeparator=0;
 
-          if (*wpCount == L'+')
+          if (!xstrcmpW(wszMenuItem, L"EXPLORER"))
           {
-            ++wpCount;
-            nPlus=1;
+            hMenuStack->hExplorerSubMenu=hSubMenu;
+            hMenuStack->nExplorerFirstIndex=nSubMenuIndex;
+            hMenuStack->nExplorerLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
           }
-          else nPlus=0;
-
-          //Parse methods
-          for (;;)
+          else if (!xstrcmpW(wszMenuItem, L"FAVOURITES"))
           {
-            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-            wpErrorBegin=wpCount;
+            hMenuStack->hFavouritesSubMenu=hSubMenu;
+            hMenuStack->nFavouritesFirstIndex=nSubMenuIndex;
+            hMenuStack->nFavouritesLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"RECENTFILES"))
+          {
+            hMenuStack->hRecentFilesSubMenu=hSubMenu;
+            hMenuStack->nRecentFilesFirstIndex=nSubMenuIndex;
+            hMenuStack->nRecentFilesLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"LANGUAGES"))
+          {
+            hMenuStack->hLanguagesSubMenu=hSubMenu;
+            hMenuStack->nLanguagesFirstIndex=nSubMenuIndex;
+            hMenuStack->nLanguagesLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"OPENCODEPAGES"))
+          {
+            hMenuStack->hOpenCodepagesSubMenu=hSubMenu;
+            hMenuStack->nOpenCodepagesFirstIndex=nSubMenuIndex;
+            hMenuStack->nOpenCodepagesLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"SAVECODEPAGES"))
+          {
+            hMenuStack->hSaveCodepagesSubMenu=hSubMenu;
+            hMenuStack->nSaveCodepagesFirstIndex=nSubMenuIndex;
+            hMenuStack->nSaveCodepagesLastIndex=-1;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"MDIDOCUMENTS"))
+          {
+            hMenuStack->hMdiDocumentsSubMenu=hSubMenu;
+            ++nSubMenuCodeItem;
+            bMethod=TRUE;
+          }
+          else if (!xstrcmpW(wszMenuItem, L"CLEAR"))
+          {
+            hMenuStack->bClearMainMenu=TRUE;
+            bMethod=TRUE;
+          }
+          else
+          {
+            nMessageID=STRID_PARSEMSG_UNKNOWNSPECIAL;
+            goto Error;
+          }
+        }
+      }
+      else
+      {
+        //Normal item
+        nPrevSeparator=0;
+        while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
 
-            if (!GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
-              break;
+        if (*wpCount == L'+')
+        {
+          ++wpCount;
+          nPlus=1;
+        }
+        else nPlus=0;
 
-            if (!xstrcmpiW(wszMethodName, L"Index") || !xstrcmpiW(wszMethodName, L"Break"))
+        //Parse methods
+        for (;;)
+        {
+          while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+          wpErrorBegin=wpCount;
+
+          if (!GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+            break;
+
+          if (!xstrcmpiW(wszMethodName, L"Index") || !xstrcmpiW(wszMethodName, L"Break"))
+          {
+            if (!lpMainIndexItem)
             {
-              if (!lpMainIndexItem)
+              if (!hParentMenu)
               {
-                if (!hParentMenu)
+                if (!StackInsertIndex((stack **)&hMenuStack->hMainMenuIndexStack.first, (stack **)&hMenuStack->hMainMenuIndexStack.last, (stack **)&lpMainIndexItem, -1, sizeof(MAININDEXITEM)))
                 {
-                  if (!StackInsertIndex((stack **)&hMenuStack->hMainMenuIndexStack.first, (stack **)&hMenuStack->hMainMenuIndexStack.last, (stack **)&lpMainIndexItem, -1, sizeof(MAININDEXITEM)))
-                  {
-                    lpMainIndexItem->nMainMenuIndex=(int)xatoiW(wpCount, &wpCount);
-                    if (!xstrcmpiW(wszMethodName, L"Break"))
-                      lpMainIndexItem->bMenuBreak=TRUE;
-                    if (*wpCount == L')') ++wpCount;
-                  }
-                }
-                else
-                {
-                  nMessageID=STRID_PARSEMSG_NONPARENT;
-                  goto Error;
+                  lpMainIndexItem->nMainMenuIndex=(int)xatoiW(wpCount, &wpCount);
+                  if (!xstrcmpiW(wszMethodName, L"Break"))
+                    lpMainIndexItem->bMenuBreak=TRUE;
+                  if (*wpCount == L')') ++wpCount;
                 }
               }
               else
               {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
-                goto Error;
-              }
-            }
-            else if (!xstrcmpiW(wszMethodName, L"Icon"))
-            {
-              if (nImageListIconIndex == -1)
-              {
-                GetIconParameters(wpCount, wszIconFile, MAX_PATH, &nFileIconIndex, &wpCount);
-
-                if (!IsFlagOn(dwSetFlags, CCMS_NOICONS))
-                {
-                  //Load icon optimization (part 1):
-                  nImageListIconIndex=hMenuStack->nImageListIconCount;
-                  ++hMenuStack->nImageListIconCount;
-                }
-              }
-              else
-              {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+                nMessageID=STRID_PARSEMSG_NONPARENT;
                 goto Error;
               }
             }
             else
             {
-              //Actions
-              if (!lpMenuItem)
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
+            }
+          }
+          else if (!xstrcmpiW(wszMethodName, L"Icon"))
+          {
+            if (nImageListIconIndex == -1)
+            {
+              GetIconParameters(wpCount, wszIconFile, MAX_PATH, &nFileIconIndex, &wpCount);
+
+              if (bUseIcons)
               {
-                if (!xstrcmpiW(wszMethodName, L"Command"))
-                  dwAction=EXTACT_COMMAND;
-                else if (!xstrcmpiW(wszMethodName, L"Call"))
-                  dwAction=EXTACT_CALL;
-                else if (!xstrcmpiW(wszMethodName, L"Exec"))
-                  dwAction=EXTACT_EXEC;
-                else if (!xstrcmpiW(wszMethodName, L"OpenFile"))
-                  dwAction=EXTACT_OPENFILE;
-                else if (!xstrcmpiW(wszMethodName, L"SaveFile"))
-                  dwAction=EXTACT_SAVEFILE;
-                else if (!xstrcmpiW(wszMethodName, L"Font"))
-                  dwAction=EXTACT_FONT;
-                else if (!xstrcmpiW(wszMethodName, L"Recode"))
-                  dwAction=EXTACT_RECODE;
-                else if (!xstrcmpiW(wszMethodName, L"Insert"))
-                  dwAction=EXTACT_INSERT;
-                else if (!xstrcmpiW(wszMethodName, L"Link"))
-                  dwAction=EXTACT_LINK;
-                else if (!xstrcmpiW(wszMethodName, L"Favourites"))
-                  dwAction=EXTACT_FAVOURITE;
-                else if (!xstrcmpiW(wszMethodName, L"Menu"))
-                {
-                  dwAction=EXTACT_MENU;
-                  nMinus=1;
-                }
-                else dwAction=0;
+                //Load icon optimization (part 1):
+                nImageListIconIndex=hMenuStack->nImageListIconCount;
+                ++hMenuStack->nImageListIconCount;
+              }
+            }
+            else
+            {
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
+            }
+          }
+          else
+          {
+            //Actions
+            if (!lpMenuItem)
+            {
+              if (!xstrcmpiW(wszMethodName, L"Command"))
+                dwAction=EXTACT_COMMAND;
+              else if (!xstrcmpiW(wszMethodName, L"Call"))
+                dwAction=EXTACT_CALL;
+              else if (!xstrcmpiW(wszMethodName, L"Exec"))
+                dwAction=EXTACT_EXEC;
+              else if (!xstrcmpiW(wszMethodName, L"OpenFile"))
+                dwAction=EXTACT_OPENFILE;
+              else if (!xstrcmpiW(wszMethodName, L"SaveFile"))
+                dwAction=EXTACT_SAVEFILE;
+              else if (!xstrcmpiW(wszMethodName, L"Font"))
+                dwAction=EXTACT_FONT;
+              else if (!xstrcmpiW(wszMethodName, L"Recode"))
+                dwAction=EXTACT_RECODE;
+              else if (!xstrcmpiW(wszMethodName, L"Insert"))
+                dwAction=EXTACT_INSERT;
+              else if (!xstrcmpiW(wszMethodName, L"Link"))
+                dwAction=EXTACT_LINK;
+              else if (!xstrcmpiW(wszMethodName, L"Favourites"))
+                dwAction=EXTACT_FAVOURITE;
+              else if (!xstrcmpiW(wszMethodName, L"Menu"))
+              {
+                dwAction=EXTACT_MENU;
+                nMinus=1;
+              }
+              else dwAction=0;
 
-                if (dwAction)
+              if (dwAction)
+              {
+                if (!StackInsertIndex((stack **)&hMenuStack->hMenuItemStack.first, (stack **)&hMenuStack->hMenuItemStack.last, (stack **)&lpMenuItem, -1, sizeof(MENUITEM)))
                 {
-                  if (!StackInsertIndex((stack **)&hMenuStack->hMenuItemStack.first, (stack **)&hMenuStack->hMenuItemStack.last, (stack **)&lpMenuItem, -1, sizeof(MENUITEM)))
+                  lpMenuItem->bUpdateItem=!nMinus;
+                  lpMenuItem->lpStateIf=lpStateIf;
+                  lpMenuItem->bAutoLoad=nPlus;
+                  lpMenuItem->dwAction=dwAction;
+                  lpMenuItem->nTextOffset=(int)(wpLineBegin - wpTextBegin);
+                  lpMenuItem->nItem=nItem;
+                  lpMenuItem->nMenuType=nType;
+                  lpMenuItem->hSubMenu=hSubMenu;
+                  lpMenuItem->nSubMenuIndex=nSubMenuIndex;
+                  lpMenuItem->nFileIconIndex=-1;
+                  lpMenuItem->nImageListIconIndex=-1;
+                  ParseMethodParameters(&lpMenuItem->hParamStack, wpCount, &wpCount);
+
+                  if (dwAction == EXTACT_COMMAND)
                   {
-                    lpMenuItem->bUpdateItem=!nMinus;
-                    lpMenuItem->lpStateIf=lpStateIf;
-                    lpMenuItem->bAutoLoad=nPlus;
-                    lpMenuItem->dwAction=dwAction;
-                    lpMenuItem->nTextOffset=(int)(wpLineBegin - wpTextBegin);
-                    lpMenuItem->nItem=nItem;
-                    lpMenuItem->nMenuType=nType;
-                    lpMenuItem->hSubMenu=hSubMenu;
-                    lpMenuItem->nSubMenuIndex=nSubMenuIndex;
-                    lpMenuItem->nFileIconIndex=-1;
-                    lpMenuItem->nImageListIconIndex=-1;
-                    ParseMethodParameters(&lpMenuItem->hParamStack, wpCount, &wpCount);
+                    EXTPARAM *lpParameter;
+                    int nCommand=0;
 
-                    if (dwAction == EXTACT_COMMAND)
+                    if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 1))
+                      nCommand=(int)lpParameter->nNumber;
+
+                    if (!*wszMenuItem)
                     {
-                      EXTPARAM *lpParameter;
-                      int nCommand=0;
-
-                      if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 1))
-                        nCommand=(int)lpParameter->nNumber;
-
-                      if (!*wszMenuItem)
+                      if (GetMenuStringWide(hMainMenu, nCommand, wszMenuItem, MAX_PATH, MF_BYCOMMAND))
                       {
-                        if (GetMenuStringWide(hMainMenu, nCommand, wszMenuItem, MAX_PATH, MF_BYCOMMAND))
+                        if (IsFlagOn(dwSetFlags, CCMS_NOSHORTCUT))
                         {
-                          if (IsFlagOn(dwSetFlags, CCMS_NOSHORTCUT))
+                          for (i=0; wszMenuItem[i]; ++i)
                           {
-                            for (i=0; wszMenuItem[i]; ++i)
+                            if (wszMenuItem[i] == L'\t')
                             {
-                              if (wszMenuItem[i] == L'\t')
-                              {
-                                wszMenuItem[i]=L'\0';
-                                break;
-                              }
+                              wszMenuItem[i]=L'\0';
+                              break;
                             }
                           }
                         }
                       }
                     }
                   }
-                  bMethod=TRUE;
                 }
-                else
-                {
-                  nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
-                  goto Error;
-                }
+                bMethod=TRUE;
               }
               else
               {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+                nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
                 goto Error;
               }
             }
-          }
-
-          //Add menu item
-          if (bMethod)
-          {
-            //Load icon optimization (part 2):
-            if (nFileIconIndex != -1)
-            {
-              xstrcpynW(lpMenuItem->wszIconFile, wszIconFile, MAX_PATH);
-              lpMenuItem->nFileIconIndex=nFileIconIndex;
-              lpMenuItem->nImageListIconIndex=(int)nImageListIconIndex;
-            }
-
-            if (dwAction == EXTACT_MENU)
-            {
-              HMENU hManualMenu=NULL;
-              BOOL bResult=TRUE;
-
-              if (!hMenuManualStack.hPopupMenu && nType != TYPE_MANUAL)
-                bResult=CreateContextMenu(&hMenuManualStack, wszManualText, TYPE_MANUAL);
-
-              if (bResult && lpMenuItem->hParamStack.first)
-              {
-                if (!StackInsertIndex((stack **)&hMenuStack->hShowSubmenuStack.first, (stack **)&hMenuStack->hShowSubmenuStack.last, (stack **)&lpShowSubmenuItem, -1, sizeof(SHOWSUBMENUITEM)))
-                {
-                  lpShowSubmenuItem->lpMenuItem=lpMenuItem;
-                  lpShowSubmenuItem->wpShowMenuName=lpMenuItem->hParamStack.first->wpString;
-                  xstrcpynW(lpShowSubmenuItem->wszMenuItem, wszMenuItem, MAX_PATH);
-                }
-                hMenuStack->bLinkToManualMenu=TRUE;
-
-                if (nType != TYPE_MANUAL)
-                  hManualMenu=FindRootSubMenuByName(&hMenuManualStack, lpMenuItem->hParamStack.first->wpString);
-              }
-
-              //Add popup submenu
-              if (!hParentMenu && nType == TYPE_MAIN)
-              {
-                //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
-                AppendMenuWide(hSubMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
-              }
-              else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
-            }
             else
             {
-              InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_STRING, nItem, wszMenuItem);
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
             }
-            ++nItem;
-            ++nSubMenuIndex;
-            ++nSubMenuCodeItem;
           }
+        }
+
+        //Add menu item
+        if (bMethod)
+        {
+          //Load icon optimization (part 2):
+          if (nFileIconIndex != -1)
+          {
+            xstrcpynW(lpMenuItem->wszIconFile, wszIconFile, MAX_PATH);
+            lpMenuItem->nFileIconIndex=nFileIconIndex;
+            lpMenuItem->nImageListIconIndex=(int)nImageListIconIndex;
+          }
+
+          if (dwAction == EXTACT_MENU)
+          {
+            HMENU hManualMenu=NULL;
+            BOOL bResult=TRUE;
+
+            if (!hMenuManualStack.hPopupMenu && nType != TYPE_MANUAL)
+              bResult=CreateContextMenu(&hMenuManualStack, wszManualText, TYPE_MANUAL);
+
+            if (bResult && lpMenuItem->hParamStack.first)
+            {
+              if (!StackInsertIndex((stack **)&hMenuStack->hShowSubmenuStack.first, (stack **)&hMenuStack->hShowSubmenuStack.last, (stack **)&lpShowSubmenuItem, -1, sizeof(SHOWSUBMENUITEM)))
+              {
+                lpShowSubmenuItem->lpMenuItem=lpMenuItem;
+                lpShowSubmenuItem->wpShowMenuName=lpMenuItem->hParamStack.first->wpString;
+                xstrcpynW(lpShowSubmenuItem->wszMenuItem, wszMenuItem, MAX_PATH);
+              }
+              hMenuStack->bLinkToManualMenu=TRUE;
+
+              if (nType != TYPE_MANUAL)
+                hManualMenu=FindRootSubMenuByName(&hMenuManualStack, lpMenuItem->hParamStack.first->wpString);
+            }
+
+            //Add popup submenu
+            if (!hParentMenu && nType == TYPE_MAIN)
+            {
+              //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
+              AppendMenuWide(hSubMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
+            }
+            else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
+          }
+          else
+          {
+            InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_STRING, nItem, wszMenuItem);
+          }
+          ++nItem;
+          ++nSubMenuIndex;
+          ++nSubMenuCodeItem;
         }
       }
 
@@ -3243,7 +3253,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
           {
             if (lpParameter=GetMethodParameter(&lpElement->lpStateIf->hParamStack, 1))
             {
-              wchar_t *wpCount=lpParameter->wpString;
+              const wchar_t *wpCount=lpParameter->wpString;
               wchar_t wszSign[4];
               INT_PTR nValue1;
               INT_PTR nValue2;
@@ -3251,7 +3261,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
               nValue1=GetIfValue(wpCount, &wpCount, &nError);
               if (nError) goto CheckIfError;
 
-              while (NextString(wpCount, wszSign, 4, &wpCount, NULL))
+              while (GetWord(wpCount, wszSign, 4, &wpCount, NULL))
               {
                 if (!xstrcmpW(wszSign, L"&&"))
                 {
@@ -5128,71 +5138,69 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
   hParamStack->nElements=0;
 }
 
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText)
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
 {
-  int i=0;
+  const wchar_t *wpCount;
 
-  while (*wpText == L'\"' || *wpText == L' ' || *wpText == L'\t') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  while (*wpText != L'(' && *wpText != L'\r' && *wpText != L'\0')
+  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
   {
-    if (i < nStrLen) wszStr[i++]=*wpText;
-    ++wpText;
+    if (*wpCount == L'(')
+    {
+      if (wppText)
+        *wppText=wpCount + 1;
+      return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
+    }
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return 0;
 }
 
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus)
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote)
 {
-  int i;
+  const wchar_t *wpCount;
+  wchar_t wchStopChar;
 
-  while (*wpText == L' ' || *wpText == L'\t' || *wpText == L'\r' || *wpText == L'\n') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  if (*wpText == L'-')
+  if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
-    if (nMinus) *nMinus=1;
-    ++wpText;
-  }
-  else
-  {
-    if (nMinus) *nMinus=0;
-  }
+    if (lpbQuote) *lpbQuote=TRUE;
+    wchStopChar=*wpText;
+    wpCount=++wpText;
 
-  if (*wpText == L'\"')
-  {
-    ++wpText;
-    i=0;
+    //Parse: "param" or 'param' or `param`
+    while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
 
-    while (*wpText != L'\"' && *wpText != L'\0')
+    if (wppNextWord)
     {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
+      *wppNextWord=wpCount;
+      if (*wpCount == wchStopChar)
+        ++*wppNextWord;
     }
   }
   else
   {
-    i=0;
+    if (lpbQuote) *lpbQuote=FALSE;
+    wpCount=wpText;
 
-    while (*wpText != L' ' && *wpText != L'\r' && *wpText != L'\0')
-    {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
-    }
+    //Parse: param1 param2 param3
+    while (*wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
+
+    if (wppNextWord)
+      *wppNextWord=wpCount;
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
 }
 
 BOOL NextLine(const wchar_t **wpText)
 {
   while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
-  if (**wpText == L'\r' && **wpText == L'\n') ++*wpText;
   if (**wpText == L'\0') return FALSE;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
   return TRUE;
 }
 
@@ -5204,7 +5212,8 @@ BOOL SkipComment(const wchar_t **wpText)
 
     if (**wpText == L';' || **wpText == L'#')
     {
-      while (**wpText != L'\r' && **wpText != L'\0') ++*wpText;
+      if (!NextLine(wpText))
+        return FALSE;
     }
     else break;
   }
@@ -5778,6 +5787,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"ContextMenu::Show - \x043F\x043E\x0434\x043C\x0435\x043D\x044E\x0020\x0441\x0020\x0438\x043D\x0434\x0435\x043A\x0441\x043E\x043C %d \x043D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x043E.";
     if (nStringID == STRID_NOSUBMENUNAME)
       return L"ContextMenu::Show - \x043F\x043E\x0434\x043C\x0435\x043D\x044E\x0020\x0441\x0020\x0438\x043C\x0435\x043D\x0435\x043C \"%s\" \x043D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x043E.";
+    if (nStringID == STRID_PARSEMSG_UNKNOWNSPECIAL)
+      return L"\x041D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x0441\x043F\x0435\x0446\x0438\x0430\x043B\x044C\x043D\x044B\x0439\x0020\x043F\x0443\x043D\x043A\x0442 \"%s\".";
     if (nStringID == STRID_PARSEMSG_NONPARENT)
       return L"\x041C\x0435\x0442\x043E\x0434 Index() \x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0441\x044F\x0020\x0442\x043E\x043B\x044C\x043A\x043E\x0020\x0434\x043B\x044F\x0020\x043A\x043E\x0440\x043D\x0435\x0432\x043E\x0433\x043E\x0020\x043F\x043E\x0434\x043C\x0435\x043D\x044E\x002E";
     if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
@@ -6353,6 +6364,8 @@ EXPLORER\r";
       return L"ContextMenu::Show - submenu with index %d not found.";
     if (nStringID == STRID_NOSUBMENUNAME)
       return L"ContextMenu::Show - submenu with name \"%s\" not found.";
+    if (nStringID == STRID_PARSEMSG_UNKNOWNSPECIAL)
+      return L"Unknown special item \"%s\".";
     if (nStringID == STRID_PARSEMSG_NONPARENT)
       return L"Method Index () is used only for the root submenu.";
     if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
