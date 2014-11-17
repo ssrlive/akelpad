@@ -89,15 +89,15 @@
 #define DLLA_CONTEXTMENU_SHOWSUBMENU  1
 #define DLLA_CONTEXTMENU_SHOWMAINMENU 2
 
-#define STRID_MANUAL                          1
-#define STRID_MENUMAIN                        2
-#define STRID_MENUEDIT                        3
-#define STRID_MENUTAB                         4
-#define STRID_MENUURL                         5
-#define STRID_MENURECENTFILES                 6
-#define STRID_ENABLE                          7
-#define STRID_HIDE                            8
-#define STRID_SHOW                            9
+#define STRID_MANUAL                          1 
+#define STRID_MENUMAIN                        2 
+#define STRID_MENUEDIT                        3 
+#define STRID_MENUTAB                         4 
+#define STRID_MENUURL                         5 
+#define STRID_MENURECENTFILES                 6 
+#define STRID_ENABLE                          7 
+#define STRID_HIDE                            8 
+#define STRID_SHOW                            9 
 #define STRID_AUTOLOAD                        10
 #define STRID_NOSUBMENUINDEX                  11
 #define STRID_NOSUBMENUNAME                   12
@@ -107,32 +107,33 @@
 #define STRID_PARSEMSG_NOMETHOD               16
 #define STRID_PARSEMSG_UNNAMEDSUBMENU         17
 #define STRID_PARSEMSG_NOOPENBRACKET          18
-#define STRID_CHECKIF_UNKNOWNMETHOD           19
-#define STRID_CHECKIF_NOCLOSEPARENTHESIS      20
-#define STRID_CHECKIF_UNKNOWNSIGN             21
-#define STRID_MENU_OPEN                       22
-#define STRID_MENU_MOVEUP                     23
-#define STRID_MENU_MOVEDOWN                   24
-#define STRID_MENU_SORT                       25
-#define STRID_MENU_DELETE                     26
-#define STRID_MENU_DELETEOLD                  27
-#define STRID_MENU_EDIT                       28
-#define STRID_FAVOURITES                      29
-#define STRID_SHOWFILE                        30
-#define STRID_FAVADDING                       31
-#define STRID_FAVEDITING                      32
-#define STRID_FAVNAME                         33
-#define STRID_FAVFILE                         34
-#define STRID_PLUGIN                          35
-#define STRID_OK                              36
-#define STRID_CANCEL                          37
-#define STRID_CLOSE                           38
-#define STRID_DEFAULTMANUAL                   39
-#define STRID_DEFAULTMAIN                     40
-#define STRID_DEFAULTEDIT                     41
-#define STRID_DEFAULTTAB                      42
-#define STRID_DEFAULTURL                      43
-#define STRID_DEFAULTRECENTFILES              44
+#define STRID_PARSEMSG_NOOPENSET              19
+#define STRID_CHECKIF_UNKNOWNMETHOD           20
+#define STRID_CHECKIF_NOCLOSEPARENTHESIS      21
+#define STRID_CHECKIF_UNKNOWNSIGN             22
+#define STRID_MENU_OPEN                       23
+#define STRID_MENU_MOVEUP                     24
+#define STRID_MENU_MOVEDOWN                   25
+#define STRID_MENU_SORT                       26
+#define STRID_MENU_DELETE                     27
+#define STRID_MENU_DELETEOLD                  28
+#define STRID_MENU_EDIT                       29
+#define STRID_FAVOURITES                      30
+#define STRID_SHOWFILE                        31
+#define STRID_FAVADDING                       32
+#define STRID_FAVEDITING                      33
+#define STRID_FAVNAME                         34
+#define STRID_FAVFILE                         35
+#define STRID_PLUGIN                          36
+#define STRID_OK                              37
+#define STRID_CANCEL                          38
+#define STRID_CLOSE                           39
+#define STRID_DEFAULTMANUAL                   40
+#define STRID_DEFAULTMAIN                     41
+#define STRID_DEFAULTEDIT                     42
+#define STRID_DEFAULTTAB                      43
+#define STRID_DEFAULTURL                      44
+#define STRID_DEFAULTRECENTFILES              45
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -512,6 +513,7 @@ void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIcon
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText);
 int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
+BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
 INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
 INT_PTR OperateIfValue(INT_PTR nValue1, wchar_t *wpSign, INT_PTR nValue2, int *lpnError);
@@ -2499,10 +2501,12 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
   DWORD dwAction=0;
   DWORD dwNewFlags;
   DWORD dwSetFlags=0;
-  int nFlagCountNoSDI=0;
-  int nFlagCountNoMDI=0;
-  int nFlagCountNoPMDI=0;
-  int nFlagCountNoFileExist=0;
+  int nFlagCountNoSDISkip=0;
+  int nFlagCountNoMDISkip=0;
+  int nFlagCountNoPMDISkip=0;
+  int nFlagCountNoFileExistAll=0;
+  int nFlagCountNoFileExistSkip=0;
+  int nFlagCountStateIfAll=0;
   STATEIF *lpStateIf=NULL;
   int nPrevSeparator=0;
   BOOL bMethod;
@@ -2542,7 +2546,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
       wszIconFile[0]=L'\0';
       nImageListIconIndex=-1;
       nFileIconIndex=-1;
-      SkipComment(&wpCount);
+      if (!SkipComment(&wpCount)) break;
       wpLineBegin=wpCount;
 
       if (*wpCount == L'{')
@@ -2564,47 +2568,58 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         if (*wpCount == L',') ++wpCount;
 
         if (dwNewFlags & CCMS_NOSDI)
-          ++nFlagCountNoSDI;
+          ++nFlagCountNoSDISkip;
         if (dwNewFlags & CCMS_NOMDI)
-          ++nFlagCountNoMDI;
+          ++nFlagCountNoMDISkip;
         if (dwNewFlags & CCMS_NOPMDI)
-          ++nFlagCountNoPMDI;
+          ++nFlagCountNoPMDISkip;
         if (dwNewFlags & CCMS_NOFILEEXIST)
-          ++nFlagCountNoFileExist;
+        {
+          if (dwSetFlags & CCMS_NOFILEEXIST)
+            ++nFlagCountNoFileExistSkip;
+          else
+          {
+            wchar_t wszPath[MAX_PATH];
+            wchar_t *wpFileName;
+  
+            if (NextString(wpCount, wszPath, MAX_PATH, &wpCount, NULL))
+            {
+              if (TranslateFileString(wszPath, wszBuffer, BUFFER_SIZE))
+              {
+                if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszPath, &wpFileName))
+                  dwNewFlags&=~CCMS_NOFILEEXIST;
+              }
+            }
+            if (dwNewFlags & CCMS_NOFILEEXIST)
+              ++nFlagCountNoFileExistSkip;
+          }
+          ++nFlagCountNoFileExistAll;
+        }
         if (dwNewFlags & CCMS_STATEIF)
         {
+          dwAction=0;
+
           if (GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
           {
             if (!xstrcmpiW(wszMethodName, L"CheckIf"))
               dwAction=EXTACT_CHECKIF;
             else if (!xstrcmpiW(wszMethodName, L"Call"))
               dwAction=EXTACT_CALL;
-            else
+            if (dwAction)
             {
-              nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
-              goto Error;
-            }
-            if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
-            {
-              lpStateIf->dwAction=dwAction;
-              ParseMethodParameters(&lpStateIf->hParamStack, wpCount, &wpCount);
+              if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+              {
+                lpStateIf->dwAction=dwAction;
+                ParseMethodParameters(&lpStateIf->hParamStack, wpCount, &wpCount);
+              }
             }
           }
-          else dwNewFlags&=~CCMS_STATEIF;
-        }
-        if ((dwNewFlags & CCMS_NOFILEEXIST) && !(dwSetFlags & CCMS_NOFILEEXIST))
-        {
-          wchar_t wszPath[MAX_PATH];
-          wchar_t *wpFileName;
-
-          if (NextString(wpCount, wszPath, MAX_PATH, &wpCount, NULL))
+          if (!dwAction)
           {
-            if (TranslateFileString(wszPath, wszBuffer, BUFFER_SIZE))
-            {
-              if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszPath, &wpFileName))
-                dwNewFlags&=~CCMS_NOFILEEXIST;
-            }
+            nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
+            goto Error;
           }
+          ++nFlagCountStateIfAll;
         }
         dwSetFlags|=dwNewFlags;
         while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
@@ -2620,33 +2635,54 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
       {
         dwNewFlags=(DWORD)xatoiW(wpLineBegin + 6, &wpCount);
 
-        if ((dwNewFlags & CCMS_NOSDI) && (dwSetFlags & CCMS_NOSDI))
+        if (dwNewFlags & CCMS_NOSDI)
         {
-          if (nFlagCountNoSDI > 0 && --nFlagCountNoSDI > 0)
-            dwNewFlags&=~CCMS_NOSDI;
+          if (nFlagCountNoSDISkip > 0)
+          {
+            if (--nFlagCountNoSDISkip > 0)
+              dwNewFlags&=~CCMS_NOSDI;
+          }        
+          else goto UnsetError;
         }
-        if ((dwNewFlags & CCMS_NOMDI) && (dwSetFlags & CCMS_NOMDI))
+        if (dwNewFlags & CCMS_NOMDI)
         {
-          if (nFlagCountNoMDI > 0 && --nFlagCountNoMDI > 0)
-            dwNewFlags&=~CCMS_NOMDI;
+          if (nFlagCountNoMDISkip > 0)
+          {
+            if (--nFlagCountNoMDISkip > 0)
+              dwNewFlags&=~CCMS_NOMDI;
+          }        
+          else goto UnsetError;
         }
-        if ((dwNewFlags & CCMS_NOPMDI) && (dwSetFlags & CCMS_NOPMDI))
+        if (dwNewFlags & CCMS_NOPMDI)
         {
-          if (nFlagCountNoPMDI > 0 && --nFlagCountNoPMDI > 0)
-            dwNewFlags&=~CCMS_NOPMDI;
+          if (nFlagCountNoPMDISkip > 0)
+          {
+            if (--nFlagCountNoPMDISkip > 0)
+              dwNewFlags&=~CCMS_NOPMDI;
+          }        
+          else goto UnsetError;
         }
-        if ((dwNewFlags & CCMS_NOFILEEXIST) && (dwSetFlags & CCMS_NOFILEEXIST))
+        if (dwNewFlags & CCMS_NOFILEEXIST)
         {
-          if (nFlagCountNoFileExist > 0 && --nFlagCountNoFileExist > 0)
+          if (nFlagCountNoFileExistSkip > 0 && --nFlagCountNoFileExistSkip > 0)
             dwNewFlags&=~CCMS_NOFILEEXIST;
+          if (--nFlagCountNoFileExistAll < 0) goto UnsetError;
         }
-        if ((dwNewFlags & CCMS_STATEIF) && (dwSetFlags & CCMS_STATEIF))
+        if (dwNewFlags & CCMS_STATEIF)
         {
           if (lpStateIf)
             lpStateIf=lpStateIf->prev;
           if (lpStateIf)
             dwNewFlags&=~CCMS_STATEIF;
+          if (--nFlagCountStateIfAll < 0) goto UnsetError;
         }
+        goto UnsetFlags;
+
+        UnsetError:
+        nMessageID=STRID_PARSEMSG_NOOPENSET;
+        goto Error;
+
+        UnsetFlags:
         dwSetFlags&=~dwNewFlags;
         while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
         if (*wpCount == L')') ++wpCount;
@@ -2654,11 +2690,17 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         if (!IsFlagOn(dwSetFlags, CCMS_NOICONS))
           bUseIcons=TRUE;
         if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+        {
+          if (!NextLine(&wpCount)) break;
           continue;
+        }
         goto CheckSubmenuClose;
       }
       if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+      {
+        if (!NextLine(&wpCount)) break;
         continue;
+      }
 
       //Item name is special string
       if (!xstrcmpW(wszMenuItem, L"SEPARATOR"))
@@ -5146,6 +5188,14 @@ int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_
   return i;
 }
 
+BOOL NextLine(const wchar_t **wpText)
+{
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
+  if (**wpText == L'\r' && **wpText == L'\n') ++*wpText;
+  if (**wpText == L'\0') return FALSE;
+  return TRUE;
+}
+
 BOOL SkipComment(const wchar_t **wpText)
 {
   for (;;)
@@ -5740,6 +5790,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0437\x0430\x0433\x043E\x043B\x043E\x0432\x043E\x043A\x0020\x043F\x043E\x0434\x043C\x0435\x043D\x044E\x002E";
     if (nStringID == STRID_PARSEMSG_NOOPENBRACKET)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438\x002E";
+    if (nStringID == STRID_PARSEMSG_NOOPENSET)
+      return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
     if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
       return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434.";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
@@ -6313,6 +6365,8 @@ EXPLORER\r";
       return L"Unable to find the title of a submenu.";
     if (nStringID == STRID_PARSEMSG_NOOPENBRACKET)
       return L"No opening bracket.";
+    if (nStringID == STRID_PARSEMSG_NOOPENSET)
+      return L"No opening SET().";
     if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
       return L"CheckIf: unknown method.";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
