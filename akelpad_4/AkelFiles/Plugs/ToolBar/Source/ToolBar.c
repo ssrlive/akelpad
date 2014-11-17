@@ -58,6 +58,7 @@
 #define IsDialogMessageWide
 #define RegisterClassWide
 #define SearchPathWide
+#define SearchPathWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
@@ -76,13 +77,14 @@
 #define STRID_32BIT                          6
 #define STRID_SIDE                           7
 #define STRID_ROWS                           8
-#define STRID_PARSEMSG_UNKNOWNMETHOD         9
-#define STRID_PARSEMSG_METHODALREADYDEFINED  10
-#define STRID_PARSEMSG_NOMETHOD              11
-#define STRID_PLUGIN                         12
-#define STRID_OK                             13
-#define STRID_CANCEL                         14
-#define STRID_DEFAULTMENU                    15
+#define STRID_PARSEMSG_UNKNOWNSPECIAL        9 
+#define STRID_PARSEMSG_UNKNOWNMETHOD         10 
+#define STRID_PARSEMSG_METHODALREADYDEFINED  11
+#define STRID_PARSEMSG_NOMETHOD              12
+#define STRID_PLUGIN                         13
+#define STRID_OK                             14
+#define STRID_CANCEL                         15
+#define STRID_DEFAULTMENU                    16
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -248,8 +250,9 @@ int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText);
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus);
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
+BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
@@ -1043,7 +1046,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   const wchar_t *wpCount=wpText;
   const wchar_t *wpLineBegin;
   const wchar_t *wpErrorBegin=wpText;
-  const wchar_t *wpSetArg;
+  wchar_t *wpFileName;
   HICON hIcon;
   SIZE sizeIcon;
   DWORD dwAction;
@@ -1056,6 +1059,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   int nItemBitmap=0;
   int nItemCommand=0;
   int nMessageID;
+  BOOL bQuote;
   BOOL bMethod;
   BOOL bPrevSeparator=FALSE;
   BOOL bInRow=TRUE;
@@ -1101,310 +1105,321 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
       FreeMethodParameters(&hParamMenuName);
       if (!SkipComment(&wpCount)) break;
       wpLineBegin=wpCount;
-      NextString(wpCount, wszButtonItem, MAX_PATH, &wpCount, &nMinus);
 
       //Set options
-      wpSetArg=wpLineBegin;
-
-      if (!xstrcmpnW(L"SET(", wpSetArg, (UINT_PTR)-1))
+      if (!xstrcmpnW(L"SET(", wpCount, (UINT_PTR)-1))
       {
-        dwNewFlags=(DWORD)xatoiW(wpSetArg + 4, &wpSetArg);
+        dwNewFlags=(DWORD)xatoiW(wpCount + 4, &wpCount);
+        while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+        if (*wpCount == L',') ++wpCount;
 
         if (dwNewFlags & CCMS_NOFILEEXIST)
         {
-          wchar_t wszPath[MAX_PATH];
-          wchar_t *wpFileName;
-
-          if (*wpSetArg == L',' && NextString(++wpSetArg, wszPath, MAX_PATH, &wpSetArg, NULL))
+          if (GetWord(wpCount, wszButtonItem, MAX_PATH, &wpCount, &bQuote) && bQuote)
           {
-            if (TranslateFileString(wszPath, wszBuffer, BUFFER_SIZE))
+            if (TranslateFileString(wszButtonItem, wszBuffer, BUFFER_SIZE))
             {
-              if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszPath, &wpFileName))
+              if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszButtonItem, &wpFileName))
                 dwNewFlags&=~CCMS_NOFILEEXIST;
             }
-            while (*wpSetArg == L' ' || *wpSetArg == L'\t') ++wpSetArg;
-            if (*wpSetArg == L')') ++wpSetArg;
-            wpCount=wpSetArg;
           }
         }
         dwSetFlags|=dwNewFlags;
         continue;
       }
-      else if (!xstrcmpnW(L"UNSET(", wpSetArg, (UINT_PTR)-1))
+      else if (!xstrcmpnW(L"UNSET(", wpCount, (UINT_PTR)-1))
       {
-        dwSetFlags&=~xatoiW(wpSetArg + 6, NULL);
+        dwNewFlags=(DWORD)xatoiW(wpCount + 6, &wpCount);
         continue;
       }
+      //Skip line if skip flag set
       if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
       {
-        //Next line
-        while (*wpCount != L'\r' && *wpCount != L'\n') ++wpCount;
+        if (!NextLine(&wpCount)) break;
         continue;
       }
 
-      if (!xstrcmpW(wszButtonItem, L"SEPARATOR") ||
-          !xstrcmpW(wszButtonItem, L"SEPARATOR1"))
+      if (*wpCount == L'-')
       {
-        if (bInRow && (!bPrevSeparator || !xstrcmpW(wszButtonItem, L"SEPARATOR")))
-        {
-          if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
-          {
-            lpLastButton=lpButton;
-            if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
-              lpRowItem->lpFirstToolbarItem=lpButton;
-            lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
-
-            lpButton->tbb.iBitmap=-1;
-            lpButton->tbb.idCommand=0;
-            lpButton->tbb.fsState=0;
-            lpButton->tbb.fsStyle=TBSTYLE_SEP;
-            lpButton->tbb.dwData=0;
-            lpButton->tbb.iString=0;
-          }
-        }
-        bPrevSeparator=TRUE;
-        bMethod=TRUE;
+        nMinus=1;
+        ++wpCount;
       }
-      else
+      else nMinus=0;
+      GetWord(wpCount, wszButtonItem, MAX_PATH, &wpCount, &bQuote);
+
+      if (!bQuote)
       {
-        bPrevSeparator=FALSE;
-
-        if (!xstrcmpW(wszButtonItem, L"BREAK"))
+        //Special item
+        if (!xstrcmpW(wszButtonItem, L"SEPARATOR") ||
+            !xstrcmpW(wszButtonItem, L"SEPARATOR1"))
         {
-          if (lpLastButton)
+          if (bInRow && (!bPrevSeparator || !xstrcmpW(wszButtonItem, L"SEPARATOR")))
           {
-            lpLastButton->tbb.fsState|=TBSTATE_WRAP;
-            if (lpLastButton->tbb.fsStyle & TBSTYLE_SEP)
-              ++hStack->nSepRows;
-          }
-          bMethod=TRUE;
-          ++hStack->nRows;
+            if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
+            {
+              lpLastButton=lpButton;
+              if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
+                lpRowItem->lpFirstToolbarItem=lpButton;
+              lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
 
-          if (hRowListStack.nElements)
-          {
-            if (lpRowItem=GetRow(&hRowListStack, hStack->nRows))
-            {
-              lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
-              bInRow=TRUE;
-            }
-            else
-            {
-              lpNextRowItemFirstButton=NULL;
-              bInRow=FALSE;
+              lpButton->tbb.iBitmap=-1;
+              lpButton->tbb.idCommand=0;
+              lpButton->tbb.fsState=0;
+              lpButton->tbb.fsStyle=TBSTYLE_SEP;
+              lpButton->tbb.dwData=0;
+              lpButton->tbb.iString=0;
             }
           }
+          bPrevSeparator=TRUE;
+          bMethod=TRUE;
         }
         else
         {
-          //Item name is normal string
-          while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+          bPrevSeparator=FALSE;
 
-          if (*wpCount == L'+')
+          if (!xstrcmpW(wszButtonItem, L"BREAK"))
           {
-            ++wpCount;
-            nPlus=1;
-          }
-          else nPlus=0;
-
-          //Parse methods
-          for (;;)
-          {
-            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-            wpErrorBegin=wpCount;
-
-            if (!GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
-              break;
-
-            if (!xstrcmpiW(wszMethodName, L"Icon"))
+            if (lpLastButton)
             {
-              if (!hIcon)
+              lpLastButton->tbb.fsState|=TBSTATE_WRAP;
+              if (lpLastButton->tbb.fsStyle & TBSTYLE_SEP)
+                ++hStack->nSepRows;
+            }
+            bMethod=TRUE;
+            ++hStack->nRows;
+
+            if (hRowListStack.nElements)
+            {
+              if (lpRowItem=GetRow(&hRowListStack, hStack->nRows))
               {
-                GetIconParameters(wpCount, wszIconFile, MAX_PATH, &nFileIconIndex, &wpCount);
-
-                if (bInRow)
-                {
-                  if (!*wszIconFile)
-                  {
-                    hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-
-                    if (hIcon)
-                    {
-                      ImageList_AddIcon(hStack->hImageList, hIcon);
-                      DestroyIcon(hIcon);
-                    }
-                  }
-                  else
-                  {
-                    wchar_t wszPath[MAX_PATH];
-                    wchar_t *wpFileName;
-
-                    if (TranslateFileString(wszIconFile, wszPath, MAX_PATH))
-                    {
-                      if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszIconFile, &wpFileName))
-                      {
-                        if (bBigIcons)
-                          ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
-                        else
-                          ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
-
-                        if (hIcon)
-                        {
-                          ImageList_AddIcon(hStack->hImageList, hIcon);
-                          DestroyIcon(hIcon);
-                        }
-                      }
-                    }
-                  }
-                }
+                lpNextRowItemFirstButton=GetFirstToolbarItemOfNextRow(lpRowItem);
+                bInRow=TRUE;
               }
               else
               {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
-                goto Error;
+                lpNextRowItemFirstButton=NULL;
+                bInRow=FALSE;
               }
-            }
-            else if (!xstrcmpiW(wszMethodName, L"Menu"))
-            {
-              if (!hParamMenuName.first)
-              {
-                ParseMethodParameters(&hParamMenuName, wpCount, &wpCount);
-                if (!bInRow) FreeMethodParameters(&hParamMenuName);
-                bMethod=TRUE;
-              }
-              else
-              {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
-                goto Error;
-              }
-            }
-            else
-            {
-              //Actions
-              if (!lpButton)
-              {
-                if (!xstrcmpiW(wszMethodName, L"Command"))
-                  dwAction=EXTACT_COMMAND;
-                else if (!xstrcmpiW(wszMethodName, L"Call"))
-                  dwAction=EXTACT_CALL;
-                else if (!xstrcmpiW(wszMethodName, L"Exec"))
-                  dwAction=EXTACT_EXEC;
-                else if (!xstrcmpiW(wszMethodName, L"OpenFile"))
-                  dwAction=EXTACT_OPENFILE;
-                else if (!xstrcmpiW(wszMethodName, L"SaveFile"))
-                  dwAction=EXTACT_SAVEFILE;
-                else if (!xstrcmpiW(wszMethodName, L"Font"))
-                  dwAction=EXTACT_FONT;
-                else if (!xstrcmpiW(wszMethodName, L"Recode"))
-                  dwAction=EXTACT_RECODE;
-                else if (!xstrcmpiW(wszMethodName, L"Insert"))
-                  dwAction=EXTACT_INSERT;
-                else
-                  dwAction=0;
-
-                if (dwAction)
-                {
-                  if (bInRow)
-                  {
-                    if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
-                    {
-                      lpLastButton=lpButton;
-                      if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
-                        lpRowItem->lpFirstToolbarItem=lpButton;
-                      lpButton->bUpdateItem=!nMinus;
-                      lpButton->bAutoLoad=nPlus;
-                      lpButton->dwAction=dwAction;
-                      lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
-
-                      xstrcpynW(lpButton->wszButtonItem, wszButtonItem, MAX_PATH);
-                      lpButton->tbb.iBitmap=-1;
-                      lpButton->tbb.idCommand=++nItemCommand;
-                      lpButton->tbb.fsState=TBSTATE_ENABLED;
-                      lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
-                      lpButton->tbb.dwData=0;
-                      lpButton->tbb.iString=0;
-                      ParseMethodParameters(&lpButton->hParamStack, wpCount, &wpCount);
-
-                      if (dwAction == EXTACT_COMMAND)
-                      {
-                        int nCommand=0;
-
-                        if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
-                          nCommand=(int)lpParameter->nNumber;
-
-                        if (nCommand == IDM_FILE_OPEN)
-                        {
-                          lpButton->tbb.fsStyle|=TBSTYLE_DROPDOWN;
-                        }
-                        if (!*lpButton->wszButtonItem)
-                        {
-                          GetMenuStringWide(hMainMenu, nCommand, lpButton->wszButtonItem, MAX_PATH, MF_BYCOMMAND);
-                        }
-                      }
-                    }
-                  }
-                  else
-                  {
-                    ParseMethodParameters(&hParamButton, wpCount, &wpCount);
-                    FreeMethodParameters(&hParamButton);
-                  }
-                  bMethod=TRUE;
-                }
-                else
-                {
-                  nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
-                  goto Error;
-                }
-              }
-              else
-              {
-                nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
-                goto Error;
-              }
-            }
-          }
-
-          if (bMethod)
-          {
-            if (hParamMenuName.first)
-            {
-              if (!lpButton)
-              {
-                //Method "Menu()" without action
-                if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
-                {
-                  lpLastButton=lpButton;
-                  if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
-                    lpRowItem->lpFirstToolbarItem=lpButton;
-                  lpButton->dwAction=EXTACT_MENU;
-                  lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
-
-                  xstrcpynW(lpButton->wszButtonItem, wszButtonItem, MAX_PATH);
-                  lpButton->tbb.iBitmap=-1;
-                  lpButton->tbb.idCommand=++nItemCommand;
-                  lpButton->tbb.fsState=TBSTATE_ENABLED;
-                  lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
-                  lpButton->tbb.dwData=0;
-                  lpButton->tbb.iString=0;
-                }
-              }
-              else lpButton->tbb.fsStyle|=TBSTYLE_DROPDOWN;
-
-              lpButton->hParamMenuName=hParamMenuName;
-              hParamMenuName.first=0;
-              hParamMenuName.last=0;
-              hParamMenuName.nElements=0;
-            }
-            if (hIcon)
-            {
-              lpButton->tbb.iBitmap=nItemBitmap++;
             }
           }
           else
           {
-            wpErrorBegin=wpLineBegin;
-            nMessageID=STRID_PARSEMSG_NOMETHOD;
+            nMessageID=STRID_PARSEMSG_UNKNOWNSPECIAL;
             goto Error;
           }
+        }
+      }
+      else
+      {
+        //Normal item
+        bPrevSeparator=FALSE;
+        while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+
+        if (*wpCount == L'+')
+        {
+          ++wpCount;
+          nPlus=1;
+        }
+        else nPlus=0;
+
+        //Parse methods
+        for (;;)
+        {
+          while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+          wpErrorBegin=wpCount;
+
+          if (!GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+            break;
+
+          if (!xstrcmpiW(wszMethodName, L"Icon"))
+          {
+            if (!hIcon)
+            {
+              GetIconParameters(wpCount, wszIconFile, MAX_PATH, &nFileIconIndex, &wpCount);
+
+              if (bInRow)
+              {
+                if (!*wszIconFile)
+                {
+                  hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
+
+                  if (hIcon)
+                  {
+                    ImageList_AddIcon(hStack->hImageList, hIcon);
+                    DestroyIcon(hIcon);
+                  }
+                }
+                else
+                {
+                  wchar_t wszPath[MAX_PATH];
+                  wchar_t *wpFileName;
+
+                  if (TranslateFileString(wszIconFile, wszPath, MAX_PATH))
+                  {
+                    if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszIconFile, &wpFileName))
+                    {
+                      if (bBigIcons)
+                        ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
+                      else
+                        ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
+
+                      if (hIcon)
+                      {
+                        ImageList_AddIcon(hStack->hImageList, hIcon);
+                        DestroyIcon(hIcon);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            else
+            {
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
+            }
+          }
+          else if (!xstrcmpiW(wszMethodName, L"Menu"))
+          {
+            if (!hParamMenuName.first)
+            {
+              ParseMethodParameters(&hParamMenuName, wpCount, &wpCount);
+              if (!bInRow) FreeMethodParameters(&hParamMenuName);
+              bMethod=TRUE;
+            }
+            else
+            {
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
+            }
+          }
+          else
+          {
+            //Actions
+            if (!lpButton)
+            {
+              if (!xstrcmpiW(wszMethodName, L"Command"))
+                dwAction=EXTACT_COMMAND;
+              else if (!xstrcmpiW(wszMethodName, L"Call"))
+                dwAction=EXTACT_CALL;
+              else if (!xstrcmpiW(wszMethodName, L"Exec"))
+                dwAction=EXTACT_EXEC;
+              else if (!xstrcmpiW(wszMethodName, L"OpenFile"))
+                dwAction=EXTACT_OPENFILE;
+              else if (!xstrcmpiW(wszMethodName, L"SaveFile"))
+                dwAction=EXTACT_SAVEFILE;
+              else if (!xstrcmpiW(wszMethodName, L"Font"))
+                dwAction=EXTACT_FONT;
+              else if (!xstrcmpiW(wszMethodName, L"Recode"))
+                dwAction=EXTACT_RECODE;
+              else if (!xstrcmpiW(wszMethodName, L"Insert"))
+                dwAction=EXTACT_INSERT;
+              else
+                dwAction=0;
+
+              if (dwAction)
+              {
+                if (bInRow)
+                {
+                  if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
+                  {
+                    lpLastButton=lpButton;
+                    if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
+                      lpRowItem->lpFirstToolbarItem=lpButton;
+                    lpButton->bUpdateItem=!nMinus;
+                    lpButton->bAutoLoad=nPlus;
+                    lpButton->dwAction=dwAction;
+                    lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
+
+                    xstrcpynW(lpButton->wszButtonItem, wszButtonItem, MAX_PATH);
+                    lpButton->tbb.iBitmap=-1;
+                    lpButton->tbb.idCommand=++nItemCommand;
+                    lpButton->tbb.fsState=TBSTATE_ENABLED;
+                    lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
+                    lpButton->tbb.dwData=0;
+                    lpButton->tbb.iString=0;
+                    ParseMethodParameters(&lpButton->hParamStack, wpCount, &wpCount);
+
+                    if (dwAction == EXTACT_COMMAND)
+                    {
+                      int nCommand=0;
+
+                      if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
+                        nCommand=(int)lpParameter->nNumber;
+
+                      if (nCommand == IDM_FILE_OPEN)
+                      {
+                        lpButton->tbb.fsStyle|=TBSTYLE_DROPDOWN;
+                      }
+                      if (!*lpButton->wszButtonItem)
+                      {
+                        GetMenuStringWide(hMainMenu, nCommand, lpButton->wszButtonItem, MAX_PATH, MF_BYCOMMAND);
+                      }
+                    }
+                  }
+                }
+                else
+                {
+                  ParseMethodParameters(&hParamButton, wpCount, &wpCount);
+                  FreeMethodParameters(&hParamButton);
+                }
+                bMethod=TRUE;
+              }
+              else
+              {
+                nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
+                goto Error;
+              }
+            }
+            else
+            {
+              nMessageID=STRID_PARSEMSG_METHODALREADYDEFINED;
+              goto Error;
+            }
+          }
+        }
+
+        if (bMethod)
+        {
+          if (hParamMenuName.first)
+          {
+            if (!lpButton)
+            {
+              //Method "Menu()" without action
+              if (lpButton=StackInsertBeforeButton(hStack, lpNextRowItemFirstButton))
+              {
+                lpLastButton=lpButton;
+                if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
+                  lpRowItem->lpFirstToolbarItem=lpButton;
+                lpButton->dwAction=EXTACT_MENU;
+                lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
+
+                xstrcpynW(lpButton->wszButtonItem, wszButtonItem, MAX_PATH);
+                lpButton->tbb.iBitmap=-1;
+                lpButton->tbb.idCommand=++nItemCommand;
+                lpButton->tbb.fsState=TBSTATE_ENABLED;
+                lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
+                lpButton->tbb.dwData=0;
+                lpButton->tbb.iString=0;
+              }
+            }
+            else lpButton->tbb.fsStyle|=TBSTYLE_DROPDOWN;
+
+            lpButton->hParamMenuName=hParamMenuName;
+            hParamMenuName.first=0;
+            hParamMenuName.last=0;
+            hParamMenuName.nElements=0;
+          }
+          if (hIcon)
+          {
+            lpButton->tbb.iBitmap=nItemBitmap++;
+          }
+        }
+        else
+        {
+          wpErrorBegin=wpLineBegin;
+          nMessageID=STRID_PARSEMSG_NOMETHOD;
+          goto Error;
         }
       }
     }
@@ -2508,64 +2523,70 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
   hParamStack->nElements=0;
 }
 
-int GetMethodName(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText)
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
 {
-  int i=0;
+  const wchar_t *wpCount;
 
-  while (*wpText == L'\"' || *wpText == L' ' || *wpText == L'\t') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  while (*wpText != L'(' && *wpText != L'\r' && *wpText != L'\0')
+  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
   {
-    if (i < nStrLen) wszStr[i++]=*wpText;
-    ++wpText;
+    if (*wpCount == L'(')
+    {
+      if (wppText)
+        *wppText=wpCount + 1;
+      return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
+    }
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return 0;
 }
 
-int NextString(const wchar_t *wpText, wchar_t *wszStr, int nStrLen, const wchar_t **wppText, int *nMinus)
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote)
 {
-  int i;
+  const wchar_t *wpCount;
+  wchar_t wchStopChar;
 
-  while (*wpText == L' ' || *wpText == L'\t' || *wpText == L'\r' || *wpText == L'\n') ++wpText;
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
-  if (*wpText == L'-')
+  if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
-    if (nMinus) *nMinus=1;
-    ++wpText;
-  }
-  else
-  {
-    if (nMinus) *nMinus=0;
-  }
+    if (lpbQuote) *lpbQuote=TRUE;
+    wchStopChar=*wpText;
+    wpCount=++wpText;
 
-  if (*wpText == L'\"')
-  {
-    ++wpText;
-    i=0;
+    //Parse: "param" or 'param' or `param`
+    while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
 
-    while (*wpText != L'\"' && *wpText != L'\0')
+    if (wppNextWord)
     {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
+      *wppNextWord=wpCount;
+      if (*wpCount == wchStopChar)
+        ++*wppNextWord;
     }
   }
   else
   {
-    i=0;
+    if (lpbQuote) *lpbQuote=FALSE;
+    wpCount=wpText;
 
-    while (*wpText != L' ' && *wpText != L'\r' && *wpText != L'\0')
-    {
-      if (i < nStrLen) wszStr[i++]=*wpText;
-      ++wpText;
-    }
+    //Parse: param1 param2 param3
+    while (*wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0')
+      ++wpCount;
+
+    if (wppNextWord)
+      *wppNextWord=wpCount;
   }
-  wszStr[i]=L'\0';
-  if (*wpText != L'\r' && *wpText != L'\0') ++wpText;
-  if (wppText) *wppText=wpText;
-  return i;
+  return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
+}
+
+BOOL NextLine(const wchar_t **wpText)
+{
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
+  if (**wpText == L'\0') return FALSE;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
+  return TRUE;
 }
 
 BOOL SkipComment(const wchar_t **wpText)
@@ -2576,7 +2597,8 @@ BOOL SkipComment(const wchar_t **wpText)
 
     if (**wpText == L';' || **wpText == L'#')
     {
-      while (**wpText != L'\r' && **wpText != L'\0') ++*wpText;
+      if (!NextLine(wpText))
+        return FALSE;
     }
     else break;
   }
@@ -2970,6 +2992,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0442\x043E\x0440\x043E\x043D\x0430";
     if (nStringID == STRID_ROWS)
       return L"\x0420\x044F\x0434\x044B (1,2...)";
+    if (nStringID == STRID_PARSEMSG_UNKNOWNSPECIAL)
+      return L"\x041D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x0441\x043F\x0435\x0446\x0438\x0430\x043B\x044C\x043D\x044B\x0439\x0020\x043F\x0443\x043D\x043A\x0442 \"%s\".";
     if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
       return L"\x041D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%s\".";
     if (nStringID == STRID_PARSEMSG_METHODALREADYDEFINED)
@@ -3159,6 +3183,8 @@ SEPARATOR1\r";
       return L"Side";
     if (nStringID == STRID_ROWS)
       return L"Rows (1,2...)";
+    if (nStringID == STRID_PARSEMSG_UNKNOWNSPECIAL)
+      return L"Unknown special item \"%s\".";
     if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
       return L"Unknown method \"%0.s%s\".";
     if (nStringID == STRID_PARSEMSG_METHODALREADYDEFINED)
