@@ -2371,9 +2371,9 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
   wchar_t wszFile[MAX_PATH];
   const wchar_t *wpFileName;
   wchar_t *wszText;
-  wchar_t *wpTextStart;
-  wchar_t *wpSectionStart;
-  wchar_t *wpText;
+  const wchar_t *wpText;
+  const wchar_t *wpTextStart;
+  const wchar_t *wpSectionStart;
   wchar_t *wpWildcard;
   wchar_t *wpDelimiter;
   wchar_t *wpWord;
@@ -2424,10 +2424,11 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
 
     if (dwFileSize >= 2)
     {
-      if (wszText=wpText=(wchar_t *)GlobalAlloc(GPTR, dwFileSize + 2))
+      if (wszText=(wchar_t *)GlobalAlloc(GPTR, dwFileSize + 2))
       {
         if (ReadFile(hFile, wszText, dwFileSize, &dwBytesRead, NULL))
         {
+          wpText=(const wchar_t *)wszText;
           dwUnicodeLen=dwBytesRead / sizeof(wchar_t);
           wszText[dwUnicodeLen++]=L'\0';
           if (wszText[0] == 0xFEFF)
@@ -3782,10 +3783,10 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
               BLOCKINFO *lpBlockInfo;
               BLOCKINFOHANDLE *lpBlockInfoHandle;
               TITLEINFO *lpTitleInfo;
-              wchar_t *wpTitleBegin;
+              const wchar_t *wpTitleBegin;
               wchar_t *wszTitle;
-              wchar_t *wpBlockBegin;
-              wchar_t *wpBlockEnd;
+              const wchar_t *wpBlockBegin;
+              const wchar_t *wpBlockEnd;
               wchar_t *wszBlockParsed;
               STACKTITLE hTitleStack;
               HSTACK hHotSpotStack;
@@ -4666,7 +4667,7 @@ int ParseStringToVars(STACKVAR *lpVarStack, const wchar_t *wpText)
 {
   VARINFO *lpVarInfo;
   wchar_t wszVarName[MAX_PATH];
-  wchar_t *wpCount=(wchar_t *)wpText;
+  const wchar_t *wpCount=wpText;
   const wchar_t *wpVarValueStart;
   const wchar_t *wpVarValueEnd;
   int nVarNameLen;
@@ -4685,7 +4686,7 @@ int ParseStringToVars(STACKVAR *lpVarStack, const wchar_t *wpText)
     else break;
 
     //Var value
-    if (nVarValueLen=(int)GetEscapeParam(wpCount, &wpVarValueStart, &wpVarValueEnd, (const wchar_t **)&wpCount))
+    if (nVarValueLen=(int)GetEscapeParam(wpCount, &wpVarValueStart, &wpVarValueEnd, &wpCount))
     {
       if (wpVarValueStart[0] == L'#')
       {
@@ -4745,18 +4746,17 @@ DWORD ParseVarsToString(STACKVAR *lpVarStack, wchar_t **wpText)
   return dwSize;
 }
 
-int GetWord(wchar_t *wpText, wchar_t *wszWord, int nWordLenMax, wchar_t **wpNextWord, BOOL *bQuote, STACKVAR *lpVarStack)
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote, STACKVAR *lpVarStack)
 {
   VARINFO *lpVarInfo=NULL;
-  wchar_t *wpCount;
+  const wchar_t *wpCount;
   wchar_t wchStopChar;
-  int nWordLen;
 
   while (*wpText == L' ' || *wpText == L'\t') ++wpText;
 
   if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
-    if (bQuote) *bQuote=TRUE;
+    if (lpbQuote) *lpbQuote=TRUE;
     wchStopChar=*wpText;
     wpCount=++wpText;
 
@@ -4764,16 +4764,16 @@ int GetWord(wchar_t *wpText, wchar_t *wszWord, int nWordLenMax, wchar_t **wpNext
     while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
       ++wpCount;
 
-    if (wpNextWord)
+    if (wppNextWord)
     {
-      *wpNextWord=wpCount;
+      *wppNextWord=wpCount;
       if (*wpCount == wchStopChar)
-        ++*wpNextWord;
+        ++*wppNextWord;
     }
   }
   else
   {
-    if (bQuote) *bQuote=FALSE;
+    if (lpbQuote) *lpbQuote=FALSE;
     wpCount=wpText;
 
     //Variable
@@ -4796,21 +4796,12 @@ int GetWord(wchar_t *wpText, wchar_t *wszWord, int nWordLenMax, wchar_t **wpNext
     while (*wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0')
       ++wpCount;
 
-    if (wpNextWord)
-    {
-      *wpNextWord=wpCount;
-    }
+    if (wppNextWord)
+      *wppNextWord=wpCount;
   }
-
-  if (!lpVarInfo)
-  {
-    nWordLen=min((int)(wpCount - wpText), nWordLenMax - 1);
-    xmemcpy(wszWord, wpText, nWordLen * sizeof(wchar_t));
-    wszWord[nWordLen]=L'\0';
-  }
-  else nWordLen=(int)xstrcpynW(wszWord, lpVarInfo->wpVarValue, nWordLenMax);
-
-  return nWordLen;
+  if (lpVarInfo)
+    return (int)xstrcpynW(wszWord, lpVarInfo->wpVarValue, nWordMax);
+  return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
 }
 
 INT_PTR ExpandVars(const wchar_t *wpString, INT_PTR nStringLen, wchar_t *wszBuffer, INT_PTR nBufferSize, STACKVAR *lpVarStack)
@@ -4863,15 +4854,16 @@ INT_PTR ExpandVars(const wchar_t *wpString, INT_PTR nStringLen, wchar_t *wszBuff
   return (wpTarget - wszBuffer);
 }
 
-BOOL NextLine(wchar_t **wpText)
+BOOL NextLine(const wchar_t **wpText)
 {
-  while (**wpText != L'\r' && **wpText != L'\0') ++*wpText;
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
   if (**wpText == L'\0') return FALSE;
-  if (*++*wpText == L'\n') ++*wpText;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
   return TRUE;
 }
 
-BOOL SkipComment(wchar_t **wpText)
+BOOL SkipComment(const wchar_t **wpText)
 {
   for (;;)
   {
@@ -4879,8 +4871,8 @@ BOOL SkipComment(wchar_t **wpText)
 
     if (**wpText == L';')
     {
-      while (**wpText != L'\r' && **wpText != L'\0') ++*wpText;
-      NextLine(wpText);
+      if (!NextLine(wpText))
+        return FALSE;
     }
     else break;
   }
@@ -5445,8 +5437,8 @@ void ReadSyntaxFiles()
   HANDLE hSearch;
   wchar_t wszSyntaxFileName[MAX_PATH];
   wchar_t wszVarThemeName[MAX_PATH];
-  wchar_t *wpParamStart;
-  wchar_t *wpCount;
+  const wchar_t *wpParamStart;
+  const wchar_t *wpCount;
   wchar_t *wpWildcard;
   BOOL bQuoteString;
   int nWildcardLen;

@@ -461,10 +461,10 @@ void StackFreeVars(STACKVAR *hStack);
 int ParseStringToVars(STACKVAR *lpVarStack, const wchar_t *wpText);
 DWORD ParseVarsToString(STACKVAR *lpVarStack, wchar_t **wpText);
 
-int GetWord(wchar_t *wpText, wchar_t *wszWord, int nWordLenMax, wchar_t **wpNextWord, BOOL *bQuote, STACKVAR *lpVarStack);
+int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote, STACKVAR *lpVarStack);
 INT_PTR ExpandVars(const wchar_t *wpString, INT_PTR nStringLen, wchar_t *wszBuffer, INT_PTR nBufferSize, STACKVAR *lpVarStack);
-BOOL NextLine(wchar_t **wpText);
-BOOL SkipComment(wchar_t **wpText);
+BOOL NextLine(const wchar_t **wpText);
+BOOL SkipComment(const wchar_t **wpText);
 BOOL FileMaskCmp(const wchar_t *wpMaskStr, const wchar_t *wpFileStr);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
