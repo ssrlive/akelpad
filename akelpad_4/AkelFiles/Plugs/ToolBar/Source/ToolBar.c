@@ -1125,11 +1125,13 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
           }
         }
         dwSetFlags|=dwNewFlags;
+        if (!NextLine(&wpCount)) break;
         continue;
       }
       else if (!xstrcmpnW(L"UNSET(", wpCount, (UINT_PTR)-1))
       {
         dwNewFlags=(DWORD)xatoiW(wpCount + 6, &wpCount);
+        if (!NextLine(&wpCount)) break;
         continue;
       }
       //Skip line if skip flag set
