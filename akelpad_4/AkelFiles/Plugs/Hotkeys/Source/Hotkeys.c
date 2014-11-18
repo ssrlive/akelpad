@@ -1832,7 +1832,7 @@ void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText)
     {
       //Name
       if (!SkipComment(&wpText)) break;
-      GetWord(wpText, wszHotkeyName, MAX_PATH, &wpText);
+      GetWord(wpText, wszHotkeyName, MAX_PATH, &wpText, NULL);
 
       //AutoLoad
       while (*wpText == L' ' || *wpText == L'\t') ++wpText;

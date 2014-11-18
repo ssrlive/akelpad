@@ -213,6 +213,7 @@ int ValueToHexChar(int nValue, wchar_t *wszHexChar);
 int ValueToNormalChar(int nValue, wchar_t *wszNormalChar);
 void SkipWhitespace(const wchar_t **wpText);
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
+BOOL NextLine(const wchar_t **wpText);
 BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces);
 BOOL GetCharColor(HWND hWndEdit, INT_PTR nCharOffset, AECHARCOLORS *aecc);
 COLORREF GetColorFromStrAnsi(char *pColor);
@@ -2285,6 +2286,15 @@ int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t
       *wppNextWord=wpCount;
   }
   return (int)xstrcpynW(wszWord, wpText, min(nWordMax, wpCount - wpText + 1));
+}
+
+BOOL NextLine(const wchar_t **wpText)
+{
+  while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
+  if (**wpText == L'\0') return FALSE;
+  if (**wpText == L'\r') ++*wpText;
+  if (**wpText == L'\n') ++*wpText;
+  return TRUE;
 }
 
 BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces)
