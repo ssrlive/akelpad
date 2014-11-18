@@ -517,6 +517,7 @@ int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
 INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR GetGroupIfValue(const wchar_t *wpIn, const wchar_t **wppOut, wchar_t *wszStopSign, int *lpnError);
 INT_PTR OperateIfValue(INT_PTR nValue1, wchar_t *wpSign, INT_PTR nValue2, int *lpnError);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
@@ -3247,48 +3248,61 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
         if (lpElement->lpStateIf)
         {
           DWORD dwMenuState=0;
-          int nError;
+          int nError=0;
 
           if (lpElement->lpStateIf->dwAction == EXTACT_CHECKIF)
           {
             if (lpParameter=GetMethodParameter(&lpElement->lpStateIf->hParamStack, 1))
             {
               const wchar_t *wpCount=lpParameter->wpString;
-              wchar_t wszSign[4];
+              wchar_t wszSign1[4];
+              wchar_t wszSign2[4];
               INT_PTR nValue1;
               INT_PTR nValue2;
 
-              nValue1=GetIfValue(wpCount, &wpCount, &nError);
-              if (nError) goto CheckIfError;
-
-              while (GetWord(wpCount, wszSign, 4, &wpCount, NULL))
+              for (;;)
               {
-                if (!xstrcmpW(wszSign, L"&&"))
+                nValue1=GetGroupIfValue(wpCount, &wpCount, wszSign1, &nError);
+                if (nError) goto CheckIfError;
+                if (!wszSign1[0]) break;
+
+                if (!xstrcmpW(wszSign1, L"&&"))
                 {
                   if (!nValue1) break;
-                  nValue1=GetIfValue(wpCount, &wpCount, &nError);
-                  if (nError) goto CheckIfError;
                   continue;
                 }
-                else if (!xstrcmpW(wszSign, L"||"))
+                if (!xstrcmpW(wszSign1, L"||"))
                 {
                   if (nValue1) break;
-                  nValue1=GetIfValue(wpCount, &wpCount, &nError);
-                  if (nError) goto CheckIfError;
                   continue;
                 }
-
-                nValue2=GetIfValue(wpCount, &wpCount, &nError);
+                nValue2=GetGroupIfValue(wpCount, &wpCount, wszSign2, &nError);
                 if (nError) goto CheckIfError;
-                nValue1=OperateIfValue(nValue1, wszSign, nValue2, &nError);
-                if (nError) goto CheckIfError;
+                if (!xstrcmpW(wszSign1, L"=="))
+                  nValue1=(nValue1 == nValue2);
+                else if (!xstrcmpW(wszSign1, L"!="))
+                  nValue1=(nValue1 != nValue2);
+                else if (!xstrcmpW(wszSign1, L">="))
+                  nValue1=(nValue1 >= nValue2);
+                else if (!xstrcmpW(wszSign1, L"<="))
+                  nValue1=(nValue1 <= nValue2);
+                else if (!xstrcmpW(wszSign1, L">"))
+                  nValue1=(nValue1 > nValue2);
+                else if (!xstrcmpW(wszSign1, L"<"))
+                  nValue1=(nValue1 < nValue2);
+                else
+                {
+                  nError=STRID_CHECKIF_UNKNOWNSIGN;
+                  goto CheckIfError;
+                }
+                xstrcpyW(wszSign1, wszSign2);
               }
               if (nValue1)
                 dwMenuState=MF_CHECKED;
               if (nError)
               {
                 CheckIfError:
-                xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wszSign);
+                xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wszSign1);
                 MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
                 ViewItemCode(lpElement);
               }
@@ -5273,21 +5287,40 @@ INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
   return nValue;
 }
 
+INT_PTR GetGroupIfValue(const wchar_t *wpIn, const wchar_t **wppOut, wchar_t *wszStopSign, int *lpnError)
+{
+  INT_PTR nValue1;
+  INT_PTR nValue2;
+
+  nValue1=GetIfValue(wpIn, &wpIn, lpnError);
+  if (*lpnError) return 0;
+
+  while (GetWord(wpIn, wszStopSign, 4, &wpIn, NULL))
+  {
+    if (!xstrcmpW(wszStopSign, L"&&") ||
+        !xstrcmpW(wszStopSign, L"||") ||
+        !xstrcmpW(wszStopSign, L"==") ||
+        !xstrcmpW(wszStopSign, L"!=") ||
+        !xstrcmpW(wszStopSign, L">=") ||
+        !xstrcmpW(wszStopSign, L"<=") ||
+        !xstrcmpW(wszStopSign, L">") ||
+        !xstrcmpW(wszStopSign, L"<"))
+    {
+      break;
+    }
+    nValue2=GetIfValue(wpIn, &wpIn, lpnError);
+    if (*lpnError) return 0;
+    nValue1=OperateIfValue(nValue1, wszStopSign, nValue2, lpnError);
+    if (*lpnError) return 0;
+  }
+  wszStopSign[0]=L'0';
+  if (wppOut) *wppOut=wpIn;
+  return nValue1;
+}
+
 INT_PTR OperateIfValue(INT_PTR nValue1, wchar_t *wpSign, INT_PTR nValue2, int *lpnError)
 {
   *lpnError=0;
-  if (!xstrcmpW(wpSign, L"=="))
-    return (nValue1 == nValue2);
-  if (!xstrcmpW(wpSign, L"!="))
-    return (nValue1 != nValue2);
-  if (!xstrcmpW(wpSign, L">="))
-    return (nValue1 >= nValue2);
-  if (!xstrcmpW(wpSign, L"<="))
-    return (nValue1 <= nValue2);
-  if (!xstrcmpW(wpSign, L">"))
-    return (nValue1 > nValue2);
-  if (!xstrcmpW(wpSign, L"<"))
-    return (nValue1 < nValue2);
   if (!xstrcmpW(wpSign, L"&"))
     return (nValue1 & nValue2);
   if (!xstrcmpW(wpSign, L"|"))
