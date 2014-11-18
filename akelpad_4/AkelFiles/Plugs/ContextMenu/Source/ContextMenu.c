@@ -111,7 +111,7 @@
 #define STRID_PARSEMSG_NOOPENSET              20
 #define STRID_CHECKIF_UNKNOWNMETHOD           21
 #define STRID_CHECKIF_NOCLOSEPARENTHESIS      22
-#define STRID_CHECKIF_UNKNOWNSIGN             23
+#define STRID_CHECKIF_UNKNOWNOPERATOR         23
 #define STRID_MENU_OPEN                       24
 #define STRID_MENU_MOVEUP                     25
 #define STRID_MENU_MOVEDOWN                   26
@@ -225,6 +225,26 @@
 #define GEP_LEFTBOTTOM  -4
 #define GEP_CARET       -5
 #define GEP_CURSOR      -6
+
+//Operators sign
+#define OS_ERROR     -1  // Wrong sign
+#define OS_NULL       0  // No sign
+#define OS_ADD        1  // +
+#define OS_SUB        2  // -
+#define OS_MUL        3  // *
+#define OS_DIV        4  // /
+#define OS_MOD        5  // %
+#define OS_BITAND     6  // &
+#define OS_BITOR      7  // |
+#define OS_BITXOR     8  // ^
+#define OS_GREATER    9  // >
+#define OS_LESS       10 // <
+#define OS_EQU        11 // ==
+#define OS_NOTEQU     12 // !=
+#define OS_GREATEREQU 13 // >=
+#define OS_LESSEQU    14 // <=
+#define OS_AND        15 // &&
+#define OS_OR         16 // ||
 
 #ifndef WM_MENURBUTTONUP
   #define WM_MENURBUTTONUP 0x0122
@@ -516,9 +536,11 @@ int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
-INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
-INT_PTR GetGroupIfValue(const wchar_t *wpIn, const wchar_t **wppOut, wchar_t *wszStopSign, int *lpnError);
-INT_PTR OperateIfValue(INT_PTR nValue1, wchar_t *wpSign, INT_PTR nValue2, int *lpnError);
+INT_PTR IfString(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError);
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
+int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -3248,61 +3270,19 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
         if (lpElement->lpStateIf)
         {
           DWORD dwMenuState=0;
-          int nError=0;
 
           if (lpElement->lpStateIf->dwAction == EXTACT_CHECKIF)
           {
             if (lpParameter=GetMethodParameter(&lpElement->lpStateIf->hParamStack, 1))
             {
-              const wchar_t *wpCount=lpParameter->wpString;
-              wchar_t wszSign1[4];
-              wchar_t wszSign2[4];
-              INT_PTR nValue1;
-              INT_PTR nValue2;
+              const wchar_t *wpStop;
+              int nError;
 
-              for (;;)
-              {
-                nValue1=GetGroupIfValue(wpCount, &wpCount, wszSign1, &nError);
-                if (nError) goto CheckIfError;
-                if (!wszSign1[0]) break;
-
-                if (!xstrcmpW(wszSign1, L"&&"))
-                {
-                  if (!nValue1) break;
-                  continue;
-                }
-                if (!xstrcmpW(wszSign1, L"||"))
-                {
-                  if (nValue1) break;
-                  continue;
-                }
-                nValue2=GetGroupIfValue(wpCount, &wpCount, wszSign2, &nError);
-                if (nError) goto CheckIfError;
-                if (!xstrcmpW(wszSign1, L"=="))
-                  nValue1=(nValue1 == nValue2);
-                else if (!xstrcmpW(wszSign1, L"!="))
-                  nValue1=(nValue1 != nValue2);
-                else if (!xstrcmpW(wszSign1, L">="))
-                  nValue1=(nValue1 >= nValue2);
-                else if (!xstrcmpW(wszSign1, L"<="))
-                  nValue1=(nValue1 <= nValue2);
-                else if (!xstrcmpW(wszSign1, L">"))
-                  nValue1=(nValue1 > nValue2);
-                else if (!xstrcmpW(wszSign1, L"<"))
-                  nValue1=(nValue1 < nValue2);
-                else
-                {
-                  nError=STRID_CHECKIF_UNKNOWNSIGN;
-                  goto CheckIfError;
-                }
-                xstrcpyW(wszSign1, wszSign2);
-              }
-              if (nValue1)
+              if (IfString(lpParameter->wpString, &wpStop, &nError))
                 dwMenuState=MF_CHECKED;
               if (nError)
               {
-                CheckIfError:
-                xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wszSign1);
+                xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wpStop);
                 MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
                 ViewItemCode(lpElement);
               }
@@ -5236,7 +5216,74 @@ BOOL SkipComment(const wchar_t **wpText)
   return TRUE;
 }
 
-INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
+INT_PTR IfString(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
+{
+  INT_PTR nValue1;
+  INT_PTR nValue2;
+  int nSign1;
+  int nSign2;
+
+  FirstValueInGroup:
+  nValue1=IfGroup(wpIn, &wpIn, &nSign1, lpnError);
+  if (*lpnError) goto End;
+
+  while (nSign1 > OS_NULL)
+  {
+    if (nSign1 == OS_AND)
+    {
+      if (!nValue1) break;
+      goto FirstValueInGroup;
+    }
+    if (nSign1 == OS_OR)
+    {
+      if (nValue1) break;
+      goto FirstValueInGroup;
+    }
+    nValue2=IfGroup(wpIn, &wpIn, &nSign2, lpnError);
+    if (*lpnError) goto End;
+
+    nValue1=IfOperate(nValue1, nSign1, nValue2, lpnError);
+    if (*lpnError) goto End;
+    nSign1=nSign2;
+  }
+  *lpnError=0;
+
+  End:
+  if (wppOut) *wppOut=wpIn;
+  return nValue1;
+}
+
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError)
+{
+  INT_PTR nValue1;
+  INT_PTR nValue2;
+  int nSign;
+
+  nValue1=IfValue(wpIn, &wpIn, lpnError);
+  if (*lpnError) goto End;
+
+  while ((nSign=IfSign(wpIn, &wpIn)) > OS_NULL)
+  {
+    //Break if logical operator
+    if (nSign >= OS_GREATER)
+      break;
+    nValue2=IfValue(wpIn, &wpIn, lpnError);
+    if (*lpnError) goto End;
+    nValue1=IfOperate(nValue1, nSign, nValue2, lpnError);
+    if (*lpnError) goto End;
+  }
+  if (nSign == OS_ERROR)
+    *lpnError=STRID_CHECKIF_UNKNOWNOPERATOR;
+  else
+    *lpnError=0;
+  if (lpnSign) *lpnSign=nSign;
+
+  End:
+  if (wppOut) *wppOut=wpIn;
+  return nValue1;
+}
+
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
   INT_PTR nOption;
   INT_PTR nValue=0;
@@ -5287,58 +5334,103 @@ INT_PTR GetIfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
   return nValue;
 }
 
-INT_PTR GetGroupIfValue(const wchar_t *wpIn, const wchar_t **wppOut, wchar_t *wszStopSign, int *lpnError)
-{
-  INT_PTR nValue1;
-  INT_PTR nValue2;
-
-  nValue1=GetIfValue(wpIn, &wpIn, lpnError);
-  if (*lpnError) return 0;
-
-  while (GetWord(wpIn, wszStopSign, 4, &wpIn, NULL))
-  {
-    if (!xstrcmpW(wszStopSign, L"&&") ||
-        !xstrcmpW(wszStopSign, L"||") ||
-        !xstrcmpW(wszStopSign, L"==") ||
-        !xstrcmpW(wszStopSign, L"!=") ||
-        !xstrcmpW(wszStopSign, L">=") ||
-        !xstrcmpW(wszStopSign, L"<=") ||
-        !xstrcmpW(wszStopSign, L">") ||
-        !xstrcmpW(wszStopSign, L"<"))
-    {
-      break;
-    }
-    nValue2=GetIfValue(wpIn, &wpIn, lpnError);
-    if (*lpnError) return 0;
-    nValue1=OperateIfValue(nValue1, wszStopSign, nValue2, lpnError);
-    if (*lpnError) return 0;
-  }
-  wszStopSign[0]=L'0';
-  if (wppOut) *wppOut=wpIn;
-  return nValue1;
-}
-
-INT_PTR OperateIfValue(INT_PTR nValue1, wchar_t *wpSign, INT_PTR nValue2, int *lpnError)
+INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError)
 {
   *lpnError=0;
-  if (!xstrcmpW(wpSign, L"&"))
+  if (nSign == OS_BITAND)
     return (nValue1 & nValue2);
-  if (!xstrcmpW(wpSign, L"|"))
+  if (nSign == OS_BITOR)
     return (nValue1 | nValue2);
-  if (!xstrcmpW(wpSign, L"^"))
+  if (nSign == OS_BITXOR)
     return (nValue1 ^ nValue2);
-  if (!xstrcmpW(wpSign, L"+"))
+  if (nSign == OS_ADD)
     return (nValue1 + nValue2);
-  if (!xstrcmpW(wpSign, L"-"))
-    return (nValue1 + nValue2);
-  if (!xstrcmpW(wpSign, L"/"))
-    return (nValue1 / nValue2);
-  if (!xstrcmpW(wpSign, L"*"))
+  if (nSign == OS_SUB)
+    return (nValue1 - nValue2);
+  if (nSign == OS_MUL)
     return (nValue1 * nValue2);
-  if (!xstrcmpW(wpSign, L"%"))
+  if (nSign == OS_DIV)
+    return (nValue1 / nValue2);
+  if (nSign == OS_MOD)
     return (nValue1 % nValue2);
-  *lpnError=STRID_CHECKIF_UNKNOWNSIGN;
+
+  if (nSign == OS_EQU)
+    return (nValue1 == nValue2);
+  if (nSign == OS_NOTEQU)
+    return (nValue1 != nValue2);
+  if (nSign == OS_GREATEREQU)
+    return (nValue1 >= nValue2);
+  if (nSign == OS_LESSEQU)
+    return (nValue1 <= nValue2);
+  if (nSign == OS_GREATER)
+    return (nValue1 > nValue2);
+  if (nSign == OS_LESS)
+    return (nValue1 < nValue2);
+  *lpnError=STRID_CHECKIF_UNKNOWNOPERATOR;
   return 0;
+}
+
+int IfSign(const wchar_t *wpSign, const wchar_t **wppSign)
+{
+  int nSign;
+
+  if (*wpSign == L'\0')
+    nSign=OS_NULL;
+  else if (*wpSign == L'+')
+    nSign=OS_ADD;
+  else if (*wpSign == L'-')
+    nSign=OS_SUB;
+  else if (*wpSign == L'*')
+    nSign=OS_MUL;
+  else if (*wpSign == L'/')
+    nSign=OS_DIV;
+  else if (*wpSign == L'%')
+    nSign=OS_MOD;
+  else if (*wpSign == L'>')
+  {
+    if (*(wpSign + 1) == L'=')
+      nSign=OS_GREATEREQU;
+    else
+      nSign=OS_GREATER;
+  }
+  else if (*wpSign == L'<')
+  {
+    if (*(wpSign + 1) == L'=')
+      nSign=OS_LESSEQU;
+    else
+      nSign=OS_LESS;
+  }
+  else if (*wpSign == L'&')
+  {
+    if (*(wpSign + 1) == L'&')
+      nSign=OS_AND;
+    else
+      nSign=OS_BITAND;
+  }
+  else if (*wpSign == L'|')
+  {
+    if (*(wpSign + 1) == L'|')
+      nSign=OS_OR;
+    else
+      nSign=OS_BITOR;
+  }
+  else if (*wpSign == L'=' && *(wpSign + 1) == L'=')
+    nSign=OS_EQU;
+  else if (*wpSign == L'!' && *(wpSign + 1) == L'=')
+    nSign=OS_NOTEQU;
+  else if (*wpSign == L'^')
+    nSign=OS_BITXOR;
+  else
+    nSign=OS_ERROR;
+
+  if (wppSign)
+  {
+    if (nSign >= OS_EQU)
+      *wppSign+=2;
+    else if (nSign > OS_NULL)
+      *wppSign+=1;
+  }
+  return nSign;
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
@@ -5840,8 +5932,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434.";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
       return L"CheckIf: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
-    if (nStringID == STRID_CHECKIF_UNKNOWNSIGN)
-      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x0437\x043D\x0430\x043A \"%s\".";
+    if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
+      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
       return L"\x041E\x0442\x043A\x0440\x044B\x0442\x044C\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
@@ -6417,8 +6509,8 @@ EXPLORER\r";
       return L"CheckIf: unknown method.";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
       return L"CheckIf: no close parenthesis \")\".";
-    if (nStringID == STRID_CHECKIF_UNKNOWNSIGN)
-      return L"CheckIf: unknown sign \"%s\".";
+    if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
+      return L"CheckIf: unknown operator \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
       return L"Open\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
