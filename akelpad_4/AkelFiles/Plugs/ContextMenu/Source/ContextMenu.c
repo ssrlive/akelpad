@@ -111,30 +111,31 @@
 #define STRID_PARSEMSG_NOOPENSET              20
 #define STRID_CHECKIF_UNKNOWNMETHOD           21
 #define STRID_CHECKIF_NOCLOSEPARENTHESIS      22
-#define STRID_CHECKIF_UNKNOWNOPERATOR         23
-#define STRID_MENU_OPEN                       24
-#define STRID_MENU_MOVEUP                     25
-#define STRID_MENU_MOVEDOWN                   26
-#define STRID_MENU_SORT                       27
-#define STRID_MENU_DELETE                     28
-#define STRID_MENU_DELETEOLD                  29
-#define STRID_MENU_EDIT                       30
-#define STRID_FAVOURITES                      31
-#define STRID_SHOWFILE                        32
-#define STRID_FAVADDING                       33
-#define STRID_FAVEDITING                      34
-#define STRID_FAVNAME                         35
-#define STRID_FAVFILE                         36
-#define STRID_PLUGIN                          37
-#define STRID_OK                              38
-#define STRID_CANCEL                          39
-#define STRID_CLOSE                           40
-#define STRID_DEFAULTMANUAL                   41
-#define STRID_DEFAULTMAIN                     42
-#define STRID_DEFAULTEDIT                     43
-#define STRID_DEFAULTTAB                      44
-#define STRID_DEFAULTURL                      45
-#define STRID_DEFAULTRECENTFILES              46
+#define STRID_CHECKIF_NOCOMMA                 23
+#define STRID_CHECKIF_UNKNOWNOPERATOR         24
+#define STRID_MENU_OPEN                       25
+#define STRID_MENU_MOVEUP                     26
+#define STRID_MENU_MOVEDOWN                   27
+#define STRID_MENU_SORT                       28
+#define STRID_MENU_DELETE                     29
+#define STRID_MENU_DELETEOLD                  30
+#define STRID_MENU_EDIT                       31
+#define STRID_FAVOURITES                      32
+#define STRID_SHOWFILE                        33
+#define STRID_FAVADDING                       34
+#define STRID_FAVEDITING                      35
+#define STRID_FAVNAME                         36
+#define STRID_FAVFILE                         37
+#define STRID_PLUGIN                          38
+#define STRID_OK                              39
+#define STRID_CANCEL                          40
+#define STRID_CLOSE                           41
+#define STRID_DEFAULTMANUAL                   42
+#define STRID_DEFAULTMAIN                     43
+#define STRID_DEFAULTEDIT                     44
+#define STRID_DEFAULTTAB                      45
+#define STRID_DEFAULTURL                      46
+#define STRID_DEFAULTRECENTFILES              47
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -541,6 +542,7 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
 INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
 INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
 int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
+void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -5285,11 +5287,13 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
 
 INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
-  INT_PTR nOption;
+  INT_PTR nParam1;
   INT_PTR nValue=0;
   BOOL bBitwiseNOT=FALSE;
+  int nSendMain;
+  int nSendEdit;
 
-  while (*wpIn == L' ' || *wpIn == L'\t') ++wpIn;
+  IfComment(wpIn, &wpIn);
 
   if (*wpIn == L'~')
   {
@@ -5300,25 +5304,49 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     nValue=xatoiW(wpIn, &wpIn);
   else
   {
-    if (!xstrcmpinW(L"Main(", wpIn, (UINT_PTR)-1))
+    if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
+        !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
-      nOption=xatoiW(wpIn + 5, &wpIn);
-      nValue=SendMessage(hMainWnd, AKD_GETMAININFO, (WPARAM)nOption, 0);
-    }
-    else if (!xstrcmpinW(L"Frame(", wpIn, (UINT_PTR)-1))
-    {
-      nOption=xatoiW(wpIn + 6, &wpIn);
-      nValue=SendMessage(hMainWnd, AKD_GETFRAMEINFO, (WPARAM)nOption, (LPARAM)NULL);
+      HWND hWndEdit;
+      INT_PTR nParam2;
+      INT_PTR nParam3;
+
+      IfComment(wpIn + 9, &wpIn);
+      nParam1=xatoiW(wpIn, &wpIn);
+      IfComment(wpIn, &wpIn);
+      if (*wpIn == L',') ++wpIn;
+      else
+      {
+        *lpnError=STRID_CHECKIF_NOCOMMA;
+        goto End;
+      }
+
+      IfComment(wpIn, &wpIn);
+      nParam2=xatoiW(wpIn, &wpIn);
+      IfComment(wpIn, &wpIn);
+      if (*wpIn == L',') ++wpIn;
+      else
+      {
+        *lpnError=STRID_CHECKIF_NOCOMMA;
+        goto End;
+      }
+
+      nParam3=xatoiW(wpIn, &wpIn);
+      if (!nSendMain)
+        nValue=SendMessage(hMainWnd, nParam1, nParam2, nParam3);
+      else if (!nSendEdit)
+      {
+        hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
+        nValue=SendMessage(hWndEdit, nParam1, nParam2, nParam3);
+      }
     }
     else
     {
       *lpnError=STRID_CHECKIF_UNKNOWNMETHOD;
       goto End;
     }
-
-    while (*wpIn == L' ' || *wpIn == L'\t') ++wpIn;
-    if (*wpIn == L')')
-      ++wpIn;
+    IfComment(wpIn, &wpIn);
+    if (*wpIn == L')') ++wpIn;
     else
     {
       *lpnError=STRID_CHECKIF_NOCLOSEPARENTHESIS;
@@ -5326,7 +5354,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     }
   }
   if (bBitwiseNOT) nValue=~nValue;
-  while (*wpIn == L' ' || *wpIn == L'\t') ++wpIn;
+  IfComment(wpIn, &wpIn);
   *lpnError=0;
 
   End:
@@ -5431,6 +5459,25 @@ int IfSign(const wchar_t *wpSign, const wchar_t **wppSign)
       *wppSign+=1;
   }
   return nSign;
+}
+
+void IfComment(const wchar_t *wpText, const wchar_t **wppText)
+{
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  if (*wpText == L'/' && *(wpText + 1) == L'*')
+  {
+    for (wpText+=2; *wpText; ++wpText)
+    {
+      if (*wpText == L'*' && *(wpText + 1) == L'/')
+      {
+        wpText+=2;
+        break;
+      }
+    }
+    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  }
+  *wppText=wpText;
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
@@ -5929,9 +5976,11 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
     if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
-      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434.";
+      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
       return L"CheckIf: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
+    if (nStringID == STRID_CHECKIF_NOCOMMA)
+      return L"CheckIf: \x043D\x0435\x0442\x0020\x0437\x0430\x043F\x044F\x0442\x043E\x0439 \",\".";
     if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
       return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
@@ -6506,9 +6555,11 @@ EXPLORER\r";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"No opening SET().";
     if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
-      return L"CheckIf: unknown method.";
+      return L"CheckIf: unknown method \"%.9s...\".";
     if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
       return L"CheckIf: no close parenthesis \")\".";
+    if (nStringID == STRID_CHECKIF_NOCOMMA)
+      return L"CheckIf: no comma \",\".";
     if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
       return L"CheckIf: unknown operator \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
