@@ -369,8 +369,8 @@ void __declspec(dllexport) LinkExtract(PLUGINDATA *pd)
   CHARRANGE64 cr;
   wchar_t *wszSelText;
   wchar_t *wpTextCount;
-  wchar_t *wpStrEnd;
-  wchar_t *wpStrBegin;
+  const wchar_t *wpStrBegin;
+  const wchar_t *wpStrEnd;
   wchar_t wchQuote;
   BOOL bEgual=FALSE;
 
@@ -392,7 +392,8 @@ void __declspec(dllexport) LinkExtract(PLUGINDATA *pd)
 
   if (wszSelText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)hWndEdit, (LPARAM)NULL))
   {
-    wpTextCount=wpStrEnd=wszSelText;
+    wpTextCount=wszSelText;
+    wpStrEnd=(const wchar_t *)wszSelText;
 
     while (xstrstrW(wpStrEnd, -1, L" href", -1, FALSE, &wpStrBegin, &wpStrEnd))
     {

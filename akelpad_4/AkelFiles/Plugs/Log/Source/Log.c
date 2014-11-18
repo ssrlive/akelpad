@@ -188,7 +188,7 @@
 
 //Patterns
 #define PAT_MICROSOFTGCC    L"^\\s*(.*?)([(:](\\d++)[,:](\\d++)[):]|[(:](\\d++)[):])"
-#define PAT_MICROSOFTGCCTAG L"/FILE=\\1 /GOTOLINE=\\3:\\4"
+#define PAT_MICROSOFTGCCTAG L"/FILE=\\1 /GOTOLINE=\\3\\5:\\4"
 #define PAT_BORLAND         L"^(\\[.*?\\] )?(.*?)\\((\\d++)(,(\\d++))?\\)"
 #define PAT_BORLANDTAG      L"/FILE=\\2 /GOTOLINE=\\3:\\5"
 
