@@ -1667,13 +1667,13 @@ void ClearToolbarButtons()
 void UpdateToolbar(STACKTOOLBAR *hStack)
 {
   EDITINFO ei;
-  TOOLBARITEM *lpButton=hStack->first;
+  TOOLBARITEM *lpButton;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
 
   ei.hWndEdit=NULL;
 
-  while (lpButton)
+  for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
   {
     if (lpButton->bUpdateItem)
     {
@@ -1745,7 +1745,6 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
         }
       }
     }
-    lpButton=lpButton->next;
   }
 }
 

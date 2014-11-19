@@ -109,33 +109,34 @@
 #define STRID_PARSEMSG_UNNAMEDSUBMENU         18
 #define STRID_PARSEMSG_NOOPENBRACKET          19
 #define STRID_PARSEMSG_NOOPENSET              20
-#define STRID_CHECKIF_UNKNOWNMETHOD           21
-#define STRID_CHECKIF_NOCLOSEPARENTHESIS      22
-#define STRID_CHECKIF_NOCOMMA                 23
-#define STRID_CHECKIF_UNKNOWNOPERATOR         24
-#define STRID_MENU_OPEN                       25
-#define STRID_MENU_MOVEUP                     26
-#define STRID_MENU_MOVEDOWN                   27
-#define STRID_MENU_SORT                       28
-#define STRID_MENU_DELETE                     29
-#define STRID_MENU_DELETEOLD                  30
-#define STRID_MENU_EDIT                       31
-#define STRID_FAVOURITES                      32
-#define STRID_SHOWFILE                        33
-#define STRID_FAVADDING                       34
-#define STRID_FAVEDITING                      35
-#define STRID_FAVNAME                         36
-#define STRID_FAVFILE                         37
-#define STRID_PLUGIN                          38
-#define STRID_OK                              39
-#define STRID_CANCEL                          40
-#define STRID_CLOSE                           41
-#define STRID_DEFAULTMANUAL                   42
-#define STRID_DEFAULTMAIN                     43
-#define STRID_DEFAULTEDIT                     44
-#define STRID_DEFAULTTAB                      45
-#define STRID_DEFAULTURL                      46
-#define STRID_DEFAULTRECENTFILES              47
+#define STRID_IF_CALLERROR                    21
+#define STRID_IF_UNKNOWNMETHOD                22
+#define STRID_IF_NOCLOSEPARENTHESIS           23
+#define STRID_IF_NOCOMMA                      24
+#define STRID_IF_UNKNOWNOPERATOR              25
+#define STRID_MENU_OPEN                       26
+#define STRID_MENU_MOVEUP                     27
+#define STRID_MENU_MOVEDOWN                   28
+#define STRID_MENU_SORT                       29
+#define STRID_MENU_DELETE                     30
+#define STRID_MENU_DELETEOLD                  31
+#define STRID_MENU_EDIT                       32
+#define STRID_FAVOURITES                      33
+#define STRID_SHOWFILE                        34
+#define STRID_FAVADDING                       35
+#define STRID_FAVEDITING                      36
+#define STRID_FAVNAME                         37
+#define STRID_FAVFILE                         38
+#define STRID_PLUGIN                          39
+#define STRID_OK                              40
+#define STRID_CANCEL                          41
+#define STRID_CLOSE                           42
+#define STRID_DEFAULTMANUAL                   43
+#define STRID_DEFAULTMAIN                     44
+#define STRID_DEFAULTEDIT                     45
+#define STRID_DEFAULTTAB                      46
+#define STRID_DEFAULTURL                      47
+#define STRID_DEFAULTRECENTFILES              48
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -190,7 +191,8 @@
 #define CCMS_NOSHORTCUT  0x08
 #define CCMS_NOICONS     0x10
 #define CCMS_NOFILEEXIST 0x20
-#define CCMS_STATEIF     0x40
+#define CCMS_SKIPIF      0x40
+#define CCMS_CHECKIF     0x80
 
 #define IDM_MIN_EXPLORER    20001
 #define IDM_MAX_EXPLORER    20999
@@ -304,6 +306,8 @@ typedef struct _STATEIF {
   struct _STATEIF *prev;
   DWORD dwAction;
   STACKEXTPARAM hParamStack;
+  INT_PTR nValue;
+  BOOL bCalculated;
 } STATEIF;
 
 typedef struct {
@@ -572,6 +576,7 @@ wchar_t wszPluginTitle[MAX_PATH];
 HANDLE hHeap;
 HINSTANCE hInstanceDLL;
 HWND hMainWnd;
+HWND g_hWndEdit;
 HWND hMdiClient;
 HMENU hMainMenu;
 HMENU hNewMainMenu;
@@ -2533,7 +2538,9 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
   int nFlagCountNoPMDI=0;
   int nFlagCountNoIcons=0;
   int nFlagCountNoFileExistAll=0;
-  int nFlagCountNoFileExistSkip=0;
+  int nFlagCountNoFileExistMore=0;
+  int nFlagCountSkipIfAll=0;
+  int nFlagCountSkipIfMore=0;
   int nFlagCountStateIf=0;
   STATEIF *lpStateIf=NULL;
   int nPrevSeparator=0;
@@ -2599,7 +2606,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         if (dwNewFlags & CCMS_NOFILEEXIST)
         {
           if (dwSetFlags & CCMS_NOFILEEXIST)
-            ++nFlagCountNoFileExistSkip;
+            ++nFlagCountNoFileExistMore;
           else
           {
             if (GetWord(wpCount, wszMenuItem, MAX_PATH, &wpCount, &bQuote) && bQuote)
@@ -2611,17 +2618,77 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
               }
             }
             if (dwNewFlags & CCMS_NOFILEEXIST)
-              ++nFlagCountNoFileExistSkip;
+              ++nFlagCountNoFileExistMore;
           }
           ++nFlagCountNoFileExistAll;
         }
-        if (dwNewFlags & CCMS_STATEIF)
+        if (dwNewFlags & CCMS_SKIPIF)
+        {
+          if (dwSetFlags & CCMS_SKIPIF)
+            ++nFlagCountSkipIfMore;
+          else
+          {
+            nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
+
+            if (GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+            {
+              if (!xstrcmpiW(wszMethodName, L"If"))
+              {
+                if (GetWord(wpCount, wszBuffer, BUFFER_SIZE, &wpCount, &bQuote) && bQuote)
+                {
+                  if (IfString(wszBuffer, NULL, &nMessageID))
+                    dwNewFlags&=~CCMS_SKIPIF;
+                }
+              }
+              else if (!xstrcmpiW(wszMethodName, L"Call"))
+              {
+                STACKEXTPARAM hParamStack={0};
+                PLUGINCALLSENDW pcs;
+                int nStructSize;
+                int nResult;
+
+                ParseMethodParameters(&hParamStack, wpCount, &wpCount);
+                ExpandMethodParameters(&hParamStack, wszCurrentFile, wszExeDir, hSubMenu, nItem, wszUrlLink);
+
+                if (nStructSize=StructMethodParameters(&hParamStack, NULL))
+                {
+                  if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+                    StructMethodParameters(&hParamStack, (unsigned char *)pcs.lParam);
+                }
+                else pcs.lParam=0;
+
+                pcs.pFunction=hParamStack.first->wpString;
+                pcs.dwSupport=PDS_STRWIDE;
+                pcs.nResult=0;
+                nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+
+                if (pcs.nResult)
+                  dwNewFlags&=~CCMS_SKIPIF;
+                if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+                FreeMethodParameters(&hParamStack);
+
+                if (nResult < 0)
+                {
+                  nMessageID=STRID_IF_CALLERROR;
+                  goto Error;
+                }
+                nMessageID=0;
+              }
+            }
+            if (nMessageID)
+              goto Error;
+            if (dwNewFlags & CCMS_SKIPIF)
+              ++nFlagCountSkipIfMore;
+          }
+          ++nFlagCountSkipIfAll;
+        }
+        if (dwNewFlags & CCMS_CHECKIF)
         {
           dwAction=0;
 
           if (GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
           {
-            if (!xstrcmpiW(wszMethodName, L"CheckIf"))
+            if (!xstrcmpiW(wszMethodName, L"If"))
               dwAction=EXTACT_CHECKIF;
             else if (!xstrcmpiW(wszMethodName, L"Call"))
               dwAction=EXTACT_CALL;
@@ -2643,7 +2710,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         }
         dwSetFlags|=dwNewFlags;
         if (!NextLine(&wpCount)) break;
-        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST|CCMS_SKIPIF))
           continue;
         goto CheckSubmenuClose;
       }
@@ -2685,21 +2752,28 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         {
           if (--nFlagCountNoFileExistAll < 0)
             goto UnsetError;
-          if (--nFlagCountNoFileExistSkip > 0)
+          if (--nFlagCountNoFileExistMore > 0)
             dwNewFlags&=~CCMS_NOFILEEXIST;
         }
-        if (dwNewFlags & CCMS_STATEIF)
+        if (dwNewFlags & CCMS_SKIPIF)
+        {
+          if (--nFlagCountSkipIfAll < 0)
+            goto UnsetError;
+          if (--nFlagCountSkipIfMore > 0)
+            dwNewFlags&=~CCMS_SKIPIF;
+        }
+        if (dwNewFlags & CCMS_CHECKIF)
         {
           if (--nFlagCountStateIf < 0)
             goto UnsetError;
           if (lpStateIf)
             lpStateIf=lpStateIf->prev;
           if (lpStateIf)
-            dwNewFlags&=~CCMS_STATEIF;
+            dwNewFlags&=~CCMS_CHECKIF;
         }
         dwSetFlags&=~dwNewFlags;
         if (!NextLine(&wpCount)) break;
-        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+        if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST|CCMS_SKIPIF))
           continue;
         goto CheckSubmenuClose;
 
@@ -2708,7 +2782,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         goto Error;
       }
       //Skip line if skip flag set
-      if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+      if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST|CCMS_SKIPIF))
       {
         if (!NextLine(&wpCount)) break;
         continue;
@@ -3199,40 +3273,46 @@ DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags)
     return CCMS_NOICONS;
   if ((dwCheckFlags & CCMS_NOFILEEXIST) && (dwSetFlags & CCMS_NOFILEEXIST))
     return CCMS_NOFILEEXIST;
-  if ((dwCheckFlags & CCMS_STATEIF) && (dwSetFlags & CCMS_STATEIF))
-    return CCMS_STATEIF;
+  if ((dwCheckFlags & CCMS_SKIPIF) && (dwSetFlags & CCMS_SKIPIF))
+    return CCMS_SKIPIF;
+  if ((dwCheckFlags & CCMS_CHECKIF) && (dwSetFlags & CCMS_CHECKIF))
+    return CCMS_CHECKIF;
   return 0;
 }
 
 void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
 {
   EDITINFO ei;
-  MENUITEM *lpElement;
+  STATEIF *lpStateIf;
+  MENUITEM *lpMenuItem;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
 
-  Loop:
-  lpElement=hMenuStack->hMenuItemStack.first;
   ei.hWndEdit=NULL;
+  g_hWndEdit=NULL;
 
-  while (lpElement)
+  Loop:
+  for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
+    lpStateIf->bCalculated=FALSE;
+
+  for (lpMenuItem=hMenuStack->hMenuItemStack.first; lpMenuItem; lpMenuItem=lpMenuItem->next)
   {
     if (hSubMenu)
     {
-      if (lpElement->hSubMenu == hSubMenu)
+      if (lpMenuItem->hSubMenu == hSubMenu)
       {
         //Load icon optimization (part 5):
-        if (lpElement->nFileIconIndex != -1)
+        if (lpMenuItem->nFileIconIndex != -1)
         {
           HICON hIcon=NULL;
 
-          if (!*lpElement->wszIconFile)
+          if (!*lpMenuItem->wszIconFile)
           {
-            hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(lpElement->nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
+            hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(lpMenuItem->nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
 
             if (hIcon)
             {
-              ImageList_ReplaceIcon(hMenuStack->hImageList, lpElement->nImageListIconIndex, hIcon);
+              ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
               DestroyIcon(hIcon);
             }
           }
@@ -3241,18 +3321,18 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             wchar_t wszPath[MAX_PATH];
             wchar_t *wpFileName;
 
-            if (TranslateFileString(lpElement->wszIconFile, wszPath, MAX_PATH))
+            if (TranslateFileString(lpMenuItem->wszIconFile, wszPath, MAX_PATH))
             {
-              if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, lpElement->wszIconFile, &wpFileName))
+              if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, lpMenuItem->wszIconFile, &wpFileName))
               {
                 if (bBigIcons)
-                  ExtractIconExWide(wszPath, lpElement->nFileIconIndex, &hIcon, NULL, 1);
+                  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
                 else
-                  ExtractIconExWide(wszPath, lpElement->nFileIconIndex, NULL, &hIcon, 1);
+                  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
 
                 if (hIcon)
                 {
-                  ImageList_ReplaceIcon(hMenuStack->hImageList, lpElement->nImageListIconIndex, hIcon);
+                  ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
                   DestroyIcon(hIcon);
                 }
               }
@@ -3260,73 +3340,90 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
           }
 
           if (!hIcon)
-            ImageList_ReplaceIcon(hMenuStack->hImageList, lpElement->nImageListIconIndex, hIconHollow);
-          lpElement->nFileIconIndex=-1;
+            ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIconHollow);
+          lpMenuItem->nFileIconIndex=-1;
         }
       }
     }
     else
     {
-      if (lpElement->bUpdateItem)
+      if (lpMenuItem->bUpdateItem)
       {
-        if (lpElement->lpStateIf)
+        if (lpMenuItem->lpStateIf)
         {
           DWORD dwMenuState=0;
 
-          if (lpElement->lpStateIf->dwAction == EXTACT_CHECKIF)
+          lpStateIf=lpMenuItem->lpStateIf;
+
+          if (lpStateIf->dwAction == EXTACT_CHECKIF)
           {
-            if (lpParameter=GetMethodParameter(&lpElement->lpStateIf->hParamStack, 1))
+            if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 1))
             {
               const wchar_t *wpStop;
               int nError;
 
-              if (IfString(lpParameter->wpString, &wpStop, &nError))
-                dwMenuState=MF_CHECKED;
-              if (nError)
+              if (!lpStateIf->bCalculated)
               {
-                xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wpStop);
-                MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-                ViewItemCode(lpElement);
+                lpStateIf->nValue=IfString(lpParameter->wpString, &wpStop, &nError);
+                lpStateIf->bCalculated=TRUE;
+
+                if (nError)
+                {
+                  xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wpStop);
+                  MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+                  ViewItemCode(lpMenuItem);
+                  return;
+                }
               }
             }
           }
-          else if (lpElement->lpStateIf->dwAction == EXTACT_CALL)
+          else if (lpStateIf->dwAction == EXTACT_CALL)
           {
             PLUGINCALLSENDW pcs;
-            wchar_t *wpFunction=lpElement->lpStateIf->hParamStack.first->wpString;
+            wchar_t *wpFunction=lpStateIf->hParamStack.first->wpString;
             int nStructSize;
             int nResult;
 
-            ExpandMethodParameters(&lpElement->lpStateIf->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, lpElement->nItem, wszUrlLink);
-
-            if (nStructSize=StructMethodParameters(&lpElement->lpStateIf->hParamStack, NULL))
+            if (!lpStateIf->bCalculated)
             {
-              if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-                StructMethodParameters(&lpElement->lpStateIf->hParamStack, (unsigned char *)pcs.lParam);
+              ExpandMethodParameters(&lpStateIf->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, lpMenuItem->nItem, wszUrlLink);
+
+              if (nStructSize=StructMethodParameters(&lpStateIf->hParamStack, NULL))
+              {
+                if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+                  StructMethodParameters(&lpStateIf->hParamStack, (unsigned char *)pcs.lParam);
+              }
+              else pcs.lParam=0;
+
+              pcs.pFunction=wpFunction;
+              pcs.dwSupport=PDS_STRWIDE;
+              pcs.nResult=0;
+              nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+
+              lpStateIf->nValue=pcs.nResult;
+              lpStateIf->bCalculated=TRUE;
+              if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+
+              if (nResult < 0)
+              {
+                ViewItemCode(lpMenuItem);
+                return;
+              }
             }
-            else pcs.lParam=0;
-
-            pcs.pFunction=wpFunction;
-            pcs.dwSupport=PDS_STRWIDE;
-            pcs.nResult=0;
-            nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-            if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
-
-            if (nResult < 0)
-              ViewItemCode(lpElement);
-            dwMenuState=(DWORD)pcs.nResult;
           }
-          CheckMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|dwMenuState);
-          EnableMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|dwMenuState);
+          if (lpStateIf->nValue)
+            dwMenuState=MF_CHECKED;
+          CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
+          EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
         }
         else
         {
-          if (lpElement->dwAction == EXTACT_COMMAND)
+          if (lpMenuItem->dwAction == EXTACT_COMMAND)
           {
             DWORD dwMenuState=0;
             int nCommand=0;
 
-            if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
+            if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 1))
               nCommand=(int)lpParameter->nNumber;
 
             if (nCommand)
@@ -3358,12 +3455,12 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
               }
               if (dwMenuState != (DWORD)-1)
               {
-                CheckMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|dwMenuState);
-                EnableMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|dwMenuState);
+                CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
+                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
               }
             }
           }
-          else if (lpElement->dwAction == EXTACT_CALL)
+          else if (lpMenuItem->dwAction == EXTACT_CALL)
           {
             PLUGINFUNCTION *pf=NULL;
             wchar_t *wpFunction=NULL;
@@ -3371,9 +3468,9 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             int nDllAction=0;
             BOOL bCoderMark;
 
-            if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
+            if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 1))
               wpFunction=lpParameter->wpString;
-            if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
+            if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 2))
               nDllAction=(int)lpParameter->nNumber;
 
             if (wpFunction)
@@ -3429,18 +3526,18 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                       deccm.wpColorText=NULL;
                       deccm.wpColorBk=NULL;
                       deccm.lpbActive=&bActive;
-                      if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 7))
+                      if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 7))
                         deccm.nMarkID=(int)lpParameter->nNumber;
-                      if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 3))
+                      if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 3))
                         deccm.wpColorText=lpParameter->wpString;
-                      if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 4))
+                      if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 4))
                         deccm.wpColorBk=lpParameter->wpString;
                       pcs.lParam=(LPARAM)&deccm;
                       bCheck=TRUE;
                     }
                     else
                     {
-                      if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 3))
+                      if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 3))
                       {
                         if (nDllAction == DLLA_CODER_SETEXTENSION)
                         {
@@ -3497,7 +3594,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                     BOOL bColorEnable=FALSE;
                     BOOL bSelColorEnable=FALSE;
 
-                    if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 3))
+                    if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 3))
                     {
                       wpSpecialChar=lpParameter->wpString;
                     }
@@ -3577,22 +3674,22 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                 }
               }
 
-              CheckMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, dwFlags);
+              CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, dwFlags);
             }
           }
-          else if (lpElement->dwAction == EXTACT_LINK)
+          else if (lpMenuItem->dwAction == EXTACT_LINK)
           {
             if (nType == TYPE_URL)
-              EnableMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|MF_ENABLED);
+              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_ENABLED);
             else
-              EnableMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|MF_GRAYED);
+              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_GRAYED);
           }
-          else if (lpElement->dwAction == EXTACT_FAVOURITE)
+          else if (lpMenuItem->dwAction == EXTACT_FAVOURITE)
           {
             int nCmd=0;
             DWORD dwFlags=MF_GRAYED;
 
-            if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
+            if (lpParameter=GetMethodParameter(&lpMenuItem->hParamStack, 1))
               nCmd=(int)lpParameter->nNumber;
 
             if (nCmd == FAV_ADDDIALOG ||
@@ -3612,13 +3709,12 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                     dwFlags=MF_ENABLED;
                 }
               }
-              EnableMenuItem(hMenuStack->hPopupMenu, lpElement->nItem, MF_BYCOMMAND|dwFlags);
+              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwFlags);
             }
           }
         }
       }
     }
-    lpElement=lpElement->next;
   }
   if (hMenuStack->bLinkToManualMenu && hMenuStack != &hMenuManualStack)
   {
@@ -5275,7 +5371,7 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
     if (*lpnError) goto End;
   }
   if (nSign == OS_ERROR)
-    *lpnError=STRID_CHECKIF_UNKNOWNOPERATOR;
+    *lpnError=STRID_IF_UNKNOWNOPERATOR;
   else
     *lpnError=0;
   if (lpnSign) *lpnSign=nSign;
@@ -5307,7 +5403,6 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
         !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
-      HWND hWndEdit;
       INT_PTR nParam2;
       INT_PTR nParam3;
 
@@ -5317,7 +5412,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       if (*wpIn == L',') ++wpIn;
       else
       {
-        *lpnError=STRID_CHECKIF_NOCOMMA;
+        *lpnError=STRID_IF_NOCOMMA;
         goto End;
       }
 
@@ -5327,29 +5422,31 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       if (*wpIn == L',') ++wpIn;
       else
       {
-        *lpnError=STRID_CHECKIF_NOCOMMA;
+        *lpnError=STRID_IF_NOCOMMA;
         goto End;
       }
 
       nParam3=xatoiW(wpIn, &wpIn);
       if (!nSendMain)
-        nValue=SendMessage(hMainWnd, nParam1, nParam2, nParam3);
+        nValue=SendMessage(hMainWnd, (UINT)nParam1, nParam2, nParam3);
       else if (!nSendEdit)
       {
-        hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
-        nValue=SendMessage(hWndEdit, nParam1, nParam2, nParam3);
+        if (!g_hWndEdit)
+          g_hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
+        if (g_hWndEdit)
+          nValue=SendMessage(g_hWndEdit, (UINT)nParam1, nParam2, nParam3);
       }
     }
     else
     {
-      *lpnError=STRID_CHECKIF_UNKNOWNMETHOD;
+      *lpnError=STRID_IF_UNKNOWNMETHOD;
       goto End;
     }
     IfComment(wpIn, &wpIn);
     if (*wpIn == L')') ++wpIn;
     else
     {
-      *lpnError=STRID_CHECKIF_NOCLOSEPARENTHESIS;
+      *lpnError=STRID_IF_NOCLOSEPARENTHESIS;
       goto End;
     }
   }
@@ -5394,7 +5491,7 @@ INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError)
     return (nValue1 > nValue2);
   if (nSign == OS_LESS)
     return (nValue1 < nValue2);
-  *lpnError=STRID_CHECKIF_UNKNOWNOPERATOR;
+  *lpnError=STRID_IF_UNKNOWNOPERATOR;
   return 0;
 }
 
@@ -5975,14 +6072,16 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438\x002E";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
-    if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
-      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
-    if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
-      return L"CheckIf: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
-    if (nStringID == STRID_CHECKIF_NOCOMMA)
-      return L"CheckIf: \x043D\x0435\x0442\x0020\x0437\x0430\x043F\x044F\x0442\x043E\x0439 \",\".";
-    if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
-      return L"CheckIf: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
+    if (nStringID == STRID_IF_NOCOMMA)
+      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043F\x044F\x0442\x043E\x0439 \",\".";
+    if (nStringID == STRID_IF_UNKNOWNOPERATOR)
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
       return L"\x041E\x0442\x043A\x0440\x044B\x0442\x044C\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
@@ -6554,14 +6653,16 @@ EXPLORER\r";
       return L"No opening bracket.";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"No opening SET().";
-    if (nStringID == STRID_CHECKIF_UNKNOWNMETHOD)
-      return L"CheckIf: unknown method \"%.9s...\".";
-    if (nStringID == STRID_CHECKIF_NOCLOSEPARENTHESIS)
-      return L"CheckIf: no close parenthesis \")\".";
-    if (nStringID == STRID_CHECKIF_NOCOMMA)
-      return L"CheckIf: no comma \",\".";
-    if (nStringID == STRID_CHECKIF_UNKNOWNOPERATOR)
-      return L"CheckIf: unknown operator \"%.2s...\".";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: call error.";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: unknown method \"%.9s...\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: no close parenthesis \")\".";
+    if (nStringID == STRID_IF_NOCOMMA)
+      return L"If: no comma \",\".";
+    if (nStringID == STRID_IF_UNKNOWNOPERATOR)
+      return L"If: unknown operator \"%.2s...\".";
     if (nStringID == STRID_MENU_OPEN)
       return L"Open\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
