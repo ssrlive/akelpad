@@ -63,6 +63,33 @@
 #define PCLE_END     0x02  //Stop parsing command line parameters.
 #define PCLE_ONLOAD  0x04  //Done parsing command line parameters on program load (used internally).
 
+//External parameters
+#define EXTPARAM_CHAR     1
+#define EXTPARAM_INT      2
+
+//Expand flags
+#define EXPPARAM_WIDE      0x000 //EXPPARAM.pReplaceWith is Unicode string (default).
+#define EXPPARAM_ANSI      0x001 //EXPPARAM.pReplaceWith is Ansi string.
+#define EXPPARAM_INT       0x002 //EXPPARAM.pReplaceWith is integer.
+#define EXPPARAM_MATCHCASE 0x008 //EXPPARAM.wpVar case sensitivity.
+#define EXPPARAM_FILE      0x100 //EXPPARAM.wpVar replaced with current file. EXPPARAM.pReplaceWith is ignored.
+#define EXPPARAM_FILEDIR   0x200 //EXPPARAM.wpVar replaced with current file directory. EXPPARAM.pReplaceWith is ignored.
+
+//AKD_IFEXPRESSION flags
+#define IEF_AUTO          0x0 //Expression begins with If("...") or Call("...", param1, param2, ...). After AKD_IFEXPRESSION returns, IFEXPRESSION.dwFlags will contain IEF_IF or IEF_CALL (if no errors).
+#define IEF_IF            0x1 //Calculate IF expression that begins with: "..."
+#define IEF_CALL          0x2 //Execute plugin expression that begins with: "...", param1, param2, ...
+#define IEF_STACKEXTPARAM 0x4 //IFEXPRESSION.sep member is valid. If IEF_PARSEONLY flag is not set, then wParam is ignored.
+#define IEF_PARSEONLY     0x8 //Fill IFEXPRESSION.sep. Must be combined with IEF_STACKEXTPARAM.
+
+//AKD_IFEXPRESSION errors
+#define IEE_SUCCESS            0
+#define IEE_NOCOMMA            1
+#define IEE_NOCLOSEPARENTHESIS 2
+#define IEE_UNKNOWNOPERATOR    3
+#define IEE_UNKNOWNMETHOD      4
+#define IEE_CALLERROR          5
+
 //MI_ONFINISH type
 #define MOF_NONE        0
 #define MOF_QUERYEND    1 //Processing WM_CLOSE or WM_QUERYENDSESSION message.
@@ -385,6 +412,8 @@
 #define FI_FILEW                32
 #define FI_FILELEN              33
 #define FI_STREAMOFFSET         34
+#define FI_FILEDIRW             36
+#define FI_FILEDIRLEN           37
 #define FI_ICONHANDLE           38
 #define FI_ICONINDEX            39
 #define FI_RECTEDIT             43
@@ -933,6 +962,8 @@ typedef struct _FRAMEDATA {
   wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
   int nFileLen;                                       //Frame file length.
   int nStreamOffset;                                  //":" symbol offset in FRAMEDATA.wszFile.
+  wchar_t wszFileDir[MAX_PATH];                       //Frame file directory (Unicode).
+  int nFileDirLen;                                    //Frame file directory length.
   HICON hIcon;                                        //Frame icon.
   int nIconIndex;                                     //Frame ImageList icon index.
   RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
@@ -1547,6 +1578,40 @@ typedef struct {
   BOOL bQuitAsEnd;                     //Internal variable - "/quit" stops parsing command line parameters, but not closes program.
 } PARSECMDLINEPOSTW;
 
+typedef struct _EXTPARAM {
+  struct _EXTPARAM *next;
+  struct _EXTPARAM *prev;
+  DWORD dwType;            //See EXTPARAM_* defines.
+  INT_PTR nNumber;         //External parameter number.
+  char *pString;           //External parameter string (Ansi).
+  wchar_t *wpString;       //External parameter string (Unicode).
+  char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).
+  int nExpandedAnsiLen;    //External parameter expanded ansi string length.
+  wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
+  int nExpandedUnicodeLen; //External parameter expanded unicode string length.
+} EXTPARAM;
+
+typedef struct {
+  EXTPARAM *first;
+  EXTPARAM *last;
+  int nElements;
+} STACKEXTPARAM;
+
+typedef struct {
+  const wchar_t *wpVar; //Variable, for example, "%u". Built-in variables: "%a" - AkelPad directory, "%f" - current file, "%d" - current file directory.
+  int nVarLen;          //Variable length, not including the terminating null character.
+  INT_PTR nReplaceWith; //Replacement data. Can be integer or string, for example, (INT_PTR)"C:\\Program Files\\AkelPad".
+  DWORD dwFlags;        //See EXPPARAM_* defines.
+} EXPPARAM;
+
+typedef struct {
+  DWORD dwFlags;        //See IEF_* defines.
+  int nError;           //See IEE_* defines.
+  STACKEXTPARAM *sep;   //Pointer to a STACKEXTPARAM structure.
+  EXPPARAM *ep;         //Pointer to an array of EXPPARAM structures. Last item has EXPPARAM.wpVar == NULL. Uses if dwFlags == IEF_CALL.
+  const wchar_t *wpEnd; //Where expression stops if error or next string after expression if no errors.
+} IFEXPRESSION;
+
 typedef struct {
   HGLOBAL hDevMode;
   HGLOBAL hDevNames;
@@ -2093,6 +2158,11 @@ typedef struct {
 #define AKD_GETCMDLINEOPTIONS      (WM_USER + 121)
 #define AKD_SETCMDLINEOPTIONS      (WM_USER + 122)
 #define AKD_PARSECMDLINEW          (WM_USER + 125)
+#define AKD_PARSEMETHODPARAMETERS  (WM_USER + 126)
+#define AKD_EXPANDMETHODPARAMETERS (WM_USER + 127)
+#define AKD_STRUCTMETHODPARAMETERS (WM_USER + 128)
+#define AKD_FREEMETHODPARAMETERS   (WM_USER + 129)
+#define AKD_IFEXPRESSION           (WM_USER + 130)
 
 //Text retrieval and modification
 #define AKD_WRITEFILECONTENT       (WM_USER + 141)

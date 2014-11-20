@@ -1185,9 +1185,11 @@ int xstrcmpiA(const char *pString1, const char *pString2)
 
   while (*pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
   }
@@ -1234,18 +1236,20 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
 
   while (*wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
   }
@@ -1282,6 +1286,7 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   {
     if (*pString1 != *pString2)
       return ((WORD)*pString1 > (WORD)*pString2)?1:-1;
+
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1354,9 +1359,11 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
 
   while (dwCount && *pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1395,18 +1402,20 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
 
   while (dwCount && *wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
     --dwCount;
