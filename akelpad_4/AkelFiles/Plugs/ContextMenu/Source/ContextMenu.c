@@ -493,7 +493,6 @@ void GetEditPos(HWND hWnd, POINT *pt, int nType);
 void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, HMENU hPopupMenu, int nMenuItem, const wchar_t *wpUrlLink);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
@@ -4196,7 +4195,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         if (bCall)
         {
           SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-          ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
 
           nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL);
           if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
@@ -4222,7 +4220,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         BOOL bWait=FALSE;
         int nShowWindow=-1;
 
-        ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
+        SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpCmdLine=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4260,7 +4258,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         int nCodePage=-1;
         BOOL bBOM=-1;
 
-        ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
+        SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFile=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4310,7 +4308,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         DWORD dwFontStyle=0;
         int nPointSize=0;
 
-        ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
+        SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFaceName=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4372,7 +4370,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         {
           if (!ei.bReadOnly)
           {
-            ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
+            SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
               wpText=lpParameter->wpExpanded;
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4894,130 +4892,6 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
-}
-
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, HMENU hPopupMenu, int nMenuItem, const wchar_t *wpUrlLink)
-{
-  //%f -file, %d -file directory, %a -AkelPad directory, %% -%
-  //%m -menu handle, %i -menu item id, %u -url string
-  EXTPARAM *lpParameter;
-  wchar_t *wszSource;
-  wchar_t *wpSource;
-  wchar_t *wszTarget;
-  wchar_t *wpTarget;
-  int nStringLen;
-  int nTargetLen=0;
-
-  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-    {
-      //Expand environment strings
-      nStringLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
-
-      if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
-      {
-        ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nStringLen);
-
-        //Expand plugin variables
-        wszTarget=NULL;
-        wpTarget=NULL;
-
-        for (;;)
-        {
-          for (wpSource=wszSource; *wpSource;)
-          {
-            if (*wpSource == L'%')
-            {
-              if (*++wpSource == L'%')
-              {
-                ++wpSource;
-                if (wszTarget) *wpTarget=L'%';
-                ++wpTarget;
-              }
-              else if (*wpSource == L'f' || *wpSource == L'F')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
-              }
-              else if (*wpSource == L'd' || *wpSource == L'D')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
-              }
-              else if (*wpSource == L'a' || *wpSource == L'A')
-              {
-                ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
-              }
-              else if (*wpSource == L'm' || *wpSource == L'M')
-              {
-                ++wpSource;
-                wpTarget+=(int)xitoaW((INT_PTR)hPopupMenu, wszTarget?wpTarget:NULL) - !wszTarget;
-              }
-              else if (*wpSource == L'i' || *wpSource == L'I')
-              {
-                ++wpSource;
-                wpTarget+=(int)xitoaW(nMenuItem, wszTarget?wpTarget:NULL) - !wszTarget;
-              }
-              else if (*wpSource == L'u' || *wpSource == L'U')
-              {
-                ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpUrlLink) - !wszTarget;
-              }
-            }
-            else
-            {
-              if (wszTarget) *wpTarget=*wpSource;
-              ++wpTarget;
-              ++wpSource;
-            }
-          }
-
-          if (!wszTarget)
-          {
-            //Allocate wszTarget and loop again
-            if (wszTarget=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpTarget + 1)))
-            {
-              nTargetLen=(int)((INT_PTR)wpTarget / sizeof(wchar_t));
-              wpTarget=wszTarget;
-            }
-            else break;
-          }
-          else
-          {
-            *wpTarget=L'\0';
-            break;
-          }
-        }
-
-        if (wszTarget)
-        {
-          if (lpParameter->pExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->pExpanded);
-            lpParameter->pExpanded=NULL;
-          }
-          if (lpParameter->wpExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-            lpParameter->wpExpanded=NULL;
-          }
-          lpParameter->wpExpanded=wszTarget;
-          lpParameter->nExpandedUnicodeLen=nTargetLen;
-
-          if (bOldWindows)
-          {
-            lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
-            if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
-          }
-        }
-        GlobalFree((HGLOBAL)wszSource);
-      }
-    }
-  }
 }
 
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
