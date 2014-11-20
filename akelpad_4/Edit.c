@@ -746,6 +746,8 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->wszFile[0]=L'\0';
   lpFrameTarget->nFileLen=0;
   lpFrameTarget->nStreamOffset=0;
+  lpFrameTarget->wszFileDir[0]=L'\0';
+  lpFrameTarget->nFileDirLen=0;
   lpFrameTarget->hIcon=hIconEmpty;
   lpFrameTarget->nIconIndex=0;
 
@@ -757,8 +759,8 @@ void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, offsetof(FRAMEDATA, lpEditProc) - offsetof(FRAMEDATA, lf));
   lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
   xstrcpynA(lpFrameTarget->szFile, lpFrameSource->szFile, MAX_PATH);
-  xstrcpynW(lpFrameTarget->wszFile, lpFrameSource->wszFile, MAX_PATH);
-  lpFrameTarget->nFileLen=lpFrameSource->nFileLen;
+  lpFrameTarget->nFileLen=xstrcpynW(lpFrameTarget->wszFile, lpFrameSource->wszFile, MAX_PATH);
+  lpFrameTarget->nFileDirLen=xstrcpynW(lpFrameTarget->wszFileDir, lpFrameSource->wszFileDir, MAX_PATH);
   lpFrameTarget->hIcon=lpFrameSource->hIcon;
   lpFrameTarget->nIconIndex=lpFrameSource->nIconIndex;
 }
@@ -1401,6 +1403,8 @@ BOOL CloseDocument(DWORD dwPrompt)
   lpFrameCurrent->wszFile[0]=L'\0';
   lpFrameCurrent->nFileLen=0;
   lpFrameCurrent->nStreamOffset=0;
+  lpFrameCurrent->wszFileDir[0]=L'\0';
+  lpFrameCurrent->nFileDirLen=0;
   SetNewLineStatus(lpFrameCurrent, moCur.nNewFileNewLine, AENL_INPUT);
   SetModifyStatus(lpFrameCurrent, FALSE);
   SetCodePageStatus(lpFrameCurrent, moCur.nNewFileCodePage, moCur.bNewFileBOM);
@@ -4649,6 +4653,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       {
         lpFrameCurrent->nStreamOffset=nStreamOffset;
         lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
+        lpFrameCurrent->nFileDirLen=(int)GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, lpFrameCurrent->wszFileDir, MAX_PATH);
         WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
         UpdateTitle(lpFrameCurrent);
       }
@@ -5484,6 +5489,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           {
             lpFrameCurrent->nStreamOffset=nStreamOffset;
             lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
+            lpFrameCurrent->nFileDirLen=(int)GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, lpFrameCurrent->wszFileDir, MAX_PATH);
             WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
             UpdateTitle(lpFrameCurrent);
           }
@@ -5521,6 +5527,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
             {
               lpFrame->nStreamOffset=nStreamOffset;
               lpFrame->nFileLen=(int)xstrcpynW(lpFrame->wszFile, wszFile, MAX_PATH);
+              lpFrame->nFileDirLen=(int)GetFileDir(lpFrame->wszFile, lpFrame->nFileLen, lpFrame->wszFileDir, MAX_PATH);
               WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
               UpdateTitle(lpFrame);
             }
@@ -6601,8 +6608,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 
 BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 {
-  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %d == GetFileDir(lpFrameCurrent->wszFile), %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
-  wchar_t wszFileDir[MAX_PATH];
+  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %d == lpFrameCurrent->wszFileDir, %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
   wchar_t wszCenter[MAX_PATH];
   wchar_t wszLeft[MAX_PATH];
   wchar_t wszRight[MAX_PATH];
@@ -6621,13 +6627,11 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   int nPageNumberLen;
   int nPageStart;
   int nFileLen;
-  int nFileDirLen;
   int a;
   BOOL bResult=TRUE;
 
   wpFile=GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
   nFileLen=lpFrameCurrent->nFileLen - (int)(wpFile - lpFrameCurrent->wszFile);
-  nFileDirLen=GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wszFileDir, MAX_PATH);
 
   for (a=0; wpHeadline[a] && nCount < MAX_PATH; ++a)
   {
@@ -6697,10 +6701,10 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
       }
       else if (wpHeadline[a] == L'd' || wpHeadline[a] == L'D')
       {
-        if (nCount + nFileDirLen <= MAX_PATH)
+        if (nCount + lpFrameCurrent->nFileDirLen <= MAX_PATH)
         {
-          xstrcpyW(wpCount + nCount, wszFileDir);
-          nCount+=nFileDirLen;
+          xstrcpyW(wpCount + nCount, lpFrameCurrent->wszFileDir);
+          nCount+=lpFrameCurrent->nFileDirLen;
         }
         else break;
       }
@@ -11137,7 +11141,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
         char *pTarget;
         char *pSourceCount;
         char *pTargetCount;
-        int nTargetLen;
+        INT_PTR nTargetLen;
 
         nTargetLen=xstrlenA(pSource);
         if (nMaxLenght > 0)
@@ -11258,13 +11262,13 @@ INT_PTR SetClipboardText(const wchar_t *wpText)
     }
 
     //ANSI
-    nAnsiLen=WideCharToMultiByte(CP_ACP, 0, wpText, nUnicodeLen, NULL, 0, NULL, NULL);
+    nAnsiLen=WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, NULL, 0, NULL, NULL);
 
     if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
     {
       if (pData=GlobalLock(hDataA))
       {
-        WideCharToMultiByte(CP_ACP, 0, wpText, nUnicodeLen, (char *)pData, nAnsiLen, NULL, NULL);
+        WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, (char *)pData, (int)nAnsiLen, NULL, NULL);
         GlobalUnlock(hDataA);
       }
     }
@@ -13705,7 +13709,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
             if (!(pcs->dwSupport & PDS_SILENT))
             {
               wchar_t wszStr[MAX_PATH];
-  
+
               if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
                 xstrcpynW(wszStr, wszPluginWord, MAX_PATH);
               else
@@ -18887,6 +18891,10 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   const wchar_t *wpAction;
   DWORD dwAction=0;
   DWORD dwResult=0;
+  EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},      //Current file.
+                 {L"%d", 2, 0, EXPPARAM_FILEDIR},   //Current file directory.
+                 {L"%u", 2, (INT_PTR)wpUrlLink, 0}, //URL address (work in "UrlCommand" manual parameter).
+                 {0, 0, 0, 0}};
 
   if (*wpMethod == L'/')
     ++wpMethod;
@@ -18969,7 +18977,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       unsigned char *lpStruct=NULL;
       int nStructSize;
 
-      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      ExpandMethodParameters(&hParamStack, ep);
 
       nStructSize=StructMethodParameters(&hParamStack, NULL);
       if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
@@ -18995,7 +19003,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       BOOL bWait=FALSE;
       int nShowWindow=-1;
 
-      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      ExpandMethodParameters(&hParamStack, ep);
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
         wpCmdLine=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
@@ -19033,7 +19041,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       int nCodePage=-1;
       BOOL bBOM=-1;
 
-      ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+      ExpandMethodParameters(&hParamStack, ep);
       if (lpParameter=GetMethodParameter(&hParamStack, 1))
         wpFile=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&hParamStack, 2))
@@ -19073,7 +19081,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 
       if (lpFrameCurrent->ei.hWndEdit)
       {
-        ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+        ExpandMethodParameters(&hParamStack, ep);
         if (lpParameter=GetMethodParameter(&hParamStack, 1))
           wpFaceName=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&hParamStack, 2))
@@ -19127,7 +19135,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 
       if (lpFrameCurrent->ei.hWndEdit && !IsReadOnly(lpFrameCurrent->ei.hWndEdit))
       {
-        ExpandMethodParameters(&hParamStack, lpFrameCurrent->wszFile, wszExeDir, wpUrlLink);
+        ExpandMethodParameters(&hParamStack, ep);
         if (lpParameter=GetMethodParameter(&hParamStack, 1))
           wpText=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&hParamStack, 2))
@@ -19164,7 +19172,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
   return dwResult;
 }
 
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
   const wchar_t *wpParamBegin=wpText;
@@ -19231,12 +19239,14 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
+  return hParamStack->nElements;
 }
 
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, const wchar_t *wpUrlLink)
+void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
 {
-  //%f -file, %d -file directory, %a -AkelPad directory, %u -URL address (work in "UrlCommand" manual parameter), %% -%
+  //%a -AkelPad directory, %% -%
   EXTPARAM *lpParameter;
+  const EXPPARAM *lpExpParam;
   wchar_t *wszSource;
   wchar_t *wpSource;
   wchar_t *wszTarget;
@@ -19257,9 +19267,9 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
       }
       else
       {
-        nSourceLen=xstrlenW(lpParameter->wpString) + 1;
+        nSourceLen=(int)xstrlenW(lpParameter->wpString) + 1;
         if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nSourceLen * sizeof(wchar_t)))
-          nSourceLen=xstrcpynW(wszSource, lpParameter->wpString, nSourceLen);
+          nSourceLen=(int)xstrcpynW(wszSource, lpParameter->wpString, nSourceLen);
       }
 
       //Expand AkelPad variables
@@ -19280,25 +19290,35 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, c
                 if (wszTarget) *wpTarget=L'%';
                 ++wpTarget;
               }
-              else if (*wpSource == L'f' || *wpSource == L'F')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
-              }
-              else if (*wpSource == L'd' || *wpSource == L'D')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
-              }
               else if (*wpSource == L'a' || *wpSource == L'A')
               {
                 ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
+                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wszExeDir) - !wszTarget;
               }
-              else if (*wpSource == L'u' || *wpSource == L'U')
+              else if (ep)
               {
-                ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpUrlLink) - !wszTarget;
+                for (lpExpParam=ep; lpExpParam->wpVar; ++lpExpParam)
+                {
+                  if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? xstrcmpnW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1) :
+                                                                   xstrcmpinW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1))
+                  {
+                    break;
+                  }
+                }
+                if (lpExpParam)
+                {
+                  wpSource+=lpExpParam->nVarLen - 1;
+                  if (lpExpParam->dwFlags & EXPPARAM_INT)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags & EXPPARAM_ANSI)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%S", lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags &  EXPPARAM_FILE)
+                    wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, lpFrameCurrent->wszFile) - !wszTarget;
+                  else if (lpExpParam->dwFlags &  EXPPARAM_FILEDIR)
+                    wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, lpFrameCurrent->wszFileDir) - !wszTarget;
+                  else
+                    wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, (wchar_t *)lpExpParam->nReplaceWith) - !wszTarget;
+                }
               }
             }
             else
@@ -19538,6 +19558,292 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 
   Error:
   if (wszOutput) *wszOutput=L'\0';
+  return 0;
+}
+
+
+//// If method
+
+INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
+{
+  INT_PTR nValue1;
+  INT_PTR nValue2;
+  int nSign1;
+  int nSign2;
+
+  FirstValueInGroup:
+  nValue1=IfGroup(wpIn, &wpIn, &nSign1, lpnError);
+  if (*lpnError) goto End;
+
+  while (nSign1 > OS_NULL)
+  {
+    if (nSign1 == OS_AND)
+    {
+      if (!nValue1) break;
+      goto FirstValueInGroup;
+    }
+    if (nSign1 == OS_OR)
+    {
+      if (nValue1) break;
+      goto FirstValueInGroup;
+    }
+    nValue2=IfGroup(wpIn, &wpIn, &nSign2, lpnError);
+    if (*lpnError) goto End;
+
+    nValue1=IfOperate(nValue1, nSign1, nValue2, lpnError);
+    if (*lpnError) goto End;
+    nSign1=nSign2;
+  }
+  *lpnError=IEE_SUCCESS;
+
+  End:
+  if (wppOut) *wppOut=wpIn;
+  return nValue1;
+}
+
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError)
+{
+  INT_PTR nValue1;
+  INT_PTR nValue2;
+  int nSign;
+
+  nValue1=IfValue(wpIn, &wpIn, lpnError);
+  if (*lpnError) goto End;
+
+  while ((nSign=IfSign(wpIn, &wpIn)) > OS_NULL)
+  {
+    //Break if logical operator
+    if (nSign >= OS_GREATER)
+      break;
+    nValue2=IfValue(wpIn, &wpIn, lpnError);
+    if (*lpnError) goto End;
+    nValue1=IfOperate(nValue1, nSign, nValue2, lpnError);
+    if (*lpnError) goto End;
+  }
+  if (nSign == OS_ERROR)
+    *lpnError=IEE_UNKNOWNOPERATOR;
+  else
+    *lpnError=IEE_SUCCESS;
+  if (lpnSign) *lpnSign=nSign;
+
+  End:
+  if (wppOut) *wppOut=wpIn;
+  return nValue1;
+}
+
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
+{
+  INT_PTR nParam1;
+  INT_PTR nValue=0;
+  BOOL bBitwiseNOT=FALSE;
+  int nSendMain;
+  int nSendEdit;
+
+  IfComment(wpIn, &wpIn);
+
+  if (*wpIn == L'~')
+  {
+    bBitwiseNOT=TRUE;
+    ++wpIn;
+  }
+  if (*wpIn >= L'0' && *wpIn <= L'9')
+    nValue=xatoiW(wpIn, &wpIn);
+  else
+  {
+    if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
+        !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
+    {
+      HWND hWndEdit;
+      INT_PTR nParam2;
+      INT_PTR nParam3;
+
+      IfComment(wpIn + 9, &wpIn);
+      nParam1=xatoiW(wpIn, &wpIn);
+      IfComment(wpIn, &wpIn);
+      if (*wpIn == L',') ++wpIn;
+      else
+      {
+        *lpnError=IEE_NOCOMMA;
+        goto End;
+      }
+
+      IfComment(wpIn, &wpIn);
+      nParam2=xatoiW(wpIn, &wpIn);
+      IfComment(wpIn, &wpIn);
+      if (*wpIn == L',') ++wpIn;
+      else
+      {
+        *lpnError=IEE_NOCOMMA;
+        goto End;
+      }
+
+      nParam3=xatoiW(wpIn, &wpIn);
+      if (!nSendMain)
+        nValue=SendMessage(hMainWnd, (UINT)nParam1, nParam2, nParam3);
+      else if (!nSendEdit)
+      {
+        if (hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL))
+          nValue=SendMessage(hWndEdit, (UINT)nParam1, nParam2, nParam3);
+      }
+    }
+    else
+    {
+      *lpnError=IEE_UNKNOWNMETHOD;
+      goto End;
+    }
+    IfComment(wpIn, &wpIn);
+    if (*wpIn == L')') ++wpIn;
+    else
+    {
+      *lpnError=IEE_NOCLOSEPARENTHESIS;
+      goto End;
+    }
+  }
+  if (bBitwiseNOT) nValue=~nValue;
+  IfComment(wpIn, &wpIn);
+  *lpnError=IEE_SUCCESS;
+
+  End:
+  if (wppOut) *wppOut=wpIn;
+  return nValue;
+}
+
+INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError)
+{
+  *lpnError=IEE_SUCCESS;
+  if (nSign == OS_BITAND)
+    return (nValue1 & nValue2);
+  if (nSign == OS_BITOR)
+    return (nValue1 | nValue2);
+  if (nSign == OS_BITXOR)
+    return (nValue1 ^ nValue2);
+  if (nSign == OS_ADD)
+    return (nValue1 + nValue2);
+  if (nSign == OS_SUB)
+    return (nValue1 - nValue2);
+  if (nSign == OS_MUL)
+    return (nValue1 * nValue2);
+  if (nSign == OS_DIV)
+    return (nValue1 / nValue2);
+  if (nSign == OS_MOD)
+    return (nValue1 % nValue2);
+
+  if (nSign == OS_EQU)
+    return (nValue1 == nValue2);
+  if (nSign == OS_NOTEQU)
+    return (nValue1 != nValue2);
+  if (nSign == OS_GREATEREQU)
+    return (nValue1 >= nValue2);
+  if (nSign == OS_LESSEQU)
+    return (nValue1 <= nValue2);
+  if (nSign == OS_GREATER)
+    return (nValue1 > nValue2);
+  if (nSign == OS_LESS)
+    return (nValue1 < nValue2);
+  *lpnError=IEE_UNKNOWNOPERATOR;
+  return 0;
+}
+
+int IfSign(const wchar_t *wpSign, const wchar_t **wppSign)
+{
+  int nSign;
+
+  if (*wpSign == L'\0')
+    nSign=OS_NULL;
+  else if (*wpSign == L'+')
+    nSign=OS_ADD;
+  else if (*wpSign == L'-')
+    nSign=OS_SUB;
+  else if (*wpSign == L'*')
+    nSign=OS_MUL;
+  else if (*wpSign == L'/')
+    nSign=OS_DIV;
+  else if (*wpSign == L'%')
+    nSign=OS_MOD;
+  else if (*wpSign == L'>')
+  {
+    if (*(wpSign + 1) == L'=')
+      nSign=OS_GREATEREQU;
+    else
+      nSign=OS_GREATER;
+  }
+  else if (*wpSign == L'<')
+  {
+    if (*(wpSign + 1) == L'=')
+      nSign=OS_LESSEQU;
+    else
+      nSign=OS_LESS;
+  }
+  else if (*wpSign == L'&')
+  {
+    if (*(wpSign + 1) == L'&')
+      nSign=OS_AND;
+    else
+      nSign=OS_BITAND;
+  }
+  else if (*wpSign == L'|')
+  {
+    if (*(wpSign + 1) == L'|')
+      nSign=OS_OR;
+    else
+      nSign=OS_BITOR;
+  }
+  else if (*wpSign == L'=' && *(wpSign + 1) == L'=')
+    nSign=OS_EQU;
+  else if (*wpSign == L'!' && *(wpSign + 1) == L'=')
+    nSign=OS_NOTEQU;
+  else if (*wpSign == L'^')
+    nSign=OS_BITXOR;
+  else
+    nSign=OS_ERROR;
+
+  if (wppSign)
+  {
+    if (nSign >= OS_EQU)
+      *wppSign+=2;
+    else if (nSign > OS_NULL)
+      *wppSign+=1;
+  }
+  return nSign;
+}
+
+void IfComment(const wchar_t *wpText, const wchar_t **wppText)
+{
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  if (*wpText == L'/' && *(wpText + 1) == L'*')
+  {
+    for (wpText+=2; *wpText; ++wpText)
+    {
+      if (*wpText == L'*' && *(wpText + 1) == L'/')
+      {
+        wpText+=2;
+        break;
+      }
+    }
+    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  }
+  *wppText=wpText;
+}
+
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
+{
+  const wchar_t *wpCount;
+
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
+  {
+    if (*wpCount == L'(')
+    {
+      if (wppText)
+      {
+        *wppText=wpCount + 1;
+        while (**wppText == L' ' || **wppText == L'\t') ++*wppText;
+      }
+      return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
+    }
+  }
   return 0;
 }
 

@@ -1736,7 +1736,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       int nPrevWidth=ae->ptxt->nInitFixedCharWidth;
 
-      ae->ptxt->nInitFixedCharWidth=wParam;
+      ae->ptxt->nInitFixedCharWidth=(int)wParam;
       ae->ptxt->nFixedCharWidth=AE_GetFixedCharWidth(ae);
       ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;
       return nPrevWidth;
@@ -9261,7 +9261,7 @@ void AE_GetFontCharWidth(AKELEDIT *ae, HDC hDC)
   ae->ptxt->nAveCharWidth/=nStrLen;
 
   AE_GetTextExtentPoint32(ae, L" ", 1, &sizeWidth);
-  ae->ptxt->nSpaceCharWidth=sizeWidth.cx;
+  ae->ptxt->nSpaceCharWidth=(int)sizeWidth.cx;
   ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
   ae->ptxt->nFixedCharWidth=AE_GetFixedCharWidth(ae);
   ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;

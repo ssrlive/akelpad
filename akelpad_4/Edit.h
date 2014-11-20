@@ -137,9 +137,25 @@
 #define EXTACT_RECODE     7
 #define EXTACT_INSERT     8
 
-//External parameters
-#define EXTPARAM_CHAR     1
-#define EXTPARAM_INT      2
+//Operators sign
+#define OS_ERROR     -1  // Wrong sign
+#define OS_NULL       0  // No sign
+#define OS_ADD        1  // +
+#define OS_SUB        2  // -
+#define OS_MUL        3  // *
+#define OS_DIV        4  // /
+#define OS_MOD        5  // %
+#define OS_BITAND     6  // &
+#define OS_BITOR      7  // |
+#define OS_BITXOR     8  // ^
+#define OS_GREATER    9  // >
+#define OS_LESS       10 // <
+#define OS_EQU        11 // ==
+#define OS_NOTEQU     12 // !=
+#define OS_GREATEREQU 13 // >=
+#define OS_LESSEQU    14 // <=
+#define OS_AND        15 // &&
+#define OS_OR         16 // ||
 
 //File dialog notifications
 #define AKDLG_SETSTREAM                (WM_USER + 100)
@@ -475,25 +491,6 @@ typedef struct {
   int nSaveSettings;
   BOOL bForceWrite;
 } OPTIONHANDLE;
-
-typedef struct _EXTPARAM {
-  struct _EXTPARAM *next;
-  struct _EXTPARAM *prev;
-  DWORD dwType;            //See EXTPARAM_* defines.
-  INT_PTR nNumber;         //External parameter number.
-  char *pString;           //External parameter string (Ansi).
-  wchar_t *wpString;       //External parameter string (Unicode).
-  char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).
-  int nExpandedAnsiLen;    //External parameter expanded ansi string length.
-  wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
-  int nExpandedUnicodeLen; //External parameter expanded unicode string length.
-} EXTPARAM;
-
-typedef struct {
-  EXTPARAM *first;
-  EXTPARAM *last;
-  int nElements;
-} STACKEXTPARAM;
 
 typedef struct {
   FRAMEDATA *first;
@@ -1129,12 +1126,20 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
 int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
 DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, const wchar_t *wpUrlLink);
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
+void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
+
+INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError);
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
+int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
+void IfComment(const wchar_t *wpText, const wchar_t **wppText);
+int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
 
 BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData);
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);

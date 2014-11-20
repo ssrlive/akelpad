@@ -1897,6 +1897,122 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return nResult;
     }
+    if (uMsg == AKD_PARSEMETHODPARAMETERS)
+    {
+      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+      const wchar_t **wppText=(const wchar_t **)lParam;
+
+      return ParseMethodParameters(hParamStack, *wppText, wppText);
+    }
+    if (uMsg == AKD_EXPANDMETHODPARAMETERS)
+    {
+      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+      EXPPARAM *ep=(EXPPARAM *)lParam;
+
+      ExpandMethodParameters(hParamStack, ep);
+      return 0;
+    }
+    if (uMsg == AKD_STRUCTMETHODPARAMETERS)
+    {
+      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+      unsigned char *lpStructure=(unsigned char *)lParam;
+
+      return StructMethodParameters(hParamStack, lpStructure);
+    }
+    if (uMsg == AKD_FREEMETHODPARAMETERS)
+    {
+      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+
+      FreeMethodParameters(hParamStack);
+      return 0;
+    }
+    if (uMsg == AKD_IFEXPRESSION)
+    {
+      STACKEXTPARAM hParamStack={0};
+      STACKEXTPARAM *lpParamStack=&hParamStack;
+      IFEXPRESSION *ie=(IFEXPRESSION *)lParam;
+      const wchar_t *wpExpression=(const wchar_t *)wParam;
+      const wchar_t *wpCount=wpExpression;
+      const wchar_t *wpNext=NULL;
+      const wchar_t *wpStop;
+      DWORD dwFlags=0;
+      int nError=0;
+      INT_PTR nResult=0;
+
+      if (ie) dwFlags=ie->dwFlags;
+
+      if (!(dwFlags & IEF_IF) && !(dwFlags & IEF_CALL))
+      {
+        if ((dwFlags & IEF_STACKEXTPARAM) && !(dwFlags & IEF_PARSEONLY))
+          nError=IEE_UNKNOWNMETHOD;
+        else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpCount))
+        {
+          if (!xstrcmpiW(wbuf, L"If"))
+            dwFlags|=IEF_IF;
+          else if (!xstrcmpiW(wbuf, L"Call"))
+            dwFlags|=IEF_CALL;
+          else
+            nError=IEE_UNKNOWNMETHOD;
+        }
+        else nError=IEE_UNKNOWNMETHOD;
+      }
+      if ((dwFlags & IEF_IF) || (dwFlags & IEF_CALL))
+      {
+        if (dwFlags & IEF_STACKEXTPARAM)
+          lpParamStack=ie->sep;
+        if (!(dwFlags & IEF_STACKEXTPARAM) || (dwFlags & IEF_PARSEONLY))
+          ParseMethodParameters(lpParamStack, wpCount, &wpNext);
+
+        if (!(dwFlags & IEF_PARSEONLY) && lpParamStack->first)
+        {
+          if (dwFlags & IEF_IF)
+          {
+            nResult=IfExpression(lpParamStack->first->wpString, &wpStop, &nError);
+            if (!(dwFlags & IEF_STACKEXTPARAM))
+              wpCount=wpExpression + (wpStop - lpParamStack->first->wpString) + (wpCount - wpExpression);
+            else
+              wpCount=wpStop;
+          }
+          else if (dwFlags & IEF_CALL)
+          {
+            PLUGINCALLSENDW pcs;
+            int nStructSize;
+            int nCallResult;
+
+            ExpandMethodParameters(lpParamStack, ie?ie->ep:NULL);
+
+            if (nStructSize=StructMethodParameters(lpParamStack, NULL))
+            {
+              if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+                StructMethodParameters(lpParamStack, (unsigned char *)pcs.lParam);
+            }
+            else pcs.lParam=0;
+
+            pcs.pFunction=lpParamStack->first->wpString;
+            pcs.dwSupport=PDS_STRWIDE;
+            pcs.nResult=0;
+            nCallResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+            if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+
+            if (nCallResult < 0)
+              nError=IEE_CALLERROR;
+            nResult=pcs.nResult;
+          }
+          if (!(dwFlags & IEF_STACKEXTPARAM))
+            FreeMethodParameters(lpParamStack);
+        }
+      }
+      if (ie)
+      {
+        ie->dwFlags|=dwFlags;
+        ie->nError=nError;
+        if (!nError && wpNext)
+          ie->wpEnd=wpNext;
+        else
+          ie->wpEnd=wpCount;
+      }
+      return nResult;
+    }
 
     //Text retrieval and modification
     if (uMsg == AKD_DETECTSELCASE)
@@ -2874,6 +2990,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           *lpdwData=(UINT_PTR)lpFrame->nFileLen;
         else if (nType == FI_STREAMOFFSET)
           *lpdwData=(UINT_PTR)lpFrame->nStreamOffset;
+        else if (nType == FI_FILEDIRW)
+        {
+          if (wParam > 0xFFFF)
+            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFileDir, MAX_PATH);
+          else
+            *lpdwData=(UINT_PTR)lpFrame->wszFileDir;
+        }
+        else if (nType == FI_FILEDIRLEN)
+          *lpdwData=(UINT_PTR)lpFrame->nFileDirLen;
         else if (nType == FI_ICONHANDLE)
           *lpdwData=(UINT_PTR)lpFrame->hIcon;
         else if (nType == FI_ICONINDEX)
@@ -3637,7 +3762,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             INISECTION *lpIniSection;
 
-            if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", xstrlenW(L"Options"), FALSE))
+            if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE))
               StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
           }
         }
@@ -5158,8 +5283,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (lParam == CPF_DIR)
       {
-        GetFileDir(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wbuf, BUFFER_SIZE);
-        return (LRESULT)SetClipboardText(wbuf);
+        return (LRESULT)SetClipboardText(lpFrameCurrent->wszFileDir);
       }
       if (lParam == CPF_FILENAME)
       {

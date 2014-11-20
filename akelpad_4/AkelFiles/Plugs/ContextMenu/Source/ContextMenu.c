@@ -109,11 +109,11 @@
 #define STRID_PARSEMSG_UNNAMEDSUBMENU         18
 #define STRID_PARSEMSG_NOOPENBRACKET          19
 #define STRID_PARSEMSG_NOOPENSET              20
-#define STRID_IF_CALLERROR                    21
-#define STRID_IF_UNKNOWNMETHOD                22
-#define STRID_IF_NOCLOSEPARENTHESIS           23
-#define STRID_IF_NOCOMMA                      24
-#define STRID_IF_UNKNOWNOPERATOR              25
+#define STRID_IF_NOCOMMA                      21
+#define STRID_IF_NOCLOSEPARENTHESIS           22
+#define STRID_IF_UNKNOWNOPERATOR              23
+#define STRID_IF_UNKNOWNMETHOD                24
+#define STRID_IF_CALLERROR                    25
 #define STRID_MENU_OPEN                       26
 #define STRID_MENU_MOVEUP                     27
 #define STRID_MENU_MOVEDOWN                   28
@@ -229,26 +229,6 @@
 #define GEP_CARET       -5
 #define GEP_CURSOR      -6
 
-//Operators sign
-#define OS_ERROR     -1  // Wrong sign
-#define OS_NULL       0  // No sign
-#define OS_ADD        1  // +
-#define OS_SUB        2  // -
-#define OS_MUL        3  // *
-#define OS_DIV        4  // /
-#define OS_MOD        5  // %
-#define OS_BITAND     6  // &
-#define OS_BITOR      7  // |
-#define OS_BITXOR     8  // ^
-#define OS_GREATER    9  // >
-#define OS_LESS       10 // <
-#define OS_EQU        11 // ==
-#define OS_NOTEQU     12 // !=
-#define OS_GREATEREQU 13 // >=
-#define OS_LESSEQU    14 // <=
-#define OS_AND        15 // &&
-#define OS_OR         16 // ||
-
 #ifndef WM_MENURBUTTONUP
   #define WM_MENURBUTTONUP 0x0122
 #endif
@@ -282,29 +262,10 @@ typedef struct {
   MAININDEXITEM *last;
 } STACKMAININDEX;
 
-typedef struct _EXTPARAM {
-  struct _EXTPARAM *next;
-  struct _EXTPARAM *prev;
-  DWORD dwType;
-  INT_PTR nNumber;
-  char *pString;
-  wchar_t *wpString;
-  char *pExpanded;
-  int nExpandedAnsiLen;
-  wchar_t *wpExpanded;
-  int nExpandedUnicodeLen;
-} EXTPARAM;
-
-typedef struct {
-  EXTPARAM *first;
-  EXTPARAM *last;
-  int nElements;
-} STACKEXTPARAM;
-
 typedef struct _STATEIF {
   struct _STATEIF *next;
   struct _STATEIF *prev;
-  DWORD dwAction;
+  DWORD dwFlags;
   STACKEXTPARAM hParamStack;
   INT_PTR nValue;
   BOOL bCalculated;
@@ -541,12 +502,6 @@ int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
-INT_PTR IfString(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
-INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError);
-INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
-INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
-int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
-void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -618,6 +573,7 @@ POPUPMENU hMenuDialogStack={0};
 POPUPMENU *lpCurrentMenuStack=NULL;
 int nCurrentMenuType=TYPE_UNKNOWN;
 wchar_t wszCurrentFile[MAX_PATH];
+wchar_t wszCurrentFileDir[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
 wchar_t wszUrlLink[MAX_PATH];
 wchar_t *wszManualText=NULL;
@@ -2628,55 +2584,25 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
             ++nFlagCountSkipIfMore;
           else
           {
-            nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
+            IFEXPRESSION ie;
+            EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                           {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                           {L"%m", 2, (INT_PTR)hSubMenu, EXPPARAM_INT},
+                           {L"%i", 2, nItem, EXPPARAM_INT},
+                           {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                           {0, 0, 0, 0}};
 
-            if (GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+            ie.dwFlags=IEF_AUTO;
+            ie.ep=ep;
+            if (SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie))
+              dwNewFlags&=~CCMS_SKIPIF;
+            wpCount=ie.wpEnd;
+
+            if (ie.nError)
             {
-              if (!xstrcmpiW(wszMethodName, L"If"))
-              {
-                if (GetWord(wpCount, wszBuffer, BUFFER_SIZE, &wpCount, &bQuote) && bQuote)
-                {
-                  if (IfString(wszBuffer, NULL, &nMessageID))
-                    dwNewFlags&=~CCMS_SKIPIF;
-                }
-              }
-              else if (!xstrcmpiW(wszMethodName, L"Call"))
-              {
-                STACKEXTPARAM hParamStack={0};
-                PLUGINCALLSENDW pcs;
-                int nStructSize;
-                int nResult;
-
-                ParseMethodParameters(&hParamStack, wpCount, &wpCount);
-                ExpandMethodParameters(&hParamStack, wszCurrentFile, wszExeDir, hSubMenu, nItem, wszUrlLink);
-
-                if (nStructSize=StructMethodParameters(&hParamStack, NULL))
-                {
-                  if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-                    StructMethodParameters(&hParamStack, (unsigned char *)pcs.lParam);
-                }
-                else pcs.lParam=0;
-
-                pcs.pFunction=hParamStack.first->wpString;
-                pcs.dwSupport=PDS_STRWIDE;
-                pcs.nResult=0;
-                nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-
-                if (pcs.nResult)
-                  dwNewFlags&=~CCMS_SKIPIF;
-                if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
-                FreeMethodParameters(&hParamStack);
-
-                if (nResult < 0)
-                {
-                  nMessageID=STRID_IF_CALLERROR;
-                  goto Error;
-                }
-                nMessageID=0;
-              }
-            }
-            if (nMessageID)
+              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
               goto Error;
+            }
             if (dwNewFlags & CCMS_SKIPIF)
               ++nFlagCountSkipIfMore;
           }
@@ -2684,24 +2610,29 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         }
         if (dwNewFlags & CCMS_CHECKIF)
         {
-          dwAction=0;
+          IFEXPRESSION ie;
+          STACKEXTPARAM hParamStack={0};
 
-          if (GetMethodName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+          ie.dwFlags=IEF_STACKEXTPARAM|IEF_PARSEONLY;
+          ie.sep=&hParamStack;
+          ie.ep=NULL;
+          SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie);
+          wpCount=ie.wpEnd;
+
+          if ((ie.dwFlags & IEF_IF) || (ie.dwFlags & IEF_CALL))
           {
-            if (!xstrcmpiW(wszMethodName, L"If"))
-              dwAction=EXTACT_CHECKIF;
-            else if (!xstrcmpiW(wszMethodName, L"Call"))
-              dwAction=EXTACT_CALL;
-            if (dwAction)
+            if (ie.nError)
             {
-              if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
-              {
-                lpStateIf->dwAction=dwAction;
-                ParseMethodParameters(&lpStateIf->hParamStack, wpCount, &wpCount);
-              }
+              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+              goto Error;
+            }
+            if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+            {
+              lpStateIf->dwFlags=ie.dwFlags & (IEF_IF|IEF_CALL);
+              lpStateIf->hParamStack=hParamStack;
             }
           }
-          if (!dwAction)
+          else
           {
             nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
             goto Error;
@@ -3351,65 +3282,35 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
       {
         if (lpMenuItem->lpStateIf)
         {
+          IFEXPRESSION ie;
           DWORD dwMenuState=0;
+          int nMessageID;
+          EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                         {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                         {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
+                         {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
+                         {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                         {0, 0, 0, 0}};
 
           lpStateIf=lpMenuItem->lpStateIf;
 
-          if (lpStateIf->dwAction == EXTACT_CHECKIF)
+          if (!lpStateIf->bCalculated)
           {
-            if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 1))
+            ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
+            ie.sep=&lpStateIf->hParamStack;
+            ie.ep=ep;
+            if (lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie))
+              dwMenuState=MF_CHECKED;
+
+            if (ie.nError)
             {
-              const wchar_t *wpStop;
-              int nError;
-
-              if (!lpStateIf->bCalculated)
-              {
-                lpStateIf->nValue=IfString(lpParameter->wpString, &wpStop, &nError);
-                lpStateIf->bCalculated=TRUE;
-
-                if (nError)
-                {
-                  xprintfW(wszBuffer, GetLangStringW(wLangModule, nError), wpStop);
-                  MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-                  ViewItemCode(lpMenuItem);
-                  return;
-                }
-              }
+              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+              xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
+              MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+              ViewItemCode(lpMenuItem);
+              return;
             }
-          }
-          else if (lpStateIf->dwAction == EXTACT_CALL)
-          {
-            PLUGINCALLSENDW pcs;
-            wchar_t *wpFunction=lpStateIf->hParamStack.first->wpString;
-            int nStructSize;
-            int nResult;
-
-            if (!lpStateIf->bCalculated)
-            {
-              ExpandMethodParameters(&lpStateIf->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, lpMenuItem->nItem, wszUrlLink);
-
-              if (nStructSize=StructMethodParameters(&lpStateIf->hParamStack, NULL))
-              {
-                if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-                  StructMethodParameters(&lpStateIf->hParamStack, (unsigned char *)pcs.lParam);
-              }
-              else pcs.lParam=0;
-
-              pcs.pFunction=wpFunction;
-              pcs.dwSupport=PDS_STRWIDE;
-              pcs.nResult=0;
-              nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-
-              lpStateIf->nValue=pcs.nResult;
-              lpStateIf->bCalculated=TRUE;
-              if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
-
-              if (nResult < 0)
-              {
-                ViewItemCode(lpMenuItem);
-                return;
-              }
-            }
+            lpStateIf->bCalculated=TRUE;
           }
           if (lpStateIf->nValue)
             dwMenuState=MF_CHECKED;
@@ -4231,6 +4132,14 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
   {
     MENUITEM *lpElement;
     EXTPARAM *lpParameter;
+    EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, 0},
+                   {L"%d", 2, (INT_PTR)wszCurrentFileDir, 0},
+                   {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
+                   {L"%i", 2, nItem, EXPPARAM_INT},
+                   {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                   {0, 0, 0, 0}};
+
+    GetFileDir(wszCurrentFile, -1, wszCurrentFileDir, MAX_PATH);
 
     if (nItem <= IDM_MAX_MANUAL)
       hMenuStack=&hMenuManualStack;
@@ -4286,6 +4195,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
 
         if (bCall)
         {
+          SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
           ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hMenuStack->hPopupMenu, nItem, wszUrlLink);
 
           nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL);
@@ -5314,269 +5224,6 @@ BOOL SkipComment(const wchar_t **wpText)
   return TRUE;
 }
 
-INT_PTR IfString(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
-{
-  INT_PTR nValue1;
-  INT_PTR nValue2;
-  int nSign1;
-  int nSign2;
-
-  FirstValueInGroup:
-  nValue1=IfGroup(wpIn, &wpIn, &nSign1, lpnError);
-  if (*lpnError) goto End;
-
-  while (nSign1 > OS_NULL)
-  {
-    if (nSign1 == OS_AND)
-    {
-      if (!nValue1) break;
-      goto FirstValueInGroup;
-    }
-    if (nSign1 == OS_OR)
-    {
-      if (nValue1) break;
-      goto FirstValueInGroup;
-    }
-    nValue2=IfGroup(wpIn, &wpIn, &nSign2, lpnError);
-    if (*lpnError) goto End;
-
-    nValue1=IfOperate(nValue1, nSign1, nValue2, lpnError);
-    if (*lpnError) goto End;
-    nSign1=nSign2;
-  }
-  *lpnError=0;
-
-  End:
-  if (wppOut) *wppOut=wpIn;
-  return nValue1;
-}
-
-INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError)
-{
-  INT_PTR nValue1;
-  INT_PTR nValue2;
-  int nSign;
-
-  nValue1=IfValue(wpIn, &wpIn, lpnError);
-  if (*lpnError) goto End;
-
-  while ((nSign=IfSign(wpIn, &wpIn)) > OS_NULL)
-  {
-    //Break if logical operator
-    if (nSign >= OS_GREATER)
-      break;
-    nValue2=IfValue(wpIn, &wpIn, lpnError);
-    if (*lpnError) goto End;
-    nValue1=IfOperate(nValue1, nSign, nValue2, lpnError);
-    if (*lpnError) goto End;
-  }
-  if (nSign == OS_ERROR)
-    *lpnError=STRID_IF_UNKNOWNOPERATOR;
-  else
-    *lpnError=0;
-  if (lpnSign) *lpnSign=nSign;
-
-  End:
-  if (wppOut) *wppOut=wpIn;
-  return nValue1;
-}
-
-INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
-{
-  INT_PTR nParam1;
-  INT_PTR nValue=0;
-  BOOL bBitwiseNOT=FALSE;
-  int nSendMain;
-  int nSendEdit;
-
-  IfComment(wpIn, &wpIn);
-
-  if (*wpIn == L'~')
-  {
-    bBitwiseNOT=TRUE;
-    ++wpIn;
-  }
-  if (*wpIn >= L'0' && *wpIn <= L'9')
-    nValue=xatoiW(wpIn, &wpIn);
-  else
-  {
-    if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
-        !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
-    {
-      INT_PTR nParam2;
-      INT_PTR nParam3;
-
-      IfComment(wpIn + 9, &wpIn);
-      nParam1=xatoiW(wpIn, &wpIn);
-      IfComment(wpIn, &wpIn);
-      if (*wpIn == L',') ++wpIn;
-      else
-      {
-        *lpnError=STRID_IF_NOCOMMA;
-        goto End;
-      }
-
-      IfComment(wpIn, &wpIn);
-      nParam2=xatoiW(wpIn, &wpIn);
-      IfComment(wpIn, &wpIn);
-      if (*wpIn == L',') ++wpIn;
-      else
-      {
-        *lpnError=STRID_IF_NOCOMMA;
-        goto End;
-      }
-
-      nParam3=xatoiW(wpIn, &wpIn);
-      if (!nSendMain)
-        nValue=SendMessage(hMainWnd, (UINT)nParam1, nParam2, nParam3);
-      else if (!nSendEdit)
-      {
-        if (!g_hWndEdit)
-          g_hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
-        if (g_hWndEdit)
-          nValue=SendMessage(g_hWndEdit, (UINT)nParam1, nParam2, nParam3);
-      }
-    }
-    else
-    {
-      *lpnError=STRID_IF_UNKNOWNMETHOD;
-      goto End;
-    }
-    IfComment(wpIn, &wpIn);
-    if (*wpIn == L')') ++wpIn;
-    else
-    {
-      *lpnError=STRID_IF_NOCLOSEPARENTHESIS;
-      goto End;
-    }
-  }
-  if (bBitwiseNOT) nValue=~nValue;
-  IfComment(wpIn, &wpIn);
-  *lpnError=0;
-
-  End:
-  if (wppOut) *wppOut=wpIn;
-  return nValue;
-}
-
-INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError)
-{
-  *lpnError=0;
-  if (nSign == OS_BITAND)
-    return (nValue1 & nValue2);
-  if (nSign == OS_BITOR)
-    return (nValue1 | nValue2);
-  if (nSign == OS_BITXOR)
-    return (nValue1 ^ nValue2);
-  if (nSign == OS_ADD)
-    return (nValue1 + nValue2);
-  if (nSign == OS_SUB)
-    return (nValue1 - nValue2);
-  if (nSign == OS_MUL)
-    return (nValue1 * nValue2);
-  if (nSign == OS_DIV)
-    return (nValue1 / nValue2);
-  if (nSign == OS_MOD)
-    return (nValue1 % nValue2);
-
-  if (nSign == OS_EQU)
-    return (nValue1 == nValue2);
-  if (nSign == OS_NOTEQU)
-    return (nValue1 != nValue2);
-  if (nSign == OS_GREATEREQU)
-    return (nValue1 >= nValue2);
-  if (nSign == OS_LESSEQU)
-    return (nValue1 <= nValue2);
-  if (nSign == OS_GREATER)
-    return (nValue1 > nValue2);
-  if (nSign == OS_LESS)
-    return (nValue1 < nValue2);
-  *lpnError=STRID_IF_UNKNOWNOPERATOR;
-  return 0;
-}
-
-int IfSign(const wchar_t *wpSign, const wchar_t **wppSign)
-{
-  int nSign;
-
-  if (*wpSign == L'\0')
-    nSign=OS_NULL;
-  else if (*wpSign == L'+')
-    nSign=OS_ADD;
-  else if (*wpSign == L'-')
-    nSign=OS_SUB;
-  else if (*wpSign == L'*')
-    nSign=OS_MUL;
-  else if (*wpSign == L'/')
-    nSign=OS_DIV;
-  else if (*wpSign == L'%')
-    nSign=OS_MOD;
-  else if (*wpSign == L'>')
-  {
-    if (*(wpSign + 1) == L'=')
-      nSign=OS_GREATEREQU;
-    else
-      nSign=OS_GREATER;
-  }
-  else if (*wpSign == L'<')
-  {
-    if (*(wpSign + 1) == L'=')
-      nSign=OS_LESSEQU;
-    else
-      nSign=OS_LESS;
-  }
-  else if (*wpSign == L'&')
-  {
-    if (*(wpSign + 1) == L'&')
-      nSign=OS_AND;
-    else
-      nSign=OS_BITAND;
-  }
-  else if (*wpSign == L'|')
-  {
-    if (*(wpSign + 1) == L'|')
-      nSign=OS_OR;
-    else
-      nSign=OS_BITOR;
-  }
-  else if (*wpSign == L'=' && *(wpSign + 1) == L'=')
-    nSign=OS_EQU;
-  else if (*wpSign == L'!' && *(wpSign + 1) == L'=')
-    nSign=OS_NOTEQU;
-  else if (*wpSign == L'^')
-    nSign=OS_BITXOR;
-  else
-    nSign=OS_ERROR;
-
-  if (wppSign)
-  {
-    if (nSign >= OS_EQU)
-      *wppSign+=2;
-    else if (nSign > OS_NULL)
-      *wppSign+=1;
-  }
-  return nSign;
-}
-
-void IfComment(const wchar_t *wpText, const wchar_t **wppText)
-{
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-
-  if (*wpText == L'/' && *(wpText + 1) == L'*')
-  {
-    for (wpText+=2; *wpText; ++wpText)
-    {
-      if (*wpText == L'*' && *(wpText + 1) == L'/')
-      {
-        wpText+=2;
-        break;
-      }
-    }
-    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-  }
-  *wppText=wpText;
-}
-
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
 {
   const wchar_t *wpCount;
@@ -6072,16 +5719,16 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438\x002E";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
-    if (nStringID == STRID_IF_CALLERROR)
-      return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
-    if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
-    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
-      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
     if (nStringID == STRID_IF_NOCOMMA)
       return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043F\x044F\x0442\x043E\x0439 \",\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
       return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_MENU_OPEN)
       return L"\x041E\x0442\x043A\x0440\x044B\x0442\x044C\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
@@ -6653,16 +6300,16 @@ EXPLORER\r";
       return L"No opening bracket.";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"No opening SET().";
-    if (nStringID == STRID_IF_CALLERROR)
-      return L"If: call error.";
-    if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: unknown method \"%.9s...\".";
-    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
-      return L"If: no close parenthesis \")\".";
     if (nStringID == STRID_IF_NOCOMMA)
       return L"If: no comma \",\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: no close parenthesis \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
       return L"If: unknown operator \"%.2s...\".";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: unknown method \"%.9s...\".";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: call error.";
     if (nStringID == STRID_MENU_OPEN)
       return L"Open\tEnter";
     if (nStringID == STRID_MENU_MOVEUP)
