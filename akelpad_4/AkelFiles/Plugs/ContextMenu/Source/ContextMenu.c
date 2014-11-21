@@ -572,7 +572,6 @@ POPUPMENU hMenuDialogStack={0};
 POPUPMENU *lpCurrentMenuStack=NULL;
 int nCurrentMenuType=TYPE_UNKNOWN;
 wchar_t wszCurrentFile[MAX_PATH];
-wchar_t wszCurrentFileDir[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
 wchar_t wszUrlLink[MAX_PATH];
 wchar_t *wszManualText=NULL;
@@ -4129,6 +4128,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
   }
   else if (nItem >= IDM_MIN_MANUAL && nItem <= IDM_MAX_MENU)
   {
+    static wchar_t wszCurrentFileDir[MAX_PATH];
     MENUITEM *lpElement;
     EXTPARAM *lpParameter;
     EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, 0},
@@ -4137,8 +4137,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
                    {L"%i", 2, nItem, EXPPARAM_INT},
                    {L"%u", 2, (INT_PTR)wszUrlLink, 0},
                    {0, 0, 0, 0}};
-
-    GetFileDir(wszCurrentFile, -1, wszCurrentFileDir, MAX_PATH);
 
     if (nItem <= IDM_MAX_MANUAL)
       hMenuStack=&hMenuManualStack;
@@ -4150,6 +4148,8 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         ViewItemCode(lpElement);
         return;
       }
+
+      GetFileDir(wszCurrentFile, -1, wszCurrentFileDir, MAX_PATH);
 
       if (lpElement->dwAction == EXTACT_COMMAND)
       {

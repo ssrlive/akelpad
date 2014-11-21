@@ -19299,8 +19299,8 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
               {
                 for (lpExpParam=ep; lpExpParam->wpVar; ++lpExpParam)
                 {
-                  if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? xstrcmpnW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1) :
-                                                                   xstrcmpinW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1))
+                  if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? !xstrcmpnW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1) :
+                                                                   !xstrcmpinW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1))
                   {
                     break;
                   }

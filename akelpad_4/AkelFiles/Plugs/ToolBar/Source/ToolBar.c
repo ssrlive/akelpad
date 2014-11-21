@@ -1743,10 +1743,9 @@ void ViewItemCode(TOOLBARITEM *lpButton)
 
 void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 {
+  static RECT rcButton;
   TOOLBARITEM *lpElement;
   EXTPARAM *lpParameter;
-  static RECT rcButton;
-  int nButtonID;
   EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
                  {L"%d", 2, 0, EXPPARAM_FILEDIR},
                  {L"%m", 2, (INT_PTR)hToolbar, EXPPARAM_INT},
@@ -1765,9 +1764,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       return;
     }
 
-    nButtonID=lpElement->tbb.idCommand;
-
-    SendMessage(hToolbar, TB_GETRECT, lpElement->tbb.idCommand, (LPARAM)&rcButton);
+    SendMessage(hToolbar, TB_GETRECT, nItem, (LPARAM)&rcButton);
     ClientToScreen(hToolbar, (LPPOINT)&rcButton.left);
     ClientToScreen(hToolbar, (LPPOINT)&rcButton.right);
 
