@@ -1602,9 +1602,9 @@ typedef struct {
 } STACKEXTPARAM;
 
 typedef struct {
-  const wchar_t *wpVar; //Variable, for example, "%u". Built-in variables: "%a" - AkelPad directory, "%f" - current file, "%d" - current file directory.
+  const wchar_t *wpVar; //Variable. Built-in variables: "%a" - AkelPad directory, "%%" - character %.
   int nVarLen;          //Variable length, not including the terminating null character.
-  INT_PTR nReplaceWith; //Replacement data. Can be integer or string, for example, (INT_PTR)"C:\\Program Files\\AkelPad".
+  INT_PTR nReplaceWith; //Replacement data. Can be string, integer or pointer to integer, for example, (INT_PTR)"C:\\Program Files\\AkelPad".
   DWORD dwFlags;        //See EXPPARAM_* defines.
 } EXPPARAM;
 
@@ -1612,7 +1612,7 @@ typedef struct {
   DWORD dwFlags;        //See IEF_* defines.
   int nError;           //See IEE_* defines.
   STACKEXTPARAM *sep;   //Pointer to a STACKEXTPARAM structure.
-  EXPPARAM *ep;         //Pointer to an array of EXPPARAM structures. Last item has EXPPARAM.wpVar == NULL. Uses if dwFlags == IEF_CALL.
+  EXPPARAM *ep;         //Pointer to an array of EXPPARAM structures. Last array item must be with EXPPARAM.wpVar == NULL. Uses if dwFlags == IEF_CALL.
   const wchar_t *wpEnd; //Where expression stops if error or next string after expression if no errors.
 } IFEXPRESSION;
 
@@ -2871,6 +2871,98 @@ Example:
  pcls.pCmdLine=L"/p \"C:\\MyFile.txt\"";
  pcls.pWorkDir=L"";
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
+
+
+AKD_PARSEMETHODPARAMETERS
+_________________________
+
+Parse method parameters.
+
+(STACKEXTPARAM *)wParam  == pointer to a STACKEXTPARAM structure.
+(const wchar_t **)lParam == text with parameters to parse. On return contain position where parsing stopped.
+
+Return Value
+ Number of the parameters put to the stack.
+
+Example (call plugin):
+ STACKEXTPARAM hParamStack={0};
+ const wchar_t *wpText=L"\"Scripts::Main\", 1, \"MyScript.js\", `-Param1=\"%f\" -Param2=%t`)";
+ static wchar_t *wpMyVar=L"12345";
+ PLUGINCALLSENDW pcs;
+ int nStructSize;
+ EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                {L"%t", 2, (INT_PTR)wpMyVar, 0},
+                {0, 0, 0, 0}};
+
+ if (SendMessage(pd->hMainWnd, AKD_PARSEMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
+ {
+   SendMessage(pd->hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
+
+   if (nStructSize=SendMessage(pd->hMainWnd, AKD_STRUCTMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)NULL))
+   {
+     if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+       SendMessage(pd->hMainWnd, AKD_STRUCTMETHODPARAMETERS, (WPARAM)&hParamStack, pcs.lParam);
+   }
+   else pcs.lParam=0;
+
+   pcs.pFunction=hParamStack.first->wpString;
+   pcs.dwSupport=PDS_STRWIDE;
+   pcs.nResult=0;
+   SendMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+   if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+
+   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+ }
+
+
+AKD_EXPANDMETHODPARAMETERS
+__________________________
+
+Expand method parameters. For example, "%a" expanded to "C:\\Program Files\\AkelPad".
+
+(STACKEXTPARAM *)wParam == pointer to a STACKEXTPARAM structure.
+(EXPPARAM *)lParam      == pointer to an array of EXPPARAM structures. Last array item must be with EXPPARAM.wpVar == NULL.
+                           If NULL, only system and built-in variables (%a, %%) will be expanded.
+
+Return Value
+ zero.
+
+Remarks
+  AKD_SETCMDLINEOPTIONS with CLO_VARNOSYSTEM and CLO_VARNOAKELPAD can change AKD_EXPANDMETHODPARAMETERS behavior.
+
+Example:
+ See AKD_PARSEMETHODPARAMETERS example.
+
+
+AKD_STRUCTMETHODPARAMETERS
+__________________________
+
+Create structure for plugin call.
+
+(STACKEXTPARAM *)wParam == pointer to a STACKEXTPARAM structure.
+(unsigned char *)lParam == pointer to a buffer to fill. If NULL, returns required buffer size in bytes.
+
+Return Value
+ Size of the data copied to the buffer.
+
+Example:
+ See AKD_PARSEMETHODPARAMETERS example.
+
+
+AKD_FREEMETHODPARAMETERS
+________________________
+
+Free method parameters.
+
+(STACKEXTPARAM *)wParam == pointer to a STACKEXTPARAM structure.
+lParam                  == not used.
+
+Return Value
+ zero.
+
+Example:
+ See AKD_PARSEMETHODPARAMETERS example.
 
 
 AKD_DETECTSELCASE

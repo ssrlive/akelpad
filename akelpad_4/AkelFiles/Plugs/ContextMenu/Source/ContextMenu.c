@@ -3297,8 +3297,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
             ie.sep=&lpStateIf->hParamStack;
             ie.ep=ep;
-            if (lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie))
-              dwMenuState=MF_CHECKED;
+            lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
 
             if (ie.nError)
             {
@@ -4221,6 +4220,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         int nShowWindow=-1;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpCmdLine=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4259,6 +4259,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         BOOL bBOM=-1;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFile=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4309,6 +4310,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         int nPointSize=0;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFaceName=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4371,6 +4373,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
           if (!ei.bReadOnly)
           {
             SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
               wpText=lpParameter->wpExpanded;
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
