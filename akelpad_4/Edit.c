@@ -10750,7 +10750,7 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
           if (!*a) goto Error;
           whex[3]=*++a;
           if (!*a) goto Error;
-          nDec=(int)hex2decW(whex, 4);
+          nDec=(int)hex2decW(whex, 4, NULL);
           if (nDec == -1) goto Error;
           *b=(wchar_t)nDec;
           while (*++a == L' ');
@@ -19516,7 +19516,7 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
           if (!*a) goto Error;
           whex[3]=*++a;
           if (!*a) goto Error;
-          nDec=(int)hex2decW(whex, 4);
+          nDec=(int)hex2decW(whex, 4, NULL);
           if (nDec == -1) goto Error;
           while (*++a == L' ');
 
@@ -19655,7 +19655,12 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     ++wpIn;
   }
   if (*wpIn >= L'0' && *wpIn <= L'9')
-    nValue=xatoiW(wpIn, &wpIn);
+  {
+    if (*wpIn == L'0' && *(wpIn + 1) == L'x')
+      nValue=hex2decW(wpIn + 2, -2, &wpIn);
+    else
+      nValue=xatoiW(wpIn, &wpIn);
+  }
   else
   {
     if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||

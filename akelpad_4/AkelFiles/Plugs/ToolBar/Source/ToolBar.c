@@ -2530,7 +2530,7 @@ INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *ws
             if (!*a) goto Error;
             whex[3]=*++a;
             if (!*a) goto Error;
-            nDec=(int)hex2decW(whex, 4);
+            nDec=(int)hex2decW(whex, 4, NULL);
             if (nDec == -1) goto Error;
             while (*++a == L' ');
 

@@ -402,7 +402,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           }
           if (lpREGroupItem->nGroupLen != -1 && !bClassOpen)
           {
-            nPatChar=(int)hex2decW(wpStrTmp, (wpPat - 1) - wpStrTmp);
+            nPatChar=(int)hex2decW(wpStrTmp, (wpPat - 1) - wpStrTmp, NULL);
             if (nPatChar == -1)
             {
               wpPat=wpStrTmp;
@@ -1657,7 +1657,7 @@ int PatEscChar(const wchar_t **wppPat)
 
     if (nPatChar == L'u')
     {
-      nPatChar=(int)hex2decW(++(*wppPat), 4);
+      nPatChar=(int)hex2decW(++(*wppPat), 4, NULL);
       (*wppPat)+=3;
     }
     else if (nPatChar == L'x')
@@ -1666,7 +1666,7 @@ int PatEscChar(const wchar_t **wppPat)
       if (**wppPat == L'{')
       {
         for (wpCodeEnd=++(*wppPat); *wpCodeEnd && *wpCodeEnd != L'}'; ++wpCodeEnd);
-        nPatChar=(int)hex2decW(*wppPat, wpCodeEnd - *wppPat);
+        nPatChar=(int)hex2decW(*wppPat, wpCodeEnd - *wppPat, NULL);
         if (*wpCodeEnd)
           *wppPat=wpCodeEnd;
         else
@@ -1674,7 +1674,7 @@ int PatEscChar(const wchar_t **wppPat)
       }
       else
       {
-        nPatChar=(int)hex2decW(*wppPat, 2);
+        nPatChar=(int)hex2decW(*wppPat, 2, NULL);
         (*wppPat)+=1;
       }
     }

@@ -1158,7 +1158,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (SendMessage(hWndOldCharHexRadio, BM_GETCHECK, 0, 0) == BST_CHECKED)
       {
         GetWindowTextWide(hWndOldCharHexEdit, wszBuffer, BUFFER_SIZE);
-        scDlgChar.nOldChar=(int)hex2decW(wszBuffer, -1);
+        scDlgChar.nOldChar=(int)hex2decW(wszBuffer, -1, NULL);
         ValueToNormalChar(scDlgChar.nOldChar, wszBuffer);
         SetWindowTextWide(hWndOldCharHexPreview, wszBuffer);
         EnableWindow(hWndOldCharHexEdit, TRUE);
@@ -1174,7 +1174,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_NEWCHARHEX_EDIT)
     {
       GetWindowTextWide(hWndNewCharHexEdit, wszBuffer, BUFFER_SIZE);
-      scDlgChar.nNewChar=(int)hex2decW(wszBuffer, -1);
+      scDlgChar.nNewChar=(int)hex2decW(wszBuffer, -1, NULL);
       ValueToNormalChar(scDlgChar.nNewChar, wszBuffer);
       SetWindowTextWide(hWndNewCharHexPreview, wszBuffer);
     }
@@ -2208,7 +2208,7 @@ int HexCharToValue(const wchar_t **wpText)
     wpCharStart=wpCount + 2;
     while (*wpCount != L',' && *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\n' && *wpCount != L'\0')
       ++wpCount;
-    nValue=(int)hex2decW(wpCharStart, wpCount - wpCharStart);
+    nValue=(int)hex2decW(wpCharStart, wpCount - wpCharStart, NULL);
   }
   else nValue=(int)xatoiW(wpCount, &wpCount);
 
@@ -2335,7 +2335,7 @@ COLORREF GetColorFromStrAnsi(char *pColor)
 {
   COLORREF crColor;
 
-  if ((crColor=(COLORREF)hex2decA(pColor, 6)) != (COLORREF)-1)
+  if ((crColor=(COLORREF)hex2decA(pColor, 6, NULL)) != (COLORREF)-1)
     crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
   return crColor;
 }
@@ -2344,7 +2344,7 @@ COLORREF GetColorFromStr(wchar_t *wpColor)
 {
   COLORREF crColor;
 
-  if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != (COLORREF)-1)
+  if ((crColor=(COLORREF)hex2decW(wpColor, 6, NULL)) != (COLORREF)-1)
     crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
   return crColor;
 }

@@ -21078,7 +21078,7 @@ COLORREF AE_GetColorFromStr(const wchar_t *wpColor, const wchar_t **wpNext)
 {
   COLORREF crColor;
 
-  if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != (DWORD)-1)
+  if ((crColor=(COLORREF)hex2decW(wpColor, 6, NULL)) != (DWORD)-1)
   {
     //RRGGBB
     if (wpNext) *wpNext=wpColor + 6;
@@ -21103,7 +21103,7 @@ COLORREF AE_GetColorFromStr(const wchar_t *wpColor, const wchar_t **wpNext)
       else return (COLORREF)-1;
     }
     if (wpNext) *wpNext=wpColor;
-    if ((crColor=(COLORREF)hex2decW(wszRBG, 6)) != (COLORREF)-1)
+    if ((crColor=(COLORREF)hex2decW(wszRBG, 6, NULL)) != (COLORREF)-1)
       crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
   }
   return crColor;
