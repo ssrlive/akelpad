@@ -71,9 +71,13 @@
 #define EXPPARAM_WIDE      0x000 //EXPPARAM.pReplaceWith is Unicode string (default).
 #define EXPPARAM_ANSI      0x001 //EXPPARAM.pReplaceWith is Ansi string.
 #define EXPPARAM_INT       0x002 //EXPPARAM.pReplaceWith is integer.
-#define EXPPARAM_MATCHCASE 0x008 //EXPPARAM.wpVar case sensitivity.
-#define EXPPARAM_FILE      0x100 //EXPPARAM.wpVar replaced with current file. EXPPARAM.pReplaceWith is ignored.
-#define EXPPARAM_FILEDIR   0x200 //EXPPARAM.wpVar replaced with current file directory. EXPPARAM.pReplaceWith is ignored.
+#define EXPPARAM_LPCHAR    0x010 //EXPPARAM.pReplaceWith is a pointer to a char value.
+#define EXPPARAM_LPSHORT   0x020 //EXPPARAM.pReplaceWith is a pointer to a short value.
+#define EXPPARAM_LPINT     0x040 //EXPPARAM.pReplaceWith is a pointer to a int value.
+#define EXPPARAM_LPHANDLE  0x080 //EXPPARAM.pReplaceWith is a pointer to a INT_PTR value.
+#define EXPPARAM_MATCHCASE 0x100 //EXPPARAM.wpVar case sensitivity.
+#define EXPPARAM_FILE      0x200 //EXPPARAM.wpVar replaced with current file. EXPPARAM.pReplaceWith is ignored.
+#define EXPPARAM_FILEDIR   0x400 //EXPPARAM.wpVar replaced with current file directory. EXPPARAM.pReplaceWith is ignored.
 
 //AKD_IFEXPRESSION flags
 #define IEF_AUTO          0x0 //Expression begins with If("...") or Call("...", param1, param2, ...). After AKD_IFEXPRESSION returns, IFEXPRESSION.dwFlags will contain IEF_IF or IEF_CALL (if no errors).
