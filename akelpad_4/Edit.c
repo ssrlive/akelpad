@@ -19312,6 +19312,14 @@ void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
                     wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", lpExpParam->nReplaceWith) - !wszTarget;
                   else if (lpExpParam->dwFlags & EXPPARAM_ANSI)
                     wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%S", lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags & EXPPARAM_LPCHAR)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", *(char *)lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags & EXPPARAM_LPSHORT)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", *(short *)lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags & EXPPARAM_LPINT)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", *(int *)lpExpParam->nReplaceWith) - !wszTarget;
+                  else if (lpExpParam->dwFlags & EXPPARAM_LPHANDLE)
+                    wpTarget+=xprintfW(wszTarget?wpTarget:NULL, L"%Id", *(INT_PTR *)lpExpParam->nReplaceWith) - !wszTarget;
                   else if (lpExpParam->dwFlags &  EXPPARAM_FILE)
                     wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, lpFrameCurrent->wszFile) - !wszTarget;
                   else if (lpExpParam->dwFlags &  EXPPARAM_FILEDIR)

@@ -77,8 +77,8 @@
 #define STRID_32BIT                          6
 #define STRID_SIDE                           7
 #define STRID_ROWS                           8
-#define STRID_PARSEMSG_UNKNOWNSPECIAL        9 
-#define STRID_PARSEMSG_UNKNOWNMETHOD         10 
+#define STRID_PARSEMSG_UNKNOWNSPECIAL        9
+#define STRID_PARSEMSG_UNKNOWNMETHOD         10
 #define STRID_PARSEMSG_METHODALREADYDEFINED  11
 #define STRID_PARSEMSG_NOMETHOD              12
 #define STRID_PLUGIN                         13
@@ -145,25 +145,6 @@
 #define ROWSHOW_INVERT   -1
 #define ROWSHOW_OFF       0
 #define ROWSHOW_ON        1
-
-typedef struct _EXTPARAM {
-  struct _EXTPARAM *next;
-  struct _EXTPARAM *prev;
-  DWORD dwType;
-  INT_PTR nNumber;
-  char *pString;
-  wchar_t *wpString;
-  char *pExpanded;
-  int nExpandedAnsiLen;
-  wchar_t *wpExpanded;
-  int nExpandedUnicodeLen;
-} EXTPARAM;
-
-typedef struct {
-  EXTPARAM *first;
-  EXTPARAM *last;
-  int nElements;
-} STACKEXTPARAM;
 
 typedef struct _TOOLBARITEM {
   struct _TOOLBARITEM *next;
@@ -245,7 +226,6 @@ TOOLBARITEM* StackGetButtonByIndex(STACKTOOLBAR *hStack, int nIndex);
 void StackFreeButton(STACKTOOLBAR *hStack);
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, HWND hToolbar, int nButtonID, const RECT *lprcButton);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
@@ -1765,9 +1745,17 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 {
   TOOLBARITEM *lpElement;
   EXTPARAM *lpParameter;
-  wchar_t wszCurrentFile[MAX_PATH];
-  RECT rcButton;
+  static RECT rcButton;
   int nButtonID;
+  EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                 {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                 {L"%m", 2, (INT_PTR)hToolbar, EXPPARAM_INT},
+                 {L"%i", 2, nItem, EXPPARAM_INT},
+                 {L"%bl", 3, (INT_PTR)&rcButton.left, EXPPARAM_LPINT},
+                 {L"%bt", 3, (INT_PTR)&rcButton.top, EXPPARAM_LPINT},
+                 {L"%br", 3, (INT_PTR)&rcButton.right, EXPPARAM_LPINT},
+                 {L"%bb", 3, (INT_PTR)&rcButton.bottom, EXPPARAM_LPINT},
+                 {0, 0, 0, 0}};
 
   if (lpElement=StackGetButtonByID(hStack, nItem))
   {
@@ -1777,7 +1765,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       return;
     }
 
-    GetCurFile(wszCurrentFile, MAX_PATH);
     nButtonID=lpElement->tbb.idCommand;
 
     SendMessage(hToolbar, TB_GETRECT, lpElement->tbb.idCommand, (LPARAM)&rcButton);
@@ -1827,7 +1814,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 
       if (bCall)
       {
-        ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
+        SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
 
         nStructSize=StructMethodParameters(&lpElement->hParamStack, NULL);
         if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
@@ -1853,7 +1840,8 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       BOOL bWait=FALSE;
       int nShowWindow=-1;
 
-      ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
+      SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpCmdLine=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -1891,7 +1879,8 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       int nCodePage=-1;
       BOOL bBOM=-1;
 
-      ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
+      SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFile=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -1941,7 +1930,8 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       DWORD dwFontStyle=0;
       int nPointSize=0;
 
-      ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
+      SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFaceName=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2003,7 +1993,8 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       {
         if (!ei.bReadOnly)
         {
-          ExpandMethodParameters(&lpElement->hParamStack, wszCurrentFile, wszExeDir, hToolbar, nButtonID, &rcButton);
+          SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
             wpText=lpParameter->wpExpanded;
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2260,148 +2251,6 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
-}
-
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir, HWND hToolbar, int nButtonID, const RECT *lprcButton)
-{
-  //%f -file, %d -file directory, %a -AkelPad directory, %% -%
-  //%m -toolbar handle, %i -button command id, button screen coordinates: %bl -left, %bt -top, %br -right, %bb -bottom
-  EXTPARAM *lpParameter;
-  wchar_t *wszSource;
-  wchar_t *wpSource;
-  wchar_t *wszTarget;
-  wchar_t *wpTarget;
-  int nStringLen;
-  int nTargetLen=0;
-
-  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-    {
-      //Expand environment strings
-      nStringLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
-
-      if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
-      {
-        ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nStringLen);
-
-        //Expand plugin variables
-        wszTarget=NULL;
-        wpTarget=NULL;
-
-        for (;;)
-        {
-          for (wpSource=wszSource; *wpSource;)
-          {
-            if (*wpSource == L'%')
-            {
-              if (*++wpSource == L'%')
-              {
-                ++wpSource;
-                if (wszTarget) *wpTarget=L'%';
-                ++wpTarget;
-              }
-              else if (*wpSource == L'f' || *wpSource == L'F')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
-              }
-              else if (*wpSource == L'd' || *wpSource == L'D')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
-              }
-              else if (*wpSource == L'a' || *wpSource == L'A')
-              {
-                ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
-              }
-              else if (*wpSource == L'm' || *wpSource == L'M')
-              {
-                ++wpSource;
-                wpTarget+=(int)xitoaW((INT_PTR)hToolbar, wszTarget?wpTarget:NULL) - !wszTarget;
-              }
-              else if (*wpSource == L'i' || *wpSource == L'I')
-              {
-                ++wpSource;
-                wpTarget+=(int)xitoaW(nButtonID, wszTarget?wpTarget:NULL) - !wszTarget;
-              }
-              else if (*wpSource == L'b' || *wpSource == L'B')
-              {
-                if (*++wpSource == L'l' || *wpSource == L'L')
-                {
-                  ++wpSource;
-                  wpTarget+=(int)xitoaW(lprcButton->left, wszTarget?wpTarget:NULL) - !wszTarget;
-                }
-                else if (*wpSource == L't' || *wpSource == L'T')
-                {
-                  ++wpSource;
-                  wpTarget+=(int)xitoaW(lprcButton->top, wszTarget?wpTarget:NULL) - !wszTarget;
-                }
-                else if (*wpSource == L'r' || *wpSource == L'R')
-                {
-                  ++wpSource;
-                  wpTarget+=(int)xitoaW(lprcButton->right, wszTarget?wpTarget:NULL) - !wszTarget;
-                }
-                else if (*wpSource == L'b' || *wpSource == L'B')
-                {
-                  ++wpSource;
-                  wpTarget+=(int)xitoaW(lprcButton->bottom, wszTarget?wpTarget:NULL) - !wszTarget;
-                }
-              }
-            }
-            else
-            {
-              if (wszTarget) *wpTarget=*wpSource;
-              ++wpTarget;
-              ++wpSource;
-            }
-          }
-
-          if (!wszTarget)
-          {
-            //Allocate wszTarget and loop again
-            if (wszTarget=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpTarget + 1)))
-            {
-              nTargetLen=(int)((INT_PTR)wpTarget / sizeof(wchar_t));
-              wpTarget=wszTarget;
-            }
-            else break;
-          }
-          else
-          {
-            *wpTarget=L'\0';
-            break;
-          }
-        }
-
-        if (wszTarget)
-        {
-          if (lpParameter->pExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->pExpanded);
-            lpParameter->pExpanded=NULL;
-          }
-          if (lpParameter->wpExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-            lpParameter->wpExpanded=NULL;
-          }
-          lpParameter->wpExpanded=wszTarget;
-          lpParameter->nExpandedUnicodeLen=nTargetLen;
-
-          if (bOldWindows)
-          {
-            lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
-            if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
-          }
-        }
-        GlobalFree((HGLOBAL)wszSource);
-      }
-    }
-  }
 }
 
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
