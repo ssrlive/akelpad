@@ -1205,7 +1205,7 @@ INT_PTR GetAnsiStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInputLen
           if (a >= nInputLen) break;
           wszHexChar[1]=wszInput[a++];
 
-          nChar=(int)hex2decW(wszHexChar, 2);
+          nChar=(int)hex2decW(wszHexChar, 2, NULL);
         }
 
         if (!xmemcmp(wszInput + a, wpSuffix, nSuffixLen * sizeof(wchar_t)))
@@ -1316,7 +1316,7 @@ INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
             if (a >= nInputLen) break;
             wszHexChar[1]=wszInput[a++];
           }
-          nChar=(int)hex2decW(wszHexChar, 4);
+          nChar=(int)hex2decW(wszHexChar, 4, NULL);
         }
 
         if (!xmemcmp(wszInput + a, wpSuffix, nSuffixLen * sizeof(wchar_t)))

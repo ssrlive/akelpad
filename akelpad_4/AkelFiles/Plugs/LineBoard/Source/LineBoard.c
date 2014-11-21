@@ -2999,7 +2999,7 @@ COLORREF GetColorFromStr(wchar_t *wpColor)
 {
   COLORREF crColor;
 
-  if ((crColor=(COLORREF)hex2decW(wpColor, 6)) != (COLORREF)-1)
+  if ((crColor=(COLORREF)hex2decW(wpColor, 6, NULL)) != (COLORREF)-1)
     crColor=RGB(GetBValue(crColor), GetGValue(crColor), GetRValue(crColor));
   return crColor;
 }

@@ -92,9 +92,6 @@
 
 #define BUFFER_SIZE      1024
 
-#define EXTPARAM_CHAR     1
-#define EXTPARAM_INT      2
-
 #define LVI_LIST_KEY    0
 #define LVI_LIST_FILE   1
 #define LVI_LIST_LAYOUT 2
@@ -114,25 +111,6 @@ Sound(-3, \"%a\\AkelFiles\\Plugs\\Sounds\\Movement.wav\", 0)\r"
 
 
 //// Structures
-
-typedef struct _EXTPARAM {
-  struct _EXTPARAM *next;
-  struct _EXTPARAM *prev;
-  DWORD dwType;
-  int nNumber;
-  char *pString;
-  wchar_t *wpString;
-  char *pExpanded;
-  int nExpandedAnsiLen;
-  wchar_t *wpExpanded;
-  int nExpandedUnicodeLen;
-} EXTPARAM;
-
-typedef struct {
-  EXTPARAM *first;
-  EXTPARAM *last;
-  int nElements;
-} STACKEXTPARAM;
 
 typedef struct _SOUNDITEM {
   struct _SOUNDITEM *next;
@@ -175,7 +153,6 @@ void FillLayoutList(HWND hWndLayoutList, WORD wSelLangID);
 int GetLayoutName(WORD wLangID, wchar_t *wszName, int nNameMax);
 
 void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
@@ -978,12 +955,12 @@ void CreateSoundsStack(SOUNDSTACK *hStack, const wchar_t *wpText)
   STACKEXTPARAM hParamStack={0};
   EXTPARAM *lpParameter;
   SOUNDITEM *siElement=NULL;
-  wchar_t wszCurrentFile[MAX_PATH];
+  EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                 {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                 {0, 0, 0, 0}};
 
   if (wpText)
   {
-    GetCurFile(wszCurrentFile, MAX_PATH);
-
     for (; *wpText; NextLine(&wpText))
     {
       if (!SkipComment(&wpText)) break;
@@ -994,10 +971,10 @@ void CreateSoundsStack(SOUNDSTACK *hStack, const wchar_t *wpText)
         if (siElement=StackInsertSound(hStack))
         {
           ParseMethodParameters(&hParamStack, wpText, &wpText);
-          ExpandMethodParameters(&hParamStack, wszCurrentFile, wszExeDir);
+          SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
 
           if (lpParameter=GetMethodParameter(&hParamStack, 1))
-            siElement->dwKey=lpParameter->nNumber;
+            siElement->dwKey=(DWORD)lpParameter->nNumber;
           if (lpParameter=GetMethodParameter(&hParamStack, 2))
           {
             xstrcpynW(siElement->wszFile, lpParameter->wpString, MAX_PATH);
@@ -1239,114 +1216,6 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (wppText) *wppText=wpParamEnd;
 }
 
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
-{
-  //%f -file, %d -file directory, %a -AkelPad directory, %% -%
-  EXTPARAM *lpParameter;
-  wchar_t *wszSource;
-  wchar_t *wpSource;
-  wchar_t *wszTarget;
-  wchar_t *wpTarget;
-  int nStringLen;
-  int nTargetLen=0;
-
-  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
-    {
-      //Expand environment strings
-      nStringLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
-
-      if (wszSource=(wchar_t *)GlobalAlloc(GPTR, nStringLen * sizeof(wchar_t)))
-      {
-        ExpandEnvironmentStringsWide(lpParameter->wpString, wszSource, nStringLen);
-
-        //Expand plugin variables
-        wszTarget=NULL;
-        wpTarget=NULL;
-
-        for (;;)
-        {
-          for (wpSource=wszSource; *wpSource;)
-          {
-            if (*wpSource == '%')
-            {
-              if (*++wpSource == '%')
-              {
-                ++wpSource;
-                if (wszTarget) *wpTarget='%';
-                ++wpTarget;
-              }
-              else if (*wpSource == 'f' || *wpSource == 'F')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpFile) - !wszTarget;
-              }
-              else if (*wpSource == 'd' || *wpSource == 'D')
-              {
-                ++wpSource;
-                if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszTarget?wpTarget:NULL, MAX_PATH) - !wszTarget;
-              }
-              else if (*wpSource == 'a' || *wpSource == 'A')
-              {
-                ++wpSource;
-                wpTarget+=xstrcpyW(wszTarget?wpTarget:NULL, wpExeDir) - !wszTarget;
-              }
-            }
-            else
-            {
-              if (wszTarget) *wpTarget=*wpSource;
-              ++wpTarget;
-              ++wpSource;
-            }
-          }
-
-          if (!wszTarget)
-          {
-            //Allocate wszTarget and loop again
-            if (wszTarget=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpTarget + 1)))
-            {
-              nTargetLen=(int)((INT_PTR)wpTarget / sizeof(wchar_t));
-              wpTarget=wszTarget;
-            }
-            else break;
-          }
-          else
-          {
-            *wpTarget='\0';
-            break;
-          }
-        }
-
-        if (wszTarget)
-        {
-          if (lpParameter->pExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->pExpanded);
-            lpParameter->pExpanded=NULL;
-          }
-          if (lpParameter->wpExpanded)
-          {
-            GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-            lpParameter->wpExpanded=NULL;
-          }
-          lpParameter->wpExpanded=wszTarget;
-          lpParameter->nExpandedUnicodeLen=nTargetLen;
-
-          if (bOldWindows)
-          {
-            lpParameter->nExpandedAnsiLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
-            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, lpParameter->nExpandedAnsiLen))
-              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, lpParameter->nExpandedAnsiLen, NULL, NULL);
-            if (lpParameter->nExpandedAnsiLen) --lpParameter->nExpandedAnsiLen;
-          }
-        }
-        GlobalFree((HGLOBAL)wszSource);
-      }
-    }
-  }
-}
-
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
 {
   EXTPARAM *lpParameter;
@@ -1495,7 +1364,7 @@ INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *ws
             if (!*a) goto Error;
             whex[3]=*++a;
             if (!*a) goto Error;
-            nDec=(int)hex2decW(whex, 4);
+            nDec=(int)hex2decW(whex, 4, NULL);
             if (nDec == -1) goto Error;
             while (*++a == ' ');
 

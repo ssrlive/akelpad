@@ -5478,8 +5478,8 @@ void ReadSyntaxFiles()
               {
                 if (wpCount - wpParamStart == 16)
                 {
-                  lpSyntaxFile->ftTimeStamp.dwLowDateTime=(DWORD)hex2decW(lpKey->wszString, 8);
-                  lpSyntaxFile->ftTimeStamp.dwHighDateTime=(DWORD)hex2decW(lpKey->wszString + 8, 8);
+                  lpSyntaxFile->ftTimeStamp.dwLowDateTime=(DWORD)hex2decW(lpKey->wszString, 8, NULL);
+                  lpSyntaxFile->ftTimeStamp.dwHighDateTime=(DWORD)hex2decW(lpKey->wszString + 8, 8, NULL);
                   wpParamStart=wpCount + 1;
                   ++nParamCount;
                 }
