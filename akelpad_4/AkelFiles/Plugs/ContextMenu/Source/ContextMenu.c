@@ -2583,15 +2583,8 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
           else
           {
             IFEXPRESSION ie;
-            EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
-                           {L"%d", 2, 0, EXPPARAM_FILEDIR},
-                           {L"%m", 2, (INT_PTR)hSubMenu, EXPPARAM_INT},
-                           {L"%i", 2, nItem, EXPPARAM_INT},
-                           {L"%u", 2, (INT_PTR)wszUrlLink, 0},
-                           {0, 0, 0, 0}};
 
-            ie.dwFlags=IEF_AUTO;
-            ie.ep=ep;
+            ie.dwFlags=IEF_METHOD;
             if (SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie))
               dwNewFlags&=~CCMS_SKIPIF;
             wpCount=ie.wpEnd;
@@ -2613,11 +2606,10 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
 
           ie.dwFlags=IEF_STACKEXTPARAM|IEF_PARSEONLY;
           ie.sep=&hParamStack;
-          ie.ep=NULL;
           SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie);
           wpCount=ie.wpEnd;
 
-          if ((ie.dwFlags & IEF_IF) || (ie.dwFlags & IEF_CALL))
+          if (ie.dwFlags & IEF_IF)
           {
             if (ie.nError)
             {
@@ -2626,7 +2618,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
             }
             if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
             {
-              lpStateIf->dwFlags=ie.dwFlags & (IEF_IF|IEF_CALL);
+              lpStateIf->dwFlags=IEF_IF;
               lpStateIf->hParamStack=hParamStack;
             }
           }
@@ -3181,7 +3173,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
   else
     PostMessage(hWndMainDlg, AKDLL_MENUINDEX, nExtMenuIndex, 0);
 
-  xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), wszMenuItem, wszMethodName);
+  xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), wszMenuItem, wszMethodName, wpCount);
   MessageBoxW(hWndMainDlg?hWndMainDlg:NULL, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR|(hWndMainDlg?0:MB_TOPMOST));
   return FALSE;
 }
@@ -3280,23 +3272,25 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
       {
         if (lpMenuItem->lpStateIf)
         {
-          IFEXPRESSION ie;
           DWORD dwMenuState=0;
-          int nMessageID;
-          EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
-                         {L"%d", 2, 0, EXPPARAM_FILEDIR},
-                         {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
-                         {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
-                         {L"%u", 2, (INT_PTR)wszUrlLink, 0},
-                         {0, 0, 0, 0}};
 
           lpStateIf=lpMenuItem->lpStateIf;
 
           if (!lpStateIf->bCalculated)
           {
+            IFEXPRESSION ie;
+            int nMessageID;
+            EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                           {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                           {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
+                           {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
+                           {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                           {0, 0, 0, 0}};
+
+            SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+
             ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
             ie.sep=&lpStateIf->hParamStack;
-            ie.ep=ep;
             lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
 
             if (ie.nError)
@@ -5601,9 +5595,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
       return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
-      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%.2s...\".";
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%.9s...\".";
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%0.s%.9s...\".";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_MENU_OPEN)
@@ -6182,9 +6176,9 @@ EXPLORER\r";
     if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
       return L"If: no close parenthesis \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
-      return L"If: unknown operator \"%.2s...\".";
+      return L"If: unknown operator \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: unknown method \"%.9s...\".";
+      return L"If: unknown method \"%0.s%0.s%.9s...\".";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: call error.";
     if (nStringID == STRID_MENU_OPEN)

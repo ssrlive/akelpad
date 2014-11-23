@@ -19641,7 +19641,6 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
 
 INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
-  INT_PTR nParam1;
   INT_PTR nValue=0;
   BOOL bBitwiseNOT=FALSE;
   int nSendMain;
@@ -19667,6 +19666,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
         !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
       HWND hWndEdit;
+      INT_PTR nParam1;
       INT_PTR nParam2;
       INT_PTR nParam3;
 
@@ -19697,6 +19697,41 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       {
         if (hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL))
           nValue=SendMessage(hWndEdit, (UINT)nParam1, nParam2, nParam3);
+      }
+    }
+    else if (!xstrcmpinW(L"Call(", wpIn, (UINT_PTR)-1))
+    {
+      STACKEXTPARAM hParamStack={0};
+      PLUGINCALLSENDW pcs;
+      int nStructSize;
+      int nCallResult=UD_FAILED;
+
+      if (ParseMethodParameters(&hParamStack, wpIn + 5, &wpIn))
+      {
+        ExpandMethodParameters(&hParamStack, NULL);
+
+        if (nStructSize=StructMethodParameters(&hParamStack, NULL))
+        {
+          if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+            StructMethodParameters(&hParamStack, (unsigned char *)pcs.lParam);
+        }
+        else pcs.lParam=0;
+
+        pcs.pFunction=hParamStack.first->wpString;
+        pcs.dwSupport=PDS_STRWIDE;
+        pcs.nResult=0;
+        nCallResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+        if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+        nValue=pcs.nResult;
+        FreeMethodParameters(&hParamStack);
+
+        //Move back to check that method was closed with ')'.
+        --wpIn;
+      }
+      if (nCallResult < 0)
+      {
+        *lpnError=IEE_CALLERROR;
+        goto End;
       }
     }
     else
