@@ -80,11 +80,10 @@
 #define EXPPARAM_FILEDIR   0x400 //EXPPARAM.wpVar replaced with current file directory. EXPPARAM.pReplaceWith is ignored.
 
 //AKD_IFEXPRESSION flags
-#define IEF_AUTO          0x0 //Expression begins with If("...") or Call("...", param1, param2, ...). After AKD_IFEXPRESSION returns, IFEXPRESSION.dwFlags will contain IEF_IF or IEF_CALL (if no errors).
+#define IEF_METHOD        0x0 //Expression begins with If("..."). After AKD_IFEXPRESSION returns, IFEXPRESSION.dwFlags will contain IEF_IF (if no errors).
 #define IEF_IF            0x1 //Calculate IF expression that begins with: "..."
-#define IEF_CALL          0x2 //Execute plugin expression that begins with: "...", param1, param2, ...
-#define IEF_STACKEXTPARAM 0x4 //IFEXPRESSION.sep member is valid. If IEF_PARSEONLY flag is not set, then wParam is ignored.
-#define IEF_PARSEONLY     0x8 //Fill IFEXPRESSION.sep. Must be combined with IEF_STACKEXTPARAM.
+#define IEF_STACKEXTPARAM 0x2 //IFEXPRESSION.sep member is valid. If IEF_PARSEONLY flag is not set, then wParam is ignored.
+#define IEF_PARSEONLY     0x4 //Fill IFEXPRESSION.sep. Must be combined with IEF_STACKEXTPARAM.
 
 //AKD_IFEXPRESSION errors
 #define IEE_SUCCESS            0
@@ -1612,7 +1611,6 @@ typedef struct {
   DWORD dwFlags;        //See IEF_* defines.
   int nError;           //See IEE_* defines.
   STACKEXTPARAM *sep;   //Pointer to a STACKEXTPARAM structure.
-  EXPPARAM *ep;         //Pointer to an array of EXPPARAM structures. Last array item must be with EXPPARAM.wpVar == NULL. Uses if dwFlags == IEF_CALL.
   const wchar_t *wpEnd; //Where expression stops if error or next string after expression if no errors.
 } IFEXPRESSION;
 
