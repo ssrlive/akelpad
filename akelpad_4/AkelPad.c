@@ -1941,22 +1941,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ie) dwFlags=ie->dwFlags;
 
-      if (!(dwFlags & IEF_IF) && !(dwFlags & IEF_CALL))
+      if (!(dwFlags & IEF_IF))
       {
         if ((dwFlags & IEF_STACKEXTPARAM) && !(dwFlags & IEF_PARSEONLY))
           nError=IEE_UNKNOWNMETHOD;
-        else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpCount))
+        else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpNext))
         {
           if (!xstrcmpiW(wbuf, L"If"))
+          {
             dwFlags|=IEF_IF;
-          else if (!xstrcmpiW(wbuf, L"Call"))
-            dwFlags|=IEF_CALL;
-          else
-            nError=IEE_UNKNOWNMETHOD;
+            wpCount=wpNext;
+          }
+          else nError=IEE_UNKNOWNMETHOD;
         }
         else nError=IEE_UNKNOWNMETHOD;
       }
-      if ((dwFlags & IEF_IF) || (dwFlags & IEF_CALL))
+      if (dwFlags & IEF_IF)
       {
         if (dwFlags & IEF_STACKEXTPARAM)
           lpParamStack=ie->sep;
@@ -1972,31 +1972,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               wpCount=wpExpression + (wpStop - lpParamStack->first->wpString) + (wpCount - wpExpression);
             else
               wpCount=wpStop;
-          }
-          else if (dwFlags & IEF_CALL)
-          {
-            PLUGINCALLSENDW pcs;
-            int nStructSize;
-            int nCallResult;
-
-            ExpandMethodParameters(lpParamStack, ie?ie->ep:NULL);
-
-            if (nStructSize=StructMethodParameters(lpParamStack, NULL))
-            {
-              if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-                StructMethodParameters(lpParamStack, (unsigned char *)pcs.lParam);
-            }
-            else pcs.lParam=0;
-
-            pcs.pFunction=lpParamStack->first->wpString;
-            pcs.dwSupport=PDS_STRWIDE;
-            pcs.nResult=0;
-            nCallResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-            if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
-
-            if (nCallResult < 0)
-              nError=IEE_CALLERROR;
-            nResult=pcs.nResult;
           }
           if (!(dwFlags & IEF_STACKEXTPARAM))
             FreeMethodParameters(lpParamStack);
