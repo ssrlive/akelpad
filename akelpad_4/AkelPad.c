@@ -1029,7 +1029,7 @@ void _WinMain()
 
     if (nResult == PCLE_QUIT)
       goto Quit;
-    else if (nResult == PCLE_END)
+    else if (nResult == PCLE_END || nResult == PCLE_SUCCESS)
       wpCmdLine=NULL;
   }
 
@@ -1932,6 +1932,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       STACKEXTPARAM *lpParamStack=&hParamStack;
       IFEXPRESSION *ie=(IFEXPRESSION *)lParam;
       const wchar_t *wpExpression=(const wchar_t *)wParam;
+      const wchar_t *wpParamStr;
       const wchar_t *wpCount=wpExpression;
       const wchar_t *wpNext=NULL;
       const wchar_t *wpStop;
@@ -1967,9 +1968,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (dwFlags & IEF_IF)
           {
-            nResult=IfExpression(lpParamStack->first->wpString, &wpStop, &nError);
+            if (lpParamStack->first->wpExpanded)
+              wpParamStr=lpParamStack->first->wpExpanded;
+            else
+              wpParamStr=lpParamStack->first->wpString;
+            nResult=IfExpression(wpParamStr, &wpStop, &nError);
             if (!(dwFlags & IEF_STACKEXTPARAM))
-              wpCount=wpExpression + (wpStop - lpParamStack->first->wpString) + (wpCount - wpExpression);
+              wpCount=wpExpression + (wpStop - wpParamStr) + (wpCount - wpExpression);
             else
               wpCount=wpStop;
           }

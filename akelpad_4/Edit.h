@@ -136,6 +136,7 @@
 #define EXTACT_FONT       6
 #define EXTACT_RECODE     7
 #define EXTACT_INSERT     8
+#define EXTACT_IF         9
 
 //Operators sign
 #define OS_ERROR     -1  // Wrong sign
@@ -1125,7 +1126,7 @@ wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
-DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
+int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
 int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);

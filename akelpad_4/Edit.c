@@ -18685,7 +18685,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
   const wchar_t *wpCmdLineNext;
   HWND hWndFriend=NULL;
   int nOpen;
-  DWORD dwCallMethod;
+  int nCallMethod;
   BOOL bFileOpenedSDI=FALSE;
   BOOL bIgnoreNextArg=FALSE;
 
@@ -18810,8 +18810,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
         //Process actions
-        if (dwCallMethod=CallMethod(wszCmdArg, L""))
-          return dwCallMethod;
+        if (nCallMethod=CallMethod(wszCmdArg, L""))
+          return nCallMethod;
         continue;
       }
       if (!*wszCmdArg) continue;
@@ -18861,7 +18861,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         return PCLE_END;
     }
   }
-  return PCLE_END;
+  return PCLE_SUCCESS;
 }
 
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd)
@@ -18884,13 +18884,13 @@ void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEn
   }
 }
 
-DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
+int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 {
   STACKEXTPARAM hParamStack={0};
   EXTPARAM *lpParameter;
   const wchar_t *wpAction;
   DWORD dwAction=0;
-  DWORD dwResult=0;
+  int nResult=0;
   EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},      //Current file.
                  {L"%d", 2, 0, EXPPARAM_FILEDIR},   //Current file directory.
                  {L"%u", 2, (INT_PTR)wpUrlLink, 0}, //URL address (work in "UrlCommand" manual parameter).
@@ -18949,6 +18949,10 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
       dwCmdLineOptions|=CLO_VARNOAKELPAD;
     else
       dwCmdLineOptions&=~CLO_VARNOAKELPAD;
+  }
+  else if (!xstrcmpinW(L"If(", wpMethod, (UINT_PTR)-1))
+  {
+    dwAction=EXTACT_IF;
   }
 
   if (dwAction)
@@ -19060,7 +19064,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
           dwFlags|=OD_ADT_DETECT_BOM;
         nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
-          dwResult=PCLE_END;
+          nResult=PCLE_END;
       }
       else if (dwAction == EXTACT_SAVEFILE)
       {
@@ -19069,7 +19073,7 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         if (bBOM == -1)
           bBOM=lpFrameCurrent->ei.bBOM;
         if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
-          dwResult=PCLE_END;
+          nResult=PCLE_END;
       }
     }
     else if (dwAction == EXTACT_FONT)
@@ -19167,9 +19171,35 @@ DWORD CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
       }
     }
+    else if (dwAction == EXTACT_IF)
+    {
+      wchar_t *wpIfExpression=NULL;
+      wchar_t *wpIfTrue=NULL;
+      wchar_t *wpIfFalse=NULL;
+      wchar_t *wpParseCmd;
+      int nError=0;
+
+      ExpandMethodParameters(&hParamStack, ep);
+      if (lpParameter=GetMethodParameter(&hParamStack, 1))
+        wpIfExpression=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 2))
+        wpIfTrue=lpParameter->wpExpanded;
+      if (lpParameter=GetMethodParameter(&hParamStack, 3))
+        wpIfFalse=lpParameter->wpExpanded;
+
+      if (wpIfExpression && wpIfTrue && wpIfFalse)
+      {
+        if (IfExpression(wpIfExpression, NULL, &nError))
+          wpParseCmd=wpIfTrue;
+        else
+          wpParseCmd=wpIfFalse;
+        if (nError == IEE_SUCCESS)
+          nResult=ParseCmdLine(&wpParseCmd, PCL_ONSHOW);
+      }
+    }
     FreeMethodParameters(&hParamStack);
   }
-  return dwResult;
+  return nResult;
 }
 
 int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
