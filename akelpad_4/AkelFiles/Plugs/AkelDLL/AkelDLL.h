@@ -59,9 +59,10 @@
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
 //AKD_PARSECMDLINE return value
-#define PCLE_QUIT    0x01  //Stop parsing command line parameters and close program.
-#define PCLE_END     0x02  //Stop parsing command line parameters.
-#define PCLE_ONLOAD  0x04  //Done parsing command line parameters on program load (used internally).
+#define PCLE_SUCCESS 0  //Success.
+#define PCLE_QUIT    1  //Stop parsing command line parameters and close program.
+#define PCLE_END     2  //Stop parsing command line parameters.
+#define PCLE_ONLOAD  3  //Done parsing command line parameters on program load (used internally).
 
 //External parameters
 #define EXTPARAM_CHAR     1
