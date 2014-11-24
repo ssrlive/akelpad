@@ -113,30 +113,31 @@
 #define STRID_IF_NOCLOSEPARENTHESIS           22
 #define STRID_IF_UNKNOWNOPERATOR              23
 #define STRID_IF_UNKNOWNMETHOD                24
-#define STRID_IF_CALLERROR                    25
-#define STRID_MENU_OPEN                       26
-#define STRID_MENU_MOVEUP                     27
-#define STRID_MENU_MOVEDOWN                   28
-#define STRID_MENU_SORT                       29
-#define STRID_MENU_DELETE                     30
-#define STRID_MENU_DELETEOLD                  31
-#define STRID_MENU_EDIT                       32
-#define STRID_FAVOURITES                      33
-#define STRID_SHOWFILE                        34
-#define STRID_FAVADDING                       35
-#define STRID_FAVEDITING                      36
-#define STRID_FAVNAME                         37
-#define STRID_FAVFILE                         38
-#define STRID_PLUGIN                          39
-#define STRID_OK                              40
-#define STRID_CANCEL                          41
-#define STRID_CLOSE                           42
-#define STRID_DEFAULTMANUAL                   43
-#define STRID_DEFAULTMAIN                     44
-#define STRID_DEFAULTEDIT                     45
-#define STRID_DEFAULTTAB                      46
-#define STRID_DEFAULTURL                      47
-#define STRID_DEFAULTRECENTFILES              48
+#define STRID_IF_WRONGPARAMETERSNUMBER        25
+#define STRID_IF_CALLERROR                    26
+#define STRID_MENU_OPEN                       27
+#define STRID_MENU_MOVEUP                     28
+#define STRID_MENU_MOVEDOWN                   29
+#define STRID_MENU_SORT                       30
+#define STRID_MENU_DELETE                     31
+#define STRID_MENU_DELETEOLD                  32
+#define STRID_MENU_EDIT                       33
+#define STRID_FAVOURITES                      34
+#define STRID_SHOWFILE                        35
+#define STRID_FAVADDING                       36
+#define STRID_FAVEDITING                      37
+#define STRID_FAVNAME                         38
+#define STRID_FAVFILE                         39
+#define STRID_PLUGIN                          40
+#define STRID_OK                              41
+#define STRID_CANCEL                          42
+#define STRID_CLOSE                           43
+#define STRID_DEFAULTMANUAL                   44
+#define STRID_DEFAULTMAIN                     45
+#define STRID_DEFAULTEDIT                     46
+#define STRID_DEFAULTTAB                      47
+#define STRID_DEFAULTURL                      48
+#define STRID_DEFAULTRECENTFILES              49
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -2538,6 +2539,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
       nFileIconIndex=-1;
       if (!SkipComment(&wpCount)) break;
       wpLineBegin=wpCount;
+      wpErrorBegin=wpLineBegin;
 
       //Set options
       if (!xstrcmpnW(L"SET(", wpCount, (UINT_PTR)-1))
@@ -2616,15 +2618,24 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
               nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
               goto Error;
             }
-            if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+            if (hParamStack.nElements == 1)
             {
-              lpStateIf->dwFlags=IEF_IF;
-              lpStateIf->hParamStack=hParamStack;
+              if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+              {
+                lpStateIf->dwFlags=IEF_IF;
+                lpStateIf->hParamStack=hParamStack;
+              }
+            }
+            else
+            {
+              FreeMethodParameters(&hParamStack);
+              nMessageID=STRID_IF_WRONGPARAMETERSNUMBER;
+              goto Error;
             }
           }
           else
           {
-            nMessageID=STRID_PARSEMSG_UNKNOWNMETHOD;
+            nMessageID=STRID_IF_UNKNOWNMETHOD;
             goto Error;
           }
           ++nFlagCountStateIf;
@@ -3090,7 +3101,6 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
       {
         if (!bMethod)
         {
-          wpErrorBegin=wpLineBegin;
           nMessageID=STRID_PARSEMSG_NOMETHOD;
           goto Error;
         }
@@ -5598,6 +5608,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
       return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%0.s%.9s...\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_MENU_OPEN)
@@ -6179,6 +6191,8 @@ EXPLORER\r";
       return L"If: unknown operator \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
       return L"If: unknown method \"%0.s%0.s%.9s...\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: wrong number of parameters.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: call error.";
     if (nStringID == STRID_MENU_OPEN)
