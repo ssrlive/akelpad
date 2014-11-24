@@ -18,7 +18,7 @@ Main dialog.
 
 *** External call ***
 
-Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", INPUTLEN, INPUTCODEPAGE, **OUTPUT, *OUTPUTLEN)
+Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", "INPUT", INPUTLEN, INPUTCODEPAGE, **OUTPUT, *OUTPUTLEN)
   Parameters:
     1
       Convert selection or specified text.
