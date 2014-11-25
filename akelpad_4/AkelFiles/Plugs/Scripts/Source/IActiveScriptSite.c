@@ -405,7 +405,7 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
 
       if (nChoice == IDNO) //"Edit"
       {
-        Document_OpenFile(NULL, wszScriptFile, OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, 0, &nOpenResult);
+        Document_OpenFile(NULL, wszScriptFile, OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM, 0, 0, &nOpenResult);
 
         if (nOpenResult == EOD_SUCCESS || (nMDI != WMD_SDI && nOpenResult == EOD_WINDOWEXIST))
         {

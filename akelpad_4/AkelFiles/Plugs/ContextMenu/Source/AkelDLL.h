@@ -103,14 +103,14 @@
 #define MOF_DESTROY     2 //Processing AKDN_MAIN_ONFINISH message.
 
 //Autodetect flags
-#define ADT_BINARY_ERROR     0x00000001  //Check if file is binary.
-#define ADT_REG_CODEPAGE     0x00000002  //If last open code page found in registry, then it will be
-                                         //used with ADT_DETECT_BOM flag. If not found, then next flags
-                                         //will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
-#define ADT_DETECT_CODEPAGE  0x00000004  //Detect code page.
-#define ADT_DETECT_BOM       0x00000008  //Detect BOM mark.
-#define ADT_NOMESSAGES       0x00000010  //No messages, if errors in autodetect.
-#define ADT_ONLYBOM          0x00000020  //Detect code page only if BOM mark is present, otherwise default codepage is used.
+#define ADT_BINARYERROR     0x00000001  //Check if file is binary.
+#define ADT_REGCODEPAGE     0x00000002  //If last open code page found in registry, then it will be
+                                        //used with ADT_DETECTBOM flag. If not found, then next flags
+                                        //will be used ADT_DETECTCODEPAGE|ADT_DETECTBOM.
+#define ADT_DETECTCODEPAGE  0x00000004  //Detect code page.
+#define ADT_DETECTBOM       0x00000008  //Detect BOM mark.
+#define ADT_NOMESSAGES      0x00000010  //No messages, if errors in autodetect.
+#define ADT_ONLYBOM         0x00000020  //Detect code page only if BOM mark is present, otherwise default codepage is used.
 
 //Autodetect errors
 #define EDT_SUCCESS        0   //Success.
@@ -120,15 +120,15 @@
 #define EDT_BINARY        -4   //File is binary.
 
 //Open document flags
-#define OD_ADT_BINARY_ERROR     ADT_BINARY_ERROR     //See ADT_BINARY_ERROR.
-#define OD_ADT_REG_CODEPAGE     ADT_REG_CODEPAGE     //See ADT_REG_CODEPAGE.
-#define OD_ADT_DETECT_CODEPAGE  ADT_DETECT_CODEPAGE  //See ADT_DETECT_CODEPAGE.
-#define OD_ADT_DETECT_BOM       ADT_DETECT_BOM       //See ADT_DETECT_BOM.
-#define OD_ADT_NOMESSAGES       ADT_NOMESSAGES       //See ADT_NOMESSAGES.
-#define OD_ADT_ONLYBOM          ADT_ONLYBOM          //See ADT_ONLYBOM.
-#define OD_REOPEN               0x00000100           //Don't create new MDI window, use the exited one.
-#define OD_NOSCROLL             0x00000200           //Don't restore scroll position.
-#define OD_MULTIFILE            0x00000400           //More documents is on queue. Use MB_YESNOCANCEL instead of MB_OKCANCEL.
+#define OD_ADT_BINARYERROR     ADT_BINARYERROR     //See ADT_BINARYERROR.
+#define OD_ADT_REGCODEPAGE     ADT_REGCODEPAGE     //See ADT_REGCODEPAGE.
+#define OD_ADT_DETECTCODEPAGE  ADT_DETECTCODEPAGE  //See ADT_DETECTCODEPAGE.
+#define OD_ADT_DETECTBOM       ADT_DETECTBOM       //See ADT_DETECTBOM.
+#define OD_ADT_NOMESSAGES      ADT_NOMESSAGES      //See ADT_NOMESSAGES.
+#define OD_ADT_ONLYBOM         ADT_ONLYBOM         //See ADT_ONLYBOM.
+#define OD_REOPEN              0x00000100          //Don't create new MDI window, use the exited one.
+#define OD_NOSCROLL            0x00000200          //Don't restore scroll position.
+#define OD_MULTIFILE           0x00000400          //More documents is on queue. Use MB_YESNOCANCEL instead of MB_OKCANCEL.
 
 //Open document errors
 #define EOD_SUCCESS              0          //Success.
@@ -151,14 +151,14 @@
 #define SD_SELECTION         0x00000002  //Save only selection.
 
 //Save document errors
-#define ESD_SUCCESS          0  //Success.
-#define ESD_OPEN            -1  //Can't open file.
-#define ESD_WRITE           -2  //Can't write to file.
-#define ESD_READONLY        -3  //File has read-only attribute.
-#define ESD_CODEPAGE_ERROR  -4  //Code page isn't implemented.
-#define ESD_STOP            -5  //Stopped from AKDN_SAVEDOCUMENT_START.
-#define ESD_STREAMOUT       -6  //Error in EM_STREAMOUT.
-#define ESD_NOWINDOW        -7  //No window to save from.
+#define ESD_SUCCESS         0  //Success.
+#define ESD_OPEN           -1  //Can't open file.
+#define ESD_WRITE          -2  //Can't write to file.
+#define ESD_READONLY       -3  //File has read-only attribute.
+#define ESD_CODEPAGEERROR  -4  //Code page isn't implemented.
+#define ESD_STOP           -5  //Stopped from AKDN_SAVEDOCUMENT_START.
+#define ESD_STREAMOUT      -6  //Error in EM_STREAMOUT.
+#define ESD_NOWINDOW       -7  //No window to save from.
 
 //Code pages int
 #define CP_UNICODE_UTF16LE  1200
@@ -1264,23 +1264,23 @@ typedef struct {
   const char *pFile;        //File to open.
   const char *pWorkDir;     //Set working directory before open, if NULL then don't set.
   DWORD dwFlags;            //Open flags. See OD_* defines.
-  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE).
-  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM).
+  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
+  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
 } OPENDOCUMENTA;
 
 typedef struct {
   const wchar_t *pFile;     //File to open.
   const wchar_t *pWorkDir;  //Set working directory before open, if NULL then don't set.
   DWORD dwFlags;            //Open flags. See OD_* defines.
-  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE).
-  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM).
+  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
+  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
 } OPENDOCUMENTW;
 
 typedef struct {
   HWND hWnd;                 //Window to fill in, NULL for current edit window.
   DWORD dwFlags;             //Open flags. See OD_* defines.
-  int nCodePage;             //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE).
-  BOOL bBOM;                 //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM).
+  int nCodePage;             //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
+  BOOL bBOM;                 //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
   char szFile[MAX_PATH];     //File to open.
   char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set.
 } OPENDOCUMENTPOSTA;
@@ -1288,8 +1288,8 @@ typedef struct {
 typedef struct {
   HWND hWnd;                    //Window to fill in, NULL for current edit window.
   DWORD dwFlags;                //Open flags. See OD_* defines.
-  int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE).
-  BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM).
+  int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
+  BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
   wchar_t szFile[MAX_PATH];     //File to open.
   wchar_t szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set.
 } OPENDOCUMENTPOSTW;
@@ -3247,7 +3247,7 @@ Example (bOldWindows == TRUE):
  {
    wchar_t *wpContent;
 
-   if (ReadFileContentA("C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   if (ReadFileContentA("C:\\MyFile.txt", ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM, 0, 0, &wpContent))
    {
      //Show contents
      MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
@@ -3295,7 +3295,7 @@ Example (bOldWindows == FALSE):
  {
    wchar_t *wpContent;
 
-   if (ReadFileContentW(L"C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   if (ReadFileContentW(L"C:\\MyFile.txt", ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM, 0, 0, &wpContent))
    {
      //Show contents
      MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
@@ -3372,7 +3372,7 @@ Example (Unicode):
 
   od.pFile=L"C:\\MyFile.txt";
   od.pWorkDir=NULL;
-  od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+  od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
   SendMessage(pd->hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
@@ -5454,7 +5454,7 @@ Example (Ansi):
   lstrcpynA(odp.szFile, "C:\\MyFile.txt", MAX_PATH);
   odp.szWorkDir[0]='\0';
   odp.hWnd=NULL;
-  odp.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+  odp.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   odp.nCodePage=0;
   odp.bBOM=0;
 
