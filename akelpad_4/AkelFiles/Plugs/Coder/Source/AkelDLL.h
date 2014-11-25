@@ -96,6 +96,7 @@
 #define IEE_UNKNOWNOPERATOR    3
 #define IEE_UNKNOWNMETHOD      4
 #define IEE_CALLERROR          5
+#define IEE_NOFALSE            6
 
 //MI_ONFINISH type
 #define MOF_NONE        0

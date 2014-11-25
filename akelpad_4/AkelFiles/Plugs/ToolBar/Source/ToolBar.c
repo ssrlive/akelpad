@@ -86,12 +86,13 @@
 #define STRID_IF_NOCLOSEPARENTHESIS          15
 #define STRID_IF_UNKNOWNOPERATOR             16
 #define STRID_IF_UNKNOWNMETHOD               17
-#define STRID_IF_WRONGPARAMETERSNUMBER       18
-#define STRID_IF_CALLERROR                   19
-#define STRID_PLUGIN                         20
-#define STRID_OK                             21
-#define STRID_CANCEL                         22
-#define STRID_DEFAULTMENU                    23
+#define STRID_IF_CALLERROR                   18
+#define STRID_IF_NOFALSE                     19
+#define STRID_IF_WRONGPARAMETERSNUMBER       20
+#define STRID_PLUGIN                         21
+#define STRID_OK                             22
+#define STRID_CANCEL                         23
+#define STRID_DEFAULTMENU                    24
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -1833,7 +1834,6 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
     {
       if (lpButton->lpStateIf)
       {
-        DWORD dwNewState=0;
         DWORD dwButtonState;
 
         lpStateIf=lpButton->lpStateIf;
@@ -1864,14 +1864,11 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
           }
           lpStateIf->bCalculated=TRUE;
         }
-        if (lpStateIf->nValue)
-          dwNewState=TBSTATE_CHECKED;
-
         dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
-        if ((dwButtonState & TBSTATE_CHECKED) != (dwNewState & TBSTATE_CHECKED))
-          SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwNewState & TBSTATE_CHECKED)?TRUE:FALSE);
-        //if ((dwButtonState & TBSTATE_ENABLED) != (dwNewState & TBSTATE_ENABLED))
-        //  SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwNewState & TBSTATE_ENABLED)?TRUE:FALSE);
+        if ((dwButtonState & TBSTATE_CHECKED) != ((DWORD)lpStateIf->nValue & TBSTATE_CHECKED))
+          SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_CHECKED)?TRUE:FALSE);
+        if ((dwButtonState & TBSTATE_ENABLED) != ((DWORD)lpStateIf->nValue & TBSTATE_ENABLED))
+          SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_ENABLED)?TRUE:FALSE);
       }
       else
       {
@@ -3075,10 +3072,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
       return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%0.s%.9s...\".";
-    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
-      return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
+    if (nStringID == STRID_IF_NOFALSE)
+      return L"If: \x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442 \":\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -3280,10 +3279,12 @@ SEPARATOR1\r";
       return L"If: unknown operator \"%0.s%0.s%.2s...\".";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
       return L"If: unknown method \"%0.s%0.s%.9s...\".";
-    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
-      return L"If: wrong number of parameters.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: call error.";
+    if (nStringID == STRID_IF_NOFALSE)
+      return L"If: missing \":\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: wrong number of parameters.";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)

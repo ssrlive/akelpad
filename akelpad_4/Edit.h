@@ -151,12 +151,14 @@
 #define OS_BITXOR     8  // ^
 #define OS_GREATER    9  // >
 #define OS_LESS       10 // <
-#define OS_EQU        11 // ==
-#define OS_NOTEQU     12 // !=
-#define OS_GREATEREQU 13 // >=
-#define OS_LESSEQU    14 // <=
-#define OS_AND        15 // &&
-#define OS_OR         16 // ||
+#define OS_IFTRUE     11 // ?
+#define OS_IFFALSE    12 // :
+#define OS_EQU        13 // ==
+#define OS_NOTEQU     14 // !=
+#define OS_GREATEREQU 15 // >=
+#define OS_LESSEQU    16 // <=
+#define OS_AND        17 // &&
+#define OS_OR         18 // ||
 
 //File dialog notifications
 #define AKDLG_SETSTREAM                (WM_USER + 100)
