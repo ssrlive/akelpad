@@ -59,9 +59,13 @@
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
 //AKD_PARSECMDLINE return value
-#define PCLE_QUIT    0x01  //Stop parsing command line parameters and close program.
-#define PCLE_END     0x02  //Stop parsing command line parameters.
-#define PCLE_ONLOAD  0x04  //Done parsing command line parameters on program load (used internally).
+#define PCLE_SUCCESS     0  //Success.
+#define PCLE_QUIT        1  //Stop parsing command line parameters and close program.
+#define PCLE_END         2  //Stop parsing command line parameters.
+#define PCLE_ONLOAD      3  //Done parsing command line parameters on program load (used internally).
+#define PCLE_WINDOWEXIST 4  //File already opened in SDI mode.
+#define PCLE_OPENERROR   5  //Error occurred during file opening.
+#define PCLE_SAVEERROR   6  //Error occurred during file saving.
 
 //External parameters
 #define EXTPARAM_CHAR     1
@@ -82,7 +86,7 @@
 //AKD_IFEXPRESSION flags
 #define IEF_METHOD        0x0 //Expression begins with If("..."). After AKD_IFEXPRESSION returns, IFEXPRESSION.dwFlags will contain IEF_IF (if no errors).
 #define IEF_IF            0x1 //Calculate IF expression that begins with: "..."
-#define IEF_STACKEXTPARAM 0x2 //IFEXPRESSION.sep member is valid. If IEF_PARSEONLY flag is not set, then wParam is ignored.
+#define IEF_STACKEXTPARAM 0x2 //IFEXPRESSION.sep member is valid. If IEF_PARSEONLY flag is not set, then wParam is ignored and first EXTPARAM string used as expression.
 #define IEF_PARSEONLY     0x4 //Fill IFEXPRESSION.sep. Must be combined with IEF_STACKEXTPARAM.
 
 //AKD_IFEXPRESSION errors
@@ -132,11 +136,11 @@
 #define EOD_ADT_ALLOC            EDT_ALLOC  //See EDT_ALLOC.
 #define EOD_ADT_READ             EDT_READ   //See EDT_READ.
 #define EOD_OPEN                 -11        //Can't open file.
-#define EOD_WINDOW_EXIST         -13        //File already opened.
-#define EOD_CODEPAGE_ERROR       -14        //Code page isn't implemented.
+#define EOD_WINDOWEXIST          -13        //File already opened.
+#define EOD_CODEPAGEERROR        -14        //Code page isn't implemented.
 #define EOD_STOP                 -15        //Stopped from AKDN_OPENDOCUMENT_START.
 #define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
-#define EOD_DOCUMENTS_LIMIT      -17        //Documents limit reached in MDI mode.
+#define EOD_DOCUMENTSLIMIT       -17        //Documents limit reached in MDI mode.
 #define EOD_MSGCANCELCREATE      -21        //User press Cancel in message "Create new file?".
 #define EOD_MSGCANCELBINARY      -22        //User press Cancel in message "Binary file. Continue?".
 #define EOD_MSGNOCREATE          -23        //User press No in message "Create new file?".
@@ -2162,9 +2166,10 @@ typedef struct {
 #define AKD_PARSECMDLINEW          (WM_USER + 125)
 #define AKD_PARSEMETHODPARAMETERS  (WM_USER + 126)
 #define AKD_EXPANDMETHODPARAMETERS (WM_USER + 127)
-#define AKD_STRUCTMETHODPARAMETERS (WM_USER + 128)
-#define AKD_FREEMETHODPARAMETERS   (WM_USER + 129)
-#define AKD_IFEXPRESSION           (WM_USER + 130)
+#define AKD_GETMETHODPARAMETER     (WM_USER + 128)
+#define AKD_STRUCTMETHODPARAMETERS (WM_USER + 129)
+#define AKD_FREEMETHODPARAMETERS   (WM_USER + 130)
+#define AKD_IFEXPRESSION           (WM_USER + 131)
 
 //Text retrieval and modification
 #define AKD_WRITEFILECONTENT       (WM_USER + 141)
@@ -2917,7 +2922,7 @@ Example (call plugin):
 AKD_EXPANDMETHODPARAMETERS
 __________________________
 
-Expand method parameters. For example, "%a" expanded to "C:\\Program Files\\AkelPad".
+Expand method parameters - fill EXTPARAM.pExpanded, EXTPARAM.nExpandedAnsiLen, EXTPARAM.wpExpanded, EXTPARAM.nExpandedUnicodeLen. For example, "%a" expanded to "C:\\Program Files\\AkelPad".
 
 (STACKEXTPARAM *)wParam == pointer to a STACKEXTPARAM structure.
 (EXPPARAM *)lParam      == pointer to an array of EXPPARAM structures. Last array item must be with EXPPARAM.wpVar == NULL.
@@ -2931,6 +2936,37 @@ Remarks
 
 Example:
  See AKD_PARSEMETHODPARAMETERS example.
+
+
+AKD_GETMETHODPARAMETER
+______________________
+
+Get method parameter.
+
+(STACKEXTPARAM *)wParam == pointer to a STACKEXTPARAM structure.
+(int)lParam             == parameter number.
+
+Return Value
+ Pointer to a EXTPARAM structure.
+
+Example:
+ STACKEXTPARAM hParamStack={0};
+ EXTPARAM *lpExtParam;
+ const wchar_t *wpText=L"\"Scripts::Main\", 1, \"MyScript.js\", `-Param1=\"%f\" -Param2=%t`)";
+ const wchar_t *wpString=NULL;
+ int nExtCall=-1;
+
+ if (SendMessage(pd->hMainWnd, AKD_PARSEMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
+ {
+   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 1))
+     wpString=lpExtParam->wpString;
+   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 2))
+     nExtCall=(int)lpExtParam->nNumber;
+
+   if (wpString && nExtCall != -1)
+     MessageBoxW(pd->hMainWnd, wpString, NULL, MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+ }
 
 
 AKD_STRUCTMETHODPARAMETERS
@@ -2961,8 +2997,65 @@ Return Value
 
 Example:
  See AKD_PARSEMETHODPARAMETERS example.
+*/
 
+//AKD_IFEXPRESSION
+//________________
+//
+//Calculate expression.
+//
+//(const wchar_t *)wParam == expression to calculate.
+//(IFEXPRESSION *)lParam  == pointer to a IFEXPRESSION structure.
+//
+//Return Value
+// Expression result.
+//
+//Example (one call usage):
+// IFEXPRESSION ie;
+// const wchar_t *wpExpression=L"\"SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/\"";
+// INT_PTR nResult;
+//
+// ie.dwFlags=IEF_IF;
+// nResult=SendMessage(pd->hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpExpression, (LPARAM)&ie);
+//
+//Example (with expanding method parameters):
+// IFEXPRESSION ie;
+// const wchar_t *wpExpression=L"If(\"SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/\", \"TrueString [%a]\", \"FalseString [%t]\")";
+// const wchar_t *wpTrueString=NULL;
+// const wchar_t *wpFalseString=NULL;
+// STACKEXTPARAM hParamStack={0};
+// EXTPARAM *lpExtParam;
+// static wchar_t *wpMyVar=L"12345";
+// EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+//                {L"%d", 2, 0, EXPPARAM_FILEDIR},
+//                {L"%t", 2, (INT_PTR)wpMyVar, 0},
+//                {0, 0, 0, 0}};
+//
+// ie.dwFlags=IEF_STACKEXTPARAM|IEF_PARSEONLY;
+// ie.sep=&hParamStack;
+// SendMessage(pd->hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpExpression, (LPARAM)&ie);
+//
+// if (ie.nError == IEE_SUCCESS)
+// {
+//   SendMessage(pd->hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
+//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 2))
+//     wpTrueString=lpExtParam->wpExpanded;
+//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 3))
+//     wpFalseString=lpExtParam->wpExpanded;
+//
+//   if (wpTrueString && wpFalseString)
+//   {
+//     ie.dwFlags=IEF_IF|IEF_STACKEXTPARAM;
+//     ie.sep=&hParamStack;
+//     if (SendMessage(pd->hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie))
+//       MessageBoxW(pd->hMainWnd, wpTrueString, NULL, MB_OK);
+//     else
+//       MessageBoxW(pd->hMainWnd, wpFalseString, NULL, MB_OK);
+//   }
+//   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+// }
 
+/*
 AKD_DETECTSELCASE
 _________________
 

@@ -1178,11 +1178,11 @@ Return Value
   -2  //EOD_ADT_ALLOC        Autodetect codepage, can't allocate buffer.
   -3  //EOD_ADT_READ         Autodetect codepage, read file error.
  -11  //EOD_OPEN             Can't open file.
- -13  //EOD_WINDOW_EXIST     File already opened.
- -14  //EOD_CODEPAGE_ERROR   Code page isn't implemented.
+ -13  //EOD_WINDOWEXIST      File already opened.
+ -14  //EOD_CODEPAGEERROR    Code page isn't implemented.
  -15  //EOD_STOP             Stopped from AKDN_OPENDOCUMENT_START.
  -16  //EOD_STREAMIN         Error in EM_STREAMIN.
- -17  //EOD_DOCUMENTS_LIMIT  Documents limit reached in MDI mode.
+ -17  //EOD_DOCUMENTSLIMIT   Documents limit reached in MDI mode.
  -21  //EOD_MSGCANCELCREATE  User press Cancel in message "Create new file?".
  -22  //EOD_MSGCANCELBINARY  User press Cancel in message "Binary file. Continue?".
  -23  //EOD_MSGNOCREATE      User press No in message "Create new file?".

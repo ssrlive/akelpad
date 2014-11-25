@@ -1555,7 +1555,7 @@ BOOL DoFileOpen()
               xprintfW(wszFile, L"%s\\%s", wszOfnFileList, wpFile);
             }
             nOpen=OpenDocument(NULL, wszFile, dwOfnFlags|(*(wpFile + nFileLen + 1)?OD_MULTIFILE:0), nOfnCodePage, bOfnBOM);
-            if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
+            if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
             {
               bResult=FALSE;
               break;
@@ -1596,7 +1596,7 @@ BOOL DoFileOpen()
           xprintfW(wszOfnFileList + nFileLen, L":%.%ds", sizeof(wszOfnFileList) / sizeof(wchar_t) - nFileLen - 1,  wszOfnStream);
         }
         nOpen=OpenDocument(NULL, wszOfnFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
-        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           bResult=FALSE;
       }
     }
@@ -4397,7 +4397,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   {
     API_LoadString(hLangModule, MSG_DOCUMENTSLIMIT, wszMsg, BUFFER_SIZE);
     API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-    nResult=EOD_DOCUMENTS_LIMIT;
+    nResult=EOD_DOCUMENTSLIMIT;
     goto End;
   }
   if (!bFileExist)
@@ -4444,7 +4444,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
           {
             ActivateWindow(hWndFriend);
             OpenDocumentSend(hWndFriend, NULL, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM, FALSE);
-            nResult=EOD_WINDOW_EXIST;
+            nResult=EOD_WINDOWEXIST;
             goto End;
           }
         }
@@ -4460,7 +4460,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
             {
               OpenDocument(hWnd, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
             }
-            nResult=EOD_WINDOW_EXIST;
+            nResult=EOD_WINDOWEXIST;
             goto End;
           }
         }
@@ -4553,7 +4553,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       API_LoadString(hLangModule, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
       xprintfW(wszMsg, wbuf, nCodePage);
       API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-      nResult=EOD_CODEPAGE_ERROR;
+      nResult=EOD_CODEPAGEERROR;
       break;
     }
 
@@ -5631,7 +5631,7 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
       else
       {
         nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|OD_MULTIFILE, 0, FALSE);
-        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
         {
           bResult=FALSE;
           break;
@@ -5672,7 +5672,7 @@ void DropFiles(HDROP hDrop)
       else
       {
         nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(i + 1 < nDropped?OD_MULTIFILE:0), 0, FALSE);
-        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           break;
       }
       if (nMDI == WMD_SDI) break;
@@ -18841,24 +18841,24 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         if (!bFileOpenedSDI)
         {
           if (!SaveChanged(0))
-            return PCLE_END;
+            return PCLE_SAVEERROR;
           nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
-          if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
-            return PCLE_END;
+          if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
+            return PCLE_OPENERROR;
           bFileOpenedSDI=TRUE;
           continue;
         }
         hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
         SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
         SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
-        return PCLE_END;
+        return PCLE_WINDOWEXIST;
       }
       if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
       nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
-      if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
-        return PCLE_END;
+      if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
+        return PCLE_OPENERROR;
     }
   }
   return PCLE_SUCCESS;
@@ -19063,7 +19063,7 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         if (bBOM == -1)
           dwFlags|=OD_ADT_DETECT_BOM;
         nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
-        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOW_EXIST)
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           nResult=PCLE_END;
       }
       else if (dwAction == EXTACT_SAVEFILE)
