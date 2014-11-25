@@ -531,7 +531,6 @@ wchar_t wszPluginTitle[MAX_PATH];
 HANDLE hHeap;
 HINSTANCE hInstanceDLL;
 HWND hMainWnd;
-HWND g_hWndEdit;
 HWND hMdiClient;
 HMENU hMainMenu;
 HMENU hNewMainMenu;
@@ -3220,7 +3219,6 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
   BOOL bInitMenu=FALSE;
 
   ei.hWndEdit=NULL;
-  g_hWndEdit=NULL;
 
   Loop:
   for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
@@ -3283,6 +3281,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
         if (lpMenuItem->lpStateIf)
         {
           DWORD dwMenuState=0;
+          DWORD dwNewState=0;
 
           lpStateIf=lpMenuItem->lpStateIf;
 
@@ -3294,7 +3293,6 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                            {L"%d", 2, 0, EXPPARAM_FILEDIR},
                            {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
                            {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
-                           {L"%u", 2, (INT_PTR)wszUrlLink, 0},
                            {0, 0, 0, 0}};
 
             SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
@@ -3314,9 +3312,12 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             lpStateIf->bCalculated=TRUE;
           }
           if (lpStateIf->nValue)
-            dwMenuState=MF_CHECKED;
-          CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
-          EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
+            dwNewState=MF_CHECKED;
+          dwMenuState=GetMenuState(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND);
+          if ((dwMenuState & MF_CHECKED) != (dwNewState & MF_CHECKED))
+            CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwNewState);
+          //if ((dwMenuState & (MF_GRAYED|MF_DISABLED)) != (dwNewState & (MF_GRAYED|MF_DISABLED)))
+          //  EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwNewState);
         }
         else
         {
