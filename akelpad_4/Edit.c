@@ -19606,8 +19606,10 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
   INT_PTR nValue1;
   INT_PTR nValue2;
+  INT_PTR nValue3;
   int nSign1;
   int nSign2;
+  int nSign3;
 
   FirstValueInGroup:
   nValue1=IfGroup(wpIn, &wpIn, &nSign1, lpnError);
@@ -19628,9 +19630,24 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     nValue2=IfGroup(wpIn, &wpIn, &nSign2, lpnError);
     if (*lpnError) goto End;
 
-    nValue1=IfOperate(nValue1, nSign1, nValue2, lpnError);
-    if (*lpnError) goto End;
-    nSign1=nSign2;
+    if (nSign1 == OS_IFTRUE)
+    {
+      if (nSign2 != OS_IFFALSE)
+      {
+        *lpnError=IEE_NOFALSE;
+        goto End;
+      }
+      nValue3=IfGroup(wpIn, &wpIn, &nSign3, lpnError);
+      if (*lpnError) goto End;
+      nValue1=nValue1 ? nValue2 : nValue3;
+      nSign1=nSign3;
+    }
+    else
+    {
+      nValue1=IfOperate(nValue1, nSign1, nValue2, lpnError);
+      if (*lpnError) goto End;
+      nSign1=nSign2;
+    }
   }
   *lpnError=IEE_SUCCESS;
 
@@ -19872,6 +19889,10 @@ int IfSign(const wchar_t *wpSign, const wchar_t **wppSign)
     nSign=OS_NOTEQU;
   else if (*wpSign == L'^')
     nSign=OS_BITXOR;
+  else if (*wpSign == L'?')
+    nSign=OS_IFTRUE;
+  else if (*wpSign == L':')
+    nSign=OS_IFFALSE;
   else
     nSign=OS_ERROR;
 
