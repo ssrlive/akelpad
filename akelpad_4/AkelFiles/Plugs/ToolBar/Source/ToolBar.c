@@ -81,10 +81,17 @@
 #define STRID_PARSEMSG_UNKNOWNMETHOD         10
 #define STRID_PARSEMSG_METHODALREADYDEFINED  11
 #define STRID_PARSEMSG_NOMETHOD              12
-#define STRID_PLUGIN                         13
-#define STRID_OK                             14
-#define STRID_CANCEL                         15
-#define STRID_DEFAULTMENU                    16
+#define STRID_PARSEMSG_NOOPENSET             13
+#define STRID_IF_NOCOMMA                     14
+#define STRID_IF_NOCLOSEPARENTHESIS          15
+#define STRID_IF_UNKNOWNOPERATOR             16
+#define STRID_IF_UNKNOWNMETHOD               17
+#define STRID_IF_WRONGPARAMETERSNUMBER       18
+#define STRID_IF_CALLERROR                   19
+#define STRID_PLUGIN                         20
+#define STRID_OK                             21
+#define STRID_CANCEL                         22
+#define STRID_DEFAULTMENU                    23
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -122,6 +129,8 @@
 #define CCMS_NOMDI       0x02
 #define CCMS_NOPMDI      0x04
 #define CCMS_NOFILEEXIST 0x20
+#define CCMS_SKIPIF      0x40
+#define CCMS_CHECKIF     0x80
 
 #define MAX_TOOLBARTEXT_SIZE  64000
 
@@ -146,10 +155,25 @@
 #define ROWSHOW_OFF       0
 #define ROWSHOW_ON        1
 
+typedef struct _STATEIF {
+  struct _STATEIF *next;
+  struct _STATEIF *prev;
+  DWORD dwFlags;
+  STACKEXTPARAM hParamStack;
+  INT_PTR nValue;
+  BOOL bCalculated;
+} STATEIF;
+
+typedef struct {
+  STATEIF *first;
+  STATEIF *last;
+} STACKSTATEIF;
+
 typedef struct _TOOLBARITEM {
   struct _TOOLBARITEM *next;
   struct _TOOLBARITEM *prev;
   BOOL bUpdateItem;
+  STATEIF *lpStateIf;
   BOOL bAutoLoad;
   DWORD dwAction;
   int nTextOffset;
@@ -166,6 +190,7 @@ typedef struct {
   HIMAGELIST hImageList;
   int nRows;
   int nSepRows;
+  STACKSTATEIF hStateIfStack;
 } STACKTOOLBAR;
 
 typedef struct _ROWITEM {
@@ -1032,6 +1057,15 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   DWORD dwAction;
   DWORD dwNewFlags;
   DWORD dwSetFlags=0;
+  int nFlagCountNoSDI=0;
+  int nFlagCountNoMDI=0;
+  int nFlagCountNoPMDI=0;
+  int nFlagCountNoFileExistAll=0;
+  int nFlagCountNoFileExistMore=0;
+  int nFlagCountSkipIfAll=0;
+  int nFlagCountSkipIfMore=0;
+  int nFlagCountStateIf=0;
+  STATEIF *lpStateIf=NULL;
   DWORD dwStyle;
   int nPlus;
   int nMinus;
@@ -1085,6 +1119,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
       FreeMethodParameters(&hParamMenuName);
       if (!SkipComment(&wpCount)) break;
       wpLineBegin=wpCount;
+      wpErrorBegin=wpLineBegin;
 
       //Set options
       if (!xstrcmpnW(L"SET(", wpCount, (UINT_PTR)-1))
@@ -1093,16 +1128,92 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
         while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
         if (*wpCount == L',') ++wpCount;
 
+        if (dwNewFlags & CCMS_NOSDI)
+          ++nFlagCountNoSDI;
+        if (dwNewFlags & CCMS_NOMDI)
+          ++nFlagCountNoMDI;
+        if (dwNewFlags & CCMS_NOPMDI)
+          ++nFlagCountNoPMDI;
         if (dwNewFlags & CCMS_NOFILEEXIST)
         {
-          if (GetWord(wpCount, wszButtonItem, MAX_PATH, &wpCount, &bQuote) && bQuote)
+          if (dwSetFlags & CCMS_NOFILEEXIST)
+            ++nFlagCountNoFileExistMore;
+          else
           {
-            if (TranslateFileString(wszButtonItem, wszBuffer, BUFFER_SIZE))
+            if (GetWord(wpCount, wszButtonItem, MAX_PATH, &wpCount, &bQuote) && bQuote)
             {
-              if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszButtonItem, &wpFileName))
-                dwNewFlags&=~CCMS_NOFILEEXIST;
+              if (TranslateFileString(wszButtonItem, wszBuffer, BUFFER_SIZE))
+              {
+                if (SearchPathWide(NULL, wszBuffer, NULL, MAX_PATH, wszButtonItem, &wpFileName))
+                  dwNewFlags&=~CCMS_NOFILEEXIST;
+              }
+            }
+            if (dwNewFlags & CCMS_NOFILEEXIST)
+              ++nFlagCountNoFileExistMore;
+          }
+          ++nFlagCountNoFileExistAll;
+        }
+        if (dwNewFlags & CCMS_SKIPIF)
+        {
+          if (dwSetFlags & CCMS_SKIPIF)
+            ++nFlagCountSkipIfMore;
+          else
+          {
+            IFEXPRESSION ie;
+
+            ie.dwFlags=IEF_METHOD;
+            if (SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie))
+              dwNewFlags&=~CCMS_SKIPIF;
+            wpCount=ie.wpEnd;
+
+            if (ie.nError)
+            {
+              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+              goto Error;
+            }
+            if (dwNewFlags & CCMS_SKIPIF)
+              ++nFlagCountSkipIfMore;
+          }
+          ++nFlagCountSkipIfAll;
+        }
+        if (dwNewFlags & CCMS_CHECKIF)
+        {
+          IFEXPRESSION ie;
+          STACKEXTPARAM hParamStack={0};
+
+          ie.dwFlags=IEF_STACKEXTPARAM|IEF_PARSEONLY;
+          ie.sep=&hParamStack;
+          SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie);
+          wpCount=ie.wpEnd;
+
+          if (ie.dwFlags & IEF_IF)
+          {
+            if (ie.nError)
+            {
+              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+              goto Error;
+            }
+            if (hParamStack.nElements == 1)
+            {
+              if (!StackInsertAfter((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+              {
+                lpStateIf->dwFlags=IEF_IF;
+                lpStateIf->hParamStack=hParamStack;
+              }
+            }
+            else
+            {
+              FreeMethodParameters(&hParamStack);
+              nMessageID=STRID_IF_WRONGPARAMETERSNUMBER;
+              goto Error;
             }
           }
+          else
+          {
+            nMessageID=STRID_IF_UNKNOWNMETHOD;
+            goto Error;
+          }
+          ++nFlagCountStateIf;
         }
         dwSetFlags|=dwNewFlags;
         if (!NextLine(&wpCount)) break;
@@ -1110,12 +1221,60 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
       }
       else if (!xstrcmpnW(L"UNSET(", wpCount, (UINT_PTR)-1))
       {
-        dwNewFlags=(DWORD)xatoiW(wpCount + 6, &wpCount);
+        if (dwNewFlags & CCMS_NOSDI)
+        {
+          if (nFlagCountNoSDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoSDI > 0)
+            dwNewFlags&=~CCMS_NOSDI;
+        }
+        if (dwNewFlags & CCMS_NOMDI)
+        {
+          if (nFlagCountNoMDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoMDI > 0)
+            dwNewFlags&=~CCMS_NOMDI;
+        }
+        if (dwNewFlags & CCMS_NOPMDI)
+        {
+          if (nFlagCountNoPMDI <= 0)
+            goto UnsetError;
+          if (--nFlagCountNoPMDI > 0)
+            dwNewFlags&=~CCMS_NOPMDI;
+        }
+        if (dwNewFlags & CCMS_NOFILEEXIST)
+        {
+          if (--nFlagCountNoFileExistAll < 0)
+            goto UnsetError;
+          if (--nFlagCountNoFileExistMore > 0)
+            dwNewFlags&=~CCMS_NOFILEEXIST;
+        }
+        if (dwNewFlags & CCMS_SKIPIF)
+        {
+          if (--nFlagCountSkipIfAll < 0)
+            goto UnsetError;
+          if (--nFlagCountSkipIfMore > 0)
+            dwNewFlags&=~CCMS_SKIPIF;
+        }
+        if (dwNewFlags & CCMS_CHECKIF)
+        {
+          if (--nFlagCountStateIf < 0)
+            goto UnsetError;
+          if (lpStateIf)
+            lpStateIf=lpStateIf->prev;
+          if (lpStateIf)
+            dwNewFlags&=~CCMS_CHECKIF;
+        }
+        dwSetFlags&=~dwNewFlags;
         if (!NextLine(&wpCount)) break;
         continue;
+
+        UnsetError:
+        nMessageID=STRID_PARSEMSG_NOOPENSET;
+        goto Error;
       }
       //Skip line if skip flag set
-      if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST))
+      if (IsFlagOn(dwSetFlags, CCMS_NOSDI|CCMS_NOMDI|CCMS_NOPMDI|CCMS_NOFILEEXIST|CCMS_SKIPIF))
       {
         if (!NextLine(&wpCount)) break;
         continue;
@@ -1309,6 +1468,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                     if (lpRowItem && !lpRowItem->lpFirstToolbarItem)
                       lpRowItem->lpFirstToolbarItem=lpButton;
                     lpButton->bUpdateItem=!nMinus;
+                    lpButton->lpStateIf=lpStateIf;
                     lpButton->bAutoLoad=nPlus;
                     lpButton->dwAction=dwAction;
                     lpButton->nTextOffset=(int)(wpLineBegin - wpTextBegin);
@@ -1399,7 +1559,6 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
         }
         else
         {
-          wpErrorBegin=wpLineBegin;
           nMessageID=STRID_PARSEMSG_NOMETHOD;
           goto Error;
         }
@@ -1460,6 +1619,10 @@ DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags)
     return CCMS_NOPMDI;
   if ((dwCheckFlags & CCMS_NOFILEEXIST) && (dwSetFlags & CCMS_NOFILEEXIST))
     return CCMS_NOFILEEXIST;
+  if ((dwCheckFlags & CCMS_SKIPIF) && (dwSetFlags & CCMS_SKIPIF))
+    return CCMS_SKIPIF;
+  if ((dwCheckFlags & CCMS_CHECKIF) && (dwSetFlags & CCMS_CHECKIF))
+    return CCMS_CHECKIF;
   return 0;
 }
 
@@ -1556,6 +1719,14 @@ void FreeRows(STACKROW *lpRowListStack)
 
 void FreeToolbarData(STACKTOOLBAR *hStack)
 {
+  STATEIF *lpStateIf;
+
+  for (lpStateIf=hStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
+  {
+    FreeMethodParameters(&lpStateIf->hParamStack);
+  }
+  StackClear((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last);
+
   StackFreeButton(hStack);
   if (hStack->hImageList)
   {
@@ -1647,81 +1818,128 @@ void ClearToolbarButtons()
 void UpdateToolbar(STACKTOOLBAR *hStack)
 {
   EDITINFO ei;
+  STATEIF *lpStateIf;
   TOOLBARITEM *lpButton;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
 
   ei.hWndEdit=NULL;
+  for (lpStateIf=hStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
+    lpStateIf->bCalculated=FALSE;
 
   for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
   {
     if (lpButton->bUpdateItem)
     {
-      if (lpButton->dwAction == EXTACT_COMMAND)
+      if (lpButton->lpStateIf)
       {
-        DWORD dwMenuState=0;
-        DWORD dwToolState;
-        int nCommand=0;
+        DWORD dwNewState=0;
+        DWORD dwButtonState;
 
-        if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
-          nCommand=(int)lpParameter->nNumber;
+        lpStateIf=lpButton->lpStateIf;
 
-        if (nCommand)
+        if (!lpStateIf->bCalculated)
         {
-          if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
-              nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
-              nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
+          IFEXPRESSION ie;
+          int nMessageID;
+          EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                         {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                         {L"%m", 2, (INT_PTR)hToolbar, EXPPARAM_INT},
+                         {L"%i", 2, lpButton->tbb.idCommand, EXPPARAM_INT},
+                         {0, 0, 0, 0}};
+
+          SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+
+          ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
+          ie.sep=&lpStateIf->hParamStack;
+          lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+
+          if (ie.nError)
           {
-            if (!ei.hWndEdit)
-              SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
-            if (ei.hWndEdit)
+            nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+            xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
+            MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+            ViewItemCode(lpButton);
+            return;
+          }
+          lpStateIf->bCalculated=TRUE;
+        }
+        if (lpStateIf->nValue)
+          dwNewState=TBSTATE_CHECKED;
+
+        dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
+        if ((dwButtonState & TBSTATE_CHECKED) != (dwNewState & TBSTATE_CHECKED))
+          SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwNewState & TBSTATE_CHECKED)?TRUE:FALSE);
+        //if ((dwButtonState & TBSTATE_ENABLED) != (dwNewState & TBSTATE_ENABLED))
+        //  SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwNewState & TBSTATE_ENABLED)?TRUE:FALSE);
+      }
+      else
+      {
+        if (lpButton->dwAction == EXTACT_COMMAND)
+        {
+          DWORD dwMenuState=0;
+          DWORD dwButtonState;
+          int nCommand=0;
+
+          if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
+            nCommand=(int)lpParameter->nNumber;
+
+          if (nCommand)
+          {
+            if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
+                nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
+                nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
             {
-              if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
-                  (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
-                  (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+              if (!ei.hWndEdit)
+                SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
+              if (ei.hWndEdit)
               {
-                dwMenuState=MF_CHECKED;
+                if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
+                    (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
+                    (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+                {
+                  dwMenuState=MF_CHECKED;
+                }
               }
             }
-          }
-          else
-          {
-            if (!bInitMenu)
+            else
             {
-              SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
-              bInitMenu=TRUE;
+              if (!bInitMenu)
+              {
+                SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
+                bInitMenu=TRUE;
+              }
+              dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
             }
-            dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
-          }
-          if (dwMenuState != (DWORD)-1)
-          {
-            dwToolState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
-
-            if (!(dwMenuState & MF_GRAYED) == !(dwToolState & TBSTATE_ENABLED))
-              SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_GRAYED)?FALSE:TRUE);
-            if (!(dwMenuState & MF_CHECKED) != !(dwToolState & TBSTATE_CHECKED))
-              SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_CHECKED)?TRUE:FALSE);
+            if (dwMenuState != (DWORD)-1)
+            {
+              dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
+              if (!(dwMenuState & MF_CHECKED) != !(dwButtonState & TBSTATE_CHECKED))
+                SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_CHECKED)?TRUE:FALSE);
+              if (!(dwMenuState & MF_GRAYED) == !(dwButtonState & TBSTATE_ENABLED))
+                SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_GRAYED)?FALSE:TRUE);
+            }
           }
         }
-      }
-      else if (lpButton->dwAction == EXTACT_CALL)
-      {
-        PLUGINFUNCTION *pf;
-        wchar_t *wpFunction=NULL;
-        int nDllAction=0;
-        BOOL bChecked;
-
-        if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
-          wpFunction=lpParameter->wpString;
-        if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 2))
-          nDllAction=(int)lpParameter->nNumber;
-
-        if (wpFunction)
+        else if (lpButton->dwAction == EXTACT_CALL)
         {
-          bChecked=FALSE;
-          if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
-            if (pf->bRunning) bChecked=TRUE;
-          SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, bChecked);
+          PLUGINFUNCTION *pf;
+          wchar_t *wpFunction=NULL;
+          int nDllAction=0;
+          BOOL bChecked;
+
+          if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 1))
+            wpFunction=lpParameter->wpString;
+          if (lpParameter=GetMethodParameter(&lpButton->hParamStack, 2))
+            nDllAction=(int)lpParameter->nNumber;
+
+          if (wpFunction)
+          {
+            bChecked=FALSE;
+            if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
+              if (pf->bRunning) bChecked=TRUE;
+            SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, bChecked);
+          }
         }
       }
     }
@@ -2847,6 +3065,20 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041C\x0435\x0442\x043E\x0434\x0020\x0443\x0436\x0435\x0020\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x002E";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"\x042D\x043B\x0435\x043C\x0435\x043D\x0442\x0020\x043D\x0435\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0020\x043C\x0435\x0442\x043E\x0434\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x044B\x043F\x043E\x043B\x043D\x0435\x043D\x0438\x044F\x002E";
+    if (nStringID == STRID_PARSEMSG_NOOPENSET)
+      return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
+    if (nStringID == STRID_IF_NOCOMMA)
+      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043F\x044F\x0442\x043E\x0439 \",\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
+    if (nStringID == STRID_IF_UNKNOWNOPERATOR)
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%0.s%0.s%.2s...\".";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%0.s%.9s...\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -3038,6 +3270,20 @@ SEPARATOR1\r";
       return L"Method already defined.";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"The element does not use method for execution.";
+    if (nStringID == STRID_PARSEMSG_NOOPENSET)
+      return L"No opening SET().";
+    if (nStringID == STRID_IF_NOCOMMA)
+      return L"If: no comma \",\".";
+    if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
+      return L"If: no close parenthesis \")\".";
+    if (nStringID == STRID_IF_UNKNOWNOPERATOR)
+      return L"If: unknown operator \"%0.s%0.s%.2s...\".";
+    if (nStringID == STRID_IF_UNKNOWNMETHOD)
+      return L"If: unknown method \"%0.s%0.s%.9s...\".";
+    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+      return L"If: wrong number of parameters.";
+    if (nStringID == STRID_IF_CALLERROR)
+      return L"If: call error.";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)
