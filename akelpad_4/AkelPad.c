@@ -1029,7 +1029,7 @@ void _WinMain()
 
     if (nResult == PCLE_QUIT)
       goto Quit;
-    else if (nResult == PCLE_END || nResult == PCLE_SUCCESS)
+    else if (nResult != PCLE_ONLOAD)
       wpCmdLine=NULL;
   }
 
@@ -1911,6 +1911,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       ExpandMethodParameters(hParamStack, ep);
       return 0;
+    }
+    if (uMsg == AKD_GETMETHODPARAMETER)
+    {
+      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+
+      return (INT_PTR)GetMethodParameter(hParamStack, lParam);
     }
     if (uMsg == AKD_STRUCTMETHODPARAMETERS)
     {
