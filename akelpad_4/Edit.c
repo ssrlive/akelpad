@@ -1617,9 +1617,9 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
 
   if (!lpFrameCurrent->wszFile[0])
   {
-    if (dwFlags & OD_ADT_DETECT_CODEPAGE)
+    if (dwFlags & OD_ADT_DETECTCODEPAGE)
       nCodePage=lpFrameCurrent->ei.nCodePage;
-    if (dwFlags & OD_ADT_DETECT_BOM)
+    if (dwFlags & OD_ADT_DETECTBOM)
       bBOM=IsCodePageUnicode(nCodePage);
 
     SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
@@ -5272,7 +5272,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     API_LoadString(hLangModule, MSG_CP_UNIMPLEMENTED, wbuf, BUFFER_SIZE);
     xprintfW(wszMsg, wbuf, nCodePage);
     API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    nResult=ESD_CODEPAGE_ERROR;
+    nResult=ESD_CODEPAGEERROR;
     goto End;
   }
   if (!IsCodePageUnicode(nCodePage))
@@ -5284,7 +5284,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       }
       else if (dwCmdLineOptions & CLO_MSGSAVELOSTSYMBOLSNO)
       {
-        nResult=ESD_CODEPAGE_ERROR;
+        nResult=ESD_CODEPAGEERROR;
         goto End;
       }
       else
@@ -5323,7 +5323,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
               SetSel(hWnd, &cr, AESELT_LOCKSCROLL, NULL);
               ScrollCaret(hWnd);
             }
-            nResult=ESD_CODEPAGE_ERROR;
+            nResult=ESD_CODEPAGEERROR;
             goto End;
           }
         }
@@ -5630,7 +5630,7 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
       }
       else
       {
-        nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|OD_MULTIFILE, 0, FALSE);
+        nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|OD_MULTIFILE, 0, FALSE);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
         {
           bResult=FALSE;
@@ -5671,7 +5671,7 @@ void DropFiles(HDROP hDrop)
       }
       else
       {
-        nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(i + 1 < nDropped?OD_MULTIFILE:0), 0, FALSE);
+        nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(i + 1 < nDropped?OD_MULTIFILE:0), 0, FALSE);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           break;
       }
@@ -7854,7 +7854,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (!bSaveDlg)
       {
-        dwOfnFlags=bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):0;
+        dwOfnFlags=bAutodetect?(OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE):0;
         nOfnCodePage=nCodePage;
         bOfnBOM=bBOM;
       }
@@ -7894,7 +7894,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
         else SendMessageW(((OFNOTIFY *)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, MAX_PATH, (WPARAM)wszFile);
 
-        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE):OD_ADT_DETECTBOM, &nCodePage, &bBOM) < 0)
         {
           EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepage(hWndCodePage, moCur.nDefaultCodePage);
@@ -7927,7 +7927,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       else
       {
-        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECTBOM, &nCodePage, &bBOM) < 0)
         {
           EnableWindow(hWndFilePreview, FALSE);
           SetWindowTextWide(hWndFilePreview, L"");
@@ -7944,7 +7944,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         EnableWindow(hWndCodePage, !bAutodetect);
         nCodePage=GetComboboxCodepage(hWndCodePage);
 
-        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE):OD_ADT_DETECTBOM, &nCodePage, &bBOM) < 0)
         {
           EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepage(hWndCodePage, moCur.nDefaultCodePage);
@@ -8382,7 +8382,7 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
   int nDetect;
   int nResult=EOD_SUCCESS;
 
-  if (!(dwFlags & ADT_REG_CODEPAGE) && !(dwFlags & ADT_DETECT_CODEPAGE))
+  if (!(dwFlags & ADT_REGCODEPAGE) && !(dwFlags & ADT_DETECTCODEPAGE))
     if (!*nCodePage) return EOD_OPEN;
 
   if (IsFile(wpFile) != ERROR_SUCCESS)
@@ -8450,9 +8450,9 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   int nResult=EDT_SUCCESS;
 
   //Remembered code page from registry
-  if (dwFlags & ADT_REG_CODEPAGE)
+  if (dwFlags & ADT_REGCODEPAGE)
   {
-    dwFlags&=~ADT_REG_CODEPAGE & ~ADT_DETECT_CODEPAGE & ~ADT_DETECT_BOM;
+    dwFlags&=~ADT_REGCODEPAGE & ~ADT_DETECTCODEPAGE & ~ADT_DETECTBOM;
 
     if (moCur.nRecentFiles && moCur.bSaveCodepages)
     {
@@ -8462,22 +8462,22 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
     if (nRegCodePage)
     {
       if (nRegCodePage == CP_UNICODE_UTF32LE || nRegCodePage == CP_UNICODE_UTF32BE)
-        dwFlags&=~ADT_BINARY_ERROR;
+        dwFlags&=~ADT_BINARYERROR;
       *nCodePage=nRegCodePage;
-      dwFlags|=ADT_DETECT_BOM;
+      dwFlags|=ADT_DETECTBOM;
     }
     else
     {
-      dwFlags|=ADT_DETECT_CODEPAGE|ADT_DETECT_BOM;
+      dwFlags|=ADT_DETECTCODEPAGE|ADT_DETECTBOM;
     }
   }
 
   //Default
-  if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=moCur.nDefaultCodePage;
-  if (dwFlags & ADT_DETECT_BOM) *bBOM=FALSE;
+  if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=moCur.nDefaultCodePage;
+  if (dwFlags & ADT_DETECTBOM) *bBOM=FALSE;
 
   //Read file
-  if ((dwFlags & ADT_BINARY_ERROR) || (dwFlags & ADT_DETECT_CODEPAGE) || (dwFlags & ADT_DETECT_BOM))
+  if ((dwFlags & ADT_BINARYERROR) || (dwFlags & ADT_DETECTCODEPAGE) || (dwFlags & ADT_DETECTBOM))
   {
     if (!hFile)
     {
@@ -8490,7 +8490,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
     if (hFile != INVALID_HANDLE_VALUE)
     {
       //Read file only for BOM detecting
-      if ((dwFlags & ADT_ONLYBOM) && !(dwFlags & ADT_BINARY_ERROR))
+      if ((dwFlags & ADT_ONLYBOM) && !(dwFlags & ADT_BINARYERROR))
         dwBytesToCheck=4;
 
       if (pBuffer=(unsigned char *)API_HeapAlloc(hHeap, 0, dwBytesToCheck + 1))
@@ -8512,7 +8512,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   }
 
   //Detect Unicode BOM
-  if ((dwFlags & ADT_DETECT_CODEPAGE) || (dwFlags & ADT_DETECT_BOM))
+  if ((dwFlags & ADT_DETECTCODEPAGE) || (dwFlags & ADT_DETECTBOM))
   {
     if (dwBytesRead >= 4)
     {
@@ -8520,8 +8520,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       {
         if (!nRegCodePage || nRegCodePage == CP_UNICODE_UTF32LE)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF32LE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF32LE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto Free;
         }
       }
@@ -8529,8 +8529,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       {
         if (!nRegCodePage || nRegCodePage == CP_UNICODE_UTF32BE)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF32BE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF32BE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto Free;
         }
       }
@@ -8541,8 +8541,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       {
         if (!nRegCodePage || nRegCodePage == CP_UNICODE_UTF16LE)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF16LE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF16LE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto Free;
         }
       }
@@ -8550,8 +8550,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       {
         if (!nRegCodePage || nRegCodePage == CP_UNICODE_UTF16BE)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF16BE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF16BE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto Free;
         }
       }
@@ -8562,24 +8562,24 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
       {
         if (!nRegCodePage || nRegCodePage == CP_UNICODE_UTF8)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF8;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF8;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto Free;
         }
       }
     }
   }
   if (dwFlags & ADT_ONLYBOM)
-    dwFlags&=~ADT_DETECT_CODEPAGE & ~ADT_DETECT_BOM;
+    dwFlags&=~ADT_DETECTCODEPAGE & ~ADT_DETECTBOM;
 
-  if ((dwFlags & ADT_BINARY_ERROR) || (dwFlags & ADT_DETECT_CODEPAGE))
+  if ((dwFlags & ADT_BINARYERROR) || (dwFlags & ADT_DETECTCODEPAGE))
   {
     if (dwBytesRead >= 2)
     {
       for (a=0, b=dwBytesRead - 1; a < b; a+=2)
       {
         //Detect binary file
-        if (dwFlags & ADT_BINARY_ERROR)
+        if (dwFlags & ADT_BINARYERROR)
         {
           if (pBuffer[a] == 0x00 && pBuffer[a + 1] == 0x00)
           {
@@ -8589,7 +8589,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
         }
 
         //Detect UTF-16LE, UTF-16BE without BOM
-        if (dwFlags & ADT_DETECT_CODEPAGE)
+        if (dwFlags & ADT_DETECTCODEPAGE)
         {
           if (pBuffer[a + 1] == 0x00 && pBuffer[a] <= 0x7E)
           {
@@ -8604,28 +8604,28 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
         }
       }
 
-      if (dwFlags & ADT_DETECT_CODEPAGE)
+      if (dwFlags & ADT_DETECTCODEPAGE)
       {
         if (nUTF16LErate >= nANSIrate && nUTF16LErate >= nUTF16BErate)
         {
           *nCodePage=CP_UNICODE_UTF16LE;
-          dwFlags&=~ADT_DETECT_CODEPAGE;
+          dwFlags&=~ADT_DETECTCODEPAGE;
 
-          if (dwFlags & ADT_DETECT_BOM)
+          if (dwFlags & ADT_DETECTBOM)
           {
             *bBOM=FALSE;
-            dwFlags&=~ADT_DETECT_BOM;
+            dwFlags&=~ADT_DETECTBOM;
           }
         }
         else if (nUTF16BErate >= nANSIrate && nUTF16BErate >= nUTF16LErate)
         {
           *nCodePage=CP_UNICODE_UTF16BE;
-          dwFlags&=~ADT_DETECT_CODEPAGE;
+          dwFlags&=~ADT_DETECTCODEPAGE;
 
-          if (dwFlags & ADT_DETECT_BOM)
+          if (dwFlags & ADT_DETECTBOM)
           {
             *bBOM=FALSE;
-            dwFlags&=~ADT_DETECT_BOM;
+            dwFlags&=~ADT_DETECTBOM;
           }
         }
       }
@@ -8633,20 +8633,20 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   }
 
   //Detect non-Unicode
-  if ((dwFlags & ADT_DETECT_CODEPAGE) || (dwFlags & ADT_DETECT_BOM))
+  if ((dwFlags & ADT_DETECTCODEPAGE) || (dwFlags & ADT_DETECTBOM))
   {
-    if (dwFlags & ADT_DETECT_CODEPAGE)
+    if (dwFlags & ADT_DETECTCODEPAGE)
     {
       if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, pBuffer, dwBytesRead, DETECTCHARS_REQUIRED, nCodePage))
       {
         *nCodePage=moCur.nDefaultCodePage;
-        dwFlags&=~ADT_DETECT_CODEPAGE;
+        dwFlags&=~ADT_DETECTCODEPAGE;
       }
     }
-    if (dwFlags & ADT_DETECT_BOM)
+    if (dwFlags & ADT_DETECTBOM)
     {
       *bBOM=FALSE;
-      dwFlags&=~ADT_DETECT_BOM;
+      dwFlags&=~ADT_DETECTBOM;
     }
   }
 
@@ -18842,7 +18842,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         {
           if (!SaveChanged(0))
             return PCLE_SAVEERROR;
-          nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
+          nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
             return PCLE_OPENERROR;
           bFileOpenedSDI=TRUE;
@@ -18856,7 +18856,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
       if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
-      nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
+      nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
       if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
         return PCLE_OPENERROR;
     }
@@ -19055,13 +19055,13 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 
       if (dwAction == EXTACT_OPENFILE)
       {
-        DWORD dwFlags=OD_ADT_BINARY_ERROR;
+        DWORD dwFlags=OD_ADT_BINARYERROR;
         int nOpen;
 
         if (nCodePage == -1)
-          dwFlags|=OD_ADT_DETECT_CODEPAGE;
+          dwFlags|=OD_ADT_DETECTCODEPAGE;
         if (bBOM == -1)
-          dwFlags|=OD_ADT_DETECT_BOM;
+          dwFlags|=OD_ADT_DETECTBOM;
         nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
         if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           nResult=PCLE_END;

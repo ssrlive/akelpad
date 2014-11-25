@@ -466,7 +466,7 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
             {
               od.pFile=lpElement->wszFile;
               od.pWorkDir=NULL;
-              od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+              od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
               od.nCodePage=0;
               od.bBOM=0;
               SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);

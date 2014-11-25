@@ -2901,7 +2901,7 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
 
           od.pFile=wszFile;
           od.pWorkDir=oe->wszDir;
-          od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+          od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
           od.nCodePage=0;
           od.bBOM=0;
           SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);

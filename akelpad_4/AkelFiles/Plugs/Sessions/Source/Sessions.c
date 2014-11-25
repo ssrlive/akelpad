@@ -2999,7 +2999,7 @@ BOOL EditSessionFile(const wchar_t *wpSessionName)
   xprintfW(wszSessionFile, L"%s\\%s.session", wszSessionsDir, wpSessionName);
   od.pFile=wszSessionFile;
   od.pWorkDir=NULL;
-  od.dwFlags=OD_ADT_DETECT_BOM|OD_ADT_DETECT_CODEPAGE;
+  od.dwFlags=OD_ADT_DETECTBOM|OD_ADT_DETECTCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
   return !SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
@@ -3910,7 +3910,7 @@ void OpenItem(SESSIONITEM *si)
 
     od.pFile=si->wszItemExpFile;
     od.pWorkDir=NULL;
-    od.dwFlags=OD_ADT_DETECT_BOM|((!si->nCodePage || !(dwSaveData & SSD_CODEPAGE))?OD_ADT_DETECT_CODEPAGE:0)|(dwSaveData & SSD_SELECTION?OD_NOSCROLL:0);
+    od.dwFlags=OD_ADT_DETECTBOM|((!si->nCodePage || !(dwSaveData & SSD_CODEPAGE))?OD_ADT_DETECTCODEPAGE:0)|(dwSaveData & SSD_SELECTION?OD_NOSCROLL:0);
     od.nCodePage=si->nCodePage;
     od.bBOM=0;
     SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);

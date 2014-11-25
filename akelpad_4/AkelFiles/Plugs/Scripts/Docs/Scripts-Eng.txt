@@ -1156,21 +1156,21 @@ Arguments
   pFile
     File to open.
   nFlags
-    0x001  //OD_ADT_BINARY_ERROR     Check if file is binary.
-    0x002  //OD_ADT_REG_CODEPAGE     If last open code page found in registry, then it will be
-           //                        used with OD_ADT_DETECT_BOM flag, if not found, then next flags
-           //                        will be used OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
-    0x004  //OD_ADT_DETECT_CODEPAGE  Detect code page.
-    0x008  //OD_ADT_DETECT_BOM       Detect BOM mark.
-    0x010  //OD_ADT_NOMESSAGES       No messages, if errors in autodetect.
-    0x020  //OD_ADT_ONLYBOM          Detect code page only if BOM mark is present, otherwise default codepage is used.
-    0x100  //OD_REOPEN               Don't create new MDI window, use the exited one.
-    0x200  //OD_NOSCROLL             Don't restore scroll position.
-           //Default is 0xD          (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+    0x001  //OD_ADT_BINARYERROR     Check if file is binary.
+    0x002  //OD_ADT_REGCODEPAGE     If last open code page found in registry, then it will be
+           //                        used with OD_ADT_DETECTBOM flag, if not found, then next flags
+           //                        will be used OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM.
+    0x004  //OD_ADT_DETECTCODEPAGE  Detect code page.
+    0x008  //OD_ADT_DETECTBOM       Detect BOM mark.
+    0x010  //OD_ADT_NOMESSAGES      No messages, if errors in autodetect.
+    0x020  //OD_ADT_ONLYBOM         Detect code page only if BOM mark is present, otherwise default codepage is used.
+    0x100  //OD_REOPEN              Don't create new MDI window, use the exited one.
+    0x200  //OD_NOSCROLL            Don't restore scroll position.
+           //Default is 0xD         (OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM).
   nCodePage
-    File code page, ignored if (nFlags & OD_ADT_DETECT_CODEPAGE)
+    File code page, ignored if (nFlags & OD_ADT_DETECTCODEPAGE)
   bBOM
-    File BOM, ignored if (nFlags & OD_ADT_DETECT_BOM)
+    File BOM, ignored if (nFlags & OD_ADT_DETECTBOM)
 
 Return Value
    0  //EOD_SUCCESS          Success.
@@ -1203,19 +1203,19 @@ Arguments
   pFile
     File to read.
   nFlags
-    0x01  //ADT_BINARY_ERROR     Check if file is binary.
-    0x02  //ADT_REG_CODEPAGE     If last open code page found in registry, then it will be
-          //                     used with ADT_DETECT_BOM flag, if not found, then next flags
-          //                     will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
-    0x04  //ADT_DETECT_CODEPAGE  Detect code page.
-    0x08  //ADT_DETECT_BOM       Detect BOM mark.
-    0x10  //ADT_NOMESSAGES       No messages, if errors in autodetect.
-    0x20  //ADT_ONLYBOM          Detect code page only if BOM mark is present, otherwise default codepage is used.
-          //Default is 0xD       (ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM).
+    0x01  //ADT_BINARYERROR     Check if file is binary.
+    0x02  //ADT_REGCODEPAGE     If last open code page found in registry, then it will be
+          //                     used with ADT_DETECTBOM flag, if not found, then next flags
+          //                     will be used ADT_DETECTCODEPAGE|ADT_DETECTBOM.
+    0x04  //ADT_DETECTCODEPAGE  Detect code page.
+    0x08  //ADT_DETECTBOM       Detect BOM mark.
+    0x10  //ADT_NOMESSAGES      No messages, if errors in autodetect.
+    0x20  //ADT_ONLYBOM         Detect code page only if BOM mark is present, otherwise default codepage is used.
+          //Default is 0xD      (ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM).
   nCodePage
-    File code page, ignored if (nFlags & ADT_DETECT_CODEPAGE).
+    File code page, ignored if (nFlags & ADT_DETECTCODEPAGE).
   bBOM
-    File BOM, ignored if (nFlags & ADT_DETECT_BOM).
+    File BOM, ignored if (nFlags & ADT_DETECTBOM).
   nBytesMax
     Read specified number of first bytes in file. If -1, entire file will be read (default).
 
@@ -1281,13 +1281,13 @@ Arguments
          //Default is 0x1  (SD_UPDATE).
 
 Return Value
-   0  //ESD_SUCCESS         Success.
-  -1  //ESD_OPEN            Can't open file.
-  -2  //ESD_WRITE           Can't write to file.
-  -3  //ESD_READONLY        File has read-only attribute.
-  -4  //ESD_CODEPAGE_ERROR  Code page isn't implemented.
-  -5  //ESD_STOP            Stopped from AKDN_SAVEDOCUMENT_START.
-  -6  //ESD_STREAMOUT       Error in EM_STREAMOUT.
+   0  //ESD_SUCCESS        Success.
+  -1  //ESD_OPEN           Can't open file.
+  -2  //ESD_WRITE          Can't write to file.
+  -3  //ESD_READONLY       File has read-only attribute.
+  -4  //ESD_CODEPAGEERROR  Code page isn't implemented.
+  -5  //ESD_STOP           Stopped from AKDN_SAVEDOCUMENT_START.
+  -6  //ESD_STREAMOUT      Error in EM_STREAMOUT.
 
 Example:
   var hWndEdit=AkelPad.GetEditWnd();

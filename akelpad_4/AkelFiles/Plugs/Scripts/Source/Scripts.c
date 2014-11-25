@@ -1453,7 +1453,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
       if (dwContentColumns)
       {
         xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
-        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
         {
           wpCount=wpContent;
           wpMaxCount=wpContent + nContentLen;
@@ -1759,7 +1759,7 @@ int EditScript(wchar_t *wpScript)
   xprintfW(wszFullName, L"%s\\%s", wszScriptsDir, wpScript);
   od.pFile=wszFullName;
   od.pWorkDir=NULL;
-  od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+  od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
   return (int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
@@ -1954,7 +1954,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
           WideCharToMultiByte(CP_ACP, 0, --wpExt, -1, szExt, MAX_PATH, NULL, NULL);
           if (GetScriptEngineA(szExt, &guidEngine) == S_OK)
           {
-            if (nContentLen=ReadFileContent(NULL, lpScriptThread->wszScriptFile, ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
+            if (nContentLen=ReadFileContent(NULL, lpScriptThread->wszScriptFile, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
             {
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;

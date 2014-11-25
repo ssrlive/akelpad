@@ -1158,21 +1158,21 @@ ________________
   pFile
     Файл для открытия.
   nFlags
-    0x001  //OD_ADT_BINARY_ERROR     Проверить является ли файл бинарным.
-    0x002  //OD_ADT_REG_CODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
-           //                        с флагом OD_ADT_DETECT_BOM, если нет, то следующие флаги будут использованы
-           //                        OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
-    0x004  //OD_ADT_DETECT_CODEPAGE  Определить кодировку.
-    0x008  //OD_ADT_DETECT_BOM       Определить наличие сигнатуры BOM.
-    0x010  //OD_ADT_NOMESSAGES       Не выводить сообщения при ошибке автоопределения.
-    0x020  //OD_ADT_ONLYBOM          Определить кодировку, только если присутствует сигнатура BOM, иначе будет использована кодировка по умолчанию.
-    0x100  //OD_REOPEN               Не создавать новое окно, использовать имеющееся.
-    0x200  //OD_NOSCROLL             Не восстанавливать прокрутку текста.
-           //По умолчанию 0xD        (OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM).
+    0x001  //OD_ADT_BINARYERROR     Проверить является ли файл бинарным.
+    0x002  //OD_ADT_REGCODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
+           //                        с флагом OD_ADT_DETECTBOM, если нет, то следующие флаги будут использованы
+           //                        OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM.
+    0x004  //OD_ADT_DETECTCODEPAGE  Определить кодировку.
+    0x008  //OD_ADT_DETECTBOM       Определить наличие сигнатуры BOM.
+    0x010  //OD_ADT_NOMESSAGES      Не выводить сообщения при ошибке автоопределения.
+    0x020  //OD_ADT_ONLYBOM         Определить кодировку, только если присутствует сигнатура BOM, иначе будет использована кодировка по умолчанию.
+    0x100  //OD_REOPEN              Не создавать новое окно, использовать имеющееся.
+    0x200  //OD_NOSCROLL            Не восстанавливать прокрутку текста.
+           //По умолчанию 0xD       (OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM).
   nCodePage
-    Кодировка файла, игнорируется если (nFlags & OD_ADT_DETECT_CODEPAGE)
+    Кодировка файла, игнорируется если (nFlags & OD_ADT_DETECTCODEPAGE)
   bBOM
-    Сигнатура BOM, игнорируется если (nFlags & OD_ADT_DETECT_BOM)
+    Сигнатура BOM, игнорируется если (nFlags & OD_ADT_DETECTBOM)
 
 Возвращаемое значение
    0  //EOD_SUCCESS          Успешно.
@@ -1205,19 +1205,19 @@ ________________
   pFile
     Файл для чтения.
   nFlags
-    0x01  //ADT_BINARY_ERROR     Проверить является ли файл бинарным.
-    0x02  //ADT_REG_CODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
-          //                     с флагом ADT_DETECT_BOM, если нет, то следующие флаги будут использованы
-          //                     ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
-    0x04  //ADT_DETECT_CODEPAGE  Определить кодировку.
-    0x08  //ADT_DETECT_BOM       Определить наличие сигнатуры BOM.
-    0x10  //ADT_NOMESSAGES       Не выводить сообщения при ошибке автоопределения.
-    0x20  //ADT_ONLYBOM          Определить кодировку, только если присутствует сигнатура BOM, иначе будет использована кодировка по умолчанию.
-          //По умолчанию 0xD     (ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM).
+    0x01  //ADT_BINARYERROR     Проверить является ли файл бинарным.
+    0x02  //ADT_REGCODEPAGE     Если кодировка файла была сохранена в реестре, то она будет использована
+          //                     с флагом ADT_DETECTBOM, если нет, то следующие флаги будут использованы
+          //                     ADT_DETECTCODEPAGE|ADT_DETECTBOM.
+    0x04  //ADT_DETECTCODEPAGE  Определить кодировку.
+    0x08  //ADT_DETECTBOM       Определить наличие сигнатуры BOM.
+    0x10  //ADT_NOMESSAGES      Не выводить сообщения при ошибке автоопределения.
+    0x20  //ADT_ONLYBOM         Определить кодировку, только если присутствует сигнатура BOM, иначе будет использована кодировка по умолчанию.
+          //По умолчанию 0xD    (ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM).
   nCodePage
-    Кодировка файла, игнорируется если (nFlags & ADT_DETECT_CODEPAGE).
+    Кодировка файла, игнорируется если (nFlags & ADT_DETECTCODEPAGE).
   bBOM
-    Сигнатура BOM, игнорируется если (nFlags & ADT_DETECT_BOM).
+    Сигнатура BOM, игнорируется если (nFlags & ADT_DETECTBOM).
   nBytesMax
     Прочитать указанное количество первых байт файла. Если -1, будет прочитан весь файл (по умолчанию).
 
@@ -1283,13 +1283,13 @@ ________________
          //По умолчанию 0x1  (SD_UPDATE).
 
 Возвращаемое значение
-   0  //ESD_SUCCESS         Успешно.
-  -1  //ESD_OPEN            Невозможно открыть файл.
-  -2  //ESD_WRITE           Невозможно записать файл.
-  -3  //ESD_READONLY        Файл имеет атрибут только-чтение.
-  -4  //ESD_CODEPAGE_ERROR  Кодировки не реализована.
-  -5  //ESD_STOP            Остановлено из AKDN_SAVEDOCUMENT_START.
-  -6  //ESD_STREAMOUT       Ошибка в EM_STREAMOUT.
+   0  //ESD_SUCCESS        Успешно.
+  -1  //ESD_OPEN           Невозможно открыть файл.
+  -2  //ESD_WRITE          Невозможно записать файл.
+  -3  //ESD_READONLY       Файл имеет атрибут только-чтение.
+  -4  //ESD_CODEPAGEERROR  Кодировки не реализована.
+  -5  //ESD_STOP           Остановлено из AKDN_SAVEDOCUMENT_START.
+  -6  //ESD_STREAMOUT      Ошибка в EM_STREAMOUT.
 
 Пример:
   var hWndEdit=AkelPad.GetEditWnd();

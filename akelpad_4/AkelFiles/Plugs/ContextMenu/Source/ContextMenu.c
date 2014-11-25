@@ -2013,7 +2013,7 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
               {
                 od.pFile=wszBuffer;
                 od.pWorkDir=NULL;
-                od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+                od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
                 od.nCodePage=0;
                 od.bBOM=0;
                 SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
@@ -4122,7 +4122,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
       {
         od.pFile=wszBuffer;
         od.pWorkDir=NULL;
-        od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+        od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
         od.nCodePage=0;
         od.bBOM=0;
         SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
@@ -4275,9 +4275,9 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         {
           OPENDOCUMENTW od;
 
-          od.dwFlags=OD_ADT_BINARY_ERROR;
-          if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECT_CODEPAGE;
-          if (bBOM == -1) od.dwFlags|=OD_ADT_DETECT_BOM;
+          od.dwFlags=OD_ADT_BINARYERROR;
+          if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECTCODEPAGE;
+          if (bBOM == -1) od.dwFlags|=OD_ADT_DETECTBOM;
 
           od.pFile=wpFile;
           od.pWorkDir=NULL;

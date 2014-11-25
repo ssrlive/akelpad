@@ -1910,7 +1910,7 @@ void OpenDocument(const wchar_t *wpFile)
 
       pmod->odp.pFile=pmod->szFile;
       pmod->odp.pWorkDir=pmod->szWorkDir;
-      pmod->odp.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+      pmod->odp.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
       pmod->odp.nCodePage=0;
       pmod->odp.bBOM=0;
 
@@ -1927,7 +1927,7 @@ void OpenDocument(const wchar_t *wpFile)
 
   od.pFile=wpFile;
   od.pWorkDir=NULL;
-  od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
+  od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
   SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);

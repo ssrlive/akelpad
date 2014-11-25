@@ -4363,7 +4363,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoEditRecode();
         return EOD_SUCCESS;
       }
-      return DoFileReopenAs(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
+      return DoFileReopenAs(OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM, 0, FALSE);
     }
     else if (wCommand == IDM_FILE_REOPENAS_ANSI)
     {
@@ -4379,15 +4379,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_FILE_REOPENAS_UTF16LE)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UTF16LE, FALSE);
+      return DoFileReopenAs(OD_ADT_DETECTBOM, CP_UNICODE_UTF16LE, FALSE);
     }
     else if (wCommand == IDM_FILE_REOPENAS_UTF16BE)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UTF16BE, FALSE);
+      return DoFileReopenAs(OD_ADT_DETECTBOM, CP_UNICODE_UTF16BE, FALSE);
     }
     else if (wCommand == IDM_FILE_REOPENAS_UTF8)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UTF8, FALSE);
+      return DoFileReopenAs(OD_ADT_DETECTBOM, CP_UNICODE_UTF8, FALSE);
     }
     else if (wCommand == IDM_FILE_SAVEAS_ANSI)
     {
@@ -5065,7 +5065,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpRecentFile=RecentFilesFindByIndex(wCommand - IDM_RECENT_FILES - 1))
         {
           xstrcpynW(wpFile, lpRecentFile->wszFile, MAX_PATH);
-          nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+          nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE, 0, FALSE);
         }
         API_FreeWide(wpFile);
       }
@@ -5092,7 +5092,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand >= IDM_POPUP_OPENAS && wCommand < IDM_POPUP_OPENAS + nCodepageListLen)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, lpCodepageList[wCommand - IDM_POPUP_OPENAS], TRUE);
+      return DoFileReopenAs(OD_ADT_DETECTBOM, lpCodepageList[wCommand - IDM_POPUP_OPENAS], TRUE);
     }
     else if (wCommand >= IDM_POPUP_SAVEAS && wCommand < IDM_POPUP_SAVEAS + nCodepageListLen)
     {

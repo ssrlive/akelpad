@@ -1889,9 +1889,9 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       {
         OPENDOCUMENTW od;
 
-        od.dwFlags=OD_ADT_BINARY_ERROR;
-        if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECT_CODEPAGE;
-        if (bBOM == -1) od.dwFlags|=OD_ADT_DETECT_BOM;
+        od.dwFlags=OD_ADT_BINARYERROR;
+        if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECTCODEPAGE;
+        if (bBOM == -1) od.dwFlags|=OD_ADT_DETECTBOM;
 
         od.pFile=wpFile;
         od.pWorkDir=NULL;
