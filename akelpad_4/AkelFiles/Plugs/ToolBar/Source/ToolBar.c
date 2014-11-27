@@ -148,6 +148,12 @@
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
+//If() method states
+#define IFS_NORMAL           0x0
+#define IFS_CHECKED          0x1
+#define IFS_GRAYED           0x2
+#define IFS_DISABLED         0x4 //Only for ContextMenu
+
 #define TOOLBARBACKGROUNDA   "ToolbarBG"
 #define TOOLBARBACKGROUNDW  L"ToolbarBG"
 
@@ -1194,7 +1200,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
               goto Error;
             }
-            if (hParamStack.nElements == 1)
+            if (hParamStack.nElements == 1 || hParamStack.nElements == 3)
             {
               if (!StackInsertAfter((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
               {
@@ -1841,6 +1847,8 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
         if (!lpStateIf->bCalculated)
         {
           IFEXPRESSION ie;
+          INT_PTR nIfTrue=0;
+          INT_PTR nIfFalse=0;
           int nMessageID;
           EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
                          {L"%d", 2, 0, EXPPARAM_FILEDIR},
@@ -1849,10 +1857,22 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
                          {0, 0, 0, 0}};
 
           SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+          if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 2))
+            nIfTrue=lpParameter->nNumber;
+          if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 3))
+            nIfFalse=lpParameter->nNumber;
 
           ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
           ie.sep=&lpStateIf->hParamStack;
           lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+
+          if (lpParameter)
+          {
+            if (lpStateIf->nValue)
+              lpStateIf->nValue=nIfTrue;
+            else
+              lpStateIf->nValue=nIfFalse;
+          }
 
           if (ie.nError)
           {
@@ -1865,10 +1885,10 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
           lpStateIf->bCalculated=TRUE;
         }
         dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
-        if ((dwButtonState & TBSTATE_CHECKED) != ((DWORD)lpStateIf->nValue & TBSTATE_CHECKED))
+        if (!(dwButtonState & TBSTATE_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
           SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_CHECKED)?TRUE:FALSE);
-        if ((dwButtonState & TBSTATE_ENABLED) != ((DWORD)lpStateIf->nValue & TBSTATE_ENABLED))
-          SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_ENABLED)?TRUE:FALSE);
+        if (!(dwButtonState & TBSTATE_ENABLED) == !(lpStateIf->nValue & IFS_GRAYED))
+          SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & IFS_GRAYED)?FALSE:TRUE);
       }
       else
       {
@@ -2053,7 +2073,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       int nShowWindow=-1;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpCmdLine=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2092,7 +2111,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       BOOL bBOM=-1;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFile=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2143,7 +2161,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
       int nPointSize=0;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFaceName=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2206,7 +2223,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
         if (!ei.bReadOnly)
         {
           SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
             wpText=lpParameter->wpExpanded;
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))

@@ -223,6 +223,12 @@
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
+//If() method states
+#define IFS_NORMAL           0x0
+#define IFS_CHECKED          0x1
+#define IFS_GRAYED           0x2
+#define IFS_DISABLED         0x4 //Only for ContextMenu
+
 //GetEditPos type
 #define GEP_LEFTTOP     -1
 #define GEP_RIGHTTOP    -2
@@ -2618,7 +2624,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
               nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
               goto Error;
             }
-            if (hParamStack.nElements == 1)
+            if (hParamStack.nElements == 1 || hParamStack.nElements == 3)
             {
               if (!StackInsertAfter((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
               {
@@ -3288,6 +3294,8 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
           if (!lpStateIf->bCalculated)
           {
             IFEXPRESSION ie;
+            INT_PTR nIfTrue=0;
+            INT_PTR nIfFalse=0;
             int nMessageID;
             EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
                            {L"%d", 2, 0, EXPPARAM_FILEDIR},
@@ -3296,10 +3304,22 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                            {0, 0, 0, 0}};
 
             SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+            if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 2))
+              nIfTrue=lpParameter->nNumber;
+            if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 3))
+              nIfFalse=lpParameter->nNumber;
 
             ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
             ie.sep=&lpStateIf->hParamStack;
             lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+
+            if (lpParameter)
+            {
+              if (lpStateIf->nValue)
+                lpStateIf->nValue=nIfTrue;
+              else
+                lpStateIf->nValue=nIfFalse;
+            }
 
             if (ie.nError)
             {
@@ -3312,10 +3332,10 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             lpStateIf->bCalculated=TRUE;
           }
           dwMenuState=GetMenuState(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND);
-          if ((dwMenuState & MF_CHECKED) != ((DWORD)lpStateIf->nValue & MF_CHECKED))
-            CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & MF_CHECKED));
-          if ((dwMenuState & (MF_GRAYED|MF_DISABLED)) != ((DWORD)lpStateIf->nValue & (MF_GRAYED|MF_DISABLED)))
-            EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & (MF_GRAYED|MF_DISABLED)));
+          if (!(dwMenuState & MF_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
+            CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_CHECKED ? MF_CHECKED : 0));
+          if (!(dwMenuState & (MF_GRAYED|MF_DISABLED)) != !(lpStateIf->nValue & (IFS_GRAYED|IFS_DISABLED)))
+            EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_GRAYED ? MF_GRAYED : 0)|(lpStateIf->nValue & IFS_DISABLED ? MF_DISABLED : 0));
         }
         else
         {
@@ -4223,7 +4243,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         int nShowWindow=-1;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpCmdLine=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4262,7 +4281,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         BOOL bBOM=-1;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFile=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4313,7 +4331,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
         int nPointSize=0;
 
         SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
           wpFaceName=lpParameter->wpExpanded;
         if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -4376,7 +4393,6 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
           if (!ei.bReadOnly)
           {
             SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
               wpText=lpParameter->wpExpanded;
             if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
