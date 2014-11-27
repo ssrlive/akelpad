@@ -1986,7 +1986,6 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
       int nShowWindow=-1;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpCmdLine=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2025,7 +2024,6 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
       BOOL bBOM=-1;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFile=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2076,7 +2074,6 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
       int nPointSize=0;
 
       SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
         wpFaceName=lpParameter->wpExpanded;
       if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
@@ -2139,7 +2136,6 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
         if (!ei.bReadOnly)
         {
           SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 1))
             wpText=lpParameter->wpExpanded;
           if (lpParameter=GetMethodParameter(&lpElement->hParamStack, 2))
