@@ -1030,7 +1030,7 @@ BOOL AE_EditCanUndo(AKELEDIT *ae);
 BOOL AE_EditUndo(AKELEDIT *ae);
 BOOL AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
-void AE_EditCopyToClipboard(AKELEDIT *ae);
+BOOL AE_EditCopyToClipboard(AKELEDIT *ae);
 BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags);
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode);
 void AE_EditKeyReturn(AKELEDIT *ae);

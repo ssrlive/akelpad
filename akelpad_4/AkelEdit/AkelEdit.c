@@ -536,8 +536,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_COPY)
     {
-      AE_EditCopyToClipboard(ae);
-      return 0;
+      return AE_EditCopyToClipboard(ae);
     }
     if (uMsg == AEM_CHECKCODEPAGE)
     {
@@ -20259,7 +20258,7 @@ void AE_EditCut(AKELEDIT *ae)
   AE_NotifyChanged(ae); //AETCT_CUT
 }
 
-void AE_EditCopyToClipboard(AKELEDIT *ae)
+BOOL AE_EditCopyToClipboard(AKELEDIT *ae)
 {
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
@@ -20322,6 +20321,9 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
       CloseClipboard();
     }
   }
+  if (hDataInfo)
+    return TRUE;
+  return FALSE;
 }
 
 BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
