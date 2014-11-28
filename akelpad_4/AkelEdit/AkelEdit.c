@@ -440,144 +440,140 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->nAltChar=AEAC_NONE;
   }
 
-
-  //// AEM_* AkelEdit control messages
-
-  if (uMsg >= WM_USER)
+  switch (uMsg)
   {
-    if (uMsg >= AEM_CANUNDO)
-      goto CanUndo;
+    //// AEM_* AkelEdit control messages (uMsg >= WM_USER)
 
     //Text retrieval and modification
-    if (uMsg == AEM_EXSETTEXTA)
+    case AEM_EXSETTEXTA:
     {
       AESETTEXTA *at=(AESETTEXTA *)lParam;
 
       return AE_SetTextAnsi(ae, at->nCodePage, at->pText, at->dwTextLen, at->nNewLine);
     }
-    if (uMsg == AEM_EXSETTEXTW)
+    case AEM_EXSETTEXTW:
     {
       AESETTEXTW *at=(AESETTEXTW *)lParam;
 
       return AE_SetText(ae, at->pText, at->dwTextLen, at->nNewLine, FALSE);
     }
-    if (uMsg == AEM_SETTEXTA)
+    case AEM_SETTEXTA:
     {
       return AE_SetTextAnsi(ae, CP_ACP, (char *)lParam, wParam, AELB_ASINPUT);
     }
-    if (uMsg == AEM_SETTEXTW)
+    case AEM_SETTEXTW:
     {
       return AE_SetText(ae, (wchar_t *)lParam, wParam, AELB_ASINPUT, FALSE);
     }
-    if (uMsg == AEM_APPENDTEXTA)
+    case AEM_APPENDTEXTA:
     {
       AEAPPENDTEXTA *at=(AEAPPENDTEXTA *)lParam;
 
       AE_AppendTextAnsi(ae, at->nCodePage, at->pText, at->dwTextLen, at->nNewLine);
       return 0;
     }
-    if (uMsg == AEM_APPENDTEXTW)
+    case AEM_APPENDTEXTW:
     {
       AEAPPENDTEXTW *at=(AEAPPENDTEXTW *)lParam;
 
       AE_AppendText(ae, at->pText, at->dwTextLen, at->nNewLine);
       return 0;
     }
-    if (uMsg == AEM_REPLACESELA)
+    case AEM_REPLACESELA:
     {
       AEREPLACESELA *rs=(AEREPLACESELA *)lParam;
 
       AE_ReplaceSelAnsi(ae, rs->nCodePage, rs->pText, rs->dwTextLen, rs->nNewLine, rs->dwFlags, rs->ciInsertStart, rs->ciInsertEnd);
       return 0;
     }
-    if (uMsg == AEM_REPLACESELW)
+    case AEM_REPLACESELW:
     {
       AEREPLACESELW *rs=(AEREPLACESELW *)lParam;
 
       AE_ReplaceSel(ae, rs->pText, rs->dwTextLen, rs->nNewLine, rs->dwFlags, rs->ciInsertStart, rs->ciInsertEnd);
       return 0;
     }
-    if (uMsg == AEM_GETTEXTRANGEA)
+    case AEM_GETTEXTRANGEA:
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
       return AE_GetTextRangeAnsi(ae, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
     }
-    if (uMsg == AEM_GETTEXTRANGEW)
+    case AEM_GETTEXTRANGEW:
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
       return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
     }
-    if (uMsg == AEM_STREAMIN)
+    case AEM_STREAMIN:
     {
       AESTREAMIN *aesi=(AESTREAMIN *)lParam;
 
       return AE_StreamIn(ae, (DWORD)wParam, aesi);
     }
-    if (uMsg == AEM_STREAMOUT)
+    case AEM_STREAMOUT:
     {
       AESTREAMOUT *aeso=(AESTREAMOUT *)lParam;
 
       return AE_StreamOut(ae, (DWORD)wParam, aeso);
     }
-    if (uMsg == AEM_CANPASTE)
+    case AEM_CANPASTE:
     {
       return AE_EditCanPaste(ae);
     }
-    if (uMsg == AEM_PASTE)
+    case AEM_PASTE:
     {
       return AE_EditPasteFromClipboard(ae, (DWORD)lParam);
     }
-    if (uMsg == AEM_CUT)
+    case AEM_CUT:
     {
       AE_EditCut(ae);
       return 0;
     }
-    if (uMsg == AEM_COPY)
+    case AEM_COPY:
     {
       return AE_EditCopyToClipboard(ae);
     }
-    if (uMsg == AEM_CHECKCODEPAGE)
+    case AEM_CHECKCODEPAGE:
     {
       return AE_CheckCodepage(ae, (int)wParam, (int *)lParam);
     }
-    if (uMsg == AEM_FINDTEXTA)
+    case AEM_FINDTEXTA:
     {
       return AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)lParam);
     }
-    if (uMsg == AEM_FINDTEXTW)
+    case AEM_FINDTEXTW:
     {
       return AE_FindText(ae, (AEFINDTEXTW *)lParam);
     }
-    if (uMsg == AEM_ISMATCHA)
+    case AEM_ISMATCHA:
     {
       return AE_IsMatchAnsi(ae, CP_ACP, (AEFINDTEXTA *)lParam, (AECHARINDEX *)wParam);
     }
-    if (uMsg == AEM_ISMATCHW)
+    case AEM_ISMATCHW:
     {
       return AE_IsMatch(ae, (AEFINDTEXTW *)lParam, (AECHARINDEX *)wParam);
     }
-    if (uMsg == AEM_KEYDOWN)
+    case AEM_KEYDOWN:
     {
       return AE_KeyDown(ae, (int)wParam, (BOOL)(lParam & AEMOD_ALT), (BOOL)(lParam & AEMOD_SHIFT), (BOOL)(lParam & AEMOD_CONTROL));
     }
-    if (uMsg == AEM_INSERTCHAR)
+    case AEM_INSERTCHAR:
     {
       AE_EditChar(ae, (int)wParam, TRUE);
       return 0;
     }
-    if (uMsg == AEM_CHARAT)
+    case AEM_CHARAT:
     {
       AECHARINDEX *ciPos=(AECHARINDEX *)wParam;
 
       return AEC_CharAtIndex(ciPos);
     }
-    if (uMsg == AEM_INPUTLANGUAGE)
+    case AEM_INPUTLANGUAGE:
     {
       return (LRESULT)GetKeyboardLayout(0);
     }
-    if (uMsg == AEM_DRAGDROP)
+    case AEM_DRAGDROP:
     {
       if (wParam == AEDD_GETDRAGWINDOW)
       {
@@ -594,31 +590,27 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Undo and Redo
-    CanUndo:
-    if (uMsg >= AEM_EXGETSEL)
-      goto ExGetSel;
-
-    if (uMsg == AEM_CANUNDO)
+    case AEM_CANUNDO:
     {
       if (ae->popt->dwOptions & AECO_READONLY)
         return FALSE;
       return AE_EditCanUndo(ae);
     }
-    if (uMsg == AEM_CANREDO)
+    case AEM_CANREDO:
     {
       if (ae->popt->dwOptions & AECO_READONLY)
         return FALSE;
       return AE_EditCanRedo(ae);
     }
-    if (uMsg == AEM_UNDO)
+    case AEM_UNDO:
     {
       return AE_EditUndo(ae);
     }
-    if (uMsg == AEM_REDO)
+    case AEM_REDO:
     {
       return AE_EditRedo(ae);
     }
-    if (uMsg == AEM_EMPTYUNDOBUFFER)
+    case AEM_EMPTYUNDOBUFFER:
     {
       if (lParam)
       {
@@ -642,27 +634,27 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_STOPGROUPTYPING)
+    case AEM_STOPGROUPTYPING:
     {
       AE_StackUndoGroupStop(ae);
       return 0;
     }
-    if (uMsg == AEM_BEGINUNDOACTION)
+    case AEM_BEGINUNDOACTION:
     {
       ae->ptxt->bLockGroupStopExt=TRUE;
       return 0;
     }
-    if (uMsg == AEM_ENDUNDOACTION)
+    case AEM_ENDUNDOACTION:
     {
       ae->ptxt->bLockGroupStopExt=FALSE;
       return 0;
     }
-    if (uMsg == AEM_LOCKCOLLECTUNDO)
+    case AEM_LOCKCOLLECTUNDO:
     {
       ae->ptxt->bLockCollectUndo=(BOOL)wParam;
       return 0;
     }
-    if (uMsg == AEM_GETUNDOLIMIT)
+    case AEM_GETUNDOLIMIT:
     {
       DWORD *lpdwUndoCount=(DWORD *)lParam;
 
@@ -670,44 +662,40 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         *lpdwUndoCount=ae->ptxt->dwUndoCount;
       return ae->ptxt->dwUndoLimit;
     }
-    if (uMsg == AEM_SETUNDOLIMIT)
+    case AEM_SETUNDOLIMIT:
     {
       ae->ptxt->dwUndoLimit=(DWORD)wParam;
       AE_StackUndoGroupStop(ae);
       return 0;
     }
-    if (uMsg == AEM_GETMODIFY)
+    case AEM_GETMODIFY:
     {
       return ae->ptxt->bModified;
     }
-    if (uMsg == AEM_SETMODIFY)
+    case AEM_SETMODIFY:
     {
       AE_SetModify(ae, (BOOL)wParam);
       return 0;
     }
-    if (uMsg == AEM_UNDOBUFFERSIZE)
+    case AEM_UNDOBUFFERSIZE:
     {
       return AE_StackUndoSize(ae);
     }
-    if (uMsg == AEM_ISRANGEMODIFIED)
+    case AEM_ISRANGEMODIFIED:
     {
       return AE_StackIsRangeModified(ae, (const CHARRANGE64 *)lParam);
     }
-    if (uMsg == AEM_DETACHUNDO)
+    case AEM_DETACHUNDO:
     {
       return (LRESULT)AE_StackUndoDetach(ae);
     }
-    if (uMsg == AEM_ATTACHUNDO)
+    case AEM_ATTACHUNDO:
     {
       return AE_StackUndoAttach(ae, (AEUNDOATTACH *)lParam);
     }
 
     //Text coordinates
-    ExGetSel:
-    if (uMsg >= AEM_CHARFROMGLOBALPOS)
-      goto CharFromGlobalPos;
-
-    if (uMsg == AEM_EXGETSEL)
+    case AEM_EXGETSEL:
     {
       AECHARINDEX *ciMin=(AECHARINDEX *)wParam;
       AECHARINDEX *ciMax=(AECHARINDEX *)lParam;
@@ -719,19 +707,19 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return FALSE;
       return TRUE;
     }
-    if (uMsg == AEM_EXSETSEL)
+    case AEM_EXSETSEL:
     {
       AE_SetSelectionPos(ae, (AECHARINDEX *)lParam, (AECHARINDEX *)wParam, FALSE, 0, AESCT_SETSELMESSAGE);
       return 0;
     }
-    if (uMsg == AEM_GETSEL)
+    case AEM_GETSEL:
     {
       AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
       AESELECTION *aes=(AESELECTION *)lParam;
 
       return AE_AkelEditGetSel(ae, aes, lpciCaret);
     }
-    if (uMsg == AEM_SETSEL)
+    case AEM_SETSEL:
     {
       AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
       AESELECTION *aes=(AESELECTION *)lParam;
@@ -754,26 +742,26 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_AkelEditSetSel(ae, aes, lpciCaret);
       return 0;
     }
-    if (uMsg == AEM_GETCOLUMNSEL)
+    case AEM_GETCOLUMNSEL:
     {
       return ae->bColumnSel;
     }
-    if (uMsg == AEM_UPDATESEL)
+    case AEM_UPDATESEL:
     {
       AE_UpdateSelection(ae, (DWORD)wParam);
       return 0;
     }
-    if (uMsg == AEM_GETLINENUMBER)
+    case AEM_GETLINENUMBER:
     {
       return AE_GetLineNumber(ae, (int)wParam, lParam);
     }
-    if (uMsg == AEM_GETINDEX)
+    case AEM_GETINDEX:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return (LRESULT)AE_GetIndex(ae, (int)wParam, ciCharIndex, ciCharIndex);
     }
-    if (uMsg == AEM_GETLINEINDEX)
+    case AEM_GETLINEINDEX:
     {
       AELINEDATA *lpLine;
       int nLine=(int)wParam;
@@ -788,27 +776,27 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return FALSE;
     }
-    if (uMsg == AEM_INDEXUPDATE)
+    case AEM_INDEXUPDATE:
     {
       return AE_IndexUpdate(ae, (AECHARINDEX *)lParam);
     }
-    if (uMsg == AEM_INDEXCOMPARE)
+    case AEM_INDEXCOMPARE:
     {
       return AEC_IndexCompare((AECHARINDEX *)wParam, (AECHARINDEX *)lParam);
     }
-    if (uMsg == AEM_INDEXSUBTRACT)
+    case AEM_INDEXSUBTRACT:
     {
       AEINDEXSUBTRACT *aeis=(AEINDEXSUBTRACT *)lParam;
 
       return AE_IndexSubtract(ae, aeis->ciChar1, aeis->ciChar2, aeis->nNewLine, aeis->bColumnSel, TRUE);
     }
-    if (uMsg == AEM_INDEXOFFSET)
+    case AEM_INDEXOFFSET:
     {
       AEINDEXOFFSET *aeio=(AEINDEXOFFSET *)lParam;
 
       return AE_IndexOffset(ae, aeio->ciCharIn, aeio->ciCharOut, aeio->nOffset, aeio->nNewLine);
     }
-    if (uMsg == AEM_INDEXTORICHOFFSET)
+    case AEM_INDEXTORICHOFFSET:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
@@ -816,44 +804,44 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return AE_AkelIndexToRichOffset(ae, ciCharIndex);
       return -1;
     }
-    if (uMsg == AEM_RICHOFFSETTOINDEX)
+    case AEM_RICHOFFSETTOINDEX:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       AE_RichOffsetToAkelIndex(ae, wParam, ciCharIndex);
       return 0;
     }
-    if (uMsg == AEM_GETRICHOFFSET)
+    case AEM_GETRICHOFFSET:
     {
       return AE_GetRichOffset(ae, (int)wParam, lParam);
     }
-    if (uMsg == AEM_GETWRAPLINE)
+    case AEM_GETWRAPLINE:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return AE_GetWrapLine(ae, (int)wParam, ciCharIndex);
     }
-    if (uMsg == AEM_GETUNWRAPLINE)
+    case AEM_GETUNWRAPLINE:
     {
       return AE_GetUnwrapLine(ae, (int)wParam);
     }
-    if (uMsg == AEM_GETNEXTBREAK)
+    case AEM_GETNEXTBREAK:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return AE_GetNextBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?(DWORD)wParam:ae->popt->dwWordBreak);
     }
-    if (uMsg == AEM_GETPREVBREAK)
+    case AEM_GETPREVBREAK:
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return AE_GetPrevBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?(DWORD)wParam:ae->popt->dwWordBreak);
     }
-    if (uMsg == AEM_ISDELIMITER)
+    case AEM_ISDELIMITER:
     {
       return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, (DWORD)wParam);
     }
-    if (uMsg == AEM_INDEXTOCOLUMN)
+    case AEM_INDEXTOCOLUMN:
     {
       AECHARINDEX *lpChar=(AECHARINDEX *)lParam;
       AECHARINDEX ciChar;
@@ -890,7 +878,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return nColumn;
     }
-    if (uMsg == AEM_COLUMNTOINDEX)
+    case AEM_COLUMNTOINDEX:
     {
       AECHARINDEX *lpChar=(AECHARINDEX *)lParam;
       int nTabStop=LOWORD(wParam);
@@ -925,7 +913,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return TRUE;
     }
-    if (uMsg == AEM_INDEXINURL)
+    case AEM_INDEXINURL:
     {
       AECHARINDEX *ciChar=(AECHARINDEX *)wParam;
       AECHARRANGE *crRange=(AECHARRANGE *)lParam;
@@ -933,7 +921,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       xmemset(crRange, 0, sizeof(AECHARRANGE));
       return AE_HighlightFindUrl(ae, ciChar, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crRange);
     }
-    if (uMsg == AEM_ADDPOINT)
+    case AEM_ADDPOINT:
     {
       AEPOINT *lpSourcePoint=(AEPOINT *)lParam;
       AEPOINT *lpTargetPoint;
@@ -950,24 +938,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpTargetPoint;
     }
-    if (uMsg == AEM_DELPOINT)
+    case AEM_DELPOINT:
     {
       AEPOINT *lpPoint=(AEPOINT *)wParam;
 
       AE_StackPointDelete(ae, lpPoint);
       return 0;
     }
-    if (uMsg == AEM_GETPOINTSTACK)
+    case AEM_GETPOINTSTACK:
     {
       return (LRESULT)&ae->ptxt->hPointsStack;
     }
 
     //Screen coordinates
-    CharFromGlobalPos:
-    if (uMsg >= AEM_CONTROLCLASS)
-      goto ControlClass;
-
-    if (uMsg == AEM_CHARFROMGLOBALPOS)
+    case AEM_CHARFROMGLOBALPOS:
     {
       POINT64 *ptGlobal=(POINT64 *)wParam;
       POINT64 ptClient64;
@@ -976,14 +960,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_GlobalToClient(ae, ptGlobal, &ptClient64, NULL);
       return AE_GetCharFromPos(ae, ptClient64.x, ptClient64.y, ciCharIndex, ptGlobal, ae->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
     }
-    if (uMsg == AEM_GLOBALPOSFROMCHAR)
+    case AEM_GLOBALPOSFROMCHAR:
     {
       POINT64 *ptGlobal=(POINT64 *)wParam;
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return AE_GetPosFromChar(ae, ciCharIndex, ptGlobal, NULL);
     }
-    if (uMsg == AEM_CHARFROMPOS)
+    case AEM_CHARFROMPOS:
     {
       POINT64 ptGlobal;
       POINT *ptClient=(POINT *)wParam;
@@ -994,14 +978,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_GlobalToClient(ae, &ptGlobal, NULL, ptClient);
       return bResult;
     }
-    if (uMsg == AEM_POSFROMCHAR)
+    case AEM_POSFROMCHAR:
     {
       POINT *ptClient=(POINT *)wParam;
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
       return AE_GetPosFromChar(ae, ciCharIndex, NULL, ptClient);
     }
-    if (uMsg == AEM_GETRECT)
+    case AEM_GETRECT:
     {
       RECT *lprcDraw=(RECT *)lParam;
       RECT rcDraw;
@@ -1026,7 +1010,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return 0;
     }
-    if (uMsg == AEM_SETRECT)
+    case AEM_SETRECT:
     {
       RECT *lprcDraw=(RECT *)lParam;
       RECT rcDraw;
@@ -1062,7 +1046,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_NotifySetRect(ae);
       return 0;
     }
-    if (uMsg == AEM_GETSCROLLPOS)
+    case AEM_GETSCROLLPOS:
     {
       POINT64 *ptMax=(POINT64 *)wParam;
       POINT64 *ptPos=(POINT64 *)lParam;
@@ -1079,14 +1063,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_SETSCROLLPOS)
+    case AEM_SETSCROLLPOS:
     {
       POINT64 *pt=(POINT64 *)lParam;
 
       AE_SetScrollPos(ae, (pt->x == -1?ae->nHScrollPos:pt->x), (pt->y == -1?ae->nVScrollPos:pt->y));
       return 0;
     }
-    if (uMsg == AEM_SCROLL)
+    case AEM_SCROLL:
     {
       INT_PTR nResult=0;
 
@@ -1106,7 +1090,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return nResult;
     }
-    if (uMsg == AEM_LINESCROLL)
+    case AEM_LINESCROLL:
     {
       INT_PTR nResult=0;
 
@@ -1126,7 +1110,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return nResult;
     }
-    if (uMsg == AEM_SCROLLTOPOINT)
+    case AEM_SCROLLTOPOINT:
     {
       AESCROLLTOPOINT *stp=(AESCROLLTOPOINT *)lParam;
 
@@ -1134,7 +1118,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return AE_ScrollToPoint(ae, NULL);
       return AE_ScrollToPointEx(ae, stp->dwFlags, &stp->ptPos, stp->nOffsetX, stp->nOffsetY);
     }
-    if (uMsg == AEM_LOCKSCROLL)
+    case AEM_LOCKSCROLL:
     {
       int nResult=-1;
 
@@ -1161,7 +1145,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return nResult;
     }
-    if (uMsg == AEM_GETCHARSIZE)
+    case AEM_GETCHARSIZE:
     {
       if (wParam == AECS_HEIGHT)
         return ae->ptxt->nCharHeight;
@@ -1197,11 +1181,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nFixedTabWidth;
       return 0;
     }
-    if (uMsg == AEM_GETSTRWIDTH)
+    case AEM_GETSTRWIDTH:
     {
       return AE_GetStringWidth(ae, (wchar_t *)wParam, (int)lParam, 0);
     }
-    if (uMsg == AEM_GETCARETPOS)
+    case AEM_GETCARETPOS:
     {
       POINT *ptClient=(POINT *)wParam;
       POINT64 *ptGlobal=(POINT64 *)lParam;
@@ -1212,16 +1196,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         *ptGlobal=ae->ptCaret;
       return ae->bCaretVisible;
     }
-    if (uMsg == AEM_GETCARETHORZINDENT)
+    case AEM_GETCARETHORZINDENT:
     {
       return ae->nCaretHorzIndent;
     }
-    if (uMsg == AEM_SETCARETHORZINDENT)
+    case AEM_SETCARETHORZINDENT:
     {
       ae->nCaretHorzIndent=(int)wParam;
       return 0;
     }
-    if (uMsg == AEM_CONVERTPOINT)
+    case AEM_CONVERTPOINT:
     {
       POINT64 *pt=(POINT64 *)lParam;
 
@@ -1235,19 +1219,19 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_POINTONMARGIN)
+    case AEM_POINTONMARGIN:
     {
       POINT *pt=(POINT *)wParam;
 
       return AE_IsPointOnMargin(ae, pt->x, pt->y);
     }
-    if (uMsg == AEM_POINTONSELECTION)
+    case AEM_POINTONSELECTION:
     {
       POINT *pt=(POINT *)wParam;
 
       return AE_IsPointOnSelection(ae, pt->x, pt->y);
     }
-    if (uMsg == AEM_POINTONURL)
+    case AEM_POINTONURL:
     {
       POINT *pt=(POINT *)wParam;
       AECHARRANGE *lpcrLink=(AECHARRANGE *)lParam;
@@ -1258,21 +1242,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (lpcrLink) xmemcpy(lpcrLink, &crLink, sizeof(AECHARRANGE));
       return dwResult;
     }
-    if (uMsg == AEM_LINEFROMVPOS)
+    case AEM_LINEFROMVPOS:
     {
       if (wParam == AECT_GLOBAL)
         return AE_VPos(ae, lParam, AEVPF_LINEFROMVPOS);
       if (wParam == AECT_CLIENT)
         return AE_VPos(ae, ae->nVScrollPos + (lParam - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
     }
-    if (uMsg == AEM_VPOSFROMLINE)
+    case AEM_VPOSFROMLINE:
     {
       if (wParam == AECT_GLOBAL)
         return AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE);
       if (wParam == AECT_CLIENT)
         return ae->rcDraw.top + (AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE) - ae->nVScrollPos);
     }
-    if (uMsg == AEM_GETMOUSESTATE)
+    case AEM_GETMOUSESTATE:
     {
       if (wParam == AEMS_CAPTURE)
         return ae->dwMouseCapture;
@@ -1282,39 +1266,35 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Options
-    ControlClass:
-    if (uMsg >= AEM_SHOWSCROLLBAR)
-      goto ShowScrollbar;
-
-    if (uMsg == AEM_CONTROLCLASS)
+    case AEM_CONTROLCLASS:
     {
       if (ae->bRichEditClass)
         return AECLASS_RICHEDIT;
       else
         return AECLASS_AKELEDIT;
     }
-    if (uMsg == AEM_CONTROLVERSION)
+    case AEM_CONTROLVERSION:
     {
       DWORD ver[4]={RC_AKELEDITID};
 
       return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
     }
-    if (uMsg == AEM_GETEVENTMASK)
+    case AEM_GETEVENTMASK:
     {
       return ae->popt->dwEventMask;
     }
-    if (uMsg == AEM_SETEVENTMASK)
+    case AEM_SETEVENTMASK:
     {
       DWORD dwPrevMask=ae->popt->dwEventMask;
 
       ae->popt->dwEventMask=(DWORD)lParam;
       return dwPrevMask;
     }
-    if (uMsg == AEM_GETOPTIONS)
+    case AEM_GETOPTIONS:
     {
       return ae->popt->dwOptions;
     }
-    if (uMsg == AEM_SETOPTIONS)
+    case AEM_SETOPTIONS:
     {
       DWORD dwOptionsOld=ae->popt->dwOptions;
       DWORD dwOptionsNew=ae->popt->dwOptions;
@@ -1363,11 +1343,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->popt->dwOptions=dwOptionsNew;
       return ae->popt->dwOptions;
     }
-    if (uMsg == AEM_GETNEWLINE)
+    case AEM_GETNEWLINE:
     {
       return MAKELONG(ae->popt->nInputNewLine, ae->popt->nOutputNewLine);
     }
-    if (uMsg == AEM_SETNEWLINE)
+    case AEM_SETNEWLINE:
     {
       if (wParam & AENL_INPUT)
         ae->popt->nInputNewLine=LOWORD(lParam);
@@ -1375,21 +1355,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         ae->popt->nOutputNewLine=HIWORD(lParam);
       return 0;
     }
-    if (uMsg == AEM_GETCOLORS)
+    case AEM_GETCOLORS:
     {
       AE_GetColors(ae, (AECOLORS *)lParam);
       return 0;
     }
-    if (uMsg == AEM_SETCOLORS)
+    case AEM_SETCOLORS:
     {
       AE_SetColors(ae, (AECOLORS *)lParam, TRUE);
       return 0;
     }
-    if (uMsg == AEM_EXGETOPTIONS)
+    case AEM_EXGETOPTIONS:
     {
       return ae->popt->dwOptionsEx;
     }
-    if (uMsg == AEM_EXSETOPTIONS)
+    case AEM_EXSETOPTIONS:
     {
       DWORD dwOptionsExOld=ae->popt->dwOptionsEx;
       DWORD dwOptionsExNew=ae->popt->dwOptionsEx;
@@ -1415,7 +1395,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return ae->popt->dwOptionsEx;
     }
-    if (uMsg == AEM_GETCARETWIDTH)
+    case AEM_GETCARETWIDTH:
     {
       POINT *pt=(POINT *)lParam;
 
@@ -1423,7 +1403,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       pt->y=ae->popt->nCaretOvertypeHeight;
       return 0;
     }
-    if (uMsg == AEM_SETCARETWIDTH)
+    case AEM_SETCARETWIDTH:
     {
       POINT *pt=(POINT *)lParam;
 
@@ -1432,11 +1412,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_UpdateCaret(ae, ae->bFocus);
       return 0;
     }
-    if (uMsg == AEM_GETTABSTOP)
+    case AEM_GETTABSTOP:
     {
       return ae->ptxt->nTabStop;
     }
-    if (uMsg == AEM_SETTABSTOP)
+    case AEM_SETTABSTOP:
     {
       int nTabStop=(int)wParam;
 
@@ -1462,7 +1442,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_GETWORDWRAP)
+    case AEM_GETWORDWRAP:
     {
       DWORD *lpdwWrapLimit=(DWORD *)lParam;
 
@@ -1470,7 +1450,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return ae->ptxt->dwWordWrap;
     }
-    if (uMsg == AEM_SETWORDWRAP)
+    case AEM_SETWORDWRAP:
     {
       DWORD dwWordWrap=(DWORD)wParam;
       BOOL bUpdateWrap=FALSE;
@@ -1511,20 +1491,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return 0;
     }
-    if (uMsg == AEM_GETWORDDELIMITERS)
+    case AEM_GETWORDDELIMITERS:
     {
       return xstrcpynW((wchar_t *)lParam, ae->popt->wszWordDelimiters, wParam);
     }
-    if (uMsg == AEM_SETWORDDELIMITERS)
+    case AEM_SETWORDDELIMITERS:
     {
       ae->popt->nWordDelimitersLen=(int)xstrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
       return 0;
     }
-    if (uMsg == AEM_GETWRAPDELIMITERS)
+    case AEM_GETWRAPDELIMITERS:
     {
       return xstrcpynW((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, wParam);
     }
-    if (uMsg == AEM_SETWRAPDELIMITERS)
+    case AEM_SETWRAPDELIMITERS:
     {
       xstrcpynW(ae->ptxt->wszWrapDelimiters, lParam?(wchar_t *)lParam:AES_WRAPDELIMITERSW, AEMAX_DELIMLENGTH);
 
@@ -1536,36 +1516,36 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_GETURLLEFTDELIMITERS)
+    case AEM_GETURLLEFTDELIMITERS:
     {
       return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, wParam);
     }
-    if (uMsg == AEM_SETURLLEFTDELIMITERS)
+    case AEM_SETURLLEFTDELIMITERS:
     {
       xstrcpynW(ae->popt->wszUrlLeftDelimiters, lParam?(wchar_t *)lParam:AES_URLLEFTDELIMITERSW, AEMAX_DELIMLENGTH);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
     }
-    if (uMsg == AEM_GETURLRIGHTDELIMITERS)
+    case AEM_GETURLRIGHTDELIMITERS:
     {
       return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, wParam);
     }
-    if (uMsg == AEM_SETURLRIGHTDELIMITERS)
+    case AEM_SETURLRIGHTDELIMITERS:
     {
       xstrcpynW(ae->popt->wszUrlRightDelimiters, lParam?(wchar_t *)lParam:AES_URLRIGHTDELIMITERSW, AEMAX_DELIMLENGTH);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
     }
-    if (uMsg == AEM_GETURLPREFIXES)
+    case AEM_GETURLPREFIXES:
     {
       INT_PTR nPrefixLen=min(xarraysizeW(ae->popt->wszUrlPrefixes, NULL), (INT_PTR)wParam);
 
       if (lParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlPrefixes, nPrefixLen * sizeof(wchar_t));
       return nPrefixLen;
     }
-    if (uMsg == AEM_SETURLPREFIXES)
+    case AEM_SETURLPREFIXES:
     {
       const wchar_t *wpPrefix=lParam?(wchar_t *)lParam:AES_URLPREFIXESW;
       int nPrefix;
@@ -1579,27 +1559,27 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_StackCloneUpdate(ae);
       return nPrefix;
     }
-    if (uMsg == AEM_GETURLMAXLENGTH)
+    case AEM_GETURLMAXLENGTH:
     {
       return ae->popt->dwUrlMaxLength;
     }
-    if (uMsg == AEM_SETURLMAXLENGTH)
+    case AEM_SETURLMAXLENGTH:
     {
       ae->popt->dwUrlMaxLength=(DWORD)wParam;
       return 0;
     }
-    if (uMsg == AEM_GETWORDBREAK)
+    case AEM_GETWORDBREAK:
     {
       return ae->popt->dwWordBreak;
     }
-    if (uMsg == AEM_SETWORDBREAK)
+    case AEM_SETWORDBREAK:
     {
       DWORD dwWordBreak=ae->popt->dwWordBreak;
 
       ae->popt->dwWordBreak=(DWORD)wParam;
       return dwWordBreak;
     }
-    if (uMsg == AEM_GETMARKER)
+    case AEM_GETMARKER:
     {
       DWORD *lpdwColumnMarkerType=(DWORD *)wParam;
 
@@ -1607,7 +1587,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return (LRESULT)ae->popt->dwColumnMarkerPos;
     }
-    if (uMsg == AEM_SETMARKER)
+    case AEM_SETMARKER:
     {
       AEPENITEM *lpPenItem;
 
@@ -1617,11 +1597,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return AE_ColumnMarkerSet(ae, (DWORD)wParam, (int)lParam, FALSE);
     }
-    if (uMsg == AEM_GETLINEGAP)
+    case AEM_GETLINEGAP:
     {
       return (LRESULT)ae->ptxt->nLineGap;
     }
-    if (uMsg == AEM_SETLINEGAP)
+    case AEM_SETLINEGAP:
     {
       if (ae->ptxt->nLineGap != (int)wParam)
       {
@@ -1653,36 +1633,36 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_GETTEXTLIMIT)
+    case AEM_GETTEXTLIMIT:
     {
       return ae->ptxt->dwTextLimit;
     }
-    if (uMsg == AEM_SETTEXTLIMIT)
+    case AEM_SETTEXTLIMIT:
     {
       ae->ptxt->dwTextLimit=wParam;
       return 0;
     }
-    if (uMsg == AEM_GETFONT)
+    case AEM_GETFONT:
     {
       if (wParam == AEGF_CURRENT)
         return (LRESULT)ae->ptxt->hFont;
-      else if (wParam == AEGF_NORMAL)
+      if (wParam == AEGF_NORMAL)
         return (LRESULT)ae->ptxt->hFontNormal;
-      else if (wParam == AEGF_BOLD)
+      if (wParam == AEGF_BOLD)
         return (LRESULT)ae->ptxt->hFontBold;
-      else if (wParam == AEGF_ITALIC)
+      if (wParam == AEGF_ITALIC)
         return (LRESULT)ae->ptxt->hFontItalic;
-      else if (wParam == AEGF_BOLDITALIC)
+      if (wParam == AEGF_BOLDITALIC)
         return (LRESULT)ae->ptxt->hFontBoldItalic;
-      else if (wParam == AEGF_URL)
+      if (wParam == AEGF_URL)
         return (LRESULT)ae->ptxt->hFontUrl;
       return 0;
     }
-    if (uMsg == AEM_GETALTLINE)
+    case AEM_GETALTLINE:
     {
       return MAKELONG(ae->popt->dwAltLineSkip, ae->popt->dwAltLineFill);
     }
-    if (uMsg == AEM_SETALTLINE)
+    case AEM_SETALTLINE:
     {
       if (ae->popt->dwAltLineSkip != LOWORD(wParam) ||
           ae->popt->dwAltLineFill != HIWORD(wParam))
@@ -1694,11 +1674,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_GETCHARCOLORS)
+    case AEM_GETCHARCOLORS:
     {
       return AE_GetHighLightCharColors(ae, (const AECHARINDEX *)wParam, (AECHARCOLORS *)lParam);
     }
-    if (uMsg == AEM_SCROLLCARETOPTIONS)
+    case AEM_SCROLLCARETOPTIONS:
     {
       AESCROLLCARETOPTIONS *sco=(AESCROLLCARETOPTIONS *)lParam;
 
@@ -1731,7 +1711,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    if (uMsg == AEM_FIXEDCHARWIDTH)
+    case AEM_FIXEDCHARWIDTH:
     {
       int nPrevWidth=ae->ptxt->nInitFixedCharWidth;
 
@@ -1742,11 +1722,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Draw
-    ShowScrollbar:
-    if (uMsg >= AEM_GETFOLDSTACK)
-      goto GetFoldStack;
-
-    if (uMsg == AEM_SHOWSCROLLBAR)
+    case AEM_SHOWSCROLLBAR:
     {
       BOOL bUpdate=FALSE;
       int nResult=-1;
@@ -1779,21 +1755,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return nResult;
     }
-    if (uMsg == AEM_UPDATESCROLLBAR)
+    case AEM_UPDATESCROLLBAR:
     {
       AE_UpdateScrollBars(ae, (int)wParam);
       return 0;
     }
-    if (uMsg == AEM_UPDATECARET)
+    case AEM_UPDATECARET:
     {
       return AE_UpdateCaret(ae, ae->bFocus);
     }
-    if (uMsg == AEM_UPDATESIZE)
+    case AEM_UPDATESIZE:
     {
       AE_UpdateSize(ae);
       return 0;
     }
-    if (uMsg == AEM_LOCKUPDATE)
+    case AEM_LOCKUPDATE:
     {
       if (wParam & AELU_SCROLLBAR)
       {
@@ -1811,7 +1787,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return ae->popt->dwLockUpdate;
     }
-    if (uMsg == AEM_LOCKERASERECT)
+    case AEM_LOCKERASERECT:
     {
       AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
       AEERASE *lpEraseNext;
@@ -1878,7 +1854,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return bResult;
     }
-    if (uMsg == AEM_GETERASERECT)
+    case AEM_GETERASERECT:
     {
       RECT *lprcErase=(RECT *)lParam;
       RECT rcErase;
@@ -1903,7 +1879,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return 0;
     }
-    if (uMsg == AEM_SETERASERECT)
+    case AEM_SETERASERECT:
     {
       RECT *lprcErase=lParam?(RECT *)lParam:&ae->rcEdit;
       RECT rcErase;
@@ -1931,23 +1907,23 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       return 0;
     }
-    if (uMsg == AEM_HIDESELECTION)
+    case AEM_HIDESELECTION:
     {
       AE_HideSelection(ae, (BOOL)wParam);
       return 0;
     }
-    if (uMsg == AEM_REDRAWLINERANGE)
+    case AEM_REDRAWLINERANGE:
     {
       AE_RedrawLineRange(ae, (int)wParam, (int)lParam, TRUE);
       return 0;
     }
-    if (uMsg == AEM_GETBACKGROUNDIMAGE)
+    case AEM_GETBACKGROUNDIMAGE:
     {
       if (ae->popt->lpBkImage)
         return (LRESULT)ae->popt->lpBkImage->hBitmap;
       return (LRESULT)NULL;
     }
-    if (uMsg == AEM_SETBACKGROUNDIMAGE)
+    case AEM_SETBACKGROUNDIMAGE:
     {
       BOOL bResult=FALSE;
 
@@ -2004,25 +1980,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Folding
-    GetFoldStack:
-    if (uMsg >= AEM_CREATEDOCUMENT)
-      goto CreateWindowData;
-
-    if (uMsg == AEM_GETFOLDSTACK)
+    case AEM_GETFOLDSTACK:
     {
       return (LRESULT)&ae->ptxt->hFoldsStack;
     }
-    if (uMsg == AEM_GETFOLDCOUNT)
+    case AEM_GETFOLDCOUNT:
     {
       return ae->ptxt->nFoldAllCount;
     }
-    if (uMsg == AEM_ADDFOLD)
+    case AEM_ADDFOLD:
     {
       AEFOLD *lpFold=(AEFOLD *)lParam;
 
       return (LRESULT)AE_StackFoldInsert(ae, lpFold);
     }
-    if (uMsg == AEM_DELETEFOLD)
+    case AEM_DELETEFOLD:
     {
       int nFirstVisibleLine=-1;
       int nResult;
@@ -2045,31 +2017,31 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return nResult;
     }
-    if (uMsg == AEM_ISFOLDVALID)
+    case AEM_ISFOLDVALID:
     {
       return (LRESULT)AE_StackFoldIsValid(ae, (AEFOLD *)wParam);
     }
-    if (uMsg == AEM_FINDFOLD)
+    case AEM_FINDFOLD:
     {
       AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
 
       AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, NULL, &ff->lpParent, &ff->lpPrevSubling);
       return 0;
     }
-    if (uMsg == AEM_NEXTFOLD)
+    case AEM_NEXTFOLD:
     {
       return (LRESULT)AEC_NextFold((AEFOLD *)wParam, (BOOL)lParam);
     }
-    if (uMsg == AEM_PREVFOLD)
+    case AEM_PREVFOLD:
     {
       return (LRESULT)AEC_PrevFold((AEFOLD *)wParam, (BOOL)lParam);
     }
-    if (uMsg == AEM_ISLINECOLLAPSED)
+    case AEM_ISLINECOLLAPSED:
     {
       return (LRESULT)AE_StackIsLineCollapsed(ae, (int)wParam);
     }
-    if (uMsg == AEM_COLLAPSELINE ||
-        uMsg == AEM_COLLAPSEFOLD)
+    case AEM_COLLAPSELINE:
+    case AEM_COLLAPSEFOLD:
     {
       int nFirstVisibleLine=-1;
       int nResult;
@@ -2092,17 +2064,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return nResult;
     }
-    if (uMsg == AEM_UPDATEFOLD)
+    case AEM_UPDATEFOLD:
     {
       return AE_StackFoldUpdate(ae, (int)lParam);
     }
 
     //Window data
-    CreateWindowData:
-    if (uMsg >= AEM_ADDCLONE)
-      goto AddClone;
-
-    if (uMsg == AEM_CREATEDOCUMENT)
+    case AEM_CREATEDOCUMENT:
     {
       AKELEDIT *aeNew;
 
@@ -2113,22 +2081,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)aeNew;
     }
-    if (uMsg == AEM_DELETEDOCUMENT)
+    case AEM_DELETEDOCUMENT:
     {
       AE_DestroyWindowData((AKELEDIT *)wParam);
       if (lpAkelEditPrev == (AKELEDIT *)wParam)
         lpAkelEditPrev=NULL;
       return 0;
     }
-    if (uMsg == AEM_GETDOCUMENT)
+    case AEM_GETDOCUMENT:
     {
       return (LRESULT)ae;
     }
-    if (uMsg == AEM_SETDOCUMENT)
+    case AEM_SETDOCUMENT:
     {
       return (LRESULT)AE_SetWindowData(ae, (AKELEDIT *)wParam, (DWORD)lParam);
     }
-    if (uMsg == AEM_GETDOCUMENTPROC)
+    case AEM_GETDOCUMENTPROC:
     {
       AKELEDIT *aeHandle=(AKELEDIT *)wParam;
 
@@ -2137,7 +2105,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         return (LRESULT)ae->lpEditProc;
     }
-    if (uMsg == AEM_GETDOCUMENTWINDOW)
+    case AEM_GETDOCUMENTWINDOW:
     {
       AKELEDIT *aeHandle=(AKELEDIT *)wParam;
 
@@ -2146,7 +2114,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         return (LRESULT)ae->hWndEdit;
     }
-    if (uMsg == AEM_SENDMESSAGE)
+    case AEM_SENDMESSAGE:
     {
       AESENDMESSAGE *psm=(AESENDMESSAGE *)lParam;
       HWND hWndEdit=ae->hWndEdit;
@@ -2169,11 +2137,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Clones
-    AddClone:
-    if (uMsg >= AEM_STARTPRINTDOC)
-      goto StartPrintDoc;
-
-    if (uMsg == AEM_ADDCLONE)
+    case AEM_ADDCLONE:
     {
       AKELEDIT *aeClone;
 
@@ -2184,7 +2148,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return FALSE;
     }
-    if (uMsg == AEM_DELCLONE)
+    case AEM_DELCLONE:
     {
       AKELEDIT *aeClone;
       AECLONE *aec;
@@ -2207,7 +2171,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return FALSE;
     }
-    if (uMsg == AEM_GETMASTER)
+    case AEM_GETMASTER:
     {
       if (ae->lpMaster)
         return (LRESULT)ae->lpMaster->hWndEdit;
@@ -2216,7 +2180,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return (LRESULT)NULL;
     }
-    if (uMsg == AEM_GETCLONE)
+    case AEM_GETCLONE:
     {
       AECLONE *aec;
 
@@ -2227,11 +2191,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Print
-    StartPrintDoc:
-    if (uMsg >= AEM_HLCREATETHEMEA)
-      goto CreateTheme;
-
-    if (uMsg == AEM_STARTPRINTDOC)
+    case AEM_STARTPRINTDOC:
     {
       AEPRINT *prn=(AEPRINT *)lParam;
 
@@ -2240,14 +2200,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         return (LRESULT)AE_StartPrintDocW(ae, prn);
     }
-    if (uMsg == AEM_PRINTPAGE)
+    case AEM_PRINTPAGE:
     {
       AEPRINTHANDLE *ph=(AEPRINTHANDLE *)wParam;
       AEPRINT *prn=(AEPRINT *)lParam;
 
       return (LRESULT)AE_PrintPage(ae, ph, prn);
     }
-    if (uMsg == AEM_ENDPRINTDOC)
+    case AEM_ENDPRINTDOC:
     {
       AEPRINTHANDLE *ph=(AEPRINTHANDLE *)wParam;
       AEPRINT *prn=(AEPRINT *)lParam;
@@ -2257,9 +2217,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //HighLight
-    CreateTheme:
-
-    if (uMsg == AEM_HLCREATETHEMEA)
+    case AEM_HLCREATETHEMEA:
     {
       char *pThemeName=(char *)lParam;
       wchar_t wszThemeName[MAX_PATH];
@@ -2267,13 +2225,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
       return (LRESULT)AE_HighlightCreateTheme(wszThemeName);
     }
-    if (uMsg == AEM_HLCREATETHEMEW)
+    case AEM_HLCREATETHEMEW:
     {
       wchar_t *wpThemeName=(wchar_t *)lParam;
 
       return (LRESULT)AE_HighlightCreateTheme(wpThemeName);
     }
-    if (uMsg == AEM_HLGETTHEMEA)
+    case AEM_HLGETTHEMEA:
     {
       char *pThemeName=(char *)lParam;
       wchar_t wszThemeName[MAX_PATH];
@@ -2283,7 +2241,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
       return (LRESULT)AE_HighlightGetTheme(wszThemeName);
     }
-    if (uMsg == AEM_HLGETTHEMEW)
+    case AEM_HLGETTHEMEW:
     {
       wchar_t *wpThemeName=(wchar_t *)lParam;
 
@@ -2291,7 +2249,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return (LRESULT)ae->popt->lpActiveTheme;
       return (LRESULT)AE_HighlightGetTheme(wpThemeName);
     }
-    if (uMsg == AEM_HLGETTHEMENAMEA)
+    case AEM_HLGETTHEMENAMEA:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
@@ -2299,7 +2257,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return xstrlenW(lpTheme->wszThemeName) + 1;
       return WideCharToMultiByte(CP_ACP, 0, lpTheme->wszThemeName, -1, (char *)lParam, MAX_PATH, NULL, NULL) - 1;
     }
-    if (uMsg == AEM_HLGETTHEMENAMEW)
+    case AEM_HLGETTHEMENAMEW:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
@@ -2307,7 +2265,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return xstrlenW(lpTheme->wszThemeName) + 1;
       return xstrcpynW((wchar_t *)lParam, lpTheme->wszThemeName, MAX_PATH);
     }
-    if (uMsg == AEM_HLGETTHEMESTACK)
+    case AEM_HLGETTHEMESTACK:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
@@ -2322,13 +2280,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (lParam == AEHLE_MARKRANGE)
         return (LRESULT)(lpTheme?&lpTheme->hMarkRangeStack:&ae->ptxt->hMarkRangeStack);
     }
-    if (uMsg == AEM_HLTHEMEEXISTS)
+    case AEM_HLTHEMEEXISTS:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
       return AE_HighlightIsThemeExists(lpTheme);
     }
-    if (uMsg == AEM_HLSETTHEME)
+    case AEM_HLSETTHEME:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
@@ -2336,7 +2294,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (lParam) InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       return 0;
     }
-    if (uMsg == AEM_HLDELETETHEME)
+    case AEM_HLDELETETHEME:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
@@ -2345,13 +2303,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_HighlightDeleteTheme(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLDELETETHEMEALL)
+    case AEM_HLDELETETHEMEALL:
     {
       AE_HighlightUnsetTheme(NULL);
       AE_HighlightDeleteThemeAll();
       return 0;
     }
-    if (uMsg == AEM_HLADDDELIMITERA)
+    case AEM_HLADDDELIMITERA:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEDELIMITEMA *lpDelimSrc=(AEDELIMITEMA *)lParam;
@@ -2369,7 +2327,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpDelimDst;
     }
-    if (uMsg == AEM_HLADDDELIMITERW)
+    case AEM_HLADDDELIMITERW:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEDELIMITEMW *lpDelimSrc=(AEDELIMITEMW *)lParam;
@@ -2389,7 +2347,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpDelimDst;
     }
-    if (uMsg == AEM_HLDELETEDELIMITER)
+    case AEM_HLDELETEDELIMITER:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEDELIMITEMW *lpDelim=(AEDELIMITEMW *)lParam;
@@ -2400,7 +2358,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_HighlightDeleteDelimiterAll(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLADDWORDA)
+    case AEM_HLADDWORDA:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEWORDITEMA *lpWordSrc=(AEWORDITEMA *)lParam;
@@ -2425,7 +2383,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpWordDst;
     }
-    if (uMsg == AEM_HLADDWORDW)
+    case AEM_HLADDWORDW:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEWORDITEMW *lpWordSrc=(AEWORDITEMW *)lParam;
@@ -2451,7 +2409,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpWordDst;
     }
-    if (uMsg == AEM_HLDELETEWORD)
+    case AEM_HLDELETEWORD:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEWORDITEMW *lpWord=(AEWORDITEMW *)lParam;
@@ -2462,7 +2420,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_HighlightDeleteWordAll(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLADDQUOTEA)
+    case AEM_HLADDQUOTEA:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEQUOTEITEMA *lpQuoteSrc=(AEQUOTEITEMA *)lParam;
@@ -2503,11 +2461,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpQuoteDst;
     }
-    if (uMsg == AEM_HLADDQUOTEW)
+    case AEM_HLADDQUOTEW:
     {
       return (LRESULT)AE_HighlightAddQuote(ae, (AETHEMEITEMW *)wParam, (AEQUOTEITEMW *)lParam, NULL);
     }
-    if (uMsg == AEM_HLDELETEQUOTE)
+    case AEM_HLDELETEQUOTE:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEQUOTEITEMW *lpQuote=(AEQUOTEITEMW *)lParam;
@@ -2518,7 +2476,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_HighlightDeleteQuoteAll(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLADDMARKTEXTA)
+    case AEM_HLADDMARKTEXTA:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEMARKTEXTITEMA *lpMarkTextSrc=(AEMARKTEXTITEMA *)lParam;
@@ -2538,11 +2496,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpMarkTextDst;
     }
-    if (uMsg == AEM_HLADDMARKTEXTW)
+    case AEM_HLADDMARKTEXTW:
     {
       return (LRESULT)AE_HighlightAddMarkText(ae, (AETHEMEITEMW *)wParam, (AEMARKTEXTITEMW *)lParam, NULL);
     }
-    if (uMsg == AEM_HLDELETEMARKTEXT)
+    case AEM_HLDELETEMARKTEXT:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEMARKTEXTITEMW *lpMarkText=(AEMARKTEXTITEMW *)lParam;
@@ -2553,7 +2511,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_HighlightDeleteMarkTextAll(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLADDMARKRANGE)
+    case AEM_HLADDMARKRANGE:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEMARKRANGEITEM *lpMarkRangeSrc=(AEMARKRANGEITEM *)lParam;
@@ -2569,7 +2527,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return (LRESULT)lpMarkRangeDst;
     }
-    if (uMsg == AEM_HLDELETEMARKRANGE)
+    case AEM_HLDELETEMARKRANGE:
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
       AEMARKRANGEITEM *lpMarkRange=(AEMARKRANGEITEM *)lParam;
@@ -2580,18 +2538,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_HighlightDeleteMarkRangeAll(ae, lpTheme);
       return 0;
     }
-    if (uMsg == AEM_HLGETHIGHLIGHT)
+    case AEM_HLGETHIGHLIGHT:
     {
       AEGETHIGHLIGHT *aegh=(AEGETHIGHLIGHT *)lParam;
 
       AE_GetHighLight(ae, aegh);
       return 0;
     }
-    if (uMsg == AEM_HLGETOPTIONS)
+    case AEM_HLGETOPTIONS:
     {
       return ae->popt->dwHLOptions;
     }
-    if (uMsg == AEM_HLSETOPTIONS)
+    case AEM_HLSETOPTIONS:
     {
       DWORD dwHLOptionsOld=ae->popt->dwHLOptions;
       DWORD dwHLOptionsNew=ae->popt->dwHLOptions;
@@ -2615,1035 +2573,2059 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->popt->dwHLOptions=dwHLOptionsNew;
       return ae->popt->dwHLOptions;
     }
-  }
 
 
-  //// EM_* rich edit messages
+    //// EM_* rich edit messages
 
-  //Text retrieval and modification
-  if (uMsg == EM_STREAMIN)
-  {
-    EDITSTREAM *es=(EDITSTREAM *)lParam;
-    AESTREAMIN aesi;
-    DWORD dwFlags=0;
-    UINT_PTR dwResult=0;
-
-    if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
+    //Text retrieval and modification
+    case EM_STREAMIN:
     {
-      aesi.dwCookie=es->dwCookie;
-      aesi.lpCallback=(AEStreamCallback)es->pfnCallback;
-      aesi.nNewLine=AELB_ASINPUT;
-      if (wParam & SFF_SELECTION)
-        dwFlags|=AESF_SELECTION;
+      EDITSTREAM *es=(EDITSTREAM *)lParam;
+      AESTREAMIN aesi;
+      DWORD dwFlags=0;
+      UINT_PTR dwResult=0;
 
-      dwResult=AE_StreamIn(ae, dwFlags, &aesi);
-
-      es->dwError=aesi.dwError;
-    }
-    return dwResult;
-  }
-  if (uMsg == EM_STREAMOUT)
-  {
-    EDITSTREAM *es=(EDITSTREAM *)lParam;
-    AESTREAMOUT aeso;
-    DWORD dwFlags=0;
-    UINT_PTR dwResult=0;
-
-    if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
-    {
-      aeso.dwCookie=es->dwCookie;
-      aeso.lpCallback=(AEStreamCallback)es->pfnCallback;
-      aeso.nNewLine=AELB_ASOUTPUT;
-      aeso.bColumnSel=FALSE;
-      if (wParam & SFF_SELECTION)
-        dwFlags|=AESF_SELECTION;
-
-      dwResult=AE_StreamOut(ae, dwFlags, &aeso);
-
-      es->dwError=aeso.dwError;
-    }
-    return dwResult;
-  }
-  if (uMsg == EM_REPLACESEL ||
-      uMsg == EM_REPLACESELA ||
-      uMsg == EM_REPLACESELW)
-  {
-    if (uMsg == EM_REPLACESELA || (!ae->bUnicodeWindow && uMsg == EM_REPLACESEL))
-      AE_ReplaceSelAnsi(ae, CP_ACP, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
-    else
-      AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
-    return 0;
-  }
-  if (uMsg == EM_GETTEXTRANGE)
-  {
-    TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
-    AECHARRANGE cr;
-
-    if ((UINT)trRE->chrg.cpMin < (UINT)trRE->chrg.cpMax)
-    {
-      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
-      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
-
-      if (!ae->bUnicodeWindow)
-        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-      else
-        return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-    }
-    else if ((UINT)trRE->chrg.cpMin == (UINT)trRE->chrg.cpMax)
-    {
-      if (trRE->lpstrText)
+      if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
       {
+        aesi.dwCookie=es->dwCookie;
+        aesi.lpCallback=(AEStreamCallback)es->pfnCallback;
+        aesi.nNewLine=AELB_ASINPUT;
+        if (wParam & SFF_SELECTION)
+          dwFlags|=AESF_SELECTION;
+
+        dwResult=AE_StreamIn(ae, dwFlags, &aesi);
+
+        es->dwError=aesi.dwError;
+      }
+      return dwResult;
+    }
+    case EM_STREAMOUT:
+    {
+      EDITSTREAM *es=(EDITSTREAM *)lParam;
+      AESTREAMOUT aeso;
+      DWORD dwFlags=0;
+      UINT_PTR dwResult=0;
+
+      if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
+      {
+        aeso.dwCookie=es->dwCookie;
+        aeso.lpCallback=(AEStreamCallback)es->pfnCallback;
+        aeso.nNewLine=AELB_ASOUTPUT;
+        aeso.bColumnSel=FALSE;
+        if (wParam & SFF_SELECTION)
+          dwFlags|=AESF_SELECTION;
+
+        dwResult=AE_StreamOut(ae, dwFlags, &aeso);
+
+        es->dwError=aeso.dwError;
+      }
+      return dwResult;
+    }
+    case EM_REPLACESEL:
+    case EM_REPLACESELA:
+    case EM_REPLACESELW:
+    {
+      if (uMsg == EM_REPLACESELA || (!ae->bUnicodeWindow && uMsg == EM_REPLACESEL))
+        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
+      else
+        AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
+      return 0;
+    }
+    case EM_GETTEXTRANGE:
+    {
+      TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
+      AECHARRANGE cr;
+
+      if ((UINT)trRE->chrg.cpMin < (UINT)trRE->chrg.cpMax)
+      {
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
+
         if (!ae->bUnicodeWindow)
-          *(char *)trRE->lpstrText='\0';
+          return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
         else
-          *trRE->lpstrText=L'\0';
+          return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
       }
-      else return 1;
-    }
-    return 0;
-  }
-  if (uMsg == EM_GETTEXTRANGE64 ||
-      uMsg == EM_GETTEXTRANGE64A ||
-      uMsg == EM_GETTEXTRANGE64W)
-  {
-    TEXTRANGE64W *trRE=(TEXTRANGE64W *)lParam;
-    AECHARRANGE cr;
-
-    if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
-    {
-      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
-      AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
-
-      if (uMsg == EM_GETTEXTRANGE64A || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE64))
-        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-      else
-        return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-    }
-    else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
-    {
-      if (trRE->lpstrText)
+      else if ((UINT)trRE->chrg.cpMin == (UINT)trRE->chrg.cpMax)
       {
+        if (trRE->lpstrText)
+        {
+          if (!ae->bUnicodeWindow)
+            *(char *)trRE->lpstrText='\0';
+          else
+            *trRE->lpstrText=L'\0';
+        }
+        else return 1;
+      }
+      return 0;
+    }
+    case EM_GETTEXTRANGE64:
+    case EM_GETTEXTRANGE64A:
+    case EM_GETTEXTRANGE64W:
+    {
+      TEXTRANGE64W *trRE=(TEXTRANGE64W *)lParam;
+      AECHARRANGE cr;
+
+      if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
+      {
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
+
         if (uMsg == EM_GETTEXTRANGE64A || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE64))
-          *(char *)trRE->lpstrText='\0';
+          return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
         else
-          *trRE->lpstrText=L'\0';
+          return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
       }
-      else return 1;
-    }
-    return 0;
-  }
-  if (uMsg == EM_GETSELTEXT ||
-      uMsg == EM_GETSELTEXTA ||
-      uMsg == EM_GETSELTEXTW)
-  {
-    if (uMsg == EM_GETSELTEXTA || (!ae->bUnicodeWindow && uMsg == EM_GETSELTEXT))
-      return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)lParam, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-    else
-      return AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)lParam, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
-  }
-  if (uMsg == EM_GETLINE ||
-      uMsg == EM_GETLINEA ||
-      uMsg == EM_GETLINEW)
-  {
-    if (uMsg == EM_GETLINEA || (!ae->bUnicodeWindow && uMsg == EM_GETLINE))
-    {
-      AELINEDATA *lpLine;
-      char *szBuffer=(char *)lParam;
-      int nMaxBuffer=*(WORD *)lParam;
-      int nResult=0;
-
-      szBuffer[0]='\0';
-
-      if (lpLine=AE_GetLineData(ae, (int)wParam))
+      else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
       {
-        nResult=WideCharToMultiByte(CP_ACP, 0, lpLine->wpLine, lpLine->nLineLen, szBuffer, nMaxBuffer, NULL, NULL);
-        if (nResult < nMaxBuffer)
-          szBuffer[nResult++]='\r';
+        if (trRE->lpstrText)
+        {
+          if (uMsg == EM_GETTEXTRANGE64A || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE64))
+            *(char *)trRE->lpstrText='\0';
+          else
+            *trRE->lpstrText=L'\0';
+        }
+        else return 1;
       }
-      return nResult;
+      return 0;
     }
-    else
+    case EM_GETSELTEXT:
+    case EM_GETSELTEXTA:
+    case EM_GETSELTEXTW:
     {
-      AELINEDATA *lpLine;
-      wchar_t *wszBuffer=(wchar_t *)lParam;
-      int nMaxBuffer=*(WORD *)lParam;
-      int nResult=0;
-
-      wszBuffer[0]=L'\0';
-
-      if (lpLine=AE_GetLineData(ae, (int)wParam))
+      if (uMsg == EM_GETSELTEXTA || (!ae->bUnicodeWindow && uMsg == EM_GETSELTEXT))
+        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)lParam, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
+      else
+        return AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)lParam, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
+    }
+    case EM_GETLINE:
+    case EM_GETLINEA:
+    case EM_GETLINEW:
+    {
+      if (uMsg == EM_GETLINEA || (!ae->bUnicodeWindow && uMsg == EM_GETLINE))
       {
-        nResult=min(nMaxBuffer, lpLine->nLineLen);
-        xmemcpy(wszBuffer, lpLine->wpLine, nResult * sizeof(wchar_t));
-        if (nResult < nMaxBuffer)
-          wszBuffer[nResult++]=L'\r';
-      }
-      return nResult;
-    }
-  }
-  if (uMsg == EM_GETTEXTLENGTHEX)
-  {
-    GETTEXTLENGTHEX *gtl=(GETTEXTLENGTHEX *)wParam;
-    UINT_PTR dwResult=0;
+        AELINEDATA *lpLine;
+        char *szBuffer=(char *)lParam;
+        int nMaxBuffer=*(WORD *)lParam;
+        int nResult=0;
 
-    //Answer is always GTL_PRECISE
-    if ((gtl->flags & GTL_PRECISE) && (gtl->flags & GTL_CLOSE))
-      return E_INVALIDARG;
-    if ((gtl->flags & GTL_NUMCHARS) && (gtl->flags & GTL_NUMBYTES))
-      return E_INVALIDARG;
+        szBuffer[0]='\0';
 
-    if (!(gtl->flags & GTL_NUMBYTES))
-    {
-      dwResult=ae->ptxt->nLastCharOffset;
-      if (gtl->flags & GTL_USECRLF)
-        dwResult+=ae->ptxt->nLineCount;
-    }
-    else
-    {
-      if (gtl->codepage == 1200 || gtl->codepage == 1201)
-      {
-        dwResult=ae->ptxt->nLastCharOffset;
-        if (gtl->flags & GTL_USECRLF)
-          dwResult+=ae->ptxt->nLineCount;
-        dwResult*=sizeof(wchar_t);
+        if (lpLine=AE_GetLineData(ae, (int)wParam))
+        {
+          nResult=WideCharToMultiByte(CP_ACP, 0, lpLine->wpLine, lpLine->nLineLen, szBuffer, nMaxBuffer, NULL, NULL);
+          if (nResult < nMaxBuffer)
+            szBuffer[nResult++]='\r';
+        }
+        return nResult;
       }
       else
       {
         AELINEDATA *lpLine;
+        wchar_t *wszBuffer=(wchar_t *)lParam;
+        int nMaxBuffer=*(WORD *)lParam;
+        int nResult=0;
 
-        for (lpLine=ae->ptxt->hLinesStack.first; lpLine; lpLine=lpLine->next)
+        wszBuffer[0]=L'\0';
+
+        if (lpLine=AE_GetLineData(ae, (int)wParam))
         {
-          if (lpLine->nLineLen)
-          {
-            dwResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
-          }
-
+          nResult=min(nMaxBuffer, lpLine->nLineLen);
+          xmemcpy(wszBuffer, lpLine->wpLine, nResult * sizeof(wchar_t));
+          if (nResult < nMaxBuffer)
+            wszBuffer[nResult++]=L'\r';
         }
-        dwResult+=ae->ptxt->nLineCount;
+        return nResult;
+      }
+    }
+    case EM_GETTEXTLENGTHEX:
+    {
+      GETTEXTLENGTHEX *gtl=(GETTEXTLENGTHEX *)wParam;
+      UINT_PTR dwResult=0;
+
+      //Answer is always GTL_PRECISE
+      if ((gtl->flags & GTL_PRECISE) && (gtl->flags & GTL_CLOSE))
+        return E_INVALIDARG;
+      if ((gtl->flags & GTL_NUMCHARS) && (gtl->flags & GTL_NUMBYTES))
+        return E_INVALIDARG;
+
+      if (!(gtl->flags & GTL_NUMBYTES))
+      {
+        dwResult=ae->ptxt->nLastCharOffset;
         if (gtl->flags & GTL_USECRLF)
           dwResult+=ae->ptxt->nLineCount;
       }
-    }
-    return dwResult;
-  }
-  if (uMsg == EM_GETTEXTEX)
-  {
-    GETTEXTEX *gt=(GETTEXTEX *)wParam;
-    AECHARRANGE cr;
-    int nNewLine;
-    UINT_PTR dwResult=0;
-
-    if (gt->flags & GT_SELECTION)
-    {
-      cr.ciMin=ae->ciSelStartIndex;
-      cr.ciMax=ae->ciSelEndIndex;
-    }
-    else
-    {
-      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
-      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
-    }
-
-    if (gt->flags & GT_USECRLF)
-      nNewLine=AELB_RN;
-    else
-      nNewLine=AELB_R;
-
-    if (gt->codepage == 1200)
-    {
-      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-    }
-    else if (gt->codepage == 1201)
-    {
-      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
-    }
-    else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
-
-    return dwResult;
-  }
-  if (uMsg == EM_GETTEXTEX64)
-  {
-    GETTEXTEX64 *gt=(GETTEXTEX64 *)wParam;
-    AECHARRANGE cr;
-    int nNewLine;
-    UINT_PTR dwResult=0;
-
-    if (gt->flags & GT_SELECTION)
-    {
-      cr.ciMin=ae->ciSelStartIndex;
-      cr.ciMax=ae->ciSelEndIndex;
-    }
-    else
-    {
-      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
-      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
-    }
-
-    if (gt->flags & GT_USECRLF)
-      nNewLine=AELB_RN;
-    else
-      nNewLine=AELB_R;
-
-    if (gt->codepage == 1200)
-    {
-      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-    }
-    else if (gt->codepage == 1201)
-    {
-      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
-    }
-    else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
-
-    return dwResult;
-  }
-  if (uMsg == EM_SETTEXTEX)
-  {
-    SETTEXTEX *st=(SETTEXTEX *)wParam;
-    BOOL bLockCollectUndo=ae->ptxt->bLockCollectUndo;
-
-    if (!(st->flags & ST_KEEPUNDO))
-    {
-      AE_EmptyUndoBuffer(ae);
-      ae->ptxt->bLockCollectUndo=TRUE;
-    }
-    if (!(st->flags & ST_SELECTION))
-      AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
-
-    if (st->codepage == 1200)
-    {
-      AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
-    }
-    else if (st->codepage == 1201)
-    {
-      wchar_t *wszText;
-      UINT_PTR dwUnicodeBytes;
-
-      dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
-
-      if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
-      {
-        xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
-        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes, NULL);
-        AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, 0, NULL, NULL);
-        AE_HeapFree(NULL, 0, (LPVOID)wszText);
-      }
-    }
-    else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
-
-    if (!(st->flags & ST_KEEPUNDO))
-      ae->ptxt->bLockCollectUndo=bLockCollectUndo;
-    if (!(st->flags & ST_SELECTION))
-      AE_SetModify(ae, FALSE);
-
-    return 1;
-  }
-  if (uMsg == EM_FINDTEXT ||
-      uMsg == EM_FINDTEXTW ||
-      uMsg == EM_FINDTEXTEX ||
-      uMsg == EM_FINDTEXTEXW)
-  {
-    FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
-    AEFINDTEXTW ft;
-    BOOL bResult;
-
-    ft.dwFlags=0;
-    if (wParam & FR_DOWN)
-      ft.dwFlags|=AEFR_DOWN;
-    if (wParam & FR_MATCHCASE)
-      ft.dwFlags|=AEFR_MATCHCASE;
-    if (wParam & FR_WHOLEWORD)
-      ft.dwFlags|=AEFR_WHOLEWORD;
-    ft.pText=(wchar_t *)ftRE->lpstrText;
-    ft.dwTextLen=(UINT_PTR)-1;
-    ft.nNewLine=AELB_R;
-    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-
-    if (!ae->bUnicodeWindow && (uMsg == EM_FINDTEXT || uMsg == EM_FINDTEXTEX))
-      bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
-    else
-      bResult=AE_FindText(ae, &ft);
-
-    if (bResult)
-    {
-      if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
-      {
-        ftRE->chrgText.cpMin=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-        ftRE->chrgText.cpMax=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
-        return ftRE->chrgText.cpMin;
-      }
-      return AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-    }
-    return -1;
-  }
-  if (uMsg == EM_FINDTEXTEX64 ||
-      uMsg == EM_FINDTEXTEX64A ||
-      uMsg == EM_FINDTEXTEX64W)
-  {
-    FINDTEXTEX64W *ftRE=(FINDTEXTEX64W *)lParam;
-    AEFINDTEXTW ft;
-    BOOL bResult;
-
-    ft.dwFlags=0;
-    if (wParam & FR_DOWN)
-      ft.dwFlags|=AEFR_DOWN;
-    if (wParam & FR_MATCHCASE)
-      ft.dwFlags|=AEFR_MATCHCASE;
-    if (wParam & FR_WHOLEWORD)
-      ft.dwFlags|=AEFR_WHOLEWORD;
-    ft.pText=(wchar_t *)ftRE->lpstrText;
-    ft.dwTextLen=(UINT_PTR)-1;
-    ft.nNewLine=AELB_R;
-    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-    AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-
-    if (uMsg == EM_FINDTEXTEX64A || (!ae->bUnicodeWindow && uMsg == EM_FINDTEXTEX64))
-      bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
-    else
-      bResult=AE_FindText(ae, &ft);
-
-    if (bResult)
-    {
-      ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-      ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
-      return ftRE->chrgText.cpMin;
-    }
-    return -1;
-  }
-  if (uMsg == EM_CANPASTE)
-  {
-    return AE_EditCanPaste(ae);
-  }
-  if (uMsg == EM_GETLIMITTEXT)
-  {
-    return ae->ptxt->dwTextLimit;
-  }
-  if (uMsg == EM_SETLIMITTEXT ||
-      uMsg == EM_LIMITTEXT)
-  {
-    if (!wParam)
-      ae->ptxt->dwTextLimit=65536;
-    else
-      ae->ptxt->dwTextLimit=wParam;
-    return 0;
-  }
-  if (uMsg == EM_EXLIMITTEXT)
-  {
-    if (!lParam)
-      ae->ptxt->dwTextLimit=65536;
-    else
-      ae->ptxt->dwTextLimit=lParam;
-    return 0;
-  }
-
-  //Undo and Redo
-  if (uMsg == EM_CANUNDO)
-  {
-    if (ae->popt->dwOptions & AECO_READONLY)
-      return FALSE;
-    return AE_EditCanUndo(ae);
-  }
-  if (uMsg == EM_CANREDO)
-  {
-    if (ae->popt->dwOptions & AECO_READONLY)
-      return FALSE;
-    return AE_EditCanRedo(ae);
-  }
-  if (uMsg == EM_UNDO)
-  {
-    return AE_EditUndo(ae);
-  }
-  if (uMsg == EM_REDO)
-  {
-    return AE_EditRedo(ae);
-  }
-  if (uMsg == EM_GETMODIFY)
-  {
-    return ae->ptxt->bModified;
-  }
-  if (uMsg == EM_SETMODIFY)
-  {
-    AE_SetModify(ae, (BOOL)wParam);
-    return 0;
-  }
-  if (uMsg == EM_SETUNDOLIMIT)
-  {
-    ae->ptxt->dwUndoLimit=(DWORD)wParam;
-    AE_StackUndoGroupStop(ae);
-    return 0;
-  }
-  if (uMsg == EM_EMPTYUNDOBUFFER)
-  {
-    AE_EmptyUndoBuffer(ae);
-    return 0;
-  }
-  if (uMsg == EM_STOPGROUPTYPING)
-  {
-    AE_StackUndoGroupStop(ae);
-    return 0;
-  }
-
-  //Text coordinates
-  if (uMsg == EM_GETSEL)
-  {
-    CHARRANGE64 crRE;
-
-    AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-    if (wParam) *(int *)wParam=(int)crRE.cpMin;
-    if (lParam) *(int *)lParam=(int)crRE.cpMax;
-
-    if ((UINT)crRE.cpMin > 0xFFFF0000)
-      return -1;
-    if ((UINT)crRE.cpMax > 0xFFFF0000)
-      return -1;
-    return MAKELONG(crRE.cpMin, crRE.cpMax);
-  }
-  if (uMsg == EM_GETSEL64)
-  {
-    CHARRANGE64 crRE;
-    INT_PTR nResult;
-
-    nResult=AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-    if (wParam) *(INT_PTR *)wParam=crRE.cpMin;
-    if (lParam) *(INT_PTR *)lParam=crRE.cpMax;
-
-    return nResult;
-  }
-  if (uMsg == EM_SETSEL)
-  {
-    AE_RichEditSetSel(ae, wParam, lParam);
-    return 0;
-  }
-  if (uMsg == EM_EXGETSEL)
-  {
-    CHARRANGE64 crRE;
-
-    AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-    ((CHARRANGE *)lParam)->cpMin=(int)crRE.cpMin;
-    ((CHARRANGE *)lParam)->cpMax=(int)crRE.cpMax;
-    return 0;
-  }
-  if (uMsg == EM_EXGETSEL64)
-  {
-    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
-
-    return AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
-  }
-  if (uMsg == EM_EXSETSEL)
-  {
-    CHARRANGE *crRE=(CHARRANGE *)lParam;
-
-    AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
-    return ae->nSelEndCharOffset;
-  }
-  if (uMsg == EM_EXSETSEL64)
-  {
-    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
-
-    AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
-    return (ae->nSelEndCharOffset - ae->nSelStartCharOffset);
-  }
-  if (uMsg == EM_SELECTIONTYPE)
-  {
-    DWORD dwSelType=0;
-
-    if (ae->nSelStartCharOffset == ae->nSelEndCharOffset)
-    {
-      dwSelType=SEL_EMPTY;
-    }
-    else
-    {
-      dwSelType=SEL_TEXT;
-      if (ae->nSelEndCharOffset - ae->nSelStartCharOffset > 1)
-        dwSelType|=SEL_MULTICHAR;
-    }
-    return dwSelType;
-  }
-  if (uMsg == EM_GETLINECOUNT)
-  {
-    return ae->ptxt->nLineCount + 1;
-  }
-  if (uMsg == EM_GETFIRSTVISIBLELINE)
-  {
-    return AE_GetFirstVisibleLine(ae);
-  }
-  if (uMsg == EM_LINEFROMCHAR)
-  {
-    return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, wParam);
-  }
-  if (uMsg == EM_EXLINEFROMCHAR)
-  {
-    return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, lParam);
-  }
-  if (uMsg == EM_LINEINDEX)
-  {
-    return AE_GetRichOffset(ae, AEGI_RICHOFFSETFROMLINE, wParam);
-  }
-  if (uMsg == EM_LINELENGTH)
-  {
-    AECHARINDEX ci={0};
-
-    if (wParam <= (UINT_PTR)ae->ptxt->nLastCharOffset)
-    {
-      AE_RichOffsetToAkelIndex(ae, wParam, &ci);
-      if (ci.lpLine)
-        return ci.lpLine->nLineLen;
-    }
-    return 0;
-  }
-  if (uMsg == EM_POSFROMCHAR)
-  {
-    AECHARINDEX ci={0};
-
-    if (lParam || !IsBadWritePtr((void *)wParam, sizeof(POINT)))
-    {
-      //RichEdit 3.0 syntax
-      POINT *ptClient=(POINT *)wParam;
-
-      AE_RichOffsetToAkelIndex(ae, lParam, &ci);
-      AE_GetPosFromChar(ae, &ci, NULL, ptClient);
-      return 0;
-    }
-    else
-    {
-      //RichEdit 2.0 syntax
-      POINT ptClient;
-
-      AE_RichOffsetToAkelIndex(ae, wParam, &ci);
-      AE_GetPosFromChar(ae, &ci, NULL, &ptClient);
-      return MAKELONG(ptClient.x, ptClient.y);
-    }
-  }
-  if (uMsg == EM_CHARFROMPOS)
-  {
-    POINT *ptClient=(POINT *)lParam;
-    AECHARINDEX ci={0};
-
-    AE_GetCharFromPos(ae, ptClient->x, ptClient->y, &ci, NULL, FALSE);
-    return AE_AkelIndexToRichOffset(ae, &ci);
-  }
-  if (uMsg == EM_GETRECT)
-  {
-    RECT *rcDraw=(RECT *)lParam;
-
-    *rcDraw=ae->rcDraw;
-    return 0;
-  }
-  if (uMsg == EM_SETRECT ||
-      uMsg == EM_SETRECTNP)
-  {
-    RECT *lprcDraw=(RECT *)lParam;
-    RECT rcDraw;
-    int nBorderX;
-    int nBorderY;
-
-    if (lprcDraw)
-    {
-      if (wParam)
-      {
-        rcDraw.left=ae->rcDraw.left + lprcDraw->left;
-        rcDraw.top=ae->rcDraw.top + lprcDraw->top;
-        rcDraw.right=ae->rcDraw.right + lprcDraw->right;
-        rcDraw.bottom=ae->rcDraw.bottom + lprcDraw->bottom;
-        lprcDraw=&rcDraw;
-      }
       else
       {
-        if (GetWindowLongA(ae->hWndEdit, GWL_EXSTYLE) & WS_EX_CLIENTEDGE)
+        if (gtl->codepage == 1200 || gtl->codepage == 1201)
         {
-          nBorderX=GetSystemMetrics(SM_CXBORDER);
-          nBorderY=GetSystemMetrics(SM_CYBORDER);
+          dwResult=ae->ptxt->nLastCharOffset;
+          if (gtl->flags & GTL_USECRLF)
+            dwResult+=ae->ptxt->nLineCount;
+          dwResult*=sizeof(wchar_t);
+        }
+        else
+        {
+          AELINEDATA *lpLine;
 
-          rcDraw.left=lprcDraw->left - nBorderX;
-          rcDraw.top=lprcDraw->top - nBorderY;
-          rcDraw.right=lprcDraw->right + nBorderX;
-          rcDraw.bottom=lprcDraw->bottom + nBorderY;
-          lprcDraw=&rcDraw;
+          for (lpLine=ae->ptxt->hLinesStack.first; lpLine; lpLine=lpLine->next)
+          {
+            if (lpLine->nLineLen)
+            {
+              dwResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
+            }
+
+          }
+          dwResult+=ae->ptxt->nLineCount;
+          if (gtl->flags & GTL_USECRLF)
+            dwResult+=ae->ptxt->nLineCount;
         }
       }
+      return dwResult;
     }
-    AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
-    if (ae->ptxt->dwWordWrap)
+    case EM_GETTEXTEX:
     {
-      AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-      AE_StackCloneUpdate(ae);
+      GETTEXTEX *gt=(GETTEXTEX *)wParam;
+      AECHARRANGE cr;
+      int nNewLine;
+      UINT_PTR dwResult=0;
+
+      if (gt->flags & GT_SELECTION)
+      {
+        cr.ciMin=ae->ciSelStartIndex;
+        cr.ciMax=ae->ciSelEndIndex;
+      }
+      else
+      {
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
+      }
+
+      if (gt->flags & GT_USECRLF)
+        nNewLine=AELB_RN;
+      else
+        nNewLine=AELB_R;
+
+      if (gt->codepage == 1200)
+      {
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+      }
+      else if (gt->codepage == 1201)
+      {
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+        AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
+      }
+      else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
+
+      return dwResult;
     }
-    AE_UpdateScrollBars(ae, SB_BOTH);
-    AE_NotifySetRect(ae);
-    return 0;
-  }
-  if (uMsg == EM_GETMARGINS)
-  {
-    return MAKELONG(ae->rcDraw.left - ae->rcEdit.left, ae->rcEdit.right - ae->rcDraw.right);
-  }
-  if (uMsg == EM_SETMARGINS)
-  {
-    RECT rcDraw=ae->rcDraw;
-
-    if (wParam & EC_LEFTMARGIN)
-      rcDraw.left=ae->rcEdit.left + LOWORD(lParam);
-    if (wParam & EC_RIGHTMARGIN)
-      rcDraw.right=ae->rcEdit.right - HIWORD(lParam);
-
-    AE_SetDrawRect(ae, &rcDraw, TRUE);
-    if (ae->ptxt->dwWordWrap)
+    case EM_GETTEXTEX64:
     {
-      AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-      AE_StackCloneUpdate(ae);
+      GETTEXTEX64 *gt=(GETTEXTEX64 *)wParam;
+      AECHARRANGE cr;
+      int nNewLine;
+      UINT_PTR dwResult=0;
+
+      if (gt->flags & GT_SELECTION)
+      {
+        cr.ciMin=ae->ciSelStartIndex;
+        cr.ciMax=ae->ciSelEndIndex;
+      }
+      else
+      {
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
+      }
+
+      if (gt->flags & GT_USECRLF)
+        nNewLine=AELB_RN;
+      else
+        nNewLine=AELB_R;
+
+      if (gt->codepage == 1200)
+      {
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+      }
+      else if (gt->codepage == 1201)
+      {
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+        AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t), NULL);
+      }
+      else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
+
+      return dwResult;
     }
-    AE_UpdateScrollBars(ae, SB_BOTH);
-    AE_NotifySetRect(ae);
-    return 0;
-  }
-  if (uMsg == EM_GETSCROLLPOS)
-  {
-    POINT *pt=(POINT *)lParam;
-
-    pt->x=(int)ae->nHScrollPos;
-    pt->y=(int)ae->nVScrollPos;
-    return 1;
-  }
-  if (uMsg == EM_SETSCROLLPOS)
-  {
-    POINT *pt=(POINT *)lParam;
-
-    AE_SetScrollPos(ae, pt->x, pt->y);
-    return 1;
-  }
-  if (uMsg == EM_SCROLL)
-  {
-    INT_PTR nScrolled=0;
-    BOOL bResult=FALSE;
-
-    if (wParam == SB_LINEUP ||
-        wParam == SB_LINEDOWN ||
-        wParam == SB_PAGEUP ||
-        wParam == SB_PAGEDOWN)
+    case EM_SETTEXTEX:
     {
-      nScrolled=AE_VScroll(ae, (int)wParam, 0);
-      bResult=TRUE;
-    }
-    return MAKELONG(mod(nScrolled) / ae->ptxt->nCharHeight, bResult);
-  }
-  if (uMsg == EM_LINESCROLL)
-  {
-    AE_VScrollLine(ae, (int)lParam, AESB_ALIGNTOP);
-    return 0;
-  }
-  if (uMsg == EM_SCROLLCARET)
-  {
-    AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
-    return 0;
-  }
-  if (uMsg == EM_GETTHUMB)
-  {
-    return ae->nVScrollPos;
-  }
-  if (uMsg == EM_FINDWORDBREAK)
-  {
-    AECHARINDEX ciCharIn;
-    AECHARINDEX ciCharOut;
-    DWORD dwFlags=0;
+      SETTEXTEX *st=(SETTEXTEX *)wParam;
+      BOOL bLockCollectUndo=ae->ptxt->bLockCollectUndo;
 
-    if (wParam == WB_CLASSIFY)
+      if (!(st->flags & ST_KEEPUNDO))
+      {
+        AE_EmptyUndoBuffer(ae);
+        ae->ptxt->bLockCollectUndo=TRUE;
+      }
+      if (!(st->flags & ST_SELECTION))
+        AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
+
+      if (st->codepage == 1200)
+      {
+        AE_ReplaceSel(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
+      }
+      else if (st->codepage == 1201)
+      {
+        wchar_t *wszText;
+        UINT_PTR dwUnicodeBytes;
+
+        dwUnicodeBytes=xstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
+
+        if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
+        {
+          xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
+          AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes, NULL);
+          AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), AELB_ASINPUT, 0, NULL, NULL);
+          AE_HeapFree(NULL, 0, (LPVOID)wszText);
+        }
+      }
+      else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT, 0, NULL, NULL);
+
+      if (!(st->flags & ST_KEEPUNDO))
+        ae->ptxt->bLockCollectUndo=bLockCollectUndo;
+      if (!(st->flags & ST_SELECTION))
+        AE_SetModify(ae, FALSE);
+
+      return 1;
+    }
+    case EM_FINDTEXT:
+    case EM_FINDTEXTW:
+    case EM_FINDTEXTEX:
+    case EM_FINDTEXTEXW:
+    {
+      FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
+      AEFINDTEXTW ft;
+      BOOL bResult;
+
+      ft.dwFlags=0;
+      if (wParam & FR_DOWN)
+        ft.dwFlags|=AEFR_DOWN;
+      if (wParam & FR_MATCHCASE)
+        ft.dwFlags|=AEFR_MATCHCASE;
+      if (wParam & FR_WHOLEWORD)
+        ft.dwFlags|=AEFR_WHOLEWORD;
+      ft.pText=(wchar_t *)ftRE->lpstrText;
+      ft.dwTextLen=(UINT_PTR)-1;
+      ft.nNewLine=AELB_R;
+      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+
+      if (!ae->bUnicodeWindow && (uMsg == EM_FINDTEXT || uMsg == EM_FINDTEXTEX))
+        bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
+      else
+        bResult=AE_FindText(ae, &ft);
+
+      if (bResult)
+      {
+        if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
+        {
+          ftRE->chrgText.cpMin=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+          ftRE->chrgText.cpMax=(int)AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+          return ftRE->chrgText.cpMin;
+        }
+        return AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+      }
+      return -1;
+    }
+    case EM_FINDTEXTEX64:
+    case EM_FINDTEXTEX64A:
+    case EM_FINDTEXTEX64W:
+    {
+      FINDTEXTEX64W *ftRE=(FINDTEXTEX64W *)lParam;
+      AEFINDTEXTW ft;
+      BOOL bResult;
+
+      ft.dwFlags=0;
+      if (wParam & FR_DOWN)
+        ft.dwFlags|=AEFR_DOWN;
+      if (wParam & FR_MATCHCASE)
+        ft.dwFlags|=AEFR_MATCHCASE;
+      if (wParam & FR_WHOLEWORD)
+        ft.dwFlags|=AEFR_WHOLEWORD;
+      ft.pText=(wchar_t *)ftRE->lpstrText;
+      ft.dwTextLen=(UINT_PTR)-1;
+      ft.nNewLine=AELB_R;
+      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+      AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+
+      if (uMsg == EM_FINDTEXTEX64A || (!ae->bUnicodeWindow && uMsg == EM_FINDTEXTEX64))
+        bResult=AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)&ft);
+      else
+        bResult=AE_FindText(ae, &ft);
+
+      if (bResult)
+      {
+        ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+        ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+        return ftRE->chrgText.cpMin;
+      }
+      return -1;
+    }
+    case EM_CANPASTE:
+    {
+      return AE_EditCanPaste(ae);
+    }
+    case EM_GETLIMITTEXT:
+    {
+      return ae->ptxt->dwTextLimit;
+    }
+    case EM_SETLIMITTEXT:
+    //case EM_LIMITTEXT:
+    {
+      if (!wParam)
+        ae->ptxt->dwTextLimit=65536;
+      else
+        ae->ptxt->dwTextLimit=wParam;
       return 0;
-
-    AE_RichOffsetToAkelIndex(ae, lParam, &ciCharIn);
-
-    if (wParam == WB_ISDELIMITER)
-      return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCharIn.lpLine->wpLine[ciCharIn.nCharInLine], TRUE);
-
-    if (wParam == WB_LEFT ||
-        wParam == WB_LEFTBREAK ||
-        wParam == WB_PREVBREAK ||
-        wParam == WB_MOVEWORDLEFT ||
-        wParam == WB_MOVEWORDPREV)
+    }
+    case EM_EXLIMITTEXT:
     {
-      if (wParam == WB_LEFT)
-        dwFlags=AEWB_LEFTWORDSTART;
-      else if (wParam == WB_LEFTBREAK || wParam == WB_PREVBREAK)
-        dwFlags=AEWB_LEFTWORDEND;
-      else if (wParam == WB_MOVEWORDLEFT || wParam == WB_MOVEWORDPREV)
-        dwFlags=ae->popt->dwWordBreak;
-
-      if (AE_GetPrevBreak(ae, &ciCharIn, &ciCharOut, FALSE, dwFlags))
-        return AE_AkelIndexToRichOffset(ae, &ciCharOut);
+      if (!lParam)
+        ae->ptxt->dwTextLimit=65536;
       else
-        return lParam;
+        ae->ptxt->dwTextLimit=lParam;
+      return 0;
     }
 
-    if (wParam == WB_RIGHT ||
-        wParam == WB_RIGHTBREAK ||
-        wParam == WB_NEXTBREAK ||
-        wParam == WB_MOVEWORDRIGHT ||
-        wParam == WB_MOVEWORDNEXT)
+    //Undo and Redo
+    case EM_CANUNDO:
     {
-      if (wParam == WB_RIGHT)
-        dwFlags=AEWB_RIGHTWORDSTART;
-      else if (wParam == WB_RIGHTBREAK || wParam == WB_NEXTBREAK)
-        dwFlags=AEWB_RIGHTWORDEND;
-      else if (wParam == WB_MOVEWORDRIGHT || wParam == WB_MOVEWORDNEXT)
-        dwFlags=ae->popt->dwWordBreak;
-
-      if (AE_GetNextBreak(ae, &ciCharIn, &ciCharOut, FALSE, dwFlags))
-        return AE_AkelIndexToRichOffset(ae, &ciCharOut);
-      else
-        return lParam;
+      if (ae->popt->dwOptions & AECO_READONLY)
+        return FALSE;
+      return AE_EditCanUndo(ae);
     }
-    return 0;
-  }
+    case EM_CANREDO:
+    {
+      if (ae->popt->dwOptions & AECO_READONLY)
+        return FALSE;
+      return AE_EditCanRedo(ae);
+    }
+    case EM_UNDO:
+    {
+      return AE_EditUndo(ae);
+    }
+    case EM_REDO:
+    {
+      return AE_EditRedo(ae);
+    }
+    case EM_GETMODIFY:
+    {
+      return ae->ptxt->bModified;
+    }
+    case EM_SETMODIFY:
+    {
+      AE_SetModify(ae, (BOOL)wParam);
+      return 0;
+    }
+    case EM_SETUNDOLIMIT:
+    {
+      ae->ptxt->dwUndoLimit=(DWORD)wParam;
+      AE_StackUndoGroupStop(ae);
+      return 0;
+    }
+    case EM_EMPTYUNDOBUFFER:
+    {
+      AE_EmptyUndoBuffer(ae);
+      return 0;
+    }
+    case EM_STOPGROUPTYPING:
+    {
+      AE_StackUndoGroupStop(ae);
+      return 0;
+    }
 
-  //Options
-  if (uMsg == EM_GETEVENTMASK)
-  {
-    return ae->popt->dwRichEventMask;
-  }
-  if (uMsg == EM_SETEVENTMASK)
-  {
-    DWORD dwPrevMask=ae->popt->dwRichEventMask;
+    //Text coordinates
+    case EM_GETSEL:
+    {
+      CHARRANGE64 crRE;
 
-    ae->popt->dwRichEventMask=(DWORD)lParam;
-    return dwPrevMask;
-  }
-  if (uMsg == EM_GETOPTIONS)
-  {
-    DWORD dwOptions=0;
+      AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+      if (wParam) *(int *)wParam=(int)crRE.cpMin;
+      if (lParam) *(int *)lParam=(int)crRE.cpMax;
 
-    if (ae->popt->dwOptions & AECO_READONLY)
-      dwOptions|=ECO_READONLY;
-    if (ae->popt->dwOptions & AECO_NOHIDESEL)
-      dwOptions|=ECO_NOHIDESEL;
-    if (ae->popt->dwOptions & AECO_WANTRETURN)
-      dwOptions|=ECO_WANTRETURN;
-    return dwOptions;
-  }
-  if (uMsg == EM_SETOPTIONS)
-  {
-    DWORD dwOptions=0;
+      if ((UINT)crRE.cpMin > 0xFFFF0000)
+        return -1;
+      if ((UINT)crRE.cpMax > 0xFFFF0000)
+        return -1;
+      return MAKELONG(crRE.cpMin, crRE.cpMax);
+    }
+    case EM_GETSEL64:
+    {
+      CHARRANGE64 crRE;
+      INT_PTR nResult;
 
-    if (lParam & ECO_READONLY)
-      dwOptions|=AECO_READONLY;
-    if (lParam & ECO_NOHIDESEL)
-      dwOptions|=AECO_NOHIDESEL;
-    if (lParam & ECO_WANTRETURN)
-      dwOptions|=AECO_WANTRETURN;
+      nResult=AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+      if (wParam) *(INT_PTR *)wParam=crRE.cpMin;
+      if (lParam) *(INT_PTR *)lParam=crRE.cpMax;
 
-    if (wParam == AECOOP_SET)
-      ae->popt->dwOptions=dwOptions;
-    else if (wParam == AECOOP_OR)
-      ae->popt->dwOptions|=dwOptions;
-    else if (wParam == AECOOP_AND)
-      ae->popt->dwOptions&=dwOptions;
-    else if (wParam == AECOOP_XOR)
-      ae->popt->dwOptions&=~dwOptions;
-    return ae->popt->dwOptions;
-  }
-  if (uMsg == EM_SETREADONLY)
-  {
-    if (wParam)
-      ae->popt->dwOptions|=AECO_READONLY;
-    else
-      ae->popt->dwOptions&=~AECO_READONLY;
-    return 1;
-  }
-  if (uMsg == EM_SETBKGNDCOLOR)
-  {
-    AECOLORS aec;
+      return nResult;
+    }
+    case EM_SETSEL:
+    {
+      AE_RichEditSetSel(ae, wParam, lParam);
+      return 0;
+    }
+    case EM_EXGETSEL:
+    {
+      CHARRANGE64 crRE;
 
-    aec.dwFlags=AECLR_BASICBK;
-    if (!wParam)
-      aec.crBasicBk=(COLORREF)lParam;
-    else
-      aec.dwFlags|=AECLR_DEFAULT;
+      AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+      ((CHARRANGE *)lParam)->cpMin=(int)crRE.cpMin;
+      ((CHARRANGE *)lParam)->cpMax=(int)crRE.cpMax;
+      return 0;
+    }
+    case EM_EXGETSEL64:
+    {
+      CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
 
-    AE_SetColors(ae, &aec, TRUE);
-    return 0;
-  }
-  if (uMsg == EM_GETAUTOURLDETECT)
-  {
-    if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
-      return TRUE;
-    return FALSE;
-  }
-  if (uMsg == EM_AUTOURLDETECT)
-  {
-    if (!wParam != !(ae->popt->dwOptionsEx & AECOE_DETECTURL))
+      return AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
+    }
+    case EM_EXSETSEL:
+    {
+      CHARRANGE *crRE=(CHARRANGE *)lParam;
+
+      AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
+      return ae->nSelEndCharOffset;
+    }
+    case EM_EXSETSEL64:
+    {
+      CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
+
+      AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
+      return (ae->nSelEndCharOffset - ae->nSelStartCharOffset);
+    }
+    case EM_SELECTIONTYPE:
+    {
+      DWORD dwSelType=0;
+
+      if (ae->nSelStartCharOffset == ae->nSelEndCharOffset)
+      {
+        dwSelType=SEL_EMPTY;
+      }
+      else
+      {
+        dwSelType=SEL_TEXT;
+        if (ae->nSelEndCharOffset - ae->nSelStartCharOffset > 1)
+          dwSelType|=SEL_MULTICHAR;
+      }
+      return dwSelType;
+    }
+    case EM_GETLINECOUNT:
+    {
+      return ae->ptxt->nLineCount + 1;
+    }
+    case EM_GETFIRSTVISIBLELINE:
+    {
+      return AE_GetFirstVisibleLine(ae);
+    }
+    case EM_LINEFROMCHAR:
+    {
+      return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, wParam);
+    }
+    case EM_EXLINEFROMCHAR:
+    {
+      return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, lParam);
+    }
+    case EM_LINEINDEX:
+    {
+      return AE_GetRichOffset(ae, AEGI_RICHOFFSETFROMLINE, wParam);
+    }
+    case EM_LINELENGTH:
+    {
+      AECHARINDEX ci={0};
+
+      if (wParam <= (UINT_PTR)ae->ptxt->nLastCharOffset)
+      {
+        AE_RichOffsetToAkelIndex(ae, wParam, &ci);
+        if (ci.lpLine)
+          return ci.lpLine->nLineLen;
+      }
+      return 0;
+    }
+    case EM_POSFROMCHAR:
+    {
+      AECHARINDEX ci={0};
+
+      if (lParam || !IsBadWritePtr((void *)wParam, sizeof(POINT)))
+      {
+        //RichEdit 3.0 syntax
+        POINT *ptClient=(POINT *)wParam;
+
+        AE_RichOffsetToAkelIndex(ae, lParam, &ci);
+        AE_GetPosFromChar(ae, &ci, NULL, ptClient);
+        return 0;
+      }
+      else
+      {
+        //RichEdit 2.0 syntax
+        POINT ptClient;
+
+        AE_RichOffsetToAkelIndex(ae, wParam, &ci);
+        AE_GetPosFromChar(ae, &ci, NULL, &ptClient);
+        return MAKELONG(ptClient.x, ptClient.y);
+      }
+    }
+    case EM_CHARFROMPOS:
+    {
+      POINT *ptClient=(POINT *)lParam;
+      AECHARINDEX ci={0};
+
+      AE_GetCharFromPos(ae, ptClient->x, ptClient->y, &ci, NULL, FALSE);
+      return AE_AkelIndexToRichOffset(ae, &ci);
+    }
+    case EM_GETRECT:
+    {
+      RECT *rcDraw=(RECT *)lParam;
+
+      *rcDraw=ae->rcDraw;
+      return 0;
+    }
+    case EM_SETRECT:
+    case EM_SETRECTNP:
+    {
+      RECT *lprcDraw=(RECT *)lParam;
+      RECT rcDraw;
+      int nBorderX;
+      int nBorderY;
+
+      if (lprcDraw)
+      {
+        if (wParam)
+        {
+          rcDraw.left=ae->rcDraw.left + lprcDraw->left;
+          rcDraw.top=ae->rcDraw.top + lprcDraw->top;
+          rcDraw.right=ae->rcDraw.right + lprcDraw->right;
+          rcDraw.bottom=ae->rcDraw.bottom + lprcDraw->bottom;
+          lprcDraw=&rcDraw;
+        }
+        else
+        {
+          if (GetWindowLongA(ae->hWndEdit, GWL_EXSTYLE) & WS_EX_CLIENTEDGE)
+          {
+            nBorderX=GetSystemMetrics(SM_CXBORDER);
+            nBorderY=GetSystemMetrics(SM_CYBORDER);
+
+            rcDraw.left=lprcDraw->left - nBorderX;
+            rcDraw.top=lprcDraw->top - nBorderY;
+            rcDraw.right=lprcDraw->right + nBorderX;
+            rcDraw.bottom=lprcDraw->bottom + nBorderY;
+            lprcDraw=&rcDraw;
+          }
+        }
+      }
+      AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
+      if (ae->ptxt->dwWordWrap)
+      {
+        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+        AE_StackCloneUpdate(ae);
+      }
+      AE_UpdateScrollBars(ae, SB_BOTH);
+      AE_NotifySetRect(ae);
+      return 0;
+    }
+    case EM_GETMARGINS:
+    {
+      return MAKELONG(ae->rcDraw.left - ae->rcEdit.left, ae->rcEdit.right - ae->rcDraw.right);
+    }
+    case EM_SETMARGINS:
+    {
+      RECT rcDraw=ae->rcDraw;
+
+      if (wParam & EC_LEFTMARGIN)
+        rcDraw.left=ae->rcEdit.left + LOWORD(lParam);
+      if (wParam & EC_RIGHTMARGIN)
+        rcDraw.right=ae->rcEdit.right - HIWORD(lParam);
+
+      AE_SetDrawRect(ae, &rcDraw, TRUE);
+      if (ae->ptxt->dwWordWrap)
+      {
+        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+        AE_StackCloneUpdate(ae);
+      }
+      AE_UpdateScrollBars(ae, SB_BOTH);
+      AE_NotifySetRect(ae);
+      return 0;
+    }
+    case EM_GETSCROLLPOS:
+    {
+      POINT *pt=(POINT *)lParam;
+
+      pt->x=(int)ae->nHScrollPos;
+      pt->y=(int)ae->nVScrollPos;
+      return 1;
+    }
+    case EM_SETSCROLLPOS:
+    {
+      POINT *pt=(POINT *)lParam;
+
+      AE_SetScrollPos(ae, pt->x, pt->y);
+      return 1;
+    }
+    case EM_SCROLL:
+    {
+      INT_PTR nScrolled=0;
+      BOOL bResult=FALSE;
+
+      if (wParam == SB_LINEUP ||
+          wParam == SB_LINEDOWN ||
+          wParam == SB_PAGEUP ||
+          wParam == SB_PAGEDOWN)
+      {
+        nScrolled=AE_VScroll(ae, (int)wParam, 0);
+        bResult=TRUE;
+      }
+      return MAKELONG(mod(nScrolled) / ae->ptxt->nCharHeight, bResult);
+    }
+    case EM_LINESCROLL:
+    {
+      AE_VScrollLine(ae, (int)lParam, AESB_ALIGNTOP);
+      return 0;
+    }
+    case EM_SCROLLCARET:
+    {
+      AE_ScrollToCaret(ae, &ae->ptCaret, 0, 0);
+      return 0;
+    }
+    case EM_GETTHUMB:
+    {
+      return ae->nVScrollPos;
+    }
+    case EM_FINDWORDBREAK:
+    {
+      AECHARINDEX ciCharIn;
+      AECHARINDEX ciCharOut;
+      DWORD dwFlags=0;
+
+      if (wParam == WB_CLASSIFY)
+        return 0;
+
+      AE_RichOffsetToAkelIndex(ae, lParam, &ciCharIn);
+
+      if (wParam == WB_ISDELIMITER)
+        return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCharIn.lpLine->wpLine[ciCharIn.nCharInLine], TRUE);
+
+      if (wParam == WB_LEFT ||
+          wParam == WB_LEFTBREAK ||
+          wParam == WB_PREVBREAK ||
+          wParam == WB_MOVEWORDLEFT ||
+          wParam == WB_MOVEWORDPREV)
+      {
+        if (wParam == WB_LEFT)
+          dwFlags=AEWB_LEFTWORDSTART;
+        else if (wParam == WB_LEFTBREAK || wParam == WB_PREVBREAK)
+          dwFlags=AEWB_LEFTWORDEND;
+        else if (wParam == WB_MOVEWORDLEFT || wParam == WB_MOVEWORDPREV)
+          dwFlags=ae->popt->dwWordBreak;
+
+        if (AE_GetPrevBreak(ae, &ciCharIn, &ciCharOut, FALSE, dwFlags))
+          return AE_AkelIndexToRichOffset(ae, &ciCharOut);
+        else
+          return lParam;
+      }
+
+      if (wParam == WB_RIGHT ||
+          wParam == WB_RIGHTBREAK ||
+          wParam == WB_NEXTBREAK ||
+          wParam == WB_MOVEWORDRIGHT ||
+          wParam == WB_MOVEWORDNEXT)
+      {
+        if (wParam == WB_RIGHT)
+          dwFlags=AEWB_RIGHTWORDSTART;
+        else if (wParam == WB_RIGHTBREAK || wParam == WB_NEXTBREAK)
+          dwFlags=AEWB_RIGHTWORDEND;
+        else if (wParam == WB_MOVEWORDRIGHT || wParam == WB_MOVEWORDNEXT)
+          dwFlags=ae->popt->dwWordBreak;
+
+        if (AE_GetNextBreak(ae, &ciCharIn, &ciCharOut, FALSE, dwFlags))
+          return AE_AkelIndexToRichOffset(ae, &ciCharOut);
+        else
+          return lParam;
+      }
+      return 0;
+    }
+
+    //Options
+    case EM_GETEVENTMASK:
+    {
+      return ae->popt->dwRichEventMask;
+    }
+    case EM_SETEVENTMASK:
+    {
+      DWORD dwPrevMask=ae->popt->dwRichEventMask;
+
+      ae->popt->dwRichEventMask=(DWORD)lParam;
+      return dwPrevMask;
+    }
+    case EM_GETOPTIONS:
+    {
+      DWORD dwOptions=0;
+
+      if (ae->popt->dwOptions & AECO_READONLY)
+        dwOptions|=ECO_READONLY;
+      if (ae->popt->dwOptions & AECO_NOHIDESEL)
+        dwOptions|=ECO_NOHIDESEL;
+      if (ae->popt->dwOptions & AECO_WANTRETURN)
+        dwOptions|=ECO_WANTRETURN;
+      return dwOptions;
+    }
+    case EM_SETOPTIONS:
+    {
+      DWORD dwOptions=0;
+
+      if (lParam & ECO_READONLY)
+        dwOptions|=AECO_READONLY;
+      if (lParam & ECO_NOHIDESEL)
+        dwOptions|=AECO_NOHIDESEL;
+      if (lParam & ECO_WANTRETURN)
+        dwOptions|=AECO_WANTRETURN;
+
+      if (wParam == AECOOP_SET)
+        ae->popt->dwOptions=dwOptions;
+      else if (wParam == AECOOP_OR)
+        ae->popt->dwOptions|=dwOptions;
+      else if (wParam == AECOOP_AND)
+        ae->popt->dwOptions&=dwOptions;
+      else if (wParam == AECOOP_XOR)
+        ae->popt->dwOptions&=~dwOptions;
+      return ae->popt->dwOptions;
+    }
+    case EM_SETREADONLY:
     {
       if (wParam)
-        ae->popt->dwOptionsEx|=AECOE_DETECTURL;
+        ae->popt->dwOptions|=AECO_READONLY;
       else
-        ae->popt->dwOptionsEx&=~AECOE_DETECTURL;
-      InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+        ae->popt->dwOptions&=~AECO_READONLY;
+      return 1;
+    }
+    case EM_SETBKGNDCOLOR:
+    {
+      AECOLORS aec;
+
+      aec.dwFlags=AECLR_BASICBK;
+      if (!wParam)
+        aec.crBasicBk=(COLORREF)lParam;
+      else
+        aec.dwFlags|=AECLR_DEFAULT;
+
+      AE_SetColors(ae, &aec, TRUE);
+      return 0;
+    }
+    case EM_GETAUTOURLDETECT:
+    {
+      if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
+        return TRUE;
+      return FALSE;
+    }
+    case EM_AUTOURLDETECT:
+    {
+      if (!wParam != !(ae->popt->dwOptionsEx & AECOE_DETECTURL))
+      {
+        if (wParam)
+          ae->popt->dwOptionsEx|=AECOE_DETECTURL;
+        else
+          ae->popt->dwOptionsEx&=~AECOE_DETECTURL;
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+        AE_StackCloneUpdate(ae);
+      }
+      return 0;
+    }
+
+    //Draw
+    case EM_SHOWSCROLLBAR:
+    {
+      BOOL bUpdate=FALSE;
+
+      if (wParam == SB_BOTH || wParam == SB_HORZ)
+      {
+        if (ae->bHScrollShow != lParam)
+        {
+          ae->bHScrollShow=(BOOL)lParam;
+          bUpdate=TRUE;
+        }
+      }
+      if (wParam == SB_BOTH || wParam == SB_VERT)
+      {
+        if (ae->bVScrollShow != lParam)
+        {
+          ae->bVScrollShow=(BOOL)lParam;
+          bUpdate=TRUE;
+        }
+      }
+      if (bUpdate)
+        ShowScrollBar(ae->hWndEdit, (int)wParam, (BOOL)lParam);
+
+      return 0;
+    }
+    case EM_HIDESELECTION:
+    {
+      if (wParam)
+        ae->popt->dwOptions&=~AECO_NOHIDESEL;
+      else
+        ae->popt->dwOptions|=AECO_NOHIDESEL;
+      AE_HideSelection(ae, (BOOL)wParam);
+      return 0;
+    }
+
+
+    //// WM_* system messages
+
+    case WM_GETFONT:
+    {
+      if (ae->ptxt->hFont == (HFONT)GetStockObject(SYSTEM_FONT))
+        return (LRESULT)NULL;
+      else
+        return (LRESULT)ae->ptxt->hFont;
+    }
+    case WM_SETFONT:
+    {
+      POINT64 ptFirstVisLine;
+      int nFirstVisibleLine=0;
+
+      if (!ae->popt->nVScrollLock)
+        nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+
+      if (!ae->bUnicodeWindow)
+        AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
+      else
+        AE_SetEditFontW(ae, (HFONT)wParam, FALSE);
+
+      ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
+      AE_UpdateScrollBars(ae, SB_VERT);
+      AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
+      ae->ptCaret.x=0;
+      ae->ptCaret.y=0;
+      AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKNOTIFY);
+      if (!ae->popt->nVScrollLock)
+      {
+        ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
+        AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+      }
+      AE_UpdateCaret(ae, ae->bFocus);
+
+      if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       AE_StackCloneUpdate(ae);
+      return 0;
     }
-    return 0;
-  }
-
-  //Draw
-  if (uMsg == EM_SHOWSCROLLBAR)
-  {
-    BOOL bUpdate=FALSE;
-
-    if (wParam == SB_BOTH || wParam == SB_HORZ)
+    case WM_CUT:
     {
-      if (ae->bHScrollShow != lParam)
+      AE_EditCut(ae);
+      return 0;
+    }
+    case WM_COPY:
+    {
+      AE_EditCopyToClipboard(ae);
+      return 0;
+    }
+    case WM_PASTE:
+    {
+      AE_EditPasteFromClipboard(ae, 0);
+      return 0;
+    }
+    case WM_CLEAR:
+    {
+      AE_EditKeyDelete(ae, FALSE);
+      return 0;
+    }
+    case WM_UNDO:
+    {
+      return AE_EditUndo(ae);
+    }
+    case WM_GETTEXTLENGTH:
+    {
+      if (ae->popt->nOutputNewLine == AELB_ASIS)
+        return -AE_IndexSubtract(ae, NULL, NULL, ae->popt->nOutputNewLine, FALSE, FALSE);
+      if (ae->popt->nOutputNewLine == AELB_R || ae->popt->nOutputNewLine == AELB_N)
+        return ae->ptxt->nLastCharOffset;
+      if (ae->popt->nOutputNewLine == AELB_RN)
+        return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount;
+      if (ae->popt->nOutputNewLine == AELB_RRN)
+        return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount * 2;
+      return 0;
+    }
+    case WM_GETTEXT:
+    {
+      AECHARRANGE cr;
+      UINT_PTR dwResult;
+
+      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
+      AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
+
+      if (!ae->bUnicodeWindow)
+        dwResult=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)lParam, wParam, AELB_ASOUTPUT, FALSE, FALSE);
+      else
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, wParam, AELB_ASOUTPUT, FALSE, FALSE);
+      return dwResult;
+    }
+    case WM_SETTEXT:
+    {
+      if (!ae->bUnicodeWindow)
+        AE_SetTextAnsi(ae, CP_ACP, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT);
+      else
+        AE_SetText(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE);
+      return TRUE;
+    }
+    case WM_SIZE:
+    {
+      if (lParam)
       {
-        ae->bHScrollShow=(BOOL)lParam;
-        bUpdate=TRUE;
+        AE_UpdateSize(ae);
       }
+      return 0;
     }
-    if (wParam == SB_BOTH || wParam == SB_VERT)
+    case WM_GETDLGCODE:
     {
-      if (ae->bVScrollShow != lParam)
+      UINT uCode=DLGC_WANTCHARS|DLGC_WANTARROWS;
+
+      if (lParam && (((MSG *)lParam)->message == WM_KEYDOWN))
       {
-        ae->bVScrollShow=(BOOL)lParam;
-        bUpdate=TRUE;
+        int nVk=(int)((MSG *)lParam)->wParam;
+
+        if (nVk == VK_RETURN && (ae->popt->dwOptions & AECO_WANTRETURN))
+        {
+          uCode|=DLGC_WANTMESSAGE;
+        }
+        else if (nVk == VK_TAB && (GetKeyState(VK_CONTROL) < 0))
+        {
+          uCode|=DLGC_WANTMESSAGE;
+        }
       }
+      return uCode;
     }
-    if (bUpdate)
-      ShowScrollBar(ae->hWndEdit, (int)wParam, (BOOL)lParam);
-
-    return 0;
-  }
-  if (uMsg == EM_HIDESELECTION)
-  {
-    if (wParam)
-      ae->popt->dwOptions&=~AECO_NOHIDESEL;
-    else
-      ae->popt->dwOptions|=AECO_NOHIDESEL;
-    AE_HideSelection(ae, (BOOL)wParam);
-    return 0;
-  }
-
-
-  //// WM_* system messages
-
-  if (uMsg == WM_GETFONT)
-  {
-    if (ae->ptxt->hFont == (HFONT)GetStockObject(SYSTEM_FONT))
-      return (LRESULT)NULL;
-    else
-      return (LRESULT)ae->ptxt->hFont;
-  }
-  else if (uMsg == WM_SETFONT)
-  {
-    POINT64 ptFirstVisLine;
-    int nFirstVisibleLine=0;
-
-    if (!ae->popt->nVScrollLock)
-      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
-
-    if (!ae->bUnicodeWindow)
-      AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
-    else
-      AE_SetEditFontW(ae, (HFONT)wParam, FALSE);
-
-    ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
-    AE_UpdateScrollBars(ae, SB_VERT);
-    AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
-    ae->ptCaret.x=0;
-    ae->ptCaret.y=0;
-    AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKNOTIFY);
-    if (!ae->popt->nVScrollLock)
+    case WM_IME_REQUEST:
     {
-      ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
-      AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
-    }
-    AE_UpdateCaret(ae, ae->bFocus);
-
-    if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
-    AE_StackCloneUpdate(ae);
-    return 0;
-  }
-  else if (uMsg == WM_CUT)
-  {
-    AE_EditCut(ae);
-    return 0;
-  }
-  else if (uMsg == WM_COPY)
-  {
-    AE_EditCopyToClipboard(ae);
-    return 0;
-  }
-  else if (uMsg == WM_PASTE)
-  {
-    AE_EditPasteFromClipboard(ae, 0);
-    return 0;
-  }
-  else if (uMsg == WM_CLEAR)
-  {
-    AE_EditKeyDelete(ae, FALSE);
-    return 0;
-  }
-  else if (uMsg == WM_UNDO)
-  {
-    return AE_EditUndo(ae);
-  }
-  else if (uMsg == WM_GETTEXTLENGTH)
-  {
-    if (ae->popt->nOutputNewLine == AELB_ASIS)
-      return -AE_IndexSubtract(ae, NULL, NULL, ae->popt->nOutputNewLine, FALSE, FALSE);
-    if (ae->popt->nOutputNewLine == AELB_R || ae->popt->nOutputNewLine == AELB_N)
-      return ae->ptxt->nLastCharOffset;
-    if (ae->popt->nOutputNewLine == AELB_RN)
-      return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount;
-    if (ae->popt->nOutputNewLine == AELB_RRN)
-      return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount * 2;
-    return 0;
-  }
-  else if (uMsg == WM_GETTEXT)
-  {
-    AECHARRANGE cr;
-    UINT_PTR dwResult;
-
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin);
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax);
-
-    if (!ae->bUnicodeWindow)
-      dwResult=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, (char *)lParam, wParam, AELB_ASOUTPUT, FALSE, FALSE);
-    else
-      dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, wParam, AELB_ASOUTPUT, FALSE, FALSE);
-    return dwResult;
-  }
-  else if (uMsg == WM_SETTEXT)
-  {
-    if (!ae->bUnicodeWindow)
-      AE_SetTextAnsi(ae, CP_ACP, (char *)lParam, (UINT_PTR)-1, AELB_ASINPUT);
-    else
-      AE_SetText(ae, (wchar_t *)lParam, (UINT_PTR)-1, AELB_ASINPUT, FALSE);
-    return TRUE;
-  }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      AE_UpdateSize(ae);
-    }
-    return 0;
-  }
-  else if (uMsg == WM_GETDLGCODE)
-  {
-    UINT uCode=DLGC_WANTCHARS|DLGC_WANTARROWS;
-
-    if (lParam && (((MSG *)lParam)->message == WM_KEYDOWN))
-    {
-      int nVk=(int)((MSG *)lParam)->wParam;
-
-      if (nVk == VK_RETURN && (ae->popt->dwOptions & AECO_WANTRETURN))
+      if (wParam == IMR_CANDIDATEWINDOW)
       {
-        uCode|=DLGC_WANTMESSAGE;
+        CANDIDATEFORM *lpcf=(CANDIDATEFORM *)lParam;
+
+        if (lpcf->dwStyle == CFS_CANDIDATEPOS)
+        {
+          AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
+          lpcf->ptCurrentPos.y+=ae->ptxt->nCharHeight;
+          return 1;
+        }
       }
-      else if (nVk == VK_TAB && (GetKeyState(VK_CONTROL) < 0))
+      else if (wParam == IMR_COMPOSITIONFONT)
       {
-        uCode|=DLGC_WANTMESSAGE;
+        if (!ae->bUnicodeWindow)
+          xmemcpy((LOGFONTA *)lParam, &ae->ptxt->lfFontA, sizeof(LOGFONTA));
+        else
+          xmemcpy((LOGFONTW *)lParam, &ae->ptxt->lfFontW, sizeof(LOGFONTW));
+        return 1;
       }
+      else if (wParam == IMR_COMPOSITIONWINDOW)
+      {
+        COMPOSITIONFORM *lpcf=(COMPOSITIONFORM *)lParam;
+
+        if (lpcf->dwStyle == CFS_POINT)
+        {
+          AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
+          return 1;
+        }
+      }
+      else if (wParam == IMR_RECONVERTSTRING)
+      {
+        RECONVERTSTRING *lprs=(RECONVERTSTRING *)lParam;
+        UINT_PTR dwChars;
+
+        if (!ae->bColumnSel)
+        {
+          if (!lprs)
+          {
+            if (!ae->bUnicodeWindow)
+            {
+              if (dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
+                return sizeof(RECONVERTSTRING) + dwChars;
+            }
+            else
+            {
+              if (dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
+                return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
+            }
+          }
+          else
+          {
+            if (!ae->bUnicodeWindow)
+              dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
+            else
+              dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
+
+            if (dwChars)
+            {
+              lprs->dwVersion=0;
+              lprs->dwStrLen=(DWORD)dwChars;
+              lprs->dwStrOffset=sizeof(RECONVERTSTRING);
+              lprs->dwCompStrLen=(DWORD)dwChars;
+              lprs->dwCompStrOffset=0;
+              lprs->dwTargetStrLen=lprs->dwCompStrLen;
+              lprs->dwTargetStrOffset=lprs->dwCompStrOffset;
+
+              if (!ae->bUnicodeWindow)
+                return sizeof(RECONVERTSTRING) + dwChars;
+              else
+                return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
+            }
+          }
+        }
+        return 0;
+      }
+      break;
     }
-    return uCode;
+    case WM_IME_STARTCOMPOSITION:
+    {
+      HIMC hImc;
+
+      if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
+        return 0;
+      ae->bImeComposition=TRUE;
+
+      if (hImc=ImmGetContext(ae->hWndEdit))
+      {
+        AE_UpdateCompositionPos(ae, hImc);
+        if (!ae->bUnicodeWindow)
+          ImmSetCompositionFontA(hImc, &ae->ptxt->lfFontA);
+        else
+          ImmSetCompositionFontW(hImc, &ae->ptxt->lfFontW);
+
+        ImmReleaseContext(ae->hWndEdit, hImc);
+      }
+      break;
+    }
+    case WM_IME_COMPOSITION:
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
+        {
+          AECHARINDEX ciSelStart;
+          wchar_t wszCompStr[2];
+          HIMC hImc;
+          int nStrLen;
+
+          if (hImc=ImmGetContext(ae->hWndEdit))
+          {
+            if (lParam & GCS_RESULTSTR)
+            {
+              ae->ptxt->bLockGroupStopInt=TRUE;
+
+              if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+              {
+                if ((DWORD)nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
+                {
+                  if (nStrLen == sizeof(wchar_t))
+                    AE_EditChar(ae, wszCompStr[0], TRUE);
+                  else
+                    AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), AELB_ASINPUT, 0, NULL, NULL);
+
+                  if (ae->popt->dwOptions & AECO_DETAILEDUNDO)
+                  {
+                    ae->ptxt->bLockGroupStopInt=FALSE;
+                    AE_StackUndoGroupStop(ae);
+                    ae->ptxt->bLockGroupStopInt=TRUE;
+                  }
+                }
+                else
+                {
+                  if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelEndIndex, FALSE, 0, AESCT_IME);
+                }
+              }
+
+              if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+              {
+                AE_EditChar(ae, wszCompStr[0], TRUE);
+                ae->dwImeChar=wszCompStr[0];
+
+                ciSelStart=ae->ciSelStartIndex;
+                AEC_IndexDec(&ciSelStart);
+                AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
+              }
+              else ae->ptxt->bLockGroupStopInt=FALSE;
+            }
+            if (lParam & GCS_COMPSTR)
+            {
+              ae->ptxt->bLockGroupStopInt=TRUE;
+
+              if (wParam)
+              {
+                if (wParam != ae->dwImeChar)
+                {
+                  if (ImmGetCompositionStringW(hImc, GCS_RESULTSTR, NULL, 0) <= 0)
+                  {
+                    AE_EditChar(ae, wParam, TRUE);
+                    ae->dwImeChar=(DWORD)wParam;
+
+                    ciSelStart=ae->ciSelStartIndex;
+                    AEC_IndexDec(&ciSelStart);
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
+                  }
+                }
+              }
+              else
+              {
+                AE_EditKeyBackspace(ae, FALSE);
+
+                ae->ptxt->bLockGroupStopInt=FALSE;
+                AE_StackUndoGroupStop(ae);
+                if (ae->ptxt->bModified != AE_GetModify(ae))
+                  AE_SetModify(ae, !ae->ptxt->bModified);
+              }
+            }
+            ImmReleaseContext(ae->hWndEdit, hImc);
+          }
+          return 0;
+        }
+        else
+        {
+          if (lParam & GCS_RESULTSTR)
+          {
+            LRESULT lResult;
+
+            if (!ae->bUnicodeWindow)
+              lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
+            else
+              lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
+            AE_UpdateCompositionPos(ae, 0);
+            return lResult;
+          }
+        }
+      }
+      break;
+    }
+    case WM_IME_ENDCOMPOSITION:
+    {
+      ae->bImeComposition=FALSE;
+      break;
+    }
+    case WM_IME_NOTIFY:
+    {
+      if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
+      {
+        if (wParam == IMN_OPENCANDIDATE)
+        {
+          AE_UpdateCandidatePos(ae, 0);
+        }
+      }
+      break;
+    }
+    case WM_IME_KEYDOWN:
+    {
+      if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
+      {
+        if (wParam == VK_HANJA)
+        {
+          AECHARRANGE crSel;
+          HIMC hImc;
+
+          if (hImc=ImmGetContext(ae->hWndEdit))
+          {
+            crSel.ciMax=ae->ciSelStartIndex;
+            AEC_ValidCharInLine(&crSel.ciMax);
+            AEC_NextCharEx(&crSel.ciMax, &crSel.ciMax);
+            AEC_PrevCharEx(&crSel.ciMax, &crSel.ciMin);
+            ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
+
+            if (ImmEscapeW(GetKeyboardLayout(0), hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
+            {
+              AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0, AESCT_IME);
+              AE_UpdateCandidatePos(ae, hImc);
+            }
+            ImmReleaseContext(ae->hWndEdit, hImc);
+          }
+        }
+      }
+      break;
+    }
+    case WM_IME_CHAR:
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        if (!ae->bUnicodeWindow)
+        {
+          if (HIBYTE(wParam))
+            AE_EditChar(ae, HIBYTE(wParam), FALSE);
+          AE_EditChar(ae, LOBYTE(wParam), FALSE);
+        }
+        else AE_EditChar(ae, wParam, TRUE);
+      }
+      return 0;
+    }
+    case WM_HSCROLL:
+    {
+      if (ae->popt->dwRichEventMask & ENM_SCROLLEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
+      AE_HScroll(ae, LOWORD(wParam), 0);
+      return 0;
+    }
+    case WM_VSCROLL:
+    {
+      if (ae->popt->dwRichEventMask & ENM_SCROLLEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
+      AE_VScroll(ae, LOWORD(wParam), 0);
+      return 0;
+    }
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MBUTTONDBLCLK:
+    case WM_MOUSEMOVE:
+    case WM_CAPTURECHANGED:
+    {
+      //Notify
+      if (uMsg == WM_LBUTTONDOWN ||
+          uMsg == WM_LBUTTONDBLCLK ||
+          uMsg == WM_RBUTTONDOWN ||
+          uMsg == WM_RBUTTONDBLCLK ||
+          uMsg == WM_MBUTTONDOWN ||
+          uMsg == WM_MBUTTONDBLCLK ||
+          uMsg == WM_MOUSEMOVE)
+      {
+        if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
+          if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+            return 0;
+        if (ae->nCurrentCursor == AECC_URL)
+          if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+            return 0;
+      }
+
+      //Stop scroll
+      if (uMsg == WM_LBUTTONDOWN ||
+          uMsg == WM_RBUTTONDOWN ||
+          uMsg == WM_MBUTTONDOWN)
+      {
+        if (ae->bMButtonDown)
+        {
+          if (ae->dwMouseScrollTimer)
+          {
+            KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+            ae->dwMouseScrollTimer=0;
+            AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
+          }
+          AE_MButtonErase(ae);
+          ae->bMButtonDown=FALSE;
+          ae->nCurrentCursor=AE_SetCursor(ae);
+          return 0;
+        }
+      }
+
+      if (uMsg == WM_LBUTTONDOWN ||
+          uMsg == WM_LBUTTONDBLCLK)
+      {
+        POINT ptPos;
+        int nLButtonDownCurTime=GetMessageTime();
+        BOOL bAlt=FALSE;
+        BOOL bShift=FALSE;
+        BOOL bControl=FALSE;
+        int nLineCapture=0;
+
+        if (GetKeyState(VK_MENU) < 0)
+          bAlt=TRUE;
+        if (wParam & MK_SHIFT)
+          bShift=TRUE;
+        if (wParam & MK_CONTROL)
+          bControl=TRUE;
+
+        if (ae->nMouseActive == AEMA_IGNORE)
+        {
+          ae->nMouseActive=AEMA_NONE;
+          return 0;
+        }
+        ae->nMouseActive=AEMA_NONE;
+
+        GetCursorPos(&ptPos);
+        ScreenToClient(ae->hWndEdit, &ptPos);
+
+        if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
+            GetDoubleClickTime() >= (DWORD)(nLButtonDownCurTime - ae->nLButtonDownPrevTime))
+        {
+          ++ae->nLButtonDownCount;
+
+          //We support only three clicks
+          ae->nLButtonDownCount=ae->nLButtonDownCount % 3;
+        }
+        else ae->nLButtonDownCount=0;
+
+        ae->ptLButtonDownPrevPos=ptPos;
+        ae->nLButtonDownPrevTime=nLButtonDownCurTime;
+
+        //One click
+        if (ae->nLButtonDownCount == 0)
+        {
+          if (GetFocus() != ae->hWndEdit)
+            SetFocus(ae->hWndEdit);
+
+          //Marker movement capture
+          if (!bAlt && bShift && ae->nCurrentCursor == AECC_MARKER)
+          {
+            if (!ae->dwMouseMoveTimer)
+            {
+              //Timer
+              ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+              AE_SetMouseCapture(ae, AEMSC_MOUSEMARKER);
+
+              ae->dwInitMarkerPos=ae->popt->dwColumnMarkerPos;
+            }
+          }
+          //Start margin selection capture
+          else if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
+          {
+            nLineCapture=AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK;
+          }
+          //Start drag source capture
+          else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
+          {
+            AE_SetMouseCapture(ae, AEMSC_MOUSEDRAG);
+            ae->bDragging=TRUE;
+            ae->nMoveBeforeBeginDrag=AEMMB_BEGINDRAG;
+          }
+          //Start selection change capture
+          else
+          {
+            if (!ae->dwMouseMoveTimer)
+            {
+              //Timer
+              ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+              AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
+            }
+
+            if (!bShift)
+              ae->dwMouseSelType=AEMSS_CHARS;
+            AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
+          }
+        }
+        //Two clicks
+        else if (ae->nLButtonDownCount == 1)
+        {
+          if (ae->nCurrentCursor == AECC_MARKER)
+          {
+            //Two clicks on column marker are ignored
+          }
+          else if (ae->nCurrentCursor == AECC_MARGIN)
+          {
+            //Two clicks on left margin are ignored
+          }
+          else
+          {
+            AECHARINDEX ciPrevWord;
+            AECHARINDEX ciNextWord;
+            AECHARINDEX ciCharIndex;
+            int nPosResult;
+
+            if (!ae->dwMouseMoveTimer)
+            {
+              //Timer
+              ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+              AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
+            }
+            nPosResult=AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
+
+            if ((ae->ciCaretIndex.lpLine->nLineLen && !ae->ciCaretIndex.nCharInLine) ||
+                !AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)|(nPosResult == AEPC_BEFORE?AEWB_MINMOVE:0)))
+            {
+              ciPrevWord=ae->ciCaretIndex;
+            }
+            if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)))
+            {
+              ciNextWord=ae->ciCaretIndex;
+            }
+            if (nPosResult == AEPC_AFTER)
+              AEC_PrevCharEx(&ae->ciCaretIndex, &ae->ciMouseSelClick);
+            else
+              ae->ciMouseSelClick=ae->ciCaretIndex;
+
+            ae->ciMouseSelStart=ciPrevWord;
+            ae->ciMouseSelEnd=ciNextWord;
+            ae->dwMouseSelType=AEMSS_WORDS;
+
+            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
+          }
+        }
+        //Three clicks
+        else if (ae->nLButtonDownCount == 2)
+        {
+          if (ae->nCurrentCursor == AECC_MARKER)
+          {
+            //Three clicks on column marker are ignored
+          }
+          else if (ae->nCurrentCursor == AECC_MARGIN)
+          {
+            if (!bAlt && !bShift)
+            {
+              AE_EditSelectAll(ae, 0, AESCT_MOUSELEFTMARGIN|AESCT_MOUSETRIPLECLK);
+            }
+          }
+          else
+          {
+            nLineCapture=AESCT_MOUSETRIPLECLK;
+          }
+        }
+
+        if (nLineCapture)
+        {
+          AECHARRANGE cr;
+          AECHARINDEX ciCharIndex;
+
+          if (!ae->dwMouseMoveTimer)
+          {
+            //Timer
+            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+            AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
+          }
+
+          AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
+          if (ae->popt->dwOptions & AECO_SELUNWRAPLINE)
+          {
+            AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
+            AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
+          }
+          else
+          {
+            cr.ciMin=ciCharIndex;
+            cr.ciMax=ciCharIndex;
+            cr.ciMin.nCharInLine=0;
+            cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+          }
+          if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
+            AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
+
+          ae->ciMouseSelClick=ciCharIndex;
+          ae->ciMouseSelStart=cr.ciMin;
+          ae->ciMouseSelEnd=cr.ciMax;
+          ae->dwMouseSelType=AEMSS_LINES;
+          AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, nLineCapture);
+        }
+        return 0;
+      }
+      else if (uMsg == WM_RBUTTONDOWN)
+      {
+        if (ae->popt->dwOptions & AECO_RBUTTONDOWNMOVECARET)
+        {
+          POINT ptPos;
+
+          GetCursorPos(&ptPos);
+          ScreenToClient(ae->hWndEdit, &ptPos);
+
+          if (!(ae->popt->dwOptions & AECO_DISABLEDRAG) ?
+              ae->nCurrentCursor != AECC_SELECTION :
+              !AE_IsPointOnSelection(ae, ptPos.x, ptPos.y))
+          {
+            ae->dwMouseSelType=AEMSS_CHARS;
+            AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
+          }
+        }
+      }
+      else if (uMsg == WM_MBUTTONDOWN)
+      {
+        if (!(ae->popt->dwOptions & AECO_MBUTTONDOWNNOSCROLL) && !ae->bMButtonDown)
+        {
+          if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left ||
+              ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
+          {
+            if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left &&
+                ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
+              ae->hMButtonBitmap=hAkelEditBitmapMCenterAll;
+            else if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left)
+              ae->hMButtonBitmap=hAkelEditBitmapMCenterLeftRight;
+            else if (ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
+              ae->hMButtonBitmap=hAkelEditBitmapMCenterTopBottom;
+
+            GetCursorPos(&ae->ptMButtonDown);
+            ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
+            ae->bMButtonDown=TRUE;
+            ae->bMButtonUp=FALSE;
+            ae->nMButtonMoveBeforeScroll=AEMMB_MBUTTONSCROLL;
+
+            AE_MButtonDraw(ae);
+
+            if (!ae->dwMouseScrollTimer)
+            {
+              //Timer
+              ae->dwMouseScrollTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSESCROLL, 32, NULL);
+              AE_SetMouseCapture(ae, AEMSC_MOUSESCROLL);
+            }
+          }
+        }
+        return 0;
+      }
+      else if (uMsg == WM_MOUSEMOVE)
+      {
+        if (ae->bDragging)
+        {
+          if (ae->nMoveBeforeBeginDrag > 0)
+            --ae->nMoveBeforeBeginDrag;
+
+          if (ae->nMoveBeforeBeginDrag == 0)
+          {
+            DWORD dwEffectIn;
+            DWORD dwEffectOut=DROPEFFECT_NONE;
+            DWORD dwResult=DRAGDROP_S_CANCEL;
+
+            dwEffectIn=DROPEFFECT_COPY;
+            if (!(ae->popt->dwOptions & AECO_READONLY))
+              dwEffectIn|=DROPEFFECT_MOVE;
+
+            if (!AE_NotifyDropSource(ae, AEDS_SOURCEBEGIN, &dwEffectIn, 0))
+            {
+              lpAkelEditDrag=ae;
+              ae->bDragSelectionDelete=TRUE;
+              ae->dwDragSelectionLength=AE_DataObjectCopySelection(ae);
+
+              dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
+
+              if (!AE_NotifyDropSource(ae, AEDS_SOURCEEND, &dwEffectOut, dwResult))
+              {
+                if (dwResult == DRAGDROP_S_DROP)
+                {
+                  if (dwEffectOut & DROPEFFECT_MOVE)
+                  {
+                    if (ae->bDragSelectionDelete)
+                    {
+                      if (!AE_IsReadOnly(ae))
+                      {
+                        AE_NotifyChanging(ae, AETCT_DRAGDELETE);
+                        AE_StackUndoGroupStop(ae);
+                        AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+                        AE_StackUndoGroupStop(ae);
+                        AE_NotifyChanged(ae); //AETCT_DRAGDELETE
+                      }
+                    }
+                  }
+                }
+              }
+              AE_DataObjectFreeSelection(ae);
+              ((IDataObject *)&ae->ido)->lpVtbl->Release((IDataObject *)&ae->ido);
+              ((IDropSource *)&ae->ids)->lpVtbl->Release((IDropSource *)&ae->ids);
+              lpAkelEditDrag=NULL;
+              ae->bDragSelectionDelete=FALSE;
+              ae->dwDragSelectionLength=0;
+            }
+            ae->bDragging=FALSE;
+            AE_ReleaseMouseCapture(ae, AEMSC_MOUSEDRAG);
+            AE_NotifyDropSource(ae, AEDS_SOURCEDONE, &dwEffectOut, dwResult);
+          }
+        }
+        else
+        {
+          if (ae->dwMouseScrollTimer)
+            ae->nCurrentCursor=AE_SetCursor(ae);
+          AE_MouseMove(ae);
+
+          if (ae->bMButtonDown)
+          {
+            if (ae->nMButtonMoveBeforeScroll > 0)
+              --ae->nMButtonMoveBeforeScroll;
+          }
+        }
+        return 0;
+      }
+      else if (uMsg == WM_LBUTTONUP)
+      {
+        if (ae->bDragging)
+        {
+          ae->bDragging=FALSE;
+          AE_ReleaseMouseCapture(ae, AEMSC_MOUSEDRAG);
+
+          //Set selection if nMoveBeforeBeginDrag not reached
+          {
+            POINT ptPos;
+
+            GetCursorPos(&ptPos);
+            ScreenToClient(ae->hWndEdit, &ptPos);
+
+            if (!(wParam & MK_SHIFT))
+              ae->dwMouseSelType=AEMSS_CHARS;
+            AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
+          }
+        }
+        if (ae->dwMouseMoveTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
+          ae->dwMouseMoveTimer=0;
+          AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
+        }
+        if (!(ae->popt->dwOptions & AECO_LBUTTONUPCONTINUECAPTURE))
+          ae->dwMouseSelType=AEMSS_CHARS;
+        if (ae->dwMouseSelType)
+          ae->dwMouseSelType|=AEMSS_LBUTTONUP;
+      }
+      else if (uMsg == WM_MBUTTONUP)
+      {
+        if (ae->bMButtonDown)
+        {
+          if (!ae->bMButtonUp)
+          {
+            if (!ae->nMButtonMoveBeforeScroll)
+            {
+              if (ae->dwMouseScrollTimer)
+              {
+                KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+                ae->dwMouseScrollTimer=0;
+                AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
+              }
+              AE_MButtonErase(ae);
+              ae->bMButtonDown=FALSE;
+              ae->nCurrentCursor=AE_SetCursor(ae);
+            }
+            else ae->bMButtonUp=TRUE;
+          }
+        }
+      }
+      else if (uMsg == WM_CAPTURECHANGED)
+      {
+        if (ae->dwMouseScrollTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+          ae->dwMouseScrollTimer=0;
+          AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
+        }
+        if (ae->dwMouseMoveTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
+          ae->dwMouseMoveTimer=0;
+          AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
+        }
+      }
+
+      //Notify
+      if (uMsg == WM_LBUTTONUP ||
+          uMsg == WM_RBUTTONUP ||
+          uMsg == WM_MBUTTONUP)
+      {
+        if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
+          if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+            return 0;
+        if (ae->nCurrentCursor == AECC_URL)
+          if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+            return 0;
+      }
+      break;
+    }
+    case WM_MOUSEWHEEL:
+    case WM_MOUSEHWHEEL:
+    {
+      if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
+      if (uMsg == WM_MOUSEWHEEL)
+      {
+        DWORD dwLines=0;
+
+        SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
+        if (!dwLines) dwLines=3;
+
+        if (!(ae->popt->dwOptionsEx & AECOE_INVERTVERTWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
+        {
+          if (dwLines == (DWORD)-1)
+            AE_VScroll(ae, SB_PAGEDOWN, 0);
+          else
+            AE_VScrollLine(ae, dwLines, AESB_ALIGNTOP);
+        }
+        else
+        {
+          if (dwLines == (DWORD)-1)
+            AE_VScroll(ae, SB_PAGEUP, 0);
+          else
+            AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
+        }
+        return 0;
+      }
+      else
+      {
+        DWORD dwChars=0;
+
+        SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &dwChars, 0);
+        if (!dwChars) dwChars=3;
+
+        if (!(ae->popt->dwOptionsEx & AECOE_INVERTHORZWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
+        {
+          if (dwChars == (DWORD)-1)
+            AE_HScroll(ae, SB_PAGELEFT, 0);
+          else
+            AE_HScrollChar(ae, -(int)dwChars, AESB_ALIGNLEFT);
+        }
+        else
+        {
+          if (dwChars == (DWORD)-1)
+            AE_HScroll(ae, SB_PAGERIGHT, 0);
+          else
+            AE_HScrollChar(ae, dwChars, AESB_ALIGNLEFT);
+        }
+        return 1;
+      }
+      break;
+    }
+    case WM_SETCURSOR:
+    {
+      if (!ae->bDragging && !ae->dwMouseMoveTimer && !ae->dwMouseScrollTimer)
+      {
+        ae->nCurrentCursor=AE_SetCursor(ae);
+
+        if (ae->nCurrentCursor == AECC_URL)
+          AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink);
+        if (ae->nCurrentCursor != AECC_IBEAM)
+          return TRUE;
+      }
+      break;
+    }
+    case WM_TIMER:
+    {
+      if (wParam == AETIMERID_MOUSEMOVE ||
+          wParam == AETIMERID_MOUSESCROLL)
+      {
+        AE_MouseMove(ae);
+      }
+      return 0;
+    }
+    case WM_SETFOCUS:
+    {
+      ae->bFocus=TRUE;
+      AE_UpdateCaret(ae, ae->bFocus);
+
+      if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
+      {
+        AE_HideSelection(ae, FALSE);
+      }
+      AE_NotifySetFocus(ae, (HWND)wParam);
+      return 0;
+    }
+    case WM_KILLFOCUS:
+    {
+      AE_ImeComplete(ae);
+
+      if (ae->nMouseActive == AEMA_LBUTTONDOWN)
+      {
+        //We lost focus, so ignore next WM_LBUTTONDOWN message posted in WM_MOUSEACTIVATE
+        ae->nMouseActive=AEMA_IGNORE;
+      }
+      if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
+      {
+        AE_HideSelection(ae, TRUE);
+      }
+      ae->bFocus=FALSE;
+      DestroyCaret();
+      AE_StackUndoGroupStop(ae);
+      AE_NotifyKillFocus(ae, (HWND)wParam);
+      return 0;
+    }
+    case WM_MOUSEACTIVATE:
+    {
+      LRESULT lResult;
+
+      if (!ae->bUnicodeWindow)
+        lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
+      else
+        lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
+
+      if (lResult != MA_ACTIVATEANDEAT &&
+          lResult != MA_NOACTIVATEANDEAT &&
+          HIWORD(lParam) == WM_LBUTTONDOWN)
+      {
+        ae->nMouseActive=AEMA_LBUTTONDOWN;
+      }
+      return lResult;
+    }
+    case WM_DROPFILES:
+    {
+      if (!AE_NotifyDropFiles(ae, (HDROP)wParam))
+        return 0;
+      break;
+    }
+    case WM_SYSCOLORCHANGE:
+    {
+      if (ae->popt->bDefaultColors)
+      {
+        AECOLORS aecDefault;
+
+        aecDefault.dwFlags=AECLR_DEFAULT|AECLR_ALL;
+        AE_SetColors(ae, &aecDefault, TRUE);
+        ae->popt->bDefaultColors=TRUE;
+      }
+      break;
+    }
+    case WM_ENABLE:
+    {
+      if (wParam)
+      {
+        AE_SetColors(ae, &ae->popt->aecEnable, TRUE);
+      }
+      else
+      {
+        AECOLORS aecDisable;
+        COLORREF crDisableText=GetSysColor(COLOR_BTNTEXT);
+        COLORREF crDisableBk=GetSysColor(COLOR_BTNFACE);
+
+        //Backup colors
+        xmemcpy(&ae->popt->aecEnable, &ae->popt->aec, sizeof(AECOLORS));
+        ae->popt->aecEnable.dwFlags=AECLR_BASICTEXT|AECLR_BASICBK|AECLR_SELTEXT|AECLR_SELBK|AECLR_ACTIVELINETEXT|AECLR_ACTIVELINEBK;
+
+        //Set disabled colors
+        aecDisable.dwFlags=ae->popt->aecEnable.dwFlags;
+        aecDisable.crBasicText=crDisableText;
+        aecDisable.crBasicBk=crDisableBk;
+        aecDisable.crSelText=crDisableText;
+        aecDisable.crSelBk=crDisableBk;
+        aecDisable.crActiveLineText=crDisableText;
+        aecDisable.crActiveLineBk=crDisableBk;
+        AE_SetColors(ae, &aecDisable, TRUE);
+        if (ae->bFocus) SetFocus(NULL);
+      }
+      return 0;
+    }
+    case WM_ERASEBKGND:
+    {
+      AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
+      AEERASE *lpEraseNext;
+      RECT rcErase;
+
+      ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
+
+      //Message came not from WM_PAINT - use all edit area
+      if (!lpErase)
+        lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
+
+      while (lpErase)
+      {
+        if (lpErase->rcErase.right - lpErase->rcErase.left > 0 &&
+            lpErase->rcErase.bottom - lpErase->rcErase.top > 0)
+        {
+          if (lpErase->rcErase.left < ae->rcDraw.left)
+          {
+            rcErase=lpErase->rcErase;
+            rcErase.left=max(rcErase.left, ae->rcErase.left);
+            rcErase.right=min(rcErase.right, ae->rcDraw.left);
+            AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
+            lpErase->rcErase.left=rcErase.right;
+          }
+          if (lpErase->rcErase.top < ae->rcDraw.top)
+          {
+            rcErase=lpErase->rcErase;
+            rcErase.top=max(rcErase.top, ae->rcErase.top);
+            rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
+            AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
+            lpErase->rcErase.top=rcErase.bottom;
+          }
+          if (lpErase->rcErase.right > ae->rcDraw.right)
+          {
+            rcErase=lpErase->rcErase;
+            rcErase.left=max(rcErase.left, ae->rcDraw.right);
+            rcErase.right=min(rcErase.right, ae->rcErase.right);
+            AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
+            lpErase->rcErase.right=rcErase.left;
+          }
+          if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
+          {
+            rcErase=lpErase->rcErase;
+            rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
+            rcErase.bottom=min(rcErase.bottom, ae->rcErase.bottom);
+            AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
+            lpErase->rcErase.bottom=rcErase.top;
+          }
+
+          //Erase only a space after the last line
+          rcErase=lpErase->rcErase;
+          rcErase.top=max(rcErase.top, ae->rcDraw.top + (int)(ae->ptxt->nVScrollMax - ae->nVScrollPos));
+
+          if (rcErase.top < rcErase.bottom)
+          {
+            AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
+
+            if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
+            {
+              //Draw column marker on non-text lines
+              AE_ColumnMarkerDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+            }
+          }
+        }
+
+        //Next erase rectangle
+        lpEraseNext=lpErase->next;
+        AE_StackEraseDelete(ae, lpErase);
+        lpErase=lpEraseNext;
+      }
+      DeleteObject(ae->popt->hbrBasicBk);
+      ae->popt->hbrBasicBk=NULL;
+      return 1;
+    }
+    case WM_NCPAINT:
+    case WM_PAINT:
+    {
+      RECT rcUpdate;
+
+      if (GetUpdateRect(ae->hWndEdit, &rcUpdate, FALSE))
+      {
+        if (AE_StackEraseMore(ae, &rcUpdate))
+          AE_StackEraseInsert(ae, &rcUpdate);
+
+        //Get DC
+        if (uMsg == WM_PAINT)
+        {
+          HDC hDC=ae->hDC;
+          HFONT hFontOld=NULL;
+
+          if (!hDC)
+          {
+            if (ae->hDC=GetDC(ae->hWndEdit))
+              if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->ptxt->hFont);
+          }
+          if (ae->hDC)
+          {
+            AE_Paint(ae, &rcUpdate);
+
+            if (ae->bMButtonDown)
+            {
+              AE_MButtonErase(ae);
+              ae->bMButtonDown=FALSE;
+              UpdateWindow(ae->hWndEdit);
+              ae->bMButtonDown=TRUE;
+              AE_MButtonDraw(ae);
+            }
+
+            //Release DC
+            if (!hDC)
+            {
+              if (hFontOld) SelectObject(ae->hDC, hFontOld);
+              ReleaseDC(ae->hWndEdit, ae->hDC);
+              ae->hDC=NULL;
+            }
+          }
+          return 0;
+        }
+      }
+      break;
+    }
+    case WM_DESTROY:
+    {
+      //Unregister drop window
+      RevokeDragDrop(ae->hWndEdit);
+      //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
+      //((IDropTarget *)&ae->idt)->Release();
+
+      AE_DestroyWindowData(ae);
+      lpAkelEditPrev=NULL;
+      ae=NULL;
+      return 0;
+    }
   }
-  else if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
+
+  if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
   {
     if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
       if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
@@ -3759,1017 +4741,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         ae->nAltChar=AEAC_NONE;
       }
     }
-  }
-  else if (uMsg == WM_IME_REQUEST)
-  {
-    if (wParam == IMR_CANDIDATEWINDOW)
-    {
-      CANDIDATEFORM *lpcf=(CANDIDATEFORM *)lParam;
-
-      if (lpcf->dwStyle == CFS_CANDIDATEPOS)
-      {
-        AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
-        lpcf->ptCurrentPos.y+=ae->ptxt->nCharHeight;
-        return 1;
-      }
-    }
-    else if (wParam == IMR_COMPOSITIONFONT)
-    {
-      if (!ae->bUnicodeWindow)
-        xmemcpy((LOGFONTA *)lParam, &ae->ptxt->lfFontA, sizeof(LOGFONTA));
-      else
-        xmemcpy((LOGFONTW *)lParam, &ae->ptxt->lfFontW, sizeof(LOGFONTW));
-      return 1;
-    }
-    else if (wParam == IMR_COMPOSITIONWINDOW)
-    {
-      COMPOSITIONFORM *lpcf=(COMPOSITIONFORM *)lParam;
-
-      if (lpcf->dwStyle == CFS_POINT)
-      {
-        AE_GlobalToClient(ae, &ae->ptCaret, NULL, &lpcf->ptCurrentPos);
-        return 1;
-      }
-    }
-    else if (wParam == IMR_RECONVERTSTRING)
-    {
-      RECONVERTSTRING *lprs=(RECONVERTSTRING *)lParam;
-      UINT_PTR dwChars;
-
-      if (!ae->bColumnSel)
-      {
-        if (!lprs)
-        {
-          if (!ae->bUnicodeWindow)
-          {
-            if (dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
-              return sizeof(RECONVERTSTRING) + dwChars;
-          }
-          else
-          {
-            if (dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
-              return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
-          }
-        }
-        else
-        {
-          if (!ae->bUnicodeWindow)
-            dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
-          else
-            dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
-
-          if (dwChars)
-          {
-            lprs->dwVersion=0;
-            lprs->dwStrLen=(DWORD)dwChars;
-            lprs->dwStrOffset=sizeof(RECONVERTSTRING);
-            lprs->dwCompStrLen=(DWORD)dwChars;
-            lprs->dwCompStrOffset=0;
-            lprs->dwTargetStrLen=lprs->dwCompStrLen;
-            lprs->dwTargetStrOffset=lprs->dwCompStrOffset;
-
-            if (!ae->bUnicodeWindow)
-              return sizeof(RECONVERTSTRING) + dwChars;
-            else
-              return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
-          }
-        }
-      }
-      return 0;
-    }
-  }
-  else if (uMsg == WM_IME_STARTCOMPOSITION)
-  {
-    HIMC hImc;
-
-    if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
-      return 0;
-    ae->bImeComposition=TRUE;
-
-    if (hImc=ImmGetContext(ae->hWndEdit))
-    {
-      AE_UpdateCompositionPos(ae, hImc);
-      if (!ae->bUnicodeWindow)
-        ImmSetCompositionFontA(hImc, &ae->ptxt->lfFontA);
-      else
-        ImmSetCompositionFontW(hImc, &ae->ptxt->lfFontW);
-
-      ImmReleaseContext(ae->hWndEdit, hImc);
-    }
-  }
-  else if (uMsg == WM_IME_COMPOSITION)
-  {
-    if (!AE_IsReadOnly(ae))
-    {
-      if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
-      {
-        AECHARINDEX ciSelStart;
-        wchar_t wszCompStr[2];
-        HIMC hImc;
-        int nStrLen;
-
-        if (hImc=ImmGetContext(ae->hWndEdit))
-        {
-          if (lParam & GCS_RESULTSTR)
-          {
-            ae->ptxt->bLockGroupStopInt=TRUE;
-
-            if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
-            {
-              if ((DWORD)nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
-              {
-                if (nStrLen == sizeof(wchar_t))
-                  AE_EditChar(ae, wszCompStr[0], TRUE);
-                else
-                  AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), AELB_ASINPUT, 0, NULL, NULL);
-
-                if (ae->popt->dwOptions & AECO_DETAILEDUNDO)
-                {
-                  ae->ptxt->bLockGroupStopInt=FALSE;
-                  AE_StackUndoGroupStop(ae);
-                  ae->ptxt->bLockGroupStopInt=TRUE;
-                }
-              }
-              else
-              {
-                if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-                  AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelEndIndex, FALSE, 0, AESCT_IME);
-              }
-            }
-
-            if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
-            {
-              AE_EditChar(ae, wszCompStr[0], TRUE);
-              ae->dwImeChar=wszCompStr[0];
-
-              ciSelStart=ae->ciSelStartIndex;
-              AEC_IndexDec(&ciSelStart);
-              AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
-            }
-            else ae->ptxt->bLockGroupStopInt=FALSE;
-          }
-          if (lParam & GCS_COMPSTR)
-          {
-            ae->ptxt->bLockGroupStopInt=TRUE;
-
-            if (wParam)
-            {
-              if (wParam != ae->dwImeChar)
-              {
-                if (ImmGetCompositionStringW(hImc, GCS_RESULTSTR, NULL, 0) <= 0)
-                {
-                  AE_EditChar(ae, wParam, TRUE);
-                  ae->dwImeChar=(DWORD)wParam;
-
-                  ciSelStart=ae->ciSelStartIndex;
-                  AEC_IndexDec(&ciSelStart);
-                  AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
-                }
-              }
-            }
-            else
-            {
-              AE_EditKeyBackspace(ae, FALSE);
-
-              ae->ptxt->bLockGroupStopInt=FALSE;
-              AE_StackUndoGroupStop(ae);
-              if (ae->ptxt->bModified != AE_GetModify(ae))
-                AE_SetModify(ae, !ae->ptxt->bModified);
-            }
-          }
-          ImmReleaseContext(ae->hWndEdit, hImc);
-        }
-        return 0;
-      }
-      else
-      {
-        if (lParam & GCS_RESULTSTR)
-        {
-          LRESULT lResult;
-
-          if (!ae->bUnicodeWindow)
-            lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
-          else
-            lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
-          AE_UpdateCompositionPos(ae, 0);
-          return lResult;
-        }
-      }
-    }
-  }
-  else if (uMsg == WM_IME_ENDCOMPOSITION)
-  {
-    ae->bImeComposition=FALSE;
-  }
-  else if (uMsg == WM_IME_NOTIFY)
-  {
-    if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
-    {
-      if (wParam == IMN_OPENCANDIDATE)
-      {
-        AE_UpdateCandidatePos(ae, 0);
-      }
-    }
-  }
-  else if (uMsg == WM_IME_KEYDOWN)
-  {
-    if (PRIMARYLANGID((UINT_PTR)GetKeyboardLayout(0)) == LANG_KOREAN)
-    {
-      if (wParam == VK_HANJA)
-      {
-        AECHARRANGE crSel;
-        HIMC hImc;
-
-        if (hImc=ImmGetContext(ae->hWndEdit))
-        {
-          crSel.ciMax=ae->ciSelStartIndex;
-          AEC_ValidCharInLine(&crSel.ciMax);
-          AEC_NextCharEx(&crSel.ciMax, &crSel.ciMax);
-          AEC_PrevCharEx(&crSel.ciMax, &crSel.ciMin);
-          ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
-
-          if (ImmEscapeW(GetKeyboardLayout(0), hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
-          {
-            AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0, AESCT_IME);
-            AE_UpdateCandidatePos(ae, hImc);
-          }
-          ImmReleaseContext(ae->hWndEdit, hImc);
-        }
-      }
-    }
-  }
-  else if (uMsg == WM_IME_CHAR)
-  {
-    if (!AE_IsReadOnly(ae))
-    {
-      if (!ae->bUnicodeWindow)
-      {
-        if (HIBYTE(wParam))
-          AE_EditChar(ae, HIBYTE(wParam), FALSE);
-        AE_EditChar(ae, LOBYTE(wParam), FALSE);
-      }
-      else AE_EditChar(ae, wParam, TRUE);
-    }
-    return 0;
-  }
-  else if (uMsg == WM_HSCROLL)
-  {
-    if (ae->popt->dwRichEventMask & ENM_SCROLLEVENTS)
-      if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-        return 0;
-
-    AE_HScroll(ae, LOWORD(wParam), 0);
-    return 0;
-  }
-  else if (uMsg == WM_VSCROLL)
-  {
-    if (ae->popt->dwRichEventMask & ENM_SCROLLEVENTS)
-      if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-        return 0;
-
-    AE_VScroll(ae, LOWORD(wParam), 0);
-    return 0;
-  }
-  else if (uMsg == WM_LBUTTONDOWN ||
-           uMsg == WM_LBUTTONUP ||
-           uMsg == WM_LBUTTONDBLCLK ||
-           uMsg == WM_RBUTTONDOWN ||
-           uMsg == WM_RBUTTONUP ||
-           uMsg == WM_RBUTTONDBLCLK ||
-           uMsg == WM_MBUTTONDOWN ||
-           uMsg == WM_MBUTTONUP ||
-           uMsg == WM_MBUTTONDBLCLK ||
-           uMsg == WM_MOUSEMOVE ||
-           uMsg == WM_CAPTURECHANGED)
-  {
-    //Notify
-    if (uMsg == WM_LBUTTONDOWN ||
-        uMsg == WM_LBUTTONDBLCLK ||
-        uMsg == WM_RBUTTONDOWN ||
-        uMsg == WM_RBUTTONDBLCLK ||
-        uMsg == WM_MBUTTONDOWN ||
-        uMsg == WM_MBUTTONDBLCLK ||
-        uMsg == WM_MOUSEMOVE)
-    {
-      if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
-        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-          return 0;
-      if (ae->nCurrentCursor == AECC_URL)
-        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
-          return 0;
-    }
-
-    //Stop scroll
-    if (uMsg == WM_LBUTTONDOWN ||
-        uMsg == WM_RBUTTONDOWN ||
-        uMsg == WM_MBUTTONDOWN)
-    {
-      if (ae->bMButtonDown)
-      {
-        if (ae->dwMouseScrollTimer)
-        {
-          KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
-          ae->dwMouseScrollTimer=0;
-          AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
-        }
-        AE_MButtonErase(ae);
-        ae->bMButtonDown=FALSE;
-        ae->nCurrentCursor=AE_SetCursor(ae);
-        return 0;
-      }
-    }
-
-    if (uMsg == WM_LBUTTONDOWN ||
-        uMsg == WM_LBUTTONDBLCLK)
-    {
-      POINT ptPos;
-      int nLButtonDownCurTime=GetMessageTime();
-      BOOL bAlt=FALSE;
-      BOOL bShift=FALSE;
-      BOOL bControl=FALSE;
-      int nLineCapture=0;
-
-      if (GetKeyState(VK_MENU) < 0)
-        bAlt=TRUE;
-      if (wParam & MK_SHIFT)
-        bShift=TRUE;
-      if (wParam & MK_CONTROL)
-        bControl=TRUE;
-
-      if (ae->nMouseActive == AEMA_IGNORE)
-      {
-        ae->nMouseActive=AEMA_NONE;
-        return 0;
-      }
-      ae->nMouseActive=AEMA_NONE;
-
-      GetCursorPos(&ptPos);
-      ScreenToClient(ae->hWndEdit, &ptPos);
-
-      if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
-          GetDoubleClickTime() >= (DWORD)(nLButtonDownCurTime - ae->nLButtonDownPrevTime))
-      {
-        ++ae->nLButtonDownCount;
-
-        //We support only three clicks
-        ae->nLButtonDownCount=ae->nLButtonDownCount % 3;
-      }
-      else ae->nLButtonDownCount=0;
-
-      ae->ptLButtonDownPrevPos=ptPos;
-      ae->nLButtonDownPrevTime=nLButtonDownCurTime;
-
-      //One click
-      if (ae->nLButtonDownCount == 0)
-      {
-        if (GetFocus() != ae->hWndEdit)
-          SetFocus(ae->hWndEdit);
-
-        //Marker movement capture
-        if (!bAlt && bShift && ae->nCurrentCursor == AECC_MARKER)
-        {
-          if (!ae->dwMouseMoveTimer)
-          {
-            //Timer
-            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSEMARKER);
-
-            ae->dwInitMarkerPos=ae->popt->dwColumnMarkerPos;
-          }
-        }
-        //Start margin selection capture
-        else if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
-        {
-          nLineCapture=AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK;
-        }
-        //Start drag source capture
-        else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
-        {
-          AE_SetMouseCapture(ae, AEMSC_MOUSEDRAG);
-          ae->bDragging=TRUE;
-          ae->nMoveBeforeBeginDrag=AEMMB_BEGINDRAG;
-        }
-        //Start selection change capture
-        else
-        {
-          if (!ae->dwMouseMoveTimer)
-          {
-            //Timer
-            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
-          }
-
-          if (!bShift)
-            ae->dwMouseSelType=AEMSS_CHARS;
-          AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
-        }
-      }
-      //Two clicks
-      else if (ae->nLButtonDownCount == 1)
-      {
-        if (ae->nCurrentCursor == AECC_MARKER)
-        {
-          //Two clicks on column marker are ignored
-        }
-        else if (ae->nCurrentCursor == AECC_MARGIN)
-        {
-          //Two clicks on left margin are ignored
-        }
-        else
-        {
-          AECHARINDEX ciPrevWord;
-          AECHARINDEX ciNextWord;
-          AECHARINDEX ciCharIndex;
-          int nPosResult;
-
-          if (!ae->dwMouseMoveTimer)
-          {
-            //Timer
-            ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
-          }
-          nPosResult=AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
-
-          if ((ae->ciCaretIndex.lpLine->nLineLen && !ae->ciCaretIndex.nCharInLine) ||
-              !AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_STOPSPACESTART|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)|(nPosResult == AEPC_BEFORE?AEWB_MINMOVE:0)))
-          {
-            ciPrevWord=ae->ciCaretIndex;
-          }
-          if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|(bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(ae->ciCaretIndex.lpLine->nLineLen?AEWB_STOPNEWLINE:0)))
-          {
-            ciNextWord=ae->ciCaretIndex;
-          }
-          if (nPosResult == AEPC_AFTER)
-            AEC_PrevCharEx(&ae->ciCaretIndex, &ae->ciMouseSelClick);
-          else
-            ae->ciMouseSelClick=ae->ciCaretIndex;
-
-          ae->ciMouseSelStart=ciPrevWord;
-          ae->ciMouseSelEnd=ciNextWord;
-          ae->dwMouseSelType=AEMSS_WORDS;
-
-          AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
-        }
-      }
-      //Three clicks
-      else if (ae->nLButtonDownCount == 2)
-      {
-        if (ae->nCurrentCursor == AECC_MARKER)
-        {
-          //Three clicks on column marker are ignored
-        }
-        else if (ae->nCurrentCursor == AECC_MARGIN)
-        {
-          if (!bAlt && !bShift)
-          {
-            AE_EditSelectAll(ae, 0, AESCT_MOUSELEFTMARGIN|AESCT_MOUSETRIPLECLK);
-          }
-        }
-        else
-        {
-          nLineCapture=AESCT_MOUSETRIPLECLK;
-        }
-      }
-
-      if (nLineCapture)
-      {
-        AECHARRANGE cr;
-        AECHARINDEX ciCharIndex;
-
-        if (!ae->dwMouseMoveTimer)
-        {
-          //Timer
-          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-          AE_SetMouseCapture(ae, AEMSC_MOUSEMOVE);
-        }
-
-        AE_GetCharFromPos(ae, ptPos.x, ptPos.y, &ciCharIndex, NULL, ae->bColumnSel);
-        if (ae->popt->dwOptions & AECO_SELUNWRAPLINE)
-        {
-          AEC_WrapLineBeginEx(&ciCharIndex, &cr.ciMin);
-          AEC_WrapLineEndEx(&ciCharIndex, &cr.ciMax);
-        }
-        else
-        {
-          cr.ciMin=ciCharIndex;
-          cr.ciMax=ciCharIndex;
-          cr.ciMin.nCharInLine=0;
-          cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
-        }
-        if (!(ae->popt->dwOptions & AECO_NONEWLINEMOUSESELECT))
-          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &cr.ciMax, &cr.ciMax);
-
-        ae->ciMouseSelClick=ciCharIndex;
-        ae->ciMouseSelStart=cr.ciMin;
-        ae->ciMouseSelEnd=cr.ciMax;
-        ae->dwMouseSelType=AEMSS_LINES;
-        AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, nLineCapture);
-      }
-      return 0;
-    }
-    else if (uMsg == WM_RBUTTONDOWN)
-    {
-      if (ae->popt->dwOptions & AECO_RBUTTONDOWNMOVECARET)
-      {
-        POINT ptPos;
-
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-
-        if (!(ae->popt->dwOptions & AECO_DISABLEDRAG) ?
-            ae->nCurrentCursor != AECC_SELECTION :
-            !AE_IsPointOnSelection(ae, ptPos.x, ptPos.y))
-        {
-          ae->dwMouseSelType=AEMSS_CHARS;
-          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
-        }
-      }
-    }
-    else if (uMsg == WM_MBUTTONDOWN)
-    {
-      if (!(ae->popt->dwOptions & AECO_MBUTTONDOWNNOSCROLL) && !ae->bMButtonDown)
-      {
-        if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left ||
-            ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
-        {
-          if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left &&
-              ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
-            ae->hMButtonBitmap=hAkelEditBitmapMCenterAll;
-          else if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left)
-            ae->hMButtonBitmap=hAkelEditBitmapMCenterLeftRight;
-          else if (ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
-            ae->hMButtonBitmap=hAkelEditBitmapMCenterTopBottom;
-
-          GetCursorPos(&ae->ptMButtonDown);
-          ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
-          ae->bMButtonDown=TRUE;
-          ae->bMButtonUp=FALSE;
-          ae->nMButtonMoveBeforeScroll=AEMMB_MBUTTONSCROLL;
-
-          AE_MButtonDraw(ae);
-
-          if (!ae->dwMouseScrollTimer)
-          {
-            //Timer
-            ae->dwMouseScrollTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSESCROLL, 32, NULL);
-            AE_SetMouseCapture(ae, AEMSC_MOUSESCROLL);
-          }
-        }
-      }
-      return 0;
-    }
-    else if (uMsg == WM_MOUSEMOVE)
-    {
-      if (ae->bDragging)
-      {
-        if (ae->nMoveBeforeBeginDrag > 0)
-          --ae->nMoveBeforeBeginDrag;
-
-        if (ae->nMoveBeforeBeginDrag == 0)
-        {
-          DWORD dwEffectIn;
-          DWORD dwEffectOut=DROPEFFECT_NONE;
-          DWORD dwResult=DRAGDROP_S_CANCEL;
-
-          dwEffectIn=DROPEFFECT_COPY;
-          if (!(ae->popt->dwOptions & AECO_READONLY))
-            dwEffectIn|=DROPEFFECT_MOVE;
-
-          if (!AE_NotifyDropSource(ae, AEDS_SOURCEBEGIN, &dwEffectIn, 0))
-          {
-            lpAkelEditDrag=ae;
-            ae->bDragSelectionDelete=TRUE;
-            ae->dwDragSelectionLength=AE_DataObjectCopySelection(ae);
-
-            dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
-
-            if (!AE_NotifyDropSource(ae, AEDS_SOURCEEND, &dwEffectOut, dwResult))
-            {
-              if (dwResult == DRAGDROP_S_DROP)
-              {
-                if (dwEffectOut & DROPEFFECT_MOVE)
-                {
-                  if (ae->bDragSelectionDelete)
-                  {
-                    if (!AE_IsReadOnly(ae))
-                    {
-                      AE_NotifyChanging(ae, AETCT_DRAGDELETE);
-                      AE_StackUndoGroupStop(ae);
-                      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
-                      AE_StackUndoGroupStop(ae);
-                      AE_NotifyChanged(ae); //AETCT_DRAGDELETE
-                    }
-                  }
-                }
-              }
-            }
-            AE_DataObjectFreeSelection(ae);
-            ((IDataObject *)&ae->ido)->lpVtbl->Release((IDataObject *)&ae->ido);
-            ((IDropSource *)&ae->ids)->lpVtbl->Release((IDropSource *)&ae->ids);
-            lpAkelEditDrag=NULL;
-            ae->bDragSelectionDelete=FALSE;
-            ae->dwDragSelectionLength=0;
-          }
-          ae->bDragging=FALSE;
-          AE_ReleaseMouseCapture(ae, AEMSC_MOUSEDRAG);
-          AE_NotifyDropSource(ae, AEDS_SOURCEDONE, &dwEffectOut, dwResult);
-        }
-      }
-      else
-      {
-        if (ae->dwMouseScrollTimer)
-          ae->nCurrentCursor=AE_SetCursor(ae);
-        AE_MouseMove(ae);
-
-        if (ae->bMButtonDown)
-        {
-          if (ae->nMButtonMoveBeforeScroll > 0)
-            --ae->nMButtonMoveBeforeScroll;
-        }
-      }
-      return 0;
-    }
-    else if (uMsg == WM_LBUTTONUP)
-    {
-      if (ae->bDragging)
-      {
-        ae->bDragging=FALSE;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEDRAG);
-
-        //Set selection if nMoveBeforeBeginDrag not reached
-        {
-          POINT ptPos;
-
-          GetCursorPos(&ptPos);
-          ScreenToClient(ae->hWndEdit, &ptPos);
-
-          if (!(wParam & MK_SHIFT))
-            ae->dwMouseSelType=AEMSS_CHARS;
-          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
-        }
-      }
-      if (ae->dwMouseMoveTimer)
-      {
-        KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
-        ae->dwMouseMoveTimer=0;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
-      }
-      if (!(ae->popt->dwOptions & AECO_LBUTTONUPCONTINUECAPTURE))
-        ae->dwMouseSelType=AEMSS_CHARS;
-      if (ae->dwMouseSelType)
-        ae->dwMouseSelType|=AEMSS_LBUTTONUP;
-    }
-    else if (uMsg == WM_MBUTTONUP)
-    {
-      if (ae->bMButtonDown)
-      {
-        if (!ae->bMButtonUp)
-        {
-          if (!ae->nMButtonMoveBeforeScroll)
-          {
-            if (ae->dwMouseScrollTimer)
-            {
-              KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
-              ae->dwMouseScrollTimer=0;
-              AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
-            }
-            AE_MButtonErase(ae);
-            ae->bMButtonDown=FALSE;
-            ae->nCurrentCursor=AE_SetCursor(ae);
-          }
-          else ae->bMButtonUp=TRUE;
-        }
-      }
-    }
-    else if (uMsg == WM_CAPTURECHANGED)
-    {
-      if (ae->dwMouseScrollTimer)
-      {
-        KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
-        ae->dwMouseScrollTimer=0;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSESCROLL);
-      }
-      if (ae->dwMouseMoveTimer)
-      {
-        KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
-        ae->dwMouseMoveTimer=0;
-        AE_ReleaseMouseCapture(ae, AEMSC_MOUSEMOVE|AEMSC_MOUSEMARKER);
-      }
-    }
-
-    //Notify
-    if (uMsg == WM_LBUTTONUP ||
-        uMsg == WM_RBUTTONUP ||
-        uMsg == WM_MBUTTONUP)
-    {
-      if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
-        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-          return 0;
-      if (ae->nCurrentCursor == AECC_URL)
-        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
-          return 0;
-    }
-  }
-  else if (uMsg == WM_MOUSEWHEEL ||
-           uMsg == WM_MOUSEHWHEEL)
-  {
-    if (ae->popt->dwRichEventMask & ENM_MOUSEEVENTS)
-      if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
-        return 0;
-
-    if (uMsg == WM_MOUSEWHEEL)
-    {
-      DWORD dwLines=0;
-
-      SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
-      if (!dwLines) dwLines=3;
-
-      if (!(ae->popt->dwOptionsEx & AECOE_INVERTVERTWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
-      {
-        if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEDOWN, 0);
-        else
-          AE_VScrollLine(ae, dwLines, AESB_ALIGNTOP);
-      }
-      else
-      {
-        if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEUP, 0);
-        else
-          AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
-      }
-      return 0;
-    }
-    else
-    {
-      DWORD dwChars=0;
-
-      SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &dwChars, 0);
-      if (!dwChars) dwChars=3;
-
-      if (!(ae->popt->dwOptionsEx & AECOE_INVERTHORZWHEEL) ? (short)HIWORD(wParam) < 0 : (short)HIWORD(wParam) >= 0)
-      {
-        if (dwChars == (DWORD)-1)
-          AE_HScroll(ae, SB_PAGELEFT, 0);
-        else
-          AE_HScrollChar(ae, -(int)dwChars, AESB_ALIGNLEFT);
-      }
-      else
-      {
-        if (dwChars == (DWORD)-1)
-          AE_HScroll(ae, SB_PAGERIGHT, 0);
-        else
-          AE_HScrollChar(ae, dwChars, AESB_ALIGNLEFT);
-      }
-      return 1;
-    }
-  }
-  else if (uMsg == WM_SETCURSOR)
-  {
-    if (!ae->bDragging && !ae->dwMouseMoveTimer && !ae->dwMouseScrollTimer)
-    {
-      ae->nCurrentCursor=AE_SetCursor(ae);
-
-      if (ae->nCurrentCursor == AECC_URL)
-        AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink);
-      if (ae->nCurrentCursor != AECC_IBEAM)
-        return TRUE;
-    }
-  }
-  else if (uMsg == WM_TIMER)
-  {
-    if (wParam == AETIMERID_MOUSEMOVE ||
-        wParam == AETIMERID_MOUSESCROLL)
-    {
-      AE_MouseMove(ae);
-    }
-    return 0;
-  }
-  else if (uMsg == WM_SETFOCUS)
-  {
-    ae->bFocus=TRUE;
-    AE_UpdateCaret(ae, ae->bFocus);
-
-    if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
-    {
-      AE_HideSelection(ae, FALSE);
-    }
-    AE_NotifySetFocus(ae, (HWND)wParam);
-    return 0;
-  }
-  else if (uMsg == WM_KILLFOCUS)
-  {
-    AE_ImeComplete(ae);
-
-    if (ae->nMouseActive == AEMA_LBUTTONDOWN)
-    {
-      //We lost focus, so ignore next WM_LBUTTONDOWN message posted in WM_MOUSEACTIVATE
-      ae->nMouseActive=AEMA_IGNORE;
-    }
-    if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
-    {
-      AE_HideSelection(ae, TRUE);
-    }
-    ae->bFocus=FALSE;
-    DestroyCaret();
-    AE_StackUndoGroupStop(ae);
-    AE_NotifyKillFocus(ae, (HWND)wParam);
-    return 0;
-  }
-  else if (uMsg == WM_MOUSEACTIVATE)
-  {
-    LRESULT lResult;
-
-    if (!ae->bUnicodeWindow)
-      lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
-    else
-      lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
-
-    if (lResult != MA_ACTIVATEANDEAT &&
-        lResult != MA_NOACTIVATEANDEAT &&
-        HIWORD(lParam) == WM_LBUTTONDOWN)
-    {
-      ae->nMouseActive=AEMA_LBUTTONDOWN;
-    }
-    return lResult;
-  }
-  else if (uMsg == WM_DROPFILES)
-  {
-    if (!AE_NotifyDropFiles(ae, (HDROP)wParam))
-      return 0;
-  }
-  else if (uMsg == WM_SYSCOLORCHANGE)
-  {
-    if (ae->popt->bDefaultColors)
-    {
-      AECOLORS aecDefault;
-
-      aecDefault.dwFlags=AECLR_DEFAULT|AECLR_ALL;
-      AE_SetColors(ae, &aecDefault, TRUE);
-      ae->popt->bDefaultColors=TRUE;
-    }
-  }
-  else if (uMsg == WM_ENABLE)
-  {
-    if (wParam)
-    {
-      AE_SetColors(ae, &ae->popt->aecEnable, TRUE);
-    }
-    else
-    {
-      AECOLORS aecDisable;
-      COLORREF crDisableText=GetSysColor(COLOR_BTNTEXT);
-      COLORREF crDisableBk=GetSysColor(COLOR_BTNFACE);
-
-      //Backup colors
-      xmemcpy(&ae->popt->aecEnable, &ae->popt->aec, sizeof(AECOLORS));
-      ae->popt->aecEnable.dwFlags=AECLR_BASICTEXT|AECLR_BASICBK|AECLR_SELTEXT|AECLR_SELBK|AECLR_ACTIVELINETEXT|AECLR_ACTIVELINEBK;
-
-      //Set disabled colors
-      aecDisable.dwFlags=ae->popt->aecEnable.dwFlags;
-      aecDisable.crBasicText=crDisableText;
-      aecDisable.crBasicBk=crDisableBk;
-      aecDisable.crSelText=crDisableText;
-      aecDisable.crSelBk=crDisableBk;
-      aecDisable.crActiveLineText=crDisableText;
-      aecDisable.crActiveLineBk=crDisableBk;
-      AE_SetColors(ae, &aecDisable, TRUE);
-      if (ae->bFocus) SetFocus(NULL);
-    }
-    return 0;
-  }
-  else if (uMsg == WM_ERASEBKGND)
-  {
-    AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
-    AEERASE *lpEraseNext;
-    RECT rcErase;
-
-    ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
-
-    //Message came not from WM_PAINT - use all edit area
-    if (!lpErase)
-      lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
-
-    while (lpErase)
-    {
-      if (lpErase->rcErase.right - lpErase->rcErase.left > 0 &&
-          lpErase->rcErase.bottom - lpErase->rcErase.top > 0)
-      {
-        if (lpErase->rcErase.left < ae->rcDraw.left)
-        {
-          rcErase=lpErase->rcErase;
-          rcErase.left=max(rcErase.left, ae->rcErase.left);
-          rcErase.right=min(rcErase.right, ae->rcDraw.left);
-          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
-          lpErase->rcErase.left=rcErase.right;
-        }
-        if (lpErase->rcErase.top < ae->rcDraw.top)
-        {
-          rcErase=lpErase->rcErase;
-          rcErase.top=max(rcErase.top, ae->rcErase.top);
-          rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
-          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
-          lpErase->rcErase.top=rcErase.bottom;
-        }
-        if (lpErase->rcErase.right > ae->rcDraw.right)
-        {
-          rcErase=lpErase->rcErase;
-          rcErase.left=max(rcErase.left, ae->rcDraw.right);
-          rcErase.right=min(rcErase.right, ae->rcErase.right);
-          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
-          lpErase->rcErase.right=rcErase.left;
-        }
-        if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
-        {
-          rcErase=lpErase->rcErase;
-          rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
-          rcErase.bottom=min(rcErase.bottom, ae->rcErase.bottom);
-          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
-          lpErase->rcErase.bottom=rcErase.top;
-        }
-
-        //Erase only a space after the last line
-        rcErase=lpErase->rcErase;
-        rcErase.top=max(rcErase.top, ae->rcDraw.top + (int)(ae->ptxt->nVScrollMax - ae->nVScrollPos));
-
-        if (rcErase.top < rcErase.bottom)
-        {
-          AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
-
-          if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
-          {
-            //Draw column marker on non-text lines
-            AE_ColumnMarkerDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
-          }
-        }
-      }
-
-      //Next erase rectangle
-      lpEraseNext=lpErase->next;
-      AE_StackEraseDelete(ae, lpErase);
-      lpErase=lpEraseNext;
-    }
-    DeleteObject(ae->popt->hbrBasicBk);
-    ae->popt->hbrBasicBk=NULL;
-    return 1;
-  }
-  else if (uMsg == WM_NCPAINT ||
-           uMsg == WM_PAINT)
-  {
-    RECT rcUpdate;
-
-    if (GetUpdateRect(ae->hWndEdit, &rcUpdate, FALSE))
-    {
-      if (AE_StackEraseMore(ae, &rcUpdate))
-        AE_StackEraseInsert(ae, &rcUpdate);
-
-      //Get DC
-      if (uMsg == WM_PAINT)
-      {
-        HDC hDC=ae->hDC;
-        HFONT hFontOld=NULL;
-
-        if (!hDC)
-        {
-          if (ae->hDC=GetDC(ae->hWndEdit))
-            if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->ptxt->hFont);
-        }
-        if (ae->hDC)
-        {
-          AE_Paint(ae, &rcUpdate);
-
-          if (ae->bMButtonDown)
-          {
-            AE_MButtonErase(ae);
-            ae->bMButtonDown=FALSE;
-            UpdateWindow(ae->hWndEdit);
-            ae->bMButtonDown=TRUE;
-            AE_MButtonDraw(ae);
-          }
-
-          //Release DC
-          if (!hDC)
-          {
-            if (hFontOld) SelectObject(ae->hDC, hFontOld);
-            ReleaseDC(ae->hWndEdit, ae->hDC);
-            ae->hDC=NULL;
-          }
-        }
-        return 0;
-      }
-    }
-  }
-  else if (uMsg == WM_DESTROY)
-  {
-    //Unregister drop window
-    RevokeDragDrop(ae->hWndEdit);
-    //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
-    //((IDropTarget *)&ae->idt)->Release();
-
-    AE_DestroyWindowData(ae);
-    lpAkelEditPrev=NULL;
-    ae=NULL;
-    return 0;
   }
 
   if (!ae->bUnicodeWindow)
