@@ -2628,7 +2628,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Zero.
+ TRUE   clipboard changed.
+ FALSE  clipboard not changed.
 
 Example:
  SendMessage(hWndEdit, AEM_COPY, 0, 0);
