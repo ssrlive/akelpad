@@ -559,7 +559,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDOK)
       {
-        STACKTOOLBAR hTestStack={0};
+        STACKTOOLBAR hTestStack;
         wchar_t *wszTest;
         int nValue;
 
@@ -621,6 +621,8 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           GetEditText(hWndToolBarText, &wszTest);
 
           //Test for errors
+          xmemset(&hTestStack, 0, sizeof(STACKTOOLBAR));
+
           if (!CreateToolbarData(&hTestStack, wszTest))
           {
             FreeToolbarData(&hTestStack);
