@@ -9065,20 +9065,19 @@ int GetDetectionIndex(DWORD dwLangID)
 
   if (dwLangID == LANG_RUSSIAN)
     return DETECTINDEX_RUSSIAN;
-  else if (IsLangEasternEurope(dwLangID))
+  if (IsLangEasternEurope(dwLangID))
     return DETECTINDEX_EASTERNEUROPE;
-  else if (IsLangWesternEurope(dwLangID))
+  if (IsLangWesternEurope(dwLangID))
     return DETECTINDEX_WESTERNEUROPE;
-  else if (dwLangID == LANG_TURKISH)
+  if (dwLangID == LANG_TURKISH)
     return DETECTINDEX_TURKISH;
-  else if (dwLangID == LANG_CHINESE)
+  if (dwLangID == LANG_CHINESE)
     return DETECTINDEX_CHINESE;
-  else if (dwLangID == LANG_JAPANESE)
+  if (dwLangID == LANG_JAPANESE)
     return DETECTINDEX_JAPANESE;
-  else if (dwLangID == LANG_KOREAN)
+  if (dwLangID == LANG_KOREAN)
     return DETECTINDEX_KOREAN;
-  else
-    return DETECTINDEX_NONE;
+  return DETECTINDEX_NONE;
 }
 
 BOOL IsLangEasternEurope(DWORD dwLangID)
@@ -19174,9 +19173,9 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
     else if (dwAction == EXTACT_IF)
     {
       wchar_t *wpIfExpression=NULL;
-      wchar_t *wpIfTrue=NULL;
-      wchar_t *wpIfFalse=NULL;
-      wchar_t *wpParseCmd;
+      const wchar_t *wpIfTrue=NULL;
+      const wchar_t *wpIfFalse=NULL;
+      const wchar_t *wpParseCmd;
       int nError=0;
 
       ExpandMethodParameters(&hParamStack, ep);
@@ -19690,8 +19689,8 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
   INT_PTR nValue=0;
   BOOL bBitwiseNOT=FALSE;
-  int nSendMain;
-  int nSendEdit;
+  int nSendMain=0;
+  int nSendEdit=0;
 
   IfComment(wpIn, &wpIn);
 
@@ -19957,401 +19956,431 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
       lpFrame=lpFrameCurrent;
   }
 
-  if (nType == FIS_TABSTOPSIZE)
+  switch (nType)
   {
-    if (lpFrame->nTabStopSize != (int)dwData && (int)dwData > 0)
+    case FIS_TABSTOPSIZE:
     {
-      lpFrame->nTabStopSize=(int)dwData;
-      SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, TRUE);
-      UpdateStatusUser(lpFrame, CSB_TABSIZE);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_TABSTOPASSPACES)
-  {
-    if (lpFrame->bTabStopAsSpaces != (BOOL)dwData)
-    {
-      lpFrame->bTabStopAsSpaces=(BOOL)dwData;
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_UNDOLIMIT)
-  {
-    if (lpFrame->nUndoLimit != (int)dwData && (int)dwData >= 0)
-    {
-      lpFrame->nUndoLimit=(int)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_DETAILEDUNDO)
-  {
-    if (lpFrame->bDetailedUndo != (BOOL)dwData)
-    {
-      lpFrame->bDetailedUndo=(BOOL)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_WRAP)
-  {
-    if (lpFrame->dwWrapType != LOWORD(dwData) || lpFrame->dwWrapLimit != HIWORD(dwData))
-    {
-      lpFrame->dwWrapType=LOWORD(dwData);
-      lpFrame->dwWrapLimit=HIWORD(dwData);
-
-      if (lpFrame->ei.bWordWrap)
+      if (lpFrame->nTabStopSize != (int)dwData && (int)dwData > 0)
       {
-        UpdateShowHScroll(lpFrame);
-        SetWordWrap(lpFrame, lpFrame->dwWrapType, lpFrame->dwWrapLimit);
-      }
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_MARKER)
-  {
-    if (lpFrame->dwMarker != dwData && (int)dwData >= -1)
-    {
-      lpFrame->dwMarker=(DWORD)dwData;
-      SetMarker(lpFrame, lpFrame->dwMarker);
-      UpdateStatusUser(lpFrame, CSB_MARKER);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_CARETWIDTH)
-  {
-    if (lpFrame->nCaretWidth != (int)dwData && (int)dwData >= 0)
-    {
-      lpFrame->nCaretWidth=(int)dwData;
-
-      //Update width
-      {
-        POINT pt;
-
-        SendMessage(lpFrame->ei.hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
-        pt.x=lpFrame->nCaretWidth;
-        SendMessage(lpFrame->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+        lpFrame->nTabStopSize=(int)dwData;
+        SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, TRUE);
+        UpdateStatusUser(lpFrame, CSB_TABSIZE);
         return TRUE;
       }
+      break;
     }
-  }
-  else if (nType == FIS_CARETOPTIONS)
-  {
-    if (lpFrame->dwCaretOptions != (DWORD)dwData)
+    case FIS_TABSTOPASSPACES:
     {
-      DWORD dwAddOptions;
-      DWORD dwCurOptions;
-
-      lpFrame->dwCaretOptions=(DWORD)dwData;
-
-      dwAddOptions=0;
-      if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
-        dwAddOptions|=AECO_CARETOUTEDGE;
-      if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
-        dwAddOptions|=AECO_ACTIVECOLUMN;
-      if (lpFrame->dwCaretOptions & CO_CARETACTIVELINE)
-        dwAddOptions|=AECO_ACTIVELINE;
-      if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
-        dwAddOptions|=AECO_ACTIVELINEBORDER;
-      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
-      dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
-
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_ALTLINES)
-  {
-    if (lpFrame->dwAltLineSkip != LOWORD(dwData) || lpFrame->dwAltLineFill != HIWORD(dwData))
-    {
-      lpFrame->dwAltLineSkip=LOWORD(dwData);
-      lpFrame->dwAltLineFill=HIWORD(dwData);
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineSkip, lpFrame->dwAltLineFill), 0);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_ALTLINEBORDER)
-  {
-    if (lpFrame->bAltLineBorder != (BOOL)dwData)
-    {
-      lpFrame->bAltLineBorder=(BOOL)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bAltLineBorder?AECOOP_OR:AECOOP_XOR, AECO_ALTLINEBORDER);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_RECTMARGINS)
-  {
-    if (xmemcmp(&lpFrame->rcEditMargins, (RECT *)dwData, sizeof(RECT)))
-    {
-      if (lpFrame->ei.hWndMaster)
+      if (lpFrame->bTabStopAsSpaces != (BOOL)dwData)
       {
-        SetMargins(lpFrame->ei.hWndMaster, (RECT *)dwData, &lpFrame->rcEditMargins);
-        if (lpFrame->ei.hWndClone1)
-          SetMargins(lpFrame->ei.hWndClone1, (RECT *)dwData, &lpFrame->rcEditMargins);
-        if (lpFrame->ei.hWndClone2)
-          SetMargins(lpFrame->ei.hWndClone2, (RECT *)dwData, &lpFrame->rcEditMargins);
-        if (lpFrame->ei.hWndClone3)
-          SetMargins(lpFrame->ei.hWndClone3, (RECT *)dwData, &lpFrame->rcEditMargins);
+        lpFrame->bTabStopAsSpaces=(BOOL)dwData;
+        return TRUE;
       }
-      else SetMargins(lpFrame->ei.hWndEdit, (RECT *)dwData, &lpFrame->rcEditMargins);
-
-      lpFrame->rcEditMargins=*(RECT *)dwData;
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_LINEGAP)
-  {
-    if (lpFrame->dwLineGap != (DWORD)dwData && (int)dwData >= 0)
+    case FIS_UNDOLIMIT:
     {
-      lpFrame->dwLineGap=(DWORD)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETLINEGAP, lpFrame->dwLineGap, 0);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_MOUSEOPTIONS)
-  {
-    if (lpFrame->dwMouseOptions != (DWORD)dwData)
-    {
-      DWORD dwAddOptions;
-      DWORD dwAddOptionsEx;
-      DWORD dwCurOptions;
-
-      lpFrame->dwMouseOptions=(DWORD)dwData;
-
-      dwAddOptions=0;
-      dwAddOptionsEx=0;
-      if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
-        dwAddOptions|=AECO_NOMARGINSEL;
-      if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
-        dwAddOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
-      if (!(lpFrame->dwMouseOptions & MO_MOUSEDRAGGING))
-        dwAddOptions|=AECO_DISABLEDRAG;
-      if (lpFrame->dwMouseOptions & MO_RCLICKMOVECARET)
-        dwAddOptions|=AECO_RBUTTONDOWNMOVECARET;
-      if (lpFrame->dwMouseOptions & MO_NONEWLINEMOUSESELECT)
-        dwAddOptions|=AECO_NONEWLINEMOUSESELECT;
-      if (lpFrame->dwMouseOptions & MO_SELUNWRAPLINE)
-        dwAddOptions|=AECO_SELUNWRAPLINE;
-      if (lpFrame->dwMouseOptions & MO_MBUTTONDOWNNOSCROLL)
-        dwAddOptions|=AECO_MBUTTONDOWNNOSCROLL;
-      if (lpFrame->dwMouseOptions & MO_INVERTHORZWHEEL)
-        dwAddOptionsEx|=AECOE_INVERTHORZWHEEL;
-      if (lpFrame->dwMouseOptions & MO_INVERTVERTWHEEL)
-        dwAddOptionsEx|=AECOE_INVERTVERTWHEEL;
-
-      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
-      dwCurOptions&=~AECO_NOMARGINSEL & ~AECO_LBUTTONUPCONTINUECAPTURE & ~AECO_DISABLEDRAG & ~AECO_RBUTTONDOWNMOVECARET & ~AECO_NONEWLINEMOUSESELECT & ~AECO_SELUNWRAPLINE & ~AECO_MBUTTONDOWNNOSCROLL;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
-
-      dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_EXGETOPTIONS, 0, 0);
-      dwCurOptions&=~AECOE_INVERTHORZWHEEL & ~AECOE_INVERTVERTWHEEL;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptionsEx);
-
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_SHOWURL)
-  {
-    if (lpFrame->bShowURL != (BOOL)dwData)
-    {
-      lpFrame->bShowURL=(BOOL)dwData;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, lpFrame->bShowURL?AECOOP_OR:AECOOP_XOR, AECOE_DETECTURL);
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_URLPREFIXESENABLE)
-  {
-    if (lpFrame->bUrlPrefixesEnable != (BOOL)dwData)
-    {
-      lpFrame->bUrlPrefixesEnable=(BOOL)dwData;
-
-      if (lpFrame->bUrlPrefixesEnable >= 0)
+      if (lpFrame->nUndoLimit != (int)dwData && (int)dwData >= 0)
       {
-        if (lpFrame->bUrlPrefixesEnable)
-          SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
-        else
-          SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
+        lpFrame->nUndoLimit=(int)dwData;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_URLPREFIXES)
-  {
-    if (xstrcmpW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData))
+    case FIS_DETAILEDUNDO:
     {
-      xstrcpynW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData, URL_PREFIXES_SIZE);
-
-      if (lpFrame->bUrlPrefixesEnable >= 0)
+      if (lpFrame->bDetailedUndo != (BOOL)dwData)
       {
-        if (lpFrame->bUrlPrefixesEnable)
-          SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
-        else
-          SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
+        lpFrame->bDetailedUndo=(BOOL)dwData;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_URLDELIMITERSENABLE)
-  {
-    if (lpFrame->bUrlDelimitersEnable != (BOOL)dwData)
+    case FIS_WRAP:
     {
-      lpFrame->bUrlDelimitersEnable=(BOOL)dwData;
-
-      if (lpFrame->bUrlDelimitersEnable >= 0)
+      if (lpFrame->dwWrapType != LOWORD(dwData) || lpFrame->dwWrapLimit != HIWORD(dwData))
       {
-        if (lpFrame->bUrlDelimitersEnable)
+        lpFrame->dwWrapType=LOWORD(dwData);
+        lpFrame->dwWrapLimit=HIWORD(dwData);
+
+        if (lpFrame->ei.bWordWrap)
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
+          UpdateShowHScroll(lpFrame);
+          SetWordWrap(lpFrame, lpFrame->dwWrapType, lpFrame->dwWrapLimit);
         }
-        else
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_MARKER:
+    {
+      if (lpFrame->dwMarker != dwData && (int)dwData >= -1)
+      {
+        lpFrame->dwMarker=(DWORD)dwData;
+        SetMarker(lpFrame, lpFrame->dwMarker);
+        UpdateStatusUser(lpFrame, CSB_MARKER);
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_CARETWIDTH:
+    {
+      if (lpFrame->nCaretWidth != (int)dwData && (int)dwData >= 0)
+      {
+        lpFrame->nCaretWidth=(int)dwData;
+
+        //Update width
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+          POINT pt;
+
+          SendMessage(lpFrame->ei.hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+          pt.x=lpFrame->nCaretWidth;
+          SendMessage(lpFrame->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+          return TRUE;
         }
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_URLLEFTDELIMITERS)
-  {
-    if (xstrcmpW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData))
+    case FIS_CARETOPTIONS:
     {
-      xstrcpynW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
-
-      if (lpFrame->bUrlDelimitersEnable >= 0)
+      if (lpFrame->dwCaretOptions != (DWORD)dwData)
       {
-        if (lpFrame->bUrlDelimitersEnable)
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
-        else
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+        DWORD dwAddOptions;
+        DWORD dwCurOptions;
+
+        lpFrame->dwCaretOptions=(DWORD)dwData;
+
+        dwAddOptions=0;
+        if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
+          dwAddOptions|=AECO_CARETOUTEDGE;
+        if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
+          dwAddOptions|=AECO_ACTIVECOLUMN;
+        if (lpFrame->dwCaretOptions & CO_CARETACTIVELINE)
+          dwAddOptions|=AECO_ACTIVELINE;
+        if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
+          dwAddOptions|=AECO_ACTIVELINEBORDER;
+        dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
+        dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_URLRIGHTDELIMITERS)
-  {
-    if (xstrcmpW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData))
+    case FIS_ALTLINES:
     {
-      xstrcpynW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
-
-      if (lpFrame->bUrlDelimitersEnable >= 0)
+      if (lpFrame->dwAltLineSkip != LOWORD(dwData) || lpFrame->dwAltLineFill != HIWORD(dwData))
       {
-        if (lpFrame->bUrlDelimitersEnable)
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
-        else
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+        lpFrame->dwAltLineSkip=LOWORD(dwData);
+        lpFrame->dwAltLineFill=HIWORD(dwData);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETALTLINE, MAKELONG(lpFrame->dwAltLineSkip, lpFrame->dwAltLineFill), 0);
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_WORDDELIMITERSENABLE)
-  {
-    if (lpFrame->bWordDelimitersEnable != (BOOL)dwData)
+    case FIS_ALTLINEBORDER:
     {
-      lpFrame->bWordDelimitersEnable=(BOOL)dwData;
-
-      if (lpFrame->bWordDelimitersEnable >= 0)
+      if (lpFrame->bAltLineBorder != (BOOL)dwData)
       {
-        if (lpFrame->bWordDelimitersEnable)
+        lpFrame->bAltLineBorder=(BOOL)dwData;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->bAltLineBorder?AECOOP_OR:AECOOP_XOR, AECO_ALTLINEBORDER);
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_RECTMARGINS:
+    {
+      if (xmemcmp(&lpFrame->rcEditMargins, (RECT *)dwData, sizeof(RECT)))
+      {
+        if (lpFrame->ei.hWndMaster)
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
+          SetMargins(lpFrame->ei.hWndMaster, (RECT *)dwData, &lpFrame->rcEditMargins);
+          if (lpFrame->ei.hWndClone1)
+            SetMargins(lpFrame->ei.hWndClone1, (RECT *)dwData, &lpFrame->rcEditMargins);
+          if (lpFrame->ei.hWndClone2)
+            SetMargins(lpFrame->ei.hWndClone2, (RECT *)dwData, &lpFrame->rcEditMargins);
+          if (lpFrame->ei.hWndClone3)
+            SetMargins(lpFrame->ei.hWndClone3, (RECT *)dwData, &lpFrame->rcEditMargins);
         }
-        else
+        else SetMargins(lpFrame->ei.hWndEdit, (RECT *)dwData, &lpFrame->rcEditMargins);
+
+        lpFrame->rcEditMargins=*(RECT *)dwData;
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_LINEGAP:
+    {
+      if (lpFrame->dwLineGap != (DWORD)dwData && (int)dwData >= 0)
+      {
+        lpFrame->dwLineGap=(DWORD)dwData;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETLINEGAP, lpFrame->dwLineGap, 0);
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_MOUSEOPTIONS:
+    {
+      if (lpFrame->dwMouseOptions != (DWORD)dwData)
+      {
+        DWORD dwAddOptions;
+        DWORD dwAddOptionsEx;
+        DWORD dwCurOptions;
+
+        lpFrame->dwMouseOptions=(DWORD)dwData;
+
+        dwAddOptions=0;
+        dwAddOptionsEx=0;
+        if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
+          dwAddOptions|=AECO_NOMARGINSEL;
+        if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
+          dwAddOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
+        if (!(lpFrame->dwMouseOptions & MO_MOUSEDRAGGING))
+          dwAddOptions|=AECO_DISABLEDRAG;
+        if (lpFrame->dwMouseOptions & MO_RCLICKMOVECARET)
+          dwAddOptions|=AECO_RBUTTONDOWNMOVECARET;
+        if (lpFrame->dwMouseOptions & MO_NONEWLINEMOUSESELECT)
+          dwAddOptions|=AECO_NONEWLINEMOUSESELECT;
+        if (lpFrame->dwMouseOptions & MO_SELUNWRAPLINE)
+          dwAddOptions|=AECO_SELUNWRAPLINE;
+        if (lpFrame->dwMouseOptions & MO_MBUTTONDOWNNOSCROLL)
+          dwAddOptions|=AECO_MBUTTONDOWNNOSCROLL;
+        if (lpFrame->dwMouseOptions & MO_INVERTHORZWHEEL)
+          dwAddOptionsEx|=AECOE_INVERTHORZWHEEL;
+        if (lpFrame->dwMouseOptions & MO_INVERTVERTWHEEL)
+          dwAddOptionsEx|=AECOE_INVERTVERTWHEEL;
+
+        dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
+        dwCurOptions&=~AECO_NOMARGINSEL & ~AECO_LBUTTONUPCONTINUECAPTURE & ~AECO_DISABLEDRAG & ~AECO_RBUTTONDOWNMOVECARET & ~AECO_NONEWLINEMOUSESELECT & ~AECO_SELUNWRAPLINE & ~AECO_MBUTTONDOWNNOSCROLL;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+        dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_EXGETOPTIONS, 0, 0);
+        dwCurOptions&=~AECOE_INVERTHORZWHEEL & ~AECOE_INVERTVERTWHEEL;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptionsEx);
+
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_SHOWURL:
+    {
+      if (lpFrame->bShowURL != (BOOL)dwData)
+      {
+        lpFrame->bShowURL=(BOOL)dwData;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, lpFrame->bShowURL?AECOOP_OR:AECOOP_XOR, AECOE_DETECTURL);
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_URLPREFIXESENABLE:
+    {
+      if (lpFrame->bUrlPrefixesEnable != (BOOL)dwData)
+      {
+        lpFrame->bUrlPrefixesEnable=(BOOL)dwData;
+
+        if (lpFrame->bUrlPrefixesEnable >= 0)
         {
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, dwWordBreakDefault, 0);
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+          if (lpFrame->bUrlPrefixesEnable)
+            SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
+          else
+            SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
         }
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_WORDDELIMITERS)
-  {
-    if (xstrcmpW(lpFrame->wszWordDelimiters, (wchar_t *)dwData))
+    case FIS_URLPREFIXES:
     {
-      xstrcpynW(lpFrame->wszWordDelimiters, (wchar_t *)dwData, WORD_DELIMITERS_SIZE);
-
-      if (lpFrame->bWordDelimitersEnable >= 0)
+      if (xstrcmpW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData))
       {
-        if (lpFrame->bWordDelimitersEnable)
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
-        else
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
-      }
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_WRAPDELIMITERSENABLE)
-  {
-    if (lpFrame->bWrapDelimitersEnable != (BOOL)dwData)
-    {
-      lpFrame->bWrapDelimitersEnable=(BOOL)dwData;
+        xstrcpynW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData, URL_PREFIXES_SIZE);
 
-      if (lpFrame->bWrapDelimitersEnable >= 0)
+        if (lpFrame->bUrlPrefixesEnable >= 0)
+        {
+          if (lpFrame->bUrlPrefixesEnable)
+            SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
+          else
+            SetUrlPrefixes(lpFrame->ei.hWndEdit, NULL);
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_URLDELIMITERSENABLE:
+    {
+      if (lpFrame->bUrlDelimitersEnable != (BOOL)dwData)
       {
-        if (lpFrame->bWrapDelimitersEnable)
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
-        else
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
-      }
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_WRAPDELIMITERS)
-  {
-    if (xstrcmpW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData))
-    {
-      xstrcpynW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, WRAP_DELIMITERS_SIZE);
+        lpFrame->bUrlDelimitersEnable=(BOOL)dwData;
 
-      if (lpFrame->bWrapDelimitersEnable >= 0)
+        if (lpFrame->bUrlDelimitersEnable >= 0)
+        {
+          if (lpFrame->bUrlDelimitersEnable)
+          {
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
+          }
+          else
+          {
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+          }
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_URLLEFTDELIMITERS:
+    {
+      if (xstrcmpW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData))
       {
-        if (lpFrame->bWrapDelimitersEnable)
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
-        else
-          SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+        xstrcpynW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
+
+        if (lpFrame->bUrlDelimitersEnable >= 0)
+        {
+          if (lpFrame->bUrlDelimitersEnable)
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
+          else
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+        }
+        return TRUE;
       }
-      return TRUE;
+      break;
     }
-  }
-  else if (nType == FIS_CLICKURL)
-  {
-    if (lpFrame->nClickURL != (int)dwData)
+    case FIS_URLRIGHTDELIMITERS:
     {
-      lpFrame->nClickURL=(int)dwData;
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_LOCKINHERIT)
-  {
-    if (lpFrame->dwLockInherit != (DWORD)dwData)
-    {
-      lpFrame->dwLockInherit=(DWORD)dwData;
-      return TRUE;
-    }
-  }
-  else if (nType == FIS_COLORS)
-  {
-    AECOLORS *aec=(AECOLORS *)dwData;
+      if (xstrcmpW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData))
+      {
+        xstrcpynW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
 
-    if (xmemcmp(&lpFrame->aec, aec, sizeof(AECOLORS)))
-    {
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
-      lpFrame->aec.dwFlags=aec->dwFlags;
-      SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
-      lpFrame->aec.dwFlags=AECLR_ALL;
-      return TRUE;
+        if (lpFrame->bUrlDelimitersEnable >= 0)
+        {
+          if (lpFrame->bUrlDelimitersEnable)
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
+          else
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+        }
+        return TRUE;
+      }
+      break;
     }
-  }
-  else if (nType == FIS_BKIMAGE)
-  {
-    BKIMAGE *bki=(BKIMAGE *)dwData;
-
-    if (xstrcmpiW(lpFrame->wszBkImageFile, bki->wpFile) || lpFrame->nBkImageAlpha != bki->nAlpha)
+    case FIS_WORDDELIMITERSENABLE:
     {
-      SetBkImage(lpFrame, bki->wpFile, bki->nAlpha);
-      return TRUE;
+      if (lpFrame->bWordDelimitersEnable != (BOOL)dwData)
+      {
+        lpFrame->bWordDelimitersEnable=(BOOL)dwData;
+
+        if (lpFrame->bWordDelimitersEnable >= 0)
+        {
+          if (lpFrame->bWordDelimitersEnable)
+          {
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
+          }
+          else
+          {
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, dwWordBreakDefault, 0);
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+          }
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_WORDDELIMITERS:
+    {
+      if (xstrcmpW(lpFrame->wszWordDelimiters, (wchar_t *)dwData))
+      {
+        xstrcpynW(lpFrame->wszWordDelimiters, (wchar_t *)dwData, WORD_DELIMITERS_SIZE);
+
+        if (lpFrame->bWordDelimitersEnable >= 0)
+        {
+          if (lpFrame->bWordDelimitersEnable)
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
+          else
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_WRAPDELIMITERSENABLE:
+    {
+      if (lpFrame->bWrapDelimitersEnable != (BOOL)dwData)
+      {
+        lpFrame->bWrapDelimitersEnable=(BOOL)dwData;
+
+        if (lpFrame->bWrapDelimitersEnable >= 0)
+        {
+          if (lpFrame->bWrapDelimitersEnable)
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
+          else
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_WRAPDELIMITERS:
+    {
+      if (xstrcmpW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData))
+      {
+        xstrcpynW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, WRAP_DELIMITERS_SIZE);
+
+        if (lpFrame->bWrapDelimitersEnable >= 0)
+        {
+          if (lpFrame->bWrapDelimitersEnable)
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
+          else
+            SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+        }
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_CLICKURL:
+    {
+      if (lpFrame->nClickURL != (int)dwData)
+      {
+        lpFrame->nClickURL=(int)dwData;
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_LOCKINHERIT:
+    {
+      if (lpFrame->dwLockInherit != (DWORD)dwData)
+      {
+        lpFrame->dwLockInherit=(DWORD)dwData;
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_COLORS:
+    {
+      AECOLORS *aec=(AECOLORS *)dwData;
+
+      if (xmemcmp(&lpFrame->aec, aec, sizeof(AECOLORS)))
+      {
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)aec);
+        lpFrame->aec.dwFlags=aec->dwFlags;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&lpFrame->aec);
+        lpFrame->aec.dwFlags=AECLR_ALL;
+        return TRUE;
+      }
+      break;
+    }
+    case FIS_BKIMAGE:
+    {
+      BKIMAGE *bki=(BKIMAGE *)dwData;
+
+      if (xstrcmpiW(lpFrame->wszBkImageFile, bki->wpFile) || lpFrame->nBkImageAlpha != bki->nAlpha)
+      {
+        SetBkImage(lpFrame, bki->wpFile, bki->nAlpha);
+        return TRUE;
+      }
+      break;
     }
   }
 

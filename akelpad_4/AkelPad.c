@@ -1678,2051 +1678,2400 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg >= WM_USER)
   {
-    if (uMsg == AKDN_MAIN_ONSTART)
+    switch (uMsg)
     {
-      NMAINSHOW nms;
-      RECT rcRect;
-      wchar_t *wpFileName;
-      int i=0;
-
-      bMainOnStart=TRUE;
-
-      //Allocate and read search string
-      if (moCur.nSearchStrings)
+      case AKDN_MAIN_ONSTART:
       {
-        RegReadSearch();
-      }
+        NMAINSHOW nms;
+        RECT rcRect;
+        wchar_t *wpFileName;
+        int i=0;
 
-      //Allocate and read recent files
-      RecentFilesRead(&hRecentFilesStack);
-      bMenuRecentFiles=TRUE;
+        bMainOnStart=TRUE;
 
-      //Call plugins on start
-      CallPluginsOnStart(&hPluginsStack);
+        //Allocate and read search string
+        if (moCur.nSearchStrings)
+        {
+          RegReadSearch();
+        }
 
-      //AkelPad support 3 window modes:
-      //SDI:
-      //  - Maximum edit windows in SDI mode is 4. At next step we will create first one, later when window will be split
-      //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
-      //  - SDI mode has one allocated FRAMEDATA.
-      //  - fdDefault structure keeps default settings and also all created edit windows.
-      //MDI:
-      //  - Maximum edit windows in MDI mode is limited by GDI buffer. During tests this number is about 800-1000 windows.
-      //  - MDI mode allocated FRAMEDATA count is equal to number of tabs (MDI client frame windows).
-      //  - Each tab is 1 MDI client frame window and 1 edit window (or 4 if window split).
-      //  - fdDefault structure keeps default settings, but not edit windows.
-      //PMDI:
-      //  - Allows you to open an unlimited number of files. In contrast to the MDI mode, opening a new tab does not lead
-      //  creation of new graphical objects, thus avoid GDI buffer overflow.
-      //  - Maximum edit windows in PMDI mode is 4. At next step we will create first one, later when window will be split
-      //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
-      //  - PMDI mode allocated FRAMEDATA count is equal to number of tabs.
-      //  - fdDefault structure keeps default settings and also all created real edit windows.
-      //  - If you want to send any message to non-active frame in PMDI mode, you should activate it first with AKD_FRAMEACTIVATE or use special message AEM_SENDMESSAGE.
+        //Allocate and read recent files
+        RecentFilesRead(&hRecentFilesStack);
+        bMenuRecentFiles=TRUE;
 
-      if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
-      {
-        fdDefault.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
-        fdDefault.lpEditProc=(AEEditProc)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
-        fdDefault.ei.hDocEdit=(AEHDOC)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
+        //Call plugins on start
+        CallPluginsOnStart(&hPluginsStack);
+
+        //AkelPad support 3 window modes:
+        //SDI:
+        //  - Maximum edit windows in SDI mode is 4. At next step we will create first one, later when window will be split
+        //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
+        //  - SDI mode has one allocated FRAMEDATA.
+        //  - fdDefault structure keeps default settings and also all created edit windows.
+        //MDI:
+        //  - Maximum edit windows in MDI mode is limited by GDI buffer. During tests this number is about 800-1000 windows.
+        //  - MDI mode allocated FRAMEDATA count is equal to number of tabs (MDI client frame windows).
+        //  - Each tab is 1 MDI client frame window and 1 edit window (or 4 if window split).
+        //  - fdDefault structure keeps default settings, but not edit windows.
+        //PMDI:
+        //  - Allows you to open an unlimited number of files. In contrast to the MDI mode, opening a new tab does not lead
+        //  creation of new graphical objects, thus avoid GDI buffer overflow.
+        //  - Maximum edit windows in PMDI mode is 4. At next step we will create first one, later when window will be split
+        //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
+        //  - PMDI mode allocated FRAMEDATA count is equal to number of tabs.
+        //  - fdDefault structure keeps default settings and also all created real edit windows.
+        //  - If you want to send any message to non-active frame in PMDI mode, you should activate it first with AKD_FRAMEACTIVATE or use special message AEM_SENDMESSAGE.
+
+        if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+        {
+          fdDefault.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdDefault.lpEditProc=(AEEditProc)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
+          fdDefault.ei.hDocEdit=(AEHDOC)SendMessage(fdDefault.ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
+
+          if (nMDI == WMD_SDI)
+          {
+            if (lpFrameCurrent=CreateFrameData(hMainWnd, &fdDefault))
+            {
+              lpFrameCurrent->ei.hWndEdit=fdDefault.ei.hWndEdit;
+              lpFrameCurrent->lpEditProc=fdDefault.lpEditProc;
+              lpFrameCurrent->ei.hDocEdit=fdDefault.ei.hDocEdit;
+              RestoreFrameData(lpFrameCurrent, 0);
+              SetEditWindowSettings(lpFrameCurrent);
+              SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
+            }
+          }
+          else if (nMDI == WMD_PMDI)
+          {
+            CreateFrameWindow(NULL);
+          }
+        }
+        else if (nMDI == WMD_MDI)
+        {
+          //Create MDI client frame window. In WM_CREATE of the frame procedure edit window will be created.
+          if (moCur.dwMainStyle == WS_MAXIMIZE && !(mc.dwStyle & WS_CHILD))
+          {
+            rcRect.left=0;
+            rcRect.top=0;
+            rcRect.right=GetSystemMetrics(SM_CXMAXIMIZED);
+            rcRect.bottom=GetSystemMetrics(SM_CYMAXIMIZED);
+          }
+          else GetClientRect(hMdiClient, &rcRect);
+
+          rcRect.right-=(rcRect.right * 14 / 100);
+          rcRect.bottom-=(rcRect.bottom * 45 / 100);
+          CreateFrameWindow(&rcRect);
+        }
+
+        //Apply settings
+        SetFocus(lpFrameCurrent->ei.hWndEdit);
+
+        DoViewOnTop(moCur.bOnTop, TRUE);
+        DoViewShowStatusBar(moCur.bStatusBar, TRUE);
+        DoSettingsSaveTime(moCur.bSaveTime);
+        DoSettingsKeepSpace(moCur.bKeepSpace);
+        DoSettingsWatchFile(moCur.bWatchFile);
+        DoSettingsSingleOpenFile(moCur.bSingleOpenFile);
+        if (!SearchPathWide(NULL, L"charmap.exe", NULL, BUFFER_SIZE, wbuf, &wpFileName))
+          EnableMenuItem(hMainMenu, IDM_EDIT_INSERTCHAR, MF_GRAYED);
 
         if (nMDI == WMD_SDI)
-        {
-          if (lpFrameCurrent=CreateFrameData(hMainWnd, &fdDefault))
-          {
-            lpFrameCurrent->ei.hWndEdit=fdDefault.ei.hWndEdit;
-            lpFrameCurrent->lpEditProc=fdDefault.lpEditProc;
-            lpFrameCurrent->ei.hDocEdit=fdDefault.ei.hDocEdit;
-            RestoreFrameData(lpFrameCurrent, 0);
-            SetEditWindowSettings(lpFrameCurrent);
-            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
-          }
-        }
+          i=IDM_OPTIONS_SDI;
+        else if (nMDI == WMD_MDI)
+          i=IDM_OPTIONS_MDI;
         else if (nMDI == WMD_PMDI)
+          i=IDM_OPTIONS_PMDI;
+        CheckMenuRadioItem(hMainMenu, IDM_OPTIONS_SDI, IDM_OPTIONS_PMDI, i, MF_BYCOMMAND);
+
+        if (nMDI)
         {
-          CreateFrameWindow(NULL);
+          DoSettingsSingleOpenProgram(moCur.dwSingleOpenProgram);
+          DoWindowTabView(moCur.dwTabOptionsMDI, TRUE);
+          DoWindowTabType(moCur.dwTabOptionsMDI, TRUE);
+          if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
+          DoWindowTabSwitch(moCur.dwTabOptionsMDI, TRUE);
         }
-      }
-      else if (nMDI == WMD_MDI)
-      {
-        //Create MDI client frame window. In WM_CREATE of the frame procedure edit window will be created.
-        if (moCur.dwMainStyle == WS_MAXIMIZE && !(mc.dwStyle & WS_CHILD))
+
+        //PreShow
+        nms.dwStyle=&moCur.dwMainStyle;
+        nms.dwShow=&dwCmdShow;
+        nms.bProcess=TRUE;
+        SendMessage(hMainWnd, AKDN_MAIN_ONSTART_PRESHOW, 0, (LPARAM)&nms);
+        if (nms.bProcess)
         {
-          rcRect.left=0;
-          rcRect.top=0;
-          rcRect.right=GetSystemMetrics(SM_CXMAXIMIZED);
-          rcRect.bottom=GetSystemMetrics(SM_CYMAXIMIZED);
-        }
-        else GetClientRect(hMdiClient, &rcRect);
-
-        rcRect.right-=(rcRect.right * 14 / 100);
-        rcRect.bottom-=(rcRect.bottom * 45 / 100);
-        CreateFrameWindow(&rcRect);
-      }
-
-      //Apply settings
-      SetFocus(lpFrameCurrent->ei.hWndEdit);
-
-      DoViewOnTop(moCur.bOnTop, TRUE);
-      DoViewShowStatusBar(moCur.bStatusBar, TRUE);
-      DoSettingsSaveTime(moCur.bSaveTime);
-      DoSettingsKeepSpace(moCur.bKeepSpace);
-      DoSettingsWatchFile(moCur.bWatchFile);
-      DoSettingsSingleOpenFile(moCur.bSingleOpenFile);
-      if (!SearchPathWide(NULL, L"charmap.exe", NULL, BUFFER_SIZE, wbuf, &wpFileName))
-        EnableMenuItem(hMainMenu, IDM_EDIT_INSERTCHAR, MF_GRAYED);
-
-      if (nMDI == WMD_SDI)
-        i=IDM_OPTIONS_SDI;
-      else if (nMDI == WMD_MDI)
-        i=IDM_OPTIONS_MDI;
-      else if (nMDI == WMD_PMDI)
-        i=IDM_OPTIONS_PMDI;
-      CheckMenuRadioItem(hMainMenu, IDM_OPTIONS_SDI, IDM_OPTIONS_PMDI, i, MF_BYCOMMAND);
-
-      if (nMDI)
-      {
-        DoSettingsSingleOpenProgram(moCur.dwSingleOpenProgram);
-        DoWindowTabView(moCur.dwTabOptionsMDI, TRUE);
-        DoWindowTabType(moCur.dwTabOptionsMDI, TRUE);
-        if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        DoWindowTabSwitch(moCur.dwTabOptionsMDI, TRUE);
-      }
-
-      //PreShow
-      nms.dwStyle=&moCur.dwMainStyle;
-      nms.dwShow=&dwCmdShow;
-      nms.bProcess=TRUE;
-      SendMessage(hMainWnd, AKDN_MAIN_ONSTART_PRESHOW, 0, (LPARAM)&nms);
-      if (nms.bProcess)
-      {
-        if (!(mc.dwStyle & WS_VISIBLE))
-        {
-          if (dwCmdShow == SW_SHOWNORMAL || dwCmdShow == SW_SHOW || dwCmdShow == SW_SHOWMAXIMIZED)
+          if (!(mc.dwStyle & WS_VISIBLE))
           {
-            if (moCur.dwMainStyle == WS_MAXIMIZE || dwCmdShow == SW_SHOWMAXIMIZED)
-              ShowWindow(hMainWnd, SW_SHOWMAXIMIZED);
-            else
-              ShowWindow(hMainWnd, SW_SHOW);
-          }
-          else
-          {
-            //Shortcut
-            if (moCur.dwMainStyle == WS_MAXIMIZE)
+            if (dwCmdShow == SW_SHOWNORMAL || dwCmdShow == SW_SHOW || dwCmdShow == SW_SHOWMAXIMIZED)
             {
-              //Maximize window without showing it
-              WINDOWPLACEMENT wp;
-              UINT_PTR dwStyle;
-
-              wp.length=sizeof(WINDOWPLACEMENT);
-              GetWindowPlacement(hMainWnd, &wp);
-              dwStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
-              SetWindowLongPtrWide(hMainWnd, GWL_STYLE, dwStyle|WS_MAXIMIZE);
-              wp.showCmd=WS_MAXIMIZE;
-              SetWindowPlacement(hMainWnd, &wp);
-              SetWindowPos(hMainWnd, NULL, 0, 0, GetSystemMetrics(SM_CXMAXIMIZED), GetSystemMetrics(SM_CYMAXIMIZED), SWP_NOZORDER|SWP_NOACTIVATE);
+              if (moCur.dwMainStyle == WS_MAXIMIZE || dwCmdShow == SW_SHOWMAXIMIZED)
+                ShowWindow(hMainWnd, SW_SHOWMAXIMIZED);
+              else
+                ShowWindow(hMainWnd, SW_SHOW);
             }
-            ShowWindow(hMainWnd, dwCmdShow);
+            else
+            {
+              //Shortcut
+              if (moCur.dwMainStyle == WS_MAXIMIZE)
+              {
+                //Maximize window without showing it
+                WINDOWPLACEMENT wp;
+                UINT_PTR dwStyle;
+
+                wp.length=sizeof(WINDOWPLACEMENT);
+                GetWindowPlacement(hMainWnd, &wp);
+                dwStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
+                SetWindowLongPtrWide(hMainWnd, GWL_STYLE, dwStyle|WS_MAXIMIZE);
+                wp.showCmd=WS_MAXIMIZE;
+                SetWindowPlacement(hMainWnd, &wp);
+                SetWindowPos(hMainWnd, NULL, 0, 0, GetSystemMetrics(SM_CXMAXIMIZED), GetSystemMetrics(SM_CYMAXIMIZED), SWP_NOZORDER|SWP_NOACTIVATE);
+              }
+              ShowWindow(hMainWnd, dwCmdShow);
+            }
           }
+          if (mc.dwStyle & WS_CHILD)
+            UpdateSize();
+
+          //Update main window
+          UpdateWindow(hMainWnd);
         }
-        if (mc.dwStyle & WS_CHILD)
-          UpdateSize();
+        SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
 
-        //Update main window
-        UpdateWindow(hMainWnd);
-      }
-      SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
-
-      //Parse commmand line on show
-      if (wpCmdLine)
-      {
-        int nResult=ParseCmdLine(&wpCmdLine, PCL_ONSHOW);
-
-        wpCmdLine=NULL;
-        if (nResult == PCLE_QUIT)
-          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
-      }
-      SetCurrentDirectoryWide(wszExeDir);
-
-      #ifndef AKELPAD_DLLBUILD
-        if (hMutex)
+        //Parse commmand line on show
+        if (wpCmdLine)
         {
-          SetEvent(hMutex);
-          CloseHandle(hMutex);
-          hMutex=0;
+          int nResult=ParseCmdLine(&wpCmdLine, PCL_ONSHOW);
+
+          wpCmdLine=NULL;
+          if (nResult == PCLE_QUIT)
+            PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
-      #endif
-
-      SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-      bMainOnStart=FALSE;
-      bMainCheckIdle=TRUE;
-      return 0;
-    }
-    else if (uMsg == AKDN_FRAME_ACTIVATE)
-    {
-      if (!bEditOnFinish)
-      {
-        if (hDlgModeless && nModelessType != MLT_CUSTOM)
-          SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
-
-        if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingWriteTime)
-          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
-      }
-      return 0;
-    }
-
-    //Command line
-    if (uMsg == AKD_GETCMDLINEOPTIONS)
-    {
-      return dwCmdLineOptions;
-    }
-    if (uMsg == AKD_SETCMDLINEOPTIONS)
-    {
-      dwCmdLineOptions=(DWORD)wParam;
-      return 0;
-    }
-    if (uMsg == AKD_PARSECMDLINEW)
-    {
-      PARSECMDLINESENDW *pcls=(PARSECMDLINESENDW *)lParam;
-      int nResult;
-
-      if (pcls->pWorkDir && *pcls->pWorkDir)
-        SetCurrentDirectoryWide(pcls->pWorkDir);
-      nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONMESSAGE);
-      if (pcls->pWorkDir && *pcls->pWorkDir)
         SetCurrentDirectoryWide(wszExeDir);
-      if (!bCmdLineQuitAsEnd && nResult == PCLE_QUIT)
-        PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
-      bCmdLineQuitAsEnd=FALSE;
 
-      return nResult;
-    }
-    if (uMsg == AKD_PARSEMETHODPARAMETERS)
-    {
-      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
-      const wchar_t **wppText=(const wchar_t **)lParam;
-
-      return ParseMethodParameters(hParamStack, *wppText, wppText);
-    }
-    if (uMsg == AKD_EXPANDMETHODPARAMETERS)
-    {
-      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
-      EXPPARAM *ep=(EXPPARAM *)lParam;
-
-      ExpandMethodParameters(hParamStack, ep);
-      return 0;
-    }
-    if (uMsg == AKD_GETMETHODPARAMETER)
-    {
-      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
-
-      return (INT_PTR)GetMethodParameter(hParamStack, lParam);
-    }
-    if (uMsg == AKD_STRUCTMETHODPARAMETERS)
-    {
-      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
-      unsigned char *lpStructure=(unsigned char *)lParam;
-
-      return StructMethodParameters(hParamStack, lpStructure);
-    }
-    if (uMsg == AKD_FREEMETHODPARAMETERS)
-    {
-      STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
-
-      FreeMethodParameters(hParamStack);
-      return 0;
-    }
-    if (uMsg == AKD_IFEXPRESSION)
-    {
-      STACKEXTPARAM hParamStack={0};
-      STACKEXTPARAM *lpParamStack=&hParamStack;
-      IFEXPRESSION *ie=(IFEXPRESSION *)lParam;
-      const wchar_t *wpExpression=(const wchar_t *)wParam;
-      const wchar_t *wpParamStr;
-      const wchar_t *wpCount=wpExpression;
-      const wchar_t *wpNext=NULL;
-      const wchar_t *wpStop;
-      DWORD dwFlags=0;
-      int nError=0;
-      INT_PTR nResult=0;
-
-      if (ie) dwFlags=ie->dwFlags;
-
-      if (!(dwFlags & IEF_IF))
-      {
-        if ((dwFlags & IEF_STACKEXTPARAM) && !(dwFlags & IEF_PARSEONLY))
-          nError=IEE_UNKNOWNMETHOD;
-        else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpNext))
-        {
-          if (!xstrcmpiW(wbuf, L"If"))
+        #ifndef AKELPAD_DLLBUILD
+          if (hMutex)
           {
-            dwFlags|=IEF_IF;
-            wpCount=wpNext;
+            SetEvent(hMutex);
+            CloseHandle(hMutex);
+            hMutex=0;
+          }
+        #endif
+
+        SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
+        bMainOnStart=FALSE;
+        bMainCheckIdle=TRUE;
+        return 0;
+      }
+      case AKDN_FRAME_ACTIVATE:
+      {
+        if (!bEditOnFinish)
+        {
+          if (hDlgModeless && nModelessType != MLT_CUSTOM)
+            SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
+
+          if (IsAllowWatchFile(lpFrameCurrent) && !bCheckingWriteTime)
+            PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
+        }
+        return 0;
+      }
+
+      //Command line
+      case AKD_GETCMDLINEOPTIONS:
+      {
+        return dwCmdLineOptions;
+      }
+      case AKD_SETCMDLINEOPTIONS:
+      {
+        dwCmdLineOptions=(DWORD)wParam;
+        return 0;
+      }
+      case AKD_PARSECMDLINEW:
+      {
+        PARSECMDLINESENDW *pcls=(PARSECMDLINESENDW *)lParam;
+        int nResult;
+
+        if (pcls->pWorkDir && *pcls->pWorkDir)
+          SetCurrentDirectoryWide(pcls->pWorkDir);
+        nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONMESSAGE);
+        if (pcls->pWorkDir && *pcls->pWorkDir)
+          SetCurrentDirectoryWide(wszExeDir);
+        if (!bCmdLineQuitAsEnd && nResult == PCLE_QUIT)
+          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+        bCmdLineQuitAsEnd=FALSE;
+
+        return nResult;
+      }
+      case AKD_PARSEMETHODPARAMETERS:
+      {
+        STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+        const wchar_t **wppText=(const wchar_t **)lParam;
+
+        return ParseMethodParameters(hParamStack, *wppText, wppText);
+      }
+      case AKD_EXPANDMETHODPARAMETERS:
+      {
+        STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+        EXPPARAM *ep=(EXPPARAM *)lParam;
+
+        ExpandMethodParameters(hParamStack, ep);
+        return 0;
+      }
+      case AKD_GETMETHODPARAMETER:
+      {
+        STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+
+        return (INT_PTR)GetMethodParameter(hParamStack, lParam);
+      }
+      case AKD_STRUCTMETHODPARAMETERS:
+      {
+        STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+        unsigned char *lpStructure=(unsigned char *)lParam;
+
+        return StructMethodParameters(hParamStack, lpStructure);
+      }
+      case AKD_FREEMETHODPARAMETERS:
+      {
+        STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
+
+        FreeMethodParameters(hParamStack);
+        return 0;
+      }
+      case AKD_IFEXPRESSION:
+      {
+        STACKEXTPARAM hParamStack={0};
+        STACKEXTPARAM *lpParamStack=&hParamStack;
+        IFEXPRESSION *ie=(IFEXPRESSION *)lParam;
+        const wchar_t *wpExpression=(const wchar_t *)wParam;
+        const wchar_t *wpParamStr;
+        const wchar_t *wpCount=wpExpression;
+        const wchar_t *wpNext=NULL;
+        const wchar_t *wpStop;
+        DWORD dwFlags=0;
+        int nError=0;
+        INT_PTR nResult=0;
+
+        if (ie) dwFlags=ie->dwFlags;
+
+        if (!(dwFlags & IEF_IF))
+        {
+          if ((dwFlags & IEF_STACKEXTPARAM) && !(dwFlags & IEF_PARSEONLY))
+            nError=IEE_UNKNOWNMETHOD;
+          else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpNext))
+          {
+            if (!xstrcmpiW(wbuf, L"If"))
+            {
+              dwFlags|=IEF_IF;
+              wpCount=wpNext;
+            }
+            else nError=IEE_UNKNOWNMETHOD;
           }
           else nError=IEE_UNKNOWNMETHOD;
         }
-        else nError=IEE_UNKNOWNMETHOD;
-      }
-      if (dwFlags & IEF_IF)
-      {
-        if (dwFlags & IEF_STACKEXTPARAM)
-          lpParamStack=ie->sep;
-        if (!(dwFlags & IEF_STACKEXTPARAM) || (dwFlags & IEF_PARSEONLY))
-          ParseMethodParameters(lpParamStack, wpCount, &wpNext);
-
-        if (!(dwFlags & IEF_PARSEONLY) && lpParamStack->first)
+        if (dwFlags & IEF_IF)
         {
-          if (dwFlags & IEF_IF)
+          if (dwFlags & IEF_STACKEXTPARAM)
+            lpParamStack=ie->sep;
+          if (!(dwFlags & IEF_STACKEXTPARAM) || (dwFlags & IEF_PARSEONLY))
+            ParseMethodParameters(lpParamStack, wpCount, &wpNext);
+
+          if (!(dwFlags & IEF_PARSEONLY) && lpParamStack->first)
           {
-            if (lpParamStack->first->wpExpanded)
-              wpParamStr=lpParamStack->first->wpExpanded;
-            else
-              wpParamStr=lpParamStack->first->wpString;
-            nResult=IfExpression(wpParamStr, &wpStop, &nError);
-            if (!(dwFlags & IEF_STACKEXTPARAM))
-              wpCount=wpExpression + (wpStop - wpParamStr) + (wpCount - wpExpression);
-            else
-              wpCount=wpStop;
-          }
-          if (!(dwFlags & IEF_STACKEXTPARAM))
-            FreeMethodParameters(lpParamStack);
-        }
-      }
-      if (ie)
-      {
-        ie->dwFlags|=dwFlags;
-        ie->nError=nError;
-        if (!nError && wpNext)
-          ie->wpEnd=wpNext;
-        else
-          ie->wpEnd=wpCount;
-      }
-      return nResult;
-    }
-
-    //Text retrieval and modification
-    if (uMsg == AKD_DETECTSELCASE)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      return DetectSelCase(hWnd);
-    }
-    if (uMsg == AKD_CONVERTCASE)
-    {
-      CONVERTCASE *cc=(CONVERTCASE *)lParam;
-
-      ConvertCase(cc->wszText, cc->nTextLen, cc->nCase);
-      return 0;
-    }
-    if (uMsg == AKD_DETECTANSITEXT)
-    {
-      DETECTANSITEXT *dat=(DETECTANSITEXT *)lParam;
-
-      return AutodetectMultibyte(dat->dwLangID, (unsigned char *)dat->pText, dat->nTextLen, dat->nMinChars?dat->nMinChars:DETECTCHARS_REQUIRED, &dat->nCodePage);
-    }
-    if (uMsg == AKD_DETECTUNITEXT)
-    {
-      DETECTUNITEXT *dut=(DETECTUNITEXT *)lParam;
-
-      return AutodetectWideChar(dut->dwLangID, dut->wpText, dut->nTextLen, dut->nMinChars?dut->nMinChars:DETECTCHARS_REQUIRED, &dut->nCodePageFrom, &dut->nCodePageTo);
-    }
-    if (uMsg == AKD_CONVERTANSITEXT)
-    {
-      CONVERTANSITEXT *cat=(CONVERTANSITEXT *)lParam;
-
-      return ConvertAnsiString(cat->pInput, cat->nInputLen, cat->nCodePageFrom, cat->nCodePageTo, &cat->szOutput, &cat->nOutputLen);
-    }
-    if (uMsg == AKD_CONVERTUNITEXT)
-    {
-      CONVERTUNITEXT *cut=(CONVERTUNITEXT *)lParam;
-
-      return ConvertWideString(cut->wpInput, cut->nInputLen, cut->nCodePageFrom, cut->nCodePageTo, &cut->wszOutput, &cut->nOutputLen);
-    }
-    if (uMsg == AKD_DETECTFILE ||
-        uMsg == AKD_DETECTFILEA ||
-        uMsg == AKD_DETECTFILEW)
-    {
-      DETECTFILEW *dc=(DETECTFILEW *)lParam;
-      wchar_t *wpFile;
-      int nResult;
-
-      if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
-        wpFile=AllocWide((char *)dc->pFile);
-      else
-        wpFile=(wchar_t *)dc->pFile;
-
-      nResult=AutodetectCodePage(wpFile, NULL, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
-
-      if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
-        FreeWide(wpFile);
-      return nResult;
-    }
-    if (uMsg == AKD_READFILECONTENT)
-    {
-      FILECONTENT *fc=(FILECONTENT *)lParam;
-
-      return ReadFileContent(fc->hFile, fc->dwMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
-    }
-    if (uMsg == AKD_WRITEFILECONTENT)
-    {
-      FILECONTENT *fc=(FILECONTENT *)lParam;
-
-      return WriteFileContent(fc->hFile, fc->wpContent, fc->dwMax, fc->nCodePage, fc->bBOM);
-    }
-    if (uMsg == AKD_OPENDOCUMENT ||
-        uMsg == AKD_OPENDOCUMENTA ||
-        uMsg == AKD_OPENDOCUMENTW)
-    {
-      OPENDOCUMENTW *od=(OPENDOCUMENTW *)lParam;
-      wchar_t *wpFile=API_AllocWide(MAX_PATH);
-      wchar_t *wpWorkDir=API_AllocWide(MAX_PATH);
-      int nResult=0;
-
-      if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged(0))
-      {
-        if (uMsg == AKD_OPENDOCUMENTA || (bOldWindows && uMsg == AKD_OPENDOCUMENT))
-        {
-          xprintfW(wpFile, L"%S", (char *)od->pFile);
-          xprintfW(wpWorkDir, L"%S", (char *)od->pWorkDir);
-        }
-        else
-        {
-          xprintfW(wpFile, L"%s", (wchar_t *)od->pFile);
-          xprintfW(wpWorkDir, L"%s", (wchar_t *)od->pWorkDir);
-        }
-
-        if (*wpWorkDir) SetCurrentDirectoryWide(wpWorkDir);
-        nResult=OpenDocument((HWND)wParam, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
-        if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
-      }
-      API_FreeWide(wpFile);
-      API_FreeWide(wpWorkDir);
-      return nResult;
-    }
-    if (uMsg == AKD_SAVEDOCUMENT ||
-        uMsg == AKD_SAVEDOCUMENTA ||
-        uMsg == AKD_SAVEDOCUMENTW)
-    {
-      SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
-      wchar_t *wpFile=API_AllocWide(MAX_PATH);
-      int nResult;
-
-      if (uMsg == AKD_SAVEDOCUMENTA || (bOldWindows && uMsg == AKD_SAVEDOCUMENT))
-        xprintfW(wpFile, L"%S", (char *)sd->pFile);
-      else
-        xprintfW(wpFile, L"%s", (wchar_t *)sd->pFile);
-      nResult=SaveDocument((HWND)wParam, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
-
-      API_FreeWide(wpFile);
-      return nResult;
-    }
-    if (uMsg == AKD_GETTEXTLENGTH)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      return GetTextLength(hWnd);
-    }
-    if (uMsg == AKD_GETTEXTRANGE ||
-        uMsg == AKD_GETTEXTRANGEA ||
-        uMsg == AKD_GETTEXTRANGEW)
-    {
-      GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (uMsg == AKD_GETTEXTRANGEA || (bOldWindows && uMsg == AKD_GETTEXTRANGE))
-        return GetRangeTextA(hWnd, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
-      else
-        return GetRangeTextW(hWnd, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
-    }
-    if (uMsg == AKD_GETSELTEXTW)
-    {
-      AECHARRANGE cr;
-      wchar_t *wpText=NULL;
-      INT_PTR nTextLen;
-      BOOL bColumnSel=FALSE;
-      HWND hWnd=(HWND)wParam;
-      INT_PTR *nResultLen=(INT_PTR *)lParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      GetSel(hWnd, &cr, &bColumnSel, NULL);
-      nTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
-      if (nResultLen) *nResultLen=nTextLen;
-      return (LRESULT)wpText;
-    }
-    if (uMsg == AKD_FREETEXT)
-    {
-      return FreeText((LPVOID)lParam);
-    }
-    if (uMsg == AKD_REPLACESEL ||
-        uMsg == AKD_REPLACESELA ||
-        uMsg == AKD_REPLACESELW)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
-        ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
-      else
-        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
-      return 0;
-    }
-    if (uMsg == AKD_PASTE)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (lParam & PASTE_CASE)
-        return PasteCase(hWnd, (DWORD)(lParam & PASTE_ANSI));
-      if (lParam & PASTE_SINGLELINE)
-        return PasteInEditAsRichEdit(hWnd, 0);
-      return DoEditPaste(hWnd, (DWORD)lParam);
-    }
-    if (uMsg == AKD_COPY)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      DoEditCopy(hWnd);
-      return 0;
-    }
-    if (uMsg == AKD_TEXTFIND ||
-        uMsg == AKD_TEXTFINDA ||
-        uMsg == AKD_TEXTFINDW)
-    {
-      TEXTFINDW *tf=(TEXTFINDW *)lParam;
-      FRAMEDATA *lpFrame;
-      INT_PTR nResult=-1;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-      {
-        if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
-        {
-          wchar_t *wpFindIt;
-          int nFindItLen;
-
-          nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
-          if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
-          {
-            MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
-
-            nResult=TextFindW(lpFrame, tf->dwFlags, wpFindIt, tf->nFindItLen);
-            GlobalFree((HGLOBAL)wpFindIt);
-          }
-        }
-        else nResult=TextFindW(lpFrame, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
-
-        if (nResult == -1)
-        {
-          if (lpFrame->nCompileErrorOffset &&
-              ((tf->dwFlags & FRF_REGEXP) ||
-               (tf->dwFlags & FRF_ESCAPESEQ)))
-          {
-            nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
-          }
-        }
-      }
-      return nResult;
-    }
-    if (uMsg == AKD_TEXTREPLACE ||
-        uMsg == AKD_TEXTREPLACEA ||
-        uMsg == AKD_TEXTREPLACEW)
-    {
-      TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
-      FRAMEDATA *lpFrame;
-      INT_PTR nResult=-1;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-      {
-        if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
-        {
-          wchar_t *wpFindIt;
-          wchar_t *wpReplaceWith;
-          int nFindItLen;
-          int nReplaceWithLen;
-
-          nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
-          if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
-          {
-            MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, wpFindIt, nFindItLen);
-
-            nReplaceWithLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, NULL, 0);
-            if (wpReplaceWith=(wchar_t *)GlobalAlloc(GPTR, nReplaceWithLen * sizeof(wchar_t)))
+            if (dwFlags & IEF_IF)
             {
-              MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
-
-              nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
-              GlobalFree((HGLOBAL)wpReplaceWith);
+              if (lpParamStack->first->wpExpanded)
+                wpParamStr=lpParamStack->first->wpExpanded;
+              else
+                wpParamStr=lpParamStack->first->wpString;
+              nResult=IfExpression(wpParamStr, &wpStop, &nError);
+              if (!(dwFlags & IEF_STACKEXTPARAM))
+                wpCount=wpExpression + (wpStop - wpParamStr) + (wpCount - wpExpression);
+              else
+                wpCount=wpStop;
             }
-            GlobalFree((HGLOBAL)wpFindIt);
+            if (!(dwFlags & IEF_STACKEXTPARAM))
+              FreeMethodParameters(lpParamStack);
           }
         }
-        else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
-
-        if (nResult == -1)
+        if (ie)
         {
-          if (lpFrame->nCompileErrorOffset &&
-              ((tr->dwFlags & FRF_REGEXP) ||
-               (tr->dwFlags & FRF_ESCAPESEQ)))
+          ie->dwFlags|=dwFlags;
+          ie->nError=nError;
+          if (!nError && wpNext)
+            ie->wpEnd=wpNext;
+          else
+            ie->wpEnd=wpCount;
+        }
+        return nResult;
+      }
+
+      //Text retrieval and modification
+      case AKD_DETECTSELCASE:
+      {
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        return DetectSelCase(hWnd);
+      }
+      case AKD_CONVERTCASE:
+      {
+        CONVERTCASE *cc=(CONVERTCASE *)lParam;
+
+        ConvertCase(cc->wszText, cc->nTextLen, cc->nCase);
+        return 0;
+      }
+      case AKD_DETECTANSITEXT:
+      {
+        DETECTANSITEXT *dat=(DETECTANSITEXT *)lParam;
+
+        return AutodetectMultibyte(dat->dwLangID, (unsigned char *)dat->pText, dat->nTextLen, dat->nMinChars?dat->nMinChars:DETECTCHARS_REQUIRED, &dat->nCodePage);
+      }
+      case AKD_DETECTUNITEXT:
+      {
+        DETECTUNITEXT *dut=(DETECTUNITEXT *)lParam;
+
+        return AutodetectWideChar(dut->dwLangID, dut->wpText, dut->nTextLen, dut->nMinChars?dut->nMinChars:DETECTCHARS_REQUIRED, &dut->nCodePageFrom, &dut->nCodePageTo);
+      }
+      case AKD_CONVERTANSITEXT:
+      {
+        CONVERTANSITEXT *cat=(CONVERTANSITEXT *)lParam;
+
+        return ConvertAnsiString(cat->pInput, cat->nInputLen, cat->nCodePageFrom, cat->nCodePageTo, &cat->szOutput, &cat->nOutputLen);
+      }
+      case AKD_CONVERTUNITEXT:
+      {
+        CONVERTUNITEXT *cut=(CONVERTUNITEXT *)lParam;
+
+        return ConvertWideString(cut->wpInput, cut->nInputLen, cut->nCodePageFrom, cut->nCodePageTo, &cut->wszOutput, &cut->nOutputLen);
+      }
+      case AKD_DETECTFILE:
+      case AKD_DETECTFILEA:
+      case AKD_DETECTFILEW:
+      {
+        DETECTFILEW *dc=(DETECTFILEW *)lParam;
+        wchar_t *wpFile;
+        int nResult;
+
+        if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
+          wpFile=AllocWide((char *)dc->pFile);
+        else
+          wpFile=(wchar_t *)dc->pFile;
+
+        nResult=AutodetectCodePage(wpFile, NULL, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
+
+        if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
+          FreeWide(wpFile);
+        return nResult;
+      }
+      case AKD_READFILECONTENT:
+      {
+        FILECONTENT *fc=(FILECONTENT *)lParam;
+
+        return ReadFileContent(fc->hFile, fc->dwMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
+      }
+      case AKD_WRITEFILECONTENT:
+      {
+        FILECONTENT *fc=(FILECONTENT *)lParam;
+
+        return WriteFileContent(fc->hFile, fc->wpContent, fc->dwMax, fc->nCodePage, fc->bBOM);
+      }
+      case AKD_OPENDOCUMENT:
+      case AKD_OPENDOCUMENTA:
+      case AKD_OPENDOCUMENTW:
+      {
+        OPENDOCUMENTW *od=(OPENDOCUMENTW *)lParam;
+        wchar_t *wpFile=API_AllocWide(MAX_PATH);
+        wchar_t *wpWorkDir=API_AllocWide(MAX_PATH);
+        int nResult=0;
+
+        if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged(0))
+        {
+          if (uMsg == AKD_OPENDOCUMENTA || (bOldWindows && uMsg == AKD_OPENDOCUMENT))
           {
-            nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
+            xprintfW(wpFile, L"%S", (char *)od->pFile);
+            xprintfW(wpWorkDir, L"%S", (char *)od->pWorkDir);
           }
-        }
-      }
-      return nResult;
-    }
-    if (uMsg == AKD_GOTO ||
-        uMsg == AKD_GOTOA ||
-        uMsg == AKD_GOTOW)
-    {
-      wchar_t *wpString=API_AllocWide(MAX_PATH);
-      BOOL bResult;
-
-      if (uMsg == AKD_GOTOA || (bOldWindows && uMsg == AKD_GOTO))
-        xprintfW(wpString, L"%S", (char *)lParam);
-      else
-        xprintfW(wpString, L"%s", (wchar_t *)lParam);
-      bResult=GoTo((DWORD)wParam, wpString);
-
-      API_FreeWide(wpString);
-      return bResult;
-    }
-    if (uMsg == AKD_RECODESEL)
-    {
-      TEXTRECODE *tr=(TEXTRECODE *)lParam;
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        RecodeTextW(lpFrame, NULL, tr->dwFlags, &tr->nCodePageFrom, &tr->nCodePageTo);
-      return 0;
-    }
-
-    //Print
-    if (uMsg == AKD_GETPRINTINFO)
-    {
-      PRINTINFO *info=(PRINTINFO *)wParam;
-
-      xmemcpy(info, &prninfo, sizeof(PRINTINFO));
-      if (lParam)
-        return GetPrinter(hMainWnd, info, TRUE);
-      return 0;
-    }
-    if (uMsg == AKD_SETPRINTINFO)
-    {
-      PRINTINFO *info=(PRINTINFO *)wParam;
-
-      xmemcpy(&prninfo, info, sizeof(PRINTINFO));
-      return 0;
-    }
-
-    //Options
-    if (uMsg == AKD_PROGRAMVERSION)
-    {
-      return dwExeVersion;
-    }
-    if (uMsg == AKD_PROGRAMARCHITECTURE)
-    {
-      return AKELDLL;
-    }
-    if (uMsg == AKD_GETMAININFO)
-    {
-      if (wParam < MI_ONSTART)
-      {
-        if (wParam == MI_AKELDIRA)
-          return xstrcpynA((void *)lParam, szExeDir, MAX_PATH);
-        if (wParam == MI_AKELDIRW)
-          return xstrcpynW((void *)lParam, wszExeDir, MAX_PATH);
-        if (wParam == MI_INSTANCEEXE)
-          return (LRESULT)hInstance;
-        if (wParam == MI_PLUGINSSTACK)
-        {
-          if (lParam) xmemcpy((void *)lParam, &hPluginsStack, sizeof(HSTACK));
-          return sizeof(HSTACK);
-        }
-        if (wParam == MI_SAVESETTINGS)
-          return (LRESULT)moCur.nSaveSettings;
-        if (wParam == MI_WNDPROGRESS)
-          return (LRESULT)hProgress;
-        if (wParam == MI_WNDSTATUS)
-          return (LRESULT)hStatus;
-        if (wParam == MI_WNDMDICLIENT)
-          return (LRESULT)hMdiClient;
-        if (wParam == MI_WNDTAB)
-          return (LRESULT)hTab;
-        if (wParam == MI_MENUMAIN)
-          return (LRESULT)hMainMenu;
-        if (wParam == MI_MENURECENTFILES)
-          return (LRESULT)hMenuRecentFiles;
-        if (wParam == MI_MENULANGUAGE)
-          return (LRESULT)hMenuLanguage;
-        if (wParam == MI_MENUPOPUP)
-          return (LRESULT)hPopupMenu;
-        if (wParam == MI_ICONMAIN)
-          return (LRESULT)hMainIcon;
-        if (wParam == MI_ACCELGLOBAL)
-          return (LRESULT)hGlobalAccel;
-        if (wParam == MI_ACCELMAIN)
-          return (LRESULT)hMainAccel;
-        if (wParam == MI_OLDWINDOWS)
-          return (LRESULT)bOldWindows;
-        if (wParam == MI_OLDRICHEDIT)
-          return (LRESULT)bOldRichEdit;
-        if (wParam == MI_VERCOMCTL32)
-          return (LRESULT)dwVerComctl32;
-        if (wParam == MI_AKELEDIT)
-          return (LRESULT)bAkelEdit;
-        if (wParam == MI_MDI)
-          return (LRESULT)nMDI;
-        if (wParam == MI_LANGHANDLE)
-          return (LRESULT)hLangModule;
-        if (wParam == MI_LANGMODULEA)
-          return xstrcpynA((void *)lParam, moCur.szLangModule, MAX_PATH);
-        if (wParam == MI_LANGMODULEW)
-          return xstrcpynW((void *)lParam, moCur.wszLangModule, MAX_PATH);
-        if (wParam == MI_LANGIDSYSTEM)
-          return (LRESULT)dwLangSystem;
-        if (wParam == MI_LANGIDMODULE)
-          return (LRESULT)dwLangModule;
-      }
-      else
-      {
-        if (wParam == MI_ONSTART)
-          return bMainOnStart;
-        if (wParam == MI_ONFINISH)
-          return nMainOnFinish;
-        if (wParam == MI_AKELEXEA)
-          return xstrcpynA((void *)lParam, szExeFile, MAX_PATH);
-        if (wParam == MI_AKELEXEW)
-          return xstrcpynW((void *)lParam, wszExeFile, MAX_PATH);
-
-        if (wParam == MI_X64)
-        {
-          #ifdef _WIN64
-            return TRUE;
-          #else
-            return FALSE;
-          #endif
-        }
-        if (wParam == MI_AKELEDITSTATICBUILD)
-        {
-          #ifdef AKELEDIT_STATICBUILD
-            return TRUE;
-          #else
-            return FALSE;
-          #endif
-        }
-        if (wParam == MI_AKELPADDLLBUILD)
-        {
-          #ifdef AKELPAD_DLLBUILD
-            return TRUE;
-          #else
-            return FALSE;
-          #endif
-        }
-        if (wParam == MI_CMDLINEBEGIN)
-          return xstrcpyW((void *)lParam, wpCmdLineBegin);
-        if (wParam == MI_CMDLINEEND)
-          return xstrcpyW((void *)lParam, wpCmdLineEnd);
-        if (wParam == MI_SHOWMODIFY)
-          return moCur.dwShowModify;
-        if (wParam == MI_STATUSPOSTYPE)
-          return moCur.dwStatusPosType;
-        if (wParam == MI_STATUSUSERFORMAT)
-          return xstrcpynW((void *)lParam, moCur.wszStatusUserFormat, MAX_PATH);
-        if (wParam == MI_WORDBREAKCUSTOM)
-          return moCur.dwWordBreakCustom;
-        if (wParam == MI_PAINTOPTIONS)
-          return moCur.dwPaintOptions;
-        if (wParam == MI_FIXEDCHARWIDTH)
-          return moCur.nFixedCharWidth;
-        if (wParam == MI_EDITSTYLE)
-          return moCur.dwEditStyle;
-        if (wParam == MI_RICHEDITCLASS)
-          return moCur.bRichEditClass;
-        if (wParam == MI_AKELADMINRESIDENT)
-          return moCur.bAkelAdminResident;
-        if (wParam == MI_DATELOGFORMAT)
-          return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
-        if (wParam == MI_DATEINSERTFORMAT)
-          return xstrcpynW((void *)lParam, moCur.wszDateInsertFormat, 128);
-        if (wParam == MI_AKELUPDATEROPTIONS)
-          return xstrcpynW((void *)lParam, moCur.wszAkelUpdaterOptions, MAX_PATH);
-        if (wParam == MI_URLCOMMAND)
-          return xstrcpynW((void *)lParam, moCur.wszUrlCommand, MAX_PATH);
-        if (wParam == MI_TABNAMEFIND)
-          return xstrcpynW((void *)lParam, moCur.wszTabNameFind, MAX_PATH);
-        if (wParam == MI_TABNAMEREP)
-          return xstrcpynW((void *)lParam, moCur.wszTabNameRep, MAX_PATH);
-        if (wParam == MI_ONTOP)
-          return moCur.bOnTop;
-        if (wParam == MI_STATUSBAR)
-          return moCur.bStatusBar;
-        if (wParam == MI_KEEPSPACE)
-          return moCur.bKeepSpace;
-        if (wParam == MI_WATCHFILE)
-          return moCur.bWatchFile;
-        if (wParam == MI_SAVETIME)
-          return moCur.bSaveTime;
-        if (wParam == MI_SINGLEOPENFILE)
-          return moCur.bSingleOpenFile;
-        if (wParam == MI_SINGLEOPENPROGRAM)
-          return moCur.dwSingleOpenProgram;
-        if (wParam == MI_TABOPTIONSMDI)
-          return moCur.dwTabOptionsMDI;
-        if (wParam == MI_EXECUTECOMMAND)
-          return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, BUFFER_SIZE);
-        if (wParam == MI_EXECUTEDIRECTORY)
-          return xstrcpynW((void *)lParam, moCur.wszExecuteDirectory, MAX_PATH);
-        if (wParam == MI_CODEPAGELIST)
-        {
-          if (lParam) xmemcpy((void *)lParam, lpCodepageList, nCodepageListLen * sizeof(int));
-          return nCodepageListLen * sizeof(int);
-        }
-        if (wParam == MI_DEFAULTCODEPAGE)
-          return moCur.nDefaultCodePage;
-        if (wParam == MI_DEFAULTBOM)
-          return moCur.bDefaultBOM;
-        if (wParam == MI_NEWFILECODEPAGE)
-          return moCur.nNewFileCodePage;
-        if (wParam == MI_NEWFILEBOM)
-          return moCur.bNewFileBOM;
-        if (wParam == MI_NEWFILENEWLINE)
-          return moCur.nNewFileNewLine;
-        if (wParam == MI_LANGCODEPAGERECOGNITION)
-          return moCur.dwLangCodepageRecognition;
-        if (wParam == MI_CODEPAGERECOGNITIONBUFFER)
-          return moCur.dwCodepageRecognitionBuffer;
-        if (wParam == MI_SAVEPOSITIONS)
-          return moCur.bSavePositions;
-        if (wParam == MI_SAVECODEPAGES)
-          return moCur.bSaveCodepages;
-        if (wParam == MI_RECENTFILES)
-          return moCur.nRecentFiles;
-        if (wParam == MI_SEARCHSTRINGS)
-          return moCur.nSearchStrings;
-        if (wParam == MI_FILETYPESOPEN)
-          return xstrcpynW((void *)lParam, moCur.wszFileTypesOpen, MAX_PATH);
-        if (wParam == MI_FILETYPESEDIT)
-          return xstrcpynW((void *)lParam, moCur.wszFileTypesEdit, MAX_PATH);
-        if (wParam == MI_FILETYPESPRINT)
-          return xstrcpynW((void *)lParam, moCur.wszFileTypesPrint, MAX_PATH);
-        if (wParam == MI_FILETYPESASSOCIATED)
-          return moCur.dwFileTypesAssociated;
-        if (wParam == MI_KEYBLAYOUTOPTIONS)
-          return moCur.dwKeybLayoutOptions;
-        if (wParam == MI_SILENTCLOSEEMPTYMDI)
-          return moCur.bSilentCloseEmptyMDI;
-        if (wParam == MI_DATELOG)
-          return moCur.bDateLog;
-        if (wParam == MI_SAVEINREADONLYMSG)
-          return moCur.bSaveInReadOnlyMsg;
-        if (wParam == MI_DEFAULTSAVEEXT)
-          return xstrcpynW((void *)lParam, moCur.wszDefaultSaveExt, MAX_PATH);
-        if (wParam == MI_SEARCHOPTIONS)
-          return moCur.dwSearchOptions;
-        if (wParam == MI_PRINTMARGINS)
-        {
-          if (lParam) xmemcpy((void *)lParam, &moCur.rcPrintMargins, sizeof(RECT));
-          return sizeof(RECT);
-        }
-        if (wParam == MI_PRINTCOLOR)
-          return moCur.dwPrintColor;
-        if (wParam == MI_PRINTHEADERENABLE)
-          return moCur.bPrintHeaderEnable;
-        if (wParam == MI_PRINTHEADER)
-          return xstrcpynW((void *)lParam, moCur.wszPrintHeader, MAX_PATH);
-        if (wParam == MI_PRINTFOOTERENABLE)
-          return moCur.bPrintFooterEnable;
-        if (wParam == MI_PRINTFOOTER)
-          return xstrcpynW((void *)lParam, moCur.wszPrintFooter, MAX_PATH);
-        if (wParam == MI_PRINTFONTENABLE)
-          return moCur.bPrintFontEnable;
-        if (wParam == MI_PRINTFONTW)
-        {
-          if (lParam) xmemcpy((void *)lParam, &moCur.lfPrintFont, sizeof(LOGFONTW));
-          return sizeof(LOGFONTW);
-        }
-        if (wParam == MI_LASTDIR)
-          return xstrcpynW((void *)lParam, moCur.wszLastDir, MAX_PATH);
-        if (wParam == MI_SHOWPLACESBAR)
-          return moCur.bShowPlacesBar;
-      }
-      return 0;
-    }
-    if (uMsg == AKD_SETMAININFO)
-    {
-      if (wParam == MIS_SAVESETTINGS)
-      {
-        if (SetOption(lParam, &moCur.nSaveSettings, sizeof(DWORD), INI_DWORD))
-        {
-          //Save to INI
-          SaveOptions(&moCur, lpFrameCurrent, SS_INI, TRUE);
-          SaveThemes(SS_INI);
-          StackPluginSave(&hPluginsStack, SS_INI);
-
-          //Save to registry
-          SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
-          SaveThemes(SS_REGISTRY);
-          StackPluginSave(&hPluginsStack, SS_REGISTRY);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_MDI)
-      {
-        if (nMDI != lParam)
-        {
-          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
-          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-          moCur.nMDI=(int)lParam;
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_LANGMODULEA)
-      {
-        if (SetOption(lParam, moCur.szLangModule, sizeof(moCur.szLangModule), INI_STRINGANSI))
-        {
-          MultiByteToWideChar(CP_ACP, 0, moCur.szLangModule, -1, moCur.wszLangModule, MAX_PATH);
-          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
-          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_LANGMODULEW)
-      {
-        if (SetOption(lParam, moCur.wszLangModule, sizeof(moCur.wszLangModule), INI_STRINGUNICODE))
-        {
-          WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
-          //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
-          //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_CMDLINEBEGIN)
-      {
-        bCmdLineChanged=TRUE;
-        if (wpCmdLineBegin)
-          API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineBegin);
-        nCmdLineBeginLen=(int)xstrlenW((wchar_t *)lParam);
-
-        if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
-        {
-          xstrcpynW(wpCmdLineBegin, (void *)lParam, nCmdLineBeginLen + 1);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_CMDLINEEND)
-      {
-        bCmdLineChanged=TRUE;
-        if (wpCmdLineEnd)
-          API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineEnd);
-        nCmdLineEndLen=(int)xstrlenW((wchar_t *)lParam);
-
-        if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineEndLen + 1) * sizeof(wchar_t)))
-        {
-          xstrcpynW(wpCmdLineEnd, (void *)lParam, nCmdLineEndLen + 1);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_SHOWMODIFY)
-      {
-        if ((DWORD)lParam != moCur.dwShowModify)
-        {
-          UpdateAsterisk(lpFrameCurrent, FALSE);
-          SetModifyStatus(NULL, FALSE);
-          moCur.dwShowModify=(DWORD)lParam;
-          UpdateAsterisk(lpFrameCurrent, lpFrameCurrent->ei.bModified);
-          SetModifyStatus(NULL, lpFrameCurrent->ei.bModified);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_STATUSPOSTYPE)
-      {
-        if (SetOption(lParam, &moCur.dwStatusPosType, sizeof(DWORD), INI_DWORD))
-        {
-          SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_STATUSUSERFORMAT)
-      {
-        if (SetOption(lParam, moCur.wszStatusUserFormat, sizeof(moCur.wszStatusUserFormat), INI_STRINGUNICODE))
-        {
-          int *lpSBParts;
-
-          StackStatusPartFree(&hStatusStack);
-
-          //Get status bar user flags
-          if (moCur.wszStatusUserFormat[0])
+          else
           {
-            STATUSPART *sp;
-
-            moCur.nStatusUserFormatLen=(int)xstrlenW(moCur.wszStatusUserFormat);
-            TranslateStatusUser(NULL, moCur.wszStatusUserFormat, moCur.nStatusUserFormatLen, NULL, 0);
-
-            moCur.dwStatusUserFlags=0;
-            for (sp=hStatusStack.first; sp; sp=sp->next)
-              moCur.dwStatusUserFlags|=sp->dwFormatFlags;
+            xprintfW(wpFile, L"%s", (wchar_t *)od->pFile);
+            xprintfW(wpWorkDir, L"%s", (wchar_t *)od->pWorkDir);
           }
-          if (lpSBParts=SetStatusParts(&hStatusStack))
-            API_HeapFree(hHeap, 0, (LPVOID)lpSBParts);
 
-          UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
-          return TRUE;
+          if (*wpWorkDir) SetCurrentDirectoryWide(wpWorkDir);
+          nResult=OpenDocument((HWND)wParam, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
+          if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
         }
-        return FALSE;
+        API_FreeWide(wpFile);
+        API_FreeWide(wpWorkDir);
+        return nResult;
       }
-      if (wParam == MIS_WORDBREAKCUSTOM)
-        return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PAINTOPTIONS)
-        return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_FIXEDCHARWIDTH)
-        return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_EDITSTYLE)
-        return SetOption(lParam, &moCur.dwEditStyle, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_RICHEDITCLASS)
-        return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_AKELADMINRESIDENT)
-        return SetOption(lParam, &moCur.bAkelAdminResident, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_DATELOGFORMAT)
-        return SetOption(lParam, moCur.wszDateLogFormat, sizeof(moCur.wszDateLogFormat), INI_STRINGUNICODE);
-      if (wParam == MIS_DATEINSERTFORMAT)
-        return SetOption(lParam, moCur.wszDateInsertFormat, sizeof(moCur.wszDateInsertFormat), INI_STRINGUNICODE);
-      if (wParam == MIS_AKELUPDATEROPTIONS)
-        return SetOption(lParam, moCur.wszAkelUpdaterOptions, sizeof(moCur.wszAkelUpdaterOptions), INI_STRINGUNICODE);
-      if (wParam == MIS_URLCOMMAND)
-        return SetOption(lParam, moCur.wszUrlCommand, sizeof(moCur.wszUrlCommand), INI_STRINGUNICODE);
-      if (wParam == MIS_TABNAMEFIND)
-        return SetOption(lParam, moCur.wszTabNameFind, sizeof(moCur.wszTabNameFind), INI_STRINGUNICODE);
-      if (wParam == MIS_TABNAMEREP)
-        return SetOption(lParam, moCur.wszTabNameRep, sizeof(moCur.wszTabNameRep), INI_STRINGUNICODE);
-      if (wParam == MIS_ONTOP)
+      case AKD_SAVEDOCUMENT:
+      case AKD_SAVEDOCUMENTA:
+      case AKD_SAVEDOCUMENTW:
       {
-        if (lParam != moCur.bOnTop)
-        {
-          DoViewOnTop((BOOL)lParam, FALSE);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_STATUSBAR)
-      {
-        if (lParam != moCur.bStatusBar)
-        {
-          DoViewShowStatusBar((BOOL)lParam, FALSE);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_KEEPSPACE)
-      {
-        if (lParam != moCur.bKeepSpace)
-        {
-          DoSettingsKeepSpace((BOOL)lParam);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_WATCHFILE)
-      {
-        if (lParam != moCur.bWatchFile)
-        {
-          DoSettingsWatchFile((BOOL)lParam);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_SAVETIME)
-      {
-        if (lParam != moCur.bSaveTime)
-        {
-          DoSettingsSaveTime((BOOL)lParam);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_SINGLEOPENFILE)
-      {
-        if (lParam != moCur.bSingleOpenFile)
-        {
-          DoSettingsSingleOpenFile((BOOL)lParam);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_SINGLEOPENPROGRAM)
-      {
-        if ((DWORD)lParam != moCur.dwSingleOpenProgram)
-        {
-          DoSettingsSingleOpenProgram((DWORD)lParam);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_TABOPTIONSMDI)
-      {
-        if ((DWORD)lParam != moCur.dwTabOptionsMDI)
-        {
-          DoWindowTabView((DWORD)lParam, FALSE);
-          DoWindowTabType((DWORD)lParam, FALSE);
-          DoWindowTabSwitch((DWORD)lParam, FALSE);
-          moCur.dwTabOptionsMDI=(DWORD)lParam;
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_EXECUTECOMMAND)
-        return SetOption(lParam, moCur.wszExecuteCommand, sizeof(moCur.wszExecuteCommand), INI_STRINGUNICODE);
-      if (wParam == MIS_EXECUTEDIRECTORY)
-        return SetOption(lParam, moCur.wszExecuteDirectory, sizeof(moCur.wszExecuteDirectory), INI_STRINGUNICODE);
-      if (wParam == MIS_CODEPAGELIST)
-      {
-        CodepageListFree(&lpCodepageList);
-        lpCodepageList=(int *)lParam;
-        nCodepageListLen=CodepageListLen(lpCodepageList);
-        return TRUE;
-      }
-      if (wParam == MIS_DEFAULTCODEPAGE)
-        return SetOption(lParam, &moCur.nDefaultCodePage, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_DEFAULTBOM)
-        return SetOption(lParam, &moCur.bDefaultBOM, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_NEWFILECODEPAGE)
-        return SetOption(lParam, &moCur.nNewFileCodePage, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_NEWFILEBOM)
-        return SetOption(lParam, &moCur.bNewFileBOM, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_NEWFILENEWLINE)
-        return SetOption(lParam, &moCur.nNewFileNewLine, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_LANGCODEPAGERECOGNITION)
-        return SetOption(lParam, &moCur.dwLangCodepageRecognition, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_CODEPAGERECOGNITIONBUFFER)
-        return SetOption(lParam, &moCur.dwCodepageRecognitionBuffer, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_SAVEPOSITIONS)
-        return SetOption(lParam, &moCur.bSavePositions, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_SAVECODEPAGES)
-        return SetOption(lParam, &moCur.bSaveCodepages, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_RECENTFILES)
-      {
-        //Same as AKD_RECENTFILES with RF_SET
-        if (SetOption(lParam, &moCur.nRecentFiles, sizeof(DWORD), INI_DWORD))
-        {
-          RecentFilesRefresh(&hRecentFilesStack);
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (wParam == MIS_SEARCHSTRINGS)
-        return SetOption(lParam, &moCur.nSearchStrings, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_FILETYPESOPEN)
-        return SetOption(lParam, moCur.wszFileTypesOpen, sizeof(moCur.wszFileTypesOpen), INI_STRINGUNICODE);
-      if (wParam == MIS_FILETYPESEDIT)
-        return SetOption(lParam, moCur.wszFileTypesEdit, sizeof(moCur.wszFileTypesEdit), INI_STRINGUNICODE);
-      if (wParam == MIS_FILETYPESPRINT)
-        return SetOption(lParam, moCur.wszFileTypesPrint, sizeof(moCur.wszFileTypesPrint), INI_STRINGUNICODE);
-      if (wParam == MIS_FILETYPESASSOCIATED)
-      {
-        if (lParam & FTA_OPEN)
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+        SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
+        wchar_t *wpFile=API_AllocWide(MAX_PATH);
+        int nResult;
+
+        if (uMsg == AKD_SAVEDOCUMENTA || (bOldWindows && uMsg == AKD_SAVEDOCUMENT))
+          xprintfW(wpFile, L"%S", (char *)sd->pFile);
         else
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+          xprintfW(wpFile, L"%s", (wchar_t *)sd->pFile);
+        nResult=SaveDocument((HWND)wParam, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
 
-        if (lParam & FTA_EDIT)
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
-        else
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
-
-        if (lParam & FTA_PRINT)
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
-        else
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
-
-        return SetOption(lParam, &moCur.dwFileTypesAssociated, sizeof(DWORD), INI_DWORD);
+        API_FreeWide(wpFile);
+        return nResult;
       }
-      if (wParam == MIS_KEYBLAYOUTOPTIONS)
-        return SetOption(lParam, &moCur.dwKeybLayoutOptions, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_SILENTCLOSEEMPTYMDI)
-        return SetOption(lParam, &moCur.bSilentCloseEmptyMDI, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_DATELOG)
-        return SetOption(lParam, &moCur.bDateLog, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_SAVEINREADONLYMSG)
-        return SetOption(lParam, &moCur.bSaveInReadOnlyMsg, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_DEFAULTSAVEEXT)
-        return SetOption(lParam, moCur.wszDefaultSaveExt, sizeof(moCur.wszDefaultSaveExt), INI_STRINGUNICODE);
-      if (wParam == MIS_SEARCHOPTIONS)
-        return SetOption(lParam, &moCur.dwSearchOptions, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PRINTMARGINS)
-        return SetOption(lParam, &moCur.rcPrintMargins, sizeof(RECT), INI_BINARY);
-      if (wParam == MIS_PRINTCOLOR)
-        return SetOption(lParam, &moCur.dwPrintColor, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PRINTHEADERENABLE)
-        return SetOption(lParam, &moCur.bPrintHeaderEnable, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PRINTHEADER)
-        return SetOption(lParam, moCur.wszPrintHeader, sizeof(moCur.wszPrintHeader), INI_STRINGUNICODE);
-      if (wParam == MIS_PRINTFOOTERENABLE)
-        return SetOption(lParam, &moCur.bPrintFooterEnable, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PRINTFOOTER)
-        return SetOption(lParam, moCur.wszPrintFooter, sizeof(moCur.wszPrintFooter), INI_STRINGUNICODE);
-      if (wParam == MIS_PRINTFONTENABLE)
-        return SetOption(lParam, &moCur.bPrintFontEnable, sizeof(DWORD), INI_DWORD);
-      if (wParam == MIS_PRINTFONTW)
-        return SetOption(lParam, &moCur.lfPrintFont, sizeof(LOGFONTW), INI_BINARY);
-      if (wParam == MIS_LASTDIR)
-        return SetOption(lParam, moCur.wszLastDir, sizeof(moCur.wszLastDir), INI_STRINGUNICODE);
-      if (wParam == MIS_SHOWPLACESBAR)
-        return SetOption(lParam, &moCur.bShowPlacesBar, sizeof(DWORD), INI_DWORD);
-      return FALSE;
-    }
-    if (uMsg == AKD_GETFRAMEINFO)
-    {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-      int nType;
-      UINT_PTR dwData=0;
-      UINT_PTR *lpdwData;
-      UINT_PTR dwSize=sizeof(UINT_PTR);
-
-      if (!lpFrame)
+      case AKD_GETTEXTLENGTH:
       {
-        if (lpFrameCurrent->hWndEditParent)
-          lpFrame=lpFrameCurrent;
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        return GetTextLength(hWnd);
       }
-      if (wParam > 0xFFFF)
+      case AKD_GETTEXTRANGE:
+      case AKD_GETTEXTRANGEA:
+      case AKD_GETTEXTRANGEW:
+      {
+        GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        if (uMsg == AKD_GETTEXTRANGEA || (bOldWindows && uMsg == AKD_GETTEXTRANGE))
+          return GetRangeTextA(hWnd, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
+        else
+          return GetRangeTextW(hWnd, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
+      }
+      case AKD_GETSELTEXTW:
+      {
+        AECHARRANGE cr;
+        wchar_t *wpText=NULL;
+        INT_PTR nTextLen;
+        BOOL bColumnSel=FALSE;
+        HWND hWnd=(HWND)wParam;
+        INT_PTR *nResultLen=(INT_PTR *)lParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        GetSel(hWnd, &cr, &bColumnSel, NULL);
+        nTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
+        if (nResultLen) *nResultLen=nTextLen;
+        return (LRESULT)wpText;
+      }
+      case AKD_FREETEXT:
+      {
+        return FreeText((LPVOID)lParam);
+      }
+      case AKD_REPLACESEL:
+      case AKD_REPLACESELA:
+      case AKD_REPLACESELW:
+      {
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
+          ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
+        else
+          ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
+        return 0;
+      }
+      case AKD_PASTE:
+      {
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        if (lParam & PASTE_CASE)
+          return PasteCase(hWnd, (DWORD)(lParam & PASTE_ANSI));
+        if (lParam & PASTE_SINGLELINE)
+          return PasteInEditAsRichEdit(hWnd, 0);
+        return DoEditPaste(hWnd, (DWORD)lParam);
+      }
+      case AKD_COPY:
+      {
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        DoEditCopy(hWnd);
+        return 0;
+      }
+      case AKD_TEXTFIND:
+      case AKD_TEXTFINDA:
+      case AKD_TEXTFINDW:
+      {
+        TEXTFINDW *tf=(TEXTFINDW *)lParam;
+        FRAMEDATA *lpFrame;
+        INT_PTR nResult=-1;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        {
+          if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
+          {
+            wchar_t *wpFindIt;
+            int nFindItLen;
+
+            nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, NULL, 0);
+            if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
+            {
+              MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
+
+              nResult=TextFindW(lpFrame, tf->dwFlags, wpFindIt, tf->nFindItLen);
+              GlobalFree((HGLOBAL)wpFindIt);
+            }
+          }
+          else nResult=TextFindW(lpFrame, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+
+          if (nResult == -1)
+          {
+            if (lpFrame->nCompileErrorOffset &&
+                ((tf->dwFlags & FRF_REGEXP) ||
+                 (tf->dwFlags & FRF_ESCAPESEQ)))
+            {
+              nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
+            }
+          }
+        }
+        return nResult;
+      }
+      case AKD_TEXTREPLACE:
+      case AKD_TEXTREPLACEA:
+      case AKD_TEXTREPLACEW:
+      {
+        TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
+        FRAMEDATA *lpFrame;
+        INT_PTR nResult=-1;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        {
+          if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
+          {
+            wchar_t *wpFindIt;
+            wchar_t *wpReplaceWith;
+            int nFindItLen;
+            int nReplaceWithLen;
+
+            nFindItLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, NULL, 0);
+            if (wpFindIt=(wchar_t *)GlobalAlloc(GPTR, nFindItLen * sizeof(wchar_t)))
+            {
+              MultiByteToWideChar(CP_ACP, 0, (char *)tr->pFindIt, tr->nFindItLen, wpFindIt, nFindItLen);
+
+              nReplaceWithLen=MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, NULL, 0);
+              if (wpReplaceWith=(wchar_t *)GlobalAlloc(GPTR, nReplaceWithLen * sizeof(wchar_t)))
+              {
+                MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
+
+                nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+                GlobalFree((HGLOBAL)wpReplaceWith);
+              }
+              GlobalFree((HGLOBAL)wpFindIt);
+            }
+          }
+          else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+
+          if (nResult == -1)
+          {
+            if (lpFrame->nCompileErrorOffset &&
+                ((tr->dwFlags & FRF_REGEXP) ||
+                 (tr->dwFlags & FRF_ESCAPESEQ)))
+            {
+              nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
+            }
+          }
+        }
+        return nResult;
+      }
+      case AKD_GOTO:
+      case AKD_GOTOA:
+      case AKD_GOTOW:
+      {
+        wchar_t *wpString=API_AllocWide(MAX_PATH);
+        BOOL bResult;
+
+        if (uMsg == AKD_GOTOA || (bOldWindows && uMsg == AKD_GOTO))
+          xprintfW(wpString, L"%S", (char *)lParam);
+        else
+          xprintfW(wpString, L"%s", (wchar_t *)lParam);
+        bResult=GoTo((DWORD)wParam, wpString);
+
+        API_FreeWide(wpString);
+        return bResult;
+      }
+      case AKD_RECODESEL:
+      {
+        TEXTRECODE *tr=(TEXTRECODE *)lParam;
+        FRAMEDATA *lpFrame;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+          RecodeTextW(lpFrame, NULL, tr->dwFlags, &tr->nCodePageFrom, &tr->nCodePageTo);
+        return 0;
+      }
+
+      //Print
+      case AKD_GETPRINTINFO:
+      {
+        PRINTINFO *info=(PRINTINFO *)wParam;
+
+        xmemcpy(info, &prninfo, sizeof(PRINTINFO));
+        if (lParam)
+          return GetPrinter(hMainWnd, info, TRUE);
+        return 0;
+      }
+      case AKD_SETPRINTINFO:
+      {
+        PRINTINFO *info=(PRINTINFO *)wParam;
+
+        xmemcpy(&prninfo, info, sizeof(PRINTINFO));
+        return 0;
+      }
+
+      //Options
+      case AKD_PROGRAMVERSION:
+      {
+        return dwExeVersion;
+      }
+      case AKD_PROGRAMARCHITECTURE:
+      {
+        return AKELDLL;
+      }
+      case AKD_GETMAININFO:
+      {
+        switch (wParam)
+        {
+          case MI_AKELDIRA:
+            return xstrcpynA((void *)lParam, szExeDir, MAX_PATH);
+          case MI_AKELDIRW:
+            return xstrcpynW((void *)lParam, wszExeDir, MAX_PATH);
+          case MI_INSTANCEEXE:
+            return (LRESULT)hInstance;
+          case MI_PLUGINSSTACK:
+          {
+            if (lParam) xmemcpy((void *)lParam, &hPluginsStack, sizeof(HSTACK));
+            return sizeof(HSTACK);
+          }
+          case MI_SAVESETTINGS:
+            return (LRESULT)moCur.nSaveSettings;
+          case MI_WNDPROGRESS:
+            return (LRESULT)hProgress;
+          case MI_WNDSTATUS:
+            return (LRESULT)hStatus;
+          case MI_WNDMDICLIENT:
+            return (LRESULT)hMdiClient;
+          case MI_WNDTAB:
+            return (LRESULT)hTab;
+          case MI_MENUMAIN:
+            return (LRESULT)hMainMenu;
+          case MI_MENURECENTFILES:
+            return (LRESULT)hMenuRecentFiles;
+          case MI_MENULANGUAGE:
+            return (LRESULT)hMenuLanguage;
+          case MI_MENUPOPUP:
+            return (LRESULT)hPopupMenu;
+          case MI_ICONMAIN:
+            return (LRESULT)hMainIcon;
+          case MI_ACCELGLOBAL:
+            return (LRESULT)hGlobalAccel;
+          case MI_ACCELMAIN:
+            return (LRESULT)hMainAccel;
+          case MI_OLDWINDOWS:
+            return (LRESULT)bOldWindows;
+          case MI_OLDRICHEDIT:
+            return (LRESULT)bOldRichEdit;
+          case MI_VERCOMCTL32:
+            return (LRESULT)dwVerComctl32;
+          case MI_AKELEDIT:
+            return (LRESULT)bAkelEdit;
+          case MI_MDI:
+            return (LRESULT)nMDI;
+          case MI_LANGHANDLE:
+            return (LRESULT)hLangModule;
+          case MI_LANGMODULEA:
+            return xstrcpynA((void *)lParam, moCur.szLangModule, MAX_PATH);
+          case MI_LANGMODULEW:
+            return xstrcpynW((void *)lParam, moCur.wszLangModule, MAX_PATH);
+          case MI_LANGIDSYSTEM:
+            return (LRESULT)dwLangSystem;
+          case MI_LANGIDMODULE:
+            return (LRESULT)dwLangModule;
+          case MI_ONSTART:
+            return bMainOnStart;
+          case MI_ONFINISH:
+            return nMainOnFinish;
+          case MI_AKELEXEA:
+            return xstrcpynA((void *)lParam, szExeFile, MAX_PATH);
+          case MI_AKELEXEW:
+            return xstrcpynW((void *)lParam, wszExeFile, MAX_PATH);
+          case MI_X64:
+          {
+            #ifdef _WIN64
+              return TRUE;
+            #else
+              return FALSE;
+            #endif
+          }
+          case MI_AKELEDITSTATICBUILD:
+          {
+            #ifdef AKELEDIT_STATICBUILD
+              return TRUE;
+            #else
+              return FALSE;
+            #endif
+          }
+          case MI_AKELPADDLLBUILD:
+          {
+            #ifdef AKELPAD_DLLBUILD
+              return TRUE;
+            #else
+              return FALSE;
+            #endif
+          }
+          case MI_CMDLINEBEGIN:
+            return xstrcpyW((void *)lParam, wpCmdLineBegin);
+          case MI_CMDLINEEND:
+            return xstrcpyW((void *)lParam, wpCmdLineEnd);
+          case MI_SHOWMODIFY:
+            return moCur.dwShowModify;
+          case MI_STATUSPOSTYPE:
+            return moCur.dwStatusPosType;
+          case MI_STATUSUSERFORMAT:
+            return xstrcpynW((void *)lParam, moCur.wszStatusUserFormat, MAX_PATH);
+          case MI_WORDBREAKCUSTOM:
+            return moCur.dwWordBreakCustom;
+          case MI_PAINTOPTIONS:
+            return moCur.dwPaintOptions;
+          case MI_FIXEDCHARWIDTH:
+            return moCur.nFixedCharWidth;
+          case MI_EDITSTYLE:
+            return moCur.dwEditStyle;
+          case MI_RICHEDITCLASS:
+            return moCur.bRichEditClass;
+          case MI_AKELADMINRESIDENT:
+            return moCur.bAkelAdminResident;
+          case MI_DATELOGFORMAT:
+            return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
+          case MI_DATEINSERTFORMAT:
+            return xstrcpynW((void *)lParam, moCur.wszDateInsertFormat, 128);
+          case MI_AKELUPDATEROPTIONS:
+            return xstrcpynW((void *)lParam, moCur.wszAkelUpdaterOptions, MAX_PATH);
+          case MI_URLCOMMAND:
+            return xstrcpynW((void *)lParam, moCur.wszUrlCommand, MAX_PATH);
+          case MI_TABNAMEFIND:
+            return xstrcpynW((void *)lParam, moCur.wszTabNameFind, MAX_PATH);
+          case MI_TABNAMEREP:
+            return xstrcpynW((void *)lParam, moCur.wszTabNameRep, MAX_PATH);
+          case MI_ONTOP:
+            return moCur.bOnTop;
+          case MI_STATUSBAR:
+            return moCur.bStatusBar;
+          case MI_KEEPSPACE:
+            return moCur.bKeepSpace;
+          case MI_WATCHFILE:
+            return moCur.bWatchFile;
+          case MI_SAVETIME:
+            return moCur.bSaveTime;
+          case MI_SINGLEOPENFILE:
+            return moCur.bSingleOpenFile;
+          case MI_SINGLEOPENPROGRAM:
+            return moCur.dwSingleOpenProgram;
+          case MI_TABOPTIONSMDI:
+            return moCur.dwTabOptionsMDI;
+          case MI_EXECUTECOMMAND:
+            return xstrcpynW((void *)lParam, moCur.wszExecuteCommand, BUFFER_SIZE);
+          case MI_EXECUTEDIRECTORY:
+            return xstrcpynW((void *)lParam, moCur.wszExecuteDirectory, MAX_PATH);
+          case MI_CODEPAGELIST:
+          {
+            if (lParam) xmemcpy((void *)lParam, lpCodepageList, nCodepageListLen * sizeof(int));
+            return nCodepageListLen * sizeof(int);
+          }
+          case MI_DEFAULTCODEPAGE:
+            return moCur.nDefaultCodePage;
+          case MI_DEFAULTBOM:
+            return moCur.bDefaultBOM;
+          case MI_NEWFILECODEPAGE:
+            return moCur.nNewFileCodePage;
+          case MI_NEWFILEBOM:
+            return moCur.bNewFileBOM;
+          case MI_NEWFILENEWLINE:
+            return moCur.nNewFileNewLine;
+          case MI_LANGCODEPAGERECOGNITION:
+            return moCur.dwLangCodepageRecognition;
+          case MI_CODEPAGERECOGNITIONBUFFER:
+            return moCur.dwCodepageRecognitionBuffer;
+          case MI_SAVEPOSITIONS:
+            return moCur.bSavePositions;
+          case MI_SAVECODEPAGES:
+            return moCur.bSaveCodepages;
+          case MI_RECENTFILES:
+            return moCur.nRecentFiles;
+          case MI_SEARCHSTRINGS:
+            return moCur.nSearchStrings;
+          case MI_FILETYPESOPEN:
+            return xstrcpynW((void *)lParam, moCur.wszFileTypesOpen, MAX_PATH);
+          case MI_FILETYPESEDIT:
+            return xstrcpynW((void *)lParam, moCur.wszFileTypesEdit, MAX_PATH);
+          case MI_FILETYPESPRINT:
+            return xstrcpynW((void *)lParam, moCur.wszFileTypesPrint, MAX_PATH);
+          case MI_FILETYPESASSOCIATED:
+            return moCur.dwFileTypesAssociated;
+          case MI_KEYBLAYOUTOPTIONS:
+            return moCur.dwKeybLayoutOptions;
+          case MI_SILENTCLOSEEMPTYMDI:
+            return moCur.bSilentCloseEmptyMDI;
+          case MI_DATELOG:
+            return moCur.bDateLog;
+          case MI_SAVEINREADONLYMSG:
+            return moCur.bSaveInReadOnlyMsg;
+          case MI_DEFAULTSAVEEXT:
+            return xstrcpynW((void *)lParam, moCur.wszDefaultSaveExt, MAX_PATH);
+          case MI_SEARCHOPTIONS:
+            return moCur.dwSearchOptions;
+          case MI_PRINTMARGINS:
+          {
+            if (lParam) xmemcpy((void *)lParam, &moCur.rcPrintMargins, sizeof(RECT));
+            return sizeof(RECT);
+          }
+          case MI_PRINTCOLOR:
+            return moCur.dwPrintColor;
+          case MI_PRINTHEADERENABLE:
+            return moCur.bPrintHeaderEnable;
+          case MI_PRINTHEADER:
+            return xstrcpynW((void *)lParam, moCur.wszPrintHeader, MAX_PATH);
+          case MI_PRINTFOOTERENABLE:
+            return moCur.bPrintFooterEnable;
+          case MI_PRINTFOOTER:
+            return xstrcpynW((void *)lParam, moCur.wszPrintFooter, MAX_PATH);
+          case MI_PRINTFONTENABLE:
+            return moCur.bPrintFontEnable;
+          case MI_PRINTFONTW:
+          {
+            if (lParam) xmemcpy((void *)lParam, &moCur.lfPrintFont, sizeof(LOGFONTW));
+            return sizeof(LOGFONTW);
+          }
+          case MI_LASTDIR:
+            return xstrcpynW((void *)lParam, moCur.wszLastDir, MAX_PATH);
+          case MI_SHOWPLACESBAR:
+            return moCur.bShowPlacesBar;
+        }
+        return 0;
+      }
+      case AKD_SETMAININFO:
+      {
+        switch (wParam)
+        {
+          case MIS_SAVESETTINGS:
+          {
+            if (SetOption(lParam, &moCur.nSaveSettings, sizeof(DWORD), INI_DWORD))
+            {
+              //Save to INI
+              SaveOptions(&moCur, lpFrameCurrent, SS_INI, TRUE);
+              SaveThemes(SS_INI);
+              StackPluginSave(&hPluginsStack, SS_INI);
+
+              //Save to registry
+              SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
+              SaveThemes(SS_REGISTRY);
+              StackPluginSave(&hPluginsStack, SS_REGISTRY);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_MDI:
+          {
+            if (nMDI != lParam)
+            {
+              //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+              //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+              moCur.nMDI=(int)lParam;
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_LANGMODULEA:
+          {
+            if (SetOption(lParam, moCur.szLangModule, sizeof(moCur.szLangModule), INI_STRINGANSI))
+            {
+              MultiByteToWideChar(CP_ACP, 0, moCur.szLangModule, -1, moCur.wszLangModule, MAX_PATH);
+              //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+              //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_LANGMODULEW:
+          {
+            if (SetOption(lParam, moCur.wszLangModule, sizeof(moCur.wszLangModule), INI_STRINGUNICODE))
+            {
+              WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
+              //API_LoadString(hLangModule, MSG_RESTART_PROGRAM, wszMsg, BUFFER_SIZE);
+              //API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_CMDLINEBEGIN:
+          {
+            bCmdLineChanged=TRUE;
+            if (wpCmdLineBegin)
+              API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineBegin);
+            nCmdLineBeginLen=(int)xstrlenW((wchar_t *)lParam);
+
+            if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineBeginLen + 1) * sizeof(wchar_t)))
+            {
+              xstrcpynW(wpCmdLineBegin, (void *)lParam, nCmdLineBeginLen + 1);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_CMDLINEEND:
+          {
+            bCmdLineChanged=TRUE;
+            if (wpCmdLineEnd)
+              API_HeapFree(hHeap, 0, (LPVOID)wpCmdLineEnd);
+            nCmdLineEndLen=(int)xstrlenW((wchar_t *)lParam);
+
+            if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCmdLineEndLen + 1) * sizeof(wchar_t)))
+            {
+              xstrcpynW(wpCmdLineEnd, (void *)lParam, nCmdLineEndLen + 1);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SHOWMODIFY:
+          {
+            if ((DWORD)lParam != moCur.dwShowModify)
+            {
+              UpdateAsterisk(lpFrameCurrent, FALSE);
+              SetModifyStatus(NULL, FALSE);
+              moCur.dwShowModify=(DWORD)lParam;
+              UpdateAsterisk(lpFrameCurrent, lpFrameCurrent->ei.bModified);
+              SetModifyStatus(NULL, lpFrameCurrent->ei.bModified);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_STATUSPOSTYPE:
+          {
+            if (SetOption(lParam, &moCur.dwStatusPosType, sizeof(DWORD), INI_DWORD))
+            {
+              SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_STATUSUSERFORMAT:
+          {
+            if (SetOption(lParam, moCur.wszStatusUserFormat, sizeof(moCur.wszStatusUserFormat), INI_STRINGUNICODE))
+            {
+              int *lpSBParts;
+
+              StackStatusPartFree(&hStatusStack);
+
+              //Get status bar user flags
+              if (moCur.wszStatusUserFormat[0])
+              {
+                STATUSPART *sp;
+
+                moCur.nStatusUserFormatLen=(int)xstrlenW(moCur.wszStatusUserFormat);
+                TranslateStatusUser(NULL, moCur.wszStatusUserFormat, moCur.nStatusUserFormatLen, NULL, 0);
+
+                moCur.dwStatusUserFlags=0;
+                for (sp=hStatusStack.first; sp; sp=sp->next)
+                  moCur.dwStatusUserFlags|=sp->dwFormatFlags;
+              }
+              if (lpSBParts=SetStatusParts(&hStatusStack))
+                API_HeapFree(hHeap, 0, (LPVOID)lpSBParts);
+
+              UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_WORDBREAKCUSTOM:
+            return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
+          case MIS_PAINTOPTIONS:
+            return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_FIXEDCHARWIDTH:
+            return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
+          case MIS_EDITSTYLE:
+            return SetOption(lParam, &moCur.dwEditStyle, sizeof(DWORD), INI_DWORD);
+          case MIS_RICHEDITCLASS:
+            return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
+          case MIS_AKELADMINRESIDENT:
+            return SetOption(lParam, &moCur.bAkelAdminResident, sizeof(DWORD), INI_DWORD);
+          case MIS_DATELOGFORMAT:
+            return SetOption(lParam, moCur.wszDateLogFormat, sizeof(moCur.wszDateLogFormat), INI_STRINGUNICODE);
+          case MIS_DATEINSERTFORMAT:
+            return SetOption(lParam, moCur.wszDateInsertFormat, sizeof(moCur.wszDateInsertFormat), INI_STRINGUNICODE);
+          case MIS_AKELUPDATEROPTIONS:
+            return SetOption(lParam, moCur.wszAkelUpdaterOptions, sizeof(moCur.wszAkelUpdaterOptions), INI_STRINGUNICODE);
+          case MIS_URLCOMMAND:
+            return SetOption(lParam, moCur.wszUrlCommand, sizeof(moCur.wszUrlCommand), INI_STRINGUNICODE);
+          case MIS_TABNAMEFIND:
+            return SetOption(lParam, moCur.wszTabNameFind, sizeof(moCur.wszTabNameFind), INI_STRINGUNICODE);
+          case MIS_TABNAMEREP:
+            return SetOption(lParam, moCur.wszTabNameRep, sizeof(moCur.wszTabNameRep), INI_STRINGUNICODE);
+          case MIS_ONTOP:
+          {
+            if (lParam != moCur.bOnTop)
+            {
+              DoViewOnTop((BOOL)lParam, FALSE);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_STATUSBAR:
+          {
+            if (lParam != moCur.bStatusBar)
+            {
+              DoViewShowStatusBar((BOOL)lParam, FALSE);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_KEEPSPACE:
+          {
+            if (lParam != moCur.bKeepSpace)
+            {
+              DoSettingsKeepSpace((BOOL)lParam);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_WATCHFILE:
+          {
+            if (lParam != moCur.bWatchFile)
+            {
+              DoSettingsWatchFile((BOOL)lParam);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SAVETIME:
+          {
+            if (lParam != moCur.bSaveTime)
+            {
+              DoSettingsSaveTime((BOOL)lParam);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SINGLEOPENFILE:
+          {
+            if (lParam != moCur.bSingleOpenFile)
+            {
+              DoSettingsSingleOpenFile((BOOL)lParam);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SINGLEOPENPROGRAM:
+          {
+            if ((DWORD)lParam != moCur.dwSingleOpenProgram)
+            {
+              DoSettingsSingleOpenProgram((DWORD)lParam);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_TABOPTIONSMDI:
+          {
+            if ((DWORD)lParam != moCur.dwTabOptionsMDI)
+            {
+              DoWindowTabView((DWORD)lParam, FALSE);
+              DoWindowTabType((DWORD)lParam, FALSE);
+              DoWindowTabSwitch((DWORD)lParam, FALSE);
+              moCur.dwTabOptionsMDI=(DWORD)lParam;
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_EXECUTECOMMAND:
+            return SetOption(lParam, moCur.wszExecuteCommand, sizeof(moCur.wszExecuteCommand), INI_STRINGUNICODE);
+          case MIS_EXECUTEDIRECTORY:
+            return SetOption(lParam, moCur.wszExecuteDirectory, sizeof(moCur.wszExecuteDirectory), INI_STRINGUNICODE);
+          case MIS_CODEPAGELIST:
+          {
+            CodepageListFree(&lpCodepageList);
+            lpCodepageList=(int *)lParam;
+            nCodepageListLen=CodepageListLen(lpCodepageList);
+            return TRUE;
+          }
+          case MIS_DEFAULTCODEPAGE:
+            return SetOption(lParam, &moCur.nDefaultCodePage, sizeof(DWORD), INI_DWORD);
+          case MIS_DEFAULTBOM:
+            return SetOption(lParam, &moCur.bDefaultBOM, sizeof(DWORD), INI_DWORD);
+          case MIS_NEWFILECODEPAGE:
+            return SetOption(lParam, &moCur.nNewFileCodePage, sizeof(DWORD), INI_DWORD);
+          case MIS_NEWFILEBOM:
+            return SetOption(lParam, &moCur.bNewFileBOM, sizeof(DWORD), INI_DWORD);
+          case MIS_NEWFILENEWLINE:
+            return SetOption(lParam, &moCur.nNewFileNewLine, sizeof(DWORD), INI_DWORD);
+          case MIS_LANGCODEPAGERECOGNITION:
+            return SetOption(lParam, &moCur.dwLangCodepageRecognition, sizeof(DWORD), INI_DWORD);
+          case MIS_CODEPAGERECOGNITIONBUFFER:
+            return SetOption(lParam, &moCur.dwCodepageRecognitionBuffer, sizeof(DWORD), INI_DWORD);
+          case MIS_SAVEPOSITIONS:
+            return SetOption(lParam, &moCur.bSavePositions, sizeof(DWORD), INI_DWORD);
+          case MIS_SAVECODEPAGES:
+            return SetOption(lParam, &moCur.bSaveCodepages, sizeof(DWORD), INI_DWORD);
+          case MIS_RECENTFILES:
+          {
+            //Same as AKD_RECENTFILES with RF_SET
+            if (SetOption(lParam, &moCur.nRecentFiles, sizeof(DWORD), INI_DWORD))
+            {
+              RecentFilesRefresh(&hRecentFilesStack);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SEARCHSTRINGS:
+            return SetOption(lParam, &moCur.nSearchStrings, sizeof(DWORD), INI_DWORD);
+          case MIS_FILETYPESOPEN:
+            return SetOption(lParam, moCur.wszFileTypesOpen, sizeof(moCur.wszFileTypesOpen), INI_STRINGUNICODE);
+          case MIS_FILETYPESEDIT:
+            return SetOption(lParam, moCur.wszFileTypesEdit, sizeof(moCur.wszFileTypesEdit), INI_STRINGUNICODE);
+          case MIS_FILETYPESPRINT:
+            return SetOption(lParam, moCur.wszFileTypesPrint, sizeof(moCur.wszFileTypesPrint), INI_STRINGUNICODE);
+          case MIS_FILETYPESASSOCIATED:
+          {
+            if (lParam & FTA_OPEN)
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+            else
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+
+            if (lParam & FTA_EDIT)
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+            else
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+
+            if (lParam & FTA_PRINT)
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
+            else
+              AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+
+            return SetOption(lParam, &moCur.dwFileTypesAssociated, sizeof(DWORD), INI_DWORD);
+          }
+          case MIS_KEYBLAYOUTOPTIONS:
+            return SetOption(lParam, &moCur.dwKeybLayoutOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_SILENTCLOSEEMPTYMDI:
+            return SetOption(lParam, &moCur.bSilentCloseEmptyMDI, sizeof(DWORD), INI_DWORD);
+          case MIS_DATELOG:
+            return SetOption(lParam, &moCur.bDateLog, sizeof(DWORD), INI_DWORD);
+          case MIS_SAVEINREADONLYMSG:
+            return SetOption(lParam, &moCur.bSaveInReadOnlyMsg, sizeof(DWORD), INI_DWORD);
+          case MIS_DEFAULTSAVEEXT:
+            return SetOption(lParam, moCur.wszDefaultSaveExt, sizeof(moCur.wszDefaultSaveExt), INI_STRINGUNICODE);
+          case MIS_SEARCHOPTIONS:
+            return SetOption(lParam, &moCur.dwSearchOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_PRINTMARGINS:
+            return SetOption(lParam, &moCur.rcPrintMargins, sizeof(RECT), INI_BINARY);
+          case MIS_PRINTCOLOR:
+            return SetOption(lParam, &moCur.dwPrintColor, sizeof(DWORD), INI_DWORD);
+          case MIS_PRINTHEADERENABLE:
+            return SetOption(lParam, &moCur.bPrintHeaderEnable, sizeof(DWORD), INI_DWORD);
+          case MIS_PRINTHEADER:
+            return SetOption(lParam, moCur.wszPrintHeader, sizeof(moCur.wszPrintHeader), INI_STRINGUNICODE);
+          case MIS_PRINTFOOTERENABLE:
+            return SetOption(lParam, &moCur.bPrintFooterEnable, sizeof(DWORD), INI_DWORD);
+          case MIS_PRINTFOOTER:
+            return SetOption(lParam, moCur.wszPrintFooter, sizeof(moCur.wszPrintFooter), INI_STRINGUNICODE);
+          case MIS_PRINTFONTENABLE:
+            return SetOption(lParam, &moCur.bPrintFontEnable, sizeof(DWORD), INI_DWORD);
+          case MIS_PRINTFONTW:
+            return SetOption(lParam, &moCur.lfPrintFont, sizeof(LOGFONTW), INI_BINARY);
+          case MIS_LASTDIR:
+            return SetOption(lParam, moCur.wszLastDir, sizeof(moCur.wszLastDir), INI_STRINGUNICODE);
+          case MIS_SHOWPLACESBAR:
+            return SetOption(lParam, &moCur.bShowPlacesBar, sizeof(DWORD), INI_DWORD);
+        }
+        return FALSE;
+      }
+      case AKD_GETFRAMEINFO:
+      {
+        FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
+        int nType;
+        UINT_PTR dwData=0;
+        UINT_PTR *lpdwData;
+        UINT_PTR dwSize=sizeof(UINT_PTR);
+
+        if (!lpFrame)
+        {
+          if (lpFrameCurrent->hWndEditParent)
+            lpFrame=lpFrameCurrent;
+        }
+        if (wParam > 0xFFFF)
+        {
+          FRAMEINFO *fi=(FRAMEINFO *)wParam;
+
+          nType=fi->nType;
+          lpdwData=&fi->dwData;
+        }
+        else
+        {
+          nType=(int)wParam;
+          lpdwData=&dwData;
+        }
+
+        if (lpFrame)
+        {
+          switch (nType)
+          {
+            case FI_WNDEDITPARENT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->hWndEditParent;
+              break;
+            }
+            case FI_WNDEDIT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hWndEdit;
+              break;
+            }
+            case FI_DOCEDIT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hDocEdit;
+              break;
+            }
+            case FI_WNDMASTER:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hWndMaster;
+              break;
+            }
+            case FI_DOCMASTER:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hDocMaster;
+              break;
+            }
+            case FI_WNDCLONE1:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone1;
+              break;
+            }
+            case FI_DOCCLONE1:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone1;
+              break;
+            }
+            case FI_WNDCLONE2:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone2;
+              break;
+            }
+            case FI_DOCCLONE2:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone2;
+              break;
+            }
+            case FI_WNDCLONE3:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone3;
+              break;
+            }
+            case FI_DOCCLONE3:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone3;
+              break;
+            }
+            case FI_CODEPAGE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.nCodePage;
+              break;
+            }
+            case FI_BOM:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.bBOM;
+              break;
+            }
+            case FI_NEWLINE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.nNewLine;
+              break;
+            }
+            case FI_MODIFIED:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.bModified;
+              break;
+            }
+            case FI_READONLY:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.bReadOnly;
+              break;
+            }
+            case FI_WORDWRAP:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.bWordWrap;
+              break;
+            }
+            case FI_OVERTYPE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->ei.bOvertypeMode;
+              break;
+            }
+            case FI_FILEA:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynA((void *)*lpdwData, lpFrame->szFile, MAX_PATH);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->szFile;
+              break;
+            }
+            case FI_FILEW:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFile, MAX_PATH);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszFile;
+              break;
+            }
+            case FI_FILELEN:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nFileLen;
+              break;
+            }
+            case FI_STREAMOFFSET:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nStreamOffset;
+              break;
+            }
+            case FI_FILEDIRW:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFileDir, MAX_PATH);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszFileDir;
+              break;
+            }
+            case FI_FILEDIRLEN:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nFileDirLen;
+              break;
+            }
+            case FI_ICONHANDLE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->hIcon;
+              break;
+            }
+            case FI_ICONINDEX:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nIconIndex;
+              break;
+            }
+            case FI_RECTEDIT:
+            {
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(RECT);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcEditWindow, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->rcEditWindow;
+
+              break;
+            }
+            case FI_RECTMASTER:
+            {
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(RECT);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcMasterWindow, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->rcMasterWindow;
+
+              break;
+            }
+            case FI_EDITFONTW:
+            {
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(LOGFONTW);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->lf, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->lf;
+
+              break;
+            }
+            case FI_TABSTOPSIZE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nTabStopSize;
+              break;
+            }
+            case FI_TABSTOPASSPACES:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bTabStopAsSpaces;
+              break;
+            }
+            case FI_UNDOLIMIT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nUndoLimit;
+              break;
+            }
+            case FI_DETAILEDUNDO:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bDetailedUndo;
+              break;
+            }
+            case FI_WRAPTYPE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwWrapType;
+              break;
+            }
+            case FI_WRAPLIMIT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwWrapLimit;
+              break;
+            }
+            case FI_MARKER:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwMarker;
+              break;
+            }
+            case FI_CARETWIDTH:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nCaretWidth;
+              break;
+            }
+            case FI_CARETOPTIONS:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwCaretOptions;
+              break;
+            }
+            case FI_ALTLINEFILL:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwAltLineFill;
+              break;
+            }
+            case FI_ALTLINESKIP:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwAltLineSkip;
+              break;
+            }
+            case FI_ALTLINEBORDER:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bAltLineBorder;
+              break;
+            }
+            case FI_RECTMARGINS:
+            {
+              *lpdwData=(UINT_PTR)&lpFrame->rcEditMargins;
+              break;
+            }
+            case FI_LINEGAP:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwLineGap;
+              break;
+            }
+            case FI_MOUSEOPTIONS:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwMouseOptions;
+              break;
+            }
+            case FI_CLICKURL:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nClickURL;
+              break;
+            }
+            case FI_SHOWURL:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bShowURL;
+              break;
+            }
+            case FI_URLPREFIXESENABLE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bUrlPrefixesEnable;
+              break;
+            }
+            case FI_URLPREFIXES:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlPrefixes, URL_PREFIXES_SIZE);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszUrlPrefixes;
+              break;
+            }
+            case FI_URLDELIMITERSENABLE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bUrlDelimitersEnable;
+              break;
+            }
+            case FI_URLLEFTDELIMITERS:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszUrlLeftDelimiters;
+              break;
+            }
+            case FI_URLRIGHTDELIMITERS:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszUrlRightDelimiters;
+              break;
+            }
+            case FI_WORDDELIMITERSENABLE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bWordDelimitersEnable;
+              break;
+            }
+            case FI_WORDDELIMITERS:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszWordDelimiters;
+              break;
+            }
+            case FI_WRAPDELIMITERSENABLE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->bWrapDelimitersEnable;
+              break;
+            }
+            case FI_WRAPDELIMITERS:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszWrapDelimiters;
+              break;
+            }
+            case FI_MAPPEDPRINTWIDTH:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwMappedPrintWidth;
+              break;
+            }
+            case FI_INPUTLOCALE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwInputLocale;
+              break;
+            }
+            case FI_LOCKINHERIT:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->dwLockInherit;
+              break;
+            }
+            case FI_FILETIME:
+            {
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(FILETIME);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->ft, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->ft;
+
+              break;
+            }
+            case FI_COLORS:
+            {
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(AECOLORS);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->aec, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->aec;
+
+              break;
+            }
+            case FI_BKIMAGEFILE:
+            {
+              if (wParam > 0xFFFF)
+                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszBkImageFile, MAX_PATH);
+              else
+                *lpdwData=(UINT_PTR)lpFrame->wszBkImageFile;
+              break;
+            }
+            case FI_BKIMAGEALPHA:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nBkImageAlpha;
+              break;
+            }
+            case FI_STRUCTSIZE:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->cb;
+              break;
+            }
+            case FI_FRAMEID:
+            {
+              *lpdwData=(UINT_PTR)lpFrame->nFrameID;
+              break;
+            }
+          }
+
+          if (wParam > 0xFFFF)
+            return dwSize;
+          else
+            return *lpdwData;
+        }
+        return 0;
+      }
+      case AKD_SETFRAMEINFO:
       {
         FRAMEINFO *fi=(FRAMEINFO *)wParam;
 
-        nType=fi->nType;
-        lpdwData=&fi->dwData;
+        return SetFrameInfo((FRAMEDATA *)lParam, fi->nType, fi->dwData);
       }
-      else
+      case AKD_GETEDITINFO:
       {
-        nType=(int)wParam;
-        lpdwData=&dwData;
+        return GetEditInfo((HWND)wParam, (EDITINFO *)lParam);
       }
+      case AKD_SETMODIFY:
+      {
+        FRAMEDATA *lpFrame;
 
-      if (lpFrame)
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+          SetModifyStatus(lpFrame, (BOOL)lParam);
+        return 0;
+      }
+      case AKD_SETNEWLINE:
       {
-        if (nType == FI_WNDEDITPARENT)
-          *lpdwData=(UINT_PTR)lpFrame->hWndEditParent;
-        else if (nType == FI_WNDEDIT)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hWndEdit;
-        else if (nType == FI_DOCEDIT)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hDocEdit;
-        else if (nType == FI_WNDMASTER)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hWndMaster;
-        else if (nType == FI_DOCMASTER)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hDocMaster;
-        else if (nType == FI_WNDCLONE1)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone1;
-        else if (nType == FI_DOCCLONE1)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone1;
-        else if (nType == FI_WNDCLONE2)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone2;
-        else if (nType == FI_DOCCLONE2)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone2;
-        else if (nType == FI_WNDCLONE3)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hWndClone3;
-        else if (nType == FI_DOCCLONE3)
-          *lpdwData=(UINT_PTR)lpFrame->ei.hDocClone3;
-        else if (nType == FI_CODEPAGE)
-          *lpdwData=(UINT_PTR)lpFrame->ei.nCodePage;
-        else if (nType == FI_BOM)
-          *lpdwData=(UINT_PTR)lpFrame->ei.bBOM;
-        else if (nType == FI_NEWLINE)
-          *lpdwData=(UINT_PTR)lpFrame->ei.nNewLine;
-        if (nType == FI_MODIFIED)
-          *lpdwData=(UINT_PTR)lpFrame->ei.bModified;
-        else if (nType == FI_READONLY)
-          *lpdwData=(UINT_PTR)lpFrame->ei.bReadOnly;
-        else if (nType == FI_WORDWRAP)
-          *lpdwData=(UINT_PTR)lpFrame->ei.bWordWrap;
-        else if (nType == FI_OVERTYPE)
-          *lpdwData=(UINT_PTR)lpFrame->ei.bOvertypeMode;
-        else if (nType == FI_FILEA)
+        FRAMEDATA *lpFrame;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+          SetNewLineStatus(lpFrame, (int)lParam, AENL_INPUT|AENL_OUTPUT);
+        return 0;
+      }
+      case AKD_GETFONT:
+      case AKD_GETFONTA:
+      case AKD_GETFONTW:
+      {
+        FRAMEDATA *lpFrame;
+        FONTITEM *fi;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
         {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynA((void *)*lpdwData, lpFrame->szFile, MAX_PATH);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->szFile;
-        }
-        else if (nType == FI_FILEW)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFile, MAX_PATH);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszFile;
-        }
-        else if (nType == FI_FILELEN)
-          *lpdwData=(UINT_PTR)lpFrame->nFileLen;
-        else if (nType == FI_STREAMOFFSET)
-          *lpdwData=(UINT_PTR)lpFrame->nStreamOffset;
-        else if (nType == FI_FILEDIRW)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszFileDir, MAX_PATH);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszFileDir;
-        }
-        else if (nType == FI_FILEDIRLEN)
-          *lpdwData=(UINT_PTR)lpFrame->nFileDirLen;
-        else if (nType == FI_ICONHANDLE)
-          *lpdwData=(UINT_PTR)lpFrame->hIcon;
-        else if (nType == FI_ICONINDEX)
-          *lpdwData=(UINT_PTR)lpFrame->nIconIndex;
-        else if (nType == FI_RECTEDIT)
-        {
-          if (wParam > 0xFFFF)
+          if (lParam)
           {
-            dwSize=sizeof(RECT);
-            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcEditWindow, dwSize);
+            if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
+              LogFontWtoA(&lpFrame->lf, (LOGFONTA *)lParam);
+            else
+              xmemcpy((LOGFONTW *)lParam, &lpFrame->lf, sizeof(LOGFONTW));
           }
-          else *lpdwData=(UINT_PTR)&lpFrame->rcEditWindow;
+          if (fi=StackFontItemGet(&hFontsStack, &lpFrame->lf))
+            return (LRESULT)fi->hFont;
         }
-        else if (nType == FI_RECTMASTER)
+        else if (!wParam)
         {
-          if (wParam > 0xFFFF)
+          //If there is no frames, return last font handle
+          return (LRESULT)((FONTITEM *)hFontsStack.last)->hFont;
+        }
+        return (LRESULT)NULL;
+      }
+      case AKD_SETFONT:
+      case AKD_SETFONTA:
+      case AKD_SETFONTW:
+      {
+        FRAMEDATA *lpFrame;
+        LOGFONTW lfW;
+
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        {
+          if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
+            LogFontAtoW((LOGFONTA *)lParam, &lfW);
+          else
+            xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+
+          if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
           {
-            dwSize=sizeof(RECT);
-            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcMasterWindow, dwSize);
+            xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
+            UpdateMappedPrintWidth(lpFrame);
+            UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
+            return TRUE;
           }
-          else *lpdwData=(UINT_PTR)&lpFrame->rcMasterWindow;
         }
-        else if (nType == FI_EDITFONTW)
+        return FALSE;
+      }
+      case AKD_GETCODEPAGELIST:
+      {
+        int *lpnCodePage=(int *)wParam;
+
+        if (lpnCodePage)
         {
-          if (wParam > 0xFFFF)
+          *lpnCodePage=moCur.nDefaultCodePage;
+        }
+        return (LRESULT)lpCodepageList;
+      }
+      case AKD_RECENTFILES:
+      {
+        if (wParam == RF_GET)
+        {
+          STACKRECENTFILE **rfs=(STACKRECENTFILE **)lParam;
+
+          if (rfs) *rfs=&hRecentFilesStack;
+          return moCur.nRecentFiles;
+        }
+        else if (wParam == RF_SET)
+        {
+          if (moCur.nRecentFiles != lParam)
           {
-            dwSize=sizeof(LOGFONTW);
-            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->lf, dwSize);
+            moCur.nRecentFiles=(int)lParam;
+            RecentFilesRefresh(&hRecentFilesStack);
           }
-          else *lpdwData=(UINT_PTR)&lpFrame->lf;
         }
-        else if (nType == FI_TABSTOPSIZE)
-          *lpdwData=(UINT_PTR)lpFrame->nTabStopSize;
-        else if (nType == FI_TABSTOPASSPACES)
-          *lpdwData=(UINT_PTR)lpFrame->bTabStopAsSpaces;
-        else if (nType == FI_UNDOLIMIT)
-          *lpdwData=(UINT_PTR)lpFrame->nUndoLimit;
-        else if (nType == FI_DETAILEDUNDO)
-          *lpdwData=(UINT_PTR)lpFrame->bDetailedUndo;
-        else if (nType == FI_WRAPTYPE)
-          *lpdwData=(UINT_PTR)lpFrame->dwWrapType;
-        else if (nType == FI_WRAPLIMIT)
-          *lpdwData=(UINT_PTR)lpFrame->dwWrapLimit;
-        else if (nType == FI_MARKER)
-          *lpdwData=(UINT_PTR)lpFrame->dwMarker;
-        else if (nType == FI_CARETWIDTH)
-          *lpdwData=(UINT_PTR)lpFrame->nCaretWidth;
-        else if (nType == FI_CARETOPTIONS)
-          *lpdwData=(UINT_PTR)lpFrame->dwCaretOptions;
-        else if (nType == FI_ALTLINEFILL)
-          *lpdwData=(UINT_PTR)lpFrame->dwAltLineFill;
-        else if (nType == FI_ALTLINESKIP)
-          *lpdwData=(UINT_PTR)lpFrame->dwAltLineSkip;
-        else if (nType == FI_ALTLINEBORDER)
-          *lpdwData=(UINT_PTR)lpFrame->bAltLineBorder;
-        else if (nType == FI_RECTMARGINS)
-          *lpdwData=(UINT_PTR)&lpFrame->rcEditMargins;
-        else if (nType == FI_LINEGAP)
-          *lpdwData=(UINT_PTR)lpFrame->dwLineGap;
-        else if (nType == FI_MOUSEOPTIONS)
-          *lpdwData=(UINT_PTR)lpFrame->dwMouseOptions;
-        else if (nType == FI_CLICKURL)
-          *lpdwData=(UINT_PTR)lpFrame->nClickURL;
-        else if (nType == FI_SHOWURL)
-          *lpdwData=(UINT_PTR)lpFrame->bShowURL;
-        else if (nType == FI_URLPREFIXESENABLE)
-          *lpdwData=(UINT_PTR)lpFrame->bUrlPrefixesEnable;
-        else if (nType == FI_URLPREFIXES)
+        else if (wParam == RF_READ)
         {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlPrefixes, URL_PREFIXES_SIZE);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszUrlPrefixes;
+          STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
+
+          if (!rfs) rfs=&hRecentFilesStack;
+          return RecentFilesRead(rfs);
         }
-        else if (nType == FI_URLDELIMITERSENABLE)
-          *lpdwData=(UINT_PTR)lpFrame->bUrlDelimitersEnable;
-        else if (nType == FI_URLLEFTDELIMITERS)
+        else if (wParam == RF_SAVE)
         {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszUrlLeftDelimiters;
-        }
-        else if (nType == FI_URLRIGHTDELIMITERS)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszUrlRightDelimiters;
-        }
-        else if (nType == FI_WORDDELIMITERSENABLE)
-          *lpdwData=(UINT_PTR)lpFrame->bWordDelimitersEnable;
-        else if (nType == FI_WORDDELIMITERS)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszWordDelimiters;
-        }
-        else if (nType == FI_WRAPDELIMITERSENABLE)
-          *lpdwData=(UINT_PTR)lpFrame->bWrapDelimitersEnable;
-        else if (nType == FI_WRAPDELIMITERS)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszWrapDelimiters;
-        }
-        else if (nType == FI_MAPPEDPRINTWIDTH)
-          *lpdwData=(UINT_PTR)lpFrame->dwMappedPrintWidth;
-        else if (nType == FI_INPUTLOCALE)
-          *lpdwData=(UINT_PTR)lpFrame->dwInputLocale;
-        else if (nType == FI_LOCKINHERIT)
-          *lpdwData=(UINT_PTR)lpFrame->dwLockInherit;
-        else if (nType == FI_FILETIME)
-        {
-          if (wParam > 0xFFFF)
-          {
-            dwSize=sizeof(FILETIME);
-            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->ft, dwSize);
-          }
-          else *lpdwData=(UINT_PTR)&lpFrame->ft;
-        }
-        else if (nType == FI_COLORS)
-        {
-          if (wParam > 0xFFFF)
-          {
-            dwSize=sizeof(AECOLORS);
-            if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->aec, dwSize);
-          }
-          else *lpdwData=(UINT_PTR)&lpFrame->aec;
-        }
-        else if (nType == FI_BKIMAGEFILE)
-        {
-          if (wParam > 0xFFFF)
-            dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszBkImageFile, MAX_PATH);
-          else
-            *lpdwData=(UINT_PTR)lpFrame->wszBkImageFile;
-        }
-        else if (nType == FI_BKIMAGEALPHA)
-          *lpdwData=(UINT_PTR)lpFrame->nBkImageAlpha;
-        else if (nType == FI_STRUCTSIZE)
-          *lpdwData=(UINT_PTR)lpFrame->cb;
-        else if (nType == FI_FRAMEID)
-          *lpdwData=(UINT_PTR)lpFrame->nFrameID;
+          STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
-        if (wParam > 0xFFFF)
-          return dwSize;
-        else
-          return *lpdwData;
-      }
-      return 0;
-    }
-    if (uMsg == AKD_SETFRAMEINFO)
-    {
-      FRAMEINFO *fi=(FRAMEINFO *)wParam;
-
-      return SetFrameInfo((FRAMEDATA *)lParam, fi->nType, fi->dwData);
-    }
-    if (uMsg == AKD_GETEDITINFO)
-    {
-      return GetEditInfo((HWND)wParam, (EDITINFO *)lParam);
-    }
-    if (uMsg == AKD_SETMODIFY)
-    {
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        SetModifyStatus(lpFrame, (BOOL)lParam);
-      return 0;
-    }
-    if (uMsg == AKD_SETNEWLINE)
-    {
-      FRAMEDATA *lpFrame;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        SetNewLineStatus(lpFrame, (int)lParam, AENL_INPUT|AENL_OUTPUT);
-      return 0;
-    }
-    if (uMsg == AKD_GETFONT ||
-        uMsg == AKD_GETFONTA ||
-        uMsg == AKD_GETFONTW)
-    {
-      FRAMEDATA *lpFrame;
-      FONTITEM *fi;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-      {
-        if (lParam)
-        {
-          if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
-            LogFontWtoA(&lpFrame->lf, (LOGFONTA *)lParam);
-          else
-            xmemcpy((LOGFONTW *)lParam, &lpFrame->lf, sizeof(LOGFONTW));
-        }
-        if (fi=StackFontItemGet(&hFontsStack, &lpFrame->lf))
-          return (LRESULT)fi->hFont;
-      }
-      else if (!wParam)
-      {
-        //If there is no frames, return last font handle
-        return (LRESULT)((FONTITEM *)hFontsStack.last)->hFont;
-      }
-      return (LRESULT)NULL;
-    }
-    if (uMsg == AKD_SETFONT ||
-        uMsg == AKD_SETFONTA ||
-        uMsg == AKD_SETFONTW)
-    {
-      FRAMEDATA *lpFrame;
-      LOGFONTW lfW;
-
-      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-      {
-        if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
-          LogFontAtoW((LOGFONTA *)lParam, &lfW);
-        else
-          xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
-
-        if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
-        {
-          xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
-          UpdateMappedPrintWidth(lpFrame);
-          UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
-          return TRUE;
-        }
-      }
-      return FALSE;
-    }
-    if (uMsg == AKD_GETCODEPAGELIST)
-    {
-      int *lpnCodePage=(int *)wParam;
-
-      if (lpnCodePage)
-      {
-        *lpnCodePage=moCur.nDefaultCodePage;
-      }
-      return (LRESULT)lpCodepageList;
-    }
-    if (uMsg == AKD_RECENTFILES)
-    {
-      if (wParam == RF_GET)
-      {
-        STACKRECENTFILE **rfs=(STACKRECENTFILE **)lParam;
-
-        if (rfs) *rfs=&hRecentFilesStack;
-        return moCur.nRecentFiles;
-      }
-      else if (wParam == RF_SET)
-      {
-        if (moCur.nRecentFiles != lParam)
-        {
-          moCur.nRecentFiles=(int)lParam;
-          RecentFilesRefresh(&hRecentFilesStack);
-        }
-      }
-      else if (wParam == RF_READ)
-      {
-        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
-
-        if (!rfs) rfs=&hRecentFilesStack;
-        return RecentFilesRead(rfs);
-      }
-      else if (wParam == RF_SAVE)
-      {
-        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
-
-        if (!rfs) rfs=&hRecentFilesStack;
-        RecentFilesSave(rfs);
-        bMenuRecentFiles=TRUE;
-      }
-      else if (wParam == RF_CLEAR)
-      {
-        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
-
-        if (!rfs) rfs=&hRecentFilesStack;
-        RecentFilesZero(rfs);
-      }
-      else if (wParam == RF_DELETEOLD)
-      {
-        STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
-
-        if (!rfs) rfs=&hRecentFilesStack;
-        return RecentFilesDeleteOld(rfs);
-      }
-      else if (wParam == RF_FINDINDEX)
-      {
-        int nIndex;
-
-        RecentFilesFindByName((wchar_t *)lParam, &nIndex);
-        return nIndex;
-      }
-      else if (wParam == RF_DELETEINDEX)
-      {
-        RECENTFILE *rf;
-
-        if (rf=RecentFilesFindByIndex((int)lParam))
-        {
-          RecentFilesDelete(&hRecentFilesStack, rf);
+          if (!rfs) rfs=&hRecentFilesStack;
+          RecentFilesSave(rfs);
           bMenuRecentFiles=TRUE;
-          return TRUE;
         }
-      }
-      else if (wParam == RF_FINDITEMBYINDEX)
-      {
-        return (LRESULT)RecentFilesFindByIndex((int)lParam);
-      }
-      else if (wParam == RF_FINDITEMBYNAME)
-      {
-        return (LRESULT)RecentFilesFindByName((wchar_t *)lParam, NULL);
-      }
-      else if (wParam == RF_DELETEITEM)
-      {
-        RecentFilesDelete(&hRecentFilesStack, (RECENTFILE *)lParam);
-        bMenuRecentFiles=TRUE;
-      }
-      else if (wParam == RF_GETPARAM)
-      {
-        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
-
-        return (LRESULT)StackRecentFileParamGetByName(rfp->file, rfp->pParamName);
-      }
-      else if (wParam == RF_SETPARAM)
-      {
-        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
-        RECENTFILEPARAM *lpRecentFileParam;
-        int nParamNameLen;
-        int nParamValueLen;
-
-        if (!(lpRecentFileParam=StackRecentFileParamGetByName(rfp->file, rfp->pParamName)))
-          lpRecentFileParam=StackRecentFileParamAdd(rfp->file);
-
-        if (lpRecentFileParam)
+        else if (wParam == RF_CLEAR)
         {
-          if (lpRecentFileParam->pParamName) API_FreeWide(lpRecentFileParam->pParamName);
-          if (lpRecentFileParam->pParamValue) API_FreeWide(lpRecentFileParam->pParamValue);
+          STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
-          nParamNameLen=(int)xstrlenW(rfp->pParamName);
-          if (lpRecentFileParam->pParamName=API_AllocWide(nParamNameLen + 1))
-            xstrcpynW(lpRecentFileParam->pParamName, rfp->pParamName, nParamNameLen + 1);
-
-          nParamValueLen=(int)xstrlenW(rfp->pParamValue);
-          if (lpRecentFileParam->pParamValue=API_AllocWide(nParamValueLen + 1))
-            xstrcpynW(lpRecentFileParam->pParamValue, rfp->pParamValue, nParamValueLen + 1);
+          if (!rfs) rfs=&hRecentFilesStack;
+          RecentFilesZero(rfs);
         }
-        return (LRESULT)lpRecentFileParam;
-      }
-      else if (wParam == RF_DELETEPARAM)
-      {
-        RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
-
-        StackRecentFileParamDelete(rfp);
-      }
-      return 0;
-    }
-    if (uMsg == AKD_SEARCHHISTORY)
-    {
-      if (wParam == SH_GET)
-      {
-        return moCur.nSearchStrings;
-      }
-      else if (wParam == SH_CLEAR)
-      {
-        wchar_t wszRegKey[MAX_PATH];
-
-        xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-        RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
-        return moCur.nSearchStrings;
-      }
-      return 0;
-    }
-    if (uMsg == AKD_SETEDITNOTIFY)
-    {
-      SetEditNotify((HWND)wParam);
-      return 0;
-    }
-
-    //Windows
-    if (uMsg == AKD_GETMODELESS)
-    {
-      BOOL *bType=(BOOL *)lParam;
-
-      if (bType) *bType=nModelessType;
-      return (LRESULT)hDlgModeless;
-    }
-    if (uMsg == AKD_SETMODELESS)
-    {
-      hDlgModeless=(HWND)wParam;
-      if (hDlgModeless)
-        nModelessType=MLT_CUSTOM;
-      else
-        nModelessType=MLT_NONE;
-      return 0;
-    }
-    if (uMsg == AKD_RESIZE)
-    {
-      UpdateSize();
-      return 0;
-    }
-    if (uMsg == AKD_DOCK)
-    {
-      DOCK *lpDock=(DOCK *)lParam;
-      DOCK *lpResult=NULL;
-
-      if (wParam & DK_ADD)
-      {
-        lpResult=StackDockAdd(&hDocksStack, lpDock);
-        lpDock=lpResult;
-      }
-      if (wParam & DK_SUBCLASS)
-      {
-        if (lpDock->hWnd)
+        else if (wParam == RF_DELETEOLD)
         {
-          lpDock->lpOldDockProc=(WNDPROC)GetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC);
-          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)DockProc);
-        }
-      }
-      if (wParam & DK_UNSUBCLASS)
-      {
-        if (lpDock->hWnd)
-        {
-          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)lpDock->lpOldDockProc);
-        }
-      }
-      if ((wParam & DK_SETLEFT) ||
-          (wParam & DK_SETRIGHT) ||
-          (wParam & DK_SETTOP) ||
-          (wParam & DK_SETBOTTOM))
-      {
-        int nSide=0;
+          STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
-        if (wParam & DK_SETLEFT) nSide=DKS_LEFT;
-        else if (wParam & DK_SETRIGHT) nSide=DKS_RIGHT;
-        else if (wParam & DK_SETTOP) nSide=DKS_TOP;
-        else if (wParam & DK_SETBOTTOM) nSide=DKS_BOTTOM;
+          if (!rfs) rfs=&hRecentFilesStack;
+          return RecentFilesDeleteOld(rfs);
+        }
+        else if (wParam == RF_FINDINDEX)
+        {
+          int nIndex;
 
-        if (nSide)
-        {
-          DockSetSide(&hDocksStack, lpDock, nSide);
+          RecentFilesFindByName((wchar_t *)lParam, &nIndex);
+          return nIndex;
         }
-      }
-      if (wParam & DK_HIDE)
-      {
-        if (lpDock->hWnd)
+        else if (wParam == RF_DELETEINDEX)
         {
-          lpDock->dwFlags|=DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, SW_HIDE);
-          UpdateSize();
-        }
-      }
-      if (wParam & DK_SHOW)
-      {
-        if (lpDock->hWnd)
-        {
-          lpDock->dwFlags&=~DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, SW_SHOW);
-          UpdateSize();
-        }
-      }
-      if ((wParam & DK_FINDDOCK) ||
-          (wParam & DK_FINDCHILD))
-      {
-        if (lpDock->hWnd)
-        {
-          lpResult=StackDockFindWindow(&hDocksStack, lpDock->hWnd, (wParam & DK_FINDCHILD)?TRUE:FALSE);
-        }
-      }
-      if (wParam & DK_DELETE)
-      {
-        if (lpDock)
-        {
-          StackDockDelete(&hDocksStack, lpDock);
-        }
-      }
-      return (LRESULT)lpResult;
-    }
-    if (uMsg == AKD_SETBUTTONDRAW)
-    {
-      SetButtonDraw((HWND)wParam, (BUTTONDRAW *)lParam);
-      return 0;
-    }
-    if (uMsg == AKD_SETHOTKEYINPUT)
-    {
-      SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, lParam);
-      lpOldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
-      SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewHotkeyInputProc);
+          RECENTFILE *rf;
 
-      //Update cursor
-      SendMessage((HWND)wParam, WM_SETCURSOR, 0, 0);
-      return 0;
-    }
-    if (uMsg == AKD_DIALOGRESIZE)
-    {
-      DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
-
-      return DialogResizeMessages(drsm->drs, drsm->rcMinMax, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
-    }
-    if (uMsg == AKD_UPDATESTATUSUSER)
-    {
-      UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
-      return 0;
-    }
-
-    //Frames
-    if (uMsg == AKD_FRAMEACTIVATE)
-    {
-      return (LRESULT)ActivateFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
-    }
-    if (uMsg == AKD_FRAMENEXT)
-    {
-      return (LRESULT)ActivateNextFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
-    }
-    if (uMsg == AKD_FRAMEDESTROY)
-    {
-      return DestroyFrameWindow((FRAMEDATA *)lParam);
-    }
-    if (uMsg == AKD_FRAMEFIND ||
-        uMsg == AKD_FRAMEFINDA ||
-        uMsg == AKD_FRAMEFINDW)
-    {
-      if (wParam == FWF_CURRENT)
-      {
-        if (nMDI == WMD_MDI)
-        {
-          if (!lpFrameCurrent->hWndEditParent)
-            return (LRESULT)NULL;
+          if (rf=RecentFilesFindByIndex((int)lParam))
+          {
+            RecentFilesDelete(&hRecentFilesStack, rf);
+            bMenuRecentFiles=TRUE;
+            return TRUE;
+          }
         }
-        return (LRESULT)lpFrameCurrent;
-      }
-      if (wParam == FWF_NEXT)
-      {
-        return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, FALSE);
-      }
-      if (wParam == FWF_PREV)
-      {
-        return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, TRUE);
-      }
-      if (wParam == FWF_BYINDEX)
-        return (LRESULT)StackFrameGetByIndex(&hFramesStack, (int)lParam);
-      if (wParam == FWF_BYFILENAME)
-      {
-        wchar_t *wpFileName=API_AllocWide(MAX_PATH);
-        FRAMEDATA *lpResult;
-        int nFileNameLen;
+        else if (wParam == RF_FINDITEMBYINDEX)
+        {
+          return (LRESULT)RecentFilesFindByIndex((int)lParam);
+        }
+        else if (wParam == RF_FINDITEMBYNAME)
+        {
+          return (LRESULT)RecentFilesFindByName((wchar_t *)lParam, NULL);
+        }
+        else if (wParam == RF_DELETEITEM)
+        {
+          RecentFilesDelete(&hRecentFilesStack, (RECENTFILE *)lParam);
+          bMenuRecentFiles=TRUE;
+        }
+        else if (wParam == RF_GETPARAM)
+        {
+          RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
 
-        if (uMsg == AKD_FRAMEFINDA || (bOldWindows && uMsg == AKD_FRAMEFIND))
-          nFileNameLen=(int)xprintfW(wpFileName, L"%S", (char *)lParam);
+          return (LRESULT)StackRecentFileParamGetByName(rfp->file, rfp->pParamName);
+        }
+        else if (wParam == RF_SETPARAM)
+        {
+          RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
+          RECENTFILEPARAM *lpRecentFileParam;
+          int nParamNameLen;
+          int nParamValueLen;
+
+          if (!(lpRecentFileParam=StackRecentFileParamGetByName(rfp->file, rfp->pParamName)))
+            lpRecentFileParam=StackRecentFileParamAdd(rfp->file);
+
+          if (lpRecentFileParam)
+          {
+            if (lpRecentFileParam->pParamName) API_FreeWide(lpRecentFileParam->pParamName);
+            if (lpRecentFileParam->pParamValue) API_FreeWide(lpRecentFileParam->pParamValue);
+
+            nParamNameLen=(int)xstrlenW(rfp->pParamName);
+            if (lpRecentFileParam->pParamName=API_AllocWide(nParamNameLen + 1))
+              xstrcpynW(lpRecentFileParam->pParamName, rfp->pParamName, nParamNameLen + 1);
+
+            nParamValueLen=(int)xstrlenW(rfp->pParamValue);
+            if (lpRecentFileParam->pParamValue=API_AllocWide(nParamValueLen + 1))
+              xstrcpynW(lpRecentFileParam->pParamValue, rfp->pParamValue, nParamValueLen + 1);
+          }
+          return (LRESULT)lpRecentFileParam;
+        }
+        else if (wParam == RF_DELETEPARAM)
+        {
+          RECENTFILEPARAM *rfp=(RECENTFILEPARAM *)lParam;
+
+          StackRecentFileParamDelete(rfp);
+        }
+        return 0;
+      }
+      case AKD_SEARCHHISTORY:
+      {
+        if (wParam == SH_GET)
+        {
+          return moCur.nSearchStrings;
+        }
+        else if (wParam == SH_CLEAR)
+        {
+          wchar_t wszRegKey[MAX_PATH];
+
+          xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
+          RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+          return moCur.nSearchStrings;
+        }
+        return 0;
+      }
+      case AKD_SETEDITNOTIFY:
+      {
+        SetEditNotify((HWND)wParam);
+        return 0;
+      }
+
+      //Windows
+      case AKD_GETMODELESS:
+      {
+        BOOL *bType=(BOOL *)lParam;
+
+        if (bType) *bType=nModelessType;
+        return (LRESULT)hDlgModeless;
+      }
+      case AKD_SETMODELESS:
+      {
+        hDlgModeless=(HWND)wParam;
+        if (hDlgModeless)
+          nModelessType=MLT_CUSTOM;
         else
-          nFileNameLen=(int)xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
-        lpResult=StackFrameGetByName(&hFramesStack, wpFileName, nFileNameLen);
+          nModelessType=MLT_NONE;
+        return 0;
+      }
+      case AKD_RESIZE:
+      {
+        UpdateSize();
+        return 0;
+      }
+      case AKD_DOCK:
+      {
+        DOCK *lpDock=(DOCK *)lParam;
+        DOCK *lpResult=NULL;
 
-        API_FreeWide(wpFileName);
+        if (wParam & DK_ADD)
+        {
+          lpResult=StackDockAdd(&hDocksStack, lpDock);
+          lpDock=lpResult;
+        }
+        if (wParam & DK_SUBCLASS)
+        {
+          if (lpDock->hWnd)
+          {
+            lpDock->lpOldDockProc=(WNDPROC)GetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC);
+            SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)DockProc);
+          }
+        }
+        if (wParam & DK_UNSUBCLASS)
+        {
+          if (lpDock->hWnd)
+          {
+            SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)lpDock->lpOldDockProc);
+          }
+        }
+        if ((wParam & DK_SETLEFT) ||
+            (wParam & DK_SETRIGHT) ||
+            (wParam & DK_SETTOP) ||
+            (wParam & DK_SETBOTTOM))
+        {
+          int nSide=0;
+
+          if (wParam & DK_SETLEFT) nSide=DKS_LEFT;
+          else if (wParam & DK_SETRIGHT) nSide=DKS_RIGHT;
+          else if (wParam & DK_SETTOP) nSide=DKS_TOP;
+          else if (wParam & DK_SETBOTTOM) nSide=DKS_BOTTOM;
+
+          if (nSide)
+          {
+            DockSetSide(&hDocksStack, lpDock, nSide);
+          }
+        }
+        if (wParam & DK_HIDE)
+        {
+          if (lpDock->hWnd)
+          {
+            lpDock->dwFlags|=DKF_HIDDEN;
+            ShowWindow(lpDock->hWnd, SW_HIDE);
+            UpdateSize();
+          }
+        }
+        if (wParam & DK_SHOW)
+        {
+          if (lpDock->hWnd)
+          {
+            lpDock->dwFlags&=~DKF_HIDDEN;
+            ShowWindow(lpDock->hWnd, SW_SHOW);
+            UpdateSize();
+          }
+        }
+        if ((wParam & DK_FINDDOCK) ||
+            (wParam & DK_FINDCHILD))
+        {
+          if (lpDock->hWnd)
+          {
+            lpResult=StackDockFindWindow(&hDocksStack, lpDock->hWnd, (wParam & DK_FINDCHILD)?TRUE:FALSE);
+          }
+        }
+        if (wParam & DK_DELETE)
+        {
+          if (lpDock)
+          {
+            StackDockDelete(&hDocksStack, lpDock);
+          }
+        }
         return (LRESULT)lpResult;
       }
-      if (wParam == FWF_BYEDITWINDOW)
-        return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
-      if (wParam == FWF_BYEDITDOCUMENT)
-        return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
-      if (wParam == FWF_BYTABINDEX)
-        return (LRESULT)GetTabParamFromItem(hTab, (int)lParam);
-      if (wParam == FWF_TABNEXT)
-        return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, FALSE);
-      if (wParam == FWF_TABPREV)
-        return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, TRUE);
-      return 0;
-    }
-    if (uMsg == AKD_FRAMESTATS)
-    {
-      if (wParam == FWS_COUNTALL)
-        return nDocumentsCount;
-      if (wParam == FWS_COUNTMODIFIED)
-        return nDocumentsModified;
-      if (wParam == FWS_COUNTSAVED)
-        return nDocumentsCount - nDocumentsModified;
-      if (wParam == FWS_CURSEL)
-        return nDocumentIndex;
-      return 0;
-    }
-    if (uMsg == AKD_FRAMENOWINDOWS)
-    {
-      return FrameNoWindows();
-    }
-    if (uMsg == AKD_FRAMEISVALID)
-    {
-      return (LRESULT)StackFrameIsValid(&hFramesStack, (FRAMEDATA *)lParam);
-    }
-    if (uMsg == AKD_FRAMEINDEX)
-    {
-      if (wParam)
-        return StackFrameGetIndex(&hFramesStack, (FRAMEDATA *)lParam);
-      else
-        return GetTabItemFromParam(hTab, lParam);
-    }
-    if (uMsg == AKD_FRAMEINIT)
-    {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
-
-      if (!lpFrame) lpFrame=lpFrameCurrent;
-      CopyFrameData((FRAMEDATA *)lParam, lpFrame);
-      return 0;
-    }
-    if (uMsg == AKD_FRAMEAPPLYEDIT)
-    {
-      SetEditWindowSettings((FRAMEDATA *)lParam);
-      return 0;
-    }
-
-    //Thread
-    if (uMsg == AKD_MEMCREATE)
-    {
-      return (LRESULT)MemCreate((const char *)wParam, (DWORD)lParam);
-    }
-    if (uMsg == AKD_MEMMAP)
-    {
-      return (LRESULT)MemMap((HANDLE)wParam, (DWORD)lParam);
-    }
-    if (uMsg == AKD_MEMUNMAP)
-    {
-      return (LRESULT)MemUnmap((void *)wParam);
-    }
-    if (uMsg == AKD_MEMCLOSE)
-    {
-      return (LRESULT)MemClose((HANDLE)wParam);
-    }
-    if (uMsg == AKD_STRLENA)
-    {
-      return xstrlenA((char *)wParam);
-    }
-    if (uMsg == AKD_STRLENW)
-    {
-      return xstrlenW((wchar_t *)wParam);
-    }
-    if (uMsg == AKD_CREATEWINDOW)
-    {
-      CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
-
-      return (LRESULT)CreateWindowExWide(0, cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
-    }
-    if (uMsg == AKD_WAITKEYBOARD)
-    {
-      BYTE lpKeyState[256];
-      MSG msg;
-      int i;
-
-      Loop:
-      Sleep(0);
-
-      if (GetKeyboardState(lpKeyState))
+      case AKD_SETBUTTONDRAW:
       {
-        for (i=0; i < 256; ++i)
-        {
-          if (lpKeyState[i] & 0x80)
-          {
-            if (wParam) return 1;
+        SetButtonDraw((HWND)wParam, (BUTTONDRAW *)lParam);
+        return 0;
+      }
+      case AKD_SETHOTKEYINPUT:
+      {
+        SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, lParam);
+        lpOldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
+        SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewHotkeyInputProc);
 
-            while (PeekMessageWide(&msg, NULL, 0, 0, PM_REMOVE))
+        //Update cursor
+        SendMessage((HWND)wParam, WM_SETCURSOR, 0, 0);
+        return 0;
+      }
+      case AKD_DIALOGRESIZE:
+      {
+        DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+
+        return DialogResizeMessages(drsm->drs, drsm->rcMinMax, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+      }
+      case AKD_UPDATESTATUSUSER:
+      {
+        UpdateStatusUser(lpFrameCurrent, (DWORD)-1);
+        return 0;
+      }
+
+      //Frames
+      case AKD_FRAMEACTIVATE:
+      {
+        return (LRESULT)ActivateFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
+      }
+      case AKD_FRAMENEXT:
+      {
+        return (LRESULT)ActivateNextFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
+      }
+      case AKD_FRAMEDESTROY:
+      {
+        return DestroyFrameWindow((FRAMEDATA *)lParam);
+      }
+      case AKD_FRAMEFIND:
+      case AKD_FRAMEFINDA:
+      case AKD_FRAMEFINDW:
+      {
+        if (wParam == FWF_CURRENT)
+        {
+          if (nMDI == WMD_MDI)
+          {
+            if (!lpFrameCurrent->hWndEditParent)
+              return (LRESULT)NULL;
+          }
+          return (LRESULT)lpFrameCurrent;
+        }
+        if (wParam == FWF_NEXT)
+        {
+          return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, FALSE);
+        }
+        if (wParam == FWF_PREV)
+        {
+          return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, TRUE);
+        }
+        if (wParam == FWF_BYINDEX)
+          return (LRESULT)StackFrameGetByIndex(&hFramesStack, (int)lParam);
+        if (wParam == FWF_BYFILENAME)
+        {
+          wchar_t *wpFileName=API_AllocWide(MAX_PATH);
+          FRAMEDATA *lpResult;
+          int nFileNameLen;
+
+          if (uMsg == AKD_FRAMEFINDA || (bOldWindows && uMsg == AKD_FRAMEFIND))
+            nFileNameLen=(int)xprintfW(wpFileName, L"%S", (char *)lParam);
+          else
+            nFileNameLen=(int)xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
+          lpResult=StackFrameGetByName(&hFramesStack, wpFileName, nFileNameLen);
+
+          API_FreeWide(wpFileName);
+          return (LRESULT)lpResult;
+        }
+        if (wParam == FWF_BYEDITWINDOW)
+          return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
+        if (wParam == FWF_BYEDITDOCUMENT)
+          return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
+        if (wParam == FWF_BYTABINDEX)
+          return (LRESULT)GetTabParamFromItem(hTab, (int)lParam);
+        if (wParam == FWF_TABNEXT)
+          return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, FALSE);
+        if (wParam == FWF_TABPREV)
+          return (LRESULT)GetNextTabFrame((FRAMEDATA *)lParam, TRUE);
+        return 0;
+      }
+      case AKD_FRAMESTATS:
+      {
+        if (wParam == FWS_COUNTALL)
+          return nDocumentsCount;
+        if (wParam == FWS_COUNTMODIFIED)
+          return nDocumentsModified;
+        if (wParam == FWS_COUNTSAVED)
+          return nDocumentsCount - nDocumentsModified;
+        if (wParam == FWS_CURSEL)
+          return nDocumentIndex;
+        return 0;
+      }
+      case AKD_FRAMENOWINDOWS:
+      {
+        return FrameNoWindows();
+      }
+      case AKD_FRAMEISVALID:
+      {
+        return (LRESULT)StackFrameIsValid(&hFramesStack, (FRAMEDATA *)lParam);
+      }
+      case AKD_FRAMEINDEX:
+      {
+        if (wParam)
+          return StackFrameGetIndex(&hFramesStack, (FRAMEDATA *)lParam);
+        else
+          return GetTabItemFromParam(hTab, lParam);
+      }
+      case AKD_FRAMEINIT:
+      {
+        FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
+        if (!lpFrame) lpFrame=lpFrameCurrent;
+        CopyFrameData((FRAMEDATA *)lParam, lpFrame);
+        return 0;
+      }
+      case AKD_FRAMEAPPLYEDIT:
+      {
+        SetEditWindowSettings((FRAMEDATA *)lParam);
+        return 0;
+      }
+
+      //Thread
+      case AKD_MEMCREATE:
+      {
+        return (LRESULT)MemCreate((const char *)wParam, (DWORD)lParam);
+      }
+      case AKD_MEMMAP:
+      {
+        return (LRESULT)MemMap((HANDLE)wParam, (DWORD)lParam);
+      }
+      case AKD_MEMUNMAP:
+      {
+        return (LRESULT)MemUnmap((void *)wParam);
+      }
+      case AKD_MEMCLOSE:
+      {
+        return (LRESULT)MemClose((HANDLE)wParam);
+      }
+      case AKD_STRLENA:
+      {
+        return xstrlenA((char *)wParam);
+      }
+      case AKD_STRLENW:
+      {
+        return xstrlenW((wchar_t *)wParam);
+      }
+      case AKD_CREATEWINDOW:
+      {
+        CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
+
+        return (LRESULT)CreateWindowExWide(0, cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
+      }
+      case AKD_WAITKEYBOARD:
+      {
+        BYTE lpKeyState[256];
+        MSG msg;
+        int i;
+
+        Loop:
+        Sleep(0);
+
+        if (GetKeyboardState(lpKeyState))
+        {
+          for (i=0; i < 256; ++i)
+          {
+            if (lpKeyState[i] & 0x80)
             {
-              TranslateMessageAll(TMSG_ALL, &msg);
+              if (wParam) return 1;
+
+              while (PeekMessageWide(&msg, NULL, 0, 0, PM_REMOVE))
+              {
+                TranslateMessageAll(TMSG_ALL, &msg);
+              }
+              goto Loop;
             }
-            goto Loop;
           }
         }
+        return 0;
       }
-      return 0;
-    }
-    if (uMsg == AKD_GETQUEUE)
-    {
-      return GetQueueStatus((UINT)wParam);
-    }
-    if (uMsg == AKD_TRANSLATEMESSAGE)
-    {
-      return TranslateMessageAll((DWORD)wParam, (LPMSG)lParam);
-    }
-    if (uMsg == AKD_MESSAGEBOX)
-    {
-      DIALOGMESSAGEBOX *dmb=(DIALOGMESSAGEBOX *)lParam;
-
-      return MessageBoxCustom(dmb->hWndParent, dmb->wpText, dmb->wpCaption, dmb->uType, dmb->hIcon, dmb->bmb);
-    }
-    if (uMsg == AKD_GETFOCUS)
-    {
-      return (LRESULT)GetFocus();
-    }
-    if (uMsg == AKD_PEEKMESSAGE)
-    {
-      return (LRESULT)PeekMessage((LPMSG)lParam, (HWND)wParam, 0, 0, PM_REMOVE);
-    }
-    if (uMsg == AKD_UNIQUEID)
-    {
-      return ++nUniqueID;
-    }
-
-    //Plugin options
-    if (uMsg == AKD_BEGINOPTIONS ||
-        uMsg == AKD_BEGINOPTIONSA ||
-        uMsg == AKD_BEGINOPTIONSW)
-    {
-      if (moCur.nSaveSettings == SS_REGISTRY)
+      case AKD_GETQUEUE:
       {
-        REGHANDLE *rh;
+        return GetQueueStatus((UINT)wParam);
+      }
+      case AKD_TRANSLATEMESSAGE:
+      {
+        return TranslateMessageAll((DWORD)wParam, (LPMSG)lParam);
+      }
+      case AKD_MESSAGEBOX:
+      {
+        DIALOGMESSAGEBOX *dmb=(DIALOGMESSAGEBOX *)lParam;
 
-        if (rh=(REGHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(REGHANDLE)))
+        return MessageBoxCustom(dmb->hWndParent, dmb->wpText, dmb->wpCaption, dmb->uType, dmb->hIcon, dmb->bmb);
+      }
+      case AKD_GETFOCUS:
+      {
+        return (LRESULT)GetFocus();
+      }
+      case AKD_PEEKMESSAGE:
+      {
+        return (LRESULT)PeekMessage((LPMSG)lParam, (HWND)wParam, 0, 0, PM_REMOVE);
+      }
+      case AKD_UNIQUEID:
+      {
+        return ++nUniqueID;
+      }
+
+      //Plugin options
+      case AKD_BEGINOPTIONS:
+      case AKD_BEGINOPTIONSA:
+      case AKD_BEGINOPTIONSW:
+      {
+        if (moCur.nSaveSettings == SS_REGISTRY)
         {
-          rh->dwType=(DWORD)wParam;
+          REGHANDLE *rh;
 
-          if (!(rh->dwType & POB_PROGRAM) && lParam)
+          if (rh=(REGHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(REGHANDLE)))
           {
-            if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
-            else
-              xprintfW(rh->wszKey, L"%s\\Plugs\\%s%s", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
+            rh->dwType=(DWORD)wParam;
+
+            if (!(rh->dwType & POB_PROGRAM) && lParam)
+            {
+              if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
+                xprintfW(rh->wszKey, L"%s\\Plugs\\%s%S", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
+              else
+                xprintfW(rh->wszKey, L"%s\\Plugs\\%s%s", APP_REGHOMEW, ((rh->dwType & POB_SCRIPTS) && !(rh->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
+            }
+            else xprintfW(rh->wszKey, L"%s\\Options", APP_REGHOMEW);
+
+            if (rh->dwType & POB_READ)
+            {
+              if (RegOpenKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, KEY_READ, &rh->hKey) != ERROR_SUCCESS)
+              {
+                API_HeapFree(hHeap, 0, (LPVOID)rh);
+                rh=NULL;
+              }
+            }
+            else if (rh->dwType & POB_SAVE)
+            {
+              if (rh->dwType & POB_CLEAR)
+              {
+                RegClearKeyWide(HKEY_CURRENT_USER, rh->wszKey);
+              }
+              if (RegCreateKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &rh->hKey, NULL) != ERROR_SUCCESS)
+              {
+                API_HeapFree(hHeap, 0, (LPVOID)rh);
+                rh=NULL;
+              }
+            }
           }
-          else xprintfW(rh->wszKey, L"%s\\Options", APP_REGHOMEW);
+          return (LRESULT)rh;
+        }
+        else
+        {
+          INIHANDLE *ih;
+
+          if (ih=(INIHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLE)))
+          {
+            ih->dwType=(DWORD)wParam;
+
+            if (!(ih->dwType & POB_PROGRAM) && lParam)
+            {
+              if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
+                xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
+              else
+                xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
+            }
+            else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
+
+            if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
+            {
+              API_HeapFree(hHeap, 0, (LPVOID)ih);
+              ih=NULL;
+            }
+            else if ((ih->dwType & POB_SAVE) && (ih->dwType & POB_CLEAR))
+            {
+              INISECTION *lpIniSection;
+
+              if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE))
+                StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
+            }
+          }
+          return (LRESULT)ih;
+        }
+      }
+      case AKD_OPTION:
+      case AKD_OPTIONA:
+      case AKD_OPTIONW:
+      {
+        PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
+        wchar_t *wpOptionName;
+        DWORD dwType=0;
+        int nResult=0;
+        BOOL bAnsi;
+
+        if (uMsg == AKD_OPTIONA || (bOldWindows && uMsg == AKD_OPTION))
+        {
+          bAnsi=TRUE;
+          wpOptionName=AllocWide((char *)po->pOptionName);
+        }
+        else
+        {
+          bAnsi=FALSE;
+          wpOptionName=(wchar_t *)po->pOptionName;
+        }
+
+        if (moCur.nSaveSettings == SS_REGISTRY)
+        {
+          REGHANDLE *rh=(REGHANDLE *)wParam;
+          BYTE *lpData;
+          DWORD dwSize;
+
+          if (po->dwType == PO_DWORD)
+            dwType=REG_DWORD;
+          else if (po->dwType == PO_BINARY)
+            dwType=REG_BINARY;
+          else if (po->dwType == PO_STRING)
+            dwType=REG_SZ;
 
           if (rh->dwType & POB_READ)
           {
-            if (RegOpenKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, KEY_READ, &rh->hKey) != ERROR_SUCCESS)
+            if (po->dwType != PO_REMOVE)
             {
-              API_HeapFree(hHeap, 0, (LPVOID)rh);
-              rh=NULL;
+              if (po->dwType == PO_ENUM)
+              {
+                if (!po->lpData)
+                {
+                  //RegEnumValue not accept NULL
+                  lpData=(LPBYTE)wbuf;
+                  dwSize=BUFFER_SIZE;
+                }
+                else
+                {
+                  lpData=po->lpData;
+                  dwSize=po->dwData;
+                }
+                if (RegEnumValueWide(rh->hKey, (DWORD)(UINT_PTR)wpOptionName, (wchar_t *)lpData, &dwSize, NULL, &dwType, NULL, NULL) == ERROR_SUCCESS)
+                  nResult=(dwSize + 1) * sizeof(wchar_t);
+                else
+                  nResult=-1;
+              }
+              else
+              {
+                dwSize=po->dwData;
+                if (RegQueryValueExWide(rh->hKey, wpOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+                  nResult=dwSize;
+                else
+                  nResult=-1;
+              }
             }
           }
           else if (rh->dwType & POB_SAVE)
           {
-            if (rh->dwType & POB_CLEAR)
+            if (po->dwType == PO_REMOVE)
             {
-              RegClearKeyWide(HKEY_CURRENT_USER, rh->wszKey);
+              if (RegDeleteValueWide(rh->hKey, wpOptionName) == ERROR_SUCCESS)
+                nResult=TRUE;
             }
-            if (RegCreateKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &rh->hKey, NULL) != ERROR_SUCCESS)
+            else
             {
-              API_HeapFree(hHeap, 0, (LPVOID)rh);
-              rh=NULL;
+              if (RegSetValueExWide(rh->hKey, wpOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+                nResult=TRUE;
             }
           }
         }
-        return (LRESULT)rh;
+        else
+        {
+          INIHANDLE *ih=(INIHANDLE *)wParam;
+
+          if (po->dwType == PO_DWORD)
+            dwType=INI_DWORD;
+          else if (po->dwType == PO_BINARY)
+            dwType=INI_BINARY;
+          else if (po->dwType == PO_STRING)
+            dwType=bAnsi?INI_STRINGANSI:INI_STRINGUNICODE;
+
+          if (ih->dwType & POB_READ)
+          {
+            if (po->dwType != PO_REMOVE)
+            {
+              if (po->dwType == PO_ENUM)
+                nResult=IniEnumKey(&ih->hIniFile, L"Options", (int)(UINT_PTR)wpOptionName, (LPBYTE)po->lpData, po->dwData);
+              else
+                nResult=IniGetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            }
+          }
+          else if (ih->dwType & POB_SAVE)
+          {
+            if (po->dwType == PO_REMOVE)
+              nResult=IniDelKey(&ih->hIniFile, L"Options", wpOptionName);
+            else
+              nResult=IniSetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          }
+        }
+        if (bAnsi)
+          FreeWide(wpOptionName);
+        return nResult;
       }
-      else
+      case AKD_ENDOPTIONS:
+      {
+        BOOL bResult=FALSE;
+
+        if (wParam)
+        {
+          if (moCur.nSaveSettings == SS_REGISTRY)
+          {
+            REGHANDLE *rh=(REGHANDLE *)wParam;
+
+            if (RegCloseKey(rh->hKey) == ERROR_SUCCESS)
+              bResult=TRUE;
+            API_HeapFree(hHeap, 0, (LPVOID)rh);
+          }
+          else
+          {
+            INIHANDLE *ih=(INIHANDLE *)wParam;
+
+            if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
+              bResult=TRUE;
+            else if (ih->dwType & POB_SAVE)
+              bResult=SaveIni(&ih->hIniFile, ih->wszIniFile);
+            StackFreeIni(&ih->hIniFile);
+            API_HeapFree(hHeap, 0, (LPVOID)ih);
+          }
+        }
+        return bResult;
+      }
+      case AKD_INIOPEN:
+      case AKD_INIOPENA:
+      case AKD_INIOPENW:
       {
         INIHANDLE *ih;
 
@@ -3730,162 +4079,129 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           ih->dwType=(DWORD)wParam;
 
-          if (!(ih->dwType & POB_PROGRAM) && lParam)
-          {
-            if (uMsg == AKD_BEGINOPTIONSA || (bOldWindows && uMsg == AKD_BEGINOPTIONS))
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%S.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (char *)lParam);
-            else
-              xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
-          }
-          else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
+          if (uMsg == AKD_INIOPENA || (bOldWindows && uMsg == AKD_INIOPEN))
+            xprintfW(ih->wszIniFile, L"%S", (char *)lParam);
+          else
+            xprintfW(ih->wszIniFile, L"%s", (wchar_t *)lParam);
 
           if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
           {
             API_HeapFree(hHeap, 0, (LPVOID)ih);
             ih=NULL;
           }
-          else if ((ih->dwType & POB_SAVE) && (ih->dwType & POB_CLEAR))
-          {
-            INISECTION *lpIniSection;
-
-            if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE))
-              StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
-          }
         }
         return (LRESULT)ih;
       }
-    }
-    if (uMsg == AKD_OPTION ||
-        uMsg == AKD_OPTIONA ||
-        uMsg == AKD_OPTIONW)
-    {
-      PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
-      wchar_t *wpOptionName;
-      DWORD dwType=0;
-      int nResult=0;
-      BOOL bAnsi;
-
-      if (uMsg == AKD_OPTIONA || (bOldWindows && uMsg == AKD_OPTION))
-      {
-        bAnsi=TRUE;
-        wpOptionName=AllocWide((char *)po->pOptionName);
-      }
-      else
-      {
-        bAnsi=FALSE;
-        wpOptionName=(wchar_t *)po->pOptionName;
-      }
-
-      if (moCur.nSaveSettings == SS_REGISTRY)
-      {
-        REGHANDLE *rh=(REGHANDLE *)wParam;
-        BYTE *lpData;
-        DWORD dwSize;
-
-        if (po->dwType == PO_DWORD)
-          dwType=REG_DWORD;
-        else if (po->dwType == PO_BINARY)
-          dwType=REG_BINARY;
-        else if (po->dwType == PO_STRING)
-          dwType=REG_SZ;
-
-        if (rh->dwType & POB_READ)
-        {
-          if (po->dwType != PO_REMOVE)
-          {
-            if (po->dwType == PO_ENUM)
-            {
-              if (!po->lpData)
-              {
-                //RegEnumValue not accept NULL
-                lpData=(LPBYTE)wbuf;
-                dwSize=BUFFER_SIZE;
-              }
-              else
-              {
-                lpData=po->lpData;
-                dwSize=po->dwData;
-              }
-              if (RegEnumValueWide(rh->hKey, (DWORD)(UINT_PTR)wpOptionName, (wchar_t *)lpData, &dwSize, NULL, &dwType, NULL, NULL) == ERROR_SUCCESS)
-                nResult=(dwSize + 1) * sizeof(wchar_t);
-              else
-                nResult=-1;
-            }
-            else
-            {
-              dwSize=po->dwData;
-              if (RegQueryValueExWide(rh->hKey, wpOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-                nResult=dwSize;
-              else
-                nResult=-1;
-            }
-          }
-        }
-        else if (rh->dwType & POB_SAVE)
-        {
-          if (po->dwType == PO_REMOVE)
-          {
-            if (RegDeleteValueWide(rh->hKey, wpOptionName) == ERROR_SUCCESS)
-              nResult=TRUE;
-          }
-          else
-          {
-            if (RegSetValueExWide(rh->hKey, wpOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-              nResult=TRUE;
-          }
-        }
-      }
-      else
+      case AKD_INIGETSECTION:
+      case AKD_INIGETSECTIONA:
+      case AKD_INIGETSECTIONW:
       {
         INIHANDLE *ih=(INIHANDLE *)wParam;
+        wchar_t *wpSection=API_AllocWide(MAX_PATH);
+        int nSectionLen;
+        INISECTION *lpResult;
 
-        if (po->dwType == PO_DWORD)
-          dwType=INI_DWORD;
-        else if (po->dwType == PO_BINARY)
-          dwType=INI_BINARY;
-        else if (po->dwType == PO_STRING)
-          dwType=bAnsi?INI_STRINGANSI:INI_STRINGUNICODE;
+        if (uMsg == AKD_INIGETSECTIONA || (bOldWindows && uMsg == AKD_INIGETSECTION))
+          nSectionLen=(int)xprintfW(wpSection, L"%S", (char *)lParam);
+        else
+          nSectionLen=(int)xprintfW(wpSection, L"%s", (wchar_t *)lParam);
+        lpResult=StackOpenIniSection(&ih->hIniFile, wpSection, nSectionLen, FALSE);
 
-        if (ih->dwType & POB_READ)
-        {
-          if (po->dwType != PO_REMOVE)
-          {
-            if (po->dwType == PO_ENUM)
-              nResult=IniEnumKey(&ih->hIniFile, L"Options", (int)(UINT_PTR)wpOptionName, (LPBYTE)po->lpData, po->dwData);
-            else
-              nResult=IniGetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
-          }
-        }
-        else if (ih->dwType & POB_SAVE)
-        {
-          if (po->dwType == PO_REMOVE)
-            nResult=IniDelKey(&ih->hIniFile, L"Options", wpOptionName);
-          else
-            nResult=IniSetValue(&ih->hIniFile, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
-        }
+        API_FreeWide(wpSection);
+        return (LRESULT)lpResult;
       }
-      if (bAnsi)
-        FreeWide(wpOptionName);
-      return nResult;
-    }
-    if (uMsg == AKD_ENDOPTIONS)
-    {
-      BOOL bResult=FALSE;
-
-      if (wParam)
+      case AKD_INICLEARSECTION:
+      case AKD_INIDELETESECTION:
       {
-        if (moCur.nSaveSettings == SS_REGISTRY)
-        {
-          REGHANDLE *rh=(REGHANDLE *)wParam;
+        INIHANDLE *ih=(INIHANDLE *)wParam;
+        INISECTION *lpIniSection=(INISECTION *)lParam;
 
-          if (RegCloseKey(rh->hKey) == ERROR_SUCCESS)
-            bResult=TRUE;
-          API_HeapFree(hHeap, 0, (LPVOID)rh);
+        return StackDeleteIniSection(&ih->hIniFile, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
+      }
+      case AKD_INIGETKEY:
+      case AKD_INIGETKEYA:
+      case AKD_INIGETKEYW:
+      {
+        INISECTION *lpIniSection=(INISECTION *)wParam;
+        wchar_t *wpKey=API_AllocWide(MAX_PATH);
+        int nKeyLen;
+        INIKEY *lpResult;
+
+        if (uMsg == AKD_INIGETKEYA || (bOldWindows && uMsg == AKD_INIGETKEY))
+          nKeyLen=(int)xprintfW(wpKey, L"%S", (char *)lParam);
+        else
+          nKeyLen=(int)xprintfW(wpKey, L"%s", (wchar_t *)lParam);
+        lpResult=StackOpenIniKey(lpIniSection, wpKey, nKeyLen, FALSE);
+
+        API_FreeWide(wpKey);
+        return (LRESULT)lpResult;
+      }
+      case AKD_INIDELETEKEY:
+      {
+        INISECTION *lpIniSection=(INISECTION *)wParam;
+        INIKEY *lpIniKey=(INIKEY *)lParam;
+
+        return StackDeleteIniKey(lpIniSection, lpIniKey);
+      }
+      case AKD_INIGETVALUE:
+      case AKD_INIGETVALUEA:
+      case AKD_INIGETVALUEW:
+      {
+        INIHANDLE *ih=(INIHANDLE *)wParam;
+        INIVALUEW *iv=(INIVALUEW *)lParam;
+        wchar_t *wpSection=API_AllocWide(MAX_PATH);
+        wchar_t *wpKey=API_AllocWide(MAX_PATH);
+        int nResult;
+
+        if (uMsg == AKD_INIGETVALUEA || (bOldWindows && uMsg == AKD_INIGETVALUE))
+        {
+          xprintfW(wpSection, L"%S", (char *)iv->pSection);
+          xprintfW(wpKey, L"%S", (char *)iv->pKey);
         }
         else
         {
-          INIHANDLE *ih=(INIHANDLE *)wParam;
+          xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
+          xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
+        }
+        nResult=IniGetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
+        API_FreeWide(wpSection);
+        API_FreeWide(wpKey);
+        return (LRESULT)nResult;
+      }
+      case AKD_INISETVALUE:
+      case AKD_INISETVALUEA:
+      case AKD_INISETVALUEW:
+      {
+        INIHANDLE *ih=(INIHANDLE *)wParam;
+        INIVALUEW *iv=(INIVALUEW *)lParam;
+        wchar_t *wpSection=API_AllocWide(MAX_PATH);
+        wchar_t *wpKey=API_AllocWide(MAX_PATH);
+        int nResult;
+
+        if (uMsg == AKD_INISETVALUEA || (bOldWindows && uMsg == AKD_INISETVALUE))
+        {
+          xprintfW(wpSection, L"%S", (char *)iv->pSection);
+          xprintfW(wpKey, L"%S", (char *)iv->pKey);
+        }
+        else
+        {
+          xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
+          xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
+        }
+        nResult=IniSetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+
+        API_FreeWide(wpSection);
+        API_FreeWide(wpKey);
+        return (LRESULT)nResult;
+      }
+      case AKD_INICLOSE:
+      {
+        INIHANDLE *ih=(INIHANDLE *)wParam;
+        BOOL bResult=FALSE;
+
+        if (ih)
+        {
           if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
             bResult=TRUE;
           else if (ih->dwType & POB_SAVE)
@@ -3893,207 +4209,65 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           StackFreeIni(&ih->hIniFile);
           API_HeapFree(hHeap, 0, (LPVOID)ih);
         }
+        return bResult;
       }
-      return bResult;
-    }
-    if (uMsg == AKD_INIOPEN ||
-        uMsg == AKD_INIOPENA ||
-        uMsg == AKD_INIOPENW)
-    {
-      INIHANDLE *ih;
 
-      if (ih=(INIHANDLE *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLE)))
+      //Regular expressions
+      case AKD_PATEXEC:
       {
-        ih->dwType=(DWORD)wParam;
+        return PatStructExec((PATEXEC *)lParam);
+      }
+      case AKD_PATREPLACE:
+      {
+        return PatReplace((PATREPLACE *)lParam);
+      }
+      case AKD_PATGROUPSTR:
+      {
+        return PatGroupStr((PATGROUPSTR *)lParam);
+      }
+      case AKD_PATGETGROUP:
+      {
+        return (LRESULT)PatGetGroup((STACKREGROUP *)wParam, (int)lParam);
+      }
+      case AKD_PATNEXTGROUP:
+      {
+        return (LRESULT)PatNextGroup((REGROUP *)wParam);
+      }
+      case AKD_PATPREVGROUP:
+      {
+        return (LRESULT)PatPrevGroup((REGROUP *)wParam);
+      }
+      case AKD_PATFREE:
+      {
+        PatStructFree((PATEXEC *)lParam);
+        return 0;
+      }
 
-        if (uMsg == AKD_INIOPENA || (bOldWindows && uMsg == AKD_INIOPEN))
-          xprintfW(ih->wszIniFile, L"%S", (char *)lParam);
+      //AkelPad 4.x only messages
+      case AKD_EXGETTEXTLENGTH:
+      {
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        return -IndexSubtract(hWnd, NULL, NULL, (int)lParam, FALSE);
+      }
+      case AKD_EXGETTEXTRANGE:
+      case AKD_EXGETTEXTRANGEA:
+      case AKD_EXGETTEXTRANGEW:
+      {
+        EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+        HWND hWnd=(HWND)wParam;
+
+        if (!hWnd)
+          hWnd=lpFrameCurrent->ei.hWndEdit;
+
+        if (uMsg == AKD_EXGETTEXTRANGEA || (bOldWindows && uMsg == AKD_EXGETTEXTRANGE))
+          return ExGetRangeTextA(hWnd, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
         else
-          xprintfW(ih->wszIniFile, L"%s", (wchar_t *)lParam);
-
-        if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
-        {
-          API_HeapFree(hHeap, 0, (LPVOID)ih);
-          ih=NULL;
-        }
+          return ExGetRangeTextW(hWnd, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
       }
-      return (LRESULT)ih;
-    }
-    if (uMsg == AKD_INIGETSECTION ||
-        uMsg == AKD_INIGETSECTIONA ||
-        uMsg == AKD_INIGETSECTIONW)
-    {
-      INIHANDLE *ih=(INIHANDLE *)wParam;
-      wchar_t *wpSection=API_AllocWide(MAX_PATH);
-      int nSectionLen;
-      INISECTION *lpResult;
-
-      if (uMsg == AKD_INIGETSECTIONA || (bOldWindows && uMsg == AKD_INIGETSECTION))
-        nSectionLen=(int)xprintfW(wpSection, L"%S", (char *)lParam);
-      else
-        nSectionLen=(int)xprintfW(wpSection, L"%s", (wchar_t *)lParam);
-      lpResult=StackOpenIniSection(&ih->hIniFile, wpSection, nSectionLen, FALSE);
-
-      API_FreeWide(wpSection);
-      return (LRESULT)lpResult;
-    }
-    if (uMsg == AKD_INICLEARSECTION ||
-        uMsg == AKD_INIDELETESECTION)
-    {
-      INIHANDLE *ih=(INIHANDLE *)wParam;
-      INISECTION *lpIniSection=(INISECTION *)lParam;
-
-      return StackDeleteIniSection(&ih->hIniFile, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
-    }
-    if (uMsg == AKD_INIGETKEY ||
-        uMsg == AKD_INIGETKEYA ||
-        uMsg == AKD_INIGETKEYW)
-    {
-      INISECTION *lpIniSection=(INISECTION *)wParam;
-      wchar_t *wpKey=API_AllocWide(MAX_PATH);
-      int nKeyLen;
-      INIKEY *lpResult;
-
-      if (uMsg == AKD_INIGETKEYA || (bOldWindows && uMsg == AKD_INIGETKEY))
-        nKeyLen=(int)xprintfW(wpKey, L"%S", (char *)lParam);
-      else
-        nKeyLen=(int)xprintfW(wpKey, L"%s", (wchar_t *)lParam);
-      lpResult=StackOpenIniKey(lpIniSection, wpKey, nKeyLen, FALSE);
-
-      API_FreeWide(wpKey);
-      return (LRESULT)lpResult;
-    }
-    if (uMsg == AKD_INIDELETEKEY)
-    {
-      INISECTION *lpIniSection=(INISECTION *)wParam;
-      INIKEY *lpIniKey=(INIKEY *)lParam;
-
-      return StackDeleteIniKey(lpIniSection, lpIniKey);
-    }
-    if (uMsg == AKD_INIGETVALUE ||
-        uMsg == AKD_INIGETVALUEA ||
-        uMsg == AKD_INIGETVALUEW)
-    {
-      INIHANDLE *ih=(INIHANDLE *)wParam;
-      INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=API_AllocWide(MAX_PATH);
-      wchar_t *wpKey=API_AllocWide(MAX_PATH);
-      int nResult;
-
-      if (uMsg == AKD_INIGETVALUEA || (bOldWindows && uMsg == AKD_INIGETVALUE))
-      {
-        xprintfW(wpSection, L"%S", (char *)iv->pSection);
-        xprintfW(wpKey, L"%S", (char *)iv->pKey);
-      }
-      else
-      {
-        xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
-        xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
-      }
-      nResult=IniGetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
-
-      API_FreeWide(wpSection);
-      API_FreeWide(wpKey);
-      return (LRESULT)nResult;
-    }
-    if (uMsg == AKD_INISETVALUE ||
-        uMsg == AKD_INISETVALUEA ||
-        uMsg == AKD_INISETVALUEW)
-    {
-      INIHANDLE *ih=(INIHANDLE *)wParam;
-      INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=API_AllocWide(MAX_PATH);
-      wchar_t *wpKey=API_AllocWide(MAX_PATH);
-      int nResult;
-
-      if (uMsg == AKD_INISETVALUEA || (bOldWindows && uMsg == AKD_INISETVALUE))
-      {
-        xprintfW(wpSection, L"%S", (char *)iv->pSection);
-        xprintfW(wpKey, L"%S", (char *)iv->pKey);
-      }
-      else
-      {
-        xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
-        xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
-      }
-      nResult=IniSetValue(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
-
-      API_FreeWide(wpSection);
-      API_FreeWide(wpKey);
-      return (LRESULT)nResult;
-    }
-    if (uMsg == AKD_INICLOSE)
-    {
-      INIHANDLE *ih=(INIHANDLE *)wParam;
-      BOOL bResult=FALSE;
-
-      if (ih)
-      {
-        if ((ih->dwType & POB_READ) || !ih->hIniFile.bModified)
-          bResult=TRUE;
-        else if (ih->dwType & POB_SAVE)
-          bResult=SaveIni(&ih->hIniFile, ih->wszIniFile);
-        StackFreeIni(&ih->hIniFile);
-        API_HeapFree(hHeap, 0, (LPVOID)ih);
-      }
-      return bResult;
-    }
-
-    //Regular expressions
-    if (uMsg == AKD_PATEXEC)
-    {
-      return PatStructExec((PATEXEC *)lParam);
-    }
-    if (uMsg == AKD_PATREPLACE)
-    {
-      return PatReplace((PATREPLACE *)lParam);
-    }
-    if (uMsg == AKD_PATGROUPSTR)
-    {
-      return PatGroupStr((PATGROUPSTR *)lParam);
-    }
-    if (uMsg == AKD_PATGETGROUP)
-    {
-      return (LRESULT)PatGetGroup((STACKREGROUP *)wParam, (int)lParam);
-    }
-    if (uMsg == AKD_PATNEXTGROUP)
-    {
-      return (LRESULT)PatNextGroup((REGROUP *)wParam);
-    }
-    if (uMsg == AKD_PATPREVGROUP)
-    {
-      return (LRESULT)PatPrevGroup((REGROUP *)wParam);
-    }
-    if (uMsg == AKD_PATFREE)
-    {
-      PatStructFree((PATEXEC *)lParam);
-      return 0;
-    }
-
-    //AkelPad 4.x only messages
-    if (uMsg == AKD_EXGETTEXTLENGTH)
-    {
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      return -IndexSubtract(hWnd, NULL, NULL, (int)lParam, FALSE);
-    }
-    if (uMsg == AKD_EXGETTEXTRANGE ||
-        uMsg == AKD_EXGETTEXTRANGEA ||
-        uMsg == AKD_EXGETTEXTRANGEW)
-    {
-      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-      HWND hWnd=(HWND)wParam;
-
-      if (!hWnd)
-        hWnd=lpFrameCurrent->ei.hWndEdit;
-
-      if (uMsg == AKD_EXGETTEXTRANGEA || (bOldWindows && uMsg == AKD_EXGETTEXTRANGE))
-        return ExGetRangeTextA(hWnd, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
-      else
-        return ExGetRangeTextW(hWnd, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
   }
 
