@@ -2628,7 +2628,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Zero.
+ TRUE   clipboard changed.
+ FALSE  clipboard not changed.
 
 Example:
  SendMessage(hWndEdit, AEM_COPY, 0, 0);
@@ -3292,7 +3293,7 @@ Retrieve the specified line number.
 (INT_PTR)lParam == input character RichEdit offset, if required.
 
 Return Value
- Zero based line number.
+ Zero based line number. -1 if error.
 
 Example:
  SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
