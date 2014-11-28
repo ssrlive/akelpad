@@ -7490,53 +7490,56 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
 
 int AE_GetLineNumber(AKELEDIT *ae, int nType, INT_PTR nCharOffset)
 {
-  if (nType == AEGL_LINECOUNT)
-    return ae->ptxt->nLineCount + 1;
-  if (nType == AEGL_FIRSTSELLINE)
-    return ae->ciSelStartIndex.nLine;
-  if (nType == AEGL_LASTSELLINE)
-    return ae->ciSelEndIndex.nLine;
-  if (nType == AEGL_CARETLINE)
-    return ae->ciCaretIndex.nLine;
-  if (nType == AEGL_FIRSTVISIBLELINE)
-    return AE_GetFirstVisibleLine(ae);
-  if (nType == AEGL_LASTVISIBLELINE)
-    return AE_GetLastVisibleLine(ae);
-  if (nType == AEGL_FIRSTFULLVISIBLELINE)
-    return AE_GetFirstFullVisibleLine(ae);
-  if (nType == AEGL_LASTFULLVISIBLELINE)
-    return AE_GetLastFullVisibleLine(ae);
-  if (nType == AEGL_LINEUNWRAPCOUNT)
-    return ae->ptxt->nLineUnwrapCount + 1;
-  if (nType == AEGL_UNWRAPSELMULTILINE)
+  switch (nType)
   {
-    AECHARINDEX ciCount;
-
-    if (ae->ciSelStartIndex.nLine < ae->ciSelEndIndex.nLine)
+    case AEGL_LINECOUNT:
+      return ae->ptxt->nLineCount + 1;
+    case AEGL_FIRSTSELLINE:
+      return ae->ciSelStartIndex.nLine;
+    case AEGL_LASTSELLINE:
+      return ae->ciSelEndIndex.nLine;
+    case AEGL_CARETLINE:
+      return ae->ciCaretIndex.nLine;
+    case AEGL_FIRSTVISIBLELINE:
+      return AE_GetFirstVisibleLine(ae);
+    case AEGL_LASTVISIBLELINE:
+      return AE_GetLastVisibleLine(ae);
+    case AEGL_FIRSTFULLVISIBLELINE:
+      return AE_GetFirstFullVisibleLine(ae);
+    case AEGL_LASTFULLVISIBLELINE:
+      return AE_GetLastFullVisibleLine(ae);
+    case AEGL_LINEUNWRAPCOUNT:
+      return ae->ptxt->nLineUnwrapCount + 1;
+    case AEGL_UNWRAPSELMULTILINE:
     {
-      for (ciCount=ae->ciSelStartIndex; ciCount.nLine < ae->ciSelEndIndex.nLine; AEC_NextLine(&ciCount))
-      {
-        if (ciCount.lpLine->nLineBreak != AELB_WRAP)
-          return TRUE;
-      }
-    }
-    return FALSE;
-  }
-  if (nType == AEGI_LINEFROMRICHOFFSET ||
-      nType == AEGI_UNWRAPLINEFROMRICHOFFSET)
-  {
-    AECHARINDEX ciChar={0};
+      AECHARINDEX ciCount;
 
-    if (nCharOffset == -1)
-      ciChar.nLine=ae->ciCaretIndex.nLine;
-    else
-      AE_RichOffsetToAkelIndex(ae, nCharOffset, &ciChar);
-    if (nType == AEGI_UNWRAPLINEFROMRICHOFFSET)
-      return AE_GetUnwrapLine(ae, ciChar.nLine);
-    else
-      return ciChar.nLine;
+      if (ae->ciSelStartIndex.nLine < ae->ciSelEndIndex.nLine)
+      {
+        for (ciCount=ae->ciSelStartIndex; ciCount.nLine < ae->ciSelEndIndex.nLine; AEC_NextLine(&ciCount))
+        {
+          if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+            return TRUE;
+        }
+      }
+      return FALSE;
+    }
+    case AEGI_LINEFROMRICHOFFSET:
+    case AEGI_UNWRAPLINEFROMRICHOFFSET:
+    {
+      AECHARINDEX ciChar={0};
+
+      if (nCharOffset == -1)
+        ciChar.nLine=ae->ciCaretIndex.nLine;
+      else
+        AE_RichOffsetToAkelIndex(ae, nCharOffset, &ciChar);
+      if (nType == AEGI_UNWRAPLINEFROMRICHOFFSET)
+        return AE_GetUnwrapLine(ae, ciChar.nLine);
+      else
+        return ciChar.nLine;
+    }
   }
-  return 0;
+  return -1;
 }
 
 int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
@@ -7860,23 +7863,23 @@ INT_PTR AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 
 AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut)
 {
-  if (nType < AEGI_VALIDCHARINLINE)
+  switch (nType)
   {
-    if (nType == AEGI_FIRSTCHAR)
+    case AEGI_FIRSTCHAR:
     {
       ciCharOut->nLine=0;
       ciCharOut->lpLine=ae->ptxt->hLinesStack.first;
       ciCharOut->nCharInLine=0;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_LASTCHAR)
+    case AEGI_LASTCHAR:
     {
       ciCharOut->nLine=ae->ptxt->nLineCount;
       ciCharOut->lpLine=ae->ptxt->hLinesStack.last;
       ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_FIRSTSELCHAR)
+    case AEGI_FIRSTSELCHAR:
     {
       if (ae->bColumnSel)
       {
@@ -7888,7 +7891,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
 
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_LASTSELCHAR)
+    case AEGI_LASTSELCHAR:
     {
       if (ae->bColumnSel)
       {
@@ -7900,12 +7903,12 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
 
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_CARETCHAR)
+    case AEGI_CARETCHAR:
     {
       *ciCharOut=ae->ciCaretIndex;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_FIRSTVISIBLECHAR)
+    case AEGI_FIRSTVISIBLECHAR:
     {
       AECHARINDEX ciCharTmp;
 
@@ -7916,7 +7919,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       }
       return NULL;
     }
-    else if (nType == AEGI_LASTVISIBLECHAR)
+    case AEGI_LASTVISIBLECHAR:
     {
       AECHARINDEX ciCharTmp;
 
@@ -7927,7 +7930,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       }
       return NULL;
     }
-    else if (nType == AEGI_FIRSTFULLVISIBLECHAR)
+    case AEGI_FIRSTFULLVISIBLECHAR:
     {
       AECHARINDEX ciCharTmp;
       INT_PTR nVertPos;
@@ -7947,7 +7950,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       }
       return NULL;
     }
-    else if (nType == AEGI_LASTFULLVISIBLECHAR)
+    case AEGI_LASTFULLVISIBLECHAR:
     {
       AECHARINDEX ciCharTmp;
       INT_PTR nVertPos;
@@ -7966,14 +7969,14 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       }
       return NULL;
     }
-    else if (nType == AEGI_FIRSTVISIBLELINE)
+    case AEGI_FIRSTVISIBLELINE:
     {
       ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
       ciCharOut->nCharInLine=0;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_LASTVISIBLELINE)
+    case AEGI_LASTVISIBLELINE:
     {
       ciCharOut->nLine=AE_GetLastVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
@@ -7981,14 +7984,14 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_FIRSTFULLVISIBLELINE)
+    case AEGI_FIRSTFULLVISIBLELINE:
     {
       ciCharOut->nLine=AE_GetFirstFullVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
       ciCharOut->nCharInLine=0;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_LASTFULLVISIBLELINE)
+    case AEGI_LASTFULLVISIBLELINE:
     {
       ciCharOut->nLine=AE_GetLastFullVisibleLine(ae);
       ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
@@ -7996,11 +7999,9 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
-  }
-  else
-  {
+
     //Next flags require pointer to the input index in lParam.
-    if (nType == AEGI_VALIDCHARINLINE)
+    case AEGI_VALIDCHARINLINE:
     {
       AECHARINDEX ciCharTmp=*ciCharIn;
 
@@ -8015,38 +8016,38 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-    else if (nType == AEGI_LINEBEGIN)
+    case AEGI_LINEBEGIN:
     {
       ciCharOut->nLine=ciCharIn->nLine;
       ciCharOut->lpLine=ciCharIn->lpLine;
       ciCharOut->nCharInLine=0;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_LINEEND)
+    case AEGI_LINEEND:
     {
       ciCharOut->nLine=ciCharIn->nLine;
       ciCharOut->lpLine=ciCharIn->lpLine;
       ciCharOut->nCharInLine=ciCharIn->lpLine->nLineLen;
       return ciCharOut->lpLine;
     }
-    else if (nType == AEGI_WRAPLINEBEGIN)
+    case AEGI_WRAPLINEBEGIN:
     {
       return (AELINEDATA *)(UINT_PTR)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
     }
-    else if (nType == AEGI_WRAPLINEEND)
+    case AEGI_WRAPLINEEND:
     {
       return (AELINEDATA *)(UINT_PTR)AEC_WrapLineEndEx(ciCharIn, ciCharOut);
     }
-    else if (nType == AEGI_NEXTCHARINLINE)
+    case AEGI_NEXTCHARINLINE:
     {
       return AEC_NextCharInLineEx(ciCharIn, ciCharOut);
     }
-    else if (nType == AEGI_PREVCHARINLINE)
+    case AEGI_PREVCHARINLINE:
     {
       return AEC_PrevCharInLineEx(ciCharIn, ciCharOut);
     }
-    else if (nType == AEGI_NEXTCHAR ||
-             nType == AEGI_NEXTUNCOLLAPSEDCHAR)
+    case AEGI_NEXTCHAR:
+    case AEGI_NEXTUNCOLLAPSEDCHAR:
     {
       AECHARINDEX ciCharTmp=*ciCharIn;
       AEFOLD *lpCollapsed;
@@ -8076,8 +8077,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-    else if (nType == AEGI_PREVCHAR ||
-             nType == AEGI_PREVUNCOLLAPSEDCHAR)
+    case AEGI_PREVCHAR:
+    case AEGI_PREVUNCOLLAPSEDCHAR:
     {
       AECHARINDEX ciCharTmp=*ciCharIn;
       AEFOLD *lpCollapsed;
@@ -8108,8 +8109,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-    else if (nType == AEGI_NEXTLINE ||
-             nType == AEGI_NEXTUNCOLLAPSEDLINE)
+    case AEGI_NEXTLINE:
+    case AEGI_NEXTUNCOLLAPSEDLINE:
     {
       AECHARINDEX ciCharTmp=*ciCharIn;
       AEFOLD *lpCollapsed;
@@ -8139,8 +8140,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
         return NULL;
       }
     }
-    else if (nType == AEGI_PREVLINE ||
-             nType == AEGI_PREVUNCOLLAPSEDLINE)
+    case AEGI_PREVLINE:
+    case AEGI_PREVUNCOLLAPSEDLINE:
     {
       AECHARINDEX ciCharTmp=*ciCharIn;
       AEFOLD *lpCollapsed;
@@ -8176,40 +8177,43 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
 
 INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
 {
-  if (nType <= AEGI_CARETCHAR)
+  switch (nType)
   {
-    if (nType == AEGI_FIRSTCHAR)
+    case AEGI_FIRSTCHAR:
       return 0;
-    if (nType == AEGI_LASTCHAR)
+    case AEGI_LASTCHAR:
       return ae->ptxt->nLastCharOffset;
-    if (nType == AEGI_FIRSTSELCHAR)
+    case AEGI_FIRSTSELCHAR:
       return ae->nSelStartCharOffset;
-    if (nType == AEGI_LASTSELCHAR)
+    case AEGI_LASTSELCHAR:
       return ae->nSelEndCharOffset;
-    if (nType == AEGI_CARETCHAR)
+    case AEGI_CARETCHAR:
     {
       if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
         return ae->nSelEndCharOffset;
       else
         return ae->nSelStartCharOffset;
     }
-  }
-  else if (nType <= AEGI_LASTFULLVISIBLELINE)
-  {
-    //AEGI_FIRSTVISIBLECHAR, AEGI_LASTVISIBLECHAR, AEGI_FIRSTFULLVISIBLECHAR, AEGI_LASTFULLVISIBLECHAR,
-    //AEGI_FIRSTVISIBLELINE, AEGI_LASTVISIBLELINE, AEGI_FIRSTFULLVISIBLELINE, AEGI_LASTFULLVISIBLELINE
-    AECHARINDEX ciChar;
-
-    if (AE_GetIndex(ae, nType, NULL, &ciChar))
-      return AE_AkelIndexToRichOffset(ae, &ciChar);
-  }
-  else
-  {
-    AECHARINDEX ciChar;
-
-    if (nType == AEGI_RICHOFFSETFROMLINE ||
-        nType == AEGI_RICHOFFSETFROMUNWRAPLINE)
+    case AEGI_FIRSTVISIBLECHAR:
+    case AEGI_LASTVISIBLECHAR:
+    case AEGI_FIRSTFULLVISIBLECHAR:
+    case AEGI_LASTFULLVISIBLECHAR:
+    case AEGI_FIRSTVISIBLELINE:
+    case AEGI_LASTVISIBLELINE:
+    case AEGI_FIRSTFULLVISIBLELINE:
+    case AEGI_LASTFULLVISIBLELINE:
     {
+      AECHARINDEX ciChar;
+
+      if (!AE_GetIndex(ae, nType, NULL, &ciChar))
+        return -1;
+      return AE_AkelIndexToRichOffset(ae, &ciChar);
+    }
+    case AEGI_RICHOFFSETFROMLINE:
+    case AEGI_RICHOFFSETFROMUNWRAPLINE:
+    {
+      AECHARINDEX ciChar;
+
       if (nCharOffsetOrLine == -1)
       {
         ciChar.nLine=ae->ciCaretIndex.nLine;
@@ -8238,21 +8242,24 @@ INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
       }
       return AE_AkelIndexToRichOffset(ae, &ciChar);
     }
-    else
+    case AEGI_WRAPLINEBEGIN:
+    case AEGI_WRAPLINEEND:
     {
       AE_RichOffsetToAkelIndex(ae, nCharOffsetOrLine, &ciChar);
 
-      //AEGI_WRAPLINEBEGIN and AEGI_WRAPLINEEND don't return
-      //pointer to a AELINEDATA structure.
       if (nType == AEGI_WRAPLINEBEGIN)
         AEC_WrapLineBeginEx(&ciChar, &ciChar);
-      else if (nType == AEGI_WRAPLINEEND)
+      else //if (nType == AEGI_WRAPLINEEND)
         AEC_WrapLineEndEx(&ciChar, &ciChar);
-      else
-      {
-        if (!AE_GetIndex(ae, nType, &ciChar, &ciChar))
-          return -1;
-      }
+      return AE_AkelIndexToRichOffset(ae, &ciChar);
+    }
+    default:
+    {
+      //Other AEGI_*
+      AE_RichOffsetToAkelIndex(ae, nCharOffsetOrLine, &ciChar);
+
+      if (!AE_GetIndex(ae, nType, &ciChar, &ciChar))
+        return -1;
       return AE_AkelIndexToRichOffset(ae, &ciChar);
     }
   }
