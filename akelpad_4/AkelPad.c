@@ -4638,11 +4638,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (wCommand == IDM_EDIT_UNDO)
     {
-      DoEditUndo(lpFrameCurrent->ei.hWndEdit);
+      return DoEditUndo(lpFrameCurrent->ei.hWndEdit);
     }
     else if (wCommand == IDM_EDIT_REDO)
     {
-      DoEditRedo(lpFrameCurrent->ei.hWndEdit);
+      return DoEditRedo(lpFrameCurrent->ei.hWndEdit);
     }
     else if (wCommand == IDM_EDIT_CUT)
     {
@@ -4650,7 +4650,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (wCommand == IDM_EDIT_COPY)
     {
-      DoEditCopy(lpFrameCurrent->ei.hWndEdit);
+      return DoEditCopy(lpFrameCurrent->ei.hWndEdit);
     }
     else if (wCommand == IDM_EDIT_PASTE)
     {
