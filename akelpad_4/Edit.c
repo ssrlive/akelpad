@@ -1871,14 +1871,14 @@ void DoFilePreview(HWND hWnd)
   hWndPreviewEdit=NULL;
 }
 
-void DoEditUndo(HWND hWnd)
+BOOL DoEditUndo(HWND hWnd)
 {
-  SendMessage(hWnd, AEM_UNDO, 0, 0);
+  return (BOOL)SendMessage(hWnd, AEM_UNDO, 0, 0);
 }
 
-void DoEditRedo(HWND hWnd)
+BOOL DoEditRedo(HWND hWnd)
 {
-  SendMessage(hWnd, AEM_REDO, 0, 0);
+  return (BOOL)SendMessage(hWnd, AEM_REDO, 0, 0);
 }
 
 void DoEditCut(HWND hWnd)
@@ -1888,9 +1888,9 @@ void DoEditCut(HWND hWnd)
   SendMessage(hWnd, AEM_CUT, 0, 0);
 }
 
-void DoEditCopy(HWND hWnd)
+BOOL DoEditCopy(HWND hWnd)
 {
-  SendMessage(hWnd, AEM_COPY, 0, 0);
+  return (BOOL)SendMessage(hWnd, AEM_COPY, 0, 0);
 }
 
 BOOL DoEditPaste(HWND hWnd, DWORD dwFlags)

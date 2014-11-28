@@ -1776,16 +1776,16 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_REDO                   4152  //Redo last operation.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_CUT                    4153  //Cut.
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_COPY                   4154  //Copy.
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
 #define IDM_EDIT_PASTE                  4155  //Paste.
                                               //Return Value: TRUE - success, FALSE - failed.
