@@ -1775,6 +1775,9 @@ typedef struct {
 #define IDM_FILE_CODEPAGEMENU           4140  //Show codepages context menu.
                                               //Return Value: zero.
                                               //
+#define IDM_EDIT_FIRST                  4151  //Internal.
+                                              //
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
@@ -1881,7 +1884,7 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_INSERTMODE             4190  //Insert mode (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_EDIT_PASTEANSI              4191  //Paste as ANSI text.
                                               //Return Value: TRUE - success, FALSE - failed.
@@ -1908,10 +1911,13 @@ typedef struct {
                                               //Return Value: TRUE - jump to selection beginning, FALSE - jump to selection ending.
                                               //
 #define IDM_EDIT_RECENTCARETPREV        4199  //Move caret to the previous position.
-                                              //Return Value: zero.
+                                              //Return Value: pointer to a RECENTCARETITEM structure.
                                               //
 #define IDM_EDIT_RECENTCARETNEXT        4200  //Move caret to the next position.
-                                              //Return Value: zero.
+                                              //Return Value: pointer to a RECENTCARETITEM structure.
+                                              //
+#define IDM_EDIT_LAST                   4200  //Internal.
+                                              //
                                               //
 #define IDM_VIEW_FONT                   4201  //Font dialog.
                                               //Return Value: TRUE - success, FALSE - failed.
@@ -1929,10 +1935,10 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_VIEW_WORDWRAP               4209  //Word wrap (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_VIEW_ONTOP                  4210  //Always on top (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_VIEW_SHOW_STATUSBAR         4211  //Show statusbar (on\off).
                                               //Return Value: zero.
@@ -1950,25 +1956,25 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_VIEW_READONLY               4216  //Read only (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_OPTIONS_EXEC                4251  //Execute command.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_OPTIONS_SAVETIME            4252  //Save file time (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_OPTIONS_WATCHFILE           4253  //Watch file change (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_OPTIONS_KEEPSPACE           4254  //Keep space (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_OPTIONS_SINGLEOPEN_FILE     4255  //Single open file (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_OPTIONS_SINGLEOPEN_PROGRAM  4256  //Single open program (on\off).
-                                              //Return Value: zero.
+                                              //Return Value: see SOP_* defines.
                                               //
 #define IDM_OPTIONS_PLUGINS             4259  //Plugins dialog.
                                               //Return Value: zero.
@@ -1985,22 +1991,22 @@ typedef struct {
 #define IDM_OPTIONS_PMDI                4263  //Pseudo MDI mode.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABVIEW_TOP          4301  //MDI tab window at the top of the main window.
+#define IDM_WINDOW_TABVIEW_TOP          4301  //MDI/PMDI tab window at the top of the main window.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABVIEW_BOTTOM       4302  //MDI tab window at the bottom of the main window.
+#define IDM_WINDOW_TABVIEW_BOTTOM       4302  //MDI/PMDI tab window at the bottom of the main window.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABVIEW_NONE         4303  //Hide MDI tab.
+#define IDM_WINDOW_TABVIEW_NONE         4303  //Hide MDI/PMDI tab.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABTYPE_STANDARD     4304  //Standard MDI tab style.
+#define IDM_WINDOW_TABTYPE_STANDARD     4304  //Standard MDI/PMDI tab style.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABTYPE_BUTTONS      4305  //Buttons MDI tab style.
+#define IDM_WINDOW_TABTYPE_BUTTONS      4305  //Buttons MDI/PMDI tab style.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABTYPE_FLATBUTTONS  4306  //Flat buttons MDI tab style.
+#define IDM_WINDOW_TABTYPE_FLATBUTTONS  4306  //Flat buttons MDI/PMDI tab style.
                                               //Return Value: zero.
                                               //
 #define IDM_WINDOW_TILEHORIZONTAL       4307  //MDI windows - horizontal tile.
@@ -2012,25 +2018,25 @@ typedef struct {
 #define IDM_WINDOW_CASCADE              4309  //MDI windows - cascade.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABSWITCH_NEXTPREV   4310  //Switch MDI windows: next-previous.
+#define IDM_WINDOW_TABSWITCH_NEXTPREV   4310  //Switch MDI/PMDI windows: next-previous.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_TABSWITCH_RIGHTLEFT  4311  //Switch MDI windows: right-left.
+#define IDM_WINDOW_TABSWITCH_RIGHTLEFT  4311  //Switch MDI/PMDI windows: right-left.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_FRAMENEXT            4316  //Activate next MDI window.
+#define IDM_WINDOW_FRAMENEXT            4316  //Activate next MDI/PMDI window.
                                               //Return Value: pointer to a FRAMEDATA structure that has been activated.
                                               //
-#define IDM_WINDOW_FRAMEPREV            4317  //Activate previous MDI window.
+#define IDM_WINDOW_FRAMEPREV            4317  //Activate previous MDI/PMDI window.
                                               //Return Value: pointer to a FRAMEDATA structure that has been activated.
                                               //
-#define IDM_WINDOW_FRAMECLOSE           4318  //Close current MDI window.
+#define IDM_WINDOW_FRAMECLOSE           4318  //Close current document.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_WINDOW_FRAMECLOSEALL        4319  //Close all documents.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE  4320  //Close all documents, but active.
+#define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE  4320  //Close all documents, but active (MDI/PMDI).
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
 #define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents.
@@ -2048,7 +2054,7 @@ typedef struct {
 #define IDM_WINDOW_FILEEXIT             4325  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_WINDOW_MDILIST              4327  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
+#define IDM_WINDOW_MDILIST              4327  //Select window dialog (MDI/PMDI). Same as IDM_SELECTWINDOW.
                                               //Return Value: zero.
                                               //
 #define IDM_WINDOW_CHANGESIZE           4331  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
