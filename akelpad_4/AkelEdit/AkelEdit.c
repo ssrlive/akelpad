@@ -8245,6 +8245,8 @@ INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
     case AEGI_WRAPLINEBEGIN:
     case AEGI_WRAPLINEEND:
     {
+      AECHARINDEX ciChar;
+
       AE_RichOffsetToAkelIndex(ae, nCharOffsetOrLine, &ciChar);
 
       if (nType == AEGI_WRAPLINEBEGIN)
@@ -8256,6 +8258,8 @@ INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
     default:
     {
       //Other AEGI_*
+      AECHARINDEX ciChar;
+
       AE_RichOffsetToAkelIndex(ae, nCharOffsetOrLine, &ciChar);
 
       if (!AE_GetIndex(ae, nType, &ciChar, &ciChar))
@@ -8263,7 +8267,6 @@ INT_PTR AE_GetRichOffset(AKELEDIT *ae, int nType, INT_PTR nCharOffsetOrLine)
       return AE_AkelIndexToRichOffset(ae, &ciChar);
     }
   }
-  return -1;
 }
 
 INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
