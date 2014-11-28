@@ -3293,7 +3293,7 @@ Retrieve the specified line number.
 (INT_PTR)lParam == input character RichEdit offset, if required.
 
 Return Value
- Zero based line number.
+ Zero based line number. -1 if error.
 
 Example:
  SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
