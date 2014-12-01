@@ -29,7 +29,7 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
     1
       Execute application and capture output.
     "PROGRAM"
-      File for execution.
+      File for execution. Can be "", if need to change "REPATTERN" and "RETAGS".
     "WORKDIR"
       Working directory.
     "REPATTERN"

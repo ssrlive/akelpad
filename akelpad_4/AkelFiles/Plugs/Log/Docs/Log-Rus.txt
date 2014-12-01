@@ -29,7 +29,7 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
     1
       Запустить приложение и захватить вывод.
     "PROGRAM"
-      Запускаемый файл.
+      Запускаемый файл. Может быть "", если требуется изменить "REPATTERN" и "RETAGS".
     "WORKDIR"
       Рабочая директория.
     "REPATTERN"
