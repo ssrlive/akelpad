@@ -788,6 +788,9 @@ void __declspec(dllexport) Show(PLUGINDATA *pd)
       if (IsExtCallParamValid(pd->lParam, 3))
         pPosY=(unsigned char *)GetExtCallParam(pd->lParam, 3);
 
+      //If plugin not in memory then uninitialize to avoid crash after unload.
+      if (!pd->bInMemory) UninitMain();
+
       if (pPosX && pPosY)
       {
         if (pd->dwSupport & PDS_STRANSI)
