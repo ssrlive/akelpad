@@ -3609,8 +3609,6 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                       goto FreeFold;
                     lpFoldInfo->wpFoldEnd=wpFoldEnd;
                     lpFoldInfo->nFoldEndLen=nFoldEndLen;
-                    if (!lpFoldInfo->nFoldEndPointLen)
-                      lpFoldInfo->nFoldEndPointLen=nFoldEndLen;
                     lpFoldInfo->wpDelimiters=wpFoldDelimiters;
                     lpFoldInfo->dwFontStyle=dwFontStyle;
                     lpFoldInfo->dwColor1=dwColor1;
