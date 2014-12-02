@@ -3770,13 +3770,7 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         else
           lpFoldInfo=NULL;
       }
-      else
-      {
-        if (lpFold->lpMaxPoint->nPointLen)
-          nTagEndLen=lpFold->lpMaxPoint->nPointLen;
-        else
-          lpFoldInfo=NULL;
-      }
+      else nTagEndLen=lpFold->lpMaxPoint->nPointLen;
 
       if (lpFoldInfo)
       {
@@ -3860,9 +3854,12 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
             }
 
             //Highlight ending
-            mri.crMarkRange.cpMin=lpFold->lpMaxPoint->nPointOffset;
-            mri.crMarkRange.cpMax=lpFold->lpMaxPoint->nPointOffset + nTagEndLen;
-            lpFoldWindow->pfwd->hTagMarkThird=(AEHMARKRANGE)SendMessage(lpFoldWindow->hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)NULL, (LPARAM)&mri);
+            if (nTagEndLen)
+            {
+              mri.crMarkRange.cpMin=lpFold->lpMaxPoint->nPointOffset;
+              mri.crMarkRange.cpMax=lpFold->lpMaxPoint->nPointOffset + nTagEndLen;
+              lpFoldWindow->pfwd->hTagMarkThird=(AEHMARKRANGE)SendMessage(lpFoldWindow->hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)NULL, (LPARAM)&mri);
+            }
 
             bRedraw=TRUE;
           }
@@ -3914,7 +3911,7 @@ BOOL RemoveTagMark(FOLDWINDOW *lpFoldWindow)
   return bResult;
 }
 
-DWORD CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
+BOOL CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount;
   DWORD dwCount;
@@ -3923,12 +3920,12 @@ DWORD CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   if (ft->dwFlags & FIF_MATCHCASE)
   {
     if (ciChar->lpLine->wpLine[ciChar->nCharInLine] != *ft->pText)
-      return 0;
+      return FALSE;
   }
   else
   {
     if (WideCharLower(ciChar->lpLine->wpLine[ciChar->nCharInLine]) != WideCharLower(*ft->pText))
-      return 0;
+      return FALSE;
   }
   ciCount=*ciChar;
   dwCount=0;
@@ -3941,12 +3938,12 @@ DWORD CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       if (ft->dwFlags & FIF_MATCHCASE)
       {
         if (ciCount.lpLine->wpLine[ciCount.nCharInLine] != ft->pText[dwCount])
-          return 0;
+          return FALSE;
       }
       else
       {
         if (WideCharLower(ciCount.lpLine->wpLine[ciCount.nCharInLine]) != WideCharLower(ft->pText[dwCount]))
-          return 0;
+          return FALSE;
       }
 
       CharMatched:
@@ -3957,12 +3954,12 @@ DWORD CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       }
     }
     if (ciCount.lpLine->nLineBreak != AELB_WRAP)
-      return 0;
+      return FALSE;
 
     if (ciCount.lpLine->next)
       AEC_NextLine(&ciCount);
     else
-      return 0;
+      return FALSE;
 
     if (dwCount >= ft->dwTextLen)
       goto Found;
@@ -3971,13 +3968,15 @@ DWORD CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   Found:
   ft->crFound.ciMin=*ciChar;
   ft->crFound.ciMax=ciCount;
-  return dwCount;
+  if (dwCount)
+    return TRUE;
+  return FALSE;
 }
 
-DWORD CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar)
+BOOL CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciStr=*ciChar;
-  DWORD dwCount=0;
+  DWORD dwCount=(DWORD)-1;
 
   if (!sreg->first) return 0;
 
@@ -3989,7 +3988,9 @@ DWORD CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARI
   }
   AE_PatReset(sreg);
 
-  return dwCount;
+  if (dwCount == (DWORD)-1)
+    return FALSE;
+  return TRUE;
 }
 
 BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
