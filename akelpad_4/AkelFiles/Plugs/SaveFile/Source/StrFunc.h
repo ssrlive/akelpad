@@ -2390,7 +2390,11 @@ INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext)
   INT_PTR a;
   INT_PTR b=0;
 
-  if (nStrLen < 0)
+  if (!nStrLen)
+  {
+    b=-1;
+  }
+  else if (nStrLen < 0)
   {
     for (; *pStr; ++pStr)
     {
@@ -2406,7 +2410,7 @@ INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext)
       b=(b * 16) + a;
     }
   }
-  else
+  else //if (nStrLen > 0)
   {
     for (pStrMax=pStr + nStrLen; pStr < pStrMax; ++pStr)
     {
@@ -2453,7 +2457,11 @@ INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext)
   INT_PTR a;
   INT_PTR b=0;
 
-  if (nStrLen < 0)
+  if (!nStrLen)
+  {
+    b=-1;
+  }
+  else if (nStrLen < 0)
   {
     for (; *wpStr; ++wpStr)
     {
@@ -2469,7 +2477,7 @@ INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext)
       b=(b * 16) + a;
     }
   }
-  else
+  else //if (nStrLen > 0)
   {
     for (wpStrMax=wpStr + nStrLen; wpStr < wpStrMax; ++wpStr)
     {
