@@ -456,15 +456,21 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
           goto Error;
       }
-      else if ((*wpPat == L'A' || *wpPat == L'a') &&
-               lpREGroupItem->wpPatStart != wpPat - 1)
+      else if (*wpPat == L'A' || *wpPat == L'a')
       {
-        goto Error;
+        if (lpREGroupItem->wpPatStart != wpPat - 1)
+          goto Error;
+        ++wpPat;
       }
-      else if ((*wpPat == L'Z' || *wpPat == L'z') &&
-               wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')')
+      else if (*wpPat == L'Z' || *wpPat == L'z')
       {
-        goto Error;
+        if (wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')')
+          goto Error;
+        ++wpPat;
+      }
+      else if (*wpPat == L'B' || *wpPat == L'b')
+      {
+        ++wpPat;
       }
       else
       {
