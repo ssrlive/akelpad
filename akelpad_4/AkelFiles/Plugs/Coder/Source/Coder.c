@@ -3604,6 +3604,8 @@ SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
                         goto FreeFold;
                       }
                     }
+                    else lpFoldInfo->nFoldEndPointLen=nFoldEndLen;
+
                     lpFoldInfo->dwFlags=dwFlags;
                     if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))
                       goto FreeFold;
