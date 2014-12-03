@@ -1918,7 +1918,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
 
-        return (INT_PTR)GetMethodParameter(hParamStack, lParam);
+        return (LRESULT)GetMethodParameter(hParamStack, (int)lParam);
       }
       case AKD_STRUCTMETHODPARAMETERS:
       {

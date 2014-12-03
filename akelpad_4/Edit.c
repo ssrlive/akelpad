@@ -759,8 +759,8 @@ void CopyFrameSettings(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, offsetof(FRAMEDATA, lpEditProc) - offsetof(FRAMEDATA, lf));
   lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
   xstrcpynA(lpFrameTarget->szFile, lpFrameSource->szFile, MAX_PATH);
-  lpFrameTarget->nFileLen=xstrcpynW(lpFrameTarget->wszFile, lpFrameSource->wszFile, MAX_PATH);
-  lpFrameTarget->nFileDirLen=xstrcpynW(lpFrameTarget->wszFileDir, lpFrameSource->wszFileDir, MAX_PATH);
+  lpFrameTarget->nFileLen=(int)xstrcpynW(lpFrameTarget->wszFile, lpFrameSource->wszFile, MAX_PATH);
+  lpFrameTarget->nFileDirLen=(int)xstrcpynW(lpFrameTarget->wszFileDir, lpFrameSource->wszFileDir, MAX_PATH);
   lpFrameTarget->hIcon=lpFrameSource->hIcon;
   lpFrameTarget->nIconIndex=lpFrameSource->nIconIndex;
 }
