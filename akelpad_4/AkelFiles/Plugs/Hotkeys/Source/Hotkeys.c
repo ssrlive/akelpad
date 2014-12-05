@@ -2298,7 +2298,10 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
       ++hParamStack->nElements;
 
       lpParameter->dwType=EXTPARAM_INT;
-      lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
+        lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+      else
+        lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
     }
   }
 
