@@ -221,6 +221,39 @@
           <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
             <div style="margin-left:60px">метод заменяет выделение на "123".</div>
 
+          <div style="margin-top:10px"><li><b>/If("выражение", "истина", "ложь")</b></div>
+          <div style="margin-left:30px">"выражение"</div>
+            <div style="margin-left:60px">Выражение, которое может содержать:</div>
+            <div style="margin-left:60px">- математические операции:</div>
+              <div style="margin-left:90px">+, -, *, /, %, &amp;, |, ^.</div>
+            <div style="margin-left:60px">- логические операции:</div>
+              <div style="margin-left:90px">&gt;, &lt;, ==, !=, &gt;=, &lt;=, &amp;&amp;, ||, x?y:z.</div>
+            <div style="margin-left:60px">- комментарии:</div>
+              <div style="margin-left:90px">/*комментарий*/</div>
+            <div style="margin-left:60px">- методы:</div>
+              <div style="margin-left:90px"><b>SendMain(nMessage, wParam, lParam)</b></div>
+                <div style="margin-left:120px">nMessage</div>
+                  <div style="margin-left:150px">Сообщение, которое посылается главному окну программы.</div>
+                <div style="margin-left:120px">wParam</div>
+                  <div style="margin-left:150px">Дополнительная информация.</div>
+                <div style="margin-left:120px">lParam</div>
+                  <div style="margin-left:150px">Дополнительная информация.</div>
+              <div style="margin-left:90px"><b>SendEdit(nMessage, wParam, lParam)</b></div>
+                <div style="margin-left:120px">nMessage</div>
+                  <div style="margin-left:150px">Сообщение, которое посылается текущему окну редактирования.</div>
+                <div style="margin-left:120px">wParam</div>
+                  <div style="margin-left:150px">Дополнительная информация.</div>
+                <div style="margin-left:120px">lParam</div>
+                  <div style="margin-left:150px">Дополнительная информация.</div>
+              <div style="margin-left:90px"><b>Call("Плагин::Функция"[, дополнительные параметры])</b></div>
+                <div style="margin-left:120px">Если вызывается скрипт, то необходимо использовать внешние вызовы 2 или 4, а также передавать код выхода из скрипта через AkelPad.ScriptExitCode.</div>
+          <div style="margin-left:30px">"истина"</div>
+            <div style="margin-left:60px">Командная строка, если результат выражения - истина (не равен нулю).</div>
+          <div style="margin-left:30px">"ложь"</div>
+            <div style="margin-left:60px">Командная строка, если результат выражения - ложь (равен нулю).</div>
+          <div style="margin-left:30px">/If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`, `/OpenFile("%a\AkelPad.ini")`, "")</div>
+            <div style="margin-left:60px">метод открывает AkelPad.ini, если настройки сохраняются в ini файл.</div>
+
           <div style="margin-top:10px"><li><b>/Var(Флаги)</b></div>
           <div style="margin-left:30px">Флаги использования переменных для методов следующих далее в командной строке. Задается суммой членов:</div>
             <div style="margin-left:60px">0 не разворачивать переменные.</div>
