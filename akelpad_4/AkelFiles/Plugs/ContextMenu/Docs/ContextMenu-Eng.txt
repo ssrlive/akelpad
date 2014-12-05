@@ -112,7 +112,7 @@ Special menu items:
         SET(64, If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`))
           parse following lines, if settings saved to ini file.
       SET(128, If("expression"[, IfTrue, IfFalse]))
-        set menu items status.
+        set menu item status.
           "expression"
             See SET(64) description.
           IfTrue
