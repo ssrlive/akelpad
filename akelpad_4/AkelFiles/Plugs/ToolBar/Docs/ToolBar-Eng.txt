@@ -47,7 +47,7 @@ Special items:
   BREAK
     wrap next buttons to new line (new row creation). If a button is preceded by a SEPARATOR, new line will be
     divided with separator. BREAK works only on horizontal ToolBar.
-  SET(flags[, "string"])
+  SET(flags[, additional parameters])
     set text parse flags (doesn't remove flags that already set). Sets by the sum of members:
       SET(1)
         ignore following lines, if SDI mode is used.
@@ -56,7 +56,56 @@ Special items:
       SET(4)
         ignore following lines, if PMDI mode is used.
       SET(32, "%a\AkelFiles\Plugs\Scripts.dll")
-        ignore following lines, if "Scripts.dll" file doesn't exist.
+        parse following lines, if "Scripts.dll" file exists.
+      SET(64, If("expression"[, IfTrue, IfFalse]))
+        parse following lines, if result not equal to zero.
+          "expression"
+            Expression could consist of::
+            - mathematical operations:
+              +, -, *, /, %, &, |, ^.
+            - logical operations:
+              >, <, ==, !=, >=, <=, &&, ||, x?y:z.
+            - comments:
+              /*comment*/
+            - methods:
+              SendMain(nMessage, wParam, lParam)
+                nMessage
+                  Specifies the message to be sent to the main window.
+                wParam
+                  Specifies additional message-specific information.
+                lParam
+                  Specifies additional message-specific information.
+              SendEdit(nMessage, wParam, lParam)
+                nMessage
+                  Specifies the message to be sent to the current edit window.
+                wParam
+                  Specifies additional message-specific information.
+                lParam
+                  Specifies additional message-specific information.
+              Call("Plugin::Function"[, additional parameters])
+                If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.
+          IfTrue
+            Numeric value, if expression result is true (not equal to zero).
+          IfFalse
+            Numeric value, if expression result is false (equal to zero).
+        SET(64, If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`))
+          parse following lines, if settings saved to ini file.
+      SET(128, If("expression"[, IfTrue, IfFalse]))
+        set button status.
+          "expression"
+            See SET(64) description.
+          IfTrue
+            0x0 //IFS_NORMAL    Normal item.
+            0x1 //IFS_CHECKED   Checked item.
+            0x2 //IFS_GRAYED    Disabled, grayed item.
+          IfFalse
+            0x0 //IFS_NORMAL    Normal item.
+            0x1 //IFS_CHECKED   Checked item.
+            0x2 //IFS_GRAYED    Disabled, grayed item.
+        SET(128, If("SendMain(1223 /*AKD_GETFRAMEINFO*/, 69 /*FI_CARETOPTIONS*/, 0) & 0x2 /*CO_CARETVERTLINE*/", 0x1, 0x0))
+          check following items, if caret active column is on.
+        SET(128, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (!AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(0x2 /*IFS_GRAYED*/);')`))
+          deactivate following items, if current document has no name.
   UNSET(flags)
     unset text parse flags. See SET() for description.
 
