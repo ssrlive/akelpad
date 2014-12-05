@@ -5851,6 +5851,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     SEPARATOR1\r\
     \"\x041F\x0440\x043E\x0432\x0435\x0440\x0438\x0442\x044C\x0020\x043E\x0440\x0444\x043E\x0433\x0440\x0430\x0444\x0438\x044E\" Call(\"Scripts::Main\", 1, \"SpellCheck.js\")\r\
     \"\x0422\x0435\x043A\x0441\x0442\x043E\x0432\x044B\x0439\x0020\x043A\x0430\x043B\x044C\x043A\x0443\x043B\x044F\x0442\x043E\x0440\" Call(\"Scripts::Main\", 1, \"Calculator.js\")\r\
+    SET(128, If(\"SendEdit(3127 /*AEM_GETCOLUMNSEL*/, 0, 0)\", 0, 2))\r\
+        \"\x0421\x0447\x0435\x0442\x0447\x0438\x043A\x0020\x0432\x0435\x0440\x0442\x0438\x043A\x0430\x043B\x044C\x043D\x043E\x0433\x043E\x0020\x0432\x044B\x0434\x0435\x043B\x0435\x043D\x0438\x044F\" Call(\"Scripts::Main\", 1, \"ColumnCounter.js\")\r\
+    UNSET(128)\r\
     SEPARATOR1\r\
 " L"\
     \"\x0418\x0441\x043F\x0440\x0430\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0431\x043E\x0440 En->Ru\" Call(\"Scripts::Main\", 1, \"Keyboard.js\", `-Type=Layout -Direction=En->Ru`)\r\
@@ -6436,6 +6439,9 @@ EXPLORER\r";
     SEPARATOR1\r\
     \"Spell check\" Call(\"Scripts::Main\", 1, \"SpellCheck.js\")\r\
     \"Text calculator\" Call(\"Scripts::Main\", 1, \"Calculator.js\")\r\
+    SET(128, If(\"SendEdit(3127 /*AEM_GETCOLUMNSEL*/, 0, 0)\", 0, 2))\r\
+        \"Column selection counter\" Call(\"Scripts::Main\", 1, \"ColumnCounter.js\")\r\
+    UNSET(128)\r\
     SEPARATOR1\r\
 " L"\
     \"Convert keyboard layout En->Ru\" Call(\"Scripts::Main\", 1, \"Keyboard.js\", `-Type=Layout -Direction=En->Ru`)\r\
