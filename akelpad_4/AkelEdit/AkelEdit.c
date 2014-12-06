@@ -10524,7 +10524,11 @@ AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AEC
     {
       ft->pText=lpMarkTextItem->pMarkText;
       ft->dwTextLen=lpMarkTextItem->nMarkTextLen;
-      ft->dwFlags=(lpMarkTextItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+      ft->dwFlags=0;
+      if (lpMarkTextItem->dwFlags & AEHLF_MATCHCASE)
+        ft->dwFlags|=AEFR_MATCHCASE;
+      if (lpMarkTextItem->dwFlags & AEHLF_WHOLEWORD)
+        ft->dwFlags|=AEFR_WHOLEWORD;
       ft->nNewLine=AELB_ASIS;
 
       if (AE_IsMatch(ae, ft, ciChar))
@@ -11806,6 +11810,8 @@ AEMARKTEXTITEMW* AE_HighlightAddMarkText(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AE
       lpREGroupStack->dwOptions=REO_MULTILINE;
       if (lpMarkTextDst->dwFlags & AEHLF_MATCHCASE)
         lpREGroupStack->dwOptions|=REO_MATCHCASE;
+      if (lpMarkTextDst->dwFlags & AEHLF_WHOLEWORD)
+        lpREGroupStack->dwOptions|=REO_WHOLEWORD;
       lpREGroupStack->wpDelim=NULL;
       lpREGroupStack->wpMaxDelim=NULL;
       if (nCompileErrorOffset=PatCompile(lpREGroupStack, lpMarkTextDst->pMarkText, lpMarkTextDst->pMarkText + lpMarkTextDst->nMarkTextLen))
