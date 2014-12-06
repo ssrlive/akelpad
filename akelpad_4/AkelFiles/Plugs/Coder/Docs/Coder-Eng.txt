@@ -440,25 +440,66 @@ DCD8500001CF30A3
 
 *** Variables description, that not used in *.coder files ***
 
-HighLight_AutoMarkFlags
-HighLight_AutoMarkFontStyle
-HighLight_AutoMarkTextColor
-HighLight_AutoMarkBkColor
+Automatic selection marking:
+  HighLight_AutoMarkFlags
+    Flags (sum of the following):
+    1  case sensitive (default).
+    2  whole word.
+       Default: 1.
+  HighLight_AutoMarkFontStyle
+    Font style (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  HighLight_AutoMarkTextColor
+    Text color. If 0, default is used.
+  HighLight_AutoMarkBkColor
+    Background color. If 0, default is used.
 
-LineBoard_TextColor
-LineBoard_BkColor
-LineBoard_BorderColor
-LineBoard_BookmarkTextColor
-LineBoard_BookmarkBkColor
-LineBoard_BookmarkBorderColor
-LineBoard_LineUnsavedColor
-LineBoard_LineSavedColor
-LineBoard_RulerScaleColor
-LineBoard_RulerCaretColor
+Variables for LineBoard plugin:
+  LineBoard_TextColor
+    Text color. If 0, not set.
+  LineBoard_BkColor
+    Text background. If 0, not set.
+  LineBoard_BorderColor
+    Border color. If 0, not set.
+  LineBoard_BookmarkTextColor
+    Bookmark text color. If 0, not set.
+  LineBoard_BookmarkBkColor
+    Bookmark background color. If 0, not set.
+  LineBoard_BookmarkBorderColor
+    Bookmark border color. If 0, not set.
+  LineBoard_LineUnsavedColor
+    Unsaved line color. If 0, not set.
+  LineBoard_LineSavedColor
+    Saved line color. If 0, not set.
+  LineBoard_RulerScaleColor
+    Ruler scale color. If 0, not set.
+  LineBoard_RulerCaretColor
+    Ruler caret color. If 0, not set.
 
-SpecialChar_BasicFontStyle
-SpecialChar_BasicTextColor
-SpecialChar_BasicBkColor
-SpecialChar_SelFontStyle
-SpecialChar_SelTextColor
-SpecialChar_SelBkColor
+Variables for SpecialChar plugin:
+  SpecialChar_BasicFontStyle
+    Basic font style (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  SpecialChar_BasicTextColor
+    Basic text color. If 0, not set.
+  SpecialChar_BasicBkColor
+    Basic background color. If 0, not set.
+  SpecialChar_SelFontStyle
+    Font style in selection (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  SpecialChar_SelTextColor
+    Text color in selection. If 0, not set.
+  SpecialChar_SelBkColor
+    Background color in selection. If 0, not set.
