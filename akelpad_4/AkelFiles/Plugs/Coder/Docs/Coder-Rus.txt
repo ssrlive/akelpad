@@ -58,9 +58,9 @@ Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", 
     2
       Отметить выделенный текст или указанный текст.
     "#RRGGBB"
-      Цвет текста, если "0" игнорируется.
+      Цвет текста. Если "0", игнорируется.
     "#RRGGBB"
-      Цвет фона, если "0" игнорируется.
+      Цвет фона. Если "0", игнорируется.
     FLAGS (сумма следующих):
       1  учитывать регистр (по умолчанию).
       2  регулярные выражения в параметре "TEXT".
@@ -104,9 +104,9 @@ Call("Coder::HighLight", 4, ID, "#RRGGBB", "#RRGGBB", DIRECTION)
       Если -1, найти автоматически назначенные идентификаторы по цвету.
       Если -2, найти отметки выделенного текста.
     "#RRGGBB"
-      Цвет текста, если "0" игнорируется.
+      Цвет текста. Если "0", игнорируется.
     "#RRGGBB"
-      Цвет фона, если "0" игнорируется.
+      Цвет фона. Если "0", игнорируется.
     DIRECTION (один из следующих):
       0 найти вниз (по умолчанию).
       1 найти вверх.
@@ -442,25 +442,66 @@ DCD8500001CF30A3
 
 *** Описание переменных, не применяющихся в *.coder файлах ***
 
-HighLight_AutoMarkFlags
-HighLight_AutoMarkFontStyle
-HighLight_AutoMarkTextColor
-HighLight_AutoMarkBkColor
+Автоматически отмечать выделенное:
+  HighLight_AutoMarkFlags
+    Флаги (сумма следующих):
+    1  учитывать регистр (по умолчанию).
+    2  слово целиком.
+       По умолчанию: 1.
+  HighLight_AutoMarkFontStyle
+    Стиль шрифта (один из следующих):
+    0  игнорировать (по умолчанию).
+    1  обычный шрифт.
+    2  жирный шрифт.
+    3  курсивный шрифт.
+    4  жирный курсивный шрифт.
+  HighLight_AutoMarkTextColor
+    Цвет текста. Если 0, используется умолчание.
+  HighLight_AutoMarkBkColor
+    Цвет фона. Если 0, используется умолчание.
 
-LineBoard_TextColor
-LineBoard_BkColor
-LineBoard_BorderColor
-LineBoard_BookmarkTextColor
-LineBoard_BookmarkBkColor
-LineBoard_BookmarkBorderColor
-LineBoard_LineUnsavedColor
-LineBoard_LineSavedColor
-LineBoard_RulerScaleColor
-LineBoard_RulerCaretColor
+Переменные для LineBoard плагина:
+  LineBoard_TextColor
+    Цвет текста. Если 0, не задан.
+  LineBoard_BkColor
+    Цвет фона. Если 0, не задан.
+  LineBoard_BorderColor
+    Цвет границы. Если 0, не задан.
+  LineBoard_BookmarkTextColor
+    Цвет текста закладки. Если 0, не задан.
+  LineBoard_BookmarkBkColor
+    Цвет фона закладки. Если 0, не задан.
+  LineBoard_BookmarkBorderColor
+    Цвет границы закладки. Если 0, не задан.
+  LineBoard_LineUnsavedColor
+    Цвет несохраненной строки. Если 0, не задан.
+  LineBoard_LineSavedColor
+    Цвет сохраненной строки. Если 0, не задан.
+  LineBoard_RulerScaleColor
+    Цвет шкалы на линейке. Если 0, не задан.
+  LineBoard_RulerCaretColor
+    Цвет каретки на линейке. Если 0, не задан.
 
-SpecialChar_BasicFontStyle
-SpecialChar_BasicTextColor
-SpecialChar_BasicBkColor
-SpecialChar_SelFontStyle
-SpecialChar_SelTextColor
-SpecialChar_SelBkColor
+Переменные для SpecialChar плагина:
+  SpecialChar_BasicFontStyle
+    Стиль шрифта основной (один из следующих):
+    0  игнорировать (по умолчанию).
+    1  обычный шрифт.
+    2  жирный шрифт.
+    3  курсивный шрифт.
+    4  жирный курсивный шрифт.
+  SpecialChar_BasicTextColor
+    Цвет текста основной. Если 0, не задан.
+  SpecialChar_BasicBkColor
+    Цвет фона основной. Если 0, не задан.
+  SpecialChar_SelFontStyle
+    Стиль шрифта в выделении (один из следующих):
+    0  игнорировать (по умолчанию).
+    1  обычный шрифт.
+    2  жирный шрифт.
+    3  курсивный шрифт.
+    4  жирный курсивный шрифт.
+  SpecialChar_SelTextColor
+    Цвет текста в выделении. Если 0, не задан.
+  SpecialChar_SelBkColor
+    Цвет фона в выделении. Если 0, не задан.
