@@ -438,3 +438,29 @@ DCD8500001CF30A3
   Необязательный ручной параметр. Если 1, то не обновлять информацию о типах файлов из cpp.coder.
 "*.cpp" "*.c"
   Типы файлов.
+
+
+*** Описание переменных, не применяющихся в *.coder файлах ***
+
+HighLight_AutoMarkFlags
+HighLight_AutoMarkFontStyle
+HighLight_AutoMarkTextColor
+HighLight_AutoMarkBkColor
+
+LineBoard_TextColor
+LineBoard_BkColor
+LineBoard_BorderColor
+LineBoard_BookmarkTextColor
+LineBoard_BookmarkBkColor
+LineBoard_BookmarkBorderColor
+LineBoard_LineUnsavedColor
+LineBoard_LineSavedColor
+LineBoard_RulerScaleColor
+LineBoard_RulerCaretColor
+
+SpecialChar_BasicFontStyle
+SpecialChar_BasicTextColor
+SpecialChar_BasicBkColor
+SpecialChar_SelFontStyle
+SpecialChar_SelTextColor
+SpecialChar_SelBkColor
