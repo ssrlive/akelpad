@@ -445,7 +445,8 @@
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x00000001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_WORDCOMPOSITION        0x00000002  //Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
+#define AEHLF_WHOLEWORD              0x00000002  //Only for AEMARKTEXTITEM.dwFlags. If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
+#define AEHLF_WORDCOMPOSITION        0x00000002  //Only for AEWORDITEM.dwFlags. Word is a composition of characters. For example, AEWORDITEM.pWord equal to "1234567890" with this flag, means highlight words that contain only digits.
 #define AEHLF_QUOTEEND_REQUIRED      0x00000004  //If quote end isn't found, text after quote start will not be highlighted.
 #define AEHLF_QUOTESTART_ISDELIMITER 0x00000008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
 #define AEHLF_QUOTEEND_ISDELIMITER   0x00000010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
