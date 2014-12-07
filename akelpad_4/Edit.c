@@ -1476,7 +1476,12 @@ BOOL DoFileOpen()
 
     //Initial directory
     nFileLen=(int)xstrcpynW(wszOpenFile, lpFrameCurrent->wszFile, MAX_PATH);
-    if (*wszOpenFile)
+    if (*moCur.wszOfnDir)
+    {
+      xstrcpynW(wszOpenDir, moCur.wszOfnDir, MAX_PATH);
+      moCur.wszOfnDir[0]=L'\0';
+    }
+    else if (*wszOpenFile)
     {
       GetFileDir(wszOpenFile, nFileLen, wszOpenDir, MAX_PATH);
       if (!DirExistsWide(wszOpenDir))
@@ -1704,7 +1709,12 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
     //Initial directory
     nFileLen=(int)xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
-    if (*wszSaveFile)
+    if (*moCur.wszOfnDir)
+    {
+      xstrcpynW(wszSaveDir, moCur.wszOfnDir, MAX_PATH);
+      moCur.wszOfnDir[0]=L'\0';
+    }
+    else if (*wszSaveFile)
     {
       GetFileDir(wszSaveFile, nFileLen, wszSaveDir, MAX_PATH);
       if (!DirExistsWide(wszSaveDir))

@@ -837,6 +837,7 @@ void _WinMain()
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
 
   //--Open file dialog--
+  //moInit.wszOfnDir[0]=L'\0';
   //moInit.wszLastDir[0]=L'\0';
   moInit.bShowPlacesBar=TRUE;
 
@@ -2556,6 +2557,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (lParam) xmemcpy((void *)lParam, &moCur.lfPrintFont, sizeof(LOGFONTW));
             return sizeof(LOGFONTW);
           }
+          case MI_OFNDIR:
+            return xstrcpynW((void *)lParam, moCur.wszOfnDir, MAX_PATH);
           case MI_LASTDIR:
             return xstrcpynW((void *)lParam, moCur.wszLastDir, MAX_PATH);
           case MI_SHOWPLACESBAR:
@@ -2888,6 +2891,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, &moCur.bPrintFontEnable, sizeof(DWORD), INI_DWORD);
           case MIS_PRINTFONTW:
             return SetOption(lParam, &moCur.lfPrintFont, sizeof(LOGFONTW), INI_BINARY);
+          case MIS_OFNDIR:
+            return SetOption(lParam, moCur.wszOfnDir, sizeof(moCur.wszOfnDir), INI_STRINGUNICODE);
           case MIS_LASTDIR:
             return SetOption(lParam, moCur.wszLastDir, sizeof(moCur.wszLastDir), INI_STRINGUNICODE);
           case MIS_SHOWPLACESBAR:

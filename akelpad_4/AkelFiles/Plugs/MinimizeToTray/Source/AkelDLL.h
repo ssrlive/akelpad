@@ -321,9 +321,10 @@
 #define MI_PRINTFOOTER               262  //Return: copied chars. (wchar_t *)lParam - buffer that receives print footer string.
 #define MI_PRINTFONTENABLE           266  //Return: enable print font (on\off).
 #define MI_PRINTFONTW                267  //Return: copied bytes. (LOGFONTW *)lParam - buffer that receives print font data.
-//Open dialog
-#define MI_LASTDIR                   281  //Return: copied chars. (wchar_t *)lParam - buffer that receives last directory of open dialog.
-#define MI_SHOWPLACESBAR             282  //Return: show places bar in open dialog (on\off).
+//Open/save dialog
+#define MI_OFNDIR                    280  //Return: copied chars. (wchar_t *)lParam - buffer that receives forced directory of open/save dialog.
+#define MI_LASTDIR                   281  //Return: copied chars. (wchar_t *)lParam - buffer that receives last directory of open/save dialog.
+#define MI_SHOWPLACESBAR             282  //Return: show places bar in open/save dialog (on\off).
 
 //AKD_SETMAININFO type
 
@@ -393,9 +394,10 @@
 #define MIS_PRINTFOOTER               262  //(wchar_t *)lParam - print footer string.
 #define MIS_PRINTFONTENABLE           266  //(BOOL)lParam - enable print font (on\off).
 #define MIS_PRINTFONTW                267  //(LOGFONTW *)lParam - print font data.
-//Open dialog
-#define MIS_LASTDIR                   281  //(wchar_t *)lParam - last directory of open dialog.
-#define MIS_SHOWPLACESBAR             282  //(BOOL)lParam - show places bar in open dialog (on\off).
+//Open/save dialog
+#define MIS_OFNDIR                    280  //(wchar_t *)lParam - forced directory of open/save dialog. This setting not saved and resets before dialog opened.
+#define MIS_LASTDIR                   281  //(wchar_t *)lParam - last directory of open/save dialog.
+#define MIS_SHOWPLACESBAR             282  //(BOOL)lParam - show places bar in open/save dialog (on\off).
 
 //AKD_GETFRAMEINFO type. See FRAMEDATA members description.
 #define FI_WNDEDITPARENT        1

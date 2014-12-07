@@ -235,6 +235,7 @@ BOOL bInitCommon=FALSE;
 BOOL bInitMain=FALSE;
 DWORD dwSaveFlags=0;
 HWND hWndDockDlg=NULL;
+HWND hWndBrowsePath=NULL;
 HWND hWndBrowseTree=NULL;
 RECT rcExplorerCurrentDialog={0};
 RECT rcExplorerDockRect={0};
@@ -413,7 +414,6 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndTitleText;
   static HWND hWndTitleClose;
-  static HWND hWndBrowsePath;
   static HWND hWndFilterType;
   static HWND hWndFilterCombo;
   static HWND hWndFilterItem;
@@ -1409,13 +1409,13 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDM_FILE_SAVEAS ||
-        LOWORD(wParam) == IDM_FILE_SAVE)
+    if (bSetSaveLocation)
     {
-      if (bSetSaveLocation && !SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_FILELEN, (LPARAM)NULL))
+      if ((LOWORD(wParam) == IDM_FILE_SAVE && !SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_FILELEN, (LPARAM)NULL)) ||
+          LOWORD(wParam) == IDM_FILE_SAVEAS)
       {
-        GetSelItemTreeView(hWndBrowseTree, wszPath);
-        if (wszPath[0]) SendMessage(hMainWnd, AKD_SETMAININFO, MIS_LASTDIR, (LPARAM)wszPath);
+        if (GetWindowTextWide(hWndBrowsePath, wszPath, MAX_PATH))
+          SendMessage(hMainWnd, AKD_SETMAININFO, MIS_OFNDIR, (LPARAM)wszPath);
       }
     }
   }

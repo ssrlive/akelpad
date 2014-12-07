@@ -458,6 +458,7 @@ typedef struct {
   DWORD dwGotoOptions;
 
   //Open file dialog
+  wchar_t wszOfnDir[MAX_PATH];
   wchar_t wszLastDir[MAX_PATH];
   BOOL bShowPlacesBar;
 
