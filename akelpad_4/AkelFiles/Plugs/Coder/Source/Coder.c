@@ -176,7 +176,7 @@ BOOL bSaveOptions;
 int nColumnWidth1=218;
 int nColumnWidth2=110;
 int nColumnWidth3=100;
-RECT rcLinkMinMaxDialog={299,254, 0, 0};
+RECT rcLinkMinMaxDialog={299, 254, 0, 0};
 RECT rcLinkCurrentDialog={0};
 
 
