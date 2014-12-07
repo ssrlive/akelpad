@@ -82,15 +82,16 @@
 #define STRID_SHOWHIDDEN           16
 #define STRID_AUTOFIND             17
 #define STRID_SINGLECLICK          18
-#define STRID_CREATEDIR            19
-#define STRID_CREATEFILE           20
-#define STRID_LOADFIRST            21
-#define STRID_PLUGIN               22
-#define STRID_OK                   23
-#define STRID_CANCEL               24
-#define STRID_DEFAULTCODER         25
-#define STRID_DEFAULTINCLUDE       26
-#define STRID_DEFAULTEXCLUDE       27
+#define STRID_SETSAVELOCATION      19
+#define STRID_CREATEDIR            20
+#define STRID_CREATEFILE           21
+#define STRID_LOADFIRST            22
+#define STRID_PLUGIN               23
+#define STRID_OK                   24
+#define STRID_CANCEL               25
+#define STRID_DEFAULTCODER         26
+#define STRID_DEFAULTINCLUDE       27
+#define STRID_DEFAULTEXCLUDE       28
 
 #define DLLA_EXPLORER_GOTOPATH  1
 #define DLLA_EXPLORER_REFRESH   2
@@ -255,6 +256,7 @@ int nFilterType=FILTER_NONE;
 BOOL bShowHidden=FALSE;
 BOOL bAutoFind=TRUE;
 BOOL bSingleClick=FALSE;
+BOOL bSetSaveLocation=FALSE;
 BOOL bRenaming=FALSE;
 BOOL bOnMainStart=FALSE;
 WNDPROCDATA *NewMainProcData=NULL;
@@ -325,10 +327,10 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         else if (nAction == DLLA_EXPLORER_GETDOCK)
         {
           HWND *lpWndDock=NULL;
-    
+
           if (IsExtCallParamValid(pd->lParam, 2))
             lpWndDock=(HWND *)GetExtCallParam(pd->lParam, 2);
-    
+
           if (lpWndDock)
             *lpWndDock=hWndDockDlg;
         }
@@ -1229,6 +1231,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndShowHidden;
   static HWND hWndAutoFind;
   static HWND hWndSingleClick;
+  static HWND hWndSetSaveLocation;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -1242,6 +1245,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndShowHidden=GetDlgItem(hDlg, IDC_SETUP_SHOWHIDDEN);
     hWndAutoFind=GetDlgItem(hDlg, IDC_SETUP_AUTOFIND);
     hWndSingleClick=GetDlgItem(hDlg, IDC_SETUP_SINGLECLICK);
+    hWndSetSaveLocation=GetDlgItem(hDlg, IDC_SETUP_SETSAVELOCATION);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDC_SETUP_ROOT_GROUP, GetLangStringW(wLangModule, STRID_ROOTDIRECTORY));
@@ -1249,6 +1253,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDC_SETUP_SHOWHIDDEN, GetLangStringW(wLangModule, STRID_SHOWHIDDEN));
     SetDlgItemTextWide(hDlg, IDC_SETUP_AUTOFIND, GetLangStringW(wLangModule, STRID_AUTOFIND));
     SetDlgItemTextWide(hDlg, IDC_SETUP_SINGLECLICK, GetLangStringW(wLangModule, STRID_SINGLECLICK));
+    SetDlgItemTextWide(hDlg, IDC_SETUP_SETSAVELOCATION, GetLangStringW(wLangModule, STRID_SETSAVELOCATION));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
@@ -1258,6 +1263,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (bShowHidden) SendMessage(hWndShowHidden, BM_SETCHECK, BST_CHECKED, 0);
     if (bAutoFind) SendMessage(hWndAutoFind, BM_SETCHECK, BST_CHECKED, 0);
     if (bSingleClick) SendMessage(hWndSingleClick, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSetSaveLocation) SendMessage(hWndSetSaveLocation, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETUP_ROOT_MYCOMPUTER, 0);
   }
@@ -1287,6 +1293,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwStyle=(DWORD)GetWindowLongPtrWide(hWndBrowseTree, GWL_STYLE);
         SetWindowLongPtrWide(hWndBrowseTree, GWL_STYLE, bSingleClick?(dwStyle | TVS_TRACKSELECT):(dwStyle & ~TVS_TRACKSELECT));
       }
+      bSetSaveLocation=(BOOL)SendMessage(hWndSetSaveLocation, BM_GETCHECK, 0, 0);
 
       dwSaveFlags|=OF_SETTINGS;
 
@@ -1399,6 +1406,18 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DestroyDock(hWndDockDlg, DKT_ONMAINFINISH);
     }
     return FALSE;
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDM_FILE_SAVEAS ||
+        LOWORD(wParam) == IDM_FILE_SAVE)
+    {
+      if (bSetSaveLocation && !SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_FILELEN, (LPARAM)NULL))
+      {
+        GetSelItemTreeView(hWndBrowseTree, wszPath);
+        if (wszPath[0]) SendMessage(hMainWnd, AKD_SETMAININFO, MIS_LASTDIR, (LPARAM)wszPath);
+      }
+    }
   }
 
   //Call next procedure
@@ -2290,6 +2309,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"ShowHidden", PO_DWORD, (LPBYTE)&bShowHidden, sizeof(DWORD));
     WideOption(hOptions, L"AutoFind", PO_DWORD, (LPBYTE)&bAutoFind, sizeof(DWORD));
     WideOption(hOptions, L"SingleClick", PO_DWORD, (LPBYTE)&bSingleClick, sizeof(DWORD));
+    WideOption(hOptions, L"SetSaveLocation", PO_DWORD, (LPBYTE)&bSetSaveLocation, sizeof(DWORD));
     WideOption(hOptions, L"FilterOptions", PO_DWORD, (LPBYTE)&nFilterType, sizeof(DWORD));
 
     //Include filter
@@ -2357,6 +2377,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"ShowHidden", PO_DWORD, (LPBYTE)&bShowHidden, sizeof(DWORD));
       WideOption(hOptions, L"AutoFind", PO_DWORD, (LPBYTE)&bAutoFind, sizeof(DWORD));
       WideOption(hOptions, L"SingleClick", PO_DWORD, (LPBYTE)&bSingleClick, sizeof(DWORD));
+      WideOption(hOptions, L"SetSaveLocation", PO_DWORD, (LPBYTE)&bSetSaveLocation, sizeof(DWORD));
     }
     if (dwFlags & OF_FILTER)
     {
@@ -2454,6 +2475,8 @@ XML (*.manifest;*.vcproj;*.csproj;*.vbproj;*.vdproj;*.wixobj;*.wixout;*.wixlib;*
       return L"\x0410\x0432\x0442\x043E\x043C\x0430\x0442\x0438\x0447\x0435\x0441\x043A\x0438\x0020\x043D\x0430\x0445\x043E\x0434\x0438\x0442\x044C\x0020\x0434\x043E\x043A\x0443\x043C\x0435\x043D\x0442\x044B";
     if (nStringID == STRID_SINGLECLICK)
       return L"\x041E\x0434\x0438\x043D\x0430\x0440\x043D\x044B\x0439\x0020\x043A\x043B\x0438\x043A";
+    if (nStringID == STRID_SETSAVELOCATION)
+      return L"\x041F\x0435\x0440\x0435\x0434\x0430\x0442\x044C\x0020\x043F\x0430\x043F\x043A\x0443\x0020\x0434\x043B\x044F\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x044F";
     if (nStringID == STRID_CREATEDIR)
       return L"\x0421\x043E\x0437\x0434\x0430\x0442\x044C\x0020\x043F\x0430\x043F\x043A\x0443:";
     if (nStringID == STRID_CREATEFILE)
@@ -2517,6 +2540,8 @@ XML (*.manifest;*.vcproj;*.csproj;*.vbproj;*.vdproj;*.wixobj;*.wixout;*.wixlib;*
       return L"Auto find documents";
     if (nStringID == STRID_SINGLECLICK)
       return L"Single click";
+    if (nStringID == STRID_SETSAVELOCATION)
+      return L"Set save location";
     if (nStringID == STRID_CREATEDIR)
       return L"Create folder:";
     if (nStringID == STRID_CREATEFILE)
