@@ -1891,7 +1891,9 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
                 //"Value" -> Value
                 if (lpScriptArg->nArgValueLen >= 2)
                 {
-                  if (lpScriptArg->wpArgValue[0] == L'\"' && lpScriptArg->wpArgValue[lpScriptArg->nArgValueLen - 1] == L'\"')
+                  if ((lpScriptArg->wpArgValue[0] == L'\"' && lpScriptArg->wpArgValue[lpScriptArg->nArgValueLen - 1] == L'\"') ||
+                      (lpScriptArg->wpArgValue[0] == L'\'' && lpScriptArg->wpArgValue[lpScriptArg->nArgValueLen - 1] == L'\'') ||
+                      (lpScriptArg->wpArgValue[0] == L'`' && lpScriptArg->wpArgValue[lpScriptArg->nArgValueLen - 1] == L'`'))
                   {
                     lpScriptArg->wpArgValue+=1;
                     lpScriptArg->nArgValueLen-=2;
