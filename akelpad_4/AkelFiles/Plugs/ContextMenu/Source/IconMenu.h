@@ -1076,7 +1076,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                           LineTo(hMemDC, x, y + 1);
                         }
                       }
-                      SelectObject (hMemDC, hPenOld);
+                      SelectObject(hMemDC, hPenOld);
                       DeleteObject(hPen);
                     }
                   }
@@ -1187,7 +1187,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                       LineTo(hMemDC, x + ptDraw[i + 1].x, y + ptDraw[i + 1].y);
                     }
                   }
-                  SelectObject (hMemDC, hPenOld);
+                  SelectObject(hMemDC, hPenOld);
                   DeleteObject(hPen);
                 }
               }
