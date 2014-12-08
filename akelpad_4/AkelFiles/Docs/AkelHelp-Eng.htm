@@ -246,12 +246,17 @@
                 <div style="margin-left:120px">lParam</div>
                   <div style="margin-left:150px">Specifies additional message-specific information.</div>
               <div style="margin-left:90px"><b>Call("Plugin::Function"[, additional parameters])</b></div>
-                <div style="margin-left:120px">If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.</div>
+                <div style="margin-left:120px">- If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.</div>
+                <div style="margin-left:120px">/If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`, ``, `/Quit`)</div>
+                  <div style="margin-left:150px">Quit, if current document has no name.</div>
+                <div style="margin-left:120px">- If a plugin is called, then exit code transfered via special parameter &nResult. &nResult must be located in a place where external call syntax requires a pointer to an integer.</div>
+                <div style="margin-left:120px">/If(`Call("Coder::CodeFold", 1, &nResult)`, `/Call("Coder::CodeFold", 1)`, ``)</div>
+                  <div style="margin-left:150px">Close CodeFold window, if opened.</div>
           <div style="margin-left:30px">"IfTrue"</div>
             <div style="margin-left:60px">Command line, if expression result is true (not equal to zero).</div>
           <div style="margin-left:30px">"IfFalse"</div>
             <div style="margin-left:60px">Command line, if expression result is false (equal to zero).</div>
-          <div style="margin-left:30px">/If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`, `/OpenFile("%a\AkelPad.ini")`, "")</div>
+          <div style="margin-left:30px">/If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`, `/OpenFile("%a\AkelPad.ini")`, ``)</div>
             <div style="margin-left:60px">method opens AkelPad.ini, if settings saved to ini file.</div>
 
           <div style="margin-top:10px"><li><b>/Var(Flags)</b></div>
@@ -284,6 +289,7 @@
                 <div style="margin-left:30px">%%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
                 <div style="margin-left:30px">%%%% - % symbol</div>
                 <div style="margin-left:30px">%system variable% (i.e. <i>environment</i> variable)</div>
+                <div style="margin-left:30px">^& - & symbol</div>
               </td>
             </tr>
           </table>

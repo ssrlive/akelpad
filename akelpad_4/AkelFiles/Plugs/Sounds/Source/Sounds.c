@@ -152,7 +152,7 @@ void StackFreeSounds(SOUNDSTACK *hStack);
 void FillLayoutList(HWND hWndLayoutList, WORD wSelLangID);
 int GetLayoutName(WORD wLangID, wchar_t *wszName, int nNameMax);
 
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
@@ -1147,73 +1147,76 @@ int GetLayoutName(WORD wLangID, wchar_t *wszName, int nNameMax)
   return nResult;
 }
 
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
   const wchar_t *wpParamBegin=wpText;
   const wchar_t *wpParamEnd;
-  wchar_t *wpString;
   wchar_t wchStopChar;
-  int nStringLen;
+  INT_PTR nStringLen;
 
   MethodParameter:
-  while (*wpParamBegin == ' ' || *wpParamBegin == '\t') ++wpParamBegin;
+  while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
 
-  if (*wpParamBegin == '\"' || *wpParamBegin == '\'' || *wpParamBegin == '`')
+  if (*wpParamBegin == L'\"' || *wpParamBegin == L'\'' || *wpParamBegin == L'`')
   {
     //String
     wchStopChar=*wpParamBegin++;
-    nStringLen=0;
-
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != '\0'; ++wpParamEnd)
-      ++nStringLen;
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
-
+      lpParameter->dwType=EXTPARAM_CHAR;
+      nStringLen=wpParamEnd - wpParamBegin;
       if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-      {
-        lpParameter->dwType=EXTPARAM_CHAR;
-        wpString=lpParameter->wpString;
-
-        for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != '\0'; ++wpParamEnd)
-          *wpString++=*wpParamEnd;
-        *wpString='\0';
-
-        if (bOldWindows)
-        {
-          nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
-          if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
-            WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, nStringLen, NULL, NULL);
-        }
-      }
+        xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
     }
   }
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != ',' && *wpParamEnd != ')' && *wpParamEnd != '\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
 
-      lpParameter->dwType=EXTPARAM_INT;
-      lpParameter->nNumber=(int)xatoiW(wpParamBegin, NULL);
+      if (*wpParamBegin == L'&')
+      {
+        lpParameter->dwType=EXTPARAM_LPINT;
+        nStringLen=wpParamEnd - wpParamBegin - 1;
+        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
+          xstrcpynW(lpParameter->wpString, wpParamBegin + 1, nStringLen + 1);
+      }
+      else
+      {
+        lpParameter->dwType=EXTPARAM_INT;
+        if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
+          lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+        else
+          lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      }
     }
   }
+  if (bOldWindows && lpParameter->wpString)
+  {
+    nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
+    if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
+      WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
+  }
 
-  while (*wpParamEnd != ',' && *wpParamEnd != ')' && *wpParamEnd != '\0')
+  while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
     ++wpParamEnd;
-  if (*wpParamEnd == ',')
+  if (*wpParamEnd == L',')
   {
     wpParamBegin=++wpParamEnd;
     goto MethodParameter;
   }
-  if (*wpParamEnd == ')')
+  if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
+  return hParamStack->nElements;
 }
 
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
@@ -1231,7 +1234,7 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
+    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_LPINT)
     {
       if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
       if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
