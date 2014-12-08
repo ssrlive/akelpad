@@ -500,7 +500,7 @@ void RemoveSeparator1(POPUPMENU *hMenuStack, HMENU hSubMenu);
 void GetEditPos(HWND hWnd, POINT *pt, int nType);
 void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void GetIconParameters(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
@@ -4850,14 +4850,13 @@ void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)
     SendMessage(hWnd, EM_SETSEL, 0, -1);
 }
 
-void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
+int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
   const wchar_t *wpParamBegin=wpText;
   const wchar_t *wpParamEnd;
-  wchar_t *wpString;
   wchar_t wchStopChar;
-  int nStringLen;
+  INT_PTR nStringLen;
 
   MethodParameter:
   while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
@@ -4866,48 +4865,48 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   {
     //String
     wchStopChar=*wpParamBegin++;
-    nStringLen=0;
-
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd)
-      ++nStringLen;
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
-
+      lpParameter->dwType=EXTPARAM_CHAR;
+      nStringLen=wpParamEnd - wpParamBegin;
       if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-      {
-        lpParameter->dwType=EXTPARAM_CHAR;
-        wpString=lpParameter->wpString;
-
-        for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd)
-          *wpString++=*wpParamEnd;
-        *wpString=L'\0';
-
-        if (bOldWindows)
-        {
-          nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
-          if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
-            WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, nStringLen, NULL, NULL);
-        }
-      }
+        xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
     }
   }
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
 
-      lpParameter->dwType=EXTPARAM_INT;
-      if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
-        lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+      if (*wpParamBegin == L'&')
+      {
+        lpParameter->dwType=EXTPARAM_LPINT;
+        nStringLen=wpParamEnd - wpParamBegin - 1;
+        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
+          xstrcpynW(lpParameter->wpString, wpParamBegin + 1, nStringLen + 1);
+      }
       else
-        lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      {
+        lpParameter->dwType=EXTPARAM_INT;
+        if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
+          lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+        else
+          lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      }
     }
+  }
+  if (bOldWindows && lpParameter->wpString)
+  {
+    nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
+    if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
+      WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
   }
 
   while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
@@ -4920,6 +4919,7 @@ void ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, co
   if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
+  return hParamStack->nElements;
 }
 
 int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
@@ -5030,7 +5030,7 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
+    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_LPINT)
     {
       if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
       if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);

@@ -1376,23 +1376,13 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
              uMsg == AKD_DLLCALLW)
     {
       PLUGINCALLSENDW *lpCallSend=(PLUGINCALLSENDW *)lParam;
-      PLUGINCALLSENDW pcsW;
       wchar_t wszPluginFunction[MAX_PATH];
-      int nResult;
 
       if (uMsg == AKD_DLLCALLA || (bOldWindows && uMsg == AKD_DLLCALL))
         xprintfW(wszPluginFunction, L"%S", (char *)lpCallSend->pFunction);
       else
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallSend->pFunction);
-      pcsW.pFunction=wszPluginFunction;
-      pcsW.lParam=lpCallSend->lParam;
-      pcsW.dwSupport=lpCallSend->dwSupport;
-      pcsW.nResult=lpCallSend->nResult;
-      nResult=CallPluginSend(NULL, &pcsW, (DWORD)wParam);
-
-      lpCallSend->dwSupport=pcsW.dwSupport;
-      lpCallSend->nResult=pcsW.nResult;
-      return nResult;
+      return CallPluginSend(NULL, wszPluginFunction, lpCallSend, (DWORD)wParam);
     }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||

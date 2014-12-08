@@ -13465,15 +13465,14 @@ void CallPluginsOnStart(STACKPLUGINFUNCTION *hStack)
 
     if (pfElement->bAutoLoad)
     {
-      pcs.pFunction=pfElement->wszFunction;
       pcs.lParam=0;
       pcs.dwSupport=0;
-      CallPluginSend(&pfElement, &pcs, DLLCF_ONPROGRAMLOAD);
+      CallPluginSend(&pfElement, pfElement->wszFunction, &pcs, DLLCF_ONPROGRAMLOAD);
     }
   }
 }
 
-int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFlags)
+int CallPluginSend(PLUGINFUNCTION **ppfElement, wchar_t *wpFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags)
 {
   PLUGINFUNCTION *pfElement=NULL;
   int nResult=UD_FAILED;
@@ -13485,8 +13484,8 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
 
     if (!pfElement)
     {
-      if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
-        if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, (int)xstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
+      if (!(pfElement=StackPluginFind(&hPluginsStack, wpFunction, -1)))
+        if (!(pfElement=StackPluginAdd(&hPluginsStack, wpFunction, (int)xstrlenW(wpFunction), 0, FALSE, NULL, NULL)))
           return UD_FAILED;
     }
     ++pfElement->nRefCount;
@@ -13501,7 +13500,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
     }
     else
     {
-      nResult=CallPlugin(pfElement, pcs, dwFlags);
+      nResult=CallPlugin(pfElement, wpFunction, pcs, dwFlags);
       --pfElement->nRefCount;
 
       if (nResult != UD_FAILED)
@@ -13561,7 +13560,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFl
   return nResult;
 }
 
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags)
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags)
 {
   wchar_t wszPlugin[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
@@ -13579,12 +13578,12 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
 
   pd.nUnload=UD_FAILED;
 
-  if (pcs->pFunction)
+  if (wpFunction)
   {
-    if (ParsePluginNameW(pcs->pFunction, wszPlugin, wszFunction))
+    if (ParsePluginNameW(wpFunction, wszPlugin, wszFunction))
     {
       WideCharToMultiByte(CP_ACP, 0, wszFunction, -1, szFunction, MAX_PATH, NULL, NULL);
-      WideCharToMultiByte(CP_ACP, 0, pcs->pFunction, -1, szFullName, MAX_PATH, NULL, NULL);
+      WideCharToMultiByte(CP_ACP, 0, wpFunction, -1, szFullName, MAX_PATH, NULL, NULL);
       xprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
       nWordLen=API_LoadString(hLangModule, STR_PLUGIN, wbuf, BUFFER_SIZE);
       wbuf[0]=WideCharLower(wbuf[0]);
@@ -13625,9 +13624,9 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.dwSupport=pcs->dwSupport;
                   if (!(pd.dwSupport & PDS_STRANSI) && !(pd.dwSupport & PDS_STRWIDE))
                     pd.dwSupport|=bOldWindows?PDS_STRANSI:PDS_STRWIDE;
-                  pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)pcs->pFunction;
+                  pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)wpFunction;
                   pd.szFunction=szFullName;
-                  pd.wszFunction=pcs->pFunction;
+                  pd.wszFunction=wpFunction;
                   pd.hInstanceDLL=hModule;
                   pd.lpPluginFunction=lpPluginFunction;
                   pd.nUnload=UD_UNLOAD;
@@ -13855,10 +13854,9 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
         xprintfW(wszPluginFunction, L"%S", (char *)lpCallPostA->szFunction);
       else
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
-      pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallPostW->lParam;
       pcsW.dwSupport=lpCallPostW->dwSupport|PDS_POSTMESSAGE;
-      CallPluginSend(NULL, &pcsW, (DWORD)lpMsg->wParam);
+      CallPluginSend(NULL, wszPluginFunction, &pcsW, (DWORD)lpMsg->wParam);
       GlobalFree((HGLOBAL)lpMsg->lParam);
     }
     return TRUE;
@@ -13940,10 +13938,9 @@ int TranslateMessageHotkey(STACKPLUGINFUNCTION *hStack, LPMSG lpMsg)
       {
         PLUGINCALLSENDW pcs;
 
-        pcs.pFunction=pfElement->wszFunction;
         pcs.lParam=0;
         pcs.dwSupport=0;
-        if (CallPluginSend(&pfElement, &pcs, 0) & UD_HOTKEY_DODEFAULT)
+        if (CallPluginSend(&pfElement, pfElement->wszFunction, &pcs, 0) & UD_HOTKEY_DODEFAULT)
           break;
         return TRUE;
       }
@@ -14025,10 +14022,9 @@ int CheckHotkey(WORD wHotkey, wchar_t *wszHotkeyOwner)
       deh.wszName=wszName;
       deh.nNameMax=MAX_PATH - 32;
 
-      pcs.pFunction=L"Hotkeys::Main";
       pcs.lParam=(LPARAM)&deh;
       pcs.dwSupport=PDS_STRWIDE;
-      CallPluginSend(NULL, &pcs, 0);
+      CallPluginSend(NULL, L"Hotkeys::Main", &pcs, 0);
 
       if (bExist)
       {
@@ -14233,10 +14229,9 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     //Check plugin autoload support
                     PLUGINCALLSENDW pcs;
 
-                    pcs.pFunction=pliElement->pf->wszFunction;
                     pcs.lParam=0;
                     pcs.dwSupport=PDS_GETSUPPORT;
-                    if ((pliElement->nCallResult=CallPluginSend(NULL, &pcs, 0)) != UD_FAILED)
+                    if ((pliElement->nCallResult=CallPluginSend(NULL, pliElement->pf->wszFunction, &pcs, 0)) != UD_FAILED)
                     {
                       if (pcs.dwSupport & PDS_NOAUTOLOAD)
                         pliElement->nAutoLoad=0;
@@ -18987,25 +18982,20 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
     else if (dwAction == EXTACT_CALL)
     {
       PLUGINCALLSENDW pcs;
-      unsigned char *lpStruct=NULL;
       int nStructSize;
 
       ExpandMethodParameters(&hParamStack, ep);
 
-      nStructSize=StructMethodParameters(&hParamStack, NULL);
-      if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+      if (nStructSize=StructMethodParameters(&hParamStack, NULL))
       {
-        pcs.pFunction=hParamStack.first->wpString;
-        if (nStructSize > 0)
-        {
-          pcs.lParam=(LPARAM)lpStruct;
-          StructMethodParameters(&hParamStack, lpStruct);
-        }
-        else pcs.lParam=0;
-
-        CallPluginSend(NULL, &pcs, 0);
-        GlobalFree((HGLOBAL)lpStruct);
+        if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+          StructMethodParameters(&hParamStack, (unsigned char *)pcs.lParam);
       }
+      else pcs.lParam=0;
+
+      pcs.dwSupport=0;
+      CallPluginSend(NULL, hParamStack.first->wpString, &pcs, 0);
+      if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
     }
     else if (dwAction == EXTACT_EXEC)
     {
@@ -19216,9 +19206,8 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   EXTPARAM *lpParameter;
   const wchar_t *wpParamBegin=wpText;
   const wchar_t *wpParamEnd;
-  wchar_t *wpString;
   wchar_t wchStopChar;
-  int nStringLen;
+  INT_PTR nStringLen;
 
   MethodParameter:
   while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
@@ -19227,48 +19216,48 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   {
     //String
     wchStopChar=*wpParamBegin++;
-    nStringLen=0;
-
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd)
-      ++nStringLen;
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
-
+      lpParameter->dwType=EXTPARAM_CHAR;
+      nStringLen=wpParamEnd - wpParamBegin;
       if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-      {
-        lpParameter->dwType=EXTPARAM_CHAR;
-        wpString=lpParameter->wpString;
-
-        for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd)
-          *wpString++=*wpParamEnd;
-        *wpString=L'\0';
-
-        if (bOldWindows)
-        {
-          nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
-          if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
-            WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, nStringLen, NULL, NULL);
-        }
-      }
+        xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
     }
   }
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
       ++hParamStack->nElements;
 
-      lpParameter->dwType=EXTPARAM_INT;
-      if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
-        lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+      if (*wpParamBegin == L'&')
+      {
+        lpParameter->dwType=EXTPARAM_LPINT;
+        nStringLen=wpParamEnd - wpParamBegin - 1;
+        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
+          xstrcpynW(lpParameter->wpString, wpParamBegin + 1, nStringLen + 1);
+      }
       else
-        lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      {
+        lpParameter->dwType=EXTPARAM_INT;
+        if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
+          lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
+        else
+          lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      }
     }
+  }
+  if (bOldWindows && lpParameter->wpString)
+  {
+    nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
+    if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
+      WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
   }
 
   while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
@@ -19491,7 +19480,7 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack)
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
-    if (lpParameter->dwType == EXTPARAM_CHAR)
+    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_LPINT)
     {
       if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
       if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
@@ -19761,6 +19750,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
     else if (!xstrcmpinW(L"Call(", wpIn, (UINT_PTR)-1))
     {
       STACKEXTPARAM hParamStack={0};
+      EXTPARAM *lpParameter;
       PLUGINCALLSENDW pcs;
       int nStructSize;
       int nCallResult=UD_FAILED;
@@ -19769,6 +19759,19 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       {
         ExpandMethodParameters(&hParamStack, NULL);
 
+        //&nResult is the result for Call method.
+        for (lpParameter=hParamStack.first; lpParameter; lpParameter=lpParameter->next)
+        {
+          if (lpParameter->dwType == EXTPARAM_LPINT)
+          {
+            if (!xstrcmpW(lpParameter->wpString, L"nResult"))
+            {
+              lpParameter->nNumber=(INT_PTR)&pcs.nResult;
+              break;
+            }
+          }
+        }
+
         if (nStructSize=StructMethodParameters(&hParamStack, NULL))
         {
           if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
@@ -19776,10 +19779,9 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
         }
         else pcs.lParam=0;
 
-        pcs.pFunction=hParamStack.first->wpString;
         pcs.dwSupport=PDS_STRWIDE;
         pcs.nResult=0;
-        nCallResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+        nCallResult=(int)CallPluginSend(NULL, hParamStack.first->wpString, &pcs, 0);
         if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
         nValue=pcs.nResult;
         FreeMethodParameters(&hParamStack);

@@ -70,6 +70,7 @@
 //External parameters
 #define EXTPARAM_CHAR     1
 #define EXTPARAM_INT      2
+#define EXTPARAM_LPINT    3
 
 //Expand flags
 #define EXPPARAM_WIDE      0x000 //EXPPARAM.pReplaceWith is Unicode string (default).
