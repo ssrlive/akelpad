@@ -334,7 +334,15 @@ void __declspec(dllexport) Settings(PLUGINDATA *pd)
         }
         else if (nAction == DLLA_CODER_CLEARCACHE)
         {
-          ClearCache(TRUE);
+          DWORD *lpdwUseCache=NULL;
+
+          if (IsExtCallParamValid(pd->lParam, 2))
+            lpdwUseCache=(DWORD *)GetExtCallParam(pd->lParam, 2);
+
+          if (lpdwUseCache)
+            *lpdwUseCache=dwUseCache;
+          else
+            ClearCache(TRUE);
         }
         else if (nAction == DLLA_CODER_CHECKALIAS)
         {
@@ -5972,11 +5980,11 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_LOADFIRST)
       return L"\x0417\x0430\x0433\x0440\x0443\x0437\x0438\x0442\x0435\x0020\x0441\x043F\x0435\x0440\x0432\x0430 %s.";
     if (nStringID == STRID_CACHE_NONE)
-      return L"\x0411\x0435\x0437\x0020\x043A\x044D\x0448\x0430";
+      return L"\x0411\x0435\x0437\x0020\x043A\x0435\x0448\x0430";
     if (nStringID == STRID_CACHE_FAST)
-      return L"\x0411\x044B\x0441\x0442\x0440\x044B\x0439\x0020\x043A\x044D\x0448";
+      return L"\x0411\x044B\x0441\x0442\x0440\x044B\x0439\x0020\x043A\x0435\x0448";
     if (nStringID == STRID_CACHE_SMART)
-      return L"\x0423\x043C\x043D\x044B\x0439\x0020\x043A\x044D\x0448";
+      return L"\x0423\x043C\x043D\x044B\x0439\x0020\x043A\x0435\x0448";
     if (nStringID == STRID_DEFAULTALIAS_ENABLE)
       return L"\x041F\x0441\x0435\x0432\x0434\x043E\x043D\x0438\x043C\x0020\x0434\x043B\x044F\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x043E\x0433\x043E\x0020\x0444\x0430\x0439\x043B\x0430 ";
     if (nStringID == STRID_VARTHEME_NAME)

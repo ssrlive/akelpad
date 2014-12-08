@@ -149,10 +149,15 @@ Call("Coder::Settings", 1, "EXTENSION")
       Extension, for example: "html". Manual theme setting will be canceled if the extension parameter is ommited.
       If extension parameter equal to "?", then the document is defined as having no theme.
 
-Call("Coder::Settings", 2)
+Call("Coder::Settings", 2, *USECACHE)
   Parameters:
     2
       Update cache.
+    *USECACHE
+      Optional parameter. Pointer to a variable, that receives cache type. One of the following:
+      0  //UC_NONE   Without cache.
+      1  //UC_FAST   Fast cache.
+      2  //UC_SMART  Smart cache.
 
 Call("Coder::Settings", 3, PAGE)
   Parameters:
