@@ -291,14 +291,14 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (hIconMenuList=IconMenu_Alloc(hDlg))
       {
-        IconMenu_AddItemW(hIconMenuList, hImageList, 0, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, GetLangStringW(wLangModule, STRID_MENU_OPEN));
-        IconMenu_AddItemW(hIconMenuList, hImageList, -1, 0, 0, hMenuList, (UINT)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT)-1, NULL);
-        IconMenu_AddItemW(hIconMenuList, hImageList, 1, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEUP, GetLangStringW(wLangModule, STRID_MENU_MOVEUP));
-        IconMenu_AddItemW(hIconMenuList, hImageList, 2, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEDOWN, GetLangStringW(wLangModule, STRID_MENU_MOVEDOWN));
-        IconMenu_AddItemW(hIconMenuList, hImageList, 3, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SORT, GetLangStringW(wLangModule, STRID_MENU_SORT));
-        IconMenu_AddItemW(hIconMenuList, hImageList, -1, 0, 0, hMenuList, (UINT)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT)-1, NULL);
-        IconMenu_AddItemW(hIconMenuList, hImageList, 4, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETE, GetLangStringW(wLangModule, STRID_MENU_DELETE));
-        IconMenu_AddItemW(hIconMenuList, hImageList, 5, 16, 16, hMenuList, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETEOLD, GetLangStringW(wLangModule, STRID_MENU_DELETEOLD));
+        IconMenu_AddItemW(hIconMenuList, hImageList, 0, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, GetLangStringW(wLangModule, STRID_MENU_OPEN));
+        IconMenu_AddItemW(hIconMenuList, hImageList, -1, 0, 0, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+        IconMenu_AddItemW(hIconMenuList, hImageList, 1, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEUP, GetLangStringW(wLangModule, STRID_MENU_MOVEUP));
+        IconMenu_AddItemW(hIconMenuList, hImageList, 2, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEDOWN, GetLangStringW(wLangModule, STRID_MENU_MOVEDOWN));
+        IconMenu_AddItemW(hIconMenuList, hImageList, 3, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SORT, GetLangStringW(wLangModule, STRID_MENU_SORT));
+        IconMenu_AddItemW(hIconMenuList, hImageList, -1, 0, 0, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+        IconMenu_AddItemW(hIconMenuList, hImageList, 4, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETE, GetLangStringW(wLangModule, STRID_MENU_DELETE));
+        IconMenu_AddItemW(hIconMenuList, hImageList, 5, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETEOLD, GetLangStringW(wLangModule, STRID_MENU_DELETEOLD));
       }
     }
     bListChanged=FALSE;

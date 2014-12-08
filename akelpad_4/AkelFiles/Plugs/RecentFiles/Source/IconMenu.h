@@ -1,5 +1,5 @@
 /******************************************************************
- *                 IconMenu functions header v2.3                 *
+ *                 IconMenu functions header v2.4                 *
  *                                                                *
  *  2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
@@ -106,6 +106,7 @@ void IconMenu_Initialize(HWND hWnd);
 void IconMenu_Uninitialize();
 HFONT IconMenu_GetMenuFont();
 ICONMENUSUBMENU* IconMenu_GetMenuByHandle(HICONMENU hIconMenu, HMENU hMenu);
+BOOL IconMenu_IsItem(HICONMENU hIconMenu, ICONMENUITEM *lpItem);
 ICONMENUITEM* IconMenu_GetItemById(HICONMENU hIconMenu, UINT_PTR dwItemID);
 ICONMENUITEM* IconMenu_GetSubMenuItem(ICONMENUSUBMENU *lpSubMenu, UINT_PTR dwItemID, UINT uFlags);
 void IconMenu_GetSubMenuSize(ICONMENUSUBMENU *lpSubMenu);
@@ -118,12 +119,12 @@ COLORREF IconMenu_Contrast(COLORREF crColor, int nPercent);
 //External functions prototypes
 HICONMENU IconMenu_Alloc(HWND hWnd);
 void IconMenu_Free(HICONMENU hIconMenu, HMENU hMenu);
-BOOL IconMenu_AddItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem);
-BOOL IconMenu_AddItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
-BOOL IconMenu_ModifyItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem);
-BOOL IconMenu_ModifyItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
-BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const void *lpNewItem);
-BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, UINT uPosition, UINT uFlags);
+BOOL IconMenu_AddItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem);
+BOOL IconMenu_AddItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
+BOOL IconMenu_ModifyItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem);
+BOOL IconMenu_ModifyItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
+BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const void *lpNewItem);
+BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, UINT_PTR uPosition, UINT uFlags);
 LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Global variables
@@ -258,6 +259,39 @@ ICONMENUSUBMENU* IconMenu_GetMenuByHandle(HICONMENU hIconMenu, HMENU hMenu)
     lpMenuHandle=lpMenuHandle->next;
   }
   return NULL;
+}
+
+BOOL IconMenu_IsItem(HICONMENU hIconMenu, ICONMENUITEM *lpItem)
+{
+  ICONMENUHANDLE *lpMenuHandle=(ICONMENUHANDLE *)hIconMenu;
+  ICONMENUSUBMENU *lpSubMenu;
+  ICONMENUITEM *lpMenuItem;
+
+  if (!lpItem)
+    return FALSE;
+  if (!lpMenuHandle)
+    lpMenuHandle=(ICONMENUHANDLE *)IconMenu_hStackMenuHandles.first;
+
+  while (lpMenuHandle)
+  {
+    for (lpSubMenu=lpMenuHandle->first; lpSubMenu; lpSubMenu=lpSubMenu->next)
+    {
+      for (lpMenuItem=lpSubMenu->first; lpMenuItem; lpMenuItem=lpMenuItem->next)
+      {
+        if (lpMenuItem == lpItem)
+        {
+          //Move handle and submenu in first place in their group for faster further access
+          StackMoveBefore((stack **)&IconMenu_hStackMenuHandles.first, (stack **)&IconMenu_hStackMenuHandles.last, (stack *)lpMenuHandle, (stack *)IconMenu_hStackMenuHandles.first);
+          StackMoveBefore((stack **)&lpMenuHandle->first, (stack **)&lpMenuHandle->last, (stack *)lpSubMenu, (stack *)lpMenuHandle->first);
+          return TRUE;
+        }
+      }
+    }
+    if (hIconMenu) break;
+
+    lpMenuHandle=lpMenuHandle->next;
+  }
+  return FALSE;
 }
 
 ICONMENUITEM* IconMenu_GetItemById(HICONMENU hIconMenu, UINT_PTR dwItemID)
@@ -617,7 +651,7 @@ void IconMenu_Free(HICONMENU hIconMenu, HMENU hMenu)
  * [in] int nIconHeight       -icon height. If zero, use default menu height.
  *
  * [in] HMENU hMenu           -see InsertMenu description in MSDN.
- * [in] UINT uPosition        -see InsertMenu description in MSDN.
+ * [in] UINT_PTR uPosition    -see InsertMenu description in MSDN.
  *                              If -1, appends a new item to the end of the specified menu.
  * [in] UINT uFlags           -see InsertMenu description in MSDN.
  *                              MF_BITMAP, MF_MENUBARBREAK and MF_MENUBREAK flags doesn't supported.
@@ -627,27 +661,27 @@ void IconMenu_Free(HICONMENU hIconMenu, HMENU hMenu)
  *Returns: If the function succeeds, the return value is nonzero.
  *         If the function fails, the return value is zero.
  ********************************************************************/
-BOOL IconMenu_AddItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem)
+BOOL IconMenu_AddItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem)
 {
   return IconMenu_SetItem(ICONMENU_SETMENU_ANSI|ICONMENU_SETMENU_INSERT, hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, (const void *)lpNewItem);
 }
 
-BOOL IconMenu_AddItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
+BOOL IconMenu_AddItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
 {
   return IconMenu_SetItem(ICONMENU_SETMENU_UNICODE|ICONMENU_SETMENU_INSERT, hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, (const void *)lpNewItem);
 }
 
-BOOL IconMenu_ModifyItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem)
+BOOL IconMenu_ModifyItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem)
 {
   return IconMenu_SetItem(ICONMENU_SETMENU_ANSI|ICONMENU_SETMENU_MODIFY, hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, (const void *)lpNewItem);
 }
 
-BOOL IconMenu_ModifyItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
+BOOL IconMenu_ModifyItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
 {
   return IconMenu_SetItem(ICONMENU_SETMENU_UNICODE|ICONMENU_SETMENU_MODIFY, hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, (const void *)lpNewItem);
 }
 
-BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, const void *lpNewItem)
+BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, UINT_PTR uPosition, UINT uFlags, UINT_PTR uIDNewItem, const void *lpNewItem)
 {
   ICONMENUHANDLE *lpMenuHandle=(ICONMENUHANDLE *)hIconMenu;
   ICONMENUSUBMENU *lpSubMenu;
@@ -749,7 +783,7 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
     if (IconMenu_bOldWindows)
       WideCharToMultiByte(CP_ACP, 0, lpNewMenuItem->wszStr, -1, szStr, MAX_PATH, NULL, NULL);
 
-    if ((uFlags & MF_BYPOSITION) && (int)uPosition < 0)
+    if ((uFlags & MF_BYPOSITION) && (int)uPosition == -1)
     {
       if (dwFlags & ICONMENU_SETMENU_INSERT)
       {
@@ -765,20 +799,20 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
       if (dwFlags & ICONMENU_SETMENU_INSERT)
       {
         if (IconMenu_bOldWindows)
-          InsertMenuA(hMenu, uPosition, uFlags, uIDNewItem, szStr);
+          InsertMenuA(hMenu, (UINT)uPosition, uFlags, uIDNewItem, szStr);
         else
-          InsertMenuW(hMenu, uPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
+          InsertMenuW(hMenu, (UINT)uPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
       }
     }
     if (dwFlags & ICONMENU_SETMENU_MODIFY)
     {
       if (IconMenu_bOldWindows)
-        ModifyMenuA(hMenu, uPosition, uFlags, uIDNewItem, szStr);
+        ModifyMenuA(hMenu, (UINT)uPosition, uFlags, uIDNewItem, szStr);
       else
-        ModifyMenuW(hMenu, uPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
+        ModifyMenuW(hMenu, (UINT)uPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
     }
 
-    if (bResult=ModifyMenuA(hMenu, uPosition, MF_OWNERDRAW|uFlags, uIDNewItem, (const char *)lpNewMenuItem))
+    if (bResult=ModifyMenuA(hMenu, (UINT)uPosition, MF_OWNERDRAW|uFlags, uIDNewItem, (const char *)lpNewMenuItem))
     {
       if (dwFlags & ICONMENU_SETMENU_INSERT)
         ++lpSubMenu->nItemCount;
@@ -796,20 +830,20 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
  *
  * [in] HICONMENU hIconMenu   -handle returned by IconMenu_Alloc.
  * [in] HMENU hMenu           -see DeleteMenu description in MSDN.
- * [in] UINT uPosition        -see DeleteMenu description in MSDN.
+ * [in] UINT_PTR uPosition    -see DeleteMenu description in MSDN.
  * [in] UINT uFlags           -see DeleteMenu description in MSDN.
  *
  *Returns: If the function succeeds, the return value is nonzero.
  *         If the function fails, the return value is zero.
  ********************************************************************/
 
-BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, UINT uPosition, UINT uFlags)
+BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, UINT_PTR uPosition, UINT uFlags)
 {
   ICONMENUSUBMENU *lpSubMenu;
   ICONMENUITEM *lpMenuItem;
   BOOL bResult=FALSE;
 
-  if (DeleteMenu(hMenu, uPosition, uFlags))
+  if (DeleteMenu(hMenu, (UINT)uPosition, uFlags))
   {
     if (lpSubMenu=IconMenu_GetMenuByHandle(hIconMenu, hMenu))
     {
@@ -847,10 +881,11 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (lpmis && (lpmis->CtlType == ODT_MENU))
     {
-      if (IconMenu_GetItemById(NULL, lpmis->itemID))
-        lpMenuItem=(ICONMENUITEM *)lpmis->itemData;
+      lpMenuItem=(ICONMENUITEM *)lpmis->itemData;
 
-      if (lpMenuItem)
+      //Windows API drawback: MEASUREITEMSTRUCT.itemID is UINT, but must be UINT_PTR.
+      //Submenus MEASUREITEMSTRUCT.itemID on x64 is trimmed to UINT.
+      if (IconMenu_IsItem(NULL, lpMenuItem) && (UINT)lpMenuItem->dwItemID == lpmis->itemID)
       {
         lpSubMenu=(ICONMENUSUBMENU *)lpMenuItem->hIconSubMenu;
         lpMenuHandle=(ICONMENUHANDLE *)lpSubMenu->hIconMenu;
@@ -870,10 +905,11 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (lpdis && (lpdis->CtlType == ODT_MENU))
     {
-      if (IconMenu_GetItemById(NULL, lpdis->itemID))
-        lpMenuItem=(ICONMENUITEM *)lpdis->itemData;
+      lpMenuItem=(ICONMENUITEM *)lpdis->itemData;
 
-      if (lpMenuItem)
+      //Windows API drawback: DRAWITEMSTRUCT.itemID is UINT, but must be UINT_PTR.
+      //Submenus DRAWITEMSTRUCT.itemID on x64 is trimmed to UINT.
+      if (IconMenu_IsItem(NULL, lpMenuItem) && (UINT)lpMenuItem->dwItemID == lpdis->itemID)
       {
         HDC hMemDC;
         HBITMAP hMemBitmap;
@@ -1076,7 +1112,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                           LineTo(hMemDC, x, y + 1);
                         }
                       }
-                      SelectObject (hMemDC, hPenOld);
+                      SelectObject(hMemDC, hPenOld);
                       DeleteObject(hPen);
                     }
                   }
@@ -1187,7 +1223,7 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                       LineTo(hMemDC, x + ptDraw[i + 1].x, y + ptDraw[i + 1].y);
                     }
                   }
-                  SelectObject (hMemDC, hPenOld);
+                  SelectObject(hMemDC, hPenOld);
                   DeleteObject(hPen);
                 }
               }
@@ -1363,18 +1399,18 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (hMenu=CreatePopupMenu())
     {
-      IconMenu_AddItemW(hIconMenu, hImageList, 0, 16, 16, hMenu, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, L"Item1");
-      IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT)-1, NULL);
-      IconMenu_AddItemW(hIconMenu, hImageList, 1, 16, 16, hMenu, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SAVE, L"Item2");
-      IconMenu_AddItemW(hIconMenu, hImageList, 2, 16, 16, hMenu, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SAVEAS, L"Item3");
-      IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT)-1, NULL);
+      IconMenu_AddItemW(hIconMenu, hImageList, 0, 16, 16, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, L"Item1");
+      IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+      IconMenu_AddItemW(hIconMenu, hImageList, 1, 16, 16, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SAVE, L"Item2");
+      IconMenu_AddItemW(hIconMenu, hImageList, 2, 16, 16, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SAVEAS, L"Item3");
+      IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
 
       if (hSubMenu=CreatePopupMenu())
       {
-        IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT)-1, MF_BYPOSITION|MF_POPUP, (UINT)hSubMenu, L"SubMenu");
-        IconMenu_AddItemW(hIconMenu, hImageList, 0, 16, 16, hSubMenu, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SUBOPEN, L"Item1");
+        IconMenu_AddItemW(hIconMenu, hImageList, -1, 0, 0, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, L"SubMenu");
+        IconMenu_AddItemW(hIconMenu, hImageList, 0, 16, 16, hSubMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SUBOPEN, L"Item1");
       }
-      IconMenu_AddItemW(hIconMenu, hImageList, 3, 16, 16, hMenu, (UINT)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_EXIT, L"Exit");
+      IconMenu_AddItemW(hIconMenu, hImageList, 3, 16, 16, hMenu, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_EXIT, L"Exit");
     }
 
     //Show menu
