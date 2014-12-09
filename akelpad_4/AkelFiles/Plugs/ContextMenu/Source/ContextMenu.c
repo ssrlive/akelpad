@@ -487,9 +487,9 @@ void ViewItemCode(MENUITEM *lpElement);
 void CallContextMenu(POPUPMENU *hMenuStack, int nItem);
 void FreeContextMenu(POPUPMENU *hMenuStack);
 
-BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, int uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
-BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, int uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
-BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, int uPosition, UINT uFlags);
+BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
+BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
+BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
 BOOL GetExplorerMenu(LPCONTEXTMENU *pContextMenu, LPCONTEXTMENU2 *pContextSubMenu2, LPCONTEXTMENU3 *pContextSubMenu3, HWND hWnd, wchar_t *wpFile);
 LPITEMIDLIST NextPIDL(LPCITEMIDLIST pidl);
 int GetSubMenuIndex(HMENU hMenu, HMENU hSubMenu);
@@ -1821,16 +1821,16 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (hIconMenuList=IconMenu_Alloc(hDlg))
       {
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 0, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, GetLangStringW(wLangModule, STRID_MENU_OPEN));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 1, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEUP, GetLangStringW(wLangModule, STRID_MENU_MOVEUP));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 2, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEDOWN, GetLangStringW(wLangModule, STRID_MENU_MOVEDOWN));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 3, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SORT, GetLangStringW(wLangModule, STRID_MENU_SORT));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 4, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETE, GetLangStringW(wLangModule, STRID_MENU_DELETE));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 5, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETEOLD, GetLangStringW(wLangModule, STRID_MENU_DELETEOLD));
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
-        IconMenu_AddItemW(hIconMenuList, hFavImageList, 6, 16, 16, hMenuList, (UINT_PTR)-1, MF_BYPOSITION|MF_STRING, IDC_ITEM_EDIT, GetLangStringW(wLangModule, STRID_MENU_EDIT));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 0, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_OPEN, GetLangStringW(wLangModule, STRID_MENU_OPEN));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, -1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 1, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEUP, GetLangStringW(wLangModule, STRID_MENU_MOVEUP));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 2, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_MOVEDOWN, GetLangStringW(wLangModule, STRID_MENU_MOVEDOWN));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 3, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_SORT, GetLangStringW(wLangModule, STRID_MENU_SORT));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, -1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 4, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETE, GetLangStringW(wLangModule, STRID_MENU_DELETE));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 5, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_DELETEOLD, GetLangStringW(wLangModule, STRID_MENU_DELETEOLD));
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, -1, 0, 0, hMenuList, -1, MF_BYPOSITION|MF_SEPARATOR, (UINT_PTR)-1, NULL);
+        IconMenu_AddItemW(hIconMenuList, hFavImageList, 6, 16, 16, hMenuList, -1, MF_BYPOSITION|MF_STRING, IDC_ITEM_EDIT, GetLangStringW(wLangModule, STRID_MENU_EDIT));
       }
     }
     bListChanged=FALSE;
@@ -4591,29 +4591,29 @@ void FreeContextMenu(POPUPMENU *hMenuStack)
   StackClear((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last);
 }
 
-BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, int uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
+BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
 {
   if (!bUseIcons)
   {
-    if (uPosition == -1)
+    if (nPosition == -1)
       return AppendMenuWide(hMenu, uFlags, uIDNewItem, lpNewItem);
     else
-      return InsertMenuWide(hMenu, uPosition, uFlags, uIDNewItem, lpNewItem);
+      return InsertMenuWide(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewItem);
   }
-  else return IconMenu_AddItemW(hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, lpNewItem);
+  else return IconMenu_AddItemW(hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, nPosition, uFlags, uIDNewItem, lpNewItem);
 }
 
-BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, int uPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
+BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem)
 {
   if (!bUseIcons)
-    return ModifyMenuWide(hMenu, uPosition, uFlags, uIDNewItem, lpNewItem);
+    return ModifyMenuWide(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewItem);
   else
-    return IconMenu_ModifyItemW(hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, uPosition, uFlags, uIDNewItem, lpNewItem);
+    return IconMenu_ModifyItemW(hIconMenu, hImageList, nIconIndex, nIconWidth, nIconHeight, hMenu, nPosition, uFlags, uIDNewItem, lpNewItem);
 }
 
-BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, int uPosition, UINT uFlags)
+BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
 {
-  return IconMenu_DelItem(hIconMenu, hMenu, uPosition, uFlags);
+  return IconMenu_DelItem(hIconMenu, hMenu, nPosition, uFlags);
 }
 
 BOOL GetExplorerMenu(LPCONTEXTMENU *pContextMenu, LPCONTEXTMENU2 *pContextSubMenu2, LPCONTEXTMENU3 *pContextSubMenu3, HWND hWnd, wchar_t *wpFile)
@@ -4722,7 +4722,7 @@ HMENU FindRootSubMenuByName(POPUPMENU *hMenuStack, const wchar_t *wpSubMenuName)
         {
           if (lpMenuItem->uFlags & MF_POPUP)
           {
-            hMenu=(HMENU)lpMenuItem->dwItemID;
+            hMenu=(HMENU)lpMenuItem->nItemID;
             break;
           }
         }
@@ -4756,7 +4756,7 @@ void RemoveSeparator1(POPUPMENU *hMenuStack, HMENU hSubMenu)
 
   if (lpSubMenu=IconMenu_GetMenuByHandle(hMenuStack->hIconMenu, hSubMenu))
   {
-    if (lpSubMenu->last && lpSubMenu->last->dwItemID == IDM_SEPARATOR1)
+    if (lpSubMenu->last && lpSubMenu->last->nItemID == IDM_SEPARATOR1)
       DeleteMenuCommon(hMenuStack->hIconMenu, hSubMenu, lpSubMenu->nItemCount - 1, MF_BYPOSITION);
   }
 }
