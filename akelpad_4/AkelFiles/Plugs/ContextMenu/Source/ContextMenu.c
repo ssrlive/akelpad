@@ -5892,25 +5892,19 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 " L"\
 \"SMARTSEL\"\r\
 {\r\
-  \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 Home\" +Call(\"SmartSel::SmartHome\")\r\
-  \"\x041E\x043F\x0446\x0438\x044F\x003A\x0020\x0438\x043D\x0432\x0435\x0440\x0442\x0438\x0440\x043E\x0432\x0430\x0442\x044C\" +Call(\"SmartSel::altSmartHome\")\r\
-  SEPARATOR1\r\
-  \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 End\" +Call(\"SmartSel::SmartEnd\")\r\
-  \"\x041E\x043F\x0446\x0438\x044F\x003A\x0020\x0438\x043D\x0432\x0435\x0440\x0442\x0438\x0440\x043E\x0432\x0430\x0442\x044C\" +Call(\"SmartSel::altSmartEnd\")\r\
-  SEPARATOR1\r\
-  \"\x0423\x043C\x043D\x044B\x0435\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438 Up/Down\" +Call(\"SmartSel::SmartUpDown\")\r\
-  \"\x041E\x043F\x0446\x0438\x044F: +PageUp/PageDown\" +Call(\"SmartSel::altSmartUpDown\")\r\
-  SEPARATOR1\r\
-  \"\x0418\x0441\x043A\x043B\x044E\x0447\x0438\x0442\x044C\x0020\x0045\x004F\x004C\x0020\x0438\x0437\x0020\x0432\x044B\x0434\x0435\x043B\x0435\x043D\x0438\x044F\" +Call(\"SmartSel::NoSelEOL\")\r\
-  \"\x041E\x043F\x0446\x0438\x044F\x003A\x0020\x0442\x043E\x043B\x044C\x043A\x043E\x0020\x043E\x0434\x043D\x0430\x0020\x0441\x0442\x0440\x043E\x043A\x0430\" +Call(\"SmartSel::altNoSelEOL\")\r\
-  SEPARATOR1\r\
-  \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 Backspace\" +Call(\"SmartSel::SmartBackspace\")\r\
+    \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 Home\" +Call(\"SmartSel::SmartHome\")\r\
+    \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 End\" +Call(\"SmartSel::SmartEnd\")\r\
+    \"\x0423\x043C\x043D\x044B\x0435\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438 Up/Down\" +Call(\"SmartSel::SmartUpDown\")\r\
+    \"\x0423\x043C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430 Backspace\" +Call(\"SmartSel::SmartBackspace\")\r\
+    \"\x0418\x0441\x043A\x043B\x044E\x0447\x0438\x0442\x044C\x0020\x0045\x004F\x004C\x0020\x0438\x0437\x0020\x0432\x044B\x0434\x0435\x043B\x0435\x043D\x0438\x044F\" +Call(\"SmartSel::NoSelEOL\")\r\
+    SEPARATOR1\r\
+    \"\x041D\x0430\x0441\x0442\x0440\x043E\x0438\x0442\x044C...\" Call(\"SmartSel::Settings\")\r\
 }\r\
 " L"\
 \"HOTKEYS\"\r\
 {\r\
     \"\x041A\x043B\x0430\x0432\x0438\x0448\x0430 Escape\" Menu(\"EXIT\") Icon(\"%a\\AkelFiles\\Plugs\\Exit.dll\", 0)\r\
-    \"\x041D\x0430\x0432\x0438\x0433\x0430\x0446\x0438\x044F\" Menu(\"SMARTSEL\")\r\
+    \"\x0423\x043C\x043D\x0430\x044F\x0020\x043D\x0430\x0432\x0438\x0433\x0430\x0446\x0438\x044F\" Menu(\"SMARTSEL\") Icon(\"%a\\AkelFiles\\Plugs\\SmartSel.dll\", 0)\r\
 }\r\
 " L"\
 \"FORMAT\"\r\
@@ -6051,7 +6045,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     UNSET(32)\r\
 " L"\
     SET(32, \"%a\\AkelFiles\\Plugs\\SmartSel.dll\")\r\
-        \"\x041D\x0430\x0432\x0438\x0433\x0430\x0446\x0438\x044F\" Menu(\"SMARTSEL\")\r\
+        \"\x0423\x043C\x043D\x0430\x044F\x0020\x043D\x0430\x0432\x0438\x0433\x0430\x0446\x0438\x044F\" Menu(\"SMARTSEL\") Icon(\"%a\\AkelFiles\\Plugs\\SmartSel.dll\", 0)\r\
     UNSET(32)\r\
     SEPARATOR1\r\
 " L"\
@@ -6482,25 +6476,19 @@ EXPLORER\r";
 " L"\
 \"SMARTSEL\"\r\
 {\r\
-  \"Smart Home\" +Call(\"SmartSel::SmartHome\")\r\
-  \"Option: invert\" +Call(\"SmartSel::altSmartHome\")\r\
-  SEPARATOR1\r\
-  \"Smart End\" +Call(\"SmartSel::SmartEnd\")\r\
-  \"Option: invert\" +Call(\"SmartSel::altSmartEnd\")\r\
-  SEPARATOR1\r\
-  \"Smart Up/Down\" +Call(\"SmartSel::SmartUpDown\")\r\
-  \"Option: +PageUp/PageDown\" +Call(\"SmartSel::altSmartUpDown\")\r\
-  SEPARATOR1\r\
-  \"Exclude EOL from selection\" +Call(\"SmartSel::NoSelEOL\")\r\
-  \"Option: only single line\" +Call(\"SmartSel::altNoSelEOL\")\r\
-  SEPARATOR1\r\
-  \"Smart Backspace\" +Call(\"SmartSel::SmartBackspace\")\r\
+    \"Smart Home\" +Call(\"SmartSel::SmartHome\")\r\
+    \"Smart End\" +Call(\"SmartSel::SmartEnd\")\r\
+    \"Smart Up/Down\" +Call(\"SmartSel::SmartUpDown\")\r\
+    \"Smart Backspace\" +Call(\"SmartSel::SmartBackspace\")\r\
+    \"Exclude EOL from selection\" +Call(\"SmartSel::NoSelEOL\")\r\
+    SEPARATOR1\r\
+    \"Settings...\" Call(\"SmartSel::Settings\")\r\
 }\r\
 " L"\
 \"HOTKEYS\"\r\
 {\r\
     \"Escape key\" Menu(\"EXIT\") Icon(\"%a\\AkelFiles\\Plugs\\Exit.dll\", 0)\r\
-    \"Navigation\" Menu(\"SMARTSEL\")\r\
+    \"Smart navigation\" Menu(\"SMARTSEL\") Icon(\"%a\\AkelFiles\\Plugs\\SmartSel.dll\", 0)\r\
 }\r\
 " L"\
 \"FORMAT\"\r\
@@ -6640,7 +6628,7 @@ EXPLORER\r";
         \"Escape key\" Menu(\"EXIT\") Icon(\"%a\\AkelFiles\\Plugs\\Exit.dll\", 0)\r\
     UNSET(32)\r\
     SET(32, \"%a\\AkelFiles\\Plugs\\SmartSel.dll\")\r\
-        \"Navigation\" Menu(\"SMARTSEL\")\r\
+        \"Smart navigation\" Menu(\"SMARTSEL\") Icon(\"%a\\AkelFiles\\Plugs\\SmartSel.dll\", 0)\r\
     UNSET(32)\r\
     SEPARATOR1\r\
 " L"\
