@@ -1696,7 +1696,10 @@ HFONT CreateFontIndirectWide(const LOGFONTW *lfFont)
   {
     LOGFONTA lfA;
 
-    return CreateFontIndirectA(LogFontWtoA(lfFont, &lfA));
+    xmemcpy(&lfA, lfFont, offsetof(LOGFONTW, lfFaceName));
+    WideCharToMultiByte(CP_ACP, 0, lfFont->lfFaceName, -1, lfA.lfFaceName, LF_FACESIZE, NULL, NULL);
+
+    return CreateFontIndirectA(&lfA);
   }
 
   WideNotInitialized();
