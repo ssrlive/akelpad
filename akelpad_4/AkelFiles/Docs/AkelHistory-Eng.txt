@@ -2,6 +2,9 @@
 AkelPad 4.9.1 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
+Changed: moved SmartSel::altSmartHome, SmartSel::altSmartEnd, SmartSel::altSmartUpDown,
+         SmartSel::altNoSelEOL to settings dialog SmartSel::Settings. To remove SmartSel
+         messages at program start, go to the plugins dialog (Alt+P) and click OK.
 Changed: inverted action of case changing commands 4175-4180 - now default is
          case changing for the current word if no selection. Optional parameter
          with code 1 now changes case for all text, if no selection.
