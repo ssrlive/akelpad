@@ -49,8 +49,6 @@ wchar_t* AllocWideLen(const char *pAnsiStr, int nAnsiStrLen);
 void FreeWide(wchar_t *pWideBuf);
 int WideToAnsi(const wchar_t *wpWideStr, int nWideStrLen, char *szAnsiBuf, int nAnsiBufMax);
 int AnsiToWide(const char *pAnsiStr, int nAnsiStrLen, wchar_t *wszWideBuf, int nWideBufMax);
-LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
-LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 
 //File and directories (FILEWIDEFUNC). Kernel32.lib.
 BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
@@ -3629,20 +3627,6 @@ int AnsiToWide(const char *pAnsiStr, int nAnsiStrLen, wchar_t *wszWideBuf, int n
     }
   }
   return nWideChars;
-}
-
-LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW)
-{
-  xmemcpy(lfW, lfA, offsetof(LOGFONTW, lfFaceName));
-  MultiByteToWideChar(CP_ACP, 0, lfA->lfFaceName, -1, lfW->lfFaceName, LF_FACESIZE);
-  return lfW;
-}
-
-LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA)
-{
-  xmemcpy(lfA, lfW, offsetof(LOGFONTW, lfFaceName));
-  WideCharToMultiByte(CP_ACP, 0, lfW->lfFaceName, -1, lfA->lfFaceName, LF_FACESIZE, NULL, NULL);
-  return lfA;
 }
 #endif //COMMONWIDEFUNC_INCLUDED
 #endif //ANYWIDEFUNC_INCLUDED

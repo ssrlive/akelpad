@@ -149,6 +149,8 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
 void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd);
 void GetFontAndColors(SYNTAXFILE *lpSyntaxFile, HIGHLIGHTWINDOW *lpHighlightWindow);
 void RestoreFontAndColors(HIGHLIGHTWINDOW *lpHighlightWindow);
+LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
+LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 DWORD GetColorsToRestore(HIGHLIGHTWINDOW *lpHighlightWindow, AECOLORS *aecHighlight);
 void UnassignTheme(HWND hWnd);
 void UpdateHighLight(HWND hWnd);

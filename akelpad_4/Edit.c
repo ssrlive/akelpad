@@ -18331,6 +18331,20 @@ void StackFontItemsFree(STACKFONT *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
+LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW)
+{
+  xmemcpy(lfW, lfA, offsetof(LOGFONTW, lfFaceName));
+  MultiByteToWideChar(CP_ACP, 0, lfA->lfFaceName, -1, lfW->lfFaceName, LF_FACESIZE);
+  return lfW;
+}
+
+LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA)
+{
+  xmemcpy(lfA, lfW, offsetof(LOGFONTW, lfFaceName));
+  WideCharToMultiByte(CP_ACP, 0, lfW->lfFaceName, -1, lfA->lfFaceName, LF_FACESIZE, NULL, NULL);
+  return lfA;
+}
+
 
 //// Inter-Process Communication
 
