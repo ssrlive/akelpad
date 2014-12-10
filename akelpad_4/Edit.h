@@ -1113,6 +1113,8 @@ HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemInsert(STACKFONT *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(STACKFONT *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(STACKFONT *hStack);
+LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
+LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 
 HANDLE MemCreate(const char *pName, DWORD dwSize);
 void* MemMap(HANDLE hMem, DWORD dwSize);
