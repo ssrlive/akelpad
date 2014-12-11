@@ -46,7 +46,7 @@ BOOL bAddHighLightWords=TRUE;
 BOOL bCompleteListItemHlBaseColors=TRUE;
 BOOL bCompleteListSystemColors=FALSE;
 DWORD dwCompleteListSymbolMark=CLSM_MARK;
-BOOL bRightDelimitersEnable=TRUE;
+BOOL bRightDelimitersEnable=FALSE;
 BOOL bSyntaxDelimitersEnable=TRUE;
 BOOL bListShowOnlyMatched=TRUE;
 BOOL bLockAutoList=FALSE;
@@ -1980,7 +1980,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         {
           if (IsDelimiterFromRight(hDelimiterStack, hWndEdit, &ciChar))
             break;
-          if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciChar)) != WideCharLower(*wpStrBegin) || ++wpStrBegin >= wpStrEnd)
+          if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciChar)) != WideCharLower(*wpStrBegin) || ++wpStrBegin > wpStrEnd)
           {
             wpStrInit=NULL;
             break;
