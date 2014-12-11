@@ -168,8 +168,8 @@ TITLEINFO* StackInsertTitle(STACKTITLE *hStack);
 void StackFreeTitle(STACKTITLE *hStack);
 
 //Title part
-BOOL GetEditTitlePart(STACKDELIM *hDelimiterStack, wchar_t *wszTitle, int nTitleMax, INT_PTR *nMin, INT_PTR *nMax);
-void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax);
+BOOL GetEditTitlePart(SYNTAXFILE *lpSyntaxFile, wchar_t *wszTitle, int nTitleMax, INT_PTR *nMin, INT_PTR *nMax);
+void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax);
 
 //Block
 BLOCKINFO* StackInsertExactBlock(STACKBLOCK *hStack);

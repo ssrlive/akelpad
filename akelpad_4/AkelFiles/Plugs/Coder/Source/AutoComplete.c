@@ -581,7 +581,7 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
                 if (bAddChar)
                 {
-                  if (GetEditTitlePart((lpSyntaxFileAutoComplete && bSyntaxDelimitersEnable)?&lpSyntaxFileAutoComplete->hDelimiterStack:NULL, wszTitlePart, MAX_PATH, &nWindowBlockBegin, &nWindowBlockEnd))
+                  if (GetEditTitlePart(lpSyntaxFileAutoComplete, wszTitlePart, MAX_PATH, &nWindowBlockBegin, &nWindowBlockEnd))
                   {
                     if (!bAutoListEnable || nWindowBlockEnd - nWindowBlockBegin >= nAutoListAfter)
                     {
@@ -684,9 +684,14 @@ BOOL CALLBACK AutoCompleteParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LP
             if (bLockAutoList)
             {
               SYNTAXFILE *lpSyntaxFile;
+              STACKDELIM *hDelimiterStack=NULL;
 
-              lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, hWndEdit, NULL, NULL);
-              if (IsDelimiter((lpSyntaxFile && bSyntaxDelimitersEnable)?&lpSyntaxFile->hDelimiterStack:NULL, hWndEdit, *aenti->wpText))
+              if (bSyntaxDelimitersEnable)
+              {
+                if (lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, hWndEdit, NULL, NULL))
+                  hDelimiterStack=&lpSyntaxFile->hDelimiterStack;
+              }
+              if (IsDelimiter(hDelimiterStack, hWndEdit, *aenti->wpText))
                 bLockAutoList=FALSE;
             }
           }
@@ -859,7 +864,7 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
                       bSaveTypedCaseOnce=TRUE;
                     else
                       bSaveTypedCaseOnce=FALSE;
-                    CompleteTitlePart(lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
+                    CompleteTitlePart(NULL, lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
                     bSaveTypedCaseOnce=FALSE;
                     msg->message=WM_NULL;
                   }
@@ -1365,7 +1370,7 @@ LRESULT CALLBACK NewListboxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         bSaveTypedCaseOnce=TRUE;
       else
         bSaveTypedCaseOnce=FALSE;
-      CompleteTitlePart(lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
+      CompleteTitlePart(NULL, lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
       bSaveTypedCaseOnce=FALSE;
     }
     SendMessage(hWndAutoComplete, WM_CLOSE, 0, 0);
@@ -1416,12 +1421,12 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
     nCaretOffset=SendMessage(hWndEdit, AEM_GETRICHOFFSET, AEGI_CARETCHAR, 0);
     if (lpBlockInfo=StackGetExactBlock(lpSyntaxFile, &ciCaret, nCaretOffset, &nBlockBegin, &nBlockEnd))
     {
-      CompleteTitlePart(lpBlockInfo, nBlockBegin, nBlockEnd);
+      CompleteTitlePart(lpSyntaxFile, lpBlockInfo, nBlockBegin, nBlockEnd);
       return CAWE_SUCCESS;
     }
   }
 
-  if (!GetEditTitlePart((lpSyntaxFile && bSyntaxDelimitersEnable)?&lpSyntaxFile->hDelimiterStack:NULL, wszTitlePart, MAX_PATH, &nBlockBegin, &nBlockEnd))
+  if (!GetEditTitlePart(lpSyntaxFile, wszTitlePart, MAX_PATH, &nBlockBegin, &nBlockEnd))
     return CAWE_GETTITLEPART;
 
   if (dwFlags & CAW_AUTOLIST)
@@ -1447,7 +1452,7 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
       {
         if (dwFlags & CAW_COMPLETEONE)
         {
-          CompleteTitlePart(lpBlockInfo, nBlockBegin, nBlockEnd);
+          CompleteTitlePart(lpSyntaxFile, lpBlockInfo, nBlockBegin, nBlockEnd);
           StackFreeDocWord(&hDocWordsStack);
           return CAWE_SUCCESS;
         }
@@ -1801,14 +1806,18 @@ void StackFreeTitle(STACKTITLE *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL GetEditTitlePart(STACKDELIM *hDelimiterStack, wchar_t *wszTitle, int nTitleMax, INT_PTR *nMin, INT_PTR *nMax)
+BOOL GetEditTitlePart(SYNTAXFILE *lpSyntaxFile, wchar_t *wszTitle, int nTitleMax, INT_PTR *nMin, INT_PTR *nMax)
 {
+  STACKDELIM *hDelimiterStack=NULL;
   AETEXTRANGEW tr;
   AESELECTION aes;
   AECHARINDEX ciCaret;
   AECHARINDEX ciCount;
   CHARRANGE64 cr;
   int nTitleLen;
+
+  if (bSyntaxDelimitersEnable && lpSyntaxFile)
+    hDelimiterStack=&lpSyntaxFile->hDelimiterStack;
 
   if (!SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes) && ciCaret.nCharInLine <= ciCaret.lpLine->nLineLen)
   {
@@ -1860,8 +1869,9 @@ BOOL GetEditTitlePart(STACKDELIM *hDelimiterStack, wchar_t *wszTitle, int nTitle
   return FALSE;
 }
 
-void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
+void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
 {
+  STACKDELIM *hDelimiterStack=NULL;
   AEFINDTEXTW ft;
   AECHARINDEX ciChar;
   GETTEXTRANGE gtr;
@@ -1869,6 +1879,7 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
   BLOCKINFO *lpBlockMaster;
   BLOCKINFOHANDLE *lpBlockHandle;
   HOTSPOT *lpHotSpot;
+  const wchar_t *wpStrInit;
   const wchar_t *wpStrBegin;
   const wchar_t *wpStrEnd;
   wchar_t *wpLine;
@@ -1882,6 +1893,14 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
 
   if (hWndEdit=GetFocusEdit())
   {
+    if (bSyntaxDelimitersEnable)
+    {
+      if (!lpSyntaxFile)
+        lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, hWndEdit, NULL, NULL);
+      if (lpSyntaxFile)
+        hDelimiterStack=&lpSyntaxFile->hDelimiterStack;
+    }
+
     if (!(SendMessage(hWndEdit, AEM_GETOPTIONS, 0, 0) & AECO_READONLY))
     {
       bCompletingTitle=TRUE;
@@ -1945,6 +1964,32 @@ void CompleteTitlePart(BLOCKINFO *lpBlockInfo, INT_PTR nMin, INT_PTR nMax)
             }
           }
         }
+      }
+
+      //Smart complete block abbreviations.
+      //Avoid expanding "Ake|lPa " to "AkelPad|lPa ".
+      //Expand depending on delimiter "Ake|lPa " to "AkelPad| ", but not "Ake|lParam" to "AkelPad|ram".
+      if (lpBlockMaster->nBlockLen <= lpBlockInfo->nTitleLen)
+      {
+        SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&ciChar);
+        wpStrInit=lpBlockMaster->wpBlock + (nMax - nMin);
+        wpStrBegin=wpStrInit;
+        wpStrEnd=lpBlockMaster->wpBlock + lpBlockMaster->nBlockLen;
+
+        do
+        {
+          if (IsDelimiterFromRight(hDelimiterStack, hWndEdit, &ciChar))
+            break;
+          if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciChar)) != WideCharLower(*wpStrBegin) || ++wpStrBegin >= wpStrEnd)
+          {
+            wpStrInit=NULL;
+            break;
+          }
+        }
+        while (AEC_NextCharInLine(&ciChar));
+
+        if (wpStrInit)
+          nMax+=wpStrBegin - wpStrInit;
       }
 
       if (lpBlockMaster->nLinesInBlock > 1)
@@ -2414,13 +2459,13 @@ void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, c
   int nDocWordLen;
   BOOL bFound;
 
-  if (lpSyntaxFile && bSyntaxDelimitersEnable)
-    hDelimiterStack=&lpSyntaxFile->hDelimiterStack;
-
   StackFreeDocWord(hDocWordsStack);
 
   if (hWndEdit=GetFocusEdit())
   {
+    if (bSyntaxDelimitersEnable && lpSyntaxFile)
+      hDelimiterStack=&lpSyntaxFile->hDelimiterStack;
+
     SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciCount);
     SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
 
