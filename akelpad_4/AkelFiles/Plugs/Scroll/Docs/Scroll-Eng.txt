@@ -49,6 +49,27 @@ Settings dialog.
 
 *** External call ***
 
+Call("Scroll::AutoScroll", 1, "STEPTIME", "STEPWIDTH", *STEPTIME, *STEPWIDTH)
+  Parameters:
+    1
+      Autoscrolling.
+    "STEPTIME"
+      Step time.
+      "100" step time is 100 milliseconds.
+      "+50" increase step time to 50 milliseconds.
+      "-50" decrease step time to 50 milliseconds.
+      0     don't change.
+    "STEPWIDTH"
+      Step width.
+      "1"   step width is 1 pixel.
+      "+10" increase step width to 10 pixels.
+      "-10" decrease step width to 10 pixels.
+      0     don't change.
+    *STEPTIME
+      Optional parameter. Pointer to a variable, that receives step time value.
+    *STEPWIDTH
+      Optional parameter. Pointer to a variable, that receives step width value.
+
 Call("Scroll::Settings", 1, TYPE)
   Parameters:
     1

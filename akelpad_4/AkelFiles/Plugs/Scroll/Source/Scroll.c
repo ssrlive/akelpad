@@ -54,6 +54,8 @@
 #define STRID_OK                24
 #define STRID_CANCEL            25
 
+#define DLLA_AUTOSCROLL_TIME     1
+
 #define DLLA_SCROLL_HSCROLL      1
 #define DLLA_SCROLL_VSCROLL      2
 #define DLLA_SCROLL_LINEHSCROLL  3
@@ -241,6 +243,80 @@ void __declspec(dllexport) AutoScroll(PLUGINDATA *pd)
     return;
 
   if (!bInitCommon) InitCommon(pd);
+
+  if (pd->lParam)
+  {
+    INT_PTR nAction=GetExtCallParam(pd->lParam, 1);
+
+    if (pd->bAkelEdit)
+    {
+      if (nAction == DLLA_AUTOSCROLL_TIME)
+      {
+        unsigned char *pStepTime=NULL;
+        unsigned char *pStepWidth=NULL;
+        wchar_t wszStepTime[32];
+        wchar_t wszStepWidth[32];
+        wchar_t *wpStepTime=wszStepTime;
+        wchar_t *wpStepWidth=wszStepWidth;
+        int *lpnStepTime=NULL;
+        int *lpnStepWidth=NULL;
+
+        if (IsExtCallParamValid(pd->lParam, 2))
+          pStepTime=(unsigned char *)GetExtCallParam(pd->lParam, 2);
+        if (IsExtCallParamValid(pd->lParam, 3))
+          pStepWidth=(unsigned char *)GetExtCallParam(pd->lParam, 3);
+        if (IsExtCallParamValid(pd->lParam, 4))
+          lpnStepTime=(int *)GetExtCallParam(pd->lParam, 4);
+        if (IsExtCallParamValid(pd->lParam, 5))
+          lpnStepWidth=(int *)GetExtCallParam(pd->lParam, 5);
+
+        if (pStepTime)
+        {
+          if (pd->dwSupport & PDS_STRANSI)
+            MultiByteToWideChar(CP_ACP, 0, (char *)pStepTime, -1, wszStepTime, MAX_PATH);
+          else
+            wpStepTime=(wchar_t *)pStepTime;
+          if (*wpStepTime == L'+')
+            nAutoScrollStepTime+=(int)xatoiW(wpStepTime + 1, NULL);
+          else if (*wpStepTime == L'-')
+            nAutoScrollStepTime-=(int)xatoiW(wpStepTime + 1, NULL);
+          else
+            nAutoScrollStepTime=(int)xatoiW(wpStepTime, NULL);
+          nAutoScrollStepTime=max(nAutoScrollStepTime, 0);
+        }
+        if (pStepWidth)
+        {
+          if (pd->dwSupport & PDS_STRANSI)
+            MultiByteToWideChar(CP_ACP, 0, (char *)pStepWidth, -1, wszStepWidth, MAX_PATH);
+          else
+            wpStepWidth=(wchar_t *)pStepWidth;
+          if (*wpStepWidth == L'+')
+            nAutoScrollStepWidth+=(int)xatoiW(wpStepWidth + 1, NULL);
+          else if (*wpStepWidth == L'-')
+            nAutoScrollStepWidth-=(int)xatoiW(wpStepWidth + 1, NULL);
+          else
+            nAutoScrollStepWidth=(int)xatoiW(wpStepWidth, NULL);
+          nAutoScrollStepWidth=max(nAutoScrollStepWidth, 0);
+        }
+        if (lpnStepTime)
+          *lpnStepTime=nAutoScrollStepTime;
+        if (lpnStepWidth)
+          *lpnStepWidth=nAutoScrollStepWidth;
+
+        if (pStepTime || pStepWidth)
+        {
+          UninitAutoScroll();
+          if (nAutoScrollStepTime > 0)
+            InitAutoScroll();
+          dwSaveFlags|=OF_AUTOSCROLL;
+        }
+      }
+    }
+
+    //If plugin already loaded, stay in memory and don't change active status
+    if (pd->bInMemory) pd->nUnload=UD_NONUNLOAD_UNCHANGE;
+    return;
+  }
 
   if (bInitAutoScroll)
   {
