@@ -106,6 +106,8 @@ void __declspec(dllexport) HighLight(PLUGINDATA *pd)
                 dwHLFlags|=AEHLF_MATCHCASE;
               if (dwFlags & MARKFLAG_REGEXP)
                 dwHLFlags|=AEHLF_REGEXP;
+              if (dwFlags & MARKFLAG_WHOLEWORD)
+                dwHLFlags|=AEHLF_WHOLEWORD;
 
               if (dwMarkID != MARKID_AUTOASSIGN || !SendMessage(ei.hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)NULL))
               {
