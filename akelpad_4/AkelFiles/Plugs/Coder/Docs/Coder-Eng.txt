@@ -63,6 +63,7 @@ Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", 
     FLAGS (sum of the following):
       1  case sensitive (default).
       2  regular expressions in "TEXT" parameter.
+      4  whole word.
          Default: 1.
     FONTSTYLE (one of the following):
       0  ignored (default).

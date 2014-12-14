@@ -40,6 +40,7 @@
 
 #define MARKFLAG_MATCHCASE 0x1
 #define MARKFLAG_REGEXP    0x2
+#define MARKFLAG_WHOLEWORD 0x4
 
 //// Structures
 
