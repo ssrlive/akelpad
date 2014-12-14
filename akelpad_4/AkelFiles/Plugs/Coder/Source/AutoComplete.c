@@ -1879,6 +1879,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
   BLOCKINFO *lpBlockMaster;
   BLOCKINFOHANDLE *lpBlockHandle;
   HOTSPOT *lpHotSpot;
+  const wchar_t *wpTitleCaret;
   const wchar_t *wpStrInit;
   const wchar_t *wpStrBegin;
   const wchar_t *wpStrEnd;
@@ -1923,7 +1924,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       {
         if (lpBlockHandle->lpBlockInfo->nTitleLen > lpBlockInfo->nTitleLen)
         {
-          if (xstrstrW(lpBlockHandle->lpBlockInfo->wpTitle, lpBlockHandle->lpBlockInfo->nTitleLen, lpBlockInfo->wpTitle, (int)(nMax - nMin), FALSE, &wpStrBegin, &wpStrEnd))
+          if (xstrstrW(lpBlockHandle->lpBlockInfo->wpTitle, lpBlockHandle->lpBlockInfo->nTitleLen, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen, FALSE, &wpStrBegin, &wpStrEnd))
           {
             ft.dwFlags=0;
             ft.pText=lpBlockHandle->lpBlockInfo->wpTitle;
@@ -1943,12 +1944,15 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
           }
         }
       }
+      if (nMax - nMin > lpBlockInfo->nTitleLen)
+        return;
+      wpTitleCaret=lpBlockInfo->wpTitle + (nMax - nMin);
 
-      //Smart complete block abbreviations.
+      //Smart complete block abbreviations (from left).
       //Avoid expanding "<td" to "<<td".
       if (lpBlockMaster->nBlockLen > lpBlockInfo->nTitleLen)
       {
-        if (xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, (int)(nMax - nMin), FALSE, &wpStrBegin, &wpStrEnd))
+        if (xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen, FALSE, &wpStrBegin, &wpStrEnd))
         {
           ft.dwFlags=0;
           ft.pText=lpBlockMaster->wpBlock;
@@ -1966,30 +1970,44 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         }
       }
 
-      //Smart complete block abbreviations.
+      //Smart complete block abbreviations (from right).
       //Avoid expanding "Ake|lPa " to "AkelPad|lPa ".
-      //Expand depending on delimiter "Ake|lPa " to "AkelPad| ", but not "Ake|lParam" to "AkelPad|ram".
-      if (lpBlockMaster->nBlockLen <= lpBlockInfo->nTitleLen)
+      //Expand depending on delimiter: "Ake|lPa " to "AkelPad| ", but not "Ake|lParam" to "AkelPad|ram".
+      wpStrBegin=lpBlockMaster->wpBlock;
+      if (lpBlockMaster->nBlockLen <= lpBlockInfo->nTitleLen || xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen, FALSE, &wpStrBegin, &wpStrEnd))
       {
-        SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&ciChar);
-        wpStrInit=lpBlockMaster->wpBlock + (nMax - nMin);
+        wpStrInit=wpStrBegin + (wpTitleCaret - lpBlockInfo->wpTitle);
         wpStrBegin=wpStrInit;
         wpStrEnd=lpBlockMaster->wpBlock + lpBlockMaster->nBlockLen;
+        SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&ciChar);
 
-        do
+        //Check full block match from right
+        ft.dwFlags=0;
+        ft.pText=wpStrBegin;
+        ft.dwTextLen=wpStrEnd - wpStrBegin;
+
+        if (IsMatch(&ft, &ciChar))
         {
-          if (IsDelimiterFromRight(hDelimiterStack, hWndEdit, &ciChar))
-            break;
-          if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciChar)) != WideCharLower(*wpStrBegin) || ++wpStrBegin > wpStrEnd)
-          {
-            wpStrInit=NULL;
-            break;
-          }
+          nMax+=ft.dwTextLen;
         }
-        while (AEC_NextCharInLine(&ciChar));
+        else
+        {
+          //Check partial (until delimiter) block match from right
+          do
+          {
+            if (IsDelimiterFromRight(hDelimiterStack, hWndEdit, &ciChar))
+              break;
+            if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciChar)) != WideCharLower(*wpStrBegin) || ++wpStrBegin > wpStrEnd)
+            {
+              wpStrInit=NULL;
+              break;
+            }
+          }
+          while (AEC_NextCharInLine(&ciChar));
 
-        if (wpStrInit)
-          nMax+=wpStrBegin - wpStrInit;
+          if (wpStrInit)
+            nMax+=wpStrBegin - wpStrInit;
+        }
       }
 
       if (lpBlockMaster->nLinesInBlock > 1)
