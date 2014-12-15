@@ -12925,7 +12925,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       efnW.hwndOwner    =hDlg;
       efnW.lpstrFile    =wszBkImageFileDlg;
       efnW.nMaxFile     =MAX_PATH;
-      efnW.lpstrFilter  =L"*.bmp;*.jpg;*.jpeg;*.gif\0*.bmp;*.jpg;*.jpeg;*.gif\0*.*\0*.*\0\0";;
+      efnW.lpstrFilter  =L"*.bmp;*.jpg;*.jpeg;*.gif\0*.bmp;*.jpg;*.jpeg;*.gif\0*.*\0*.*\0\0";
       efnW.nFilterIndex =1;
       efnW.Flags        =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
 
@@ -14658,21 +14658,21 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_EXECDIR_BROWSE)
     {
-      BROWSEINFOW biW;
+      BROWSEINFOW bi;
       LPITEMIDLIST pIdList;
       LPMALLOC pMalloc;
 
       GetWindowTextWide(hWndDirectory, wbuf, BUFFER_SIZE);
-      biW.hwndOwner=hDlg;
-      biW.pidlRoot=NULL;
-      biW.pszDisplayName=wbuf;
-      biW.lpszTitle=NULL;
-      biW.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;
-      biW.lpfn=BrowseCallbackProc;
-      biW.lParam=(LPARAM)wbuf;
-      biW.iImage=0;
+      bi.hwndOwner=hDlg;
+      bi.pidlRoot=NULL;
+      bi.pszDisplayName=wbuf;
+      bi.lpszTitle=NULL;
+      bi.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;
+      bi.lpfn=BrowseCallbackProc;
+      bi.lParam=(LPARAM)wbuf;
+      bi.iImage=0;
 
-      if (pIdList=SHBrowseForFolderWide(&biW))
+      if (pIdList=SHBrowseForFolderWide(&bi))
       {
         SHGetPathFromIDListWide(pIdList, wbuf);
 

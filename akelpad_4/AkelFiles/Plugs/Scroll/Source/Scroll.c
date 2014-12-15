@@ -306,21 +306,28 @@ void __declspec(dllexport) AutoScroll(PLUGINDATA *pd)
         if (pStepTime || pStepWidth)
         {
           UninitAutoScroll();
-          if (nAutoScrollStepTime > 0)
+          if (nAutoScrollStepTime && nAutoScrollStepWidth)
             InitAutoScroll();
           dwSaveFlags|=OF_AUTOSCROLL;
         }
       }
     }
 
-    //If plugin already loaded, stay in memory and don't change active status
-    if (pd->bInMemory) pd->nUnload=UD_NONUNLOAD_UNCHANGE;
+    if (bInitAutoScroll)
+    {
+      //Stay in memory, and show as active
+      pd->nUnload=UD_NONUNLOAD_ACTIVE;
+    }
+    else
+    {
+      //If any function still loaded, stay in memory and show as non-active
+      if (nInitMain) pd->nUnload=UD_NONUNLOAD_NONACTIVE;
+    }
     return;
   }
 
   if (bInitAutoScroll)
   {
-    UninitMain();
     UninitAutoScroll();
 
     //If any function still loaded, stay in memory and show as non-active
@@ -328,7 +335,6 @@ void __declspec(dllexport) AutoScroll(PLUGINDATA *pd)
   }
   else
   {
-    InitMain();
     InitAutoScroll();
 
     //Stay in memory, and show as active
@@ -1898,7 +1904,8 @@ void InitAutoScroll()
 
   hWndAutoScroll=GetCurEdit();
   hDocAutoScroll=GetCurDoc();
-  SetScrollTimer();
+  if (nAutoScrollStepTime && nAutoScrollStepWidth)
+    SetScrollTimer();
 }
 
 void UninitAutoScroll()
@@ -2051,7 +2058,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
   {
     if (bInitAutoScroll)
     {
-      UninitMain();
       UninitAutoScroll();
     }
     if (bInitSyncHorz)

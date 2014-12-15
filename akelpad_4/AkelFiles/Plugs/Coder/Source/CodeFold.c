@@ -2553,7 +2553,7 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
 
       if (lpFoldStart->dwFlags & FIF_REGEXPSTART)
       {
-        lpFoldStart->sregStart.dwOptions=REO_MULTILINE|(lpFoldStart->dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);;
+        lpFoldStart->sregStart.dwOptions=REO_MULTILINE|(lpFoldStart->dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
         if (nFoldStartLen && !PatCompile(&lpFoldStart->sregStart, wpFoldStart, wpFoldStart + nFoldStartLen))
         {
           lpFoldStart->sregStart.first->dwFlags&=~REGF_ROOTANY;

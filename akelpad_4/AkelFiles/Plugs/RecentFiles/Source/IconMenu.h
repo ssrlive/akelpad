@@ -783,7 +783,7 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
     if (IconMenu_bOldWindows)
       WideCharToMultiByte(CP_ACP, 0, lpNewMenuItem->wszStr, -1, szStr, MAX_PATH, NULL, NULL);
 
-    if ((uFlags & MF_BYPOSITION) && nPosition == (UINT_PTR)-1)
+    if ((uFlags & MF_BYPOSITION) && nPosition == -1)
     {
       if (dwFlags & ICONMENU_SETMENU_INSERT)
       {

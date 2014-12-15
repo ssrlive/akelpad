@@ -523,7 +523,7 @@ void __declspec(dllexport) Settings(PLUGINDATA *pd)
                   if (pd->dwSupport & PDS_STRANSI)
                     nVariableValueLen=WideCharToMultiByte(CP_ACP, 0, lpVarInfo->wpVarValue, lpVarInfo->nVarValueLen + 1, (char *)pVariableValue, 0x3FFFFFFF, NULL, NULL);
                   else
-                    nVariableValueLen=xstrcpynW((wchar_t *)pVariableValue, lpVarInfo->wpVarValue, lpVarInfo->nVarValueLen + 1) + (pVariableValue?1:0);;
+                    nVariableValueLen=xstrcpynW((wchar_t *)pVariableValue, lpVarInfo->wpVarValue, lpVarInfo->nVarValueLen + 1) + (pVariableValue?1:0);
                 }
               }
             }
