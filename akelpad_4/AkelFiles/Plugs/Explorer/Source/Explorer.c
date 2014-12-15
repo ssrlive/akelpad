@@ -58,6 +58,7 @@
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
+#define SHBrowseForFolderWide
 #define SHGetPathFromIDListWide
 #define TreeView_GetItemWide
 #define TreeView_InsertItemWide
@@ -96,6 +97,7 @@
 #define DLLA_EXPLORER_GOTOPATH  1
 #define DLLA_EXPLORER_REFRESH   2
 #define DLLA_EXPLORER_GETDOCK   3
+#define DLLA_EXPLORER_ROOTPATH  4
 
 #define AKDLL_INIT          (WM_USER + 100)
 #define AKDLL_SETUP         (WM_USER + 101)
@@ -123,6 +125,9 @@
 #define FILTER_INCLUDE    1
 #define FILTER_EXCLUDE    2
 
+#ifndef BIF_NEWDIALOGSTYLE
+  #define BIF_NEWDIALOGSTYLE 0x0040
+#endif
 #ifndef SFGAO_STREAM
   #define SFGAO_STREAM 0x00400000
 #endif
@@ -170,6 +175,7 @@ void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow);
 void DestroyDock(HWND hWndDock, DWORD dwType);
 BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 BOOL CALLBACK InputBoxProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
@@ -310,6 +316,40 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         {
           SearchTreeView(hWndBrowseTree, wszGotoPath);
           wszGotoPath[0]=L'\0';
+
+          //Stay in memory, and show as active
+          pd->nUnload=UD_NONUNLOAD_ACTIVE;
+          return;
+        }
+      }
+    }
+    else if (nAction == DLLA_EXPLORER_ROOTPATH)
+    {
+      unsigned char *pPath=NULL;
+
+      if (IsExtCallParamValid(pd->lParam, 2))
+        pPath=(unsigned char *)GetExtCallParam(pd->lParam, 2);
+
+      if (pPath)
+      {
+        if (pd->dwSupport & PDS_STRANSI)
+          MultiByteToWideChar(CP_ACP, 0, (char *)pPath, -1, wszRootDirectory, MAX_PATH);
+        else
+          xstrcpynW(wszRootDirectory, (wchar_t *)pPath, MAX_PATH);
+        if (xatoiW(wszRootDirectory, NULL) == -1)
+        {
+          wszRootDirectory[0]=L'\0';
+          nRootSpecial=CSIDL_DRIVES;
+        }
+        else nRootSpecial=CSIDL_DESKTOP;
+
+        dwSaveFlags|=OF_SETTINGS;
+
+        if (bInitMain)
+        {
+          PostMessage(hWndDockDlg, AKDLL_REFRESH, 0, 0);
+          if (bAutoFind)
+            PostMessage(hWndDockDlg, AKDLL_FINDDOCUMENT, 0, 0);
 
           //Stay in memory, and show as active
           pd->nUnload=UD_NONUNLOAD_ACTIVE;
@@ -1226,7 +1266,8 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
-  static HWND hWndRootDirectory;
+  static HWND hWndRootDirectoryEdit;
+  static HWND hWndRootDirectoryBrowse;
   static HWND hWndRootMyComputer;
   static HWND hWndShowHidden;
   static HWND hWndAutoFind;
@@ -1240,8 +1281,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
-    hWndRootDirectory=GetDlgItem(hDlg, IDC_SETUP_ROOT_DIRECTORY);
-    hWndRootMyComputer=GetDlgItem(hDlg, IDC_SETUP_ROOT_MYCOMPUTER);
+    hWndRootDirectoryEdit=GetDlgItem(hDlg, IDC_SETUP_ROOTDIRECTORY_EDIT);
+    hWndRootDirectoryBrowse=GetDlgItem(hDlg, IDC_SETUP_ROOTDIRECTORY_BROWSE);
+    hWndRootMyComputer=GetDlgItem(hDlg, IDC_SETUP_ROOTMYCOMPUTER);
     hWndShowHidden=GetDlgItem(hDlg, IDC_SETUP_SHOWHIDDEN);
     hWndAutoFind=GetDlgItem(hDlg, IDC_SETUP_AUTOFIND);
     hWndSingleClick=GetDlgItem(hDlg, IDC_SETUP_SINGLECLICK);
@@ -1249,7 +1291,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDC_SETUP_ROOT_GROUP, GetLangStringW(wLangModule, STRID_ROOTDIRECTORY));
-    SetDlgItemTextWide(hDlg, IDC_SETUP_ROOT_MYCOMPUTER, GetLangStringW(wLangModule, STRID_MYCOMPUTER));
+    SetDlgItemTextWide(hDlg, IDC_SETUP_ROOTMYCOMPUTER, GetLangStringW(wLangModule, STRID_MYCOMPUTER));
     SetDlgItemTextWide(hDlg, IDC_SETUP_SHOWHIDDEN, GetLangStringW(wLangModule, STRID_SHOWHIDDEN));
     SetDlgItemTextWide(hDlg, IDC_SETUP_AUTOFIND, GetLangStringW(wLangModule, STRID_AUTOFIND));
     SetDlgItemTextWide(hDlg, IDC_SETUP_SINGLECLICK, GetLangStringW(wLangModule, STRID_SINGLECLICK));
@@ -1257,28 +1299,58 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
-    SendMessage(hWndRootDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
-    SetWindowTextWide(hWndRootDirectory, wszRootDirectory);
+    SendMessage(hWndRootDirectoryEdit, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
+    SetWindowTextWide(hWndRootDirectoryEdit, wszRootDirectory);
     if (nRootSpecial) SendMessage(hWndRootMyComputer, BM_SETCHECK, BST_CHECKED, 0);
     if (bShowHidden) SendMessage(hWndShowHidden, BM_SETCHECK, BST_CHECKED, 0);
     if (bAutoFind) SendMessage(hWndAutoFind, BM_SETCHECK, BST_CHECKED, 0);
     if (bSingleClick) SendMessage(hWndSingleClick, BM_SETCHECK, BST_CHECKED, 0);
     if (bSetSaveLocation) SendMessage(hWndSetSaveLocation, BM_SETCHECK, BST_CHECKED, 0);
 
-    SendMessage(hDlg, WM_COMMAND, IDC_SETUP_ROOT_MYCOMPUTER, 0);
+    SendMessage(hDlg, WM_COMMAND, IDC_SETUP_ROOTMYCOMPUTER, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_SETUP_ROOT_MYCOMPUTER)
+    if (LOWORD(wParam) == IDC_SETUP_ROOTDIRECTORY_BROWSE)
+    {
+      BROWSEINFOW bi;
+      LPITEMIDLIST pIdList;
+      LPMALLOC pMalloc;
+      wchar_t wszDir[MAX_PATH];
+
+      GetWindowTextWide(hWndRootDirectoryEdit, wszDir, MAX_PATH);
+      bi.hwndOwner=hDlg;
+      bi.pidlRoot=NULL;
+      bi.pszDisplayName=wszDir;
+      bi.lpszTitle=NULL;
+      bi.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;
+      bi.lpfn=BrowseCallbackProc;
+      bi.lParam=(LPARAM)wszDir;
+      bi.iImage=0;
+
+      if (pIdList=SHBrowseForFolderWide(&bi))
+      {
+        SHGetPathFromIDListWide(pIdList, wszDir);
+
+        if (SHGetMalloc(&pMalloc))
+        {
+          pMalloc->lpVtbl->Free(pMalloc, pIdList);
+          pMalloc->lpVtbl->Release(pMalloc);
+        }
+        SetWindowTextWide(hWndRootDirectoryEdit, wszDir);
+      }
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_SETUP_ROOTMYCOMPUTER)
     {
       bState=(BOOL)SendMessage(hWndRootMyComputer, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndRootDirectory, !bState);
+      EnableWindow(hWndRootDirectoryEdit, !bState);
     }
     else if (LOWORD(wParam) == IDOK)
     {
       DWORD dwStyle;
 
-      GetWindowTextWide(hWndRootDirectory, wszRootDirectory, MAX_PATH);
+      GetWindowTextWide(hWndRootDirectoryEdit, wszRootDirectory, MAX_PATH);
       if (SendMessage(hWndRootMyComputer, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nRootSpecial=CSIDL_DRIVES;
       else
@@ -1326,6 +1398,22 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyIcon(hPluginIcon);
   }
   return FALSE;
+}
+
+int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+{
+  if (uMsg == BFFM_INITIALIZED)
+  {
+    if (bOldWindows)
+    {
+      char szPath[MAX_PATH];
+
+      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)lpData, -1, szPath, MAX_PATH, NULL, NULL);
+      SendMessage(hWnd, BFFM_SETSELECTIONA, TRUE, (LPARAM)szPath);
+    }
+    else SendMessage(hWnd, BFFM_SETSELECTIONW, TRUE, lpData);
+  }
+  return 0;
 }
 
 BOOL CALLBACK InputBoxProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
