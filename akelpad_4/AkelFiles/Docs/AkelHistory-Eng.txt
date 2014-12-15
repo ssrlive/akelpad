@@ -1,4 +1,9 @@
 
+AkelPad 4.9.2 ()
+----------------------------
+Fixed: buttons that control the size of the frame didn't work (MDI).
+
+
 AkelPad 4.9.1 (Dec 15, 2014)
 ----------------------------
 Changed: plugin architecture. Update plugins.
