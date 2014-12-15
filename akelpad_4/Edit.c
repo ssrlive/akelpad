@@ -19619,6 +19619,7 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 
 INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
+  INT_PTR nResultVar=0;
   INT_PTR nValue1;
   INT_PTR nValue2;
   INT_PTR nValue3;
@@ -19627,7 +19628,7 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
   int nSign3;
 
   FirstValueInGroup:
-  nValue1=IfGroup(wpIn, &wpIn, &nSign1, lpnError);
+  nValue1=IfGroup(wpIn, &wpIn, &nSign1, &nResultVar, lpnError);
   if (*lpnError) goto End;
 
   while (nSign1 > OS_NULL)
@@ -19642,7 +19643,7 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       if (nValue1) break;
       goto FirstValueInGroup;
     }
-    nValue2=IfGroup(wpIn, &wpIn, &nSign2, lpnError);
+    nValue2=IfGroup(wpIn, &wpIn, &nSign2, &nResultVar, lpnError);
     if (*lpnError) goto End;
 
     if (nSign1 == OS_IFTRUE)
@@ -19652,7 +19653,7 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
         *lpnError=IEE_NOFALSE;
         goto End;
       }
-      nValue3=IfGroup(wpIn, &wpIn, &nSign3, lpnError);
+      nValue3=IfGroup(wpIn, &wpIn, &nSign3, &nResultVar, lpnError);
       if (*lpnError) goto End;
       nValue1=nValue1 ? nValue2 : nValue3;
       nSign1=nSign3;
@@ -19671,13 +19672,13 @@ INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
   return nValue1;
 }
 
-INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError)
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, INT_PTR *lpnResultVar, int *lpnError)
 {
   INT_PTR nValue1;
   INT_PTR nValue2;
   int nSign;
 
-  nValue1=IfValue(wpIn, &wpIn, lpnError);
+  nValue1=IfValue(wpIn, &wpIn, lpnResultVar, lpnError);
   if (*lpnError) goto End;
 
   while ((nSign=IfSign(wpIn, &wpIn)) > OS_NULL)
@@ -19685,7 +19686,7 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
     //Break if logical operator
     if (nSign >= OS_GREATER)
       break;
-    nValue2=IfValue(wpIn, &wpIn, lpnError);
+    nValue2=IfValue(wpIn, &wpIn, lpnResultVar, lpnError);
     if (*lpnError) goto End;
     nValue1=IfOperate(nValue1, nSign, nValue2, lpnError);
     if (*lpnError) goto End;
@@ -19701,7 +19702,7 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *
   return nValue1;
 }
 
-INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultVar, int *lpnError)
 {
   INT_PTR nValue=0;
   BOOL bBitwiseNOT=FALSE;
@@ -19721,6 +19722,11 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
       nValue=hex2decW(wpIn + 2, -2, &wpIn);
     else
       nValue=xatoiW(wpIn, &wpIn);
+  }
+  else if (!xstrcmpinW(L"nResult", wpIn, (UINT_PTR)-1))
+  {
+    wpIn+=7;
+    nValue=*lpnResultVar;
   }
   else
   {
@@ -19798,6 +19804,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
         nCallResult=(int)CallPluginSend(NULL, hParamStack.first->wpString, &pcs, 0);
         if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
         nValue=pcs.nResult;
+        if (lpParameter) *lpnResultVar=nValue;
         FreeMethodParameters(&hParamStack);
 
         //Move back to check that method was closed with ')'.

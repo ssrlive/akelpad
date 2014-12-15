@@ -5,9 +5,9 @@
 //// Defines
 
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.1 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.2 (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.1 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.2 (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
   #define APP_MAIN_CLASSA            "AkelPad4 Library"
@@ -141,24 +141,25 @@
 //Operators sign
 #define OS_ERROR     -1  // Wrong sign
 #define OS_NULL       0  // No sign
-#define OS_ADD        1  // +
-#define OS_SUB        2  // -
-#define OS_MUL        3  // *
-#define OS_DIV        4  // /
-#define OS_MOD        5  // %
-#define OS_BITAND     6  // &
-#define OS_BITOR      7  // |
-#define OS_BITXOR     8  // ^
-#define OS_GREATER    9  // >
-#define OS_LESS       10 // <
-#define OS_IFTRUE     11 // ?
-#define OS_IFFALSE    12 // :
-#define OS_EQU        13 // ==
-#define OS_NOTEQU     14 // !=
-#define OS_GREATEREQU 15 // >=
-#define OS_LESSEQU    16 // <=
-#define OS_AND        17 // &&
-#define OS_OR         18 // ||
+#define OS_SET        1  // =
+#define OS_ADD        2  // +
+#define OS_SUB        3  // -
+#define OS_MUL        4  // *
+#define OS_DIV        5  // /
+#define OS_MOD        6  // %
+#define OS_BITAND     7  // &
+#define OS_BITOR      8  // |
+#define OS_BITXOR     9  // ^
+#define OS_GREATER    10 // >
+#define OS_LESS       11 // <
+#define OS_IFTRUE     12 // ?
+#define OS_IFFALSE    13 // :
+#define OS_EQU        14 // ==
+#define OS_NOTEQU     15 // !=
+#define OS_GREATEREQU 16 // >=
+#define OS_LESSEQU    17 // <=
+#define OS_AND        18 // &&
+#define OS_OR         19 // ||
 
 //File dialog notifications
 #define AKDLG_SETSTREAM                (WM_USER + 100)
@@ -1140,8 +1141,8 @@ void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
 INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
-INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, int *lpnError);
-INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
+INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, INT_PTR *lpnResultVar, int *lpnError);
+INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultVar, int *lpnError);
 INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
 int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
 void IfComment(const wchar_t *wpText, const wchar_t **wppText);
