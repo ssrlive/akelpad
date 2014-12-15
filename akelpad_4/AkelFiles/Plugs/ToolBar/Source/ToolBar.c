@@ -1064,7 +1064,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   HICON hIcon;
   SIZE sizeIcon;
   DWORD dwAction;
-  DWORD dwNewFlags;
+  DWORD dwNewFlags=0;
   DWORD dwSetFlags=0;
   int nFlagCountNoSDI=0;
   int nFlagCountNoMDI=0;

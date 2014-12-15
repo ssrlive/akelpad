@@ -523,22 +523,22 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEDIR_BROWSE)
     {
-      BROWSEINFOW biW;
+      BROWSEINFOW bi;
       LPITEMIDLIST pIdList;
       LPMALLOC pMalloc;
       wchar_t wszDir[MAX_PATH];
 
-      GetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR, wszDir, MAX_PATH);
-      biW.hwndOwner=hDlg;
-      biW.pidlRoot=NULL;
-      biW.pszDisplayName=wszDir;
-      biW.lpszTitle=NULL;
-      biW.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;;
-      biW.lpfn=BrowseCallbackProc;
-      biW.lParam=(LPARAM)wszDir;
-      biW.iImage=0;
+      GetWindowTextWide(hWndSaveDir, wszDir, MAX_PATH);
+      bi.hwndOwner=hDlg;
+      bi.pidlRoot=NULL;
+      bi.pszDisplayName=wszDir;
+      bi.lpszTitle=NULL;
+      bi.ulFlags=BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE|BIF_EDITBOX;
+      bi.lpfn=BrowseCallbackProc;
+      bi.lParam=(LPARAM)wszDir;
+      bi.iImage=0;
 
-      if (pIdList=SHBrowseForFolderWide(&biW))
+      if (pIdList=SHBrowseForFolderWide(&bi))
       {
         SHGetPathFromIDListWide(pIdList, wszDir);
 
@@ -547,7 +547,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           pMalloc->lpVtbl->Free(pMalloc, pIdList);
           pMalloc->lpVtbl->Release(pMalloc);
         }
-        SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR, wszDir);
+        SetWindowTextWide(hWndSaveDir, wszDir);
       }
       return TRUE;
     }
