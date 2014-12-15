@@ -1230,6 +1230,8 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
       }
       else if (!xstrcmpnW(L"UNSET(", wpCount, (UINT_PTR)-1))
       {
+        dwNewFlags=(DWORD)xatoiW(wpCount + 6, &wpCount);
+
         if (dwNewFlags & CCMS_NOSDI)
         {
           if (nFlagCountNoSDI <= 0)
