@@ -1,5 +1,5 @@
 
-AkelPad 4.9.1 ()
+AkelPad 4.9.1 (15.12.2014)
 --------------------------
 Изменено: архитектура плагинов. Обновите плагины.
 Изменено: перенесены SmartSel::altSmartHome, SmartSel::altSmartEnd, SmartSel::altSmartUpDown,

@@ -1,5 +1,5 @@
 
-AkelPad 4.9.1 ()
+AkelPad 4.9.1 (Dec 15, 2014)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: moved SmartSel::altSmartHome, SmartSel::altSmartEnd, SmartSel::altSmartUpDown,
