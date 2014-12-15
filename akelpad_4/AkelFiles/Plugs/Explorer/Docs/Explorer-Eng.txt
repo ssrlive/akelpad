@@ -52,3 +52,10 @@ Call("Explorer::Main", 3, *WINDOW)
       }
       return hWnd;
     }
+
+Call("Explorer::Main", 4, "PATH")
+  Parameters:
+    4
+      Set root directory.
+    "PATH"
+      Path, for example: "C:\Program Files". If "-1", then set "My Computer" as root directory.
