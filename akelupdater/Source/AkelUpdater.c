@@ -986,7 +986,7 @@ void ParseLst(HWND hDlg)
     hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile != INVALID_HANDLE_VALUE)
     {
-      if (AutodetectCodePage(NULL, hFile, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, &nCodePage, &bBOM) == EDT_SUCCESS)
+      if (AutodetectCodePage(NULL, hFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM) == EDT_SUCCESS)
       {
         SetFilePointer64(hFile, 0, FILE_BEGIN);
         wpContent=NULL;
@@ -1111,7 +1111,7 @@ void ParseLst(HWND hDlg)
         hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (hFile != INVALID_HANDLE_VALUE)
         {
-          if (AutodetectCodePage(NULL, hFile, ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, &nCodePage, &bBOM) == EDT_SUCCESS)
+          if (AutodetectCodePage(NULL, hFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM) == EDT_SUCCESS)
           {
             SetFilePointer64(hFile, 0, FILE_BEGIN);
             wpContent=NULL;
@@ -2054,14 +2054,14 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *
       {
         if (wszFirstBytes[0] == 0xFF && wszFirstBytes[1] == 0xFE && wszFirstBytes[2] == 0x00 && wszFirstBytes[3] == 0x00)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF32LE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF32LE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto End;
         }
         else if (wszFirstBytes[0] == 0x00 && wszFirstBytes[1] == 0x00 && wszFirstBytes[2] == 0xFE && wszFirstBytes[3] == 0xFF)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF32BE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF32BE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto End;
         }
       }
@@ -2069,14 +2069,14 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *
       {
         if (wszFirstBytes[0] == 0xFF && wszFirstBytes[1] == 0xFE)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF16LE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF16LE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto End;
         }
         else if (wszFirstBytes[0] == 0xFE && wszFirstBytes[1] == 0xFF)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF16BE;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF16BE;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto End;
         }
       }
@@ -2084,8 +2084,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *
       {
         if (wszFirstBytes[0] == 0xEF && wszFirstBytes[1] == 0xBB && wszFirstBytes[2] == 0xBF)
         {
-          if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=CP_UNICODE_UTF8;
-          if (dwFlags & ADT_DETECT_BOM) *bBOM=TRUE;
+          if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=CP_UNICODE_UTF8;
+          if (dwFlags & ADT_DETECTBOM) *bBOM=TRUE;
           goto End;
         }
       }
@@ -2095,8 +2095,8 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *
   else nResult=EDT_OPEN;
 
   //Default
-  if (dwFlags & ADT_DETECT_CODEPAGE) *nCodePage=GetACP();
-  if (dwFlags & ADT_DETECT_BOM) *bBOM=FALSE;
+  if (dwFlags & ADT_DETECTCODEPAGE) *nCodePage=GetACP();
+  if (dwFlags & ADT_DETECTBOM) *bBOM=FALSE;
 
   End:
   if (hFileInput != hFile && hFile != INVALID_HANDLE_VALUE)
