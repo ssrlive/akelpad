@@ -59,8 +59,8 @@ int xuitoaA(UINT_PTR nNumber, char *szStr);
 int xuitoaW(UINT_PTR nNumber, wchar_t *wszStr);
 int xi64toaA(__int64 nNumber, char *szStr);
 int xi64toaW(__int64 nNumber, wchar_t *wszStr);
-INT_PTR hex2decA(const char *pStrHex, INT_PTR nStrHexLen);
-INT_PTR hex2decW(const wchar_t *wpStrHex, INT_PTR nStrHexLen);
+INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext);
+INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext);
 int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
 INT_PTR bin2hexA(const unsigned char *pData, INT_PTR nBytes, char *szStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
@@ -1185,9 +1185,11 @@ int xstrcmpiA(const char *pString1, const char *pString2)
 
   while (*pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
   }
@@ -1234,18 +1236,20 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
 
   while (*wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
   }
@@ -1282,6 +1286,7 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   {
     if (*pString1 != *pString2)
       return ((WORD)*pString1 > (WORD)*pString2)?1:-1;
+
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1354,9 +1359,11 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
 
   while (dwCount && *pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1395,18 +1402,20 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
 
   while (dwCount && *wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
     --dwCount;
@@ -2362,54 +2371,63 @@ int xi64toaW(__int64 nNumber, wchar_t *wszStr)
  *Converts hex value to decimal.
  *
  *[in]  const char *pStrHex  Hex value.
- *[in]  INT_PTR nStrHexLen   Unicode hex value length.
- *                            If this value is -1, the string is assumed to be null-terminated
- *                            and the length is calculated automatically.
+ *[in]  INT_PTR nStrHexLen   Hex value length.
+ *                            If this value is -1, process string until null character.
+ *                            If this value is -2, process string until wrong hex value.
+ *[out] const char **pNext   Pointer to the first char after hex value, can be NULL.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decA("A1F", -1) == 2591;
+ *  hex2decA("A1F", -1, NULL) == 2591;
  ********************************************************************/
 #if defined hex2decA || defined ALLSTRFUNC
 #define hex2decA_INCLUDED
 #undef hex2decA
-INT_PTR hex2decA(const char *pStrHex, INT_PTR nStrHexLen)
+INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext)
 {
-  const char *pStrHexMax;
+  const char *pStrMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  if (nStrHexLen == -1)
+  if (!nStrLen)
   {
-    for (;;)
+    b=-1;
+  }
+  else if (nStrLen < 0)
+  {
+    for (; *pStr; ++pStr)
     {
-      a=*pStrHex++;
+      a=*pStr;
       if (a >= '0' && a <= '9') a-='0';
       else if (a >= 'a' && a <= 'f') a-='a' - 10;
       else if (a >= 'A' && a <= 'F') a-='A' - 10;
-      else return -1;
-
-      if (*pStrHex) b=(b + a) * 16;
-      else return (b + a);
+      else
+      {
+        if (nStrLen == -1) b=-1;
+        break;
+      }
+      b=(b * 16) + a;
     }
   }
-  else
+  else //if (nStrLen > 0)
   {
-    pStrHexMax=pStrHex + nStrHexLen;
-
-    for (;;)
+    for (pStrMax=pStr + nStrLen; pStr < pStrMax; ++pStr)
     {
-      a=*pStrHex++;
+      a=*pStr;
       if (a >= '0' && a <= '9') a-='0';
       else if (a >= 'a' && a <= 'f') a-='a' - 10;
       else if (a >= 'A' && a <= 'F') a-='A' - 10;
-      else return -1;
-
-      if (pStrHex < pStrHexMax) b=(b + a) * 16;
-      else return (b + a);
+      else
+      {
+        b=-1;
+        break;
+      }
+      b=(b * 16) + a;
     }
   }
+  if (pNext) *pNext=pStr;
+  return b;
 }
 #endif
 
@@ -2419,55 +2437,64 @@ INT_PTR hex2decA(const char *pStrHex, INT_PTR nStrHexLen)
  *
  *Converts unicode hex value to decimal.
  *
- *[in]  const wchar_t *wpStrHex  Unicode hex value.
- *[in]  INT_PTR nStrHexLen       Unicode hex value length.
- *                                If this value is -1, the string is assumed to be null-terminated
- *                                and the length is calculated automatically.
+ *[in]  const wchar_t *wpStr    Unicode hex string.
+ *[in]  INT_PTR nStrLen         Unicode hex string length.
+ *                               If this value is -1, process string until null character.
+ *                               If this value is -2, process string until wrong hex value.
+ *[out] const wchar_t **wpNext  Pointer to the first char after hex value, can be NULL.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decW(L"A1F", -1) == 2591;
+ *  hex2decW(L"A1F", -1, NULL) == 2591;
  ********************************************************************/
 #if defined hex2decW || defined ALLSTRFUNC
 #define hex2decW_INCLUDED
 #undef hex2decW
-INT_PTR hex2decW(const wchar_t *wpStrHex, INT_PTR nStrHexLen)
+INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext)
 {
-  const wchar_t *wpStrHexMax;
+  const wchar_t *wpStrMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  if (nStrHexLen == -1)
+  if (!nStrLen)
   {
-    for (;;)
+    b=-1;
+  }
+  else if (nStrLen < 0)
+  {
+    for (; *wpStr; ++wpStr)
     {
-      a=*wpStrHex++;
+      a=*wpStr;
       if (a >= '0' && a <= '9') a-='0';
       else if (a >= 'a' && a <= 'f') a-='a' - 10;
       else if (a >= 'A' && a <= 'F') a-='A' - 10;
-      else return -1;
-
-      if (*wpStrHex) b=(b + a) * 16;
-      else return (b + a);
+      else
+      {
+        if (nStrLen == -1) b=-1;
+        break;
+      }
+      b=(b * 16) + a;
     }
   }
-  else
+  else //if (nStrLen > 0)
   {
-    wpStrHexMax=wpStrHex + nStrHexLen;
-
-    for (;;)
+    for (wpStrMax=wpStr + nStrLen; wpStr < wpStrMax; ++wpStr)
     {
-      a=*wpStrHex++;
+      a=*wpStr;
       if (a >= '0' && a <= '9') a-='0';
       else if (a >= 'a' && a <= 'f') a-='a' - 10;
       else if (a >= 'A' && a <= 'F') a-='A' - 10;
-      else return -1;
-
-      if (wpStrHex < wpStrHexMax) b=(b + a) * 16;
-      else return (b + a);
+      else
+      {
+        b=-1;
+        break;
+      }
+      b=(b * 16) + a;
     }
   }
+  if (wpNext) *wpNext=wpStr;
+  return b;
 }
 #endif
 
@@ -2725,7 +2752,7 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
     if (!pStrHex[a]) break;
     szHexChar[1]=pStrHex[a++];
 
-    if ((nHexChar=hex2decA(szHexChar, 2)) >= 0)
+    if ((nHexChar=hex2decA(szHexChar, 2, NULL)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
@@ -2771,7 +2798,7 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
     if (!wpStrHex[a]) break;
     wszHexChar[1]=wpStrHex[a++];
 
-    if ((nHexChar=hex2decW(wszHexChar, 2)) >= 0)
+    if ((nHexChar=hex2decW(wszHexChar, 2, NULL)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
