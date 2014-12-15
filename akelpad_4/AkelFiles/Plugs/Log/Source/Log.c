@@ -187,8 +187,8 @@
 #define OUTF_TARGETNEWTAB    0x00800000
 
 //Patterns
-#define PAT_MICROSOFTGCC    L"^\\s*(.*?)([(:](\\d++)[,:](\\d++)[):]|[(:](\\d++)[):])"
-#define PAT_MICROSOFTGCCTAG L"/FILE=\\1 /GOTOLINE=\\3\\5:\\4"
+#define PAT_MICROSOFTGCC    L"(?-s)^\\s*(.*?)[(:](\\d++)([,:](\\d++))?[):]"
+#define PAT_MICROSOFTGCCTAG L"/FILE=\\1 /GOTOLINE=\\2:\\4"
 #define PAT_BORLAND         L"^(\\[.*?\\] )?(.*?)\\((\\d++)(,(\\d++))?\\)"
 #define PAT_BORLANDTAG      L"/FILE=\\2 /GOTOLINE=\\3:\\5"
 
@@ -2897,16 +2897,19 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
         else if (oe->nFindDocType == FDT_BYFILENAME)
         {
           //Document not open  - open it
-          OPENDOCUMENTW od;
+          if (FileExistsWide(wszFile))
+          {
+            OPENDOCUMENTW od;
 
-          od.pFile=wszFile;
-          od.pWorkDir=oe->wszDir;
-          od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-          od.nCodePage=0;
-          od.bBOM=0;
-          SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+            od.pFile=wszFile;
+            od.pWorkDir=oe->wszDir;
+            od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+            od.nCodePage=0;
+            od.bBOM=0;
+            SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
-          bResult=TRUE;
+            bResult=TRUE;
+          }
         }
       }
       if (oe->nGotoType && wpLine)
