@@ -3697,7 +3697,10 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags)
       }
 
       if (dkCodeFoldDlg && (dkCodeFoldDlg->dwFlags & DKF_HIDDEN))
+      {
         SendMessage(hMainWnd, AKD_DOCK, DK_SHOW, (LPARAM)dkCodeFoldDlg);
+        UpdateWindow(dkCodeFoldDlg->hWnd);
+      }
 
       if (dwFlags & SAE_RESETLIST)
       {
