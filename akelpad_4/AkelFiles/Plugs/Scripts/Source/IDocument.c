@@ -385,8 +385,10 @@ HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int
   }
   else if (nPart == CPF_FILENAME)
   {
-    const wchar_t *wpFileName=GetFileNameWide(wpFile, nFileLen);
+    const wchar_t *wpFileName;
 
+    if (!(wpFileName=GetFileNameWide(wpFile, nFileLen)))
+      wpFileName=L"";
     if (!(*wpPath=SysAllocString(wpFileName)))
       hr=E_OUTOFMEMORY;
   }
@@ -398,8 +400,10 @@ HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int
   }
   else if (nPart == CPF_FILEEXT)
   {
-    const wchar_t *wpExt=GetFileExt(wpFile, nFileLen);
+    const wchar_t *wpExt;
 
+    if (!(wpExt=GetFileExt(wpFile, nFileLen)))
+      wpExt=L"";
     if (!(*wpPath=SysAllocString(wpExt)))
       hr=E_OUTOFMEMORY;
   }
