@@ -3699,6 +3699,8 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags)
       if (dkCodeFoldDlg && (dkCodeFoldDlg->dwFlags & DKF_HIDDEN))
       {
         SendMessage(hMainWnd, AKD_DOCK, DK_SHOW, (LPARAM)dkCodeFoldDlg);
+        //Dockable window not updated on Win7 with line in AkelPad.c:
+        //hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
         UpdateWindow(dkCodeFoldDlg->hWnd);
       }
 
