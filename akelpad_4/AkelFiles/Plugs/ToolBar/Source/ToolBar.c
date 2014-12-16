@@ -2640,7 +2640,7 @@ int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t
     wpCount=++wpText;
 
     //Parse: "param" or 'param' or `param`
-    while (*wpCount != wchStopChar && *wpCount != L'\r' && *wpCount != L'\0')
+    while (*wpCount != wchStopChar /*&& *wpCount != L'\r'*/ && *wpCount != L'\0')
       ++wpCount;
 
     if (wppNextWord)
