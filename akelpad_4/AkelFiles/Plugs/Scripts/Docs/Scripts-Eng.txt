@@ -928,7 +928,7 @@ Return Value
   false  plugin isn't running.
 
 Example:
-  var bRunning=AkelPad.IsPluginRunning("HighLight::Main");
+  var bRunning=AkelPad.IsPluginRunning("Coder::HighLight");
 
 
 AkelPad.Call
