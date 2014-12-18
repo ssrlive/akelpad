@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.9.1                               *
+ *                      AkelEdit text control v1.9.2                               *
  *                                                                                 *
  * Copyright 2007-2014 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -7552,7 +7552,16 @@ int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
 
   if (nLine < 0) nLine=ae->ptxt->nLineUnwrapCount + nLine + 1;
   if (nLine < 0 || nLine > ae->ptxt->nLineUnwrapCount) return -1;
-  if (!ae->ptxt->dwWordWrap) return nLine;
+  if (!ae->ptxt->dwWordWrap)
+  {
+    if (ciCharOut)
+    {
+      ciCharOut->nLine=nLine;
+      ciCharOut->lpLine=AE_GetLineData(ae, nLine);
+      ciCharOut->nCharInLine=0;
+    }
+    return nLine;
+  }
 
   //Find nearest element in stack
   dwFirst=mod(nLine - 0);
