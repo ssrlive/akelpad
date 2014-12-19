@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v5.0                  *
+ *                 AkelUpdater NSIS plugin v5.2                  *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -258,6 +258,17 @@ typedef struct {
   int nElements;
 } STACKLISTITEM;
 
+typedef struct _FILEREFITEM {
+  struct _FILEREFITEM *next;
+  struct _FILEREFITEM *prev;
+  void *lpFileItem;
+} FILEREFITEM;
+
+typedef struct {
+  FILEREFITEM *first;
+  FILEREFITEM *last;
+} STACKFILEREFITEM;
+
 typedef struct _FILEITEM {
   struct _FILEITEM *next;
   struct _FILEITEM *prev;
@@ -272,7 +283,8 @@ typedef struct _FILEITEM {
   wchar_t wszLastVer[MAX_PATH];
   wchar_t wszDescription[MAX_PATH];
   wchar_t wszAuthor[MAX_PATH];
-  struct _FILEITEM *mainScript;
+  struct _FILEREFITEM *firstRefScript;
+  struct _FILEREFITEM *lastRefScript;
   struct _FILEITEM *firstCopy;
   struct _FILEITEM *lastCopy;
 } FILEITEM;
@@ -281,6 +293,7 @@ typedef struct {
   FILEITEM *first;
   FILEITEM *last;
 } STACKFILEITEM;
+
 
 //Functions prototypes
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -292,6 +305,7 @@ int GetNextWord(wchar_t *wpStr, INT_PTR nStrLen, wchar_t *wpDelim, int nDelimLen
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void StackFilesFill(STACKFILEITEM *hStack);
+FILEREFITEM* StackFileRefInsert(STACKFILEREFITEM *hStack, FILEITEM *lpFileItem);
 FILEITEM* StackFileInsert(STACKFILEITEM *hStack, const wchar_t *wpPluginName);
 FILEITEM* StackFileGet(STACKFILEITEM *hStack, const wchar_t *wpPluginName);
 int StackFileSelCount(STACKFILEITEM *hStack);
@@ -657,7 +671,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       for (lpFileItem=hFileStack.first; lpFileItem; lpFileItem=lpFileItem->next)
       {
-        if (lpFileItem->mainScript) continue;
+        if (lpFileItem->nType == FIT_FORSCRIPT) continue;
 
         if (lpFileItem->nCompare == CR_INSTALLEDNEWER ||
             lpFileItem->dwError == PE_NOTPLUGIN ||
@@ -747,6 +761,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FILEITEM *lpFileItem=(FILEITEM *)pnmlv->lParam;
           FILEITEM *lpFileCount;
+          FILEREFITEM *lpRefCount;
           BOOL bNewState=((pnmlv->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1;
           BOOL bOldState=((pnmlv->uOldState & LVIS_STATEIMAGEMASK) >> 12) - 1;
 
@@ -757,12 +772,16 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //Change check of all referenced files
             for (lpFileCount=hFileStack.first; lpFileCount; lpFileCount=lpFileCount->next)
             {
-              if (lpFileCount->mainScript == lpFileItem)
+              for (lpRefCount=lpFileCount->firstRefScript; lpRefCount; lpRefCount=lpRefCount->next)
               {
-                if (bNewState)
-                  ++lpFileCount->nChecked;
-                else
-                  --lpFileCount->nChecked;
+                if (lpRefCount->lpFileItem == lpFileItem)
+                {
+                  if (bNewState)
+                    ++lpFileCount->nChecked;
+                  else
+                    --lpFileCount->nChecked;
+                  break;
+                }
               }
             }
             PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
@@ -870,11 +889,11 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nSelection;
       int nOffset;
 
-      for (lpFileItem=hFileStack.first; lpFileItem; lpFileItem=lpFileItem->next)
+      for (lpFileItem=hFileStack.last; lpFileItem; lpFileItem=lpFileItem->prev)
       {
         if (lpFileItem->nChecked > 0)
         {
-          if (lpFileItem->nType == FIT_SCRIPT)
+          if (lpFileItem->nType == FIT_SCRIPT || lpFileItem->nType == FIT_FORSCRIPT)
           {
             //Get checked pack
             if (!(lpPackItem=StackFileGet(&hPackStack, lpFileItem->wszPack)))
@@ -1174,7 +1193,7 @@ void ParseLst(HWND hDlg)
                             if (lpFileItem)
                             {
                               lpFileItem->nType=FIT_FORSCRIPT;
-                              lpFileItem->mainScript=lpMainScript;
+                              StackFileRefInsert((STACKFILEREFITEM *)&lpFileItem->firstRefScript, lpMainScript);
                               xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                             }
                             if (!GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
@@ -1308,7 +1327,7 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     else
     {
       if (!hWndListDll) continue;
-      if (lpFileItem->mainScript) continue;
+      if (lpFileItem->nType == FIT_FORSCRIPT) continue;
       if ((lpFileItem->nType == FIT_SCRIPT && !bScripts) ||
           (lpFileItem->nType == FIT_PLUGIN && bScripts))
           continue;
@@ -1743,6 +1762,17 @@ void StackFilesFill(STACKFILEITEM *hStack)
   }
 }
 
+FILEREFITEM* StackFileRefInsert(STACKFILEREFITEM *hStack, FILEITEM *lpFileItem)
+{
+  FILEREFITEM *lpElement;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FILEREFITEM)))
+  {
+    lpElement->lpFileItem=lpFileItem;
+  }
+  return lpElement;
+}
+
 FILEITEM* StackFileInsert(STACKFILEITEM *hStack, const wchar_t *wpPluginName)
 {
   FILEITEM *lpElement;
@@ -1774,7 +1804,7 @@ int StackFileSelCount(STACKFILEITEM *hStack)
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
-    if (lpElement->mainScript) continue;
+    if (lpElement->nType == FIT_FORSCRIPT) continue;
 
     if (lpElement->nChecked > 0)
       ++nSelCount;
@@ -1826,6 +1856,7 @@ void StackFilesFree(STACKFILEITEM *hStack)
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
+    StackClear((stack **)&lpElement->firstRefScript, (stack **)&lpElement->lastRefScript);
     StackClear((stack **)&lpElement->firstCopy, (stack **)&lpElement->lastCopy);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
