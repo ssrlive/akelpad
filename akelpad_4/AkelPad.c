@@ -1168,10 +1168,9 @@ void _WinMain()
   wndclassW.hIcon        =hMainIcon;
   wndclassW.hCursor      =LoadCursor(NULL, IDC_ARROW);
   //HOLLOW_BRUSH on Win7 with aero cause black flickering
-  if (bWindows7)
-    wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
-  else
-    wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+  //wndclassW.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+  //so use COLOR_WINDOW and return 1 in WM_ERASEBKGND.
+  wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
   wndclassW.lpszMenuName =NULL;
   wndclassW.lpszClassName=APP_MAIN_CLASSW;
   if (!RegisterClassWide(&wndclassW)) goto Quit;
@@ -4456,6 +4455,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
       }
     }
+  }
+  else if (uMsg == WM_ERASEBKGND)
+  {
+    //We don't use HOLLOW_BRUSH for hbrBackground,
+    //so deny erase background to avoid flickering.
+    return 1;
   }
   else if (uMsg == WM_DROPFILES)
   {

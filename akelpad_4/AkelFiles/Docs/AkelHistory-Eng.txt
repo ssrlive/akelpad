@@ -2,6 +2,7 @@
 AkelPad 4.9.2 ()
 ----------------------------
 Fixed: buttons that control the size of the frame didn't work (MDI).
+Fixed: main window flickering on Win7.
 
 
 AkelPad 4.9.1 (Dec 15, 2014)
