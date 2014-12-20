@@ -56,7 +56,7 @@ void _WinMain()
   {
     WNDCLASSW wndclass;
 
-    wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+    wndclass.style        =CS_DBLCLKS;
     wndclass.lpfnWndProc  =TestProc;
     wndclass.cbClsExtra   =0;
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;

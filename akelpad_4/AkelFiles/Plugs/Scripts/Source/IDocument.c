@@ -1823,7 +1823,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpC
   CALLBACKITEM *lpCallback;
   WNDCLASSW wndclass;
 
-  wndclass.style        =CS_HREDRAW|CS_VREDRAW;
+  wndclass.style        =0;
   wndclass.lpfnWndProc  =DialogCallbackProc;
   wndclass.cbClsExtra   =0;
   wndclass.cbWndExtra   =DLGWINDOWEXTRA;
