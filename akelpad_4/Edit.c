@@ -21702,8 +21702,10 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
   {
     if (lParam)
     {
+      wchar_t wszClassName[MAX_PATH];
       RECT rcControl;
       DWORD dwFlags;
+      DWORD dwStyle;
       int i;
 
       GetWindowPos(hDlg, NULL, rcCurrent);
@@ -21728,7 +21730,33 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
                                           dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
         }
       }
+
+      //Erase without children
+      dwStyle=GetWindowLongPtrWide(hDlg, GWL_STYLE);
+      if (!(dwStyle & WS_CLIPCHILDREN))
+        SetWindowLongPtrWide(hDlg, GWL_STYLE, dwStyle|WS_CLIPCHILDREN);
       InvalidateRect(hDlg, NULL, TRUE);
+      UpdateWindow(hDlg);
+      if (!(dwStyle & WS_CLIPCHILDREN))
+        SetWindowLongPtrWide(hDlg, GWL_STYLE, dwStyle);
+
+      //Update add dialog except SysListView32
+      InvalidateRect(hDlg, NULL, FALSE);
+
+      for (i=0; drs[i].lpWnd; ++i)
+      {
+        if (*drs[i].lpWnd)
+        {
+          GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
+          if (!xstrcmpiW(wszClassName, L"SysListView32"))
+          {
+            GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+            rcControl.right+=rcControl.left;
+            rcControl.bottom+=rcControl.top;
+            ValidateRect(hDlg, &rcControl);
+          }
+        }
+      }
       return TRUE;
     }
   }
