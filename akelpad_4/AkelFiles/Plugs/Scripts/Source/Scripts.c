@@ -2831,7 +2831,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_EXEC)
       return L"\x0417\x0430\x043F\x0443\x0441\x0442\x0438\x0442\x044C";
     if (nStringID == STRID_EDIT)
-      return L"\x0418\x0437\x043C\x0435\x043D\x0438\x0442\x044C";
+      return L"&\x0418\x0437\x043C\x0435\x043D\x0438\x0442\x044C";
     if (nStringID == STRID_ASSIGN)
       return L"\x041D\x0430\x0437\x043D\x0430\x0447\x0438\x0442\x044C";
     if (nStringID == STRID_PLUGIN)
@@ -2926,7 +2926,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_EXEC)
       return L"Exec";
     if (nStringID == STRID_EDIT)
-      return L"Edit";
+      return L"&Edit";
     if (nStringID == STRID_ASSIGN)
       return L"Assign";
     if (nStringID == STRID_PLUGIN)
