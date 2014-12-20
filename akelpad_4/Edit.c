@@ -21704,10 +21704,14 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
     {
       wchar_t wszClassName[MAX_PATH];
       RECT rcControl;
+      HWND hWndChild;
       DWORD dwFlags;
-      DWORD dwStyle;
+      BOOL bUpdateChild;
+      HRGN hRgn;
       int i;
 
+      ValidateRect(hDlg, NULL);
+      hRgn=CreateRectRgn(0, 0, 0, 0);
       GetWindowPos(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
@@ -21718,44 +21722,55 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
           if (drs[i].dwType & DRS_SIZE)
             dwFlags|=SWP_NOMOVE;
           else if (drs[i].dwType & DRS_MOVE)
-            dwFlags|=SWP_NOSIZE;
+            dwFlags|=SWP_NOSIZE|SWP_NOREDRAW;
           else
             continue;
+          GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
+          if (xstrcmpiW(wszClassName, L"SysListView32"))
+            dwFlags|=SWP_NOREDRAW;
 
           GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
           SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
                                          (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
                                          (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
                                          (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
-                                          dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
+                                          dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
         }
       }
-
-      //Erase without children
-      dwStyle=GetWindowLongPtrWide(hDlg, GWL_STYLE);
-      if (!(dwStyle & WS_CLIPCHILDREN))
-        SetWindowLongPtrWide(hDlg, GWL_STYLE, dwStyle|WS_CLIPCHILDREN);
-      InvalidateRect(hDlg, NULL, TRUE);
+      //Update SysListView32 changed rectangles
+      GetUpdateRgn(hDlg, hRgn, FALSE);
+      ValidateRect(hDlg, NULL);
+      InvalidateRgn(hDlg, hRgn, FALSE);
+      DeleteObject(hRgn);
       UpdateWindow(hDlg);
-      if (!(dwStyle & WS_CLIPCHILDREN))
-        SetWindowLongPtrWide(hDlg, GWL_STYLE, dwStyle);
 
-      //Update add dialog except SysListView32
-      InvalidateRect(hDlg, NULL, FALSE);
+      //First erase parent window background without
+      //children, next draw children controls.
+      bUpdateChild=FALSE;
+      InvalidateRect(hDlg, NULL, TRUE);
 
-      for (i=0; drs[i].lpWnd; ++i)
+      for (;;)
       {
-        if (*drs[i].lpWnd)
+        for (hWndChild=GetWindow(hDlg, GW_CHILD); hWndChild; hWndChild=GetWindow(hWndChild, GW_HWNDNEXT))
         {
-          GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
-          if (!xstrcmpiW(wszClassName, L"SysListView32"))
-          {
-            GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
-            rcControl.right+=rcControl.left;
-            rcControl.bottom+=rcControl.top;
+          GetClassNameWide(hWndChild, wszClassName, MAX_PATH);
+          if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndChild, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
+            continue;
+          if (bUpdateChild && !xstrcmpiW(wszClassName, L"SysListView32"))
+            continue;
+          GetWindowPos(hWndChild, hDlg, &rcControl);
+          rcControl.right+=rcControl.left;
+          rcControl.bottom+=rcControl.top;
+          if (bUpdateChild)
+            //Draw child
+            InvalidateRect(hDlg, &rcControl, FALSE);
+          else
+            //Exclude child from erasing
             ValidateRect(hDlg, &rcControl);
-          }
         }
+        UpdateWindow(hDlg);
+        if (bUpdateChild) break;
+        bUpdateChild=TRUE;
       }
       return TRUE;
     }
