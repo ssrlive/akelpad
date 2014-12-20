@@ -1160,7 +1160,7 @@ void _WinMain()
 
   InitCommonControls();
 
-  wndclassW.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+  wndclassW.style        =CS_DBLCLKS;
   wndclassW.lpfnWndProc  =CommonMainProc;
   wndclassW.cbClsExtra   =0;
   wndclassW.cbWndExtra   =DLGWINDOWEXTRA;
@@ -1177,7 +1177,7 @@ void _WinMain()
 
   if (nMDI == WMD_MDI)
   {
-    wndclassW.style        =CS_HREDRAW|CS_VREDRAW;
+    wndclassW.style        =0;
     wndclassW.lpfnWndProc  =CommonFrameProc;
     wndclassW.cbClsExtra   =0;
     wndclassW.cbWndExtra   =DLGWINDOWEXTRA;

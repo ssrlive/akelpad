@@ -985,7 +985,7 @@ BOOL CreateToolbarWindow()
 
   if (!hToolbarBG)
   {
-    wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+    wndclass.style        =CS_DBLCLKS;
     wndclass.lpfnWndProc  =ToolbarBGProc;
     wndclass.cbClsExtra   =0;
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;

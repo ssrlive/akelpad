@@ -2723,7 +2723,7 @@ void InitAutoComplete()
   {
     WNDCLASSW wndclass;
 
-    wndclass.style        =CS_HREDRAW|CS_VREDRAW;
+    wndclass.style        =0;
     wndclass.lpfnWndProc  =AutoCompleteWindowProc;
     wndclass.cbClsExtra   =0;
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;

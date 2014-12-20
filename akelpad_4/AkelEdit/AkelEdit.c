@@ -185,7 +185,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegRichEdit, BOOL bRegAkelEdit
     AE_RegisterClassCommon(hInstance);
 
     //AkelEditA class
-    wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+    wndclass.style        =CS_GLOBALCLASS|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
     wndclass.cbClsExtra   =0;
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;
@@ -232,7 +232,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegRichEdit)
     AE_RegisterClassCommon(hInstance);
 
     //AkelEditW class
-    wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+    wndclass.style        =CS_GLOBALCLASS|CS_DBLCLKS;
     wndclass.lpfnWndProc  =AE_EditShellProc;
     wndclass.cbClsExtra   =0;
     wndclass.cbWndExtra   =DLGWINDOWEXTRA;

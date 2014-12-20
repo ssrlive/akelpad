@@ -6826,7 +6826,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         WNDCLASSW wndclass;
 
-        wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+        wndclass.style        =CS_DBLCLKS;
         wndclass.lpfnWndProc  =PreviewProc;
         wndclass.cbClsExtra   =0;
         wndclass.cbWndExtra   =DLGWINDOWEXTRA;
@@ -16804,6 +16804,7 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
 {
   DOCK *lpDock;
   RECT rcDock;
+  RECT rcWindow;
 
   for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
   {
@@ -16863,19 +16864,35 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
 
           if (lpDock->hWnd)
           {
+            GetWindowPos(lpDock->hWnd, GetParent(lpDock->hWnd), &rcWindow);
+
             if (lpDock->nSide == DKS_LEFT ||
                 lpDock->nSide == DKS_RIGHT)
             {
               if (hDocksStack.nSizingSide) lpDock->rcSize.left=rcDock.left;
-              MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
-              RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+
+              if (rcWindow.left != rcDock.left ||
+                  rcWindow.top != ns->rcCurrent.top ||
+                  rcWindow.right != rcDock.right ||
+                  rcWindow.bottom != ns->rcCurrent.bottom)
+              {
+                MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
+                RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+              }
             }
             else if (lpDock->nSide == DKS_TOP ||
                      lpDock->nSide == DKS_BOTTOM)
             {
               if (hDocksStack.nSizingSide) lpDock->rcSize.top=rcDock.top;
-              MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
-              RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+
+              if (rcWindow.left != ns->rcCurrent.left ||
+                  rcWindow.top != rcDock.top ||
+                  rcWindow.right != ns->rcCurrent.right ||
+                  rcWindow.bottom != rcDock.bottom)
+              {
+                MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
+                RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+              }
             }
           }
         }
@@ -21704,73 +21721,83 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
     {
       wchar_t wszClassName[MAX_PATH];
       RECT rcControl;
+      RECT rcNew;
       HWND hWndChild;
       DWORD dwFlags;
       BOOL bUpdateChild;
       HRGN hRgn;
+      int nChanged=0;
       int i;
 
       ValidateRect(hDlg, NULL);
-      hRgn=CreateRectRgn(0, 0, 0, 0);
       GetWindowPos(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
       {
         if (*drs[i].lpWnd)
         {
-          dwFlags=0;
-          if (drs[i].dwType & DRS_SIZE)
-            dwFlags|=SWP_NOMOVE;
-          else if (drs[i].dwType & DRS_MOVE)
-            dwFlags|=SWP_NOSIZE|SWP_NOREDRAW;
-          else
-            continue;
-          GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
-          if (xstrcmpiW(wszClassName, L"SysListView32"))
-            dwFlags|=SWP_NOREDRAW;
-
           GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
-          SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
-                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
-                                         (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
-                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
-                                          dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
+          rcNew.left=(drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left;
+          rcNew.top=(drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top;
+          rcNew.right=(drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right;
+          rcNew.bottom=(drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom;
+
+          if (xmemcmp(&rcNew, &rcControl, sizeof(RECT)))
+          {
+            dwFlags=0;
+            if (drs[i].dwType & DRS_SIZE)
+              dwFlags|=SWP_NOMOVE;
+            else if (drs[i].dwType & DRS_MOVE)
+              dwFlags|=SWP_NOSIZE|SWP_NOREDRAW;
+            else
+              continue;
+            GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
+            if (xstrcmpiW(wszClassName, L"SysListView32"))
+              dwFlags|=SWP_NOREDRAW;
+
+            SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
+            ++nChanged;
+          }
         }
       }
-      //Update SysListView32 changed rectangles
-      GetUpdateRgn(hDlg, hRgn, FALSE);
-      ValidateRect(hDlg, NULL);
-      InvalidateRgn(hDlg, hRgn, FALSE);
-      DeleteObject(hRgn);
-      UpdateWindow(hDlg);
-
-      //First erase parent window background without
-      //children, next draw children controls.
-      bUpdateChild=FALSE;
-      InvalidateRect(hDlg, NULL, TRUE);
-
-      for (;;)
+      if (nChanged)
       {
-        for (hWndChild=GetWindow(hDlg, GW_CHILD); hWndChild; hWndChild=GetWindow(hWndChild, GW_HWNDNEXT))
-        {
-          GetClassNameWide(hWndChild, wszClassName, MAX_PATH);
-          if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndChild, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
-            continue;
-          if (bUpdateChild && !xstrcmpiW(wszClassName, L"SysListView32"))
-            continue;
-          GetWindowPos(hWndChild, hDlg, &rcControl);
-          rcControl.right+=rcControl.left;
-          rcControl.bottom+=rcControl.top;
-          if (bUpdateChild)
-            //Draw child
-            InvalidateRect(hDlg, &rcControl, FALSE);
-          else
-            //Exclude child from erasing
-            ValidateRect(hDlg, &rcControl);
-        }
+        //Update SysListView32 rectangles changed by SetWindowPos
+        hRgn=CreateRectRgn(0, 0, 0, 0);
+        GetUpdateRgn(hDlg, hRgn, FALSE);
+        ValidateRect(hDlg, NULL);
+        InvalidateRgn(hDlg, hRgn, FALSE);
+        DeleteObject(hRgn);
         UpdateWindow(hDlg);
-        if (bUpdateChild) break;
-        bUpdateChild=TRUE;
+
+        //First erase parent window background without
+        //children, next draw children controls.
+        bUpdateChild=FALSE;
+        InvalidateRect(hDlg, NULL, TRUE);
+
+        for (;;)
+        {
+          for (hWndChild=GetWindow(hDlg, GW_CHILD); hWndChild; hWndChild=GetWindow(hWndChild, GW_HWNDNEXT))
+          {
+            GetClassNameWide(hWndChild, wszClassName, MAX_PATH);
+            if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndChild, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
+              continue;
+            if (bUpdateChild && !xstrcmpiW(wszClassName, L"SysListView32"))
+              continue;
+            GetWindowPos(hWndChild, hDlg, &rcControl);
+            rcControl.right+=rcControl.left;
+            rcControl.bottom+=rcControl.top;
+            if (bUpdateChild)
+              //Draw child
+              InvalidateRect(hDlg, &rcControl, FALSE);
+            else
+              //Exclude child from erasing
+              ValidateRect(hDlg, &rcControl);
+          }
+          UpdateWindow(hDlg);
+          if (bUpdateChild) break;
+          bUpdateChild=TRUE;
+        }
       }
       return TRUE;
     }
