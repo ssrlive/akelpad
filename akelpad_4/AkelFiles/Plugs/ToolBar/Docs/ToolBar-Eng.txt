@@ -98,7 +98,7 @@ Special items:
       SET(128, If("expression"[, IfTrue, IfFalse]))
         set button status.
           "expression"
-            See SET(64) description.
+            See SET(64) description. Call() method in SET(128) is denied.
           IfTrue
             0x0 //IFS_NORMAL    Normal item.
             0x1 //IFS_CHECKED   Checked item.

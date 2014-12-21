@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 1)
 
 
 //// Defines
@@ -92,7 +92,7 @@
 
 //AKD_IFEXPRESSION errors
 #define IEE_SUCCESS            0
-#define IEE_NOCOMMA            1
+#define IEE_WRONGPARAMCOUNT    1
 #define IEE_NOCLOSEPARENTHESIS 2
 #define IEE_UNKNOWNOPERATOR    3
 #define IEE_UNKNOWNMETHOD      4
