@@ -1207,6 +1207,7 @@ void SetEdgeCursor(int nEdge);
 int GetOppEdge(int nEdge);
 BOOL IsCursorOnWindow(HWND hWnd);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
 BOOL EnsureWindowInMonitor(RECT *rcWindow);

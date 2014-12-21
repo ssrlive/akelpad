@@ -16877,7 +16877,6 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
                   rcWindow.bottom != ns->rcCurrent.bottom)
               {
                 MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
-                RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
               }
             }
             else if (lpDock->nSide == DKS_TOP ||
@@ -16891,7 +16890,6 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
                   rcWindow.bottom != rcDock.bottom)
               {
                 MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
-                RedrawWindow(lpDock->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
               }
             }
           }
@@ -19241,7 +19239,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   INT_PTR nStringLen;
 
   MethodParameter:
-  while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
+  IfComment(wpParamBegin, &wpParamBegin);
 
   if (*wpParamBegin == L'\"' || *wpParamBegin == L'\'' || *wpParamBegin == L'`')
   {
@@ -19261,7 +19259,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
@@ -19290,6 +19288,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
       WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
   }
+  IfComment(wpParamEnd, &wpParamEnd);
 
   while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
     ++wpParamEnd;
@@ -19750,32 +19749,34 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
     if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
         !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
+      STACKEXTPARAM hParamStack={0};
+      EXTPARAM *lpParameter;
       HWND hWndEdit;
       INT_PTR nParam1;
-      INT_PTR nParam2;
-      INT_PTR nParam3;
+      INT_PTR nParam2=0;
+      INT_PTR nParam3=0;
 
-      IfComment(wpIn + 9, &wpIn);
-      nParam1=xatoiW(wpIn, &wpIn);
-      IfComment(wpIn, &wpIn);
-      if (*wpIn == L',') ++wpIn;
-      else
+      if (ParseMethodParameters(&hParamStack, wpIn + 9, &wpIn) != 3)
       {
-        *lpnError=IEE_NOCOMMA;
+        FreeMethodParameters(&hParamStack);
+        *lpnError=IEE_WRONGPARAMCOUNT;
         goto End;
       }
+      lpParameter=hParamStack.first;
+      nParam1=lpParameter->nNumber;
 
-      IfComment(wpIn, &wpIn);
-      nParam2=xatoiW(wpIn, &wpIn);
-      IfComment(wpIn, &wpIn);
-      if (*wpIn == L',') ++wpIn;
-      else
-      {
-        *lpnError=IEE_NOCOMMA;
-        goto End;
-      }
+      lpParameter=lpParameter->next;
+      if (lpParameter->dwType == EXTPARAM_INT)
+        nParam2=lpParameter->nNumber;
+      else if (lpParameter->dwType == EXTPARAM_CHAR)
+        nParam2=bOldWindows?(INT_PTR)lpParameter->pString:(INT_PTR)lpParameter->wpString;
 
-      nParam3=xatoiW(wpIn, &wpIn);
+      lpParameter=lpParameter->next;
+      if (lpParameter->dwType == EXTPARAM_INT)
+        nParam3=lpParameter->nNumber;
+      else if (lpParameter->dwType == EXTPARAM_CHAR)
+        nParam3=bOldWindows?(INT_PTR)lpParameter->pString:(INT_PTR)lpParameter->wpString;
+
       if (!nSendMain)
         nValue=SendMessage(hMainWnd, (UINT)nParam1, nParam2, nParam3);
       else if (!nSendEdit)
@@ -19783,6 +19784,10 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         if (hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL))
           nValue=SendMessage(hWndEdit, (UINT)nParam1, nParam2, nParam3);
       }
+      FreeMethodParameters(&hParamStack);
+
+      //Move back to check that method was closed with ')'.
+      --wpIn;
     }
     else if (!xstrcmpinW(L"Call(", wpIn, (UINT_PTR)-1))
     {
@@ -21721,15 +21726,30 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
     {
       wchar_t wszClassName[MAX_PATH];
       RECT rcControl;
+      RECT rcClient;
       RECT rcNew;
-      HWND hWndChild;
       DWORD dwFlags;
-      BOOL bUpdateChild;
-      HRGN hRgn;
+      HWND hWndComboboxEdit;
+      HRGN hRgn1=NULL;
+      HRGN hRgn2=NULL;
+      HRGN hRgnToErase=NULL;
+      HRGN hRgnToDrawBefore=NULL;
+      HRGN hRgnToDrawAfter=NULL;
       int nChanged=0;
       int i;
+      BOOL bClipChildren=FALSE;
 
-      ValidateRect(hDlg, NULL);
+      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CLIPCHILDREN)
+        bClipChildren=TRUE;
+      else
+      {
+        hRgn1=CreateRectRgn(0, 0, 0, 0);
+        hRgn2=CreateRectRgn(0, 0, 0, 0);
+        hRgnToErase=CreateRectRgn(0, 0, 0, 0);
+        hRgnToDrawBefore=CreateRectRgn(0, 0, 0, 0);
+        hRgnToDrawAfter=CreateRectRgn(0, 0, 0, 0);
+        GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
+      }
       GetWindowPos(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
@@ -21737,10 +21757,11 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
         if (*drs[i].lpWnd)
         {
           GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
-          rcNew.left=(drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left;
-          rcNew.top=(drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top;
-          rcNew.right=(drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right;
-          rcNew.bottom=(drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom;
+
+          rcNew.left=((drs[i].dwType & DRS_MOVE) && (drs[i].dwType & DRS_X))?(rcCurrent->right - drs[i].nOffset):rcControl.left;
+          rcNew.top=((drs[i].dwType & DRS_MOVE) && (drs[i].dwType & DRS_Y))?(rcCurrent->bottom - drs[i].nOffset):rcControl.top;
+          rcNew.right=((drs[i].dwType & DRS_SIZE) && (drs[i].dwType & DRS_X))?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right;
+          rcNew.bottom=((drs[i].dwType & DRS_SIZE) && (drs[i].dwType & DRS_Y))?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom;
 
           if (xmemcmp(&rcNew, &rcControl, sizeof(RECT)))
           {
@@ -21748,56 +21769,103 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
             if (drs[i].dwType & DRS_SIZE)
               dwFlags|=SWP_NOMOVE;
             else if (drs[i].dwType & DRS_MOVE)
-              dwFlags|=SWP_NOSIZE|SWP_NOREDRAW;
+              dwFlags|=SWP_NOSIZE;
             else
               continue;
-            GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
-            if (xstrcmpiW(wszClassName, L"SysListView32"))
-              dwFlags|=SWP_NOREDRAW;
 
-            SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
+            if (!bClipChildren)
+            {
+              GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
+              if (drs[i].dwType & DRS_SIZE)
+              {
+                if (!xstrcmpiW(wszClassName, L"COMBOBOX"))
+                {
+                  if (hWndComboboxEdit=GetDlgItem(*drs[i].lpWnd, IDC_COMBOBOXEDIT))
+                    GetClientPos(hWndComboboxEdit, hDlg, &rcClient);
+                }
+                else GetClientPos(*drs[i].lpWnd, hDlg, &rcClient);
+              }
+            }
+
+            SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_DEFERERASE);
             ++nChanged;
+
+            if (!bClipChildren)
+            {
+              if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(*drs[i].lpWnd, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
+                continue;
+              if (drs[i].dwType & DRS_SIZE)
+              {
+                //Put to region only changed parts
+                SetRectRgn(hRgn1, rcClient.left, rcClient.top, rcClient.left + rcClient.right, rcClient.top + rcClient.bottom);
+                SetRectRgn(hRgn2, rcNew.left, rcNew.top, rcNew.left + rcNew.right, rcNew.top + rcNew.bottom);
+                CombineRgn(hRgn1, hRgn2, hRgn1, RGN_DIFF);
+              }
+              else
+              {
+                //Put to region all control
+                SetRectRgn(hRgn1, rcNew.left, rcNew.top, rcNew.left + rcNew.right, rcNew.top + rcNew.bottom);
+              }
+              CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgn1, RGN_OR);
+            }
           }
         }
       }
       if (nChanged)
       {
-        //Update SysListView32 rectangles changed by SetWindowPos
-        hRgn=CreateRectRgn(0, 0, 0, 0);
-        GetUpdateRgn(hDlg, hRgn, FALSE);
-        ValidateRect(hDlg, NULL);
-        InvalidateRgn(hDlg, hRgn, FALSE);
-        DeleteObject(hRgn);
-        UpdateWindow(hDlg);
+        if (bClipChildren)
+        {
+          RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
+          return TRUE;
+        }
 
-        //First erase parent window background without
-        //children, next draw children controls.
-        bUpdateChild=FALSE;
+        //Erase parent window background without children
         InvalidateRect(hDlg, NULL, TRUE);
 
-        for (;;)
+        for (i=0; drs[i].lpWnd; ++i)
         {
-          for (hWndChild=GetWindow(hDlg, GW_CHILD); hWndChild; hWndChild=GetWindow(hWndChild, GW_HWNDNEXT))
+          if (*drs[i].lpWnd)
           {
-            GetClassNameWide(hWndChild, wszClassName, MAX_PATH);
-            if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndChild, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
+            GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
+            if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(*drs[i].lpWnd, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
               continue;
-            if (bUpdateChild && !xstrcmpiW(wszClassName, L"SysListView32"))
-              continue;
-            GetWindowPos(hWndChild, hDlg, &rcControl);
+
+            //Exclude child from erasing
+            GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
             rcControl.right+=rcControl.left;
             rcControl.bottom+=rcControl.top;
-            if (bUpdateChild)
-              //Draw child
-              InvalidateRect(hDlg, &rcControl, FALSE);
-            else
-              //Exclude child from erasing
-              ValidateRect(hDlg, &rcControl);
+            ValidateRect(hDlg, &rcControl);
           }
-          UpdateWindow(hDlg);
-          if (bUpdateChild) break;
-          bUpdateChild=TRUE;
         }
+        //Remove erased region
+        GetUpdateRgn(hDlg, hRgnToErase, FALSE);
+        CombineRgn(hRgnToDrawBefore, hRgnToDrawBefore, hRgnToErase, RGN_DIFF);
+        UpdateWindow(hDlg);
+
+        //Draw children controls
+        //{
+        //  //Region debug
+        //  HBRUSH hBrush;
+        //  HDC hDC;
+        //
+        //  if (hDC=GetDC(hDlg))
+        //  {
+        //    if (hBrush=CreateSolidBrush(RGB(0xFF, 0x00, 0x00)))
+        //    {
+        //      FillRgn(hDC, hRgnToDrawAfter, hBrush);
+        //      DeleteObject(hBrush);
+        //    }
+        //    ReleaseDC(hDlg, hDC);
+        //  }
+        //}
+        CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
+        InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
+        UpdateWindow(hDlg);
+        DeleteObject(hRgn1);
+        DeleteObject(hRgn2);
+        DeleteObject(hRgnToErase);
+        DeleteObject(hRgnToDrawBefore);
+        DeleteObject(hRgnToDrawAfter);
       }
       return TRUE;
     }
@@ -21960,6 +22028,29 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
       if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
         return FALSE;
     }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+{
+  if (GetClientRect(hWnd, rc))
+  {
+    if (!ClientToScreen(hWnd, (POINT *)&rc->left))
+      return FALSE;
+    if (!ClientToScreen(hWnd, (POINT *)&rc->right))
+      return FALSE;
+
+    if (hWndOwner)
+    {
+      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
+        return FALSE;
+      if (!ScreenToClient(hWndOwner, (POINT *)&rc->right))
+        return FALSE;
+    }
+    rc->right-=rc->left;
+    rc->bottom-=rc->top;
     return TRUE;
   }
   return FALSE;
