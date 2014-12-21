@@ -200,6 +200,7 @@ int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
+void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
@@ -2254,7 +2255,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   INT_PTR nStringLen;
 
   MethodParameter:
-  while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
+  IfComment(wpParamBegin, &wpParamBegin);
 
   if (*wpParamBegin == L'\"' || *wpParamBegin == L'\'' || *wpParamBegin == L'`')
   {
@@ -2274,7 +2275,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
@@ -2303,6 +2304,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
       WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
   }
+  IfComment(wpParamEnd, &wpParamEnd);
 
   while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
     ++wpParamEnd;
@@ -2471,6 +2473,25 @@ BOOL SkipComment(const wchar_t **wpText)
   if (**wpText == L'\0')
     return FALSE;
   return TRUE;
+}
+
+void IfComment(const wchar_t *wpText, const wchar_t **wppText)
+{
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  if (*wpText == L'/' && *(wpText + 1) == L'*')
+  {
+    for (wpText+=2; *wpText; ++wpText)
+    {
+      if (*wpText == L'*' && *(wpText + 1) == L'/')
+      {
+        wpText+=2;
+        break;
+      }
+    }
+    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  }
+  *wppText=wpText;
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
