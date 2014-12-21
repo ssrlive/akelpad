@@ -540,13 +540,14 @@ void SetEditNotify(HWND hWnd)
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
+  //Use SWP_NOCOPYBITS in case of dockable window side change.
+  DWORD dwSwpFlags=(dwFlags & REW_NOREDRAW?SWP_NOREDRAW:0)|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE;
   RECT *lprcEditWindow;
 
   if (nMDI == WMD_MDI)
     lprcEditWindow=&lpFrame->rcEditWindow;
   else
     lprcEditWindow=&fdDefault.rcEditWindow;
-  UpdateWindow(hStatus);
 
   if (lpFrame->ei.hWndMaster)
   {
@@ -576,9 +577,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       rc=lpFrame->rcMasterWindow;
 
       if (!(dwFlags & REW_TEST))
-      {
-        MoveWindow(lpFrame->ei.hWndMaster, rc.left, rc.top, rc.right, rc.bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
-      }
+        SetWindowPos(lpFrame->ei.hWndMaster, 0, rc.left, rc.top, rc.right, rc.bottom, dwSwpFlags);
       else
       {
         ClientToScreenRect(lpFrame->hWndEditParent, &rc);
@@ -593,9 +592,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       rc.bottom=lpFrame->rcMasterWindow.bottom;
 
       if (!(dwFlags & REW_TEST))
-      {
-        MoveWindow(lpFrame->ei.hWndClone1, rc.left, rc.top, rc.right, rc.bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
-      }
+        SetWindowPos(lpFrame->ei.hWndClone1, 0, rc.left, rc.top, rc.right, rc.bottom, dwSwpFlags);
       else
       {
         ClientToScreenRect(lpFrame->hWndEditParent, &rc);
@@ -610,9 +607,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       rc.bottom=lprcEditWindow->bottom - lpFrame->rcMasterWindow.bottom;
 
       if (!(dwFlags & REW_TEST))
-      {
-        MoveWindow(lpFrame->ei.hWndClone2, rc.left, rc.top, rc.right, rc.bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
-      }
+        SetWindowPos(lpFrame->ei.hWndClone2, 0, rc.left, rc.top, rc.right, rc.bottom, dwSwpFlags);
       else
       {
         ClientToScreenRect(lpFrame->hWndEditParent, &rc);
@@ -627,9 +622,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       rc.bottom=lprcEditWindow->bottom - lpFrame->rcMasterWindow.bottom;
 
       if (!(dwFlags & REW_TEST))
-      {
-        MoveWindow(lpFrame->ei.hWndClone3, rc.left, rc.top, rc.right, rc.bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
-      }
+        SetWindowPos(lpFrame->ei.hWndClone3, 0, rc.left, rc.top, rc.right, rc.bottom, dwSwpFlags);
       else
       {
         ClientToScreenRect(lpFrame->hWndEditParent, &rc);
@@ -642,7 +635,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
     if (!(dwFlags & REW_TEST))
     {
       if (lpFrame->ei.hWndEdit)
-        MoveWindow(lpFrame->ei.hWndEdit, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
+        SetWindowPos(lpFrame->ei.hWndEdit, 0, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, dwSwpFlags);
     }
   }
 
@@ -16876,7 +16869,8 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
                   rcWindow.right != rcDock.right ||
                   rcWindow.bottom != ns->rcCurrent.bottom)
               {
-                MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
+                SetWindowPos(lpDock->hWnd, 0, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE|/*SWP_NOCOPYBITS|*/SWP_DEFERERASE);
+                //MoveWindow(lpDock->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, TRUE);
               }
             }
             else if (lpDock->nSide == DKS_TOP ||
@@ -16889,7 +16883,8 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
                   rcWindow.right != ns->rcCurrent.right ||
                   rcWindow.bottom != rcDock.bottom)
               {
-                MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
+                SetWindowPos(lpDock->hWnd, 0, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, SWP_NOZORDER|SWP_NOACTIVATE|/*SWP_NOCOPYBITS|*/SWP_DEFERERASE);
+                //MoveWindow(lpDock->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, TRUE);
               }
             }
           }
@@ -21633,15 +21628,12 @@ void UpdateSize()
     if (nMDI)
     {
       if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
-      {
-        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, FALSE);
-        InvalidateRect(hTab, NULL, TRUE);
-        if (bStatusBar && nMDI == WMD_PMDI)
-          InvalidateRect(hStatus, NULL, TRUE);
-      }
+        SetWindowPos(hTab, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
       if (nMDI == WMD_MDI)
-        MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
+        SetWindowPos(hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
     }
+    if (bStatusBar)
+      SetWindowPos(hStatus, 0, nsSize.rcCurrent.left, nsSize.rcInitial.bottom, nsSize.rcCurrent.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
     SendMessage(hMainWnd, AKDN_SIZE_ONFINISH, 0, (LPARAM)&nsSize);
     hDocksStack.bSizing=FALSE;
   }
@@ -21787,7 +21779,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
               }
             }
 
-            SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_DEFERERASE);
+            SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_NOCOPYBITS|SWP_DEFERERASE);
             ++nChanged;
 
             if (!bClipChildren)
