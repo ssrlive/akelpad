@@ -4450,7 +4450,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
         }
-        SendMessage(hStatus, WM_SIZE, wParam, lParam);
         UpdateSize();
         return TRUE;
       }
