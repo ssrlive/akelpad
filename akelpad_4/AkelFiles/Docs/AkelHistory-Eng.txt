@@ -1,6 +1,10 @@
 
 AkelPad 4.9.2 ()
 ----------------------------
+Changed: massive repainting optimizations to reduce flickering.
+
+Added: possibility to use /*comment*/ in command line method parameters.
+
 Fixed: buttons that control the size of the frame didn't work (MDI).
 Fixed: main window flickering on Win7.
 
