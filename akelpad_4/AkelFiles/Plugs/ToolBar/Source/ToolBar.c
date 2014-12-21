@@ -39,6 +39,7 @@
 #define dec2hexW
 #define hex2decW
 #define xprintfW
+#define xstrstrW
 #include "StrFunc.h"
 
 //Include wide functions
@@ -88,11 +89,12 @@
 #define STRID_IF_UNKNOWNMETHOD               17
 #define STRID_IF_CALLERROR                   18
 #define STRID_IF_NOFALSE                     19
-#define STRID_IF_WRONGPARAMETERSNUMBER       20
-#define STRID_PLUGIN                         21
-#define STRID_OK                             22
-#define STRID_CANCEL                         23
-#define STRID_DEFAULTMENU                    24
+#define STRID_IF_WRONGPARAMCOUNT             20
+#define STRID_IF_CALLDENIED                  21
+#define STRID_PLUGIN                         22
+#define STRID_OK                             23
+#define STRID_CANCEL                         24
+#define STRID_DEFAULTMENU                    25
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -266,6 +268,7 @@ int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
+void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -326,6 +329,7 @@ SIZE sizeToolbar={0};
 SIZE sizeButtons={0};
 CHARRANGE64 crExtSetSel={0};
 UINT_PTR dwPaintTimerId=0;
+BOOL bLockRefresh=FALSE;
 HANDLE hThread=NULL;
 DWORD dwThreadId;
 HWND hWndMainDlg=NULL;
@@ -796,13 +800,15 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
       cwprs->message == AKDN_FRAME_NOWINDOWS ||
       (cwprs->message == AKDN_FRAME_ACTIVATE && !(cwprs->wParam & FWA_NOVISUPDATE)))
   {
-    PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
+    if (!bLockRefresh)
+      PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
   }
   else if (cwprs->message == WM_COMMAND)
   {
     if (cwprs->hwnd == hMainWnd)
     {
-      PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
+      if (!bLockRefresh)
+        PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
     }
   }
   else if (cwprs->message == WM_NOTIFY)
@@ -811,11 +817,13 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
     {
       if (((NMHDR *)cwprs->lParam)->code == AEN_MODIFY)
       {
-        PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
+        if (!bLockRefresh)
+          PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
       }
       else if (((NMHDR *)cwprs->lParam)->code == EN_SELCHANGE)
       {
-        PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
+        if (!bLockRefresh)
+          PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
       }
     }
   }
@@ -1170,10 +1178,12 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
           {
             IFEXPRESSION ie;
 
+            bLockRefresh=TRUE;
             ie.dwFlags=IEF_METHOD;
             if (SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie))
               dwNewFlags&=~CCMS_SKIPIF;
             wpCount=ie.wpEnd;
+            bLockRefresh=FALSE;
 
             if (ie.nError)
             {
@@ -1204,16 +1214,25 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
             }
             if (hParamStack.nElements == 1 || hParamStack.nElements == 3)
             {
-              if (!StackInsertAfter((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+              if (!xstrstrW(hParamStack.first->wpString, -1, L"Call(", -1, FALSE, NULL, NULL))
               {
-                lpStateIf->dwFlags=IEF_IF;
-                lpStateIf->hParamStack=hParamStack;
+                if (!StackInsertAfter((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
+                {
+                  lpStateIf->dwFlags=IEF_IF;
+                  lpStateIf->hParamStack=hParamStack;
+                }
+              }
+              else
+              {
+                FreeMethodParameters(&hParamStack);
+                nMessageID=STRID_IF_CALLDENIED;
+                goto Error;
               }
             }
             else
             {
               FreeMethodParameters(&hParamStack);
-              nMessageID=STRID_IF_WRONGPARAMETERSNUMBER;
+              nMessageID=STRID_IF_WRONGPARAMCOUNT;
               goto Error;
             }
           }
@@ -1866,9 +1885,11 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
           if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 3))
             nIfFalse=lpParameter->nNumber;
 
+          bLockRefresh=TRUE;
           ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
           ie.sep=&lpStateIf->hParamStack;
           lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+          bLockRefresh=FALSE;
 
           if (lpParameter)
           {
@@ -2032,6 +2053,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 
       if (lpElement->bAutoLoad)
       {
+        bLockRefresh=TRUE;
         pcs.pFunction=wpFunction;
         pcs.lParam=0;
         pcs.dwSupport=PDS_GETSUPPORT;
@@ -2045,6 +2067,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
           }
           else bCall=TRUE;
         }
+        bLockRefresh=FALSE;
       }
       else bCall=TRUE;
 
@@ -2312,10 +2335,12 @@ void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, INT_PTR *l
     decm.pMenuName=pMenuName;
     decm.lpnMenuHeight=lpnMenuHeight;
 
+    bLockRefresh=TRUE;
     pcs.pFunction=L"ContextMenu::Show";
     pcs.lParam=(LPARAM)&decm;
     pcs.dwSupport=0;
     SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+    bLockRefresh=FALSE;
   }
 }
 
@@ -2425,7 +2450,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   INT_PTR nStringLen;
 
   MethodParameter:
-  while (*wpParamBegin == L' ' || *wpParamBegin == L'\t') ++wpParamBegin;
+  IfComment(wpParamBegin, &wpParamBegin);
 
   if (*wpParamBegin == L'\"' || *wpParamBegin == L'\'' || *wpParamBegin == L'`')
   {
@@ -2445,7 +2470,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
 
     if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
     {
@@ -2474,6 +2499,7 @@ int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
       WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
   }
+  IfComment(wpParamEnd, &wpParamEnd);
 
   while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
     ++wpParamEnd;
@@ -2690,6 +2716,25 @@ BOOL SkipComment(const wchar_t **wpText)
   if (**wpText == L'\0')
     return FALSE;
   return TRUE;
+}
+
+void IfComment(const wchar_t *wpText, const wchar_t **wppText)
+{
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  if (*wpText == L'/' && *(wpText + 1) == L'*')
+  {
+    for (wpText+=2; *wpText; ++wpText)
+    {
+      if (*wpText == L'*' && *(wpText + 1) == L'/')
+      {
+        wpText+=2;
+        break;
+      }
+    }
+    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  }
+  *wppText=wpText;
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
@@ -3099,8 +3144,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: \x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442 \":\".";
-    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+    if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
+    if (nStringID == STRID_IF_CALLDENIED)
+      return L"If: \x043C\x0435\x0442\x043E\x0434\x0020\x0043\x0061\x006C\x006C\x0028\x0029\x0020\x0437\x0430\x043F\x0440\x0435\x0449\x0451\x043D\x0020\x0432 SET(128, If(...)).";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -3306,8 +3353,10 @@ SEPARATOR1\r";
       return L"If: call error.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: missing \":\".";
-    if (nStringID == STRID_IF_WRONGPARAMETERSNUMBER)
+    if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: wrong number of parameters.";
+    if (nStringID == STRID_IF_CALLDENIED)
+      return L"If: Call() method in SET(128, If(...)) is denied.";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)
