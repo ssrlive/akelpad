@@ -1074,7 +1074,7 @@ void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData);
 DOCK* StackDockFindWindow(STACKDOCK *hDocks, HWND hWnd, BOOL bChild);
 HWND StackDockNextWindow(STACKDOCK *hDocks, DOCK *dkData, BOOL bPrevious);
 DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen);
-void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns);
+void StackDockSize(STACKDOCK *hDocks, NSIZE *ns);
 BOOL StackDockUpdateCheck(STACKDOCK *hDocks);
 void StackDockFree(STACKDOCK *hDocks);
 BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg);
