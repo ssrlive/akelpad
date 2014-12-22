@@ -208,7 +208,7 @@ BOOL FileMaskCmp(const wchar_t *wpMaskStr, const wchar_t *wpFileStr);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 BOOL IsDirEmpty(const wchar_t *wpDir);
 BOOL TrimTrailBackSlash(wchar_t *wszDir);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -1257,7 +1257,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcExplorerCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
-      if (dkExplorerDlg) GetWindowPos(hWndTitleText, hDlg, &dkExplorerDlg->rcDragDrop);
+      if (dkExplorerDlg) GetWindowSize(hWndTitleText, hDlg, &dkExplorerDlg->rcDragDrop);
   }
 
   return FALSE;
@@ -2352,7 +2352,7 @@ BOOL TrimTrailBackSlash(wchar_t *wszDir)
   return FALSE;
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

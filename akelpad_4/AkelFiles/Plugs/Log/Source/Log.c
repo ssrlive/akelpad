@@ -325,7 +325,7 @@ BOOL IsCodePageUnicode(int nCodePage);
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, int *lpnFileLen);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 void ShowOutputMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 DWORD ScrollCaret(HWND hWnd);
 int SaveLineScroll(HWND hWnd);
@@ -1192,7 +1192,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcOutputCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
-      if (dkOutputDlg) GetWindowPos(hWndTitleText, hDlg, &dkOutputDlg->rcDragDrop);
+      if (dkOutputDlg) GetWindowSize(hWndTitleText, hDlg, &dkOutputDlg->rcDragDrop);
   }
 
   return FALSE;
@@ -1390,8 +1390,8 @@ void DockShowInput(BOOL bShow, HWND hWndInputEdit, HWND hWndInputButton, HWND hW
     ShowWindow(hWndInputEdit, SW_SHOW);
     ShowWindow(hWndInputButton, SW_SHOW);
     ShowWindow(hWndRunStopButton, SW_SHOW);
-    GetWindowPos(hWndInputEdit, hWndDockDlg, &rcInputEdit);
-    GetWindowPos(hWndOutputView, hWndDockDlg, &rcOutputView);
+    GetWindowSize(hWndInputEdit, hWndDockDlg, &rcInputEdit);
+    GetWindowSize(hWndOutputView, hWndDockDlg, &rcOutputView);
     SetWindowPos(hWndOutputView, NULL, 0, 0, rcOutputView.right, (rcInputEdit.top - 5) - rcOutputView.top, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
   }
   else
@@ -1399,8 +1399,8 @@ void DockShowInput(BOOL bShow, HWND hWndInputEdit, HWND hWndInputButton, HWND hW
     ShowWindow(hWndInputEdit, SW_HIDE);
     ShowWindow(hWndInputButton, SW_HIDE);
     ShowWindow(hWndRunStopButton, SW_HIDE);
-    GetWindowPos(hWndInputEdit, hWndDockDlg, &rcInputEdit);
-    GetWindowPos(hWndOutputView, hWndDockDlg, &rcOutputView);
+    GetWindowSize(hWndInputEdit, hWndDockDlg, &rcInputEdit);
+    GetWindowSize(hWndOutputView, hWndDockDlg, &rcOutputView);
     SetWindowPos(hWndOutputView, NULL, 0, 0, rcOutputView.right, (rcInputEdit.top + rcInputEdit.bottom) - rcOutputView.top, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
   }
 }
@@ -3103,7 +3103,7 @@ BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax, 
   return bResult;
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

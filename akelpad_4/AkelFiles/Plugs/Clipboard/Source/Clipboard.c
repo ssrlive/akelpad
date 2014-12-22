@@ -87,7 +87,7 @@ void WaitForReleaseVkKeys(DWORD dwThreadCurrent, DWORD dwThreadTarget, DWORD dwT
 BYTE GetHotkeyMod(DWORD dwHotkey);
 BOOL EscapeStringToEscapeData(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeString(wchar_t *wpInput, wchar_t *wszOutput);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
@@ -477,7 +477,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcCaptureCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
-      if (dkCaptureDlg) GetWindowPos(hWndTitleText, hDlg, &dkCaptureDlg->rcDragDrop);
+      if (dkCaptureDlg) GetWindowSize(hWndTitleText, hDlg, &dkCaptureDlg->rcDragDrop);
   }
 
   return FALSE;
@@ -1050,7 +1050,7 @@ void EscapeDataToEscapeString(wchar_t *wpInput, wchar_t *wszOutput)
   *b='\0';
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

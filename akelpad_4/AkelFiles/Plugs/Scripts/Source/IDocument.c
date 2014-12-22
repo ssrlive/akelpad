@@ -642,20 +642,20 @@ BOOL CALLBACK InputBoxProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (nLines > 0)
       {
-        GetWindowPos(hWndLabel, hDlg, &rc);
+        GetWindowSize(hWndLabel, hDlg, &rc);
         nHeight=rc.bottom * nLines;
         SetWindowPos(hWndLabel, 0, 0, 0, rc.right, rc.bottom + nHeight, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
 
-        GetWindowPos(hDlg, NULL, &rc);
+        GetWindowSize(hDlg, NULL, &rc);
         SetWindowPos(hDlg, 0, 0, 0, rc.right, rc.bottom + nHeight, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
 
-        GetWindowPos(hWndEditBox, hDlg, &rc);
+        GetWindowSize(hWndEditBox, hDlg, &rc);
         SetWindowPos(hWndEditBox, 0, rc.left, rc.top + nHeight, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 
-        GetWindowPos(hWndOK, hDlg, &rc);
+        GetWindowSize(hWndOK, hDlg, &rc);
         SetWindowPos(hWndOK, 0, rc.left, rc.top + nHeight, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
 
-        GetWindowPos(hWndCancel, hDlg, &rc);
+        GetWindowSize(hWndCancel, hDlg, &rc);
         SetWindowPos(hWndCancel, 0, rc.left, rc.top + nHeight, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
       }
     }

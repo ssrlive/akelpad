@@ -4432,7 +4432,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (!(dwStyle & WS_MAXIMIZE) && !(dwStyle & WS_MINIMIZE))
     {
-      GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+      GetWindowSize(hWnd, NULL, &moCur.rcMainWindowRestored);
     }
   }
   else if (uMsg == WM_SIZE)
@@ -4448,7 +4448,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (wParam != SIZE_MAXIMIZED)
         {
-          GetWindowPos(hWnd, NULL, &moCur.rcMainWindowRestored);
+          GetWindowSize(hWnd, NULL, &moCur.rcMainWindowRestored);
         }
         UpdateSize();
         return TRUE;
@@ -6949,7 +6949,7 @@ BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             {
               rc=dkData->rcDragDrop;
 
-              if (ClientToScreenRect(dkData->hWnd, &rc))
+              if (ClientSizeToScreenRect(dkData->hWnd, &rc))
               {
                 if (PtInRect(&rc, pt))
                 {
@@ -7016,7 +7016,7 @@ BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
               {
                 rc=nsSize.rcCurrent;
 
-                if (ClientToScreenRect(hMainWnd, &rc))
+                if (ClientSizeToScreenRect(hMainWnd, &rc))
                 {
                   if (PtInRect(&rc, pt))
                   {
@@ -7081,7 +7081,7 @@ BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             DrawMovingRect(&rcEdge);
             ReleaseMouseCapture(MSC_DOCKSIZE);
 
-            if (ScreenToClientRect(hMainWnd, &rcEdge))
+            if (ScreenRectToClientSize(hMainWnd, &rcEdge))
             {
               if (dkData->nSide == DKS_LEFT ||
                   dkData->nSide == DKS_RIGHT)
@@ -7112,7 +7112,7 @@ BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
                 nDropSide=dkDropTarget->nSide;
               rc=rcDrop;
 
-              if (ScreenToClientRect(hMainWnd, &rc))
+              if (ScreenRectToClientSize(hMainWnd, &rc))
               {
                 if (nDropSide == DKS_LEFT ||
                     nDropSide == DKS_RIGHT)

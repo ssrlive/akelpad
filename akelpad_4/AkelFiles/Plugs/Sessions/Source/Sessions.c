@@ -415,7 +415,7 @@ void DropFiles(HDROP hDrop, HWND hWndItemsList);
 int IsFile(const wchar_t *wpFile);
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -1839,7 +1839,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
     {
       if (dkSessionsDlg)
-        GetWindowPos(hWndTitleText, hDlg, &dkSessionsDlg->rcDragDrop);
+        GetWindowSize(hWndTitleText, hDlg, &dkSessionsDlg->rcDragDrop);
       else
         dwSaveFlags|=OF_RECT;
     }
@@ -4828,7 +4828,7 @@ COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
   return RGB(r, g, b);
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

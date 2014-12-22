@@ -91,7 +91,7 @@ int DeleteListBoxOldItems(STACKRECENTFILE *srfPlugin, HWND hWnd);
 int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListBoxSelItems(int **lpSelItems);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -246,8 +246,8 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         DestroyIcon(hIcon);
       }
 
-      GetWindowPos(hWndItemsList, hDlg, &rcList);
-      GetWindowPos(hWndStats, hDlg, &rcStats);
+      GetWindowSize(hWndItemsList, hDlg, &rcList);
+      GetWindowSize(hWndStats, hDlg, &rcStats);
       hToolbar=CreateWindowExWide(0,
                             L"ToolbarWindow32",
                             NULL,
@@ -851,7 +851,7 @@ const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
   return wpFile;
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

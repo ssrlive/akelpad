@@ -128,7 +128,7 @@ INT_PTR GetUnicodeStringFromHex(DWORD dwFlags, wchar_t *wszInput, INT_PTR nInput
 void FreeHexString(void *lpString);
 INT_PTR dec2oct(INT_PTR nDec);
 INT_PTR oct2dec(INT_PTR nOct);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
@@ -512,7 +512,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcHexSelCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
-      if (dkHexSelDlg) GetWindowPos(hWndTitleText, hDlg, &dkHexSelDlg->rcDragDrop);
+      if (dkHexSelDlg) GetWindowSize(hWndTitleText, hDlg, &dkHexSelDlg->rcDragDrop);
   }
 
   return FALSE;
@@ -1403,7 +1403,7 @@ INT_PTR oct2dec(INT_PTR nOct)
   return nResult;
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

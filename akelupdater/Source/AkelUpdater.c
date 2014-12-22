@@ -302,7 +302,7 @@ void CompareItems();
 void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 int GetNextWord(wchar_t *wpStr, INT_PTR nStrLen, wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void StackFilesFill(STACKFILEITEM *hStack);
 FILEREFITEM* StackFileRefInsert(STACKFILEREFITEM *hStack, FILEITEM *lpFileItem);
@@ -1483,7 +1483,7 @@ int GetNextWord(wchar_t *wpStr, INT_PTR nStrLen, wchar_t *wpDelim, int nDelimLen
   return xstrcpynW(wszWord, wpStr, min(wpMatchBegin - wpStr + 1, nWordMax));
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {
@@ -1510,13 +1510,13 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
     int i;
 
     rcTemplate=*rcCurrent;
-    GetWindowPos(hDlg, NULL, rcCurrent);
+    GetWindowSize(hDlg, NULL, rcCurrent);
 
     for (i=0; drs[i].lpWnd; ++i)
     {
       if (*drs[i].lpWnd)
       {
-        GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+        GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
         if (drs[i].dwType & DRS_SIZE)
         {
           if (drs[i].dwType & DRS_X)
@@ -1567,7 +1567,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
     {
       RECT rcTemplate;
 
-      GetWindowPos(hDlg, NULL, &rcTemplate);
+      GetWindowSize(hDlg, NULL, &rcTemplate);
       rcCurrent->left=rcTemplate.left;
       rcCurrent->top=rcTemplate.top;
       return TRUE;
@@ -1581,7 +1581,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       DWORD dwFlags;
       int i;
 
-      GetWindowPos(hDlg, NULL, rcCurrent);
+      GetWindowSize(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
       {
@@ -1595,7 +1595,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
           else
             continue;
 
-          GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+          GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
           SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
                                          (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
                                          (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
