@@ -4426,6 +4426,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (wParam)
       UpdateStatusUser(lpFrameCurrent, CSB_NUMLOCK|CSB_CAPSLOCK);
   }
+  else if (uMsg == WM_WINDOWPOSCHANGING)
+  {
+    WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
+
+    if ((lpWindowPos->x != moCur.rcMainWindowRestored.left ||
+         lpWindowPos->y != moCur.rcMainWindowRestored.top) &&
+        (lpWindowPos->cx != moCur.rcMainWindowRestored.right ||
+         lpWindowPos->cy != moCur.rcMainWindowRestored.bottom))
+    {
+      //Size and position changed don't copy bits to avoid blinking.
+      lpWindowPos->flags|=SWP_NOCOPYBITS;
+    }
+  }
   else if (uMsg == WM_MOVE)
   {
     UINT_PTR dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
