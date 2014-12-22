@@ -613,10 +613,8 @@ typedef struct _DIALOGRESIZEWND {
   struct _DIALOGRESIZEWND *next;
   struct _DIALOGRESIZEWND *prev;
   HWND hWnd;
-  wchar_t wszClassName[MAX_PATH];
   RECT rcBeforeWindow;
   RECT rcBeforeClient;
-  RECT rcAfterWindow;
 } DIALOGRESIZEWND;
 
 typedef struct {
@@ -1215,16 +1213,15 @@ BOOL CALLBACK EnumDialogsProc(HWND hWnd, LPARAM lParam);
 HWND NextClone(BOOL bPrevious);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-DIALOGRESIZEWND* StackDialogResizeWndInsert(STACKDIALOGRESIZEWND *hStack, HWND hWnd);
-DIALOGRESIZEWND* StackDialogResizeWndGet(STACKDIALOGRESIZEWND *hStack, HWND hWnd);
-void StackDialogResizeWndFree(STACKDIALOGRESIZEWND *hStack);
 void GetMovingRect(DOCK *dkData, POINT *ptScreen, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *ptScreen);
 void SetEdgeCursor(int nEdge);
 int GetOppEdge(int nEdge);
 BOOL IsCursorOnWindow(HWND hWnd);
+BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenRectToClientSize(HWND hWnd, RECT *rc);
 BOOL ClientSizeToScreenRect(HWND hWnd, RECT *rc);
