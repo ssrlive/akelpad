@@ -517,7 +517,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 int GetCurFile(wchar_t *wszFile, int nMaxFile);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 INT_PTR GetEditText(HWND hWnd, wchar_t **wpText);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 DWORD ScrollCaret(HWND hWnd);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
@@ -1775,8 +1775,8 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         DestroyIcon(hIcon);
       }
 
-      GetWindowPos(hWndItemsList, hDlg, &rcList);
-      GetWindowPos(hWndStats, hDlg, &rcStats);
+      GetWindowSize(hWndItemsList, hDlg, &rcList);
+      GetWindowSize(hWndStats, hDlg, &rcStats);
       hFavToolbar=CreateWindowExWide(0,
                             L"ToolbarWindow32",
                             NULL,
@@ -5377,7 +5377,7 @@ INT_PTR GetEditText(HWND hWnd, wchar_t **wpText)
   return nTextLen;
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

@@ -616,7 +616,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcCodeFoldCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
     if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
-      if (dkCodeFoldDlg) GetWindowPos(hWndTitleText, hDlg, &dkCodeFoldDlg->rcDragDrop);
+      if (dkCodeFoldDlg) GetWindowSize(hWndTitleText, hDlg, &dkCodeFoldDlg->rcDragDrop);
   }
 
   return FALSE;
@@ -4452,7 +4452,7 @@ DWORD ScrollToPoint(HWND hWnd, POINT *ptPos)
   return (DWORD)SendMessage(hWnd, AEM_SCROLLTOPOINT, 0, (LPARAM)&stp);
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {

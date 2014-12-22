@@ -2604,7 +2604,7 @@ void RestoreLineScroll(HWND hWnd, int nBeforeLine)
   InvalidateRect(hWnd, NULL, TRUE);
 }
 
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 {
   if (GetWindowRect(hWnd, rc))
   {
