@@ -7096,6 +7096,8 @@ BOOL CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
               hDocksStack.nSizingSide=dkData->nSide;
               hDocksStack.nSizingType=DKC_SIZING;
               UpdateSize();
+              hDocksStack.nSizingSide=0;
+              hDocksStack.nSizingType=0;
               SendMessage(hMainWnd, AKDN_DOCK_RESIZE, (WPARAM)dkData, DKC_SIZING);
             }
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);

@@ -16793,96 +16793,113 @@ DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen)
   return NULL;
 }
 
-void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
+void StackDockSize(STACKDOCK *hDocks, NSIZE *ns)
 {
+  HDWP hDwp;
   DOCK *lpDock;
   RECT rcDock;
   RECT rcWindow;
+  int nSide;
+  int nLoop=0;
 
-  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
+  hDocksStack.bSizing=TRUE;
+  if (!(hDwp=BeginDeferWindowPos(0)))
+    return;
+
+  for (nLoop=0; nLoop <= 3; ++nLoop)
   {
-    if (lpDock->nSide > nSide) break;
+    if (nLoop == 0)
+      nSide=(hDocksStack.nSizingSide == DKS_LEFT)?DKS_RIGHT:DKS_LEFT;
+    else if (nLoop == 1)
+      nSide=(hDocksStack.nSizingSide == DKS_LEFT)?DKS_LEFT:DKS_RIGHT;
+    else if (nLoop == 2)
+      nSide=(hDocksStack.nSizingSide == DKS_TOP)?DKS_BOTTOM:DKS_TOP;
+    else if (nLoop == 3)
+      nSide=(hDocksStack.nSizingSide == DKS_TOP)?DKS_TOP:DKS_BOTTOM;
 
-    if (lpDock->nSide == nSide)
+    for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
     {
-      if (!(lpDock->dwFlags & DKF_HIDDEN))
+      if (lpDock->nSide == nSide)
       {
-        if (lpDock->rcSize.right || lpDock->rcSize.bottom)
+        if (!(lpDock->dwFlags & DKF_HIDDEN))
         {
-          rcDock.left=ns->rcCurrent.left;
-          rcDock.top=ns->rcCurrent.top;
-          rcDock.right=lpDock->rcSize.right;
-          rcDock.bottom=lpDock->rcSize.bottom;
-
-          if (lpDock->nSide == DKS_LEFT)
+          if (lpDock->rcSize.right || lpDock->rcSize.bottom)
           {
-            if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
-              rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
-            else if (ns->rcCurrent.right >= DOCK_MAINMIN_X + DOCK_BORDER_2X)
-              rcDock.right=max(rcDock.right, DOCK_BORDER_2X);
+            rcDock.left=ns->rcCurrent.left;
+            rcDock.top=ns->rcCurrent.top;
+            rcDock.right=lpDock->rcSize.right;
+            rcDock.bottom=lpDock->rcSize.bottom;
 
-            ns->rcCurrent.left+=rcDock.right;
-            ns->rcCurrent.right-=rcDock.right;
-          }
-          else if (lpDock->nSide == DKS_TOP)
-          {
-            if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
-              rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
-            else if (ns->rcCurrent.bottom >= DOCK_MAINMIN_Y + DOCK_BORDER_2X)
-              rcDock.bottom=max(rcDock.bottom, DOCK_BORDER_2X);
-
-            ns->rcCurrent.top+=rcDock.bottom;
-            ns->rcCurrent.bottom-=rcDock.bottom;
-          }
-          else if (lpDock->nSide == DKS_RIGHT)
-          {
-            if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
-              rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
-            else if (ns->rcCurrent.right >= DOCK_MAINMIN_X + DOCK_BORDER_2X)
-              rcDock.right=max(rcDock.right, DOCK_BORDER_2X);
-
-            ns->rcCurrent.right-=rcDock.right;
-            rcDock.left=ns->rcCurrent.left + ns->rcCurrent.right;
-          }
-          else if (lpDock->nSide == DKS_BOTTOM)
-          {
-            if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
-              rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
-            else if (ns->rcCurrent.bottom >= DOCK_MAINMIN_Y + DOCK_BORDER_2X)
-              rcDock.bottom=max(rcDock.bottom, DOCK_BORDER_2X);
-
-            ns->rcCurrent.bottom-=rcDock.bottom;
-            rcDock.top=ns->rcCurrent.top + ns->rcCurrent.bottom;
-          }
-
-          if (lpDock->hWnd)
-          {
-            GetWindowSize(lpDock->hWnd, GetParent(lpDock->hWnd), &rcWindow);
-
-            if (lpDock->nSide == DKS_LEFT ||
-                lpDock->nSide == DKS_RIGHT)
+            if (lpDock->nSide == DKS_LEFT)
             {
-              if (hDocksStack.nSizingSide) lpDock->rcSize.left=rcDock.left;
+              if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
+                rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
+              else if (ns->rcCurrent.right >= DOCK_MAINMIN_X + DOCK_BORDER_2X)
+                rcDock.right=max(rcDock.right, DOCK_BORDER_2X);
 
-              if (rcWindow.left != rcDock.left ||
-                  rcWindow.top != ns->rcCurrent.top ||
-                  rcWindow.right != rcDock.right ||
-                  rcWindow.bottom != ns->rcCurrent.bottom)
-              {
-                SetWindowPos(lpDock->hWnd, 0, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, (hDocksStack.nSizingType == DKC_DRAGDROP?SWP_NOCOPYBITS:0)|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
-              }
+              ns->rcCurrent.left+=rcDock.right;
+              ns->rcCurrent.right-=rcDock.right;
             }
-            else if (lpDock->nSide == DKS_TOP ||
-                     lpDock->nSide == DKS_BOTTOM)
+            else if (lpDock->nSide == DKS_TOP)
             {
-              if (hDocksStack.nSizingSide) lpDock->rcSize.top=rcDock.top;
+              if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
+                rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
+              else if (ns->rcCurrent.bottom >= DOCK_MAINMIN_Y + DOCK_BORDER_2X)
+                rcDock.bottom=max(rcDock.bottom, DOCK_BORDER_2X);
 
-              if (rcWindow.left != ns->rcCurrent.left ||
-                  rcWindow.top != rcDock.top ||
-                  rcWindow.right != ns->rcCurrent.right ||
-                  rcWindow.bottom != rcDock.bottom)
+              ns->rcCurrent.top+=rcDock.bottom;
+              ns->rcCurrent.bottom-=rcDock.bottom;
+            }
+            else if (lpDock->nSide == DKS_RIGHT)
+            {
+              if (ns->rcCurrent.right - rcDock.right < DOCK_MAINMIN_X)
+                rcDock.right=ns->rcCurrent.right - DOCK_MAINMIN_X;
+              else if (ns->rcCurrent.right >= DOCK_MAINMIN_X + DOCK_BORDER_2X)
+                rcDock.right=max(rcDock.right, DOCK_BORDER_2X);
+
+              ns->rcCurrent.right-=rcDock.right;
+              rcDock.left=ns->rcCurrent.left + ns->rcCurrent.right;
+            }
+            else if (lpDock->nSide == DKS_BOTTOM)
+            {
+              if (ns->rcCurrent.bottom - rcDock.bottom < DOCK_MAINMIN_Y)
+                rcDock.bottom=ns->rcCurrent.bottom - DOCK_MAINMIN_Y;
+              else if (ns->rcCurrent.bottom >= DOCK_MAINMIN_Y + DOCK_BORDER_2X)
+                rcDock.bottom=max(rcDock.bottom, DOCK_BORDER_2X);
+
+              ns->rcCurrent.bottom-=rcDock.bottom;
+              rcDock.top=ns->rcCurrent.top + ns->rcCurrent.bottom;
+            }
+
+            if (lpDock->hWnd)
+            {
+              GetWindowSize(lpDock->hWnd, GetParent(lpDock->hWnd), &rcWindow);
+
+              if (lpDock->nSide == DKS_LEFT ||
+                  lpDock->nSide == DKS_RIGHT)
               {
-                SetWindowPos(lpDock->hWnd, 0, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, (hDocksStack.nSizingType == DKC_DRAGDROP?SWP_NOCOPYBITS:0)|SWP_NOZORDER|SWP_NOACTIVATE|SWP_DEFERERASE);
+                if (hDocksStack.nSizingSide) lpDock->rcSize.left=rcDock.left;
+
+                if (rcWindow.left != rcDock.left ||
+                    rcWindow.top != ns->rcCurrent.top ||
+                    rcWindow.right != rcDock.right ||
+                    rcWindow.bottom != ns->rcCurrent.bottom)
+                {
+                  hDwp=DeferWindowPos(hDwp, lpDock->hWnd, 0, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+                }
+              }
+              else if (lpDock->nSide == DKS_TOP ||
+                       lpDock->nSide == DKS_BOTTOM)
+              {
+                if (hDocksStack.nSizingSide) lpDock->rcSize.top=rcDock.top;
+
+                if (rcWindow.left != ns->rcCurrent.left ||
+                    rcWindow.top != rcDock.top ||
+                    rcWindow.right != ns->rcCurrent.right ||
+                    rcWindow.bottom != rcDock.bottom)
+                {
+                  hDwp=DeferWindowPos(hDwp, lpDock->hWnd, 0, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, SWP_NOZORDER|SWP_NOACTIVATE);
+                }
               }
             }
           }
@@ -16890,6 +16907,9 @@ void StackDockSize(STACKDOCK *hDocks, int nSide, NSIZE *ns)
       }
     }
   }
+  EndDeferWindowPos(hDwp);
+
+  hDocksStack.bSizing=FALSE;
 }
 
 void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData)
@@ -21587,10 +21607,11 @@ void UpdateSize()
   int nTabHeight;
   int nEditHeight;
   BOOL bStatusBar=FALSE;
+  static BOOL bSizing;
 
-  if (!hDocksStack.bSizing)
+  if (!bSizing)
   {
-    hDocksStack.bSizing=TRUE;
+    bSizing=TRUE;
 
     GetClientRect(hMainWnd, &nsSize.rcInitial);
     if (moCur.bStatusBar && IsWindowVisible(hStatus))
@@ -21602,10 +21623,7 @@ void UpdateSize()
     SendMessage(hMainWnd, AKDN_SIZE_ONSTART, 0, (LPARAM)&nsSize);
 
     //Docks
-    StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_LEFT)?DKS_RIGHT:DKS_LEFT, &nsSize);
-    StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_LEFT)?DKS_LEFT:DKS_RIGHT, &nsSize);
-    StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_TOP)?DKS_BOTTOM:DKS_TOP, &nsSize);
-    StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_TOP)?DKS_TOP:DKS_BOTTOM, &nsSize);
+    StackDockSize(&hDocksStack, &nsSize);
 
     //Edits
     if (!nMDI || (moCur.dwTabOptionsMDI & TAB_VIEW_NONE) || !IsWindowVisible(hTab))
@@ -21632,7 +21650,8 @@ void UpdateSize()
     if (bStatusBar)
       SetWindowPos(hStatus, 0, nsSize.rcCurrent.left, nsSize.rcInitial.bottom, nsSize.rcCurrent.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
     SendMessage(hMainWnd, AKDN_SIZE_ONFINISH, 0, (LPARAM)&nsSize);
-    hDocksStack.bSizing=FALSE;
+
+    bSizing=FALSE;
   }
 }
 
