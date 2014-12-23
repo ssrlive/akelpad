@@ -4429,11 +4429,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_WINDOWPOSCHANGING)
   {
     WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
-
+    
     if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
     {
-      if (((lpWindowPos->flags & SWP_NOMOVE) || lpWindowPos->x != lprcWindowSize->left || lpWindowPos->y != lprcWindowSize->top) &&
-          ((lpWindowPos->flags & SWP_NOSIZE) || lpWindowPos->cx != lprcWindowSize->right || lpWindowPos->cy != lprcWindowSize->bottom))
+      if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != moCur.rcMainWindowRestored.left || lpWindowPos->y != moCur.rcMainWindowRestored.top)) &&
+          (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != moCur.rcMainWindowRestored.right || lpWindowPos->cy != moCur.rcMainWindowRestored.bottom)))
       {
         //Size and position changed don't copy bits to avoid blinking.
         lpWindowPos->flags|=SWP_NOCOPYBITS;
