@@ -13374,6 +13374,8 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   AENPAINT pntNotify;
   PAINTSTRUCT ps;
   RECT rcUpdate;
+  POINT ptActiveColumnDrawOld;
+  POINT ptActiveColumnDrawNew;
   HBITMAP hBitmap=NULL;
   HBITMAP hBitmapOld=NULL;
   HFONT hFontOld=NULL;
@@ -13407,23 +13409,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   pntNotify.hDC=to.hDC;
   AE_NotifyPaint(ae, AEPNT_BEGIN, &pntNotify);
 
-  //Erase active column.
-  if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-  {
-    if (ae->ptActiveColumnDraw.x != -1 && ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
-    {
-      //Transfer 1-pixel column to buffer DC
-      BitBlt(to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
-
-      //Erase column at old caret position. Use buffer DC, because many MoveToEx, LineTo calls cause slow painting in Win7 with aero.
-      AE_ActiveColumnDraw(ae, to.hDC, ae->rcDraw.top, ae->rcDraw.bottom);
-
-      //Transfer 1-pixel column back to edit DC
-      BitBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
-    }
-    AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ae->ptActiveColumnDraw);
-  }
-
   if (BeginPaint(ae->hWndEdit, &ps))
   {
     if (rcUpdate.right > ae->rcDraw.left &&
@@ -13456,6 +13441,27 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
       else
         hDrawRgnOld=(HRGN)SelectObject(to.hDC, hDrawRgn);
+
+      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+      {
+        ptActiveColumnDrawOld=ae->ptActiveColumnDraw;
+        AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ptActiveColumnDrawNew);
+
+        //Erase active column at old position (on all edit)
+        if (ptActiveColumnDrawOld.x != -1 && ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x &&
+            ptActiveColumnDrawOld.x >= ae->rcDraw.left && ptActiveColumnDrawOld.x <= ae->rcDraw.right)
+        {
+          //Transfer 1-pixel column to buffer DC
+          BitBlt(to.hDC, ptActiveColumnDrawOld.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, ae->hDC, ptActiveColumnDrawOld.x, ae->rcDraw.top, SRCCOPY);
+
+          //Erase column at old caret position. Use buffer DC, because many MoveToEx, LineTo calls cause slow painting in Win7 with aero.
+          AE_ActiveColumnDraw(ae, to.hDC, ae->rcDraw.top, ae->rcDraw.bottom);
+
+          //Transfer 1-pixel column back to edit DC
+          BitBlt(ae->hDC, ptActiveColumnDrawOld.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, to.hDC, ptActiveColumnDrawOld.x, ae->rcDraw.top, SRCCOPY);
+        }
+        ae->ptActiveColumnDraw=ptActiveColumnDrawNew;
+      }
 
       //Create GDI objects
       ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
@@ -13766,6 +13772,13 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
             AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
           }
 
+          if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+          {
+            //Draw active column at new position (on line)
+            if (ptActiveColumnDrawOld.x == ptActiveColumnDrawNew.x)
+              AE_ActiveColumnDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
+          }
+
           if (!(ae->popt->dwOptions & AECO_NODCBUFFER))
           {
             //Copy line from buffer DC
@@ -13787,6 +13800,22 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
             to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
           else
             break;
+        }
+      }
+
+      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+      {
+        //Draw active column at new position (on all edit)
+        if (ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x && ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
+        {
+          //Transfer 1-pixel column to buffer DC
+          BitBlt(to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
+
+          //Draw column at new caret position. Use buffer DC, because many MoveToEx, LineTo calls cause slow painting in Win7 with aero.
+          AE_ActiveColumnDraw(ae, to.hDC, ae->rcDraw.top, ae->rcDraw.bottom);
+
+          //Transfer 1-pixel column back to edit DC
+          BitBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
         }
       }
 
@@ -13812,22 +13841,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       ae->popt->hbrBasicBk=NULL;
     }
     EndPaint(ae->hWndEdit, &ps);
-  }
-
-  //Draw active column
-  if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-  {
-    if (ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
-    {
-      //Transfer 1-pixel column to buffer DC
-      BitBlt(to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
-
-      //Erase column at old caret position. Use buffer DC, because many MoveToEx, LineTo calls cause slow painting in Win7 with aero.
-      AE_ActiveColumnDraw(ae, to.hDC, ae->rcDraw.top, ae->rcDraw.bottom);
-
-      //Transfer 1-pixel column back to edit DC
-      BitBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->rcDraw.bottom - ae->rcDraw.top, to.hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, SRCCOPY);
-    }
   }
 
   //Send AEN_PAINT
