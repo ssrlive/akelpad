@@ -262,7 +262,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuList;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndSoundList,   DRS_SIZE|DRS_X, 0},
+  static DIALOGRESIZE drs[]={{&hWndEnableTheme, 0, 0},
+                             {&hWndSoundList,   DRS_SIZE|DRS_X, 0},
                              {&hWndSoundList,   DRS_SIZE|DRS_Y, 0},
                              {&hWndDisableBeep, DRS_MOVE|DRS_Y, 0},
                              {&hWndClose,       DRS_MOVE|DRS_X, 0},
