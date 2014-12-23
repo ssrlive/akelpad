@@ -22136,6 +22136,27 @@ BOOL ClientSizeToScreenRect(HWND hWnd, RECT *rc)
   return TRUE;
 }
 
+BOOL SmoothWindowPos(RECT *lprcWindowSize, HWND hWnd, HWND hWndInsertAfter, int x, int y, int cx, int cy, UINT uFlags)
+{
+   RECT rcWindowSize;
+
+  if (!(uFlags & SWP_NOCOPYBITS))
+  {
+    if (!lprcWindowSize)
+    {
+      GetWindowSize(hWnd, NULL, &rcWindowSize);
+      lprcWindowSize=&rcWindowSize;
+    }
+    if (((uFlags & SWP_NOMOVE) || x != lprcWindowSize->left || y != lprcWindowSize->top) &&
+        ((uFlags & SWP_NOSIZE) || cx != lprcWindowSize->right || cy != lprcWindowSize->bottom))
+    {
+      //Size and position changed don't copy bits to avoid blinking.
+      uFlags|=SWP_NOCOPYBITS;
+    }
+  }
+  return SetWindowPos(hWnd, hWndInsertAfter, x, y, cx, cy, uFlags);
+}
+
 BOOL EnsureWindowInMonitor(RECT *rcWindow)
 {
   MONITORINFO mi;
