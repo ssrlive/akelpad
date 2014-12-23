@@ -106,6 +106,10 @@ SOURCE=.\Sounds.c
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\Resources\Play.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\Resources\Sounds.ico
 # End Source File
 # Begin Source File
