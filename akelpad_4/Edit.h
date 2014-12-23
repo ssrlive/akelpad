@@ -1225,6 +1225,7 @@ BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenRectToClientSize(HWND hWnd, RECT *rc);
 BOOL ClientSizeToScreenRect(HWND hWnd, RECT *rc);
+BOOL SmoothWindowPos(RECT *lprcWindowSize, HWND hWnd, HWND hWndInsertAfter, int x, int y, int cx, int cy, UINT uFlags);
 BOOL EnsureWindowInMonitor(RECT *rcWindow);
 void UpdateTitle(FRAMEDATA *lpFrame);
 void UpdateTabs(HWND hWnd);
