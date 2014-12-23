@@ -16670,6 +16670,7 @@ DOCK* StackDockAdd(STACKDOCK *hDocks, DOCK *dkData)
     lpDock->nSide=dkData->nSide;
     lpDock->rcSize=dkData->rcSize;
     lpDock->rcDragDrop=dkData->rcDragDrop;
+    ++hDocks->nElements;
   }
   return lpDock;
 }
@@ -16793,9 +16794,8 @@ DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen)
   return NULL;
 }
 
-void StackDockSize(STACKDOCK *hDocks, NSIZE *ns)
+HDWP StackDockSize(HDWP hDwp, STACKDOCK *hDocks, NSIZE *ns)
 {
-  HDWP hDwp;
   DOCK *lpDock;
   RECT rcDock;
   RECT rcWindow;
@@ -16803,8 +16803,6 @@ void StackDockSize(STACKDOCK *hDocks, NSIZE *ns)
   int nLoop=0;
 
   hDocksStack.bSizing=TRUE;
-  if (!(hDwp=BeginDeferWindowPos(0)))
-    return;
 
   for (nLoop=0; nLoop <= 3; ++nLoop)
   {
@@ -16907,19 +16905,21 @@ void StackDockSize(STACKDOCK *hDocks, NSIZE *ns)
       }
     }
   }
-  EndDeferWindowPos(hDwp);
 
   hDocksStack.bSizing=FALSE;
+  return hDwp;
 }
 
 void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData)
 {
-  StackDelete((stack **)&hDocks->first, (stack **)&hDocks->last, (stack *)dkData);
+  if (!StackDelete((stack **)&hDocks->first, (stack **)&hDocks->last, (stack *)dkData))
+    --hDocks->nElements;
 }
 
 void StackDockFree(STACKDOCK *hDocks)
 {
   StackClear((stack **)&hDocks->first, (stack **)&hDocks->last);
+  hDocks->nElements=0;
 }
 
 BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
@@ -21604,6 +21604,7 @@ HWND NextClone(BOOL bPrevious)
 
 void UpdateSize()
 {
+  HDWP hDwp;
   int nTabHeight;
   int nEditHeight;
   BOOL bStatusBar=FALSE;
@@ -21622,33 +21623,37 @@ void UpdateSize()
     nsSize.rcCurrent=nsSize.rcInitial;
     SendMessage(hMainWnd, AKDN_SIZE_ONSTART, 0, (LPARAM)&nsSize);
 
-    //Docks
-    StackDockSize(&hDocksStack, &nsSize);
-
-    //Edits
-    if (!nMDI || (moCur.dwTabOptionsMDI & TAB_VIEW_NONE) || !IsWindowVisible(hTab))
-      nTabHeight=0;
-    else
-      nTabHeight=TAB_HEIGHT;
-    nEditHeight=nsSize.rcCurrent.bottom - nTabHeight;
-
-    if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+    if (hDwp=BeginDeferWindowPos(hDocksStack.nElements + 3 /*hWndEdit or hMdiClient, hTab, hStatus*/))
     {
-      fdDefault.rcEditWindow.left=nsSize.rcCurrent.left;
-      fdDefault.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
-      fdDefault.rcEditWindow.right=nsSize.rcCurrent.right;
-      fdDefault.rcEditWindow.bottom=nEditHeight;
-      ResizeEditWindow(lpFrameCurrent, 0);
+      //Docks
+      hDwp=StackDockSize(hDwp, &hDocksStack, &nsSize);
+
+      //Edits
+      if (!nMDI || (moCur.dwTabOptionsMDI & TAB_VIEW_NONE) || !IsWindowVisible(hTab))
+        nTabHeight=0;
+      else
+        nTabHeight=TAB_HEIGHT;
+      nEditHeight=nsSize.rcCurrent.bottom - nTabHeight;
+
+      if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+      {
+        fdDefault.rcEditWindow.left=nsSize.rcCurrent.left;
+        fdDefault.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
+        fdDefault.rcEditWindow.right=nsSize.rcCurrent.right;
+        fdDefault.rcEditWindow.bottom=nEditHeight;
+        ResizeEditWindow(lpFrameCurrent, 0);
+      }
+      if (nMDI)
+      {
+        if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
+          hDwp=DeferWindowPos(hDwp, hTab, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+        if (nMDI == WMD_MDI)
+          hDwp=DeferWindowPos(hDwp, hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+      }
+      if (bStatusBar)
+        hDwp=DeferWindowPos(hDwp, hStatus, 0, nsSize.rcInitial.left, nsSize.rcInitial.bottom, nsSize.rcInitial.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+      EndDeferWindowPos(hDwp);
     }
-    if (nMDI)
-    {
-      if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
-        SetWindowPos(hTab, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
-      if (nMDI == WMD_MDI)
-        SetWindowPos(hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
-    }
-    if (bStatusBar)
-      SetWindowPos(hStatus, 0, nsSize.rcCurrent.left, nsSize.rcInitial.bottom, nsSize.rcCurrent.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
     SendMessage(hMainWnd, AKDN_SIZE_ONFINISH, 0, (LPARAM)&nsSize);
 
     bSizing=FALSE;
@@ -21758,7 +21763,6 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       hRgnToDrawBefore=CreateRectRgn(0, 0, 0, 0);
       hRgnToDrawAfter=CreateRectRgn(0, 0, 0, 0);
       hRgnAllChild=CreateRectRgn(0, 0, 0, 0);
-      GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
 
       GetWindowSize(hDlg, NULL, rcCurrent);
       if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CLIPCHILDREN)
@@ -21797,7 +21801,13 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
                   if (hWndComboboxEdit=GetDlgItem(*drs[i].lpWnd, IDC_COMBOBOXEDIT))
                     GetClientPos(hWndComboboxEdit, hDlg, &lpDRW->rcBeforeClient);
                 }
-                else GetClientPos(*drs[i].lpWnd, hDlg, &lpDRW->rcBeforeClient);
+                else
+                {
+                  GetClientPos(*drs[i].lpWnd, hDlg, &lpDRW->rcBeforeClient);
+                  if (!xstrcmpiW(wszClassName, L"EDIT"))
+                    lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXVSCROLL), lpDRW->rcBeforeClient.left);
+                    
+                }
               }
             }
           }
@@ -21856,6 +21866,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
           }
           CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnChanged, RGN_OR);
         }
+        GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
 
         //Erase parent window background without children
         InvalidateRect(hDlg, NULL, TRUE);
@@ -22134,27 +22145,6 @@ BOOL ClientSizeToScreenRect(HWND hWnd, RECT *rc)
   if (!ClientToScreen(hWnd, (POINT *)&rc->right))
     return FALSE;
   return TRUE;
-}
-
-BOOL SmoothWindowPos(RECT *lprcWindowSize, HWND hWnd, HWND hWndInsertAfter, int x, int y, int cx, int cy, UINT uFlags)
-{
-   RECT rcWindowSize;
-
-  if (!(uFlags & SWP_NOCOPYBITS))
-  {
-    if (!lprcWindowSize)
-    {
-      GetWindowSize(hWnd, NULL, &rcWindowSize);
-      lprcWindowSize=&rcWindowSize;
-    }
-    if (((uFlags & SWP_NOMOVE) || x != lprcWindowSize->left || y != lprcWindowSize->top) &&
-        ((uFlags & SWP_NOSIZE) || cx != lprcWindowSize->right || cy != lprcWindowSize->bottom))
-    {
-      //Size and position changed don't copy bits to avoid blinking.
-      uFlags|=SWP_NOCOPYBITS;
-    }
-  }
-  return SetWindowPos(hWnd, hWndInsertAfter, x, y, cx, cy, uFlags);
 }
 
 BOOL EnsureWindowInMonitor(RECT *rcWindow)
