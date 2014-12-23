@@ -4547,11 +4547,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           {
             AE_FillRect(ae, (HDC)wParam, &rcErase, ae->popt->hbrBasicBk);
 
+            //Draw column marker on non-text lines
             if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
-            {
-              //Draw column marker on non-text lines
               AE_ColumnMarkerDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
-            }
+
+            //Draw active column on non-text lines
+            if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+              AE_ActiveColumnDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
           }
         }
 
@@ -13442,12 +13444,12 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       else
         hDrawRgnOld=(HRGN)SelectObject(to.hDC, hDrawRgn);
 
+      //Erase active column at old position (on all edit)
       if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
       {
         ptActiveColumnDrawOld=ae->ptActiveColumnDraw;
         AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ptActiveColumnDrawNew);
 
-        //Erase active column at old position (on all edit)
         if (ptActiveColumnDrawOld.x != -1 && ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x &&
             ptActiveColumnDrawOld.x >= ae->rcDraw.left && ptActiveColumnDrawOld.x <= ae->rcDraw.right)
         {
@@ -13759,9 +13761,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           rcSpace.right=rcSpace.left + min(rcUpdate.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
           rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
 
-          //Draw column marker
-          AE_ColumnMarkerDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
-
           //Send AEN_PAINT
           if (ae->popt->dwEventMask & AENM_PAINT)
           {
@@ -13772,9 +13771,12 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
             AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
           }
 
+          //Draw column marker
+          AE_ColumnMarkerDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
+
+          //Draw active column at new position (on line)
           if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
           {
-            //Draw active column at new position (on line)
             if (ptActiveColumnDrawOld.x == ptActiveColumnDrawNew.x)
               AE_ActiveColumnDraw(ae, to.hDC, rcSpace.top, rcSpace.bottom);
           }
@@ -13803,9 +13805,9 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         }
       }
 
+      //Draw active column at new position (on all edit)
       if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
       {
-        //Draw active column at new position (on all edit)
         if (ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x && ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
         {
           //Transfer 1-pixel column to buffer DC
