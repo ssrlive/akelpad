@@ -604,6 +604,7 @@ typedef struct {
 typedef struct {
   DOCK *first;
   DOCK *last;
+  int nElements;
   BOOL bSizing;
   int nSizingSide;
   int nSizingType;
@@ -1074,7 +1075,7 @@ void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData);
 DOCK* StackDockFindWindow(STACKDOCK *hDocks, HWND hWnd, BOOL bChild);
 HWND StackDockNextWindow(STACKDOCK *hDocks, DOCK *dkData, BOOL bPrevious);
 DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen);
-void StackDockSize(STACKDOCK *hDocks, NSIZE *ns);
+HDWP StackDockSize(HDWP hDwp, STACKDOCK *hDocks, NSIZE *ns);
 BOOL StackDockUpdateCheck(STACKDOCK *hDocks);
 void StackDockFree(STACKDOCK *hDocks);
 BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg);
