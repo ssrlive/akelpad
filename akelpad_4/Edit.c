@@ -12149,7 +12149,9 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
 
 BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndCodePageFromLabel;
   static HWND hWndCodePageFromList;
+  static HWND hWndCodePageToLabel;
   static HWND hWndCodePageToList;
   static HWND hWndCodePageAutodetect;
   static HWND hWndCodePagePreview;
@@ -12158,7 +12160,9 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static int nCodePageFrom=-1;
   static int nCodePageTo=-1;
   static BOOL bAutodetect=TRUE;
-  static DIALOGRESIZE drs[]={{&hWndCodePageFromList,       DRS_SIZE|DRS_X, 0},
+  static DIALOGRESIZE drs[]={{&hWndCodePageFromLabel,      0, 0},
+                             {&hWndCodePageFromList,       DRS_SIZE|DRS_X, 0},
+                             {&hWndCodePageToLabel,        0, 0},
                              {&hWndCodePageToList,         DRS_SIZE|DRS_X, 0},
                              {&hWndCodePageAutodetect,     DRS_MOVE|DRS_X, 0},
                              {&hWndCodePagePreview,        DRS_SIZE|DRS_X, 0},
@@ -12178,7 +12182,9 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetWindowPos(hDlg, 0, moCur.rcRecodeCurrentDialog.left, moCur.rcRecodeCurrentDialog.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
     }
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndCodePageFromLabel=GetDlgItem(hDlg, IDC_RECODE_CODEPAGEFROM_LABEL);
     hWndCodePageFromList=GetDlgItem(hDlg, IDC_RECODE_CODEPAGEFROM_LIST);
+    hWndCodePageToLabel=GetDlgItem(hDlg, IDC_RECODE_CODEPAGETO_LABEL);
     hWndCodePageToList=GetDlgItem(hDlg, IDC_RECODE_CODEPAGETO_LIST);
     hWndCodePageAutodetect=GetDlgItem(hDlg, IDC_RECODE_AUTODETECT);
     hWndCodePagePreview=GetDlgItem(hDlg, IDC_RECODE_PREVIEW);
@@ -12304,7 +12310,8 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndThemeName;
+  static HWND hWndThemeNameLabel;
+  static HWND hWndThemeNameCombo;
   static HWND hWndThemeSave;
   static HWND hWndThemeDelete;
   static HWND hWndList;
@@ -12320,7 +12327,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static wchar_t wszBkImageFileDlg[MAX_PATH];
   static int nBkImageAlphaDlg;
   static BOOL bColorsChanged;
-  static DIALOGRESIZE drs[]={{&hWndThemeName,         DRS_SIZE|DRS_X, 0},
+  static DIALOGRESIZE drs[]={{&hWndThemeNameLabel,    0, 0},
+                             {&hWndThemeNameCombo,    DRS_SIZE|DRS_X, 0},
                              {&hWndThemeSave,         DRS_MOVE|DRS_X, 0},
                              {&hWndThemeDelete,       DRS_MOVE|DRS_X, 0},
                              {&hWndList,              DRS_SIZE|DRS_X, 0},
@@ -12346,9 +12354,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == WM_INITDIALOG)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
-    hWndThemeName=GetDlgItem(hDlg, IDC_COLORS_THEME_NAME);
-    hWndThemeSave=GetDlgItem(hDlg, IDC_COLORS_THEME_SAVE);
-    hWndThemeDelete=GetDlgItem(hDlg, IDC_COLORS_THEME_DELETE);
+    hWndThemeNameLabel=GetDlgItem(hDlg, IDC_COLORS_THEMENAME_LABEL);
+    hWndThemeNameCombo=GetDlgItem(hDlg, IDC_COLORS_THEMENAME_COMBO);
+    hWndThemeSave=GetDlgItem(hDlg, IDC_COLORS_THEMESAVE);
+    hWndThemeDelete=GetDlgItem(hDlg, IDC_COLORS_THEMEDELETE);
     hWndList=GetDlgItem(hDlg, IDC_COLORS_LIST);
     hWndBkImageFileLabel=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEFILE_LABEL);
     hWndBkImageFileEdit=GetDlgItem(hDlg, IDC_COLORS_BKIMAGEFILE_EDIT);
@@ -12424,7 +12433,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       COLORTHEME *ctElement;
       int nSelection=-1;
 
-      FillComboboxThemes(hWndThemeName);
+      FillComboboxThemes(hWndThemeNameCombo);
 
       xmemcpy(&aecColorsDlg, &lpFrameCurrent->aec, sizeof(AECOLORS));
       xstrcpynW(wszBkImageFileDlg, lpFrameCurrent->wszBkImageFile, MAX_PATH);
@@ -12436,8 +12445,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&aecColorsDlg);
       }
       if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
-        nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
-      SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
+        nSelection=ComboBox_FindStringWide(hWndThemeNameCombo, -1, ctElement->wszName);
+      SendMessage(hWndThemeNameCombo, CB_SETCURSEL, (WPARAM)nSelection, 0);
 
       if (nSelection <= 0)
       {
@@ -12753,8 +12762,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             int nSelection=-1;
 
             if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
-              nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
-            SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
+              nSelection=ComboBox_FindStringWide(hWndThemeNameCombo, -1, ctElement->wszName);
+            SendMessage(hWndThemeNameCombo, CB_SETCURSEL, (WPARAM)nSelection, 0);
             if (nSelection > 0)
               EnableWindow(hWndThemeDelete, TRUE);
             else
@@ -12769,7 +12778,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_COLORS_THEME_NAME)
+    if (LOWORD(wParam) == IDC_COLORS_THEMENAME_COMBO)
     {
       if (HIWORD(wParam) == CBN_EDITCHANGE)
       {
@@ -12777,11 +12786,11 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nSelection=-1;
         int nNameLen;
 
-        if (nNameLen=GetWindowTextWide(hWndThemeName, wbuf, BUFFER_SIZE))
+        if (nNameLen=GetWindowTextWide(hWndThemeNameCombo, wbuf, BUFFER_SIZE))
         {
           if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
           {
-            nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
+            nSelection=ComboBox_FindStringWide(hWndThemeNameCombo, -1, ctElement->wszName);
           }
           ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg);
         }
@@ -12802,9 +12811,9 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         COLORTHEME *ctElement;
         int nSelection;
 
-        if ((nSelection=(int)SendMessage(hWndThemeName, CB_GETCURSEL, 0, 0)) != CB_ERR)
+        if ((nSelection=(int)SendMessage(hWndThemeNameCombo, CB_GETCURSEL, 0, 0)) != CB_ERR)
         {
-          if (ComboBox_GetLBTextWide(hWndThemeName, nSelection, wbuf))
+          if (ComboBox_GetLBTextWide(hWndThemeNameCombo, nSelection, wbuf))
           {
             if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
             {
@@ -12831,13 +12840,13 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
-    else if (LOWORD(wParam) == IDC_COLORS_THEME_SAVE)
+    else if (LOWORD(wParam) == IDC_COLORS_THEMESAVE)
     {
       COLORTHEME *ctElement;
       wchar_t wszThemeName[MAX_PATH];
       BOOL bProcess=TRUE;
 
-      if (GetWindowTextWide(hWndThemeName, wszThemeName, MAX_PATH))
+      if (GetWindowTextWide(hWndThemeNameCombo, wszThemeName, MAX_PATH))
       {
         if (ctElement=StackThemeGetByName(&hThemesStack, wszThemeName))
         {
@@ -12855,7 +12864,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
         {
           StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg, -1);
-          ComboBox_AddStringWide(hWndThemeName, wszThemeName);
+          ComboBox_AddStringWide(hWndThemeNameCombo, wszThemeName);
         }
 
         if (bProcess)
@@ -12865,21 +12874,21 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
-    else if (LOWORD(wParam) == IDC_COLORS_THEME_DELETE)
+    else if (LOWORD(wParam) == IDC_COLORS_THEMEDELETE)
     {
-      if (GetWindowTextWide(hWndThemeName, wbuf, BUFFER_SIZE))
+      if (GetWindowTextWide(hWndThemeNameCombo, wbuf, BUFFER_SIZE))
       {
         COLORTHEME *ctElement;
         int nSelection;
 
         if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
         {
-          nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
-          SendMessageW(hWndThemeName, CB_DELETESTRING, nSelection, 0);
-          SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)-1, 0);
+          nSelection=ComboBox_FindStringWide(hWndThemeNameCombo, -1, ctElement->wszName);
+          SendMessageW(hWndThemeNameCombo, CB_DELETESTRING, nSelection, 0);
+          SendMessage(hWndThemeNameCombo, CB_SETCURSEL, (WPARAM)-1, 0);
           StackThemeDelete(&hThemesStack, ctElement);
 
-          SetFocus(hWndThemeName);
+          SetFocus(hWndThemeNameCombo);
           EnableWindow(hWndThemeSave, FALSE);
           EnableWindow(hWndThemeDelete, FALSE);
         }
@@ -12896,8 +12905,8 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           GetWindowTextWide(hWndBkImageFileEdit, wszBkImageFileDlg, MAX_PATH);
           if (ctElement=StackThemeGetByData(&hThemesStack, &aecColorsDlg, wszBkImageFileDlg, nBkImageAlphaDlg))
-            nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
-          SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)nSelection, 0);
+            nSelection=ComboBox_FindStringWide(hWndThemeNameCombo, -1, ctElement->wszName);
+          SendMessage(hWndThemeNameCombo, CB_SETCURSEL, (WPARAM)nSelection, 0);
           if (nSelection > 0)
             EnableWindow(hWndThemeDelete, TRUE);
           else
@@ -21664,33 +21673,33 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
 {
   if (uMsg == WM_INITDIALOG)
   {
+    DIALOGRESIZE *drsControl;
     RECT rcTemplate;
     RECT rcControl;
-    DWORD dwFlags=SWP_NOMOVE;
-    int i;
+    DWORD dwSwpFlags=SWP_NOMOVE;
 
     rcTemplate=*rcCurrent;
     GetWindowSize(hDlg, NULL, rcCurrent);
 
-    for (i=0; drs[i].lpWnd; ++i)
+    for (drsControl=drs; drsControl->lpWnd; ++drsControl)
     {
-      if (*drs[i].lpWnd)
+      if (!*drsControl->lpWnd)
+        continue;
+
+      GetWindowSize(*drsControl->lpWnd, hDlg, &rcControl);
+      if (drsControl->dwType & DRS_SIZE)
       {
-        GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
-        if (drs[i].dwType & DRS_SIZE)
-        {
-          if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
-          else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
-        }
-        else if (drs[i].dwType & DRS_MOVE)
-        {
-          if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcCurrent->right - rcControl.left;
-          else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcCurrent->bottom - rcControl.top;
-        }
+        if (drsControl->dwType & DRS_X)
+          drsControl->nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
+        else if (drsControl->dwType & DRS_Y)
+          drsControl->nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
+      }
+      else if (drsControl->dwType & DRS_MOVE)
+      {
+        if (drsControl->dwType & DRS_X)
+          drsControl->nOffset=rcCurrent->right - rcControl.left;
+        else if (drsControl->dwType & DRS_Y)
+          drsControl->nOffset=rcCurrent->bottom - rcControl.top;
       }
     }
 
@@ -21700,9 +21709,9 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       {
         rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
         rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
-        dwFlags&=~SWP_NOMOVE;
+        dwSwpFlags&=~SWP_NOMOVE;
       }
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, dwSwpFlags|SWP_NOZORDER|SWP_NOACTIVATE);
     }
   }
   else if (uMsg == WM_GETMINMAXINFO)
@@ -21740,12 +21749,15 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       STACKDIALOGRESIZEWND hDRWStack={0};
       DIALOGRESIZEWND *lpDRW;
       DIALOGRESIZEWND *lpIntersectDRW;
+      DIALOGRESIZE *drsControl=drs;
+      DIALOGRESIZE *drsCount;
       wchar_t wszClassName[MAX_PATH];
       RECT rcControl;
       RECT rcNew;
       RECT rcAfterWindow;
       RECT rcIntersect;
-      DWORD dwFlags;
+      DWORD dwSwpFlags;
+      HWND hWndControl=NULL;
       HWND hWndComboboxEdit;
       HRGN hRgnChanged=NULL;
       HRGN hRgnControl=NULL;
@@ -21754,7 +21766,6 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       HRGN hRgnToDrawAfter=NULL;
       HRGN hRgnAllChild=NULL;
       int nChanged=0;
-      int i;
       BOOL bClipChildren=FALSE;
 
       hRgnChanged=CreateRectRgn(0, 0, 0, 0);
@@ -21768,67 +21779,103 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DW
       if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CLIPCHILDREN)
         bClipChildren=TRUE;
 
-      for (i=0; drs[i].lpWnd; ++i)
+      //First cycle throw the drs array, next throw the all other children
+      for (;;)
       {
-        if (!*drs[i].lpWnd)
-          continue;
-        GetClassNameWide(*drs[i].lpWnd, wszClassName, MAX_PATH);
-        GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
+        if (drsControl->lpWnd)
+          hWndControl=*drsControl->lpWnd;
 
-        if (!bClipChildren)
+        if (hWndControl)
         {
-          if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(*drs[i].lpWnd, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
-          {
-            //Exclude GroupBox from smooth draw - it will be erased later.
-          }
-          else
-          {
-            //Remember control sizes
-            for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
-            {
-              if (lpDRW->hWnd == *drs[i].lpWnd)
-                break;
-            }
-            if (!lpDRW)
-            {
-              if (!StackInsertIndex((stack **)&hDRWStack.first, (stack **)&hDRWStack.last, (stack **)&lpDRW, -1, sizeof(DIALOGRESIZEWND)))
-              {
-                lpDRW->hWnd=*drs[i].lpWnd;
-                GetWindowPos(lpDRW->hWnd, hDlg, &lpDRW->rcBeforeWindow);
+          GetClassNameWide(hWndControl, wszClassName, MAX_PATH);
+          GetWindowSize(hWndControl, hDlg, &rcControl);
 
-                if (!xstrcmpiW(wszClassName, L"COMBOBOX"))
+          if (!bClipChildren)
+          {
+            if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndControl, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
+            {
+              //Exclude GroupBox from smooth draw - it will be erased later.
+            }
+            else
+            {
+              //Remember control sizes
+              for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
+              {
+                if (lpDRW->hWnd == hWndControl)
+                  break;
+              }
+              if (!lpDRW)
+              {
+                if (!StackInsertIndex((stack **)&hDRWStack.first, (stack **)&hDRWStack.last, (stack **)&lpDRW, -1, sizeof(DIALOGRESIZEWND)))
                 {
-                  if (hWndComboboxEdit=GetDlgItem(*drs[i].lpWnd, IDC_COMBOBOXEDIT))
-                    GetClientPos(hWndComboboxEdit, hDlg, &lpDRW->rcBeforeClient);
-                }
-                else
-                {
-                  GetClientPos(*drs[i].lpWnd, hDlg, &lpDRW->rcBeforeClient);
-                  if (!xstrcmpiW(wszClassName, L"EDIT"))
-                    lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXVSCROLL), lpDRW->rcBeforeClient.left);
-                    
+                  lpDRW->hWnd=hWndControl;
+                  GetWindowPos(lpDRW->hWnd, hDlg, &lpDRW->rcBeforeWindow);
+
+                  if (!xstrcmpiW(wszClassName, L"COMBOBOX"))
+                  {
+                    if (hWndComboboxEdit=GetDlgItem(hWndControl, IDC_COMBOBOXEDIT))
+                      GetClientPos(hWndComboboxEdit, hDlg, &lpDRW->rcBeforeClient);
+                  }
+                  else
+                  {
+                    GetClientPos(hWndControl, hDlg, &lpDRW->rcBeforeClient);
+                    if (!xstrcmpiW(wszClassName, L"EDIT"))
+                      lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXVSCROLL), lpDRW->rcBeforeClient.left);
+                  }
                 }
               }
             }
           }
+          if (drsControl->lpWnd)
+          {
+            rcNew.left=((drsControl->dwType & DRS_MOVE) && (drsControl->dwType & DRS_X))?(rcCurrent->right - drsControl->nOffset):rcControl.left;
+            rcNew.top=((drsControl->dwType & DRS_MOVE) && (drsControl->dwType & DRS_Y))?(rcCurrent->bottom - drsControl->nOffset):rcControl.top;
+            rcNew.right=((drsControl->dwType & DRS_SIZE) && (drsControl->dwType & DRS_X))?(rcCurrent->right - rcControl.left - drsControl->nOffset):rcControl.right;
+            rcNew.bottom=((drsControl->dwType & DRS_SIZE) && (drsControl->dwType & DRS_Y))?(rcCurrent->bottom - rcControl.top - drsControl->nOffset):rcControl.bottom;
+
+            if (xmemcmp(&rcNew, &rcControl, sizeof(RECT)))
+            {
+              dwSwpFlags=0;
+              if (drsControl->dwType & DRS_SIZE)
+                dwSwpFlags|=SWP_NOMOVE;
+              else if (drsControl->dwType & DRS_MOVE)
+                dwSwpFlags|=SWP_NOSIZE;
+              else
+                continue;
+
+              if (SetWindowPos(hWndControl, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwSwpFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_NOCOPYBITS|SWP_DEFERERASE))
+                ++nChanged;
+            }
+          }
         }
-        rcNew.left=((drs[i].dwType & DRS_MOVE) && (drs[i].dwType & DRS_X))?(rcCurrent->right - drs[i].nOffset):rcControl.left;
-        rcNew.top=((drs[i].dwType & DRS_MOVE) && (drs[i].dwType & DRS_Y))?(rcCurrent->bottom - drs[i].nOffset):rcControl.top;
-        rcNew.right=((drs[i].dwType & DRS_SIZE) && (drs[i].dwType & DRS_X))?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right;
-        rcNew.bottom=((drs[i].dwType & DRS_SIZE) && (drs[i].dwType & DRS_Y))?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom;
 
-        if (xmemcmp(&rcNew, &rcControl, sizeof(RECT)))
+        if (drsControl->lpWnd)
         {
-          dwFlags=0;
-          if (drs[i].dwType & DRS_SIZE)
-            dwFlags|=SWP_NOMOVE;
-          else if (drs[i].dwType & DRS_MOVE)
-            dwFlags|=SWP_NOSIZE;
-          else
-            continue;
+          ++drsControl;
+          hWndControl=NULL;
+        }
+        if (!drsControl->lpWnd)
+        {
+          //Find child that not exist in drs array
+          if (dwFlags & DRM_ALLCHILDREN)
+          {
+            for (;;)
+            {
+              if (!hWndControl)
+                hWndControl=GetWindow(hDlg, GW_CHILD);
+              else
+                hWndControl=GetWindow(hWndControl, GW_HWNDNEXT);
+              if (!hWndControl) break;
 
-          if (SetWindowPos(*drs[i].lpWnd, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_NOCOPYBITS|SWP_DEFERERASE))
-            ++nChanged;
+              for (drsCount=drs; drsCount->lpWnd; ++drsCount)
+              {
+                if (*drsCount->lpWnd == hWndControl)
+                  break;
+              }
+              if (!drsCount->lpWnd) break;
+            }
+          }
+          if (!hWndControl) break;
         }
       }
       if (nChanged)

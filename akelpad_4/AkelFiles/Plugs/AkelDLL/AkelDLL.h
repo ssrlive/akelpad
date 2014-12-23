@@ -781,6 +781,7 @@
 
 //DIALOGRESIZEMSG flags
 #define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
+#define DRM_ALLCHILDREN   0x4 //Smooth repaint also for all children that not included in DIALOGRESIZE array.
 
 //DIALOGRESIZE type
 #define DRS_SIZE  0x1 //Resize control. Can be combined with DRS_X ot DRS_Y.
@@ -1522,7 +1523,7 @@ typedef struct {
 } DIALOGRESIZE;
 
 typedef struct {
-  DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array.
+  DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array. Last element specified as NULL in DIALOGRESIZE.lpWnd.
   RECT *rcMinMax;     //Pointer to a min/max sizes. Each member is valid if not equal to zero. Can be NULL.
                       //RECT->rcMinMax.left, RECT->rcMinMax.top specifies minimum dialog size.
                       //RECT->rcMinMax.right, RECT->rcMinMax.bottom specifies maximum dialog size.

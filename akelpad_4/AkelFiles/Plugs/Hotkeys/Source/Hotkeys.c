@@ -255,7 +255,7 @@ HWND hWndMainList=NULL;
 HWND hWndAllKeysList=NULL;
 WNDPROC lpOldMainFilterProc=NULL;
 WNDPROC lpOldAllKeysFilterProc=NULL;
-RECT rcMainMinMaxDialog={442, 315, 0, 0};
+RECT rcMainMinMaxDialog={451, 315, 0, 0};
 RECT rcMainCurrentDialog={0};
 RECT rcAllKeysMinMaxDialog={301, 163, 0, 0};
 RECT rcAllKeysCurrentDialog={0};
@@ -520,6 +520,8 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
+  static HWND hWndNameLabel;
+  static HWND hWndCommandLabel;
   static HWND hWndHotkeyCode;
   static HWND hWndButtonGroup;
   static HWND hWndAddModifyHotkey;
@@ -533,8 +535,11 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HOTKEYITEM *hiLastSelItem=NULL;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndMainList,        DRS_SIZE|DRS_X, 0},
+  static DIALOGRESIZE drs[]={{&hWndNameLabel,       0, 0},
+                             {&hWndName,            0, 0},
+                             {&hWndMainList,        DRS_SIZE|DRS_X, 0},
                              {&hWndMainList,        DRS_SIZE|DRS_Y, 0},
+                             {&hWndCommandLabel,    DRS_SIZE|DRS_X, 0},
                              {&hWndCommand,         DRS_SIZE|DRS_X, 0},
                              {&hWndHotkeyLabel,     DRS_MOVE|DRS_X, 0},
                              {&hWndHotkeyCode,      DRS_MOVE|DRS_X, 0},
@@ -560,7 +565,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
     hWndMainList=GetDlgItem(hDlg, IDC_LIST);
+    hWndNameLabel=GetDlgItem(hDlg, IDC_NAME_LABEL);
     hWndName=GetDlgItem(hDlg, IDC_NAME);
+    hWndCommandLabel=GetDlgItem(hDlg, IDC_COMMAND_LABEL);
     hWndCommand=GetDlgItem(hDlg, IDC_COMMAND);
     hWndHotkeyLabel=GetDlgItem(hDlg, IDC_HOTKEY_LABEL);
     hWndHotkeyCode=GetDlgItem(hDlg, IDC_HOTKEYCODE);

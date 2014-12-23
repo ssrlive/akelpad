@@ -57,7 +57,7 @@ BEGIN
     LTEXT           "",IDC_COMMAND_LABEL,111,8,176,8
     COMBOBOX        IDC_COMMAND,108,19,182,121,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_TABSTOP
-    LTEXT           "",IDC_HOTKEY_LABEL,291,9,53,8
+    LTEXT           "",IDC_HOTKEY_LABEL,291,8,53,8
     CONTROL         "HotKey1",IDC_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,291,19,67,13
     PUSHBUTTON      "...",IDC_HOTKEYCODE,347,8,11,10
