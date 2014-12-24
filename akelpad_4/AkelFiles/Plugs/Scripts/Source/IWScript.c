@@ -226,6 +226,17 @@ HRESULT STDMETHODCALLTYPE WScript_Quit(IWScript *this, int nErrorCode)
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealWScript *)this)->lpScriptThread;
 
   lpScriptThread->bQuiting=TRUE;
+
+  if (!bOldWindows)
+  {
+    //On Win9x this will cause crash, but it is necessary for VBScript code:
+    //  On Error Resume Next
+    //  WScript.Quit
+    //  MsgBox "Not quit"
+    lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
+    lpScriptThread->objActiveScript->lpVtbl->Close(lpScriptThread->objActiveScript);
+  }
+
   //This error code disconnect script (skipping OnScriptError).
   //If we return E_FAIL, then debugger will start before execution go to OnScriptError.
   return SCRIPT_E_PROPAGATE;
