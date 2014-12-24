@@ -4429,7 +4429,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_WINDOWPOSCHANGING)
   {
     WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
-    
+
     if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
     {
       if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != moCur.rcMainWindowRestored.left || lpWindowPos->y != moCur.rcMainWindowRestored.top)) &&
@@ -6623,7 +6623,24 @@ BOOL CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_DROPFILES)
+  if (uMsg == WM_WINDOWPOSCHANGING)
+  {
+    WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
+    RECT rcMDIClient;
+
+    if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
+    {
+      GetWindowSize(hWnd, hMainWnd, &rcMDIClient);
+
+      if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcMDIClient.left || lpWindowPos->y != rcMDIClient.top)) &&
+          (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcMDIClient.right || lpWindowPos->cy != rcMDIClient.bottom)))
+      {
+        //Size and position changed don't copy bits to avoid blinking.
+        lpWindowPos->flags|=SWP_NOCOPYBITS;
+      }
+    }
+  }
+  else if (uMsg == WM_DROPFILES)
   {
     DropFiles((HDROP)wParam);
     return TRUE;
