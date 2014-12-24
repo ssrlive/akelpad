@@ -350,7 +350,7 @@ BOOL IsSpacesFromLeft(const AECHARINDEX *ciChar);
 BOOL IsSpacesFromRight(const AECHARINDEX *ciChar);
 void SetEditRect(AEHDOC hDocEdit, HWND hWndEdit, int nNewWidth, int nOldWidth);
 DWORD ScrollToPoint(HWND hWnd, POINT *ptPos);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void ReadCodeFoldOptions(HANDLE hOptions);
 void SaveCodeFoldOptions(HANDLE hOptions, DWORD dwFlags);
