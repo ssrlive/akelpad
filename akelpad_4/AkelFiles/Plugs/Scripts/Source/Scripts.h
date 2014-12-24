@@ -314,7 +314,7 @@ int GetFileStreamOffset(const wchar_t *wpFile, int nFileLen);
 DWORD ScrollCaret(HWND hWnd);
 int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
 BOOL FreeWideStr(wchar_t *wpWideStr);
 
