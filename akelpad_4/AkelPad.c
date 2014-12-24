@@ -6125,6 +6125,23 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
     }
   }
+  else if (uMsg == WM_WINDOWPOSCHANGING)
+  {
+    WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
+    RECT rcFrame;
+
+    if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
+    {
+      GetWindowSize(hWnd, hMdiClient, &rcFrame);
+
+      if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcFrame.left || lpWindowPos->y != rcFrame.top)) &&
+          (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcFrame.right || lpWindowPos->cy != rcFrame.bottom)))
+      {
+        //Size and position changed don't copy bits to avoid blinking.
+        lpWindowPos->flags|=SWP_NOCOPYBITS;
+      }
+    }
+  }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
