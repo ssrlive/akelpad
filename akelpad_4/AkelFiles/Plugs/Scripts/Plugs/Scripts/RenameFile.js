@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 // Description(1033): Rename current editing file.
