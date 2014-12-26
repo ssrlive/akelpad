@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v5.8                     *
+ *              String functions header v5.9                     *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1531,7 +1531,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   if (!pSrc || !dwMaxLength)
     return 0;
   if (!pDest)
-    return min((INT_PTR)dwMaxLength, xstrlenA(pSrc) + 1);
+    return min(dwMaxLength, (UINT_PTR)xstrlenA(pSrc) + 1);
 
   while (*pSrc && --dwMaxLength)
     *pDest++=*pSrc++;
@@ -1569,7 +1569,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   if (!wpSrc || !dwMaxLength)
     return 0;
   if (!wpDest)
-    return min((INT_PTR)dwMaxLength, xstrlenW(wpSrc) + 1);
+    return min(dwMaxLength, (UINT_PTR)xstrlenW(wpSrc) + 1);
 
   while (*wpSrc && --dwMaxLength)
     *wpDest++=*wpSrc++;
