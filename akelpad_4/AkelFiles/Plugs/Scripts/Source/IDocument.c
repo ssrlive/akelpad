@@ -3274,32 +3274,11 @@ HRESULT CallScriptProc(IDispatch *objFunction, HWND hWnd, UINT uMsg, WPARAM wPar
   if (!objFunction)
     return E_FAIL;
 
-  #ifdef _WIN64
-    vtArg[0].llVal=lParam;
-    vtArg[0].vt=VT_I8;
-    vtArg[1].llVal=(INT_PTR)wParam;
-    vtArg[1].vt=VT_I8;
-    vtArg[2].lVal=uMsg;
-    vtArg[2].vt=VT_I4;
-    if (hWnd)
-    {
-      vtArg[3].llVal=(INT_PTR)hWnd;
-      vtArg[3].vt=VT_I8;
-    }
-  #else
-    //Use VT_I4 because VBScript cause error
-    vtArg[0].lVal=lParam;
-    vtArg[0].vt=VT_I4;
-    vtArg[1].lVal=(int)wParam;
-    vtArg[1].vt=VT_I4;
-    vtArg[2].lVal=uMsg;
-    vtArg[2].vt=VT_I4;
-    if (hWnd)
-    {
-      vtArg[3].lVal=(int)hWnd;
-      vtArg[3].vt=VT_I4;
-    }
-  #endif
+  SetVariantInt(&vtArg[0], lParam);
+  SetVariantInt(&vtArg[1], wParam);
+  SetVariantInt(&vtArg[2], uMsg);
+  if (hWnd)
+    SetVariantInt(&vtArg[3], (UINT_PTR)hWnd);
 
   xmemset(&dispp, 0, sizeof(DISPPARAMS));
   dispp.cArgs=hWnd?4:3;
