@@ -53,17 +53,17 @@ function FileDialog(bOpenTrueSaveFalse, hWnd, pInitialFile, pFilter, nFilterInde
       {
         AkelPad.MemCopy(lpExtBuffer, pDefaultExt.substr(0, 255), _TSTR);
 
-        if (lpStructure=AkelPad.MemAlloc(_X64?136:76))  //sizeof(OPENFILENAMEA) or sizeof(OPENFILENAMEW)
+        if (lpStructure=AkelPad.MemAlloc(_X64?136:76 /*sizeof(OPENFILENAME)*/))
         {
           //Fill structure
-          AkelPad.MemCopy(lpStructure, _X64?136:76, 3 /*DT_DWORD*/);                     //lStructSize
-          AkelPad.MemCopy(lpStructure + (_X64?8:4), hWnd, 2 /*DT_QWORD*/);               //hwndOwner
-          AkelPad.MemCopy(lpStructure + (_X64?24:12), lpFilterBuffer, 2 /*DT_QWORD*/);   //lpstrFilter
-          AkelPad.MemCopy(lpStructure + (_X64?44:24), nFilterIndex, 3 /*DT_DWORD*/);     //nFilterIndex
-          AkelPad.MemCopy(lpStructure + (_X64?48:28), lpFileBuffer, 2 /*DT_QWORD*/);     //lpstrFile
-          AkelPad.MemCopy(lpStructure + (_X64?56:32), 256, 3 /*DT_DWORD*/);              //nMaxFile
-          AkelPad.MemCopy(lpStructure + (_X64?96:52), nFlags, 3 /*DT_DWORD*/);           //Flags
-          AkelPad.MemCopy(lpStructure + (_X64?104:60), lpExtBuffer, 2 /*DT_QWORD*/);     //lpstrDefExt
+          AkelPad.MemCopy(_PtrAdd(lpStructure, 0) /*offsetof(OPENFILENAME, lStructSize)*/, _X64?136:76, 3 /*DT_DWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?8:4) /*offsetof(OPENFILENAME, hwndOwner)*/, hWnd, 2 /*DT_QWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?24:12) /*offsetof(OPENFILENAME, lpstrFilter)*/, lpFilterBuffer, 2 /*DT_QWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?44:24) /*offsetof(OPENFILENAME, nFilterIndex)*/, nFilterIndex, 3 /*DT_DWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?48:28) /*offsetof(OPENFILENAME, lpstrFile)*/, lpFileBuffer, 2 /*DT_QWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?56:32) /*offsetof(OPENFILENAME, nMaxFile)*/, 256, 3 /*DT_DWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?96:52) /*offsetof(OPENFILENAME, Flags)*/, nFlags, 3 /*DT_DWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpStructure, _X64?104:60) /*offsetof(OPENFILENAME, lpstrDefExt)*/, lpExtBuffer, 2 /*DT_QWORD*/);
 
           if (oSys=AkelPad.SystemFunction())
           {

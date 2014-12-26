@@ -11,6 +11,7 @@
 #include "Resources\Resource.h"
 #include "IActiveScriptSite.h"
 #include "IConstants.h"
+#include "IGlobal.h"
 #include "IDocument.h"
 #include "IScriptSettings.h"
 #include "ISystemFunction.h"

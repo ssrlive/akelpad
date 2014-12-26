@@ -129,7 +129,8 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
         {
           if (st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"WScript", SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK &&
               st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"AkelPad", SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK &&
-              st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"Constants", SCRIPTITEM_GLOBALMEMBERS|SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK)
+              st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"Constants", SCRIPTITEM_GLOBALMEMBERS|SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK &&
+              st->objActiveScript->lpVtbl->AddNamedItem(st->objActiveScript, L"Global", SCRIPTITEM_GLOBALMEMBERS|SCRIPTITEM_ISVISIBLE|SCRIPTITEM_NOCODE) == S_OK)
           {
             if (st->bInitDebugJIT)
             {
@@ -330,6 +331,14 @@ HRESULT STDMETHODCALLTYPE GetItemInfo(IActiveScriptSite *this, LPCOLESTR objectN
     if (dwReturnMask & SCRIPTINFO_ITYPEINFO)
       hr=Constants_GetTypeInfo(NULL, 0, 0, typeInfo);
   }
+  else if (!xstrcmpiW(objectName, L"Global"))
+  {
+    if (dwReturnMask & SCRIPTINFO_IUNKNOWN)
+      hr=Class_CreateInstance(NULL, NULL, &IID_IGlobal, (void **)objPtr);
+    if (dwReturnMask & SCRIPTINFO_ITYPEINFO)
+      hr=Global_GetTypeInfo(NULL, 0, 0, typeInfo);
+  }
+
   return hr;
 }
 

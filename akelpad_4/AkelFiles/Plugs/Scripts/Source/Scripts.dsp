@@ -106,6 +106,10 @@ SOURCE=.\IDocument.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\IGlobal.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\IScriptSettings.c
 # End Source File
 # Begin Source File

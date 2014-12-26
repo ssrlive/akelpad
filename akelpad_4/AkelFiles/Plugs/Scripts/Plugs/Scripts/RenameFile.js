@@ -70,8 +70,8 @@ if (hWndEdit)
           AkelPad.OpenFile(pNewFileFullName, 0, nCodePage, nBOM);
 
           //Restore document position
-          dwFlags=AkelPad.MemRead(lpSel + (_X64?48:24) /*AESELECTION.dwFlags*/, 3 /*DT_DWORD*/);
-          AkelPad.MemCopy(lpSel + (_X64?48:24) /*AESELECTION.dwFlags*/, dwFlags | 0x808 /*AESELT_LOCKSCROLL|AESELT_INDEXUPDATE*/, 3 /*DT_DWORD*/);
+          dwFlags=AkelPad.MemRead(_PtrAdd(lpSel, _X64?48:24) /*offsetof(AESELECTION, dwFlags)*/, 3 /*DT_DWORD*/);
+          AkelPad.MemCopy(_PtrAdd(lpSel, _X64?48:24) /*offsetof(AESELECTION, dwFlags)*/, dwFlags | 0x808 /*AESELT_LOCKSCROLL|AESELT_INDEXUPDATE*/, 3 /*DT_DWORD*/);
           AkelPad.SendMessage(hWndEdit, 3126 /*AEM_SETSEL*/, lpCaret, lpSel);
           AkelPad.SendMessage(hWndEdit, 3180 /*AEM_SETSCROLLPOS*/, 0, lpPoint64);
         }
