@@ -5,10 +5,7 @@ library Scripts
 
   //- JScript and VBScript doesn't understand __int64 in return value
   //- VBScript doesn't support UINT in return value
-  typedef LPARAM MYHANDLE;
-  typedef int MYRETHANDLE;
-  typedef LPARAM MYINT;
-  typedef int MYRETINT;
+  //- Solution: VARIANT is used for methods and all numbers more then 0xFFFFFFFF converted to VT_BSTR with first NULL symbol.
 
   //WScript object
   [uuid(DBE648AA-4858-4A34-B384-D1D5B78EE59A), dual, hidden, nonextensible]
@@ -67,16 +64,16 @@ library Scripts
     [id(2), propget] HRESULT Constants([out, retval] IDispatch **objConstants);
 
     //Get main window handle.
-    HRESULT GetMainWnd([out, retval] MYRETHANDLE *hWnd);
+    HRESULT GetMainWnd([out, retval] VARIANT *vtWnd);
 
     //Get AkelPad directory.
     HRESULT GetAkelDir([in, defaultvalue(0)] int nSubDir, [out, retval] BSTR *wpDir);
 
     //Get EXE instance handle.
-    HRESULT GetInstanceExe([out, retval] MYRETHANDLE *hInstance);
+    HRESULT GetInstanceExe([out, retval] VARIANT *vtInstance);
 
     //Get DLL instance handle.
-    HRESULT GetInstanceDll([out, retval] MYRETHANDLE *hInstance);
+    HRESULT GetInstanceDll([out, retval] VARIANT *vtInstance);
 
     //Get AkelPad language ID.
     HRESULT GetLangId([in, defaultvalue(0)] int nType, [out, retval] int *nLangModule);
@@ -85,76 +82,76 @@ library Scripts
     HRESULT IsOldWindows([out, retval] BOOL *bIsOld);
 
     //Is AkelEdit control used.
-    HRESULT IsAkelEdit([in, defaultvalue(0)] MYHANDLE hWnd, [out, retval] int *nIsAkelEdit);
+    HRESULT IsAkelEdit([in, defaultvalue(0)] VARIANT vtWnd, [out, retval] int *nIsAkelEdit);
 
     //Is AkelPad in MDI mode.
     HRESULT IsMDI([out, retval] int *nIsMDI);
 
     //Get edit window handle.
-    HRESULT GetEditWnd([out, retval] MYRETHANDLE *hWnd);
+    HRESULT GetEditWnd([out, retval] VARIANT *vtWnd);
 
     //Set edit window handle.
-    HRESULT SetEditWnd([in] MYHANDLE hWnd, [out, retval] MYRETHANDLE *hWndResult);
+    HRESULT SetEditWnd([in] VARIANT vtWnd, [out, retval] VARIANT *vtWndResult);
 
     //Get edit document handle.
-    HRESULT GetEditDoc([out, retval] MYRETHANDLE *hWnd);
+    HRESULT GetEditDoc([out, retval] VARIANT *vtWnd);
 
     //Get file name.
-    HRESULT GetEditFile([in] MYHANDLE hWnd, [out, retval] BSTR *wpFile);
+    HRESULT GetEditFile([in] VARIANT vtWnd, [out, retval] BSTR *wpFile);
 
     //Get file path.
     HRESULT GetFilePath([in] BSTR wpFile, [in] int nPart, [out, retval] BSTR *wpPath);
 
     //Get file code page.
-    HRESULT GetEditCodePage([in] MYHANDLE hWnd, [out, retval] int *nCodePage);
+    HRESULT GetEditCodePage([in] VARIANT vtWnd, [out, retval] int *nCodePage);
 
     //Get file BOM.
-    HRESULT GetEditBOM([in] MYHANDLE hWnd, [out, retval] BOOL *bBOM);
+    HRESULT GetEditBOM([in] VARIANT vtWnd, [out, retval] BOOL *bBOM);
 
     //Get file new line format.
-    HRESULT GetEditNewLine([in] MYHANDLE hWnd, [out, retval] int *nNewLine);
+    HRESULT GetEditNewLine([in] VARIANT vtWnd, [out, retval] int *nNewLine);
 
     //Get file modified flag.
-    HRESULT GetEditModified([in] MYHANDLE hWnd, [out, retval] BOOL *bModified);
+    HRESULT GetEditModified([in] VARIANT vtWnd, [out, retval] BOOL *bModified);
 
     //Get edit control's read only mode.
-    HRESULT GetEditReadOnly([in] MYHANDLE hWnd, [out, retval] BOOL *bReadOnly);
+    HRESULT GetEditReadOnly([in] VARIANT vtWnd, [out, retval] BOOL *bReadOnly);
 
     //Set frame info.
-    HRESULT SetFrameInfo([in] MYHANDLE lpFrame, [in] int nType, [in] MYHANDLE dwData, [out, retval] BOOL *bResult);
+    HRESULT SetFrameInfo([in] VARIANT vtFrame, [in] int nType, [in] VARIANT vtData, [out, retval] BOOL *bResult);
 
     //Send message.
-    HRESULT SendMessage([in] MYHANDLE hWnd, [in] UINT uMsg, [in] VARIANT vtwParam, [in] VARIANT vtlParam, [out, retval] MYRETINT *lResult);
+    HRESULT SendMessage([in] VARIANT vtWnd, [in] UINT uMsg, [in] VARIANT vtWParam, [in] VARIANT vtLParam, [out, retval] VARIANT *vtResult);
 
     //Show message.
-    [vararg] HRESULT MessageBox([in] MYHANDLE hWnd, [in] BSTR pText, [in] BSTR pCaption, [in] UINT uType, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *nResult);
+    [vararg] HRESULT MessageBox([in] VARIANT vtWnd, [in] BSTR pText, [in] BSTR pCaption, [in] UINT uType, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *nResult);
 
     //Input dialog box.
-    HRESULT InputBox([in] MYHANDLE hWnd, [in] BSTR wpCaption, [in] BSTR wpLabel, [in] BSTR wpEdit, [out, retval] VARIANT *vtResult);
+    HRESULT InputBox([in] VARIANT vtWnd, [in] BSTR wpCaption, [in] BSTR wpLabel, [in] BSTR wpEdit, [out, retval] VARIANT *vtResult);
 
     //Get selection first char index.
-    HRESULT GetSelStart([out, retval] MYRETINT *nSelStart);
+    HRESULT GetSelStart([out, retval] VARIANT *vtSelStart);
 
     //Get selection last char index.
-    HRESULT GetSelEnd([out, retval] MYRETINT *nSelEnd);
+    HRESULT GetSelEnd([out, retval] VARIANT *vtSelEnd);
 
     //Set selection.
-    HRESULT SetSel([in] MYINT nSelStart, [in] MYINT nSelEnd, [in, defaultvalue(0)] DWORD dwFlags, [in, defaultvalue(0)] DWORD dwType);
+    HRESULT SetSel([in] VARIANT vtSelStart, [in] VARIANT vtSelEnd, [in, defaultvalue(0)] DWORD dwFlags, [in, defaultvalue(0)] DWORD dwType);
 
     //Get selected text.
     HRESULT GetSelText([in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
 
     //Get text range.
-    HRESULT GetTextRange([in] MYINT nRangeStart, [in] MYINT nRangeEnd, [in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
+    HRESULT GetTextRange([in] VARIANT vtRangeStart, [in] VARIANT vtRangeEnd, [in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
 
     //Replace selection.
     HRESULT ReplaceSel([in] BSTR wpText, [in, defaultvalue(0)] int nSelect);
 
     //Find text.
-    HRESULT TextFind([in] MYHANDLE hWnd, [in] BSTR wpFindIt, [in] DWORD dwFlags, [out, retval] MYRETINT *nResult);
+    HRESULT TextFind([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] DWORD dwFlags, [out, retval] VARIANT *vtResult);
 
     //Find and replace text.
-    HRESULT TextReplace([in] MYHANDLE hWnd, [in] BSTR wpFindIt, [in] BSTR wpReplaceWith, [in] DWORD dwFlags, [in] BOOL bAll, [out, retval] MYRETINT *nResult);
+    HRESULT TextReplace([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] BSTR wpReplaceWith, [in] DWORD dwFlags, [in] BOOL bAll, [out, retval] VARIANT *vtResult);
 
     //Get clipboard text.
     HRESULT GetClipboardText([in, defaultvalue(FALSE)] BOOL bAnsi, [out, retval] BSTR *wpText);
@@ -187,7 +184,7 @@ library Scripts
     HRESULT Exec([in] BSTR wpCmdLine, [in, defaultvalue(L"")] BSTR wpWorkDir, [in, defaultvalue(0)] int nWait, [out, retval] DWORD *dwExit);
 
     //Send internal command.
-    HRESULT Command([in] int nCommand, [in, defaultvalue(0)] MYINT nSelEnd, [out, retval] MYRETINT *nResult);
+    HRESULT Command([in] int nCommand, [in, defaultvalue(0)] VARIANT vtSelEnd, [out, retval] VARIANT *vtResult);
 
     //Set font.
     HRESULT Font([in] BSTR wpFaceName, [in] DWORD dwFontStyle, [in] int nPointSize);
@@ -207,13 +204,13 @@ library Scripts
 
     //Read contents of a file.
     //0xD == OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM
-    HRESULT ReadFile([in] BSTR wpFile, [in, defaultvalue(0xD)] DWORD dwFlags, [in, defaultvalue(0)] int nCodePage, [in, defaultvalue(0)] BOOL bBOM, [in, defaultvalue(-1)] MYINT nBytesMax, [out, retval] BSTR *wpText);
+    HRESULT ReadFile([in] BSTR wpFile, [in, defaultvalue(0xD)] DWORD dwFlags, [in, defaultvalue(0)] int nCodePage, [in, defaultvalue(0)] BOOL bBOM, [in, defaultvalue(-1)] VARIANT vtBytesMax, [out, retval] BSTR *wpText);
 
     //Write file contents.
-    HRESULT WriteFile([in] VARIANT vtFile, [in] BSTR wpContent, [in] MYINT nContentLen, [in] int nCodePage, [in] BOOL bBOM, [in, defaultvalue(0)] DWORD dwFlags, [out, retval] int *nResult);
+    HRESULT WriteFile([in] VARIANT vtFile, [in] BSTR wpContent, [in] VARIANT vtContentLen, [in] int nCodePage, [in] BOOL bBOM, [in, defaultvalue(0)] DWORD dwFlags, [out, retval] int *nResult);
 
     //Save file.
-    HRESULT SaveFile([in] MYHANDLE hWnd, [in] BSTR wpFile, [in, defaultvalue(-1)] int nCodePage, [in, defaultvalue(-1)] BOOL bBOM, [in, defaultvalue(0x1)] DWORD dwFlags, [out, retval] int *nResult);
+    HRESULT SaveFile([in] VARIANT vtWnd, [in] BSTR wpFile, [in, defaultvalue(-1)] int nCodePage, [in, defaultvalue(-1)] BOOL bBOM, [in, defaultvalue(0x1)] DWORD dwFlags, [out, retval] int *nResult);
 
     //Create script settings object.
     HRESULT ScriptSettings([out, retval] IDispatch **objSet);
@@ -222,19 +219,22 @@ library Scripts
     HRESULT SystemFunction([out, retval] IDispatch **objSys);
 
     //Allocate memory.
-    HRESULT MemAlloc([in] DWORD dwSize, [out, retval] MYRETHANDLE *nPointer);
+    HRESULT MemAlloc([in] VARIANT vtSize, [out, retval] VARIANT *vtPointer);
 
     //Copy memory.
-    HRESULT MemCopy([in] MYHANDLE nPointer, [in] VARIANT vtData, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] int *nBytes);
+    HRESULT MemCopy([in] VARIANT vtPointer, [in] VARIANT vtData, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] int *nBytes);
 
     //Read memory.
-    HRESULT MemRead([in] MYHANDLE nPointer, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] VARIANT *vtData);
+    HRESULT MemRead([in] VARIANT vtPointer, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] VARIANT *vtData);
 
     //Get pointer to a script string.
-    HRESULT MemStrPtr([in] BSTR wpString, [out, retval] MYRETHANDLE *nPointer);
+    HRESULT MemStrPtr([in] BSTR wpString, [in, defaultvalue(0)] BOOL bConvert, [out, retval] VARIANT *vtPointer);
+
+    //Get string representation of a pointer.
+    HRESULT MemPtrStr([in] VARIANT vtPointer, [out, retval] BSTR *wpString);
 
     //Free memory.
-    HRESULT MemFree([in] MYHANDLE nPointer);
+    HRESULT MemFree([in] VARIANT vtPointer);
 
     //IDE debugging.
     HRESULT DebugJIT();
@@ -258,37 +258,37 @@ library Scripts
     HRESULT WindowUnregisterClass([in] BSTR wpClassName, [out, retval] BOOL *bResult);
 
     //Register dialog.
-    HRESULT WindowRegisterDialog([in] MYHANDLE hDlg, [out, retval] BOOL *bResult);
+    HRESULT WindowRegisterDialog([in] VARIANT vtDlg, [out, retval] BOOL *bResult);
 
     //Unregister dialog.
-    HRESULT WindowUnregisterDialog([in] MYHANDLE hDlg, [out, retval] BOOL *bResult);
+    HRESULT WindowUnregisterDialog([in] VARIANT vtDlg, [out, retval] BOOL *bResult);
 
     //Process thread messages (message loop).
     HRESULT WindowGetMessage([in, defaultvalue(0x0)] DWORD dwFlags);
 
     //Subclass window.
-    [vararg] HRESULT WindowSubClass([in] MYHANDLE hWnd, [in] IDispatch *objFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] MYRETHANDLE *lpCallbackItem);
+    [vararg] HRESULT WindowSubClass([in] VARIANT vtWnd, [in] IDispatch *objFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtCallbackItem);
 
     //Send message to the next procedure in chain.
-    HRESULT WindowNextProc([in] MYHANDLE lpCallbackItem, [in] MYHANDLE hWnd, [in] UINT uMsg, [in] WPARAM wParam, [in] LPARAM lParam, [out, retval] MYRETINT *lResult);
+    HRESULT WindowNextProc([in] VARIANT vtCallbackItem, [in] VARIANT vtWnd, [in] UINT uMsg, [in] VARIANT vtWParam, [in] VARIANT vtLParam, [out, retval] VARIANT *vtResult);
 
     //Don't send current message to the next procedure in chain.
-    HRESULT WindowNoNextProc([in] MYHANDLE lpCallbackItem);
+    HRESULT WindowNoNextProc([in] VARIANT vtCallbackItem);
 
     //Unsubclass window.
-    HRESULT WindowUnsubClass([in] MYHANDLE hWnd);
+    HRESULT WindowUnsubClass([in] VARIANT vtWnd);
 
     //Installs an application-defined hook procedure into a hook chain.
-    [vararg] HRESULT ThreadHook([in] int idHook, [in] IDispatch *objCallback, [in] DWORD dwThreadId, [in] SAFEARRAY(VARIANT) *psa, [out, retval] MYRETHANDLE *hHook);
+    [vararg] HRESULT ThreadHook([in] int idHook, [in] IDispatch *objCallback, [in] DWORD dwThreadId, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtHook);
 
     //Removes a hook procedure installed in a hook chain.
-    HRESULT ThreadUnhook([in] MYHANDLE hHook, [out, retval] BOOL *bResult);
+    HRESULT ThreadUnhook([in] VARIANT vtHook, [out, retval] BOOL *bResult);
 
     //Remove synchronization object.
     HRESULT ScriptNoMutex([in, defaultvalue(0x1)] DWORD dwUnlockType, [out, retval] DWORD *dwResult);
 
     //Set script exit code.
-    HRESULT ScriptExitCode([in] MYINT nExitCode, [out, retval] BOOL *bResult);
+    HRESULT ScriptExitCode([in] VARIANT vtExitCode, [out, retval] BOOL *bResult);
 
     //Different operations with script.
     HRESULT ScriptHandle([in] VARIANT vtData, [in] int nOperation, [out, retval] VARIANT *vtResult);
@@ -299,7 +299,7 @@ library Scripts
   interface IScriptSettings : IDispatch
   {
     //Begin settings operations.
-    HRESULT Begin([in] BSTR wpScriptName, [in] DWORD dwFlags, [out, retval] MYRETHANDLE *hOptions);
+    HRESULT Begin([in] BSTR wpScriptName, [in] DWORD dwFlags, [out, retval] VARIANT *vtOptions);
 
     //Read option.
     HRESULT Read([in] VARIANT vtOptionName, [in] DWORD dwType, [in, optional] VARIANT vtDefault, [out, retval] VARIANT *vtData);
@@ -322,7 +322,7 @@ library Scripts
     HRESULT AddParameter([in] VARIANT vtParameter);
 
     //Call system function.
-    [vararg] HRESULT Call([in] BSTR wpDllFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] MYRETINT *lResult);
+    [vararg] HRESULT Call([in] BSTR wpDllFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Get call function last error.
     HRESULT GetLastError([out, retval] DWORD *dwLastError);

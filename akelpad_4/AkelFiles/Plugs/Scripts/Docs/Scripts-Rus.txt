@@ -161,6 +161,7 @@ AkelPad.MemAlloc                             +ActiveX
 AkelPad.MemCopy                              +ActiveX
 AkelPad.MemRead                              +ActiveX
 AkelPad.MemStrPtr                            +ActiveX
+AkelPad.MemPtrStr                            +ActiveX
 AkelPad.MemFree                              +ActiveX
 AkelPad.DebugJIT                             +ActiveX
 AkelPad.Debug                                +ActiveX
@@ -1572,20 +1573,42 @@ __________________________
 AkelPad.MemStrPtr (+ActiveX)
 ____________________________
 
-Получить указатель на двухбайтовую строку в скрипте.
+Получить указатель из строки или на строку.
 
-  MemStrPtr(pString);
+  MemStrPtr(pString[, bConvert]);
 
 Аргументы
   pString
     Строка константой или объектом.
+  bConvert
+    true  получить указатель из pString, т.е конвертировать содержимое pString в число.
+    false получить указатель на pString (по умолчанию).
 
 Возвращаемое значение
-  Число. Указатель на двухбайтовую строку.
+  Число. Указатель.
 
 Пример:
   var hMainWnd=AkelPad.GetMainWnd();
   AkelPad.SendMessage(hMainWnd, 1206 /*AKD_GOTOW*/, 0x1 /*GT_LINE*/, AkelPad.MemStrPtr("10:3"));
+
+
+AkelPad.MemPtrStr (+ActiveX)
+____________________________
+
+Получить строковое представление указателя.
+
+  MemPtrStr(lpPointer);
+
+Аргументы
+  lpPointer
+    Любой указатель.
+
+Возвращаемое значение
+  Строка. Строковое представление указателя.
+
+Пример:
+  var hMainWnd=AkelPad.GetMainWnd();
+  WScript.Echo(AkelPad.MemPtrStr(hMainWnd));
 
 
 AkelPad.MemFree (+ActiveX)

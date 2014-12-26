@@ -2338,36 +2338,23 @@ void StackFreeArguments(HARGSTACK *hStack)
   hStack->nElements=0;
 }
 
-UINT_PTR GetVariantInt(VARIANT *vt)
-{
-  VARIANT vtConverted;
-  UINT_PTR dwResult=0;
-  INT_PTR nResult=0;
-
-  VariantInit(&vtConverted);
-  VariantCopy(&vtConverted, vt);
-
-  #ifdef _WIN64
-    if (VariantChangeType(&vtConverted, &vtConverted, 0, VT_I8) == S_OK)
-      nResult=vtConverted.llVal;
-    if (!nResult && (VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI8) == S_OK))
-      dwResult=vtConverted.ullVal;
-  #else
-    if (VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4) == S_OK)
-      nResult=vtConverted.lVal;
-    if (!nResult && (VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4) == S_OK))
-      dwResult=vtConverted.ulVal;
-  #endif
-  return max(dwResult, (UINT_PTR)nResult);
-}
-
-UINT_PTR GetVariantValue(VARIANT *pvtParameter, BOOL bAnsi)
+UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi)
 {
   CALLBACKITEM *lpSysCallback;
   UINT_PTR dwValue=0;
   int nUniLen;
   int nAnsiLen;
 
+  if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
+    pvtParameter=pvtParameter->pvarVal;
+
+  #ifdef _WIN64
+    if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
+    {
+      //JScript doesn't support VT_I8, so __int64 number converted to string.
+      return xatoiW(pvtParameter->bstrVal + 1, NULL);
+    }
+  #endif
   if (pvtParameter->vt == VT_BSTR)
   {
     if (bAnsi)
@@ -2386,14 +2373,68 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, BOOL bAnsi)
     else
       dwValue=(UINT_PTR)pvtParameter->pdispVal;
   }
-  else
-  {
-    if (pvtParameter->vt == VT_BOOL)
-      dwValue=pvtParameter->boolVal?TRUE:FALSE;
-    else
-      dwValue=GetVariantInt(pvtParameter);
-  }
+  else dwValue=GetVariantInt(pvtParameter, &pvtParameter);
+
+  if (ppvtParameter) *ppvtParameter=pvtParameter;
   return dwValue;
+}
+
+UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
+{
+  VARIANT vtConverted;
+  UINT_PTR dwResult=0;
+  INT_PTR nResult=0;
+
+  if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
+  {
+    pvtParameter=pvtParameter->pvarVal;
+    if (ppvtParameter) *ppvtParameter=pvtParameter;
+  }
+  if (pvtParameter->vt == VT_BOOL)
+    return pvtParameter->boolVal?TRUE:FALSE;
+  #ifdef _WIN64
+    if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
+    {
+      //JScript doesn't support VT_I8, so __int64 number converted to string.
+      return xatoiW(pvtParameter->bstrVal + 1, NULL);
+    }
+  #endif
+
+  VariantInit(&vtConverted);
+  VariantCopy(&vtConverted, pvtParameter);
+
+  if (VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4) == S_OK)
+    nResult=vtConverted.lVal;
+  if (!nResult && (VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4) == S_OK))
+    dwResult=vtConverted.ulVal;
+  return max(dwResult, (UINT_PTR)nResult);
+}
+
+HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
+{
+  HRESULT hr=NOERROR;
+
+  VariantInit(pvtParameter);
+
+  #ifdef _WIN64
+    if (dwHandle > 0xFFFFFFFF)
+    {
+      //JScript doesn't support VT_I8, so __int64 number converted to string.
+      wchar_t wszNumber[32];
+      int nNumberLen;
+
+      //Insert zero to first char to indicate that it is a number.
+      wszNumber[0]=L'\0';
+      nNumberLen=xitoaW(dwHandle, wszNumber + 1);
+      pvtParameter->vt=VT_BSTR;
+      if (!(pvtParameter->bstrVal=SysAllocStringLen(wszNumber, nNumberLen + 1)))
+        hr=E_OUTOFMEMORY;
+      return hr;
+    }
+  #endif
+  pvtParameter->vt=VT_I4;
+  pvtParameter->lVal=(DWORD)dwHandle;
+  return hr;
 }
 
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString)

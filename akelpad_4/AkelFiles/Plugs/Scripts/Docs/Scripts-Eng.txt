@@ -160,6 +160,7 @@ AkelPad.MemAlloc                             +ActiveX
 AkelPad.MemCopy                              +ActiveX
 AkelPad.MemRead                              +ActiveX
 AkelPad.MemStrPtr                            +ActiveX
+AkelPad.MemPtrStr                            +ActiveX
 AkelPad.MemFree                              +ActiveX
 AkelPad.DebugJIT                             +ActiveX
 AkelPad.Debug                                +ActiveX
@@ -1570,20 +1571,42 @@ Example:
 AkelPad.MemStrPtr (+ActiveX)
 ____________________________
 
-Get pointer to a script unicode string.
+Get pointer from a string or to a string.
 
-  MemStrPtr(pString);
+  MemStrPtr(pString[, bConvert]);
 
 Arguments
   pString
     Constant string or string object.
+  bConvert
+    true  get pointer from the pString, ie convert pString contents in number.
+    false get pointer to the pString (by default).
 
 Return Value
-  Number. Pointer to a unicode string.
+  Number. Pointer.
 
 Example:
   var hMainWnd=AkelPad.GetMainWnd();
   AkelPad.SendMessage(hMainWnd, 1206 /*AKD_GOTOW*/, 0x1 /*GT_LINE*/, AkelPad.MemStrPtr("10:3"));
+
+
+AkelPad.MemPtrStr (+ActiveX)
+____________________________
+
+Get string representation of a pointer.
+
+  MemPtrStr(lpPointer);
+
+Arguments
+  lpPointer
+    Any pointer.
+
+Return Value
+  String. String representation of a pointer.
+
+Example:
+  var hMainWnd=AkelPad.GetMainWnd();
+  WScript.Echo(AkelPad.MemPtrStr(hMainWnd));
 
 
 AkelPad.MemFree (+ActiveX)

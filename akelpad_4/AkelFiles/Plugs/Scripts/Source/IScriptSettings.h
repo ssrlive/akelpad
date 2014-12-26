@@ -22,7 +22,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, ScriptSettings_Invoke)(THIS_ DISPID, REFIID, LCID, WORD, DISPPARAMS *, VARIANT *, EXCEPINFO *, UINT *) PURE;
 
   // IScriptSettings methods
-  STDMETHOD_(HRESULT, ScriptSettings_Begin)(THIS_ BSTR, DWORD, HANDLE *) PURE;
+  STDMETHOD_(HRESULT, ScriptSettings_Begin)(THIS_ BSTR, DWORD, VARIANT *) PURE;
   STDMETHOD_(HRESULT, ScriptSettings_Read)(THIS_ VARIANT, DWORD, VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, ScriptSettings_Write)(THIS_ BSTR, DWORD, VARIANT, int, int *) PURE;
   STDMETHOD_(HRESULT, ScriptSettings_Delete)(THIS_ BSTR, BOOL *) PURE;
@@ -51,7 +51,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_GetTypeInfo(IScriptSettings *this, UINT
 HRESULT STDMETHODCALLTYPE ScriptSettings_GetIDsOfNames(IScriptSettings *this, REFIID riid, LPOLESTR *rgszNames, UINT cNames, LCID lcid, DISPID *rgdispid);
 HRESULT STDMETHODCALLTYPE ScriptSettings_Invoke(IScriptSettings *this, DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *result, EXCEPINFO *pexcepinfo, UINT *puArgErr);
 
-HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScriptName, DWORD dwFlags, HANDLE *hOptions);
+HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScriptName, DWORD dwFlags, VARIANT *vtOptions);
 HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtOptionName, DWORD dwType, VARIANT vtDefault, VARIANT *vtData);
 HRESULT STDMETHODCALLTYPE ScriptSettings_Write(IScriptSettings *this, BSTR wpOptionName, DWORD dwType, VARIANT vtData, int nDataSize, int *nResult);
 HRESULT STDMETHODCALLTYPE ScriptSettings_Delete(IScriptSettings *this, BSTR wpOptionName, BOOL *bResult);
