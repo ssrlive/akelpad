@@ -117,7 +117,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Invoke(IScriptSettings *this, DISPID di
 
 //// IScriptSettings methods
 
-HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScriptName, DWORD dwFlags, HANDLE *hOptions)
+HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScriptName, DWORD dwFlags, VARIANT *vtOptions)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealScriptSettings *)this)->lpScriptThread;
   HANDLE *lphOptions=&((IRealScriptSettings *)this)->hOptions;
@@ -125,14 +125,13 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScr
   if (!wpScriptName || !*wpScriptName)
     wpScriptName=lpScriptThread->wszScriptBaseName;
   *lphOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, dwFlags|POB_SCRIPTS, (LPARAM)wpScriptName);
-  *hOptions=*lphOptions;
+  SetVariantInt(vtOptions, (UINT_PTR)*lphOptions);
   return NOERROR;
 }
 
 HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtOptionName, DWORD dwType, VARIANT vtDefault, VARIANT *vtData)
 {
   HANDLE hOptions=((IRealScriptSettings *)this)->hOptions;
-  VARIANT *pvtOptionName=&vtOptionName;
   const wchar_t *wpOptionName;
   unsigned char *lpData;
   INT_PTR nDataSize;
@@ -141,9 +140,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
 
   VariantInit(vtData);
 
-  if (pvtOptionName->vt == (VT_VARIANT|VT_BYREF))
-    pvtOptionName=pvtOptionName->pvarVal;
-  wpOptionName=(wchar_t *)GetVariantValue(pvtOptionName, FALSE);
+  wpOptionName=(wchar_t *)GetVariantValue(&vtOptionName, NULL, FALSE);
 
   if (dwType == PO_BINARYSIZE)
   {
@@ -158,13 +155,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
 
   if (dwType == PO_BINARYSIZE)
   {
-    #ifdef _WIN64
-      vtData->vt=VT_I8;
-      vtData->llVal=nDataSize;
-    #else
-      vtData->vt=VT_I4;
-      vtData->lVal=nDataSize;
-    #endif
+    SetVariantInt(vtData, nDataSize);
     return hr;
   }
   if (nDataSize >= 0)
@@ -180,13 +171,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
       }
       else if (dwType == PO_BINARY)
       {
-        #ifdef _WIN64
-          vtData->vt=VT_I8;
-          vtData->llVal=(INT_PTR)lpData;
-        #else
-          vtData->vt=VT_I4;
-          vtData->lVal=(INT_PTR)lpData;
-        #endif
+        SetVariantInt(vtData, (UINT_PTR)lpData);
         lpData=NULL;
       }
       else if (dwType == PO_STRING || dwType == PO_ENUM)
@@ -215,36 +200,25 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Write(IScriptSettings *this, BSTR wpOpt
 
   *nResult=0;
   if (!hOptions) return NOERROR;
-
-  if (pvtData->vt == (VT_VARIANT|VT_BYREF))
-    pvtData=pvtData->pvarVal;
+  dwNumber=GetVariantValue(pvtData, NULL, FALSE);
 
   if (pvtData->vt == VT_BSTR && (dwType == PO_STRING || dwType == PO_BINARY))
   {
-    if (nDataSize == -1)
-      nDataSize=(SysStringLen(pvtData->bstrVal) + 1) * sizeof(wchar_t);
-    lpData=(unsigned char *)pvtData->bstrVal;
+    #ifdef _WIN64
+      if (!pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
+      {
+        //JScript doesn't support VT_I8, so __int64 number converted to string.
+      }
+      else
+    #endif
+    {
+      lpData=(unsigned char *)pvtData->bstrVal;
+      if (nDataSize == -1)
+        nDataSize=(SysStringLen(pvtData->bstrVal) + 1) * sizeof(wchar_t);
+    }
   }
-  else if (dwType == PO_DWORD || dwType == PO_BINARY)
+  if (!lpData && (dwType == PO_DWORD || dwType == PO_BINARY))
   {
-    if (pvtData->vt == VT_BSTR)
-    {
-      dwNumber=(UINT_PTR)pvtData->bstrVal;
-    }
-    else if (pvtData->vt == VT_BOOL)
-    {
-      dwNumber=pvtData->boolVal?TRUE:FALSE;
-    }
-    else
-    {
-      #ifdef _WIN64
-        VariantChangeType(pvtData, pvtData, 0, VT_UI8);
-        dwNumber=pvtData->ullVal;
-      #else
-        VariantChangeType(pvtData, pvtData, 0, VT_UI4);
-        dwNumber=pvtData->ulVal;
-      #endif
-    }
     if (dwType == PO_DWORD)
     {
       if (nDataSize == -1)

@@ -158,9 +158,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_AddParameter(ISystemFunction *this, VAR
 
   if (lpSysParam=StackInsertSysParam(hStack))
   {
-    if (pvtParameter->vt == (VT_VARIANT|VT_BYREF))
-      pvtParameter=pvtParameter->pvarVal;
-    lpSysParam->dwValue=GetVariantValue(pvtParameter, bOldWindows);
+    lpSysParam->dwValue=GetVariantValue(pvtParameter, &pvtParameter, bOldWindows);
     lpSysParam->dwType=pvtParameter->vt;
   }
   else return E_OUTOFMEMORY;
@@ -168,7 +166,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_AddParameter(ISystemFunction *this, VAR
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllFunction, SAFEARRAY **psa, INT_PTR *nResult)
+HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealSystemFunction *)this)->lpScriptThread;
   SYSTEMFUNCTION *sf;
@@ -177,6 +175,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
   char szFunction[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
   wchar_t wszDll[MAX_PATH];
+  INT_PTR nResult=0;
   BOOL bLoadLibrary=FALSE;
   int i;
 
@@ -200,7 +199,6 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
     }
   }
 
-  *nResult=0;
   sf=&((IRealSystemFunction *)this)->sf;
 
   if (*wpDllFunction)
@@ -232,7 +230,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
       if (lpProcedure=GetProcAddress(hModule, szFunction))
       {
         //Call function
-        *nResult=AsmCallSysFunc(&sf->hSysParamStack, &sf->hSaveStack, lpProcedure);
+        nResult=AsmCallSysFunc(&sf->hSysParamStack, &sf->hSaveStack, lpProcedure);
 
         //Get last error
         sf->dwLastError=GetLastError();
@@ -260,6 +258,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
       return E_POINTER;
     }
   }
+  SetVariantInt(vtResult, nResult);
   return NOERROR;
 }
 
@@ -294,7 +293,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
       dispp.cNamedArgs=0;
 
       if ((hr=objCallback->lpVtbl->Invoke(objCallback, dispidCallbackName, &IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispp, &vtResult, 0, 0)) == S_OK)
-        nArgCount=(int)GetVariantValue(&vtResult, bOldWindows);
+        nArgCount=(int)GetVariantValue(&vtResult, NULL, bOldWindows);
     }
   }
 
