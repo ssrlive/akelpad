@@ -1712,6 +1712,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (g_ScriptSettingsTypeInfo) g_ScriptSettingsTypeInfo->lpVtbl->Release(g_ScriptSettingsTypeInfo);
     if (g_SystemFunctionTypeInfo) g_SystemFunctionTypeInfo->lpVtbl->Release(g_SystemFunctionTypeInfo);
     if (g_ConstantsTypeInfo) g_ConstantsTypeInfo->lpVtbl->Release(g_ConstantsTypeInfo);
+    if (g_GlobalTypeInfo) g_GlobalTypeInfo->lpVtbl->Release(g_GlobalTypeInfo);
     if (bInitMain) UninitMain();
     return FALSE;
   }
@@ -2340,7 +2341,6 @@ void StackFreeArguments(HARGSTACK *hStack)
 
 UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi)
 {
-  CALLBACKITEM *lpSysCallback;
   UINT_PTR dwValue=0;
   int nUniLen;
   int nAnsiLen;
@@ -2366,13 +2366,6 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
     }
     else dwValue=(UINT_PTR)pvtParameter->bstrVal;
   }
-  else if (pvtParameter->vt == VT_DISPATCH)
-  {
-    if (lpSysCallback=StackGetCallbackByObject(&g_hSysCallbackStack, pvtParameter->pdispVal))
-      dwValue=(UINT_PTR)lpSysCallback->lpProc;
-    else
-      dwValue=(UINT_PTR)pvtParameter->pdispVal;
-  }
   else dwValue=GetVariantInt(pvtParameter, &pvtParameter);
 
   if (ppvtParameter) *ppvtParameter=pvtParameter;
@@ -2381,6 +2374,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
 
 UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
 {
+  CALLBACKITEM *lpSysCallback;
   VARIANT vtConverted;
   UINT_PTR dwResult=0;
   INT_PTR nResult=0;
@@ -2392,6 +2386,13 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
   }
   if (pvtParameter->vt == VT_BOOL)
     return pvtParameter->boolVal?TRUE:FALSE;
+  if (pvtParameter->vt == VT_DISPATCH)
+  {
+    if (lpSysCallback=StackGetCallbackByObject(&g_hSysCallbackStack, pvtParameter->pdispVal))
+      return (UINT_PTR)lpSysCallback->lpProc;
+    else
+      return (UINT_PTR)pvtParameter->pdispVal;
+  }
   #ifdef _WIN64
     if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
@@ -2399,6 +2400,8 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
       return xatoiW(pvtParameter->bstrVal + 1, NULL);
     }
   #endif
+  if (pvtParameter->vt == VT_BSTR)
+    return (UINT_PTR)pvtParameter->bstrVal;
 
   VariantInit(&vtConverted);
   VariantCopy(&vtConverted, pvtParameter);
@@ -2432,6 +2435,7 @@ HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
       return hr;
     }
   #endif
+  //Use VT_I4 because VBScript can cause error for VT_UI4
   pvtParameter->vt=VT_I4;
   pvtParameter->lVal=(DWORD)dwHandle;
   return hr;
@@ -3087,6 +3091,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
       if (g_ScriptSettingsTypeInfo) g_ScriptSettingsTypeInfo->lpVtbl->Release(g_ScriptSettingsTypeInfo);
       if (g_SystemFunctionTypeInfo) g_SystemFunctionTypeInfo->lpVtbl->Release(g_SystemFunctionTypeInfo);
       if (g_ConstantsTypeInfo) g_ConstantsTypeInfo->lpVtbl->Release(g_ConstantsTypeInfo);
+      if (g_GlobalTypeInfo) g_GlobalTypeInfo->lpVtbl->Release(g_GlobalTypeInfo);
     }
   }
   return TRUE;

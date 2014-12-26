@@ -21,6 +21,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_GetIDsOfNames,
   Document_Invoke,
   Document_Constants,
+  Document_Global,
   Document_GetMainWnd,
   Document_GetAkelDir,
   Document_GetInstanceExe,
@@ -228,6 +229,11 @@ HRESULT STDMETHODCALLTYPE Document_Invoke(IDocument *this, DISPID dispid, REFIID
 HRESULT STDMETHODCALLTYPE Document_Constants(IDocument *this, IDispatch **objConstants)
 {
   return Class_CreateInstance(NULL, NULL, &IID_IConstants, (void **)objConstants);
+}
+
+HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal)
+{
+  return Class_CreateInstance(NULL, NULL, &IID_IGlobal, (void **)objGlobal);
 }
 
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd)

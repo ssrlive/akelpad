@@ -176,8 +176,8 @@ function GetCaretPos(hWndEdit)
     {
       //Caret position
       AkelPad.SendMessage(hWndEdit, 3190 /*AEM_GETCARETPOS*/, lpPoint, 0);
-      ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
-      ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
+      ptPoint.x=AkelPad.MemRead(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, 3 /*DT_DWORD*/);
+      ptPoint.y=AkelPad.MemRead(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, 3 /*DT_DWORD*/);
       AkelPad.MemFree(lpPoint);
 
       //Caret bottom
@@ -203,8 +203,8 @@ function GetCursorPos()
   {
     //Caret position
     oSys.Call("user32::GetCursorPos", lpPoint);
-    ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
-    ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
+    ptPoint.x=AkelPad.MemRead(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, 3 /*DT_DWORD*/);
+    ptPoint.y=AkelPad.MemRead(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, 3 /*DT_DWORD*/);
     AkelPad.MemFree(lpPoint);
   }
   return ptPoint;
@@ -224,8 +224,8 @@ function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
     {
       //Get Toolbar button position
       AkelPad.SendMessage(hToolbarHandle, 1075 /*TB_GETRECT*/, nToolbarItemID, lpRect);
-      ptPoint.x=AkelPad.MemRead(lpRect + 0 /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
-      ptPoint.y=AkelPad.MemRead(lpRect + 12 /*offsetof(RECT, bottom)*/, 3 /*DT_DWORD*/);
+      ptPoint.x=AkelPad.MemRead(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+      ptPoint.y=AkelPad.MemRead(_PtrAdd(lpRect, 12) /*offsetof(RECT, bottom)*/, 3 /*DT_DWORD*/);
       AkelPad.MemFree(lpRect);
 
       //In screen coordinates
@@ -237,16 +237,15 @@ function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
 
 function ClientToScreen(hWnd, ptPoint)
 {
-  var oSys=AkelPad.SystemFunction();
   var lpPoint;
 
   if (lpPoint=AkelPad.MemAlloc(8 /*sizeof(POINT)*/))
   {
-    AkelPad.MemCopy(lpPoint, ptPoint.x, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpPoint + 4, ptPoint.y, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, ptPoint.x, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, ptPoint.y, 3 /*DT_DWORD*/);
     oSys.Call("user32::ClientToScreen", hWnd, lpPoint);
-    ptPoint.x=AkelPad.MemRead(lpPoint, 3 /*DT_DWORD*/);
-    ptPoint.y=AkelPad.MemRead(lpPoint + 4, 3 /*DT_DWORD*/);
+    ptPoint.x=AkelPad.MemRead(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, 3 /*DT_DWORD*/);
+    ptPoint.y=AkelPad.MemRead(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, 3 /*DT_DWORD*/);
     AkelPad.MemFree(lpPoint);
   }
 }

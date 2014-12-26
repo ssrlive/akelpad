@@ -19,6 +19,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 
   // IDocument methods
   STDMETHOD_(HRESULT, Document_Constants)(THIS_ IDispatch **) PURE;
+  STDMETHOD_(HRESULT, Document_Global)(THIS_ IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_GetMainWnd)(THIS_ VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_GetAkelDir)(THIS_ int, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetInstanceExe)(THIS_ VARIANT *) PURE;
@@ -303,6 +304,7 @@ HRESULT STDMETHODCALLTYPE Document_GetIDsOfNames(IDocument *this, REFIID riid, L
 HRESULT STDMETHODCALLTYPE Document_Invoke(IDocument *this, DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *result, EXCEPINFO *pexcepinfo, UINT *puArgErr);
 
 HRESULT STDMETHODCALLTYPE Document_Constants(IDocument *this, IDispatch **objConstants);
+HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal);
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd);
 HRESULT STDMETHODCALLTYPE Document_GetAkelDir(IDocument *this, int nSubDir, BSTR *wpDir);
 HRESULT STDMETHODCALLTYPE Document_GetInstanceExe(IDocument *this, VARIANT *vtInstance);

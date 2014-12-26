@@ -63,6 +63,9 @@ library Scripts
     //Create Constants object (make sense if Scripts.dll used as ActiveXObject).
     [id(2), propget] HRESULT Constants([out, retval] IDispatch **objConstants);
 
+    //Create Global object (make sense if Scripts.dll used as ActiveXObject).
+    [id(3), propget] HRESULT Global([out, retval] IDispatch **objGlobal);
+
     //Get main window handle.
     HRESULT GetMainWnd([out, retval] VARIANT *vtWnd);
 
@@ -353,6 +356,19 @@ library Scripts
     //0 - for x86 or 1 for x64.
     [id(4), propget] HRESULT _X64([out, retval] BOOL *b64);
     [id(104), propget] HRESULT vbX64([out, retval] BOOL *b64);
+  };
+
+  //Global object
+  [uuid(DBE5362E-84AA-46C4-820D-7462E7F6E365), dual, hidden, nonextensible]
+  interface IGlobalVtbl : IDispatch
+  {
+    //Add value to a pointer.
+    [id(201), propget] HRESULT _PtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+    [id(301), propget] HRESULT vbPtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+
+    //Compare pointers.
+    [id(202), propget] HRESULT _PtrCmp([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] int *nCmpResult);
+    [id(302), propget] HRESULT vbPtrCmp([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] int *nCmpResult);
   };
 
   //AkelPad object.

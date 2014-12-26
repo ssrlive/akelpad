@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -912,7 +912,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
 
         if (hMenu=oSys.Call("user32::CreatePopupMenu"))
         {
-          GetWindowPos(hWndTemplate, 0, rcControl);
+          GetWindowSize(hWndTemplate, 0, rcControl);
           for (i=0; i < lpTemplates.length; ++i)
           {
             if (lpCurTemplate[1] == lpTemplates[i][1] &&
@@ -1292,13 +1292,13 @@ function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wPa
     rcTemplate.right=rcCurrent.right;
     rcTemplate.bottom=rcCurrent.bottom;
 
-    GetWindowPos(hDlg, 0, rcCurrent);
+    GetWindowSize(hDlg, 0, rcCurrent);
 
     for (i=0; i < drs.length; ++i)
     {
       if (drs[i][0])
       {
-        GetWindowPos(drs[i][0], hDlg, rcControl);
+        GetWindowSize(drs[i][0], hDlg, rcControl);
         if (drs[i][1] & DRS_SIZE)
         {
           if (drs[i][1] & DRS_X)
@@ -1329,13 +1329,13 @@ function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wPa
   else if (uMsg == 36) //WM_GETMINMAXINFO
   {
     if (rcMinMax.left)
-      AkelPad.MemCopy(lParam + 24 /*offsetof(MINMAXINFO, ptMinTrackSize.x)*/, rcMinMax.left, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lParam, 24) /*offsetof(MINMAXINFO, ptMinTrackSize.x)*/, rcMinMax.left, 3 /*DT_DWORD*/);
     if (rcMinMax.top)
-      AkelPad.MemCopy(lParam + 28 /*offsetof(MINMAXINFO, ptMinTrackSize.y)*/, rcMinMax.top, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lParam, 28) /*offsetof(MINMAXINFO, ptMinTrackSize.y)*/, rcMinMax.top, 3 /*DT_DWORD*/);
     if (rcMinMax.right)
-      AkelPad.MemCopy(lParam + 32 /*offsetof(MINMAXINFO, ptMaxTrackSize.x)*/, rcMinMax.right, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lParam, 32) /*offsetof(MINMAXINFO, ptMaxTrackSize.x)*/, rcMinMax.right, 3 /*DT_DWORD*/);
     if (rcMinMax.bottom)
-      AkelPad.MemCopy(lParam + 36 /*offsetof(MINMAXINFO, ptMaxTrackSize.y)*/, rcMinMax.bottom, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lParam, 36) /*offsetof(MINMAXINFO, ptMaxTrackSize.y)*/, rcMinMax.bottom, 3 /*DT_DWORD*/);
   }
   else if (uMsg == 3) //WM_MOVE
   {
@@ -1343,7 +1343,7 @@ function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wPa
     {
       var rcTemplate=[];
 
-      GetWindowPos(hDlg, 0, rcTemplate);
+      GetWindowSize(hDlg, 0, rcTemplate);
       rcCurrent.left=rcTemplate.left;
       rcCurrent.top=rcTemplate.top;
       return true;
@@ -1357,7 +1357,7 @@ function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wPa
       var dwFlags;
       var i;
 
-      GetWindowPos(hDlg, 0, rcCurrent);
+      GetWindowSize(hDlg, 0, rcCurrent);
 
       for (i=0; i < drs.length; ++i)
       {
@@ -1371,7 +1371,7 @@ function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wPa
           else
             continue;
 
-          GetWindowPos(drs[i][0], hDlg, rcControl);
+          GetWindowSize(drs[i][0], hDlg, rcControl);
           oSys.Call("user32::SetWindowPos", drs[i][0], 0, (drs[i][1] & DRS_X)?(rcCurrent.right - drs[i][3]):rcControl.left,
                                                           (drs[i][1] & DRS_Y)?(rcCurrent.bottom - drs[i][3]):rcControl.top,
                                                           (drs[i][1] & DRS_X)?(rcCurrent.right - rcControl.left - drs[i][3]):rcControl.right,
@@ -1724,7 +1724,7 @@ function SearchReplace()
             lpMatches[i]=[];
             lpMatches[i].nIndex=nSelStart + lpArray.index;
             AkelPad.SendMessage(hWndEditCur, 3137 /*AEM_RICHOFFSETTOINDEX*/, lpMatches[i].nIndex, lpIndex);
-            lpMatches[i].nLine=AkelPad.MemRead(lpIndex + 0 /*offsetof(AECHARINDEX, nLine)*/, 3 /*DT_DWORD*/);
+            lpMatches[i].nLine=AkelPad.MemRead(_PtrAdd(lpIndex, 0) /*offsetof(AECHARINDEX, nLine)*/, 3 /*DT_DWORD*/);
             lpMatches[i].nLineUnwrap=AkelPad.SendMessage(hWndEditCur, 3143 /*AEM_GETUNWRAPLINE*/, lpMatches[i].nLine, 0);
             AkelPad.SendMessage(hWndEditCur, 3130 /*AEM_GETINDEX*/, 18 /*AEGI_WRAPLINEBEGIN*/, lpIndex);
             lpMatches[i].nLineBeginIndex=AkelPad.SendMessage(hWndEditCur, 3136 /*AEM_INDEXTORICHOFFSET*/, 0, lpIndex);
@@ -1782,12 +1782,12 @@ function SearchReplace()
                 else
                   pLine="";
                 pLine+=AkelPad.GetTextRange(lpMatches[i].nLineBeginIndex, lpMatches[i].nLineBeginIndex + min(lpMatches[i].nLineEndIndex - lpMatches[i].nLineBeginIndex, FINDALL_MAXLINE)) + "\n";
-                AkelPad.MemCopy(lpMemText + nTextCount * 2 /*sizeof(wchar_t)*/, pLine, 1 /*DT_UNICODE*/);
+                AkelPad.MemCopy(_PtrAdd(lpMemText, nTextCount * 2 /*sizeof(wchar_t)*/), pLine, 1 /*DT_UNICODE*/);
                 nTextCount+=pLine.length;
               }
               if (hWndOutput)
               {
-                AkelPad.MemCopy(lpMemText + nTextCount * 2 /*sizeof(wchar_t)*/, "", 1 /*DT_UNICODE*/);
+                AkelPad.MemCopy(_PtrAdd(lpMemText, nTextCount * 2 /*sizeof(wchar_t)*/), "", 1 /*DT_UNICODE*/);
                 pLine=AkelPad.MemRead(lpMemText, 1 /*DT_UNICODE*/);
 
                 //Set output window text
@@ -1902,8 +1902,8 @@ function RestoreLineScroll(hWnd, nBeforeLine)
 
     if (lpScrollPos=AkelPad.MemAlloc(_X64?16:8 /*sizeof(POINT64)*/))
     {
-      AkelPad.MemCopy(lpScrollPos + 0 /*offsetof(POINT64, x)*/, -1, 2 /*DT_QWORD*/);
-      AkelPad.MemCopy(lpScrollPos + (_X64?8:4) /*offsetof(POINT64, y)*/, nPosY, 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpScrollPos, 0) /*offsetof(POINT64, x)*/, -1, 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpScrollPos + _X64?8:4) /*offsetof(POINT64, y)*/, nPosY, 2 /*DT_QWORD*/);
       AkelPad.SendMessage(hWnd, 3180 /*AEM_SETSCROLLPOS*/, 0, lpScrollPos);
       AkelPad.MemFree(lpScrollPos);
     }
@@ -1915,10 +1915,10 @@ function RestoreLineScroll(hWnd, nBeforeLine)
 
 function RectToArray(lpRect, rcRect)
 {
-  rcRect.left=AkelPad.MemRead(lpRect, 3 /*DT_DWORD*/);
-  rcRect.top=AkelPad.MemRead(lpRect + 4, 3 /*DT_DWORD*/);
-  rcRect.right=AkelPad.MemRead(lpRect + 8, 3 /*DT_DWORD*/);
-  rcRect.bottom=AkelPad.MemRead(lpRect + 12, 3 /*DT_DWORD*/);
+  rcRect.left=AkelPad.MemRead(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+  rcRect.top=AkelPad.MemRead(_PtrAdd(lpRect, 4) /*offsetof(RECT, top)*/, 3 /*DT_DWORD*/);
+  rcRect.right=AkelPad.MemRead(_PtrAdd(lpRect, 8) /*offsetof(RECT, right)*/, 3 /*DT_DWORD*/);
+  rcRect.bottom=AkelPad.MemRead(_PtrAdd(lpRect, 12) /*offsetof(RECT, bottom)*/, 3 /*DT_DWORD*/);
   return rcRect;
 }
 
@@ -1929,15 +1929,15 @@ function ArrayToRect(rcRect, lpRect)
 
   if (lpRect)
   {
-    AkelPad.MemCopy(lpRect, rcRect.left, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 4, rcRect.top, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 8, rcRect.right, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 12, rcRect.bottom, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, rcRect.left, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 4) /*offsetof(RECT, top)*/, rcRect.top, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 8) /*offsetof(RECT, right)*/, rcRect.right, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 12) /*offsetof(RECT, bottom)*/, rcRect.bottom, 3 /*DT_DWORD*/);
   }
   return lpRect;
 }
 
-function GetWindowPos(hWnd, hWndOwner, rcRect)
+function GetWindowSize(hWnd, hWndOwner, rcRect)
 {
   var lpRect;
   var bResult=false;
@@ -1955,8 +1955,8 @@ function GetWindowPos(hWnd, hWndOwner, rcRect)
         bResult=oSys.Call("user32::ScreenToClient", hWndOwner, lpRect);
       else
         bResult=true;
-      rcRect.left=AkelPad.MemRead(lpRect, 3 /*DT_DWORD*/);
-      rcRect.top=AkelPad.MemRead(lpRect + 4, 3 /*DT_DWORD*/);
+      rcRect.left=AkelPad.MemRead(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+      rcRect.top=AkelPad.MemRead(_PtrAdd(lpRect, 4) /*offsetof(RECT, top)*/, 3 /*DT_DWORD*/);
     }
     AkelPad.MemFree(lpRect);
   }
@@ -2025,12 +2025,12 @@ function PeekMessage(hWnd)
     while (oSys.Call("user32::PeekMessage" + _TCHAR, lpMsg, hWnd, 0, 0, 0x1 /*PM_REMOVE*/))
     {
       //Send key press from child
-      uMsg=AkelPad.MemRead(lpMsg + (_X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
+      uMsg=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
 
       if (uMsg >= 0x0100 /*WM_KEYFIRST*/ && uMsg <= 0x0109 /*WM_KEYLAST*/)
       {
-        wParam=AkelPad.MemRead(lpMsg + (_X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
-        lParam=AkelPad.MemRead(lpMsg + (_X64?24:12) /*offsetof(MSG, lParam)*/, 2 /*DT_QWORD*/);
+        wParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
+        lParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?24:12) /*offsetof(MSG, lParam)*/, 2 /*DT_QWORD*/);
         AkelPad.SendMessage(hWnd, uMsg, wParam, lParam);
       }
 
@@ -2064,9 +2064,9 @@ function ScrollCaret(hWnd)
     {
       //Test scroll to caret
       dwScrollFlags=0x1|0x10|0x400|0x800 /*AESC_TEST|AESC_POINTCARET|AESC_OFFSETCHARX|AESC_OFFSETCHARY*/;
-      AkelPad.MemCopy(lpStp, dwScrollFlags, 3 /*DT_DWORD*/);     //AESCROLLTOPOINT.dwFlags
-      AkelPad.MemCopy(lpStp + (_X64?24:12), 1, 3 /*DT_DWORD*/);  //AESCROLLTOPOINT.nOffsetX
-      AkelPad.MemCopy(lpStp + (_X64?28:16), 0, 3 /*DT_DWORD*/);  //AESCROLLTOPOINT.nOffsetY
+      AkelPad.MemCopy(_PtrAdd(lpStp, 0) /*offsetof(AESCROLLTOPOINT, dwFlags)*/, dwScrollFlags, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpStp, _X64?24:12) /*offsetof(AESCROLLTOPOINT, nOffsetX)*/, 1, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpStp, _X64?28:16) /*offsetof(AESCROLLTOPOINT, nOffsetY)*/, 0, 3 /*DT_DWORD*/);
       dwScrollResult=AkelPad.SendMessage(hWnd, 3183 /*AEM_SCROLLTOPOINT*/, 0, lpStp);
 
       dwScrollFlags=0x10 /*AESC_POINTCARET*/;
@@ -2076,9 +2076,9 @@ function ScrollCaret(hWnd)
         dwScrollFlags|=0x2000 /*AESC_OFFSETRECTDIVY*/;
 
       //Scroll to caret
-      AkelPad.MemCopy(lpStp, dwScrollFlags, 3 /*DT_DWORD*/);     //AESCROLLTOPOINT.dwFlags
-      AkelPad.MemCopy(lpStp + (_X64?24:12), 3, 3 /*DT_DWORD*/);  //AESCROLLTOPOINT.nOffsetX
-      AkelPad.MemCopy(lpStp + (_X64?28:16), 2, 3 /*DT_DWORD*/);  //AESCROLLTOPOINT.nOffsetY
+      AkelPad.MemCopy(_PtrAdd(lpStp, 0) /*offsetof(AESCROLLTOPOINT, dwFlags)*/, dwScrollFlags, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpStp, _X64?24:12) /*offsetof(AESCROLLTOPOINT, nOffsetX)*/, 3, 3 /*DT_DWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpStp, _X64?28:16) /*offsetof(AESCROLLTOPOINT, nOffsetY)*/, 2, 3 /*DT_DWORD*/);
       AkelPad.SendMessage(hWnd, 3183 /*AEM_SCROLLTOPOINT*/, 0, lpStp);
 
       AkelPad.MemFree(lpStp);

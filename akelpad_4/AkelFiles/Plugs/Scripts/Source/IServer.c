@@ -38,6 +38,10 @@ DEFINE_GUID(IID_ISystemFunction, 0xdbb12030, 0x4bef, 0x4bbe, 0xaa, 0xd1, 0x0a, 0
 // {DBE70A70-CA74-498B-90B7-BA51018162BC}
 DEFINE_GUID(IID_IConstants, 0xdbe70a70, 0xca74, 0x498b, 0x90, 0xb7, 0xba, 0x51, 0x01, 0x81, 0x62, 0xbc);
 
+// IID_IGlobal VTable's GUID
+// {DBE5362E-84AA-46C4-820D-7462E7F6E365}
+DEFINE_GUID(IID_IGlobal, 0xdbe5362e, 0x84aa, 0x46c4, 0x82, 0x0d, 0x74, 0x62, 0xe7, 0xf6, 0xe3, 0x65);
+
 
 //Global variables
 LONG g_nObjs=0;
@@ -82,6 +86,7 @@ HRESULT LoadTypeInfoFromFile(const GUID *guid, ITypeInfo **ppTypeInfo)
                           {&IID_IScriptSettings, &g_ScriptSettingsTypeInfo},
                           {&IID_ISystemFunction, &g_SystemFunctionTypeInfo},
                           {&IID_IConstants,      &g_ConstantsTypeInfo},
+                          {&IID_IGlobal,         &g_GlobalTypeInfo},
                           {0, 0}};
       int i;
 
@@ -131,6 +136,7 @@ HRESULT STDMETHODCALLTYPE Class_CreateInstance(IClassFactory *this, IUnknown *pu
   IRealDocument *objIDocument;
   IRealWScript *objIWScript;
   IRealConstants *objIConstants;
+  IRealGlobal *objIGlobal;
 
   if (!objHandle) return E_POINTER;
   *objHandle=NULL;
@@ -175,6 +181,20 @@ HRESULT STDMETHODCALLTYPE Class_CreateInstance(IClassFactory *this, IUnknown *pu
 
       InterlockedIncrement(&g_nObjs);
       *objHandle=objIConstants;
+    }
+    else return E_OUTOFMEMORY;
+  }
+  else if (AKD_IsEqualIID(vTableGuid, &IID_IGlobal))
+  {
+    //IGlobal
+    if ((objIGlobal=(IRealGlobal *)GlobalAlloc(GPTR, sizeof(IRealGlobal))))
+    {
+      objIGlobal->lpVtbl=(IGlobalVtbl *)&MyIGlobalVtbl;
+      objIGlobal->dwCount=1;
+      objIGlobal->lpScriptThread=StackGetScriptThreadCurrent();
+
+      InterlockedIncrement(&g_nObjs);
+      *objHandle=objIGlobal;
     }
     else return E_OUTOFMEMORY;
   }

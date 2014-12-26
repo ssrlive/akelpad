@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 // Description(1033): Filter lines using regular expressions.
@@ -613,8 +613,8 @@ function RestoreLineScroll(hWnd, nBeforeLine)
 
     if (lpScrollPos=AkelPad.MemAlloc(_X64?16:8 /*sizeof(POINT64)*/))
     {
-      AkelPad.MemCopy(lpScrollPos + 0 /*offsetof(POINT64, x)*/, -1, 2 /*DT_QWORD*/);
-      AkelPad.MemCopy(lpScrollPos + (_X64?8:4) /*offsetof(POINT64, y)*/, nPosY, 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpScrollPos, 0) /*offsetof(POINT64, x)*/, -1, 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpScrollPos, _X64?8:4) /*offsetof(POINT64, y)*/, nPosY, 2 /*DT_QWORD*/);
       AkelPad.SendMessage(hWnd, 3180 /*AEM_SETSCROLLPOS*/, 0, lpScrollPos);
       AkelPad.MemFree(lpScrollPos);
     }
@@ -626,10 +626,10 @@ function RestoreLineScroll(hWnd, nBeforeLine)
 
 function RectToArray(lpRect, rcRect)
 {
-  rcRect.left=AkelPad.MemRead(lpRect, 3 /*DT_DWORD*/);
-  rcRect.top=AkelPad.MemRead(lpRect + 4, 3 /*DT_DWORD*/);
-  rcRect.right=AkelPad.MemRead(lpRect + 8, 3 /*DT_DWORD*/);
-  rcRect.bottom=AkelPad.MemRead(lpRect + 12, 3 /*DT_DWORD*/);
+  rcRect.left=AkelPad.MemRead(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+  rcRect.top=AkelPad.MemRead(_PtrAdd(lpRect, 4) /*offsetof(RECT, top)*/, 3 /*DT_DWORD*/);
+  rcRect.right=AkelPad.MemRead(_PtrAdd(lpRect, 8) /*offsetof(RECT, right)*/, 3 /*DT_DWORD*/);
+  rcRect.bottom=AkelPad.MemRead(_PtrAdd(lpRect, 12) /*offsetof(RECT, bottom)*/, 3 /*DT_DWORD*/);
   return rcRect;
 }
 
@@ -640,10 +640,10 @@ function ArrayToRect(rcRect, lpRect)
 
   if (lpRect)
   {
-    AkelPad.MemCopy(lpRect, rcRect.left, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 4, rcRect.top, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 8, rcRect.right, 3 /*DT_DWORD*/);
-    AkelPad.MemCopy(lpRect + 12, rcRect.bottom, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 0) /*offsetof(RECT, left)*/, rcRect.left, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 4) /*offsetof(RECT, top)*/, rcRect.top, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 8) /*offsetof(RECT, right)*/, rcRect.right, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRect, 12) /*offsetof(RECT, bottom)*/, rcRect.bottom, 3 /*DT_DWORD*/);
   }
   return lpRect;
 }

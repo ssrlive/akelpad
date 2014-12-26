@@ -195,6 +195,10 @@ _TSIZE                                       +ActiveX uses as AkelPad.Constants.
 vbTSIZE                                      +ActiveX uses as AkelPad.Constants.vbTSIZE
 _X64                                         +ActiveX uses as AkelPad.Constants._X64
 vbX64                                        +ActiveX uses as AkelPad.Constants.vbX64
+_PtrAdd                                      +ActiveX uses as AkelPad.Global._PtrAdd
+vbPtrAdd                                     +ActiveX uses as AkelPad.Global.vbPtrAdd
+_PtrCmp                                      +ActiveX uses as AkelPad.Global._PtrCmp
+vbPtrCmp                                     +ActiveX uses as AkelPad.Global.vbPtrCmp
 
 
 *** Methods description ***
@@ -2075,13 +2079,13 @@ Example (VBScript):
   Const VK_ESCAPE=27
   Const IDCANCEL=2
 
-  if hMainWnd then
+  if vbPtrCmp(hMainWnd, 0) then
     if AkelPad.WindowRegisterClass("NewClass") then
 
       'Create dialog WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX
       hWndDialog=oSys.Call("user32::CreateWindowEx" & vbTCHAR, 0, "NewClass", 0, &H90CA0000, 0, 0, 351, 179, hMainWnd, 0, hInstanceDLL, lpCallbackPtr)
 
-      if hWndDialog then
+      if vbPtrCmp(hWndDialog, 0) then
         'Disable main window, to make dialog modal
         oSys.Call "user32::EnableWindow", hMainWnd, false
 
@@ -2439,11 +2443,11 @@ Example:
 
   function HookCallback(nCode, wParam, lParam)
   {
-    var uMsg=AkelPad.MemRead(lParam + (_X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
+    var uMsg=AkelPad.MemRead(_PtrAdd(lParam, _X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
 
     if (uMsg == 0x100 /*WM_KEYDOWN*/)
     {
-      wParam=AkelPad.MemRead(lParam + (_X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
+      wParam=AkelPad.MemRead(_PtrAdd(lParam, _X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
 
       AkelPad.MessageBox(0, "Key \"" + String.fromCharCode(wParam) + "\" with code \"" + wParam + "\" is pressed.", "", 0);
 
@@ -2711,6 +2715,60 @@ vbX64 (+ActiveX)
 ________________
 
 Same as _X64. Uses for VBScript.
+
+
+_PtrAdd (+ActiveX)
+__________________
+
+Add value to a pointer.
+
+  _PtrAdd(lpPointer, nValue)
+
+Arguments
+  lpPointer
+    Any pointer.
+  nValue
+    Value to add. Can be negative.
+
+Return Value
+  Number. Pointer.
+
+Example:
+  See AkelPad.ThreadHook example.
+
+
+vbPtrAdd (+ActiveX)
+___________________
+
+Same as _PtrAdd. Uses for VBScript.
+
+
+_PtrCmp (+ActiveX)
+__________________
+
+Compare pointers.
+
+  _PtrCmp(lpPointer1, lpPointer2)
+
+Arguments
+  lpPointer1
+    First pointer.
+  lpPointer2
+    Second pointer.
+
+Return Value
+  Number. -1 lpPointer1 less than lpPointer2.
+           0 lpPointer1 identical to lpPointer2.
+           1 lpPointer1 greater than lpPointer2.
+
+Example:
+  See AkelPad.WindowRegisterClass example (VBScript).
+
+
+vbPtrCmp (+ActiveX)
+___________________
+
+Same as _PtrCmp. Uses for VBScript.
 
 
 *** ActiveX ***
