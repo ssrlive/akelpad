@@ -38,6 +38,7 @@ if exist IServer.obj del IServer.obj
 if exist IWScript.obj del IWScript.obj
 if exist IWArguments.obj del IWArguments.obj
 if exist IDocument.obj del IDocument.obj
+if exist IGlobal.obj del IGlobal.obj
 if exist IScriptSettings.obj del IScriptSettings.obj
 if exist ISystemFunction.obj del ISystemFunction.obj
 if exist IConstants.obj del IConstants.obj
