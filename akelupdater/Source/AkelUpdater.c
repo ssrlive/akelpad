@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v5.2                  *
+ *                 AkelUpdater NSIS plugin v5.3                  *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -949,19 +949,18 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ComboBox_GetLBTextWide(hWndLanguage, nSelection, wszBuf);
       setuservariable(INST_2, wszBuf);
 
-      StackFilesFree(&hFileStack);
       EndDialog(hDlg, TRUE);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      StackFilesFree(&hFileStack);
       EndDialog(hDlg, FALSE);
       return TRUE;
     }
   }
   else if (uMsg == WM_DESTROY)
   {
+    StackFilesFree(&hFileStack);
     DestroyIcon(hIconDlg);
   }
 
@@ -1358,18 +1357,18 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
       }
     }
 
-    lvi.mask=LVIF_TEXT;
+    lvi.mask=LVIF_TEXT|LVIF_PARAM;
     lvi.pszText=lpFileItem->dwError?lpFileItem->wszError:wszBuf;
     lvi.iItem=0x7FFFFFFF;
     lvi.iSubItem=LVSI_NAME;
+    lvi.lParam=(LPARAM)lpFileItem;
     nIndex=ListView_InsertItemWide(hWndList, &lvi);
 
-    lvi.mask=LVIF_STATE|LVIF_PARAM;
+    lvi.mask=LVIF_STATE;
     lvi.iItem=nIndex;
     lvi.iSubItem=LVSI_NAME;
     lvi.state=((lpFileItem->nChecked + 1) << 12);
     lvi.stateMask=LVIS_STATEIMAGEMASK;
-    lvi.lParam=(LPARAM)lpFileItem;
     ListView_SetItemWide(hWndList, &lvi);
 
     lvi.mask=LVIF_TEXT;
