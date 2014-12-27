@@ -204,7 +204,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Write(IScriptSettings *this, BSTR wpOpt
 
   if (pvtData->vt == VT_BSTR && (dwType == PO_STRING || dwType == PO_BINARY))
   {
-    #ifdef _WIN64
+    #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
       if (!pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
       {
         //JScript doesn't support VT_I8, so __int64 number converted to string.

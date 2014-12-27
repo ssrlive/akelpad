@@ -2348,7 +2348,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
   if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
     pvtParameter=pvtParameter->pvarVal;
 
-  #ifdef _WIN64
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
     if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -2393,7 +2393,7 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
     else
       return (UINT_PTR)pvtParameter->pdispVal;
   }
-  #ifdef _WIN64
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
     if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -2419,8 +2419,8 @@ HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
 
   VariantInit(pvtParameter);
 
-  #ifdef _WIN64
-    if (dwHandle > 0xFFFFFFFF)
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
+    if (dwHandle > SCRIPTS_MAXHANDLE)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
       wchar_t wszNumber[32];

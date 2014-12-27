@@ -1475,7 +1475,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 
   if (pvtData->vt == VT_BSTR)
   {
-    #ifdef _WIN64
+    #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
       if (!pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
       {
         //JScript doesn't support VT_I8, so __int64 number converted to string.

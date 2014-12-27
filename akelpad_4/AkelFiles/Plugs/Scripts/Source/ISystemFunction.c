@@ -707,14 +707,7 @@ LRESULT AsmCallbackHelper(INT_PTR *lpnFirstArg, int nCallbackIndex, int *lpnArgS
 
         for (i=0; i < nArgCount; ++i)
         {
-          VariantInit(vtCount);
-          #ifdef _WIN64
-            vtCount->llVal=*(lpnFirstArg + i);
-            vtCount->vt=VT_I8;
-          #else
-            vtCount->lVal=*(lpnFirstArg + i);
-            vtCount->vt=VT_I4;
-          #endif
+          SetVariantInt(vtCount, *(lpnFirstArg + i));
           --vtCount;
         }
       }
