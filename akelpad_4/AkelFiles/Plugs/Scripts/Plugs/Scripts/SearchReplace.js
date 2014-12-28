@@ -1738,7 +1738,7 @@ function SearchReplace()
             {
               if (hWndProgress)
                 AkelPad.SendMessage(hWndProgress, 1026 /*PBM_SETPOS*/, lpMatches[i].nLine, 0);
-              PeekMessage(hWndDialog);
+              PeekMessages(hWndDialog, true);
               //Stop button is pressed
               if (!hWndOutput) break;
             }
@@ -1773,7 +1773,7 @@ function SearchReplace()
                 {
                   if (hWndProgress)
                     AkelPad.SendMessage(hWndProgress, 1026 /*PBM_SETPOS*/, lpMatches.length + i, 0);
-                  PeekMessage(hWndDialog);
+                  PeekMessages(hWndDialog, true);
                   //Stop button is pressed
                   if (!hWndOutput) break;
                 }
@@ -2012,7 +2012,7 @@ function GetOutputWindow()
   return hWnd;
 }
 
-function PeekMessage(hWnd)
+function PeekMessages(hWnd, bSendChild)
 {
   var lpMsg;
   var uMsg;
@@ -2023,14 +2023,17 @@ function PeekMessage(hWnd)
   {
     while (oSys.Call("user32::PeekMessage" + _TCHAR, lpMsg, hWnd, 0, 0, 0x1 /*PM_REMOVE*/))
     {
-      //Send key press from child
-      uMsg=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
-
-      if (uMsg >= 0x0100 /*WM_KEYFIRST*/ && uMsg <= 0x0109 /*WM_KEYLAST*/)
+      if (bSendChild)
       {
-        wParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
-        lParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?24:12) /*offsetof(MSG, lParam)*/, 2 /*DT_QWORD*/);
-        AkelPad.SendMessage(hWnd, uMsg, wParam, lParam);
+        //Send key press from child
+        uMsg=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
+  
+        if (uMsg >= 0x0100 /*WM_KEYFIRST*/ && uMsg <= 0x0109 /*WM_KEYLAST*/)
+        {
+          wParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
+          lParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?24:12) /*offsetof(MSG, lParam)*/, 2 /*DT_QWORD*/);
+          AkelPad.SendMessage(hWnd, uMsg, wParam, lParam);
+        }
       }
 
       //Standard processing
