@@ -141,6 +141,8 @@ function ShowMenu(lpItemsArray, X, Y)
       if (hWndContainer=oSys.Call("user32::CreateWindowEx" + _TCHAR, 0, "Static", 0, 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 0, 0, 0, 0, hMainWnd, 0, hInstanceDLL, 0))
       {
         oSys.Call("user32::SetFocus", hWndContainer);
+        //Mouse can make incorrect hot selection without Sleep
+        WScript.Sleep(0);
 
         //Show menu
         if (X < 0 || Y < 0)
