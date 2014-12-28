@@ -272,6 +272,7 @@ BOOL RegisterHotkey(wchar_t *wszScriptName, WORD wHotkey);
 void CreateColumns(HWND hWnd, LISTCOLUMN *lpColumns);
 LISTCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex);
 LISTCOLUMN* GetColumnByIndex(int nColumnIndex);
+DWORD GetColumnFlags(LISTCOLUMN *lpColumns);
 void FillScriptList(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns, HWND hWnd, const wchar_t *wpFilter);
 void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns);
 LISTITEM* StackInsertListItem(STACKLISTITEM *hStack);
