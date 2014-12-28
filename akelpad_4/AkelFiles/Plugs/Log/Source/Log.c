@@ -971,16 +971,16 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndTitleText;
   static HWND hWndTitleClose;
   static HMENU hMenuEdit;
-  static DIALOGRESIZE drs[]={{&hWndTitleText,     DRS_SIZE|DRS_X, 0},
-                             {&hWndTitleClose,    DRS_MOVE|DRS_X, 0},
-                             {&hWndOutputView,    DRS_SIZE|DRS_X, 0},
-                             {&hWndOutputView,    DRS_SIZE|DRS_Y, 0},
-                             {&hWndInputEdit,     DRS_SIZE|DRS_X, 0},
-                             {&hWndInputEdit,     DRS_MOVE|DRS_Y, 0},
-                             {&hWndInputButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndInputButton,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndRunStopButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndRunStopButton, DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndTitleText,     RDS_SIZE|RDS_X, 0},
+                             {&hWndTitleClose,    RDS_MOVE|RDS_X, 0},
+                             {&hWndOutputView,    RDS_SIZE|RDS_X, 0},
+                             {&hWndOutputView,    RDS_SIZE|RDS_Y, 0},
+                             {&hWndInputEdit,     RDS_SIZE|RDS_X, 0},
+                             {&hWndInputEdit,     RDS_MOVE|RDS_Y, 0},
+                             {&hWndInputButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndInputButton,   RDS_MOVE|RDS_Y, 0},
+                             {&hWndRunStopButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndRunStopButton, RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1071,12 +1071,12 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bResult=TRUE;
     }
 
-    //Update DIALOGRESIZE offsets
+    //Update RESIZEDIALOG offsets
     if (bResult)
     {
-      DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcOutputCurrentDialog, 0, hDlg, WM_INITDIALOG, wParam, lParam};
+      RESIZEDIALOGMSG rdsm={&rds[0], NULL, &rcOutputCurrentDialog, 0, hDlg, WM_INITDIALOG, wParam, lParam};
 
-      SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm);
+      SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm);
     }
     return FALSE;
   }
@@ -1189,9 +1189,9 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcOutputCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], NULL, &rcOutputCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       if (dkOutputDlg) GetWindowSize(hWndTitleText, hDlg, &dkOutputDlg->rcDragDrop);
   }
 
@@ -1209,18 +1209,18 @@ BOOL CALLBACK DockRunDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndTargetCombo;
   static HWND hWndExecButton;
   static HWND hWndCancelButton;
-  static DIALOGRESIZE drs[]={{&hWndCmdEdit,      DRS_SIZE|DRS_X, 0},
-                             {&hWndDirEdit,      DRS_SIZE|DRS_X, 0},
-                             {&hWndSourceLabel,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndSourceCombo,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndTargetLabel,  DRS_MOVE|DRS_X, 0},
-                             {&hWndTargetLabel,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndTargetCombo,  DRS_MOVE|DRS_X, 0},
-                             {&hWndTargetCombo,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndExecButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndExecButton,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancelButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndCancelButton, DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndCmdEdit,      RDS_SIZE|RDS_X, 0},
+                             {&hWndDirEdit,      RDS_SIZE|RDS_X, 0},
+                             {&hWndSourceLabel,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndSourceCombo,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndTargetLabel,  RDS_MOVE|RDS_X, 0},
+                             {&hWndTargetLabel,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndTargetCombo,  RDS_MOVE|RDS_X, 0},
+                             {&hWndTargetCombo,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndExecButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndExecButton,   RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancelButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndCancelButton, RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1347,9 +1347,9 @@ BOOL CALLBACK DockRunDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcRunMinMaxDialog, &rcRunCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcRunMinMaxDialog, &rcRunCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RUNRECT;
   }
 

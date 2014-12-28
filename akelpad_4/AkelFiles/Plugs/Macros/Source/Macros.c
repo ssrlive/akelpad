@@ -503,22 +503,22 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HICON hPlayIcon;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndMacrosList,   DRS_SIZE|DRS_X, 0},
-                             {&hWndMacrosList,   DRS_SIZE|DRS_Y, 0},
-                             {&hWndPlayButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndPlayX,        DRS_MOVE|DRS_X, 0},
-                             {&hWndRepeat,       DRS_MOVE|DRS_X, 0},
-                             {&hWndRepeatSpin,   DRS_MOVE|DRS_X, 0},
-                             {&hWndActionsGroup, DRS_MOVE|DRS_X, 0},
-                             {&hWndRecordButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndName,         DRS_MOVE|DRS_X, 0},
-                             {&hWndSaveButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndDeleteButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,       DRS_MOVE|DRS_X, 0},
-                             {&hWndAssignButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndViewButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,  DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,  DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndMacrosList,   RDS_SIZE|RDS_X, 0},
+                             {&hWndMacrosList,   RDS_SIZE|RDS_Y, 0},
+                             {&hWndPlayButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndPlayX,        RDS_MOVE|RDS_X, 0},
+                             {&hWndRepeat,       RDS_MOVE|RDS_X, 0},
+                             {&hWndRepeatSpin,   RDS_MOVE|RDS_X, 0},
+                             {&hWndActionsGroup, RDS_MOVE|RDS_X, 0},
+                             {&hWndRecordButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndName,         RDS_MOVE|RDS_X, 0},
+                             {&hWndSaveButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndDeleteButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndHotkey,       RDS_MOVE|RDS_X, 0},
+                             {&hWndAssignButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndViewButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,  RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,  RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -918,9 +918,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RECT;
   }
 
@@ -1003,12 +1003,12 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndExportButton;
   static HWND hWndKeyactList;
   static HWND hWndCloseButton;
-  static DIALOGRESIZE drs[]={{&hWndSendKeysEdit, DRS_SIZE|DRS_X, 0},
-                             {&hWndExportButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndKeyactList,   DRS_SIZE|DRS_X, 0},
-                             {&hWndKeyactList,   DRS_SIZE|DRS_Y, 0},
-                             {&hWndCloseButton,  DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,  DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndSendKeysEdit, RDS_SIZE|RDS_X, 0},
+                             {&hWndExportButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndKeyactList,   RDS_SIZE|RDS_X, 0},
+                             {&hWndKeyactList,   RDS_SIZE|RDS_Y, 0},
+                             {&hWndCloseButton,  RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,  RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1147,9 +1147,9 @@ BOOL CALLBACK ViewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcViewMainMinMaxDialog, &rcViewMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcViewMainMinMaxDialog, &rcViewMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_VIEWRECT;
   }
 

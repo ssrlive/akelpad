@@ -9,6 +9,7 @@
 #include <aclapi.h>
 #include <richedit.h>
 #include "WideFunc.h"
+#include "ResizeFunc.h"
 #include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\x64Func.h"
@@ -220,6 +221,14 @@
 #define TabCtrl_SetItemWide
 #define TranslateAcceleratorWide
 #include "WideFunc.h"
+
+//Include resize functions
+#define GetWindowPos
+#define GetWindowSize
+#define GetClientPos
+#define GetClientSize
+#define ResizeDialogMessages
+#include "ResizeFunc.h"
 
 //Process
 HANDLE hHeap;
@@ -3643,11 +3652,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessage((HWND)wParam, WM_SETCURSOR, 0, 0);
         return 0;
       }
-      case AKD_DIALOGRESIZE:
+      case AKD_RESIZEDIALOG:
       {
-        DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+        RESIZEDIALOGMSG *rdsm=(RESIZEDIALOGMSG *)lParam;
 
-        return DialogResizeMessages(drsm->drs, drsm->rcMinMax, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+        return ResizeDialogMessages(rdsm->rds, rdsm->rcMinMax, rdsm->rcCurrent, rdsm->dwFlags, rdsm->hDlg, rdsm->uMsg, rdsm->wParam, rdsm->lParam);
       }
       case AKD_UPDATESTATUSUSER:
       {

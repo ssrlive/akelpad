@@ -439,23 +439,23 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndRowsEdit;
   static HWND hWndOK;
   static HWND hWndCancel;
-  static DIALOGRESIZE drs[]={{&hWndToolBarText,      DRS_SIZE|DRS_X, 0},
-                             {&hWndToolBarText,      DRS_SIZE|DRS_Y, 0},
-                             {&hWndBigIconsCheck,    DRS_MOVE|DRS_Y, 0},
-                             {&hWndFlatButtonsCheck, DRS_MOVE|DRS_Y, 0},
-                             {&hWndBit16,            DRS_MOVE|DRS_Y, 0},
-                             {&hWndBit32,            DRS_MOVE|DRS_Y, 0},
-                             {&hWndSideLeft,         DRS_MOVE|DRS_Y, 0},
-                             {&hWndSideTop,          DRS_MOVE|DRS_Y, 0},
-                             {&hWndSideRight,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndSideBottom,       DRS_MOVE|DRS_Y, 0},
-                             {&hWndSideLabel,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndRowsLabel,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndRowsEdit,         DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,               DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,               DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,           DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,           DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndToolBarText,      RDS_SIZE|RDS_X, 0},
+                             {&hWndToolBarText,      RDS_SIZE|RDS_Y, 0},
+                             {&hWndBigIconsCheck,    RDS_MOVE|RDS_Y, 0},
+                             {&hWndFlatButtonsCheck, RDS_MOVE|RDS_Y, 0},
+                             {&hWndBit16,            RDS_MOVE|RDS_Y, 0},
+                             {&hWndBit32,            RDS_MOVE|RDS_Y, 0},
+                             {&hWndSideLeft,         RDS_MOVE|RDS_Y, 0},
+                             {&hWndSideTop,          RDS_MOVE|RDS_Y, 0},
+                             {&hWndSideRight,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndSideBottom,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndSideLabel,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndRowsLabel,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndRowsEdit,         RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,               RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,               RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,           RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,           RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -514,7 +514,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lpOldEditDlgProc=(WNDPROC)GetWindowLongPtrWide(hWndToolBarText, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndToolBarText, GWLP_WNDPROC, (UINT_PTR)NewEditDlgProc);
 
-    //Post AKDLL_SELTEXT because dialog size can be changed after AKD_DIALOGRESIZE
+    //Post AKDLL_SELTEXT because dialog size can be changed after AKD_RESIZEDIALOG
     PostMessage(hDlg, AKDLL_SELTEXT, 0, 0);
   }
   else if (uMsg == AKDLL_FREEMESSAGELOOP)
@@ -667,9 +667,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RECT;
   }
 
