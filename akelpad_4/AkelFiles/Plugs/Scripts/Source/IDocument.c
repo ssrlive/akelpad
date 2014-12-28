@@ -307,8 +307,8 @@ HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, VARIANT vtWnd, in
     char szName[MAX_PATH];
 
     if (GetClassNameA(hWnd, szName, MAX_PATH) &&
-        (!xstrcmpinA("AkelEdit", szName, (DWORD)-1) ||
-         !xstrcmpinA("RichEdit20", szName, (DWORD)-1)))
+        (!xstrcmpinA("AkelEdit", szName, (UINT_PTR)-1) ||
+         !xstrcmpinA("RichEdit20", szName, (UINT_PTR)-1)))
     {
       if (SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_BYEDITWINDOW, (LPARAM)hWnd))
         *nIsAkelEdit=ISAEW_PROGRAM;
