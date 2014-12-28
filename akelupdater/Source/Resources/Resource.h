@@ -14,6 +14,7 @@
 #define IDC_LANGUAGE_LABEL              1108
 #define IDC_LANGUAGE                    1109
 #define IDC_SCRIPTS                     1110
+#define IDC_SCRIPTS_FILTER              1111
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

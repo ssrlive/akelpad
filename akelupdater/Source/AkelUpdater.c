@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v5.3                  *
+ *                 AkelUpdater NSIS plugin v5.4                  *
  *                                                               *
  * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -8,35 +8,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
-#include "WideFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
+#include "WideFunc.h"
 #include "x64Func.h"
+#include "ResizeFunc.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
 
-
-//Include wide functions
-#define ComboBox_AddStringWide
-#define ComboBox_GetLBTextWide
-#define CreateFileWide
-#define CreateProcessWide
-#define DialogBoxWide
-#define DispatchMessageWide
-#define FindFirstFileWide
-#define FindNextFileWide
-#define GetModuleFileNameWide
-#define GetWindowLongPtrWide
-#define ListView_GetItemWide
-#define ListView_InsertColumnWide
-#define ListView_InsertItemWide
-#define ListView_SetColumnWide
-#define ListView_SetItemWide
-#define LoadLibraryWide
-#define SetDlgItemTextWide
-#define SetWindowLongPtrWide
-#define SetWindowTextWide
-#include "WideFunc.h"
 
 //Include stack functions
 #define StackInsertAfter
@@ -71,6 +50,31 @@
 #define UTF32toUTF16
 #include "StrFunc.h"
 
+//Include wide functions
+#define ComboBox_AddStringWide
+#define ComboBox_GetLBTextWide
+#define CreateFileWide
+#define CreateProcessWide
+#define DialogBoxWide
+#define DispatchMessageWide
+#define FindFirstFileWide
+#define FindNextFileWide
+#define GetClassNameWide
+#define GetModuleFileNameWide
+#define GetWindowLongPtrWide
+#define GetWindowTextWide
+#define ListView_GetColumnWide
+#define ListView_GetItemWide
+#define ListView_InsertColumnWide
+#define ListView_InsertItemWide
+#define ListView_SetColumnWide
+#define ListView_SetItemWide
+#define LoadLibraryWide
+#define SetDlgItemTextWide
+#define SetWindowLongPtrWide
+#define SetWindowTextWide
+#include "WideFunc.h"
+
 //Include x64 functions
 #define ReadFile64
 #define GetFileSize64
@@ -78,6 +82,10 @@
 #define MultiByteToWideChar64
 #define WideCharToMultiByte64
 #include "x64Func.h"
+
+//Include resize functions
+#define ALLRESIZEFUNC
+#include "ResizeFunc.h"
 
 //Defines
 #define NSIS_MAX_STRLEN 1024
@@ -106,11 +114,11 @@
 #define AKDLL_UPDATESTATUS  (WM_USER + 101)
 
 //Plugins list
-#define LVSI_NAME         0
-#define LVSI_LATEST       1
-#define LVSI_CURRENT      2
-#define LVSI_DESCRIPTION  3
-#define LVSI_AUTHOR       4
+#define LVI_NAME         0
+#define LVI_LATEST       1
+#define LVI_CURRENT      2
+#define LVI_DESCRIPTION  3
+#define LVI_AUTHOR       4
 
 #define LT_MAIN    1
 #define LT_SCRIPTS 2
@@ -211,13 +219,13 @@ __INST_LAST
 #define FIT_FORSCRIPT 4
 
 //Scripts list columns
-#define LVI_SCRIPT        0
-#define LVI_HOTKEY        1
-#define LVI_STATUS        2
-#define LVI_VERSION       3
-#define LVI_DESCRIPTION   4
-#define LVI_AUTHOR        5
-#define LVI_SITE          6
+#define LVI_SCRIPTS_SCRIPT        0
+#define LVI_SCRIPTS_HOTKEY        1
+#define LVI_SCRIPTS_STATUS        2
+#define LVI_SCRIPTS_VERSION       3
+#define LVI_SCRIPTS_DESCRIPTION   4
+#define LVI_SCRIPTS_AUTHOR        5
+#define LVI_SCRIPTS_SITE          6
 
 //Scripts list columns flags
 #define LCF_VISIBLE    0x1
@@ -297,13 +305,12 @@ typedef struct {
 
 //Functions prototypes
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 void ParseLst(HWND hDlg);
 void CompareItems();
-void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll);
+void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpFilter);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
-int GetNextWord(wchar_t *wpStr, INT_PTR nStrLen, wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord);
-BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int GetNextWord(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord);
 void StackFilesFill(STACKFILEITEM *hStack);
 FILEREFITEM* StackFileRefInsert(STACKFILEREFITEM *hStack, FILEITEM *lpFileItem);
 FILEITEM* StackFileInsert(STACKFILEITEM *hStack, const wchar_t *wpPluginName);
@@ -352,6 +359,7 @@ wchar_t wszInputVersion[32];
 wchar_t wszNsisTempDir[MAX_PATH];
 wchar_t wszInputHelper[MAX_PATH];
 wchar_t wszScriptsPack[MAX_PATH]=L"";
+wchar_t wszFilter[MAX_PATH]=L"";
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
 BOOL bOldWindows;
@@ -454,7 +462,7 @@ void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, wchar_
 {
   Initialize(string_size, variables, stacktop, extra);
   {
-    wchar_t *wpArgument;
+    const wchar_t *wpArgument;
 
     popstringWide(wszBuf, NSIS_MAX_STRLEN);
     wpArgument=wszBuf;
@@ -488,6 +496,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndGroupExe;
   static HWND hWndListExe;
+  static HWND hWndLanguageLabel;
   static HWND hWndLanguage;
   static HWND hWndMirrorLabel;
   static HWND hWndMirror;
@@ -496,23 +505,28 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndListStatusInfo;
   static HWND hWndUpdate;
   static HWND hWndScripts;
+  static HWND hWndScriptsFilter;
   static HWND hWndCancel;
   static LVITEMW lvi;
   static HICON hIconDlg;
   static BOOL bLockUpdateStatus;
-  static DIALOGRESIZE drs[]={{&hWndGroupExe,       DRS_SIZE|DRS_X, 0},
-                             {&hWndListExe,        DRS_SIZE|DRS_X, 0},
-                             {&hWndMirrorLabel,    DRS_MOVE|DRS_X, 0},
-                             {&hWndMirror,         DRS_MOVE|DRS_X, 0},
-                             {&hWndListDll,        DRS_SIZE|DRS_X, 0},
-                             {&hWndListDll,        DRS_SIZE|DRS_Y, 0},
-                             {&hWndListCheckInfo,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndListStatusInfo, DRS_MOVE|DRS_X, 0},
-                             {&hWndListStatusInfo, DRS_MOVE|DRS_Y, 0},
-                             {&hWndUpdate,         DRS_MOVE|DRS_Y, 0},
-                             {&hWndScripts,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,         DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,         DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndLanguageLabel,  0, 0},
+                             {&hWndLanguage,       0, 0},
+                             {&hWndGroupExe,       RDS_SIZE|RDS_X, 0},
+                             {&hWndListExe,        RDS_SIZE|RDS_X, 0},
+                             {&hWndMirrorLabel,    RDS_MOVE|RDS_X, 0},
+                             {&hWndMirror,         RDS_MOVE|RDS_X, 0},
+                             {&hWndListDll,        RDS_SIZE|RDS_X, 0},
+                             {&hWndListDll,        RDS_SIZE|RDS_Y, 0},
+                             {&hWndListCheckInfo,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndListStatusInfo, RDS_MOVE|RDS_X, 0},
+                             {&hWndListStatusInfo, RDS_MOVE|RDS_Y, 0},
+                             {&hWndUpdate,         RDS_MOVE|RDS_Y, 0},
+                             {&hWndScripts,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndScriptsFilter,  RDS_SIZE|RDS_X, 0},
+                             {&hWndScriptsFilter,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,         RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,         RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -524,6 +538,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndDialog=hDlg;
     hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
     hWndListExe=GetDlgItem(hDlg, IDC_LIST_EXE);
+    hWndLanguageLabel=GetDlgItem(hDlg, IDC_LANGUAGE_LABEL);
     hWndLanguage=GetDlgItem(hDlg, IDC_LANGUAGE);
     hWndMirrorLabel=GetDlgItem(hDlg, IDC_MIRROR_LABEL);
     hWndMirror=GetDlgItem(hDlg, IDC_MIRROR);
@@ -532,6 +547,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndListStatusInfo=GetDlgItem(hDlg, IDC_LIST_STATUSINFO);
     hWndUpdate=GetDlgItem(hDlg, IDOK);
     hWndScripts=GetDlgItem(hDlg, IDC_SCRIPTS);
+    hWndScriptsFilter=GetDlgItem(hDlg, IDC_SCRIPTS_FILTER);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
     SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
@@ -559,9 +575,6 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)0, 0);
 
-    if (bScripts)
-      SendMessage(hWndScripts, BM_SETCHECK, BST_CHECKED, 0);
-
     EnableWindow(hWndMirror, FALSE);
     EnableWindow(hWndUpdate, FALSE);
 
@@ -569,39 +582,39 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_PROGRAM);
     lvc.cx=188;
-    lvc.iSubItem=LVSI_NAME;
-    ListView_InsertColumnWide(hWndListExe, LVSI_NAME, &lvc);
+    lvc.iSubItem=LVI_NAME;
+    ListView_InsertColumnWide(hWndListExe, LVI_NAME, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_LATEST);
     lvc.cx=105;
-    lvc.iSubItem=LVSI_LATEST;
-    ListView_InsertColumnWide(hWndListExe, LVSI_LATEST, &lvc);
+    lvc.iSubItem=LVI_LATEST;
+    ListView_InsertColumnWide(hWndListExe, LVI_LATEST, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_CURRENT);
     lvc.cx=63;
-    lvc.iSubItem=LVSI_CURRENT;
-    ListView_InsertColumnWide(hWndListExe, LVSI_CURRENT, &lvc);
+    lvc.iSubItem=LVI_CURRENT;
+    ListView_InsertColumnWide(hWndListExe, LVI_CURRENT, &lvc);
 
     //Columns DLL
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)L"";
     lvc.cx=210;
-    lvc.iSubItem=LVSI_NAME;
-    ListView_InsertColumnWide(hWndListDll, LVSI_NAME, &lvc);
+    lvc.iSubItem=LVI_NAME;
+    ListView_InsertColumnWide(hWndListDll, LVI_NAME, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_LATEST);
     lvc.cx=83;
-    lvc.iSubItem=LVSI_LATEST;
-    ListView_InsertColumnWide(hWndListDll, LVSI_LATEST, &lvc);
+    lvc.iSubItem=LVI_LATEST;
+    ListView_InsertColumnWide(hWndListDll, LVI_LATEST, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_CURRENT);
     lvc.cx=83;
-    lvc.iSubItem=LVSI_CURRENT;
-    ListView_InsertColumnWide(hWndListDll, LVSI_CURRENT, &lvc);
+    lvc.iSubItem=LVI_CURRENT;
+    ListView_InsertColumnWide(hWndListDll, LVI_CURRENT, &lvc);
 
     //Parse "versions.lst"
     ParseLst(hDlg);
@@ -612,7 +625,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     CompareItems();
 
     //Items
-    FillItems(hDlg, hWndListExe, hWndListDll);
+    FillItems(hDlg, hWndListExe, hWndListDll, wszFilter);
 
     if (bInputAuto)
     {
@@ -695,7 +708,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_COPYDATA)
   {
     COPYDATASTRUCT *cds=(COPYDATASTRUCT *)lParam;
-    DLLINFO *di=cds->lpData;
+    DLLINFO *di=(DLLINFO *)cds->lpData;
 
     xstrcpynW(diGlobal.wszName, di->wszName, MAX_PATH);
     diGlobal.dwError=di->dwError;
@@ -709,7 +722,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (pnmlv->hdr.code == LVN_COLUMNCLICK)
       {
-        if (pnmlv->iSubItem == LVSI_NAME)
+        if (pnmlv->iSubItem == LVI_NAME)
         {
           int nIndex;
           int nMaxIndex=(int)SendMessage(pnmlv->hdr.hwndFrom, LVM_GETITEMCOUNT, 0, 0);
@@ -730,7 +743,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             lvi.mask=LVIF_STATE;
             lvi.iItem=nIndex;
-            lvi.iSubItem=LVSI_NAME;
+            lvi.iSubItem=LVI_NAME;
             lvi.state=((*lpbSelectAll + 1) << 12);
             lvi.stateMask=LVIS_STATEIMAGEMASK;
             ListView_SetItemWide(pnmlv->hdr.hwndFrom, &lvi);
@@ -739,6 +752,10 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           bLockUpdateStatus=FALSE;
           PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+        }
+        else
+        {
+          SendMessage(pnmlv->hdr.hwndFrom, LVM_SORTITEMS, (LPARAM)pnmlv->iSubItem, (LPARAM)CompareFunc);
         }
       }
       else if (pnmlv->hdr.code == LVN_ITEMCHANGING)
@@ -825,8 +842,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
           }
 
-          if (lplvcd->iSubItem == LVSI_NAME ||
-              lplvcd->iSubItem == LVSI_LATEST)
+          if (lplvcd->iSubItem == LVI_NAME ||
+              lplvcd->iSubItem == LVI_LATEST)
           {
             if (nCompare == CR_NOTINSTALLED) //Not installed
             {
@@ -876,8 +893,17 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           CompareItems();
         }
       }
-      FillItems(hDlg, NULL, hWndListDll);
+      ShowWindow(hWndScriptsFilter, bScripts);
+      FillItems(hDlg, NULL, hWndListDll, wszFilter);
       PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+    }
+    else if (LOWORD(wParam) == IDC_SCRIPTS_FILTER)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        GetWindowTextWide(hWndScriptsFilter, wszFilter, MAX_PATH);
+        FillItems(hDlg, NULL, hWndListDll, wszFilter);
+      }
     }
     else if (LOWORD(wParam) == IDOK)
     {
@@ -964,9 +990,37 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyIcon(hIconDlg);
   }
 
-  DialogResizeMessages(&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  ResizeDialogMessages(&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
+}
+
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+  FILEITEM *lpFileItem1=(FILEITEM *)lParam1;
+  FILEITEM *lpFileItem2=(FILEITEM *)lParam2;
+
+  if (lParamSort == LVI_NAME)
+  {
+    return xstrcmpiW(lpFileItem1->wszName, lpFileItem2->wszName);
+  }
+  if (lParamSort == LVI_LATEST)
+  {
+    return xstrcmpiW(lpFileItem1->wszLastVer, lpFileItem2->wszLastVer);
+  }
+  if (lParamSort == LVI_CURRENT)
+  {
+    return xstrcmpiW(lpFileItem1->wszCurVer, lpFileItem2->wszCurVer);
+  }
+  if (lParamSort == LVI_DESCRIPTION)
+  {
+    return xstrcmpiW(lpFileItem1->wszDescription, lpFileItem2->wszDescription);
+  }
+  if (lParamSort == LVI_AUTHOR)
+  {
+    return xstrcmpiW(lpFileItem1->wszAuthor, lpFileItem2->wszAuthor);
+  }
+  return 0;
 }
 
 void ParseLst(HWND hDlg)
@@ -978,8 +1032,8 @@ void ParseLst(HWND hDlg)
   wchar_t wszName[MAX_PATH];
   wchar_t *wpContent;
   wchar_t *wpMaxContent;
-  wchar_t *wpCount;
-  wchar_t *wpLineEnd;
+  const wchar_t *wpCount;
+  const wchar_t *wpLineEnd;
   FILEITEM *lpFileItem=NULL;
   HANDLE hFile;
   INT_PTR nNameLen;
@@ -1102,16 +1156,16 @@ void ParseLst(HWND hDlg)
   {
     FILEITEM *lpMainScript;
     LISTITEM *lpScriptItem;
-    wchar_t *wpPack=wszScriptsPack;
-    wchar_t *wpMaxPack=wszScriptsPack + xstrlenW(wszScriptsPack);
+    const wchar_t *wpPack=wszScriptsPack;
+    const wchar_t *wpMaxPack=wszScriptsPack + xstrlenW(wszScriptsPack);
     INT_PTR nVersionLen;
     HMODULE hInstance;
     BOOL bScriptsSection;
-    LISTCOLUMN lpColumns[]={{LVI_SCRIPT,      163, LCF_VISIBLE},
-                            {LVI_VERSION,     70,  LCF_VISIBLE|LCF_CONTENT},
-                            {LVI_DESCRIPTION, 300, LCF_VISIBLE|LCF_CONTENT},
-                            {LVI_AUTHOR,      70,  LCF_VISIBLE|LCF_CONTENT},
-                            //{LVI_SITE,        70,  LCF_VISIBLE|LCF_CONTENT},
+    LISTCOLUMN lpColumns[]={{LVI_SCRIPTS_SCRIPT,      163, LCF_VISIBLE},
+                            {LVI_SCRIPTS_VERSION,     70,  LCF_VISIBLE|LCF_CONTENT},
+                            {LVI_SCRIPTS_DESCRIPTION, 300, LCF_VISIBLE|LCF_CONTENT},
+                            {LVI_SCRIPTS_AUTHOR,      70,  LCF_VISIBLE|LCF_CONTENT},
+                            //{LVI_SCRIPTS_SITE,        70,  LCF_VISIBLE|LCF_CONTENT},
                             {-1, 0, 0}};
 
     xprintfW(wszFile, L"%s\\Scripts.dll", wszPlugsDir);
@@ -1266,7 +1320,7 @@ void CompareItems()
   }
 }
 
-void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
+void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpFilter)
 {
   FILEITEM *lpFileItem;
   FILEITEM *lpCopyItem;
@@ -1286,27 +1340,35 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
   {
     if (bScripts)
     {
-      lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-      lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_DESCRIPTION);
-      lvc.cx=460;
-      lvc.iSubItem=LVSI_DESCRIPTION;
-      ListView_InsertColumnWide(hWndListDll, LVSI_DESCRIPTION, &lvc);
+      lvc.mask=LVCF_WIDTH;
+      if (!ListView_GetColumnWide(hWndListDll, LVI_DESCRIPTION, &lvc))
+      {
+        lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+        lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_DESCRIPTION);
+        lvc.cx=460;
+        lvc.iSubItem=LVI_DESCRIPTION;
+        ListView_InsertColumnWide(hWndListDll, LVI_DESCRIPTION, &lvc);
+      }
 
-      lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-      lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_AUTHOR);
-      lvc.cx=130;
-      lvc.iSubItem=LVSI_AUTHOR;
-      ListView_InsertColumnWide(hWndListDll, LVSI_AUTHOR, &lvc);
+      lvc.mask=LVCF_WIDTH;
+      if (!ListView_GetColumnWide(hWndListDll, LVI_AUTHOR, &lvc))
+      {
+        lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+        lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_AUTHOR);
+        lvc.cx=130;
+        lvc.iSubItem=LVI_AUTHOR;
+        ListView_InsertColumnWide(hWndListDll, LVI_AUTHOR, &lvc);
+      }
     }
     else
     {
-      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVSI_AUTHOR, 0);
-      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVSI_DESCRIPTION, 0);
+      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVI_AUTHOR, 0);
+      SendMessage(hWndListDll, LVM_DELETECOLUMN, LVI_DESCRIPTION, 0);
     }
     xprintfW(wszBuf, L"%s%s", GetLangStringW(wLangSystem, bScripts?STRID_SCRIPT:STRID_PLUGIN), (!bScripts && !bInputNoCopies)?GetLangStringW(wLangSystem, STRID_COPIES):NULL);
     lvc.mask=LVCF_TEXT;
     lvc.pszText=(wchar_t *)wszBuf;
-    ListView_SetColumnWide(hWndListDll, LVSI_NAME, &lvc);
+    ListView_SetColumnWide(hWndListDll, LVI_NAME, &lvc);
 
     SendMessage(hWndListDll, WM_SETREDRAW, FALSE, 0);
     SendMessage(hWndListDll, LVM_DELETEALLITEMS, 0, 0);
@@ -1342,6 +1404,19 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     }
     else if (hWndList == hWndListDll)
     {
+      //Filter check (with contents)
+      if (bScripts && wpFilter && *wpFilter)
+      {
+        if (!xstrstrW(lpFileItem->wszName, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+            !xstrstrW(lpFileItem->wszCurVer, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+            !xstrstrW(lpFileItem->wszLastVer, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+            !xstrstrW(lpFileItem->wszDescription, -1, wpFilter, -1, FALSE, NULL, NULL) &&
+            !xstrstrW(lpFileItem->wszAuthor, -1, wpFilter, -1, FALSE, NULL, NULL))
+        {
+          continue;
+        }
+      }
+
       nOffset=xstrcpynW(wszBuf, lpFileItem->wszName, MAX_PATH);
 
       //Append copies
@@ -1360,13 +1435,13 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     lvi.mask=LVIF_TEXT|LVIF_PARAM;
     lvi.pszText=lpFileItem->dwError?lpFileItem->wszError:wszBuf;
     lvi.iItem=0x7FFFFFFF;
-    lvi.iSubItem=LVSI_NAME;
+    lvi.iSubItem=LVI_NAME;
     lvi.lParam=(LPARAM)lpFileItem;
     nIndex=ListView_InsertItemWide(hWndList, &lvi);
 
     lvi.mask=LVIF_STATE;
     lvi.iItem=nIndex;
-    lvi.iSubItem=LVSI_NAME;
+    lvi.iSubItem=LVI_NAME;
     lvi.state=((lpFileItem->nChecked + 1) << 12);
     lvi.stateMask=LVIS_STATEIMAGEMASK;
     ListView_SetItemWide(hWndList, &lvi);
@@ -1374,13 +1449,13 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
     lvi.mask=LVIF_TEXT;
     lvi.pszText=lpFileItem->wszLastVer;
     lvi.iItem=nIndex;
-    lvi.iSubItem=LVSI_LATEST;
+    lvi.iSubItem=LVI_LATEST;
     ListView_SetItemWide(hWndList, &lvi);
 
     lvi.mask=LVIF_TEXT;
     lvi.pszText=lpFileItem->wszCurVer;
     lvi.iItem=nIndex;
-    lvi.iSubItem=LVSI_CURRENT;
+    lvi.iSubItem=LVI_CURRENT;
     ListView_SetItemWide(hWndList, &lvi);
 
     if (bScripts)
@@ -1388,13 +1463,13 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll)
       lvi.mask=LVIF_TEXT;
       lvi.pszText=lpFileItem->wszDescription;
       lvi.iItem=nIndex;
-      lvi.iSubItem=LVSI_DESCRIPTION;
+      lvi.iSubItem=LVI_DESCRIPTION;
       ListView_SetItemWide(hWndList, &lvi);
 
       lvi.mask=LVIF_TEXT;
       lvi.pszText=lpFileItem->wszAuthor;
       lvi.iItem=nIndex;
-      lvi.iSubItem=LVSI_AUTHOR;
+      lvi.iSubItem=LVI_AUTHOR;
       ListView_SetItemWide(hWndList, &lvi);
     }
 
@@ -1472,159 +1547,14 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
   return (int)(wpArgSet - wszArg);
 }
 
-int GetNextWord(wchar_t *wpStr, INT_PTR nStrLen, wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord)
+int GetNextWord(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord)
 {
-  wchar_t *wpMatchBegin;
-  wchar_t *wpMatchEnd;
+  const wchar_t *wpMatchBegin;
+  const wchar_t *wpMatchEnd;
 
   xstrstrW(wpStr, nStrLen, wpDelim, nDelimLen, TRUE, &wpMatchBegin, &wpMatchEnd);
   if (wpNextWord) *wpNextWord=wpMatchEnd;
   return xstrcpynW(wszWord, wpStr, min(wpMatchBegin - wpStr + 1, nWordMax));
-}
-
-BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
-{
-  if (GetWindowRect(hWnd, rc))
-  {
-    rc->right-=rc->left;
-    rc->bottom-=rc->top;
-
-    if (hWndOwner)
-    {
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
-        return FALSE;
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  if (uMsg == WM_INITDIALOG)
-  {
-    RECT rcTemplate;
-    RECT rcControl;
-    DWORD dwFlags=SWP_NOMOVE;
-    int i;
-
-    rcTemplate=*rcCurrent;
-    GetWindowSize(hDlg, NULL, rcCurrent);
-
-    for (i=0; drs[i].lpWnd; ++i)
-    {
-      if (*drs[i].lpWnd)
-      {
-        GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
-        if (drs[i].dwType & DRS_SIZE)
-        {
-          if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
-          else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
-        }
-        else if (drs[i].dwType & DRS_MOVE)
-        {
-          if (drs[i].dwType & DRS_X)
-            drs[i].nOffset=rcCurrent->right - rcControl.left;
-          else if (drs[i].dwType & DRS_Y)
-            drs[i].nOffset=rcCurrent->bottom - rcControl.top;
-        }
-      }
-    }
-
-    if (rcTemplate.right && rcTemplate.bottom)
-    {
-      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER)
-      {
-        rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
-        rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
-        dwFlags&=~SWP_NOMOVE;
-      }
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
-    }
-  }
-  else if (uMsg == WM_GETMINMAXINFO)
-  {
-    if (rcMinMax)
-    {
-      MINMAXINFO *mmi=(MINMAXINFO *)lParam;
-
-      if (rcMinMax->left)
-        mmi->ptMinTrackSize.x=rcMinMax->left;
-      if (rcMinMax->top)
-        mmi->ptMinTrackSize.y=rcMinMax->top;
-      if (rcMinMax->right)
-        mmi->ptMaxTrackSize.x=rcMinMax->right;
-      if (rcMinMax->bottom)
-        mmi->ptMaxTrackSize.y=rcMinMax->bottom;
-    }
-  }
-  else if (uMsg == WM_MOVE)
-  {
-    if (!(GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER))
-    {
-      RECT rcTemplate;
-
-      GetWindowSize(hDlg, NULL, &rcTemplate);
-      rcCurrent->left=rcTemplate.left;
-      rcCurrent->top=rcTemplate.top;
-      return TRUE;
-    }
-  }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      RECT rcControl;
-      DWORD dwFlags;
-      int i;
-
-      GetWindowSize(hDlg, NULL, rcCurrent);
-
-      for (i=0; drs[i].lpWnd; ++i)
-      {
-        if (*drs[i].lpWnd)
-        {
-          dwFlags=0;
-          if (drs[i].dwType & DRS_SIZE)
-            dwFlags|=SWP_NOMOVE;
-          else if (drs[i].dwType & DRS_MOVE)
-            dwFlags|=SWP_NOSIZE;
-          else
-            continue;
-
-          GetWindowSize(*drs[i].lpWnd, hDlg, &rcControl);
-          SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
-                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
-                                         (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
-                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
-                                          dwFlags|SWP_NOZORDER|SWP_NOACTIVATE);
-        }
-      }
-      InvalidateRect(hDlg, NULL, TRUE);
-      return TRUE;
-    }
-  }
-  else if (uMsg == WM_PAINT)
-  {
-    if (dwFlags & DRM_PAINTSIZEGRIP)
-    {
-      PAINTSTRUCT ps;
-      RECT rcGrip;
-      HDC hDC;
-
-      if (hDC=BeginPaint(hDlg, &ps))
-      {
-        GetClientRect(hDlg, &rcGrip);
-        rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-        rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-        DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-        EndPaint(hDlg, &ps);
-      }
-    }
-  }
-  return FALSE;
 }
 
 void StackFilesFill(STACKFILEITEM *hStack)
