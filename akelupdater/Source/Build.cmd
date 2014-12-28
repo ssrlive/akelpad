@@ -23,7 +23,7 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
 )
 rc /R /Fo"AkelUpdater.res" "Resources\AkelUpdater.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl /O1 %CLFLAGS% AkelUpdater.c AkelUpdater.res  /LD /link kernel32.lib user32.lib version.lib /OPT:NOWIN98 /NODEFAULTLIB /ENTRY:DllMain
+cl /O1 %CLFLAGS% AkelUpdater.c AkelUpdater.res  /LD /link kernel32.lib user32.lib gdi32.lib version.lib /OPT:NOWIN98 /NODEFAULTLIB /ENTRY:DllMain
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::

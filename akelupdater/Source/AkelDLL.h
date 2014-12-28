@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 1)
 
 
 //// Defines
@@ -92,7 +92,7 @@
 
 //AKD_IFEXPRESSION errors
 #define IEE_SUCCESS            0
-#define IEE_NOCOMMA            1
+#define IEE_WRONGPARAMCOUNT    1
 #define IEE_NOCLOSEPARENTHESIS 2
 #define IEE_UNKNOWNOPERATOR    3
 #define IEE_UNKNOWNMETHOD      4
@@ -779,14 +779,17 @@
 #define MLT_REPLACE  4 //Replace dialog.
 #define MLT_GOTO     5 //Go to dialog.
 
-//DIALOGRESIZEMSG flags
-#define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
+#ifndef _RESIZEFUNC_H_
+  //RESIZEDIALOGMSG flags
+  #define RDM_PAINTSIZEGRIP 0x2 //Draw resize grid.
+  #define RDM_ALLCHILDREN   0x4 //Smooth repaint also for all children that not included in RESIZEDIALOG array.
 
-//DIALOGRESIZE type
-#define DRS_SIZE  0x1 //Resize control. Can be combined with DRS_X ot DRS_Y.
-#define DRS_MOVE  0x2 //Move control. Can be combined with DRS_X ot DRS_Y.
-#define DRS_X     0x4 //X value. Can be combined with DRS_SIZE ot DRS_MOVE.
-#define DRS_Y     0x8 //Y value. Can be combined with DRS_SIZE ot DRS_MOVE.
+  //RESIZEDIALOG type
+  #define RDS_SIZE  0x1 //Resize control. Can be combined with RDS_X or RDS_Y.
+  #define RDS_MOVE  0x2 //Move control. Can be combined with RDS_X or RDS_Y.
+  #define RDS_X     0x4 //X value. Can be combined with RDS_SIZE or RDS_MOVE.
+  #define RDS_Y     0x8 //Y value. Can be combined with RDS_SIZE or RDS_MOVE.
+#endif
 
 //Dock side
 #define DKS_LEFT    1
@@ -1515,24 +1518,26 @@ typedef struct {
   LPVOID lpParam;                   //Creation parameters.
 } CREATEWINDOWW;
 
-typedef struct {
-  HWND *lpWnd;   //Control window.
-  DWORD dwType;  //See DRS_* defines.
-  int nOffset;   //Control offset, set it to zero.
-} DIALOGRESIZE;
+#ifndef _RESIZEFUNC_H_
+  typedef struct {
+    HWND *lpWnd;   //Control window.
+    DWORD dwType;  //See RDS_* defines.
+    int nOffset;   //Control offset, set it to zero.
+  } RESIZEDIALOG;
+#endif
 
 typedef struct {
-  DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array.
+  RESIZEDIALOG *rds;  //Pointer to a first RESIZEDIALOG element in array. Last element specified as NULL in RESIZEDIALOG.lpWnd.
   RECT *rcMinMax;     //Pointer to a min/max sizes. Each member is valid if not equal to zero. Can be NULL.
                       //RECT->rcMinMax.left, RECT->rcMinMax.top specifies minimum dialog size.
                       //RECT->rcMinMax.right, RECT->rcMinMax.bottom specifies maximum dialog size.
-  RECT *rcCurrent;    //Pointer to a current rectangle. Set all members of RECT to zero at first call.
-  DWORD dwFlags;      //See DRM_* defines.
+  RECT *rcCurrent;    //Pointer to a current dialog rectangle. Set all members of RECT to zero at first call.
+  DWORD dwFlags;      //See RDM_* defines.
   HWND hDlg;          //Dialog handle.
   UINT uMsg;          //Dialog message.
   WPARAM wParam;      //First message parameter.
   LPARAM lParam;      //Second message parameter.
-} DIALOGRESIZEMSG;
+} RESIZEDIALOGMSG;
 
 typedef struct _DOCK {
   struct _DOCK *next;
@@ -2253,7 +2258,7 @@ typedef struct {
 #define AKD_DOCK                   (WM_USER + 254)
 #define AKD_SETBUTTONDRAW          (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
-#define AKD_DIALOGRESIZE           (WM_USER + 257)
+#define AKD_RESIZEDIALOG           (WM_USER + 257)
 #define AKD_UPDATESTATUSUSER       (WM_USER + 258)
 
 //Frames
@@ -4064,13 +4069,13 @@ Example:
  SendMessage(pd->hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
 
 
-AKD_DIALOGRESIZE
+AKD_RESIZEDIALOG
 ________________
 
 Automatic controls alignment in dialog.
 
 wParam                    == not used.
-(DIALOGRESIZEMSG *)lParam == pointer to a DIALOGRESIZEMSG structure.
+(RESIZEDIALOGMSG *)lParam == pointer to a RESIZEDIALOGMSG structure.
 
 Return Value
  TRUE  dialog size changed.
@@ -4085,10 +4090,10 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndOK;
   static HWND hWndCancel;
-  static DIALOGRESIZE drs[]={{&hWndOK,     DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,     DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel, DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel, DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndOK,     RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,     RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel, RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel, RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -4101,9 +4106,9 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainInitDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       bMainDialogRectChanged=TRUE;
   }
   return FALSE;
