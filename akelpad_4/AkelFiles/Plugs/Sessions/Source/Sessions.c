@@ -337,6 +337,7 @@ typedef struct {
 
 #define MARKFLAG_MATCHCASE 0x1
 #define MARKFLAG_REGEXP    0x2
+#define MARKFLAG_WHOLEWORD 0x4
 
 //Functions prototypes
 void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow);
@@ -4035,6 +4036,8 @@ void OpenItem(SESSIONITEM *si)
           dehm.dwFlags|=MARKFLAG_MATCHCASE;
         if (dwHLFlags & AEHLF_REGEXP)
           dehm.dwFlags|=MARKFLAG_REGEXP;
+        if (dwHLFlags & AEHLF_WHOLEWORD)
+          dehm.dwFlags|=MARKFLAG_WHOLEWORD;
 
         if (!GetEscapeParam(wpText, &wpParamStart, &wpParamEnd, &wpText))
           break;
