@@ -5,6 +5,7 @@
  *                                                               *
  *                                                               *
  *Functions:                                                     *
+ * GetWindowPos, GetWindowSize, GetClientPos, GetClientSize      *
  * ResizeDialogMessages                                          *
  *****************************************************************/
 
