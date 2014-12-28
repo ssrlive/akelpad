@@ -340,15 +340,20 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VA
   HWND hWnd=(HWND)GetVariantInt(&vtWnd, NULL);
   int nIsAkelEdit;
 
-  if ((INT_PTR)hWnd == SEW_FOCUS)
-    hWnd=(HWND)SendMessage(hMainWnd, AKD_GETFOCUS, 0, 0);
-  SetVariantInt(&vtWnd, (UINT_PTR)hWnd);
-  Document_IsAkelEdit(this, vtWnd, &nIsAkelEdit);
+  if (hWnd)
+  {
+    if ((INT_PTR)hWnd == SEW_FOCUS)
+      hWnd=(HWND)SendMessage(hMainWnd, AKD_GETFOCUS, 0, 0);
+    SetVariantInt(&vtWnd, (UINT_PTR)hWnd);
+    Document_IsAkelEdit(this, vtWnd, &nIsAkelEdit);
 
-  if (hWnd && nIsAkelEdit != ISAEW_NONE)
-    lpScriptThread->hWndPluginEdit=hWnd;
-  else
-    lpScriptThread->hWndPluginEdit=NULL;
+    if (nIsAkelEdit != ISAEW_NONE)
+      lpScriptThread->hWndPluginEdit=hWnd;
+    else
+      lpScriptThread->hWndPluginEdit=NULL;
+  }
+  else lpScriptThread->hWndPluginEdit=NULL;
+
   SetVariantInt(vtWndResult, (UINT_PTR)lpScriptThread->hWndPluginEdit);
   return NOERROR;
 }
