@@ -353,10 +353,10 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndTitleText;
   static HWND hWndTitleClose;
   static HMENU hMenuLabel;
-  static DIALOGRESIZE drs[]={{&hWndTitleText,    DRS_SIZE|DRS_X, 0},
-                             {&hWndTitleClose,   DRS_MOVE|DRS_X, 0},
-                             {&hWndCaptureEdit,  DRS_SIZE|DRS_X, 0},
-                             {&hWndCaptureEdit,  DRS_SIZE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndTitleText,    RDS_SIZE|RDS_X, 0},
+                             {&hWndTitleClose,   RDS_MOVE|RDS_X, 0},
+                             {&hWndCaptureEdit,  RDS_SIZE|RDS_X, 0},
+                             {&hWndCaptureEdit,  RDS_SIZE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -474,9 +474,9 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcCaptureCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], NULL, &rcCaptureCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       if (dkCaptureDlg) GetWindowSize(hWndTitleText, hDlg, &dkCaptureDlg->rcDragDrop);
   }
 

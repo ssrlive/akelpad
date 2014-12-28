@@ -70,9 +70,6 @@
 #ifndef SS_EDITCONTROL
   #define SS_EDITCONTROL 0x00002000L
 #endif
-#ifndef BS_TYPEMASK
-  #define BS_TYPEMASK 0x0000000FL
-#endif
 #ifndef SPI_GETSNAPTODEFBUTTON
   #define SPI_GETSNAPTODEFBUTTON 0x005F
 #endif
@@ -609,19 +606,6 @@ typedef struct {
   int nSizingSide;
   int nSizingType;
 } STACKDOCK;
-
-typedef struct _DIALOGRESIZEWND {
-  struct _DIALOGRESIZEWND *next;
-  struct _DIALOGRESIZEWND *prev;
-  HWND hWnd;
-  RECT rcBeforeWindow;
-  RECT rcBeforeClient;
-} DIALOGRESIZEWND;
-
-typedef struct {
-  DIALOGRESIZEWND *first;
-  DIALOGRESIZEWND *last;
-} STACKDIALOGRESIZEWND;
 
 typedef struct _BKIMAGEITEM {
   struct _BKIMAGEITEM *next;
@@ -1213,17 +1197,12 @@ HWND NextDialog(BOOL bPrevious);
 BOOL CALLBACK EnumDialogsProc(HWND hWnd, LPARAM lParam);
 HWND NextClone(BOOL bPrevious);
 void UpdateSize();
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *ptScreen, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *ptScreen);
 void SetEdgeCursor(int nEdge);
 int GetOppEdge(int nEdge);
 BOOL IsCursorOnWindow(HWND hWnd);
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
-BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
-BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc);
-BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenRectToClientSize(HWND hWnd, RECT *rc);
 BOOL ClientSizeToScreenRect(HWND hWnd, RECT *rc);
 BOOL SmoothWindowPos(RECT *lprcWindowSize, HWND hWnd, HWND hWndInsertAfter, int x, int y, int cx, int cy, UINT uFlags);

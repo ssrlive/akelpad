@@ -292,22 +292,22 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuList;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndScriptsList,            DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsList,            DRS_SIZE|DRS_Y, 0},
-                             {&hWndScriptsFilter,          DRS_SIZE|DRS_X, 0},
-                             {&hWndScriptsFilter,          DRS_MOVE|DRS_Y, 0},
-                             {&hWndChangeListGroup,        DRS_MOVE|DRS_X, 0},
-                             {&hWndExecButton,             DRS_MOVE|DRS_X, 0},
-                             {&hWndEditButton,             DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndAssignButton,           DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugGroup,             DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITCheck,          DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugJITFromStartCheck, DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeCheck,         DRS_MOVE|DRS_X, 0},
-                             {&hWndDebugCodeButton,        DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,            DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,            DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndScriptsList,            RDS_SIZE|RDS_X, 0},
+                             {&hWndScriptsList,            RDS_SIZE|RDS_Y, 0},
+                             {&hWndScriptsFilter,          RDS_SIZE|RDS_X, 0},
+                             {&hWndScriptsFilter,          RDS_MOVE|RDS_Y, 0},
+                             {&hWndChangeListGroup,        RDS_MOVE|RDS_X, 0},
+                             {&hWndExecButton,             RDS_MOVE|RDS_X, 0},
+                             {&hWndEditButton,             RDS_MOVE|RDS_X, 0},
+                             {&hWndHotkey,                 RDS_MOVE|RDS_X, 0},
+                             {&hWndAssignButton,           RDS_MOVE|RDS_X, 0},
+                             {&hWndDebugGroup,             RDS_MOVE|RDS_X, 0},
+                             {&hWndDebugJITCheck,          RDS_MOVE|RDS_X, 0},
+                             {&hWndDebugJITFromStartCheck, RDS_MOVE|RDS_X, 0},
+                             {&hWndDebugCodeCheck,         RDS_MOVE|RDS_X, 0},
+                             {&hWndDebugCodeButton,        RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,            RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,            RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -667,9 +667,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RECT;
   }
 

@@ -262,12 +262,12 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuList;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndEnableTheme, 0, 0},
-                             {&hWndSoundList,   DRS_SIZE|DRS_X, 0},
-                             {&hWndSoundList,   DRS_SIZE|DRS_Y, 0},
-                             {&hWndDisableBeep, DRS_MOVE|DRS_Y, 0},
-                             {&hWndClose,       DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,       DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndEnableTheme, 0, 0},
+                             {&hWndSoundList,   RDS_SIZE|RDS_X, 0},
+                             {&hWndSoundList,   RDS_SIZE|RDS_Y, 0},
+                             {&hWndDisableBeep, RDS_MOVE|RDS_Y, 0},
+                             {&hWndClose,       RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,       RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -606,9 +606,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RECT;
   }
 

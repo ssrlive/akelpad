@@ -183,19 +183,19 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HMENU hMenuList;
   static BOOL bListChanged;
   static BOOL bOnlyNamesDlg;
-  static DIALOGRESIZE drs[]={{&hWndItemsList,  DRS_SIZE|DRS_X, 0},
-                             {&hWndItemsList,  DRS_SIZE|DRS_Y, 0},
-                             {&hToolbar,       DRS_SIZE|DRS_X, 0},
-                             {&hToolbar,       DRS_MOVE|DRS_Y, 0},
-                             {&hWndStats,      DRS_MOVE|DRS_X, 0},
-                             {&hWndStats,      DRS_MOVE|DRS_Y, 0},
-                             {&hWndSearch,     DRS_SIZE|DRS_X, 0},
-                             {&hWndSearch,     DRS_MOVE|DRS_Y, 0},
-                             {&hWndOnlyNames,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,         DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,         DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,     DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,     DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndItemsList,  RDS_SIZE|RDS_X, 0},
+                             {&hWndItemsList,  RDS_SIZE|RDS_Y, 0},
+                             {&hToolbar,       RDS_SIZE|RDS_X, 0},
+                             {&hToolbar,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndStats,      RDS_MOVE|RDS_X, 0},
+                             {&hWndStats,      RDS_MOVE|RDS_Y, 0},
+                             {&hWndSearch,     RDS_SIZE|RDS_X, 0},
+                             {&hWndSearch,     RDS_MOVE|RDS_Y, 0},
+                             {&hWndOnlyNames,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,         RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,         RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,     RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,     RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
   int nItem;
   LRESULT lResult;
@@ -513,9 +513,9 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_RECT;
   }
   return FALSE;

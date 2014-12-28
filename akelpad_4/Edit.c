@@ -11,6 +11,7 @@
 #include <aclapi.h>
 #include <richedit.h>
 #include "WideFunc.h"
+#include "ResizeFunc.h"
 #include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\x64Func.h"
@@ -12160,17 +12161,17 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static int nCodePageFrom=-1;
   static int nCodePageTo=-1;
   static BOOL bAutodetect=TRUE;
-  static DIALOGRESIZE drs[]={{&hWndCodePageFromLabel,      0, 0},
-                             {&hWndCodePageFromList,       DRS_SIZE|DRS_X, 0},
+  static RESIZEDIALOG rds[]={{&hWndCodePageFromLabel,      0, 0},
+                             {&hWndCodePageFromList,       RDS_SIZE|RDS_X, 0},
                              {&hWndCodePageToLabel,        0, 0},
-                             {&hWndCodePageToList,         DRS_SIZE|DRS_X, 0},
-                             {&hWndCodePageAutodetect,     DRS_MOVE|DRS_X, 0},
-                             {&hWndCodePagePreview,        DRS_SIZE|DRS_X, 0},
-                             {&hWndCodePagePreview,        DRS_SIZE|DRS_Y, 0},
-                             {&hWndOK,                     DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,                     DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,                 DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,                 DRS_MOVE|DRS_Y, 0},
+                             {&hWndCodePageToList,         RDS_SIZE|RDS_X, 0},
+                             {&hWndCodePageAutodetect,     RDS_MOVE|RDS_X, 0},
+                             {&hWndCodePagePreview,        RDS_SIZE|RDS_X, 0},
+                             {&hWndCodePagePreview,        RDS_SIZE|RDS_Y, 0},
+                             {&hWndOK,                     RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,                     RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,                 RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,                 RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -12300,7 +12301,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcRecodeMinMaxDialog, &moCur.rcRecodeCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  ResizeDialogMessages(&rds[0], &rcRecodeMinMaxDialog, &moCur.rcRecodeCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -12327,28 +12328,28 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static wchar_t wszBkImageFileDlg[MAX_PATH];
   static int nBkImageAlphaDlg;
   static BOOL bColorsChanged;
-  static DIALOGRESIZE drs[]={{&hWndThemeNameLabel,    0, 0},
-                             {&hWndThemeNameCombo,    DRS_SIZE|DRS_X, 0},
-                             {&hWndThemeSave,         DRS_MOVE|DRS_X, 0},
-                             {&hWndThemeDelete,       DRS_MOVE|DRS_X, 0},
-                             {&hWndList,              DRS_SIZE|DRS_X, 0},
-                             {&hWndList,              DRS_SIZE|DRS_Y, 0},
-                             {&hWndBkImageFileLabel,  DRS_SIZE|DRS_X, 0},
-                             {&hWndBkImageFileLabel,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkImageFileEdit,   DRS_SIZE|DRS_X, 0},
-                             {&hWndBkImageFileEdit,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkImageFileBrowse, DRS_MOVE|DRS_X, 0},
-                             {&hWndBkImageFileBrowse, DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkImageAlphaLabel, DRS_MOVE|DRS_X, 0},
-                             {&hWndBkImageAlphaLabel, DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkImageAlphaEdit,  DRS_MOVE|DRS_X, 0},
-                             {&hWndBkImageAlphaEdit,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndBkImageAlphaSpin,  DRS_MOVE|DRS_X, 0},
-                             {&hWndBkImageAlphaSpin,  DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,                DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,                DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,            DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,            DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndThemeNameLabel,    0, 0},
+                             {&hWndThemeNameCombo,    RDS_SIZE|RDS_X, 0},
+                             {&hWndThemeSave,         RDS_MOVE|RDS_X, 0},
+                             {&hWndThemeDelete,       RDS_MOVE|RDS_X, 0},
+                             {&hWndList,              RDS_SIZE|RDS_X, 0},
+                             {&hWndList,              RDS_SIZE|RDS_Y, 0},
+                             {&hWndBkImageFileLabel,  RDS_SIZE|RDS_X, 0},
+                             {&hWndBkImageFileLabel,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndBkImageFileEdit,   RDS_SIZE|RDS_X, 0},
+                             {&hWndBkImageFileEdit,   RDS_MOVE|RDS_Y, 0},
+                             {&hWndBkImageFileBrowse, RDS_MOVE|RDS_X, 0},
+                             {&hWndBkImageFileBrowse, RDS_MOVE|RDS_Y, 0},
+                             {&hWndBkImageAlphaLabel, RDS_MOVE|RDS_X, 0},
+                             {&hWndBkImageAlphaLabel, RDS_MOVE|RDS_Y, 0},
+                             {&hWndBkImageAlphaEdit,  RDS_MOVE|RDS_X, 0},
+                             {&hWndBkImageAlphaEdit,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndBkImageAlphaSpin,  RDS_MOVE|RDS_X, 0},
+                             {&hWndBkImageAlphaSpin,  RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,                RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,                RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,            RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,            RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -12974,7 +12975,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcColorsMinMaxDialog, &moCur.rcColorsCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  ResizeDialogMessages(&rds[0], &rcColorsMinMaxDialog, &moCur.rcColorsCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -14053,17 +14054,17 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X, 0},
-                             {&hWndList,        DRS_SIZE|DRS_Y, 0},
-                             {&hWndListInfo,    DRS_MOVE|DRS_Y, 0},
-                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,      DRS_MOVE|DRS_X, 0},
-                             {&hWndAssign,      DRS_MOVE|DRS_X, 0},
-                             {&hWndCall,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,          DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,          DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel,      DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,      DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndList,        RDS_SIZE|RDS_X, 0},
+                             {&hWndList,        RDS_SIZE|RDS_Y, 0},
+                             {&hWndListInfo,    RDS_MOVE|RDS_Y, 0},
+                             {&hWndHotkeyLabel, RDS_MOVE|RDS_X, 0},
+                             {&hWndHotkey,      RDS_MOVE|RDS_X, 0},
+                             {&hWndAssign,      RDS_MOVE|RDS_X, 0},
+                             {&hWndCall,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,          RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,          RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,      RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,      RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -14294,7 +14295,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsMinMaxDialog, &moCur.rcPluginsCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  ResizeDialogMessages(&rds[0], &rcPluginsMinMaxDialog, &moCur.rcPluginsCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -15749,26 +15750,26 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuList;
   static int nModifyFilter;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
-                             {&hWndList,         DRS_SIZE|DRS_Y, 0},
-                             {&hWndStats,        DRS_MOVE|DRS_X, 0},
-                             {&hWndStats,        DRS_MOVE|DRS_Y, 0},
-                             {&hWndSearch,       DRS_SIZE|DRS_X, 0},
-                             {&hWndSearch,       DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,           DRS_MOVE|DRS_X, 0},
-                             {&hWndArrangeGroup, DRS_MOVE|DRS_X, 0},
-                             {&hWndHorz,         DRS_MOVE|DRS_X, 0},
-                             {&hWndVert,         DRS_MOVE|DRS_X, 0},
-                             {&hWndTabsGroup,    DRS_MOVE|DRS_X, 0},
-                             {&hWndUp,           DRS_MOVE|DRS_X, 0},
-                             {&hWndDown,         DRS_MOVE|DRS_X, 0},
-                             {&hWndSort,         DRS_MOVE|DRS_X, 0},
-                             {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
-                             {&hWndSave,         DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,        DRS_MOVE|DRS_X, 0},
-                             {&hWndNames,        DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,       DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndList,         RDS_SIZE|RDS_X, 0},
+                             {&hWndList,         RDS_SIZE|RDS_Y, 0},
+                             {&hWndStats,        RDS_MOVE|RDS_X, 0},
+                             {&hWndStats,        RDS_MOVE|RDS_Y, 0},
+                             {&hWndSearch,       RDS_SIZE|RDS_X, 0},
+                             {&hWndSearch,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,           RDS_MOVE|RDS_X, 0},
+                             {&hWndArrangeGroup, RDS_MOVE|RDS_X, 0},
+                             {&hWndHorz,         RDS_MOVE|RDS_X, 0},
+                             {&hWndVert,         RDS_MOVE|RDS_X, 0},
+                             {&hWndTabsGroup,    RDS_MOVE|RDS_X, 0},
+                             {&hWndUp,           RDS_MOVE|RDS_X, 0},
+                             {&hWndDown,         RDS_MOVE|RDS_X, 0},
+                             {&hWndSort,         RDS_MOVE|RDS_X, 0},
+                             {&hWndFilesGroup,   RDS_MOVE|RDS_X, 0},
+                             {&hWndSave,         RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,        RDS_MOVE|RDS_X, 0},
+                             {&hWndNames,        RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,       RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,       RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
   static int lpMenuItems[]={IDC_MDILIST_HORZ,
                             IDC_MDILIST_VERT,
@@ -16068,7 +16069,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Destroy resources
     DestroyMenu(hMenuList);
   }
-  DialogResizeMessages(&drs[0], &rcMdiListMinMaxDialog, &moCur.rcMdiListCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
+  ResizeDialogMessages(&rds[0], &rcMdiListMinMaxDialog, &moCur.rcMdiListCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -21669,312 +21670,6 @@ void UpdateSize()
   }
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcMinMax, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  if (uMsg == WM_INITDIALOG)
-  {
-    DIALOGRESIZE *drsControl;
-    RECT rcTemplate;
-    RECT rcControl;
-    DWORD dwSwpFlags=SWP_NOMOVE;
-
-    rcTemplate=*rcCurrent;
-    GetWindowSize(hDlg, NULL, rcCurrent);
-
-    for (drsControl=drs; drsControl->lpWnd; ++drsControl)
-    {
-      if (!*drsControl->lpWnd)
-        continue;
-
-      GetWindowSize(*drsControl->lpWnd, hDlg, &rcControl);
-      if (drsControl->dwType & DRS_SIZE)
-      {
-        if (drsControl->dwType & DRS_X)
-          drsControl->nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
-        else if (drsControl->dwType & DRS_Y)
-          drsControl->nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
-      }
-      else if (drsControl->dwType & DRS_MOVE)
-      {
-        if (drsControl->dwType & DRS_X)
-          drsControl->nOffset=rcCurrent->right - rcControl.left;
-        else if (drsControl->dwType & DRS_Y)
-          drsControl->nOffset=rcCurrent->bottom - rcControl.top;
-      }
-    }
-
-    if (rcTemplate.right && rcTemplate.bottom)
-    {
-      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER)
-      {
-        rcTemplate.left=rcCurrent->left + (rcCurrent->right - rcTemplate.right) / 2;
-        rcTemplate.top=rcCurrent->top + (rcCurrent->bottom - rcTemplate.bottom) / 2;
-        dwSwpFlags&=~SWP_NOMOVE;
-      }
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, dwSwpFlags|SWP_NOZORDER|SWP_NOACTIVATE);
-    }
-  }
-  else if (uMsg == WM_GETMINMAXINFO)
-  {
-    if (rcMinMax)
-    {
-      MINMAXINFO *mmi=(MINMAXINFO *)lParam;
-
-      if (rcMinMax->left)
-        mmi->ptMinTrackSize.x=rcMinMax->left;
-      if (rcMinMax->top)
-        mmi->ptMinTrackSize.y=rcMinMax->top;
-      if (rcMinMax->right)
-        mmi->ptMaxTrackSize.x=rcMinMax->right;
-      if (rcMinMax->bottom)
-        mmi->ptMaxTrackSize.y=rcMinMax->bottom;
-    }
-  }
-  else if (uMsg == WM_MOVE)
-  {
-    if (!(GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER))
-    {
-      RECT rcTemplate;
-
-      GetWindowSize(hDlg, NULL, &rcTemplate);
-      rcCurrent->left=rcTemplate.left;
-      rcCurrent->top=rcTemplate.top;
-      return TRUE;
-    }
-  }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      STACKDIALOGRESIZEWND hDRWStack={0};
-      DIALOGRESIZEWND *lpDRW;
-      DIALOGRESIZEWND *lpIntersectDRW;
-      DIALOGRESIZE *drsControl=drs;
-      DIALOGRESIZE *drsCount;
-      wchar_t wszClassName[MAX_PATH];
-      RECT rcControl;
-      RECT rcNew;
-      RECT rcAfterWindow;
-      RECT rcIntersect;
-      DWORD dwSwpFlags;
-      HWND hWndControl=NULL;
-      HWND hWndComboboxEdit;
-      HRGN hRgnChanged=NULL;
-      HRGN hRgnControl=NULL;
-      HRGN hRgnToErase=NULL;
-      HRGN hRgnToDrawBefore=NULL;
-      HRGN hRgnToDrawAfter=NULL;
-      HRGN hRgnAllChild=NULL;
-      int nChanged=0;
-      BOOL bClipChildren=FALSE;
-
-      hRgnChanged=CreateRectRgn(0, 0, 0, 0);
-      hRgnControl=CreateRectRgn(0, 0, 0, 0);
-      hRgnToErase=CreateRectRgn(0, 0, 0, 0);
-      hRgnToDrawBefore=CreateRectRgn(0, 0, 0, 0);
-      hRgnToDrawAfter=CreateRectRgn(0, 0, 0, 0);
-      hRgnAllChild=CreateRectRgn(0, 0, 0, 0);
-
-      GetWindowSize(hDlg, NULL, rcCurrent);
-      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CLIPCHILDREN)
-        bClipChildren=TRUE;
-
-      //First cycle throw the drs array, next throw the all other children
-      for (;;)
-      {
-        if (drsControl->lpWnd)
-          hWndControl=*drsControl->lpWnd;
-
-        if (hWndControl)
-        {
-          GetClassNameWide(hWndControl, wszClassName, MAX_PATH);
-          GetWindowSize(hWndControl, hDlg, &rcControl);
-
-          if (!bClipChildren)
-          {
-            if (!xstrcmpiW(wszClassName, L"BUTTON") && (GetWindowLongPtrWide(hWndControl, GWL_STYLE) & BS_TYPEMASK) == BS_GROUPBOX)
-            {
-              //Exclude GroupBox from smooth draw - it will be erased later.
-            }
-            else
-            {
-              //Remember control sizes
-              for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
-              {
-                if (lpDRW->hWnd == hWndControl)
-                  break;
-              }
-              if (!lpDRW)
-              {
-                if (!StackInsertIndex((stack **)&hDRWStack.first, (stack **)&hDRWStack.last, (stack **)&lpDRW, -1, sizeof(DIALOGRESIZEWND)))
-                {
-                  lpDRW->hWnd=hWndControl;
-                  GetWindowPos(lpDRW->hWnd, hDlg, &lpDRW->rcBeforeWindow);
-
-                  if (!xstrcmpiW(wszClassName, L"COMBOBOX"))
-                  {
-                    if (hWndComboboxEdit=GetDlgItem(hWndControl, IDC_COMBOBOXEDIT))
-                      GetClientPos(hWndComboboxEdit, hDlg, &lpDRW->rcBeforeClient);
-                  }
-                  else
-                  {
-                    GetClientPos(hWndControl, hDlg, &lpDRW->rcBeforeClient);
-                    if (!xstrcmpiW(wszClassName, L"EDIT"))
-                      lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXVSCROLL), lpDRW->rcBeforeClient.left);
-                  }
-                }
-              }
-            }
-          }
-          if (drsControl->lpWnd)
-          {
-            rcNew.left=((drsControl->dwType & DRS_MOVE) && (drsControl->dwType & DRS_X))?(rcCurrent->right - drsControl->nOffset):rcControl.left;
-            rcNew.top=((drsControl->dwType & DRS_MOVE) && (drsControl->dwType & DRS_Y))?(rcCurrent->bottom - drsControl->nOffset):rcControl.top;
-            rcNew.right=((drsControl->dwType & DRS_SIZE) && (drsControl->dwType & DRS_X))?(rcCurrent->right - rcControl.left - drsControl->nOffset):rcControl.right;
-            rcNew.bottom=((drsControl->dwType & DRS_SIZE) && (drsControl->dwType & DRS_Y))?(rcCurrent->bottom - rcControl.top - drsControl->nOffset):rcControl.bottom;
-
-            if (xmemcmp(&rcNew, &rcControl, sizeof(RECT)))
-            {
-              dwSwpFlags=0;
-              if (drsControl->dwType & DRS_SIZE)
-                dwSwpFlags|=SWP_NOMOVE;
-              else if (drsControl->dwType & DRS_MOVE)
-                dwSwpFlags|=SWP_NOSIZE;
-              else
-                continue;
-
-              if (SetWindowPos(hWndControl, 0, rcNew.left, rcNew.top, rcNew.right, rcNew.bottom, dwSwpFlags|SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOREDRAW|SWP_NOCOPYBITS|SWP_DEFERERASE))
-                ++nChanged;
-            }
-          }
-        }
-
-        if (drsControl->lpWnd)
-        {
-          ++drsControl;
-          hWndControl=NULL;
-        }
-        if (!drsControl->lpWnd)
-        {
-          //Find child that not exist in drs array
-          if (dwFlags & DRM_ALLCHILDREN)
-          {
-            for (;;)
-            {
-              if (!hWndControl)
-                hWndControl=GetWindow(hDlg, GW_CHILD);
-              else
-                hWndControl=GetWindow(hWndControl, GW_HWNDNEXT);
-              if (!hWndControl) break;
-
-              for (drsCount=drs; drsCount->lpWnd; ++drsCount)
-              {
-                if (*drsCount->lpWnd == hWndControl)
-                  break;
-              }
-              if (!drsCount->lpWnd) break;
-            }
-          }
-          if (!hWndControl) break;
-        }
-      }
-      if (nChanged)
-      {
-        if (bClipChildren)
-        {
-          RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
-          return TRUE;
-        }
-
-        //Collect changed rectangles
-        for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
-        {
-          //Check is this window was intersected before resize
-          for (lpIntersectDRW=hDRWStack.first; lpIntersectDRW; lpIntersectDRW=lpIntersectDRW->next)
-          {
-            if (lpIntersectDRW != lpDRW)
-              if (IntersectRect(&rcIntersect, &lpIntersectDRW->rcBeforeWindow, &lpDRW->rcBeforeWindow))
-                break;
-          }
-          GetWindowPos(lpDRW->hWnd, hDlg, &rcAfterWindow);
-          SetRectRgn(hRgnControl, rcAfterWindow.left, rcAfterWindow.top, rcAfterWindow.right, rcAfterWindow.bottom);
-          CombineRgn(hRgnAllChild, hRgnAllChild, hRgnControl, RGN_OR);
-
-          if (lpIntersectDRW || lpDRW->rcBeforeWindow.left != rcAfterWindow.left || lpDRW->rcBeforeWindow.top != rcAfterWindow.top)
-          {
-            //All control
-            CombineRgn(hRgnChanged, hRgnControl, NULL, RGN_COPY);
-          }
-          else
-          {
-            //Only changed parts
-            SetRectRgn(hRgnChanged, lpDRW->rcBeforeClient.left, lpDRW->rcBeforeClient.top, lpDRW->rcBeforeClient.right, lpDRW->rcBeforeClient.bottom);
-            CombineRgn(hRgnChanged, hRgnControl, hRgnChanged, RGN_DIFF);
-          }
-          CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnChanged, RGN_OR);
-        }
-        GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
-
-        //Erase parent window background without children
-        InvalidateRect(hDlg, NULL, TRUE);
-        ValidateRgn(hDlg, hRgnAllChild);
-        GetUpdateRgn(hDlg, hRgnToErase, FALSE);
-        UpdateWindow(hDlg);
-
-        //{
-        //  //Region debug
-        //  HBRUSH hBrush;
-        //  HDC hDC;
-        //
-        //  if (hDC=GetDC(hDlg))
-        //  {
-        //    if (hBrush=CreateSolidBrush(RGB(0xFF, 0x00, 0x00)))
-        //    {
-        //      FillRgn(hDC, hRgnToErase, hBrush);
-        //      DeleteObject(hBrush);
-        //    }
-        //    ReleaseDC(hDlg, hDC);
-        //  }
-        //}
-
-        //Remove erased region and draw children
-        CombineRgn(hRgnToDrawBefore, hRgnToDrawBefore, hRgnToErase, RGN_DIFF);
-        CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToErase, RGN_DIFF);
-        CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
-        InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
-        UpdateWindow(hDlg);
-        DeleteObject(hRgnChanged);
-        DeleteObject(hRgnControl);
-        DeleteObject(hRgnToErase);
-        DeleteObject(hRgnToDrawBefore);
-        DeleteObject(hRgnToDrawAfter);
-        DeleteObject(hRgnAllChild);
-        StackClear((stack **)&hDRWStack.first, (stack **)&hDRWStack.last);
-      }
-      return TRUE;
-    }
-  }
-  else if (uMsg == WM_PAINT)
-  {
-    if (dwFlags & DRM_PAINTSIZEGRIP)
-    {
-      PAINTSTRUCT ps;
-      RECT rcGrip;
-      HDC hDC;
-
-      if (hDC=BeginPaint(hDlg, &ps))
-      {
-        GetClientRect(hDlg, &rcGrip);
-        rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-        rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-        DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-        EndPaint(hDlg, &ps);
-      }
-    }
-  }
-  return FALSE;
-}
-
 void GetMovingRect(DOCK *dkData, POINT *ptScreen, MINMAXINFO *mmi, RECT *rcScreen)
 {
   RECT rcInitial=nsSize.rcInitial;
@@ -22098,79 +21793,6 @@ BOOL IsCursorOnWindow(HWND hWnd)
   GetCursorPos(&ptScreen);
   GetWindowRect(hWnd, &rcScreen);
   return PtInRect(&rcScreen, ptScreen);
-}
-
-BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
-{
-  if (GetWindowRect(hWnd, rc))
-  {
-    if (hWndOwner)
-    {
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
-        return FALSE;
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->right))
-        return FALSE;
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
-{
-  if (GetWindowRect(hWnd, rc))
-  {
-    rc->right-=rc->left;
-    rc->bottom-=rc->top;
-
-    if (hWndOwner)
-    {
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
-        return FALSE;
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc)
-{
-  if (GetClientRect(hWnd, rc))
-  {
-    if (!ClientToScreen(hWnd, (POINT *)&rc->left))
-      return FALSE;
-    if (!ClientToScreen(hWnd, (POINT *)&rc->right))
-      return FALSE;
-
-    if (hWndOwner)
-    {
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
-        return FALSE;
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->right))
-        return FALSE;
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc)
-{
-  if (GetClientRect(hWnd, rc))
-  {
-    rc->right-=rc->left;
-    rc->bottom-=rc->top;
-    if (!ClientToScreen(hWnd, (POINT *)&rc->left))
-      return FALSE;
-
-    if (hWndOwner)
-    {
-      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
-        return FALSE;
-    }
-    return TRUE;
-  }
-  return FALSE;
 }
 
 BOOL ScreenRectToClientSize(HWND hWnd, RECT *rc)

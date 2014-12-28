@@ -703,22 +703,22 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HMENU hMenuItems;
   static HTREEITEM hItemCaretPrev;
   static SESSION ssCurrentTmp;
-  static DIALOGRESIZE drs[]={{&hWndTitleText,      DRS_SIZE|DRS_X, 0},
-                             {&hWndTitleClose,     DRS_MOVE|DRS_X, 0},
-                             {&hWndSessionList,    DRS_SIZE|DRS_X, 0},
-                             {&hWndItemsList,      DRS_SIZE|DRS_X, 0},
-                             {&hWndItemsList,      DRS_SIZE|DRS_Y, 0},
-                             {&hWndGroupSession,   DRS_MOVE|DRS_X, 0},
-                             {&hWndOpenButton,     DRS_MOVE|DRS_X, 0},
-                             {&hWndCloseButton,    DRS_MOVE|DRS_X, 0},
-                             {&hWndSaveButton,     DRS_MOVE|DRS_X, 0},
-                             {&hWndEditButton,     DRS_MOVE|DRS_X, 0},
-                             {&hWndCopyButton,     DRS_MOVE|DRS_X, 0},
-                             {&hWndRenameButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndDeleteButton,   DRS_MOVE|DRS_X, 0},
-                             {&hWndSettingsButton, DRS_MOVE|DRS_X, 0},
-                             {&hWndOKButton,       DRS_MOVE|DRS_X, 0},
-                             {&hWndOKButton,       DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndTitleText,      RDS_SIZE|RDS_X, 0},
+                             {&hWndTitleClose,     RDS_MOVE|RDS_X, 0},
+                             {&hWndSessionList,    RDS_SIZE|RDS_X, 0},
+                             {&hWndItemsList,      RDS_SIZE|RDS_X, 0},
+                             {&hWndItemsList,      RDS_SIZE|RDS_Y, 0},
+                             {&hWndGroupSession,   RDS_MOVE|RDS_X, 0},
+                             {&hWndOpenButton,     RDS_MOVE|RDS_X, 0},
+                             {&hWndCloseButton,    RDS_MOVE|RDS_X, 0},
+                             {&hWndSaveButton,     RDS_MOVE|RDS_X, 0},
+                             {&hWndEditButton,     RDS_MOVE|RDS_X, 0},
+                             {&hWndCopyButton,     RDS_MOVE|RDS_X, 0},
+                             {&hWndRenameButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndDeleteButton,   RDS_MOVE|RDS_X, 0},
+                             {&hWndSettingsButton, RDS_MOVE|RDS_X, 0},
+                             {&hWndOKButton,       RDS_MOVE|RDS_X, 0},
+                             {&hWndOKButton,       RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1835,9 +1835,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, (nDialogType == DLGT_DOCKABLE?0:DRM_PAINTSIZEGRIP), hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, (nDialogType == DLGT_DOCKABLE?0:RDM_PAINTSIZEGRIP), hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
     {
       if (dkSessionsDlg)
         GetWindowSize(hWndTitleText, hDlg, &dkSessionsDlg->rcDragDrop);

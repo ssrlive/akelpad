@@ -1287,16 +1287,16 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static int nMenuType;
   static CONTROLTYPE ct[TYPE_MAX]={0};
-  static DIALOGRESIZE drs[]={{&hWndType,   DRS_SIZE|DRS_X, 0},
-                             {&hWndEnable, DRS_MOVE|DRS_X, 0},
-                             {&hWndHide,   DRS_MOVE|DRS_X, 0},
-                             {&hWndText,   DRS_SIZE|DRS_X, 0},
-                             {&hWndText,   DRS_SIZE|DRS_Y, 0},
-                             {&hWndShow,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndOK,     DRS_MOVE|DRS_X, 0},
-                             {&hWndOK,     DRS_MOVE|DRS_Y, 0},
-                             {&hWndCancel, DRS_MOVE|DRS_X, 0},
-                             {&hWndCancel, DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndType,   RDS_SIZE|RDS_X, 0},
+                             {&hWndEnable, RDS_MOVE|RDS_X, 0},
+                             {&hWndHide,   RDS_MOVE|RDS_X, 0},
+                             {&hWndText,   RDS_SIZE|RDS_X, 0},
+                             {&hWndText,   RDS_SIZE|RDS_Y, 0},
+                             {&hWndShow,   RDS_MOVE|RDS_Y, 0},
+                             {&hWndOK,     RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,     RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel, RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel, RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
   LRESULT lResult;
 
@@ -1670,9 +1670,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_MAINRECT;
   }
 
@@ -1718,17 +1718,17 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   static HMENU hMenuList;
   static BOOL bListChanged;
   static BOOL bFavShowFileDlg;
-  static DIALOGRESIZE drs[]={{&hWndItemsList,  DRS_SIZE|DRS_X, 0},
-                             {&hWndItemsList,  DRS_SIZE|DRS_Y, 0},
-                             {&hFavToolbar,    DRS_SIZE|DRS_X, 0},
-                             {&hFavToolbar,    DRS_MOVE|DRS_Y, 0},
-                             {&hWndStats,      DRS_MOVE|DRS_X, 0},
-                             {&hWndStats,      DRS_MOVE|DRS_Y, 0},
-                             {&hWndSearch,     DRS_SIZE|DRS_X, 0},
-                             {&hWndSearch,     DRS_MOVE|DRS_Y, 0},
-                             {&hWndShowFile,   DRS_MOVE|DRS_Y, 0},
-                             {&hWndClose,      DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,      DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndItemsList,  RDS_SIZE|RDS_X, 0},
+                             {&hWndItemsList,  RDS_SIZE|RDS_Y, 0},
+                             {&hFavToolbar,    RDS_SIZE|RDS_X, 0},
+                             {&hFavToolbar,    RDS_MOVE|RDS_Y, 0},
+                             {&hWndStats,      RDS_MOVE|RDS_X, 0},
+                             {&hWndStats,      RDS_MOVE|RDS_Y, 0},
+                             {&hWndSearch,     RDS_SIZE|RDS_X, 0},
+                             {&hWndSearch,     RDS_MOVE|RDS_Y, 0},
+                             {&hWndShowFile,   RDS_MOVE|RDS_Y, 0},
+                             {&hWndClose,      RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,      RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
   int nItem;
   LRESULT lResult;
@@ -2063,9 +2063,9 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcFavMinMaxDialog, &rcFavCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcFavMinMaxDialog, &rcFavCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_FAVRECT;
   }
   return FALSE;

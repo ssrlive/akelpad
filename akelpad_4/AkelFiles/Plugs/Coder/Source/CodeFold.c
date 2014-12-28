@@ -301,13 +301,13 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
   static HWND hWndTitleClose;
   static HMENU hMenuLabel;
   static HMENU hMenuTreeView;
-  static DIALOGRESIZE drs[]={{&hWndTitleText,      DRS_SIZE|DRS_X, 0},
-                             {&hWndTitleHide,      DRS_MOVE|DRS_X, 0},
-                             {&hWndTitleClose,     DRS_MOVE|DRS_X, 0},
-                             {&hWndCodeFoldList,   DRS_SIZE|DRS_X, 0},
-                             {&hWndCodeFoldList,   DRS_SIZE|DRS_Y, 0},
-                             {&hWndCodeFoldFilter, DRS_MOVE|DRS_Y, 0},
-                             {&hWndCodeFoldFilter, DRS_SIZE|DRS_X, 0},
+  static RESIZEDIALOG rds[]={{&hWndTitleText,      RDS_SIZE|RDS_X, 0},
+                             {&hWndTitleHide,      RDS_MOVE|RDS_X, 0},
+                             {&hWndTitleClose,     RDS_MOVE|RDS_X, 0},
+                             {&hWndCodeFoldList,   RDS_SIZE|RDS_X, 0},
+                             {&hWndCodeFoldList,   RDS_SIZE|RDS_Y, 0},
+                             {&hWndCodeFoldFilter, RDS_MOVE|RDS_Y, 0},
+                             {&hWndCodeFoldFilter, RDS_SIZE|RDS_X, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -613,9 +613,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], NULL, &rcCodeFoldCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], NULL, &rcCodeFoldCurrentDialog, 0, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       if (dkCodeFoldDlg) GetWindowSize(hWndTitleText, hDlg, &dkCodeFoldDlg->rcDragDrop);
   }
 

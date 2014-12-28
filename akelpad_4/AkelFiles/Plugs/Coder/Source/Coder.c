@@ -1991,10 +1991,10 @@ BOOL CALLBACK GeneralLinkDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
   static int nFirstVarThemeIndex;
   static int nLastVarThemeIndex;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={{&hWndLinkList,        DRS_SIZE|DRS_X, 0},
-                             {&hWndLinkList,        DRS_SIZE|DRS_Y, 0},
-                             {&hWndClose,           DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,           DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndLinkList,        RDS_SIZE|RDS_X, 0},
+                             {&hWndLinkList,        RDS_SIZE|RDS_Y, 0},
+                             {&hWndClose,           RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,           RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -2180,9 +2180,9 @@ BOOL CALLBACK GeneralLinkDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcLinkMinMaxDialog, &rcLinkCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcLinkMinMaxDialog, &rcLinkCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm);
+    SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm);
   }
 
   return FALSE;

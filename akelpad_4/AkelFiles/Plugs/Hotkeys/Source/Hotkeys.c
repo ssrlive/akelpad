@@ -535,25 +535,25 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HOTKEYITEM *hiLastSelItem=NULL;
   static int nSelItem=-1;
   static BOOL bListChanged=FALSE;
-  static DIALOGRESIZE drs[]={{&hWndNameLabel,       0, 0},
+  static RESIZEDIALOG rds[]={{&hWndNameLabel,       0, 0},
                              {&hWndName,            0, 0},
-                             {&hWndMainList,        DRS_SIZE|DRS_X, 0},
-                             {&hWndMainList,        DRS_SIZE|DRS_Y, 0},
-                             {&hWndCommandLabel,    DRS_SIZE|DRS_X, 0},
-                             {&hWndCommand,         DRS_SIZE|DRS_X, 0},
-                             {&hWndHotkeyLabel,     DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkeyCode,      DRS_MOVE|DRS_X, 0},
-                             {&hWndHotkey,          DRS_MOVE|DRS_X, 0},
-                             {&hWndButtonGroup,     DRS_MOVE|DRS_X, 0},
-                             {&hWndAddModifyHotkey, DRS_MOVE|DRS_X, 0},
-                             {&hWndMoveUpHotkey,    DRS_MOVE|DRS_X, 0},
-                             {&hWndMoveDownHotkey,  DRS_MOVE|DRS_X, 0},
-                             {&hWndDeleteHotkey,    DRS_MOVE|DRS_X, 0},
-                             {&hWndAllKeys,         DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,           DRS_MOVE|DRS_X, 0},
-                             {&hWndClose,           DRS_MOVE|DRS_Y, 0},
-                             {&hWndFilter,          DRS_MOVE|DRS_Y, 0},
-                             {&hWndFilter,          DRS_SIZE|DRS_X, 0},
+                             {&hWndMainList,        RDS_SIZE|RDS_X, 0},
+                             {&hWndMainList,        RDS_SIZE|RDS_Y, 0},
+                             {&hWndCommandLabel,    RDS_SIZE|RDS_X, 0},
+                             {&hWndCommand,         RDS_SIZE|RDS_X, 0},
+                             {&hWndHotkeyLabel,     RDS_MOVE|RDS_X, 0},
+                             {&hWndHotkeyCode,      RDS_MOVE|RDS_X, 0},
+                             {&hWndHotkey,          RDS_MOVE|RDS_X, 0},
+                             {&hWndButtonGroup,     RDS_MOVE|RDS_X, 0},
+                             {&hWndAddModifyHotkey, RDS_MOVE|RDS_X, 0},
+                             {&hWndMoveUpHotkey,    RDS_MOVE|RDS_X, 0},
+                             {&hWndMoveDownHotkey,  RDS_MOVE|RDS_X, 0},
+                             {&hWndDeleteHotkey,    RDS_MOVE|RDS_X, 0},
+                             {&hWndAllKeys,         RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,           RDS_MOVE|RDS_X, 0},
+                             {&hWndClose,           RDS_MOVE|RDS_Y, 0},
+                             {&hWndFilter,          RDS_MOVE|RDS_Y, 0},
+                             {&hWndFilter,          RDS_SIZE|RDS_X, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1241,9 +1241,9 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_MAINRECT;
   }
 
@@ -1400,10 +1400,10 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndFilter;
   static HWND hWndOnlyAssigned;
   static HSTACK hAllKeysStack={0};
-  static DIALOGRESIZE drs[]={{&hWndAllKeysList,  DRS_SIZE|DRS_X, 0},
-                             {&hWndAllKeysList,  DRS_SIZE|DRS_Y, 0},
-                             {&hWndFilter,       DRS_MOVE|DRS_Y, 0},
-                             {&hWndOnlyAssigned, DRS_MOVE|DRS_Y, 0},
+  static RESIZEDIALOG rds[]={{&hWndAllKeysList,  RDS_SIZE|RDS_X, 0},
+                             {&hWndAllKeysList,  RDS_SIZE|RDS_Y, 0},
+                             {&hWndFilter,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndOnlyAssigned, RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
@@ -1534,9 +1534,9 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Dialog resize messages
   {
-    DIALOGRESIZEMSG drsm={&drs[0], &rcAllKeysMinMaxDialog, &rcAllKeysCurrentDialog, DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcAllKeysMinMaxDialog, &rcAllKeysCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
-    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
       dwSaveFlags|=OF_ALLKEYSRECT;
   }
 

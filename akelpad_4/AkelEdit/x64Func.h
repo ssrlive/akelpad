@@ -48,7 +48,7 @@ INT_PTR MultiByteToWideChar64(UINT dwCodePage, DWORD dwFlags, const char *lpMult
 
   if (dwCodePage == 65001)
   {
-    nWideCount=UTF8toUTF16((const unsigned char *)lpMultiByteStr, cbMultiByte, NULL, lpWideCharStr, cchWideChar);
+    nWideCount=UTF8toUTF16((const unsigned char *)lpMultiByteStr, cbMultiByte, NULL, (unsigned short *)lpWideCharStr, cchWideChar);
   }
   else
   {
@@ -121,7 +121,7 @@ INT_PTR WideCharToMultiByte64(UINT dwCodePage, DWORD dwFlags, const wchar_t *lpW
 
   if (dwCodePage == 65001)
   {
-    nMultiByteCount=UTF16toUTF8(lpWideCharStr, cchWideChar, NULL, (unsigned char *)lpMultiByteStr, cbMultiByte);
+    nMultiByteCount=UTF16toUTF8((const unsigned short *)lpWideCharStr, cchWideChar, NULL, (unsigned char *)lpMultiByteStr, cbMultiByte);
   }
   else
   {
