@@ -55,20 +55,19 @@ var MF_HILITE          =0x00080; //Item is highlighted.
 var POS_CARET   =-1; //Under caret position.
 var POS_CURSOR  =-2; //Cursor position.
 
-//Global variables
-var oSys=AkelPad.SystemFunction();
-
 //Functions
 function ShowMenu(lpItemsArray, X, Y)
 {
   //Variables
   var hMainWnd=AkelPad.GetMainWnd();
   var hWndEdit=AkelPad.GetEditWnd();
+  var oSys=AkelPad.SystemFunction();
+  var hInstanceDLL=AkelPad.GetInstanceDll();
   var lpMenuArray=[];
   var nMenuCount;
   var nItemCount;
   var ptPoint=[];
-  var hWndHidden;
+  var hWndContainer;
   var nResult=0;
   var i;
 
@@ -139,25 +138,26 @@ function ShowMenu(lpItemsArray, X, Y)
     if (lpMenuArray[0][MENU])
     {
       //Create window for menu
-      hWndHidden=oSys.Call("user32::CreateWindowEx" + _TCHAR, 0, "Static", 0, 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 0, 0, 0, 0, hMainWnd, 0, AkelPad.GetInstanceDll(), 0);
-      oSys.Call("user32::SetFocus", hWndHidden);
-
-      //Show menu
-      if (X < 0 || Y < 0)
+      if (hWndContainer=oSys.Call("user32::CreateWindowEx" + _TCHAR, 0, "Static", 0, 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 0, 0, 0, 0, hMainWnd, 0, hInstanceDLL, 0))
       {
-        if (X == POS_CARET || Y == POS_CARET)
-          GetCaretPos(hWndEdit, ptPoint);
-        else if (X == POS_CURSOR || Y == POS_CURSOR)
-          GetCursorPos(ptPoint);
+        oSys.Call("user32::SetFocus", hWndContainer);
 
-        if (X < 0) X=ptPoint.x;
-        if (Y < 0) Y=ptPoint.y;
+        //Show menu
+        if (X < 0 || Y < 0)
+        {
+          if (X == POS_CARET || Y == POS_CARET)
+            GetCaretPos(hWndEdit, ptPoint);
+          else if (X == POS_CURSOR || Y == POS_CURSOR)
+            GetCursorPos(ptPoint);
+
+          if (X < 0) X=ptPoint.x;
+          if (Y < 0) Y=ptPoint.y;
+        }
+        nResult=oSys.Call("user32::TrackPopupMenu", lpMenuArray[0][MENU], 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_RIGHTBUTTON*/, X, Y, 0, hWndContainer, 0);
+
+        oSys.Call("user32::DestroyWindow", hWndContainer);
       }
-      nResult=oSys.Call("user32::TrackPopupMenu", lpMenuArray[0][MENU], 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_RIGHTBUTTON*/, X, Y, 0, hWndHidden, 0);
-
-      //Clean up
       oSys.Call("user32::DestroyMenu", lpMenuArray[0][MENU]);
-      oSys.Call("user32::DestroyWindow", hWndHidden);
     }
   }
   return nResult - 1;
@@ -191,6 +191,7 @@ function GetCaretPos(hWndEdit, ptPoint)
 
 function GetCursorPos(ptPoint)
 {
+  var oSys=AkelPad.SystemFunction();
   var lpPoint;
 
   ptPoint.x=0;
@@ -234,6 +235,7 @@ function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)
 
 function ClientToScreen(hWnd, ptPoint)
 {
+  var oSys=AkelPad.SystemFunction();
   var lpPoint;
 
   if (lpPoint=AkelPad.MemAlloc(8 /*sizeof(POINT)*/))
