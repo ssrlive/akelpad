@@ -436,8 +436,11 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         LISTITEM *lpListItem=GetItemParam(hWndScriptsList, nSelItem);
 
-        EnableMenuItem(hMenuList, IDC_SCRIPTS_OPENSITE, (lpListItem && lpListItem->wpSite)?MF_ENABLED:MF_GRAYED);
-        TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen.x, ptScreen.y, 0, hDlg, NULL);
+        if (lpListItem)
+        {
+          EnableMenuItem(hMenuList, IDC_SCRIPTS_OPENSITE, lpListItem->wpSite?MF_ENABLED:MF_GRAYED);
+          TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, ptScreen.x, ptScreen.y, 0, hDlg, NULL);
+        }
       }
     }
   }
@@ -1161,19 +1164,21 @@ void CreateColumns(HWND hWnd, LISTCOLUMN *lpColumns)
 LISTCOLUMN* GetColumnByID(int nID, int *lpnColumnIndex)
 {
   LISTCOLUMN *lpColumnCount;
-  int nColumnIndex=0;
+  int nCount=0;
 
   for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
   {
     if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
       if (lpColumnCount->nID == nID)
-        break;
-      ++nColumnIndex;
+      {
+        if (lpnColumnIndex) *lpnColumnIndex=nCount;
+        return lpColumnCount;
+      }
+      ++nCount;
     }
   }
-  if (lpnColumnIndex) *lpnColumnIndex=nColumnIndex;
-  return lpColumnCount;
+  return NULL;
 }
 
 LISTCOLUMN* GetColumnByIndex(int nColumnIndex)
@@ -1186,11 +1191,39 @@ LISTCOLUMN* GetColumnByIndex(int nColumnIndex)
     if (lpColumnCount->dwFlags & LCF_VISIBLE)
     {
       if (nCount == nColumnIndex)
-        break;
+        return lpColumnCount;
       ++nCount;
     }
   }
-  return lpColumnCount;
+  return NULL;
+}
+
+DWORD GetColumnFlags(LISTCOLUMN *lpColumns)
+{
+  LISTCOLUMN *lpColumnCount;
+  DWORD dwColumns=0;
+
+  for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
+  {
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
+    {
+      if (lpColumnCount->nID == LVI_SCRIPT)
+        dwColumns|=LCN_SCRIPT;
+      else if (lpColumnCount->nID == LVI_HOTKEY)
+        dwColumns|=LCN_HOTKEY;
+      else if (lpColumnCount->nID == LVI_STATUS)
+        dwColumns|=LCN_STATUS;
+      else if (lpColumnCount->nID == LVI_VERSION)
+        dwColumns|=LCN_VERSION;
+      else if (lpColumnCount->nID == LVI_DESCRIPTION)
+        dwColumns|=LCN_DESCRIPTION;
+      else if (lpColumnCount->nID == LVI_AUTHOR)
+        dwColumns|=LCN_AUTHOR;
+      else if (lpColumnCount->nID == LVI_SITE)
+        dwColumns|=LCN_SITE;
+    }
+  }
+  return dwColumns;
 }
 
 void FillScriptList(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns, HWND hWnd, const wchar_t *wpFilter)
@@ -1334,7 +1367,6 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
 {
   SCRIPTTHREAD *lpScriptThread;
   PLUGINFUNCTION *pfElement;
-  LISTCOLUMN *lpColumnCount;
   LISTITEM *lpListItem;
   WIN32_FIND_DATAW wfd;
   HANDLE hFind;
@@ -1381,30 +1413,8 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   StackFreeListItem(hStack);
 
   //Find columns
-  dwAllColumns=0;
-  dwContentColumns=0;
-
-  for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
-  {
-    if (lpColumnCount->dwFlags & LCF_VISIBLE)
-    {
-      if (lpColumnCount->nID == LVI_SCRIPT)
-        dwAllColumns|=LCN_SCRIPT;
-      else if (lpColumnCount->nID == LVI_HOTKEY)
-        dwAllColumns|=LCN_HOTKEY;
-      else if (lpColumnCount->nID == LVI_STATUS)
-        dwAllColumns|=LCN_STATUS;
-      else if (lpColumnCount->nID == LVI_VERSION)
-        dwContentColumns|=LCN_VERSION;
-      else if (lpColumnCount->nID == LVI_DESCRIPTION)
-        dwContentColumns|=LCN_DESCRIPTION;
-      else if (lpColumnCount->nID == LVI_AUTHOR)
-        dwContentColumns|=LCN_AUTHOR;
-      else if (lpColumnCount->nID == LVI_SITE)
-        dwContentColumns|=LCN_SITE;
-    }
-  }
-  dwAllColumns|=dwContentColumns;
+  dwAllColumns=GetColumnFlags(lpColumns);
+  dwContentColumns=dwAllColumns & (LCN_VERSION|LCN_DESCRIPTION|LCN_AUTHOR|LCN_SITE);
 
   //Content buffer
   if (dwContentColumns)
