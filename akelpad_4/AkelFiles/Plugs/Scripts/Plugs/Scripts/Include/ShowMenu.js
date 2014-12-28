@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -55,6 +55,8 @@ var MF_HILITE          =0x00080; //Item is highlighted.
 var POS_CARET   =-1; //Under caret position.
 var POS_CURSOR  =-2; //Cursor position.
 
+//Global variables
+var oSys=AkelPad.SystemFunction();
 
 //Functions
 function ShowMenu(lpItemsArray, X, Y)
@@ -62,11 +64,10 @@ function ShowMenu(lpItemsArray, X, Y)
   //Variables
   var hMainWnd=AkelPad.GetMainWnd();
   var hWndEdit=AkelPad.GetEditWnd();
-  var oSys=AkelPad.SystemFunction();
   var lpMenuArray=[];
   var nMenuCount;
   var nItemCount;
-  var ptPoint;
+  var ptPoint=[];
   var hWndHidden;
   var nResult=0;
   var i;
@@ -145,9 +146,9 @@ function ShowMenu(lpItemsArray, X, Y)
       if (X < 0 || Y < 0)
       {
         if (X == POS_CARET || Y == POS_CARET)
-          ptPoint=GetCaretPos(hWndEdit);
+          GetCaretPos(hWndEdit, ptPoint);
         else if (X == POS_CURSOR || Y == POS_CURSOR)
-          ptPoint=GetCursorPos();
+          GetCursorPos(ptPoint);
 
         if (X < 0) X=ptPoint.x;
         if (Y < 0) Y=ptPoint.y;
@@ -162,9 +163,8 @@ function ShowMenu(lpItemsArray, X, Y)
   return nResult - 1;
 }
 
-function GetCaretPos(hWndEdit)
+function GetCaretPos(hWndEdit, ptPoint)
 {
-  var ptPoint=[];
   var lpPoint;
 
   ptPoint.x=0;
@@ -187,13 +187,10 @@ function GetCaretPos(hWndEdit)
       ClientToScreen(hWndEdit, ptPoint);
     }
   }
-  return ptPoint;
 }
 
-function GetCursorPos()
+function GetCursorPos(ptPoint)
 {
-  var oSys=AkelPad.SystemFunction();
-  var ptPoint=[];
   var lpPoint;
 
   ptPoint.x=0;
@@ -201,13 +198,13 @@ function GetCursorPos()
 
   if (lpPoint=AkelPad.MemAlloc(8 /*sizeof(POINT)*/))
   {
-    //Caret position
-    oSys.Call("user32::GetCursorPos", lpPoint);
-    ptPoint.x=AkelPad.MemRead(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, 3 /*DT_DWORD*/);
-    ptPoint.y=AkelPad.MemRead(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, 3 /*DT_DWORD*/);
+    if (oSys.Call("user32::GetCursorPos", lpPoint))
+    {
+      ptPoint.x=AkelPad.MemRead(_PtrAdd(lpPoint, 0) /*offsetof(POINT, x)*/, 3 /*DT_DWORD*/);
+      ptPoint.y=AkelPad.MemRead(_PtrAdd(lpPoint, 4) /*offsetof(POINT, y)*/, 3 /*DT_DWORD*/);
+    }
     AkelPad.MemFree(lpPoint);
   }
-  return ptPoint;
 }
 
 function GetToolbarBottonPos(hToolbarHandle, nToolbarItemID)

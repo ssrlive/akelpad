@@ -1942,7 +1942,6 @@ function GetWindowSize(hWnd, hWndOwner, rcRect)
   var lpRect;
   var bResult=false;
 
-  //Get rect
   if (lpRect=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
   {
     if (oSys.Call("user32::GetWindowRect", hWnd, lpRect))
