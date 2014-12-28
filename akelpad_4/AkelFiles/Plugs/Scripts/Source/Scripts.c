@@ -2358,7 +2358,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
   if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
     pvtParameter=pvtParameter->pvarVal;
 
-  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
     if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -2403,7 +2403,7 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
     else
       return (UINT_PTR)pvtParameter->pdispVal;
   }
-  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
     if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -2423,14 +2423,14 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
   return max(dwResult, (UINT_PTR)nResult);
 }
 
-HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
+HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue)
 {
   HRESULT hr=NOERROR;
 
   VariantInit(pvtParameter);
 
-  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
-    if (dwHandle > SCRIPTS_MAXHANDLE)
+  #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
+    if (nValue > SCRIPTS_MAXHANDLE || nValue < -SCRIPTS_MAXHANDLE)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
       wchar_t wszNumber[32];
@@ -2438,7 +2438,7 @@ HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
 
       //Insert zero to first char to indicate that it is a number.
       wszNumber[0]=L'\0';
-      nNumberLen=xitoaW(dwHandle, wszNumber + 1);
+      nNumberLen=xitoaW(nValue, wszNumber + 1);
       pvtParameter->vt=VT_BSTR;
       if (!(pvtParameter->bstrVal=SysAllocStringLen(wszNumber, nNumberLen + 1)))
         hr=E_OUTOFMEMORY;
@@ -2447,7 +2447,7 @@ HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle)
   #endif
   //Use VT_I4 because VBScript can cause error for VT_UI4
   pvtParameter->vt=VT_I4;
-  pvtParameter->lVal=(DWORD)dwHandle;
+  pvtParameter->lVal=nValue;
   return hr;
 }
 

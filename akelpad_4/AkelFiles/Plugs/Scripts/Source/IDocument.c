@@ -238,7 +238,7 @@ HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal
 
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd)
 {
-  SetVariantInt(vtWnd, (UINT_PTR)hMainWnd);
+  SetVariantInt(vtWnd, (INT_PTR)hMainWnd);
   return NOERROR;
 }
 
@@ -271,13 +271,13 @@ HRESULT STDMETHODCALLTYPE Document_GetAkelDir(IDocument *this, int nSubDir, BSTR
 
 HRESULT STDMETHODCALLTYPE Document_GetInstanceExe(IDocument *this, VARIANT *vtInstance)
 {
-  SetVariantInt(vtInstance, (UINT_PTR)hInstanceEXE);
+  SetVariantInt(vtInstance, (INT_PTR)hInstanceEXE);
   return NOERROR;
 }
 
 HRESULT STDMETHODCALLTYPE Document_GetInstanceDll(IDocument *this, VARIANT *vtInstance)
 {
-  SetVariantInt(vtInstance, (UINT_PTR)hInstanceDLL);
+  SetVariantInt(vtInstance, (INT_PTR)hInstanceDLL);
   return NOERROR;
 }
 
@@ -330,7 +330,7 @@ HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI)
 
 HRESULT STDMETHODCALLTYPE Document_GetEditWnd(IDocument *this, VARIANT *vtWnd)
 {
-  SetVariantInt(vtWnd, (UINT_PTR)GetCurEdit(this));
+  SetVariantInt(vtWnd, (INT_PTR)GetCurEdit(this));
   return NOERROR;
 }
 
@@ -344,7 +344,7 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VA
   {
     if ((INT_PTR)hWnd == SEW_FOCUS)
       hWnd=(HWND)SendMessage(hMainWnd, AKD_GETFOCUS, 0, 0);
-    SetVariantInt(&vtWnd, (UINT_PTR)hWnd);
+    SetVariantInt(&vtWnd, (INT_PTR)hWnd);
     Document_IsAkelEdit(this, vtWnd, &nIsAkelEdit);
 
     if (nIsAkelEdit != ISAEW_NONE)
@@ -354,7 +354,7 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VA
   }
   else lpScriptThread->hWndPluginEdit=NULL;
 
-  SetVariantInt(vtWndResult, (UINT_PTR)lpScriptThread->hWndPluginEdit);
+  SetVariantInt(vtWndResult, (INT_PTR)lpScriptThread->hWndPluginEdit);
   return NOERROR;
 }
 
@@ -367,7 +367,7 @@ HRESULT STDMETHODCALLTYPE Document_GetEditDoc(IDocument *this, VARIANT *vtDoc)
     hDoc=(AEHDOC)SendMessage(lpScriptThread->hWndPluginEdit, AEM_GETDOCUMENT, 0, 0);
   else
     hDoc=(AEHDOC)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_DOCEDIT, (LPARAM)NULL);
-  SetVariantInt(vtDoc, (UINT_PTR)hDoc);
+  SetVariantInt(vtDoc, (INT_PTR)hDoc);
   return NOERROR;
 }
 
@@ -710,7 +710,7 @@ HRESULT STDMETHODCALLTYPE Document_GetSelStart(IDocument *this, VARIANT *vtSelSt
 
   if (hWndCurEdit=GetCurEdit(this))
     SendMessage(hWndCurEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-  SetVariantInt(vtSelStart, (UINT_PTR)cr.cpMin);
+  SetVariantInt(vtSelStart, cr.cpMin);
   return NOERROR;
 }
 
@@ -721,7 +721,7 @@ HRESULT STDMETHODCALLTYPE Document_GetSelEnd(IDocument *this, VARIANT *vtSelEnd)
 
   if (hWndCurEdit=GetCurEdit(this))
     SendMessage(hWndCurEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-  SetVariantInt(vtSelEnd, (UINT_PTR)cr.cpMax);
+  SetVariantInt(vtSelEnd, cr.cpMax);
   return NOERROR;
 }
 
@@ -1480,7 +1480,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 
   if (pvtData->vt == VT_BSTR)
   {
-    #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0xFFFFFFFF)
+    #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
       if (!pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
       {
         //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -2008,7 +2008,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowSubClass(IDocument *this, VARIANT vtWnd
       }
     }
   }
-  SetVariantInt(vtCallbackItem, (UINT_PTR)lpCallback);
+  SetVariantInt(vtCallbackItem, (INT_PTR)lpCallback);
   return NOERROR;
 }
 
@@ -2178,7 +2178,7 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
       hr=DISP_E_BADINDEX;
     }
   }
-  SetVariantInt(vtHook, (UINT_PTR)hHook);
+  SetVariantInt(vtHook, (INT_PTR)hHook);
   return hr;
 }
 
@@ -2359,7 +2359,7 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
       }
     }
   }
-  SetVariantInt(vtResult, (UINT_PTR)nResult);
+  SetVariantInt(vtResult, nResult);
   return hr;
 }
 
@@ -3289,7 +3289,7 @@ HRESULT CallScriptProc(IDispatch *objFunction, HWND hWnd, UINT uMsg, WPARAM wPar
   SetVariantInt(&vtArg[1], wParam);
   SetVariantInt(&vtArg[2], uMsg);
   if (hWnd)
-    SetVariantInt(&vtArg[3], (UINT_PTR)hWnd);
+    SetVariantInt(&vtArg[3], (INT_PTR)hWnd);
 
   xmemset(&dispp, 0, sizeof(DISPPARAMS));
   dispp.cArgs=hWnd?4:3;
