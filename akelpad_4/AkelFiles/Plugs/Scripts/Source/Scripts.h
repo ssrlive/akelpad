@@ -305,7 +305,7 @@ SCRIPTARG* StackGetArgumentByName(HARGSTACK *hStack, const wchar_t *wpArgName, i
 void StackFreeArguments(HARGSTACK *hStack);
 UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi);
 UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter);
-HRESULT SetVariantInt(VARIANT *pvtParameter, UINT_PTR dwHandle);
+HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);

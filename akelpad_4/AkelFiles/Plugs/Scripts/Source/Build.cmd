@@ -25,7 +25,7 @@ midl /win32 /mktyplib203 Scripts.idl
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 rc /R /DRC_VERSIONBIT=%BIT% /Fo"Scripts.res" "Resources\Scripts.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl /O1 %CLFLAGS% /DSCRIPTS_MAXHANDLE=0xFFFFFFFF Scripts.c IServer.c IWScript.c IWArguments.c IDocument.c IGlobal.c IScriptSettings.c ISystemFunction.c IConstants.c IActiveScriptSite.c Scripts.res Scripts.def /LD /link kernel32.lib user32.lib gdi32.lib advapi32.lib oleaut32.lib ole32.lib shell32.lib uuid.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"Scripts.dll"
+cl /O1 %CLFLAGS% /DSCRIPTS_MAXHANDLE=0x7FFFFFFF Scripts.c IServer.c IWScript.c IWArguments.c IDocument.c IGlobal.c IScriptSettings.c ISystemFunction.c IConstants.c IActiveScriptSite.c Scripts.res Scripts.def /LD /link kernel32.lib user32.lib gdi32.lib advapi32.lib oleaut32.lib ole32.lib shell32.lib uuid.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"Scripts.dll"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
