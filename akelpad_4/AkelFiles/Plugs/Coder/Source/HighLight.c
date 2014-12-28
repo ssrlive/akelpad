@@ -827,6 +827,7 @@ BOOL CALLBACK HighLightEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           lpHighlightWindow->hWndEdit=hWnd;
           lpHighlightWindow->hDocEdit=hDocEdit;
+          lpHighlightWindow->lpSyntaxFile=lpSyntaxFile;
           lpHighlightWindow->lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_BYEDITDOCUMENT, (LPARAM)hDocEdit);
         }
       }
@@ -1834,11 +1835,14 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   MARKTEXT *lpMarkText;
   MARKTEXT *lpNextMarkText;
   AEMARKTEXTITEMW *lpMarkItem=NULL;
+  STACKDELIM *lpDelimiterStack=NULL;
   AECHARINDEX ciCount;
   BOOL bMatched;
 
   if (!lpHighlightWindow->hMarkTextsStack.first)
     return FALSE;
+  if (lpHighlightWindow->lpSyntaxFile)
+    lpDelimiterStack=&lpHighlightWindow->lpSyntaxFile->hDelimiterStack;
 
   SendMessage(lpHighlightWindow->hWndEdit, AEM_EXGETSEL, (WPARAM)&crSel.ciMin, (LPARAM)&crSel.ciMax);
   if (bFindUp)
@@ -1857,17 +1861,8 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
 
       if (lpMarkText->dwMarkID != MARKID_SELECTION)
       {
-        if (lpMarkItem->dwFlags & AEHLF_REGEXP)
-        {
-          bMatched=IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &crSel.ciMin);
-        }
-        else
-        {
-          ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?FIF_MATCHCASE:0;
-          ft.pText=lpMarkItem->pMarkText;
-          ft.dwTextLen=lpMarkItem->nMarkTextLen;
-          bMatched=IsMatch(&ft, &crSel.ciMin);
-        }
+        bMatched=IsMatchMark(lpMarkItem, lpDelimiterStack, lpHighlightWindow->hWndEdit, &ft, &crSel.ciMin);
+
         if (bMatched && !AEC_IndexCompare(&ft.crFound.ciMax, &crSel.ciMax))
         {
           dwColorText=lpMarkItem->crText;
@@ -1894,16 +1889,8 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   {
     if (lpSingleMarkText)
     {
-      if (lpMarkItem->dwFlags & AEHLF_REGEXP)
-      {
-        if (IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &ciCount))
-          goto Find;
-      }
-      else
-      {
-        if (IsMatch(&ft, &ciCount))
-          goto Find;
-      }
+      if (IsMatchMark(lpMarkItem, lpDelimiterStack, lpHighlightWindow->hWndEdit, &ft, &ciCount))
+        goto Find;
     }
     else
     {
@@ -1918,19 +1905,8 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
               (dwColorText == (DWORD)-1 || lpMarkItem->crText == dwColorText) &&
               (dwColorBk == (DWORD)-1 || lpMarkItem->crBk == dwColorBk))
           {
-            if (lpMarkItem->dwFlags & AEHLF_REGEXP)
-            {
-              if (IsMatchRE(lpMarkItem->lpREGroupStack, &ft.crFound, &ciCount))
-                goto Find;
-            }
-            else
-            {
-              ft.dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?FIF_MATCHCASE:0;
-              ft.pText=lpMarkItem->pMarkText;
-              ft.dwTextLen=lpMarkItem->nMarkTextLen;
-              if (IsMatch(&ft, &ciCount))
-                goto Find;
-            }
+            if (IsMatchMark(lpMarkItem, lpDelimiterStack, lpHighlightWindow->hWndEdit, &ft, &ciCount))
+              goto Find;
           }
         }
       }
@@ -1945,6 +1921,27 @@ BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorT
   SendMessage(lpHighlightWindow->hWndEdit, AEM_EXSETSEL, (WPARAM)&ft.crFound.ciMin, (LPARAM)&ft.crFound.ciMax);
   bFindingMark=FALSE;
   return TRUE;
+}
+
+BOOL IsMatchMark(AEMARKTEXTITEMW *lpMarkItem, STACKDELIM *lpDelimiterStack, HWND hWnd, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
+{
+  BOOL bMatched;
+
+  if (lpMarkItem->dwFlags & AEHLF_REGEXP)
+    return IsMatchRE(lpMarkItem->lpREGroupStack, &ft->crFound, ciChar);
+  if (lpMarkItem->dwFlags & AEHLF_WHOLEWORD)
+    if (!IsDelimiterFromLeft(lpDelimiterStack, hWnd, ciChar))
+      return FALSE;
+  ft->dwFlags=(lpMarkItem->dwFlags & AEHLF_MATCHCASE)?FIF_MATCHCASE:0;
+  ft->pText=lpMarkItem->pMarkText;
+  ft->dwTextLen=lpMarkItem->nMarkTextLen;
+  if (bMatched=IsMatch(ft, ciChar))
+  {
+    if (lpMarkItem->dwFlags & AEHLF_WHOLEWORD)
+      if (!IsDelimiterFromRight(lpDelimiterStack, hWnd, &ft->crFound.ciMax))
+        return FALSE;
+  }
+  return bMatched;
 }
 
 void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)

@@ -94,6 +94,7 @@ typedef struct {
 typedef struct _HIGHLIGHTWINDOW {
   struct _HIGHLIGHTWINDOW *next;
   struct _HIGHLIGHTWINDOW *prev;
+  SYNTAXFILE *lpSyntaxFile; 
   FRAMEDATA *lpFrame;
   HWND hWndEdit;
   AEHDOC hDocEdit;
@@ -147,6 +148,7 @@ BOOL StackFreeMark(HIGHLIGHTWINDOW *lpHighlightWindow);
 BOOL MarkSelection(HIGHLIGHTWINDOW *lpHighlightWindow, const wchar_t *wpText, int nTextLen, DWORD dwColorText, DWORD dwColorBk, DWORD dwFlags, DWORD dwFontStyle, DWORD dwMarkID);
 BOOL UnmarkSelection(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorText, DWORD dwColorBk);
 BOOL FindMark(HIGHLIGHTWINDOW *lpHighlightWindow, DWORD dwMarkID, DWORD dwColorText, DWORD dwColorBk, BOOL bFindUp);
+BOOL IsMatchMark(AEMARKTEXTITEMW *lpMarkItem, STACKDELIM *lpDelimiterStack, HWND hWnd, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd);
 void GetFontAndColors(SYNTAXFILE *lpSyntaxFile, HIGHLIGHTWINDOW *lpHighlightWindow);
 void RestoreFontAndColors(HIGHLIGHTWINDOW *lpHighlightWindow);
