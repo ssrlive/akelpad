@@ -2447,7 +2447,7 @@ HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue)
   #endif
   //Use VT_I4 because VBScript can cause error for VT_UI4
   pvtParameter->vt=VT_I4;
-  pvtParameter->lVal=nValue;
+  pvtParameter->lVal=(int)nValue;
   return hr;
 }
 
