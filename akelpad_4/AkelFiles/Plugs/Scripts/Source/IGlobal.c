@@ -133,34 +133,40 @@ HRESULT STDMETHODCALLTYPE Global_PtrMath(IGlobal *this, VARIANT vtPointer1, BSTR
   INT_PTR nPointer2=GetVariantInt(&vtPointer2, NULL);
   INT_PTR nPointerResult=0;
 
-  if (!xstrcmpW(*wpSign, L"+"))
+  if (!xstrcmpW(wpSign, L"+"))
     nPointerResult=nPointer1 + nPointer2;
-  else if (!xstrcmpW(*wpSign, L"-"))
+  else if (!xstrcmpW(wpSign, L"-"))
     nPointerResult=nPointer1 - nPointer2;
-  else if (!xstrcmpW(*wpSign, L"*"))
+  else if (!xstrcmpW(wpSign, L"*"))
     nPointerResult=nPointer1 * nPointer2;
-  else if (!xstrcmpW(*wpSign, L"/"))
+  else if (!xstrcmpW(wpSign, L"/"))
     nPointerResult=nPointer1 / nPointer2;
-  else if (!xstrcmpW(*wpSign, L"%"))
+  else if (!xstrcmpW(wpSign, L"%"))
     nPointerResult=nPointer1 % nPointer2;
-  else if (!xstrcmpW(*wpSign, L"&"))
+  else if (!xstrcmpW(wpSign, L"&"))
     nPointerResult=nPointer1 & nPointer2;
-  else if (!xstrcmpW(*wpSign, L"|"))
+  else if (!xstrcmpW(wpSign, L"|"))
     nPointerResult=nPointer1 | nPointer2;
-  else if (!xstrcmpW(*wpSign, L"^"))
+  else if (!xstrcmpW(wpSign, L"^"))
     nPointerResult=nPointer1 ^ nPointer2;
-  else if (!xstrcmpW(*wpSign, L">"))
+  else if (!xstrcmpW(wpSign, L">"))
     nPointerResult=nPointer1 > nPointer2;
-  else if (!xstrcmpW(*wpSign, L"<"))
+  else if (!xstrcmpW(wpSign, L"<"))
     nPointerResult=nPointer1 < nPointer2;
-  else if (!xstrcmpW(*wpSign, L"^"))
+  else if (!xstrcmpW(wpSign, L"^"))
     nPointerResult=nPointer1 ^ nPointer2;
-  else if (!xstrcmpW(*wpSign, L"!="))
+  else if (!xstrcmpW(wpSign, L"=="))
+    nPointerResult=nPointer1 == nPointer2;
+  else if (!xstrcmpW(wpSign, L"!="))
     nPointerResult=nPointer1 != nPointer2;
-  else if (!xstrcmpW(*wpSign, L">="))
+  else if (!xstrcmpW(wpSign, L">="))
     nPointerResult=nPointer1 >= nPointer2;
-  else if (!xstrcmpW(*wpSign, L"<="))
+  else if (!xstrcmpW(wpSign, L"<="))
     nPointerResult=nPointer1 <= nPointer2;
+  else if (!xstrcmpW(wpSign, L"<<"))
+    nPointerResult=nPointer1 << nPointer2;
+  else if (!xstrcmpW(wpSign, L">>"))
+    nPointerResult=nPointer1 >> nPointer2;
 
   SetVariantInt(vtPointerResult, nPointerResult);
   return NOERROR;

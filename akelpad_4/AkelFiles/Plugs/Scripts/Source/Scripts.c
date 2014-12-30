@@ -25,6 +25,7 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xstrcmpW
 #define xstrcmpiW
 #define xstrcmpinA
 #define xstrcmpinW

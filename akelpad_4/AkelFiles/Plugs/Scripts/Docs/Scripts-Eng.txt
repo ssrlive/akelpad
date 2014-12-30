@@ -2746,7 +2746,7 @@ Same as _PtrAdd. Uses for VBScript.
 _PtrMath (+ActiveX)
 __________________
 
-Mathematic operations with pointers.
+Do mathematical operation with pointers.
 
   _PtrMath(lpPointer1, pSign, lpPointer2)
 
@@ -2755,13 +2755,12 @@ Arguments
     First pointer.
   pSign
     One of the following:
+      "+", "-", "*", "/", "%", "&", "|", "^", ">", "<", "^", "==", "!=", ">=", "<=", "<<", ">>"
   lpPointer2
     Second pointer.
 
 Return Value
-  Number. -1 lpPointer1 less than lpPointer2.
-           0 lpPointer1 identical to lpPointer2.
-           1 lpPointer1 greater than lpPointer2.
+  Number. Pointer.
 
 Example:
   See AkelPad.WindowRegisterClass example (VBScript).
