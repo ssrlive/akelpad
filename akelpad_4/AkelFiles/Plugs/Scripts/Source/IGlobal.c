@@ -16,8 +16,8 @@ const IGlobalVtbl MyIGlobalVtbl={
   Global_Invoke,
   Global_PtrAdd,
   Global_vbPtrAdd,
-  Global_PtrCmp,
-  Global_vbPtrCmp
+  Global_PtrMath,
+  Global_vbPtrMath
 };
 
 
@@ -127,21 +127,46 @@ HRESULT STDMETHODCALLTYPE Global_vbPtrAdd(IGlobal *this, VARIANT vtPointer1, VAR
   return Global_PtrAdd(this, vtPointer1, vtPointer2, vtPointerResult);
 }
 
-HRESULT STDMETHODCALLTYPE Global_PtrCmp(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, int *nCmpResult)
+HRESULT STDMETHODCALLTYPE Global_PtrMath(IGlobal *this, VARIANT vtPointer1, BSTR wpSign, VARIANT vtPointer2, VARIANT *vtPointerResult)
 {
   INT_PTR nPointer1=GetVariantInt(&vtPointer1, NULL);
   INT_PTR nPointer2=GetVariantInt(&vtPointer2, NULL);
+  INT_PTR nPointerResult=0;
 
-  if (nPointer1 > nPointer2)
-    *nCmpResult=1;
-  else if (nPointer1 < nPointer2)
-    *nCmpResult=-1;
-  else
-    *nCmpResult=0;
+  if (!xstrcmpW(*wpSign, L"+"))
+    nPointerResult=nPointer1 + nPointer2;
+  else if (!xstrcmpW(*wpSign, L"-"))
+    nPointerResult=nPointer1 - nPointer2;
+  else if (!xstrcmpW(*wpSign, L"*"))
+    nPointerResult=nPointer1 * nPointer2;
+  else if (!xstrcmpW(*wpSign, L"/"))
+    nPointerResult=nPointer1 / nPointer2;
+  else if (!xstrcmpW(*wpSign, L"%"))
+    nPointerResult=nPointer1 % nPointer2;
+  else if (!xstrcmpW(*wpSign, L"&"))
+    nPointerResult=nPointer1 & nPointer2;
+  else if (!xstrcmpW(*wpSign, L"|"))
+    nPointerResult=nPointer1 | nPointer2;
+  else if (!xstrcmpW(*wpSign, L"^"))
+    nPointerResult=nPointer1 ^ nPointer2;
+  else if (!xstrcmpW(*wpSign, L">"))
+    nPointerResult=nPointer1 > nPointer2;
+  else if (!xstrcmpW(*wpSign, L"<"))
+    nPointerResult=nPointer1 < nPointer2;
+  else if (!xstrcmpW(*wpSign, L"^"))
+    nPointerResult=nPointer1 ^ nPointer2;
+  else if (!xstrcmpW(*wpSign, L"!="))
+    nPointerResult=nPointer1 != nPointer2;
+  else if (!xstrcmpW(*wpSign, L">="))
+    nPointerResult=nPointer1 >= nPointer2;
+  else if (!xstrcmpW(*wpSign, L"<="))
+    nPointerResult=nPointer1 <= nPointer2;
+
+  SetVariantInt(vtPointerResult, nPointerResult);
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Global_vbPtrCmp(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, int *nCmpResult)
+HRESULT STDMETHODCALLTYPE Global_vbPtrMath(IGlobal *this, VARIANT vtPointer1, BSTR wpSign, VARIANT vtPointer2, VARIANT *vtPointerResult)
 {
-  return Global_PtrCmp(this, vtPointer1, vtPointer2, nCmpResult);
+  return Global_PtrMath(this, vtPointer1, wpSign, vtPointer2, vtPointerResult);
 }
