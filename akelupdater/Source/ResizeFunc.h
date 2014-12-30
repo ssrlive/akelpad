@@ -295,11 +295,14 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
     case WM_WINDOWPOSCHANGING:
     {
       WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
-  
+      RECT rcTemplate;
+
       if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
       {
-        if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcCurrent->left || lpWindowPos->y != rcCurrent->top)) &&
-            (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcCurrent->right || lpWindowPos->cy != rcCurrent->bottom)))
+        GetWindowSize(hDlg, GetParent(hDlg), &rcTemplate);
+
+        if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcTemplate.left || lpWindowPos->y != rcTemplate.top)) &&
+            (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcTemplate.right || lpWindowPos->cy != rcTemplate.bottom)))
         {
           //Size and position changed don't copy bits to avoid blinking.
           lpWindowPos->flags|=SWP_NOCOPYBITS;
