@@ -292,6 +292,20 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
       }
       break;
     }
+    case WM_WINDOWPOSCHANGING:
+    {
+      WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
+  
+      if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
+      {
+        if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcCurrent->left || lpWindowPos->y != rcCurrent->top)) &&
+            (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcCurrent->right || lpWindowPos->cy != rcCurrent->bottom)))
+        {
+          //Size and position changed don't copy bits to avoid blinking.
+          lpWindowPos->flags|=SWP_NOCOPYBITS;
+        }
+      }
+    }
     case WM_MOVE:
     {
       if (!(GetWindowLongPtrWide(hDlg, GWL_STYLE) & DS_CENTER))
