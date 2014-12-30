@@ -51,6 +51,7 @@
 #include "StrFunc.h"
 
 //Include wide functions
+#define CallWindowProcWide
 #define ComboBox_AddStringWide
 #define ComboBox_GetLBTextWide
 #define CreateFileWide
@@ -305,6 +306,7 @@ typedef struct {
 
 //Functions prototypes
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 void ParseLst(HWND hDlg);
 void CompareItems();
@@ -370,6 +372,8 @@ FILEITEM *lpFileItemAkelPad=NULL;
 FILEITEM *lpFileItemScripts=NULL;
 DLLINFO diGlobal;
 HWND hWndDialog=NULL;
+HWND hWndListDll=NULL;
+WNDPROC lpOldFilterProc=NULL;
 int nInputBit=32;
 BOOL bScripts=FALSE;
 BOOL bInputAuto=FALSE;
@@ -500,7 +504,6 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndLanguage;
   static HWND hWndMirrorLabel;
   static HWND hWndMirror;
-  static HWND hWndListDll;
   static HWND hWndListCheckInfo;
   static HWND hWndListStatusInfo;
   static HWND hWndUpdate;
@@ -636,6 +639,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else
     {
+      lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC);
+      SetWindowLongPtrWide(hWndScriptsFilter, GWLP_WNDPROC, (UINT_PTR)NewFilterProc);
+
       PostMessage(hDlg, AKDLL_SHOWWINDOW, 0, 0);
       PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
     }
@@ -993,6 +999,20 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   ResizeDialogMessages(&rds[0], &rcMainMinMaxDialog, &rcMainCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
+}
+
+LRESULT CALLBACK NewFilterProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_KEYDOWN)
+  {
+    if (wParam == VK_DOWN || wParam == VK_UP)
+    {
+      if (GetFocus() != hWndListDll)
+        SetFocus(hWndListDll);
+      return SendMessage(hWndListDll, uMsg, wParam, lParam);
+    }
+  }
+  return CallWindowProcWide(lpOldFilterProc, hWnd, uMsg, wParam, lParam);
 }
 
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
