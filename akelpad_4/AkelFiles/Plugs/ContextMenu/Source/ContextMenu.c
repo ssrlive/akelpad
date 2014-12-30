@@ -5700,9 +5700,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     \"\x0421\x0432\x043E\x0440\x0430\x0447\x0438\x0432\x0430\x043D\x0438\x0435\x0020\x0431\x043B\x043E\x043A\x043E\x0432\" +Call(\"Coder::CodeFold\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 1)\r\
     \"\x0410\x0432\x0442\x043E\x0434\x043E\x043F\x043E\x043B\x043D\x0435\x043D\x0438\x0435\" +Call(\"Coder::AutoComplete\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 2)\r\
     SEPARATOR1\r\
-    SET(64, If(`Call(\"Coder::Settings\", 2, &nResult) == 1 /*UC_FAST*/`)\r\
-        \"\x041E\x0431\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043A\x0435\x0448\" Call(\"Coder::Settings\", 2)\r\
-    UNSET(64)\r\
+    \"\x041E\x0431\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043A\x0435\x0448\" Call(\"Coder::Settings\", 2)\r\
     SEPARATOR1\r\
     \"\x041D\x0430\x0441\x0442\x0440\x043E\x0438\x0442\x044C...\" Call(\"Coder::Settings\")\r\
 }\r\
@@ -6284,9 +6282,7 @@ EXPLORER\r";
     \"Code folding\" +Call(\"Coder::CodeFold\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 1)\r\
     \"Autocompletion\" +Call(\"Coder::AutoComplete\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 2)\r\
     SEPARATOR1\r\
-    SET(64, If(`Call(\"Coder::Settings\", 2, &nResult) == 1 /*UC_FAST*/`)\r\
-        \"Update cache\" Call(\"Coder::Settings\", 2)\r\
-    UNSET(64)\r\
+    \"Update cache\" Call(\"Coder::Settings\", 2)\r\
     SEPARATOR1\r\
     \"Settings...\" Call(\"Coder::Settings\")\r\
 }\r\
