@@ -58,7 +58,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
+				PreprocessorDefinitions="SCRIPTS_MAXHANDLE=0x7FFFFFFF;WIN32;NDEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -160,7 +160,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
+				PreprocessorDefinitions="SCRIPTS_MAXHANDLE=0x7FFFFFFF;WIN32;NDEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -261,7 +261,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
+				PreprocessorDefinitions="SCRIPTS_MAXHANDLE=0x7FFFFFFF;WIN32;_DEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -363,7 +363,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
+				PreprocessorDefinitions="SCRIPTS_MAXHANDLE=0x7FFFFFFF;WIN32;_DEBUG;_WINDOWS;_USRDLL;Scripts_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -544,6 +544,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\IGlobal.c"
+				>
+			</File>
+			<File
 				RelativePath="IScriptSettings.c"
 				>
 				<FileConfiguration
@@ -667,7 +671,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="ML64.exe /c ISystemFunction64.asm"
+						CommandLine="ML64.exe /c ISystemFunction64.asm&#x0D;&#x0A;"
 						Outputs="ISystemFunction64.obj"
 					/>
 				</FileConfiguration>
@@ -684,7 +688,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="ML64.exe /c ISystemFunction64.asm"
+						CommandLine="ML64.exe /c ISystemFunction64.asm&#x0D;&#x0A;"
 						Outputs="ISystemFunction64.obj"
 					/>
 				</FileConfiguration>
