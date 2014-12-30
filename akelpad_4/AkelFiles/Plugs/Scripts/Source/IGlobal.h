@@ -19,8 +19,8 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 
   STDMETHOD_(HRESULT, Global_PtrAdd)(THIS_ VARIANT, VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Global_vbPtrAdd)(THIS_ VARIANT, VARIANT, VARIANT *) PURE;
-  STDMETHOD_(HRESULT, Global_PtrCmp)(THIS_ VARIANT, VARIANT, int *) PURE;
-  STDMETHOD_(HRESULT, Global_vbPtrCmp)(THIS_ VARIANT, VARIANT, int *) PURE;
+  STDMETHOD_(HRESULT, Global_PtrMath)(THIS_ VARIANT, BSTR, VARIANT, VARIANT *) PURE;
+  STDMETHOD_(HRESULT, Global_vbPtrMath)(THIS_ VARIANT, BSTR, VARIANT, VARIANT *) PURE;
 };
 
 //Defines
@@ -46,7 +46,7 @@ HRESULT STDMETHODCALLTYPE Global_Invoke(IGlobal *this, DISPID dispid, REFIID rii
 
 HRESULT STDMETHODCALLTYPE Global_PtrAdd(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, VARIANT *vtPointerResult);
 HRESULT STDMETHODCALLTYPE Global_vbPtrAdd(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, VARIANT *vtPointerResult);
-HRESULT STDMETHODCALLTYPE Global_PtrCmp(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, int *nCmpResult);
-HRESULT STDMETHODCALLTYPE Global_vbPtrCmp(IGlobal *this, VARIANT vtPointer1, VARIANT vtPointer2, int *nCmpResult);
+HRESULT STDMETHODCALLTYPE Global_PtrMath(IGlobal *this, VARIANT vtPointer1, BSTR wpSign, VARIANT vtPointer2, VARIANT *vtPointerResult);
+HRESULT STDMETHODCALLTYPE Global_vbPtrMath(IGlobal *this, VARIANT vtPointer1, BSTR wpSign, VARIANT vtPointer2, VARIANT *vtPointerResult);
 
 #endif

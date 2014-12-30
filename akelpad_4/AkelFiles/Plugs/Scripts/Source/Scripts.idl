@@ -367,8 +367,8 @@ library Scripts
     [id(301), propget] HRESULT vbPtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
 
     //Compare pointers.
-    [id(202), propget] HRESULT _PtrCmp([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] int *nCmpResult);
-    [id(302), propget] HRESULT vbPtrCmp([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] int *nCmpResult);
+    [id(202), propget] HRESULT _PtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+    [id(302), propget] HRESULT vbPtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
   };
 
   //AkelPad object.

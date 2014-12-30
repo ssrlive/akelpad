@@ -197,8 +197,8 @@ _X64                                         +ActiveX uses as AkelPad.Constants.
 vbX64                                        +ActiveX uses as AkelPad.Constants.vbX64
 _PtrAdd                                      +ActiveX uses as AkelPad.Global._PtrAdd
 vbPtrAdd                                     +ActiveX uses as AkelPad.Global.vbPtrAdd
-_PtrCmp                                      +ActiveX uses as AkelPad.Global._PtrCmp
-vbPtrCmp                                     +ActiveX uses as AkelPad.Global.vbPtrCmp
+_PtrMath                                     +ActiveX uses as AkelPad.Global._PtrMath
+vbPtrMath                                    +ActiveX uses as AkelPad.Global.vbPtrMath
 
 
 *** Methods description ***
@@ -2079,13 +2079,13 @@ Example (VBScript):
   Const VK_ESCAPE=27
   Const IDCANCEL=2
 
-  if vbPtrCmp(hMainWnd, 0) then
+  if vbPtrMath(hMainWnd, "!=", 0) then
     if AkelPad.WindowRegisterClass("NewClass") then
 
       'Create dialog WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX
       hWndDialog=oSys.Call("user32::CreateWindowEx" & vbTCHAR, 0, "NewClass", 0, &H90CA0000, 0, 0, 351, 179, hMainWnd, 0, hInstanceDLL, lpCallbackPtr)
 
-      if vbPtrCmp(hWndDialog, 0) then
+      if vbPtrMath(hWndDialog, "!=", 0) then
         'Disable main window, to make dialog modal
         oSys.Call "user32::EnableWindow", hMainWnd, false
 
@@ -2743,16 +2743,18 @@ ___________________
 Same as _PtrAdd. Uses for VBScript.
 
 
-_PtrCmp (+ActiveX)
+_PtrMath (+ActiveX)
 __________________
 
-Compare pointers.
+Mathematic operations with pointers.
 
-  _PtrCmp(lpPointer1, lpPointer2)
+  _PtrMath(lpPointer1, pSign, lpPointer2)
 
 Arguments
   lpPointer1
     First pointer.
+  pSign
+    One of the following:
   lpPointer2
     Second pointer.
 
@@ -2765,10 +2767,10 @@ Example:
   See AkelPad.WindowRegisterClass example (VBScript).
 
 
-vbPtrCmp (+ActiveX)
+vbPtrMath (+ActiveX)
 ___________________
 
-Same as _PtrCmp. Uses for VBScript.
+Same as _PtrMath. Uses for VBScript.
 
 
 *** ActiveX ***
