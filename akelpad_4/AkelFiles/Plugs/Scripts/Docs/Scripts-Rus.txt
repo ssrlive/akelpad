@@ -198,8 +198,8 @@ _X64                                         +ActiveX используется как AkelPad.C
 vbX64                                        +ActiveX используется как AkelPad.Constants.vbX64
 _PtrAdd                                      +ActiveX используется как AkelPad.Global._PtrAdd
 vbPtrAdd                                     +ActiveX используется как AkelPad.Global.vbPtrAdd
-_PtrMath                                      +ActiveX используется как AkelPad.Global._PtrMath
-vbPtrMath                                     +ActiveX используется как AkelPad.Global.vbPtrMath
+_PtrMath                                     +ActiveX используется как AkelPad.Global._PtrMath
+vbPtrMath                                    +ActiveX используется как AkelPad.Global.vbPtrMath
 
 
 *** Описание методов ***
@@ -2081,13 +2081,13 @@ ______________________________________
   Const VK_ESCAPE=27
   Const IDCANCEL=2
 
-  if vbPtrMath(hMainWnd, 0) then
+  if vbPtrMath(hMainWnd, "!=", 0) then
     if AkelPad.WindowRegisterClass("NewClass") then
 
       'Create dialog WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX
       hWndDialog=oSys.Call("user32::CreateWindowEx" & vbTCHAR, 0, "NewClass", 0, &H90CA0000, 0, 0, 351, 179, hMainWnd, 0, hInstanceDLL, lpCallbackPtr)
 
-      if vbPtrMath(hWndDialog, 0) then
+      if vbPtrMath(hWndDialog, "!=", 0) then
         'Disable main window, to make dialog modal
         oSys.Call "user32::EnableWindow", hMainWnd, false
 
@@ -2748,20 +2748,21 @@ ___________________
 _PtrMath (+ActiveX)
 __________________
 
-Сравнить указатели.
+Выполнить математическое действие над указателями.
 
-  _PtrMath(lpPointer1, lpPointer2)
+  _PtrMath(lpPointer1, pSign, lpPointer2)
 
 Аргументы
   lpPointer1
     Первый указатель.
+  pSign
+    Одно из следующих:
+      "+", "-", "*", "/", "%", "&", "|", "^", ">", "<", "^", "==", "!=", ">=", "<=", "<<", ">>"
   lpPointer2
     Второй указатель.
 
 Возвращаемое значение
-  Число. -1 lpPointer1 меньше чем lpPointer2.
-          0 lpPointer1 равен lpPointer2.
-          1 lpPointer1 больше чем lpPointer2.
+  Число. Указатель.
 
 Пример:
   See AkelPad.WindowRegisterClass example (VBScript).

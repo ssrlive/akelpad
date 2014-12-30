@@ -366,7 +366,7 @@ library Scripts
     [id(201), propget] HRESULT _PtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
     [id(301), propget] HRESULT vbPtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
 
-    //Compare pointers.
+    //Do mathematical operation with pointers.
     [id(202), propget] HRESULT _PtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
     [id(302), propget] HRESULT vbPtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
   };
