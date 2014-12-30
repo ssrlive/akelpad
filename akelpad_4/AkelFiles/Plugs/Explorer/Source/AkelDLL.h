@@ -719,6 +719,7 @@
 #define FWS_COUNTMODIFIED 1  //Count of modified windows.
 #define FWS_COUNTSAVED    2  //Count of unmodified windows.
 #define FWS_CURSEL        3  //Active window zero based index.
+#define FWS_COUNTNAMED    4  //Count of named windows.
 
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.

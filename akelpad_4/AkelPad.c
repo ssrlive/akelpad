@@ -3737,6 +3737,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return nDocumentsCount - nDocumentsModified;
         if (wParam == FWS_CURSEL)
           return nDocumentIndex;
+        if (wParam == FWS_COUNTNAMED)
+        {
+          FRAMEDATA *lpFrame;
+          int nNamedCount=0;
+
+          for (lpFrame=hFramesStack.first; lpFrame; lpFrame=lpFrame->next)
+          {
+            if (lpFrame->ei.wszFile[0])
+              ++nNamedCount;
+          }
+          return nNamedCount;
+        }
         return 0;
       }
       case AKD_FRAMENOWINDOWS:
