@@ -58,9 +58,11 @@
 #define CreateProcessWide
 #define DialogBoxWide
 #define DispatchMessageWide
+#define FileExistsWide
 #define FindFirstFileWide
 #define FindNextFileWide
 #define GetClassNameWide
+#define GetFileAttributesWide
 #define GetModuleFileNameWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
@@ -311,6 +313,7 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 void ParseLst(HWND hDlg);
 void CompareItems();
 void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpFilter);
+LPARAM GetItemParam(HWND hWnd, int nIndex);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 int GetNextWord(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t *wpDelim, int nDelimLen, wchar_t *wszWord, int nWordMax, const wchar_t **wpNextWord);
 void StackFilesFill(STACKFILEITEM *hStack);
@@ -356,6 +359,7 @@ wchar_t wszExeDir[MAX_PATH];
 int nExeDirLen;
 wchar_t wszAkelDir[MAX_PATH];
 wchar_t wszPlugsDir[MAX_PATH];
+wchar_t wszAkelExe[MAX_PATH];
 wchar_t wszInputLanguage[MAX_PATH];
 wchar_t wszInputVersion[32];
 wchar_t wszNsisTempDir[MAX_PATH];
@@ -408,16 +412,15 @@ void __declspec(dllexport) Init(HWND hwndParent, int string_size, wchar_t *varia
     GetFileDir(wszExeDir, nExeDirLen, wszAkelDir, MAX_PATH);
     xprintfW(wszPlugsDir, L"%s\\Plugs", wszExeDir);
 
+    xprintfW(wszAkelExe, L"%s\\AkelPad.exe", wszAkelDir);
+    if (!FileExistsWide(wszAkelExe))
+      xprintfW(wszAkelExe, L"%s\\notepad.exe", wszAkelDir);
+      if (!FileExistsWide(wszAkelExe))
+        wszAkelExe[0]=L'\0';
+
     hKernel32=GetModuleHandleA("kernel32.dll");
     if (GetBinaryTypePtr=(BOOL (WINAPI *)(const wchar_t *, LPDWORD))GetProcAddress(hKernel32, "GetBinaryTypeW"))
-    {
-      xprintfW(wszBuf, L"%s\\..\\AkelPad.exe", wszExeDir);
-      if (!GetBinaryTypePtr(wszBuf, &dwBinaryType))
-      {
-        xprintfW(wszBuf, L"%s\\..\\notepad.exe", wszExeDir);
-        GetBinaryTypePtr(wszBuf, &dwBinaryType);
-      }
-    }
+      GetBinaryTypePtr(wszAkelExe, &dwBinaryType);
     pushintegerWide(dwBinaryType == SCS_64BIT_BINARY?64:32);
   }
 }
@@ -762,6 +765,29 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
         {
           SendMessage(pnmlv->hdr.hwndFrom, LVM_SORTITEMS, (LPARAM)pnmlv->iSubItem, (LPARAM)CompareFunc);
+        }
+      }
+      else if (pnmlv->hdr.code == (UINT)NM_DBLCLK)
+      {
+        NMITEMACTIVATE *pnmia=(NMITEMACTIVATE *)lParam;
+        FILEITEM *lpFileItem;
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+
+        //pnmia->lParam undefined so get it manually
+        lpFileItem=(FILEITEM *)GetItemParam(pnmlv->hdr.hwndFrom, pnmia->iItem);
+
+        if (lpFileItem && lpFileItem->nType == FIT_SCRIPT)
+        {
+          xmemset(&si, 0, sizeof(STARTUPINFOW));
+          si.cb=sizeof(STARTUPINFOW);
+
+          xprintfW(wszBuf, L"\"%s\" \"%s\\Scripts\\%s\"", wszAkelExe, wszPlugsDir, lpFileItem->wszName);
+          if (CreateProcessWide(NULL, wszBuf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+          {
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+          }
         }
       }
       else if (pnmlv->hdr.code == LVN_ITEMCHANGING)
@@ -1133,15 +1159,8 @@ void ParseLst(HWND hDlg)
                       if (!lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1))
                       {
                         lpFileItem->nType=FIT_AKELPAD;
-                        xprintfW(wszBuf, L"%s\\AkelPad.exe", wszAkelDir);
-                        if (GetFileVersionWide(wszBuf, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
+                        if (GetFileVersionWide(wszAkelExe, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
                           xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
-                        else
-                        {
-                          xprintfW(wszBuf, L"%s\\notepad.exe", wszAkelDir);
-                          if (GetFileVersionWide(wszBuf, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
-                            xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
-                        }
                         lpFileItemAkelPad=lpFileItem;
                       }
                       else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
@@ -1517,6 +1536,21 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
     SendMessage(hWndListDll, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hWndListDll, NULL, TRUE);
   }
+}
+
+LPARAM GetItemParam(HWND hWnd, int nIndex)
+{
+  LVITEMW lvi;
+
+  if (nIndex == -1)
+    return 0;
+  lvi.mask=LVIF_PARAM;
+  lvi.iItem=nIndex;
+  lvi.iSubItem=0;
+  lvi.lParam=0;
+  ListView_GetItemWide(hWnd, &lvi);
+
+  return lvi.lParam;
 }
 
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg)
