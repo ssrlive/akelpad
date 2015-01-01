@@ -132,6 +132,8 @@ Special menu items:
             0x4 //IFS_DISABLED  Disabled item.
         SET(128, If("SendMain(1223 /*AKD_GETFRAMEINFO*/, 69 /*FI_CARETOPTIONS*/, 0) & 0x2 /*CO_CARETVERTLINE*/", 0x1, 0x0))
           check following items, if caret active column is on.
+        SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
+          check following items, if script SearchReplace.js is working.
   UNSET(flags)
     unset text parse flags. See SET() for description.
 
