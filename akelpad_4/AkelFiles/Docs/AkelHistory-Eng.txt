@@ -8,6 +8,7 @@ Added: possibility to use /*comment*/ in command line method parameters.
 Fixed: buttons that control the size of the frame didn't work (MDI).
 Fixed: main window flickering on Win7.
 Fixed: variables usage in "Execute" item.
+Fixed: command "Close all but active" (PMDI).
 
 
 AkelPad 4.9.1 (Dec 15, 2014)

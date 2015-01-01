@@ -3669,10 +3669,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return (LRESULT)ActivateFrameWindow((FRAMEDATA *)lParam, (DWORD)wParam);
       }
-      case AKD_FRAMENEXT:
-      {
-        return (LRESULT)ActivateNextFrameWindow((FRAMEDATA *)lParam, (BOOL)wParam);
-      }
       case AKD_FRAMEDESTROY:
       {
         return DestroyFrameWindow((FRAMEDATA *)lParam);
@@ -4552,7 +4548,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             do
             {
               if (!DoFileSave()) return FALSE;
-              lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+              lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
             }
             while (lpFrameCurrent != lpFrameInit);
           }
@@ -4861,12 +4857,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case IDM_WINDOW_FRAMENEXT:
       {
         if (!nMDI) return (LRESULT)NULL;
-        return (LRESULT)ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+        return (LRESULT)ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
       }
       case IDM_WINDOW_FRAMEPREV:
       {
         if (!nMDI) return (LRESULT)NULL;
-        return (LRESULT)ActivateNextFrameWindow(lpFrameCurrent, TRUE);
+        return (LRESULT)ActivateFrameWindow(lpFrameCurrent, FWA_PREV|FWA_NOUPDATEORDER);
       }
       case IDM_WINDOW_FRAMECLOSE:
       {
@@ -4915,7 +4911,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         for (;;)
         {
-          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT);
           if (lpFrameCurrent == lpFrameInit) break;
 
           if (DestroyFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
@@ -4944,7 +4940,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           while (!bBreak)
           {
-            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT);
             if (lpFrameCurrent == lpFrameInit)
               bBreak=TRUE;
 
@@ -6699,7 +6695,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_MDINEXT)
   {
-    ActivateNextFrameWindow(lpFrameCurrent, (BOOL)lParam);
+    ActivateFrameWindow(lpFrameCurrent, (lParam?FWA_PREV:FWA_NEXT)|FWA_NOUPDATEORDER);
     return TRUE;
   }
   else if (uMsg == WM_MDIDESTROY)

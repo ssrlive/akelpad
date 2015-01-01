@@ -751,7 +751,6 @@ void SaveFrameData(FRAMEDATA *lpFrame);
 void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 BOOL CreateFrameWindow(RECT *rcRect);
 FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
-FRAMEDATA* ActivateNextFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 FRAMEDATA* GetNextTabFrame(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyFrameWindow(FRAMEDATA *lpFrame);
 BOOL FrameNoWindows();
