@@ -46,9 +46,9 @@ Main dialog.
 Call("Scripts::Main", 1, "SCRIPT", "ARGUMENTS")
   Parameters:
     1
-      Execute script. If "", then last processed script used.
+      Execute script.
     "SCRIPT"
-      Script file.
+      Script file. If "", then last processed script used.
     "ARGUMENTS"
       Argumets (default is "").
   Examples:
@@ -68,6 +68,57 @@ Call("Scripts::Main", 3, "SCRIPT")
 Call("Scripts::Main", 4, "SCRIPT", "ARGUMENTS")
   Same as 2, but execute script in main thread without creating the new one.
   Not recommended for scripts contained AkelPad.WindowGetMessage().
+
+Call("Scripts::Main", 5, "SCRIPT", OPERATION, *RESULT)
+  Parameters:
+    5
+      Interact with running scripts.
+    "SCRIPT"
+      Script file. If "", then last processed script used.
+    OPERATION
+      See description of nOperation parameter in method AkelPad.ScriptHandle. Except SH_FINDSCRIPT flag.
+    *RESULT
+      Depend on operation.
+
+  Example (get script handle):
+    WScript.Echo(ScriptGetHandle("SearchReplace.js"));
+
+    function ScriptGetHandle(pScript)
+    {
+      var oSys=AkelPad.SystemFunction();
+      var nHandle=0;
+
+      if (lpResult=AkelPad.MemAlloc(_X64?8:4 /*sizeof(INT_PTR)*/))
+      {
+        AkelPad.Call("Scripts::Main", 5, pScript, 2 /*SH_THISSCRIPT*/, lpResult);
+        nHandle=AkelPad.MemRead(lpResult, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpResult);
+      }
+      return nHandle;
+    }
+
+  Example (get script file):
+    WScript.Echo(ScriptGetFile("SearchReplace.js"));
+
+    function ScriptGetFile(pScript)
+    {
+      var oSys=AkelPad.SystemFunction();
+      var lpFile;
+      var pFile="";
+
+      if (lpResult=AkelPad.MemAlloc(_X64?8:4 /*sizeof(INT_PTR)*/))
+      {
+        AkelPad.Call("Scripts::Main", 5, pScript, 22 /*SH_GETFILE*/, lpResult);
+        lpFile=AkelPad.MemRead(lpResult, 2 /*DT_QWORD*/);
+        pFile=AkelPad.MemRead(lpFile, 1 /*DT_UNICODE*/);
+        oSys.Call("oleaut32::SysFreeString", lpFile);
+        AkelPad.MemFree(lpResult);
+      }
+      return pFile;
+    }
+
+Call("Scripts::Main", 6, SCRIPTHANDLE, OPERATION, *RESULT)
+  Same as 5, but use script handle, instead of script file.
 
 
 *** Service information in script ***

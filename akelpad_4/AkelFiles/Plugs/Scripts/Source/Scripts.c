@@ -263,6 +263,64 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       if (nScriptLen) GlobalFree((HGLOBAL)wpScript);
       if (nArgumentsLen) GlobalFree((HGLOBAL)wpArguments);
     }
+    else if (nAction == DLLA_SCRIPTS_HANDLEBYNAME ||
+             nAction == DLLA_SCRIPTS_HANDLEBYTHREAD)
+    {
+      SCRIPTTHREAD *lpScriptThread;
+      unsigned char *pScript=NULL;
+      wchar_t *wpScript=NULL;
+      int nOperation;
+      int *lpnResult=NULL;
+
+      if (IsExtCallParamValid(pd->lParam, 2))
+        pScript=(unsigned char *)GetExtCallParam(pd->lParam, 2);
+      if (IsExtCallParamValid(pd->lParam, 3))
+        nOperation=(int)GetExtCallParam(pd->lParam, 3);
+      if (IsExtCallParamValid(pd->lParam, 4))
+        lpnResult=(INT_PTR *)GetExtCallParam(pd->lParam, 4);
+
+      if (nAction == DLLA_SCRIPTS_HANDLEBYNAME)
+      {
+        if (pScript)
+        {
+          if (pd->dwSupport & PDS_STRANSI)
+            wpScript=AllocWide((char *)pScript);
+          else
+            wpScript=(wchar_t *)pScript;
+        }
+        if ((!wpScript || !*wpScript) && *wszLastScript)
+          wpScript=wszLastScript;
+      }
+
+      if (lpnResult && nOperation != SH_FINDSCRIPT)
+      {
+        *lpnResult=0;
+
+        if (nAction == DLLA_SCRIPTS_HANDLEBYNAME)
+        {
+          if (wpScript && *wpScript)
+            lpScriptThread=StackGetScriptThreadByName(&hThreadStack, wpScript);
+        }
+        else lpScriptThread=(SCRIPTTHREAD *)pScript;
+
+        if (lpScriptThread)
+        {
+          IRealDocument objIDocument;
+          VARIANT vtData;
+          VARIANT vtResult;
+
+          objIDocument.lpVtbl=NULL;
+          objIDocument.dwCount=0;
+          objIDocument.lpScriptThread=lpScriptThread;
+
+          SetVariantInt(&vtData, (INT_PTR)lpScriptThread);
+          Document_ScriptHandle((IDocument *)&objIDocument, vtData, nOperation, &vtResult);
+          *lpnResult=GetVariantInt(&vtResult, NULL);
+        }
+      }
+      if (pd->dwSupport & PDS_STRANSI)
+        FreeWide(wpScript);
+    }
   }
   else
   {
