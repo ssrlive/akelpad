@@ -132,6 +132,8 @@ ContextMenu::Show
             0x4 //IFS_DISABLED  Неактивный пункт.
         SET(128, If("SendMain(1223 /*AKD_GETFRAMEINFO*/, 69 /*FI_CARETOPTIONS*/, 0) & 0x2 /*CO_CARETVERTLINE*/", 0x1, 0x0))
           отметить галочкой последующие пункты, если включен активный столбец.
+        SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
+          отметить последующие пункты, если работает скрипт SearchReplace.js.
   UNSET(флаги)
     снимает флаг обработки текста. См. описание флагов SET().
 
