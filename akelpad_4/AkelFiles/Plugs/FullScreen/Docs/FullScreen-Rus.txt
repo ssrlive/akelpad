@@ -1,8 +1,8 @@
 *****************************************************************
-***               FullScreen AkelPad plugin v3.7              ***
+***               FullScreen AkelPad plugin v3.8              ***
 *****************************************************************
 
-2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

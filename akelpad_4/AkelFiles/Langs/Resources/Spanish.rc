@@ -936,7 +936,7 @@ BEGIN
     LTEXT           "Página Web:",IDC_STATIC,19,41,85,11
     PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
     GROUPBOX        "Autores:",IDC_STATIC,20,62,177,109
-    LTEXT           "Shengalts Aleksander, 2006-2014",IDC_STATIC,73,82,120,
+    LTEXT           "Shengalts Aleksander, 2006-2015",IDC_STATIC,73,82,120,
                     12,NOT WS_GROUP
     LTEXT           "E-Mail:",IDC_STATIC,46,98,22,12,NOT WS_GROUP,
                     WS_EX_RIGHT
