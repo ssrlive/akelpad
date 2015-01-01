@@ -698,10 +698,12 @@
 #define FWF_TABNEXT        9  //Retrieve next tab item frame data. lParam is a frame data pointer.
 #define FWF_TABPREV        10 //Retrieve previous tab item frame data. lParam is a frame data pointer.
 
-//AKD_FRAMEACTIVATE and AKDN_FRAME_ACTIVATE flags
+//AKD_FRAMEACTIVATE, AKDN_FRAME_ACTIVATE flags
 #define FWA_NOUPDATEORDER         0x00000001  //Don't update access order during activating.
 #define FWA_NOUPDATEEDIT          0x00000002  //For WMD_PMDI mode. Don't redraw edit control area during activating.
 #define FWA_NOVISUPDATE           0x00000004  //For WMD_PMDI mode. Don't make any visual updates during activating. Use it only if you later will activate back frame that has lost active status.
+#define FWA_NEXT                  0x00000010  //Activate next frame.
+#define FWA_PREV                  0x00000020  //Activate previous frame.
                                               //AKDN_FRAME_ACTIVATE only flags:
 #define FWA_NOTIFY_CREATE         0x00000100  //Frame activating after creation.
 #define FWA_NOTIFY_BEFOREDESTROY  0x00000200  //Frame activating for destroying.
@@ -2264,7 +2266,6 @@ typedef struct {
 
 //Frames
 #define AKD_FRAMEACTIVATE          (WM_USER + 261)
-#define AKD_FRAMENEXT              (WM_USER + 262)
 #define AKD_FRAMEDESTROY           (WM_USER + 263)
 #define AKD_FRAMEFIND              (WM_USER + 264)
 #define AKD_FRAMEFINDA             (WM_USER + 265)
@@ -4140,27 +4141,11 @@ Activate specified frame.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
 
 Return Value
- Pointer to a FRAMEDATA structure that has lost active status.
+ Pointer to an activated FRAMEDATA structure.
 
 Example:
  FRAMEDATA *lpFrame=(FRAMEDATA *)SendMessage(pd->hMainWnd, AKD_FRAMEFINDW, FWF_BYFILENAME, (LPARAM)L"C:\\File.txt");
  SendMessage(pd->hMainWnd, AKD_FRAMEACTIVATE, 0, (LPARAM)lpFrame);
-
-
-AKD_FRAMENEXT
-_____________
-
-Activate next or previous frame.
-
-(BOOL)wParam        == TRUE  activate previous frame.
-                       FALSE activate next frame.
-(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
-
-Return Value
- Pointer to a FRAMEDATA structure that has been activated.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_FRAMENEXT, FALSE, (LPARAM)lpFrameCurrent);
 
 
 AKD_FRAMEDESTROY

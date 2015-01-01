@@ -893,8 +893,21 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
 
 FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
-  FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
   FRAMEDATA *lpFramePrevious;
+  BOOL bPrev=-1;
+
+  if (dwFlags & FWA_NEXT)
+    bPrev=FALSE;
+  else if (dwFlags & FWA_PREV)
+    bPrev=TRUE;
+  if (bPrev != -1)
+  {
+    if (moCur.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
+      lpFrame=GetNextTabFrame(lpFrame, bPrev);
+    else if (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
+      lpFrame=StackFrameGetNext(&hFramesStack, lpFrame, bPrev);
+  }
+  if (!lpFrame) return lpFrameCurrent;
 
   bFrameActivating=TRUE;
 
@@ -941,18 +954,6 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
   }
   bFrameActivating=FALSE;
 
-  return lpFrameLostFocus;
-}
-
-FRAMEDATA* ActivateNextFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
-{
-  if (moCur.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
-    lpFrame=GetNextTabFrame(lpFrame, bPrev);
-  else if (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
-    lpFrame=StackFrameGetNext(&hFramesStack, lpFrame, bPrev);
-
-  if (lpFrame)
-    ActivateFrameWindow(lpFrame, FWA_NOUPDATEORDER);
   return lpFrameCurrent;
 }
 
@@ -5845,7 +5846,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
           }
           if (!nMDI) break;
 
-          lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
         }
         while (lpFrameCurrent != lpFrameInit);
       }
@@ -9599,7 +9600,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
               ++nChangedFiles;
               nChanges+=nReplaceCount;
             }
-            lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
           }
           while (lpFrameCurrent != lpFrameInit);
 
@@ -9656,7 +9657,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                   moCur.dwSearchOptions|=FRF_BEGINNING;
                   SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
                 }
-                lpFrameCurrent=ActivateNextFrameWindow(lpFrameCurrent, FALSE);
+                lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
               }
             }
             else
