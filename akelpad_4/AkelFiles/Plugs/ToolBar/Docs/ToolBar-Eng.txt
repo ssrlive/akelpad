@@ -98,7 +98,7 @@ Special items:
       SET(128, If("expression"[, IfTrue, IfFalse]))
         set button status.
           "expression"
-            See SET(64) description. Call() method in SET(128) is denied.
+            See SET(64) description. Script execution in SET(128) is denied.
           IfTrue
             0x0 //IFS_NORMAL    Normal item.
             0x1 //IFS_CHECKED   Checked item.
@@ -109,6 +109,8 @@ Special items:
             0x2 //IFS_GRAYED    Disabled, grayed item.
         SET(128, If("SendMain(1223 /*AKD_GETFRAMEINFO*/, 69 /*FI_CARETOPTIONS*/, 0) & 0x2 /*CO_CARETVERTLINE*/", 0x1, 0x0))
           check following items, if caret active column is on.
+        SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
+          check following items, if script SearchReplace.js is working.
   UNSET(flags)
     unset text parse flags. See SET() for description.
 

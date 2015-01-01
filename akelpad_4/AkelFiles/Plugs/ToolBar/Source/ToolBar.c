@@ -90,7 +90,7 @@
 #define STRID_IF_CALLERROR                   18
 #define STRID_IF_NOFALSE                     19
 #define STRID_IF_WRONGPARAMCOUNT             20
-#define STRID_IF_CALLDENIED                  21
+#define STRID_IF_SCRIPTDENIED                21
 #define STRID_PLUGIN                         22
 #define STRID_OK                             23
 #define STRID_CANCEL                         24
@@ -1199,6 +1199,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
         {
           IFEXPRESSION ie;
           STACKEXTPARAM hParamStack={0};
+          const wchar_t *wpStrEnd;
 
           ie.dwFlags=IEF_STACKEXTPARAM|IEF_PARSEONLY;
           ie.sep=&hParamStack;
@@ -1214,19 +1215,20 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
             }
             if (hParamStack.nElements == 1 || hParamStack.nElements == 3)
             {
-              if (!xstrstrW(hParamStack.first->wpString, -1, L"Call(", -1, FALSE, NULL, NULL))
+              if (xstrstrW(hParamStack.first->wpString, -1, L"\"Scripts::Main\"", -1, FALSE, NULL, &wpStrEnd) &&
+                  xstrcmpnW(L", 5", wpStrEnd, (UINT_PTR)-1) && xstrcmpnW(L", 6", wpStrEnd, (UINT_PTR)-1))
+              {
+                FreeMethodParameters(&hParamStack);
+                nMessageID=STRID_IF_SCRIPTDENIED;
+                goto Error;
+              }
+              else
               {
                 if (!StackInsertAfter((stack **)&hStack->hStateIfStack.first, (stack **)&hStack->hStateIfStack.last, (stack *)lpStateIf, (stack **)&lpStateIf, sizeof(STATEIF)))
                 {
                   lpStateIf->dwFlags=IEF_IF;
                   lpStateIf->hParamStack=hParamStack;
                 }
-              }
-              else
-              {
-                FreeMethodParameters(&hParamStack);
-                nMessageID=STRID_IF_CALLDENIED;
-                goto Error;
               }
             }
             else
@@ -3146,8 +3148,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442 \":\".";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
-    if (nStringID == STRID_IF_CALLDENIED)
-      return L"If: \x043C\x0435\x0442\x043E\x0434\x0020\x0043\x0061\x006C\x006C\x0028\x0029\x0020\x0437\x0430\x043F\x0440\x0435\x0449\x0451\x043D\x0020\x0432 SET(128, If(...)).";
+    if (nStringID == STRID_IF_SCRIPTDENIED)
+      return L"If: вызов скрипта запрещён в SET(128, If(...)).";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -3355,8 +3357,8 @@ SEPARATOR1\r";
       return L"If: missing \":\".";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: wrong number of parameters.";
-    if (nStringID == STRID_IF_CALLDENIED)
-      return L"If: Call() method in SET(128, If(...)) is denied.";
+    if (nStringID == STRID_IF_SCRIPTDENIED)
+      return L"If: script execution in SET(128, If(...)) is denied.";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)
