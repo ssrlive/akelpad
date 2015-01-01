@@ -2,7 +2,7 @@
 ***                   HexSel AkelPad plugin v6.7              ***
 *****************************************************************
 
-2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

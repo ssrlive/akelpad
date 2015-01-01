@@ -2,7 +2,7 @@
 ***                  Log AkelPad plugin v4.4                  ***
 *****************************************************************
 
-2014 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

@@ -23,7 +23,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "LegalCopyright", "© 2014 Shengalts Aleksander aka Instructor\0"
+            VALUE "LegalCopyright", "© 2015 Shengalts Aleksander aka Instructor\0"
             VALUE "OriginalFilename", "\0"
             VALUE "ProductName", "\0"
             VALUE "ProductVersion", "0, 0, 0, 0\0"
