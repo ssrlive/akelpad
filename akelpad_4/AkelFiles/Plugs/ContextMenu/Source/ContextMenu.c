@@ -115,30 +115,31 @@
 #define STRID_IF_UNKNOWNMETHOD                24
 #define STRID_IF_CALLERROR                    25
 #define STRID_IF_NOFALSE                      26
-#define STRID_IF_WRONGPARAMCOUNT              27
-#define STRID_MENU_OPEN                       28
-#define STRID_MENU_MOVEUP                     29
-#define STRID_MENU_MOVEDOWN                   30
-#define STRID_MENU_SORT                       31
-#define STRID_MENU_DELETE                     32
-#define STRID_MENU_DELETEOLD                  33
-#define STRID_MENU_EDIT                       34
-#define STRID_FAVOURITES                      35
-#define STRID_SHOWFILE                        36
-#define STRID_FAVADDING                       37
-#define STRID_FAVEDITING                      38
-#define STRID_FAVNAME                         39
-#define STRID_FAVFILE                         40
-#define STRID_PLUGIN                          41
-#define STRID_OK                              42
-#define STRID_CANCEL                          43
-#define STRID_CLOSE                           44
-#define STRID_DEFAULTMANUAL                   45
-#define STRID_DEFAULTMAIN                     46
-#define STRID_DEFAULTEDIT                     47
-#define STRID_DEFAULTTAB                      48
-#define STRID_DEFAULTURL                      49
-#define STRID_DEFAULTRECENTFILES              50
+#define STRID_IF_FOCUSCHANGED                 27
+#define STRID_IF_WRONGPARAMCOUNT              28
+#define STRID_MENU_OPEN                       29
+#define STRID_MENU_MOVEUP                     30
+#define STRID_MENU_MOVEDOWN                   31
+#define STRID_MENU_SORT                       32
+#define STRID_MENU_DELETE                     33
+#define STRID_MENU_DELETEOLD                  34
+#define STRID_MENU_EDIT                       35
+#define STRID_FAVOURITES                      36
+#define STRID_SHOWFILE                        37
+#define STRID_FAVADDING                       38
+#define STRID_FAVEDITING                      39
+#define STRID_FAVNAME                         40
+#define STRID_FAVFILE                         41
+#define STRID_PLUGIN                          42
+#define STRID_OK                              43
+#define STRID_CANCEL                          44
+#define STRID_CLOSE                           45
+#define STRID_DEFAULTMANUAL                   46
+#define STRID_DEFAULTMAIN                     47
+#define STRID_DEFAULTEDIT                     48
+#define STRID_DEFAULTTAB                      49
+#define STRID_DEFAULTURL                      50
+#define STRID_DEFAULTRECENTFILES              51
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -228,6 +229,9 @@
 #define IFS_CHECKED          0x1
 #define IFS_GRAYED           0x2
 #define IFS_DISABLED         0x4 //Only for ContextMenu
+
+//AKD_IFEXPRESSION custom errors
+#define IEE_FOCUSCHANGED     7
 
 //GetEditPos type
 #define GEP_LEFTTOP     -1
@@ -591,6 +595,7 @@ wchar_t *wszRecentFilesText=NULL;
 wchar_t wszExtMenuSearch[MAX_PATH]=L"";
 CHARRANGE64 crExtSetSel={0};
 CHARRANGE64 crUrlMenuShow={0};
+int nFocusChanged=0;
 int nExtMenuIndex=0;
 BOOL bExtFocusEdit=FALSE;
 BOOL bMenuUrlShow=FALSE;
@@ -1078,6 +1083,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else ncm->bProcess=FALSE;
 
     bMenuUrlShow=FALSE;
+  }
+  else if (uMsg == WM_ACTIVATE)
+  {
+    if (nFocusChanged == -1)
+      nFocusChanged=1;
   }
   else if (uMsg == WM_MENURBUTTONUP)
   {
@@ -3313,9 +3323,13 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             if (lpParameter=GetMethodParameter(&lpStateIf->hParamStack, 3))
               nIfFalse=lpParameter->nNumber;
 
+            nFocusChanged=-1;
             ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
             ie.sep=&lpStateIf->hParamStack;
             lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+            if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
+              ie.nError=IEE_FOCUSCHANGED;
+            nFocusChanged=0;
 
             if (lpParameter)
             {
@@ -3327,6 +3341,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
 
             if (ie.nError)
             {
+              lpMenuItem->lpStateIf=NULL;
               nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
               xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
               MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
@@ -5654,6 +5669,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: \x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442 \":\".";
+    if (nStringID == STRID_IF_FOCUSCHANGED)
+      return L"If: SET(128) \x0438\x0437\x043C\x0435\x043D\x0438\x043B\x0020\x0444\x043E\x043A\x0443\x0441\x0020\x043E\x043A\x043D\x0430.";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_MENU_OPEN)
@@ -6236,6 +6253,8 @@ EXPLORER\r";
       return L"If: call error.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: missing \":\".";
+    if (nStringID == STRID_IF_FOCUSCHANGED)
+      return L"If: SET(128) changed window focus.";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: wrong number of parameters.";
     if (nStringID == STRID_MENU_OPEN)

@@ -89,12 +89,13 @@
 #define STRID_IF_UNKNOWNMETHOD               17
 #define STRID_IF_CALLERROR                   18
 #define STRID_IF_NOFALSE                     19
-#define STRID_IF_WRONGPARAMCOUNT             20
-#define STRID_IF_SCRIPTDENIED                21
-#define STRID_PLUGIN                         22
-#define STRID_OK                             23
-#define STRID_CANCEL                         24
-#define STRID_DEFAULTMENU                    25
+#define STRID_IF_FOCUSCHANGED                20
+#define STRID_IF_WRONGPARAMCOUNT             21
+#define STRID_IF_SCRIPTDENIED                22
+#define STRID_PLUGIN                         23
+#define STRID_OK                             24
+#define STRID_CANCEL                         25
+#define STRID_DEFAULTMENU                    26
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -155,6 +156,9 @@
 #define IFS_CHECKED          0x1
 #define IFS_GRAYED           0x2
 #define IFS_DISABLED         0x4 //Only for ContextMenu
+
+//AKD_IFEXPRESSION custom errors
+#define IEE_FOCUSCHANGED     7
 
 #define TOOLBARBACKGROUNDA   "ToolbarBG"
 #define TOOLBARBACKGROUNDW  L"ToolbarBG"
@@ -335,6 +339,7 @@ DWORD dwThreadId;
 HWND hWndMainDlg=NULL;
 RECT rcMainMinMaxDialog={532, 174, 0, 0};
 RECT rcMainCurrentDialog={0};
+int nFocusChanged=0;
 WNDPROC lpOldToolbarProc=NULL;
 WNDPROC lpOldEditDlgProc=NULL;
 WNDPROCDATA *NewMainProcData=NULL;
@@ -802,6 +807,11 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
   {
     if (!bLockRefresh)
       PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
+  }
+  else if (cwprs->message == WM_ACTIVATE)
+  {
+    if (nFocusChanged == -1)
+      nFocusChanged=1;
   }
   else if (cwprs->message == WM_COMMAND)
   {
@@ -1888,9 +1898,13 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
             nIfFalse=lpParameter->nNumber;
 
           bLockRefresh=TRUE;
+          nFocusChanged=-1;
           ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
           ie.sep=&lpStateIf->hParamStack;
           lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+          if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
+            ie.nError=IEE_FOCUSCHANGED;
+          nFocusChanged=0;
           bLockRefresh=FALSE;
 
           if (lpParameter)
@@ -1903,6 +1917,7 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
 
           if (ie.nError)
           {
+            lpButton->lpStateIf=NULL;
             nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
             xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
             MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
@@ -3146,6 +3161,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: \x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442 \":\".";
+    if (nStringID == STRID_IF_FOCUSCHANGED)
+      return L"If: SET(128) \x0438\x0437\x043C\x0435\x043D\x0438\x043B\x0020\x0444\x043E\x043A\x0443\x0441\x0020\x043E\x043A\x043D\x0430.";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_IF_SCRIPTDENIED)
@@ -3355,6 +3372,8 @@ SEPARATOR1\r";
       return L"If: call error.";
     if (nStringID == STRID_IF_NOFALSE)
       return L"If: missing \":\".";
+    if (nStringID == STRID_IF_FOCUSCHANGED)
+      return L"If: SET(128) changed window focus.";
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: wrong number of parameters.";
     if (nStringID == STRID_IF_SCRIPTDENIED)
