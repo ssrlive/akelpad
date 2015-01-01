@@ -299,7 +299,10 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
 
       if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
       {
-        GetWindowSize(hDlg, GetParent(hDlg), &rcTemplate);
+        if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CHILD)
+          GetWindowSize(hDlg, GetParent(hDlg), &rcTemplate);
+        else
+          GetWindowSize(hDlg, NULL, &rcTemplate);
 
         if ((!(lpWindowPos->flags & SWP_NOMOVE) && (lpWindowPos->x != rcTemplate.left || lpWindowPos->y != rcTemplate.top)) &&
             (!(lpWindowPos->flags & SWP_NOSIZE) && (lpWindowPos->cx != rcTemplate.right || lpWindowPos->cy != rcTemplate.bottom)))
