@@ -127,6 +127,7 @@ wchar_t wszLastScript[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
 HTHREADSTACK hThreadStack={0};
 SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
+HANDLE hMainThread=NULL;
 HANDLE hExecThread=NULL;
 DWORD dwExecThreadId=0;
 UINT_PTR dwWaitScriptTimerId=0;
@@ -1860,7 +1861,7 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINC
 
       if (nWaitExec == DLLA_SCRIPTS_EXECMAINTHREAD)
       {
-        hExecThread=GetCurrentThread();
+        hExecThread=hMainThread;
         ExecThreadProc(&es);
       }
       else
@@ -3079,6 +3080,7 @@ void InitCommon(PLUGINDATA *pd)
   bAkelEdit=pd->bAkelEdit;
   nMDI=pd->nMDI;
   wLangModule=pd->wLangModule;
+  hMainThread=GetCurrentThread();
 
   //Plugin name
   {

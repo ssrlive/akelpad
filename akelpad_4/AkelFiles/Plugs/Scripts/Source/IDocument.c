@@ -2240,9 +2240,10 @@ HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlock
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, INT_PTR nExitCode, BOOL *bResult)
+HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, VARIANT vtExitCode, BOOL *bResult)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+  INT_PTR nExitCode=GetVariantValue(&vtExitCode, NULL, FALSE);
 
   if (lpScriptThread->pcs)
   {

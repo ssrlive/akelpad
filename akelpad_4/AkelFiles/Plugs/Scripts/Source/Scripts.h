@@ -261,6 +261,7 @@ extern wchar_t wszAkelPadDir[MAX_PATH];
 extern wchar_t wszErrorMsg[BUFFER_SIZE];
 extern HTHREADSTACK hThreadStack;
 extern SCRIPTTHREAD *lpScriptThreadActiveX;
+extern HANDLE hMainThread;
 extern BOOL bGlobalDebugJITEnable;
 
 //Functions prototypes
