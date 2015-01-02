@@ -74,7 +74,8 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
   DWORD dwDebugApplicationCookie=0;
   MYDWORD_PTR dwDebugSourceContext=0;
 
-  nCoInit=CoInitialize(0);
+  if (st->hThread != hMainThread)
+    nCoInit=CoInitialize(0);
   st->bInitDebugJIT=FALSE;
 
   if (st->dwDebugJIT & JIT_DEBUG)
@@ -172,9 +173,11 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
   if (st->objProcessDebugManager)
     st->objProcessDebugManager->lpVtbl->Release(st->objProcessDebugManager);
 
-  if (nCoInit == S_OK)
-    CoUninitialize();
-
+  if (st->hThread != hMainThread)
+  {
+    if (nCoInit == S_OK)
+      CoUninitialize();
+  }
   return nResult;
 }
 
