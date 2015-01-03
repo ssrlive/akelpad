@@ -2922,9 +2922,9 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
       return L"If: \x043D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
-      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440 \"%0.s%0.s%.2s...\".";
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043E\x043F\x0435\x0440\x0430\x0442\x043E\x0440";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434 \"%0.s%0.s%.9s...\".";
+      return L"If: \x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: \x043E\x0448\x0438\x0431\x043A\x0430\x0020\x0432\x044B\x0437\x043E\x0432\x0430.";
     if (nStringID == STRID_IF_NOFALSE)
@@ -3133,9 +3133,9 @@ SEPARATOR1\r";
     if (nStringID == STRID_IF_NOCLOSEPARENTHESIS)
       return L"If: no close parenthesis \")\".";
     if (nStringID == STRID_IF_UNKNOWNOPERATOR)
-      return L"If: unknown operator \"%0.s%0.s%.2s...\".";
+      return L"If: unknown operator.";
     if (nStringID == STRID_IF_UNKNOWNMETHOD)
-      return L"If: unknown method \"%0.s%0.s%.9s...\".";
+      return L"If: unknown method.";
     if (nStringID == STRID_IF_CALLERROR)
       return L"If: call error.";
     if (nStringID == STRID_IF_NOFALSE)

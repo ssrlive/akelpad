@@ -13376,7 +13376,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
   AENPAINT pntNotify;
   PAINTSTRUCT ps;
   RECT rcUpdate;
-  POINT ptActiveColumnDrawOld;
+  POINT ptActiveColumnDrawOld={0};
   POINT ptActiveColumnDrawNew;
   HBITMAP hBitmap=NULL;
   HBITMAP hBitmapOld=NULL;
