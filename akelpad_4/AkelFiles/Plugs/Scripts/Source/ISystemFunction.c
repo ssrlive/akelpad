@@ -245,7 +245,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
     }
   }
 
-  if (lpScriptThread->dwDebug & DBG_SYSCALL)
+  if (lpScriptThread && lpScriptThread->dwDebug & DBG_SYSCALL)
   {
     if (!hModule)
     {

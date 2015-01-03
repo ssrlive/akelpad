@@ -43,6 +43,7 @@ int MethodStructParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* MethodGetParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void MethodFreeParameters(STACKEXTPARAM *hParamStack);
 int MethodGetName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
+int MethodGetScript(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
 void MethodGetIcon(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
 
 #endif
@@ -127,6 +128,7 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   {
     //Number
     for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    if (wpParamEnd == wpParamBegin) goto End;
 
     if (!StackInsertBefore((stack **)&hParamStack->first, (stack **)&hParamStack->last, NULL, (stack **)&lpParameter, sizeof(EXTPARAM)))
     {
@@ -164,6 +166,8 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     wpParamBegin=++wpParamEnd;
     goto MethodParameter;
   }
+
+  End:
   if (*wpParamEnd == L')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
@@ -331,6 +335,52 @@ int MethodGetName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
   }
   if (wszMethod) wszMethod[0]=L'\0';
   return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  MethodGetScript
+ *
+ *Get script method name.
+ *
+ * [in] const wchar_t *wpText    -Text.
+ *[out] wchar_t *wszMethod       -Pointer to buffer that receives the method name. If this value is NULL, the function returns the required buffer size in characters.
+ * [in] int nMethodMax           -Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+ *[out] const wchar_t **wppText  -Pointer to the text after name. Can be NULL.
+ *
+ *Returns: number of characters copied, not including the terminating NULL character.
+ *
+ *Example:
+ *  const wchar_t *wpText=L"AkelPad.SystemFunction().Call(\"kernel32::GetFileAttributesW\", \"c:\\1.TXT\")";
+ *  wchar_t wszMethod[MAX_PATH];
+ *
+ *  MethodGetScript(wpText, wszMethod, MAX_PATH, &wpText);
+ *  //wszMethod == "AkelPad.SystemFunction().Call"
+ *  //wpText == L"\"kernel32::GetFileAttributesW\", \"c:\\1.TXT\")"
+ ********************************************************************/
+#if defined MethodGetScript || defined ALLMETHODFUNC
+#define MethodGetScript_INCLUDED
+#undef MethodGetScript
+int MethodGetScript(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
+{
+  const wchar_t *wpCount;
+
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
+  {
+    if (*wpCount == L'(' && *(wpCount + 1) != L')')
+      break;
+  }
+  if (wppText)
+  {
+    if (*wpCount == L'(')
+      *wppText=wpCount + 1;
+    else
+      *wppText=wpCount;
+  }
+  return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
 }
 #endif
 

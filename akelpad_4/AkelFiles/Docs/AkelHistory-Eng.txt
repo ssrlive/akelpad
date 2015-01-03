@@ -4,6 +4,8 @@ AkelPad 4.9.2 ()
 Changed: massive repainting optimizations to reduce flickering.
 
 Added: possibility to use /*comment*/ in command line method parameters.
+Added: possibility to call Scripts plugin method directly from /If(). For example:
+       /If(`AkelPad.Constants._X64 == 1`, `/Quit`, ``)
 
 Fixed: buttons that control the size of the frame didn't work (MDI).
 Fixed: main window flickering on Win7.

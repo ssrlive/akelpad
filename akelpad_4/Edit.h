@@ -1132,7 +1132,7 @@ wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
-void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
+void MethodExpandParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
 int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 

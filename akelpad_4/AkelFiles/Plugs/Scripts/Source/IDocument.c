@@ -363,7 +363,7 @@ HRESULT STDMETHODCALLTYPE Document_GetEditDoc(IDocument *this, VARIANT *vtDoc)
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   AEHDOC hDoc;
 
-  if (lpScriptThread->hWndPluginEdit)
+  if (lpScriptThread && lpScriptThread->hWndPluginEdit)
     hDoc=(AEHDOC)SendMessage(lpScriptThread->hWndPluginEdit, AEM_GETDOCUMENT, 0, 0);
   else
     hDoc=(AEHDOC)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_DOCEDIT, (LPARAM)NULL);
@@ -1496,7 +1496,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
     }
   }
 
-  if (nPointer && (lpScriptThread->dwDebug & DBG_MEMWRITE))
+  if (nPointer && (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMWRITE))
   {
     if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
     {
@@ -1582,7 +1582,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
   int nStringLen;
   HRESULT hr=NOERROR;
 
-  if (lpScriptThread->dwDebug & DBG_MEMREAD)
+  if (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMREAD)
   {
     if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
     {
@@ -1703,7 +1703,7 @@ HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer)
 
   if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
   {
-    if (lpScriptThread->dwDebug & DBG_MEMFREE)
+    if (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMFREE)
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMFREE), nPointer);
       return E_POINTER;
@@ -2245,7 +2245,7 @@ HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, VARIANT vtExi
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   INT_PTR nExitCode=GetVariantValue(&vtExitCode, NULL, FALSE);
 
-  if (lpScriptThread->pcs)
+  if (lpScriptThread && lpScriptThread->pcs)
   {
     lpScriptThread->pcs->nResult=nExitCode;
     *bResult=TRUE;
@@ -2368,7 +2368,7 @@ HWND GetCurEdit(IDocument *this)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
 
-  if (lpScriptThread->hWndPluginEdit)
+  if (lpScriptThread && lpScriptThread->hWndPluginEdit)
     return lpScriptThread->hWndPluginEdit;
   return (HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL);
 }

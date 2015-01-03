@@ -246,12 +246,15 @@
                 <div style="margin-left:120px">lParam</div>
                   <div style="margin-left:150px">Дополнительная информация.</div>
               <div style="margin-left:90px"><b>Call("Плагин::Функция"[, дополнительные параметры])</b></div>
-                <div style="margin-left:120px">- Если вызывается скрипт, то необходимо использовать внешние вызовы 2 или 4, а также передавать код выхода из скрипта через AkelPad.ScriptExitCode.</div>
-                <div style="margin-left:120px">/If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`, ``, `/Quit`)</div>
-                  <div style="margin-left:150px">Выйти, если текущий документ не имеет имени.</div>
                 <div style="margin-left:120px">- Если вызывается плагин, то код выхода передаётся через специальный параметр &nResult. &nResult должен находится на месте, где синтаксис внешнего вызова требует указатель на число.</div>
                 <div style="margin-left:120px">/If(`Call("Coder::CodeFold", 1, &nResult)`, `/Call("Coder::CodeFold", 1)`, ``)</div>
                   <div style="margin-left:150px">Закрыть окно CodeFold, если открыто.</div>
+                <div style="margin-left:120px">- Если вызывается скрипт, то необходимо использовать внешние вызовы 2 или 4, а также передавать код выхода из скрипта через AkelPad.ScriptExitCode.</div>
+                <div style="margin-left:120px">/If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`, ``, `/Quit`)</div>
+                  <div style="margin-left:150px">Выйти, если текущий документ не имеет имени.</div>
+                <div style="margin-left:120px">- Возможно вызывать метод Scripts плагина напрямую.</div>
+                <div style="margin-left:120px">/If(`AkelPad.Constants._X64 == 1`, `/Quit`, ``)</div>
+                  <div style="margin-left:150px">Выйти, если программа имеет битность x64.</div>
           <div style="margin-left:30px">"ЕслиИстина"</div>
             <div style="margin-left:60px">Командная строка, если результат выражения - истина (не равен нулю).</div>
           <div style="margin-left:30px">"ЕслиЛожь"</div>

@@ -19615,7 +19615,9 @@ INT_PTR IfGroup(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnSign, INT_P
 INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultVar, int *lpnError)
 {
   INT_PTR nValue=0;
+  BOOL bNegative=FALSE;
   BOOL bBitwiseNOT=FALSE;
+  BOOL bCheckClose=TRUE;
   int nSendMain=0;
   int nSendEdit=0;
 
@@ -19626,6 +19628,11 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
     bBitwiseNOT=TRUE;
     ++wpIn;
   }
+  if (*wpIn == L'-')
+  {
+    bNegative=TRUE;
+    ++wpIn;
+  }
   if (*wpIn >= L'0' && *wpIn <= L'9')
   {
     if (*wpIn == L'0' && *(wpIn + 1) == L'x')
@@ -19633,15 +19640,15 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
     else
       nValue=xatoiW(wpIn, &wpIn);
   }
-  else if (!xstrcmpinW(L"nResult", wpIn, (UINT_PTR)-1))
+  else if (!xstrcmpnW(L"nResult", wpIn, (UINT_PTR)-1))
   {
     wpIn+=7;
     nValue=*lpnResultVar;
   }
   else
   {
-    if (!(nSendMain=xstrcmpinW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
-        !(nSendEdit=xstrcmpinW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
+    if (!(nSendMain=xstrcmpnW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
+        !(nSendEdit=xstrcmpnW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
       STACKEXTPARAM hParamStack={0};
       EXTPARAM *lpParameter;
@@ -19683,7 +19690,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
       //Move back to check that method was closed with ')'.
       --wpIn;
     }
-    else if (!xstrcmpinW(L"Call(", wpIn, (UINT_PTR)-1))
+    else if (!xstrcmpnW(L"Call(", wpIn, (UINT_PTR)-1))
     {
       STACKEXTPARAM hParamStack={0};
       EXTPARAM *lpParameter;
@@ -19732,19 +19739,75 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         goto End;
       }
     }
+    else if (!xstrcmpnW(L"AkelPad.", wpIn, (UINT_PTR)-1))
+    {
+      STACKEXTPARAM hParamStack={0};
+      wchar_t wszMethodName[MAX_PATH];
+      int nCallResult=UD_FAILED;
+
+      MethodGetScript(wpIn, wszMethodName, MAX_PATH, &wpIn);
+      if (*(wpIn - 1) == L'(')
+      {
+        MethodParseParameters(&hParamStack, wpIn, &wpIn);
+        MethodExpandParameters(&hParamStack, NULL);
+      }
+      else bCheckClose=FALSE;
+
+      //Scripts external call
+      {
+        #define DLLA_SCRIPTS_DIRECTCALLSTACK 8
+
+        typedef struct {
+          UINT_PTR dwStructSize;
+          INT_PTR nAction;
+          wchar_t *wpCmd;
+          INT_PTR *lpnResult;
+          STACKEXTPARAM *lpParamStack;
+        } DLLEXTSCRIPTS;
+
+        PLUGINCALLSENDW pcs;
+        DLLEXTSCRIPTS des;
+
+        des.dwStructSize=sizeof(DLLEXTSCRIPTS);
+        des.nAction=DLLA_SCRIPTS_DIRECTCALLSTACK;
+        des.wpCmd=wszMethodName;
+        des.lpnResult=&nValue;
+        des.lpParamStack=&hParamStack;
+
+        pcs.lParam=(LPARAM)&des;
+        pcs.dwSupport=PDS_STRWIDE;
+        nCallResult=(int)CallPluginSend(NULL, L"Scripts::Main", &pcs, 0);
+      }
+      MethodFreeParameters(&hParamStack);
+
+      if (bCheckClose)
+      {
+        //Move back to check that method was closed with ')'.
+        --wpIn;
+      }
+      if (nCallResult < 0)
+      {
+        *lpnError=IEE_CALLERROR;
+        goto End;
+      }
+    }
     else
     {
       *lpnError=IEE_UNKNOWNMETHOD;
       goto End;
     }
     IfComment(wpIn, &wpIn);
-    if (*wpIn == L')') ++wpIn;
-    else
+    if (bCheckClose)
     {
-      *lpnError=IEE_NOCLOSEPARENTHESIS;
-      goto End;
+      if (*wpIn != L')')
+      {
+        *lpnError=IEE_NOCLOSEPARENTHESIS;
+        goto End;
+      }
+      ++wpIn;
     }
   }
+  if (bNegative) nValue=-nValue;
   if (bBitwiseNOT) nValue=~nValue;
   IfComment(wpIn, &wpIn);
   *lpnError=IEE_SUCCESS;
