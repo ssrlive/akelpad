@@ -215,6 +215,7 @@ extern wchar_t *wszReplaceText;
 extern int nFindTextLen;
 extern int nReplaceTextLen;
 extern BOOL bNoSearchFinishMsg;
+extern BOOL bLockSearchSetTextCatch;
 extern WORD wLastReplaceButtonID;
 extern WNDPROC lpOldComboboxEdit;
 
@@ -9809,7 +9810,15 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_PASTE)
+  if (uMsg == WM_SETTEXT)
+  {
+    if (!bLockSearchSetTextCatch)
+    {
+      //When user press arrow keys in combobox CBN_EDITCHANGE not send.
+      PostMessage(hDlgModeless, WM_COMMAND, MAKELONG(IDC_SEARCH_FIND, CBN_EDITCHANGE), 0);
+    }
+  }
+  else if (uMsg == WM_PASTE)
   {
     PasteInEditAsRichEdit(hWnd, PUTFIND_MAXSEL);
     return TRUE;
@@ -9870,6 +9879,7 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
   int nIndex;
   int nItemLen;
 
+  bLockSearchSetTextCatch=TRUE;
   nTextLen=GetWindowTextLengthWide(hWnd) + 1;
 
   if (*wszText=API_AllocWide(nTextLen))
@@ -9881,7 +9891,10 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
       if (**wszText)
       {
         if ((nIndex=ComboBox_FindStringExactWide(hWnd, 0, *wszText)) != CB_ERR)
+        {
+          if (nIndex == 0) goto End;
           SendMessage(hWnd, CB_DELETESTRING, (WPARAM)nIndex, 0);
+        }
       }
       else
       {
@@ -9893,6 +9906,8 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
       SendMessage(hWnd, CB_SETCURSEL, 0, 0);
     }
   }
+  End:
+  bLockSearchSetTextCatch=FALSE;
   return nTextLen;
 }
 

@@ -424,6 +424,7 @@ wchar_t *wszReplaceText=NULL;
 int nFindTextLen=0;
 int nReplaceTextLen=0;
 BOOL bNoSearchFinishMsg=FALSE;
+BOOL bLockSearchSetTextCatch=FALSE;
 WORD wLastReplaceButtonID=IDC_SEARCH_FIND_BUTTON;
 WNDPROC lpOldComboboxEdit;
 
