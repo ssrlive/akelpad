@@ -37,16 +37,50 @@ typedef struct {
   int nElements;
 } STACKEXTPARAM;
 
+void MethodComment(const wchar_t *wpText, const wchar_t **wppText);
 int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 int MethodStructParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
 EXTPARAM* MethodGetParameter(STACKEXTPARAM *hParamStack, int nIndex);
 void MethodFreeParameters(STACKEXTPARAM *hParamStack);
-void MethodComment(const wchar_t *wpText, const wchar_t **wppText);
 int MethodGetName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
 void MethodGetIcon(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText);
 
 #endif
 
+
+/********************************************************************
+ *
+ *  MethodComment
+ *
+ *Skip comment if any.
+ *
+ * [in] const wchar_t *wpText    -Text.
+ *[out] const wchar_t **wppText  -Pointer to the text after comment if any.
+ *
+ *Returns: no return value.
+ ********************************************************************/
+#if defined MethodComment || defined ALLMETHODFUNC
+#define MethodComment_INCLUDED
+#undef MethodComment
+void MethodComment(const wchar_t *wpText, const wchar_t **wppText)
+{
+  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+
+  if (*wpText == L'/' && *(wpText + 1) == L'*')
+  {
+    for (wpText+=2; *wpText; ++wpText)
+    {
+      if (*wpText == L'*' && *(wpText + 1) == L'/')
+      {
+        wpText+=2;
+        break;
+      }
+    }
+    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  }
+  *wppText=wpText;
+}
+#endif
 
 /********************************************************************
  *
@@ -258,40 +292,6 @@ void MethodFreeParameters(STACKEXTPARAM *hParamStack)
 
 /********************************************************************
  *
- *  MethodComment
- *
- *Skip comment if any.
- *
- * [in] const wchar_t *wpText    -Text.
- *[out] const wchar_t **wppText  -Pointer to the text after comment if any.
- *
- *Returns: no return value.
- ********************************************************************/
-#if defined MethodComment || defined ALLMETHODFUNC
-#define MethodComment_INCLUDED
-#undef MethodComment
-void MethodComment(const wchar_t *wpText, const wchar_t **wppText)
-{
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-
-  if (*wpText == L'/' && *(wpText + 1) == L'*')
-  {
-    for (wpText+=2; *wpText; ++wpText)
-    {
-      if (*wpText == L'*' && *(wpText + 1) == L'/')
-      {
-        wpText+=2;
-        break;
-      }
-    }
-    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-  }
-  *wppText=wpText;
-}
-#endif
-
-/********************************************************************
- *
  *  MethodGetName
  *
  *Get method name.
@@ -301,7 +301,7 @@ void MethodComment(const wchar_t *wpText, const wchar_t **wppText)
  * [in] int nMethodMax           -Specifies the maximum number of characters to copy to the buffer, including the NULL character.
  *[out] const wchar_t **wppText  -Pointer to the text after name. Can be NULL.
  *
- *Returns: no return value.
+ *Returns: number of characters copied, not including the terminating NULL character.
  *
  *Example:
  *  const wchar_t *wpText=L"Call(\"Scripts::Main\", 1, \"SearchReplace.js\")";
@@ -329,6 +329,7 @@ int MethodGetName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, con
       return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
     }
   }
+  if (wszMethod) wszMethod[0]=L'\0';
   return 0;
 }
 #endif
