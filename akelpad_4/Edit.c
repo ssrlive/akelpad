@@ -19763,6 +19763,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
           wchar_t *wpCmd;
           INT_PTR *lpnResult;
           STACKEXTPARAM *lpParamStack;
+          int *lpnError;
         } DLLEXTSCRIPTS;
 
         PLUGINCALLSENDW pcs;
@@ -19772,6 +19773,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         des.nAction=DLLA_SCRIPTS_DIRECTCALL;
         des.wpCmd=wszMethodName;
         des.lpnResult=&nValue;
+        des.lpnError=lpnError;
         des.lpParamStack=&hParamStack;
 
         pcs.lParam=(LPARAM)&des;
@@ -19790,6 +19792,8 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         *lpnError=IEE_CALLERROR;
         goto End;
       }
+      if (*lpnError != IEE_SUCCESS)
+        goto End;
     }
     else
     {

@@ -337,6 +337,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       wchar_t *wpCmd=NULL;
       STACKEXTPARAM *lpParamStack=NULL;
       INT_PTR *lpnResult=NULL;
+      int *lpnError=NULL;
       INT_PTR nResult=0;
 
       if (IsExtCallParamValid(pd->lParam, 2))
@@ -345,9 +346,13 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         lpnResult=(INT_PTR *)GetExtCallParam(pd->lParam, 3);
       if (IsExtCallParamValid(pd->lParam, 4))
         lpParamStack=(STACKEXTPARAM *)GetExtCallParam(pd->lParam, 4);
+      if (IsExtCallParamValid(pd->lParam, 5))
+        lpnError=(int *)GetExtCallParam(pd->lParam, 5);
 
       if (!(pd->dwSupport & PDS_POSTMESSAGE))
         pcs=pd->pcs;
+      if (lpnError) *lpnError=IEE_UNKNOWNMETHOD;
+
       if (pCmd)
       {
         if (pd->dwSupport & PDS_STRANSI)
@@ -471,7 +476,10 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               //  vtResult.bstrVal=NULL;
               //}
               nResult=GetVariantInt(&vtResult, NULL);
+              if (lpnError) *lpnError=IEE_SUCCESS;
             }
+            else if (lpnError) *lpnError=IEE_CALLERROR;
+
             if (vtArg)
             {
               for (i=0; i < nArgCount; ++i)
