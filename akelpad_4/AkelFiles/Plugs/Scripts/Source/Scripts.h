@@ -6,6 +6,7 @@
 #include "StackFunc.h"
 #include "StrFunc.h"
 #include "WideFunc.h"
+#include "MethodFunc.h"
 #include "AkelEdit.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
@@ -20,12 +21,14 @@
 #include "IServer.h"
 
 //Defines
-#define DLLA_SCRIPTS_EXEC           1
-#define DLLA_SCRIPTS_EXECWAIT       2
-#define DLLA_SCRIPTS_EDIT           3
-#define DLLA_SCRIPTS_EXECMAINTHREAD 4
-#define DLLA_SCRIPTS_HANDLEBYNAME   5
-#define DLLA_SCRIPTS_HANDLEBYTHREAD 6
+#define DLLA_SCRIPTS_EXEC            1
+#define DLLA_SCRIPTS_EXECWAIT        2
+#define DLLA_SCRIPTS_EDIT            3
+#define DLLA_SCRIPTS_EXECMAINTHREAD  4
+#define DLLA_SCRIPTS_HANDLEBYNAME    5
+#define DLLA_SCRIPTS_HANDLEBYTHREAD  6
+#define DLLA_SCRIPTS_DIRECTCALLSTR   7
+#define DLLA_SCRIPTS_DIRECTCALLSTACK 8
 
 #define STRID_ARCHITECTURE_MISMATCH 1
 #define STRID_HOTKEY_EXISTS         2

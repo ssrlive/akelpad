@@ -27,6 +27,7 @@
 #define xmemset
 #define xstrcmpW
 #define xstrcmpiW
+#define xstrcmpnW
 #define xstrcmpinA
 #define xstrcmpinW
 #define xstrlenA
@@ -79,6 +80,13 @@
 #define TranslateAcceleratorWide
 #define UnregisterClassWide
 #include "WideFunc.h"
+
+//Include method functions
+#define MethodComment
+#define MethodParseParameters
+#define MethodFreeParameters
+#define MethodGetScript
+#include "MethodFunc.h"
 
 //Global variables
 char szBuffer[BUFFER_SIZE];
@@ -271,7 +279,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       unsigned char *pScript=NULL;
       wchar_t *wpScript=NULL;
       int nOperation;
-      int *lpnResult=NULL;
+      INT_PTR *lpnResult=NULL;
 
       if (IsExtCallParamValid(pd->lParam, 2))
         pScript=(unsigned char *)GetExtCallParam(pd->lParam, 2);
@@ -311,7 +319,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
           VARIANT vtResult;
 
           objIDocument.lpVtbl=NULL;
-          objIDocument.dwCount=0;
+          objIDocument.dwCount=1;
           objIDocument.lpScriptThread=lpScriptThread;
 
           SetVariantInt(&vtData, (INT_PTR)lpScriptThread);
@@ -321,6 +329,169 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       }
       if (pd->dwSupport & PDS_STRANSI)
         FreeWide(wpScript);
+    }
+    else if (nAction == DLLA_SCRIPTS_DIRECTCALLSTR ||
+             nAction == DLLA_SCRIPTS_DIRECTCALLSTACK)
+    {
+      PLUGINCALLSENDW *pcs=NULL;
+      unsigned char *pCmd=NULL;
+      wchar_t *wpCmd=NULL;
+      STACKEXTPARAM *lpParamStack=NULL;
+      INT_PTR *lpnResult=NULL;
+      INT_PTR nResult=0;
+
+      if (IsExtCallParamValid(pd->lParam, 2))
+        pCmd=(unsigned char *)GetExtCallParam(pd->lParam, 2);
+      if (IsExtCallParamValid(pd->lParam, 3))
+        lpnResult=(INT_PTR *)GetExtCallParam(pd->lParam, 3);
+      if (IsExtCallParamValid(pd->lParam, 4))
+        lpParamStack=(STACKEXTPARAM *)GetExtCallParam(pd->lParam, 4);
+
+      if (!(pd->dwSupport & PDS_POSTMESSAGE))
+        pcs=pd->pcs;
+      if (pCmd)
+      {
+        if (pd->dwSupport & PDS_STRANSI)
+          wpCmd=AllocWide((char *)pCmd);
+        else
+          wpCmd=(wchar_t *)pCmd;
+
+        if (!g_DocumentTypeInfo)
+          LoadTypeInfoFromFile(NULL, NULL);
+        if (g_DocumentTypeInfo)
+        {
+          typedef struct {
+            void *lpVtbl;
+            DWORD dwCount;
+            void *lpScriptThread;
+            BYTE lpData[64];
+          } IRealCommon;
+
+          IRealCommon objICommon;
+          STACKEXTPARAM hParamStack={0};
+          wchar_t wszMethod[MAX_PATH];
+          EXTPARAM *lpParameter;
+          ITypeInfo *lpTypeInfo=NULL;
+          wchar_t *wpMethod=wszMethod;
+          const wchar_t *wpCount=wpCmd;
+          DISPID dispidMethod;
+          DISPPARAMS dispp;
+          VARIANT vtResult;
+          VARIANT *vtArg=NULL;
+          VARIANT *vtCount;
+          int nArgCount=0;
+          int i;
+
+          xmemset(&objICommon, 0, sizeof(IRealCommon));
+          objICommon.dwCount=1;
+
+          if (lpParamStack)
+            wpMethod=wpCmd;
+          else
+            MethodGetScript(wpCount, wszMethod, MAX_PATH, &wpCount);
+
+          if (*wpMethod)
+          {
+            if (!xstrcmpnW(L"AkelPad.", wpMethod, (UINT_PTR)-1))
+            {
+              wpMethod+=8;
+              if (!xstrcmpnW(L"SystemFunction().", wpMethod, (UINT_PTR)-1))
+              {
+                wpMethod+=17;
+                lpTypeInfo=g_SystemFunctionTypeInfo;
+                objICommon.lpVtbl=(void *)&MyISystemFunctionVtbl;
+              }
+              else if (!xstrcmpnW(L"ScriptSettings().", wpMethod, (UINT_PTR)-1))
+              {
+                wpMethod+=17;
+                lpTypeInfo=g_ScriptSettingsTypeInfo;
+                objICommon.lpVtbl=(void *)&MyIScriptSettingsVtbl;
+              }
+              else if (!xstrcmpnW(L"Constants.", wpMethod, (UINT_PTR)-1))
+              {
+                wpMethod+=10;
+                lpTypeInfo=g_ConstantsTypeInfo;
+                objICommon.lpVtbl=(void *)&MyIConstantsVtbl;
+              }
+              else if (!xstrcmpnW(L"Global.", wpMethod, (UINT_PTR)-1))
+              {
+                wpMethod+=7;
+                lpTypeInfo=g_GlobalTypeInfo;
+                objICommon.lpVtbl=(void *)&MyIGlobalVtbl;
+              }
+              else
+              {
+                lpTypeInfo=g_DocumentTypeInfo;
+                objICommon.lpVtbl=(void *)&MyIDocumentVtbl;
+              }
+            }
+            else if (!xstrcmpnW(L"WScript.", wpMethod, (UINT_PTR)-1))
+            {
+              lpTypeInfo=g_WScriptTypeInfo;
+              objICommon.lpVtbl=(void *)&MyIWScriptVtbl;
+            }
+            if (lpTypeInfo && !lpParamStack)
+            {
+              MethodParseParameters(&hParamStack, wpCount, &wpCount);
+              lpParamStack=&hParamStack;
+            }
+          }
+          nArgCount=lpParamStack->nElements;
+
+          if (lpTypeInfo && DispGetIDsOfNames(lpTypeInfo, &wpMethod, 1, &dispidMethod) == S_OK)
+          {
+            if (nArgCount)
+            {
+              if (vtArg=(VARIANT *)GlobalAlloc(GPTR, sizeof(VARIANT) * nArgCount))
+              {
+                //Get last VARIANT pointer, because DISPPARAMS filled in reverse order
+                vtCount=vtArg + (nArgCount - 1);
+
+                for (lpParameter=lpParamStack->first; lpParameter; lpParameter=lpParameter->next)
+                {
+                  if (lpParameter->dwType == EXTPARAM_CHAR)
+                  {
+                    vtCount->vt=VT_BSTR;
+                    vtCount->bstrVal=SysAllocString(lpParameter->wpString);
+                  }
+                  else SetVariantInt(vtCount, lpParameter->nNumber);
+
+                  --vtCount;
+                }
+              }
+            }
+            xmemset(&dispp, 0, sizeof(DISPPARAMS));
+            dispp.cArgs=nArgCount;
+            dispp.rgvarg=vtArg;
+
+            if (DispInvoke((void *)&objICommon, lpTypeInfo, dispidMethod, DISPATCH_PROPERTYGET|DISPATCH_METHOD, &dispp, &vtResult, 0, 0) == S_OK)
+            {
+              //if (vtResult.vt == VT_BSTR)
+              //{
+              //  SysFreeString(vtResult.bstrVal);
+              //  vtResult.bstrVal=NULL;
+              //}
+              nResult=GetVariantInt(&vtResult, NULL);
+            }
+            if (vtArg)
+            {
+              for (i=0; i < nArgCount; ++i)
+              {
+                if (vtArg[i].vt == VT_BSTR)
+                  SysFreeString(vtArg[i].bstrVal);
+              }
+              GlobalFree((HGLOBAL)vtArg);
+            }
+            MethodFreeParameters(&hParamStack);
+          }
+        }
+        if (pd->dwSupport & PDS_STRANSI)
+          FreeWide(wpCmd);
+      }
+      if (pcs)
+        pcs->nResult=nResult;
+      if (lpnResult)
+        *lpnResult=nResult;
     }
   }
   else
