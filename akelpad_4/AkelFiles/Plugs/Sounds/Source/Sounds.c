@@ -6,6 +6,7 @@
 #include "StackFunc.h"
 #include "StrFunc.h"
 #include "WideFunc.h"
+#include "MethodFunc.h"
 #include "AkelEdit.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
@@ -63,6 +64,10 @@
 #define SetDlgItemTextWide
 #define SetWindowTextWide
 #include "WideFunc.h"
+
+//Include method functions
+#define ALLMETHODFUNC
+#include "MethodFunc.h"
 
 
 //// Defines
@@ -152,13 +157,8 @@ void StackFreeSounds(SOUNDSTACK *hStack);
 void FillLayoutList(HWND hWndLayoutList, WORD wSelLangID);
 int GetLayoutName(WORD wLangID, wchar_t *wszName, int nNameMax);
 
-int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
-EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
-void FreeMethodParameters(STACKEXTPARAM *hParamStack);
-int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
 BOOL NextLine(const wchar_t **wpText);
 BOOL SkipComment(const wchar_t **wpText);
-void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -966,25 +966,25 @@ void CreateSoundsStack(SOUNDSTACK *hStack, const wchar_t *wpText)
     for (; *wpText; NextLine(&wpText))
     {
       if (!SkipComment(&wpText)) break;
-      GetMethodName(wpText, wszBuffer, BUFFER_SIZE, &wpText);
+      MethodGetName(wpText, wszBuffer, BUFFER_SIZE, &wpText);
 
       if (!xstrcmpiW(wszBuffer, L"Sound"))
       {
         if (siElement=StackInsertSound(hStack))
         {
-          ParseMethodParameters(&hParamStack, wpText, &wpText);
-          SendMessage(hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
+          MethodParseParameters(&hParamStack, wpText, &wpText);
+          SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
 
-          if (lpParameter=GetMethodParameter(&hParamStack, 1))
+          if (lpParameter=MethodGetParameter(&hParamStack, 1))
             siElement->dwKey=(DWORD)lpParameter->nNumber;
-          if (lpParameter=GetMethodParameter(&hParamStack, 2))
+          if (lpParameter=MethodGetParameter(&hParamStack, 2))
           {
             xstrcpynW(siElement->wszFile, lpParameter->wpString, MAX_PATH);
             xstrcpynW(siElement->wszFileExpanded, lpParameter->wpExpanded, MAX_PATH);
           }
-          if (lpParameter=GetMethodParameter(&hParamStack, 3))
+          if (lpParameter=MethodGetParameter(&hParamStack, 3))
             siElement->wLangID=(WORD)lpParameter->nNumber;
-          FreeMethodParameters(&hParamStack);
+          MethodFreeParameters(&hParamStack);
 
           if (siElement->dwKey == (DWORD)KG_CHARS)
           {
@@ -1149,124 +1149,6 @@ int GetLayoutName(WORD wLangID, wchar_t *wszName, int nNameMax)
   return nResult;
 }
 
-int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
-{
-  EXTPARAM *lpParameter;
-  const wchar_t *wpParamBegin=wpText;
-  const wchar_t *wpParamEnd;
-  wchar_t wchStopChar;
-  INT_PTR nStringLen;
-
-  MethodParameter:
-  IfComment(wpParamBegin, &wpParamBegin);
-
-  if (*wpParamBegin == L'\"' || *wpParamBegin == L'\'' || *wpParamBegin == L'`')
-  {
-    //String
-    wchStopChar=*wpParamBegin++;
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != L'\0'; ++wpParamEnd);
-
-    if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
-    {
-      ++hParamStack->nElements;
-      lpParameter->dwType=EXTPARAM_CHAR;
-      nStringLen=wpParamEnd - wpParamBegin;
-      if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-        xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
-    }
-  }
-  else
-  {
-    //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
-
-    if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
-    {
-      ++hParamStack->nElements;
-
-      if (*wpParamBegin == L'&')
-      {
-        lpParameter->dwType=EXTPARAM_LPINT;
-        nStringLen=wpParamEnd - wpParamBegin - 1;
-        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-          xstrcpynW(lpParameter->wpString, wpParamBegin + 1, nStringLen + 1);
-      }
-      else
-      {
-        lpParameter->dwType=EXTPARAM_INT;
-        if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
-          lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
-        else
-          lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
-      }
-    }
-  }
-  if (bOldWindows && lpParameter->wpString)
-  {
-    nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
-    if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
-      WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, (int)nStringLen, NULL, NULL);
-  }
-  IfComment(wpParamEnd, &wpParamEnd);
-
-  while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
-    ++wpParamEnd;
-  if (*wpParamEnd == L',')
-  {
-    wpParamBegin=++wpParamEnd;
-    goto MethodParameter;
-  }
-  if (*wpParamEnd == L')')
-    ++wpParamEnd;
-  if (wppText) *wppText=wpParamEnd;
-  return hParamStack->nElements;
-}
-
-EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex)
-{
-  EXTPARAM *lpParameter;
-
-  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
-    return lpParameter;
-  return NULL;
-}
-
-void FreeMethodParameters(STACKEXTPARAM *hParamStack)
-{
-  EXTPARAM *lpParameter;
-
-  for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
-  {
-    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_LPINT)
-    {
-      if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
-      if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
-      if (lpParameter->pExpanded) GlobalFree((HGLOBAL)lpParameter->pExpanded);
-      if (lpParameter->wpExpanded) GlobalFree((HGLOBAL)lpParameter->wpExpanded);
-    }
-  }
-  StackClear((stack **)&hParamStack->first, (stack **)&hParamStack->last);
-  hParamStack->nElements=0;
-}
-
-int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText)
-{
-  const wchar_t *wpCount;
-
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-
-  for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
-  {
-    if (*wpCount == L'(')
-    {
-      if (wppText)
-        *wppText=wpCount + 1;
-      return (int)xstrcpynW(wszMethod, wpText, min(nMethodMax, wpCount - wpText + 1));
-    }
-  }
-  return 0;
-}
-
 BOOL NextLine(const wchar_t **wpText)
 {
   while (**wpText != L'\r' && **wpText != L'\n' && **wpText != L'\0') ++*wpText;
@@ -1292,25 +1174,6 @@ BOOL SkipComment(const wchar_t **wpText)
   if (**wpText == L'\0')
     return FALSE;
   return TRUE;
-}
-
-void IfComment(const wchar_t *wpText, const wchar_t **wppText)
-{
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-
-  if (*wpText == L'/' && *(wpText + 1) == L'*')
-  {
-    for (wpText+=2; *wpText; ++wpText)
-    {
-      if (*wpText == L'*' && *(wpText + 1) == L'/')
-      {
-        wpText+=2;
-        break;
-      }
-    }
-    while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-  }
-  *wppText=wpText;
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)

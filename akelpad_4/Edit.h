@@ -1132,12 +1132,8 @@ wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
-int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
-int ParseMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText);
 void ExpandMethodParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
-int StructMethodParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct);
-EXTPARAM* GetMethodParameter(STACKEXTPARAM *hParamStack, int nIndex);
-void FreeMethodParameters(STACKEXTPARAM *hParamStack);
+int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
 
 INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError);
@@ -1146,7 +1142,6 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
 INT_PTR IfOperate(INT_PTR nValue1, int nSign, INT_PTR nValue2, int *lpnError);
 int IfSign(const wchar_t *wpSign, const wchar_t **wppSign);
 void IfComment(const wchar_t *wpText, const wchar_t **wppText);
-int GetMethodName(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, const wchar_t **wppText);
 
 BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData);
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);

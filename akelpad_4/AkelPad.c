@@ -10,6 +10,7 @@
 #include <richedit.h>
 #include "WideFunc.h"
 #include "ResizeFunc.h"
+#include "MethodFunc.h"
 #include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\x64Func.h"
@@ -229,6 +230,10 @@
 #define GetClientSize
 #define ResizeDialogMessages
 #include "ResizeFunc.h"
+
+//Include method functions
+#define ALLMETHODFUNC
+#include "MethodFunc.h"
 
 //Process
 HANDLE hHeap;
@@ -1899,39 +1904,39 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return nResult;
       }
-      case AKD_PARSEMETHODPARAMETERS:
+      case AKD_METHODPARSEPARAMETERS:
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
         const wchar_t **wppText=(const wchar_t **)lParam;
 
-        return ParseMethodParameters(hParamStack, *wppText, wppText);
+        return MethodParseParameters(hParamStack, *wppText, wppText);
       }
-      case AKD_EXPANDMETHODPARAMETERS:
+      case AKD_METHODEXPANDPARAMETERS:
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
         EXPPARAM *ep=(EXPPARAM *)lParam;
 
-        ExpandMethodParameters(hParamStack, ep);
+        MethodExpandParameters(hParamStack, ep);
         return 0;
       }
-      case AKD_GETMETHODPARAMETER:
+      case AKD_METHODGETPARAMETER:
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
 
-        return (LRESULT)GetMethodParameter(hParamStack, (int)lParam);
+        return (LRESULT)MethodGetParameter(hParamStack, (int)lParam);
       }
-      case AKD_STRUCTMETHODPARAMETERS:
+      case AKD_METHODSTRUCTPARAMETERS:
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
         unsigned char *lpStructure=(unsigned char *)lParam;
 
-        return StructMethodParameters(hParamStack, lpStructure);
+        return MethodStructParameters(hParamStack, lpStructure);
       }
-      case AKD_FREEMETHODPARAMETERS:
+      case AKD_METHODFREEPARAMETERS:
       {
         STACKEXTPARAM *hParamStack=(STACKEXTPARAM *)wParam;
 
-        FreeMethodParameters(hParamStack);
+        MethodFreeParameters(hParamStack);
         return 0;
       }
       case AKD_IFEXPRESSION:
@@ -1954,7 +1959,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if ((dwFlags & IEF_STACKEXTPARAM) && !(dwFlags & IEF_PARSEONLY))
             nError=IEE_UNKNOWNMETHOD;
-          else if (GetMethodName(wpCount, wbuf, BUFFER_SIZE, &wpNext))
+          else if (MethodGetName(wpCount, wbuf, BUFFER_SIZE, &wpNext))
           {
             if (!xstrcmpiW(wbuf, L"If"))
             {
@@ -1970,7 +1975,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (dwFlags & IEF_STACKEXTPARAM)
             lpParamStack=ie->sep;
           if (!(dwFlags & IEF_STACKEXTPARAM) || (dwFlags & IEF_PARSEONLY))
-            ParseMethodParameters(lpParamStack, wpCount, &wpNext);
+            MethodParseParameters(lpParamStack, wpCount, &wpNext);
 
           if (!(dwFlags & IEF_PARSEONLY) && lpParamStack->first)
           {
@@ -1987,7 +1992,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 wpCount=wpStop;
             }
             if (!(dwFlags & IEF_STACKEXTPARAM))
-              FreeMethodParameters(lpParamStack);
+              MethodFreeParameters(lpParamStack);
           }
         }
         if (ie)

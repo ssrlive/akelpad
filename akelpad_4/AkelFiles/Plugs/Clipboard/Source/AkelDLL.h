@@ -67,10 +67,12 @@
 #define PCLE_OPENERROR   5  //Error occurred during file opening.
 #define PCLE_SAVEERROR   6  //Error occurred during file saving.
 
-//External parameters
-#define EXTPARAM_CHAR     1
-#define EXTPARAM_INT      2
-#define EXTPARAM_LPINT    3
+#ifndef _METHODFUNC_H_
+  //External parameters
+  #define EXTPARAM_CHAR     1
+  #define EXTPARAM_INT      2
+  #define EXTPARAM_LPINT    3
+#endif
 
 //Expand flags
 #define EXPPARAM_WIDE      0x000 //EXPPARAM.pReplaceWith is Unicode string (default).
@@ -1597,24 +1599,26 @@ typedef struct {
   BOOL bQuitAsEnd;                     //Internal variable - "/quit" stops parsing command line parameters, but not closes program.
 } PARSECMDLINEPOSTW;
 
-typedef struct _EXTPARAM {
-  struct _EXTPARAM *next;
-  struct _EXTPARAM *prev;
-  DWORD dwType;            //See EXTPARAM_* defines.
-  INT_PTR nNumber;         //External parameter number.
-  char *pString;           //External parameter string (Ansi).
-  wchar_t *wpString;       //External parameter string (Unicode).
-  char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).
-  int nExpandedAnsiLen;    //External parameter expanded ansi string length.
-  wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
-  int nExpandedUnicodeLen; //External parameter expanded unicode string length.
-} EXTPARAM;
-
-typedef struct {
-  EXTPARAM *first;
-  EXTPARAM *last;
-  int nElements;
-} STACKEXTPARAM;
+#ifndef _METHODFUNC_H_
+  typedef struct _EXTPARAM {
+    struct _EXTPARAM *next;
+    struct _EXTPARAM *prev;
+    DWORD dwType;            //See EXTPARAM_* defines.
+    INT_PTR nNumber;         //External parameter number.
+    char *pString;           //External parameter string (Ansi).
+    wchar_t *wpString;       //External parameter string (Unicode).
+    char *pExpanded;         //External parameter expanded string - without %variables% (Ansi).
+    int nExpandedAnsiLen;    //External parameter expanded ansi string length.
+    wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
+    int nExpandedUnicodeLen; //External parameter expanded unicode string length.
+  } EXTPARAM;
+  
+  typedef struct {
+    EXTPARAM *first;
+    EXTPARAM *last;
+    int nElements;
+  } STACKEXTPARAM;
+#endif
 
 typedef struct {
   const wchar_t *wpVar; //Variable. Built-in variables: "%a" - AkelPad directory, "%%" - character %.
@@ -2182,11 +2186,11 @@ typedef struct {
 #define AKD_GETCMDLINEOPTIONS      (WM_USER + 121)
 #define AKD_SETCMDLINEOPTIONS      (WM_USER + 122)
 #define AKD_PARSECMDLINEW          (WM_USER + 125)
-#define AKD_PARSEMETHODPARAMETERS  (WM_USER + 126)
-#define AKD_EXPANDMETHODPARAMETERS (WM_USER + 127)
-#define AKD_GETMETHODPARAMETER     (WM_USER + 128)
-#define AKD_STRUCTMETHODPARAMETERS (WM_USER + 129)
-#define AKD_FREEMETHODPARAMETERS   (WM_USER + 130)
+#define AKD_METHODPARSEPARAMETERS  (WM_USER + 126)
+#define AKD_METHODEXPANDPARAMETERS (WM_USER + 127)
+#define AKD_METHODGETPARAMETER     (WM_USER + 128)
+#define AKD_METHODSTRUCTPARAMETERS (WM_USER + 129)
+#define AKD_METHODFREEPARAMETERS   (WM_USER + 130)
 #define AKD_IFEXPRESSION           (WM_USER + 131)
 
 //Text retrieval and modification
@@ -2893,7 +2897,7 @@ Example:
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
-AKD_PARSEMETHODPARAMETERS
+AKD_METHODPARSEPARAMETERS
 _________________________
 
 Parse method parameters.
@@ -2915,14 +2919,14 @@ Example (call plugin):
                 {L"%t", 2, (INT_PTR)wpMyVar, 0},
                 {0, 0, 0, 0}};
 
- if (SendMessage(pd->hMainWnd, AKD_PARSEMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
+ if (SendMessage(pd->hMainWnd, AKD_METHODPARSEPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
  {
-   SendMessage(pd->hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
+   SendMessage(pd->hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
 
-   if (nStructSize=SendMessage(pd->hMainWnd, AKD_STRUCTMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)NULL))
+   if (nStructSize=SendMessage(pd->hMainWnd, AKD_METHODSTRUCTPARAMETERS, (WPARAM)&hParamStack, (LPARAM)NULL))
    {
      if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-       SendMessage(pd->hMainWnd, AKD_STRUCTMETHODPARAMETERS, (WPARAM)&hParamStack, pcs.lParam);
+       SendMessage(pd->hMainWnd, AKD_METHODSTRUCTPARAMETERS, (WPARAM)&hParamStack, pcs.lParam);
    }
    else pcs.lParam=0;
 
@@ -2932,11 +2936,11 @@ Example (call plugin):
    SendMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
    if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
 
-   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+   SendMessage(pd->hMainWnd, AKD_METHODFREEPARAMETERS, (WPARAM)&hParamStack, 0);
  }
 
 
-AKD_EXPANDMETHODPARAMETERS
+AKD_METHODEXPANDPARAMETERS
 __________________________
 
 Expand method parameters - fill EXTPARAM.pExpanded, EXTPARAM.nExpandedAnsiLen, EXTPARAM.wpExpanded, EXTPARAM.nExpandedUnicodeLen. For example, "%a" expanded to "C:\\Program Files\\AkelPad".
@@ -2949,13 +2953,13 @@ Return Value
  zero.
 
 Remarks
-  AKD_SETCMDLINEOPTIONS with CLO_VARNOSYSTEM and CLO_VARNOAKELPAD can change AKD_EXPANDMETHODPARAMETERS behavior.
+  AKD_SETCMDLINEOPTIONS with CLO_VARNOSYSTEM and CLO_VARNOAKELPAD can change AKD_METHODEXPANDPARAMETERS behavior.
 
 Example:
- See AKD_PARSEMETHODPARAMETERS example.
+ See AKD_METHODPARSEPARAMETERS example.
 
 
-AKD_GETMETHODPARAMETER
+AKD_METHODGETPARAMETER
 ______________________
 
 Get method parameter.
@@ -2973,20 +2977,20 @@ Example:
  const wchar_t *wpString=NULL;
  int nExtCall=-1;
 
- if (SendMessage(pd->hMainWnd, AKD_PARSEMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
+ if (SendMessage(pd->hMainWnd, AKD_METHODPARSEPARAMETERS, (WPARAM)&hParamStack, (LPARAM)&wpText))
  {
-   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 1))
+   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_METHODGETPARAMETER, (WPARAM)&hParamStack, 1))
      wpString=lpExtParam->wpString;
-   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 2))
+   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_METHODGETPARAMETER, (WPARAM)&hParamStack, 2))
      nExtCall=(int)lpExtParam->nNumber;
 
    if (wpString && nExtCall != -1)
      MessageBoxW(pd->hMainWnd, wpString, NULL, MB_OK);
-   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+   SendMessage(pd->hMainWnd, AKD_METHODFREEPARAMETERS, (WPARAM)&hParamStack, 0);
  }
 
 
-AKD_STRUCTMETHODPARAMETERS
+AKD_METHODSTRUCTPARAMETERS
 __________________________
 
 Create structure for plugin call.
@@ -2998,10 +3002,10 @@ Return Value
  Size of the data copied to the buffer.
 
 Example:
- See AKD_PARSEMETHODPARAMETERS example.
+ See AKD_METHODPARSEPARAMETERS example.
 
 
-AKD_FREEMETHODPARAMETERS
+AKD_METHODFREEPARAMETERS
 ________________________
 
 Free method parameters.
@@ -3013,7 +3017,7 @@ Return Value
  zero.
 
 Example:
- See AKD_PARSEMETHODPARAMETERS example.
+ See AKD_METHODPARSEPARAMETERS example.
 */
 
 //AKD_IFEXPRESSION
@@ -3054,10 +3058,10 @@ Example:
 //
 // if (ie.nError == IEE_SUCCESS)
 // {
-//   SendMessage(pd->hMainWnd, AKD_EXPANDMETHODPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
-//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 2))
+//   SendMessage(pd->hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&hParamStack, (LPARAM)ep);
+//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_METHODGETPARAMETER, (WPARAM)&hParamStack, 2))
 //     wpTrueString=lpExtParam->wpExpanded;
-//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_GETMETHODPARAMETER, (WPARAM)&hParamStack, 3))
+//   if (lpExtParam=(EXTPARAM *)SendMessage(pd->hMainWnd, AKD_METHODGETPARAMETER, (WPARAM)&hParamStack, 3))
 //     wpFalseString=lpExtParam->wpExpanded;
 //
 //   if (wpTrueString && wpFalseString)
@@ -3069,7 +3073,7 @@ Example:
 //     else
 //       MessageBoxW(pd->hMainWnd, wpFalseString, NULL, MB_OK);
 //   }
-//   SendMessage(pd->hMainWnd, AKD_FREEMETHODPARAMETERS, (WPARAM)&hParamStack, 0);
+//   SendMessage(pd->hMainWnd, AKD_METHODFREEPARAMETERS, (WPARAM)&hParamStack, 0);
 // }
 
 /*
