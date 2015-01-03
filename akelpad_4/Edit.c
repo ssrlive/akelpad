@@ -19755,7 +19755,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
 
       //Scripts external call
       {
-        #define DLLA_SCRIPTS_DIRECTCALLSTACK 8
+        #define DLLA_SCRIPTS_DIRECTCALL 7
 
         typedef struct {
           UINT_PTR dwStructSize;
@@ -19769,7 +19769,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         DLLEXTSCRIPTS des;
 
         des.dwStructSize=sizeof(DLLEXTSCRIPTS);
-        des.nAction=DLLA_SCRIPTS_DIRECTCALLSTACK;
+        des.nAction=DLLA_SCRIPTS_DIRECTCALL;
         des.wpCmd=wszMethodName;
         des.lpnResult=&nValue;
         des.lpParamStack=&hParamStack;

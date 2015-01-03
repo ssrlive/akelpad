@@ -330,8 +330,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       if (pd->dwSupport & PDS_STRANSI)
         FreeWide(wpScript);
     }
-    else if (nAction == DLLA_SCRIPTS_DIRECTCALLSTR ||
-             nAction == DLLA_SCRIPTS_DIRECTCALLSTACK)
+    else if (nAction == DLLA_SCRIPTS_DIRECTCALL)
     {
       PLUGINCALLSENDW *pcs=NULL;
       unsigned char *pCmd=NULL;
