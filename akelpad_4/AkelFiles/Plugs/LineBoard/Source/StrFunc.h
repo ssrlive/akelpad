@@ -841,7 +841,7 @@ wchar_t WideCharUpper(wchar_t c)
  * [in] const void *src  Buffer to copy from.
  * [in] UINT_PTR count   Number of bytes to copy.
  *
- *Returns:  the value of dest.
+ *Returns: the value of dest.
  ********************************************************************/
 #if defined xmemcpy || defined ALLSTRFUNC
 #define xmemcpy_INCLUDED
@@ -922,7 +922,7 @@ int xmemcmp(const void *buf1, const void *buf2, UINT_PTR count)
  * [in] int c           Character to set.
  * [in] UINT_PTR count  Number of characters.
  *
- *Returns:  the value of dest.
+ *Returns: the value of dest.
  ********************************************************************/
 #if defined xmemset || defined ALLSTRFUNC
 #define xmemset_INCLUDED
