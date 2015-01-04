@@ -1798,7 +1798,7 @@ void AkelUpdaterHelpExec(int nAction, const wchar_t *wpFile)
   STARTUPINFOW si;
   PROCESS_INFORMATION pi;
 
-  xprintfW(wszBuffer, L"\"%s\\%s\" %d \"%Id\" \"%s\"", nAction, wszNsisTempDir, wszInputHelper, hWndDialog, wpFile);
+  xprintfW(wszBuffer, L"\"%s\\%s\" %d \"%Id\" \"%s\"", wszNsisTempDir, wszInputHelper, nAction, hWndDialog, wpFile);
   xmemset(&si, 0, sizeof(STARTUPINFOW));
   si.cb=sizeof(STARTUPINFOW);
 
