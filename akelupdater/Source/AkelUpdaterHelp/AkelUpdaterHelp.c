@@ -16,6 +16,9 @@
 #define PE_NOTPLUGIN         2
 #define PE_CANTLOAD          3
 
+//AkelUpdaterHelp action
+#define AUH_GETDLLNAME   1
+
 typedef struct {
   wchar_t wszName[MAX_PATH];
   DWORD dwError;
@@ -42,6 +45,8 @@ void _WinMain()
   wchar_t *wpArguments=GetCommandLineW();
   wchar_t wszWindow[MAX_PATH];
   wchar_t wszFile[MAX_PATH];
+  int nAction;
+  //GetProcAddress
   void (*DllAkelPadID)(PLUGINVERSION *pv);
 
   di.dwError=PE_CANTLOAD;
@@ -49,25 +54,30 @@ void _WinMain()
   //Skip executable
   GetCommandLineArg(wpArguments, NULL, 0, &wpArguments);
 
-  //First argument is window handle
+  //First argument is action
+  nAction=(int)xatoiW(wpArguments, &wpArguments);
+
+  //Second argument is window handle
   if (GetCommandLineArg(wpArguments, wszWindow, MAX_PATH, &wpArguments))
   {
     hWndSend=(HWND)xatoiW(wszWindow, NULL);
 
-    //Second argument is dll file to check
+    //Third argument is dll file to check
     if (GetCommandLineArg(wpArguments, wszFile, MAX_PATH, &wpArguments))
     {
       if (hInstance=LoadLibraryW(wszFile))
       {
-        if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
+        if (nAction == AUH_GETDLLNAME)
         {
-          DllAkelPadID(&pv);
+          if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
+          {
+            DllAkelPadID(&pv);
 
-          MultiByteToWideChar(CP_ACP, 0, pv.pPluginName, -1, di.wszName, MAX_PATH);
-          di.dwError=PE_NONE;
+            MultiByteToWideChar(CP_ACP, 0, pv.pPluginName, -1, di.wszName, MAX_PATH);
+            di.dwError=PE_NONE;
+          }
+          else di.dwError=PE_NOTPLUGIN;
         }
-        else di.dwError=PE_NOTPLUGIN;
-
         FreeLibrary(hInstance);
       }
     }
