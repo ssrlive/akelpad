@@ -1609,7 +1609,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   WIN32_FIND_DATAW wfd;
   HANDLE hFind;
   HANDLE hFile;
-  wchar_t wszFindFiles[MAX_PATH];
+  wchar_t wszFile[MAX_PATH];
   const wchar_t *wpExt;
   wchar_t *wpCount;
   wchar_t *wpMaxCount;
@@ -1663,9 +1663,9 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   }
 
   //Script files
-  xprintfW(wszFindFiles, L"%s\\*.*", wszScriptsDir);
+  xprintfW(wszFile, L"%s\\*.*", wszScriptsDir);
 
-  if ((hFind=FindFirstFileWide(wszFindFiles, &wfd)) != INVALID_HANDLE_VALUE)
+  if ((hFind=FindFirstFileWide(wszFile, &wfd)) != INVALID_HANDLE_VALUE)
   {
     do
     {
@@ -1700,8 +1700,8 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
 
       if (dwContentColumns)
       {
-        xprintfW(wszFindFiles, L"%s\\%s", wszScriptsDir, wfd.cFileName);
-        if (nContentLen=ReadFileContent(&hFile, wszFindFiles, ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+        xprintfW(wszFile, L"%s\\%s", wszScriptsDir, wfd.cFileName);
+        if (nContentLen=DetectAndReadFile(&hFile, wszFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_ONLYBOM|ADT_NOMESSAGES, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
         {
           wpCount=wpContent;
           wpMaxCount=wpContent + nContentLen;
@@ -1720,7 +1720,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
                 if (wpContent + nBytesToRead <= wpMaxContent)
                 {
                   //Read next block to wszContentBuffer
-                  if (nContentLen=ReadFileContent(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+                  if (nContentLen=DetectAndReadFile(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
                   {
                     //Now wpCount could point to "\r|\n"
                     while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
@@ -1743,57 +1743,60 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
             //Skip spaces
             while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
 
-            for (ckCount=ck; ckCount->wpKey; ++ckCount)
+            if (*wpCount != L'\r' && *wpCount != L'\n')
             {
-              wpValue=*ckCount->wppValue;
-
-              if ((!wpValue || (ckCount->wppValue == &wpDescription && wDescriptionLang != wLangModule)) &&
-                  !xstrcmpinW(ckCount->wpKey, wpCount, (UINT_PTR)-1))
+              for (ckCount=ck; ckCount->wpKey; ++ckCount)
               {
-                if (ckCount->wppValue != &wpSite)
+                wpValue=*ckCount->wppValue;
+
+                if ((!wpValue || (ckCount->wppValue == &wpDescription && wDescriptionLang != wLangModule)) &&
+                    !xstrcmpinW(ckCount->wpKey, wpCount, (UINT_PTR)-1))
                 {
-                  wpCount+=ckCount->nKeyLen;
-                  while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
-                }
-                wpValue=wpCount;
-                wpValueEnd=wpLineEnd;
-                wpCount=wpLineEnd;
-
-                //Trim trailing spaces
-                while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
-                  --wpValueEnd;
-                if (ckCount->wppValue == &wpDescription)
-                {
-                  if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
+                  if (ckCount->wppValue != &wpSite)
                   {
-                    wLang=(WORD)xatoiW(wpValue, &wpValue);
-                    if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
-                      break;
-                    wDescriptionLang=wLang;
-
-                    if (!xstrcmpinW(L"):", wpValue, (UINT_PTR)-1))
-                      wpValue+=2;
-                    while (*wpValue == L' ' || *wpValue == L'\t') ++wpValue;
+                    wpCount+=ckCount->nKeyLen;
+                    while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
                   }
-                  else
-                  {
-                    if (wDescriptionLang) break;
-                    wDescriptionLang=wLangModule;
-                  }
+                  wpValue=wpCount;
+                  wpValueEnd=wpLineEnd;
+                  wpCount=wpLineEnd;
 
-                  //*** Description *** -> Description
-                  if (wpValueEnd - ckCount->nKeyLen >= wpValue && !xstrcmpinW(ckCount->wpKey, wpValueEnd - ckCount->nKeyLen, (UINT_PTR)-1))
-                    wpValueEnd-=ckCount->nKeyLen;
                   //Trim trailing spaces
                   while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
                     --wpValueEnd;
+                  if (ckCount->wppValue == &wpDescription)
+                  {
+                    if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
+                    {
+                      wLang=(WORD)xatoiW(wpValue, &wpValue);
+                      if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
+                        break;
+                      wDescriptionLang=wLang;
+
+                      if (!xstrcmpinW(L"):", wpValue, (UINT_PTR)-1))
+                        wpValue+=2;
+                      while (*wpValue == L' ' || *wpValue == L'\t') ++wpValue;
+                    }
+                    else
+                    {
+                      if (wDescriptionLang) break;
+                      wDescriptionLang=wLangModule;
+                    }
+
+                    //*** Description *** -> Description
+                    if (wpValueEnd - ckCount->nKeyLen >= wpValue && !xstrcmpinW(ckCount->wpKey, wpValueEnd - ckCount->nKeyLen, (UINT_PTR)-1))
+                      wpValueEnd-=ckCount->nKeyLen;
+                    //Trim trailing spaces
+                    while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
+                      --wpValueEnd;
+                  }
+                  *ckCount->wppValue=wpValue;
+                  *ckCount->lpnValueLen=wpValueEnd - wpValue;
+                  break;
                 }
-                *ckCount->wppValue=wpValue;
-                *ckCount->lpnValueLen=wpValueEnd - wpValue;
-                break;
               }
+              wpCount=wpLineEnd;
             }
-            wpCount=wpLineEnd;
             while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
 
             //Break if all info is received
@@ -1803,8 +1806,8 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
                 (!(dwContentColumns & LCN_SITE) || wpSite))
               break;
           }
-          CloseHandle(hFile);
         }
+        if (hFile) CloseHandle(hFile);
       }
 
       if (lpListItem=StackInsertListItem(hStack))
@@ -2205,7 +2208,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
           WideCharToMultiByte(CP_ACP, 0, --wpExt, -1, szExt, MAX_PATH, NULL, NULL);
           if (GetScriptEngineA(szExt, &guidEngine) == S_OK)
           {
-            if (nContentLen=ReadFileContent(NULL, lpScriptThread->wszScriptFile, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
+            if (nContentLen=DetectAndReadFile(NULL, lpScriptThread->wszScriptFile, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
             {
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;
@@ -2717,13 +2720,13 @@ int GetHotkeyString(WORD wHotkey, wchar_t *wszString)
   return nResult;
 }
 
-INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wppContent, UINT_PTR dwBytesMax)
+INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wppContent, UINT_PTR dwBytesMax)
 {
   DETECTFILEW df;
   FILECONTENT fc;
   INT_PTR nResult=0;
 
-  if (lphFile)
+  if (lphFile && wpFile)
     fc.hFile=*lphFile;
   else
     fc.hFile=NULL;
@@ -2753,11 +2756,9 @@ INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, i
     }
     if (lpnCodePage) *lpnCodePage=df.nCodePage;
     if (lpbBOM) *lpbBOM=df.bBOM;
-    if (!lphFile)
-      CloseHandle(fc.hFile);
-    else
-      *lphFile=fc.hFile;
+    if (!lphFile) CloseHandle(fc.hFile);
   }
+  if (lphFile) *lphFile=fc.hFile;
   return nResult;
 }
 
