@@ -123,11 +123,12 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
       if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
         xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
     }
+    if (*wpParamEnd) ++wpParamEnd;
   }
   else
   {
     //Number
-    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L'/' && *wpParamEnd != L')' && *wpParamEnd != L'\0'; ++wpParamEnd);
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != L' ' && *wpParamEnd != L'\t' && *wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\r' && *wpParamEnd != L'\n' && *wpParamEnd != L'\0'; ++wpParamEnd);
     if (wpParamEnd == wpParamBegin) goto End;
 
     if (!StackInsertBefore((stack **)&hParamStack->first, (stack **)&hParamStack->last, NULL, (stack **)&lpParameter, sizeof(EXTPARAM)))
@@ -159,17 +160,17 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   }
   MethodComment(wpParamEnd, &wpParamEnd);
 
-  while (*wpParamEnd != L',' && *wpParamEnd != L')' && *wpParamEnd != L'\0')
-    ++wpParamEnd;
   if (*wpParamEnd == L',')
   {
-    wpParamBegin=++wpParamEnd;
+    wpParamBegin=wpParamEnd + 1;
     goto MethodParameter;
   }
 
   End:
   if (*wpParamEnd == L')')
     ++wpParamEnd;
+  else
+    MethodFreeParameters(hParamStack);
   if (wppText) *wppText=wpParamEnd;
   return hParamStack->nElements;
 }
@@ -403,46 +404,36 @@ int MethodGetScript(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, c
 #undef MethodGetIcon
 void MethodGetIcon(const wchar_t *wpText, wchar_t *wszIconFile, int nMaxIconFile, int *nIconIndex, const wchar_t **wppText)
 {
+  const wchar_t *wpFileEnd;
   wchar_t wchStopChar;
-  int i;
 
   wszIconFile[0]=L'\0';
   *nIconIndex=0;
 
   //File
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  MethodComment(wpText, &wpText);
 
   if (*wpText == L'\"' || *wpText == L'\'' || *wpText == L'`')
   {
     wchStopChar=*wpText++;
-
-    for (i=0; i < nMaxIconFile && *wpText != wchStopChar && *wpText != L'\0'; ++i, ++wpText)
-    {
-      wszIconFile[i]=*wpText;
-    }
-    wszIconFile[i]=L'\0';
-
-    while (*wpText != L',' && *wpText != L')' && *wpText != L'\0')
-      ++wpText;
+    for (wpFileEnd=wpText; *wpFileEnd != wchStopChar && *wpFileEnd != L'\0'; ++wpFileEnd);
+    xstrcpynW(wszIconFile, wpText, min(nMaxIconFile, wpFileEnd - wpText + 1));
+    if (*wpFileEnd)
+      wpText=wpFileEnd + 1;
+    else
+      wpText=wpFileEnd;
+    MethodComment(wpText, &wpText);
     if (*wpText == L',')
       ++wpText;
-    else
+    else if (*wpText != L')')
       goto End;
   }
 
   //Index
-  while (*wpText == L' ' || *wpText == L'\t') ++wpText;
+  MethodComment(wpText, &wpText);
+  *nIconIndex=(int)xatoiW(wpText, &wpText);
+  MethodComment(wpText, &wpText);
 
-  *nIconIndex=(int)xatoiW(wpText, NULL);
-
-  while (*wpText != L',' && *wpText != L')' && *wpText != L'\0')
-    ++wpText;
-  if (*wpText == L',')
-    ++wpText;
-  else
-    goto End;
-
-  //End
   End:
   if (*wpText == L')')
     ++wpText;
