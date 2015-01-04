@@ -312,7 +312,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
 UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter);
 HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
-INT_PTR ReadFileContent(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
+INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 const char* GetFileNameAnsi(const char *pFile, int nFileLen);
 const wchar_t* GetFileNameWide(const wchar_t *wpFile, int nFileLen);

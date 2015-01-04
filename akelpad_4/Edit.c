@@ -5039,9 +5039,9 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
 
 UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wppContent)
 {
-  unsigned char *szBuffer;
-  wchar_t *wszBuffer=*wppContent;
-  UINT_PTR dwBufferBytes;
+  unsigned char *szContent;
+  wchar_t *wszContent=*wppContent;
+  UINT_PTR dwContentBytes;
   UINT_PTR dwBytesRead;
   UINT_PTR dwCharsConverted=0;
 
@@ -5072,21 +5072,21 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
   if (dwBytesMax != (UINT_PTR)-1)
   {
     if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
-      dwBufferBytes=dwBytesMax;
+      dwContentBytes=dwBytesMax;
     else
-      dwBufferBytes=dwBytesMax * sizeof(wchar_t);
+      dwContentBytes=dwBytesMax * sizeof(wchar_t);
 
-    if (!wszBuffer)
-      wszBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferBytes + sizeof(wchar_t));
-    if (wszBuffer)
+    if (!wszContent)
+      wszContent=(wchar_t *)API_HeapAlloc(hHeap, 0, dwContentBytes + sizeof(wchar_t));
+    if (wszContent)
     {
       if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
-        szBuffer=(unsigned char *)wszBuffer;
+        szContent=(unsigned char *)wszContent;
       else
-        szBuffer=(unsigned char *)wszBuffer + dwBytesMax;
+        szContent=(unsigned char *)wszContent + dwBytesMax;
 
       //Read data from file
-      if (ReadFile64(hFile, szBuffer, dwBytesMax, &dwBytesRead, NULL))
+      if (ReadFile64(hFile, szContent, dwBytesMax, &dwBytesRead, NULL) && dwBytesRead)
       {
         //Translate data to UNICODE
         if (nCodePage == CP_UNICODE_UTF16LE)
@@ -5095,30 +5095,30 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
         }
         else if (nCodePage == CP_UNICODE_UTF16BE)
         {
-          ChangeTwoBytesOrder(szBuffer, dwBytesRead, NULL);
+          ChangeTwoBytesOrder(szContent, dwBytesRead, NULL);
           dwCharsConverted=dwBytesRead / sizeof(wchar_t);
         }
         else if (nCodePage == CP_UNICODE_UTF32LE)
         {
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szContent, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
         }
         else if (nCodePage == CP_UNICODE_UTF32BE)
         {
-          ChangeFourBytesOrder(szBuffer, dwBytesRead, NULL);
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          ChangeFourBytesOrder(szContent, dwBytesRead, NULL);
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szContent, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
         }
         else
         {
           if (nCodePage == CP_UNICODE_UTF8)
-            dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=UTF8toUTF16(szContent, dwBytesRead, NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=MultiByteToWideChar64(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=MultiByteToWideChar64(nCodePage, 0, (char *)szContent, dwBytesRead, wszContent, dwContentBytes / sizeof(wchar_t));
         }
-        wszBuffer[dwCharsConverted]=L'\0';
       }
+      wszContent[dwCharsConverted]=L'\0';
     }
   }
-  *wppContent=wszBuffer;
+  *wppContent=wszContent;
   return dwCharsConverted;
 }
 

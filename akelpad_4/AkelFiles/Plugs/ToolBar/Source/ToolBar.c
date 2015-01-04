@@ -2975,7 +2975,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_IF_WRONGPARAMCOUNT)
       return L"If: \x043D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432.";
     if (nStringID == STRID_IF_SCRIPTDENIED)
-      return L"If: вызов скрипта запрещён в SET(128, If(...)).";
+      return L"If: \x0432\x044B\x0437\x043E\x0432\x0020\x0441\x043A\x0440\x0438\x043F\x0442\x0430\x0020\x0437\x0430\x043F\x0440\x0435\x0449\x0451\x043D\x0020\x0432 SET(128, If(...)).";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
