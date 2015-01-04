@@ -9,7 +9,7 @@ RequestExecutionLevel user
 
 ############  File info  ############
 VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2014 Shengalts Aleksander aka Instructor"
+VIAddVersionKey LegalCopyright "© 2015 Shengalts Aleksander aka Instructor"
 VIAddVersionKey ProductName "${PRODUCT_NAME}"
 VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
 VIAddVersionKey Comments ""

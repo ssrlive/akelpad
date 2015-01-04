@@ -1,7 +1,7 @@
 /*****************************************************************
  *                 AkelUpdater NSIS plugin v5.4                  *
  *                                                               *
- * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
