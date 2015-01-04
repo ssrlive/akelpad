@@ -1,7 +1,7 @@
 /*****************************************************************
  *                 Resize functions header v1.0                  *
  *                                                               *
- * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
