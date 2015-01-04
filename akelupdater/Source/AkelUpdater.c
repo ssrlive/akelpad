@@ -138,17 +138,64 @@
   #define SCS_64BIT_BINARY 6
 #endif
 
+//AkelUpdaterHelp action
+#define AUH_GETDLLNAME   1
+
+//DLLINFO.dwError
 #define PE_NONE        0
 #define PE_NOTPLUGIN   1
 #define PE_CANTLOAD    2
 #define PE_NOTINLIST   3
+
+//FILEITEM.nType
+#define FIT_AKELPAD   1
+#define FIT_PLUGIN    2
+#define FIT_SCRIPT    3
+#define FIT_FORSCRIPT 4
 
 typedef struct {
   wchar_t wszName[MAX_PATH];
   DWORD dwError;
 } DLLINFO;
 
-//ExDll
+typedef struct _FILEREFITEM {
+  struct _FILEREFITEM *next;
+  struct _FILEREFITEM *prev;
+  void *lpFileItem;
+} FILEREFITEM;
+
+typedef struct {
+  FILEREFITEM *first;
+  FILEREFITEM *last;
+} STACKFILEREFITEM;
+
+typedef struct _FILEITEM {
+  struct _FILEITEM *next;
+  struct _FILEITEM *prev;
+  int nType;                     //See FIT_* defines.
+  int nCompare;
+  int nChecked;
+  DWORD dwError;
+  wchar_t wszError[MAX_PATH];
+  wchar_t wszPack[MAX_PATH];
+  wchar_t wszName[MAX_PATH];
+  wchar_t wszCurVer[MAX_PATH];
+  wchar_t wszLastVer[MAX_PATH];
+  wchar_t wszDescription[MAX_PATH];
+  wchar_t wszAuthor[MAX_PATH];
+  struct _FILEREFITEM *firstRefScript;
+  struct _FILEREFITEM *lastRefScript;
+  struct _FILEITEM *firstCopy;
+  struct _FILEITEM *lastCopy;
+} FILEITEM;
+
+typedef struct {
+  FILEITEM *first;
+  FILEITEM *last;
+} STACKFILEITEM;
+
+
+//NSIS
 typedef struct _stack_t {
   struct _stack_t *next;
   wchar_t text[1];
@@ -215,11 +262,6 @@ INST_LANG,      // $LANGUAGE
 __INST_LAST
 };
 
-//FILEITEM.nType
-#define FIT_AKELPAD   1
-#define FIT_PLUGIN    2
-#define FIT_SCRIPT    3
-#define FIT_FORSCRIPT 4
 
 //Scripts list columns
 #define LVI_SCRIPTS_SCRIPT        0
@@ -249,6 +291,13 @@ typedef struct {
   DWORD dwFlags;
 } LISTCOLUMN;
 
+typedef struct {
+  const wchar_t *wpKey;
+  INT_PTR nKeyLen;
+  wchar_t **wppValue;
+  INT_PTR *lpnValueLen;
+} CONTENTKEY;
+
 typedef struct _LISTITEM {
   struct _LISTITEM *next;
   struct _LISTITEM *prev;
@@ -268,42 +317,6 @@ typedef struct {
   LISTITEM *lpLastScript;
   int nElements;
 } STACKLISTITEM;
-
-typedef struct _FILEREFITEM {
-  struct _FILEREFITEM *next;
-  struct _FILEREFITEM *prev;
-  void *lpFileItem;
-} FILEREFITEM;
-
-typedef struct {
-  FILEREFITEM *first;
-  FILEREFITEM *last;
-} STACKFILEREFITEM;
-
-typedef struct _FILEITEM {
-  struct _FILEITEM *next;
-  struct _FILEITEM *prev;
-  int nType;                     //See FIT_* defines.
-  int nCompare;
-  int nChecked;
-  DWORD dwError;
-  wchar_t wszError[MAX_PATH];
-  wchar_t wszPack[MAX_PATH];
-  wchar_t wszName[MAX_PATH];
-  wchar_t wszCurVer[MAX_PATH];
-  wchar_t wszLastVer[MAX_PATH];
-  wchar_t wszDescription[MAX_PATH];
-  wchar_t wszAuthor[MAX_PATH];
-  struct _FILEREFITEM *firstRefScript;
-  struct _FILEREFITEM *lastRefScript;
-  struct _FILEITEM *firstCopy;
-  struct _FILEITEM *lastCopy;
-} FILEITEM;
-
-typedef struct {
-  FILEITEM *first;
-  FILEITEM *last;
-} STACKFILEITEM;
 
 
 //Functions prototypes
@@ -325,6 +338,7 @@ void StackFilesSort(STACKFILEITEM *hStack);
 int StackSort(FILEITEM **first, FILEITEM **last, int nUpDown);
 void StackFilesFree(STACKFILEITEM *hStack);
 LISTITEM* StackScriptGet(STACKLISTITEM *hStack, const wchar_t *wpScriptFileName);
+void AkelUpdaterHelpExec(int nAction, const wchar_t *wpFile);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 int GetBaseName(const wchar_t *wpFile, int nFileLen, wchar_t *wszBaseName, int nBaseNameMax);
 const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
@@ -332,12 +346,21 @@ int VersionCompare(const wchar_t *wpVer1, const wchar_t *wpVer2);
 BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 BOOL GetFileVersionW(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 BOOL GetFileVersionWide(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
-int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
+INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wppContent, UINT_PTR dwBytesMax);
+int AutodetectCodePage(HANDLE hFile, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wppContent);
 void ChangeTwoBytesOrder(unsigned char *pSrc, UINT_PTR dwSrcSize, unsigned char *pDst);
 void ChangeFourBytesOrder(unsigned char *pSrc, UINT_PTR dwSrcSize, unsigned char *pDst);
 BOOL IsCodePageUnicode(int nCodePage);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
+
+void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns);
+LISTITEM* StackInsertListItem(STACKLISTITEM *hStack);
+void StackFreeListItem(STACKLISTITEM *hStack);
+int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith);
+DWORD GetColumnFlags(LISTCOLUMN *lpColumns);
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
+BOOL FreeWideStr(wchar_t *wpWideStr);
 
 int getuservariable(const int varnum, wchar_t *str, int len);
 void setuservariable(const int varnum, const wchar_t *var);
@@ -351,14 +374,15 @@ void Initialize(int string_size, wchar_t *variables, stack_t **stacktop, extra_p
 
 //Global variables
 char szBuf[NSIS_MAX_STRLEN];
-wchar_t wszBuf[NSIS_MAX_STRLEN];
-wchar_t wszBuf2[NSIS_MAX_STRLEN];
+wchar_t wszBuffer[NSIS_MAX_STRLEN];
+wchar_t wszBuffer2[NSIS_MAX_STRLEN];
 wchar_t wszExeFile[MAX_PATH];
 int nExeFileLen;
 wchar_t wszExeDir[MAX_PATH];
 int nExeDirLen;
 wchar_t wszAkelDir[MAX_PATH];
 wchar_t wszPlugsDir[MAX_PATH];
+wchar_t wszScriptsDir[MAX_PATH];
 wchar_t wszAkelExe[MAX_PATH];
 wchar_t wszInputLanguage[MAX_PATH];
 wchar_t wszInputVersion[32];
@@ -369,7 +393,7 @@ wchar_t wszFilter[MAX_PATH]=L"";
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
 BOOL bOldWindows;
-WORD wLangSystem;
+LANGID wLangModule;
 STACKFILEITEM hFileStack={0};
 STACKLISTITEM hScriptsStack={0};
 FILEITEM *lpFileItemAkelPad=NULL;
@@ -380,6 +404,7 @@ HWND hWndListDll=NULL;
 WNDPROC lpOldFilterProc=NULL;
 int nInputBit=32;
 BOOL bScripts=FALSE;
+BOOL bScriptsLstLoaded=FALSE;
 BOOL bInputAuto=FALSE;
 BOOL bInputNoCopies=FALSE;
 BOOL bSelectAllExe;
@@ -391,8 +416,6 @@ RECT rcMainCurrentDialog={0};
 
 //GetProcAddress
 BOOL (WINAPI *GetBinaryTypePtr)(const wchar_t *lpApplicationName, LPDWORD lpBinaryType);
-void (*DllAkelUpdaterFill)(HWND hDlg, HWND hWndList, STACKLISTITEM *hScriptsStack, LISTCOLUMN *lpColumns)=NULL;
-void (*DllAkelUpdaterFree)(STACKLISTITEM *hScriptsStack)=NULL;
 
 //Plugin extern function
 #ifdef __GNUC__
@@ -405,12 +428,13 @@ void __declspec(dllexport) Init(HWND hwndParent, int string_size, wchar_t *varia
     HMODULE hKernel32;
     DWORD dwBinaryType=SCS_32BIT_BINARY;
 
-    wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
+    wLangModule=GetUserDefaultLangID();
     hInstanceEXE=GetModuleHandleA(NULL);
     nExeFileLen=GetModuleFileNameWide(hInstanceEXE, wszExeFile, MAX_PATH);
     nExeDirLen=GetFileDir(wszExeFile, nExeFileLen, wszExeDir, MAX_PATH);
     GetFileDir(wszExeDir, nExeDirLen, wszAkelDir, MAX_PATH);
     xprintfW(wszPlugsDir, L"%s\\Plugs", wszExeDir);
+    xprintfW(wszScriptsDir, L"%s\\Scripts", wszPlugsDir);
 
     xprintfW(wszAkelExe, L"%s\\AkelPad.exe", wszAkelDir);
     if (!FileExistsWide(wszAkelExe))
@@ -471,12 +495,12 @@ void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, wchar_
   {
     const wchar_t *wpArgument;
 
-    popstringWide(wszBuf, NSIS_MAX_STRLEN);
-    wpArgument=wszBuf;
+    popstringWide(wszBuffer, NSIS_MAX_STRLEN);
+    wpArgument=wszBuffer;
 
-    while (GetCommandLineArg(wpArgument, wszBuf2, NSIS_MAX_STRLEN, &wpArgument))
+    while (GetCommandLineArg(wpArgument, wszBuffer2, NSIS_MAX_STRLEN, &wpArgument))
     {
-      pushstringWide(wszBuf2);
+      pushstringWide(wszBuffer2);
     }
   }
 }
@@ -558,15 +582,15 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
     SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
 
-    xprintfW(wszBuf, L"AkelUpdater %s", wszInputVersion);
-    SetWindowTextWide(hDlg, wszBuf);
+    xprintfW(wszBuffer, L"AkelUpdater %s", wszInputVersion);
+    SetWindowTextWide(hDlg, wszBuffer);
 
-    SetDlgItemTextWide(hDlg, IDC_MIRROR_LABEL, GetLangStringW(wLangSystem, STRID_MIRROR));
-    SetDlgItemTextWide(hDlg, IDC_LANGUAGE_LABEL, GetLangStringW(wLangSystem, STRID_LANGUAGE));
-    SetDlgItemTextWide(hDlg, IDC_LIST_CHECKINFO, GetLangStringW(wLangSystem, STRID_SELECT));
-    SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangSystem, STRID_UPDATE));
-    SetDlgItemTextWide(hDlg, IDC_SCRIPTS, GetLangStringW(wLangSystem, STRID_SCRIPTS));
-    SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangSystem, STRID_CANCEL));
+    SetDlgItemTextWide(hDlg, IDC_MIRROR_LABEL, GetLangStringW(wLangModule, STRID_MIRROR));
+    SetDlgItemTextWide(hDlg, IDC_LANGUAGE_LABEL, GetLangStringW(wLangModule, STRID_LANGUAGE));
+    SetDlgItemTextWide(hDlg, IDC_LIST_CHECKINFO, GetLangStringW(wLangModule, STRID_SELECT));
+    SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_UPDATE));
+    SetDlgItemTextWide(hDlg, IDC_SCRIPTS, GetLangStringW(wLangModule, STRID_SCRIPTS));
+    SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
     ComboBox_AddStringWide(hWndMirror, L"osdn");
     ComboBox_AddStringWide(hWndMirror, L"heanet");
@@ -586,19 +610,19 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Columns EXE
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_PROGRAM);
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_PROGRAM);
     lvc.cx=188;
     lvc.iSubItem=LVI_NAME;
     ListView_InsertColumnWide(hWndListExe, LVI_NAME, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_LATEST);
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_LATEST);
     lvc.cx=105;
     lvc.iSubItem=LVI_LATEST;
     ListView_InsertColumnWide(hWndListExe, LVI_LATEST, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_CURRENT);
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_CURRENT);
     lvc.cx=63;
     lvc.iSubItem=LVI_CURRENT;
     ListView_InsertColumnWide(hWndListExe, LVI_CURRENT, &lvc);
@@ -611,13 +635,13 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ListView_InsertColumnWide(hWndListDll, LVI_NAME, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_LATEST);
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_LATEST);
     lvc.cx=83;
     lvc.iSubItem=LVI_LATEST;
     ListView_InsertColumnWide(hWndListDll, LVI_LATEST, &lvc);
 
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_CURRENT);
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_CURRENT);
     lvc.cx=83;
     lvc.iSubItem=LVI_CURRENT;
     ListView_InsertColumnWide(hWndListDll, LVI_CURRENT, &lvc);
@@ -649,35 +673,6 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
     }
   }
-  if (uMsg == AKD_DETECTFILE ||
-      uMsg == AKD_DETECTFILEA ||
-      uMsg == AKD_DETECTFILEW)
-  {
-    DETECTFILEW *dc=(DETECTFILEW *)lParam;
-    wchar_t *wpFile;
-    int nResult;
-
-    if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
-      wpFile=AllocWide((char *)dc->pFile);
-    else
-      wpFile=(wchar_t *)dc->pFile;
-
-    nResult=AutodetectCodePage(wpFile, NULL, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
-
-    if (uMsg == AKD_DETECTFILEA || (bOldWindows && uMsg == AKD_DETECTFILE))
-      FreeWide(wpFile);
-    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, nResult);
-    return TRUE;
-  }
-  if (uMsg == AKD_READFILECONTENT)
-  {
-    FILECONTENT *fc=(FILECONTENT *)lParam;
-    UINT_PTR dwResult;
-
-    dwResult=ReadFileContent(fc->hFile, fc->dwMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
-    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, dwResult);
-    return TRUE;
-  }
   if (uMsg == AKDLL_SHOWWINDOW)
   {
     ShowWindow(hDlg, SW_SHOW);
@@ -706,11 +701,11 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ++nAllItemsCount;
       }
       if (nErrorsCount)
-        xprintfW(wszBuf2, L"(%s: %d)   ", GetLangStringW(wLangSystem, STRID_ERRORCOUNT), nErrorsCount);
+        xprintfW(wszBuffer2, L"(%s: %d)   ", GetLangStringW(wLangModule, STRID_ERRORCOUNT), nErrorsCount);
       else
-        wszBuf2[0]=L'\0';
-      xprintfW(wszBuf, L"%s%d / %d", wszBuf2, nSelCount, nAllItemsCount);
-      SetWindowTextWide(hWndListStatusInfo, wszBuf);
+        wszBuffer2[0]=L'\0';
+      xprintfW(wszBuffer, L"%s%d / %d", wszBuffer2, nSelCount, nAllItemsCount);
+      SetWindowTextWide(hWndListStatusInfo, wszBuffer);
       EnableWindow(hWndUpdate, nSelCount);
     }
   }
@@ -782,8 +777,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           xmemset(&si, 0, sizeof(STARTUPINFOW));
           si.cb=sizeof(STARTUPINFOW);
 
-          xprintfW(wszBuf, L"\"%s\" \"%s\\Scripts\\%s\"", wszAkelExe, wszPlugsDir, lpFileItem->wszName);
-          if (CreateProcessWide(NULL, wszBuf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+          xprintfW(wszBuffer, L"\"%s\" \"%s\\Scripts\\%s\"", wszAkelExe, wszPlugsDir, lpFileItem->wszName);
+          if (CreateProcessWide(NULL, wszBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
           {
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
@@ -915,8 +910,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (bScripts)
       {
-        if (!DllAkelUpdaterFill)
+        if (!bScriptsLstLoaded)
         {
+          bScriptsLstLoaded=TRUE;
           pushstringWide(L"ini");
           pushstringWide(wszScriptsPack);
           if (lpDownloadScriptsProc >= 0)
@@ -963,15 +959,15 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //"Type|Pack|OrigName"
-          nOffset=xprintfW(wszBuf, L"%d|%s|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->wszName);
+          nOffset=xprintfW(wszBuffer, L"%d|%s|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->wszName);
 
           //Append copies and push them in format "Type|Pack|OrigName|CopyName1|CopyName2"
           for (lpCopyItem=lpFileItem->firstCopy; lpCopyItem; lpCopyItem=lpCopyItem->next)
           {
-            nOffset+=xprintfW(wszBuf + nOffset, L"|%s", lpCopyItem->wszName);
+            nOffset+=xprintfW(wszBuffer + nOffset, L"|%s", lpCopyItem->wszName);
           }
 
-          pushstringWide(wszBuf);
+          pushstringWide(wszBuffer);
         }
       }
 
@@ -994,18 +990,18 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           g_pluginParms->ExecuteCodeSegment(lpDownloadScriptsProc - 1, 0);
       }
 
-      xprintfW(wszBuf, L"%s|%d", lpFileItemAkelPad->nChecked > 0?lpFileItemAkelPad->wszLastVer:L"0", nCountDLL);
-      setuservariable(INST_0, wszBuf);
+      xprintfW(wszBuffer, L"%s|%d", lpFileItemAkelPad->nChecked > 0?lpFileItemAkelPad->wszLastVer:L"0", nCountDLL);
+      setuservariable(INST_0, wszBuffer);
 
-      wszBuf[0]=L'\0';
+      wszBuffer[0]=L'\0';
       if ((nSelection=SendMessage(hWndMirror, CB_GETCURSEL, 0, 0)) != CB_ERR)
-        ComboBox_GetLBTextWide(hWndMirror, nSelection, wszBuf);
-      setuservariable(INST_1, wszBuf);
+        ComboBox_GetLBTextWide(hWndMirror, nSelection, wszBuffer);
+      setuservariable(INST_1, wszBuffer);
 
-      wszBuf[0]=L'\0';
+      wszBuffer[0]=L'\0';
       if ((nSelection=SendMessage(hWndLanguage, CB_GETCURSEL, 0, 0)) != CB_ERR)
-        ComboBox_GetLBTextWide(hWndLanguage, nSelection, wszBuf);
-      setuservariable(INST_2, wszBuf);
+        ComboBox_GetLBTextWide(hWndLanguage, nSelection, wszBuffer);
+      setuservariable(INST_2, wszBuffer);
 
       EndDialog(hDlg, TRUE);
       return TRUE;
@@ -1101,92 +1097,84 @@ void ParseLst(HWND hDlg)
 
     xstrcpynW(wszPack, L"PlugsPack", MAX_PATH);
     xprintfW(wszFile, L"%s\\versions.lst", wszNsisTempDir);
-    hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-    if (hFile != INVALID_HANDLE_VALUE)
+    wpContent=NULL;
+
+    if (nContentLen=DetectAndReadFile(&hFile, wszFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM, &wpContent, (UINT_PTR)-1))
     {
-      if (AutodetectCodePage(NULL, hFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM) == EDT_SUCCESS)
+      wpMaxContent=wpContent + nContentLen;
+      wpCount=wpContent;
+
+      while (wpCount < wpMaxContent)
       {
-        SetFilePointer64(hFile, 0, FILE_BEGIN);
-        wpContent=NULL;
+        wpLineEnd=wpCount;
+        while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && wpLineEnd < wpMaxContent) ++wpLineEnd;
 
-        if (nContentLen=ReadFileContent(hFile, (UINT_PTR)-1, nCodePage, bBOM, &wpContent))
+        if (wpCount < wpLineEnd)
         {
-          wpMaxContent=wpContent + nContentLen;
-          wpCount=wpContent;
-
-          while (wpCount < wpMaxContent)
+          if ((nNameLen=GetNextWord(wpCount, wpLineEnd - wpCount, L"='", 2, wszName, MAX_PATH, &wpCount)) &&
+              GetNextWord(wpCount, wpLineEnd - wpCount, L"'", 1, wszString, MAX_PATH, &wpCount))
           {
-            wpLineEnd=wpCount;
-            while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && wpLineEnd < wpMaxContent) ++wpLineEnd;
-
-            if (wpCount < wpLineEnd)
+            if (!wszNoSupport64Bit[0] && !xstrcmpiW(wszName, L"$NoSupport64Bit"))
             {
-              if ((nNameLen=GetNextWord(wpCount, wpLineEnd - wpCount, L"='", 2, wszName, MAX_PATH, &wpCount)) &&
-                  GetNextWord(wpCount, wpLineEnd - wpCount, L"'", 1, wszString, MAX_PATH, &wpCount))
+              xstrcpynW(wszNoSupport64Bit, wszString, MAX_PATH);
+            }
+            else if (!wszScriptsPack[0] && !xstrcmpiW(wszName, L"$ScriptsPack"))
+            {
+              xstrcpynW(wszScriptsPack, wszString, MAX_PATH);
+            }
+            else
+            {
+              //Trim "Ver"
+              if (nNameLen > 3 && !xstrcmpiW(wszName + nNameLen - 3, L"Ver"))
               {
-                if (!wszNoSupport64Bit[0] && !xstrcmpiW(wszName, L"$NoSupport64Bit"))
-                {
-                  xstrcpynW(wszNoSupport64Bit, wszString, MAX_PATH);
-                }
-                else if (!wszScriptsPack[0] && !xstrcmpiW(wszName, L"$ScriptsPack"))
-                {
-                  xstrcpynW(wszScriptsPack, wszString, MAX_PATH);
-                }
-                else
-                {
-                  //Trim "Ver"
-                  if (nNameLen > 3 && !xstrcmpiW(wszName + nNameLen - 3, L"Ver"))
-                  {
-                    nNameLen-=3;
-                    wszName[nNameLen]=L'\0';
-                  }
-                  //Trim "$"
-                  xstrcpynW(wszName, wszName + 1, MAX_PATH);
+                nNameLen-=3;
+                wszName[nNameLen]=L'\0';
+              }
+              //Trim "$"
+              xstrcpynW(wszName, wszName + 1, MAX_PATH);
 
-                  if ((nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL)) ||
-                      (lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1)))
+              if ((nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL)) ||
+                  (lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1)))
+              {
+                //Skip line
+              }
+              else
+              {
+                if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
+                  lpFileItem=StackFileInsert(&hFileStack, wszName);
+                if (lpFileItem)
+                {
+                  xstrcpynW(lpFileItem->wszLastVer, wszString, MAX_PATH);
+
+                  if (!lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1))
                   {
-                    //Skip line
+                    lpFileItem->nType=FIT_AKELPAD;
+                    if (GetFileVersionWide(wszAkelExe, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
+                      xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
+                    lpFileItemAkelPad=lpFileItem;
+                  }
+                  else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
+                  {
+                    lpFileItem->nType=FIT_PLUGIN;
+                    lpFileItemScripts=lpFileItem;
+                    xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                   }
                   else
                   {
-                    if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
-                      lpFileItem=StackFileInsert(&hFileStack, wszName);
-                    if (lpFileItem)
-                    {
-                      xstrcpynW(lpFileItem->wszLastVer, wszString, MAX_PATH);
-
-                      if (!lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1))
-                      {
-                        lpFileItem->nType=FIT_AKELPAD;
-                        if (GetFileVersionWide(wszAkelExe, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
-                          xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
-                        lpFileItemAkelPad=lpFileItem;
-                      }
-                      else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
-                      {
-                        lpFileItem->nType=FIT_PLUGIN;
-                        lpFileItemScripts=lpFileItem;
-                        xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
-                      }
-                      else
-                      {
-                        lpFileItem->nType=FIT_PLUGIN;
-                        xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
-                      }
-                    }
+                    lpFileItem->nType=FIT_PLUGIN;
+                    xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                   }
                 }
               }
             }
-            wpCount=wpLineEnd;
-            while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
           }
-          GlobalFree((HGLOBAL)wpContent);
         }
+        wpCount=wpLineEnd;
+        while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
       }
-      CloseHandle(hFile);
+      GlobalFree((HGLOBAL)wpContent);
     }
+    if (hFile) CloseHandle(hFile);
     StackFilesSort(&hFileStack);
   }
 
@@ -1198,7 +1186,6 @@ void ParseLst(HWND hDlg)
     const wchar_t *wpPack=wszScriptsPack;
     const wchar_t *wpMaxPack=wszScriptsPack + xstrlenW(wszScriptsPack);
     INT_PTR nVersionLen;
-    HMODULE hInstance;
     BOOL bScriptsSection;
     LISTCOLUMN lpColumns[]={{LVI_SCRIPTS_SCRIPT,      163, LCF_VISIBLE},
                             {LVI_SCRIPTS_VERSION,     70,  LCF_VISIBLE|LCF_CONTENT},
@@ -1207,111 +1194,92 @@ void ParseLst(HWND hDlg)
                             //{LVI_SCRIPTS_SITE,        70,  LCF_VISIBLE|LCF_CONTENT},
                             {-1, 0, 0}};
 
-    xprintfW(wszFile, L"%s\\Scripts.dll", wszPlugsDir);
-    if (hInstance=LoadLibraryWide(wszFile))
+    //Fill hScriptsStack with current versions
+    StackFillListItem(&hScriptsStack, lpColumns);
+
+    while (GetNextWord(wpPack, wpMaxPack - wpPack, L"|", 1, wszPack, MAX_PATH, &wpPack))
     {
-      //Fill hScriptsStack with current versions
-      if (!DllAkelUpdaterFill)
-        DllAkelUpdaterFill=(void (*)(HWND, HWND, STACKLISTITEM *, LISTCOLUMN *))GetProcAddress(hInstance, "DllAkelUpdaterFill");
-      if (DllAkelUpdaterFill)
-        DllAkelUpdaterFill(hDlg, NULL, &hScriptsStack, lpColumns);
+      xprintfW(wszFile, L"%s\\%s.ini", wszNsisTempDir, wszPack);
+      wpContent=NULL;
 
-      while (GetNextWord(wpPack, wpMaxPack - wpPack, L"|", 1, wszPack, MAX_PATH, &wpPack))
+      if (nContentLen=DetectAndReadFile(&hFile, wszFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM, &wpContent, (UINT_PTR)-1))
       {
-        xprintfW(wszFile, L"%s\\%s.ini", wszNsisTempDir, wszPack);
-        hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-        if (hFile != INVALID_HANDLE_VALUE)
+        wpMaxContent=wpContent + nContentLen;
+        wpCount=wpContent;
+        bScriptsSection=FALSE;
+
+        while (wpCount < wpMaxContent)
         {
-          if (AutodetectCodePage(NULL, hFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM) == EDT_SUCCESS)
+          lpMainScript=NULL;
+          wpLineEnd=wpCount;
+          while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && wpLineEnd < wpMaxContent) ++wpLineEnd;
+
+          if (wpCount < wpLineEnd && *wpCount != L';')
           {
-            SetFilePointer64(hFile, 0, FILE_BEGIN);
-            wpContent=NULL;
-
-            if (nContentLen=ReadFileContent(hFile, (UINT_PTR)-1, nCodePage, bBOM, &wpContent))
+            if (*wpCount == L'[' && *(wpLineEnd - 1) == L']')
             {
-              wpMaxContent=wpContent + nContentLen;
-              wpCount=wpContent;
-              bScriptsSection=FALSE;
-
-              while (wpCount < wpMaxContent)
+              if (!xstrcmpinW(L"[Scripts]", wpCount, (UINT_PTR)-1))
+                bScriptsSection=TRUE;
+              else
+                bScriptsSection=FALSE;
+            }
+            if (bScriptsSection)
+            {
+              if (GetNextWord(wpCount, wpLineEnd - wpCount, L"=", 1, wszName, MAX_PATH, &wpCount))
               {
-                lpMainScript=NULL;
-                wpLineEnd=wpCount;
-                while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && wpLineEnd < wpMaxContent) ++wpLineEnd;
-
-                if (wpCount < wpLineEnd && *wpCount != L';')
+                if (nVersionLen=GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszString, MAX_PATH, &wpCount))
                 {
-                  if (*wpCount == L'[' && *(wpLineEnd - 1) == L']')
+                  //Trim trailing spaces
+                  while (nVersionLen > 0 && (wszString[nVersionLen - 1] == L' ' || wszString[nVersionLen - 1] == L'\t'))
+                    wszString[--nVersionLen]=L'\0';
+
+                  //Main script
+                  if (!(lpMainScript=StackFileGet(&hFileStack, wszName)))
+                    lpMainScript=StackFileInsert(&hFileStack, wszName);
+                  if (lpMainScript)
                   {
-                    if (!xstrcmpinW(L"[Scripts]", wpCount, (UINT_PTR)-1))
-                      bScriptsSection=TRUE;
-                    else
-                      bScriptsSection=FALSE;
-                  }
-                  if (bScriptsSection)
-                  {
-                    if (GetNextWord(wpCount, wpLineEnd - wpCount, L"=", 1, wszName, MAX_PATH, &wpCount))
+                    lpMainScript->nType=FIT_SCRIPT;
+                    xstrcpynW(lpMainScript->wszLastVer, wszString, MAX_PATH);
+                    xstrcpynW(lpMainScript->wszPack, wszPack, MAX_PATH);
+
+                    if (lpScriptItem=StackScriptGet(&hScriptsStack, wszName))
                     {
-                      if (nVersionLen=GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszString, MAX_PATH, &wpCount))
+                      xstrcpynW(lpMainScript->wszCurVer, lpScriptItem->wpVersion, MAX_PATH);
+                      xstrcpynW(lpMainScript->wszDescription, lpScriptItem->wpDescription, MAX_PATH);
+                      xstrcpynW(lpMainScript->wszAuthor, lpScriptItem->wpAuthor, MAX_PATH);
+                    }
+                  }
+
+                  //Script's additional files
+                  if (*(wpCount - 1) == L'\"')
+                  {
+                    while (GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
+                    {
+                      if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
+                        lpFileItem=StackFileInsert(&hFileStack, wszName);
+                      if (lpFileItem)
                       {
-                        //Trim trailing spaces
-                        while (nVersionLen > 0 && (wszString[nVersionLen - 1] == L' ' || wszString[nVersionLen - 1] == L'\t'))
-                          wszString[--nVersionLen]=L'\0';
-
-                        //Main script
-                        if (!(lpMainScript=StackFileGet(&hFileStack, wszName)))
-                          lpMainScript=StackFileInsert(&hFileStack, wszName);
-                        if (lpMainScript)
-                        {
-                          lpMainScript->nType=FIT_SCRIPT;
-                          xstrcpynW(lpMainScript->wszLastVer, wszString, MAX_PATH);
-                          xstrcpynW(lpMainScript->wszPack, wszPack, MAX_PATH);
-
-                          if (lpScriptItem=StackScriptGet(&hScriptsStack, wszName))
-                          {
-                            xstrcpynW(lpMainScript->wszCurVer, lpScriptItem->wpVersion, MAX_PATH);
-                            xstrcpynW(lpMainScript->wszDescription, lpScriptItem->wpDescription, MAX_PATH);
-                            xstrcpynW(lpMainScript->wszAuthor, lpScriptItem->wpAuthor, MAX_PATH);
-                          }
-                        }
-
-                        //Script's additional files
-                        if (*(wpCount - 1) == L'\"')
-                        {
-                          while (GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
-                          {
-                            if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
-                              lpFileItem=StackFileInsert(&hFileStack, wszName);
-                            if (lpFileItem)
-                            {
-                              lpFileItem->nType=FIT_FORSCRIPT;
-                              StackFileRefInsert((STACKFILEREFITEM *)&lpFileItem->firstRefScript, lpMainScript);
-                              xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
-                            }
-                            if (!GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
-                              break;
-                          }
-                        }
+                        lpFileItem->nType=FIT_FORSCRIPT;
+                        StackFileRefInsert((STACKFILEREFITEM *)&lpFileItem->firstRefScript, lpMainScript);
+                        xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
                       }
+                      if (!GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
+                        break;
                     }
                   }
                 }
-                wpCount=wpLineEnd;
-                while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
               }
-              GlobalFree((HGLOBAL)wpContent);
             }
           }
-          CloseHandle(hFile);
+          wpCount=wpLineEnd;
+          while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
         }
+        GlobalFree((HGLOBAL)wpContent);
       }
-
-      if (!DllAkelUpdaterFree)
-        DllAkelUpdaterFree=(void (*)(STACKLISTITEM *))GetProcAddress(hInstance, "DllAkelUpdaterFree");
-      if (DllAkelUpdaterFree)
-        DllAkelUpdaterFree(&hScriptsStack);
-      FreeLibrary(hInstance);
+      if (hFile) CloseHandle(hFile);
     }
+    StackFreeListItem(&hScriptsStack);
+
     StackFilesSort(&hFileStack);
   }
 }
@@ -1328,7 +1296,7 @@ void CompareItems()
       //Unofficial file
       if (!lpFileItem->dwError)
       {
-        xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangSystem, STRID_ERRORNOTINLIST));
+        xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangModule, STRID_ERRORNOTINLIST));
         lpFileItem->dwError=PE_NOTINLIST;
       }
       lpFileItem->nChecked=0;
@@ -1383,7 +1351,7 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
       if (!ListView_GetColumnWide(hWndListDll, LVI_DESCRIPTION, &lvc))
       {
         lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-        lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_DESCRIPTION);
+        lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_DESCRIPTION);
         lvc.cx=460;
         lvc.iSubItem=LVI_DESCRIPTION;
         ListView_InsertColumnWide(hWndListDll, LVI_DESCRIPTION, &lvc);
@@ -1393,7 +1361,7 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
       if (!ListView_GetColumnWide(hWndListDll, LVI_AUTHOR, &lvc))
       {
         lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-        lvc.pszText=(wchar_t *)GetLangStringW(wLangSystem, STRID_AUTHOR);
+        lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_AUTHOR);
         lvc.cx=130;
         lvc.iSubItem=LVI_AUTHOR;
         ListView_InsertColumnWide(hWndListDll, LVI_AUTHOR, &lvc);
@@ -1404,9 +1372,9 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
       SendMessage(hWndListDll, LVM_DELETECOLUMN, LVI_AUTHOR, 0);
       SendMessage(hWndListDll, LVM_DELETECOLUMN, LVI_DESCRIPTION, 0);
     }
-    xprintfW(wszBuf, L"%s%s", GetLangStringW(wLangSystem, bScripts?STRID_SCRIPT:STRID_PLUGIN), (!bScripts && !bInputNoCopies)?GetLangStringW(wLangSystem, STRID_COPIES):NULL);
+    xprintfW(wszBuffer, L"%s%s", GetLangStringW(wLangModule, bScripts?STRID_SCRIPT:STRID_PLUGIN), (!bScripts && !bInputNoCopies)?GetLangStringW(wLangModule, STRID_COPIES):NULL);
     lvc.mask=LVCF_TEXT;
-    lvc.pszText=(wchar_t *)wszBuf;
+    lvc.pszText=(wchar_t *)wszBuffer;
     ListView_SetColumnWide(hWndListDll, LVI_NAME, &lvc);
 
     SendMessage(hWndListDll, WM_SETREDRAW, FALSE, 0);
@@ -1437,9 +1405,9 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
     if (hWndList == hWndListExe)
     {
       if (nInputBit == 64)
-        xprintfW(wszBuf, L"%s (x64)", lpFileItem->wszName);
+        xprintfW(wszBuffer, L"%s (x64)", lpFileItem->wszName);
       else
-        xprintfW(wszBuf, L"%s (x86)", lpFileItem->wszName);
+        xprintfW(wszBuffer, L"%s (x86)", lpFileItem->wszName);
     }
     else if (hWndList == hWndListDll)
     {
@@ -1456,23 +1424,23 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
         }
       }
 
-      nOffset=xstrcpynW(wszBuf, lpFileItem->wszName, MAX_PATH);
+      nOffset=xstrcpynW(wszBuffer, lpFileItem->wszName, MAX_PATH);
 
       //Append copies
       if (lpCopyItem=lpFileItem->firstCopy)
       {
-        nOffset+=xprintfW(wszBuf + nOffset, L" (%s", lpCopyItem->wszName);
+        nOffset+=xprintfW(wszBuffer + nOffset, L" (%s", lpCopyItem->wszName);
 
         for (lpCopyItem=lpCopyItem->next; lpCopyItem; lpCopyItem=lpCopyItem->next)
         {
-          nOffset+=xprintfW(wszBuf + nOffset, L", %s", lpCopyItem->wszName);
+          nOffset+=xprintfW(wszBuffer + nOffset, L", %s", lpCopyItem->wszName);
         }
-        xprintfW(wszBuf + nOffset, L")");
+        xprintfW(wszBuffer + nOffset, L")");
       }
     }
 
     lvi.mask=LVIF_TEXT|LVIF_PARAM;
-    lvi.pszText=lpFileItem->dwError?lpFileItem->wszError:wszBuf;
+    lvi.pszText=lpFileItem->dwError?lpFileItem->wszError:wszBuffer;
     lvi.iItem=0x7FFFFFFF;
     lvi.iSubItem=LVI_NAME;
     lvi.lParam=(LPARAM)lpFileItem;
@@ -1652,39 +1620,7 @@ void StackFilesFill(STACKFILEITEM *hStack)
       {
         if (nInputBit == 64)
         {
-          STARTUPINFOW si;
-          PROCESS_INFORMATION pi;
-
-          xprintfW(wszBuf, L"\"%s\\%s\" \"%Id\" \"%s\"", wszNsisTempDir, wszInputHelper, hWndDialog, wszFile);
-          xmemset(&si, 0, sizeof(STARTUPINFOW));
-          si.cb=sizeof(STARTUPINFOW);
-
-          if (CreateProcessWide(NULL, wszBuf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-          {
-            //Wait for pi.hProcess and process messages.
-            MSG msg;
-            BOOL bExitLoop=FALSE;
-
-            for (;;)
-            {
-              while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-              {
-                if (msg.message == WM_QUIT)
-                  bExitLoop=TRUE;
-                else
-                {
-                  TranslateMessage(&msg);
-                  DispatchMessageWide(&msg);
-                }
-              }
-              if (bExitLoop)
-                break;
-              if (MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
-                break;
-            }
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-          }
+          AkelUpdaterHelpExec(AUH_GETDLLNAME, wszFile);
         }
         else
         {
@@ -1729,9 +1665,9 @@ void StackFilesFill(STACKFILEITEM *hStack)
         if (lpFileItem=StackFileInsert(hStack, wfd.cFileName))
         {
           if (diGlobal.dwError == PE_NOTPLUGIN)
-            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangSystem, STRID_ERRORNOTPLUGIN));
+            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangModule, STRID_ERRORNOTPLUGIN));
           else if (diGlobal.dwError == PE_CANTLOAD)
-            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName,  GetLangStringW(wLangSystem, STRID_ERRORCANTLOAD));
+            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName,  GetLangStringW(wLangModule, STRID_ERRORCANTLOAD));
           else
             xprintfW(lpFileItem->wszError, L"%s", lpFileItem->wszName);
           lpFileItem->nType=FIT_PLUGIN;
@@ -1855,6 +1791,43 @@ LISTITEM* StackScriptGet(STACKLISTITEM *hStack, const wchar_t *wpScriptFileName)
       return lpElement;
   }
   return NULL;
+}
+
+void AkelUpdaterHelpExec(int nAction, const wchar_t *wpFile)
+{
+  STARTUPINFOW si;
+  PROCESS_INFORMATION pi;
+
+  xprintfW(wszBuffer, L"\"%s\\%s\" %d \"%Id\" \"%s\"", nAction, wszNsisTempDir, wszInputHelper, hWndDialog, wpFile);
+  xmemset(&si, 0, sizeof(STARTUPINFOW));
+  si.cb=sizeof(STARTUPINFOW);
+
+  if (CreateProcessWide(NULL, wszBuffer, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+  {
+    //Wait for pi.hProcess and process messages.
+    MSG msg;
+    BOOL bExitLoop=FALSE;
+
+    for (;;)
+    {
+      while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      {
+        if (msg.message == WM_QUIT)
+          bExitLoop=TRUE;
+        else
+        {
+          TranslateMessage(&msg);
+          DispatchMessageWide(&msg);
+        }
+      }
+      if (bExitLoop)
+        break;
+      if (MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+        break;
+    }
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+  }
 }
 
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
@@ -2050,17 +2023,39 @@ BOOL GetFileVersionWide(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nR
   }
 }
 
-int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
+INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wppContent, UINT_PTR dwBytesMax)
 {
-  HANDLE hFileInput=hFile;
+  HANDLE hFile;
+  INT_PTR nContentLen=0;
+
+  if (lphFile && !wpFile)
+    hFile=*lphFile;
+  else
+    hFile=NULL;
+  if (!hFile)
+    hFile=CreateFileWide(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
+  if (hFile && hFile != INVALID_HANDLE_VALUE)
+  {
+    if (dwFlags & (ADT_DETECTCODEPAGE|ADT_DETECTBOM))
+    {
+      if (AutodetectCodePage(hFile, dwFlags, lpnCodePage, lpbBOM) == EDT_SUCCESS)
+        SetFilePointer64(hFile, 0, FILE_BEGIN);
+    }
+    nContentLen=ReadFileContent(hFile, dwBytesMax, *lpnCodePage, *lpbBOM, wppContent);
+    if (!lphFile) CloseHandle(hFile);
+  }
+  if (lphFile) *lphFile=hFile;
+  return nContentLen;
+}
+
+int AutodetectCodePage(HANDLE hFile, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
+{
   BYTE wszFirstBytes[4];
   UINT_PTR dwBytesRead=0;
   int nResult=EDT_SUCCESS;
 
-  if (!hFile)
-    hFile=CreateFileWide(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-  if (hFile != INVALID_HANDLE_VALUE)
+  if (hFile && hFile != INVALID_HANDLE_VALUE)
   {
     if (ReadFile64(hFile, wszFirstBytes, sizeof(wszFirstBytes), &dwBytesRead, NULL))
     {
@@ -2113,16 +2108,14 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, DWORD dwFlags, int *
   if (dwFlags & ADT_DETECTBOM) *bBOM=FALSE;
 
   End:
-  if (hFileInput != hFile && hFile != INVALID_HANDLE_VALUE)
-    CloseHandle(hFile);
   return nResult;
 }
 
 UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wppContent)
 {
-  unsigned char *szBuffer;
-  wchar_t *wszBuffer=*wppContent;
-  UINT_PTR dwBufferBytes;
+  unsigned char *szContent;
+  wchar_t *wszContent=*wppContent;
+  UINT_PTR dwContentBytes;
   UINT_PTR dwBytesRead;
   UINT_PTR dwCharsConverted=0;
 
@@ -2153,21 +2146,21 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
   if (dwBytesMax != (UINT_PTR)-1)
   {
     if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
-      dwBufferBytes=dwBytesMax;
+      dwContentBytes=dwBytesMax;
     else
-      dwBufferBytes=dwBytesMax * sizeof(wchar_t);
+      dwContentBytes=dwBytesMax * sizeof(wchar_t);
 
-    if (!wszBuffer)
-      wszBuffer=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwBufferBytes + sizeof(wchar_t));
-    if (wszBuffer)
+    if (!wszContent)
+      wszContent=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwContentBytes + sizeof(wchar_t));
+    if (wszContent)
     {
       if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
-        szBuffer=(unsigned char *)wszBuffer;
+        szContent=(unsigned char *)wszContent;
       else
-        szBuffer=(unsigned char *)wszBuffer + dwBytesMax;
+        szContent=(unsigned char *)wszContent + dwBytesMax;
 
       //Read data from file
-      if (ReadFile64(hFile, szBuffer, dwBytesMax, &dwBytesRead, NULL))
+      if (ReadFile64(hFile, szContent, dwBytesMax, &dwBytesRead, NULL) && dwBytesRead)
       {
         //Translate data to UNICODE
         if (nCodePage == CP_UNICODE_UTF16LE)
@@ -2176,30 +2169,30 @@ UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL 
         }
         else if (nCodePage == CP_UNICODE_UTF16BE)
         {
-          ChangeTwoBytesOrder(szBuffer, dwBytesRead, NULL);
+          ChangeTwoBytesOrder(szContent, dwBytesRead, NULL);
           dwCharsConverted=dwBytesRead / sizeof(wchar_t);
         }
         else if (nCodePage == CP_UNICODE_UTF32LE)
         {
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szContent, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
         }
         else if (nCodePage == CP_UNICODE_UTF32BE)
         {
-          ChangeFourBytesOrder(szBuffer, dwBytesRead, NULL);
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          ChangeFourBytesOrder(szContent, dwBytesRead, NULL);
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szContent, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
         }
         else
         {
           if (nCodePage == CP_UNICODE_UTF8)
-            dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=UTF8toUTF16(szContent, dwBytesRead, NULL, (unsigned short *)wszContent, dwContentBytes / sizeof(wchar_t));
           else
-            dwCharsConverted=MultiByteToWideChar64(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=MultiByteToWideChar64(nCodePage, 0, (char *)szContent, dwBytesRead, wszContent, dwContentBytes / sizeof(wchar_t));
         }
-        wszBuffer[dwCharsConverted]=L'\0';
       }
+      wszContent[dwCharsConverted]=L'\0';
     }
   }
-  *wppContent=wszBuffer;
+  *wppContent=wszContent;
   return dwCharsConverted;
 }
 
@@ -2254,6 +2247,8 @@ BOOL IsCodePageUnicode(int nCodePage)
 
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 {
+  wLangID=PRIMARYLANGID(wLangID);
+
   if (wLangID == LANG_RUSSIAN)
   {
     if (nStringID == STRID_PROGRAM)
@@ -2335,6 +2330,327 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
   return L"";
 }
 
+
+//Adaptation from Scripts.c
+void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
+{
+  LISTITEM *lpListItem;
+  WIN32_FIND_DATAW wfd;
+  HANDLE hFind;
+  HANDLE hFile;
+  wchar_t wszFile[MAX_PATH];
+  const wchar_t *wpExt;
+  wchar_t *wpCount;
+  wchar_t *wpMaxCount;
+  wchar_t *wpValue;
+  wchar_t *wpValueEnd;
+  wchar_t *wpLineEnd;
+  wchar_t *wszContentBuffer=NULL;
+  wchar_t *wpContent=NULL;
+  wchar_t *wpMaxContent;
+  static wchar_t *wpVersion;
+  static wchar_t *wpDescription;
+  static wchar_t *wpAuthor;
+  static wchar_t *wpSite;
+  const wchar_t *wpComment;
+  INT_PTR nContentLen;
+  INT_PTR nBytesToRead;
+  static INT_PTR nVersionLen;
+  static INT_PTR nDescriptionLen;
+  static INT_PTR nAuthorLen;
+  static INT_PTR nSiteLen;
+  DWORD dwAllColumns;
+  DWORD dwContentColumns;
+  int nCommentLen;
+  LANGID wLang;
+  LANGID wDescriptionLang;
+  int nCodePage;
+  BOOL bBOM;
+  CONTENTKEY *ckCount;
+  CONTENTKEY ck[]={{NULL, 0, &wpDescription, &nDescriptionLen},
+                   {L"***", 3, &wpDescription, &nDescriptionLen},
+                   {L"Description(", 12, &wpDescription, &nDescriptionLen},
+                   {L"Version:", 8, &wpVersion, &nVersionLen},
+                   {L"Author:", 7, &wpAuthor, &nAuthorLen},
+                   {L"http://akelpad.sourceforge.net/", 31, &wpSite, &nSiteLen},
+                   {0,0,0}};
+
+  //Clear stack
+  StackFreeListItem(hStack);
+
+  //Find columns
+  dwAllColumns=GetColumnFlags(lpColumns);
+  dwContentColumns=dwAllColumns & (LCN_VERSION|LCN_DESCRIPTION|LCN_AUTHOR|LCN_SITE);
+
+  //Content buffer
+  if (dwContentColumns)
+  {
+    wszContentBuffer=GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
+    wpMaxContent=wszContentBuffer + 65536;
+    nBytesToRead=512;
+  }
+
+  //Script files
+  xprintfW(wszFile, L"%s\\*.*", wszScriptsDir);
+
+  if ((hFind=FindFirstFileWide(wszFile, &wfd)) != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      if (wfd.cFileName[0] == '.' && (wfd.cFileName[1] == '\0' || (wfd.cFileName[1] == '.' && wfd.cFileName[2] == '\0'))) continue;
+
+      if (!(wpExt=GetFileExt(wfd.cFileName, -1)))
+        continue;
+      if (!xstrcmpiW(wpExt, L"js"))
+      {
+        wpComment=L"//";
+        nCommentLen=2;
+      }
+      else if (!xstrcmpiW(wpExt, L"vbs"))
+      {
+        wpComment=L"'";
+        nCommentLen=1;
+      }
+      else continue;
+
+      //Script content
+      hFile=NULL;
+      nCodePage=0;
+      bBOM=FALSE;
+      ck[0].wpKey=wpComment;
+      ck[0].nKeyLen=nCommentLen;
+      wpContent=wszContentBuffer;
+      wpVersion=NULL;
+      wpDescription=NULL;
+      wpAuthor=NULL;
+      wpSite=NULL;
+      wDescriptionLang=0;
+
+      if (dwContentColumns)
+      {
+        xprintfW(wszFile, L"%s\\%s", wszScriptsDir, wfd.cFileName);
+
+        if (nContentLen=DetectAndReadFile(&hFile, wszFile, ADT_DETECTCODEPAGE|ADT_DETECTBOM, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+        {
+          wpCount=wpContent;
+          wpMaxCount=wpContent + nContentLen;
+
+          while (nBytesToRead == -1 ? wpCount < wpMaxCount : nContentLen)
+          {
+            wpLineEnd=wpCount;
+
+            for (;;)
+            {
+              //Make sure we have all line in buffer
+              while (*wpLineEnd != L'\r' && *wpLineEnd != L'\n' && *wpLineEnd != L'\0') ++wpLineEnd;
+              if (!*wpLineEnd && nBytesToRead != -1)
+              {
+                wpContent=wpMaxCount;
+                if (wpContent + nBytesToRead <= wpMaxContent)
+                {
+                  //Read next block to wszContentBuffer
+                  if (nContentLen=DetectAndReadFile(&hFile, NULL, 0, &nCodePage, &bBOM, &wpContent, (UINT_PTR)nBytesToRead))
+                  {
+                    //Now wpCount could point to "\r|\n"
+                    while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+                    wpMaxCount=wpContent + nContentLen;
+                    continue;
+                  }
+                }
+              }
+              break;
+            }
+
+            //Skip spaces at line start
+            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+
+            //Line must start with comment
+            if (xstrcmpinW(wpComment, wpCount, (UINT_PTR)-1))
+              break;
+            wpCount+=nCommentLen;
+
+            //Skip spaces
+            while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+
+            if (*wpCount != L'\r' && *wpCount != L'\n')
+            {
+              for (ckCount=ck; ckCount->wpKey; ++ckCount)
+              {
+                wpValue=*ckCount->wppValue;
+
+                if ((!wpValue || (ckCount->wppValue == &wpDescription && wDescriptionLang != wLangModule)) &&
+                    !xstrcmpinW(ckCount->wpKey, wpCount, (UINT_PTR)-1))
+                {
+                  if (ckCount->wppValue != &wpSite)
+                  {
+                    wpCount+=ckCount->nKeyLen;
+                    while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+                  }
+                  wpValue=wpCount;
+                  wpValueEnd=wpLineEnd;
+                  wpCount=wpLineEnd;
+
+                  //Trim trailing spaces
+                  while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
+                    --wpValueEnd;
+                  if (ckCount->wppValue == &wpDescription)
+                  {
+                    if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
+                    {
+                      wLang=(WORD)xatoiW(wpValue, &wpValue);
+                      if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
+                        break;
+                      wDescriptionLang=wLang;
+
+                      if (!xstrcmpinW(L"):", wpValue, (UINT_PTR)-1))
+                        wpValue+=2;
+                      while (*wpValue == L' ' || *wpValue == L'\t') ++wpValue;
+                    }
+                    else
+                    {
+                      if (wDescriptionLang) break;
+                      wDescriptionLang=wLangModule;
+                    }
+
+                    //*** Description *** -> Description
+                    if (wpValueEnd - ckCount->nKeyLen >= wpValue && !xstrcmpinW(ckCount->wpKey, wpValueEnd - ckCount->nKeyLen, (UINT_PTR)-1))
+                      wpValueEnd-=ckCount->nKeyLen;
+                    //Trim trailing spaces
+                    while (wpValueEnd > wpValue && (*(wpValueEnd - 1) == L' ' || *(wpValueEnd - 1) == L'\t'))
+                      --wpValueEnd;
+                  }
+                  *ckCount->wppValue=wpValue;
+                  *ckCount->lpnValueLen=wpValueEnd - wpValue;
+                  break;
+                }
+              }
+              wpCount=wpLineEnd;
+            }
+            while (*wpCount == L'\r' || *wpCount == L'\n') ++wpCount;
+
+            //Break if all info is received
+            if ((!(dwContentColumns & LCN_VERSION) || wpVersion) &&
+                (!(dwContentColumns & LCN_DESCRIPTION) || (wpDescription && wDescriptionLang == wLangModule)) &&
+                (!(dwContentColumns & LCN_AUTHOR) || wpAuthor) &&
+                (!(dwContentColumns & LCN_SITE) || wpSite))
+              break;
+          }
+        }
+        if (hFile) CloseHandle(hFile);
+      }
+
+      if (lpListItem=StackInsertListItem(hStack))
+      {
+        if (dwAllColumns & LCN_SCRIPT)
+          CopyWideStr(wfd.cFileName, -1, &lpListItem->wpScript);
+        if (wpVersion)
+          CopyWideStr(wpVersion, nVersionLen, &lpListItem->wpVersion);
+        if (wpDescription)
+          CopyWideStr(wpDescription, nDescriptionLen, &lpListItem->wpDescription);
+        if (wpAuthor)
+          CopyWideStr(wpAuthor, nAuthorLen, &lpListItem->wpAuthor);
+        if (wpSite)
+          CopyWideStr(wpSite, nSiteLen, &lpListItem->wpSite);
+      }
+    }
+    while (FindNextFileWide(hFind, &wfd));
+
+    FindClose(hFind);
+  }
+  if (wszContentBuffer) GlobalFree((HGLOBAL)wszContentBuffer);
+}
+
+LISTITEM* StackInsertListItem(STACKLISTITEM *hStack)
+{
+  LISTITEM *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(LISTITEM)))
+    ++hStack->nElements;
+  return lpElement;
+}
+
+void StackFreeListItem(STACKLISTITEM *hStack)
+{
+  LISTITEM *lpListItem;
+
+  for (lpListItem=hStack->first; lpListItem; lpListItem=lpListItem->next)
+  {
+    FreeWideStr(lpListItem->wpScript);
+    FreeWideStr(lpListItem->wpHotkey);
+    FreeWideStr(lpListItem->wpStatus);
+    FreeWideStr(lpListItem->wpVersion);
+    FreeWideStr(lpListItem->wpDescription);
+    FreeWideStr(lpListItem->wpAuthor);
+    FreeWideStr(lpListItem->wpSite);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->lpLastScript=NULL;
+  hStack->nElements=0;
+}
+
+int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith)
+{
+  int nRate=0;
+
+  if (wCompareIt == wCompareWith)
+    nRate=3;
+  else if (PRIMARYLANGID(wCompareIt) == PRIMARYLANGID(wCompareWith))
+    nRate=2;
+  else if (PRIMARYLANGID(wCompareIt) == LANG_ENGLISH)
+    nRate=1;
+  return nRate;
+}
+
+DWORD GetColumnFlags(LISTCOLUMN *lpColumns)
+{
+  LISTCOLUMN *lpColumnCount;
+  DWORD dwColumns=0;
+
+  for (lpColumnCount=lpColumns; lpColumnCount->nID >= 0; ++lpColumnCount)
+  {
+    if (lpColumnCount->dwFlags & LCF_VISIBLE)
+    {
+      if (lpColumnCount->nID == LVI_SCRIPTS_SCRIPT)
+        dwColumns|=LCN_SCRIPT;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_HOTKEY)
+        dwColumns|=LCN_HOTKEY;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_STATUS)
+        dwColumns|=LCN_STATUS;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_VERSION)
+        dwColumns|=LCN_VERSION;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_DESCRIPTION)
+        dwColumns|=LCN_DESCRIPTION;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_AUTHOR)
+        dwColumns|=LCN_AUTHOR;
+      else if (lpColumnCount->nID == LVI_SCRIPTS_SITE)
+        dwColumns|=LCN_SITE;
+    }
+  }
+  return dwColumns;
+}
+
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
+{
+  wchar_t *wszDst=*wppDst;
+
+  if (nSrcLen == -1)
+    nSrcLen=xstrlenW(wpSrc);
+  if (wszDst)
+    FreeWideStr(wszDst);
+  if (wszDst=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nSrcLen + 1) * sizeof(wchar_t)))
+    xstrcpynW(wszDst, wpSrc, nSrcLen + 1);
+  *wppDst=wszDst;
+  return nSrcLen;
+}
+
+BOOL FreeWideStr(wchar_t *wpWideStr)
+{
+  if (wpWideStr && GlobalFree((HGLOBAL)wpWideStr))
+    return TRUE;
+  return FALSE;
+}
+
+//NSIS
 int getuservariable(const int varnum, wchar_t *str, int len)
 {
   if (varnum >= 0 && varnum < __INST_LAST)
