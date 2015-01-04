@@ -1,5 +1,5 @@
 
-AkelPad 4.9.2 (Jun 04, 2014)
+AkelPad 4.9.2 (Jun 05, 2014)
 ----------------------------
 Changed: massive repainting optimizations to reduce flickering.
 
