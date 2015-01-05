@@ -1873,13 +1873,13 @@ void StackFreeListItem(STACKLISTITEM *hStack)
 
   for (lpListItem=hStack->first; lpListItem; lpListItem=lpListItem->next)
   {
-    FreeWideStr(lpListItem->wpScript);
-    FreeWideStr(lpListItem->wpHotkey);
-    FreeWideStr(lpListItem->wpStatus);
-    FreeWideStr(lpListItem->wpVersion);
-    FreeWideStr(lpListItem->wpDescription);
-    FreeWideStr(lpListItem->wpAuthor);
-    FreeWideStr(lpListItem->wpSite);
+    FreeWideStr(&lpListItem->wpScript);
+    FreeWideStr(&lpListItem->wpHotkey);
+    FreeWideStr(&lpListItem->wpStatus);
+    FreeWideStr(&lpListItem->wpVersion);
+    FreeWideStr(&lpListItem->wpDescription);
+    FreeWideStr(&lpListItem->wpAuthor);
+    FreeWideStr(&lpListItem->wpSite);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   hStack->lpLastScript=NULL;
@@ -2922,17 +2922,20 @@ INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
   if (nSrcLen == -1)
     nSrcLen=xstrlenW(wpSrc);
   if (wszDst)
-    FreeWideStr(wszDst);
+    FreeWideStr(&wszDst);
   if (wszDst=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nSrcLen + 1) * sizeof(wchar_t)))
     xstrcpynW(wszDst, wpSrc, nSrcLen + 1);
   *wppDst=wszDst;
   return nSrcLen;
 }
 
-BOOL FreeWideStr(wchar_t *wpWideStr)
+BOOL FreeWideStr(wchar_t **wppWideStr)
 {
-  if (wpWideStr && GlobalFree((HGLOBAL)wpWideStr))
+  if (wppWideStr && *wppWideStr && GlobalFree((HGLOBAL)*wppWideStr))
+  {
+    *wppWideStr=NULL;
     return TRUE;
+  }
   return FALSE;
 }
 

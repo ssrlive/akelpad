@@ -324,7 +324,7 @@ int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);
 BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
-BOOL FreeWideStr(wchar_t *wpWideStr);
+BOOL FreeWideStr(wchar_t **wppWideStr);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
