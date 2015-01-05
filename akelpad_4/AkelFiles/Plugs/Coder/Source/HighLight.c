@@ -1631,9 +1631,11 @@ void StackDeleteHighLightWindow(STACKHIGHLIGHTWINDOW *hStack, HIGHLIGHTWINDOW *l
   if (nMDI == WMD_PMDI && !lpUser)
   {
     //In WMD_PMDI mode to work with non-active frame we should activate it first.
-    lpFrameToRestore=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOVISUPDATE, (LPARAM)lpHighlightWindow->lpFrame);
+    lpFrameToRestore=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, (LPARAM)NULL);
     if (lpFrameToRestore == lpHighlightWindow->lpFrame)
       lpFrameToRestore=NULL;
+    else
+      SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOVISUPDATE|FWA_NOUPDATEORDER, (LPARAM)lpHighlightWindow->lpFrame);
   }
 
   UnmarkSelection(lpHighlightWindow, 0, (DWORD)-1, (DWORD)-1);
@@ -1646,7 +1648,7 @@ void StackDeleteHighLightWindow(STACKHIGHLIGHTWINDOW *hStack, HIGHLIGHTWINDOW *l
   {
     if (lpFrameToRestore)
     {
-      SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOVISUPDATE, (LPARAM)lpFrameToRestore);
+      SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOVISUPDATE|FWA_NOUPDATEORDER, (LPARAM)lpFrameToRestore);
       lpFrameToRestore=NULL;
     }
   }
