@@ -1581,6 +1581,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
             else
             {
               MethodParseParameters(&hParamButton, wpCount, &wpCount);
+              if (*(wpCount - 1) == L')') --wpCount;
               MethodFreeParameters(&hParamButton);
             }
             bMethod=TRUE;
