@@ -944,7 +944,7 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       RestoreFrameData(lpFrameCurrent, dwFlags);
 
       //Set caption of main window
-      if (lpFrameCurrent->wszFile[0] || lpFrameCurrent->ei.bModified)
+      if (lpFrameCurrent->wszFile[0] || ((moCur.dwShowModify & SM_FRAMETITLE_MDI) && lpFrameCurrent->ei.bModified))
       {
         xprintfW(wbuf, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrameCurrent->wszFile, ((moCur.dwShowModify & SM_FRAMETITLE_MDI) && lpFrameCurrent->ei.bModified)?L" *":L"");
         SetWindowTextWide(hMainWnd, wbuf);
