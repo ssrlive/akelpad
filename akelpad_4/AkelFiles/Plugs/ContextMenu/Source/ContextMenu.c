@@ -522,6 +522,8 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 int GetCurFile(wchar_t *wszFile, int nMaxFile);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 INT_PTR GetEditText(HWND hWnd, wchar_t **wpText);
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
+BOOL FreeWideStr(wchar_t **wppWideStr);
 BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 DWORD ScrollCaret(HWND hWnd);
 
@@ -541,7 +543,6 @@ void UninitMain();
 wchar_t wszBuffer[BUFFER_SIZE];
 wchar_t wszPluginName[MAX_PATH];
 wchar_t wszPluginTitle[MAX_PATH];
-HANDLE hHeap;
 HINSTANCE hInstanceDLL;
 HWND hMainWnd;
 HWND hMdiClient;
@@ -1297,7 +1298,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOK;
   static HWND hWndCancel;
   static int nMenuType;
-  static CONTROLTYPE ct[TYPE_MAX]={0};
+  static CONTROLTYPE ct[TYPE_MAX];
   static RESIZEDIALOG rds[]={{&hWndType,   RDS_SIZE|RDS_X, 0},
                              {&hWndEnable, RDS_MOVE|RDS_X, 0},
                              {&hWndHide,   RDS_MOVE|RDS_X, 0},
@@ -1342,36 +1343,20 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     ComboBox_AddStringWide(hWndType, GetLangStringW(wLangModule, STRID_MENUURL));
     ComboBox_AddStringWide(hWndType, GetLangStringW(wLangModule, STRID_MENURECENTFILES));
 
-    if (ct[TYPE_MANUAL].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszManualText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_MANUAL].wpText, wszManualText);
-      ct[TYPE_MANUAL].bEnable=FALSE;
-    }
-    if (ct[TYPE_MAIN].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszMainText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_MAIN].wpText, wszMainText);
-      ct[TYPE_MAIN].bEnable=bMenuMainEnable;
-    }
-    if (ct[TYPE_EDIT].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszEditText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_EDIT].wpText, wszEditText);
-      ct[TYPE_EDIT].bEnable=bMenuEditEnable;
-    }
-    if (ct[TYPE_TAB].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszTabText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_TAB].wpText, wszTabText);
-      ct[TYPE_TAB].bEnable=bMenuTabEnable;
-    }
-    if (ct[TYPE_URL].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszUrlText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_URL].wpText, wszUrlText);
-      ct[TYPE_URL].bEnable=bMenuUrlEnable;
-    }
-    if (ct[TYPE_RECENTFILES].wpText=(wchar_t *)HeapAlloc(hHeap, 0, (xstrlenW(wszRecentFilesText) + 1) * sizeof(wchar_t)))
-    {
-      xstrcpyW(ct[TYPE_RECENTFILES].wpText, wszRecentFilesText);
-      ct[TYPE_RECENTFILES].bEnable=bMenuRecentFilesEnable;
-    }
+    xmemset(&ct, 0, sizeof(ct));
+    CopyWideStr(wszManualText, -1, &ct[TYPE_MANUAL].wpText);
+    CopyWideStr(wszMainText, -1, &ct[TYPE_MAIN].wpText);
+    CopyWideStr(wszEditText, -1, &ct[TYPE_EDIT].wpText);
+    CopyWideStr(wszTabText, -1, &ct[TYPE_TAB].wpText);
+    CopyWideStr(wszUrlText, -1, &ct[TYPE_URL].wpText);
+    CopyWideStr(wszRecentFilesText, -1, &ct[TYPE_RECENTFILES].wpText);
+    ct[TYPE_MANUAL].bEnable=FALSE;
+    ct[TYPE_MAIN].bEnable=bMenuMainEnable;
+    ct[TYPE_EDIT].bEnable=bMenuEditEnable;
+    ct[TYPE_TAB].bEnable=bMenuTabEnable;
+    ct[TYPE_URL].bEnable=bMenuUrlEnable;
+    ct[TYPE_RECENTFILES].bEnable=bMenuRecentFilesEnable;
+
     if (bMenuMainHide)
       SendMessage(hWndHide, BM_SETCHECK, BST_CHECKED, 0);
 
@@ -1432,11 +1417,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (SendMessage(hWndText, EM_GETMODIFY, 0, 0))
         {
-          if (ct[nMenuType].wpText)
-          {
-            HeapFree(hHeap, 0, ct[nMenuType].wpText);
-            ct[nMenuType].wpText=NULL;
-          }
+          FreeWideStr(&ct[nMenuType].wpText);
           GetEditText(hWndText, &ct[nMenuType].wpText);
         }
         nMenuType=nItem;
@@ -1528,7 +1509,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             CallContextMenu(&hMenuDialogStack, nCmd);
           FreeContextMenu(&hMenuDialogStack);
         }
-        HeapFree(hHeap, 0, wpText);
+        FreeWideStr(&wpText);
       }
     }
     else if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
@@ -1539,11 +1520,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (SendMessage(hWndText, EM_GETMODIFY, 0, 0))
         {
-          if (ct[nMenuType].wpText)
-          {
-            HeapFree(hHeap, 0, ct[nMenuType].wpText);
-            ct[nMenuType].wpText=NULL;
-          }
+          FreeWideStr(&ct[nMenuType].wpText);
           GetEditText(hWndText, &ct[nMenuType].wpText);
         }
 
@@ -1553,59 +1530,67 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!CreateContextMenu(&hMenuDialogStack, ct[i].wpText, i))
             return 0;
           FreeContextMenu(&hMenuDialogStack);
-        }
 
-        if (wszManualText) HeapFree(hHeap, 0, wszManualText);
-        wszManualText=ct[TYPE_MANUAL].wpText;
-        if (!*wszManualText)
-        {
-          HeapFree(hHeap, 0, wszManualText);
-          wszManualText=GetDefaultMenu(STRID_DEFAULTMANUAL);
-        }
-
-        bMenuMainEnable=ct[TYPE_MAIN].bEnable;
-        if (wszMainText) HeapFree(hHeap, 0, wszMainText);
-        wszMainText=ct[TYPE_MAIN].wpText;
-        if (!*wszMainText)
-        {
-          HeapFree(hHeap, 0, wszMainText);
-          wszMainText=GetDefaultMenu(STRID_DEFAULTMAIN);
-        }
-
-        bMenuEditEnable=ct[TYPE_EDIT].bEnable;
-        if (wszEditText) HeapFree(hHeap, 0, wszEditText);
-        wszEditText=ct[TYPE_EDIT].wpText;
-        if (!*wszEditText)
-        {
-          HeapFree(hHeap, 0, wszEditText);
-          wszEditText=GetDefaultMenu(STRID_DEFAULTEDIT);
-        }
-
-        bMenuTabEnable=ct[TYPE_TAB].bEnable;
-        if (wszTabText) HeapFree(hHeap, 0, wszTabText);
-        wszTabText=ct[TYPE_TAB].wpText;
-        if (!*wszTabText)
-        {
-          HeapFree(hHeap, 0, wszTabText);
-          wszTabText=GetDefaultMenu(STRID_DEFAULTTAB);
-        }
-
-        bMenuUrlEnable=ct[TYPE_URL].bEnable;
-        if (wszUrlText) HeapFree(hHeap, 0, wszUrlText);
-        wszUrlText=ct[TYPE_URL].wpText;
-        if (!*wszUrlText)
-        {
-          HeapFree(hHeap, 0, wszUrlText);
-          wszUrlText=GetDefaultMenu(STRID_DEFAULTURL);
-        }
-
-        bMenuRecentFilesEnable=ct[TYPE_RECENTFILES].bEnable;
-        if (wszRecentFilesText) HeapFree(hHeap, 0, wszRecentFilesText);
-        wszRecentFilesText=ct[TYPE_RECENTFILES].wpText;
-        if (!*wszRecentFilesText)
-        {
-          HeapFree(hHeap, 0, wszRecentFilesText);
-          wszRecentFilesText=GetDefaultMenu(STRID_DEFAULTRECENTFILES);
+          //If no error, set text
+          if (i == TYPE_MANUAL)
+          {
+            CopyWideStr(ct[TYPE_MANUAL].wpText, -1, &wszManualText);
+            if (!*wszManualText)
+            {
+              FreeWideStr(&wszManualText);
+              wszManualText=GetDefaultMenu(STRID_DEFAULTMANUAL);
+            }
+          }
+          else if (i == TYPE_MAIN)
+          {
+            CopyWideStr(ct[TYPE_MAIN].wpText, -1, &wszMainText);
+            if (!*wszMainText)
+            {
+              FreeWideStr(&wszMainText);
+              wszMainText=GetDefaultMenu(STRID_DEFAULTMAIN);
+            }
+            bMenuMainEnable=ct[TYPE_MAIN].bEnable;
+          }
+          else if (i == TYPE_EDIT)
+          {
+            CopyWideStr(ct[TYPE_EDIT].wpText, -1, &wszEditText);
+            if (!*wszEditText)
+            {
+              FreeWideStr(&wszEditText);
+              wszEditText=GetDefaultMenu(STRID_DEFAULTEDIT);
+            }
+            bMenuEditEnable=ct[TYPE_EDIT].bEnable;
+          }
+          else if (i == TYPE_TAB)
+          {
+            CopyWideStr(ct[TYPE_TAB].wpText, -1, &wszTabText);
+            if (!*wszTabText)
+            {
+              FreeWideStr(&wszTabText);
+              wszTabText=GetDefaultMenu(STRID_DEFAULTTAB);
+            }
+            bMenuTabEnable=ct[TYPE_TAB].bEnable;
+          }
+          else if (i == TYPE_URL)
+          {
+            CopyWideStr(ct[TYPE_URL].wpText, -1, &wszUrlText);
+            if (!*wszUrlText)
+            {
+              FreeWideStr(&wszUrlText);
+              wszUrlText=GetDefaultMenu(STRID_DEFAULTURL);
+            }
+            bMenuUrlEnable=ct[TYPE_URL].bEnable;
+          }
+          else if (i == TYPE_RECENTFILES)
+          {
+            CopyWideStr(ct[TYPE_RECENTFILES].wpText, -1, &wszRecentFilesText);
+            if (!*wszRecentFilesText)
+            {
+              FreeWideStr(&wszRecentFilesText);
+              wszRecentFilesText=GetDefaultMenu(STRID_DEFAULTRECENTFILES);
+            }
+            bMenuRecentFilesEnable=ct[TYPE_RECENTFILES].bEnable;
+          }
         }
 
         UnsetMainMenu(&hMenuMainStack);
@@ -1639,7 +1624,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         for (i=0; i < TYPE_MAX; ++i)
         {
-          if (ct[i].wpText) HeapFree(hHeap, 0, ct[i].wpText);
+          FreeWideStr(&ct[i].wpText);
         }
       }
 
@@ -3085,61 +3070,58 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
 
       if (*wpCount == L'{')
       {
-        if (!bMethod)
-        {
-          ++wpCount;
-
-          if (!StackInsertIndex((stack **)&hSubmenuStack.first, (stack **)&hSubmenuStack.last, (stack **)&lpSubmenuItem, -1, sizeof(SUBMENUITEM)))
-          {
-            lpSubmenuItem->hSubMenu=hSubMenu;
-            lpSubmenuItem->nSubMenuIndex=nSubMenuIndex;
-            lpSubmenuItem->nSubMenuCodeItem=nSubMenuCodeItem;
-          }
-          else break;
-
-          if (!hParentMenu && nType == TYPE_MAIN)
-            bMainMenuParent=TRUE;
-          else
-            bMainMenuParent=FALSE;
-          hParentMenu=hSubMenu;
-          nParentIndex=nSubMenuIndex;
-          hSubMenu=CreatePopupMenu();
-          nSubMenuIndex=0;
-          nSubMenuCodeItem=0;
-          nPrevSeparator=0;
-
-          //Load icon optimization (part 3):
-          if (!StackInsertIndex((stack **)&hMenuStack->hMenuItemStack.first, (stack **)&hMenuStack->hMenuItemStack.last, (stack **)&lpMenuItem, -1, sizeof(MENUITEM)))
-          {
-            lpMenuItem->nTextOffset=(int)(wpLineBegin - wpTextBegin);
-            lpMenuItem->nMenuType=nType;
-            lpMenuItem->hSubMenu=hParentMenu;
-            lpMenuItem->nSubMenuIndex=nParentIndex;
-            lpMenuItem->nFileIconIndex=-1;
-            lpMenuItem->nImageListIconIndex=-1;
-
-            if (nFileIconIndex != -1)
-            {
-              xstrcpynW(lpMenuItem->wszIconFile, wszIconFile, MAX_PATH);
-              lpMenuItem->nFileIconIndex=nFileIconIndex;
-              lpMenuItem->nImageListIconIndex=(int)nImageListIconIndex;
-            }
-          }
-
-          //Add popup submenu
-          if (bMainMenuParent)
-          {
-            //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
-            AppendMenuWide(hParentMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
-          }
-          else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hParentMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
-        }
-        else
+        if (bMethod)
         {
           wpErrorBegin=wpCount++;
           nMessageID=STRID_PARSEMSG_UNNAMEDSUBMENU;
           goto Error;
         }
+        ++wpCount;
+
+        if (!StackInsertIndex((stack **)&hSubmenuStack.first, (stack **)&hSubmenuStack.last, (stack **)&lpSubmenuItem, -1, sizeof(SUBMENUITEM)))
+        {
+          lpSubmenuItem->hSubMenu=hSubMenu;
+          lpSubmenuItem->nSubMenuIndex=nSubMenuIndex;
+          lpSubmenuItem->nSubMenuCodeItem=nSubMenuCodeItem;
+        }
+        else break;
+
+        if (!hParentMenu && nType == TYPE_MAIN)
+          bMainMenuParent=TRUE;
+        else
+          bMainMenuParent=FALSE;
+        hParentMenu=hSubMenu;
+        nParentIndex=nSubMenuIndex;
+        hSubMenu=CreatePopupMenu();
+        nSubMenuIndex=0;
+        nSubMenuCodeItem=0;
+        nPrevSeparator=0;
+
+        //Load icon optimization (part 3):
+        if (!StackInsertIndex((stack **)&hMenuStack->hMenuItemStack.first, (stack **)&hMenuStack->hMenuItemStack.last, (stack **)&lpMenuItem, -1, sizeof(MENUITEM)))
+        {
+          lpMenuItem->nTextOffset=(int)(wpLineBegin - wpTextBegin);
+          lpMenuItem->nMenuType=nType;
+          lpMenuItem->hSubMenu=hParentMenu;
+          lpMenuItem->nSubMenuIndex=nParentIndex;
+          lpMenuItem->nFileIconIndex=-1;
+          lpMenuItem->nImageListIconIndex=-1;
+
+          if (nFileIconIndex != -1)
+          {
+            xstrcpynW(lpMenuItem->wszIconFile, wszIconFile, MAX_PATH);
+            lpMenuItem->nFileIconIndex=nFileIconIndex;
+            lpMenuItem->nImageListIconIndex=(int)nImageListIconIndex;
+          }
+        }
+
+        //Add popup submenu
+        if (bMainMenuParent)
+        {
+          //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
+          AppendMenuWide(hParentMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
+        }
+        else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hParentMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
       }
       else
       {
@@ -5184,8 +5166,32 @@ INT_PTR GetEditText(HWND hWnd, wchar_t **wpText)
   if (nTextLen=SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (WPARAM)hWnd, (LPARAM)&gtr))
     *wpText=(wchar_t *)gtr.pText;
   else
-    *wpText=(wchar_t *)HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+    CopyWideStr(L"", -1, wpText);
   return nTextLen;
+}
+
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
+{
+  wchar_t *wszDst=*wppDst;
+
+  if (nSrcLen == -1)
+    nSrcLen=xstrlenW(wpSrc);
+  if (wszDst)
+    FreeWideStr(&wszDst);
+  if (wszDst=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nSrcLen + 1) * sizeof(wchar_t)))
+    xstrcpynW(wszDst, wpSrc, nSrcLen + 1);
+  *wppDst=wszDst;
+  return nSrcLen;
+}
+
+BOOL FreeWideStr(wchar_t **wppWideStr)
+{
+  if (wppWideStr && *wppWideStr && GlobalFree((HGLOBAL)*wppWideStr))
+  {
+    *wppWideStr=NULL;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
@@ -5251,7 +5257,7 @@ void ReadOptions(DWORD dwFlags)
     //Manual menu
     if ((nSize=(int)WideOption(hOptions, L"ManualMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszManualText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszManualText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"ManualMenuText", PO_BINARY, (LPBYTE)wszManualText, nSize);
       }
@@ -5260,7 +5266,7 @@ void ReadOptions(DWORD dwFlags)
     //Main menu
     if ((nSize=(int)WideOption(hOptions, L"MainMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszMainText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszMainText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"MainMenuText", PO_BINARY, (LPBYTE)wszMainText, nSize);
       }
@@ -5271,7 +5277,7 @@ void ReadOptions(DWORD dwFlags)
     //Edit menu
     if ((nSize=(int)WideOption(hOptions, L"EditMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszEditText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszEditText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"EditMenuText", PO_BINARY, (LPBYTE)wszEditText, nSize);
       }
@@ -5281,7 +5287,7 @@ void ReadOptions(DWORD dwFlags)
     //Tab menu
     if ((nSize=(int)WideOption(hOptions, L"TabMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszTabText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszTabText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"TabMenuText", PO_BINARY, (LPBYTE)wszTabText, nSize);
       }
@@ -5291,7 +5297,7 @@ void ReadOptions(DWORD dwFlags)
     //Link menu
     if ((nSize=(int)WideOption(hOptions, L"UrlMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszUrlText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszUrlText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"UrlMenuText", PO_BINARY, (LPBYTE)wszUrlText, nSize);
       }
@@ -5301,7 +5307,7 @@ void ReadOptions(DWORD dwFlags)
     //Recent files menu
     if ((nSize=(int)WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszRecentFilesText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszRecentFilesText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"RecentFilesMenuText", PO_BINARY, (LPBYTE)wszRecentFilesText, nSize);
       }
@@ -5311,7 +5317,7 @@ void ReadOptions(DWORD dwFlags)
     //Favourites
     if ((nSize=(int)WideOption(hOptions, L"FavText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszFavText=(wchar_t *)HeapAlloc(hHeap, 0, nSize))
+      if (wszFavText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"FavText", PO_BINARY, (LPBYTE)wszFavText, nSize);
       }
@@ -5368,7 +5374,7 @@ void SaveOptions(DWORD dwFlags)
       {
         dwSize+=(DWORD)xprintfW(NULL, L"%s=%s\r", lpFavItem->wszName, lpFavItem->wszFile) - 1;
       }
-      if (wszFavText=(wchar_t *)HeapAlloc(hHeap, 0, (dwSize + 1) * sizeof(wchar_t)))
+      if (wszFavText=(wchar_t *)GlobalAlloc(GMEM_FIXED, (dwSize + 1) * sizeof(wchar_t)))
       {
         for (dwSize=0, lpFavItem=hFavStack.first; lpFavItem; lpFavItem=lpFavItem->next)
         {
@@ -5376,8 +5382,7 @@ void SaveOptions(DWORD dwFlags)
         }
         WideOption(hOptions, L"FavText", PO_BINARY, (LPBYTE)wszFavText, ((int)xstrlenW(wszFavText) + 1) * sizeof(wchar_t));
 
-        HeapFree(hHeap, 0, wszFavText);
-        wszFavText=NULL;
+        FreeWideStr(&wszFavText);
       }
       WideOption(hOptions, L"FavShowFile", PO_DWORD, (LPBYTE)&bFavShowFile, sizeof(DWORD));
     }
@@ -5396,7 +5401,7 @@ wchar_t* GetDefaultMenu(int nStringID)
   DWORD dwSize;
 
   dwSize=(DWORD)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, nStringID));
-  if (wszMenuText=(wchar_t *)HeapAlloc(hHeap, 0, dwSize * sizeof(wchar_t)))
+  if (wszMenuText=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize * sizeof(wchar_t)))
     xprintfW(wszMenuText, L"%s", GetLangStringW(wLangModule, nStringID));
   return wszMenuText;
 }
@@ -6623,7 +6628,6 @@ void InitCommon(PLUGINDATA *pd)
   hPopupCodepage=GetSubMenu(pd->hPopupMenu, MENU_POPUP_CODEPAGE);
   hPopupOpenCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_OPEN);
   hPopupSaveCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_SAVE);
-  hHeap=GetProcessHeap();
 
   //Initialize WideFunc.h header
   WideInitialize();
@@ -6641,8 +6645,7 @@ void InitCommon(PLUGINDATA *pd)
   ReadOptions(0);
 
   CreateFavStack(&hFavStack, wszFavText);
-  HeapFree(hHeap, 0, wszFavText);
-  wszFavText=NULL;
+  FreeWideStr(&wszFavText);
 
   if (bBigIcons)
   {
@@ -6708,36 +6711,12 @@ void UninitMain()
     dwSaveFlags=0;
   }
 
-  if (wszManualText)
-  {
-    HeapFree(hHeap, 0, wszManualText);
-    wszManualText=NULL;
-  }
-  if (wszMainText)
-  {
-    HeapFree(hHeap, 0, wszMainText);
-    wszMainText=NULL;
-  }
-  if (wszEditText)
-  {
-    HeapFree(hHeap, 0, wszEditText);
-    wszEditText=NULL;
-  }
-  if (wszTabText)
-  {
-    HeapFree(hHeap, 0, wszTabText);
-    wszTabText=NULL;
-  }
-  if (wszUrlText)
-  {
-    HeapFree(hHeap, 0, wszUrlText);
-    wszUrlText=NULL;
-  }
-  if (wszRecentFilesText)
-  {
-    HeapFree(hHeap, 0, wszRecentFilesText);
-    wszRecentFilesText=NULL;
-  }
+  FreeWideStr(&wszManualText);
+  FreeWideStr(&wszMainText);
+  FreeWideStr(&wszEditText);
+  FreeWideStr(&wszTabText);
+  FreeWideStr(&wszUrlText);
+  FreeWideStr(&wszRecentFilesText);
   UnsetMainMenu(&hMenuMainStack);
   FreeContextMenu(&hMenuMainStack);
   FreeContextMenu(&hMenuEditStack);
