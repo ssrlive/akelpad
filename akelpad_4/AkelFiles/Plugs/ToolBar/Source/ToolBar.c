@@ -760,28 +760,28 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nToolbarSide == TBSIDE_TOP)
       {
-        MoveWindow(hToolbarBG, ns->rcCurrent.left, ns->rcCurrent.top, ns->rcCurrent.right, sizeToolbar.cy, TRUE);
-        MoveWindow(hToolbar, 0, 0, ns->rcCurrent.right, sizeToolbar.cy, TRUE);
+        SetWindowPos(hToolbarBG, 0, ns->rcCurrent.left, ns->rcCurrent.top, ns->rcCurrent.right, sizeToolbar.cy, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
+        SetWindowPos(hToolbar, 0, 0, 0, ns->rcCurrent.right, sizeToolbar.cy, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
         ns->rcCurrent.top+=sizeToolbar.cy;
         ns->rcCurrent.bottom-=sizeToolbar.cy;
       }
       else if (nToolbarSide == TBSIDE_BOTTOM)
       {
-        MoveWindow(hToolbarBG, ns->rcCurrent.left, ns->rcCurrent.top + ns->rcCurrent.bottom - sizeToolbar.cy, ns->rcCurrent.right, sizeToolbar.cy, TRUE);
-        MoveWindow(hToolbar, 0, 0, ns->rcCurrent.right, sizeToolbar.cy, TRUE);
+        SetWindowPos(hToolbarBG, 0, ns->rcCurrent.left, ns->rcCurrent.top + ns->rcCurrent.bottom - sizeToolbar.cy, ns->rcCurrent.right, sizeToolbar.cy, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
+        SetWindowPos(hToolbar, 0, 0, 0, ns->rcCurrent.right, sizeToolbar.cy, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
         ns->rcCurrent.bottom-=sizeToolbar.cy;
       }
       else if (nToolbarSide == TBSIDE_LEFT)
       {
-        MoveWindow(hToolbarBG, ns->rcCurrent.left, ns->rcCurrent.top, sizeToolbar.cx, ns->rcCurrent.bottom, TRUE);
-        MoveWindow(hToolbar, 0, 0, sizeToolbar.cx, ns->rcCurrent.bottom, TRUE);
+        SetWindowPos(hToolbarBG, 0, ns->rcCurrent.left, ns->rcCurrent.top, sizeToolbar.cx, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
+        SetWindowPos(hToolbar, 0, 0, 0, sizeToolbar.cx, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
         ns->rcCurrent.left+=sizeToolbar.cx;
         ns->rcCurrent.right-=sizeToolbar.cx;
       }
       else if (nToolbarSide == TBSIDE_RIGHT)
       {
-        MoveWindow(hToolbarBG, ns->rcCurrent.left + ns->rcCurrent.right - sizeToolbar.cx, ns->rcCurrent.top, sizeToolbar.cx, ns->rcCurrent.bottom, TRUE);
-        MoveWindow(hToolbar, 0, 0, sizeToolbar.cx, ns->rcCurrent.bottom, TRUE);
+        SetWindowPos(hToolbarBG, 0, ns->rcCurrent.left + ns->rcCurrent.right - sizeToolbar.cx, ns->rcCurrent.top, sizeToolbar.cx, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
+        SetWindowPos(hToolbar, 0, 0, 0, sizeToolbar.cx, ns->rcCurrent.bottom, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS|SWP_DEFERERASE);
         ns->rcCurrent.right-=sizeToolbar.cx;
       }
       if (bProcess) return lResult;
