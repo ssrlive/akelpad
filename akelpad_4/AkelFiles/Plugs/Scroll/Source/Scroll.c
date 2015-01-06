@@ -8,10 +8,13 @@
 
 
 //Include string functions
+#define WideCharLower
 #define xmemcpy
 #define xmemset
 #define xstrlenW
 #define xstrcpynW
+#define xstrcmpiW
+#define xstrcmpinW
 #define xatoiW
 #define xitoaW
 #define xuitoaW
@@ -21,6 +24,7 @@
 
 //Include wide functions
 #define DialogBoxWide
+#define GetClassNameWide
 #define GetWindowLongPtrWide
 #define PropertySheetWide
 #define SetDlgItemTextWide
@@ -183,7 +187,7 @@ WNDPROCDATA *NewMainProcData=NULL;
 WNDPROCDATA *NewFrameProcData=NULL;
 
 //Global variables
-char szClassName[MAX_PATH];
+wchar_t wszClassName[MAX_PATH];
 wchar_t wszPluginName[MAX_PATH];
 wchar_t wszPluginTitle[MAX_PATH];
 HINSTANCE hInstanceDLL;
@@ -1376,9 +1380,9 @@ void GetMsgProcCommon(int code, WPARAM wParam, LPARAM lParam)
 
       if ((hWndPoint=WindowFromPoint(ptPos)))
       {
-        if (GetClassNameA(hWndPoint, szClassName, MAX_PATH))
+        if (GetClassNameWide(hWndPoint, wszClassName, MAX_PATH))
         {
-          if (!lstrcmpiA(szClassName, "SysTabControl32"))
+          if (!xstrcmpiW(wszClassName, L"SysTabControl32"))
           {
             if (dwAutoFocus & AF_SWITCHTAB)
             {
@@ -1432,15 +1436,13 @@ void GetMsgProcCommon(int code, WPARAM wParam, LPARAM lParam)
               }
             }
           }
-          else if (!lstrcmpiA(szClassName, "AkelEditA") ||
-                   !lstrcmpiA(szClassName, "AkelEditW") ||
-                   !lstrcmpiA(szClassName, "RichEdit20A") ||
-                   !lstrcmpiA(szClassName, "RichEdit20W") ||
-                   !lstrcmpiA(szClassName, "SysListView32") ||
-                   !lstrcmpiA(szClassName, "SysTreeView32") ||
-                   !lstrcmpiA(szClassName, "ListBox") ||
-                   !lstrcmpiA(szClassName, "ComboBox") ||
-                   !lstrcmpiA(szClassName, "Edit"))
+          else if (!xstrcmpinW(L"AkelEdit", wszClassName, (UINT_PTR)-1) ||
+                   !xstrcmpinW(L"RichEdit20", wszClassName, (UINT_PTR)-1) ||
+                   !xstrcmpiW(wszClassName, L"SysListView32") ||
+                   !xstrcmpiW(wszClassName, L"SysTreeView32") ||
+                   !xstrcmpiW(wszClassName, L"ListBox") ||
+                   !xstrcmpiW(wszClassName, L"ComboBox") ||
+                   !xstrcmpiW(wszClassName, L"Edit"))
           {
             UINT uMsg=msg->message;
             DWORD dwChars=0;
@@ -1753,7 +1755,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_MOVESCROLLBAR)
       return L"\x041F\x0440\x043E\x043A\x0440\x0443\x0442\x043A\x0430\x0020\x043F\x043E\x043B\x0437\x0443\x043D\x043A\x043E\x043C";
     if (nStringID == STRID_MOVEWITHSHIFT)
-      return L"\x041F\x0440\x043E\x043A\x0440\x0443\x0442\x043A\x0430\x0020\x0441\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0435\x0439 Shift";
+      return L"\x0413\x043E\x0440\x0438\x0437\x043E\x043D\x0442\x0430\x043B\x044C\x043D\x0430\x044F\x0020\x043F\x0440\x043E\x043A\x0440\x0443\x0442\x043A\x0430\x0020\x0441\x0020\x0053\x0068\x0069\x0066\x0074\x0027\x043E\x043C";
     if (nStringID == STRID_SWITCHTAB)
       return L"\x041F\x0435\x0440\x0435\x043A\x043B\x044E\x0447\x0435\x043D\x0438\x0435\x0020\x043C\x0435\x0436\x0434\x0443\x0020\x0432\x043A\x043B\x0430\x0434\x043A\x0430\x043C\x0438";
     if (nStringID == STRID_WITHSPIN)
@@ -1806,7 +1808,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_MOVESCROLLBAR)
       return L"Scrolling with slider";
     if (nStringID == STRID_MOVEWITHSHIFT)
-      return L"Scrolling with Shift key";
+      return L"Horizontal scroll with Shift";
     if (nStringID == STRID_SWITCHTAB)
       return L"Switching between tabs";
     if (nStringID == STRID_WITHSPIN)
