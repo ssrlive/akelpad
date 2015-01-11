@@ -2726,7 +2726,7 @@ INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags,
   FILECONTENT fc;
   INT_PTR nResult=0;
 
-  if (lphFile && wpFile)
+  if (lphFile && !wpFile)
     fc.hFile=*lphFile;
   else
     fc.hFile=NULL;
