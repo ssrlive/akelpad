@@ -840,7 +840,12 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
   {
     //Remember plugin edit window
     if (!bMessageBox)
-      hWndPluginEdit=AkelPad.SetEditWnd(wParam);
+    {
+      if (AkelPad.IsAkelEdit(wParam) == 2 /*ISAEW_PLUGIN*/)
+        hWndPluginEdit=AkelPad.SetEditWnd(wParam);
+      else
+        hWndPluginEdit=0;
+    }
 
     if (hWndOutput)
       oSys.Call("user32::SetFocus", hWndCancel);
@@ -1731,7 +1736,10 @@ function SearchReplace()
             AkelPad.SendMessage(hWndEditCur, 3130 /*AEM_GETINDEX*/, 19 /*AEGI_WRAPLINEEND*/, lpIndex);
             lpMatches[i].nLineEndIndex=AkelPad.SendMessage(hWndEditCur, 3136 /*AEM_INDEXTORICHOFFSET*/, 0, lpIndex);
 
-            pLine=(nDirection & DN_ALLFILES?" (" + lpFrameCur + " ":"(") + (lpMatches[i].nLineUnwrap + 1) + "," + (lpMatches[i].nIndex - lpMatches[i].nLineBeginIndex + 1) + ") ";
+            if (!hWndPluginEdit)
+              pLine=(nDirection & DN_ALLFILES?" (" + lpFrameCur + " ":"(") + (lpMatches[i].nLineUnwrap + 1) + "," + (lpMatches[i].nIndex - lpMatches[i].nLineBeginIndex + 1) + ") ";
+            else
+              pLine="";
             nTextLen+=pLine.length + min(lpMatches[i].nLineEndIndex - lpMatches[i].nLineBeginIndex, FINDALL_MAXLINE) + 1;
 
             if (i % 50 == 0)
@@ -2027,7 +2035,7 @@ function PeekMessages(hWnd, bSendChild)
       {
         //Send key press from child
         uMsg=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?8:4) /*offsetof(MSG, message)*/, 3 /*DT_DWORD*/);
-  
+
         if (uMsg >= 0x0100 /*WM_KEYFIRST*/ && uMsg <= 0x0109 /*WM_KEYLAST*/)
         {
           wParam=AkelPad.MemRead(_PtrAdd(lpMsg, _X64?16:8) /*offsetof(MSG, wParam)*/, 2 /*DT_QWORD*/);
