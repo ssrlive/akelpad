@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.1
+// Version: 1.2
 // Author: Shengalts Aleksander aka Instructor
 //
 // Description(1033): Spell check using Microsoft Word.
@@ -44,6 +44,7 @@ if (hWndEdit)
         oSpellDoc.Close(false);
       }
       Word.Quit(true);
+      Word=0;
 
       if (pTextIn == pTextOut)
       {
@@ -61,6 +62,7 @@ if (hWndEdit)
   }
   else AkelPad.MessageBox(hMainWnd, GetLangString(0), WScript.ScriptName, 48 /*MB_ICONEXCLAMATION*/);
 }
+if (Word) Word.Quit(true);
 
 
 //Functions
