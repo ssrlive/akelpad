@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Resize functions header v1.0                  *
+ *                 Resize functions header v1.1                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -231,6 +231,7 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
 {
   switch (uMsg)
   {
+    case WM_CREATE:
     case WM_INITDIALOG:
     {
       RESIZEDIALOG *rdsControl;
@@ -297,7 +298,7 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
       WINDOWPOS *lpWindowPos=(WINDOWPOS *)lParam;
       RECT rcTemplate;
 
-      if (!(lpWindowPos->flags & SWP_NOCOPYBITS))
+      if (lpWindowPos && !(lpWindowPos->flags & SWP_NOCOPYBITS))
       {
         if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_CHILD)
           GetWindowSize(hDlg, GetParent(hDlg), &rcTemplate);
@@ -311,6 +312,7 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
           lpWindowPos->flags|=SWP_NOCOPYBITS;
         }
       }
+      break;
     }
     case WM_MOVE:
     {
@@ -499,9 +501,10 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
           GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
 
           //Erase parent window background without children
-          InvalidateRect(hDlg, NULL, TRUE);
-          ValidateRgn(hDlg, hRgnAllChild);
-          GetUpdateRgn(hDlg, hRgnToErase, FALSE);
+          GetClientRect(hDlg, &rcControl);
+          SetRectRgn(hRgnControl, rcControl.left, rcControl.top, rcControl.right, rcControl.bottom);
+          CombineRgn(hRgnToErase, hRgnControl, hRgnAllChild, RGN_DIFF);
+          InvalidateRgn(hDlg, hRgnToErase, TRUE);
           UpdateWindow(hDlg);
 
           //{
