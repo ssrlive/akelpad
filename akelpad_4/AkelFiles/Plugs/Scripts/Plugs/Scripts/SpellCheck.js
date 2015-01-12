@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.2
+// Version: 1.3
 // Author: Shengalts Aleksander aka Instructor
 //
 // Description(1033): Spell check using Microsoft Word.
@@ -28,11 +28,13 @@ if (hWndEdit)
 
       if (oSpellDoc=Word.Documents.Add())
       {
-        if (parseInt(Word.Version) < 15)
-          Word.ActiveWindow.WindowState=2;  //wdWindowStateMinimize
-        else
-          Word.ActiveWindow.WindowState=0;  //wdWindowStateNormal
         oSpellDoc.Content.Text=pSelText;
+        Word.ActiveWindow.WindowState=2;  //wdWindowStateMinimize
+        if (parseInt(Word.Version) >= 15)
+        {
+          Word.Visible=false;
+          oSys.Call("user32::SetForegroundWindow", oSpellDoc.ActiveWindow.Hwnd);
+        }
 
         pTextIn=oSpellDoc.Content.Text;
         if (Word.Options.CheckGrammarWithSpelling == true)
