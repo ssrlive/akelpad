@@ -32,6 +32,7 @@ if (hWndEdit)
         Word.ActiveWindow.WindowState=2;  //wdWindowStateMinimize
         if (parseInt(Word.Version) >= 15)
         {
+          //MS Word 2013 and higher
           Word.Visible=false;
           oSys.Call("user32::SetForegroundWindow", oSpellDoc.ActiveWindow.Hwnd);
         }
