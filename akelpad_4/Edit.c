@@ -21578,7 +21578,12 @@ void UpdateSize()
           hDwp=DeferWindowPos(hDwp, hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, SWP_NOZORDER|SWP_NOACTIVATE);
       }
       if (bStatusBar)
-        hDwp=DeferWindowPos(hDwp, hStatus, 0, nsSize.rcInitial.left, nsSize.rcInitial.bottom, nsSize.rcInitial.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+      {
+        RECT rcClient;
+
+        GetClientRect(hMainWnd, &rcClient);
+        hDwp=DeferWindowPos(hDwp, hStatus, 0, rcClient.left, rcClient.bottom - nStatusHeight, rcClient.right, nStatusHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+      }
       EndDeferWindowPos(hDwp);
     }
     SendMessage(hMainWnd, AKDN_SIZE_ONFINISH, 0, (LPARAM)&nsSize);
