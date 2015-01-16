@@ -600,6 +600,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (hMenuList=CreatePopupMenu())
     {
       AppendMenuWide(hMenuList, MF_STRING, IDC_SCRIPTS_OPENSITE, GetLangStringW(wLangModule, STRID_MENU_OPENSITE));
+      AppendMenuWide(hMenuList, MF_STRING, IDC_SCRIPTS_COPYNAME, GetLangStringW(wLangModule, STRID_MENU_COPYNAME));
     }
 
     SetWindowTextWide(hWndScriptsFilter, wszFilter);
@@ -728,6 +729,29 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         PostMessage(hDlg, WM_COMMAND, IDC_EXEC, 0);
       }
+      else if (((NMHDR *)lParam)->code == (UINT)LVN_KEYDOWN)
+      {
+        NMLVKEYDOWN *pnkd=(NMLVKEYDOWN *)lParam;
+        BOOL bAlt=FALSE;
+        BOOL bShift=FALSE;
+        BOOL bControl=FALSE;
+
+        if (GetKeyState(VK_MENU) < 0)
+          bAlt=TRUE;
+        if (GetKeyState(VK_SHIFT) < 0)
+          bShift=TRUE;
+        if (GetKeyState(VK_CONTROL) < 0)
+          bControl=TRUE;
+
+        if (pnkd->wVKey == L'C')
+        {
+          if (!bAlt && !bShift && bControl)
+          {
+            PostMessage(hDlg, WM_COMMAND, IDC_SCRIPTS_COPYNAME, 0);
+            return TRUE;
+          }
+        }
+      }
     }
   }
   else if (uMsg == WM_COMMAND)
@@ -738,6 +762,20 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpListItem=GetItemParam(hWndScriptsList, nSelItem))
         ShellExecuteWide(hDlg, L"open", lpListItem->wpSite, NULL, NULL, SW_MAXIMIZE);
+    }
+    else if (LOWORD(wParam) == IDC_SCRIPTS_COPYNAME)
+    {
+      LISTITEM *lpListItem;
+      BSTR wpScript;
+
+      if (lpListItem=GetItemParam(hWndScriptsList, nSelItem))
+      {
+        if (wpScript=SysAllocString(lpListItem->wpScript))
+        {
+          Document_SetClipboardText(NULL, wpScript);
+          SysFreeString(wpScript);
+        }
+      }
     }
     else if (LOWORD(wParam) == IDC_SCRIPTS_FILTER)
     {
@@ -3101,6 +3139,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041A\x043E\x043B\x043E\x043D\x043A\x0438";
     if (nStringID == STRID_MENU_OPENSITE)
       return L"\x041E\x0442\x043A\x0440\x044B\x0442\x044C\x0020\x0441\x0430\x0439\x0442";
+    if (nStringID == STRID_MENU_COPYNAME)
+      return L"\x041A\x043E\x043F\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0438\x043C\x044F\tCtrl+C";
     if (nStringID == STRID_MENU_ITEMMOVEUP)
       return L"\x041F\x0435\x0440\x0435\x043C\x0435\x0441\x0442\x0438\x0442\x044C\x0020\x0432\x0432\x0435\x0440\x0445\tAlt+Up";
     if (nStringID == STRID_MENU_ITEMMOVEDOWN)
@@ -3196,6 +3236,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Columns";
     if (nStringID == STRID_MENU_OPENSITE)
       return L"Open site";
+    if (nStringID == STRID_MENU_COPYNAME)
+      return L"Copy name\tCtrl+C";
     if (nStringID == STRID_MENU_ITEMMOVEUP)
       return L"Move up\tAlt+Up";
     if (nStringID == STRID_MENU_ITEMMOVEDOWN)
