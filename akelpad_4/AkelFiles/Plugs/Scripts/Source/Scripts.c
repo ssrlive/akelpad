@@ -3021,6 +3021,7 @@ void ReadOptions(DWORD dwFlags)
           WideOption(hOptions, wszBuffer, PO_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD));
           if (dwHotkey) RegisterHotkey(wszBuffer, LOWORD(dwHotkey));
         }
+        else dwSaveFlags|=OF_HOTKEYS;
       }
     }
 
