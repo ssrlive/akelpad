@@ -6238,7 +6238,7 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdA, 0, sizeof(PRINTDLGA));
   pdA.lStructSize =sizeof(PRINTDLGA);
   pdA.hwndOwner   =hWndOwner;
-  pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC;
+  pdA.Flags       =prninfo->dwPrintFlags;
   pdA.nMinPage    =1;
   pdA.nMaxPage    =9999;
   pdA.nFromPage   =prninfo->nFromPage;
@@ -6248,6 +6248,19 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   pdA.hDevMode    =prninfo->hDevMode;
   pdA.hDevNames   =prninfo->hDevNames;
 
+  if (!bSilent)
+  {
+    //Display printer dialog
+    if (!PrintDlgA(&pdA))
+      return FALSE;
+    prninfo->dwPrintFlags=pdA.Flags;
+    prninfo->nFromPage=pdA.nFromPage;
+    prninfo->nToPage=pdA.nToPage;
+    prninfo->nCopies=pdA.nCopies;
+    //Go to next block to set dmCopies to 1, because on Win7 and higher
+    //system make own copies even if PD_USEDEVMODECOPIESANDCOLLATE flag not set.
+    bSilent=TRUE;
+  }
   if (bSilent)
   {
     DEVMODEA *hDevMode;
@@ -6258,7 +6271,12 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     {
       hDevMode=(DEVMODEA *)GlobalLock(pdA.hDevMode);
       hDevNames=(DEVNAMES *)GlobalLock(pdA.hDevNames);
+      hDevMode->dmCopies=1;
+      hDevMode->dmCollate=DMCOLLATE_FALSE;
+      if (pdA.hDC) DeleteDC(pdA.hDC);
       pdA.hDC=CreateDCA((char *)hDevNames + hDevNames->wDriverOffset, (char *)hDevNames + hDevNames->wDeviceOffset, NULL, hDevMode);
+      hDevMode->dmCollate=(pdA.Flags & PD_COLLATE)?DMCOLLATE_TRUE:DMCOLLATE_FALSE;
+      hDevMode->dmCopies=pdA.nCopies;
       GlobalUnlock(pdA.hDevMode);
       GlobalUnlock(pdA.hDevNames);
     }
@@ -6274,16 +6292,6 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
         return FALSE;
     }
   }
-  else
-  {
-    //Display printer dialog
-    if (!PrintDlgA(&pdA))
-      return FALSE;
-    prninfo->dwPrintFlags=pdA.Flags;
-    prninfo->nFromPage=pdA.nFromPage;
-    prninfo->nToPage=pdA.nToPage;
-    prninfo->nCopies=pdA.nCopies;
-  }
   prninfo->hDC=pdA.hDC;
   prninfo->hDevMode=pdA.hDevMode;
   prninfo->hDevNames=pdA.hDevNames;
@@ -6297,7 +6305,7 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   xmemset(&pdW, 0, sizeof(PRINTDLGW));
   pdW.lStructSize =sizeof(PRINTDLGW);
   pdW.hwndOwner   =hWndOwner;
-  pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC;
+  pdW.Flags       =prninfo->dwPrintFlags;
   pdW.nMinPage    =1;
   pdW.nMaxPage    =9999;
   pdW.nFromPage   =prninfo->nFromPage;
@@ -6307,6 +6315,19 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   pdW.hDevMode    =prninfo->hDevMode;
   pdW.hDevNames   =prninfo->hDevNames;
 
+  if (!bSilent)
+  {
+    //Display printer dialog
+    if (!PrintDlgW(&pdW))
+      return FALSE;
+    prninfo->dwPrintFlags=pdW.Flags;
+    prninfo->nFromPage=pdW.nFromPage;
+    prninfo->nToPage=pdW.nToPage;
+    prninfo->nCopies=pdW.nCopies;
+    //Go to next block to set dmCopies to 1, because on Win7 and higher
+    //system make own copies even if PD_USEDEVMODECOPIESANDCOLLATE flag not set.
+    bSilent=TRUE;
+  }
   if (bSilent)
   {
     DEVMODEW *hDevMode;
@@ -6317,7 +6338,12 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     {
       hDevMode=(DEVMODEW *)GlobalLock(pdW.hDevMode);
       hDevNames=(DEVNAMES *)GlobalLock(pdW.hDevNames);
+      hDevMode->dmCopies=1;
+      hDevMode->dmCollate=DMCOLLATE_FALSE;
+      if (pdW.hDC) DeleteDC(pdW.hDC);
       pdW.hDC=CreateDCW((wchar_t *)hDevNames + hDevNames->wDriverOffset, (wchar_t *)hDevNames + hDevNames->wDeviceOffset, NULL, hDevMode);
+      hDevMode->dmCollate=(pdW.Flags & PD_COLLATE)?DMCOLLATE_TRUE:DMCOLLATE_FALSE;
+      hDevMode->dmCopies=pdW.nCopies;
       GlobalUnlock(pdW.hDevMode);
       GlobalUnlock(pdW.hDevNames);
     }
@@ -6332,16 +6358,6 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
       if (!PrintDlgW(&pdW))
         return FALSE;
     }
-  }
-  else
-  {
-    //Display printer dialog
-    if (!PrintDlgW(&pdW))
-      return FALSE;
-    prninfo->dwPrintFlags=pdW.Flags;
-    prninfo->nFromPage=pdW.nFromPage;
-    prninfo->nToPage=pdW.nToPage;
-    prninfo->nCopies=pdW.nCopies;
   }
   prninfo->hDC=pdW.hDC;
   prninfo->hDevMode=pdW.hDevMode;
