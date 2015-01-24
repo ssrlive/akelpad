@@ -1,4 +1,9 @@
 
+AkelPad 4.9.3 ()
+----------------------------
+Fixed: print multiple copies on Win7.
+
+
 AkelPad 4.9.2 (Jun 05, 2014)
 ----------------------------
 Changed: massive repainting optimizations to reduce flickering.
