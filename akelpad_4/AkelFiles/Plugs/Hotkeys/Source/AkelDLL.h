@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 2)
 
 
 //// Defines
@@ -2061,7 +2061,7 @@ typedef struct {
                                               //Return Value: pointer to a new FRAMEDATA structure.
                                               //
 #define IDM_WINDOW_COPYPATH             4323  //Copy current window file path to clipboard. lParam: see CPF_* defines.
-                                              //Return Value: number of copied character including null character.
+                                              //Return Value: number of copied characters including null character.
                                               //
 #define IDM_WINDOW_FILECLOSE            4324  //Close file.
                                               //Return Value: TRUE - success, FALSE - failed.
@@ -2297,6 +2297,8 @@ typedef struct {
 #define AKD_GETFOCUS               (WM_USER + 293)
 #define AKD_PEEKMESSAGE            (WM_USER + 294)
 #define AKD_UNIQUEID               (WM_USER + 295)
+#define AKD_GETCLIPBOARDTEXT       (WM_USER + 296)
+#define AKD_SETCLIPBOARDTEXT       (WM_USER + 297)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)
@@ -4664,6 +4666,46 @@ Return Value
 
 Example:
  INT_PTR nMyID=SendMessage(pd->hMainWnd, AKD_UNIQUEID, 0, 0);
+
+
+AKD_GETCLIPBOARDTEXT
+____________________
+
+Get text from clipboard.
+
+(BOOL)wParam       == TRUE   retrieve ansi text.
+                      FALSE  retrieve unicode text.
+(wchar_t **)lParam == pointer to a variable that receive clipboard text.
+                      If NULL, returns required buffer size in TCHARs.
+                      If variable is NULL, allocate new buffer and copy to it. Release with AKD_FREETEXT when buffer not needed.
+                      If variable is not NULL, copy to this buffer.
+
+Return Value
+ Number of copied characters including null character.
+
+Example:
+ wchar_t *wpText=NULL;
+
+ if (SendMessage(pd->hMainWnd, AKD_GETCLIPBOARDTEXT, FALSE, (LPARAM)&wpText))
+ {
+   MessageBoxW(pd->hMainWnd, wpText, L"Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
+ }
+
+
+AKD_SETCLIPBOARDTEXT
+____________________
+
+Copy text to clipboard.
+
+(const wchar_t *)wParam == text.
+(INT_PTR)lParam         == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+
+Return Value
+ Number of copied characters including null character.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETCLIPBOARDTEXT, (WPARAM)L"123", (LPARAM)-1);
 
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW

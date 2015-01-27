@@ -3866,6 +3866,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return ++nUniqueID;
       }
+      case AKD_GETCLIPBOARDTEXT:
+      {
+        return GetClipboardText((BOOL)wParam, (wchar_t **)lParam, MAXINT_PTR);
+      }
+      case AKD_SETCLIPBOARDTEXT:
+      {
+        return SetClipboardText((const wchar_t *)wParam, lParam);
+      }
 
       //Plugin options
       case AKD_BEGINOPTIONS:
@@ -5008,27 +5016,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lParam == CPF_DIR)
         {
-          return (LRESULT)SetClipboardText(lpFrameCurrent->wszFileDir);
+          return SetClipboardText(lpFrameCurrent->wszFileDir, -1);
         }
         if (lParam == CPF_FILENAME)
         {
           const wchar_t *wpFileName=GetFileName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
 
-          return (LRESULT)SetClipboardText(wpFileName);
+          return SetClipboardText(wpFileName, -1);
         }
         if (lParam == CPF_FILEBASENAME)
         {
           GetBaseName(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen, wbuf, BUFFER_SIZE);
-          return (LRESULT)SetClipboardText(wbuf);
+          return SetClipboardText(wbuf, -1);
         }
         if (lParam == CPF_FILEEXT)
         {
           const wchar_t *wpExt=GetFileExt(lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen);
 
-          return (LRESULT)SetClipboardText(wpExt);
+          return SetClipboardText(wpExt, -1);
         }
         //CPF_FULLPATH
-        return (LRESULT)SetClipboardText(lpFrameCurrent->wszFile);
+        return SetClipboardText(lpFrameCurrent->wszFile, -1);
       }
       case IDM_WINDOW_FILECLOSE:
       {

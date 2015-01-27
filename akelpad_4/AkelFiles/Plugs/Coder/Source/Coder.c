@@ -6083,6 +6083,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0420\x0430\x0437\x0432\x0435\x0440\x043D\x0443\x0442\x044C\x0020\x0441\x043F\x0438\x0441\x043E\x043A";
     if (nStringID == STRID_LISTCOLLAPSE)
       return L"\x0421\x0432\x0435\x0440\x043D\x0443\x0442\x044C\x0020\x0441\x043F\x0438\x0441\x043E\x043A";
+    if (nStringID == STRID_LISTCOPY)
+      return L"\x041A\x043E\x043F\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0441\x043F\x0438\x0441\x043E\x043A";
     if (nStringID == STRID_STATISTICS)
       return L"\x0421\x0442\x0430\x0442\x0438\x0441\x0442\x0438\x043A\x0430";
     if (nStringID == STRID_STATISTICS_MSG)
@@ -6309,6 +6311,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Expand list";
     if (nStringID == STRID_LISTCOLLAPSE)
       return L"Collapse list";
+    if (nStringID == STRID_LISTCOPY)
+      return L"Copy list";
     if (nStringID == STRID_STATISTICS)
       return L"Statistics";
     if (nStringID == STRID_STATISTICS_MSG)
