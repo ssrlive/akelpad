@@ -329,6 +329,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     AppendMenuWide(hMenuTreeView, MF_SEPARATOR, 0, NULL);
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTEXPAND, GetLangStringW(wLangModule, STRID_LISTEXPAND));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTCOLLAPSE, GetLangStringW(wLangModule, STRID_LISTCOLLAPSE));
+    AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTCOPY, GetLangStringW(wLangModule, STRID_LISTCOPY));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_STATISTICS, GetLangStringW(wLangModule, STRID_STATISTICS));
     AppendMenuWide(hMenuTreeView, MF_SEPARATOR, 0, NULL);
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_SETUP, GetLangStringW(wLangModule, STRID_SETUP));
@@ -466,6 +467,78 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         else if (nCmd == IDM_CODEFOLD_LISTCOLLAPSE)
         {
           ExpandTreeView(hWndCodeFoldList, lpCurrentFoldWindow, FALSE);
+        }
+        else if (nCmd == IDM_CODEFOLD_LISTCOPY)
+        {
+          TVITEMW tvi;
+          HTREEITEM hItem;
+          HTREEITEM hNextItem;
+          wchar_t *wszText=NULL;
+          wchar_t *wpText=NULL;
+          int nSpaces=0;
+          int i;
+
+          for (;;)
+          {
+            hItem=(HTREEITEM)SendMessage(hWndCodeFoldList, TVM_GETNEXTITEM, TVGN_ROOT, (LPARAM)NULL);
+
+            tvi.mask=TVIF_PARAM|TVIF_STATE|TVIF_TEXT;
+            tvi.stateMask=TVIS_EXPANDED;
+            tvi.pszText=wszBuffer;
+            tvi.cchTextMax=BUFFER_SIZE;
+
+            while (hItem)
+            {
+              tvi.hItem=hItem;
+
+              if (TreeView_GetItemWide(hWndCodeFoldList, &tvi))
+              {
+                for (i=0; i < nSpaces; ++i)
+                {
+                  if (wszText) *wpText=L' ';
+                  ++wpText;
+                }
+                wpText+=xprintfW(wszText?wpText:NULL, L"%s\r\n", wszBuffer) - !wszText;
+
+                if (tvi.state & TVIS_EXPANDED)
+                {
+                  if (hNextItem=(HTREEITEM)SendMessage(hWndCodeFoldList, TVM_GETNEXTITEM, TVGN_CHILD, (LPARAM)hItem))
+                  {
+                    nSpaces+=2;
+                    hItem=hNextItem;
+                    continue;
+                  }
+                }
+                for (;;)
+                {
+                  if (hNextItem=(HTREEITEM)SendMessage(hWndCodeFoldList, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM)hItem))
+                  {
+                    hItem=hNextItem;
+                    break;
+                  }
+                  else if (hItem=(HTREEITEM)SendMessage(hWndCodeFoldList, TVM_GETNEXTITEM, TVGN_PARENT, (LPARAM)hItem))
+                    nSpaces-=2;
+                  else
+                    break;
+                }
+              }
+            }
+
+            if (!wszText)
+            {
+              //Allocate wszText and loop again
+              if (wszText=(wchar_t *)GlobalAlloc(GPTR, (INT_PTR)(wpText + 1)))
+                wpText=wszText;
+              else
+                break;
+            }
+            else
+            {
+              *wpText=L'\0';
+              break;
+            }
+          }
+          SendMessage(hMainWnd, AKD_SETCLIPBOARDTEXT, (WPARAM)wszText, (LPARAM)-1);
         }
         else if (nCmd == IDM_CODEFOLD_STATISTICS)
         {
