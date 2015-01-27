@@ -11228,36 +11228,11 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
 
 int PasteCase(HWND hWnd, BOOL bAnsi)
 {
-  HGLOBAL hData;
-  LPVOID pData;
   wchar_t *wszData=NULL;
-  INT_PTR nDataLen=0;
+  INT_PTR nDataLen;
   int nCase=0;
 
-  if (OpenClipboard(NULL))
-  {
-    if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
-    {
-      if (pData=GlobalLock(hData))
-      {
-        nDataLen=xstrlenW((wchar_t *)pData) + 1;
-        if (wszData=API_AllocWide(nDataLen))
-          xmemcpy(wszData, (wchar_t *)pData, nDataLen * sizeof(wchar_t));
-        GlobalUnlock(hData);
-      }
-    }
-    else if (hData=GetClipboardData(CF_TEXT))
-    {
-      if (pData=GlobalLock(hData))
-      {
-        nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, NULL, 0);
-        if (wszData=API_AllocWide(nDataLen))
-          MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszData, (int)nDataLen);
-        GlobalUnlock(hData);
-      }
-    }
-    CloseClipboard();
-  }
+  nDataLen=GetClipboardText(bAnsi, &wszData, 0);
 
   //Paste
   if (wszData)
@@ -11273,12 +11248,62 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
   return nCase;
 }
 
-INT_PTR SetClipboardText(const wchar_t *wpText)
+INT_PTR GetClipboardText(BOOL bAnsi, wchar_t **wppData, INT_PTR nMaxData)
+{
+  HGLOBAL hData;
+  LPVOID pData;
+  INT_PTR nDataLen=0;
+
+  if (OpenClipboard(NULL))
+  {
+    if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        if (!wppData)
+        {
+          nDataLen=xstrlenW((wchar_t *)pData) + 1;
+        }
+        else if (!*wppData)
+        {
+          nDataLen=xstrlenW((wchar_t *)pData) + 1;
+          if (*wppData=API_AllocWide(nDataLen))
+            xmemcpy(*wppData, (wchar_t *)pData, nDataLen * sizeof(wchar_t));
+        }
+        else nDataLen=xstrcpynW(*wppData, (wchar_t *)pData, nMaxData) + 1;
+
+        GlobalUnlock(hData);
+      }
+    }
+    else if (hData=GetClipboardData(CF_TEXT))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        if (!wppData)
+        {
+          nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, NULL, 0);
+        }
+        else if (!*wppData)
+        {
+          nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, NULL, 0);
+          if (*wppData=API_AllocWide(nDataLen))
+            MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, *wppData, (int)nDataLen);
+        }
+        else nDataLen=MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, *wppData, (int)nMaxData);
+
+        GlobalUnlock(hData);
+      }
+    }
+    CloseClipboard();
+  }
+  return nDataLen;
+}
+
+INT_PTR SetClipboardText(const wchar_t *wpText, INT_PTR nUnicodeLen)
 {
   HGLOBAL hDataA=NULL;
   HGLOBAL hDataW=NULL;
   LPVOID pData;
-  INT_PTR nUnicodeLen=0;
   INT_PTR nAnsiLen;
 
   if (!wpText) wpText=L"";
@@ -11286,7 +11311,9 @@ INT_PTR SetClipboardText(const wchar_t *wpText)
   if (OpenClipboard(NULL))
   {
     //Unicode
-    nUnicodeLen=xstrlenW(wpText) + 1;
+    if (nUnicodeLen == -1)
+      nUnicodeLen=xstrlenW(wpText);
+    ++nUnicodeLen;
 
     if (hDataW=GlobalAlloc(GMEM_MOVEABLE, nUnicodeLen * sizeof(wchar_t)))
     {
