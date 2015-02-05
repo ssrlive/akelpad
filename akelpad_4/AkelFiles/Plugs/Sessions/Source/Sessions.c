@@ -2606,7 +2606,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       dkSessionsDlg->dwFlags&=~DKF_HIDDEN;
     }
   }
-  else if (uMsg == WM_CLOSE)
+  else if (uMsg == WM_CLOSE ||
+           uMsg == WM_QUERYENDSESSION)
   {
     if (bSaveOnExit)
     {
