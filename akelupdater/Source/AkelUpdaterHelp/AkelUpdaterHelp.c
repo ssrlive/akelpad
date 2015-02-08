@@ -11,10 +11,10 @@
 #include "..\StrFunc.h"
 
 //Defines
-#define PE_NONE              0
-#define PE_NOTINLIST         1
-#define PE_NOTPLUGIN         2
-#define PE_CANTLOAD          3
+#define PE_NONE        0
+#define PE_NOTINLIST   1
+#define PE_NOTPLUGIN   2
+#define PE_CANTLOAD    3
 
 //AkelUpdaterHelp action
 #define AUH_GETDLLNAME   1
