@@ -1950,9 +1950,9 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
 
       //Smart complete block abbreviations (from left).
       //Avoid expanding "<td" to "<<td".
-      if (lpBlockMaster->nBlockLen > lpBlockInfo->nTitleLen)
+      if (nMax - nMin > 0)
       {
-        if (xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen, FALSE, &wpStrBegin, &wpStrEnd))
+        if (xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, (int)(nMax - nMin), FALSE, &wpStrBegin, &wpStrEnd))
         {
           ft.dwFlags=0;
           ft.pText=lpBlockMaster->wpBlock;
