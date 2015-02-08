@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.0                  *
+ *                 AkelUpdater NSIS plugin v6.1                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -1325,6 +1325,7 @@ void CompareItems()
       }
     }
   }
+  StackFilesSort(&hFileStack);
 }
 
 void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpFilter)
@@ -1757,7 +1758,12 @@ int StackSort(FILEITEM **first, FILEITEM **last, int nUpDown)
 
     for (tmp2=*first; tmp2 != tmp1; tmp2=tmp2->next)
     {
-      i=xstrcmpiW(tmp2->wszName, tmp1->wszName);
+      if (tmp2->nCompare == tmp1->nCompare)
+        i=xstrcmpiW(tmp2->wszName, tmp1->wszName);
+      else if (tmp2->nCompare > tmp1->nCompare)
+        i=-1;
+      else
+        i=1;
 
       if (i == 0 || i == nUpDown)
       {
