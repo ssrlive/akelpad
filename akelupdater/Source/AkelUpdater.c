@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.1                  *
+ *                 AkelUpdater NSIS plugin v6.2                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -94,24 +94,25 @@
 #define NSIS_MAX_STRLEN 1024
 
 //String IDs
-#define STRID_PROGRAM          0
-#define STRID_PLUGIN           1
-#define STRID_SCRIPT           2
-#define STRID_SCRIPTS          3
-#define STRID_COPIES           4
-#define STRID_LATEST           5
-#define STRID_CURRENT          6
-#define STRID_DESCRIPTION      7
-#define STRID_AUTHOR           8
-#define STRID_MIRROR           9
-#define STRID_LANGUAGE         10
-#define STRID_SELECT           11
-#define STRID_ERRORNOTINLIST   12
-#define STRID_ERRORNOTPLUGIN   13
-#define STRID_ERRORCANTLOAD    14
-#define STRID_ERRORCOUNT       15
-#define STRID_UPDATE           16
-#define STRID_CANCEL           17
+#define STRID_AVAILABLE        0
+#define STRID_PROGRAM          1
+#define STRID_PLUGIN           2
+#define STRID_SCRIPT           3
+#define STRID_SCRIPTS          4
+#define STRID_COPIES           5
+#define STRID_LATEST           6
+#define STRID_CURRENT          7
+#define STRID_DESCRIPTION      8
+#define STRID_AUTHOR           9
+#define STRID_MIRROR           10
+#define STRID_LANGUAGE         11
+#define STRID_SELECT           12
+#define STRID_ERRORNOTINLIST   13
+#define STRID_ERRORNOTPLUGIN   14
+#define STRID_ERRORCANTLOAD    15
+#define STRID_ERRORCOUNT       16
+#define STRID_UPDATE           17
+#define STRID_CANCEL           18
 
 #define AKDLL_SHOWWINDOW    (WM_USER + 100)
 #define AKDLL_UPDATESTATUS  (WM_USER + 101)
@@ -127,9 +128,9 @@
 #define LT_SCRIPTS 2
 
 #define CR_EQUAL           0
-#define CR_INSTALLEDOLDER  1
-#define CR_INSTALLEDNEWER  2
-#define CR_NOTINSTALLED    3
+#define CR_NOTINSTALLED    1
+#define CR_INSTALLEDOLDER  2
+#define CR_INSTALLEDNEWER  3
 
 #ifndef SCS_32BIT_BINARY
   #define SCS_32BIT_BINARY 0
@@ -143,9 +144,9 @@
 
 //DLLINFO.dwError
 #define PE_NONE        0
-#define PE_NOTPLUGIN   1
-#define PE_CANTLOAD    2
-#define PE_NOTINLIST   3
+#define PE_NOTINLIST   1
+#define PE_NOTPLUGIN   2
+#define PE_CANTLOAD    3
 
 //FILEITEM.nType
 #define FIT_AKELPAD   1
@@ -388,6 +389,7 @@ wchar_t wszInputLanguage[MAX_PATH];
 wchar_t wszInputVersion[32];
 wchar_t wszNsisTempDir[MAX_PATH];
 wchar_t wszInputHelper[MAX_PATH];
+wchar_t wszAkelUpdaterVer[MAX_PATH]=L"";
 wchar_t wszScriptsPack[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
 HINSTANCE hInstanceDLL=NULL;
@@ -1091,6 +1093,7 @@ void ParseLst(HWND hDlg)
   if (!wszScriptsPack[0])
   {
     wszNoSupport64Bit[0]=L'\0';
+    wszAkelUpdaterVer[0]=L'\0';
 
     //Add installed
     StackFilesFill(&hFileStack);
@@ -1118,6 +1121,15 @@ void ParseLst(HWND hDlg)
             {
               xstrcpynW(wszNoSupport64Bit, wszString, MAX_PATH);
             }
+            else if (!wszAkelUpdaterVer[0] && !xstrcmpiW(wszName, L"$AkelUpdaterVer"))
+            {
+              xstrcpynW(wszAkelUpdaterVer, wszString, MAX_PATH);
+              if (xstrcmpW(wszInputVersion, wszAkelUpdaterVer) < 0)
+              {
+                xprintfW(wszBuffer, L"AkelUpdater %s (%s %s)", wszInputVersion, GetLangStringW(wLangModule, STRID_AVAILABLE), wszAkelUpdaterVer);
+                SetWindowTextWide(hDlg, wszBuffer);
+              }
+            }
             else if (!wszScriptsPack[0] && !xstrcmpiW(wszName, L"$ScriptsPack"))
             {
               xstrcpynW(wszScriptsPack, wszString, MAX_PATH);
@@ -1129,40 +1141,41 @@ void ParseLst(HWND hDlg)
               {
                 nNameLen-=3;
                 wszName[nNameLen]=L'\0';
-              }
-              //Trim "$"
-              xstrcpynW(wszName, wszName + 1, MAX_PATH);
 
-              if ((nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL)) ||
-                  (lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1)))
-              {
-                //Skip line
-              }
-              else
-              {
-                if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
-                  lpFileItem=StackFileInsert(&hFileStack, wszName);
-                if (lpFileItem)
+                //Trim "$"
+                xstrcpynW(wszName, wszName + 1, MAX_PATH);
+
+                if ((nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL)) ||
+                    (lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1)))
                 {
-                  xstrcpynW(lpFileItem->wszLastVer, wszString, MAX_PATH);
+                  //Skip line
+                }
+                else
+                {
+                  if (!(lpFileItem=StackFileGet(&hFileStack, wszName)))
+                    lpFileItem=StackFileInsert(&hFileStack, wszName);
+                  if (lpFileItem)
+                  {
+                    xstrcpynW(lpFileItem->wszLastVer, wszString, MAX_PATH);
 
-                  if (!lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1))
-                  {
-                    lpFileItem->nType=FIT_AKELPAD;
-                    if (GetFileVersionWide(wszAkelExe, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
-                      xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
-                    lpFileItemAkelPad=lpFileItem;
-                  }
-                  else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
-                  {
-                    lpFileItem->nType=FIT_PLUGIN;
-                    lpFileItemScripts=lpFileItem;
-                    xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
-                  }
-                  else
-                  {
-                    lpFileItem->nType=FIT_PLUGIN;
-                    xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
+                    if (!lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1))
+                    {
+                      lpFileItem->nType=FIT_AKELPAD;
+                      if (GetFileVersionWide(wszAkelExe, &nMajor, &nMinor, &nRelease, &nBuild, NULL))
+                        xprintfW(lpFileItem->wszCurVer, L"%d.%d.%d", nMajor, nMinor, nRelease);
+                      lpFileItemAkelPad=lpFileItem;
+                    }
+                    else if (!lpFileItemScripts && !xstrcmpnW(L"Scripts", wszName, (UINT_PTR)-1))
+                    {
+                      lpFileItem->nType=FIT_PLUGIN;
+                      lpFileItemScripts=lpFileItem;
+                      xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
+                    }
+                    else
+                    {
+                      lpFileItem->nType=FIT_PLUGIN;
+                      xstrcpynW(lpFileItem->wszPack, wszPack, MAX_PATH);
+                    }
                   }
                 }
               }
@@ -1758,12 +1771,14 @@ int StackSort(FILEITEM **first, FILEITEM **last, int nUpDown)
 
     for (tmp2=*first; tmp2 != tmp1; tmp2=tmp2->next)
     {
-      if (tmp2->nCompare == tmp1->nCompare)
-        i=xstrcmpiW(tmp2->wszName, tmp1->wszName);
-      else if (tmp2->nCompare > tmp1->nCompare)
-        i=-1;
-      else
-        i=1;
+      if (tmp2->dwError == tmp1->dwError)
+      {
+        if (tmp2->nCompare == tmp1->nCompare)
+          i=xstrcmpiW(tmp2->wszName, tmp1->wszName);
+        else
+          i=tmp2->nCompare > tmp1->nCompare?-1:1;
+      }
+      else i=tmp2->dwError > tmp1->dwError?-1:1;
 
       if (i == 0 || i == nUpDown)
       {
@@ -2257,6 +2272,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 
   if (wLangID == LANG_RUSSIAN)
   {
+    if (nStringID == STRID_AVAILABLE)
+      return L"\x0434\x043E\x0441\x0442\x0443\x043F\x043D\x0430\x0020\x0432\x0435\x0440\x0441\x0438\x044F";
     if (nStringID == STRID_PROGRAM)
       return L"\x041F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0430";
     if (nStringID == STRID_PLUGIN)
@@ -2296,6 +2313,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
   }
   else
   {
+    if (nStringID == STRID_AVAILABLE)
+      return L"available version";
     if (nStringID == STRID_PROGRAM)
       return L"Program";
     if (nStringID == STRID_PLUGIN)
