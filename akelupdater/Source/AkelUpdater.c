@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.2                  *
+ *                 AkelUpdater NSIS plugin v6.3                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -686,6 +686,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FILEITEM *lpFileItem;
       int nAllItemsCount=0;
       int nSelCount=0;
+      int nSelProgram=0;
       int nErrorsCount=0;
 
       for (lpFileItem=hFileStack.first; lpFileItem; lpFileItem=lpFileItem->next)
@@ -699,7 +700,11 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ++nErrorsCount;
         }
         if (lpFileItem->nChecked > 0)
+        {
           ++nSelCount;
+          if (lpFileItem->nType == FIT_AKELPAD)
+            ++nSelProgram;
+        }
         ++nAllItemsCount;
       }
       if (nErrorsCount)
@@ -709,6 +714,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       xprintfW(wszBuffer, L"%s%d / %d", wszBuffer2, nSelCount, nAllItemsCount);
       SetWindowTextWide(hWndListStatusInfo, wszBuffer);
       EnableWindow(hWndUpdate, nSelCount);
+      EnableWindow(hWndMirror, nSelProgram);
     }
   }
   else if (uMsg == WM_COPYDATA)
@@ -1124,7 +1130,7 @@ void ParseLst(HWND hDlg)
             else if (!wszAkelUpdaterVer[0] && !xstrcmpiW(wszName, L"$AkelUpdaterVer"))
             {
               xstrcpynW(wszAkelUpdaterVer, wszString, MAX_PATH);
-              if (xstrcmpW(wszInputVersion, wszAkelUpdaterVer) < 0)
+              if (xstrcmpW(wszInputVersion, wszAkelUpdaterVer))
               {
                 xprintfW(wszBuffer, L"AkelUpdater %s (%s %s)", wszInputVersion, GetLangStringW(wLangModule, STRID_AVAILABLE), wszAkelUpdaterVer);
                 SetWindowTextWide(hDlg, wszBuffer);
