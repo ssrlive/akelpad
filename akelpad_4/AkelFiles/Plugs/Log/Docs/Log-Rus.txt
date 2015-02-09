@@ -1,5 +1,5 @@
 *****************************************************************
-***                  Log AkelPad plugin v4.4                  ***
+***                  Log AkelPad plugin v4.5                  ***
 *****************************************************************
 
 2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -79,12 +79,14 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
   Пример (запуск пакетного файла для компиляции):
     Call("Log::Output", 1, `"%d\Build.cmd" /S`, "%d", "^\s*(.*)[(:](\d+)([,:](\d+))?[):]", "/FILE=\1 /GOTOLINE=\2:\4", -2, -2, 4)
 
-Call("Log::Output", 2, *WINDOW)
+Call("Log::Output", 2, *WINDOW, *DOCK)
   Параметры:
     2
       Получить дескриптор окна вывода текста. Использовать с помощью Scripts плагина.
     *WINDOW
       Указатель на переменную, которая получает дескриптор окна вывода текста.
+    *DOCK
+      Указатель на переменную, которая получает указатель на структуру DOCK.
   Пример:
     WScript.Echo(GetOutputWindow());
 
@@ -102,7 +104,7 @@ Call("Log::Output", 2, *WINDOW)
       return hWnd;
     }
 
-Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID)
+Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID, *EXITCODE)
   Параметры:
     3
       Получить информацию о текущем запущенном приложении. Использовать с помощью Scripts плагина.
@@ -119,6 +121,8 @@ Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID)
       Указатель на переменную, которая получает дескриптор процесса запущенного приложения. Может быть NULL.
     *PROCESSID
       Указатель на переменную, которая получает идентификатор процесса запущенного приложения. Может быть NULL.
+    *EXITCODE
+      Указатель на переменную, которая получает код возврата запущенного приложения. Может быть NULL.
   Пример:
     WScript.Echo(GetExecState());
 
