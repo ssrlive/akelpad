@@ -2,6 +2,7 @@
 AkelPad 4.9.3 ()
 ----------------------------
 Fixed: print multiple copies on Win7.
+Fixed: WordBreak parameter.
 
 
 AkelPad 4.9.2 (Jun 05, 2014)

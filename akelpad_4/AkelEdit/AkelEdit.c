@@ -15697,18 +15697,15 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     {
       bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
-      if (bInList)
+      if (dwFlags & AEWB_STOPSPACESTART)
       {
-        if (dwFlags & AEWB_STOPSPACESTART)
-        {
-          if (!bIsSpacePrevious && bIsSpaceCurrent)
-            goto End;
-        }
-        if (dwFlags & AEWB_STOPSPACEEND)
-        {
-          if (bIsSpacePrevious && !bIsSpaceCurrent)
-            goto End;
-        }
+        if (!bIsSpacePrevious && bIsSpaceCurrent)
+          goto End;
+      }
+      if (dwFlags & AEWB_STOPSPACEEND)
+      {
+        if (bIsSpacePrevious && !bIsSpaceCurrent)
+          goto End;
       }
       if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
       {
@@ -15845,18 +15842,15 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     {
       bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
-      if (bInList)
+      if (dwFlags & AEWB_STOPSPACESTART)
       {
-        if (dwFlags & AEWB_STOPSPACEEND)
-        {
-          if (!bIsSpacePrevious && bIsSpaceCurrent)
-            goto End;
-        }
-        if (dwFlags & AEWB_STOPSPACESTART)
-        {
-          if (bIsSpacePrevious && !bIsSpaceCurrent)
-            goto End;
-        }
+        if (bIsSpacePrevious && !bIsSpaceCurrent)
+          goto End;
+      }
+      if (dwFlags & AEWB_STOPSPACEEND)
+      {
+        if (!bIsSpacePrevious && bIsSpaceCurrent)
+          goto End;
       }
       if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
       {
