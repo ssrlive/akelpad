@@ -1,5 +1,5 @@
 *****************************************************************
-***                  Log AkelPad plugin v4.4                  ***
+***                  Log AkelPad plugin v4.5                  ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -79,12 +79,14 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
   Example (batch file execution for compilation):
     Call("Log::Output", 1, `"%d\Build.cmd" /S`, "%d", "^\s*(.*)[(:](\d+)([,:](\d+))?[):]", "/FILE=\1 /GOTOLINE=\2:\4", -2, -2, 4)
 
-Call("Log::Output", 2, *WINDOW)
+Call("Log::Output", 2, *WINDOW, *DOCK)
   Parameters:
     2
       Get text output window handle. Use with Scripts plugin.
     *WINDOW
       Pointer to a variable, that receives text output window handle.
+    *DOCK
+      Pointer to a variable, that receives pointer to a DOCK structure.
   Example:
     WScript.Echo(GetOutputWindow());
 
@@ -102,7 +104,7 @@ Call("Log::Output", 2, *WINDOW)
       return hWnd;
     }
 
-Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID)
+Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID, *EXITCODE)
   Parameters:
     3
       Get information about the current executed application. Use with Scripts plugin.
@@ -119,6 +121,8 @@ Call("Log::Output", 3, *EXECSTATE, *PLUGINTHREAD, *PROCESSHANDLE, *PROCESSID)
       Pointer to a variable, that receives process handle of the executed application. Can be NULL.
     *PROCESSID
       Pointer to a variable, that receives process id of the executed application. Can be NULL.
+    *EXITCODE
+      Pointer to a variable, that receives exit code of the executed application. Can be NULL.
   Example:
     WScript.Echo(GetExecState());
 

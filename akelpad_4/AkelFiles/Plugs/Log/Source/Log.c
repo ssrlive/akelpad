@@ -597,12 +597,17 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
     else if (nAction == DLLA_LOGOUTPUT_GETWINDOW)
     {
       HWND *lpWndOutput=NULL;
+      DOCK **lppDock=NULL;
 
       if (IsExtCallParamValid(pd->lParam, 2))
         lpWndOutput=(HWND *)GetExtCallParam(pd->lParam, 2);
+      if (IsExtCallParamValid(pd->lParam, 3))
+        lppDock=(DOCK **)GetExtCallParam(pd->lParam, 3);
 
       if (lpWndOutput)
         *lpWndOutput=hWndOutputView;
+      if (lppDock)
+        *lppDock=dkOutputDlg;
     }
     else if (nAction == DLLA_LOGOUTPUT_GETEXECINFO)
     {
@@ -610,6 +615,7 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
       HANDLE *lphExecThread=NULL;
       HANDLE *lphProcess=NULL;
       DWORD *lpdwProcessId=NULL;
+      DWORD *lpdwExitCode=NULL;
 
       if (IsExtCallParamValid(pd->lParam, 2))
         lpdwExecState=(DWORD *)GetExtCallParam(pd->lParam, 2);
@@ -619,6 +625,8 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
         lphProcess=(HANDLE *)GetExtCallParam(pd->lParam, 4);
       if (IsExtCallParamValid(pd->lParam, 5))
         lpdwProcessId=(DWORD *)GetExtCallParam(pd->lParam, 5);
+      if (IsExtCallParamValid(pd->lParam, 6))
+        lpdwExitCode=(DWORD *)GetExtCallParam(pd->lParam, 6);
 
       if (lpdwExecState)
         *lpdwExecState=oe.dwExecState;
@@ -628,6 +636,8 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
         *lphProcess=oe.hProcess;
       if (lpdwProcessId)
         *lpdwProcessId=oe.dwProcessId;
+      if (lpdwExitCode)
+        *lpdwExitCode=oe.dwExitCode;
     }
     else if (nAction == DLLA_LOGOUTPUT_SETTEXTA ||
              nAction == DLLA_LOGOUTPUT_SETTEXTW)
