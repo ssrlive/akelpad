@@ -4549,11 +4549,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
             //Draw column marker on non-text lines
             if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
-              AE_ColumnMarkerDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+              AE_ColumnMarkerDraw(ae, (HDC)wParam, rcErase.top, ae->rcDraw.bottom);
 
             //Draw active column on non-text lines
             if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-              AE_ActiveColumnDraw(ae, (HDC)wParam, (int)ae->ptxt->nVScrollMax, ae->rcDraw.bottom);
+              AE_ActiveColumnDraw(ae, (HDC)wParam, rcErase.top, ae->rcDraw.bottom);
           }
         }
 
