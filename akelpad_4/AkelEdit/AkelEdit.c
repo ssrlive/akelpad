@@ -15647,15 +15647,23 @@ int AE_GetCharFromPos(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARIN
 int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciCount=*ciChar;
+  const wchar_t *wpDelim;
+  wchar_t wchChar;
   int nLen=0;
   BOOL bInList;
-  BOOL bIsSpacePrevious=FALSE;
-  BOOL bIsSpaceCurrent;
-  BOOL bNewLineInList;
+  BOOL bIsSpacePrev=FALSE;
+  BOOL bIsSpaceCur=FALSE;
+  BOOL bInListNewLine=FALSE;
+  BOOL dwInListSpaces=0;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
-  bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
+  for (wpDelim=ae->popt->wszWordDelimiters; *wpDelim; ++wpDelim)
+  {
+    if (*wpDelim == L'\n') bInListNewLine=TRUE;
+    else if (*wpDelim == L' ') dwInListSpaces|=AEWBS_SPACE;
+    else if (*wpDelim == L'\t') dwInListSpaces|=AEWBS_TAB;
+  }
 
   if (dwFlags & AEWB_MINMOVE)
   {
@@ -15680,13 +15688,14 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
 
-    if (bInList=bNewLineInList)
-      bIsSpacePrevious=TRUE;
+    bInList=bInListNewLine;
+    bIsSpacePrev=bInListNewLine;
   }
   else
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
-      bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+    wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+    bIsSpacePrev=AE_IsSpace(wchChar, dwInListSpaces);
 
     nLen+=AEC_IndexInc(&ciCount);
   }
@@ -15695,23 +15704,24 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
-      bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+      wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+      bIsSpaceCur=AE_IsSpace(wchChar, dwInListSpaces);
 
       if (dwFlags & AEWB_STOPSPACESTART)
       {
-        if (!bIsSpacePrevious && bIsSpaceCurrent)
+        if (!bIsSpacePrev && bIsSpaceCur)
           goto End;
       }
       if (dwFlags & AEWB_STOPSPACEEND)
       {
-        if (bIsSpacePrevious && !bIsSpaceCurrent)
+        if (bIsSpacePrev && !bIsSpaceCur)
           goto End;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
+      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
       {
         if (bInList)
         {
-          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrevious)
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrev)
           {
             if (dwFlags & AEWB_RIGHTWORDSTART)
               goto End;
@@ -15719,7 +15729,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
         }
         else
         {
-          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpaceCurrent)
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpaceCur)
           {
             if (dwFlags & AEWB_RIGHTWORDEND)
               goto End;
@@ -15727,7 +15737,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
         }
         bInList=!bInList;
       }
-      bIsSpacePrevious=bIsSpaceCurrent;
+      bIsSpacePrev=bIsSpaceCur;
 
       nLen+=AEC_IndexInc(&ciCount);
     }
@@ -15738,19 +15748,16 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
       if (dwFlags & AEWB_STOPNEWLINE)
         goto End;
 
-      if (bInList)
+      if (dwFlags & AEWB_STOPSPACESTART)
       {
-        if (dwFlags & AEWB_STOPSPACESTART)
-        {
-          if (!bIsSpacePrevious)
-            goto End;
-        }
+        if (!bIsSpacePrev && bInListNewLine)
+          goto End;
       }
-      if (bInList != bNewLineInList)
+      if (bInList != bInListNewLine)
       {
         if (bInList)
         {
-          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrevious)
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpacePrev)
           {
             if (dwFlags & AEWB_RIGHTWORDSTART)
               goto End;
@@ -15764,9 +15771,9 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
               goto End;
           }
         }
-        bInList=!bInList;
       }
-      bIsSpacePrevious=TRUE;
+      bInList=bInListNewLine;
+      bIsSpacePrev=bInListNewLine;
 
       ++nLen;
     }
@@ -15791,15 +15798,23 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
 int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciCount=*ciChar;
+  const wchar_t *wpDelim;
+  wchar_t wchChar;
   int nLen=0;
   BOOL bInList;
-  BOOL bIsSpacePrevious=FALSE;
-  BOOL bIsSpaceCurrent;
-  BOOL bNewLineInList;
+  BOOL bIsSpacePrev=FALSE;
+  BOOL bIsSpaceCur=FALSE;
+  BOOL bInListNewLine=FALSE;
+  BOOL dwInListSpaces=0;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
-  bNewLineInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE);
+  for (wpDelim=ae->popt->wszWordDelimiters; *wpDelim; ++wpDelim)
+  {
+    if (*wpDelim == L'\n') bInListNewLine=TRUE;
+    else if (*wpDelim == L' ') dwInListSpaces|=AEWBS_SPACE;
+    else if (*wpDelim == L'\t') dwInListSpaces|=AEWBS_TAB;
+  }
 
   if (dwFlags & AEWB_MINMOVE)
   {
@@ -15825,13 +15840,14 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     if (dwFlags & AEWB_STOPNEWLINE)
       goto End;
 
-    if (bInList=bNewLineInList)
-      bIsSpacePrevious=TRUE;
+    bInList=bInListNewLine;
+    bIsSpacePrev=bInListNewLine;
   }
   else
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
-      bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+    wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+    bIsSpacePrev=AE_IsSpace(wchChar, dwInListSpaces);
 
     nLen+=AEC_IndexDec(&ciCount);
   }
@@ -15840,23 +15856,24 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   {
     while (ciCount.nCharInLine >= 0)
     {
-      bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+      wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+      bIsSpaceCur=AE_IsSpace(wchChar, dwInListSpaces);
 
       if (dwFlags & AEWB_STOPSPACESTART)
       {
-        if (bIsSpacePrevious && !bIsSpaceCurrent)
+        if (bIsSpacePrev && !bIsSpaceCur)
           goto End;
       }
       if (dwFlags & AEWB_STOPSPACEEND)
       {
-        if (!bIsSpacePrevious && bIsSpaceCurrent)
+        if (!bIsSpacePrev && bIsSpaceCur)
           goto End;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
+      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
       {
         if (bInList)
         {
-          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrevious)
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrev)
           {
             if (dwFlags & AEWB_LEFTWORDEND)
               goto End;
@@ -15864,7 +15881,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
         }
         else
         {
-          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpaceCurrent)
+          if (!(dwFlags & AEWB_SKIPSPACEEND) || !bIsSpaceCur)
           {
             if (dwFlags & AEWB_LEFTWORDSTART)
               goto End;
@@ -15872,7 +15889,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
         }
         bInList=!bInList;
       }
-      bIsSpacePrevious=bIsSpaceCurrent;
+      bIsSpacePrev=bIsSpaceCur;
 
       nLen+=AEC_IndexDec(&ciCount);
     }
@@ -15883,19 +15900,16 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
       if (dwFlags & AEWB_STOPNEWLINE)
         goto End;
 
-      if (bInList)
+      if (dwFlags & AEWB_STOPSPACEEND)
       {
-        if (dwFlags & AEWB_STOPSPACEEND)
-        {
-          if (!bIsSpacePrevious)
-            goto End;
-        }
+        if (!bIsSpacePrev &&  bInListNewLine)
+          goto End;
       }
-      if (bInList != bNewLineInList)
+      if (bInList != bInListNewLine)
       {
         if (bInList)
         {
-          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrevious)
+          if (!(dwFlags & AEWB_SKIPSPACESTART) || !bIsSpacePrev)
           {
             if (dwFlags & AEWB_LEFTWORDEND)
               goto End;
@@ -15909,9 +15923,9 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
               goto End;
           }
         }
-        bInList=!bInList;
       }
-      bIsSpacePrevious=TRUE;
+      bInList=bInListNewLine;
+      bIsSpacePrev=bInListNewLine;
 
       ++nLen;
     }
@@ -16028,12 +16042,14 @@ BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase)
     return FALSE;
 }
 
-BOOL AE_IsSpace(wchar_t c)
+BOOL AE_IsSpace(wchar_t c, DWORD dwSpacesFlags)
 {
-  if (c == L' ' || c == L'\t')
+  if ((c == L' ' && (dwSpacesFlags & AEWBS_SPACE)) ||
+      (c == L'\t' && (dwSpacesFlags & AEWBS_TAB)))
+  {
     return TRUE;
-  else
-    return FALSE;
+  }
+  return FALSE;
 }
 
 int AE_GetUrlPrefixes(AKELEDIT *ae)
