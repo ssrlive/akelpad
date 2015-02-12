@@ -77,10 +77,13 @@
 #define AECIL_USELINEBEGINPOS  0x00000002
 #define AECIL_USELINEENDPOS    0x00000004
 #define AECIL_USECARETPOS      0x00000008
-
 #define AECIL_ALLPOS          (AECIL_USELINEBEGINPOS |\
                                AECIL_USELINEENDPOS   |\
                                AECIL_USECARETPOS)
+
+//AE_GetNextBreak, AE_GetPrevBreak spaces flags
+#define AEWBS_SPACE            0x00000001
+#define AEWBS_TAB              0x00000002
 
 //Alt+NumPad input
 #define AEAC_NONE       0
@@ -991,7 +994,7 @@ BOOL AE_IsSpacesFromRight(const AECHARINDEX *ciChar);
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType);
 BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);
-BOOL AE_IsSpace(wchar_t c);
+BOOL AE_IsSpace(wchar_t c, DWORD dwSpacesFlags);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
 UINT_PTR AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, UINT_PTR dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, wchar_t *wszBuffer, UINT_PTR dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
