@@ -1398,6 +1398,25 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallSend->pFunction);
       return CallPluginSend(NULL, wszPluginFunction, lpCallSend, (DWORD)wParam);
     }
+    else if (uMsg == AKD_DLLUNLOAD)
+    {
+      PLUGINUNLOADPOST *pup;
+      PLUGINHANDLE *phElement;
+
+      if (phElement=StackHandleGet(&hHandlesStack, (HMODULE)wParam, NULL))
+      {
+        if (pup=(PLUGINUNLOADPOST *)GlobalAlloc(GPTR, sizeof(PLUGINUNLOADPOST)))
+        {
+          pup->phElement=phElement;
+          pup->nCallCount=phElement->nCallCount;
+          pup->hModule=(HMODULE)wParam;
+          pup->hThread=(HANDLE)lParam;
+          PostMessage(hMainWnd, AKD_DLLUNLOAD, 0, (LPARAM)pup);
+        }
+        return TRUE;
+      }
+      return FALSE;
+    }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||
              uMsg == AKD_DLLFINDW)

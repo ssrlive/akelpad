@@ -426,7 +426,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 1, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
   pv->pPluginName="Log";
 }
 
@@ -1184,7 +1184,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           pfOutput->bRunning=FALSE;
           SendMessage(hMainWnd, WM_COMMAND, 0, 0);
         }
-        else PostMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
+        else SendMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
       }
     }
   }
@@ -2206,7 +2206,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       pfOutput->bRunning=FALSE;
       SendMessage(hMainWnd, WM_COMMAND, 0, 0);
     }
-    else PostMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)hExecThread);
+    else SendMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)hExecThread);
   }
   else
   {
@@ -3700,7 +3700,7 @@ void StopWatch(int nStringID)
     pfWatch->bRunning=FALSE;
     SendMessage(hMainWnd, WM_COMMAND, 0, 0);
   }
-  else PostMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
+  else SendMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
 }
 
 void InitOutput()

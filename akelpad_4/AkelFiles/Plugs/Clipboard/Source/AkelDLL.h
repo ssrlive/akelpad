@@ -2755,7 +2755,7 @@ Get procedure from main window subclass chain.
 (WNDPROCDATA **)lParam == procedure data.
 
 Return Value
- Zero, if successfull.
+ Zero, if successful.
 
 Example (get program main procedure data):
  WNDPROCDATA *wpd;
@@ -2804,7 +2804,7 @@ Get return procedure from main window subclass chain. This procedure calls after
 (WNDPROCRETDATA **)lParam == procedure data.
 
 Return Value
- Zero, if successfull.
+ Zero, if successful.
 
 Example:
  WNDPROCRETDATA *wprd;
@@ -4748,10 +4748,11 @@ Exit from thread and unload dll.
 (HANDLE)lParam  == handle to the thread, NULL if plugin not exiting from thread.
 
 Return Value
- Zero.
+ TRUE  command for exist was successfully posted.
+ FALSE command for exist was not posted.
 
 Example:
- PostMessage(pd->hMainWnd, AKD_DLLUNLOAD, (WPARAM)pd->hInstanceDLL, (LPARAM)NULL);
+ SendMessage(pd->hMainWnd, AKD_DLLUNLOAD, (WPARAM)pd->hInstanceDLL, (LPARAM)NULL);
 
 
 AKD_DLLFIND, AKD_DLLFINDA, AKD_DLLFINDW
