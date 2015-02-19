@@ -1,6 +1,7 @@
 
 AkelPad 4.9.3 ()
 ----------------------------
+Fixed: AKD_DLLUNLOAD processing of unloading signal for outdated instance.
 Fixed: print multiple copies on Win7.
 Fixed: WordBreak parameter.
 
