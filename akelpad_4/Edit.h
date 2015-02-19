@@ -547,14 +547,23 @@ typedef struct {
 typedef struct _PLUGINHANDLE {
   struct _PLUGINHANDLE *next;
   struct _PLUGINHANDLE *prev;
+  wchar_t wszPlugin[MAX_PATH];
   HMODULE hModule;
-  int nCount;
+  int nLoadCount;
+  int nCallCount;
 } PLUGINHANDLE;
 
 typedef struct {
   PLUGINHANDLE *first;
   PLUGINHANDLE *last;
 } STACKPLUGINHANDLE;
+
+typedef struct {
+  PLUGINHANDLE *phElement;
+  int nCallCount;
+  HMODULE hModule;
+  HANDLE hThread;
+} PLUGINUNLOADPOST;
 
 typedef struct _PLUGINLISTDATA {
   HWND hWndList;
@@ -1068,7 +1077,8 @@ int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
 int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc);
 void StackProcFree(HSTACK *hStack);
 
-PLUGINHANDLE* StackHandleIncrease(STACKPLUGINHANDLE *hStack, HMODULE hModule);
+PLUGINHANDLE* StackHandleGet(STACKPLUGINHANDLE *hStack, HMODULE hModule, const wchar_t *wpPlugin);
+PLUGINHANDLE* StackHandleIncrease(STACKPLUGINHANDLE *hStack, HMODULE hModule, const wchar_t *wpPlugin, BOOL bLoad);
 PLUGINHANDLE* StackHandleDecrease(STACKPLUGINHANDLE *hStack, HMODULE hModule);
 void StackHandleFree(STACKPLUGINHANDLE *hStack);
 

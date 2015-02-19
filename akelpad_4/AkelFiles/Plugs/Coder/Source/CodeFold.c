@@ -653,7 +653,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           pfCodeFold->bRunning=FALSE;
           SendMessage(hMainWnd, WM_COMMAND, 0, 0);
         }
-        else PostMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
+        else SendMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
       }
     }
   }

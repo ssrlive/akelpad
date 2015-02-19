@@ -13655,11 +13655,9 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
       if (!(hModule=GetModuleHandleWide(wszDLL)))
       {
         if (hModule=LoadLibraryWide(wszDLL))
-        {
-          StackHandleIncrease(&hHandlesStack, hModule);
           bInMemory=FALSE;
-        }
       }
+      StackHandleIncrease(&hHandlesStack, hModule, wszPlugin, !bInMemory);
 
       if (hModule)
       {
@@ -13926,12 +13924,28 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
   }
   else if (lpMsg->message == AKD_DLLUNLOAD)
   {
-    HMODULE hInstanceDLL=(HMODULE)lpMsg->wParam;
-    HANDLE hThread=(HANDLE)lpMsg->lParam;
+    PLUGINUNLOADPOST *pup=(PLUGINUNLOADPOST *)lpMsg->lParam;
     char szPluginName[MAX_PATH];
     wchar_t wszPluginName[MAX_PATH];
+    PLUGINHANDLE *phElement;
+    HMODULE hModule=NULL;
+    HANDLE hThread;
 
-    if (hInstanceDLL)
+    if (lpMsg->wParam)
+    {
+      //AKD_DLLUNLOAD was posted not from CommonMainProc (old syntax).
+      phElement=StackHandleGet(&hHandlesStack, (HMODULE)lpMsg->wParam, NULL);
+      hModule=(HMODULE)lpMsg->wParam;
+      hThread=(HANDLE)lpMsg->lParam;
+    }
+    else
+    {
+      phElement=pup->phElement;
+      hModule=pup->hModule;
+      hThread=pup->hThread;
+    }
+
+    if (phElement && (!pup || pup->nCallCount == phElement->nCallCount))
     {
       if (hThread)
       {
@@ -13939,39 +13953,35 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
         CloseHandle(hThread);
       }
 
-      if (GetModuleFileNameWide(hInstanceDLL, wbuf, BUFFER_SIZE))
+      xprintfW(wszPluginName, L"%s::", phElement->wszPlugin);
+      WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
+
+      if (FreeLibrary(hModule))
       {
-        GetBaseName(wbuf, -1, wszPluginName, MAX_PATH);
-        xprintfW(wszPluginName, L"%s::", wszPluginName);
-        WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
+        PLUGINFUNCTION *pfElement=hPluginsStack.first;
+        PLUGINFUNCTION *pfNextElement;
+        UNISTRING us;
 
-        if (FreeLibrary(hInstanceDLL))
+        StackHandleDecrease(&hHandlesStack, hModule);
+
+        //Clean-up plugins stack
+        while (pfElement)
         {
-          PLUGINFUNCTION *pfElement=hPluginsStack.first;
-          PLUGINFUNCTION *pfNextElement;
-          UNISTRING us;
+          pfNextElement=pfElement->next;
 
-          StackHandleDecrease(&hHandlesStack, hInstanceDLL);
-
-          //Clean-up plugins stack
-          while (pfElement)
+          if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
           {
-            pfNextElement=pfElement->next;
-
-            if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
-            {
-              if (pfElement->wHotkey || pfElement->bAutoLoad)
-                pfElement->bRunning=FALSE;
-              else
-                StackPluginDelete(&hPluginsStack, pfElement);
-            }
-            pfElement=pfNextElement;
+            if (pfElement->wHotkey || pfElement->bAutoLoad)
+              pfElement->bRunning=FALSE;
+            else
+              StackPluginDelete(&hPluginsStack, pfElement);
           }
-          us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
-          us.szString=szPluginName;
-          us.wszString=wszPluginName;
-          SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
+          pfElement=pfNextElement;
         }
+        us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
+        us.szString=szPluginName;
+        us.wszString=wszPluginName;
+        SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
       }
     }
     return TRUE;
@@ -17083,23 +17093,40 @@ void StackProcFree(HSTACK *hStack)
 
 //// Handles stack
 
-PLUGINHANDLE* StackHandleIncrease(STACKPLUGINHANDLE *hStack, HMODULE hModule)
+PLUGINHANDLE* StackHandleGet(STACKPLUGINHANDLE *hStack, HMODULE hModule, const wchar_t *wpPlugin)
 {
   PLUGINHANDLE *phElement;
 
   for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
-    if (phElement->hModule == hModule)
-    {
-      phElement->nCount+=1;
+    if (phElement->nLoadCount > 0 ? (hModule && phElement->hModule == hModule) : (wpPlugin && !xstrcmpiW(phElement->wszPlugin, wpPlugin)))
       return phElement;
-    }
   }
+  return NULL;
+}
 
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&phElement, -1, sizeof(PLUGINHANDLE)))
+PLUGINHANDLE* StackHandleIncrease(STACKPLUGINHANDLE *hStack, HMODULE hModule, const wchar_t *wpPlugin, BOOL bLoad)
+{
+  PLUGINHANDLE *phElement;
+
+  if (phElement=StackHandleGet(hStack, hModule, wpPlugin))
   {
-    phElement->hModule=hModule;
-    phElement->nCount=1;
+    if (bLoad)
+    {
+      phElement->hModule=hModule;
+      ++phElement->nLoadCount;
+    }
+    ++phElement->nCallCount;
+  }
+  else
+  {
+    if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&phElement, -1, sizeof(PLUGINHANDLE)))
+    {
+      xstrcpynW(phElement->wszPlugin, wpPlugin, MAX_PATH);
+      phElement->hModule=hModule;
+      phElement->nLoadCount=1;
+      phElement->nCallCount=1;
+    }
   }
   return phElement;
 }
@@ -17110,14 +17137,10 @@ PLUGINHANDLE* StackHandleDecrease(STACKPLUGINHANDLE *hStack, HMODULE hModule)
 
   for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
-    if (phElement->hModule == hModule)
+    if (phElement->nLoadCount > 0 && phElement->hModule == hModule)
     {
-      phElement->nCount-=1;
-      if (phElement->nCount <= 0)
-      {
-        StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)phElement);
-        return NULL;
-      }
+      if (--phElement->nLoadCount <= 0)
+        phElement->hModule=NULL;
       return phElement;
     }
   }
@@ -17130,9 +17153,9 @@ void StackHandleFree(STACKPLUGINHANDLE *hStack)
 
   for (phElement=hStack->first; phElement; phElement=phElement->next)
   {
-    while (phElement->nCount > 0 && FreeLibrary(phElement->hModule))
+    while (phElement->nLoadCount > 0 && FreeLibrary(phElement->hModule))
     {
-      phElement->nCount-=1;
+      --phElement->nLoadCount;
     }
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
