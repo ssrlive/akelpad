@@ -3309,15 +3309,9 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
 
         if (lpREGroupRef=PatGetMatchedGroup(pe->lpREGroupStack, nIndex))
         {
-          //PatExec not reset previous backreferences, so check it.
-          //str - "[a]c[/a] [b]c[/b]", find - "\[(/?)b\]", replace - "[\1a]"
-          if (lpREGroupRef->wpStrEnd > pe->lpREGroupStack->first->wpStrStart ||
-              (lpREGroupRef->wpStrEnd == pe->lpREGroupStack->first->wpStrStart && (lpREGroupRef->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))))
-          {
-            if (pep->wszBuf)
-              xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
-            pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
-          }
+          if (pep->wszBuf)
+            xmemcpy(pep->wpBufCount, lpREGroupRef->wpStrStart, (lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart) * sizeof(wchar_t));
+          pep->wpBufCount+=lpREGroupRef->wpStrEnd - lpREGroupRef->wpStrStart;
         }
         continue;
       }
@@ -3357,7 +3351,6 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
   const wchar_t *wpRep=pep->wpRep;
   int nPatChar;
   int nIndex;
-  int nCompare;
 
   if (bMatched)
   {
@@ -3375,14 +3368,7 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
 
         if (lpREGroupRef=PatGetMatchedGroup(pe->lpREGroupStack, nIndex))
         {
-          //AE_PatExec not reset previous backreferences, so check it.
-          //str - "[a]c[/a] [b]c[/b]", find - "\[(/?)b\]", replace - "[\1a]"
-          nCompare=AEC_IndexCompare(&lpREGroupRef->ciStrEnd, &pe->lpREGroupStack->first->ciStrStart);
-
-          if (nCompare > 0 || (nCompare == 0 && (lpREGroupRef->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))))
-          {
-            pep->wpBufCount+=AE_PatStrCopy(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, pep->wszBuf?pep->wpBufCount:NULL, NULL);
-          }
+          pep->wpBufCount+=AE_PatStrCopy(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, pep->wszBuf?pep->wpBufCount:NULL, NULL);
         }
         continue;
       }
