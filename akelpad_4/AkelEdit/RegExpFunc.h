@@ -476,6 +476,14 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       {
         ++wpPat;
       }
+      else if (*wpPat == L'K')
+      {
+        ++wpPat;
+        if (bClassOpen)
+          goto Error;
+        if (hStack->first->nGroupLen != -1)
+          hStack->first->nGroupLen=0;
+      }
       else
       {
         ++wpPat;
