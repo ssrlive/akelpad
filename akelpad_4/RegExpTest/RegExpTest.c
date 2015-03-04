@@ -580,6 +580,10 @@ void _WinMain()
   TextReplaceRE(L"aaabbbccc", L"a+b+\\Kc+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"aaabbb[x]")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"aaabbbccc", L"a+(b+)\\Kc+", L"\\1", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"aaabbbbbb")) goto Error;
+
   //Test performance
   nStartTime=GetTickCount();
   nLine=__LINE__;
