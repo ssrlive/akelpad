@@ -1,7 +1,7 @@
 /******************************************************************
- *                  RegExp functions header v2.0                  *
+ *                  RegExp functions header v2.1                  *
  *                                                                *
- * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -75,7 +75,8 @@
 #define RECCE_STREND        0x040
 #define RECCE_RANGEBEGIN    0x080
 #define RECCE_RANGEEND      0x100
-#define RECCE_REF           0x200
+#define RECCE_ROOTBEGIN     0x200
+#define RECCE_REF           0x400
 
 //PatEscChar return value
 #define REEC_FIRST      (MAXLONG - 20)
@@ -87,11 +88,12 @@
 #define REEC_STREND     (REEC_FIRST + 5)
 #define REEC_RANGEBEGIN (REEC_FIRST + 6)
 #define REEC_RANGEEND   (REEC_FIRST + 7)
-#define REEC_REF        (REEC_FIRST + 8)
-#define REEC_DIGIT      (REEC_FIRST + 9)
-#define REEC_NONDIGIT   (REEC_FIRST + 10)
-#define REEC_SPACE      (REEC_FIRST + 11)
-#define REEC_NONSPACE   (REEC_FIRST + 12)
+#define REEC_ROOTBEGIN  (REEC_FIRST + 8)
+#define REEC_REF        (REEC_FIRST + 9)
+#define REEC_DIGIT      (REEC_FIRST + 10)
+#define REEC_NONDIGIT   (REEC_FIRST + 11)
+#define REEC_SPACE      (REEC_FIRST + 12)
+#define REEC_NONSPACE   (REEC_FIRST + 13)
 
 //PatStructExec options
 #define RESE_MATCHCASE        0x0001 //Case-sensitive search.
@@ -172,6 +174,8 @@ typedef struct {
   const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   const wchar_t *wpText;         //PatExec: Text begin.
   const wchar_t *wpMaxText;      //PatExec: Text end.
+  const wchar_t *wpRootStart;    //PatExec: Begin of root string.
+  AECHARINDEX ciRootStart;       //AE_PatExec: Begin of root string.
   INT_PTR nMaxBackward;          //Maximum backward group length.
   int nLastIndex;                //Last captured index.
   int nDeepness;                 //For debugging.
@@ -1009,6 +1013,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     lpREGroupItem->wpStrEnd=wpStr;
     lpREGroupItem->nStrLen=0;
     lpREGroupItem->nSelfMatch=0;
+    hStack->wpRootStart=NULL;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -1473,6 +1478,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           {
             goto EndLoop;
           }
+          else if (dwCmpResult & RECCE_ROOTBEGIN)
+          {
+            hStack->wpRootStart=wpStr;
+            ++wpPat;
+            continue;
+          }
         }
       }
       NextChar:
@@ -1590,6 +1601,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     nNextMatched|=REE_NEXTMATCH;
   if (wpStr >= wpMaxStr)
     nNextMatched|=REE_ENDSTRING;
+  if (!lpREGroupItem->parent && hStack->wpRootStart)
+    hStack->first->wpStrStart=hStack->wpRootStart;
   return nNextMatched;
 
   ReturnFalse:
@@ -1686,34 +1699,42 @@ int PatEscChar(const wchar_t **wppPat)
     }
     else
     {
-      if (nPatChar == L'r' || nPatChar == L'n')
-        return REEC_NEWLINE;
-      if (nPatChar == L't')
-        return L'\t';
-      if (nPatChar == L'f')
-        return L'\f';
-      if (nPatChar == L'v')
-        return L'\v';
-      if (nPatChar == L'd')
-        return REEC_DIGIT;
-      if (nPatChar == L'D')
-        return REEC_NONDIGIT;
-      if (nPatChar == L's')
-        return REEC_SPACE;
-      if (nPatChar == L'S')
-        return REEC_NONSPACE;
-      if (nPatChar == L'w' || nPatChar == L'W')
-        return REEC_WORD;
-      if (nPatChar == L'b' || nPatChar == L'B')
-        return REEC_BOUNDARY;
-      if (nPatChar == L'A')
-        return REEC_STRBEGIN;
-      if (nPatChar == L'Z')
-        return REEC_STREND;
-      if (nPatChar == L'a')
-        return REEC_RANGEBEGIN;
-      if (nPatChar == L'z')
-        return REEC_RANGEEND;
+      switch (nPatChar)
+      {
+        case L'r':
+        case L'n':
+          return REEC_NEWLINE;
+        case L't':
+          return L'\t';
+        case L'f':
+          return L'\f';
+        case L'v':
+          return L'\v';
+        case L'd':
+          return REEC_DIGIT;
+        case L'D':
+          return REEC_NONDIGIT;
+        case L's':
+          return REEC_SPACE;
+        case L'S':
+          return REEC_NONSPACE;
+        case L'w':
+        case L'W':
+          return REEC_WORD;
+        case L'b':
+        case L'B':
+          return REEC_BOUNDARY;
+        case L'A':
+          return REEC_STRBEGIN;
+        case L'Z':
+          return REEC_STREND;
+        case L'a':
+          return REEC_RANGEBEGIN;
+        case L'z':
+          return REEC_RANGEEND;
+        case L'K':
+          return REEC_ROOTBEGIN;
+      }
       if (nPatChar >= L'0' && nPatChar <= L'9')
         return REEC_REF;
     }
@@ -1828,20 +1849,25 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
   return RECCE_EQUAL;
 
   SpecialChars:
-  if (nPatChar == REEC_WORD)
-    return RECCE_WORD|RECCE_MIX;
-  if (nPatChar == REEC_BOUNDARY)
-    return RECCE_BOUNDARY|RECCE_MIX;
-  if (nPatChar == REEC_STRBEGIN)
-    return RECCE_STRBEGIN|RECCE_MIX;
-  if (nPatChar == REEC_STREND)
-    return RECCE_STREND|RECCE_MIX;
-  if (nPatChar == REEC_RANGEBEGIN)
-    return RECCE_RANGEBEGIN|RECCE_MIX;
-  if (nPatChar == REEC_RANGEEND)
-    return RECCE_RANGEEND|RECCE_MIX;
-  if (nPatChar == REEC_REF)
-    return RECCE_REF|RECCE_MIX;
+  switch (nPatChar)
+  {
+    case REEC_WORD:
+      return RECCE_WORD|RECCE_MIX;
+    case REEC_BOUNDARY:
+      return RECCE_BOUNDARY|RECCE_MIX;
+    case REEC_STRBEGIN:
+      return RECCE_STRBEGIN|RECCE_MIX;
+    case REEC_STREND:
+      return RECCE_STREND|RECCE_MIX;
+    case REEC_RANGEBEGIN:
+      return RECCE_RANGEBEGIN|RECCE_MIX;
+    case REEC_RANGEEND:
+      return RECCE_RANGEEND|RECCE_MIX;
+    case REEC_ROOTBEGIN:
+      return RECCE_ROOTBEGIN|RECCE_MIX;
+    case REEC_REF:
+      return RECCE_REF|RECCE_MIX;
+  }
   return RECCE_DIF|RECCE_MIX;
 }
 
@@ -2248,6 +2274,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     lpREGroupItem->ciStrEnd=ciStr;
     lpREGroupItem->nStrLen=0;
     lpREGroupItem->nSelfMatch=0;
+    hStack->ciRootStart.lpLine=NULL;
 
     if (lpREGroupItem->dwFlags & REGF_ROOTANY)
     {
@@ -2719,6 +2746,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           {
             goto EndLoop;
           }
+          else if (dwCmpResult & RECCE_ROOTBEGIN)
+          {
+            hStack->ciRootStart=ciStr;
+            ++wpPat;
+            continue;
+          }
         }
       }
       NextChar:
@@ -2849,6 +2882,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     nNextMatched|=REE_NEXTMATCH;
   if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
     nNextMatched|=REE_ENDSTRING;
+  if (!lpREGroupItem->parent && hStack->ciRootStart.lpLine)
+    hStack->first->ciStrStart=hStack->ciRootStart;
   return nNextMatched;
 
   ReturnFalse:
