@@ -1,6 +1,8 @@
 
 AkelPad 4.9.3 ()
 ----------------------------
+Added: metacharacter \K - exclude previous symbols from result.
+
 Fixed: AKD_DLLUNLOAD processing of unloading signal for outdated instance.
 Fixed: print multiple copies on Win7.
 Fixed: WordBreak parameter.
