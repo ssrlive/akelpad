@@ -584,6 +584,12 @@ void _WinMain()
   TextReplaceRE(L"aaabbbccc", L"a+(b+)\\Kc+", L"\\1", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"aaabbbbbb")) goto Error;
 
+  //POSIX result "[x]"
+  //PCRE result "[x]sufficient"
+  nLine=__LINE__;
+  TextReplaceRE(L"oneselfsufficient", L"one(self)?(selfsufficient)?", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
   //Test performance
   nStartTime=GetTickCount();
   nLine=__LINE__;
