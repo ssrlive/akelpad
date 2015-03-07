@@ -1514,10 +1514,10 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
     {
+      int i;
+
       if (LOWORD(wParam) == IDOK)
       {
-        int i;
-
         if (SendMessage(hWndText, EM_GETMODIFY, 0, 0))
         {
           FreeWideStr(&ct[nMenuType].wpText);
@@ -1618,14 +1618,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         dwSaveFlags|=OF_MENUSTEXT;
       }
-      else if (LOWORD(wParam) == IDCANCEL)
-      {
-        int i;
 
-        for (i=0; i < TYPE_MAX; ++i)
-        {
-          FreeWideStr(&ct[i].wpText);
-        }
+      //Free text allocated in WM_INITDIALOG
+      for (i=0; i < TYPE_MAX; ++i)
+      {
+        FreeWideStr(&ct[i].wpText);
       }
 
       if (dwSaveFlags)
