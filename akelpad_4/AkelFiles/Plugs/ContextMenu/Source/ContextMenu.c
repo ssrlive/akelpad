@@ -2580,9 +2580,9 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
 
             GetWord(wpCount, wszMenuItem, MAX_PATH, &wpCount, &bQuote);
 
-            if (dwSetFlags & CCMS_NOFILEEXIST)
+            if (nFlagCountNoFileExistMore)
               ++nFlagCountNoFileExistMore;
-            else
+            if (!(dwSetFlags & CCMS_NOFILEEXIST))
             {
               if (*wszMenuItem && bQuote)
               {
@@ -2615,9 +2615,9 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
               goto Error;
             }
 
-            if (dwSetFlags & CCMS_SKIPIF)
+            if (nFlagCountSkipIfMore)
               ++nFlagCountSkipIfMore;
-            else
+            if (!(dwSetFlags & CCMS_SKIPIF))
             {
               if (nIfResult)
                 dwNewFlags&=~CCMS_SKIPIF;

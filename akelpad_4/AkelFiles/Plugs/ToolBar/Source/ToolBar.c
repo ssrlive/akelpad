@@ -1181,9 +1181,9 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
 
             GetWord(wpCount, wszButtonItem, MAX_PATH, &wpCount, &bQuote);
 
-            if (dwSetFlags & CCMS_NOFILEEXIST)
+            if (nFlagCountNoFileExistMore)
               ++nFlagCountNoFileExistMore;
-            else
+            if (!(dwSetFlags & CCMS_NOFILEEXIST))
             {
               if (*wszButtonItem && bQuote)
               {
@@ -1218,9 +1218,9 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               goto Error;
             }
 
-            if (dwSetFlags & CCMS_SKIPIF)
+            if (nFlagCountSkipIfMore)
               ++nFlagCountSkipIfMore;
-            else
+            if (!(dwSetFlags & CCMS_SKIPIF))
             {
               if (nIfResult)
                 dwNewFlags&=~CCMS_SKIPIF;
