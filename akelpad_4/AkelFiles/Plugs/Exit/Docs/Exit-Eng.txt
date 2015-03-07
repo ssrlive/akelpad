@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Exit AkelPad plugin v4.3                  ***
+***                 Exit AkelPad plugin v4.4                  ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -19,3 +19,19 @@ Main function for start and stop plugin.
 
 Exit::Settings
 Settings dialog.
+
+
+*** External call ***
+
+Call("Exit::Main", 1, PROCESSESC)
+  Parameters:
+    1
+      Emulate Esc key press.
+    PROCESSESC (one of the following):
+       -1  Use plugin settings (default).
+        2  Close program.
+        4  Minimize program.
+        8  Ignore.
+       32  Exit if one tab to close.
+       64  Exit if no tab to close.
+      128  Do not exit if no tab to close.
