@@ -6063,6 +6063,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0438\x043C\x0432\x043E\x043B\x044B";
     if (nStringID == STRID_WORDS)
       return L"\x0421\x043B\x043E\x0432\x0430";
+    if (nStringID == STRID_MAXSEL)
+      return L"\x041B\x0438\x043C\x0438\x0442\x0020\x0432\x044B\x0434\x0435\x043B\x0435\x043D\x0438\x044F:";
     if (nStringID == STRID_TEXTCOLOR)
       return L"\x0426\x0432\x0435\x0442\x0020\x0442\x0435\x043A\x0441\x0442\x0430\x0020\x0028\x0052\x0052\x0047\x0047\x0042\x0042\x0029\x003A";
     if (nStringID == STRID_BGCOLOR)
@@ -6291,6 +6293,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Symbols";
     if (nStringID == STRID_WORDS)
       return L"Words";
+    if (nStringID == STRID_MAXSEL)
+      return L"Selection limit:";
     if (nStringID == STRID_TEXTCOLOR)
       return L"Text color (RRGGBB):";
     if (nStringID == STRID_BGCOLOR)

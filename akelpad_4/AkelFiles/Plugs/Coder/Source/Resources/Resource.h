@@ -53,6 +53,8 @@
 #define IDC_HIGHLIGHT_SETUP_AUTOMARK_ENABLE          2006
 #define IDC_HIGHLIGHT_SETUP_AUTOMARK_SYMBOLS         2007
 #define IDC_HIGHLIGHT_SETUP_AUTOMARK_WORDS           2008
+#define IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL_LABEL    2009
+#define IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL          2010
 #define IDC_CODEFOLD_TITLETEXT                           3001
 #define IDC_CODEFOLD_HIDE                                3002
 #define IDC_CODEFOLD_CLOSE                               3003
