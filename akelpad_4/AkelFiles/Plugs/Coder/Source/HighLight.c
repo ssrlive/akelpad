@@ -19,6 +19,7 @@ STACKHIGHLIGHTWINDOW hHighLightWindowsStack={0};
 DWORD dwIgnoreFontStyle=0;
 BOOL bAutoMarkEnable=TRUE;
 int nAutoMarkType=MARKAUTO_WORDS;
+int nAutoMarkMaxSel=MARKMAX_SELECTION;
 DWORD dwAutoMarkFlags;
 DWORD dwAutoMarkFontStyle;
 DWORD dwAutoMarkTextColor;
@@ -124,7 +125,7 @@ void __declspec(dllexport) HighLight(PLUGINDATA *pd)
               {
                 SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-                if (cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < MARKMAX_WORD)
+                if (cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel)
                 {
                   if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
                   {
@@ -188,7 +189,7 @@ void __declspec(dllexport) HighLight(PLUGINDATA *pd)
 
               SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-              if (cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < MARKMAX_WORD)
+              if (cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel)
               {
                 if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
                 {
@@ -484,6 +485,8 @@ BOOL CALLBACK HighLightSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndAutoMarkEnable;
   static HWND hWndAutoMarkSymbols;
   static HWND hWndAutoMarkWords;
+  static HWND hWndAutoMarkMaxSelLabel;
+  static HWND hWndAutoMarkMaxSel;
   static HFONT hFontNormal;
   static HFONT hFontBold;
   static HFONT hFontItalic;
@@ -500,6 +503,8 @@ BOOL CALLBACK HighLightSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndAutoMarkEnable=GetDlgItem(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_ENABLE);
     hWndAutoMarkSymbols=GetDlgItem(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_SYMBOLS);
     hWndAutoMarkWords=GetDlgItem(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_WORDS);
+    hWndAutoMarkMaxSelLabel=GetDlgItem(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL_LABEL);
+    hWndAutoMarkMaxSel=GetDlgItem(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL);
 
     SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_GLOBAL_FONTSTYLE_GROUP, GetLangStringW(wLangModule, STRID_IGNORE_FONTSTYLE_GROUP));
     SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_GLOBAL_FONTSTYLE_NORMAL, GetLangStringW(wLangModule, STRID_NORMAL));
@@ -509,6 +514,9 @@ BOOL CALLBACK HighLightSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_ENABLE, GetLangStringW(wLangModule, STRID_ENABLE));
     SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_SYMBOLS, GetLangStringW(wLangModule, STRID_SYMBOLS));
     SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_WORDS, GetLangStringW(wLangModule, STRID_WORDS));
+    SetDlgItemTextWide(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL_LABEL, GetLangStringW(wLangModule, STRID_MAXSEL));
+
+    SetDlgItemInt(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL, nAutoMarkMaxSel, FALSE);
 
     if (dwIgnoreFontStyle & AEHLO_IGNOREFONTNORMAL)
       SendMessage(hWndGlobalFontStyleNormal, BM_SETCHECK, BST_CHECKED, 0);
@@ -573,6 +581,8 @@ BOOL CALLBACK HighLightSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       bState=(BOOL)SendMessage(hWndAutoMarkEnable, BM_GETCHECK, 0, 0);
       EnableWindow(hWndAutoMarkSymbols, bState);
       EnableWindow(hWndAutoMarkWords, bState);
+      EnableWindow(hWndAutoMarkMaxSelLabel, bState);
+      EnableWindow(hWndAutoMarkMaxSel, bState);
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -601,6 +611,7 @@ BOOL CALLBACK HighLightSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         nAutoMarkType=MARKAUTO_SYMBOLS;
       else if (SendMessage(hWndAutoMarkWords, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nAutoMarkType=MARKAUTO_WORDS;
+      nAutoMarkMaxSel=GetDlgItemInt(hDlg, IDC_HIGHLIGHT_SETUP_AUTOMARK_MAXSEL, NULL, FALSE);
 
       if (pshn->lParam)
       {
@@ -738,7 +749,7 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
             {
               SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-              if (!bFindingMark && cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < MARKMAX_WORD &&
+              if (!bFindingMark && cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel &&
                    (nAutoMarkType == MARKAUTO_SYMBOLS ||
                      (nAutoMarkType == MARKAUTO_WORDS &&
                       SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&aensc->crSel.ciMin) &&
@@ -2282,6 +2293,7 @@ void ReadHighLightOptions(HANDLE hOptions)
   WideOption(hOptions, L"IgnoreFontStyle", PO_DWORD, (LPBYTE)&dwIgnoreFontStyle, sizeof(DWORD));
   WideOption(hOptions, L"AutoMarkEnable", PO_DWORD, (LPBYTE)&bAutoMarkEnable, sizeof(DWORD));
   WideOption(hOptions, L"AutoMarkType", PO_DWORD, (LPBYTE)&nAutoMarkType, sizeof(DWORD));
+  WideOption(hOptions, L"AutoMarkMaxSel", PO_DWORD, (LPBYTE)&nAutoMarkMaxSel, sizeof(DWORD));
 }
 
 void SaveHighLightOptions(HANDLE hOptions, DWORD dwFlags)
@@ -2291,6 +2303,7 @@ void SaveHighLightOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"IgnoreFontStyle", PO_DWORD, (LPBYTE)&dwIgnoreFontStyle, sizeof(DWORD));
     WideOption(hOptions, L"AutoMarkEnable", PO_DWORD, (LPBYTE)&bAutoMarkEnable, sizeof(DWORD));
     WideOption(hOptions, L"AutoMarkType", PO_DWORD, (LPBYTE)&nAutoMarkType, sizeof(DWORD));
+    WideOption(hOptions, L"AutoMarkMaxSel", PO_DWORD, (LPBYTE)&nAutoMarkMaxSel, sizeof(DWORD));
   }
 }
 

@@ -11,8 +11,9 @@
 #define STRID_AUTOMARK_GROUP         105
 #define STRID_SYMBOLS                106
 #define STRID_WORDS                  107
-#define STRID_TEXTCOLOR              108
-#define STRID_BGCOLOR                109
+#define STRID_MAXSEL                 108
+#define STRID_TEXTCOLOR              109
+#define STRID_BGCOLOR                110
 
 #define DLLA_HIGHLIGHT_MARK                2
 #define DLLA_HIGHLIGHT_UNMARK              3
@@ -36,7 +37,7 @@
 #define MARKAUTO_SYMBOLS 1
 #define MARKAUTO_WORDS   2
 
-#define MARKMAX_WORD   1024
+#define MARKMAX_SELECTION  1024
 
 #define MARKFLAG_MATCHCASE 0x1
 #define MARKFLAG_REGEXP    0x2
@@ -94,7 +95,7 @@ typedef struct {
 typedef struct _HIGHLIGHTWINDOW {
   struct _HIGHLIGHTWINDOW *next;
   struct _HIGHLIGHTWINDOW *prev;
-  SYNTAXFILE *lpSyntaxFile; 
+  SYNTAXFILE *lpSyntaxFile;
   FRAMEDATA *lpFrame;
   HWND hWndEdit;
   AEHDOC hDocEdit;
