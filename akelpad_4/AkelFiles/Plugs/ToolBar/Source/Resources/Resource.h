@@ -53,6 +53,7 @@
 #define IDI_ICON_48                     148
 #define IDI_ICON_49                     149
 #define IDI_ICON_50                     150
+#define IDI_ICONARROW                   500
 #define IDD_SETUP                       1001
 #define IDC_TOOLBAR                     1101
 #define IDC_TOOLBARTEXT                 1102
