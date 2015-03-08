@@ -1,7 +1,7 @@
 /******************************************************************
- *                 IconMenu functions header v2.4                 *
+ *                 IconMenu functions header v2.5                 *
  *                                                                *
- *  2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ *  2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
  *                                                                *
  *           Header provide support for images in menu.           *
@@ -431,27 +431,30 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
   DWORD dwIconWidth;
   DWORD dwIconHeight;
   HICON hOutputIcon=NULL;
+  BITMAP bm;
   BITMAPINFO bmi;
   BYTE *lpColorBits;
   BYTE *lpMaskBits;
   BYTE *lpColorPixel;
   BYTE *lpMaskPixel;
   COLORREF crColorPixel;
-  DWORD dwPixelOffset;
-  DWORD dwLoopX;
-  DWORD dwLoopY;
+  DWORD x;
+  DWORD y;
 
   //Get icon bitmaps
   if (!GetIconInfo(hIcon, &iiInput))
     return NULL;
-  dwIconWidth=iiInput.xHotspot * 2;
-  dwIconHeight=iiInput.yHotspot * 2;
 
-  if (iiInput.hbmColor && iiInput.hbmMask)
+  if (iiInput.hbmColor && iiInput.hbmMask && GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
   {
+    //dwIconWidth=iiInput.xHotspot * 2;
+    //dwIconHeight=iiInput.yHotspot * 2;
+    dwIconWidth=bm.bmWidth;
+    dwIconHeight=bm.bmHeight;
+
     bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth=dwIconWidth;
-    bmi.bmiHeader.biHeight=-(int)dwIconHeight;
+    bmi.bmiHeader.biHeight=dwIconHeight;
     bmi.bmiHeader.biPlanes=1;
     bmi.bmiHeader.biBitCount=32;
     bmi.bmiHeader.biCompression=BI_RGB;
@@ -460,10 +463,6 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
     bmi.bmiHeader.biYPelsPerMeter=0;
     bmi.bmiHeader.biClrUsed=0;
     bmi.bmiHeader.biClrImportant=0;
-    bmi.bmiColors[0].rgbBlue=0;
-    bmi.bmiColors[0].rgbGreen=0;
-    bmi.bmiColors[0].rgbRed=0;
-    bmi.bmiColors[0].rgbReserved=0;
 
     GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
     if (lpColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
@@ -474,14 +473,13 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
 
     if (lpColorBits && lpMaskBits)
     {
-      for (dwLoopY=0; dwLoopY < dwIconHeight; ++dwLoopY)
-      {
-        for (dwLoopX=0; dwLoopX < dwIconWidth; ++dwLoopX)
-        {
-          dwPixelOffset=dwLoopY * 4 * dwIconWidth + dwLoopX * 4;
-          lpColorPixel=lpColorBits + dwPixelOffset;
-          lpMaskPixel=lpMaskBits + dwPixelOffset;
+      lpColorPixel=lpColorBits;
+      lpMaskPixel=lpMaskBits;
 
+      for (y=0; y < dwIconHeight; ++y)
+      {
+        for (x=0; x < dwIconWidth; ++x)
+        {
           if (!lpMaskPixel[0])
           {
             crColorPixel=RGB(lpColorPixel[2], lpColorPixel[1], lpColorPixel[0]);
@@ -498,6 +496,8 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
             //Alpha channel
             //lpColorPixel[3]=0;
           }
+          lpColorPixel+=4;
+          lpMaskPixel+=4;
         }
       }
       SetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpColorBits, &bmi, DIB_RGB_COLORS);
@@ -505,6 +505,8 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
       GlobalFree((HGLOBAL)lpMaskBits);
 
       //Create new icon
+      iiOutput.xHotspot=iiInput.xHotspot;
+      iiOutput.yHotspot=iiInput.yHotspot;
       iiOutput.hbmColor=iiInput.hbmColor;
       iiOutput.hbmMask=iiInput.hbmMask;
       iiOutput.fIcon=TRUE;
