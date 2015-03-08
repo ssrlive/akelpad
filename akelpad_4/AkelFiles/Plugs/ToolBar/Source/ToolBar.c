@@ -1086,6 +1086,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   const wchar_t *wpStrEnd;
   wchar_t *wpFileName;
   HICON hIcon;
+  HICON hIconMixed;
   SIZE sizeIcon;
   DWORD dwAction;
   DWORD dwNewFlags=0;
@@ -1459,18 +1460,11 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               if (!*wszIconFile)
               {
                 hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-
-                if (hIcon)
-                {
-                  ImageList_AddIcon(hStack->hImageList, hIcon);
-                  DestroyIcon(hIcon);
-                }
               }
               else
               {
                 wchar_t wszPath[MAX_PATH];
                 wchar_t *wpFileName;
-                HICON hIconMixed;
 
                 if (TranslateFileString(wszIconFile, wszPath, MAX_PATH))
                 {
@@ -1480,24 +1474,24 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                       ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
                     else
                       ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
-
-                    if (hIcon)
-                    {
-                      if (lpLastButton && lpLastButton->dwAction == EXTACT_MENU)
-                      {
-                        if (!hIconArrow)
-                          hIconArrow=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICONARROW), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-                        if (hIconMixed=MixIcons(hIcon, hIconArrow))
-                        {
-                          DestroyIcon(hIcon);
-                          hIcon=hIconMixed;
-                        }
-                      }
-                      ImageList_AddIcon(hStack->hImageList, hIcon);
-                      DestroyIcon(hIcon);
-                    }
                   }
                 }
+              }
+              if (hIcon)
+              {
+                //Method "Menu()" without action. Add overlay arrow.
+                if (hParamMenuName.first && !lpButton)
+                {
+                  if (!hIconArrow)
+                    hIconArrow=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICONARROW), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
+                  if (hIconMixed=MixIcons(hIcon, hIconArrow))
+                  {
+                    DestroyIcon(hIcon);
+                    hIcon=hIconMixed;
+                  }
+                }
+                ImageList_AddIcon(hStack->hImageList, hIcon);
+                DestroyIcon(hIcon);
               }
             }
           }
@@ -1696,9 +1690,10 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   return FALSE;
 }
 
-HICON MixIcons(HICON hIcon, HICON hIconOverlay)
+HICON MixIcons(HICON hIconInput, HICON hIconOverlay)
 {
   ICONINFO iiInput;
+  ICONINFO iiOverlay;
   ICONINFO iiOutput;
   BITMAP bm;
   BITMAPINFO bmi;
@@ -1706,105 +1701,112 @@ HICON MixIcons(HICON hIcon, HICON hIconOverlay)
   DWORD dwIconHeight;
   HICON hOutputIcon=NULL;
   HDC hDC;
-  HDC hMemDC;
-  HBITMAP hBitmap;
-  HBITMAP hBitmapOld;
-  HBITMAP hBitmapMono;
-  BYTE *lpBits;
-  BYTE *lpMaskBits;
-  BYTE *lpAlphaBit;
-  DWORD *lpPixel;
+  BYTE *lpInputColorBits;
+  BYTE *lpInputMaskBits;
+  BYTE *lpOverlayColorBits;
+  BYTE *lpOverlayMaskBits;
+  DWORD *lpInputColorPixel;
+  DWORD *lpInputMaskPixel;
+  DWORD *lpOverlayColorPixel;
+  DWORD *lpOverlayMaskPixel;
   DWORD x;
   DWORD y;
+  INT_PTR nOffset;
 
   //Get icon bitmaps
-  if (!GetIconInfo(hIcon, &iiInput))
+  if (!GetIconInfo(hIconInput, &iiInput))
+    return NULL;
+  if (!GetIconInfo(hIconOverlay, &iiOverlay))
     return NULL;
 
-  if (iiInput.hbmColor && iiInput.hbmMask && GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
+  if (iiInput.hbmColor && iiInput.hbmMask &&
+      iiOverlay.hbmColor && iiOverlay.hbmMask &&
+      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
   {
     if (hDC=GetDC(NULL))
     {
-      if (hMemDC=CreateCompatibleDC(hDC))
+      //dwIconWidth=iiInput.xHotspot * 2;
+      //dwIconHeight=iiInput.yHotspot * 2;
+      dwIconWidth=bm.bmWidth;
+      dwIconHeight=bm.bmHeight;
+
+      bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+      bmi.bmiHeader.biWidth=dwIconWidth;
+      bmi.bmiHeader.biHeight=dwIconHeight;
+      bmi.bmiHeader.biPlanes=1;
+      bmi.bmiHeader.biBitCount=32;
+      bmi.bmiHeader.biCompression=BI_RGB;
+      bmi.bmiHeader.biSizeImage=0;
+      bmi.bmiHeader.biXPelsPerMeter=0;
+      bmi.bmiHeader.biYPelsPerMeter=0;
+      bmi.bmiHeader.biClrUsed=0;
+      bmi.bmiHeader.biClrImportant=0;
+
+      GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
+
+      GetDIBits(hDC, iiOverlay.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpOverlayColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiOverlay.hbmColor, 0, dwIconHeight, (void *)lpOverlayColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiOverlay.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpOverlayMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiOverlay.hbmMask, 0, dwIconHeight, (void *)lpOverlayMaskBits, &bmi, DIB_RGB_COLORS);
+
+      if (lpInputColorBits && lpInputMaskBits && lpOverlayColorBits && lpOverlayMaskBits)
       {
-        //dwIconWidth=iiInput.xHotspot * 2;
-        //dwIconHeight=iiInput.yHotspot * 2;
-        dwIconWidth=bm.bmWidth;
-        dwIconHeight=bm.bmHeight;
-
-        bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth=dwIconWidth;
-        bmi.bmiHeader.biHeight=dwIconHeight;
-        bmi.bmiHeader.biPlanes=1;
-        bmi.bmiHeader.biBitCount=32;
-        bmi.bmiHeader.biCompression=BI_RGB;
-        bmi.bmiHeader.biSizeImage=0;
-        bmi.bmiHeader.biXPelsPerMeter=0;
-        bmi.bmiHeader.biYPelsPerMeter=0;
-        bmi.bmiHeader.biClrUsed=0;
-        bmi.bmiHeader.biClrImportant=0;
-
-        GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-        if (lpMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-          GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpMaskBits, &bmi, DIB_RGB_COLORS);
-
-        if (lpMaskBits)
+        lpOverlayMaskPixel=(DWORD *)lpOverlayMaskBits;
+        for (y=0; y < dwIconHeight; ++y)
         {
-          if (hBitmap=CreateDIBSection(hMemDC, &bmi, DIB_RGB_COLORS, (void **)&lpBits, NULL, 0))
+          for (x=0; x < dwIconWidth; ++x)
           {
-            hBitmapOld=(HBITMAP)SelectObject(hMemDC, hBitmap);
+            nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
+            lpInputColorPixel=(DWORD *)(lpInputColorBits + nOffset);
+            lpInputMaskPixel=(DWORD *)(lpInputMaskBits + nOffset);
 
-            //Clear bitmap
-            lpPixel=(DWORD *)lpBits;
-            for (y=0; y < dwIconHeight; ++y)
-              for (x=0; x < dwIconWidth; ++x)
-                *lpPixel++=0x00FFFFFF;
-
-            //Draw basic icon
-            DrawIconEx(hMemDC, 0, 0, hIcon, dwIconWidth, dwIconHeight, 0, NULL, DI_NORMAL);
-
-            //Convert mask to alpha. Without this, for non 32-bit icons,
-            //next call to DrawIconEx will fully replace bitmap image.
-            lpPixel=(DWORD *)lpMaskBits;
-            for (y=0; y < dwIconHeight; ++y)
+            if (!*lpOverlayMaskPixel)
             {
-              for (x=0; x < dwIconWidth; ++x)
-              {
-                if (!*lpPixel)
-                {
-                  lpAlphaBit=lpBits + ((BYTE *)lpPixel - (BYTE *)lpMaskBits) + 3;
-                  if (!*lpAlphaBit) *lpAlphaBit=0xFF;
-                }
-                ++lpPixel;
-              }
+              //Copy pixel from Overlay to Input
+              nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
+              lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
+              *lpInputColorPixel=*lpOverlayColorPixel;
+              *lpInputMaskPixel=0;
             }
-
-            //Draw overlay icon
-            DrawIconEx(hMemDC, 0, 0, hIconOverlay, dwIconWidth, dwIconHeight, 0, NULL, DI_NORMAL);
-
-            if (hBitmapMono=CreateBitmap(dwIconWidth, dwIconHeight, 1, 1, NULL))
+            if (!*lpInputMaskPixel)
             {
-              //Create new icon
-              iiOutput.xHotspot=iiInput.xHotspot;
-              iiOutput.yHotspot=iiInput.yHotspot;
-              iiOutput.hbmColor=hBitmap;
-              iiOutput.hbmMask=hBitmapMono;
-              iiOutput.fIcon=TRUE;
-              hOutputIcon=CreateIconIndirect(&iiOutput);
-              DeleteObject(hBitmapMono);
+              //Fill pixel alpha channel, otherwise non 32-bit icon not painted.
+              if (!((BYTE *)lpInputColorPixel)[3])
+                ((BYTE *)lpInputColorPixel)[3]=0xFF;
             }
-            if (hBitmapOld) SelectObject(hMemDC, hBitmapOld);
-            DeleteObject(hBitmap);
+            ++lpOverlayMaskPixel;
           }
-          GlobalFree((HGLOBAL)lpMaskBits);
         }
-        DeleteDC(hMemDC);
+        SetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+        SetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
+
+        //Create new icon
+        iiOutput.xHotspot=iiInput.xHotspot;
+        iiOutput.yHotspot=iiInput.yHotspot;
+        iiOutput.hbmColor=iiInput.hbmColor;
+        iiOutput.hbmMask=iiInput.hbmMask;
+        iiOutput.fIcon=TRUE;
+        hOutputIcon=CreateIconIndirect(&iiOutput);
+
+        GlobalFree((HGLOBAL)lpInputColorBits);
+        GlobalFree((HGLOBAL)lpInputMaskBits);
+        GlobalFree((HGLOBAL)lpOverlayColorBits);
+        GlobalFree((HGLOBAL)lpOverlayMaskBits);
       }
       ReleaseDC(NULL, hDC);
     }
   }
   DeleteObject(iiInput.hbmColor);
   DeleteObject(iiInput.hbmMask);
+  DeleteObject(iiOverlay.hbmColor);
+  DeleteObject(iiOverlay.hbmMask);
   return hOutputIcon;
 }
 
