@@ -1303,14 +1303,14 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
           {
             if (--nFlagCountNoFileExistAll < 0)
               goto UnsetError;
-            if (--nFlagCountNoFileExistMore > 0)
+            if (nFlagCountNoFileExistMore && --nFlagCountNoFileExistMore > 0)
               dwNewFlags&=~CCMS_NOFILEEXIST;
           }
           if (dwNewFlags & CCMS_SKIPIF)
           {
             if (--nFlagCountSkipIfAll < 0)
               goto UnsetError;
-            if (--nFlagCountSkipIfMore > 0)
+            if (nFlagCountSkipIfMore && --nFlagCountSkipIfMore > 0)
               dwNewFlags&=~CCMS_SKIPIF;
           }
           if (dwNewFlags & CCMS_CHECKIF)
