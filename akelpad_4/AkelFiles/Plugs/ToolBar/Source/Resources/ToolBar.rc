@@ -75,6 +75,7 @@ IDI_ICON_35             ICON    DISCARDABLE     "35.ico"
 IDI_ICON_36             ICON    DISCARDABLE     "36.ico"
 IDI_ICON_37             ICON    DISCARDABLE     "37.ico"
 IDI_ICON_38             ICON    DISCARDABLE     "38.ico"
+IDI_ICONARROW           ICON    DISCARDABLE     "IconArrow.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
