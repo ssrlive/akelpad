@@ -3264,12 +3264,6 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
           if (!*lpMenuItem->wszIconFile)
           {
             hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(lpMenuItem->nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-
-            if (hIcon)
-            {
-              ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
-              DestroyIcon(hIcon);
-            }
           }
           else
           {
@@ -3284,18 +3278,16 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
                   ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
                 else
                   ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
-
-                if (hIcon)
-                {
-                  ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
-                  DestroyIcon(hIcon);
-                }
               }
             }
           }
+          if (hIcon)
+          {
+            ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
+            DestroyIcon(hIcon);
+          }
+          else ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIconHollow);
 
-          if (!hIcon)
-            ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIconHollow);
           lpMenuItem->nFileIconIndex=-1;
         }
       }
