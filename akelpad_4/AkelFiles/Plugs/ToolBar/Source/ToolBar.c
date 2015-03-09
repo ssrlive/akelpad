@@ -285,12 +285,15 @@ INT_PTR TranslateEscapeString(HWND hWndEdit, const wchar_t *wpInput, wchar_t *ws
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 
 int GetCurFile(wchar_t *wszFile, int nMaxFile);
-INT_PTR GetEditText(HWND hWnd, wchar_t **Text);
+INT_PTR GetEditText(HWND hWnd, wchar_t **wpText);
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
+BOOL FreeWideStr(wchar_t **wppWideStr);
 void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse);
 DWORD ScrollCaret(HWND hWnd);
 
 void ReadOptions(DWORD dwFlags);
 void SaveOptions(DWORD dwFlags);
+wchar_t* GetDefaultMenu(int nStringID);
 const char* GetLangStringA(LANGID wLangID, int nStringID);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
 BOOL IsExtCallParamValid(LPARAM lParam, int nIndex);
@@ -644,15 +647,23 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!CreateToolbarData(&hTestStack, wszTest))
           {
             FreeToolbarData(&hTestStack);
-            HeapFree(hHeap, 0, wszTest);
+            FreeWideStr(&wszTest);
             return FALSE;
           }
 
           //Success
           FreeToolbarData(&hStackToolbar);
-          HeapFree(hHeap, 0, wszToolBarText);
+          FreeWideStr(&wszToolBarText);
           wszToolBarText=wszTest;
           xmemcpy(&hStackToolbar, &hTestStack, sizeof(STACKTOOLBAR));
+
+          if (!*wszToolBarText)
+          {
+            FreeToolbarData(&hStackToolbar);
+            FreeWideStr(&wszToolBarText);
+            wszToolBarText=GetDefaultMenu(STRID_DEFAULTMENU);
+            CreateToolbarData(&hStackToolbar, wszToolBarText);
+          }
           bUpdate=TRUE;
         }
         dwSaveFlags|=OF_LISTTEXT|OF_SETTINGS;
@@ -2921,8 +2932,32 @@ INT_PTR GetEditText(HWND hWnd, wchar_t **wpText)
   if (nTextLen=SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (WPARAM)hWnd, (LPARAM)&gtr))
     *wpText=(wchar_t *)gtr.pText;
   else
-    *wpText=(wchar_t *)HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+    CopyWideStr(L"", -1, wpText);
   return nTextLen;
+}
+
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
+{
+  wchar_t *wszDst=*wppDst;
+
+  if (nSrcLen == -1)
+    nSrcLen=xstrlenW(wpSrc);
+  if (wszDst)
+    FreeWideStr(&wszDst);
+  if (wszDst=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nSrcLen + 1) * sizeof(wchar_t)))
+    xstrcpynW(wszDst, wpSrc, nSrcLen + 1);
+  *wppDst=wszDst;
+  return nSrcLen;
+}
+
+BOOL FreeWideStr(wchar_t **wppWideStr)
+{
+  if (wppWideStr && *wppWideStr && GlobalFree((HGLOBAL)*wppWideStr))
+  {
+    *wppWideStr=NULL;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 void ShowStandardEditMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)
@@ -3009,10 +3044,9 @@ void ReadOptions(DWORD dwFlags)
   {
     if ((nSize=(int)WideOption(hOptions, L"ToolBarText", PO_BINARY, NULL, 0)) > 0)
     {
-      if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, nSize + sizeof(wchar_t)))
+      if (wszToolBarText=(wchar_t *)GlobalAlloc(GMEM_FIXED, nSize))
       {
         WideOption(hOptions, L"ToolBarText", PO_BINARY, (LPBYTE)wszToolBarText, nSize);
-        wszToolBarText[nSize / sizeof(wchar_t)]=L'\0';
       }
     }
 
@@ -3028,15 +3062,8 @@ void ReadOptions(DWORD dwFlags)
     SendMessage(hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
   }
 
-  if (!wszToolBarText)
-  {
-    nSize=(int)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTMENU));
-
-    if (wszToolBarText=(wchar_t *)HeapAlloc(hHeap, 0, nSize * sizeof(wchar_t)))
-    {
-      xprintfW(wszToolBarText, L"%s", GetLangStringW(wLangModule, STRID_DEFAULTMENU));
-    }
-  }
+  //Default menus
+  if (!wszToolBarText) wszToolBarText=GetDefaultMenu(STRID_DEFAULTMENU);
 }
 
 void SaveOptions(DWORD dwFlags)
@@ -3066,6 +3093,17 @@ void SaveOptions(DWORD dwFlags)
 
     SendMessage(hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
   }
+}
+
+wchar_t* GetDefaultMenu(int nStringID)
+{
+  wchar_t *wszMenuText;
+  DWORD dwSize;
+
+  dwSize=(DWORD)xprintfW(NULL, L"%s", GetLangStringW(wLangModule, nStringID));
+  if (wszMenuText=(wchar_t *)GlobalAlloc(GMEM_FIXED, dwSize * sizeof(wchar_t)))
+    xprintfW(wszMenuText, L"%s", GetLangStringW(wLangModule, nStringID));
+  return wszMenuText;
 }
 
 const char* GetLangStringA(LANGID wLangID, int nStringID)
@@ -3202,7 +3240,7 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"\x041F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0438\x0440\x043E\x0432\x0430\x043D\x0438\x0435\" Menu(\"CODER\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 12)\r\
-    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
+    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
     \"\x041F\x0430\x043D\x0435\x043B\x044C CodeFold\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
@@ -3419,7 +3457,7 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"Programming\" Menu(\"CODER\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 12)\r\
-    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
+    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
     \"CodeFold panel\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
@@ -3627,12 +3665,7 @@ void UninitMain()
   //Destroy toolbar
   DestroyToolbarWindow(TRUE);
   FreeRows(&hRowListStack);
-
-  if (wszToolBarText)
-  {
-    HeapFree(hHeap, 0, wszToolBarText);
-    wszToolBarText=NULL;
-  }
+  FreeWideStr(&wszToolBarText);
 }
 
 //Entry point
