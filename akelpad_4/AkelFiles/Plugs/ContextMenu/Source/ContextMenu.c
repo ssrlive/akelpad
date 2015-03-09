@@ -5924,7 +5924,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
+    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\
@@ -6511,7 +6511,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 0)\r\
+    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\
