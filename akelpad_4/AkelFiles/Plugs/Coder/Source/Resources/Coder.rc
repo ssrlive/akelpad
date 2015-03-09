@@ -49,6 +49,7 @@ IDI_MARKCOLOR_04        ICON    DISCARDABLE     "09.ico"
 IDI_MARKCOLOR_05        ICON    DISCARDABLE     "10.ico"
 IDI_MARKCOLOR_06        ICON    DISCARDABLE     "11.ico"
 IDI_CODER               ICON    DISCARDABLE     "12.ico"
+IDI_MARK                ICON    DISCARDABLE     "13.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
