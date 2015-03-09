@@ -326,7 +326,8 @@ wchar_t wszRowList[MAX_PATH]=L"";
 STACKROW hRowListStack={0};
 HWND hToolbarBG=NULL;
 HWND hToolbar=NULL;
-HICON hIconArrow=NULL;
+HICON hIconArrowOverlay=NULL;
+BOOL bArrowOverlay=TRUE;
 BOOL bBigIcons=FALSE;
 BOOL bFlatButtons=TRUE;
 int nIconsBit=32;
@@ -1479,15 +1480,18 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               }
               if (hIcon)
               {
-                //Method "Menu()" without action. Add overlay arrow.
-                if (hParamMenuName.first && !lpButton)
+                if (bArrowOverlay)
                 {
-                  if (!hIconArrow)
-                    hIconArrow=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICONARROW), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-                  if (hIconMixed=MixIcons(hIcon, hIconArrow))
+                  //Method "Menu()" without action. Add overlay arrow.
+                  if (hParamMenuName.first && !lpButton)
                   {
-                    DestroyIcon(hIcon);
-                    hIcon=hIconMixed;
+                    if (!hIconArrowOverlay)
+                      hIconArrowOverlay=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICONARROW), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
+                    if (hIconMixed=MixIcons(hIcon, hIconArrowOverlay))
+                    {
+                      DestroyIcon(hIcon);
+                      hIcon=hIconMixed;
+                    }
                   }
                 }
                 ImageList_AddIcon(hStack->hImageList, hIcon);
@@ -1936,10 +1940,10 @@ void FreeToolbarData(STACKTOOLBAR *hStack)
     ImageList_Destroy(hStack->hImageList);
     hStack->hImageList=NULL;
   }
-  if (hIconArrow)
+  if (hIconArrowOverlay)
   {
-    DestroyIcon(hIconArrow);
-    hIconArrow=NULL;
+    DestroyIcon(hIconArrowOverlay);
+    hIconArrowOverlay=NULL;
   }
   hStack->nRows=0;
   hStack->nSepRows=0;
@@ -3002,6 +3006,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
     WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
     WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
+    WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&bArrowOverlay, sizeof(DWORD));
     WideOption(hOptions, L"RowList", PO_STRING, (LPBYTE)wszRowList, MAX_PATH * sizeof(wchar_t));
     WideOption(hOptions, L"WindowRect", PO_BINARY, (LPBYTE)&rcMainCurrentDialog, sizeof(RECT));
 
@@ -3036,6 +3041,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
       WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
       WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
+      WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&bArrowOverlay, sizeof(DWORD));
       WideOption(hOptions, L"RowList", PO_STRING, (LPBYTE)wszRowList, ((int)xstrlenW(wszRowList) + 1) * sizeof(wchar_t));
     }
     if (dwFlags & OF_RECT)
