@@ -1781,13 +1781,18 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
               //Copy pixel from Overlay to Input
               nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
               lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
-              *lpInputColorPixel=*lpOverlayColorPixel;
-
+  
               //Remove alpha and compare with white color
               if (bWhiteInOverlayAsMaskInInput && (*lpOverlayColorPixel & 0x00FFFFFF) == 0xFFFFFF)
+              {
+                *lpInputColorPixel=0xFFFFFF;
                 *lpInputMaskPixel=0xFFFFFF;
+              }
               else
+              {
+                *lpInputColorPixel=*lpOverlayColorPixel;
                 *lpInputMaskPixel=0;
+              }
             }
             if (!*lpInputMaskPixel)
             {
