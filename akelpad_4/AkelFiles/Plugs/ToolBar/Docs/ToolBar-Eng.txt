@@ -286,4 +286,5 @@ SidePriority
 ArrowOverlay
   Draw overlay array for button with Menu() method without action (one of the following):
     0  don't draw.
-    1  draw (default).
+    1  draw normal.
+    2  draw white as mask, i.e. white color in arrow icon removed from result icon (default).
