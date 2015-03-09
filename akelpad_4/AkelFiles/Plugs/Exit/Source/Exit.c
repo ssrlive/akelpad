@@ -416,7 +416,7 @@ BOOL ProcessEsc(DWORD dwSettings)
       {
         int nFrameCount=(int)SendMessage(hMainWnd, AKD_FRAMESTATS, FWS_COUNTALL, 0);
 
-        PostMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
+        SendMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
         if (nFrameCount > 1)
           return TRUE;
       }
@@ -425,7 +425,7 @@ BOOL ProcessEsc(DWORD dwSettings)
     {
       if (!SendMessage(hMainWnd, AKD_FRAMENOWINDOWS, 0, 0))
       {
-        PostMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
+        SendMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
         return TRUE;
       }
     }
@@ -433,7 +433,7 @@ BOOL ProcessEsc(DWORD dwSettings)
     {
       if (!SendMessage(hMainWnd, AKD_FRAMENOWINDOWS, 0, 0))
       {
-        PostMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
+        SendMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
       }
       return TRUE;
     }
