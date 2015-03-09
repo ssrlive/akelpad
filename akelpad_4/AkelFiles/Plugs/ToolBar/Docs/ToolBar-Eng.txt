@@ -275,3 +275,15 @@ Call("ToolBar::Main", 1, "ROWS(SHOW)")
           -1  invert row visibility.
            0  hide row.
            1  show row (default).
+
+
+*** Manual settings ***
+
+SidePriority
+  Priority of the toolbars side placing (one of the following):
+    1  place top and bottom first, then left and right (default).
+    2  place left and right first, then top and bottom.
+ArrowOverlay
+  Draw overlay array for button with Menu() method without action (one of the following):
+    0  don't draw.
+    1  draw (default).
