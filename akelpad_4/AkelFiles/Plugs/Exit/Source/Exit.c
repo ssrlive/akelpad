@@ -412,10 +412,13 @@ BOOL ProcessEsc(DWORD dwSettings)
   {
     if (dwSettings & EX_ESCCLOSETAB_ONETABEXIT)
     {
-      if (SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) > 1)
+      if (!SendMessage(hMainWnd, AKD_FRAMENOWINDOWS, 0, 0))
       {
+        int nFrameCount=(int)SendMessage(hMainWnd, AKD_FRAMESTATS, FWS_COUNTALL, 0);
+
         PostMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
-        return TRUE;
+        if (nFrameCount > 1)
+          return TRUE;
       }
     }
     else if (dwSettings & EX_ESCCLOSETAB_NOTABEXIT)
