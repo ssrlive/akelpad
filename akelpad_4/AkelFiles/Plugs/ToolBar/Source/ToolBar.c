@@ -156,6 +156,11 @@
 #define TSP_TOPBOTTOM  1
 #define TSP_LEFTRIGHT  2
 
+//Icon arrow overlay
+#define IAO_NONE            0
+#define IAO_COPYNORMAL      1 //IDI_ICONARROW1 icon used.
+#define IAO_COPYWHITEASMASK 2 //IDI_ICONARROW2 icon used.
+
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
@@ -252,7 +257,7 @@ VOID CALLBACK PaintTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTim
 
 BOOL CreateToolbarWindow();
 BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText);
-HICON MixIcons(HICON hIcon, HICON hIconOverlay);
+HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput);
 DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags);
 int ParseRows(STACKROW *lpRowListStack);
 ROWITEM* GetRow(STACKROW *lpRowListStack, int nRow);
@@ -327,7 +332,7 @@ STACKROW hRowListStack={0};
 HWND hToolbarBG=NULL;
 HWND hToolbar=NULL;
 HICON hIconArrowOverlay=NULL;
-BOOL bArrowOverlay=TRUE;
+int nArrowOverlay=IAO_COPYWHITEASMASK;
 BOOL bBigIcons=FALSE;
 BOOL bFlatButtons=TRUE;
 int nIconsBit=32;
@@ -1480,14 +1485,14 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               }
               if (hIcon)
               {
-                if (bArrowOverlay)
+                if (nArrowOverlay)
                 {
                   //Method "Menu()" without action. Add overlay arrow.
                   if (hParamMenuName.first && !lpButton)
                   {
                     if (!hIconArrowOverlay)
-                      hIconArrowOverlay=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICONARROW), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-                    if (hIconMixed=MixIcons(hIcon, hIconArrowOverlay))
+                      hIconArrowOverlay=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nArrowOverlay == IAO_COPYNORMAL?IDI_ICONARROW1:IDI_ICONARROW2), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
+                    if (hIconMixed=MixIcons(hIcon, hIconArrowOverlay, nArrowOverlay == IAO_COPYWHITEASMASK))
                     {
                       DestroyIcon(hIcon);
                       hIcon=hIconMixed;
@@ -1694,7 +1699,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   return FALSE;
 }
 
-HICON MixIcons(HICON hIconInput, HICON hIconOverlay)
+HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput)
 {
   ICONINFO iiInput;
   ICONINFO iiOverlay;
@@ -1777,7 +1782,12 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay)
               nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
               lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
               *lpInputColorPixel=*lpOverlayColorPixel;
-              *lpInputMaskPixel=0;
+
+              //Remove alpha and compare with white color
+              if (bWhiteInOverlayAsMaskInInput && (*lpOverlayColorPixel & 0x00FFFFFF) == 0xFFFFFF)
+                *lpInputMaskPixel=0xFFFFFF;
+              else
+                *lpInputMaskPixel=0;
             }
             if (!*lpInputMaskPixel)
             {
@@ -3006,7 +3016,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
     WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
     WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
-    WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&bArrowOverlay, sizeof(DWORD));
+    WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&nArrowOverlay, sizeof(DWORD));
     WideOption(hOptions, L"RowList", PO_STRING, (LPBYTE)wszRowList, MAX_PATH * sizeof(wchar_t));
     WideOption(hOptions, L"WindowRect", PO_BINARY, (LPBYTE)&rcMainCurrentDialog, sizeof(RECT));
 
@@ -3041,7 +3051,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
       WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
       WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
-      WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&bArrowOverlay, sizeof(DWORD));
+      WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&nArrowOverlay, sizeof(DWORD));
       WideOption(hOptions, L"RowList", PO_STRING, (LPBYTE)wszRowList, ((int)xstrlenW(wszRowList) + 1) * sizeof(wchar_t));
     }
     if (dwFlags & OF_RECT)
