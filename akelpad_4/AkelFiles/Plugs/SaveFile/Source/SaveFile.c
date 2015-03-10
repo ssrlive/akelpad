@@ -22,6 +22,8 @@
 
 
 //Include wide functions
+#define CallWindowProcWide
+#define ComboBox_GetLBTextWide
 #define CreateDirectoryWide
 #define DeleteFileWide
 #define DialogBoxWide
@@ -29,8 +31,10 @@
 #define FileExistsWide
 #define GetDlgItemTextWide
 #define GetFileAttributesWide
+#define GetWindowLongPtrWide
 #define GetWindowTextWide
 #define SetDlgItemTextWide
+#define SetWindowLongPtrWide
 #define SetWindowTextWide
 #define SHBrowseForFolderWide
 #define SHGetPathFromIDListWide
@@ -48,14 +52,18 @@
 #define STRID_SAVEDIR      9
 #define STRID_SAVEDIRVARS  10
 #define STRID_SAVENOBOM    11
-#define STRID_PLUGIN       12
-#define STRID_OK           13
-#define STRID_CANCEL       14
+#define STRID_FORCENOBOM   12
+#define STRID_DLGUNCHECK   13
+#define STRID_PLUGIN       14
+#define STRID_OK           15
+#define STRID_CANCEL       16
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
 #define OF_ALL         (OF_AUTOSAVE |\
                         OF_SAVENOBOM)
+
+#define BUFFER_SIZE      1024
 
 //Save moment
 #define SMOM_TIME    0x1
@@ -70,6 +78,12 @@
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
 #endif
+#ifndef IDC_OFN_AUTODETECT
+  #define IDC_OFN_AUTODETECT 2501
+#endif
+#ifndef IDC_OFN_CODEPAGE
+  #define IDC_OFN_CODEPAGE 2502
+#endif
 
 #define CP_UNICODE_UTF16LE  1200
 #define CP_UNICODE_UTF16BE  1201
@@ -78,14 +92,16 @@
 #define CP_UNICODE_UTF7     65000
 #define CP_UNICODE_UTF8     65001
 
-#define NOBOM_UTF16LE  0x00000001
-#define NOBOM_UTF16BE  0x00000002
-#define NOBOM_UTF8     0x00000004
-#define NOBOM_UTF32LE  0x00000008
-#define NOBOM_UTF32BE  0x00000010
+#define NOBOM_UTF16LE    0x00000001
+#define NOBOM_UTF16BE    0x00000002
+#define NOBOM_UTF8       0x00000004
+#define NOBOM_UTF32LE    0x00000008
+#define NOBOM_UTF32BE    0x00000010
+#define NOBOM_DLGUNCHECK 0x00000100
 
 //Functions prototypes
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK SaveFileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
@@ -93,6 +109,7 @@ void DoAutoSave(int nSaveMoment);
 BOOL IsBackupNeeded(FRAMEDATA *lpFrame);
 BOOL MakeBackupFile(HWND hWndEdit);
 void RemoveBackupFile(HWND hWndEdit, const wchar_t *wpEditFile);
+int GetComboboxCodepage(HWND hWnd);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 
@@ -110,6 +127,7 @@ void InitSaveNoBOM();
 void UninitSaveNoBOM();
 
 //Global variables
+wchar_t wszBuffer[BUFFER_SIZE];
 wchar_t wszPluginName[MAX_PATH];
 wchar_t wszPluginTitle[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
@@ -131,6 +149,7 @@ DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
 int nAppActive=TRUE;
 DWORD dwSaveNoBomSettings=NOBOM_UTF8;
+WNDPROC lpOldSaveFileProc;
 WNDPROCDATA *NewMainProcData=NULL;
 
 
@@ -139,7 +158,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 1, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
   pv->pPluginName="SaveFile";
 }
 
@@ -222,31 +241,32 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static wchar_t wszFileNameOld[MAX_PATH];
   static BOOL bRemoveBackupCheck;
 
-  if (uMsg == AKDN_SAVEDOCUMENT_START)
+  if (uMsg == AKDN_INITDIALOGBEGIN)
+  {
+    if (bInitSaveNoBOM && (dwSaveNoBomSettings & NOBOM_DLGUNCHECK))
+    {
+      if (wParam == IDT_SAVEFILE)
+      {
+        NINITDIALOG *nid=(NINITDIALOG *)lParam;
+
+        lpOldSaveFileProc=(WNDPROC)GetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC);
+        SetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC, (UINT_PTR)SaveFileProc);
+      }
+    }
+  }
+  else if (uMsg == AKDN_SAVEDOCUMENT_START)
   {
     NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
 
-    if (bInitSaveNoBOM)
+    if (bInitSaveNoBOM && !(dwSaveNoBomSettings & NOBOM_DLGUNCHECK))
     {
-      if (*nsd->nCodePage == CP_UNICODE_UTF8)
+      if ((*nsd->nCodePage == CP_UNICODE_UTF8 && (dwSaveNoBomSettings & NOBOM_UTF8)) ||
+          (*nsd->nCodePage == CP_UNICODE_UTF16LE && (dwSaveNoBomSettings & NOBOM_UTF16LE)) ||
+          (*nsd->nCodePage == CP_UNICODE_UTF16BE && (dwSaveNoBomSettings & NOBOM_UTF16BE)) ||
+          (*nsd->nCodePage == CP_UNICODE_UTF32LE && (dwSaveNoBomSettings & NOBOM_UTF32LE)) ||
+          (*nsd->nCodePage == CP_UNICODE_UTF32BE && (dwSaveNoBomSettings & NOBOM_UTF32BE)))
       {
-        if (dwSaveNoBomSettings & NOBOM_UTF8) *nsd->bBOM=FALSE;
-      }
-      else if (*nsd->nCodePage == CP_UNICODE_UTF16LE)
-      {
-        if (dwSaveNoBomSettings & NOBOM_UTF16LE) *nsd->bBOM=FALSE;
-      }
-      else if (*nsd->nCodePage == CP_UNICODE_UTF16BE)
-      {
-        if (dwSaveNoBomSettings & NOBOM_UTF16BE) *nsd->bBOM=FALSE;
-      }
-      else if (*nsd->nCodePage == CP_UNICODE_UTF32LE)
-      {
-        if (dwSaveNoBomSettings & NOBOM_UTF32LE) *nsd->bBOM=FALSE;
-      }
-      else if (*nsd->nCodePage == CP_UNICODE_UTF32BE)
-      {
-        if (dwSaveNoBomSettings & NOBOM_UTF32BE) *nsd->bBOM=FALSE;
+        *nsd->bBOM=FALSE;
       }
     }
 
@@ -347,6 +367,36 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
 }
 
+LRESULT CALLBACK SaveFileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_OFN_CODEPAGE && HIWORD(wParam) == CBN_SELCHANGE)
+    {
+      HWND hWndCodePage=GetDlgItem(hWnd, IDC_OFN_CODEPAGE);
+      HWND hWndAutodetect=GetDlgItem(hWnd, IDC_OFN_AUTODETECT);
+      int nCodePage=GetComboboxCodepage(hWndCodePage);
+      BOOL bBOM=-1;
+      LRESULT lResult;
+
+      lResult=CallWindowProcWide(lpOldSaveFileProc, hWnd, uMsg, wParam, lParam);
+
+      if ((nCodePage == CP_UNICODE_UTF8 && (dwSaveNoBomSettings & NOBOM_UTF8)) ||
+          (nCodePage == CP_UNICODE_UTF16LE && (dwSaveNoBomSettings & NOBOM_UTF16LE)) ||
+          (nCodePage == CP_UNICODE_UTF16BE && (dwSaveNoBomSettings & NOBOM_UTF16BE)) ||
+          (nCodePage == CP_UNICODE_UTF32LE && (dwSaveNoBomSettings & NOBOM_UTF32LE)) ||
+          (nCodePage == CP_UNICODE_UTF32BE && (dwSaveNoBomSettings & NOBOM_UTF32BE)))
+      {
+        bBOM=FALSE;
+      }
+      if (bBOM != -1)
+        SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bBOM, 0);
+      return lResult;
+    }
+  }
+  return CallWindowProcWide(lpOldSaveFileProc, hWnd, uMsg, wParam, lParam);
+}
+
 BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
@@ -361,6 +411,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveDir;
   static HWND hWndSaveDirBrowse;
   static HWND hWndSaveNoBomTitle;
+  static HWND hWndForceRadio;
+  static HWND hWndDialogUncheckRadio;
   static HWND hWndUTF8;
   static HWND hWndUTF16LE;
   static HWND hWndUTF16BE;
@@ -384,6 +436,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveDir=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR);
     hWndSaveDirBrowse=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR_BROWSE);
     hWndSaveNoBomTitle=GetDlgItem(hDlg, IDC_SAVENOBOM_TITLE);
+    hWndForceRadio=GetDlgItem(hDlg, IDC_SAVENOBOM_FORCE_RADIO);
+    hWndDialogUncheckRadio=GetDlgItem(hDlg, IDC_SAVENOBOM_DLGUNCHECK_RADIO);
     hWndUTF8=GetDlgItem(hDlg, IDC_SAVENOBOM_UTF8);
     hWndUTF16LE=GetDlgItem(hDlg, IDC_SAVENOBOM_UTF16LE);
     hWndUTF16BE=GetDlgItem(hDlg, IDC_SAVENOBOM_UTF16BE);
@@ -402,6 +456,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_CHECK, GetLangStringW(wLangModule, STRID_SAVEDIR));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_NOTE, GetLangStringW(wLangModule, STRID_SAVEDIRVARS));
     SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_GROUP, GetLangStringW(wLangModule, STRID_SAVENOBOM));
+    SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_FORCE_RADIO, GetLangStringW(wLangModule, STRID_FORCENOBOM));
+    SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_DLGUNCHECK_RADIO, GetLangStringW(wLangModule, STRID_DLGUNCHECK));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
@@ -419,6 +475,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SendMessage(hWndSaveDir, EM_LIMITTEXT, MAX_PATH, 0);
     SetWindowTextWide(hWndSaveDir, wszSaveDir);
 
+    if (dwSaveNoBomSettings & NOBOM_DLGUNCHECK)
+      SendMessage(hWndDialogUncheckRadio, BM_SETCHECK, BST_CHECKED, 0);
+    else
+      SendMessage(hWndForceRadio, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveNoBomSettings & NOBOM_UTF8)
       SendMessage(hWndUTF8, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveNoBomSettings & NOBOM_UTF16LE)
@@ -559,6 +619,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       TranslateFileString(wszSaveDir, wszSaveDirExp, MAX_PATH);
 
       dwSaveNoBomSettings=0;
+      if (SendMessage(hWndDialogUncheckRadio, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwSaveNoBomSettings|=NOBOM_DLGUNCHECK;
       if (SendMessage(hWndUTF8, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveNoBomSettings|=NOBOM_UTF8;
       if (SendMessage(hWndUTF16LE, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -784,6 +846,19 @@ void RemoveBackupFile(HWND hWndEdit, const wchar_t *wpEditFile)
   }
 }
 
+int GetComboboxCodepage(HWND hWnd)
+{
+  int nCodePage=0;
+  int nSelection;
+
+  if ((nSelection=(int)SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
+  {
+    ComboBox_GetLBTextWide(hWnd, nSelection, wszBuffer);
+    nCodePage=(int)xatoiW(wszBuffer, NULL);
+  }
+  return nCodePage;
+}
+
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
   //%a -AkelPad directory, %% -%
@@ -946,6 +1021,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0025\x0061\x0020\x002D\x0020\x0434\x0438\x0440\x0435\x043A\x0442\x043E\x0440\x0438\x044F\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430";
     if (nStringID == STRID_SAVENOBOM)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x0431\x0435\x0437\x0020\x0042\x004F\x004D";
+    if (nStringID == STRID_FORCENOBOM)
+      return L"\x0424\x043E\x0440\x0441\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x0435\x0020\x0431\x0435\x0437\x0020\x0042\x004F\x004D";
+    if (nStringID == STRID_DLGUNCHECK)
+      return L"\x0421\x043D\x0438\x043C\x0430\x0442\x044C\x0020\x0433\x0430\x043B\x043A\x0443\x0020\x0042\x004F\x004D\x0020\x0432\x0020\x0434\x0438\x0430\x043B\x043E\x0433\x0435\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x044F";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -977,6 +1056,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"%a - AkelPad directory";
     if (nStringID == STRID_SAVENOBOM)
       return L"Save without BOM";
+    if (nStringID == STRID_FORCENOBOM)
+      return L"Force saving without BOM";
+    if (nStringID == STRID_DLGUNCHECK)
+      return L"Uncheck BOM in save dialog";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)

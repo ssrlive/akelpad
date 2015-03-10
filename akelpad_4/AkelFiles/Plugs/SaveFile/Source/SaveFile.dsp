@@ -106,6 +106,10 @@ SOURCE=.\SaveFile.c
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\Resources\SaveFile.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\Resources\SaveFile.rc
 # End Source File
 # End Group
