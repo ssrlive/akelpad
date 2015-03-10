@@ -5732,6 +5732,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_SAVEALLAS, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndCodePageCheck=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_CHECK);
     hWndCodePageList=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST);
@@ -5767,6 +5768,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       SendMessage(hWndNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SAVEALLAS_CODEPAGE_CHECK, 0);
+    NotifyInitDialogEnd(IDT_SAVEALLAS, hDlg, lParam);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -5897,6 +5899,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     BUTTONDRAW bd;
     int nExtend;
 
+    NotifyInitDialogBegin(IDT_PAGESETUP, hDlg, lParam);
     xmemcpy(&lfDialog, &moCur.lfPrintFont, sizeof(LOGFONTW));
     hPrintFont=(HFONT)CreateFontIndirectWide(&lfDialog);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -6129,6 +6132,8 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     //Set footer menu image
     bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
     SetButtonDraw(hWndFooterHelp, &bd);
+
+    NotifyInitDialogEnd(IDT_PAGESETUP, hDlg, lParam);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -6803,6 +6808,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     DWORD dwStyle;
 
+    NotifyInitDialogBegin(IDT_PRINTPREVIEW, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndPrevPage=GetDlgItem(hDlg, IDC_PREVIEW_PREVPAGE);
     hWndPageCount=GetDlgItem(hDlg, IDC_PREVIEW_PAGECOUNT);
@@ -6881,6 +6887,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
     ShowWindow(hDlg, dwPreviewShowDialog);
+    NotifyInitDialogEnd(IDT_PRINTPREVIEW, hDlg, lParam);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -7676,6 +7683,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     DIALOGCODEPAGE *dc=(DIALOGCODEPAGE *)ofnStruct->lCustData;
 
+    NotifyInitDialogBegin(bSaveDlg?IDT_SAVEFILE:IDT_OPENFILE, hDlg, (LPARAM)dc);
     hDlgParent=GetParent(hDlg);
     hDlgList=GetDlgItem(hDlgParent, IDC_OFN_LIST);
     hDlgComboboxLabel=GetDlgItem(hDlgParent, IDC_OFN_CODEPAGECOMBOBOX_LABEL);
@@ -7831,6 +7839,7 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     lpOldFileParentProc=(WNDPROC)GetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC);
     SetWindowLongPtrWide(hDlgParent, GWLP_WNDPROC, (UINT_PTR)NewFileParentProc);
+    NotifyInitDialogEnd(bSaveDlg?IDT_SAVEFILE:IDT_OPENFILE, hDlg, (LPARAM)dc);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -9311,6 +9320,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(nModelessType == MLT_REPLACE?IDT_REPLACE:IDT_FIND, hDlg, lParam);
     if (hWndFind || moCur.bModelessSavePos)
     {
       EnsureWindowInMonitor(&moCur.rcSearchCurrentDialog);
@@ -9409,6 +9419,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
+    NotifyInitDialogEnd(nModelessType == MLT_REPLACE?IDT_REPLACE:IDT_FIND, hDlg, lParam);
   }
   else if (uMsg == AKDLG_PUTFIND)
   {
@@ -11382,6 +11393,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_GOTO, hDlg, lParam);
     if (hWndNumber || moCur.bModelessSavePos)
     {
       EnsureWindowInMonitor(&moCur.rcGotoCurrentDialog);
@@ -11403,6 +11415,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_OFFSET, 0);
     }
+    NotifyInitDialogEnd(IDT_GOTO, hDlg, lParam);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -12236,6 +12249,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_RECODE, hDlg, lParam);
     if (hWndOK || moCur.bModelessSavePos)
     {
       EnsureWindowInMonitor(&moCur.rcRecodeCurrentDialog);
@@ -12279,6 +12293,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
     PostMessage(hDlg, AKDLG_RECODEUPDATE, 0, 0);
+    NotifyInitDialogEnd(IDT_RECODE, hDlg, lParam);
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
@@ -12414,6 +12429,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_COLORS, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndThemeNameLabel=GetDlgItem(hDlg, IDC_COLORS_THEMENAME_LABEL);
     hWndThemeNameCombo=GetDlgItem(hDlg, IDC_COLORS_THEMENAME_COMBO);
@@ -12540,6 +12556,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EnableWindow(hWndBkImageAlphaEdit, wszBkImageFileDlg[0]);
       EnableWindow(hWndBkImageAlphaSpin, wszBkImageFileDlg[0]);
     }
+    NotifyInitDialogEnd(IDT_COLORS, hDlg, lParam);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -14143,6 +14160,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     wchar_t wszPlugin[MAX_PATH];
     wchar_t wszFunction[MAX_PATH];
 
+    NotifyInitDialogBegin(IDT_PLUGINS, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
     hWndListInfo=GetDlgItem(hDlg, IDC_PLUGINS_LIST_INFO);
@@ -14183,6 +14201,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     nSelItem=-1;
     FillPluginList(hWndList);
     bListChanged=FALSE;
+    NotifyInitDialogEnd(IDT_PLUGINS, hDlg, lParam);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -15861,6 +15880,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_MDILIST, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
     hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
@@ -15921,6 +15941,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    NotifyInitDialogEnd(IDT_MDILIST, hDlg, lParam);
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
@@ -16409,10 +16430,12 @@ BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_INITDIALOG)
   {
+    NotifyInitDialogBegin(IDT_ABOUT, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     SetDlgItemTextWide(hDlg, IDC_ABOUT_VERSION, APP_ABOUT_VERSIONW);
     SetDlgItemTextWide(hDlg, IDC_ABOUT_HOMEPAGE, APP_ABOUT_HOMEPAGEW);
     SetDlgItemTextWide(hDlg, IDC_ABOUT_EMAIL_SHENGALTS, APP_ABOUT_EMAIL_SHENGALTSW);
+    NotifyInitDialogEnd(IDT_ABOUT, hDlg, lParam);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -16445,6 +16468,30 @@ int GetUserManual(wchar_t *wszManual, int nManualLen)
   return 0;
 }
 
+
+//// Dialog notifications
+
+void NotifyInitDialogBegin(int nType, HWND hDlg, LPARAM lParam)
+{
+  NINITDIALOG nid;
+
+  nid.hWnd=hDlg;
+  nid.lParam=lParam;
+  nid.nReserved1=0;
+  nid.nReserved2=0;
+  SendMessage(hMainWnd, AKDN_INITDIALOGBEGIN, nType, (LPARAM)&nid);
+}
+
+void NotifyInitDialogEnd(int nType, HWND hDlg, LPARAM lParam)
+{
+  NINITDIALOG nid;
+
+  nid.hWnd=hDlg;
+  nid.lParam=lParam;
+  nid.nReserved1=0;
+  nid.nReserved2=0;
+  SendMessage(hMainWnd, AKDN_INITDIALOGEND, nType, (LPARAM)&nid);
+}
 
 
 //// System-like MessageBox implementation

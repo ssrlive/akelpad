@@ -699,12 +699,6 @@ typedef struct {
   HDROP hDrop;
 } DROPFILESTHREAD;
 
-typedef struct {
-  int nCodePage;
-  BOOL bBOM;
-  BOOL bResult;
-} DIALOGCODEPAGE;
-
 //OPENFILENAMEW with _WIN32_WINNT >= 0x0500 members
 typedef struct {
   DWORD lStructSize;
@@ -1055,6 +1049,9 @@ void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetUserManual(wchar_t *wszManual, int nManualLen);
+
+void NotifyInitDialogBegin(int nType, HWND hDlg, LPARAM lParam);
+void NotifyInitDialogEnd(int nType, HWND hDlg, LPARAM lParam);
 
 int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *bmb);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

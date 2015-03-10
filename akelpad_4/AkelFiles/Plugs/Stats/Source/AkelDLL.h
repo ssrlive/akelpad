@@ -784,6 +784,21 @@
 #define MLT_REPLACE  4 //Replace dialog.
 #define MLT_GOTO     5 //Go to dialog.
 
+//AKDN_INITDIALOGBEGIN and AKDN_INITDIALOGEND types
+#define IDT_OPENFILE       1  //NINITDIALOG.lParam is a pointer to a DIALOGCODEPAGE structure.
+#define IDT_SAVEFILE       2  //NINITDIALOG.lParam is a pointer to a DIALOGCODEPAGE structure.
+#define IDT_SAVEALLAS      3  //NINITDIALOG.lParam not used.
+#define IDT_PAGESETUP      4  //NINITDIALOG.lParam not used.
+#define IDT_PRINTPREVIEW   5  //NINITDIALOG.lParam not used.
+#define IDT_FIND           6  //NINITDIALOG.lParam not used.
+#define IDT_REPLACE        7  //NINITDIALOG.lParam not used.
+#define IDT_GOTO           8  //NINITDIALOG.lParam not used.
+#define IDT_RECODE         9  //NINITDIALOG.lParam not used.
+#define IDT_COLORS         10 //NINITDIALOG.lParam not used.
+#define IDT_PLUGINS        11 //NINITDIALOG.lParam not used.
+#define IDT_MDILIST        12 //NINITDIALOG.lParam not used.
+#define IDT_ABOUT          13 //NINITDIALOG.lParam not used.
+
 #ifndef _RESIZEFUNC_H_
   //RESIZEDIALOGMSG flags
   #define RDM_PAINTSIZEGRIP 0x2 //Draw resize grid.
@@ -1320,6 +1335,11 @@ typedef struct {
   DWORD dwFlags;         //See SD_* defines.
 } SAVEDOCUMENTW;
 
+typedef struct {
+  int nCodePage;
+  BOOL bBOM;
+  BOOL bResult;
+} DIALOGCODEPAGE;
 
 //AKD_SETFRAMEINFO
 typedef struct {
@@ -1583,6 +1603,13 @@ typedef struct {
   WPARAM wParam;       //Specifies additional message-specific information.
   LPARAM lParam;       //Specifies additional message-specific information.
 } POSTMESSAGE;
+
+typedef struct {
+  HWND hWnd;           //Window handle.
+  LPARAM lParam;       //Specifies additional message-specific information.
+  LPARAM nReserved1;
+  LPARAM nReserved2;
+} NINITDIALOG;
 
 typedef struct {
   const wchar_t *pCmdLine; //Command line string. On return contain pointer to a unprocessed string.
@@ -2167,6 +2194,8 @@ typedef struct {
 #define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
 #define AKDN_MESSAGEBOXBEGIN       (WM_USER + 61)  //0x43D
 #define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
+#define AKDN_INITDIALOGBEGIN       (WM_USER + 63)  //0x43F
+#define AKDN_INITDIALOGEND         (WM_USER + 64)  //0x440
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -2740,6 +2769,30 @@ Notification message, sends to the main procedure after messagebox is closed.
 
 (int)wParam   == MessageBox call result.
 (DWORD)lParam == same value as lParam of AKDN_MESSAGEBOXBEGIN.
+
+Return Value
+ Zero.
+
+
+AKDN_INITDIALOGBEGIN
+____________________
+
+Notification message, sends to the main procedure before processing WM_INITDIALOG.
+
+(int)wParam           == see IDT_* defines.
+(NINITDIALOG *)lParam == pointer to a NINITDIALOG structure.
+
+Return Value
+ Zero.
+
+
+AKDN_INITDIALOGEND
+__________________
+
+Notification message, sends to the main procedure after processing WM_INITDIALOG.
+
+(int)wParam          == see IDT_* defines.
+(NINITDIALOG *)lParam == pointer to a NINITDIALOG structure.
 
 Return Value
  Zero.
