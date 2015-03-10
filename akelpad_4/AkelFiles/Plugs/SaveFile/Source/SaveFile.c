@@ -109,6 +109,7 @@ void DoAutoSave(int nSaveMoment);
 BOOL IsBackupNeeded(FRAMEDATA *lpFrame);
 BOOL MakeBackupFile(HWND hWndEdit);
 void RemoveBackupFile(HWND hWndEdit, const wchar_t *wpEditFile);
+void UncheckBOM(HWND hDlg);
 int GetComboboxCodepage(HWND hWnd);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
@@ -241,7 +242,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static wchar_t wszFileNameOld[MAX_PATH];
   static BOOL bRemoveBackupCheck;
 
-  if (uMsg == AKDN_INITDIALOGBEGIN)
+  if (uMsg == AKDN_INITDIALOGEND)
   {
     if (bInitSaveNoBOM && (dwSaveNoBomSettings & NOBOM_DLGUNCHECK))
     {
@@ -249,6 +250,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         NINITDIALOG *nid=(NINITDIALOG *)lParam;
 
+        UncheckBOM(nid->hWnd);
         lpOldSaveFileProc=(WNDPROC)GetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC);
         SetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC, (UINT_PTR)SaveFileProc);
       }
@@ -373,24 +375,10 @@ LRESULT CALLBACK SaveFileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     if (LOWORD(wParam) == IDC_OFN_CODEPAGE && HIWORD(wParam) == CBN_SELCHANGE)
     {
-      HWND hWndCodePage=GetDlgItem(hWnd, IDC_OFN_CODEPAGE);
-      HWND hWndAutodetect=GetDlgItem(hWnd, IDC_OFN_AUTODETECT);
-      int nCodePage=GetComboboxCodepage(hWndCodePage);
-      BOOL bBOM=-1;
       LRESULT lResult;
 
       lResult=CallWindowProcWide(lpOldSaveFileProc, hWnd, uMsg, wParam, lParam);
-
-      if ((nCodePage == CP_UNICODE_UTF8 && (dwSaveNoBomSettings & NOBOM_UTF8)) ||
-          (nCodePage == CP_UNICODE_UTF16LE && (dwSaveNoBomSettings & NOBOM_UTF16LE)) ||
-          (nCodePage == CP_UNICODE_UTF16BE && (dwSaveNoBomSettings & NOBOM_UTF16BE)) ||
-          (nCodePage == CP_UNICODE_UTF32LE && (dwSaveNoBomSettings & NOBOM_UTF32LE)) ||
-          (nCodePage == CP_UNICODE_UTF32BE && (dwSaveNoBomSettings & NOBOM_UTF32BE)))
-      {
-        bBOM=FALSE;
-      }
-      if (bBOM != -1)
-        SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bBOM, 0);
+      UncheckBOM(hWnd);
       return lResult;
     }
   }
@@ -844,6 +832,25 @@ void RemoveBackupFile(HWND hWndEdit, const wchar_t *wpEditFile)
       }
     }
   }
+}
+
+void UncheckBOM(HWND hDlg)
+{
+  HWND hWndCodePage=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
+  HWND hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
+  int nCodePage=GetComboboxCodepage(hWndCodePage);
+  BOOL bBOM=-1;
+
+  if ((nCodePage == CP_UNICODE_UTF8 && (dwSaveNoBomSettings & NOBOM_UTF8)) ||
+      (nCodePage == CP_UNICODE_UTF16LE && (dwSaveNoBomSettings & NOBOM_UTF16LE)) ||
+      (nCodePage == CP_UNICODE_UTF16BE && (dwSaveNoBomSettings & NOBOM_UTF16BE)) ||
+      (nCodePage == CP_UNICODE_UTF32LE && (dwSaveNoBomSettings & NOBOM_UTF32LE)) ||
+      (nCodePage == CP_UNICODE_UTF32BE && (dwSaveNoBomSettings & NOBOM_UTF32BE)))
+  {
+    bBOM=FALSE;
+  }
+  if (bBOM != -1)
+    SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bBOM, 0);
 }
 
 int GetComboboxCodepage(HWND hWnd)
