@@ -4549,11 +4549,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
             //Draw column marker on non-text lines
             if (!(ae->popt->dwOptions & AECO_NOMARKERAFTERLASTLINE))
-              AE_ColumnMarkerDraw(ae, (HDC)wParam, rcErase.top, ae->rcDraw.bottom);
+              AE_ColumnMarkerDraw(ae, (HDC)wParam, rcErase.top, rcErase.bottom);
 
             //Draw active column on non-text lines
-            if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-              AE_ActiveColumnDraw(ae, (HDC)wParam, rcErase.top, ae->rcDraw.bottom);
+            if ((ae->popt->dwOptions & AECO_ACTIVECOLUMN) && ae->ptActiveColumnDraw.x >= rcErase.left && ae->ptActiveColumnDraw.x <= rcErase.right)
+              AE_ActiveColumnDraw(ae, (HDC)wParam, rcErase.top, rcErase.bottom);
           }
         }
 
@@ -14928,6 +14928,7 @@ void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom)
           //Skip caret height
           i=ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight;
           i+=(int)((ae->nVScrollPos + (i - ae->rcDraw.top)) % 2);
+          if (i >= nBottom) break;
         }
 
         //Draw dot
