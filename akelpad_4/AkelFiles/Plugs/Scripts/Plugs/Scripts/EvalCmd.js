@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -28,6 +28,8 @@ var pArgLine;
 
 if (pArgLine=AkelPad.GetArgLine())
 {
+  AkelPad.ScriptNoMutex();
+
   if (/%f|%d|%a/.test(pArgLine))
   {
     var pFile=AkelPad.GetEditFile(0).replace(/\\/g, "\\\\");
