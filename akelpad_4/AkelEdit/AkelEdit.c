@@ -4553,7 +4553,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
             //Draw active column on non-text lines
             if ((ae->popt->dwOptions & AECO_ACTIVECOLUMN) && ae->ptActiveColumnDraw.x >= rcErase.left && ae->ptActiveColumnDraw.x <= rcErase.right)
+            {
+              //If ptActiveColumnDraw.y is under the last line, draw active column without skiping caret space
+              if (rcErase.top <= ae->ptActiveColumnDraw.y)
+                ae->ptActiveColumnDraw.y=-1;
               AE_ActiveColumnDraw(ae, (HDC)wParam, rcErase.top, rcErase.bottom);
+            }
           }
         }
 
