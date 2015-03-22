@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.2
+// Version: 1.3
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -22,9 +22,9 @@
 //   Что: \d+
 //   Чем: var n = parseInt($0); return n >= 20 ? 20 : ++n;
 
-//Options
-var bShowCountOfChanges=true;
-var nSearchStrings=10;
+//Arguments
+var bShowCountOfChanges=AkelPad.GetArgValue("ShowCountOfChanges", true);
+var nSearchStrings=AkelPad.GetArgValue("SearchStrings", 10);
 
 //Buttons
 var BT_FIND       =1;
@@ -100,11 +100,11 @@ var FINDALL_MAXLINE =200;
 //Dialog messages
 var AKDLG_PUTFIND   =1025;  //WM_USER + 1
 
-//Dialog resize
-var DRS_SIZE =0x1;  //Resize control
-var DRS_MOVE =0x2;  //Move control
-var DRS_X    =0x4;  //X value
-var DRS_Y    =0x8;  //Y value
+//RESIZEDIALOG type
+var RDS_SIZE =0x1;  //Resize control
+var RDS_MOVE =0x2;  //Move control
+var RDS_X    =0x4;  //X value
+var RDS_Y    =0x8;  //Y value
 
 //Variables
 var hMainWnd=AkelPad.GetMainWnd();
@@ -119,8 +119,9 @@ var hWndProgress=0;
 var hWndOutput=0;
 var hWndDialog;
 var hWndPluginEdit=0;
-var hWndStatic;
+var hWndWhatLabel;
 var hWndWhat;
+var hWndWithLabel;
 var hWndWith;
 var hWndTemplate;
 var hWndRegExp;
@@ -143,9 +144,13 @@ var hWndReplaceAllButton;
 var hWndCancel;
 var hWndFocus;
 var ptScale=[];
-var rcMinMaxDialogRect=[];
-var rcCurrentDialogRect=[];
-var drs=[];
+var rcRdsMinMax=[];
+var rcRdsCurrent=[];
+var rds=[];
+var lpRds=0;
+var lpRdsm=0;
+var lpRdsMinMax=0;
+var lpRdsCurrent=0;
 var hGuiFont;
 var lpBuffer;
 var lpSearchBuffer;
@@ -188,10 +193,10 @@ if (hWndEdit)
       ScaleInit(0, hMainWnd);
 
       //Min/max dialog sizes: left, top - minimum; right, bottom - maximum. Each member is valid if not equal to zero.
-      rcMinMaxDialogRect.left=ScaleX(392) + sizeNonClient.cx;
-      rcMinMaxDialogRect.top=ScaleY(200) + sizeNonClient.cy;
-      rcMinMaxDialogRect.right=0;
-      rcMinMaxDialogRect.bottom=ScaleY(200) + sizeNonClient.cy;
+      rcRdsMinMax.left=ScaleX(392) + sizeNonClient.cx;
+      rcRdsMinMax.top=ScaleY(200) + sizeNonClient.cy;
+      rcRdsMinMax.right=0;
+      rcRdsMinMax.bottom=ScaleY(200) + sizeNonClient.cy;
 
       //Create dialog
       hWndDialog=oSys.Call("user32::CreateWindowEx" + _TCHAR,
@@ -245,8 +250,8 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       bEscSequences=oSet.Read("EscSequences", 1 /*PO_DWORD*/);
       bReplaceFunction=oSet.Read("ReplaceFunction", 1 /*PO_DWORD*/);
       nDirection=oSet.Read("Direction", 1 /*PO_DWORD*/);
-      rcCurrentDialogRect.right=oSet.Read("DialogWidth", 1 /*PO_DWORD*/);
-      rcCurrentDialogRect.bottom=oSet.Read("DialogHeight", 1 /*PO_DWORD*/);
+      rcRdsCurrent.right=oSet.Read("DialogWidth", 1 /*PO_DWORD*/);
+      rcRdsCurrent.bottom=oSet.Read("DialogHeight", 1 /*PO_DWORD*/);
 
       //Find
       for (i=0; i < nSearchStrings; ++i)
@@ -302,7 +307,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     ////Static window What
 
     //Create window
-    hWndStatic=oSys.Call("user32::CreateWindowEx" + _TCHAR,
+    hWndWhatLabel=oSys.Call("user32::CreateWindowEx" + _TCHAR,
                          0,            //dwExStyle
                          "STATIC",     //lpClassName
                          0,            //lpWindowName
@@ -316,7 +321,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
                          hInstanceDLL, //hInstance
                          0);           //lpParam
     //Set font and text
-    SetWindowFontAndText(hWndStatic, hGuiFont, GetLangString(STRID_WHAT));
+    SetWindowFontAndText(hWndWhatLabel, hGuiFont, GetLangString(STRID_WHAT));
 
 
     ////Edit window What
@@ -348,7 +353,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     ////Static window With
 
     //Create window
-    hWndStatic=oSys.Call("user32::CreateWindowEx" + _TCHAR,
+    hWndWithLabel=oSys.Call("user32::CreateWindowEx" + _TCHAR,
                          0,            //dwExStyle
                          "STATIC",     //lpClassName
                          0,            //lpWindowName
@@ -362,7 +367,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
                          hInstanceDLL, //hInstance
                          0);           //lpParam
     //Set font and text
-    SetWindowFontAndText(hWndStatic, hGuiFont, GetLangString(STRID_WITH));
+    SetWindowFontAndText(hWndWithLabel, hGuiFont, GetLangString(STRID_WITH));
 
 
     ////Edit window With
@@ -789,21 +794,27 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     if (nDirection == DN_DOWN) AkelPad.SendMessage(hWndDown, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
     else if (nDirection == DN_UP) AkelPad.SendMessage(hWndUp, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
 
-    drs=[[hWndWhat,             DRS_SIZE|DRS_X],
-         [hWndWith,             DRS_SIZE|DRS_X],
-         [hWndTemplate,         DRS_MOVE|DRS_X],
-         [hWndGroup1,           DRS_MOVE|DRS_X],
-         [hWndGroup2,           DRS_MOVE|DRS_X],
-         [hWndDown,             DRS_MOVE|DRS_X],
-         [hWndUp,               DRS_MOVE|DRS_X],
-         [hWndBeginning,        DRS_MOVE|DRS_X],
-         [hWndSelection,        DRS_MOVE|DRS_X],
-         [hWndAllFiles,         DRS_MOVE|DRS_X],
-         [hWndFindButton,       DRS_MOVE|DRS_X],
-         [hWndFindAllButton,    DRS_MOVE|DRS_X],
-         [hWndReplaceButton,    DRS_MOVE|DRS_X],
-         [hWndReplaceAllButton, DRS_MOVE|DRS_X],
-         [hWndCancel,           DRS_MOVE|DRS_X]];
+    //Set RESIZEDIALOG
+    rds=[[hWndWhat,             RDS_SIZE|RDS_X],
+         [hWndWith,             RDS_SIZE|RDS_X],
+         [hWndTemplate,         RDS_MOVE|RDS_X],
+         [hWndGroup1,           RDS_MOVE|RDS_X],
+         [hWndGroup2,           RDS_MOVE|RDS_X],
+         [hWndDown,             RDS_MOVE|RDS_X],
+         [hWndUp,               RDS_MOVE|RDS_X],
+         [hWndBeginning,        RDS_MOVE|RDS_X],
+         [hWndSelection,        RDS_MOVE|RDS_X],
+         [hWndAllFiles,         RDS_MOVE|RDS_X],
+         [hWndFindButton,       RDS_MOVE|RDS_X],
+         [hWndFindAllButton,    RDS_MOVE|RDS_X],
+         [hWndReplaceButton,    RDS_MOVE|RDS_X],
+         [hWndReplaceAllButton, RDS_MOVE|RDS_X],
+         [hWndCancel,           RDS_MOVE|RDS_X]];
+
+    lpRds=RdsArrayToStruct(rds);
+    lpRdsm=AkelPad.MemAlloc(_X64?64:32 /*sizeof(RESIZEDIALOGMSG)*/);
+    lpRdsMinMax=ArrayToRect(rcRdsMinMax, 0);
+    lpRdsCurrent=ArrayToRect(rcRdsCurrent, 0);
 
     //Center dialog
     CenterWindow(hMainWnd, hWnd);
@@ -1251,8 +1262,8 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       oSet.Write("EscSequences", 1 /*PO_DWORD*/, bEscSequences);
       oSet.Write("ReplaceFunction", 1 /*PO_DWORD*/, bReplaceFunction);
       oSet.Write("Direction", 1 /*PO_DWORD*/, nDirection);
-      oSet.Write("DialogWidth", 1 /*PO_DWORD*/, rcCurrentDialogRect.right);
-      oSet.Write("DialogHeight", 1 /*PO_DWORD*/, rcCurrentDialogRect.bottom);
+      oSet.Write("DialogWidth", 1 /*PO_DWORD*/, rcRdsCurrent.right);
+      oSet.Write("DialogHeight", 1 /*PO_DWORD*/, rcRdsCurrent.bottom);
 
       //Save find history
       for (i=0; i < nSearchStrings && typeof lpFindStrings[i] != "undefined"; ++i)
@@ -1270,6 +1281,16 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       oSet.End();
     }
 
+    //Free RESIZEDIALOG
+    RdsFree(lpRds);
+    AkelPad.MemFree(lpRdsMinMax);
+    AkelPad.MemFree(lpRdsCurrent);
+    if (lpRdsm)
+    {
+      AkelPad.MemFree(lpRdsm);
+      lpRdsm=0;
+    }
+
     //Destroy dialog
     oSys.Call("user32::DestroyWindow", hWnd);
   }
@@ -1278,149 +1299,60 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     //Exit message loop
     oSys.Call("user32::PostQuitMessage", 0);
   }
-  DialogResizeMessages(drs, rcMinMaxDialogRect, rcCurrentDialogRect, 0x2 /*DRM_PAINTSIZEGRIP*/, hWnd, uMsg, wParam, lParam);
+
+  if (lpRdsm)
+  {
+    //Call RESIZEDIALOG
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, 0) /*offsetof(RESIZEDIALOGMSG, rds)*/, lpRds, 2 /*DT_QWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?8:4) /*offsetof(RESIZEDIALOGMSG, rcMinMax)*/, lpRdsMinMax, 2 /*DT_QWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?16:8) /*offsetof(RESIZEDIALOGMSG, rcCurrent)*/, lpRdsCurrent, 2 /*DT_QWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?24:12) /*offsetof(RESIZEDIALOGMSG, dwFlags)*/, 0x6 /*RDM_PAINTSIZEGRIP|RDM_ALLCHILDREN*/, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?32:16) /*offsetof(RESIZEDIALOGMSG, hDlg)*/, hWnd, 2 /*DT_QWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?40:20) /*offsetof(RESIZEDIALOGMSG, uMsg)*/, uMsg, 3 /*DT_DWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?48:24) /*offsetof(RESIZEDIALOGMSG, wParam)*/, wParam, 2 /*DT_QWORD*/);
+    AkelPad.MemCopy(_PtrAdd(lpRdsm, _X64?56:28) /*offsetof(RESIZEDIALOGMSG, lParam)*/, lParam, 2 /*DT_QWORD*/);
+    if (AkelPad.SendMessage(hMainWnd, 1281 /*AKD_RESIZEDIALOG*/, 0, lpRdsm))
+      RectToArray(lpRdsCurrent, rcRdsCurrent);
+  }
 
   return 0;
 }
 
-function DialogResizeMessages(drs, rcMinMax, rcCurrent, dwFlags, hDlg, uMsg, wParam, lParam)
+function RdsArrayToStruct(drs)
 {
-  if (uMsg == 0x1   || //WM_CREATE
-      uMsg == 0x110)   //WM_INITDIALOG
+  var lpRds;
+  var lpItem;
+  var lpWnd;
+  var i;
+
+  if (lpRds=AkelPad.MemAlloc((drs.length + 1) * (_X64?16:12) /*sizeof(RESIZEDIALOG)*/))
   {
-    var rcTemplate=[];
-    var rcControl=[];
-    var i;
-
-    rcTemplate.left=rcCurrent.left;
-    rcTemplate.top=rcCurrent.top;
-    rcTemplate.right=rcCurrent.right;
-    rcTemplate.bottom=rcCurrent.bottom;
-
-    GetWindowSize(hDlg, 0, rcCurrent);
-
-    for (i=0; i < drs.length; ++i)
+    for (i=0, lpItem=lpRds; i < drs.length; ++i)
     {
-      if (drs[i][0])
-      {
-        GetWindowSize(drs[i][0], hDlg, rcControl);
-        if (drs[i][1] & DRS_SIZE)
-        {
-          if (drs[i][1] & DRS_X)
-            drs[i][3]=rcCurrent.right - (rcControl.left + rcControl.right);
-          else if (drs[i][1] & DRS_Y)
-            drs[i][3]=rcCurrent.bottom - (rcControl.top + rcControl.bottom);
-        }
-        else if (drs[i][1] & DRS_MOVE)
-        {
-          if (drs[i][1] & DRS_X)
-            drs[i][3]=rcCurrent.right - rcControl.left;
-          else if (drs[i][1] & DRS_Y)
-            drs[i][3]=rcCurrent.bottom - rcControl.top;
-        }
-      }
-    }
+      lpWnd=AkelPad.MemAlloc(_X64?8:4);
+      AkelPad.MemCopy(lpWnd, drs[i][0], 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpItem, 0) /*offsetof(RESIZEDIALOG, lpWnd)*/, lpWnd, 2 /*DT_QWORD*/);
+      AkelPad.MemCopy(_PtrAdd(lpItem, _X64?8:4) /*offsetof(RESIZEDIALOG, dwType)*/, drs[i][1], 3 /*DT_DWORD*/);
 
-    if (rcTemplate.right && rcTemplate.bottom)
-    {
-      if (oSys.Call("user32::GetWindowLong" + _TCHAR, hDlg, -16 /*GWL_STYLE*/) & 0x800 /*DS_CENTER*/)
-      {
-        rcTemplate.left=rcCurrent.left + (rcCurrent.right - rcTemplate.right) / 2;
-        rcTemplate.top=rcCurrent.top + (rcCurrent.bottom - rcTemplate.bottom) / 2;
-      }
-      oSys.Call("user32::SetWindowPos", hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, 0x14 /*SWP_NOZORDER|SWP_NOACTIVATE*/);
+      lpItem=_PtrAdd(lpItem, _X64?16:12) /*sizeof(RESIZEDIALOG)*/;
     }
   }
-  else if (uMsg == 36) //WM_GETMINMAXINFO
+  return lpRds;
+}
+
+function RdsFree(lpRds)
+{
+  var lpItem;
+  var lpWnd;
+
+  if (lpRds)
   {
-    if (rcMinMax.left)
-      AkelPad.MemCopy(_PtrAdd(lParam, 24) /*offsetof(MINMAXINFO, ptMinTrackSize.x)*/, rcMinMax.left, 3 /*DT_DWORD*/);
-    if (rcMinMax.top)
-      AkelPad.MemCopy(_PtrAdd(lParam, 28) /*offsetof(MINMAXINFO, ptMinTrackSize.y)*/, rcMinMax.top, 3 /*DT_DWORD*/);
-    if (rcMinMax.right)
-      AkelPad.MemCopy(_PtrAdd(lParam, 32) /*offsetof(MINMAXINFO, ptMaxTrackSize.x)*/, rcMinMax.right, 3 /*DT_DWORD*/);
-    if (rcMinMax.bottom)
-      AkelPad.MemCopy(_PtrAdd(lParam, 36) /*offsetof(MINMAXINFO, ptMaxTrackSize.y)*/, rcMinMax.bottom, 3 /*DT_DWORD*/);
-  }
-  else if (uMsg == 3) //WM_MOVE
-  {
-    if (!(oSys.Call("user32::GetWindowLong" + _TCHAR, hDlg, -16 /*GWL_STYLE*/) & 0x800 /*DS_CENTER*/))
+    for (lpItem=lpRds; lpWnd=AkelPad.MemRead(lpItem, _PtrAdd(lpItem, 0) /*offsetof(RESIZEDIALOG, lpWnd)*/); lpItem=_PtrAdd(lpItem, _X64?16:12) /*sizeof(RESIZEDIALOG)*/)
     {
-      var rcTemplate=[];
-
-      GetWindowSize(hDlg, 0, rcTemplate);
-      rcCurrent.left=rcTemplate.left;
-      rcCurrent.top=rcTemplate.top;
-      return true;
+      AkelPad.MemFree(lpWnd);
     }
+    AkelPad.MemFree(lpRds);
   }
-  else if (uMsg == 5) //WM_SIZE
-  {
-    if (lParam)
-    {
-      var rcControl=[];
-      var dwFlags;
-      var i;
-
-      GetWindowSize(hDlg, 0, rcCurrent);
-
-      for (i=0; i < drs.length; ++i)
-      {
-        if (drs[i][0])
-        {
-          dwFlags=0;
-          if (drs[i][1] & DRS_SIZE)
-            dwFlags|=0x2 /*SWP_NOMOVE*/;
-          else if (drs[i][1] & DRS_MOVE)
-            dwFlags|=0x1 /*SWP_NOSIZE*/;
-          else
-            continue;
-
-          GetWindowSize(drs[i][0], hDlg, rcControl);
-          oSys.Call("user32::SetWindowPos", drs[i][0], 0, (drs[i][1] & DRS_X)?(rcCurrent.right - drs[i][3]):rcControl.left,
-                                                          (drs[i][1] & DRS_Y)?(rcCurrent.bottom - drs[i][3]):rcControl.top,
-                                                          (drs[i][1] & DRS_X)?(rcCurrent.right - rcControl.left - drs[i][3]):rcControl.right,
-                                                          (drs[i][1] & DRS_Y)?(rcCurrent.bottom - rcControl.top - drs[i][3]):rcControl.bottom,
-                                                           dwFlags | 0x14 /*SWP_NOZORDER|SWP_NOACTIVATE*/);
-        }
-      }
-      oSys.Call("user32::InvalidateRect", hDlg, 0, true);
-      return true;
-    }
-  }
-  else if (uMsg == 15) //WM_PAINT
-  {
-    if (dwFlags & 0x2 /*DRM_PAINTSIZEGRIP*/)
-    {
-      var ps;
-      var rcGrip=[];
-      var lpGrip;
-      var hDC;
-
-      if (ps=AkelPad.MemAlloc(_X64?72:64 /*sizeof(PAINTSTRUCT)*/))
-      {
-        if (hDC=oSys.Call("user32::BeginPaint", hDlg, ps))
-        {
-          if (lpGrip=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
-          {
-            if (oSys.Call("user32::GetClientRect", hDlg, lpGrip))
-            {
-              RectToArray(lpGrip, rcGrip);
-              rcGrip.left=rcGrip.right - oSys.Call("user32::GetSystemMetrics", 2 /*SM_CXVSCROLL*/);
-              rcGrip.top=rcGrip.bottom - oSys.Call("user32::GetSystemMetrics", 20 /*SM_CYVSCROLL*/);
-              ArrayToRect(rcGrip, lpGrip);
-
-              oSys.Call("user32::DrawFrameControl", hDC, lpGrip, 3 /*DFC_SCROLL*/, 0x8 /*DFCS_SCROLLSIZEGRIP*/);
-            }
-            AkelPad.MemFree(lpGrip);
-          }
-          oSys.Call("user32::EndPaint", hDlg, ps);
-        }
-        AkelPad.MemFree(ps);
-      }
-    }
-  }
-  return false;
 }
 
 function SearchReplace()
