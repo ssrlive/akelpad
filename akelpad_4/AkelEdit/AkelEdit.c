@@ -693,6 +693,53 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_StackUndoAttach(ae, (AEUNDOATTACH *)lParam);
     }
+    case AEM_GETUNDOPOS:
+    {
+      AEUNDOITEM **lppUndoItem=(AEUNDOITEM **)lParam;
+      AEUNDOITEM *lpUndoItem=*lppUndoItem;
+      AEUNDOITEM *lpCurrentUndo=ae->ptxt->lpCurrentUndo;
+      INT_PTR nOffset;
+
+      if (wParam & AEGUP_NEXT)
+      {
+        if (!lpUndoItem && lpCurrentUndo == ae->ptxt->hUndoStack.last)
+          return -1;
+        if (!lpCurrentUndo)
+          lpCurrentUndo=ae->ptxt->hUndoStack.first;
+        else if (lpCurrentUndo->next)
+          lpCurrentUndo=lpCurrentUndo->next;
+        if (!lpUndoItem)
+          lpUndoItem=lpCurrentUndo;
+        else
+          lpUndoItem=lpUndoItem->next;
+      }
+      else if (wParam & AEGUP_PREV)
+      {
+        if (!lpUndoItem && !lpCurrentUndo)
+          return -1;
+        if (!lpCurrentUndo)
+          lpCurrentUndo=ae->ptxt->hUndoStack.first;
+        if (!lpUndoItem)
+          lpUndoItem=lpCurrentUndo;
+        else
+          lpUndoItem=lpUndoItem->prev;
+      }
+      else
+      {
+        //AEGUP_CURRENT
+        if (!lpCurrentUndo)
+          lpCurrentUndo=ae->ptxt->hUndoStack.first;
+        if (!lpUndoItem)
+          lpUndoItem=lpCurrentUndo;
+      }
+      if (!lpUndoItem || !lpCurrentUndo) return -1;
+
+      if ((nOffset=AE_StackGetUndoPos(ae, lpCurrentUndo, lpUndoItem)) == -1)
+        *lppUndoItem=NULL;
+      else
+        *lppUndoItem=lpUndoItem;
+      return nOffset;
+    }
 
     //Text coordinates
     case AEM_EXGETSEL:
@@ -6891,7 +6938,10 @@ AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae)
     AE_StackRedoDeleteAll(ae, ae->ptxt->lpCurrentUndo);
 
   if (!AE_HeapStackInsertIndex(ae->aeUndo, (stack **)&ae->ptxt->hUndoStack.first, (stack **)&ae->ptxt->hUndoStack.last, (stack **)&lpElement, -1, sizeof(AEUNDOITEM)))
+  {
+    lpElement->nItemId=++ae->ptxt->hUndoStack.nMaxItemId;
     ae->ptxt->lpCurrentUndo=lpElement;
+  }
   return lpElement;
 }
 
@@ -6942,6 +6992,18 @@ UINT_PTR AE_StackUndoSize(AKELEDIT *ae)
   return dwSize;
 }
 
+void AE_StackUndoResetId(AKELEDIT *ae)
+{
+  AEUNDOITEM *lpElement;
+  int nItemId=0;
+
+  for (lpElement=ae->ptxt->hUndoStack.first; lpElement; lpElement=lpElement->next)
+  {
+    lpElement->nItemId=++nItemId;
+  }
+  ae->ptxt->hUndoStack.nMaxItemId=nItemId;
+}
+
 int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
 {
   AEUNDOITEM *lpElement;
@@ -6984,6 +7046,55 @@ int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange)
     }
   }
   return AEIRM_UNMODIFIED;
+}
+
+INT_PTR AE_StackGetUndoPos(AKELEDIT *ae, const AEUNDOITEM *lpCurrentUndo, const AEUNDOITEM *lpUndoItem)
+{
+  const AEUNDOITEM *lpElement;
+  INT_PTR nOffset;
+  BOOL bRedo;
+
+  if (lpCurrentUndo->nItemId < lpUndoItem->nItemId)
+    bRedo=TRUE;
+  else
+    bRedo=FALSE;
+  nOffset=lpUndoItem->nActionStartOffset;
+
+  for (lpElement=lpCurrentUndo; lpElement;)
+  {
+    if (lpElement == lpUndoItem)
+      return nOffset;
+
+    if (bRedo)
+    {
+      if (lpElement->dwFlags & AEUN_INSERT)
+      {
+        if (nOffset >= lpElement->nActionStartOffset)
+          nOffset+=(lpElement->nActionEndOffset - lpElement->nActionStartOffset);
+      }
+      else if (lpElement->dwFlags & AEUN_DELETE)
+      {
+        if (nOffset > lpElement->nActionStartOffset)
+          nOffset=max(nOffset - (lpElement->nActionEndOffset - lpElement->nActionStartOffset), lpElement->nActionStartOffset);
+      }
+      lpElement=lpElement->next;
+    }
+    else
+    {
+      if (lpElement->dwFlags & AEUN_INSERT)
+      {
+        if (nOffset > lpElement->nActionStartOffset)
+          nOffset=max(nOffset - (lpElement->nActionEndOffset - lpElement->nActionStartOffset), lpElement->nActionStartOffset);
+      }
+      else if (lpElement->dwFlags & AEUN_DELETE)
+      {
+        if (nOffset >= lpElement->nActionStartOffset)
+          nOffset+=(lpElement->nActionEndOffset - lpElement->nActionStartOffset);
+      }
+      lpElement=lpElement->prev;
+    }
+  }
+  return -1;
 }
 
 AEUNDOATTACH* AE_StackUndoDetach(AKELEDIT *ae)
@@ -7093,6 +7204,7 @@ BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach)
         ae->ptxt->lpSavePoint=ae->ptxt->lpCurrentUndo;
         ae->ptxt->bSavePointExist=TRUE;
       }
+      AE_StackUndoResetId(ae);
       return TRUE;
     }
   }

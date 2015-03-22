@@ -169,6 +169,7 @@ typedef struct _AEUNDOITEM {
   wchar_t *wpText;
   UINT_PTR dwTextLen;
   int nNewLine;
+  int nItemId;
 } AEUNDOITEM;
 
 //"AkelEditText" clipboard
@@ -454,6 +455,7 @@ typedef struct {
 typedef struct {
   AEUNDOITEM *first;
   AEUNDOITEM *last;
+  int nMaxItemId;
 } AESTACKUNDO;
 
 typedef struct {
@@ -847,7 +849,9 @@ AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae);
 void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem);
 void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem);
 UINT_PTR AE_StackUndoSize(AKELEDIT *ae);
+void AE_StackUndoResetId(AKELEDIT *ae);
 int AE_StackIsRangeModified(AKELEDIT *ae, const CHARRANGE64 *lpcrRange);
+INT_PTR AE_StackGetUndoPos(AKELEDIT *ae, const AEUNDOITEM *lpCurrentUndo, const AEUNDOITEM *lpUndoItem);
 AEUNDOATTACH* AE_StackUndoDetach(AKELEDIT *ae);
 BOOL AE_StackUndoAttach(AKELEDIT *ae, AEUNDOATTACH *hUndoAttach);
 wchar_t* AE_GetAllTextForUndo(AKELEDIT *ae, UINT_PTR *lpdwUndoTextLen);
