@@ -659,6 +659,11 @@
 #define AEIRM_MODIFIEDUNSAVED 2
 #define AEIRM_MODIFIEDSAVED   3
 
+//AEM_GETUNDOPOS flags
+#define AEGUP_CURRENT         0x0
+#define AEGUP_NEXT            0x1
+#define AEGUP_PREV            0x2
+
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
 #endif
@@ -1558,6 +1563,7 @@ typedef struct {
 #define AEM_ISRANGEMODIFIED       (WM_USER + 2065)
 #define AEM_DETACHUNDO            (WM_USER + 2066)
 #define AEM_ATTACHUNDO            (WM_USER + 2067)
+#define AEM_GETUNDOPOS            (WM_USER + 2068)
 
 //Text coordinates
 #define AEM_EXGETSEL              (WM_USER + 2099)
@@ -3170,6 +3176,25 @@ Remarks
 
 Example:
  See AEM_DETACHUNDO example.
+
+
+AEM_GETUNDOPOS
+______________
+
+Retrieve RichEdit offset of undo item.
+
+(DWORD)wParam    == see AEGUP_* defines.
+(HANDLE *)lParam == pointer to a undo item handle.
+
+Return Value
+ RichEdit offset of undo item. -1 if error.
+
+Example (go to the previous undo position):
+ HANDLE hUndoItem=NULL;
+ INT_PTR nOffset=SendMessage(hWndEdit, AEM_GETUNDOPOS, AEGUP_PREV, (LPARAM)&hUndoItem);
+
+ if (nOffset != -1)
+   SendMessage(hWndEdit, EM_SETSEL, nOffset, nOffset);
 
 
 AEM_EXGETSEL
