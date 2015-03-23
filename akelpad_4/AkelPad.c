@@ -5446,60 +5446,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return DoNonMenuSelJumpCaret(lpFrameCurrent->ei.hWndEdit);
         }
         case IDM_EDIT_RECENTCARETPREV:
-        {
-          RECENTCARETITEM *lpRecentCaret;
-          CHARRANGE64 cr;
-
-          bRecentCaretMsg=TRUE;
-          if (lpFrameCurrent->lpCurRecentCaret)
-            lpRecentCaret=lpFrameCurrent->lpCurRecentCaret;
-          else
-            lpRecentCaret=lpFrameCurrent->hRecentCaretStack.last;
-
-          while (lpRecentCaret)
-          {
-            SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-
-            if (cr.cpMin == lpRecentCaret->nCaretOffset || cr.cpMax == lpRecentCaret->nCaretOffset)
-              lpRecentCaret=lpRecentCaret->prev;
-            else
-              break;
-          }
-          if (lpRecentCaret)
-          {
-            lpFrameCurrent->lpCurRecentCaret=lpRecentCaret;
-            SetSelRE(lpFrameCurrent->ei.hWndEdit, lpRecentCaret->nCaretOffset, lpRecentCaret->nCaretOffset);
-          }
-          bRecentCaretMsg=FALSE;
-          return (LRESULT)lpRecentCaret;
-        }
         case IDM_EDIT_RECENTCARETNEXT:
         {
-          RECENTCARETITEM *lpRecentCaret;
-          CHARRANGE64 cr;
-
-          bRecentCaretMsg=TRUE;
-          if (lpFrameCurrent->lpCurRecentCaret)
-            lpRecentCaret=lpFrameCurrent->lpCurRecentCaret;
-          else
-            lpRecentCaret=NULL;
-
-          while (lpRecentCaret)
-          {
-            SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-
-            if (cr.cpMin == lpRecentCaret->nCaretOffset || cr.cpMax == lpRecentCaret->nCaretOffset)
-              lpRecentCaret=lpRecentCaret->next;
-            else
-              break;
-          }
-          if (lpRecentCaret)
-          {
-            lpFrameCurrent->lpCurRecentCaret=lpRecentCaret;
-            SetSelRE(lpFrameCurrent->ei.hWndEdit, lpRecentCaret->nCaretOffset, lpRecentCaret->nCaretOffset);
-          }
-          bRecentCaretMsg=FALSE;
-          return (LRESULT)lpRecentCaret;
+          return RecentCaretGo(wCommand == IDM_EDIT_RECENTCARETNEXT);
         }
         case IDM_EDIT_NEWLINE_WIN:
         case IDM_EDIT_NEWLINE_UNIX:
@@ -5919,6 +5868,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       {
         StackRecentCaretFree(&lpFrameCurrent->hRecentCaretStack);
         lpFrameCurrent->lpCurRecentCaret=NULL;
+        lpFrameCurrent->hCurUndoItem=NULL;
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGING)
       {
