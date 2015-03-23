@@ -1099,6 +1099,7 @@ void SetButtonDraw(HWND hWndButton, BUTTONDRAW *bd);
 RECENTCARETITEM* StackRecentCaretInsert(STACKRECENTCARET *hStack);
 void StackRecentCaretFree(STACKRECENTCARET *hStack);
 void RecentCaretSet(AENSELCHANGE *aensc);
+BOOL RecentCaretGo(BOOL bNext);
 
 void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);

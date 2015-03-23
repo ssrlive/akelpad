@@ -17437,6 +17437,76 @@ void RecentCaretSet(AENSELCHANGE *aensc)
   }
 }
 
+BOOL RecentCaretGo(BOOL bNext)
+{
+  RECENTCARETITEM *lpRecentCaret=NULL;
+  CHARRANGE64 cr;
+  INT_PTR nOffset=0;
+  BOOL bResult=TRUE;
+
+  bRecentCaretMsg=TRUE;
+  SendMessage(lpFrameCurrent->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+
+  Begin:
+  if (!lpFrameCurrent->hCurUndoItem)
+  {
+    if (lpFrameCurrent->lpCurRecentCaret)
+      lpRecentCaret=lpFrameCurrent->lpCurRecentCaret;
+    else
+    {
+      if (bNext)
+      {
+        bResult=FALSE;
+        goto End;
+      }
+      lpRecentCaret=lpFrameCurrent->hRecentCaretStack.last;
+    }
+
+    while (lpRecentCaret)
+    {
+      if (cr.cpMin == lpRecentCaret->nCaretOffset || cr.cpMax == lpRecentCaret->nCaretOffset)
+      {
+        if (bNext)
+          lpRecentCaret=lpRecentCaret->next;
+        else
+          lpRecentCaret=lpRecentCaret->prev;
+      }
+      else break;
+    }
+  }
+  if (lpRecentCaret)
+  {
+    lpFrameCurrent->lpCurRecentCaret=lpRecentCaret;
+    SetSelRE(lpFrameCurrent->ei.hWndEdit, lpRecentCaret->nCaretOffset, lpRecentCaret->nCaretOffset);
+  }
+  else if (!nOffset)
+  {
+    if (bNext && !lpFrameCurrent->hCurUndoItem)
+    {
+      bResult=FALSE;
+      goto End;
+    }
+    nOffset=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNDOPOS, AEGUP_CURRENT, (LPARAM)&lpFrameCurrent->hCurUndoItem);
+    if (cr.cpMin == nOffset || cr.cpMax == nOffset)
+      nOffset=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNDOPOS, (bNext?AEGUP_NEXT:AEGUP_PREV)|AEGUP_NOREDO, (LPARAM)&lpFrameCurrent->hCurUndoItem);
+    if (nOffset == -1)
+    {
+      if (!bNext)
+      {
+        bResult=FALSE;
+        goto End;
+      }
+      lpFrameCurrent->hCurUndoItem=NULL;
+      goto Begin;
+    }
+    SetSelRE(lpFrameCurrent->ei.hWndEdit, nOffset, nOffset);
+  }
+
+  End:
+  bRecentCaretMsg=FALSE;
+  return bResult;
+}
+
 
 //// Status bar
 

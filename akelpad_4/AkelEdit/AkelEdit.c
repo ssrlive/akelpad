@@ -733,6 +733,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           lpUndoItem=lpCurrentUndo;
       }
       if (!lpUndoItem || !lpCurrentUndo) return -1;
+      if (((wParam & AEGUP_NOUNDO) && lpCurrentUndo->nItemId - (wParam & AEGUP_NEXT?1:0) > lpUndoItem->nItemId) ||
+          ((wParam & AEGUP_NOREDO) && lpCurrentUndo->nItemId - (wParam & AEGUP_NEXT?1:0) < lpUndoItem->nItemId))
+        return -1;
 
       if ((nOffset=AE_StackGetUndoPos(ae, lpCurrentUndo, lpUndoItem)) == -1)
         *lppUndoItem=NULL;
