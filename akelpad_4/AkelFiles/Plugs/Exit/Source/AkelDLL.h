@@ -1046,6 +1046,7 @@ typedef struct _FRAMEDATA {
   HKL dwInputLocale;                                  //Keyboard layout.
   STACKRECENTCARET hRecentCaretStack;                 //Recent caret stack.
   RECENTCARETITEM *lpCurRecentCaret;                  //Current recent caret position.
+  HANDLE hCurUndoItem;                                //Current undo item position.
 
   //Find/Replace
   INT_PTR nCompileErrorOffset;                        //Contain pattern offset, if error occurred during compile pattern.
@@ -1953,10 +1954,10 @@ typedef struct {
                                               //Return Value: TRUE - jump to selection beginning, FALSE - jump to selection ending.
                                               //
 #define IDM_EDIT_RECENTCARETPREV        4199  //Move caret to the previous position.
-                                              //Return Value: pointer to a RECENTCARETITEM structure.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_RECENTCARETNEXT        4200  //Move caret to the next position.
-                                              //Return Value: pointer to a RECENTCARETITEM structure.
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_EDIT_LAST                   4200  //Internal.
                                               //

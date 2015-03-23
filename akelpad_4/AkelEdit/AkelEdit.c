@@ -699,15 +699,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AEUNDOITEM *lpUndoItem=*lppUndoItem;
       AEUNDOITEM *lpCurrentUndo=ae->ptxt->lpCurrentUndo;
       INT_PTR nOffset;
+      int nMoveId=0;
 
       if (wParam & AEGUP_NEXT)
       {
         if (!lpUndoItem && lpCurrentUndo == ae->ptxt->hUndoStack.last)
           return -1;
         if (!lpCurrentUndo)
+        {
           lpCurrentUndo=ae->ptxt->hUndoStack.first;
+          ++nMoveId;
+        }
         else if (lpCurrentUndo->next)
+        {
           lpCurrentUndo=lpCurrentUndo->next;
+          ++nMoveId;
+        }
         if (!lpUndoItem)
           lpUndoItem=lpCurrentUndo;
         else
@@ -733,8 +740,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           lpUndoItem=lpCurrentUndo;
       }
       if (!lpUndoItem || !lpCurrentUndo) return -1;
-      if (((wParam & AEGUP_NOUNDO) && lpCurrentUndo->nItemId - (wParam & AEGUP_NEXT?1:0) > lpUndoItem->nItemId) ||
-          ((wParam & AEGUP_NOREDO) && lpCurrentUndo->nItemId - (wParam & AEGUP_NEXT?1:0) < lpUndoItem->nItemId))
+      if (((wParam & AEGUP_NOUNDO) && lpCurrentUndo->nItemId - nMoveId > lpUndoItem->nItemId) ||
+          ((wParam & AEGUP_NOREDO) && lpCurrentUndo->nItemId - nMoveId < lpUndoItem->nItemId))
         return -1;
 
       if ((nOffset=AE_StackGetUndoPos(ae, lpCurrentUndo, lpUndoItem)) == -1)
