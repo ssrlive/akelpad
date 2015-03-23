@@ -2,6 +2,7 @@
 AkelPad 4.9.3 ()
 ----------------------------
 Added: metacharacter \K - exclude previous symbols from result.
+Added: now commands 4199, 4200 move caret also on undo positions.
 
 Fixed: AKD_DLLUNLOAD processing of unloading signal for outdated instance.
 Fixed: print multiple copies on Win7.
