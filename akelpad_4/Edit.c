@@ -17433,6 +17433,7 @@ void RecentCaretSet(AENSELCHANGE *aensc)
         }
       }
       lpFrameCurrent->lpCurRecentCaret=NULL;
+      lpFrameCurrent->hCurUndoItem=NULL;
     }
   }
 }
@@ -17453,14 +17454,7 @@ BOOL RecentCaretGo(BOOL bNext)
     if (lpFrameCurrent->lpCurRecentCaret)
       lpRecentCaret=lpFrameCurrent->lpCurRecentCaret;
     else
-    {
-      if (bNext)
-      {
-        bResult=FALSE;
-        goto End;
-      }
       lpRecentCaret=lpFrameCurrent->hRecentCaretStack.last;
-    }
 
     while (lpRecentCaret)
     {
@@ -17487,8 +17481,13 @@ BOOL RecentCaretGo(BOOL bNext)
       goto End;
     }
     nOffset=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNDOPOS, AEGUP_CURRENT, (LPARAM)&lpFrameCurrent->hCurUndoItem);
-    if (cr.cpMin == nOffset || cr.cpMax == nOffset)
-      nOffset=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNDOPOS, (bNext?AEGUP_NEXT:AEGUP_PREV)|AEGUP_NOREDO, (LPARAM)&lpFrameCurrent->hCurUndoItem);
+    while (nOffset != -1)
+    {
+      if (cr.cpMin == nOffset || cr.cpMax == nOffset)
+        nOffset=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNDOPOS, (bNext?AEGUP_NEXT:AEGUP_PREV)|AEGUP_NOREDO, (LPARAM)&lpFrameCurrent->hCurUndoItem);
+      else
+        break;
+    }
     if (nOffset == -1)
     {
       if (!bNext)
@@ -17498,6 +17497,11 @@ BOOL RecentCaretGo(BOOL bNext)
       }
       lpFrameCurrent->hCurUndoItem=NULL;
       goto Begin;
+    }
+    if (!lpFrameCurrent->hRecentCaretStack.last)
+    {
+      if (lpRecentCaret=StackRecentCaretInsert(&lpFrameCurrent->hRecentCaretStack))
+        lpRecentCaret->nCaretOffset=cr.cpMin;
     }
     SetSelRE(lpFrameCurrent->ei.hWndEdit, nOffset, nOffset);
   }
