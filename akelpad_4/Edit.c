@@ -17053,7 +17053,7 @@ BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
 {
   if (hDlgModeless && IsDialogMessageWide(hDlgModeless, lpMsg))
   {
-    if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+    if (lpMsg->hwnd != hDlgModeless && lpMsg->message >= WM_KEYDOWN && lpMsg->message <= WM_KEYUP)
     {
       SendMessageWide(hDlgModeless, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     }
@@ -17069,7 +17069,7 @@ BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
       {
         if (lpDock->hWnd && IsDialogMessageWide(lpDock->hWnd, lpMsg))
         {
-          if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+          if (!(lpDock->dwFlags & DKF_NOKEYSEND) && lpMsg->hwnd != lpDock->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
           {
             SendMessageWide(lpDock->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
           }

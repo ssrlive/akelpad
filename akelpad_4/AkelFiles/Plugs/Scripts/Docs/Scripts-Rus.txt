@@ -2319,7 +2319,7 @@ ___________________________________
   nFlags
     0x1  //WGM_ENABLE    Устанавливается в любом случае.
     0x2  //WGM_NOKEYSEND Не посылать сообщения клавиш диалогу от дочерних окон
-         //              (WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+         //              (WM_KEYDOWN, WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
          //По умолчанию 0x0.
 
 Возвращаемое значение

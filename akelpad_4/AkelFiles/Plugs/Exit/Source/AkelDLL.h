@@ -826,6 +826,7 @@
 #define DKF_NODROPRIGHT   0x00000020  //Disable drag-and-drop to the right side.
 #define DKF_NODROPTOP     0x00000040  //Disable drag-and-drop to the top side.
 #define DKF_NODROPBOTTOM  0x00000080  //Disable drag-and-drop to the bottom side.
+#define DKF_NOKEYSEND     0x00000100  //Don't send key messages to dialog from children windows.
 
 //Dock action
 #define DK_ADD         0x00000001  //Add new dockable window.
