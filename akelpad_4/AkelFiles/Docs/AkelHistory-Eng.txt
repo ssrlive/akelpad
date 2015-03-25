@@ -1,5 +1,5 @@
 
-AkelPad 4.9.3 ()
+AkelPad 4.9.3 (Mar 25, 2015)
 ----------------------------
 Added: metacharacter \K - exclude previous symbols from result.
 Added: now commands 4199, 4200 move caret also on undo positions.
