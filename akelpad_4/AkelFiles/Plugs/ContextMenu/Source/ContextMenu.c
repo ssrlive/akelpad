@@ -90,6 +90,7 @@
 
 //Defines
 #define DLLA_CONTEXTMENU_INDEX        1
+#define DLLA_CONTEXTMENU_FAVOURITES   2
 #define DLLA_CONTEXTMENU_STARTSTOP    10
 #define DLLA_CONTEXTMENU_SHOWSUBMENU  1
 #define DLLA_CONTEXTMENU_SHOWMAINMENU 2
@@ -138,16 +139,17 @@
 #define STRID_FAVEDITING                      42
 #define STRID_FAVNAME                         43
 #define STRID_FAVFILE                         44
-#define STRID_PLUGIN                          45
-#define STRID_OK                              46
-#define STRID_CANCEL                          47
-#define STRID_CLOSE                           48
-#define STRID_DEFAULTMANUAL                   49
-#define STRID_DEFAULTMAIN                     50
-#define STRID_DEFAULTEDIT                     51
-#define STRID_DEFAULTTAB                      52
-#define STRID_DEFAULTURL                      53
-#define STRID_DEFAULTRECENTFILES              54
+#define STRID_LOADFIRST                       45
+#define STRID_PLUGIN                          46
+#define STRID_OK                              47
+#define STRID_CANCEL                          48
+#define STRID_CLOSE                           49
+#define STRID_DEFAULTMANUAL                   50
+#define STRID_DEFAULTMAIN                     51
+#define STRID_DEFAULTEDIT                     52
+#define STRID_DEFAULTTAB                      53
+#define STRID_DEFAULTURL                      54
+#define STRID_DEFAULTRECENTFILES              55
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -475,6 +477,7 @@ FAVITEM* StackGetFavouriteByIndex(STACKFAV *hStack, int nIndex);
 FAVITEM* StackGetFavouriteByFile(STACKFAV *hStack, const wchar_t *wpFile, int *nIndex);
 int StackSortFavourites(STACKFAV *hStack, int nUpDown, BOOL bShowFile);
 void StackFreeFavourites(STACKFAV *hStack);
+void CallFavourite(int nCmd, const wchar_t *wpCurrentFile);
 void FillFavouritesListBox(STACKFAV *hStack, HWND hWnd, BOOL bShowFile);
 int MoveListBoxItem(STACKFAV *hStack, HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL ShiftListBoxSelItems(STACKFAV *hStack, HWND hWnd, BOOL bMoveDown);
@@ -695,6 +698,35 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         //Stay in memory, and show as active
         pd->nUnload=UD_NONUNLOAD_ACTIVE;
       }
+      return;
+    }
+    else
+    {
+      if (bInitMain)
+      {
+        if (nAction == DLLA_CONTEXTMENU_FAVOURITES)
+        {
+          wchar_t wszFile[MAX_PATH];
+          int nCmd=0;
+
+          if (IsExtCallParamValid(pd->lParam, 2))
+            nCmd=(int)GetExtCallParam(pd->lParam, 2);
+
+          if (nCmd)
+          {
+            GetCurFile(wszFile, MAX_PATH);
+            CallFavourite(nCmd, wszFile);
+          }
+        }
+      }
+      else
+      {
+        xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_LOADFIRST), L"ContextMenu::Main");
+        MessageBoxW(pd->hMainWnd, wszBuffer, L"ContextMenu::Main", MB_OK|MB_ICONEXCLAMATION);
+      }
+
+      //If plugin already loaded, stay in memory and don't change active status
+      if (pd->bInMemory) pd->nUnload=UD_NONUNLOAD_UNCHANGE;
       return;
     }
   }
@@ -2290,6 +2322,52 @@ int StackSortFavourites(STACKFAV *hStack, int nUpDown, BOOL bShowFile)
 void StackFreeFavourites(STACKFAV *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+void CallFavourite(int nCmd, const wchar_t *wpCurrentFile)
+{
+  FAVITEM *lpFavItem;
+
+  if (nCmd == FAV_ADDDIALOG ||
+      nCmd == FAV_ADDSILENT)
+  {
+    INT_PTR nResult;
+
+    if (lpFavItem=StackInsertFavourite(&hFavStack))
+    {
+      xstrcpynW(lpFavItem->wszName, GetFileName(wpCurrentFile, -1), MAX_PATH);
+      xstrcpynW(lpFavItem->wszFile, wpCurrentFile, MAX_PATH);
+
+      //Remove '=' from name to avoid save/read problems.
+      xstrrepW(lpFavItem->wszName, -1, L"=", -1, L"", -1, TRUE, lpFavItem->wszName, NULL);
+
+      if (nCmd == FAV_ADDDIALOG)
+      {
+        nResult=DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_FAVEDIT), hMainWnd, (DLGPROC)FavEditDlgProc, (LPARAM)lpFavItem);
+
+        if (nResult)
+          dwSaveFlags|=OF_FAVTEXT;
+        else
+          StackDelete((stack **)&hFavStack.first, (stack **)&hFavStack.last, (stack *)lpFavItem);
+      }
+      else dwSaveFlags|=OF_FAVTEXT;
+    }
+  }
+  else if (nCmd == FAV_MANAGE)
+  {
+    DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_FAVLIST), hMainWnd, (DLGPROC)FavListDlgProc);
+  }
+  else if (nCmd == FAV_DELSILENT)
+  {
+    if (*wpCurrentFile)
+    {
+      if (lpFavItem=StackGetFavouriteByFile(&hFavStack, wpCurrentFile, NULL))
+      {
+        StackDelete((stack **)&hFavStack.first, (stack **)&hFavStack.last, (stack *)lpFavItem);
+        dwSaveFlags|=OF_FAVTEXT;
+      }
+    }
+  }
 }
 
 void FillFavouritesListBox(STACKFAV *hStack, HWND hWnd, BOOL bShowFile)
@@ -4456,52 +4534,12 @@ void CallContextMenu(POPUPMENU *hMenuStack, int nItem)
       }
       else if (lpElement->dwAction == EXTACT_FAVOURITE)
       {
-        FAVITEM *lpFavItem;
         int nCmd=0;
 
         if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
           nCmd=(int)lpParameter->nNumber;
 
-        if (nCmd == FAV_ADDDIALOG ||
-            nCmd == FAV_ADDSILENT)
-        {
-          INT_PTR nResult;
-
-          if (lpFavItem=StackInsertFavourite(&hFavStack))
-          {
-            xstrcpynW(lpFavItem->wszName, GetFileName(wszCurrentFile, -1), MAX_PATH);
-            xstrcpynW(lpFavItem->wszFile, wszCurrentFile, MAX_PATH);
-
-            //Remove '=' from name to avoid save/read problems.
-            xstrrepW(lpFavItem->wszName, -1, L"=", -1, L"", -1, TRUE, lpFavItem->wszName, NULL);
-
-            if (nCmd == FAV_ADDDIALOG)
-            {
-              nResult=DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_FAVEDIT), hMainWnd, (DLGPROC)FavEditDlgProc, (LPARAM)lpFavItem);
-
-              if (nResult)
-                dwSaveFlags|=OF_FAVTEXT;
-              else
-                StackDelete((stack **)&hFavStack.first, (stack **)&hFavStack.last, (stack *)lpFavItem);
-            }
-            else dwSaveFlags|=OF_FAVTEXT;
-          }
-        }
-        else if (nCmd == FAV_MANAGE)
-        {
-          DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_FAVLIST), hMainWnd, (DLGPROC)FavListDlgProc);
-        }
-        else if (nCmd == FAV_DELSILENT)
-        {
-          if (*wszCurrentFile)
-          {
-            if (lpFavItem=StackGetFavouriteByFile(&hFavStack, wszCurrentFile, NULL))
-            {
-              StackDelete((stack **)&hFavStack.first, (stack **)&hFavStack.last, (stack *)lpFavItem);
-              dwSaveFlags|=OF_FAVTEXT;
-            }
-          }
-        }
+        CallFavourite(nCmd, wszCurrentFile);
       }
     }
   }
@@ -5495,6 +5533,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0418\x043C\x044F:";
     if (nStringID == STRID_FAVFILE)
       return L"\x0424\x0430\x0439\x043B:";
+    if (nStringID == STRID_LOADFIRST)
+      return L"\x0417\x0430\x0433\x0440\x0443\x0437\x0438\x0442\x0435\x0020\x0441\x043F\x0435\x0440\x0432\x0430 %s.";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
@@ -6083,6 +6123,8 @@ EXPLORER\r";
       return L"Name:";
     if (nStringID == STRID_FAVFILE)
       return L"File:";
+    if (nStringID == STRID_LOADFIRST)
+      return L"Load %s first.";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_OK)
