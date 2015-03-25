@@ -9,6 +9,7 @@ Fixed: print multiple copies on Win7.
 Fixed: WordBreak parameter.
 Fixed: active column painting.
 Fixed: system menu opening in modeless dialogs.
+Fixed: middle mouse button click cause new tab creation when menu is opened.
 
 
 AkelPad 4.9.2 (Jun 05, 2014)

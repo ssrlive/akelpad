@@ -345,6 +345,7 @@ HMENU hMenuWindow=NULL;
 BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
+BOOL bEnterMenuLoop=FALSE;
 BOOL bMainOnStart=FALSE;
 BOOL bMainCheckIdle=FALSE;
 int nMainOnFinish=MOF_NONE;
@@ -4379,6 +4380,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return nResult;
   }
+  else if (uMsg == WM_ENTERMENULOOP)
+  {
+    bEnterMenuLoop=TRUE;
+  }
+  else if (uMsg == WM_EXITMENULOOP)
+  {
+    bEnterMenuLoop=FALSE;
+  }
   else if (uMsg == WM_INITMENU)
   {
     if (!lParam || (lParam & IMENU_EDIT))
@@ -5736,7 +5745,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_MBUTTONDOWN)
     {
-      if (!(moCur.dwTabOptionsMDI & TAB_NOADD_MBUTTONDOWN))
+      if (!bEnterMenuLoop && !(moCur.dwTabOptionsMDI & TAB_NOADD_MBUTTONDOWN))
       {
         CreateFrameWindow(NULL);
       }
