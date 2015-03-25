@@ -132,6 +132,7 @@ extern HMENU hMenuWindow;
 extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
+extern BOOL bEnterMenuLoop;
 extern BOOL bMainStarting;
 extern BOOL bMainCheckIdle;
 extern int nMainOnFinish;
