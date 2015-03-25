@@ -350,6 +350,13 @@ Call("ContextMenu::Main", 1, INDEX, "STRING")
     STRING
       Find string and select (default is "").
 
+Call("ContextMenu::Main", 2, OPERATION)
+  Parameters:
+    2
+      External call for favourite files list.
+    OPERATION
+      Operation number. See description of Favourites() method.
+
 Call("ContextMenu::Main", 10)
   Parameters:
     10

@@ -352,6 +352,13 @@ Call("ContextMenu::Main", 1, INDEX, "STRING")
     STRING
       Найти строку и выделить (по умолчанию "").
 
+Call("ContextMenu::Main", 2, OPERATION)
+  Параметры:
+    2
+      Внешний вызов для cписка избранных файлов.
+    OPERATION
+      Номер операции. См. описание метода Favourites().
+
 Call("ContextMenu::Main", 10)
   Параметры:
     10
