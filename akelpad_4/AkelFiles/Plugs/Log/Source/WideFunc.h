@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v2.4                    *
+ *                  Wide functions header v2.5                    *
  *                                                                *
- * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -64,6 +64,7 @@ BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData);
 DWORD GetCurrentDirectoryWide(int nDirMax, wchar_t *wszDir);
 BOOL SetCurrentDirectoryWide(const wchar_t *wszDir);
 HMODULE LoadLibraryWide(const wchar_t *wpFileName);
+HMODULE LoadLibraryExWide(const wchar_t *wpFileName, HANDLE hFile, DWORD dwFlags);
 HMODULE GetModuleHandleWide(const wchar_t *wpModule);
 DWORD GetModuleFileNameWide(HMODULE hModule, wchar_t *wszFileName, DWORD nSize);
 DWORD GetFullPathNameWide(const wchar_t *wpPath, DWORD nBufferLength, wchar_t *wszBuffer, wchar_t **wpFilePart);
@@ -149,8 +150,11 @@ LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Resources (RESOURCEWIDEFUNC). User32.lib.
-int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTextMax);
+int LoadStringWide(HINSTANCE hInstance, UINT uID, wchar_t *wszText, int nTextMax);
+HANDLE LoadImageWide(HINSTANCE hInstance, const wchar_t *wpName, UINT uType, int cxDesired, int cyDesired, UINT fuLoad);
 UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge, HICON *phiconSmall, UINT nIcons);
+//Non-system
+HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int cyDesired);
 
 //Menus (MENUWIDEFUNC). User32.lib.
 int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax, UINT uFlag);
@@ -548,6 +552,32 @@ HMODULE LoadLibraryWide(const wchar_t *wpFileName)
     HMODULE hResult;
 
     hResult=LoadLibraryA(pFileName);
+
+    FreeAnsi(pFileName);
+    return hResult;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined LoadLibraryExWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define LoadLibraryExWide_INCLUDED
+#undef LoadLibraryExWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+HMODULE LoadLibraryExWide(const wchar_t *wpFileName, HANDLE hFile, DWORD dwFlags)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return LoadLibraryExW(wpFileName, hFile, dwFlags);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pFileName=AllocAnsi(wpFileName);
+    HMODULE hResult;
+
+    hResult=LoadLibraryExA(pFileName, hFile, dwFlags);
 
     FreeAnsi(pFileName);
     return hResult;
@@ -2499,10 +2529,10 @@ LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTextMax)
+int LoadStringWide(HINSTANCE hInstance, UINT uID, wchar_t *wszText, int nTextMax)
 {
   if (WideGlobal_bOldWindows == FALSE)
-    return LoadStringW(hLoadInstance, uID, wszText, nTextMax);
+    return LoadStringW(hInstance, uID, wszText, nTextMax);
   else if (WideGlobal_bOldWindows == TRUE)
   {
     char *szText;
@@ -2510,12 +2540,46 @@ int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTex
 
     if (szText=(char *)GlobalAlloc(GPTR, nTextMax * sizeof(wchar_t)))
     {
-      nTextLen=LoadStringA(hLoadInstance, uID, szText, nTextMax * sizeof(wchar_t));
+      nTextLen=LoadStringA(hInstance, uID, szText, nTextMax * sizeof(wchar_t));
       if (nTextLen=AnsiToWide(szText, nTextLen + 1, wszText, nTextMax))
         --nTextLen;
       GlobalFree((HGLOBAL)szText);
     }
     return nTextLen;
+  }
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined LoadImageWide || defined RESOURCEWIDEFUNC || defined ALLWIDEFUNC
+#define LoadImageWide_INCLUDED
+#undef LoadImageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+HANDLE LoadImageWide(HINSTANCE hInstance, const wchar_t *wpName, UINT uType, int cxDesired, int cyDesired, UINT fuLoad)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    return LoadImageW(hInstance, wpName, uType, cxDesired, cyDesired, fuLoad);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    HANDLE hResult;
+
+    if ((UINT_PTR)wpName > 0xFFFF)
+    {
+      char *pName=AllocAnsi(wpName);
+
+      hResult=LoadImageA(hInstance, pName, uType, cxDesired, cyDesired, fuLoad);
+
+      FreeAnsi(pName);
+    }
+    else hResult=LoadImageA(hInstance, (char *)wpName, uType, cxDesired, cyDesired, fuLoad);
+
+    return hResult;
   }
 
   WideNotInitialized();
@@ -2555,6 +2619,53 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
   else WideNotInitialized();
 
   return 0;
+}
+#endif
+
+#if defined IconExtractWide || defined RESOURCEWIDEFUNC || defined ALLWIDEFUNC
+#define IconExtractWide_INCLUDED
+#undef IconExtractWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+typedef struct {
+  HICON hIcon;
+  UINT nIconIndex;
+  int cxDesired;
+  int cyDesired;
+} ICONEXTRACTDATA;
+
+BOOL CALLBACK IconExtract_EnumResNameProc(HMODULE hModule, const char *pType, char *pName, LPARAM lParam)
+{
+  ICONEXTRACTDATA *ied=(ICONEXTRACTDATA *)lParam;
+
+  if (ied->nIconIndex == 0)
+  {
+    ied->hIcon=LoadImageA(hModule, pName, IMAGE_ICON, ied->cxDesired, ied->cyDesired, 0);
+    return FALSE;
+  }
+  --ied->nIconIndex;
+  return TRUE;
+}
+
+HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int cyDesired)
+{
+  HMODULE hModule;
+  ICONEXTRACTDATA ied;
+
+  if (!(ied.hIcon=LoadImageWide(NULL, wpFile, IMAGE_ICON, cxDesired, cyDesired, LR_LOADFROMFILE)))
+  {
+    ied.nIconIndex=nIconIndex;
+    ied.cxDesired=cxDesired;
+    ied.cyDesired=cyDesired;
+
+    if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE))
+    {
+      EnumResourceNamesA(hModule, RT_GROUP_ICON, IconExtract_EnumResNameProc, (LPARAM)&ied);
+      FreeLibrary(hModule);
+    }
+  }
+  return ied.hIcon;
 }
 #endif
 
