@@ -343,6 +343,7 @@ int nToolbarSide=TBSIDE_TOP;
 int nSidePriority=TSP_TOPBOTTOM;
 SIZE sizeToolbar={0};
 SIZE sizeButtons={0};
+SIZE sizeIcon={0};
 CHARRANGE64 crExtSetSel={0};
 UINT_PTR dwPaintTimerId=0;
 BOOL bLockRefresh=FALSE;
@@ -1104,7 +1105,6 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   wchar_t *wpFileName;
   HICON hIcon;
   HICON hIconMixed;
-  SIZE sizeIcon;
   DWORD dwAction;
   DWORD dwNewFlags=0;
   DWORD dwSetFlags=0;
@@ -1136,13 +1136,13 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   {
     if (bBigIcons)
     {
-      sizeIcon.cx=32;
-      sizeIcon.cy=32;
+      sizeIcon.cx=GetSystemMetrics(SM_CXICON);
+      sizeIcon.cy=GetSystemMetrics(SM_CYICON);
     }
     else
     {
-      sizeIcon.cx=16;
-      sizeIcon.cy=16;
+      sizeIcon.cx=GetSystemMetrics(SM_CXSMICON);
+      sizeIcon.cy=GetSystemMetrics(SM_CYSMICON);
     }
     hStack->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
     ImageList_SetBkColor(hStack->hImageList, GetSysColor(COLOR_BTNFACE));
@@ -1715,7 +1715,8 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
   ICONINFO iiInput;
   ICONINFO iiOverlay;
   ICONINFO iiOutput;
-  BITMAP bm;
+  BITMAP bmInput;
+  BITMAP bmOverlay;
   BITMAPINFO bmi;
   DWORD dwIconWidth;
   DWORD dwIconHeight;
@@ -1741,14 +1742,15 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
 
   if (iiInput.hbmColor && iiInput.hbmMask &&
       iiOverlay.hbmColor && iiOverlay.hbmMask &&
-      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
+      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bmInput) &&
+      GetObjectA(iiOverlay.hbmColor, sizeof(BITMAP), &bmOverlay) &&
+      bmInput.bmHeight == bmOverlay.bmHeight &&
+      bmInput.bmWidth == bmOverlay.bmWidth)
   {
     if (hDC=GetDC(NULL))
     {
-      //dwIconWidth=iiInput.xHotspot * 2;
-      //dwIconHeight=iiInput.yHotspot * 2;
-      dwIconWidth=bm.bmWidth;
-      dwIconHeight=bm.bmHeight;
+      dwIconWidth=bmInput.bmWidth;
+      dwIconHeight=bmInput.bmHeight;
 
       bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
       bmi.bmiHeader.biWidth=dwIconWidth;
@@ -1762,23 +1764,24 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
       bmi.bmiHeader.biClrUsed=0;
       bmi.bmiHeader.biClrImportant=0;
 
-      GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpInputColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
-      GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpInputMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
-
-      GetDIBits(hDC, iiOverlay.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
       if (lpOverlayColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiOverlay.hbmColor, 0, dwIconHeight, (void *)lpOverlayColorBits, &bmi, DIB_RGB_COLORS);
-      GetDIBits(hDC, iiOverlay.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+        GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)lpOverlayColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
       if (lpOverlayMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiOverlay.hbmMask, 0, dwIconHeight, (void *)lpOverlayMaskBits, &bmi, DIB_RGB_COLORS);
+        GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)lpOverlayMaskBits, &bmi, DIB_RGB_COLORS);
+
+      GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
 
       if (lpInputColorBits && lpInputMaskBits && lpOverlayColorBits && lpOverlayMaskBits)
       {
         lpOverlayMaskPixel=(DWORD *)lpOverlayMaskBits;
+
         for (y=0; y < dwIconHeight; ++y)
         {
           for (x=0; x < dwIconWidth; ++x)
@@ -1790,9 +1793,8 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
             if (!*lpOverlayMaskPixel)
             {
               //Copy pixel from Overlay to Input
-              nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
               lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
-  
+
               //Remove alpha and compare with white color
               if (bWhiteInOverlayAsMaskInInput && (*lpOverlayColorPixel & 0x00FFFFFF) == 0xFFFFFF)
               {
@@ -1814,8 +1816,8 @@ HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskI
             ++lpOverlayMaskPixel;
           }
         }
-        SetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
-        SetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
+        SetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+        SetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
 
         //Create new icon
         iiOutput.xHotspot=iiInput.xHotspot;
@@ -1983,23 +1985,15 @@ void SetToolbarButtons(STACKTOOLBAR *hStack)
   int nMaxRowWidth;
 
   if (bBigIcons)
-  {
-    sizeButtons.cx=40;
-    sizeButtons.cy=38;
-    sizeToolbar.cx=44;
-    sizeToolbar.cy=44;
     nArrorWidth=10;
-    SendMessage(hToolbar, TB_SETBITMAPSIZE, 0, MAKELONG(32, 32));
-  }
   else
-  {
-    sizeButtons.cx=24;
-    sizeButtons.cy=22;
-    sizeToolbar.cx=28;
-    sizeToolbar.cy=28;
     nArrorWidth=9;
-    SendMessage(hToolbar, TB_SETBITMAPSIZE, 0, MAKELONG(16, 16));
-  }
+  sizeButtons.cx=sizeIcon.cx + 8;
+  sizeButtons.cy=sizeIcon.cy + 6;
+  sizeToolbar.cx=sizeIcon.cx + 12;
+  sizeToolbar.cy=sizeIcon.cy + 12;
+  SendMessage(hToolbar, TB_SETBITMAPSIZE, 0, MAKELONG(sizeIcon.cx, sizeIcon.cy));
+
   nMaxRowWidth=sizeButtons.cx;
   SendMessage(hToolbar, TB_SETBUTTONSIZE, 0, MAKELONG(sizeButtons.cx, sizeButtons.cy));
   SendMessage(hToolbar, TB_SETIMAGELIST, 0, (LPARAM)hStack->hImageList);
