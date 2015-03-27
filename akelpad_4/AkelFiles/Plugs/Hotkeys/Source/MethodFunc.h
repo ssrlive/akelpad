@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Method functions header v1.0                  *
+ *                 Method functions header v1.1                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -371,7 +371,7 @@ int MethodGetScript(const wchar_t *wpText, wchar_t *wszMethod, int nMethodMax, c
 
   for (wpCount=wpText; *wpCount != L' ' && *wpCount != L'\t' && *wpCount != L'\r' && *wpCount != L'\0'; ++wpCount)
   {
-    if (*wpCount == L'(' && *(wpCount + 1) != L')')
+    if (*wpCount == L'(' && !(*(wpCount + 1) == L')' && *(wpCount + 2) == L'.'))
       break;
   }
   if (wppText)
