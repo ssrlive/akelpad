@@ -56,10 +56,12 @@
 #define GetMessageWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
+#define IconExtractWide
 #define InsertMenuWide
 #define IsDialogMessageWide
+#define LoadImageWide
+#define LoadLibraryExWide
 #define RegisterClassWide
-#define SearchPathWide
 #define SearchPathWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
@@ -1136,13 +1138,17 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   {
     if (bBigIcons)
     {
-      sizeIcon.cx=GetSystemMetrics(SM_CXICON);
-      sizeIcon.cy=GetSystemMetrics(SM_CYICON);
+      //sizeIcon.cx=GetSystemMetrics(SM_CXICON);
+      //sizeIcon.cy=GetSystemMetrics(SM_CYICON);
+      sizeIcon.cx=32;
+      sizeIcon.cy=32;
     }
     else
     {
-      sizeIcon.cx=GetSystemMetrics(SM_CXSMICON);
-      sizeIcon.cy=GetSystemMetrics(SM_CYSMICON);
+      //sizeIcon.cx=GetSystemMetrics(SM_CXSMICON);
+      //sizeIcon.cy=GetSystemMetrics(SM_CYSMICON);
+      sizeIcon.cx=16;
+      sizeIcon.cy=16;
     }
     hStack->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
     ImageList_SetBkColor(hStack->hImageList, GetSysColor(COLOR_BTNFACE));
@@ -1487,10 +1493,11 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                 {
                   if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszIconFile, &wpFileName))
                   {
-                    if (bBigIcons)
-                      ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
-                    else
-                      ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
+                    //if (bBigIcons)
+                    //  ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
+                    //else
+                    //  ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
+                    hIcon=IconExtractWide(wszPath, nFileIconIndex, sizeIcon.cx, sizeIcon.cy);
                   }
                 }
               }
