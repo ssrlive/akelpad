@@ -2629,11 +2629,33 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
   #define ANYWIDEFUNC_INCLUDED
 #endif
 typedef struct {
-  HICON hIcon;
+  char *pName;
   UINT nIconIndex;
-  int cxDesired;
-  int cyDesired;
 } ICONEXTRACTDATA;
+
+HICON IconExtract_Load(HMODULE hModule, char *pName, int cxDesired, int cyDesired)
+{
+  HRSRC hRsrc;
+  HGLOBAL hMemRes;
+  LPVOID lpData;
+  int nIconID;
+
+  if (!(hRsrc=FindResourceA(hModule, pName, RT_GROUP_ICON)))
+    return NULL;
+  if (!(hMemRes=LoadResource(hModule, hRsrc)))
+    return NULL;
+  if (!(lpData=LockResource(hMemRes)))
+    return NULL;
+  if (!(nIconID=LookupIconIdFromDirectoryEx((LPBYTE)lpData, TRUE, cxDesired, cyDesired, 0)))
+    return NULL;
+  if (!(hRsrc=FindResourceA(hModule, MAKEINTRESOURCEA(nIconID), RT_ICON)))
+    return NULL;
+  if (!(hMemRes=LoadResource(hModule, hRsrc)))
+    return NULL;
+  if (!(lpData=LockResource(hMemRes)))
+    return NULL;
+  return CreateIconFromResourceEx((PBYTE)lpData, SizeofResource(hModule, hRsrc), TRUE, 0x00030000, cxDesired, cyDesired, 0);
+}
 
 BOOL CALLBACK IconExtract_EnumResNameProc(HMODULE hModule, const char *pType, char *pName, LPARAM lParam)
 {
@@ -2641,7 +2663,7 @@ BOOL CALLBACK IconExtract_EnumResNameProc(HMODULE hModule, const char *pType, ch
 
   if (ied->nIconIndex == 0)
   {
-    ied->hIcon=LoadImageA(hModule, pName, IMAGE_ICON, ied->cxDesired, ied->cyDesired, 0);
+    ied->pName=pName;
     return FALSE;
   }
   --ied->nIconIndex;
@@ -2650,22 +2672,38 @@ BOOL CALLBACK IconExtract_EnumResNameProc(HMODULE hModule, const char *pType, ch
 
 HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int cyDesired)
 {
-  HMODULE hModule;
   ICONEXTRACTDATA ied;
+  HMODULE hModule;
+  HICON hIcon=NULL;
 
-  if (!(ied.hIcon=LoadImageWide(NULL, wpFile, IMAGE_ICON, cxDesired, cyDesired, LR_LOADFROMFILE)))
+  if (!nIconIndex)
+    hIcon=LoadImageWide(NULL, wpFile, IMAGE_ICON, cxDesired, cyDesired, LR_LOADFROMFILE);
+
+  if (!hIcon)
   {
-    ied.nIconIndex=nIconIndex;
-    ied.cxDesired=cxDesired;
-    ied.cyDesired=cyDesired;
-
     if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE))
     {
-      EnumResourceNamesA(hModule, RT_GROUP_ICON, IconExtract_EnumResNameProc, (LPARAM)&ied);
+      if ((int)nIconIndex < 0)
+      {
+        ied.pName=MAKEINTRESOURCEA(-(int)nIconIndex);
+      }
+      else
+      {
+        ied.pName=NULL;
+        ied.nIconIndex=nIconIndex;
+        EnumResourceNamesA(hModule, RT_GROUP_ICON, IconExtract_EnumResNameProc, (LPARAM)&ied);
+      }
+      if (ied.pName)
+      {
+        if (WideGlobal_bOldWindows)
+          hIcon=IconExtract_Load(hModule, ied.pName, cxDesired, cyDesired);
+        else
+          hIcon=LoadImageA(hModule, ied.pName, IMAGE_ICON, cxDesired, cyDesired, 0);
+      }
       FreeLibrary(hModule);
     }
   }
-  return ied.hIcon;
+  return hIcon;
 }
 #endif
 
