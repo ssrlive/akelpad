@@ -60,17 +60,19 @@
 #define DialogBoxWide
 #define DispatchMessageWide
 #define ExpandEnvironmentStringsWide
-#define ExtractIconExWide
 #define FileExistsWide
 #define GetFileAttributesWide
 #define GetMenuStringWide
 #define GetMessageWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
+#define IconExtractWide
 #define InsertMenuWide
 #define IsDialogMessageWide
 #define ListBox_GetTextWide
 #define ListBox_InsertStringWide
+#define LoadImageWide
+#define LoadLibraryExWide
 #define ModifyMenuWide
 #define SearchPathWide
 #define SetDlgItemTextWide
@@ -3352,10 +3354,11 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
             {
               if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, lpMenuItem->wszIconFile, &wpFileName))
               {
-                if (bBigIcons)
-                  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
-                else
-                  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
+                //if (bBigIcons)
+                //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
+                //else
+                //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
+                hIcon=IconExtractWide(wszPath, lpMenuItem->nFileIconIndex, sizeIcon.cx, sizeIcon.cy);
               }
             }
           }

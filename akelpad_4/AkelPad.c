@@ -154,7 +154,6 @@
 #define DispatchMessageWide
 #define DragQueryFileWide
 #define ExpandEnvironmentStringsWide
-#define ExtractIconExWide
 #define FileExistsAnsi
 #define FileExistsWide
 #define FindFirstFileWide
@@ -180,6 +179,7 @@
 #define GetWindowLongPtrWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
+#define IconExtractWide
 #define InsertMenuWide
 #define IsDialogMessageWide
 #define ListBox_AddStringWide
@@ -189,6 +189,8 @@
 #define ListView_InsertColumnWide
 #define ListView_InsertItemWide
 #define ListView_SetItemWide
+#define LoadImageWide
+#define LoadLibraryExWide
 #define LoadLibraryWide
 #define LoadStringWide
 #define ModifyMenuWide

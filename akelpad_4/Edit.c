@@ -18199,7 +18199,7 @@ void StackStatusPartFree(STACKSTATUSPART *hStack)
 
 //// Associations
 
-const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
+const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconSmall)
 {
   wchar_t wszRoot[MAX_PATH];
   wchar_t wszKey[MAX_PATH];
@@ -18210,6 +18210,7 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
+  HICON hIcon=NULL;
   int nIndex=0;
   int i;
   int j;
@@ -18287,10 +18288,12 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
         ExpandEnvironmentStringsWide(wszValue, wszTemp, MAX_PATH);
         if (SearchPathWide(NULL, wszTemp, NULL, MAX_PATH, wszValue, &wpFileName))
         {
-          ExtractIconExWide(wszValue, nIndex, phiconLarge, phiconSmall, 1);
+          //ExtractIconExWide(wszValue, nIndex, NULL, &hIcon, 1);
+          hIcon=IconExtractWide(wszValue, nIndex, 16, 16);
 
           if (wszIconFile) xstrcpynW(wszIconFile, wszValue, MAX_PATH);
           if (nIconIndex) *nIconIndex=nIndex;
+          if (phiconSmall) *phiconSmall=hIcon;
           return wpExt;
         }
       }
@@ -18298,7 +18301,6 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   }
   if (wszIconFile) wszIconFile[0]=L'\0';
   if (nIconIndex) *nIconIndex=0;
-  if (phiconLarge) *phiconLarge=0;
   if (phiconSmall) *phiconSmall=0;
   return NULL;
 }
@@ -18474,7 +18476,7 @@ ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nF
     {
       xstrcpynW(lpAssocIcon->wszFile, wpFile, MAX_PATH);
       lpAssocIcon->nFileLen=nFileLen;
-      lpAssocIcon->wpExt=GetAssociatedIconW(lpAssocIcon->wszFile, NULL, NULL, NULL, &lpAssocIcon->hIcon);
+      lpAssocIcon->wpExt=GetAssociatedIconW(lpAssocIcon->wszFile, NULL, NULL, &lpAssocIcon->hIcon);
     }
     if (lpAssocIcon->hIcon)
     {
@@ -18641,7 +18643,8 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
     if (!wszAkelAdminPipe[0])
       xprintfW(wszAkelAdminPipe, L"\\\\.\\pipe\\%s-%d", STR_AKELADMINW, dwProcessId);
     if (!hIconShieldAkelAdmin)
-      ExtractIconExWide(wszAkelAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
+      //ExtractIconExWide(wszAkelAdminExe, 1, &hIconShieldAkelAdmin, NULL, 1);
+      hIconShieldAkelAdmin=IconExtractWide(wszAkelAdminExe, 1, 32, 32);
 
     //Get functions addresses
     if (!SetSecurityInfoPtr || !SetEntriesInAclWPtr)

@@ -86,18 +86,20 @@
 #define DialogBoxParamWide
 #define DialogBoxWide
 #define ExpandEnvironmentStringsWide
-#define ExtractIconExWide
 #define FindFirstFileWide
 #define FindNextFileWide
 #define GetSaveFileNameWide
 #define GetWindowLongPtrWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
+#define IconExtractWide
 #define ListBox_AddStringWide
 #define ListView_GetItemWide
 #define ListView_InsertColumnWide
 #define ListView_InsertItemWide
 #define ListView_SetItemWide
+#define LoadImageWide
+#define LoadLibraryExWide
 #define PropertySheetWide
 #define RegisterClassWide
 #define SearchPathWide
@@ -5115,18 +5117,19 @@ HICON GetIconMethod(wchar_t *wszIconFile, int nFileIconIndex, BOOL bBigIcons)
   wchar_t *wpFileName;
   HICON hIcon=NULL;
 
+  if (bBigIcons)
+  {
+    sizeIcon.cx=32;
+    sizeIcon.cy=32;
+  }
+  else
+  {
+    sizeIcon.cx=16;
+    sizeIcon.cy=16;
+  }
+
   if (!*wszIconFile)
   {
-    if (bBigIcons)
-    {
-      sizeIcon.cx=32;
-      sizeIcon.cy=32;
-    }
-    else
-    {
-      sizeIcon.cx=16;
-      sizeIcon.cy=16;
-    }
     hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
   }
   else
@@ -5135,10 +5138,11 @@ HICON GetIconMethod(wchar_t *wszIconFile, int nFileIconIndex, BOOL bBigIcons)
     {
       if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszIconFile, &wpFileName))
       {
-        if (bBigIcons)
-          ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
-        else
-          ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
+        //if (bBigIcons)
+        //  ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
+        //else
+        //  ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
+        hIcon=IconExtractWide(wszPath, nFileIconIndex, sizeIcon.cx, sizeIcon.cy);
       }
     }
   }
