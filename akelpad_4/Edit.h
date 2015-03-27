@@ -1113,7 +1113,7 @@ int* SetStatusParts(STACKSTATUSPART *lpStatusStack);
 STATUSPART* StackStatusPartInsert(STACKSTATUSPART *hStack);
 void StackStatusPartFree(STACKSTATUSPART *hStack);
 
-const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
+const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);
 ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen);
 ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt);
