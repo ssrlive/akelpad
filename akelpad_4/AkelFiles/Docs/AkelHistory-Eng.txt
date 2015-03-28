@@ -1,4 +1,9 @@
 
+AkelPad 4.9.4 ()
+----------------------------
+Changed: no tab icon sizing if screen scale other than 96 dpi.
+
+
 AkelPad 4.9.3 (Mar 25, 2015)
 ----------------------------
 Added: metacharacter \K - exclude previous symbols from result.
