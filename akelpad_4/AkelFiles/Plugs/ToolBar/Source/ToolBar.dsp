@@ -106,6 +106,170 @@ SOURCE=.\ToolBar.c
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\Resources\00.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\01.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\02.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\03.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\04.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\05.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\06.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\07.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\08.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\09.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\10.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\11.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\12.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\13.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\14.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\15.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\16.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\17.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\18.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\19.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\20.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\21.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\22.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\23.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\24.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\25.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\26.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\27.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\28.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\29.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\30.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\31.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\32.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\33.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\34.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\35.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\36.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\37.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\38.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\IconArrow1.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resources\IconArrow2.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\Resources\ToolBar.rc
 # End Source File
 # End Group
