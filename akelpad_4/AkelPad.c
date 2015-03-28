@@ -1645,7 +1645,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLongPtrWide(hTab, GWLP_WNDPROC, (UINT_PTR)NewTabProc);
 
       SendMessage(hTab, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
-      hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
+      hImageList=ImageList_Create(16 /*GetSystemMetrics(SM_CXSMICON)*/, 16 /*GetSystemMetrics(SM_CYSMICON)*/, ILC_COLOR32|ILC_MASK, 0, 0);
       ImageList_SetBkColor(hImageList, CLR_NONE);
       SendMessage(hTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
       SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS|TCS_EX_REGISTERDROP);
