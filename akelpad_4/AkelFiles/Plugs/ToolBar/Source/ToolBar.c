@@ -163,6 +163,11 @@
 #define IAO_COPYNORMAL      1 //IDI_ICONARROW1 icon used.
 #define IAO_COPYWHITEASMASK 2 //IDI_ICONARROW2 icon used.
 
+//Icon size
+#define BIS_ICON16          0 //16x16 icons.
+#define BIS_ICON32          1 //32x32 icons.
+#define BIS_ICON24          2 //24x24 icons.
+
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
@@ -338,7 +343,7 @@ HWND hToolbarBG=NULL;
 HWND hToolbar=NULL;
 HICON hIconArrowOverlay=NULL;
 int nArrowOverlay=IAO_COPYWHITEASMASK;
-BOOL bBigIcons=FALSE;
+int nBigIcons=BIS_ICON16;
 BOOL bFlatButtons=TRUE;
 int nIconsBit=32;
 int nToolbarSide=TBSIDE_TOP;
@@ -511,8 +516,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hWndToolBarText, EM_EXLIMITTEXT, 0, MAX_TOOLBARTEXT_SIZE);
     SetWindowTextWide(hWndToolBarText, wszToolBarText);
 
-    if (bBigIcons)
+    if (nBigIcons == BIS_ICON32)
       SendMessage(hWndBigIconsCheck, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nBigIcons == BIS_ICON24)
+      SendMessage(hWndBigIconsCheck, BM_SETCHECK, BST_INDETERMINATE, 0);
     if (bFlatButtons)
       SendMessage(hWndFlatButtonsCheck, BM_SETCHECK, BST_CHECKED, 0);
     if (nIconsBit == 16)
@@ -588,9 +595,15 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nValue;
 
         //Big icons
-        if (SendMessage(hWndBigIconsCheck, BM_GETCHECK, 0, 0) != bBigIcons)
+        if (SendMessage(hWndBigIconsCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+          nValue=BIS_ICON32;
+        else if (SendMessage(hWndBigIconsCheck, BM_GETCHECK, 0, 0) == BST_INDETERMINATE)
+          nValue=BIS_ICON24;
+        else
+          nValue=BIS_ICON16;
+        if (nValue != nBigIcons)
         {
-          bBigIcons=!bBigIcons;
+          nBigIcons=nValue;
           bUpdate=TRUE;
         }
 
@@ -1136,12 +1149,17 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
 
   if (wpCount)
   {
-    if (bBigIcons)
+    if (nBigIcons == BIS_ICON32)
     {
       //sizeIcon.cx=GetSystemMetrics(SM_CXICON);
       //sizeIcon.cy=GetSystemMetrics(SM_CYICON);
       sizeIcon.cx=32;
       sizeIcon.cy=32;
+    }
+    else if (nBigIcons == BIS_ICON24)
+    {
+      sizeIcon.cx=24;
+      sizeIcon.cy=24;
     }
     else
     {
@@ -1493,7 +1511,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                 {
                   if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszIconFile, &wpFileName))
                   {
-                    //if (bBigIcons)
+                    //if (nBigIcons)
                     //  ExtractIconExWide(wszPath, nFileIconIndex, &hIcon, NULL, 1);
                     //else
                     //  ExtractIconExWide(wszPath, nFileIconIndex, NULL, &hIcon, 1);
@@ -1991,7 +2009,7 @@ void SetToolbarButtons(STACKTOOLBAR *hStack)
   int nRowWidth;
   int nMaxRowWidth;
 
-  if (bBigIcons)
+  if (nBigIcons)
     nArrorWidth=10;
   else
     nArrorWidth=9;
@@ -3051,7 +3069,7 @@ void ReadOptions(DWORD dwFlags)
       }
     }
 
-    WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&bBigIcons, sizeof(DWORD));
+    WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&nBigIcons, sizeof(DWORD));
     WideOption(hOptions, L"FlatButtons", PO_DWORD, (LPBYTE)&bFlatButtons, sizeof(DWORD));
     WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
     WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
@@ -3079,7 +3097,7 @@ void SaveOptions(DWORD dwFlags)
     }
     if (dwFlags & OF_SETTINGS)
     {
-      WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&bBigIcons, sizeof(DWORD));
+      WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&nBigIcons, sizeof(DWORD));
       WideOption(hOptions, L"FlatButtons", PO_DWORD, (LPBYTE)&bFlatButtons, sizeof(DWORD));
       WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
       WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
