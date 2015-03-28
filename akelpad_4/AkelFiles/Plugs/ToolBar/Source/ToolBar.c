@@ -1151,10 +1151,8 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   {
     if (nBigIcons == BIS_ICON32)
     {
-      //sizeIcon.cx=GetSystemMetrics(SM_CXICON);
-      //sizeIcon.cy=GetSystemMetrics(SM_CYICON);
-      sizeIcon.cx=32;
-      sizeIcon.cy=32;
+      sizeIcon.cx=32 /*GetSystemMetrics(SM_CXICON)*/;
+      sizeIcon.cy=32 /*GetSystemMetrics(SM_CYICON)*/;
     }
     else if (nBigIcons == BIS_ICON24)
     {
@@ -1163,10 +1161,8 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
     }
     else
     {
-      //sizeIcon.cx=GetSystemMetrics(SM_CXSMICON);
-      //sizeIcon.cy=GetSystemMetrics(SM_CYSMICON);
-      sizeIcon.cx=16;
-      sizeIcon.cy=16;
+      sizeIcon.cx=16 /*GetSystemMetrics(SM_CXSMICON)*/;
+      sizeIcon.cy=16 /*GetSystemMetrics(SM_CYSMICON)*/;
     }
     hStack->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
     ImageList_SetBkColor(hStack->hImageList, GetSysColor(COLOR_BTNFACE));
