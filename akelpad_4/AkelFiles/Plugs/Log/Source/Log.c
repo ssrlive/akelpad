@@ -1425,8 +1425,8 @@ void SettingsSheet(int nStartPage)
   POINT ptSmallIcon;
 
   //Create image list
-  ptSmallIcon.x=GetSystemMetrics(SM_CXSMICON);
-  ptSmallIcon.y=GetSystemMetrics(SM_CYSMICON);
+  ptSmallIcon.x=16 /*GetSystemMetrics(SM_CXSMICON)*/;
+  ptSmallIcon.y=16 /*GetSystemMetrics(SM_CYSMICON)*/;
 
   if (hImageList=ImageList_Create(ptSmallIcon.x, ptSmallIcon.y, ILC_COLOR32|ILC_MASK, 0, 0))
   {
