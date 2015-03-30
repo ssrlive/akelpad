@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.5                    *
+ *                  Wide functions header v2.6                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -2629,11 +2629,13 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
   #define ANYWIDEFUNC_INCLUDED
 #endif
 typedef struct {
-  char *pName;
+  HICON hIcon;
   UINT nIconIndex;
+  int cxDesired;
+  int cyDesired;
 } ICONEXTRACTDATA;
 
-HICON IconExtract_Load(HMODULE hModule, char *pName, int cxDesired, int cyDesired)
+HICON IconExtract_LoadA(HMODULE hModule, char *pName, int cxDesired, int cyDesired)
 {
   HRSRC hRsrc;
   HGLOBAL hMemRes;
@@ -2663,7 +2665,10 @@ BOOL CALLBACK IconExtract_EnumResNameProc(HMODULE hModule, const char *pType, ch
 
   if (ied->nIconIndex == 0)
   {
-    ied->pName=pName;
+    if (WideGlobal_bOldWindows)
+      ied->hIcon=IconExtract_LoadA(hModule, pName, ied->cxDesired, ied->cyDesired);
+    else
+      ied->hIcon=LoadImageA(hModule, pName, IMAGE_ICON, ied->cxDesired, ied->cyDesired, 0);
     return FALSE;
   }
   --ied->nIconIndex;
@@ -2674,36 +2679,33 @@ HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int
 {
   ICONEXTRACTDATA ied;
   HMODULE hModule;
-  HICON hIcon=NULL;
 
+  ied.hIcon=NULL;
   if (!nIconIndex)
-    hIcon=LoadImageWide(NULL, wpFile, IMAGE_ICON, cxDesired, cyDesired, LR_LOADFROMFILE);
+    ied.hIcon=LoadImageWide(NULL, wpFile, IMAGE_ICON, cxDesired, cyDesired, LR_LOADFROMFILE);
 
-  if (!hIcon)
+  if (!ied.hIcon)
   {
     if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE))
     {
       if ((int)nIconIndex < 0)
       {
-        ied.pName=MAKEINTRESOURCEA(-(int)nIconIndex);
+        if (WideGlobal_bOldWindows)
+          ied.hIcon=IconExtract_LoadA(hModule, MAKEINTRESOURCEA(-(int)nIconIndex), cxDesired, cyDesired);
+        else
+          ied.hIcon=LoadImageA(hModule, MAKEINTRESOURCEA(-(int)nIconIndex), IMAGE_ICON, cxDesired, cyDesired, 0);
       }
       else
       {
-        ied.pName=NULL;
         ied.nIconIndex=nIconIndex;
+        ied.cxDesired=cxDesired;
+        ied.cyDesired=cyDesired;
         EnumResourceNamesA(hModule, RT_GROUP_ICON, IconExtract_EnumResNameProc, (LPARAM)&ied);
-      }
-      if (ied.pName)
-      {
-        if (WideGlobal_bOldWindows)
-          hIcon=IconExtract_Load(hModule, ied.pName, cxDesired, cyDesired);
-        else
-          hIcon=LoadImageA(hModule, ied.pName, IMAGE_ICON, cxDesired, cyDesired, 0);
       }
       FreeLibrary(hModule);
     }
   }
-  return hIcon;
+  return ied.hIcon;
 }
 #endif
 
