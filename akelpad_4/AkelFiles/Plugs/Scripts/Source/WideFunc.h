@@ -209,6 +209,11 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText);
   #define GWLP_USERDATA (-21)
 #endif
 
+//IconExtractWide
+#ifndef LOAD_LIBRARY_AS_IMAGE_RESOURCE
+  #define LOAD_LIBRARY_AS_IMAGE_RESOURCE 0x00000020
+#endif
+
 #endif //_WIDEFUNC_H_
 
 //// File and directories
@@ -2639,7 +2644,7 @@ HICON IconExtract_LoadA(HMODULE hModule, char *pName, int cxDesired, int cyDesir
 {
   HRSRC hRsrc;
   HGLOBAL hMemRes;
-  LPVOID lpData;
+  void *lpData;
   int nIconID;
 
   if (!(hRsrc=FindResourceA(hModule, pName, RT_GROUP_ICON)))
@@ -2686,7 +2691,7 @@ HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int
 
   if (!ied.hIcon)
   {
-    if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE))
+    if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE|LOAD_LIBRARY_AS_IMAGE_RESOURCE))
     {
       if ((int)nIconIndex < 0)
       {
