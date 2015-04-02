@@ -50,6 +50,9 @@ int nFindRootMaxDepth=0;
 HCURSOR hCursorArrow=NULL;
 DWORD dwFoldListTextColor;
 DWORD dwFoldListBkColor;
+HBRUSH hFoldFilterBkBrush=NULL;
+DWORD dwFoldFilterTextColor=(DWORD)-1;
+DWORD dwFoldFilterBkColor=(DWORD)-1;
 DWORD dwCurrentCollapse=699;  //"Ctrl+="
 DWORD dwCurrentGoBegin=731;   //"Ctrl+["
 DWORD dwCurrentGoEnd=733;     //"Ctrl+]"
@@ -680,6 +683,21 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
           return 1;
         }
+      }
+    }
+  }
+  else if (uMsg == WM_CTLCOLOREDIT)
+  {
+    if (hWndCodeFoldFilter == (HWND)lParam)
+    {
+      if (hFoldFilterBkBrush)
+      {
+        if (dwFoldFilterTextColor != (DWORD)-1)
+          SetTextColor((HDC)wParam, dwFoldFilterTextColor);
+        if (dwFoldFilterBkColor != (DWORD)-1)
+          SetBkColor((HDC)wParam, dwFoldFilterBkColor);
+        SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, (INT_PTR)hFoldFilterBkBrush);
+        return (BOOL)(INT_PTR)hFoldFilterBkBrush;
       }
     }
   }
@@ -3759,6 +3777,21 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags)
           SendMessage(hWndTreeView, TVM_SETTEXTCOLOR, 0, (LPARAM)dwText);
         if ((DWORD)SendMessage(hWndTreeView, TVM_GETBKCOLOR, 0, 0) != dwBk)
           SendMessage(hWndTreeView, TVM_SETBKCOLOR, 0, (LPARAM)dwBk);
+
+        dwFoldFilterTextColor=dwText;
+        dwFoldFilterBkColor=dwBk;
+        if (hFoldFilterBkBrush)
+        {
+          DeleteObject(hFoldFilterBkBrush);
+          hFoldFilterBkBrush=NULL;
+        }
+        if (dwFoldFilterTextColor != (DWORD)-1 || dwFoldFilterBkColor != (DWORD)-1)
+        {
+          if (dwFoldFilterBkColor == (DWORD)-1)
+            hFoldFilterBkBrush=CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+          else
+            hFoldFilterBkBrush=CreateSolidBrush(dwFoldFilterBkColor);
+        }
 
         if (!bFoldListSystemFont)
         {

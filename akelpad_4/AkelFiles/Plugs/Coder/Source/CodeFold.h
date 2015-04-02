@@ -366,5 +366,6 @@ extern FOLDWINDOW *lpCurrentFoldWindow;
 extern HWND hWndCodeFoldList;
 extern DWORD dwFoldListTextColor;
 extern DWORD dwFoldListBkColor;
+extern HBRUSH hFoldFilterBkBrush;
 
 #endif

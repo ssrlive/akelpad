@@ -4127,6 +4127,12 @@ void StackFreeSyntaxFiles(HSTACK *hStack)
       lpFoldWindow->pfwd->lpSyntaxFile=NULL;
     }
   }
+
+  if (hFoldFilterBkBrush)
+  {
+    DeleteObject(hFoldFilterBkBrush);
+    hFoldFilterBkBrush=NULL;
+  }
 }
 
 WILDCARDINFO* StackInsertWildcard(STACKWILDCARD *hStack, int nWildcardLen)
