@@ -237,6 +237,11 @@ typedef struct _MANUALSET {
 } MANUALSET;
 
 typedef struct {
+  MANUALSET *first;
+  MANUALSET *last;
+} STACKMANUALSET;
+
+typedef struct {
   INT_PTR first; //WORDINFO *
   INT_PTR last;  //WORDINFO *
   INT_PTR lpWordLens[MAX_PATH];
@@ -393,6 +398,11 @@ typedef struct _SYNTAXFILE {
   BOOL bCache;
 } SYNTAXFILE;
 
+typedef struct {
+  SYNTAXFILE *first;
+  SYNTAXFILE *last;
+} STACKSYNTAXFILE;
+
 
 //// Functions prototypes
 
@@ -415,16 +425,17 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewUserEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
-SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile);
+SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFile);
 void StackRequestSyntaxFile(SYNTAXFILE *lpSyntaxFile);
-SYNTAXFILE* StackAddSyntaxFile(HSTACK *hStack, const wchar_t *wpFile);
-SYNTAXFILE* StackPushSortSyntaxFile(HSTACK *hStack, const wchar_t *wpFile, int nUpDown);
-SYNTAXFILE* StackGetSyntaxFileByFile(HSTACK *hStack, const wchar_t *wpFile);
-SYNTAXFILE* StackGetSyntaxFileByName(HSTACK *hStack, const wchar_t *wpSyntaxFileName);
-SYNTAXFILE* StackGetSyntaxFileByTheme(HSTACK *hStack, HANDLE hTheme);
-SYNTAXFILE* StackGetSyntaxFileByIndex(HSTACK *hStack, int nIndex);
-SYNTAXFILE* StackGetSyntaxFileByWindow(HSTACK *hStack, HWND hWnd, AEHDOC hDoc, const wchar_t **wppAlias);
-void StackFreeSyntaxFiles(HSTACK *hStack);
+SYNTAXFILE* StackAddSyntaxFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile);
+SYNTAXFILE* StackPushSortSyntaxFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile, int nUpDown);
+SYNTAXFILE* StackGetSyntaxFileByFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile);
+SYNTAXFILE* StackGetSyntaxFileByName(STACKSYNTAXFILE *hStack, const wchar_t *wpSyntaxFileName);
+SYNTAXFILE* StackGetSyntaxFileByTheme(STACKSYNTAXFILE *hStack, HANDLE hTheme);
+SYNTAXFILE* StackGetSyntaxFileByIndex(STACKSYNTAXFILE *hStack, int nIndex);
+SYNTAXFILE* StackGetSyntaxFileByWindow(STACKSYNTAXFILE *hStack, HWND hWnd, AEHDOC hDoc, const wchar_t **wppAlias);
+void StackUnsetLink(STACKSYNTAXFILE *hStack, VARTHEME *lpVarTheme);
+void StackFreeSyntaxFiles(STACKSYNTAXFILE *hStack);
 WILDCARDINFO* StackInsertWildcard(STACKWILDCARD *hStack, int nWildcardLen);
 WILDCARDINFO* StackGetWildcard(STACKWILDCARD *hStack, const wchar_t *wpFile);
 void StackFreeWildcard(STACKWILDCARD *hStack);
@@ -435,10 +446,10 @@ BOOL IsInDelimiterList(const wchar_t *s, wchar_t c);
 BOOL IsDelimiter(STACKDELIM *hDelimiterStack, HWND hWnd, int nChar);
 BOOL IsDelimiterFromLeft(STACKDELIM *hDelimiterStack, HWND hWnd, const AECHARINDEX *ciChar);
 BOOL IsDelimiterFromRight(STACKDELIM *hDelimiterStack, HWND hWnd, const AECHARINDEX *ciChar);
-MANUALSET* StackInsertManual(HSTACK *hStack);
-MANUALSET* StackGetManual(HSTACK *hStack, HWND hWndMaster, AEHDOC hDocMaster);
-MANUALSET* StackGetManualByUserParent(HSTACK *hStack, HWND hWndParent);
-void StackDeleteManual(HSTACK *hStack, MANUALSET *lpManual, DWORD dwDllFunction);
+MANUALSET* StackInsertManual(STACKMANUALSET *hStack);
+MANUALSET* StackGetManual(STACKMANUALSET *hStack, HWND hWndMaster, AEHDOC hDocMaster);
+MANUALSET* StackGetManualByUserParent(STACKMANUALSET *hStack, HWND hWndParent);
+void StackDeleteManual(STACKMANUALSET *hStack, MANUALSET *lpManual, DWORD dwDllFunction);
 
 VARTHEME* StackInsertVarTheme(STACKVARTHEME *hStack, int nIndex);
 VARTHEME* StackGetVarThemeByName(STACKVARTHEME *hStack, const wchar_t *wpVarThemeName);
@@ -525,8 +536,8 @@ extern int nInitCodeFold;
 extern BOOL bInitAutoComplete;
 extern BOOL bUseCache;
 extern BOOL bSaveCache;
-extern HSTACK hSyntaxFilesStack;
-extern HSTACK hManualStack;
+extern STACKSYNTAXFILE hSyntaxFilesStack;
+extern STACKMANUALSET hManualStack;
 extern STACKVARTHEME hVarThemesStack;
 extern SYNTAXFILE *lpLoadSyntaxFile;
 extern VARTHEME *lpVarThemeActive;
