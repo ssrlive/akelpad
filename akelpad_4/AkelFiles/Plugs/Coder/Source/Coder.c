@@ -5573,11 +5573,6 @@ void ReadSyntaxFiles()
               {
                 //Syntax file was modified
                 lpSyntaxFile->bCache=FALSE;
-
-                if (!lpSyntaxFile->bReserveCacheWildcard)
-                  StackFreeWildcard(&lpSyntaxFile->hWildcardStack);
-                StackLoadSyntaxFile(&hSyntaxFilesStack, lpSyntaxFile);
-                dwSaveCache|=SC_SAVE;
               }
               break;
             }
@@ -5585,14 +5580,11 @@ void ReadSyntaxFiles()
 
           if (!lpSyntaxFile)
           {
-            //New file, adding to the cache
             if (lpSyntaxFile=StackAddSyntaxFile(&hSyntaxFilesStack, wfd.cFileName))
             {
+              //New file, adding to the cache
               lpSyntaxFile->bCache=FALSE;
               lpSyntaxFile->bExists=TRUE;
-
-              StackLoadSyntaxFile(&hSyntaxFilesStack, lpSyntaxFile);
-              dwSaveCache|=SC_SAVE;
             }
           }
         }
@@ -5625,8 +5617,6 @@ void ReadSyntaxFiles()
         if (lpSyntaxFile=StackPushSortSyntaxFile(&hSyntaxFilesStack, wfd.cFileName, 1))
         {
           lpSyntaxFile->bCache=FALSE;
-
-          StackLoadSyntaxFile(&hSyntaxFilesStack, lpSyntaxFile);
           dwSaveCache|=SC_SAVE|SC_CLEAR;
         }
       }
@@ -5679,6 +5669,18 @@ void ReadSyntaxFiles()
         wszVarThemeName[0]=L'\0';
         wszSyntaxFileName[0]=L'\0';
       }
+    }
+  }
+
+  //Load syntax files
+  for (lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+  {
+    if (!lpSyntaxFile->bCache)
+    {
+      if (!lpSyntaxFile->bReserveCacheWildcard)
+        StackFreeWildcard(&lpSyntaxFile->hWildcardStack);
+      StackLoadSyntaxFile(&hSyntaxFilesStack, lpSyntaxFile);
+      dwSaveCache|=SC_SAVE;
     }
   }
 }
