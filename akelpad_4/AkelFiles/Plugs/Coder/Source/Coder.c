@@ -150,8 +150,8 @@ DWORD dwUseCache=UC_FAST;
 DWORD dwSaveCache=SC_NONE;
 BOOL bDefaultAliasEnable=FALSE;
 wchar_t wszDefaultAlias[MAX_PATH]=L".cpp";
-HSTACK hSyntaxFilesStack={0};
-HSTACK hManualStack={0};
+STACKSYNTAXFILE hSyntaxFilesStack={0};
+STACKMANUALSET hManualStack={0};
 STACKVARTHEME hVarThemesStack={0};
 VARTHEME hVarThemeGlobal;
 SYNTAXFILE *lpLoadSyntaxFile=NULL;
@@ -2031,7 +2031,7 @@ BOOL CALLBACK GeneralLinkDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
       int nIndex=0;
       SYNTAXFILE *lpSyntaxFile;
 
-      for (lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+      for (lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
       {
         lvi.mask=LVIF_TEXT;
         lvi.pszText=lpSyntaxFile->wszSyntaxFileName;
@@ -2151,7 +2151,7 @@ BOOL CALLBACK GeneralLinkDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
           wszVarThemeLink=NULL;
         }
 
-        for (dwSize=0, lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+        for (dwSize=0, lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
         {
           if (lpSyntaxFile->lpVarThemeLink)
             dwSize+=(DWORD)xprintfW(NULL, L"%s>%s|", lpSyntaxFile->wszSyntaxFileName, lpSyntaxFile->lpVarThemeLink->wszVarThemeName) - 1;
@@ -2160,7 +2160,7 @@ BOOL CALLBACK GeneralLinkDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
           if (wszVarThemeLink=(wchar_t *)GlobalAlloc(GMEM_FIXED, (dwSize + 2) * sizeof(wchar_t)))
           {
-            for (dwSize=0, lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+            for (dwSize=0, lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
             {
               if (lpSyntaxFile->lpVarThemeLink)
                 dwSize+=(DWORD)xprintfW(wszVarThemeLink + dwSize, L"%s>%s|", lpSyntaxFile->wszSyntaxFileName, lpSyntaxFile->lpVarThemeLink->wszVarThemeName);
@@ -2368,7 +2368,7 @@ BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
   return FALSE;
 }
 
-SYNTAXFILE* StackLoadSyntaxFile(HSTACK *hStack, SYNTAXFILE *lpSyntaxFile)
+SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFile)
 {
   HANDLE hFile;
   DELIMITERINFO *lpDelimElement=NULL;
@@ -3967,7 +3967,7 @@ void StackRequestSyntaxFile(SYNTAXFILE *lpSyntaxFile)
   }
 }
 
-SYNTAXFILE* StackAddSyntaxFile(HSTACK *hStack, const wchar_t *wpFile)
+SYNTAXFILE* StackAddSyntaxFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile)
 {
   SYNTAXFILE *lpElement;
 
@@ -3976,7 +3976,7 @@ SYNTAXFILE* StackAddSyntaxFile(HSTACK *hStack, const wchar_t *wpFile)
   return lpElement;
 }
 
-SYNTAXFILE* StackPushSortSyntaxFile(HSTACK *hStack, const wchar_t *wpFile, int nUpDown)
+SYNTAXFILE* StackPushSortSyntaxFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile, int nUpDown)
 {
   SYNTAXFILE *lpElement;
   SYNTAXFILE *lpNewElement;
@@ -3984,7 +3984,7 @@ SYNTAXFILE* StackPushSortSyntaxFile(HSTACK *hStack, const wchar_t *wpFile, int n
 
   if (nUpDown != 1 && nUpDown != -1) return NULL;
 
-  for (lpElement=(SYNTAXFILE *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     i=xstrcmpiW(lpElement->wszSyntaxFileName, wpFile);
 
@@ -3996,11 +3996,11 @@ SYNTAXFILE* StackPushSortSyntaxFile(HSTACK *hStack, const wchar_t *wpFile, int n
   return lpNewElement;
 }
 
-SYNTAXFILE* StackGetSyntaxFileByFile(HSTACK *hStack, const wchar_t *wpFile)
+SYNTAXFILE* StackGetSyntaxFileByFile(STACKSYNTAXFILE *hStack, const wchar_t *wpFile)
 {
   SYNTAXFILE *lpElement;
 
-  for (lpElement=(SYNTAXFILE *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (StackGetWildcard(&lpElement->hWildcardStack, wpFile))
       return lpElement;
@@ -4008,11 +4008,11 @@ SYNTAXFILE* StackGetSyntaxFileByFile(HSTACK *hStack, const wchar_t *wpFile)
   return NULL;
 }
 
-SYNTAXFILE* StackGetSyntaxFileByName(HSTACK *hStack, const wchar_t *wpSyntaxFileName)
+SYNTAXFILE* StackGetSyntaxFileByName(STACKSYNTAXFILE *hStack, const wchar_t *wpSyntaxFileName)
 {
   SYNTAXFILE *lpElement;
 
-  for (lpElement=(SYNTAXFILE *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (!xstrcmpiW(lpElement->wszSyntaxFileName, wpSyntaxFileName))
       return lpElement;
@@ -4020,11 +4020,11 @@ SYNTAXFILE* StackGetSyntaxFileByName(HSTACK *hStack, const wchar_t *wpSyntaxFile
   return NULL;
 }
 
-SYNTAXFILE* StackGetSyntaxFileByTheme(HSTACK *hStack, HANDLE hTheme)
+SYNTAXFILE* StackGetSyntaxFileByTheme(STACKSYNTAXFILE *hStack, HANDLE hTheme)
 {
   SYNTAXFILE *lpElement;
 
-  for (lpElement=(SYNTAXFILE *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hThemeHighLight == hTheme)
       return lpElement;
@@ -4032,7 +4032,7 @@ SYNTAXFILE* StackGetSyntaxFileByTheme(HSTACK *hStack, HANDLE hTheme)
   return NULL;
 }
 
-SYNTAXFILE* StackGetSyntaxFileByIndex(HSTACK *hStack, int nIndex)
+SYNTAXFILE* StackGetSyntaxFileByIndex(STACKSYNTAXFILE *hStack, int nIndex)
 {
   SYNTAXFILE *lpElement;
 
@@ -4040,7 +4040,7 @@ SYNTAXFILE* StackGetSyntaxFileByIndex(HSTACK *hStack, int nIndex)
   return lpElement;
 }
 
-SYNTAXFILE* StackGetSyntaxFileByWindow(HSTACK *hStack, HWND hWnd, AEHDOC hDoc, const wchar_t **wppAlias)
+SYNTAXFILE* StackGetSyntaxFileByWindow(STACKSYNTAXFILE *hStack, HWND hWnd, AEHDOC hDoc, const wchar_t **wppAlias)
 {
   SYNTAXFILE *hTheme=NULL;
   MANUALSET *lpManual;
@@ -4082,9 +4082,20 @@ SYNTAXFILE* StackGetSyntaxFileByWindow(HSTACK *hStack, HWND hWnd, AEHDOC hDoc, c
   return hTheme;
 }
 
-void StackFreeSyntaxFiles(HSTACK *hStack)
+void StackUnsetLink(STACKSYNTAXFILE *hStack, VARTHEME *lpVarTheme)
 {
-  SYNTAXFILE *lpElement=(SYNTAXFILE *)hStack->first;
+  SYNTAXFILE *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->lpVarThemeLink == lpVarTheme)
+      lpElement->lpVarThemeLink=NULL;
+  }
+}
+
+void StackFreeSyntaxFiles(STACKSYNTAXFILE *hStack)
+{
+  SYNTAXFILE *lpElement=hStack->first;
   HWND hWndCurEdit=GetCurEdit();
 
   while (lpElement)
@@ -4257,7 +4268,7 @@ BOOL IsDelimiterFromRight(STACKDELIM *hDelimiterStack, HWND hWnd, const AECHARIN
   return IsDelimiter(hDelimiterStack, hWnd, AEC_CharAtIndex(ciChar));
 }
 
-MANUALSET* StackInsertManual(HSTACK *hStack)
+MANUALSET* StackInsertManual(STACKMANUALSET *hStack)
 {
   MANUALSET *lpElement=NULL;
 
@@ -4266,11 +4277,11 @@ MANUALSET* StackInsertManual(HSTACK *hStack)
   return lpElement;
 }
 
-MANUALSET* StackGetManual(HSTACK *hStack, HWND hWndMaster, AEHDOC hDocMaster)
+MANUALSET* StackGetManual(STACKMANUALSET *hStack, HWND hWndMaster, AEHDOC hDocMaster)
 {
   MANUALSET *lpElement;
 
-  for (lpElement=(MANUALSET *)hStack->first; lpElement; lpElement=lpElement->next)
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement->hWndEdit == hWndMaster)
     {
@@ -4282,7 +4293,7 @@ MANUALSET* StackGetManual(HSTACK *hStack, HWND hWndMaster, AEHDOC hDocMaster)
 
   if (lpElement && nMDI == WMD_PMDI)
   {
-    for (lpElement=(MANUALSET *)hStack->first; lpElement; lpElement=lpElement->next)
+    for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
     {
       if (lpElement->hDocEdit == hDocMaster)
         return lpElement;
@@ -4291,9 +4302,9 @@ MANUALSET* StackGetManual(HSTACK *hStack, HWND hWndMaster, AEHDOC hDocMaster)
   return lpElement;
 }
 
-MANUALSET* StackGetManualByUserParent(HSTACK *hStack, HWND hWndParent)
+MANUALSET* StackGetManualByUserParent(STACKMANUALSET *hStack, HWND hWndParent)
 {
-  MANUALSET *lpElement=(MANUALSET *)hStack->first;
+  MANUALSET *lpElement=hStack->first;
 
   while (lpElement)
   {
@@ -4305,7 +4316,7 @@ MANUALSET* StackGetManualByUserParent(HSTACK *hStack, HWND hWndParent)
   return NULL;
 }
 
-void StackDeleteManual(HSTACK *hStack, MANUALSET *lpManual, DWORD dwDllFunction)
+void StackDeleteManual(STACKMANUALSET *hStack, MANUALSET *lpManual, DWORD dwDllFunction)
 {
   if (lpManual->hWndParent)
   {
@@ -4421,6 +4432,7 @@ void StackDeleteVarTheme(STACKVARTHEME *hStack, VARTHEME *lpVarTheme)
     lpVarThemeActive=(VARTHEME *)hStack->first;
   }
   StackFreeVars(&lpVarTheme->hVarStack);
+  StackUnsetLink(&hSyntaxFilesStack, lpVarTheme);
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpVarTheme);
 }
 
@@ -5551,7 +5563,7 @@ void ReadSyntaxFiles()
       {
         do
         {
-          for (lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+          for (lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
           {
             if (!xstrcmpiW(wfd.cFileName, lpSyntaxFile->wszSyntaxFileName))
             {
@@ -5590,7 +5602,7 @@ void ReadSyntaxFiles()
       }
 
       //Exclude non-existed (removed) files form the cache
-      for (lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpNextSyntaxFile)
+      for (lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpNextSyntaxFile)
       {
         lpNextSyntaxFile=lpSyntaxFile->next;
         if (!lpSyntaxFile->bExists)
@@ -5649,15 +5661,12 @@ void ReadSyntaxFiles()
 
           if (lpSyntaxFile=StackGetSyntaxFileByName(&hSyntaxFilesStack, wszSyntaxFileName))
           {
-            if (lpVarTheme=RequestVarTheme(&hVarThemesStack, wszVarThemeName))
-            {
-              lpSyntaxFile->lpVarThemeLink=lpVarTheme;
-            }
-            else
+            if (!(lpVarTheme=RequestVarTheme(&hVarThemesStack, wszVarThemeName)))
             {
               xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_UNKNOWNVARTHEME), wszVarThemeName, wszSyntaxFileName);
               MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
             }
+            lpSyntaxFile->lpVarThemeLink=lpVarTheme;
           }
           else
           {
@@ -5698,7 +5707,7 @@ void SaveCache(DWORD dwFlags)
       }
 
       //Scan themes
-      for (lpSyntaxFile=(SYNTAXFILE *)hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
+      for (lpSyntaxFile=hSyntaxFilesStack.first; lpSyntaxFile; lpSyntaxFile=lpSyntaxFile->next)
       {
         //Get file types
         for (nStrLen=0, lpWildElement=lpSyntaxFile->hWildcardStack.first; lpWildElement; lpWildElement=lpWildElement->next)
