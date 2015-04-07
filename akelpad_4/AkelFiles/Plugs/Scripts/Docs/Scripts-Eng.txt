@@ -25,7 +25,6 @@ SpellCheck.js         -spell check using Microsoft Word.
 LinesFilter.js        -filter lines using regular expressions.
 Calculator.js         -text calculator.
 EvalCmd.js            -evaluates an expression passed through command line.
-EvalCmdEsc.js         -evaluates an escaped expression passed through command line.
 InsertDate.js         -insert time and date in specified format.
 InsertFile.js         -insert contents of a file.
 RenameFile.js         -rename current editing file.
