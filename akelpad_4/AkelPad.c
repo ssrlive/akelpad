@@ -5321,9 +5321,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case IDM_EDIT_DELETE_TAB:
         {
           if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
-            return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
-          else
-            return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB|STRSEL_FULLLINE|STRSEL_MULTILINE);
+          {
+            if (lParam)
+              return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB);
+            else
+              return InsertTabStop(lpFrameCurrent->ei.hWndEdit);
+          }
+          return IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADTAB|STRSEL_FULLLINE|STRSEL_MULTILINE);
         }
         case IDM_EDIT_INSERT_SPACE_MENU:
         case IDM_EDIT_INSERT_SPACE:
@@ -5352,25 +5356,28 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               //SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
               return TRUE;
             }
+            return FALSE;
           }
-          else return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
-
-          return FALSE;
+          return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
         }
         case IDM_EDIT_DELETE_SPACE_MENU:
         case IDM_EDIT_DELETE_SPACE:
         {
           if (!DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK|STRSEL_MULTILINE, NULL))
           {
-            if (!IsReadOnly(NULL))
+            if (lParam)
+              return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE, L" ");
+            else
             {
-              SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
-              return TRUE;
+              if (!IsReadOnly(NULL))
+              {
+                SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INSERTCHAR, VK_SPACE, 0);
+                return TRUE;
+              }
+              return FALSE;
             }
           }
-          else return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
-
-          return FALSE;
+          return DoEditModifyStringInSelection(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_LEADSPACE|STRSEL_FULLLINE|STRSEL_MULTILINE, L" ");
         }
         case IDM_EDIT_DELETE_FIRST_CHAR_MENU:
         case IDM_EDIT_DELETE_FIRST_CHAR:
