@@ -19210,7 +19210,7 @@ void MethodExpandParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
                     break;
                   }
                 }
-                if (lpExpParam)
+                if (lpExpParam->wpVar)
                 {
                   wpSource+=lpExpParam->nVarLen - 1;
                   if (lpExpParam->dwFlags & EXPPARAM_INT)
