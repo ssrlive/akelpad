@@ -59,7 +59,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_CallEx)(THIS_ DWORD, BSTR, SAFEARRAY **, int *) PURE;
   STDMETHOD_(HRESULT, Document_CallExA)(THIS_ DWORD, BSTR, SAFEARRAY **, int *) PURE;
   STDMETHOD_(HRESULT, Document_CallExW)(THIS_ DWORD, BSTR, SAFEARRAY **, int *) PURE;
-  STDMETHOD_(HRESULT, Document_Exec)(THIS_ BSTR, BSTR, int, DWORD *) PURE;
+  STDMETHOD_(HRESULT, Document_Exec)(THIS_ BSTR, BSTR, int, int, DWORD *) PURE;
   STDMETHOD_(HRESULT, Document_Command)(THIS_ int, VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_Font)(THIS_ BSTR, DWORD, int ) PURE;
   STDMETHOD_(HRESULT, Document_Recode)(THIS_ int, int ) PURE;
@@ -348,7 +348,7 @@ HRESULT STDMETHODCALLTYPE Document_CallEx(IDocument *this, DWORD dwFlags, BSTR w
 HRESULT STDMETHODCALLTYPE Document_CallExA(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, int *nResult);
 HRESULT STDMETHODCALLTYPE Document_CallExW(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, int *nResult);
 HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **psa, int *nResult);
-HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wpWorkDir, int nWait, DWORD *dwExit);
+HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wpWorkDir, int nWait, int nShowWindow, DWORD *dwExit);
 HRESULT STDMETHODCALLTYPE Document_Command(IDocument *this, int nCommand, VARIANT vtLParam, VARIANT *vtResult);
 HRESULT STDMETHODCALLTYPE Document_Font(IDocument *this, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize);
 HRESULT STDMETHODCALLTYPE Document_Recode(IDocument *this, int nCodePageFrom, int nCodePageTo);
