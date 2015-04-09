@@ -1,5 +1,5 @@
 *****************************************************************
-***                  Log AkelPad plugin v4.7                  ***
+***                  Log AkelPad plugin v4.8                  ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -151,6 +151,7 @@ Call("Log::Output", 4, "TEXT", TEXTLEN, APPEND, CODEPAGE, "ALIAS")
     APPEND (one of the following):
       0 Replace all text in the output panel.
       1 Add text in the output panel (by default).
+      2 Add text in the output panel in new line.
     CODEPAGE
       ANSI text codepage. By default zero - ANSI system codepage is used. Not used if text in Unicode.
     "ALIAS"
