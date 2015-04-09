@@ -196,6 +196,11 @@
 #define FDT_BYFILENAME   1
 #define FDT_BYFRAME      2
 
+//Set text append
+#define STA_ERASE           0
+#define STA_APPEND          1
+#define STA_APPENDNEWLINE   2
+
 //Code pages strings
 #define STR_UNICODE_UTF8W  L"65001 (UTF-8)"
 #define STR_UNICODE_UTF7W  L"65000 (UTF-7)"
@@ -645,7 +650,7 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
       unsigned char *pText=NULL;
       unsigned char *pCoderAlias=NULL;
       INT_PTR nTextLen=-1;
-      BOOL bAppend=TRUE;
+      int nAppend=STA_APPEND;
       int nCodePage=0;
 
       if (IsExtCallParamValid(pd->lParam, 2))
@@ -653,7 +658,7 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
       if (IsExtCallParamValid(pd->lParam, 3))
         nTextLen=GetExtCallParam(pd->lParam, 3);
       if (IsExtCallParamValid(pd->lParam, 4))
-        bAppend=(BOOL)GetExtCallParam(pd->lParam, 4);
+        nAppend=(BOOL)GetExtCallParam(pd->lParam, 4);
       if (IsExtCallParamValid(pd->lParam, 5))
         nCodePage=(int)GetExtCallParam(pd->lParam, 5);
       if (IsExtCallParamValid(pd->lParam, 6))
@@ -687,8 +692,18 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
 
         if (pd->dwSupport & PDS_STRANSI)
         {
-          if (bAppend)
+          if (nAppend)
+          {
+            if (nAppend == STA_APPENDNEWLINE)
+            {
+              AECHARINDEX ciLastChar;
+
+              SendMessage(hWndOutputView, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciLastChar);
+              if (ciLastChar.nCharInLine)
+                AppendTextAnsi(hWndOutputView, nCodePage, (char *)"\n", 1);
+            }
             AppendTextAnsi(hWndOutputView, nCodePage, (char *)pText, nTextLen);
+          }
           else
           {
             AESETTEXTA st;
@@ -702,8 +717,18 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
         }
         else
         {
-          if (bAppend)
+          if (nAppend)
+          {
+            if (nAppend == STA_APPENDNEWLINE)
+            {
+              AECHARINDEX ciLastChar;
+
+              SendMessage(hWndOutputView, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ciLastChar);
+              if (ciLastChar.nCharInLine)
+                AppendTextWide(hWndOutputView, (wchar_t *)L"\n", 1);
+            }
             AppendTextWide(hWndOutputView, (wchar_t *)pText, nTextLen);
+          }
           else
           {
             AESETTEXTW st;
