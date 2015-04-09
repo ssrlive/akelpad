@@ -184,7 +184,7 @@ library Scripts
     [vararg] HRESULT CallExW([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
 
     //Execute program.
-    HRESULT Exec([in] BSTR wpCmdLine, [in, defaultvalue(L"")] BSTR wpWorkDir, [in, defaultvalue(0)] int nWait, [out, retval] DWORD *dwExit);
+    HRESULT Exec([in] BSTR wpCmdLine, [in, defaultvalue(L"")] BSTR wpWorkDir, [in, defaultvalue(0)] int nWait, [in, defaultvalue(-1)] int nShowWindow, [out, retval] DWORD *dwExit);
 
     //Send internal command.
     HRESULT Command([in] int nCommand, [in, defaultvalue(0)] VARIANT vtSelEnd, [out, retval] VARIANT *vtResult);

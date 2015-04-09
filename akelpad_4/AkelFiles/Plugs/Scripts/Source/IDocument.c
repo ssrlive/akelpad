@@ -1126,7 +1126,7 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
   return hr;
 }
 
-HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wpWorkDir, int nWait, DWORD *dwExit)
+HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wpWorkDir, int nWait, int nShowWindow, DWORD *dwExit)
 {
   STARTUPINFOW si;
   PROCESS_INFORMATION pi;
@@ -1153,6 +1153,11 @@ HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wp
         {
           xmemset(&si, 0, sizeof(STARTUPINFOW));
           si.cb=sizeof(STARTUPINFOW);
+          if (nShowWindow >= 0)
+          {
+            si.dwFlags=STARTF_USESHOWWINDOW;
+            si.wShowWindow=(WORD)nShowWindow;
+          }
           if (CreateProcessWide(NULL, wszExecuteCommandExp, NULL, NULL, FALSE, 0, NULL, (wszExecuteDirectoryExp && *wszExecuteDirectoryExp)?wszExecuteDirectoryExp:NULL, &si, &pi))
           {
             if (nWait == 1)

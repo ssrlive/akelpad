@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v16.3              ***
+***                 Scripts AkelPad plugin v16.4              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -1075,7 +1075,7 @@ _______________________
 
 Execute program.
 
-  Exec(pCommandLine[, pWorkDirectory][, nWait]);
+  Exec(pCommandLine[, pWorkDirectory][, nWait][, nWindowStyle]);
 
 Arguments
   pCommandLine
@@ -1086,6 +1086,15 @@ Arguments
     0  returns immediately after starting the program, automatically returning 0 (default).
     1  waits until the program finishes and returns any error code returned by the program.
     2  waits until the specified process is waiting for user input, automatically returning 0.
+  nWindowStyle
+   -1 don't change (by default).
+    0 hidden window.
+    1 window as is.
+    2 minimized window.
+    3 maximized window.
+    6 minimized, inactive window.
+    9 non-maximized window.
+    Note: programs could ignore this parameter.
 
 Return Value
   Number. Exit code.
