@@ -159,9 +159,10 @@
 #define TSP_LEFTRIGHT  2
 
 //Icon arrow overlay
-#define IAO_NONE            0
-#define IAO_COPYNORMAL      1 //IDI_ICONARROW1 icon used.
-#define IAO_COPYWHITEASMASK 2 //IDI_ICONARROW2 icon used.
+#define IAO_WHOLEDROPDOWN   -1 //BTNS_WHOLEDROPDOWN style used.
+#define IAO_NONE             0 //Don't draw any arrows.
+#define IAO_COPYNORMAL       1 //IDI_ICONARROW1 icon used.
+#define IAO_COPYWHITEASMASK  2 //IDI_ICONARROW2 icon used.
 
 //Icon size
 #define BIS_ICON16          0 //16x16 icons.
@@ -1086,7 +1087,7 @@ BOOL CreateToolbarWindow()
   SetWindowLongPtrWide(hToolbar, GWLP_WNDPROC, (UINT_PTR)NewToolbarProc);
 
   dwStyle=(DWORD)SendMessage(hToolbar, TB_GETEXTENDEDSTYLE, 0, 0);
-  SendMessage(hToolbar, TB_SETEXTENDEDSTYLE, 0, dwStyle|TBSTYLE_EX_DRAWDDARROWS);
+  SendMessage(hToolbar, TB_SETEXTENDEDSTYLE, 0, dwStyle|TBSTYLE_EX_DRAWDDARROWS/*|TBSTYLE_EX_DOUBLEBUFFER*/);
   SendMessage(hToolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
 
   ParseRows(&hRowListStack);
@@ -1517,7 +1518,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
               }
               if (hIcon)
               {
-                if (nArrowOverlay)
+                if (nArrowOverlay > 0)
                 {
                   //Method "Menu()" without action. Add overlay arrow.
                   if (hParamMenuName.first && !lpButton)
@@ -1663,7 +1664,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                 lpButton->tbb.iBitmap=-1;
                 lpButton->tbb.idCommand=++nItemCommand;
                 lpButton->tbb.fsState=TBSTATE_ENABLED;
-                lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
+                lpButton->tbb.fsStyle=TBSTYLE_BUTTON|(nArrowOverlay == IAO_WHOLEDROPDOWN?BTNS_WHOLEDROPDOWN:0);
                 lpButton->tbb.dwData=0;
                 lpButton->tbb.iString=0;
               }
