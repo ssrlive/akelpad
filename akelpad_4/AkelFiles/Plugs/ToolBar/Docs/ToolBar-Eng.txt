@@ -1,5 +1,5 @@
 *****************************************************************
-***                ToolBar AkelPad plugin v11.3               ***
+***                ToolBar AkelPad plugin v11.4               ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -285,6 +285,7 @@ SidePriority
     2  place left and right first, then top and bottom.
 ArrowOverlay
   Draw overlay array for button with Menu() method without action (one of the following):
+   -1  don't draw, but use style BTNS_WHOLEDROPDOWN.
     0  don't draw.
     1  draw normal.
     2  draw white as mask, i.e. white color in arrow icon removed from result icon (default).
