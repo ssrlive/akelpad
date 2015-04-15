@@ -819,6 +819,7 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
             msg->wParam == VK_NEXT)
         {
           if (bFirstListBoxKey && (msg->wParam == VK_UP ||
+                                   (msg->wParam == VK_DOWN && SendMessage(hWndListBox, LB_GETCOUNT, 0, 0) == 1) ||
                                    GetKeyState(VK_MENU) < 0 ||
                                    GetKeyState(VK_SHIFT) < 0 ||
                                    GetKeyState(VK_CONTROL) < 0))
