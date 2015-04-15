@@ -1373,8 +1373,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           lpPenItem=AE_StackPenItemInsert(&hAkelEditPensStack, ae->popt->aec.crActiveColumn, ae->popt->aec.crBasicBk);
         ae->popt->hActiveColumnPen=lpPenItem->hPen;
 
-        ae->ptActiveColumnDraw.x=-1;
-        ae->ptActiveColumnDraw.y=-1;
+        ae->ptActiveColumnDraw.x=-0x7fffffff;
+        ae->ptActiveColumnDraw.y=-0x7fffffff;
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackCloneUpdate(ae);
       }
@@ -4613,7 +4613,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             {
               //If ptActiveColumnDraw.y is under the last line, draw active column without skiping caret space
               if (rcErase.top <= ae->ptActiveColumnDraw.y + ae->ptxt->nCharHeight)
-                ae->ptActiveColumnDraw.y=-1;
+                ae->ptActiveColumnDraw.y=-0x7fffffff;
               AE_ActiveColumnDraw(ae, (HDC)wParam, rcErase.top, rcErase.bottom);
             }
           }
@@ -13577,7 +13577,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         ptActiveColumnDrawOld=ae->ptActiveColumnDraw;
         AE_GlobalToClient(ae, &ae->ptCaret, NULL, &ptActiveColumnDrawNew);
 
-        if (ptActiveColumnDrawOld.x != -1 && ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x &&
+        if (ptActiveColumnDrawOld.x != -0x7fffffff && ptActiveColumnDrawOld.x != ptActiveColumnDrawNew.x &&
             ptActiveColumnDrawOld.x >= ae->rcDraw.left && ptActiveColumnDrawOld.x <= ae->rcDraw.right)
         {
           //Transfer 1-pixel column to buffer DC
