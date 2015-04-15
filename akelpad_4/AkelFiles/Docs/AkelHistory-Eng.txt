@@ -6,6 +6,8 @@ Changed: no tab icon sizing if screen scale other than 96 dpi.
 Added: optional parameter for commands 4166,4170:
        1 - delete space/tabulation in single line selection.
 
+Fixed: active column painting.
+
 
 AkelPad 4.9.3 (Mar 25, 2015)
 ----------------------------
