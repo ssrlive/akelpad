@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v2.1                  *
+ *                  RegExp functions header v2.2                  *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -638,6 +638,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       if (!(lpREGroupItem->dwFlags & REGF_ONLYOPTIONS) && lpREGroupItem->wpPatStart == lpREGroupItem->wpPatEnd)
         goto Error;
 
+      if (lpREGroupItem->nGroupLen == -1)
+      {
+        //str - "1.2", find "(-?\d+)\.\d+"
+        lpREGroupNextAuto=lpREGroupItem;
+      }
       if (lpREGroupItem->parent->nGroupLen != -1)
       {
         if (lpREGroupItem->nGroupLen != -1)
