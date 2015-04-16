@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v2.1                  *
+ *                  RegExp functions header v2.2                  *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
