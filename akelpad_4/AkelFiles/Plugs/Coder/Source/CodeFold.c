@@ -860,8 +860,14 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (bState != bFoldListSystemFont)
       {
         bFoldListSystemFont=bState;
-        if (bFoldListSystemFont)
-          SendMessage(hWndCodeFoldList, WM_SETFONT, (WPARAM)NULL, FALSE);
+        if (!bFoldListSystemFont)
+        {
+          HFONT hFontEdit;
+
+          hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+          SendMessage(hWndCodeFoldList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
+        }
+        else SendMessage(hWndCodeFoldList, WM_SETFONT, (WPARAM)NULL, FALSE);
       }
 
       if (nInitCodeFold)
@@ -1623,29 +1629,19 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
     }
   }
-  else if (uMsg == AKD_SETFONT ||
-           uMsg == AKD_SETFONTA ||
-           uMsg == AKD_SETFONTW)
-  {
-    if (dkCodeFoldDlg && !(dkCodeFoldDlg->dwFlags & DKF_HIDDEN))
-    {
-      if (!bFoldListSystemFont)
-      {
-        HFONT hFontEdit;
-
-        *lResult=NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
-        hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
-        SendMessage(hWndCodeFoldList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
-        return TRUE;
-      }
-    }
-  }
   return FALSE;
 }
 
 BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
-  if (uMsg == WM_PAINT)
+  if (uMsg == WM_SETFONT)
+  {
+    if (dkCodeFoldDlg && !(dkCodeFoldDlg->dwFlags & DKF_HIDDEN) && !bFoldListSystemFont)
+    {
+      SendMessage(hWndCodeFoldList, WM_SETFONT, wParam, FALSE);
+    }
+  }
+  else if (uMsg == WM_PAINT)
   {
     FOLDWINDOW *lpFoldWindow;
     HDC hDC;
