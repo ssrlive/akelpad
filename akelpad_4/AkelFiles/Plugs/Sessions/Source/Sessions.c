@@ -133,31 +133,32 @@
 #define STRID_MODELESSDIALOG          35
 #define STRID_DOCKABLEDIALOG          36
 #define STRID_AUTOLOAD                37
-#define STRID_SAVEDATA                38
-#define STRID_SAVEACTIVE              39
-#define STRID_SAVECODEPAGE            40
-#define STRID_SAVESELECTION           41
-#define STRID_SAVEWORDWRAP            42
-#define STRID_SAVEREADONLY            43
-#define STRID_SAVEOVERTYPE            44
-#define STRID_SAVEBOOKMARKS           45
-#define STRID_SAVEALIAS               46
-#define STRID_SAVEFOLDS               47
-#define STRID_SAVEMARKS               48
-#define STRID_SAVERELATIVE            49
-#define STRID_PLUGIN                  50
-#define STRID_OK                      51
-#define STRID_CANCEL                  52
-#define STRID_CLOSE                   53
-#define STRID_CURRENTSESSION          54
-#define STRID_ALREADY_EXIST           55
-#define STRID_RENAME_ERROR            56
-#define STRID_SESSION_CHANGED         57
-#define STRID_CONFIRM_DELETE          58
-#define STRID_RESTARTPROGRAM          59
-#define STRID_SDI_ISNTSUPPORTED       60
-#define STRID_FILTER                  61
-#define STRID_DROPTOCURRENT           62
+#define STRID_SYSTEMFONT              38
+#define STRID_SAVEDATA                39
+#define STRID_SAVEACTIVE              40
+#define STRID_SAVECODEPAGE            41
+#define STRID_SAVESELECTION           42
+#define STRID_SAVEWORDWRAP            43
+#define STRID_SAVEREADONLY            44
+#define STRID_SAVEOVERTYPE            45
+#define STRID_SAVEBOOKMARKS           46
+#define STRID_SAVEALIAS               47
+#define STRID_SAVEFOLDS               48
+#define STRID_SAVEMARKS               49
+#define STRID_SAVERELATIVE            50
+#define STRID_PLUGIN                  51
+#define STRID_OK                      52
+#define STRID_CANCEL                  53
+#define STRID_CLOSE                   54
+#define STRID_CURRENTSESSION          55
+#define STRID_ALREADY_EXIST           56
+#define STRID_RENAME_ERROR            57
+#define STRID_SESSION_CHANGED         58
+#define STRID_CONFIRM_DELETE          59
+#define STRID_RESTARTPROGRAM          60
+#define STRID_SDI_ISNTSUPPORTED       61
+#define STRID_FILTER                  62
+#define STRID_DROPTOCURRENT           63
 
 #define DLLA_SESSIONS_OPEN          1
 #define DLLA_SESSIONS_SAVE          2
@@ -342,13 +343,13 @@ typedef struct {
 //Functions prototypes
 void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow);
 void DestroyDock(HWND hWndDock, DWORD dwType);
-DWORD WINAPI ThreadProc(LPVOID lpParameter);
 LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK InputBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK ItemEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewTreeViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL LoadSessionFile(SESSION *ss);
 BOOL RenameSessionFile(const wchar_t *wpOldSessionName, const wchar_t *wpNewSessionName);
@@ -450,11 +451,10 @@ LANGID wLangModule;
 BOOL bInitCommon=FALSE;
 BOOL bInitMain=FALSE;
 DWORD dwSaveFlags=0;
-HANDLE hThread=NULL;
-DWORD dwThreadId;
 BOOL bInMemory;
 HICON hPluginIcon;
 HWND hWndMainDlg=NULL;
+HWND hWndItemsList=NULL;
 RECT rcMainMinMaxDialog={275, 388, 0, 0};
 RECT rcMainCurrentDialog={0};
 
@@ -478,6 +478,7 @@ BOOL bSaveOnExit=FALSE;
 int nDialogType=DLGT_MODAL;
 int nNewDialogType=0;
 BOOL bDockAutoload=TRUE;
+BOOL bDockSystemFont=TRUE;
 BOOL bShowPath=FALSE;
 BOOL bItemOpening=FALSE;
 BOOL bSelChanged=FALSE;
@@ -490,6 +491,7 @@ DWORD dwSaveData=SSD_ACTIVE|SSD_CODEPAGE|SSD_SELECTION|SSD_WORDWRAP|SSD_READONLY
 BOOL bSaveRelative=TRUE;
 WNDPROC OldTreeViewProc;
 WNDPROCDATA *NewMainProcData=NULL;
+WNDPROCDATA *NewEditProcData=NULL;
 
 
 //Identification
@@ -580,29 +582,35 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
   }
 
   //Initialize
-  if (!hThread)
-  {
-    if (!bInitMain) InitMain();
+  if (!bInitMain) InitMain();
 
-    if (nDialogType == DLGT_DOCKABLE)
+  if (nDialogType == DLGT_DOCKABLE)
+  {
+    if (hWndDockDlg)
     {
-      if (hWndDockDlg)
-      {
-        DestroyDock(hWndDockDlg, DKT_DEFAULT);
-      }
-      else
-      {
-        if (!pd->bOnStart || bDockAutoload)
-        {
-          bSessionsDockWaitResize=pd->bOnStart;
-          CreateDock(&hWndDockDlg, &dkSessionsDlg, !bSessionsDockWaitResize);
-        }
-      }
+      DestroyDock(hWndDockDlg, DKT_DEFAULT);
     }
     else
     {
-      if (!pd->bOnStart)
-        hThread=CreateThread(NULL, 0, ThreadProc, NULL, 0, &dwThreadId);
+      if (!pd->bOnStart || bDockAutoload)
+      {
+        bSessionsDockWaitResize=pd->bOnStart;
+        CreateDock(&hWndDockDlg, &dkSessionsDlg, !bSessionsDockWaitResize);
+      }
+    }
+  }
+  else
+  {
+    if (!pd->bOnStart)
+    {
+      if (!hWndMainDlg)
+      {
+        if (nDialogType == DLGT_MODAL)
+          DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SESSIONS), hMainWnd, (DLGPROC)MainDlgProc);
+        else
+          hWndMainDlg=CreateDialogWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SESSIONS), hMainWnd, (DLGPROC)MainDlgProc);
+      }
+      else SetActiveWindow(hWndMainDlg);
     }
   }
 
@@ -651,37 +659,6 @@ void DestroyDock(HWND hWndDock, DWORD dwType)
   SendMessage(hWndDock, WM_COMMAND, IDCANCEL, dwType);
 }
 
-DWORD WINAPI ThreadProc(LPVOID lpParameter)
-{
-  MSG msg;
-
-  hWndMainDlg=CreateDialogWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SESSIONS), hMainWnd, (DLGPROC)MainDlgProc);
-
-  if (hWndMainDlg)
-  {
-    if (nDialogType == DLGT_MODAL)
-      EnableWindow(hMainWnd, FALSE);
-
-    while (GetMessageWide(&msg, NULL, 0, 0) > 0)
-    {
-      if (TranslateAcceleratorWide(hMainWnd, hGlobalAccel, &msg))
-        continue;
-
-      if (hWndMainDlg && !IsDialogMessageWide(hWndMainDlg, &msg))
-      {
-        TranslateMessage(&msg);
-        DispatchMessageWide(&msg);
-      }
-    }
-  }
-  if (hThread)
-  {
-    CloseHandle(hThread);
-    hThread=NULL;
-  }
-  return 0;
-}
-
 LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HMENU hMenuLabel;
@@ -689,7 +666,6 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndTitleClose;
   static HWND hWndSessionAction;
   static HWND hWndSessionList;
-  static HWND hWndItemsList;
   static HWND hWndGroupSession;
   static HWND hWndOpenButton;
   static HWND hWndCloseButton;
@@ -809,6 +785,14 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AppendMenuWide(hMenuLabel, MF_STRING, IDC_SESSION_DELETE, GetLangStringW(wLangModule, STRID_DELETE));
         AppendMenuWide(hMenuLabel, MF_SEPARATOR, (UINT)-1, NULL);
         AppendMenuWide(hMenuLabel, MF_STRING, IDC_SETTINGS, GetLangStringW(wLangModule, STRID_SETTINGS));
+      }
+
+      if (!bDockSystemFont)
+      {
+        HFONT hFontEdit;
+
+        hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+        SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
       }
     }
 
@@ -935,6 +919,172 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (PtInRect(&rc, pt))
       PostMessage(hDlg, AKDLL_SETUP, 0, 0);
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if (wParam == IDC_ITEMS_LIST)
+    {
+      if (((NMHDR *)lParam)->code == (UINT)NM_CUSTOMDRAW)
+      {
+        NMTVCUSTOMDRAW *lptvcd=(NMTVCUSTOMDRAW *)lParam;
+        LRESULT lResult;
+
+        if (lptvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
+        {
+          lResult=CDRF_NOTIFYITEMDRAW;
+        }
+        else if (lptvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
+        {
+          if (bDragging)
+          {
+            if (siDraggingCursor && siDraggingCursor == (SESSIONITEM *)lptvcd->nmcd.lItemlParam)
+            {
+              lptvcd->clrTextBk=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 80);
+            }
+          }
+          lResult=CDRF_DODEFAULT;
+        }
+        else lResult=CDRF_DODEFAULT;
+
+        SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, lResult);
+        return TRUE;
+      }
+      else if (((NMTREEVIEWW *)lParam)->hdr.code == TVN_SELCHANGEDA ||
+               ((NMTREEVIEWW *)lParam)->hdr.code == TVN_SELCHANGEDW)
+      {
+        if (!bDragging)
+        {
+          NMTREEVIEWW *pnmtv=(NMTREEVIEWW *)lParam;
+
+          if (lpVirtualSession)
+          {
+            //Multi-selection
+            SESSIONITEM *lpOldItem=(SESSIONITEM *)pnmtv->itemOld.lParam;
+            SESSIONITEM *lpNewItem=(SESSIONITEM *)pnmtv->itemNew.lParam;
+            SESSIONITEM *lpCount;
+
+            if (lpOldItem && GetKeyState(VK_CONTROL) < 0)
+            {
+              if (lpOldItem->dwState & TVIS_SELECTED)
+                SelectItem(hWndItemsList, lpOldItem, TRUE);
+              if (lpNewItem)
+              {
+                if (lpNewItem->dwState & TVIS_SELECTED)
+                  SelectItem(hWndItemsList, lpNewItem, FALSE);
+                else
+                  SelectItem(hWndItemsList, lpNewItem, TRUE);
+              }
+            }
+            else if (lpOldItem && GetKeyState(VK_SHIFT) < 0)
+            {
+              SESSIONITEM *lpStartItem;
+              SESSIONITEM *lpEndItem;
+              SESSIONITEM *lpSwitchItem=NULL;
+              SESSIONITEM *lpFirstSelItem;
+              SESSIONITEM *lpLastSelItem;
+              int nOldIndex;
+              int nNewIndex;
+              int nFirstSelIndex;
+              int nLastSelIndex;
+              BOOL bSelect;
+
+              if ((nOldIndex=StackItemIndex(lpVirtualSession, lpOldItem)) &&
+                  (nNewIndex=StackItemIndex(lpVirtualSession, lpNewItem)))
+              {
+                if (StackFindSelRange(lpVirtualSession, lpOldItem, &lpFirstSelItem, &nFirstSelIndex, &lpLastSelItem, &nLastSelIndex))
+                {
+                  if (nNewIndex < nOldIndex && nNewIndex < nFirstSelIndex)
+                    lpStartItem=lpNewItem;
+                  else if (nFirstSelIndex < nOldIndex)
+                    lpStartItem=lpFirstSelItem;
+                  else
+                    lpStartItem=lpOldItem;
+
+                  if (nNewIndex >= nOldIndex && nNewIndex >= nLastSelIndex)
+                    lpEndItem=lpNewItem;
+                  else if (nLastSelIndex >= nOldIndex)
+                    lpEndItem=lpLastSelItem;
+                  else
+                    lpEndItem=lpOldItem;
+
+                  if (lpFirstSelItem == lpLastSelItem ?
+                      nNewIndex > nOldIndex :
+                      hItemCaretPrev == lpLastSelItem->hItem)
+                  {
+                    if (nOldIndex < nNewIndex)
+                      bSelect=TRUE;
+                    else
+                    {
+                      if (nFirstSelIndex <= nNewIndex)
+                        lpSwitchItem=lpNewItem;
+                      else
+                        lpSwitchItem=lpFirstSelItem;
+                      bSelect=TRUE;
+                    }
+                  }
+                  else
+                  {
+                    if (nOldIndex >= nNewIndex)
+                      bSelect=TRUE;
+                    else
+                    {
+                      if (nLastSelIndex >= nNewIndex)
+                        lpSwitchItem=lpNewItem;
+                      else
+                        lpSwitchItem=lpLastSelItem;
+                      bSelect=FALSE;
+                    }
+                  }
+
+                  //Select range
+                  for (lpCount=lpStartItem; lpCount; lpCount=StackNextItem(lpCount, NULL))
+                  {
+                    if (lpCount == lpSwitchItem && !bSelect)
+                    {
+                      lpSwitchItem=NULL;
+                      bSelect=!bSelect;
+                    }
+                    SelectItem(hWndItemsList, lpCount, bSelect);
+                    if (lpCount == lpSwitchItem && bSelect)
+                    {
+                      lpSwitchItem=NULL;
+                      bSelect=!bSelect;
+                    }
+                    if (lpCount == lpEndItem)
+                      break;
+                  }
+                }
+              }
+            }
+            else
+            {
+              //Reset selection
+              for (lpCount=lpVirtualSession->hItemsStack.first; lpCount; lpCount=StackNextItem(lpCount, NULL))
+              {
+                if ((lpCount->dwState & TVIS_SELECTED) && lpCount != lpNewItem)
+                  SelectItem(hWndItemsList, lpCount, FALSE);
+              }
+              if (lpNewItem)
+                SelectItem(hWndItemsList, lpNewItem, TRUE);
+            }
+
+            //Update selection for Win7
+            for (lpCount=lpVirtualSession->hItemsStack.first; lpCount; lpCount=StackNextItem(lpCount, NULL))
+            {
+              if ((lpCount->dwState & TVIS_SELECTED) && lpCount != lpNewItem)
+                SelectItem(hWndItemsList, lpCount, TRUE);
+            }
+            PostMessage(hDlg, AKDLL_GETCARETITEM, 0, 0);
+          }
+          bSelChanged=TRUE;
+        }
+      }
+      else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
+      {
+        if (TreeCursorItem(hWndItemsList))
+          PostMessage(hDlg, WM_COMMAND, IDC_ITEM_OPEN, 0);
+      }
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -1071,24 +1221,12 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_SESSION_CLOSE)
     {
-      if (nDialogType != DLGT_DOCKABLE)
-      {
-        if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, TRUE);
-        ShowWindow(hDlg, FALSE);
-      }
-
       if (!lpVirtualSession)
       {
         SendMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSEALL, 0);
         SendMessage(hDlg, WM_COMMAND, MAKELONG(IDC_SESSION_LIST, CBN_SELCHANGE), (LPARAM)hWndSessionList);
       }
       else CloseSession(&lpVirtualSession->hItemsStack);
-
-      if (nDialogType != DLGT_DOCKABLE)
-      {
-        ShowWindow(hDlg, TRUE);
-        if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, FALSE);
-      }
     }
     else if (LOWORD(wParam) == IDC_SESSION_SAVE ||
              LOWORD(wParam) == IDC_SESSION_COPY)
@@ -1159,23 +1297,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (lpVirtualSession)
       {
-        if (nDialogType != DLGT_DOCKABLE)
-        {
-          if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, TRUE);
-          ShowWindow(hDlg, FALSE);
-        }
-
         if (EditSessionFile(lpVirtualSession->wszSessionName))
         {
           if (nDialogType != DLGT_DOCKABLE)
             PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
           return TRUE;
-        }
-
-        if (nDialogType != DLGT_DOCKABLE)
-        {
-          ShowWindow(hDlg, TRUE);
-          if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, FALSE);
         }
       }
     }
@@ -1609,16 +1735,20 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SaveOptions(dwSaveFlags);
         dwSaveFlags=0;
       }
+      if (!(lParam & DKT_ONMAINFINISH))
+      {
+        if (SaveSessionPrompt() == IDCANCEL)
+          return 0;
+      }
+
       //Change dialog type
-      if (nNewDialogType)
+      if ((nCurDialogType == DLGT_MODAL || nCurDialogType == DLGT_MODELESS) &&
+          (nNewDialogType == DLGT_MODAL || nNewDialogType == DLGT_MODELESS))
       {
         nDialogType=nNewDialogType;
         nNewDialogType=0;
         xmemset(&rcMainCurrentDialog, 0, sizeof(RECT));
       }
-
-      if (SaveSessionPrompt() == IDCANCEL)
-        return 0;
       if (lpVirtualSession)
         StackFreeItems(lpVirtualSession);
       lpVirtualSession=NULL;
@@ -1647,183 +1777,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
       {
         //Close dialog
-        if (!IsWindowEnabled(hMainWnd))
-          EnableWindow(hMainWnd, TRUE);
-        DestroyWindow(hWndMainDlg);
+        if (nCurDialogType == DLGT_MODAL)
+          EndDialog(hWndMainDlg, 0);
+        else
+          DestroyWindow(hWndMainDlg);
         hWndMainDlg=NULL;
-
-        //Close thread
-        if (!bInMemory)
-          SendMessage(hMainWnd, AKD_DLLUNLOAD, (WPARAM)hInstanceDLL, (LPARAM)NULL);
-        CloseHandle(hThread);
-        hThread=NULL;
-        ExitThread(0);
-      }
-    }
-  }
-  else if (uMsg == WM_NOTIFY)
-  {
-    if (wParam == IDC_ITEMS_LIST)
-    {
-      if (((NMHDR *)lParam)->code == (UINT)NM_CUSTOMDRAW)
-      {
-        NMTVCUSTOMDRAW *lptvcd=(NMTVCUSTOMDRAW *)lParam;
-        LRESULT lResult;
-
-        if (lptvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
-        {
-          lResult=CDRF_NOTIFYITEMDRAW;
-        }
-        else if (lptvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
-        {
-          if (bDragging)
-          {
-            if (siDraggingCursor && siDraggingCursor == (SESSIONITEM *)lptvcd->nmcd.lItemlParam)
-            {
-              lptvcd->clrTextBk=AE_ColorBrightness(GetSysColor(COLOR_HIGHLIGHT), 80);
-            }
-          }
-          lResult=CDRF_DODEFAULT;
-        }
-        else lResult=CDRF_DODEFAULT;
-
-        SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, lResult);
-        return TRUE;
-      }
-      else if (((NMTREEVIEWW *)lParam)->hdr.code == TVN_SELCHANGEDA ||
-               ((NMTREEVIEWW *)lParam)->hdr.code == TVN_SELCHANGEDW)
-      {
-        if (!bDragging)
-        {
-          NMTREEVIEWW *pnmtv=(NMTREEVIEWW *)lParam;
-
-          if (lpVirtualSession)
-          {
-            //Multi-selection
-            SESSIONITEM *lpOldItem=(SESSIONITEM *)pnmtv->itemOld.lParam;
-            SESSIONITEM *lpNewItem=(SESSIONITEM *)pnmtv->itemNew.lParam;
-            SESSIONITEM *lpCount;
-
-            if (lpOldItem && GetKeyState(VK_CONTROL) < 0)
-            {
-              if (lpOldItem->dwState & TVIS_SELECTED)
-                SelectItem(hWndItemsList, lpOldItem, TRUE);
-              if (lpNewItem)
-              {
-                if (lpNewItem->dwState & TVIS_SELECTED)
-                  SelectItem(hWndItemsList, lpNewItem, FALSE);
-                else
-                  SelectItem(hWndItemsList, lpNewItem, TRUE);
-              }
-            }
-            else if (lpOldItem && GetKeyState(VK_SHIFT) < 0)
-            {
-              SESSIONITEM *lpStartItem;
-              SESSIONITEM *lpEndItem;
-              SESSIONITEM *lpSwitchItem=NULL;
-              SESSIONITEM *lpFirstSelItem;
-              SESSIONITEM *lpLastSelItem;
-              int nOldIndex;
-              int nNewIndex;
-              int nFirstSelIndex;
-              int nLastSelIndex;
-              BOOL bSelect;
-
-              if ((nOldIndex=StackItemIndex(lpVirtualSession, lpOldItem)) &&
-                  (nNewIndex=StackItemIndex(lpVirtualSession, lpNewItem)))
-              {
-                if (StackFindSelRange(lpVirtualSession, lpOldItem, &lpFirstSelItem, &nFirstSelIndex, &lpLastSelItem, &nLastSelIndex))
-                {
-                  if (nNewIndex < nOldIndex && nNewIndex < nFirstSelIndex)
-                    lpStartItem=lpNewItem;
-                  else if (nFirstSelIndex < nOldIndex)
-                    lpStartItem=lpFirstSelItem;
-                  else
-                    lpStartItem=lpOldItem;
-
-                  if (nNewIndex >= nOldIndex && nNewIndex >= nLastSelIndex)
-                    lpEndItem=lpNewItem;
-                  else if (nLastSelIndex >= nOldIndex)
-                    lpEndItem=lpLastSelItem;
-                  else
-                    lpEndItem=lpOldItem;
-
-                  if (lpFirstSelItem == lpLastSelItem ?
-                      nNewIndex > nOldIndex :
-                      hItemCaretPrev == lpLastSelItem->hItem)
-                  {
-                    if (nOldIndex < nNewIndex)
-                      bSelect=TRUE;
-                    else
-                    {
-                      if (nFirstSelIndex <= nNewIndex)
-                        lpSwitchItem=lpNewItem;
-                      else
-                        lpSwitchItem=lpFirstSelItem;
-                      bSelect=TRUE;
-                    }
-                  }
-                  else
-                  {
-                    if (nOldIndex >= nNewIndex)
-                      bSelect=TRUE;
-                    else
-                    {
-                      if (nLastSelIndex >= nNewIndex)
-                        lpSwitchItem=lpNewItem;
-                      else
-                        lpSwitchItem=lpLastSelItem;
-                      bSelect=FALSE;
-                    }
-                  }
-
-                  //Select range
-                  for (lpCount=lpStartItem; lpCount; lpCount=StackNextItem(lpCount, NULL))
-                  {
-                    if (lpCount == lpSwitchItem && !bSelect)
-                    {
-                      lpSwitchItem=NULL;
-                      bSelect=!bSelect;
-                    }
-                    SelectItem(hWndItemsList, lpCount, bSelect);
-                    if (lpCount == lpSwitchItem && bSelect)
-                    {
-                      lpSwitchItem=NULL;
-                      bSelect=!bSelect;
-                    }
-                    if (lpCount == lpEndItem)
-                      break;
-                  }
-                }
-              }
-            }
-            else
-            {
-              //Reset selection
-              for (lpCount=lpVirtualSession->hItemsStack.first; lpCount; lpCount=StackNextItem(lpCount, NULL))
-              {
-                if ((lpCount->dwState & TVIS_SELECTED) && lpCount != lpNewItem)
-                  SelectItem(hWndItemsList, lpCount, FALSE);
-              }
-              if (lpNewItem)
-                SelectItem(hWndItemsList, lpNewItem, TRUE);
-            }
-
-            //Update selection for Win7
-            for (lpCount=lpVirtualSession->hItemsStack.first; lpCount; lpCount=StackNextItem(lpCount, NULL))
-            {
-              if ((lpCount->dwState & TVIS_SELECTED) && lpCount != lpNewItem)
-                SelectItem(hWndItemsList, lpCount, TRUE);
-            }
-            PostMessage(hDlg, AKDLL_GETCARETITEM, 0, 0);
-          }
-          bSelChanged=TRUE;
-        }
-      }
-      else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
-      {
-        if (TreeCursorItem(hWndItemsList))
-          PostMessage(hDlg, WM_COMMAND, IDC_ITEM_OPEN, 0);
       }
     }
   }
@@ -2020,6 +1978,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndDlgTypeModeless;
   static HWND hWndDlgTypeDockable;
   static HWND hWndDlgDockAutoload;
+  static HWND hWndDlgDockSystemFont;
   static HWND hWndSaveActive;
   static HWND hWndSaveCodepage;
   static HWND hWndSaveSelection;
@@ -2048,6 +2007,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndDlgTypeModeless=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS);
     hWndDlgTypeDockable=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE);
     hWndDlgDockAutoload=GetDlgItem(hDlg, IDC_SETTINGS_DOCKAUTOLOAD);
+    hWndDlgDockSystemFont=GetDlgItem(hDlg, IDC_SETTINGS_DOCKSYSTEMFONT);
     hWndSaveActive=GetDlgItem(hDlg, IDC_SETTINGS_SAVEACTIVE);
     hWndSaveCodepage=GetDlgItem(hDlg, IDC_SETTINGS_SAVECODEPAGE);
     hWndSaveSelection=GetDlgItem(hDlg, IDC_SETTINGS_SAVESELECTION);
@@ -2073,6 +2033,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS, GetLangStringW(wLangModule, STRID_MODELESSDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE, GetLangStringW(wLangModule, STRID_DOCKABLEDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DOCKAUTOLOAD, GetLangStringW(wLangModule, STRID_AUTOLOAD));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_DOCKSYSTEMFONT, GetLangStringW(wLangModule, STRID_SYSTEMFONT));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEDATA_GROUP, GetLangStringW(wLangModule, STRID_SAVEDATA));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEACTIVE, GetLangStringW(wLangModule, STRID_SAVEACTIVE));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVECODEPAGE, GetLangStringW(wLangModule, STRID_SAVECODEPAGE));
@@ -2101,22 +2062,26 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (bOpenOnStart) SendMessage(hWndOpenOnStart, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveOnExit) SendMessage(hWndSaveOnExit, BM_SETCHECK, BST_CHECKED, 0);
     if (bShowPath) SendMessage(hWndShowPath, BM_SETCHECK, BST_CHECKED, 0);
-    if (nDialogType == DLGT_MODAL)
+    if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_MODAL)
     {
       SendMessage(hWndDlgTypeModal, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, FALSE);
+      EnableWindow(hWndDlgDockSystemFont, FALSE);
     }
-    else if (nDialogType == DLGT_MODELESS)
+    else if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_MODELESS)
     {
       SendMessage(hWndDlgTypeModeless, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, FALSE);
+      EnableWindow(hWndDlgDockSystemFont, FALSE);
     }
-    else if (nDialogType == DLGT_DOCKABLE)
+    else if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_DOCKABLE)
     {
       SendMessage(hWndDlgTypeDockable, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, TRUE);
+      EnableWindow(hWndDlgDockSystemFont, TRUE);
     }
     if (bDockAutoload) SendMessage(hWndDlgDockAutoload, BM_SETCHECK, BST_CHECKED, 0);
+    if (bDockSystemFont) SendMessage(hWndDlgDockSystemFont, BM_SETCHECK, BST_CHECKED, 0);
 
     if (dwSaveData & SSD_ACTIVE) SendMessage(hWndSaveActive, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODEPAGE) SendMessage(hWndSaveCodepage, BM_SETCHECK, BST_CHECKED, 0);
@@ -2141,6 +2106,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE)
     {
       EnableWindow(hWndDlgDockAutoload, (LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE));
+      EnableWindow(hWndDlgDockSystemFont, (LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE));
     }
     else if (LOWORD(wParam) == IDC_SETTINGS_OPENONSTART)
     {
@@ -2185,12 +2151,24 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
         else if (!hWndDockDlg)
         {
-          EnableWindow(hMainWnd, nState == DLGT_MODELESS);
-          nDialogType=nState;
           nNewDialogType=nState;
         }
       }
       bDockAutoload=(BOOL)SendMessage(hWndDlgDockAutoload, BM_GETCHECK, 0, 0);
+
+      nState=(BOOL)SendMessage(hWndDlgDockSystemFont, BM_GETCHECK, 0, 0);
+      if (nState != bDockSystemFont)
+      {
+        bDockSystemFont=nState;
+        if (!bDockSystemFont)
+        {
+          HFONT hFontEdit;
+
+          hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+          SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
+        }
+        else SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)NULL, FALSE);
+      }
 
       //Save data
       dwSaveData=0;
@@ -2614,6 +2592,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (*wszSaveOnExit)
         SaveCurrentSession(wszSaveOnExit);
     }
+    if (hWndMainDlg)
+    {
+      if (SaveSessionPrompt() == IDCANCEL)
+        return FALSE;
+    }
   }
   else if (uMsg == AKDN_MAIN_ONFINISH)
   {
@@ -2630,6 +2613,20 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Call next procedure
   return NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_SETFONT)
+  {
+    if (dkSessionsDlg && !bDockSystemFont)
+    {
+      SendMessage(hWndItemsList, WM_SETFONT, wParam, FALSE);
+    }
+  }
+
+  //Call next procedure
+  return NewEditProcData->NextProc(hWnd, uMsg, wParam, lParam);
 }
 
 BOOL LoadSessionFile(SESSION *ss)
@@ -4097,31 +4094,12 @@ void OpenItem(SESSIONITEM *si)
 
 BOOL CloseItem(FRAMEDATA *lpFrame, BOOL bSingle)
 {
-  BOOL bModified;
   BOOL bResult=TRUE;
 
   if (lpFrame)
   {
     SendMessage(hMainWnd, AKD_FRAMEACTIVATE, 0, (LPARAM)lpFrame);
-    bModified=lpFrame->ei.bModified;
-
-    if (bSingle && bModified)
-    {
-      if (nDialogType != DLGT_DOCKABLE)
-      {
-        if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, TRUE);
-        ShowWindow(hWndMainDlg, FALSE);
-      }
-    }
     bResult=(BOOL)SendMessage(hMainWnd, WM_COMMAND, IDM_WINDOW_FRAMECLOSE, 0);
-    if (bSingle && bModified)
-    {
-      if (nDialogType != DLGT_DOCKABLE)
-      {
-        ShowWindow(hWndMainDlg, TRUE);
-        if (nDialogType == DLGT_MODAL) EnableWindow(hMainWnd, FALSE);
-      }
-    }
   }
   return bResult;
 }
@@ -4878,6 +4856,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
     WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
     WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
+    WideOption(hOptions, L"DockSystemFont", PO_DWORD, (LPBYTE)&bDockSystemFont, sizeof(DWORD));
     WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nDialogType, sizeof(DWORD));
 
     if (nDialogType == DLGT_DOCKABLE)
@@ -4908,6 +4887,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
       WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
       WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
+      WideOption(hOptions, L"DockSystemFont", PO_DWORD, (LPBYTE)&bDockSystemFont, sizeof(DWORD));
       if (nNewDialogType)
         WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nNewDialogType, sizeof(DWORD));
     }
@@ -5012,6 +4992,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041F\x0440\x0438\x043A\x0440\x0435\x043F\x043B\x0435\x043D\x043D\x044B\x0439\x0020\x0434\x0438\x0430\x043B\x043E\x0433";
     if (nStringID == STRID_AUTOLOAD)
       return L"\x0410\x0432\x0442\x043E\x0437\x0430\x0433\x0440\x0443\x0437\x043A\x0430";
+    if (nStringID == STRID_SYSTEMFONT)
+      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0439\x0020\x0448\x0440\x0438\x0444\x0442";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_SAVEDATA)
@@ -5139,6 +5121,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Dockable dialog";
     if (nStringID == STRID_AUTOLOAD)
       return L"Autoload";
+    if (nStringID == STRID_SYSTEMFONT)
+      return L"System font";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_SAVEDATA)
@@ -5267,6 +5251,12 @@ void InitMain()
   NewMainProcData=NULL;
   SendMessage(hMainWnd, AKD_SETMAINPROC, (WPARAM)NewMainProc, (LPARAM)&NewMainProcData);
 
+  if (nDialogType == DLGT_DOCKABLE)
+  {
+    NewEditProcData=NULL;
+    SendMessage(hMainWnd, AKD_SETEDITPROC, (WPARAM)NewEditProc, (LPARAM)&NewEditProcData);
+  }
+
   //Create image list
   {
     HICON hIcon;
@@ -5297,6 +5287,11 @@ void UninitMain()
   {
     SendMessage(hMainWnd, AKD_SETMAINPROC, (WPARAM)NULL, (LPARAM)&NewMainProcData);
     NewMainProcData=NULL;
+  }
+  if (NewEditProcData)
+  {
+    SendMessage(hMainWnd, AKD_SETEDITPROC, (WPARAM)NULL, (LPARAM)&NewEditProcData);
+    NewEditProcData=NULL;
   }
 
   FreeSessions(&hSessionStack);
