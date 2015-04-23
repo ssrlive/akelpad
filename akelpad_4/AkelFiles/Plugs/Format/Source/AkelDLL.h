@@ -3750,13 +3750,17 @@ __________________
 
 Get program version.
 
-wParam == not used.
-lParam == not used.
+wParam        == not used.
+(DWORD)lParam == version number to compare. Can be zero.
 
 Return Value
- Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ If lParam is zero, returns program version. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ If lParam is non-zero, returns compare result of program version with lParam:
+   -1  program version less than lParam.
+    0  program version identical to lParam.
+    1  program version greater than lParam.
 
-Example:
+Example (get program version):
  DWORD dwVersion;
  DWORD dwMajor;
  DWORD dwMinor;
@@ -3769,19 +3773,26 @@ Example:
  dwRelease=LOBYTE(HIWORD(dwVersion));
  dwBuild=HIBYTE(HIWORD(dwVersion));
 
+Example (compare program version):
+ int nCompare=(int)SendMessage(pd->hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 4, 0));
+
 
 AKD_PROGRAMARCHITECTURE
 _______________________
 
 Get program architecture (AkelDLL) version.
 
-wParam == not used.
-lParam == not used.
+wParam        == not used.
+(DWORD)lParam == version number to compare. Can be zero.
 
 Return Value
- Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ If lParam is zero, returns architecture version. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ If lParam is non-zero, returns compare result of architecture version with lParam:
+   -1  architecture version less than lParam.
+    0  architecture version identical to lParam.
+    1  architecture version greater than lParam.
 
-Example:
+Example (get architecture version):
  DWORD dwVersion;
  DWORD dwMajor;
  DWORD dwMinor;
@@ -3793,6 +3804,9 @@ Example:
  dwMinor=HIBYTE(LOWORD(dwVersion));
  dwRelease=LOBYTE(HIWORD(dwVersion));
  dwBuild=HIBYTE(HIWORD(dwVersion));
+
+Example (compare architecture version):
+ int nCompare=(int)SendMessage(pd->hMainWnd, AKD_PROGRAMARCHITECTURE, 0, MAKE_IDENTIFIER(2, 1, 0, 0));
 
 
 AKD_GETMAININFO
@@ -4050,7 +4064,7 @@ Return Value
 
 Example:
  int nType;
- HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, 0, (LPARAM)&nType);
+ HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, (WPARAM)NULL, (LPARAM)&nType);
 
 
 AKD_SETMODELESS
