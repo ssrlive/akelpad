@@ -422,6 +422,7 @@ UINT dwLoadStringLastID=0;
 //Modeless dialog
 HWND hDlgModeless=NULL;
 int nModelessType=MLT_NONE;
+STACKMODELESS hModelessStack={0};
 
 //Recode dialog
 RECT rcRecodeMinMaxDialog={246, 264, 0, 0};
@@ -1314,6 +1315,7 @@ void WinMainCleanUp()
   StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
   StackBkImageFree(&hBkImagesStack);
+  StackModelessFree(&hModelessStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
   StackFramesFree(&hFramesStack);
@@ -3569,19 +3571,59 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Windows
       case AKD_GETMODELESS:
       {
-        BOOL *bType=(BOOL *)lParam;
+        int *lpnType=(int *)lParam;
 
-        if (bType) *bType=nModelessType;
-        return (LRESULT)hDlgModeless;
+        if (!wParam || (HWND)wParam == hDlgModeless)
+        {
+          //Single
+          if (lpnType) *lpnType=nModelessType;
+          return (LRESULT)hDlgModeless;
+        }
+        else
+        {
+          //Stack
+          MODELESS *lpModeless;
+
+          if (lpModeless=StackModelessGet(&hModelessStack, (HWND)wParam))
+          {
+            if (lpnType) *lpnType=MLT_STACK;
+            return (LRESULT)lpModeless->hWnd;
+          }
+          if (lpnType) *lpnType=MLT_NONE;
+          return (LRESULT)NULL;
+        }
       }
       case AKD_SETMODELESS:
       {
-        hDlgModeless=(HWND)wParam;
-        if (hDlgModeless)
-          nModelessType=MLT_CUSTOM;
-        else
-          nModelessType=MLT_NONE;
-        return 0;
+        if (lParam == MLA_SINGLE)
+        {
+          if ((nModelessType == MLT_NONE && wParam) ||
+              (nModelessType == MLT_CUSTOM && !wParam))
+          {
+            hDlgModeless=(HWND)wParam;
+            if (hDlgModeless)
+              nModelessType=MLT_CUSTOM;
+            else
+              nModelessType=MLT_NONE;
+            return TRUE;
+          }
+          return FALSE;
+        }
+        else if (lParam == MLA_ADD)
+        {
+          if (StackModelessAdd(&hModelessStack, (HWND)wParam))
+            return TRUE;
+          return FALSE;
+        }
+        else if (lParam == MLA_DELETE)
+        {
+          return StackModelessDelete(&hModelessStack, (HWND)wParam);
+        }
+        else if (lParam == MLA_CLEAR)
+        {
+          StackModelessFree(&hModelessStack);
+          return TRUE;
+        }
       }
       case AKD_RESIZE:
       {

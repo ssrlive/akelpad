@@ -207,6 +207,7 @@ extern UINT dwLoadStringLastID;
 //Modeless dialog
 extern HWND hDlgModeless;
 extern int nModelessType;
+extern STACKMODELESS hModelessStack;
 
 //Recode dialog
 extern RECT rcRecodeMinMaxDialog;
@@ -17062,7 +17063,20 @@ BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
   }
   else
   {
+    MODELESS *lpModeless;
     DOCK *lpDock;
+
+    for (lpModeless=hModelessStack.first; lpModeless; lpModeless=lpModeless->next)
+    {
+      if (lpModeless->hWnd && IsDialogMessageWide(lpModeless->hWnd, lpMsg))
+      {
+        if (lpMsg->hwnd != lpModeless->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+        {
+          SendMessageWide(lpModeless->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+        }
+        return TRUE;
+      }
+    }
 
     for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
     {
@@ -17080,6 +17094,47 @@ BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
     }
   }
   return FALSE;
+}
+
+
+//// Modeless stack
+
+MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd)
+{
+  MODELESS *lpModeless;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpModeless, -1, sizeof(MODELESS)))
+    lpModeless->hWnd=hWnd;
+  return lpModeless;
+}
+
+MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd)
+{
+  MODELESS *lpModeless;
+
+  for (lpModeless=hStack->first; lpModeless; lpModeless=lpModeless->next)
+  {
+    if (lpModeless->hWnd == hWnd)
+      break;
+  }
+  return lpModeless;
+}
+
+BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd)
+{
+  MODELESS *lpModeless;
+
+  if (lpModeless=StackModelessGet(hStack, hWnd))
+  {
+    if (!StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpModeless))
+      return TRUE;
+  }
+  return FALSE;
+}
+
+void StackModelessFree(STACKMODELESS *hStack)
+{
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 
