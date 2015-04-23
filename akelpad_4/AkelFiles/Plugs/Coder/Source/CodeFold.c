@@ -4293,7 +4293,11 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
         {
           //Fold start
           if (lpFoldInfo->lpFoldStart->dwFlags & FIF_REGEXPSTART)
+          {
             bMatch=IsMatchRE(&lpFoldInfo->lpFoldStart->sregStart, &ft.crFound, &ciCount);
+            if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDSTART))
+              return lpFoldInfo;
+          }
           else
           {
             ft.dwFlags=lpFoldInfo->dwFlags;
@@ -4310,7 +4314,11 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
 
           //Fold end
           if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
+          {
             bMatch=IsMatchRE(&lpFoldInfo->sregEnd, &ft.crFound, &ciCount);
+            if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDEND))
+              return lpFoldInfo;
+          }
           else
           {
             ft.dwFlags=lpFoldInfo->dwFlags;
