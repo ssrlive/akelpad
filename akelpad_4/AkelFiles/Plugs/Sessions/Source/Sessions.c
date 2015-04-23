@@ -478,7 +478,7 @@ BOOL bSaveOnExit=FALSE;
 int nDialogType=DLGT_MODAL;
 int nNewDialogType=0;
 BOOL bDockAutoload=TRUE;
-BOOL bDockSystemFont=TRUE;
+BOOL bListSystemFont=TRUE;
 BOOL bShowPath=FALSE;
 BOOL bItemOpening=FALSE;
 BOOL bSelChanged=FALSE;
@@ -786,14 +786,14 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AppendMenuWide(hMenuLabel, MF_SEPARATOR, (UINT)-1, NULL);
         AppendMenuWide(hMenuLabel, MF_STRING, IDC_SETTINGS, GetLangStringW(wLangModule, STRID_SETTINGS));
       }
+    }
 
-      if (!bDockSystemFont)
-      {
-        HFONT hFontEdit;
+    if (!bListSystemFont)
+    {
+      HFONT hFontEdit;
 
-        hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
-        SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
-      }
+      hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+      SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
     }
 
     ImageList_SetBkColor(hImageList, (COLORREF)SendMessage(hWndItemsList, TVM_GETBKCOLOR, 0, 0));
@@ -805,6 +805,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //SubClass listbox
     OldTreeViewProc=(WNDPROC)GetWindowLongPtrWide(hWndItemsList, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndItemsList, GWLP_WNDPROC, (UINT_PTR)NewTreeViewProc);
+
+    if (nDialogType == DLGT_MODELESS)
+      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_ADD);
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -1780,7 +1783,10 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nCurDialogType == DLGT_MODAL)
           EndDialog(hWndMainDlg, 0);
         else
+        {
+          SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_DELETE);
           DestroyWindow(hWndMainDlg);
+        }
         hWndMainDlg=NULL;
       }
     }
@@ -1978,7 +1984,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndDlgTypeModeless;
   static HWND hWndDlgTypeDockable;
   static HWND hWndDlgDockAutoload;
-  static HWND hWndDlgDockSystemFont;
+  static HWND hWndDlgSystemFont;
   static HWND hWndSaveActive;
   static HWND hWndSaveCodepage;
   static HWND hWndSaveSelection;
@@ -2007,7 +2013,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndDlgTypeModeless=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS);
     hWndDlgTypeDockable=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE);
     hWndDlgDockAutoload=GetDlgItem(hDlg, IDC_SETTINGS_DOCKAUTOLOAD);
-    hWndDlgDockSystemFont=GetDlgItem(hDlg, IDC_SETTINGS_DOCKSYSTEMFONT);
+    hWndDlgSystemFont=GetDlgItem(hDlg, IDC_SETTINGS_SYSTEMFONT);
     hWndSaveActive=GetDlgItem(hDlg, IDC_SETTINGS_SAVEACTIVE);
     hWndSaveCodepage=GetDlgItem(hDlg, IDC_SETTINGS_SAVECODEPAGE);
     hWndSaveSelection=GetDlgItem(hDlg, IDC_SETTINGS_SAVESELECTION);
@@ -2033,7 +2039,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS, GetLangStringW(wLangModule, STRID_MODELESSDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE, GetLangStringW(wLangModule, STRID_DOCKABLEDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DOCKAUTOLOAD, GetLangStringW(wLangModule, STRID_AUTOLOAD));
-    SetDlgItemTextWide(hDlg, IDC_SETTINGS_DOCKSYSTEMFONT, GetLangStringW(wLangModule, STRID_SYSTEMFONT));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SYSTEMFONT, GetLangStringW(wLangModule, STRID_SYSTEMFONT));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEDATA_GROUP, GetLangStringW(wLangModule, STRID_SAVEDATA));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEACTIVE, GetLangStringW(wLangModule, STRID_SAVEACTIVE));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVECODEPAGE, GetLangStringW(wLangModule, STRID_SAVECODEPAGE));
@@ -2066,22 +2072,19 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       SendMessage(hWndDlgTypeModal, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, FALSE);
-      EnableWindow(hWndDlgDockSystemFont, FALSE);
     }
     else if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_MODELESS)
     {
       SendMessage(hWndDlgTypeModeless, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, FALSE);
-      EnableWindow(hWndDlgDockSystemFont, FALSE);
     }
     else if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_DOCKABLE)
     {
       SendMessage(hWndDlgTypeDockable, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndDlgDockAutoload, TRUE);
-      EnableWindow(hWndDlgDockSystemFont, TRUE);
     }
     if (bDockAutoload) SendMessage(hWndDlgDockAutoload, BM_SETCHECK, BST_CHECKED, 0);
-    if (bDockSystemFont) SendMessage(hWndDlgDockSystemFont, BM_SETCHECK, BST_CHECKED, 0);
+    if (bListSystemFont) SendMessage(hWndDlgSystemFont, BM_SETCHECK, BST_CHECKED, 0);
 
     if (dwSaveData & SSD_ACTIVE) SendMessage(hWndSaveActive, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODEPAGE) SendMessage(hWndSaveCodepage, BM_SETCHECK, BST_CHECKED, 0);
@@ -2106,7 +2109,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE)
     {
       EnableWindow(hWndDlgDockAutoload, (LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE));
-      EnableWindow(hWndDlgDockSystemFont, (LOWORD(wParam) == IDC_SETTINGS_DLGTYPE_DOCKABLE));
     }
     else if (LOWORD(wParam) == IDC_SETTINGS_OPENONSTART)
     {
@@ -2156,11 +2158,11 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       bDockAutoload=(BOOL)SendMessage(hWndDlgDockAutoload, BM_GETCHECK, 0, 0);
 
-      nState=(BOOL)SendMessage(hWndDlgDockSystemFont, BM_GETCHECK, 0, 0);
-      if (nState != bDockSystemFont)
+      nState=(BOOL)SendMessage(hWndDlgSystemFont, BM_GETCHECK, 0, 0);
+      if (nState != bListSystemFont)
       {
-        bDockSystemFont=nState;
-        if (!bDockSystemFont)
+        bListSystemFont=nState;
+        if (!bListSystemFont)
         {
           HFONT hFontEdit;
 
@@ -2619,7 +2621,7 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_SETFONT)
   {
-    if (dkSessionsDlg && !bDockSystemFont)
+    if (hWndMainDlg && !bListSystemFont)
     {
       SendMessage(hWndItemsList, WM_SETFONT, wParam, FALSE);
     }
@@ -4856,7 +4858,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
     WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
     WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
-    WideOption(hOptions, L"DockSystemFont", PO_DWORD, (LPBYTE)&bDockSystemFont, sizeof(DWORD));
+    WideOption(hOptions, L"ListSystemFont", PO_DWORD, (LPBYTE)&bListSystemFont, sizeof(DWORD));
     WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nDialogType, sizeof(DWORD));
 
     if (nDialogType == DLGT_DOCKABLE)
@@ -4887,7 +4889,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
       WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
       WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
-      WideOption(hOptions, L"DockSystemFont", PO_DWORD, (LPBYTE)&bDockSystemFont, sizeof(DWORD));
+      WideOption(hOptions, L"ListSystemFont", PO_DWORD, (LPBYTE)&bListSystemFont, sizeof(DWORD));
       if (nNewDialogType)
         WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nNewDialogType, sizeof(DWORD));
     }
@@ -4993,7 +4995,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_AUTOLOAD)
       return L"\x0410\x0432\x0442\x043E\x0437\x0430\x0433\x0440\x0443\x0437\x043A\x0430";
     if (nStringID == STRID_SYSTEMFONT)
-      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0439\x0020\x0448\x0440\x0438\x0444\x0442";
+      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0439\x0020\x0448\x0440\x0438\x0444\x0442\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_SAVEDATA)
@@ -5122,7 +5124,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     if (nStringID == STRID_AUTOLOAD)
       return L"Autoload";
     if (nStringID == STRID_SYSTEMFONT)
-      return L"System font";
+      return L"System font in list";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_SAVEDATA)
