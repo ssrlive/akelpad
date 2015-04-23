@@ -13848,7 +13848,7 @@ DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
   if ((dwType & TMSG_GLOBAL) && TranslateMessageGlobal(lpMsg))
     return TMSG_GLOBAL;
 
-  if ((dwType & TMSG_DIALOG) && TranslateMessageDialog(&hDocksStack, lpMsg))
+  if ((dwType & TMSG_DIALOG) && TranslateMessageDialog(lpMsg))
     return TMSG_DIALOG;
 
   if ((dwType & TMSG_PLUGIN) && TranslateMessagePlugin(lpMsg))
@@ -17051,8 +17051,11 @@ void StackDockFree(STACKDOCK *hDocks)
   hDocks->nElements=0;
 }
 
-BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
+BOOL TranslateMessageDialog(LPMSG lpMsg)
 {
+  MODELESS *lpModeless;
+  DOCK *lpDock;
+
   if (hDlgModeless && IsDialogMessageWide(hDlgModeless, lpMsg))
   {
     if (lpMsg->hwnd != hDlgModeless && lpMsg->message >= WM_KEYDOWN && lpMsg->message <= WM_KEYUP)
@@ -17061,38 +17064,34 @@ BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg)
     }
     return TRUE;
   }
-  else
-  {
-    MODELESS *lpModeless;
-    DOCK *lpDock;
 
-    for (lpModeless=hModelessStack.first; lpModeless; lpModeless=lpModeless->next)
+  for (lpModeless=hModelessStack.first; lpModeless; lpModeless=lpModeless->next)
+  {
+    if (lpModeless->hWnd && IsDialogMessageWide(lpModeless->hWnd, lpMsg))
     {
-      if (lpModeless->hWnd && IsDialogMessageWide(lpModeless->hWnd, lpMsg))
+      if (lpMsg->hwnd != lpModeless->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
       {
-        if (lpMsg->hwnd != lpModeless->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+        SendMessageWide(lpModeless->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      }
+      return TRUE;
+    }
+  }
+
+  for (lpDock=hDocksStack.first; lpDock; lpDock=lpDock->next)
+  {
+    if (!(lpDock->dwFlags & DKF_OWNTHREAD))
+    {
+      if (lpDock->hWnd && IsDialogMessageWide(lpDock->hWnd, lpMsg))
+      {
+        if (!(lpDock->dwFlags & DKF_NOKEYSEND) && lpMsg->hwnd != lpDock->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
         {
-          SendMessageWide(lpModeless->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+          SendMessageWide(lpDock->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
         }
         return TRUE;
       }
     }
-
-    for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
-    {
-      if (!(lpDock->dwFlags & DKF_OWNTHREAD))
-      {
-        if (lpDock->hWnd && IsDialogMessageWide(lpDock->hWnd, lpMsg))
-        {
-          if (!(lpDock->dwFlags & DKF_NOKEYSEND) && lpMsg->hwnd != lpDock->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
-          {
-            SendMessageWide(lpDock->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-          }
-          return TRUE;
-        }
-      }
-    }
   }
+
   return FALSE;
 }
 

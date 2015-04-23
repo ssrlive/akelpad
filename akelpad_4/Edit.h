@@ -1068,7 +1068,7 @@ DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen);
 HDWP StackDockSize(HDWP hDwp, STACKDOCK *hDocks, NSIZE *ns);
 BOOL StackDockUpdateCheck(STACKDOCK *hDocks);
 void StackDockFree(STACKDOCK *hDocks);
-BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg);
+BOOL TranslateMessageDialog(LPMSG lpMsg);
 
 MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd);
 MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd);
