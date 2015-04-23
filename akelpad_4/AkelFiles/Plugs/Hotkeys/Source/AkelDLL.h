@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 3)
 
 
 //// Defines
@@ -777,12 +777,19 @@
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
 
 //AKD_GETMODELESS types
-#define MLT_NONE     0 //No registered modeless dialog open.
-#define MLT_CUSTOM   1 //Dialog registered with AKD_SETMODELESS.
-#define MLT_RECODE   2 //Recode dialog.
-#define MLT_FIND     3 //Find dialog.
-#define MLT_REPLACE  4 //Replace dialog.
-#define MLT_GOTO     5 //Go to dialog.
+#define MLT_NONE      0 //No modeless dialog.
+#define MLT_CUSTOM    1 //Single dialog registered with AKD_SETMODELESS.
+#define MLT_RECODE    2 //Single recode dialog.
+#define MLT_FIND      3 //Single find dialog.
+#define MLT_REPLACE   4 //Single replace dialog.
+#define MLT_GOTO      5 //Single go to dialog.
+#define MLT_STACK    10 //Dialog handle is in stack.
+
+//AKD_SETMODELESS action
+#define MLA_SINGLE   0 //Register single modeless dialog.
+#define MLA_ADD      1 //Add dialog handle to stack.
+#define MLA_DELETE   2 //Delete dialog handle from stack.
+#define MLA_CLEAR    3 //Clear dialog handles stack.
 
 //AKDN_INITDIALOGBEGIN and AKDN_INITDIALOGEND types
 #define IDT_OPENFILE       1  //NINITDIALOG.lParam is a pointer to a DIALOGCODEPAGE structure.
@@ -1576,6 +1583,17 @@ typedef struct _DOCK {
   RECT rcDragDrop;        //Drag-and-drop client RECT.
   WNDPROC lpOldDockProc;  //Procedure address before subclassing.
 } DOCK;
+
+typedef struct _MODELESS {
+  struct _MODELESS *next;
+  struct _MODELESS *prev;
+  HWND hWnd;
+} MODELESS;
+
+typedef struct {
+  MODELESS *first;
+  MODELESS *last;
+} STACKMODELESS;
 
 typedef struct {
   DWORD dwFlags;          //See BIF_* defines.
@@ -4024,7 +4042,7 @@ _______________
 
 Get modeless dialog handle.
 
-wParam        == not used.
+(HWND)wParam  == dialog handle to test. If NULL, test current single modeless dialog.
 (int *)lParam == pointer to a variable that receive dialog MLT_* type. Can be NULL.
 
 Return Value
@@ -4041,16 +4059,17 @@ _______________
 Set modeless dialog handle.
 
 (HWND)wParam == dialog handle.
-lParam       == not used.
+(int)lParam  == see MLA_* defines.
 
 Return Value
- Zero.
+ TRUE   success.
+ FALSE  failed.
 
 Remarks
- Only one dialog can be registered as modeless. Application should unregister dialog before closing, passing NULL in wParam.
+ Only one dialog can be assigned as modeless. Application should unassign dialog before closing, passing NULL in wParam.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETMODELESS, (LPARAM)hMyDialog, 0);
+ SendMessage(pd->hMainWnd, AKD_SETMODELESS, (LPARAM)hMyDialog, MLA_SINGLE);
 
 
 AKD_RESIZE

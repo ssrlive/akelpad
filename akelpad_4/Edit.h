@@ -1070,6 +1070,11 @@ BOOL StackDockUpdateCheck(STACKDOCK *hDocks);
 void StackDockFree(STACKDOCK *hDocks);
 BOOL TranslateMessageDialog(STACKDOCK *hDocks, LPMSG lpMsg);
 
+MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd);
+MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd);
+BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd);
+void StackModelessFree(STACKMODELESS *hStack);
+
 int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
 int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc);
 void StackProcFree(HSTACK *hStack);
