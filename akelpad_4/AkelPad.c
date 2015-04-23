@@ -2365,10 +2365,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Options
       case AKD_PROGRAMVERSION:
       {
+        if (lParam)
+          return IdentifierCompare(dwExeVersion, lParam);
         return dwExeVersion;
       }
       case AKD_PROGRAMARCHITECTURE:
       {
+        if (lParam)
+          return IdentifierCompare(AKELDLL, lParam);
         return AKELDLL;
       }
       case AKD_GETMAININFO:

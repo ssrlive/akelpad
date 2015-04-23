@@ -13695,7 +13695,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
           {
             if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
             {
-              if (VersionCompare(pv.dwExeMinVersion4x, dwExeVersion) <= 0)
+              if (IdentifierCompare(pv.dwExeMinVersion4x, dwExeVersion) <= 0)
               {
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
@@ -13798,7 +13798,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
             {
               wchar_t wszStr[MAX_PATH];
 
-              if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
+              if (IdentifierCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
                 xstrcpynW(wszStr, wszPluginWord, MAX_PATH);
               else
                 xstrcpynW(wszStr, L"AkelPad", MAX_PATH);
@@ -21256,16 +21256,16 @@ BOOL GetFileVersionW(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRele
   return bResult;
 }
 
-int VersionCompare(DWORD dwVersion1, DWORD dwVersion2)
+int IdentifierCompare(DWORD dwVersion1, DWORD dwVersion2)
 {
   if (LOBYTE(dwVersion1) != LOBYTE(dwVersion2))
-    return LOBYTE(dwVersion1) - LOBYTE(dwVersion2);
+    return LOBYTE(dwVersion1) - LOBYTE(dwVersion2) > 0 ? 1 : -1;
   if (HIBYTE(dwVersion1) != HIBYTE(dwVersion2))
-    return HIBYTE(dwVersion1) - HIBYTE(dwVersion2);
+    return HIBYTE(dwVersion1) - HIBYTE(dwVersion2) > 0 ? 1 : -1;
   if (LOBYTE(HIWORD(dwVersion1)) != LOBYTE(HIWORD(dwVersion2)))
-    return LOBYTE(HIWORD(dwVersion1)) - LOBYTE(HIWORD(dwVersion2));
+    return LOBYTE(HIWORD(dwVersion1)) - LOBYTE(HIWORD(dwVersion2)) > 0 ? 1 : -1;
   if (HIBYTE(HIWORD(dwVersion1)) != HIBYTE(HIWORD(dwVersion2)))
-    return HIBYTE(HIWORD(dwVersion1)) - HIBYTE(HIWORD(dwVersion2));
+    return HIBYTE(HIWORD(dwVersion1)) - HIBYTE(HIWORD(dwVersion2)) > 0 ? 1 : -1;
   return 0;
 }
 
