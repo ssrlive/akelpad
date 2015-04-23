@@ -646,9 +646,14 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       if (lpREGroupItem->parent->nGroupLen != -1)
       {
         if (lpREGroupItem->nGroupLen != -1)
-          lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
-        else
-          lpREGroupItem->parent->nGroupLen=-1;
+        {
+          if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
+          {
+            //Don't count non-capture group.
+          }
+          else lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
+        }
+        else lpREGroupItem->parent->nGroupLen=-1;
       }
       if ((lpREGroupItem->parent->dwFlags & REGF_IFPARENT) && lpREGroupItem->parent->firstChild == lpREGroupItem->parent->lastChild)
       {
@@ -1999,9 +2004,14 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
     if (lpREGroupItem->parent->nGroupLen != -1)
     {
       if (lpREGroupItem->nGroupLen != -1)
-        lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
-      else
-        lpREGroupItem->parent->nGroupLen=-1;
+      {
+        if (lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
+        {
+          //Don't count non-capture group.
+        }
+        else lpREGroupItem->parent->nGroupLen+=lpREGroupItem->nGroupLen;
+      }
+      else lpREGroupItem->parent->nGroupLen=-1;
     }
     lpREGroupItem=lpREGroupItem->parent;
   }

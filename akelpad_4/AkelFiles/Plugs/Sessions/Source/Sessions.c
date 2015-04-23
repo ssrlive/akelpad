@@ -807,7 +807,10 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowLongPtrWide(hWndItemsList, GWLP_WNDPROC, (UINT_PTR)NewTreeViewProc);
 
     if (nDialogType == DLGT_MODELESS)
-      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_ADD);
+    {
+      if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
+        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_ADD);
+    }
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -1784,7 +1787,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EndDialog(hWndMainDlg, 0);
         else
         {
-          SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_DELETE);
+          if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
+            SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_DELETE);
+
           DestroyWindow(hWndMainDlg);
         }
         hWndMainDlg=NULL;
