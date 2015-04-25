@@ -831,10 +831,6 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bProcess) return lResult;
     }
   }
-  else if (uMsg == WM_MOVE)
-  {
-    bMainMoved=TRUE;
-  }
   else if (uMsg == AKDN_MAIN_ONFINISH)
   {
     NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
@@ -995,10 +991,9 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       //On ComCtl32.dll version 6.10 horizontal separator (TBSTATE_WRAP + TBSTYLE_SEP)
       //erased if window moved outside the screen and then moved back.
       //Use timer for more soft update not often than 100 ms.
-      if (bMainMoved && !dwPaintTimerId)
+      if (!dwPaintTimerId)
       {
         dwPaintTimerId=SetTimer(NULL, 0, 100, (TIMERPROC)PaintTimerProc);
-        bMainMoved=FALSE;
       }
     }
   }
