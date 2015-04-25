@@ -189,6 +189,13 @@
 #define ROWSHOW_OFF       0
 #define ROWSHOW_ON        1
 
+#ifndef BTNS_WHOLEDROPDOWN
+  #define BTNS_WHOLEDROPDOWN 0x0080
+#endif
+#ifndef TBSTYLE_EX_DOUBLEBUFFER
+  #define TBSTYLE_EX_DOUBLEBUFFER 0x00000080
+#endif
+
 typedef struct _STATEIF {
   struct _STATEIF *next;
   struct _STATEIF *prev;
@@ -361,6 +368,7 @@ HWND hWndMainDlg=NULL;
 RECT rcMainMinMaxDialog={532, 174, 0, 0};
 RECT rcMainCurrentDialog={0};
 int nFocusChanged=0;
+BOOL bMainMoved=FALSE;
 WNDPROC lpOldToolbarProc=NULL;
 WNDPROC lpOldEditDlgProc=NULL;
 WNDPROCDATA *NewMainProcData=NULL;
@@ -823,6 +831,10 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bProcess) return lResult;
     }
   }
+  else if (uMsg == WM_MOVE)
+  {
+    bMainMoved=TRUE;
+  }
   else if (uMsg == AKDN_MAIN_ONFINISH)
   {
     NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
@@ -983,8 +995,11 @@ LRESULT CALLBACK NewToolbarProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       //On ComCtl32.dll version 6.10 horizontal separator (TBSTATE_WRAP + TBSTYLE_SEP)
       //erased if window moved outside the screen and then moved back.
       //Use timer for more soft update not often than 100 ms.
-      if (!dwPaintTimerId)
+      if (bMainMoved && !dwPaintTimerId)
+      {
         dwPaintTimerId=SetTimer(NULL, 0, 100, (TIMERPROC)PaintTimerProc);
+        bMainMoved=FALSE;
+      }
     }
   }
   else if (uMsg == WM_LBUTTONDBLCLK)
