@@ -368,7 +368,6 @@ HWND hWndMainDlg=NULL;
 RECT rcMainMinMaxDialog={532, 174, 0, 0};
 RECT rcMainCurrentDialog={0};
 int nFocusChanged=0;
-BOOL bMainMoved=FALSE;
 WNDPROC lpOldToolbarProc=NULL;
 WNDPROC lpOldEditDlgProc=NULL;
 WNDPROCDATA *NewMainProcData=NULL;
