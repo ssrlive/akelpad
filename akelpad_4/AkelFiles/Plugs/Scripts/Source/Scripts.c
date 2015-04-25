@@ -2123,6 +2123,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   HANDLE hThread=hExecThread;
   DWORD dwThreadID=GetCurrentThreadId();
   int nWaitForScriptSignal=es->nWaitForScriptSignal;
+  BOOL bExecuted=FALSE;
 
   if (lpScriptThread=StackInsertScriptThread(&hThreadStack))
   {
@@ -2251,10 +2252,12 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;
 
-              if (ExecScriptText(lpScriptThread, &guidEngine) != S_OK)
+              if (ExecScriptText(lpScriptThread, &guidEngine) == S_OK)
               {
-                //MessageBoxW(hMainWnd, GetLangStringW(wLangModule, STRID_EXECUTE_ERROR), wszPluginTitle, MB_OK|MB_ICONERROR);
+                bExecuted=TRUE;
               }
+              //else MessageBoxW(hMainWnd, GetLangStringW(wLangModule, STRID_EXECUTE_ERROR), wszPluginTitle, MB_OK|MB_ICONERROR);
+
               StackFreeIncludes(&lpScriptThread->hIncludesStack);
               SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
             }
@@ -2275,6 +2278,12 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
 
     FreeScriptResources(lpScriptThread, (lpScriptThread->dwDebug & DBG_MEMLEAK));
     StackDeleteScriptThread(lpScriptThread);
+
+    if (bExecuted)
+    {
+      //Signal to Toolbar plugin for buttons update
+      SendMessage(hMainWnd, WM_COMMAND, 0, 0);
+    }
   }
   else
   {
