@@ -4592,6 +4592,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (SDI/MDI/PMDI)
     WORD wCommand=LOWORD(wParam);
 
+    //Ignore zero command
+    if (!wCommand)
+      return 0;
+
     switch (wCommand)
     {
       //File
