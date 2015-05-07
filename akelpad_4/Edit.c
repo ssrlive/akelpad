@@ -133,7 +133,7 @@ extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
 extern BOOL bEnterMenuLoop;
-extern BOOL bMainStarting;
+extern BOOL bMainOnStart;
 extern BOOL bMainCheckIdle;
 extern int nMainOnFinish;
 extern BOOL bEditOnFinish;
@@ -2754,10 +2754,9 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
   ResizeEditWindow(lpFrameCurrent, 0);
 }
 
-void DoViewOnTop(BOOL bState, BOOL bFirst)
+void DoViewOnTop(BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_ONTOP, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == moCur.bOnTop) return;
   moCur.bOnTop=bState;
 
   if (moCur.bOnTop)
@@ -2766,10 +2765,9 @@ void DoViewOnTop(BOOL bState, BOOL bFirst)
     SetWindowPos(hMainWnd, (HWND)(UINT_PTR)-2/*HWND_NOTOPMOST*/, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
 }
 
-void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
+void DoViewShowStatusBar(BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_SHOW_STATUSBAR, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == moCur.bStatusBar) return;
   moCur.bStatusBar=bState;
 
   ShowWindow(hStatus, moCur.bStatusBar?SW_SHOW:SW_HIDE);
@@ -2829,7 +2827,9 @@ void DoSettingsWatchFile(BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_OPTIONS_WATCHFILE, bState?MF_CHECKED:MF_UNCHECKED);
   moCur.bWatchFile=bState;
-  if (moCur.bWatchFile) SetFocus(hMainWnd);
+
+  if (moCur.bWatchFile && !bMainOnStart)
+    PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
 }
 
 void DoSettingsSaveTime(BOOL bState)

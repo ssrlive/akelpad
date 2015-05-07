@@ -1022,7 +1022,7 @@ void _WinMain()
     if (hWndFriend=FindAkelCopy())
     {
       dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
-      if (dwCmdShow != SW_SHOWMINNOACTIVE && dwCmdShow != SW_SHOWNA && dwCmdShow != SW_SHOWNOACTIVATE)
+      if (dwCmdShow != SW_HIDE && dwCmdShow != SW_SHOWMINNOACTIVE && dwCmdShow != SW_SHOWNA && dwCmdShow != SW_SHOWNOACTIVATE)
         ActivateWindow(hWndFriend);
 
       //Wait until we can send PostMessage.
@@ -1669,7 +1669,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hStatus=CreateWindowExWide(0,
                                L"msctls_statusbar32",
                                NULL,
-                               WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|((mc.dwStyle & WS_CHILD)?0:SBARS_SIZEGRIP),
+                               WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|((mc.dwStyle & WS_CHILD)?0:SBARS_SIZEGRIP),
                                0, 0, 0, 0,
                                hWnd,
                                (HMENU)(UINT_PTR)ID_STATUS,
@@ -1793,10 +1793,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Apply settings
-        SetFocus(lpFrameCurrent->ei.hWndEdit);
+        //SetFocus(lpFrameCurrent->ei.hWndEdit);
 
-        DoViewOnTop(moCur.bOnTop, TRUE);
-        DoViewShowStatusBar(moCur.bStatusBar, TRUE);
+        if (moCur.bOnTop)
+          DoViewOnTop(moCur.bOnTop);
+        if (moCur.bStatusBar)
+          DoViewShowStatusBar(moCur.bStatusBar);
         DoSettingsSaveTime(moCur.bSaveTime);
         DoSettingsKeepSpace(moCur.bKeepSpace);
         DoSettingsWatchFile(moCur.bWatchFile);
@@ -2759,7 +2761,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (lParam != moCur.bOnTop)
             {
-              DoViewOnTop((BOOL)lParam, FALSE);
+              DoViewOnTop((BOOL)lParam);
               return TRUE;
             }
             return FALSE;
@@ -2768,7 +2770,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (lParam != moCur.bStatusBar)
             {
-              DoViewShowStatusBar((BOOL)lParam, FALSE);
+              DoViewShowStatusBar((BOOL)lParam);
               return TRUE;
             }
             return FALSE;
@@ -4823,12 +4825,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_VIEW_ONTOP:
       {
-        DoViewOnTop(!moCur.bOnTop, FALSE);
+        DoViewOnTop(!moCur.bOnTop);
         return moCur.bOnTop;
       }
       case IDM_VIEW_SHOW_STATUSBAR:
       {
-        DoViewShowStatusBar(!moCur.bStatusBar, FALSE);
+        DoViewShowStatusBar(!moCur.bStatusBar);
         return moCur.bStatusBar;
       }
 
