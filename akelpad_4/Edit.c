@@ -428,7 +428,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   lpFrame->dwLockInherit=0;
 
   //Set settings
-  DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly, TRUE);
+  DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly);
   SetEditNotify(lpFrame->ei.hWndEdit);
 
   dwOptions=AECO_NOCOLUMNPASTEHOTKEY;
@@ -488,7 +488,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
   SetMargins(lpFrame->ei.hWndEdit, &lpFrame->rcEditMargins, NULL);
   SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
-  DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
+  DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap);
   SetNewLineStatus(lpFrame, lpFrame->ei.nNewLine, AENL_INPUT);
 
   if (lpFrame->dwMarker)
@@ -2683,10 +2683,9 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
+void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_READONLY, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == lpFrame->ei.bReadOnly) return;
   lpFrame->ei.bReadOnly=bState;
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
@@ -2694,10 +2693,9 @@ void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
+void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == lpFrame->ei.bWordWrap) return;
   lpFrame->ei.bWordWrap=bState;
 
   if (lpFrame->ei.bWordWrap)
@@ -2934,7 +2932,7 @@ void DoSettingsOptions()
   }
 }
 
-void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
+void DoWindowTabView(DWORD dwNewView, BOOL bInit)
 {
   DWORD dwOldView=moCur.dwTabOptionsMDI;
   DWORD dwStyle;
@@ -2966,7 +2964,7 @@ void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
   EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_BUTTONS, !(dwNewView & TAB_VIEW_NONE)?MF_ENABLED:MF_GRAYED);
   if (!bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, !(dwNewView & TAB_VIEW_NONE)?MF_ENABLED:MF_GRAYED);
 
-  if (bFirst != TRUE && dwNewView == dwOldView) return;
+  if (!bInit && dwNewView == dwOldView) return;
   moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_VIEW_TOP & ~TAB_VIEW_BOTTOM & ~TAB_VIEW_NONE;
   moCur.dwTabOptionsMDI|=dwNewView;
 
@@ -2984,7 +2982,7 @@ void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
   UpdateSize();
 }
 
-void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
+void DoWindowTabType(DWORD dwNewType, BOOL bInit)
 {
   DWORD dwOldType=moCur.dwTabOptionsMDI;
   DWORD dwCurStyle;
@@ -3013,7 +3011,7 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
     dwOldType=TAB_TYPE_FLATBUTTONS;
   CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABTYPE_STANDARD, IDM_WINDOW_TABTYPE_FLATBUTTONS, nCommand, MF_BYCOMMAND);
 
-  if (bFirst != TRUE && dwNewType == dwOldType) return;
+  if (!bInit && dwNewType == dwOldType) return;
   moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_TYPE_STANDARD & ~TAB_TYPE_BUTTONS & ~TAB_TYPE_FLATBUTTONS;
   moCur.dwTabOptionsMDI|=dwNewType;
   dwCurStyle=(DWORD)GetWindowLongPtrWide(hTab, GWL_STYLE);
@@ -3043,7 +3041,7 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
   }
 }
 
-void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bFirst)
+void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bInit)
 {
   DWORD dwOldSwitch=moCur.dwTabOptionsMDI;
   int nCommand=0;
@@ -3064,7 +3062,7 @@ void DoWindowTabSwitch(DWORD dwNewSwitch, BOOL bFirst)
     dwOldSwitch=TAB_SWITCH_RIGHTLEFT;
   CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, nCommand, MF_BYCOMMAND);
 
-  if (bFirst != TRUE && dwNewSwitch == dwOldSwitch) return;
+  if (!bInit && dwNewSwitch == dwOldSwitch) return;
   moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_SWITCH_RIGHTLEFT & ~TAB_SWITCH_NEXTPREV;
   moCur.dwTabOptionsMDI|=dwNewSwitch;
 }
