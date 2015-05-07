@@ -1793,8 +1793,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Apply settings
-        //SetFocus(lpFrameCurrent->ei.hWndEdit);
-
         if (moCur.bOnTop)
           DoViewOnTop(moCur.bOnTop);
         if (moCur.bStatusBar)
@@ -4792,14 +4790,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_VIEW_READONLY:
       {
-        DoViewReadOnly(lpFrameCurrent, !lpFrameCurrent->ei.bReadOnly, FALSE);
+        DoViewReadOnly(lpFrameCurrent, !lpFrameCurrent->ei.bReadOnly);
         if (hDlgModeless && nModelessType != MLT_CUSTOM)
           SendMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
         return lpFrameCurrent->ei.bReadOnly;
       }
       case IDM_VIEW_WORDWRAP:
       {
-        DoViewWordWrap(lpFrameCurrent, !lpFrameCurrent->ei.bWordWrap, FALSE);
+        DoViewWordWrap(lpFrameCurrent, !lpFrameCurrent->ei.bWordWrap);
         return lpFrameCurrent->ei.bWordWrap;
       }
       case IDM_VIEW_SPLIT_WINDOW_ALL:
