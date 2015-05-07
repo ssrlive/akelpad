@@ -1022,7 +1022,8 @@ void _WinMain()
     if (hWndFriend=FindAkelCopy())
     {
       dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
-      ActivateWindow(hWndFriend);
+      if (dwCmdShow != SW_SHOWMINNOACTIVE && dwCmdShow != SW_SHOWNA && dwCmdShow != SW_SHOWNOACTIVATE)
+        ActivateWindow(hWndFriend);
 
       //Wait until we can send PostMessage.
       while (!IsWindowEnabled(hWndFriend) || SendMessage(hWndFriend, AKD_GETQUEUE, QS_ALLEVENTS, 0))
