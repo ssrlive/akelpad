@@ -1426,6 +1426,16 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           FreeWideStr(&ct[nMenuType].wpText);
           GetEditText(hWndText, &ct[nMenuType].wpText);
         }
+
+        //Test for errors
+        if (!CreateContextMenu(&hMenuDialogStack, ct[nMenuType].wpText, nMenuType))
+        {
+          SendMessage(hWndType, CB_SETCURSEL, (WPARAM)nMenuType, 0);
+          return 0;
+        }
+        FreeContextMenu(&hMenuDialogStack);
+
+        //Update controls
         nMenuType=nItem;
 
         if (nMenuType == TYPE_MAIN)
@@ -3245,19 +3255,25 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
   //Resolve submenu links
   if (hMenuStack->bLinkToManualMenu)
   {
+    POPUPMENU *lpMenuManualStack;
     SPECIALPARENT *lpSpecialParent;
     SPECIALMENUITEM *lpSpecialMenuItem;
     HMENU hManualMenu;
     BOOL bResult=TRUE;
 
-    if (!hMenuManualStack.hPopupMenu && nType != TYPE_MANUAL)
-      bResult=CreateContextMenu(&hMenuManualStack, wszManualText, TYPE_MANUAL);
+    if (nType != TYPE_MANUAL)
+    {
+      if (!hMenuManualStack.hPopupMenu)
+        bResult=CreateContextMenu(&hMenuManualStack, wszManualText, TYPE_MANUAL);
+      lpMenuManualStack=&hMenuManualStack;
+    }
+    else lpMenuManualStack=hMenuStack;
 
     if (bResult)
     {
       for (lpShowSubmenuItem=hMenuStack->hShowSubmenuStack.first; lpShowSubmenuItem; lpShowSubmenuItem=lpShowSubmenuItem->next)
       {
-        if (FindRootSubMenuByName(&hMenuManualStack, lpShowSubmenuItem->wpShowMenuName, &hManualMenu))
+        if (FindRootSubMenuByName(lpMenuManualStack, lpShowSubmenuItem->wpShowMenuName, &hManualMenu))
         {
           ModifyMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, lpShowSubmenuItem->lpMenuItem->nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, lpShowSubmenuItem->lpMenuItem->hSubMenu, lpShowSubmenuItem->lpMenuItem->nSubMenuIndex, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, lpShowSubmenuItem->wszMenuItem);
         }
@@ -3270,7 +3286,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
           if (lpSpecialMenuItem->nType == SI_INCLUDE && lpSpecialMenuItem->hParamStack.first)
           {
             if (!lpSpecialMenuItem->lpIconMenuItem)
-              lpSpecialMenuItem->lpIconMenuItem=FindRootSubMenuByName(&hMenuManualStack, lpSpecialMenuItem->hParamStack.first->wpString, NULL);
+              lpSpecialMenuItem->lpIconMenuItem=FindRootSubMenuByName(lpMenuManualStack, lpSpecialMenuItem->hParamStack.first->wpString, NULL);
           }
         }
       }
