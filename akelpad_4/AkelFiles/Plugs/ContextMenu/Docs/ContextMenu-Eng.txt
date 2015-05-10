@@ -1,5 +1,5 @@
 *****************************************************************
-***              ContextMenu AkelPad plugin v15.7             ***
+***              ContextMenu AkelPad plugin v15.8             ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
