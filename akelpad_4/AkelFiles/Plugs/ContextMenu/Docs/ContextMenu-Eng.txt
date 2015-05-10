@@ -1,5 +1,5 @@
 *****************************************************************
-***              ContextMenu AkelPad plugin v15.8             ***
+***              ContextMenu AkelPad plugin v16.0             ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -64,6 +64,11 @@ Special menu items:
     MDI documents list (work in "Main menu" with MDI mode only).
   CLEAR
     clear menu (work in "Main menu" only).
+  INCLUDE("MENU NAME")
+    "MENU NAME"
+      Specified submenu name from "ContextMenu::Show menu".
+    INCLUDE("SYNTAXTHEME")
+      method inserts "SYNTAXTHEME" submenu items from "ContextMenu::Show menu".
   SET(flags[, additional parameters])
     set text parse flags (doesn't remove flags that already set). Sets by the sum of members:
       SET(1)
