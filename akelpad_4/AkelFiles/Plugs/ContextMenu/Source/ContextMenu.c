@@ -385,6 +385,7 @@ typedef struct _POPUPMENU {
   int nImageListIconCount;
   HMENU hPopupMenu;
   STACKMENUITEM hMenuItemStack;
+  STACKSPECIALMENU hSpecialMenuStack;
   STACKMAININDEX hMainMenuIndexStack;
   STACKSHOWSUBMENU hShowSubmenuStack;
   HMENU hMainMenu;
@@ -603,7 +604,6 @@ POPUPMENU hMenuUrlStack={0};
 POPUPMENU hMenuRecentFilesStack={0};
 POPUPMENU hMenuDialogStack={0};
 POPUPMENU *lpCurrentMenuStack=NULL;
-STACKSPECIALMENU hSpecialMenuStack={0};
 int nCurrentMenuType=TYPE_UNKNOWN;
 int nCurrentUpdateTime=0;
 wchar_t wszCurrentFile[MAX_PATH];
@@ -2922,8 +2922,8 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
 
           if (nSpecialItem)
           {
-            if (!(lpSpecialParent=StackGetSpecialParent(&hSpecialMenuStack, hSubMenu)))
-              lpSpecialParent=StackInsertSpecialParent(&hSpecialMenuStack, hSubMenu);
+            if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
+              lpSpecialParent=StackInsertSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu);
             if (lpSpecialParent)
             {
               if (lpSpecialMenuItem=StackInsertSpecialItem(lpSpecialParent))
@@ -3279,7 +3279,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, const wchar_t *wpText, int nType)
         }
       }
 
-      for (lpSpecialParent=hSpecialMenuStack.first; lpSpecialParent; lpSpecialParent=lpSpecialParent->next)
+      for (lpSpecialParent=hMenuStack->hSpecialMenuStack.first; lpSpecialParent; lpSpecialParent=lpSpecialParent->next)
       {
         for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
         {
@@ -3349,8 +3349,6 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
   BOOL bInitMenu=FALSE;
 
   ei.hWndEdit=NULL;
-  lpSpecialParent=StackGetSpecialParent(&hSpecialMenuStack, hSubMenu);
-
   hInitMenuStack=hMenuStack;
   if (hMenuStack->bLinkToManualMenu && hMenuStack != &hMenuManualStack)
     hMenuStack=&hMenuManualStack;
@@ -3358,6 +3356,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, int nType, HMENU hSubMenu)
   Loop:
   for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
     lpStateIf->bCalculated=FALSE;
+  lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu);
 
   for (lpMenuItem=hMenuStack->hMenuItemStack.first; lpMenuItem; lpMenuItem=lpMenuItem->next)
   {
@@ -3909,7 +3908,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
   int nAdded;
   int i;
 
-  if (!(lpSpecialParent=StackGetSpecialParent(&hSpecialMenuStack, hParentMenu)))
+  if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hParentMenu)))
     return;
 
   if (bRemove)
@@ -4668,7 +4667,7 @@ void FreeContextMenu(POPUPMENU *hMenuStack)
   }
   StackClear((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last);
 
-  StackFreeSpecial(&hSpecialMenuStack);
+  StackFreeSpecial(&hMenuStack->hSpecialMenuStack);
 }
 
 SPECIALPARENT* StackInsertSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu)
