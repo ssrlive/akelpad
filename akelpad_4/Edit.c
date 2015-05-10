@@ -10081,6 +10081,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
         {
           ft.crSearch.ciMin=ciChar;
           ft.crSearch.ciMax=crCurSel.ciMax;
+          IndexOffset(lpFrame->ei.hWndEdit, &ft.crSearch.ciMax, nFindItLenEsc, ft.nNewLine);
         }
         else nAnswer=-1;
       }
@@ -10091,6 +10092,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
         {
           ft.crSearch.ciMin=crCurSel.ciMin;
           ft.crSearch.ciMax=ciChar;
+          IndexOffset(lpFrame->ei.hWndEdit, &ft.crSearch.ciMin, -nFindItLenEsc, ft.nNewLine);
         }
         else nAnswer=-1;
       }
