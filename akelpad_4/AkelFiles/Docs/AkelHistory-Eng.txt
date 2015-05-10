@@ -7,6 +7,7 @@ Added: optional parameter for commands 4166,4170:
        1 - delete space/tabulation in single line selection.
 
 Fixed: active column painting.
+Fixed: cycle search with down or up direction when the caret is inside text for search.
 
 
 AkelPad 4.9.3 (Mar 25, 2015)
