@@ -20812,11 +20812,16 @@ void SetMargins(HWND hWnd, const RECT *lprcNewMargins, const RECT *lprcOldMargin
   RECT rcEditMargins;
   RECT rcCurMargins;
 
-  SendMessage(hWnd, AEM_GETRECT, AERC_MARGINS, (LPARAM)&rcCurMargins);
-  rcEditMargins.left=rcCurMargins.left - (lprcOldMargins?lprcOldMargins->left:0) + lprcNewMargins->left;
-  rcEditMargins.top=rcCurMargins.top - (lprcOldMargins?lprcOldMargins->top:0) + lprcNewMargins->top;
-  rcEditMargins.right=rcCurMargins.right - (lprcOldMargins?lprcOldMargins->right:0) + lprcNewMargins->right;
-  rcEditMargins.bottom=rcCurMargins.bottom - (lprcOldMargins?lprcOldMargins->bottom:0) + lprcNewMargins->bottom;
+  if (lprcOldMargins)
+  {
+    SendMessage(hWnd, AEM_GETRECT, AERC_MARGINS, (LPARAM)&rcCurMargins);
+    rcEditMargins.left=rcCurMargins.left - lprcOldMargins->left + lprcNewMargins->left;
+    rcEditMargins.top=rcCurMargins.top - lprcOldMargins->top + lprcNewMargins->top;
+    rcEditMargins.right=rcCurMargins.right - lprcOldMargins->right + lprcNewMargins->right;
+    rcEditMargins.bottom=rcCurMargins.bottom - lprcOldMargins->bottom + lprcNewMargins->bottom;
+  }
+  else rcEditMargins=*lprcNewMargins;
+
   SendMessage(hWnd, AEM_SETRECT, AERC_MARGINS|AERC_UPDATE, (LPARAM)&rcEditMargins);
 }
 

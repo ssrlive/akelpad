@@ -8,6 +8,7 @@ Added: optional parameter for commands 4166,4170:
 
 Fixed: active column painting.
 Fixed: cycle search with down or up direction when the caret is inside text for search.
+Fixed: left and top margins have been displaced by 1 pixel.
 
 
 AkelPad 4.9.3 (Mar 25, 2015)

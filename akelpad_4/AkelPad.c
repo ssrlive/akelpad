@@ -771,8 +771,8 @@ void _WinMain()
   fdInit.dwInputLocale=(HKL)(UINT_PTR)-1;
 
   //--Edit settings--
-  fdInit.rcEditMargins.left=3;
-  fdInit.rcEditMargins.top=0;
+  fdInit.rcEditMargins.left=4;
+  fdInit.rcEditMargins.top=1;
   fdInit.rcEditMargins.right=4;
   fdInit.rcEditMargins.bottom=0;
   fdInit.nTabStopSize=EDIT_TABSTOPS;
