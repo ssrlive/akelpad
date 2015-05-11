@@ -516,7 +516,6 @@ void FreeContextMenu(POPUPMENU *hMenuStack);
 SPECIALPARENT* StackInsertSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu);
 SPECIALPARENT* StackGetSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu);
 SPECIALMENUITEM* StackInsertSpecialItem(SPECIALPARENT *lpSpecialParent);
-BOOL StackIsIncludeSpecial(SPECIALPARENT *lpSpecialParent, HMENU hSubMenu);
 void StackFreeSpecial(STACKSPECIALMENU *hStack);
 
 BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
@@ -3340,20 +3339,34 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, HMENU hSubMenu)
   EDITINFO ei;
   POPUPMENU *hInitMenuStack;
   MENUITEM *lpMenuItem;
-  SPECIALPARENT *lpSpecialParent=NULL;
-  SPECIALPARENT *lpInitSpecialParent=NULL;
+  SPECIALPARENT *lpSpecialParent;
+  SPECIALMENUITEM *lpSpecialMenuItem;
   STATEIF *lpStateIf;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
+
+  if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
+  {
+    if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
+      lpSpecialParent=StackGetSpecialParent(&hMenuManualStack.hSpecialMenuStack, hSubMenu);
+  }
+  if (lpSpecialParent)
+  {
+    //Recursive INCLUDEs
+    for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
+    {
+      if (lpSpecialMenuItem->nType == SI_INCLUDE && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+        UpdateContextMenu(&hMenuManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
+    }
+  }
 
   ei.hWndEdit=NULL;
   hInitMenuStack=hMenuStack;
   if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
   {
+    //For Menu() method loop first hMenuManualStack
     hMenuStack=&hMenuManualStack;
-    lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu);
   }
-  lpInitSpecialParent=StackGetSpecialParent(&hInitMenuStack->hSpecialMenuStack, hSubMenu);
 
   Loop:
   for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
@@ -3361,9 +3374,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, HMENU hSubMenu)
 
   for (lpMenuItem=hMenuStack->hMenuItemStack.first; lpMenuItem; lpMenuItem=lpMenuItem->next)
   {
-    if (lpMenuItem->hSubMenu == hSubMenu ||
-        StackIsIncludeSpecial(lpSpecialParent, lpMenuItem->hSubMenu) ||
-        StackIsIncludeSpecial(lpInitSpecialParent, lpMenuItem->hSubMenu))
+    if (lpMenuItem->hSubMenu == hSubMenu)
     {
       //Load icon optimization (part 5):
       if (lpMenuItem->nFileIconIndex != -1)
@@ -3761,8 +3772,10 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, HMENU hSubMenu)
       }
     }
   }
+
   if (hMenuStack != hInitMenuStack)
   {
+    //For Menu() method loop next hInitMenuStack
     hMenuStack=hInitMenuStack;
     goto Loop;
   }
@@ -3893,9 +3906,8 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
   }
 }
 
-void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
+void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hSubMenu, BOOL bRemove)
 {
-  POPUPMENU *hInitMenuStack;
   SPECIALPARENT *lpSpecialParent;
   SPECIALMENUITEM *lpSpecialMenuItem;
   SPECIALMENUITEM *lpNextSpecialMenuItem;
@@ -3909,39 +3921,46 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
   int nAdded;
   int i;
 
-  hInitMenuStack=hMenuStack;
-  if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
-    hMenuStack=&hMenuManualStack;
-
-  Loop:
-  if (lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hParentMenu))
+  if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
   {
+    if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
+      if (lpSpecialParent=StackGetSpecialParent(&hMenuManualStack.hSpecialMenuStack, hSubMenu))
+        hMenuStack=&hMenuManualStack;
+  }
+  if (lpSpecialParent)
+  {
+    //Recursive INCLUDEs
+    for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
+    {
+      if (lpSpecialMenuItem->nType == SI_INCLUDE && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+        InitMenuPopup(&hMenuManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove);
+    }
+
     if (bRemove)
     {
       //Remove old items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
+        if (lpSpecialMenuItem->nLastIndex == -1)
+          continue;
         if (lpSpecialMenuItem->nType == SI_EXPLORER)
         {
           if (!xstrcmpiW(hMenuStack->wszExplorerFile, wszCurrentFile))
             continue;
         }
-        if (lpSpecialMenuItem->nLastIndex > -1)
+        for (i=lpSpecialMenuItem->nLastIndex; i >= lpSpecialMenuItem->nFirstIndex; --i)
         {
-          for (i=lpSpecialMenuItem->nLastIndex; i >= lpSpecialMenuItem->nFirstIndex; --i)
-          {
-            DeleteMenuCommon(hMenuStack->hIconMenu, hParentMenu, i, MF_BYPOSITION);
-          }
-          nCountDiff=(lpSpecialMenuItem->nLastIndex - lpSpecialMenuItem->nFirstIndex) + 1;
-          lpSpecialMenuItem->nLastIndex=-1;
-  
-          //Correct next special items
-          for (lpNextSpecialMenuItem=lpSpecialMenuItem->next; lpNextSpecialMenuItem; lpNextSpecialMenuItem=lpNextSpecialMenuItem->next)
-          {
-            lpNextSpecialMenuItem->nFirstIndex-=nCountDiff;
-            if (lpNextSpecialMenuItem->nLastIndex > -1)
-              lpNextSpecialMenuItem->nLastIndex-=nCountDiff;
-          }
+          DeleteMenuCommon(hMenuStack->hIconMenu, hSubMenu, i, MF_BYPOSITION);
+        }
+        nCountDiff=(lpSpecialMenuItem->nLastIndex - lpSpecialMenuItem->nFirstIndex) + 1;
+        lpSpecialMenuItem->nLastIndex=-1;
+
+        //Correct next special items
+        for (lpNextSpecialMenuItem=lpSpecialMenuItem->next; lpNextSpecialMenuItem; lpNextSpecialMenuItem=lpNextSpecialMenuItem->next)
+        {
+          lpNextSpecialMenuItem->nFirstIndex-=nCountDiff;
+          if (lpNextSpecialMenuItem->nLastIndex > -1)
+            lpNextSpecialMenuItem->nLastIndex-=nCountDiff;
         }
       }
     }
@@ -3950,19 +3969,21 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
       //Add new items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
+        if (lpSpecialMenuItem->nLastIndex > -1)
+          continue;
         if (lpSpecialMenuItem->nType == SI_EXPLORER)
         {
           if (!xstrcmpiW(hMenuStack->wszExplorerFile, wszCurrentFile))
             continue;
-  
+
           xstrcpynW(hMenuStack->wszExplorerFile, wszCurrentFile, MAX_PATH);
           GetExplorerMenu(&hMenuStack->pExplorerMenu, &hMenuStack->pExplorerSubMenu2, &hMenuStack->pExplorerSubMenu3, hMainWnd, hMenuStack->wszExplorerFile);
-  
+
           if (hMenuStack->pExplorerMenu)
           {
-            nCountBefore=GetMenuItemCount(hParentMenu);
-            hMenuStack->pExplorerMenu->lpVtbl->QueryContextMenu(hMenuStack->pExplorerMenu, hParentMenu, lpSpecialMenuItem->nFirstIndex, IDM_MIN_EXPLORER, IDM_MAX_EXPLORER, 0);
-            nCountAfter=GetMenuItemCount(hParentMenu);
+            nCountBefore=GetMenuItemCount(hSubMenu);
+            hMenuStack->pExplorerMenu->lpVtbl->QueryContextMenu(hMenuStack->pExplorerMenu, hSubMenu, lpSpecialMenuItem->nFirstIndex, IDM_MIN_EXPLORER, IDM_MAX_EXPLORER, 0);
+            nCountAfter=GetMenuItemCount(hSubMenu);
             lpSpecialMenuItem->nLastIndex=lpSpecialMenuItem->nFirstIndex + (nCountAfter - nCountBefore) - 1;
           }
         }
@@ -3970,13 +3991,13 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           FAVITEM *lpFavItem;
           FAVITEM *lpFavCurrent;
-  
+
           //Fill menu
           lpFavCurrent=StackGetFavouriteByFile(&hFavStack, wszCurrentFile, NULL);
-  
+
           for (i=0, lpFavItem=hFavStack.first; lpFavItem; ++i, lpFavItem=lpFavItem->next)
           {
-            InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hParentMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|(lpFavCurrent == lpFavItem?MF_CHECKED:0), IDM_MIN_FAVOURITES + i, lpFavItem->wszName);
+            InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|(lpFavCurrent == lpFavItem?MF_CHECKED:0), IDM_MIN_FAVOURITES + i, lpFavItem->wszName);
           }
           lpSpecialMenuItem->nLastIndex=lpSpecialMenuItem->nFirstIndex + i - 1;
         }
@@ -3984,14 +4005,14 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           //Force update AkelPad's recent files list
           SendMessage(hMainWnd, WM_INITMENUPOPUP, (WPARAM)hMenuRecentFiles, 0);
-  
+
           //Fill menu
           if (GetMenuItemID(hMenuRecentFiles, 0) != IDM_RECENT_FILES)
           {
             for (i=0; GetMenuStringWide(hMenuRecentFiles, i, wszItem, MAX_PATH, MF_BYPOSITION); ++i)
             {
               nItemID=GetMenuItemID(hMenuRecentFiles, i);
-              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hParentMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION, nItemID, wszItem);
+              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION, nItemID, wszItem);
             }
             lpSpecialMenuItem->nLastIndex=lpSpecialMenuItem->nFirstIndex + i - 1;
           }
@@ -4000,7 +4021,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           //Force update AkelPad's language list
           SendMessage(hMainWnd, WM_INITMENUPOPUP, (WPARAM)hMenuLanguage, 0);
-  
+
           //Fill menu
           if (GetMenuItemID(hMenuLanguage, 0) != IDM_LANGUAGE)
           {
@@ -4009,20 +4030,20 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
               if ((dwState=GetMenuState(hMenuLanguage, i, MF_BYPOSITION)) != (DWORD)-1)
               {
                 nItemID=GetMenuItemID(hMenuLanguage, i);
-                InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hParentMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
+                InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
               }
               else break;
             }
             lpSpecialMenuItem->nLastIndex=lpSpecialMenuItem->nFirstIndex + i - 1;
           }
-  
+
           //Check internal language item
           if ((dwState=GetMenuState(hMenuLanguage, IDM_LANGUAGE, MF_BYCOMMAND)) != (DWORD)-1)
           {
             if (dwState & MF_CHECKED)
             {
               if (lpMenuItem=GetCommandItem(hMenuStack, IDM_LANGUAGE))
-                CheckMenuItem(hParentMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwState);
+                CheckMenuItem(hSubMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwState);
             }
           }
         }
@@ -4030,14 +4051,14 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           //Force update AkelPad's codepages list
           SendMessage(hMainWnd, WM_INITMENUPOPUP, (WPARAM)hPopupOpenCodepage, 0);
-  
+
           //Fill menu
           for (i=0; GetMenuStringWide(hPopupOpenCodepage, i, wszItem, MAX_PATH, MF_BYPOSITION); ++i)
           {
             if ((dwState=GetMenuState(hPopupOpenCodepage, i, MF_BYPOSITION)) != (DWORD)-1)
             {
               nItemID=GetMenuItemID(hPopupOpenCodepage, i);
-              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hParentMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
+              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
             }
             else break;
           }
@@ -4047,14 +4068,14 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           //Force update AkelPad's codepages list
           SendMessage(hMainWnd, WM_INITMENUPOPUP, (WPARAM)hPopupSaveCodepage, 0);
-  
+
           //Fill menu
           for (i=0; GetMenuStringWide(hPopupSaveCodepage, i, wszItem, MAX_PATH, MF_BYPOSITION); ++i)
           {
             if ((dwState=GetMenuState(hPopupSaveCodepage, i, MF_BYPOSITION)) != (DWORD)-1)
             {
               nItemID=GetMenuItemID(hPopupSaveCodepage, i);
-              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hParentMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
+              InsertMenuCommon(hMenuStack->hIconMenu, NULL, -1, 0, 0, hSubMenu, lpSpecialMenuItem->nFirstIndex + i, MF_BYPOSITION|dwState, nItemID, wszItem);
             }
             else break;
           }
@@ -4064,16 +4085,16 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         {
           if (lpSpecialMenuItem->lpIconMenuItem)
           {
-            nAdded=IncludeMenu(hMenuStack->hIconMenu, hParentMenu, lpSpecialMenuItem->nFirstIndex, lpSpecialMenuItem->lpIconMenuItem);
+            nAdded=IncludeMenu(hMenuStack->hIconMenu, hSubMenu, lpSpecialMenuItem->nFirstIndex, lpSpecialMenuItem->lpIconMenuItem);
             lpSpecialMenuItem->nLastIndex=lpSpecialMenuItem->nFirstIndex + nAdded - 1;
           }
         }
-  
+
         //Correct next special items
         if (lpSpecialMenuItem->nLastIndex > -1)
         {
           nCountDiff=(lpSpecialMenuItem->nLastIndex - lpSpecialMenuItem->nFirstIndex) + 1;
-  
+
           for (lpNextSpecialMenuItem=lpSpecialMenuItem->next; lpNextSpecialMenuItem; lpNextSpecialMenuItem=lpNextSpecialMenuItem->next)
           {
             lpNextSpecialMenuItem->nFirstIndex+=nCountDiff;
@@ -4083,11 +4104,6 @@ void InitMenuPopup(POPUPMENU *hMenuStack, HMENU hParentMenu, BOOL bRemove)
         }
       }
     }
-  }
-  if (hMenuStack != hInitMenuStack)
-  {
-    hMenuStack=hInitMenuStack;
-    goto Loop;
   }
 }
 
@@ -4710,24 +4726,6 @@ SPECIALMENUITEM* StackInsertSpecialItem(SPECIALPARENT *lpSpecialParent)
 
   StackInsertIndex((stack **)&lpSpecialParent->first, (stack **)&lpSpecialParent->last, (stack **)&lpElement, -1, sizeof(SPECIALMENUITEM));
   return lpElement;
-}
-
-BOOL StackIsIncludeSpecial(SPECIALPARENT *lpSpecialParent, HMENU hSubMenu)
-{
-  SPECIALMENUITEM *lpSpecialMenuItem;
-
-  if (lpSpecialParent)
-  {
-    for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
-    {
-      if (lpSpecialMenuItem->nType == SI_INCLUDE)
-      {
-        if (hSubMenu == (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
-          return TRUE;
-      }
-    }
-  }
-  return FALSE;
 }
 
 void StackFreeSpecial(STACKSPECIALMENU *hStack)
