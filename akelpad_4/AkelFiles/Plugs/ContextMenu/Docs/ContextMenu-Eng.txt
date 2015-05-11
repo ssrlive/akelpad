@@ -68,7 +68,7 @@ Special menu items:
     "MENU NAME"
       Specified submenu name from "ContextMenu::Show menu".
     INCLUDE("SYNTAXTHEME")
-      method inserts "SYNTAXTHEME" submenu items from "ContextMenu::Show menu".
+      insert "SYNTAXTHEME" submenu items from "ContextMenu::Show menu".
   SET(flags[, additional parameters])
     set text parse flags (doesn't remove flags that already set). Sets by the sum of members:
       SET(1)
