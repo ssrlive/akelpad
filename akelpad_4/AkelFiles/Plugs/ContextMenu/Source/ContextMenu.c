@@ -509,7 +509,7 @@ HMENU InsertMainMenu(POPUPMENU *hMenuStack);
 void SetMainMenu(POPUPMENU *hMenuStack, HMENU hMenu, BOOL bDrawMenuBar);
 void UnsetMainMenu(POPUPMENU *hMenuStack);
 void ShowMainMenu(BOOL bShow);
-MENUITEM* GetContextMenuItem(POPUPMENU *hMenuStack, int nItem);
+MENUITEM* GetContextMenuItem(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem);
 MENUITEM* GetCommandItem(POPUPMENU *hMenuStack, int nCommand);
 void ViewItemCode(MENUITEM *lpElement);
 void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem);
@@ -4028,7 +4028,7 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
     {
       if (nCmd=ShowContextMenu(&hMenuUrlStack, hMainWnd, TYPE_URL, x, y, NULL))
       {
-        if (lpElement=GetContextMenuItem(&hMenuUrlStack, nCmd))
+        if (lpElement=GetContextMenuItem(&hMenuUrlStack, &hMenuManualStack, nCmd))
         {
           if (lpElement->dwAction == EXTACT_LINK)
           {
@@ -4243,11 +4243,17 @@ void ShowMainMenu(BOOL bShow)
   }
 }
 
-MENUITEM* GetContextMenuItem(POPUPMENU *hMenuStack, int nItem)
+MENUITEM* GetContextMenuItem(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
 {
+  if (!hManualStack)
+    hManualStack=&hMenuManualStack;
+
   if (nItem >= IDM_MIN_MANUAL && nItem <= IDM_MAX_MENU)
   {
     MENUITEM *lpElement;
+
+    if (nItem <= IDM_MAX_MANUAL)
+      hMenuStack=hManualStack;
 
     for (lpElement=hMenuStack->hMenuItemStack.first; lpElement; lpElement=lpElement->next)
     {
@@ -4341,10 +4347,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
                    {L"%u", 2, (INT_PTR)wszUrlLink, 0},
                    {0, 0, 0, 0}};
 
-    if (nItem <= IDM_MAX_MANUAL)
-      hMenuStack=hManualStack;
-
-    if (lpElement=GetContextMenuItem(hMenuStack, nItem))
+    if (lpElement=GetContextMenuItem(hMenuStack, hManualStack, nItem))
     {
       if (GetKeyState(VK_CONTROL) & 0x80)
       {
