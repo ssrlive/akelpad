@@ -3123,12 +3123,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, const wch
             }
 
             //Add popup submenu
-            if (!hParentMenu && nType == TYPE_MAIN)
-            {
-              //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
-              AppendMenuWide(hSubMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
-            }
-            else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
+            InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hSubMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hManualMenu, wszMenuItem);
           }
           else
           {
@@ -3191,12 +3186,7 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, const wch
         }
 
         //Add popup submenu
-        if (bMainMenuParent)
-        {
-          //Avoid Win95 problem GetMenuString and MF_OWNERDRAW items
-          AppendMenuWide(hParentMenu, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
-        }
-        else InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hParentMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
+        InsertMenuCommon(hMenuStack->hIconMenu, hMenuStack->hImageList, nImageListIconIndex, sizeIcon.cx, sizeIcon.cy, hParentMenu, -1, MF_BYPOSITION|MF_POPUP, (UINT_PTR)hSubMenu, wszMenuItem);
       }
       else
       {
@@ -4144,29 +4134,39 @@ HMENU InsertMainMenu(POPUPMENU *hMenuStack)
 
     if (lpMainIndexItem->hSubMenu=GetSubMenu(hMenuStack->hPopupMenu, nSubMenuIndex))
     {
-      if (GetMenuStringWide(hMenuStack->hPopupMenu, nSubMenuIndex, wszMenuItem, MAX_PATH, MF_BYPOSITION))
+      wszMenuItem[0]=L'\0';
+      if (!GetMenuStringWide(hMenuStack->hPopupMenu, nSubMenuIndex, wszMenuItem, MAX_PATH, MF_BYPOSITION))
       {
-        nMainMenuIndex=lpMainIndexItem->nMainMenuIndex;
+        //Win95 problem: GetMenuString returns 0 for MF_OWNERDRAW items
+        ICONMENUSUBMENU *lpSubMenu;
+        ICONMENUITEM *lpMenuItem;
 
-        if (nMainMenuIndex < 0)
-        {
-          nMainMenuCount=GetSubMenuCount(hMenu);
-
-          if (nMainMenuCount + nMainMenuIndex >= 0)
-            nMainMenuIndex=nMainMenuCount + nMainMenuIndex + 1;
-          else
-            nMainMenuIndex=0;
-        }
-        else
-        {
-          if ((nState=GetMenuState(hMenu, 0, MF_BYPOSITION)) != -1)
-          {
-            if (LOBYTE(nState) & MF_BITMAP)
-              ++nMainMenuIndex;
-          }
-        }
-        InsertMenuWide(hMenu, nMainMenuIndex, MF_BYPOSITION|MF_POPUP|(lpMainIndexItem->bMenuBreak?MF_MENUBARBREAK:0), (UINT_PTR)lpMainIndexItem->hSubMenu, wszMenuItem);
+        if (lpSubMenu=IconMenu_GetMenuByHandle(hMenuStack->hIconMenu, hMenuStack->hPopupMenu))
+          if (lpMenuItem=IconMenu_GetSubMenuItem(lpSubMenu, (INT_PTR)lpMainIndexItem->hSubMenu, MF_BYCOMMAND))
+            xstrcpynW(wszMenuItem, lpMenuItem->wszStr, MAX_PATH);
       }
+
+      //Insert menu
+      nMainMenuIndex=lpMainIndexItem->nMainMenuIndex;
+
+      if (nMainMenuIndex < 0)
+      {
+        nMainMenuCount=GetSubMenuCount(hMenu);
+
+        if (nMainMenuCount + nMainMenuIndex >= 0)
+          nMainMenuIndex=nMainMenuCount + nMainMenuIndex + 1;
+        else
+          nMainMenuIndex=0;
+      }
+      else
+      {
+        if ((nState=GetMenuState(hMenu, 0, MF_BYPOSITION)) != -1)
+        {
+          if (LOBYTE(nState) & MF_BITMAP)
+            ++nMainMenuIndex;
+        }
+      }
+      InsertMenuWide(hMenu, nMainMenuIndex, MF_BYPOSITION|MF_POPUP|(lpMainIndexItem->bMenuBreak?MF_MENUBARBREAK:0), (UINT_PTR)lpMainIndexItem->hSubMenu, wszMenuItem);
     }
     ++nSubMenuIndex;
   }
