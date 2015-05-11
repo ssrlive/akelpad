@@ -1416,19 +1416,22 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nItem != nMenuType)
       {
-        if (SendMessage(hWndText, EM_GETMODIFY, 0, 0))
+        if (nMenuType != TYPE_UNKNOWN)
         {
-          FreeWideStr(&ct[nMenuType].wpText);
-          GetEditText(hWndText, &ct[nMenuType].wpText);
-        }
+          if (SendMessage(hWndText, EM_GETMODIFY, 0, 0))
+          {
+            FreeWideStr(&ct[nMenuType].wpText);
+            GetEditText(hWndText, &ct[nMenuType].wpText);
+          }
 
-        //Test for errors
-        if (!CreateContextMenu(&hMenuDialogStack, ct[nMenuType].wpText, nMenuType))
-        {
-          SendMessage(hWndType, CB_SETCURSEL, (WPARAM)nMenuType, 0);
-          return 0;
+          //Test for errors
+          if (!CreateContextMenu(&hMenuDialogStack, ct[nMenuType].wpText, nMenuType))
+          {
+            SendMessage(hWndType, CB_SETCURSEL, (WPARAM)nMenuType, 0);
+            return 0;
+          }
+          FreeContextMenu(&hMenuDialogStack);
         }
-        FreeContextMenu(&hMenuDialogStack);
 
         //Update controls
         nMenuType=nItem;
@@ -5345,7 +5348,7 @@ INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
 
 BOOL FreeWideStr(wchar_t **wppWideStr)
 {
-  if (wppWideStr && *wppWideStr && GlobalFree((HGLOBAL)*wppWideStr))
+  if (wppWideStr && *wppWideStr && !GlobalFree((HGLOBAL)*wppWideStr))
   {
     *wppWideStr=NULL;
     return TRUE;

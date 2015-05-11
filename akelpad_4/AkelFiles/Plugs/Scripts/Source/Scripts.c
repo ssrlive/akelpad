@@ -2978,7 +2978,7 @@ INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
 
 BOOL FreeWideStr(wchar_t **wppWideStr)
 {
-  if (wppWideStr && *wppWideStr && GlobalFree((HGLOBAL)*wppWideStr))
+  if (wppWideStr && *wppWideStr && !GlobalFree((HGLOBAL)*wppWideStr))
   {
     *wppWideStr=NULL;
     return TRUE;
