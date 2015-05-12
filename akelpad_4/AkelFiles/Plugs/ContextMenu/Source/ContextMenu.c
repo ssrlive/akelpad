@@ -1436,6 +1436,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return 0;
           }
           FreeContextMenu(&ct[nMenuType].hMenuStack);
+          FreeContextMenu(&ct[TYPE_MANUAL].hMenuStack);
         }
 
         //Update controls
@@ -1527,6 +1528,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (nCmd=ShowContextMenu(&ct[nMenuType].hMenuStack, hDlg, TYPE_MANUAL, pt.x, pt.y, NULL))
             CallContextMenu(&ct[nMenuType].hMenuStack, &ct[TYPE_MANUAL].hMenuStack, nCmd);
           FreeContextMenu(&ct[nMenuType].hMenuStack);
+          FreeContextMenu(&ct[TYPE_MANUAL].hMenuStack);
         }
         FreeWideStr(&wpText);
       }
@@ -1543,9 +1545,9 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           GetEditText(hWndText, &ct[nMenuType].wpText);
         }
 
-        //Test for errors
         for (i=0; i < TYPE_MAX; ++i)
         {
+          //Test for errors
           if (!CreateContextMenu(&ct[i].hMenuStack, &ct[TYPE_MANUAL].hMenuStack, ct[i].wpText, i))
             return 0;
           FreeContextMenu(&ct[i].hMenuStack);
@@ -1611,6 +1613,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             bMenuRecentFilesEnable=ct[TYPE_RECENTFILES].bEnable;
           }
         }
+        FreeContextMenu(&ct[TYPE_MANUAL].hMenuStack);
 
         UnsetMainMenu(&hMenuMainStack);
         FreeContextMenu(&hMenuMainStack);
@@ -3356,7 +3359,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
     //Recursive INCLUDEs
     for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
     {
-      if (lpSpecialMenuItem->nType == SI_INCLUDE && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+      if (lpSpecialMenuItem->nType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
         InitMenuPopup(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove);
     }
 
@@ -3527,7 +3530,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSu
     //Recursive INCLUDEs
     for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
     {
-      if (lpSpecialMenuItem->nType == SI_INCLUDE && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+      if (lpSpecialMenuItem->nType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
         UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
     }
   }
@@ -4681,6 +4684,8 @@ void FreeContextMenu(POPUPMENU *hMenuStack)
   StackClear((stack **)&hMenuStack->hStateIfStack.first, (stack **)&hMenuStack->hStateIfStack.last);
 
   StackFreeSpecial(&hMenuStack->hSpecialMenuStack);
+
+  hMenuStack->bLinkToManualMenu=FALSE;
 }
 
 SPECIALPARENT* StackInsertSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu)
@@ -4799,7 +4804,12 @@ int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONME
 
   for (lpMenuItemSrc=lpSubMenuSrc->first; lpMenuItemSrc; lpMenuItemSrc=lpMenuItemSrc->next)
   {
-    if ((dwState=GetMenuState(lpSubMenuSrc->hMenu, (UINT)lpMenuItemSrc->nItemID, MF_BYCOMMAND)) != (DWORD)-1)
+    if (lpMenuItemSrc->uFlags & MF_POPUP)
+      dwState=MF_POPUP;
+    else
+      dwState=GetMenuState(lpSubMenuSrc->hMenu, (UINT)lpMenuItemSrc->nItemID, MF_BYCOMMAND);
+
+    if (dwState != (DWORD)-1)
     {
       if (InsertMenuCommon(hIconMenuDst, lpMenuItemSrc->hImageList, lpMenuItemSrc->nIconIndex, sizeIcon.cx, sizeIcon.cy, hMenuDst, nPositionDst + nAdded, MF_BYPOSITION|dwState, lpMenuItemSrc->nItemID, lpMenuItemSrc->wszStr))
         ++nAdded;
