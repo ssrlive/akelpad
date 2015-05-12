@@ -809,7 +809,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nDialogType == DLGT_MODELESS)
     {
       if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_ADD);
+        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
     }
   }
   else if (uMsg == AKDLL_SETUP)
@@ -1788,7 +1788,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
         {
           if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-            SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hWndMainDlg, MLA_DELETE);
+            SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
 
           DestroyWindow(hWndMainDlg);
         }
