@@ -1,5 +1,5 @@
 /******************************************************************
- *                 IconMenu functions header v2.5                 *
+ *                 IconMenu functions header v2.6                 *
  *                                                                *
  *  2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
@@ -124,7 +124,9 @@ BOOL IconMenu_AddItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIcon
 BOOL IconMenu_ModifyItemA(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const char *lpNewItem);
 BOOL IconMenu_ModifyItemW(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
 BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const void *lpNewItem);
-BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
+BOOL IconMenu_DeleteItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
+BOOL IconMenu_RemoveItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
+BOOL IconMenu_UnsetItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags, BOOL bDeleteSubmenu);
 LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Global variables
@@ -826,9 +828,9 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
 
 /********************************************************************
  *
- *  IconMenu_DelItem
+ *  IconMenu_DeleteItem, IconMenu_RemoveItem
  *
- *Delete item from menu.
+ *Delete or remove item from menu.
  *
  * [in] HICONMENU hIconMenu  -handle returned by IconMenu_Alloc.
  * [in] HMENU hMenu          -see DeleteMenu description in MSDN.
@@ -839,13 +841,23 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
  *         If the function fails, the return value is zero.
  ********************************************************************/
 
-BOOL IconMenu_DelItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
+BOOL IconMenu_DeleteItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
+{
+  return IconMenu_UnsetItem(hIconMenu, hMenu, nPosition, uFlags, TRUE);
+}
+
+BOOL IconMenu_RemoveItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
+{
+  return IconMenu_UnsetItem(hIconMenu, hMenu, nPosition, uFlags, FALSE);
+}
+
+BOOL IconMenu_UnsetItem(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags, BOOL bDeleteSubmenu)
 {
   ICONMENUSUBMENU *lpSubMenu;
   ICONMENUITEM *lpMenuItem;
   BOOL bResult=FALSE;
 
-  if (DeleteMenu(hMenu, (UINT)nPosition, uFlags))
+  if (bDeleteSubmenu ? DeleteMenu(hMenu, (UINT)nPosition, uFlags) : RemoveMenu(hMenu, (UINT)nPosition, uFlags))
   {
     if (lpSubMenu=IconMenu_GetMenuByHandle(hIconMenu, hMenu))
     {
