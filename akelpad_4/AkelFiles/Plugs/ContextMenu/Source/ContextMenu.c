@@ -359,6 +359,7 @@ typedef struct {
 typedef struct _SPECIALMENUITEM {
   struct _SPECIALMENUITEM *next;
   struct _SPECIALMENUITEM *prev;
+  int nUpdateTime;
   int nType;
   int nFirstIndex;
   int nLastIndex;
@@ -522,6 +523,7 @@ void StackFreeSpecial(STACKSPECIALMENU *hStack);
 BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
 BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
 BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
+BOOL RemoveMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
 int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc);
 int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONMENUITEM *lpMenuItemSrc);
 BOOL GetExplorerMenu(LPCONTEXTMENU *pContextMenu, LPCONTEXTMENU2 *pContextSubMenu2, LPCONTEXTMENU3 *pContextSubMenu3, HWND hWnd, wchar_t *wpFile);
@@ -3347,8 +3349,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
   if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
   {
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
-      if (lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu))
-        hMenuStack=hManualStack;
+      lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
   }
   if (lpSpecialParent)
   {
@@ -3364,7 +3365,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
       //Remove old items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
-        if (lpSpecialMenuItem->nLastIndex == -1)
+        if (lpSpecialMenuItem->nLastIndex == -1 || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime)
           continue;
         if (lpSpecialMenuItem->nType == SI_EXPLORER)
         {
@@ -3373,7 +3374,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
         }
         for (i=lpSpecialMenuItem->nLastIndex; i >= lpSpecialMenuItem->nFirstIndex; --i)
         {
-          DeleteMenuCommon(hMenuStack->hIconMenu, hSubMenu, i, MF_BYPOSITION);
+          RemoveMenuCommon(hMenuStack->hIconMenu, hSubMenu, i, MF_BYPOSITION);
         }
         nCountDiff=(lpSpecialMenuItem->nLastIndex - lpSpecialMenuItem->nFirstIndex) + 1;
         lpSpecialMenuItem->nLastIndex=-1;
@@ -3392,7 +3393,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
       //Add new items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
-        if (lpSpecialMenuItem->nLastIndex > -1)
+        if (lpSpecialMenuItem->nLastIndex > -1 || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime)
           continue;
         if (lpSpecialMenuItem->nType == SI_EXPLORER)
         {
@@ -3488,6 +3489,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
         //Correct next special items
         if (lpSpecialMenuItem->nLastIndex > -1)
         {
+          lpSpecialMenuItem->nUpdateTime=nCurrentUpdateTime;
           nCountDiff=(lpSpecialMenuItem->nLastIndex - lpSpecialMenuItem->nFirstIndex) + 1;
 
           for (lpNextSpecialMenuItem=lpSpecialMenuItem->next; lpNextSpecialMenuItem; lpNextSpecialMenuItem=lpNextSpecialMenuItem->next)
@@ -4750,7 +4752,12 @@ BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconI
 
 BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
 {
-  return IconMenu_DelItem(hIconMenu, hMenu, nPosition, uFlags);
+  return IconMenu_DeleteItem(hIconMenu, hMenu, nPosition, uFlags);
+}
+
+BOOL RemoveMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags)
+{
+  return IconMenu_RemoveItem(hIconMenu, hMenu, nPosition, uFlags);
 }
 
 int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc)
@@ -4786,19 +4793,13 @@ int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONME
     return 0;
   if (!(lpSubMenuSrc=IconMenu_GetMenuByHandle(((ICONMENUSUBMENU *)(lpMenuItemSrc->hIconSubMenu))->hIconMenu, (HMENU)lpMenuItemSrc->nItemID)))
     return 0;
-  if (!(lpSubMenuDst=IconMenu_GetMenuByHandle(hIconMenuDst, hMenuDst)))
-    return 0;
-  if (lpSubMenuSrc == lpSubMenuDst)
-    return 0;
+  if (lpSubMenuDst=IconMenu_GetMenuByHandle(hIconMenuDst, hMenuDst))
+    if (lpSubMenuSrc == lpSubMenuDst)
+      return 0;
 
   for (lpMenuItemSrc=lpSubMenuSrc->first; lpMenuItemSrc; lpMenuItemSrc=lpMenuItemSrc->next)
   {
-    if (!(lpMenuItemSrc->uFlags & MF_POPUP))
-      dwState=GetMenuState(lpSubMenuSrc->hMenu, (UINT)lpMenuItemSrc->nItemID, MF_BYCOMMAND);
-    else
-      dwState=0;
-
-    if (dwState != (DWORD)-1)
+    if ((dwState=GetMenuState(lpSubMenuSrc->hMenu, (UINT)lpMenuItemSrc->nItemID, MF_BYCOMMAND)) != (DWORD)-1)
     {
       if (InsertMenuCommon(hIconMenuDst, lpMenuItemSrc->hImageList, lpMenuItemSrc->nIconIndex, sizeIcon.cx, sizeIcon.cy, hMenuDst, nPositionDst + nAdded, MF_BYPOSITION|dwState, lpMenuItemSrc->nItemID, lpMenuItemSrc->wszStr))
         ++nAdded;
