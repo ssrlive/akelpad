@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Resize functions header v1.1                  *
+ *                 Resize functions header v1.2                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -529,14 +529,14 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
           CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
           InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
           UpdateWindow(hDlg);
-          DeleteObject(hRgnChanged);
-          DeleteObject(hRgnControl);
-          DeleteObject(hRgnToErase);
-          DeleteObject(hRgnToDrawBefore);
-          DeleteObject(hRgnToDrawAfter);
-          DeleteObject(hRgnAllChild);
-          StackClear((stack **)&hDRWStack.first, (stack **)&hDRWStack.last);
         }
+        DeleteObject(hRgnChanged);
+        DeleteObject(hRgnControl);
+        DeleteObject(hRgnToErase);
+        DeleteObject(hRgnToDrawBefore);
+        DeleteObject(hRgnToDrawAfter);
+        DeleteObject(hRgnAllChild);
+        StackClear((stack **)&hDRWStack.first, (stack **)&hDRWStack.last);
         return TRUE;
       }
       break;
