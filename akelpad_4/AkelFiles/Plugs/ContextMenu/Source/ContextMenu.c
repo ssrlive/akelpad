@@ -377,6 +377,7 @@ typedef struct _SPECIALPARENT {
   SPECIALMENUITEM *first;
   SPECIALMENUITEM *last;
   HMENU hParentMenu;
+  BOOL bRefill;                //-1 - SI_INCLUDE that require initial filling.
 } SPECIALPARENT;
 
 typedef struct {
@@ -505,7 +506,7 @@ void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nType);
 DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags);
-void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu, BOOL bRemove);
+BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu, BOOL bRemove);
 void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu);
 int ShowContextMenu(POPUPMENU *hMenuStack, HWND hWnd, int nType, int x, int y, HMENU hMenu);
 void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y);
@@ -2906,6 +2907,12 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nType
                 lpSpecialMenuItem->nMenuType=nType;
                 lpSpecialMenuItem->hParamStack=hParamStack;
               }
+              if (nSpecialItem == SI_INCLUDE)
+              {
+                if (!lpSpecialParent->bRefill)
+                   lpSpecialParent->bRefill=-1;
+              }
+              else lpSpecialParent->bRefill=TRUE;
             }
             xmemset(&hParamStack, 0, sizeof(STACKEXTPARAM));
             ++nSubMenuCodeItem;
@@ -3318,7 +3325,7 @@ DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags)
   return 0;
 }
 
-void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu, BOOL bRemove)
+BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu, BOOL bRemove)
 {
   SPECIALPARENT *lpSpecialParent;
   SPECIALMENUITEM *lpSpecialMenuItem;
@@ -3330,6 +3337,7 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
   int nCountDiff;
   int nAdded;
   int i;
+  BOOL bRefill=FALSE;
 
   if (!hManualStack)
     hManualStack=&hMenuManualStack;
@@ -3338,13 +3346,20 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
       lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
   }
-  if (lpSpecialParent)
+  if (lpSpecialParent && lpSpecialParent->bRefill)
   {
     //Recursive INCLUDEs
     for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
     {
-      if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
-        InitMenuPopup(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove);
+      if (lpSpecialMenuItem->nItemType == SI_INCLUDE)
+      {
+        if (lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+        {
+          if (InitMenuPopup(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove))
+            lpSpecialParent->bRefill=TRUE;
+        }
+      }
+      else lpSpecialParent->bRefill=TRUE;
     }
 
     if (bRemove)
@@ -3487,8 +3502,12 @@ void InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
           }
         }
       }
+      if (lpSpecialParent->bRefill == -1)
+        lpSpecialParent->bRefill=FALSE;
     }
+    bRefill=lpSpecialParent->bRefill;
   }
+  return bRefill;
 }
 
 void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu)
