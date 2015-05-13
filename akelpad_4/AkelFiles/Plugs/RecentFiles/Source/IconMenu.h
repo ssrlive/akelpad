@@ -692,7 +692,7 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
   ICONMENUITEM *lpOldMenuItem;
   ICONMENUITEM *lpNewMenuItem=NULL;
   char szStr[MAX_PATH];
-  BOOL bResult=FALSE;
+  BOOL bResult=TRUE;
 
   if (!lpMenuHandle->hFont)
   {
@@ -732,96 +732,106 @@ BOOL IconMenu_SetItem(DWORD dwFlags, HICONMENU hIconMenu, HIMAGELIST hImageList,
     StackInsertBefore((stack **)&lpSubMenu->first, (stack **)&lpSubMenu->last, (stack *)lpOldMenuItem, (stack **)&lpNewMenuItem, sizeof(ICONMENUITEM));
   else
     lpNewMenuItem=lpOldMenuItem;
+  if (!lpNewMenuItem)
+    return FALSE;
 
-  if (lpNewMenuItem)
+  lpNewMenuItem->hIconSubMenu=(HICONSUBMENU)lpSubMenu;
+  lpNewMenuItem->uFlags=uFlags;
+  lpNewMenuItem->hImageList=hImageList;
+  lpNewMenuItem->nIconIndex=nIconIndex;
+  if (nIconIndex != -1)
   {
-    lpNewMenuItem->hIconSubMenu=(HICONSUBMENU)lpSubMenu;
-    lpNewMenuItem->uFlags=uFlags;
-    lpNewMenuItem->hImageList=hImageList;
-    lpNewMenuItem->nIconIndex=nIconIndex;
-    if (nIconIndex != -1)
-    {
-      lpNewMenuItem->nIconWidth=nIconWidth?nIconWidth:ICONMENU_CXICON;
-      lpNewMenuItem->nIconHeight=nIconHeight?nIconHeight:ICONMENU_CYICON;
-    }
-    else
-    {
-      lpNewMenuItem->nIconWidth=IconMenu_hUxTheme?ICONMENU_CXICON:ICONMENU_CXCHECKMARK;
-      lpNewMenuItem->nIconHeight=IconMenu_hUxTheme?ICONMENU_CYICON:ICONMENU_CYCHECKMARK;
-    }
-    lpNewMenuItem->nItemID=uIDNewItem;
-    if (dwFlags & ICONMENU_SETMENU_ANSI)
-      lpNewMenuItem->nStrLen=MultiByteToWideChar(CP_ACP, 0, lpNewItem?(char *)lpNewItem:"", -1, lpNewMenuItem->wszStr, MAX_PATH) - 1;
-    else
-      lpNewMenuItem->nStrLen=(int)xstrcpynW(lpNewMenuItem->wszStr, lpNewItem?(wchar_t *)lpNewItem:L"", MAX_PATH);
+    lpNewMenuItem->nIconWidth=nIconWidth?nIconWidth:ICONMENU_CXICON;
+    lpNewMenuItem->nIconHeight=nIconHeight?nIconHeight:ICONMENU_CYICON;
+  }
+  else
+  {
+    lpNewMenuItem->nIconWidth=IconMenu_hUxTheme?ICONMENU_CXICON:ICONMENU_CXCHECKMARK;
+    lpNewMenuItem->nIconHeight=IconMenu_hUxTheme?ICONMENU_CYICON:ICONMENU_CYCHECKMARK;
+  }
+  lpNewMenuItem->nItemID=uIDNewItem;
+  if (dwFlags & ICONMENU_SETMENU_ANSI)
+    lpNewMenuItem->nStrLen=MultiByteToWideChar(CP_ACP, 0, lpNewItem?(char *)lpNewItem:"", -1, lpNewMenuItem->wszStr, MAX_PATH) - 1;
+  else
+    lpNewMenuItem->nStrLen=(int)xstrcpynW(lpNewMenuItem->wszStr, lpNewItem?(wchar_t *)lpNewItem:L"", MAX_PATH);
 
-    //Parse '&' and '\t'
-    {
-      wchar_t *wpCountIn=lpNewMenuItem->wszStr;
-      wchar_t *wpCountOut=lpNewMenuItem->wszStr;
-      wchar_t *wpCountInEnd=lpNewMenuItem->wszStr + lpNewMenuItem->nStrLen;
+  //Parse '&' and '\t'
+  {
+    wchar_t *wpCountIn=lpNewMenuItem->wszStr;
+    wchar_t *wpCountOut=lpNewMenuItem->wszStr;
+    wchar_t *wpCountInEnd=lpNewMenuItem->wszStr + lpNewMenuItem->nStrLen;
 
-      while (wpCountIn < wpCountInEnd)
+    while (wpCountIn < wpCountInEnd)
+    {
+      if (*wpCountIn == '&')
       {
-        if (*wpCountIn == '&')
-        {
-          *wpCountOut++=*wpCountIn++;
-          lpNewMenuItem->wchKey=*wpCountIn;
-          WideCharToMultiByte(CP_ACP, 0, &lpNewMenuItem->wchKey, 1, &lpNewMenuItem->chKey, 1, NULL, NULL);
-        }
-        else if (*wpCountIn == '\t')
-        {
-          wpCountOut++;
-          lpNewMenuItem->wpTab=wpCountOut;
-          ++wpCountIn;
-        }
-        else *wpCountOut++=*wpCountIn++;
+        *wpCountOut++=*wpCountIn++;
+        lpNewMenuItem->wchKey=*wpCountIn;
+        WideCharToMultiByte(CP_ACP, 0, &lpNewMenuItem->wchKey, 1, &lpNewMenuItem->chKey, 1, NULL, NULL);
       }
-      *wpCountOut='\0';
-
-      lpNewMenuItem->nStrLen=(int)((lpNewMenuItem->wpTab?lpNewMenuItem->wpTab - 1:wpCountOut) - lpNewMenuItem->wszStr);
-      lpNewMenuItem->nTabLen=(int)(lpNewMenuItem->wpTab?wpCountOut - lpNewMenuItem->wpTab:0);
-    }
-
-    //Insert/Modify menu
-    if (IconMenu_bOldWindows)
-      WideCharToMultiByte(CP_ACP, 0, lpNewMenuItem->wszStr, -1, szStr, MAX_PATH, NULL, NULL);
-
-    if ((uFlags & MF_BYPOSITION) && nPosition == -1)
-    {
-      if (dwFlags & ICONMENU_SETMENU_INSERT)
+      else if (*wpCountIn == '\t')
       {
-        if (IconMenu_bOldWindows)
-          AppendMenuA(hMenu, uFlags, uIDNewItem, szStr);
-        else
-          AppendMenuW(hMenu, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
+        wpCountOut++;
+        lpNewMenuItem->wpTab=wpCountOut;
+        ++wpCountIn;
       }
-      nPosition=lpSubMenu->nItemCount;
+      else *wpCountOut++=*wpCountIn++;
     }
-    else
+    *wpCountOut='\0';
+
+    lpNewMenuItem->nStrLen=(int)((lpNewMenuItem->wpTab?lpNewMenuItem->wpTab - 1:wpCountOut) - lpNewMenuItem->wszStr);
+    lpNewMenuItem->nTabLen=(int)(lpNewMenuItem->wpTab?wpCountOut - lpNewMenuItem->wpTab:0);
+  }
+
+  //Insert/Modify menu
+  if (IconMenu_bOldWindows)
+    WideCharToMultiByte(CP_ACP, 0, lpNewMenuItem->wszStr, -1, szStr, MAX_PATH, NULL, NULL);
+
+  if ((uFlags & MF_BYPOSITION) && nPosition == -1)
+  {
+    if (dwFlags & ICONMENU_SETMENU_INSERT)
     {
-      if (dwFlags & ICONMENU_SETMENU_INSERT)
-      {
-        if (IconMenu_bOldWindows)
-          InsertMenuA(hMenu, (UINT)nPosition, uFlags, uIDNewItem, szStr);
-        else
-          InsertMenuW(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
-      }
+      if (IconMenu_bOldWindows)
+        bResult=AppendMenuA(hMenu, uFlags, uIDNewItem, szStr);
+      else
+        bResult=AppendMenuW(hMenu, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
     }
+    nPosition=lpSubMenu->nItemCount;
+  }
+  else
+  {
+    if (dwFlags & ICONMENU_SETMENU_INSERT)
+    {
+      if (IconMenu_bOldWindows)
+        bResult=InsertMenuA(hMenu, (UINT)nPosition, uFlags, uIDNewItem, szStr);
+      else
+        bResult=InsertMenuW(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
+    }
+  }
+
+  if (bResult)
+  {
     if (dwFlags & ICONMENU_SETMENU_MODIFY)
     {
       if (IconMenu_bOldWindows)
-        ModifyMenuA(hMenu, (UINT)nPosition, uFlags, uIDNewItem, szStr);
+        bResult=ModifyMenuA(hMenu, (UINT)nPosition, uFlags, uIDNewItem, szStr);
       else
-        ModifyMenuW(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
+        bResult=ModifyMenuW(hMenu, (UINT)nPosition, uFlags, uIDNewItem, lpNewMenuItem->wszStr);
     }
-
-    if (bResult=ModifyMenuA(hMenu, (UINT)nPosition, MF_OWNERDRAW|uFlags, uIDNewItem, (const char *)lpNewMenuItem))
+    if (bResult)
     {
-      if (dwFlags & ICONMENU_SETMENU_INSERT)
-        ++lpSubMenu->nItemCount;
-      IconMenu_GetSubMenuSize(lpSubMenu);
+      if (bResult=ModifyMenuA(hMenu, (UINT)nPosition, MF_OWNERDRAW|uFlags, uIDNewItem, (const char *)lpNewMenuItem))
+      {
+        if (dwFlags & ICONMENU_SETMENU_INSERT)
+          ++lpSubMenu->nItemCount;
+        IconMenu_GetSubMenuSize(lpSubMenu);
+      }
     }
+  }
+  if (!bResult)
+  {
+    if (lpNewMenuItem != lpOldMenuItem)
+      StackDelete((stack **)&lpSubMenu->first, (stack **)&lpSubMenu->last, (stack *)lpNewMenuItem);
   }
   return bResult;
 }
