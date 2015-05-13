@@ -1,5 +1,5 @@
 /******************************************************************
- *                 IconMenu functions header v2.6                 *
+ *                 IconMenu functions header v2.7                 *
  *                                                                *
  *  2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
