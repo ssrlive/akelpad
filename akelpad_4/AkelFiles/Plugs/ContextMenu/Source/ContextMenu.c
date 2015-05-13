@@ -361,6 +361,7 @@ typedef struct {
 typedef struct _SPECIALMENUITEM {
   struct _SPECIALMENUITEM *next;
   struct _SPECIALMENUITEM *prev;
+  BOOL bDynamic;                //-1 - SI_INCLUDE that require initial filling.
   int nUpdateTime;
   int nItemType;
   int nFirstIndex;
@@ -377,7 +378,7 @@ typedef struct _SPECIALPARENT {
   SPECIALMENUITEM *first;
   SPECIALMENUITEM *last;
   HMENU hParentMenu;
-  BOOL bRefill;                //-1 - SI_INCLUDE that require initial filling.
+  BOOL bDynamic;                //-1 - SI_INCLUDE that require initial filling.
 } SPECIALPARENT;
 
 typedef struct {
@@ -528,8 +529,9 @@ BOOL InsertMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconI
 BOOL ModifyMenuCommon(HICONMENU hIconMenu, HIMAGELIST hImageList, INT_PTR nIconIndex, int nIconWidth, int nIconHeight, HMENU hMenu, INT_PTR nPosition, UINT uFlags, UINT_PTR uIDNewItem, const wchar_t *lpNewItem);
 BOOL DeleteMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
 BOOL RemoveMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT uFlags);
-int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc);
 int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONMENUITEM *lpMenuItemSrc);
+int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc);
+int CopyMenuState(HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc);
 BOOL GetExplorerMenu(LPCONTEXTMENU *pContextMenu, LPCONTEXTMENU2 *pContextSubMenu2, LPCONTEXTMENU3 *pContextSubMenu3, HWND hWnd, wchar_t *wpFile);
 LPITEMIDLIST NextPIDL(LPCITEMIDLIST pidl);
 int GetSubMenuIndex(HMENU hMenu, HMENU hSubMenu);
@@ -2906,13 +2908,19 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nType
                 lpSpecialMenuItem->nTextOffset=(int)(wpLineBegin - wpTextBegin);
                 lpSpecialMenuItem->nMenuType=nType;
                 lpSpecialMenuItem->hParamStack=hParamStack;
+
+                if (nSpecialItem == SI_INCLUDE)
+                {
+                  lpSpecialMenuItem->bDynamic=-1;
+                  if (!lpSpecialParent->bDynamic)
+                     lpSpecialParent->bDynamic=-1;
+                }
+                else
+                {
+                  lpSpecialMenuItem->bDynamic=TRUE;
+                  lpSpecialParent->bDynamic=TRUE;
+                }
               }
-              if (nSpecialItem == SI_INCLUDE)
-              {
-                if (!lpSpecialParent->bRefill)
-                   lpSpecialParent->bRefill=-1;
-              }
-              else lpSpecialParent->bRefill=TRUE;
             }
             xmemset(&hParamStack, 0, sizeof(STACKEXTPARAM));
             ++nSubMenuCodeItem;
@@ -3337,7 +3345,7 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
   int nCountDiff;
   int nAdded;
   int i;
-  BOOL bRefill=FALSE;
+  BOOL bDynamic=FALSE;
 
   if (!hManualStack)
     hManualStack=&hMenuManualStack;
@@ -3346,20 +3354,22 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
       lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
   }
-  if (lpSpecialParent && lpSpecialParent->bRefill)
+  if (lpSpecialParent && lpSpecialParent->bDynamic)
   {
     //Recursive INCLUDEs
     for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
     {
-      if (lpSpecialMenuItem->nItemType == SI_INCLUDE)
+      if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
       {
-        if (lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+        if (lpSpecialMenuItem->bDynamic)
         {
-          if (InitMenuPopup(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove))
-            lpSpecialParent->bRefill=TRUE;
+          if (InitMenuPopup(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, bRemove) == TRUE)
+          {
+            lpSpecialMenuItem->bDynamic=TRUE;
+            lpSpecialParent->bDynamic=TRUE;
+          }
         }
       }
-      else lpSpecialParent->bRefill=TRUE;
     }
 
     if (bRemove)
@@ -3367,7 +3377,7 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
       //Remove old items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
-        if (lpSpecialMenuItem->nLastIndex == -1 || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime)
+        if (!lpSpecialMenuItem->bDynamic || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime || lpSpecialMenuItem->nLastIndex == -1)
           continue;
         if (lpSpecialMenuItem->nItemType == SI_EXPLORER)
         {
@@ -3395,7 +3405,7 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
       //Add new items
       for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
-        if (lpSpecialMenuItem->nLastIndex > -1 || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime)
+        if (!lpSpecialMenuItem->bDynamic || lpSpecialMenuItem->nUpdateTime == nCurrentUpdateTime || lpSpecialMenuItem->nLastIndex > -1)
           continue;
         if (lpSpecialMenuItem->nItemType == SI_EXPLORER)
         {
@@ -3501,13 +3511,15 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
               lpNextSpecialMenuItem->nLastIndex+=nCountDiff;
           }
         }
+        if (lpSpecialMenuItem->bDynamic == -1)
+          lpSpecialMenuItem->bDynamic=FALSE;
       }
-      if (lpSpecialParent->bRefill == -1)
-        lpSpecialParent->bRefill=FALSE;
+      if (lpSpecialParent->bDynamic == -1)
+        lpSpecialParent->bDynamic=FALSE;
     }
-    bRefill=lpSpecialParent->bRefill;
+    bDynamic=lpSpecialParent->bDynamic;
   }
-  return bRefill;
+  return bDynamic;
 }
 
 void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMenu)
@@ -3534,7 +3546,12 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSu
     for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
     {
       if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
-        UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
+      {
+        if (lpSpecialMenuItem->bDynamic != TRUE)
+          UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
+        if (!lpSpecialMenuItem->bDynamic)
+          CopyMenuState(hSubMenu, lpSpecialMenuItem->nFirstIndex, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, 0);
+      }
     }
   }
 
@@ -4768,28 +4785,6 @@ BOOL RemoveMenuCommon(HICONMENU hIconMenu, HMENU hMenu, INT_PTR nPosition, UINT 
   return IconMenu_RemoveItem(hIconMenu, hMenu, nPosition, uFlags);
 }
 
-int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc)
-{
-  wchar_t wszItem[MAX_PATH];
-  DWORD dwState;
-  int nItemID;
-  int nAdded=0;
-  int i;
-
-  //Copy until MF_SEPARATOR or menu end
-  for (i=nPositionSrc; GetMenuStringWide(hMenuSrc, i, wszItem, MAX_PATH, MF_BYPOSITION); ++i)
-  {
-    if ((dwState=GetMenuState(hMenuSrc, i, MF_BYPOSITION)) != (DWORD)-1)
-    {
-      nItemID=GetMenuItemID(hMenuSrc, i);
-      if (InsertMenuCommon(hIconMenuDst, NULL, -1, 0, 0, hMenuDst, nPositionDst + nAdded, MF_BYPOSITION|dwState, nItemID, wszItem))
-        ++nAdded;
-    }
-    else break;
-  }
-  return nAdded;
-}
-
 int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONMENUITEM *lpMenuItemSrc)
 {
   ICONMENUSUBMENU *lpSubMenuSrc;
@@ -4819,6 +4814,41 @@ int IncludeMenu(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, ICONME
     }
   }
   return nAdded;
+}
+
+int CopyMenuGroup(HICONMENU hIconMenuDst, HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc)
+{
+  wchar_t wszItem[MAX_PATH];
+  DWORD dwState;
+  int nItemID;
+  int nAdded=0;
+
+  //Copy until MF_SEPARATOR or menu end
+  while (GetMenuStringWide(hMenuSrc, nPositionSrc, wszItem, MAX_PATH, MF_BYPOSITION))
+  {
+    if ((dwState=GetMenuState(hMenuSrc, nPositionSrc, MF_BYPOSITION)) == (DWORD)-1)
+      break;
+
+    nItemID=GetMenuItemID(hMenuSrc, nPositionSrc);
+    if (InsertMenuCommon(hIconMenuDst, NULL, -1, 0, 0, hMenuDst, nPositionDst + nAdded, MF_BYPOSITION|dwState, nItemID, wszItem))
+      ++nAdded;
+    ++nPositionSrc;
+  }
+  return nAdded;
+}
+
+int CopyMenuState(HMENU hMenuDst, int nPositionDst, HMENU hMenuSrc, int nPositionSrc)
+{
+  int nCount=0;
+  DWORD dwState;
+
+  while ((dwState=GetMenuState(hMenuSrc, nPositionSrc + nCount, MF_BYPOSITION)) != (DWORD)-1)
+  {
+    CheckMenuItem(hMenuDst, nPositionDst + nCount, MF_BYPOSITION|dwState);
+    EnableMenuItem(hMenuDst, nPositionDst + nCount, MF_BYPOSITION|dwState);
+    ++nCount;
+  }
+  return nCount;
 }
 
 BOOL GetExplorerMenu(LPCONTEXTMENU *pContextMenu, LPCONTEXTMENU2 *pContextSubMenu2, LPCONTEXTMENU3 *pContextSubMenu3, HWND hWnd, wchar_t *wpFile)
