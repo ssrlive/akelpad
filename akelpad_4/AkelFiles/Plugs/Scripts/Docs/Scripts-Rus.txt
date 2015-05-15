@@ -913,7 +913,7 @@ ___________________
     0x00200000  //FRF_BEGINNING           Поиск с начала (использование: FRF_DOWN|FRF_BEGINNING).
     0x00400000  //FRF_SELECTION           Поиск в выделении (использование: FRF_DOWN|FRF_SELECTION).
     0x00800000  //FRF_ESCAPESEQ           Поиск с esc-последовательностями.
-    0x01000000  //FRF_ALLFILES            Поиск во всех открытых вкладках (не реализовано).
+    0x01000000  //FRF_ALLFILES            Поиск во всех открытых вкладках.
     0x08000000  //FRF_CYCLESEARCH         Поиск по кругу (работает, если bAll == false).
     0x10000000  //FRF_CYCLESEARCHPROMPT   Запрос при поиске по кругу.
   bAll

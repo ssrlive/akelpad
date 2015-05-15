@@ -9315,8 +9315,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   BOOL bReplaceAll=FALSE;
   BOOL bReplaceAllButtonState=FALSE;
   INT_PTR nReplaceCount;
-  INT_PTR nResult;
+  int nReplaceFiles;
   int i;
+  INT_PTR nResult;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -9604,105 +9605,72 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (bReplaceAll)
         bReplaceAllButtonState=EnableWindow(hWndReplaceAllButton, FALSE);
 
-      if (!(moCur.dwSearchOptions & FRF_SELECTION) && (moCur.dwSearchOptions & FRF_ALLFILES))
+      if (bReplaceAll)
       {
-        FRAMEDATA *lpFrameInit=lpFrameCurrent;
-        INT_PTR nChanges=0;
-        int nChangedFiles=0;
+        if (bSpecialCheck == TRUE)
+        {
+          bSpecialCheck=FALSE;
+          moCur.dwSearchOptions|=FRF_BEGINNING;
+          SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+        }
+      }
 
-        if (bReplaceAll == TRUE)
+      if (bReplace || bReplaceAll)
+        nResult=TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount, &nReplaceFiles);
+      else
+        nResult=TextFindW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen);
+
+      if (nResult == -1)
+      {
+        if (lpFrameCurrent->nCompileErrorOffset &&
+            ((moCur.dwSearchOptions & FRF_REGEXP) ||
+             (moCur.dwSearchOptions & FRF_ESCAPESEQ)))
+        {
+          API_LoadString(hLangModule, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
+          API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+          if (lpFrameCurrent->bCompileErrorReplace)
+            hWndError=hWndReplace;
+          else
+            hWndError=hWndFind;
+          hWndFocus=NULL;
+          SetFocus(hWndError);
+          SendMessage(hWndError, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
+        }
+        else
         {
           if (bSpecialCheck == TRUE)
           {
             bSpecialCheck=FALSE;
             moCur.dwSearchOptions|=FRF_BEGINNING;
-            SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+            SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
           }
-
-          do
+          if (bReplaceAll)
           {
-            TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, TRUE, &nReplaceCount);
-            if (!hDlgModeless) break;
+            //Show result
+            lpFrameCurrent->nReplaceCount=nReplaceCount;
+            UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
 
-            if (nReplaceCount)
+            if (moCur.dwSearchOptions & FRF_REPLACEALLANDCLOSE)
             {
-              ++nChangedFiles;
-              nChanges+=nReplaceCount;
+              PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+              return TRUE;
             }
-            lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
-          }
-          while (lpFrameCurrent != lpFrameInit);
-
-          //Show result
-          lpFrameCurrent->nReplaceCount=nChanges;
-          UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
-
-          if (moCur.dwSearchOptions & FRF_REPLACEALLANDCLOSE)
-          {
-            PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-            return TRUE;
-          }
-          else if (!(moCur.dwSearchOptions & FRF_REPLACEALLNOMSG))
-          {
-            API_LoadString(hLangModule, MSG_REPLACE_COUNT_ALLFILES, wbuf, BUFFER_SIZE);
-            xprintfW(wszMsg, wbuf, nChangedFiles, nChanges);
-            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
-          }
-        }
-        else
-        {
-          do
-          {
-            if (bReplace == TRUE)
-              nResult=TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions & ~FRF_CYCLESEARCH, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
-            else
-              nResult=TextFindW(lpFrameCurrent, moCur.dwSearchOptions & ~FRF_CYCLESEARCH, wszFindText, nFindTextLen);
-
-            if (nResult == -1)
+            else if (!(moCur.dwSearchOptions & FRF_REPLACEALLNOMSG))
             {
-              if (lpFrameCurrent->nCompileErrorOffset &&
-                  ((moCur.dwSearchOptions & FRF_REGEXP) ||
-                   (moCur.dwSearchOptions & FRF_ESCAPESEQ)))
+              if (moCur.dwSearchOptions & FRF_ALLFILES)
               {
-                API_LoadString(hLangModule, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
-                API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-                hWndFocus=NULL;
-                if (lpFrameCurrent->bCompileErrorReplace)
-                  hWndError=hWndReplace;
-                else
-                  hWndError=hWndFind;
-                hWndFocus=NULL;
-                SetFocus(hWndError);
-                SendMessage(hWndError, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
-
-                bNoSearchFinishMsg=TRUE;
-                break;
+                API_LoadString(hLangModule, MSG_REPLACE_COUNT_ALLFILES, wbuf, BUFFER_SIZE);
+                xprintfW(wszMsg, wbuf, nReplaceFiles, nReplaceCount);
               }
               else
               {
-                if (bSpecialCheck == TRUE)
-                {
-                  bSpecialCheck=FALSE;
-                  moCur.dwSearchOptions|=FRF_BEGINNING;
-                  SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
-                }
-                lpFrameCurrent=ActivateFrameWindow(lpFrameCurrent, FWA_NEXT|FWA_NOUPDATEORDER);
+                API_LoadString(hLangModule, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
+                xprintfW(wszMsg, wbuf, nReplaceCount);
               }
-            }
-            else
-            {
-              if (bSpecialCheck == FALSE)
-              {
-                bSpecialCheck=TRUE;
-                moCur.dwSearchOptions&=~FRF_BEGINNING;
-                SendMessage(hWndAllFiles, BM_SETSTATE, TRUE, 0);
-              }
-              break;
+              API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
             }
           }
-          while (lpFrameCurrent != lpFrameInit);
-
-          if (nResult == -1 && !bNoSearchFinishMsg)
+          else if (!bNoSearchFinishMsg)
           {
             API_LoadString(hLangModule, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -9711,85 +9679,19 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       else
       {
-        if (bReplaceAll == TRUE)
+        //if (bSpecialCheck == FALSE)
+        if (!(moCur.dwSearchOptions & FRF_SELECTION) && (moCur.dwSearchOptions & FRF_BEGINNING))
         {
-          if (bSpecialCheck == TRUE)
-          {
-            bSpecialCheck=FALSE;
-            moCur.dwSearchOptions|=FRF_BEGINNING;
-            SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
-          }
-        }
-
-        if (bReplace == TRUE || bReplaceAll == TRUE)
-          nResult=TextReplaceW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
-        else
-          nResult=TextFindW(lpFrameCurrent, moCur.dwSearchOptions, wszFindText, nFindTextLen);
-
-        if (nResult == -1)
-        {
-          if (lpFrameCurrent->nCompileErrorOffset &&
-              ((moCur.dwSearchOptions & FRF_REGEXP) ||
-               (moCur.dwSearchOptions & FRF_ESCAPESEQ)))
-          {
-            API_LoadString(hLangModule, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
-            API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-            if (lpFrameCurrent->bCompileErrorReplace)
-              hWndError=hWndReplace;
-            else
-              hWndError=hWndFind;
-            hWndFocus=NULL;
-            SetFocus(hWndError);
-            SendMessage(hWndError, CB_SETEDITSEL, 0, MAKELONG(lpFrameCurrent->nCompileErrorOffset - 1, 0xFFFF));
-          }
-          else
-          {
-            if (bSpecialCheck == TRUE)
-            {
-              bSpecialCheck=FALSE;
-              moCur.dwSearchOptions|=FRF_BEGINNING;
-              SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
-            }
-            if (bReplaceAll == TRUE)
-            {
-              //Show result
-              lpFrameCurrent->nReplaceCount=nReplaceCount;
-              UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
-
-              if (moCur.dwSearchOptions & FRF_REPLACEALLANDCLOSE)
-              {
-                PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-                return TRUE;
-              }
-              else if (!(moCur.dwSearchOptions & FRF_REPLACEALLNOMSG))
-              {
-                API_LoadString(hLangModule, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
-                xprintfW(wszMsg, wbuf, nReplaceCount);
-                API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
-              }
-            }
-            else if (!bNoSearchFinishMsg)
-            {
-              API_LoadString(hLangModule, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
-              API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
-            }
-          }
-        }
-        else
-        {
-          if (!(moCur.dwSearchOptions & FRF_SELECTION) && (moCur.dwSearchOptions & FRF_BEGINNING))
-          {
-            bSpecialCheck=TRUE;
-            moCur.dwSearchOptions&=~FRF_BEGINNING;
-            SendMessage(hWndBeginning, BM_SETSTATE, TRUE, 0);
-          }
+          bSpecialCheck=TRUE;
+          moCur.dwSearchOptions&=~FRF_BEGINNING;
+          SendMessage(hWndBeginning, BM_SETSTATE, TRUE, 0);
         }
       }
+
       if (bReplaceAll)
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
       if (hWndFocus)
         SetFocus(hWndFocus);
-
       return TRUE;
     }
     else if (wCommand == IDCANCEL)
@@ -9999,6 +9901,33 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   if (nFindItLen == -1)
     nFindItLen=(int)xstrlenW(wpFindIt);
 
+  if ((dwFlags & FRF_ALLFILES) && !(dwFlags & FRF_SELECTION))
+  {
+    FRAMEDATA *lpFrameInit=lpFrame;
+
+    dwFlags&=~FRF_ALLFILES & ~FRF_CYCLESEARCH;
+
+    do
+    {
+      nResult=TextFindW(lpFrame, dwFlags, wpFindIt, nFindItLen);
+
+      if (nResult == -1)
+      {
+        if (lpFrame->nCompileErrorOffset &&
+            ((dwFlags & FRF_REGEXP) ||
+             (dwFlags & FRF_ESCAPESEQ)))
+        {
+          break;
+        }
+        dwFlags|=FRF_BEGINNING;
+        lpFrame=ActivateFrameWindow(lpFrame, FWA_NEXT|FWA_NOUPDATEORDER);
+      }
+      else break;
+    }
+    while (lpFrame != lpFrameInit);
+
+    goto End;
+  }
   if (dwFlags & FRF_ESCAPESEQ)
   {
     lpFrame->nCompileErrorOffset=0;
@@ -10135,7 +10064,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   return nResult;
 }
 
-INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *nReplaceCount)
+INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *lpnReplaceCount, int *lpnReplaceFiles)
 {
   AECHARRANGE crInitialSel;
   AECHARRANGE crFullText;
@@ -10161,6 +10090,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   INT_PTR nRangeTextLen;
   INT_PTR nResultTextLen;
   INT_PTR nChanges=0;
+  INT_PTR nChangedFiles=0;
   INT_PTR nResult=-1;
   int nFirstLine=0;
   int i;
@@ -10182,6 +10112,40 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     nReplaceWithLen=(int)xstrlenW(wpReplaceWith);
   nReplaceWithLenEsc=nReplaceWithLen;
 
+  if ((dwFlags & FRF_ALLFILES) && !(dwFlags & FRF_SELECTION))
+  {
+    FRAMEDATA *lpFrameInit=lpFrame;
+    INT_PTR nReplaceCount;
+
+    dwFlags&=~FRF_ALLFILES & ~FRF_CYCLESEARCH;
+    if (bAll) dwFlags|=FRF_BEGINNING;
+
+    do
+    {
+      nResult=TextReplaceW(lpFrame, dwFlags, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, bAll, &nReplaceCount, NULL);
+
+      if (nResult == -1)
+      {
+        if (lpFrame->nCompileErrorOffset &&
+            ((dwFlags & FRF_REGEXP) ||
+             (dwFlags & FRF_ESCAPESEQ)))
+        {
+          break;
+        }
+        if (nReplaceCount)
+        {
+          ++nChangedFiles;
+          nChanges+=nReplaceCount;
+        }
+        dwFlags|=FRF_BEGINNING;
+        lpFrame=ActivateFrameWindow(lpFrame, FWA_NEXT|FWA_NOUPDATEORDER);
+      }
+      else break;
+    }
+    while (lpFrame != lpFrameInit);
+
+    goto End;
+  }
   if (dwFlags & FRF_ESCAPESEQ)
   {
     lpFrame->nCompileErrorOffset=0;
@@ -10644,7 +10608,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     API_FreeWide(wszFindItEsc);
   if (wszReplaceWithEsc != wpReplaceWith)
     API_FreeWide(wszReplaceWithEsc);
-  if (nReplaceCount) *nReplaceCount=nChanges;
+  if (lpnReplaceCount) *lpnReplaceCount=nChanges;
+  if (lpnReplaceFiles) *lpnReplaceFiles=nChangedFiles;
   return nResult;
 }
 
