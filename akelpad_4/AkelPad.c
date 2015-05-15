@@ -2299,13 +2299,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
 
-                nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+                nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges, NULL);
                 GlobalFree((HGLOBAL)wpReplaceWith);
               }
               GlobalFree((HGLOBAL)wpFindIt);
             }
           }
-          else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+          else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges, NULL);
 
           if (nResult == -1)
           {
