@@ -904,7 +904,7 @@ HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, B
   tr.nReplaceWithLen=SysStringLen(wpReplaceWith);
   tr.bAll=bAll;
   nResult=SendMessage(hMainWnd, AKD_TEXTREPLACEW, (WPARAM)hWnd, (LPARAM)&tr);
-  if (bAll)
+  if (bAll && nResult == -1)
     nResult=tr.nChanges;
 
   SetVariantInt(vtResult, nResult);
