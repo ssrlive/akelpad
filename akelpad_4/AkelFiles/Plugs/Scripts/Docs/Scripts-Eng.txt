@@ -873,7 +873,7 @@ Arguments
     0x00200000  //FRF_BEGINNING           Search from beginning (usage: FRF_DOWN|FRF_BEGINNING).
     0x00400000  //FRF_SELECTION           Search in selection (usage: FRF_DOWN|FRF_SELECTION).
     0x00800000  //FRF_ESCAPESEQ           Search with escape sequences.
-    0x01000000  //FRF_ALLFILES            Search in all opened MDI documents (not implemented).
+    0x01000000  //FRF_ALLFILES            Search in all opened MDI documents (usage: FRF_DOWN|FRF_BEGINNING|FRF_ALLFILES).
     0x08000000  //FRF_CYCLESEARCH         Cycle search.
     0x10000000  //FRF_CYCLESEARCHPROMPT   Prompt during cycle search.
 
@@ -912,7 +912,7 @@ Arguments
     0x00200000  //FRF_BEGINNING           Search from beginning (usage: FRF_DOWN|FRF_BEGINNING).
     0x00400000  //FRF_SELECTION           Search in selection (usage: FRF_DOWN|FRF_SELECTION).
     0x00800000  //FRF_ESCAPESEQ           Search with escape sequences.
-    0x01000000  //FRF_ALLFILES            Search in all opened MDI documents.
+    0x01000000  //FRF_ALLFILES            Search in all opened MDI documents (usage: FRF_DOWN|FRF_BEGINNING|FRF_ALLFILES).
     0x08000000  //FRF_CYCLESEARCH         Cycle search (works, if bAll == false).
     0x10000000  //FRF_CYCLESEARCHPROMPT   Prompt during cycle search.
   bAll

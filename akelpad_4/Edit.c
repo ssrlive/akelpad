@@ -9309,6 +9309,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static BOOL bSpecialCheck=FALSE;
   static BOOL bInSelAutoCheck=FALSE;
   HWND hWndFocus=NULL;
+  HWND hWndDirection;
   HWND hWndError;
   HWND hWndComboboxEdit;
   BOOL bReplace=FALSE;
@@ -9604,6 +9605,17 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       hWndFocus=GetFocus();
       if (bReplaceAll)
         bReplaceAllButtonState=EnableWindow(hWndReplaceAllButton, FALSE);
+      //Direction window
+      if (moCur.dwSearchOptions & FRF_SELECTION)
+        hWndDirection=hWndInSelection;
+      else if (moCur.dwSearchOptions & FRF_ALLFILES)
+        hWndDirection=hWndAllFiles;
+      else if (moCur.dwSearchOptions & FRF_BEGINNING)
+        hWndDirection=hWndBeginning;
+      else if (moCur.dwSearchOptions & FRF_DOWN)
+        hWndDirection=hWndForward;
+      else if (moCur.dwSearchOptions & FRF_UP)
+        hWndDirection=hWndBackward;
 
       if (bReplaceAll)
       {
@@ -9611,7 +9623,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
           bSpecialCheck=FALSE;
           moCur.dwSearchOptions|=FRF_BEGINNING;
-          SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+          SendMessage(hWndDirection, BM_SETSTATE, FALSE, 0);
         }
       }
 
@@ -9642,7 +9654,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           {
             bSpecialCheck=FALSE;
             moCur.dwSearchOptions|=FRF_BEGINNING;
-            SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+            SendMessage(hWndDirection, BM_SETSTATE, FALSE, 0);
           }
           if (bReplaceAll)
           {
@@ -9679,12 +9691,14 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       else
       {
-        //if (bSpecialCheck == FALSE)
-        if (!(moCur.dwSearchOptions & FRF_SELECTION) && (moCur.dwSearchOptions & FRF_BEGINNING))
+        if (moCur.dwSearchOptions & FRF_BEGINNING)
         {
-          bSpecialCheck=TRUE;
-          moCur.dwSearchOptions&=~FRF_BEGINNING;
-          SendMessage(hWndBeginning, BM_SETSTATE, TRUE, 0);
+          if (bSpecialCheck == FALSE)
+          {
+            bSpecialCheck=TRUE;
+            moCur.dwSearchOptions&=~FRF_BEGINNING;
+            SendMessage(hWndDirection, BM_SETSTATE, TRUE, 0);
+          }
         }
       }
 
