@@ -2,6 +2,7 @@
 AkelPad 4.9.4 ()
 ----------------------------
 Changed: no tab icon sizing if screen scale other than 96 dpi.
+Changed: improved switching between modeless dialogs with commands 4332 and 4333.
 
 Added: optional parameter for commands 4166,4170:
        1 - delete space/tabulation in single line selection.
