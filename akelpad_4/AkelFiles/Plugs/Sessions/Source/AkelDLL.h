@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 4)
 
 
 //// Defines
@@ -1593,6 +1593,7 @@ typedef struct _MODELESS {
 typedef struct {
   MODELESS *first;
   MODELESS *last;
+  int nElements;
 } STACKMODELESS;
 
 typedef struct {
