@@ -1659,7 +1659,7 @@ typedef struct {
     wchar_t *wpExpanded;     //External parameter expanded string - without %variables% (Unicode).
     int nExpandedUnicodeLen; //External parameter expanded unicode string length.
   } EXTPARAM;
-  
+
   typedef struct {
     EXTPARAM *first;
     EXTPARAM *last;
@@ -4080,7 +4080,7 @@ Return Value
  FALSE  failed.
 
 Remarks
- Only one dialog can be assigned as modeless. Application should unassign dialog before closing, passing NULL in wParam.
+ Application should unassign dialog before closing, passing NULL in wParam for MLA_SINGLE or MLA_DELETE for MLA_ADD.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETMODELESS, (LPARAM)hMyDialog, MLA_SINGLE);
