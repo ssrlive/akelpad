@@ -111,7 +111,6 @@
 #define AKDLL_REFRESH         (WM_USER + 101)
 #define AKDLL_SETUP           (WM_USER + 102)
 #define AKDLL_SELTEXT         (WM_USER + 103)
-#define AKDLL_FREEMESSAGELOOP (WM_USER + 150)
 
 #define OF_LISTTEXT       0x1
 #define OF_SETTINGS       0x2
@@ -362,8 +361,6 @@ SIZE sizeIcon={0};
 CHARRANGE64 crExtSetSel={0};
 UINT_PTR dwPaintTimerId=0;
 BOOL bLockRefresh=FALSE;
-HANDLE hThread=NULL;
-DWORD dwThreadId;
 HWND hWndMainDlg=NULL;
 RECT rcMainMinMaxDialog={532, 174, 0, 0};
 RECT rcMainCurrentDialog={0};
@@ -549,43 +546,29 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lpOldEditDlgProc=(WNDPROC)GetWindowLongPtrWide(hWndToolBarText, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndToolBarText, GWLP_WNDPROC, (UINT_PTR)NewEditDlgProc);
 
+    if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
+      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
+
     //Post AKDLL_SELTEXT because dialog size can be changed after AKD_RESIZEDIALOG
     PostMessage(hDlg, AKDLL_SELTEXT, 0, 0);
-  }
-  else if (uMsg == AKDLL_FREEMESSAGELOOP)
-  {
-    MSG msg;
-
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-      if (hWndMainDlg && !IsDialogMessageWide(hWndMainDlg, &msg))
-      {
-        TranslateMessage(&msg);
-        DispatchMessageWide(&msg);
-      }
-    }
   }
   else if (uMsg == AKDLL_SELTEXT)
   {
     if (crExtSetSel.cpMin || crExtSetSel.cpMax)
     {
       int nLine;
-      int nLockScroll=0;
 
-      if (crExtSetSel.cpMax == -1)
+      if (crExtSetSel.cpMax < crExtSetSel.cpMin)
       {
         nLine=(int)SendMessage(hWndToolBarText, EM_EXLINEFROMCHAR, 0, crExtSetSel.cpMin);
         crExtSetSel.cpMax=SendMessage(hWndToolBarText, EM_LINEINDEX, nLine, 0) + SendMessage(hWndToolBarText, EM_LINELENGTH, crExtSetSel.cpMin, 0);
       }
 
-      if ((nLockScroll=(int)SendMessage(hWndToolBarText, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
-        SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+      SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, TRUE);
       SendMessage(hWndToolBarText, EM_SETSEL, crExtSetSel.cpMax, crExtSetSel.cpMin);
-      if (nLockScroll == -1)
-      {
-        SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, FALSE);
-        ScrollCaret(hWndToolBarText);
-      }
+      SendMessage(hWndToolBarText, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+      ScrollCaret(hWndToolBarText);
+
       crExtSetSel.cpMin=0;
       crExtSetSel.cpMax=0;
     }
@@ -698,14 +681,12 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwSaveFlags=0;
       }
 
+      if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
+        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
       DestroyWindow(hWndMainDlg);
       hWndMainDlg=NULL;
       if (bUpdate)
         PostMessage(hToolbarBG, AKDLL_RECREATE, 0, 0);
-
-      CloseHandle(hThread);
-      hThread=NULL;
-      ExitThread(0);
     }
   }
   else if (uMsg == WM_CLOSE)
@@ -745,36 +726,6 @@ LRESULT CALLBACK NewEditDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
 
   return CallWindowProcWide(lpOldEditDlgProc, hWnd, uMsg, wParam, lParam);
-}
-
-DWORD WINAPI ThreadProc(LPVOID lpParameter)
-{
-  MSG msg;
-
-  OleInitialize(NULL);
-
-  hWndMainDlg=CreateDialogWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SETUP), hMainWnd, (DLGPROC)MainDlgProc);
-
-  if (hWndMainDlg)
-  {
-    while (GetMessageWide(&msg, NULL, 0, 0) > 0)
-    {
-      if (SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_GLOBAL|TMSG_PLUGIN|TMSG_HOTKEY, (LPARAM)&msg))
-        continue;
-
-      if (hWndMainDlg && !IsDialogMessageWide(hWndMainDlg, &msg))
-      {
-        TranslateMessage(&msg);
-        DispatchMessageWide(&msg);
-      }
-    }
-  }
-  if (hThread)
-  {
-    CloseHandle(hThread);
-    hThread=NULL;
-  }
-  return 0;
 }
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -909,10 +860,10 @@ LRESULT CALLBACK ToolbarBGProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   }
   else if (uMsg == AKDLL_SETUP)
   {
-    if (!hThread)
-    {
-      hThread=CreateThread(NULL, 0, ThreadProc, NULL, 0, &dwThreadId);
-    }
+    if (!hWndMainDlg)
+      hWndMainDlg=CreateDialogWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SETUP), hMainWnd, (DLGPROC)MainDlgProc);
+    else
+      SetActiveWindow(hWndMainDlg);
   }
   else if (uMsg == WM_ERASEBKGND)
   {
