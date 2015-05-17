@@ -1447,10 +1447,10 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (crExtSetSel.cpMin || crExtSetSel.cpMax)
       {
+        int nLine;
+
         if (crExtSetSel.cpMax < crExtSetSel.cpMin)
         {
-          int nLine;
-
           nLine=(int)SendMessage(hWndText, EM_EXLINEFROMCHAR, 0, crExtSetSel.cpMin);
           crExtSetSel.cpMax=SendMessage(hWndText, EM_LINEINDEX, nLine, 0) + SendMessage(hWndText, EM_LINELENGTH, crExtSetSel.cpMin, 0);
         }
