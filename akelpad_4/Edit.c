@@ -21644,17 +21644,15 @@ HWND NextDialog(BOOL bPrevious)
 {
   STACKMODELESS hCurModelessStack={0};
   MODELESS *lpModeless;
-  HWND hWndGoto=NULL;
+  static HWND hWndGoto=NULL;
   HWND hWndToFind;
 
   if (!(hWndToFind=GetActiveWindow()))
     return NULL;
-  if (hWndToFind == hMainWnd)
-    hWndToFind=NULL;
 
   //Is hEnumModelessStack changed since last call
   EnumWindows(EnumDialogsProc, (LPARAM)&hCurModelessStack);
-  if (!StackModelessMembers(&hEnumModelessStack, &hCurModelessStack))
+  if (hWndGoto != hWndToFind || !StackModelessMembers(&hEnumModelessStack, &hCurModelessStack))
   {
     StackModelessFree(&hEnumModelessStack);
     hEnumModelessStack=hCurModelessStack;
@@ -21664,7 +21662,7 @@ HWND NextDialog(BOOL bPrevious)
 
   if (hEnumModelessStack.nElements)
   {
-    if (!hWndToFind)
+    if (hWndToFind == hMainWnd)
     {
       if (bPrevious)
         hWndGoto=hEnumModelessStack.last->hWnd;
