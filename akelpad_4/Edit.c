@@ -208,6 +208,7 @@ extern UINT dwLoadStringLastID;
 extern HWND hDlgModeless;
 extern int nModelessType;
 extern STACKMODELESS hModelessStack;
+extern STACKMODELESS hEnumModelessStack;
 
 //Recode dialog
 extern RECT rcRecodeMinMaxDialog;
@@ -17082,7 +17083,10 @@ MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd)
   MODELESS *lpModeless;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpModeless, -1, sizeof(MODELESS)))
+  {
     lpModeless->hWnd=hWnd;
+    ++hStack->nElements;
+  }
   return lpModeless;
 }
 
@@ -17098,6 +17102,26 @@ MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd)
   return lpModeless;
 }
 
+BOOL StackModelessMembers(STACKMODELESS *hStack1, STACKMODELESS *hStack2)
+{
+  MODELESS *lpModeless1;
+  MODELESS *lpModeless2;
+
+  if (hStack1->nElements != hStack2->nElements)
+    return FALSE;
+
+  for (lpModeless1=hStack1->first; lpModeless1; lpModeless1=lpModeless1->next)
+  {
+    for (lpModeless2=hStack2->first; lpModeless2; lpModeless2=lpModeless2->next)
+    {
+      if (lpModeless1->hWnd == lpModeless2->hWnd)
+        break;
+    }
+    if (!lpModeless2) return FALSE;
+  }
+  return TRUE;
+}
+
 BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd)
 {
   MODELESS *lpModeless;
@@ -17105,7 +17129,10 @@ BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd)
   if (lpModeless=StackModelessGet(hStack, hWnd))
   {
     if (!StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpModeless))
+    {
+      --hStack->nElements;
       return TRUE;
+    }
   }
   return FALSE;
 }
@@ -17113,6 +17140,7 @@ BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd)
 void StackModelessFree(STACKMODELESS *hStack)
 {
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->nElements=0;
 }
 
 
@@ -21614,54 +21642,44 @@ int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
 
 HWND NextDialog(BOOL bPrevious)
 {
-  static ENUMDLG ed;
-  HWND hWndNext=NULL;
+  STACKMODELESS hCurModelessStack={0};
+  MODELESS *lpModeless;
+  HWND hWndGoto=NULL;
   HWND hWndToFind;
 
-  //Modeless dialogs
   if (!(hWndToFind=GetActiveWindow()))
     return NULL;
   if (hWndToFind == hMainWnd)
     hWndToFind=NULL;
 
-  if (!hWndToFind)
+  //Is hEnumModelessStack changed since last call
+  EnumWindows(EnumDialogsProc, (LPARAM)&hCurModelessStack);
+  if (!StackModelessMembers(&hEnumModelessStack, &hCurModelessStack))
   {
-    ed.hWndToFind=NULL;
-    ed.bNextNext=FALSE;
+    StackModelessFree(&hEnumModelessStack);
+    hEnumModelessStack=hCurModelessStack;
+    xmemset(&hCurModelessStack, 0, sizeof(STACKMODELESS));
   }
-  else if (hWndToFind == ed.hWndResult)
-  {
-    if (!ed.hWndNextResult)
-    {
-      SetActiveWindow(hMainWnd);
-      return hMainWnd;
-    }
-    ed.hWndToFind=ed.hWndNextResult;
-    ed.bNextNext=FALSE;
-  }
-  else
-  {
-    ed.hWndToFind=hWndToFind;
-    ed.bNextNext=TRUE;
-  }
-  ed.nCount=0;
-  ed.hWndResult=NULL;
-  ed.hWndNextResult=NULL;
-  ed.hWndNextNextResult=NULL;
-  ed.bFound=FALSE;
-  EnumWindows(EnumDialogsProc, (LPARAM)&ed);
+  else StackModelessFree(&hCurModelessStack);
 
-  if (ed.nCount)
+  if (hEnumModelessStack.nElements)
   {
-    if (ed.bNextNext)
+    if (!hWndToFind)
     {
-      hWndNext=ed.hWndResult=ed.hWndNextResult;
-      ed.hWndNextResult=ed.hWndNextNextResult;
+      if (bPrevious)
+        hWndGoto=hEnumModelessStack.last->hWnd;
+      else
+        hWndGoto=hEnumModelessStack.first->hWnd;
     }
-    else hWndNext=ed.hWndResult;
-
-    if (!hWndNext) hWndNext=hMainWnd;
-    SetActiveWindow(hWndNext);
+    else if (lpModeless=StackModelessGet(&hEnumModelessStack, hWndToFind))
+    {
+      if (bPrevious)
+        hWndGoto=lpModeless->prev ? lpModeless->prev->hWnd : NULL;
+      else
+        hWndGoto=lpModeless->next ? lpModeless->next->hWnd : NULL;
+    }
+    if (!hWndGoto) hWndGoto=hMainWnd;
+    SetActiveWindow(hWndGoto);
   }
   else
   {
@@ -21674,49 +21692,22 @@ HWND NextDialog(BOOL bPrevious)
       if (!IsEditActive(hWndFocus) && hWndFocus != hMdiClient)
         lpDock=StackDockFindWindow(&hDocksStack, hWndFocus, TRUE);
 
-      hWndNext=StackDockNextWindow(&hDocksStack, lpDock, bPrevious);
+      hWndGoto=StackDockNextWindow(&hDocksStack, lpDock, bPrevious);
     }
-    if (!hWndNext) hWndNext=hMainWnd;
-    SetFocus(hWndNext);
+    if (!hWndGoto) hWndGoto=hMainWnd;
+    SetFocus(hWndGoto);
   }
-  return hWndNext;
+  return hWndGoto;
 }
 
 BOOL CALLBACK EnumDialogsProc(HWND hWnd, LPARAM lParam)
 {
-  ENUMDLG *ped=(ENUMDLG *)lParam;
+  STACKMODELESS *lpStack=(STACKMODELESS *)lParam;
 
-  if (!ped->bFound)
-  {
-    if (ped->hWndToFind == hWnd)
-      ped->bFound=TRUE;
-  }
   if ((HWND)GetWindowLongPtrWide(hWnd, GWLP_HWNDPARENT) == hMainWnd && IsWindowVisible(hWnd))
   {
-    if (!ped->bFound)
-    {
-      if (!ped->hWndToFind)
-        ped->bFound=TRUE;
-    }
-    ped->nCount+=1;
-
-    if (ped->bFound)
-    {
-      if (!ped->hWndResult)
-      {
-        ped->hWndResult=hWnd;
-      }
-      else if (!ped->hWndNextResult)
-      {
-        ped->hWndNextResult=hWnd;
-        if (!ped->bNextNext) return FALSE;
-      }
-      else if (!ped->hWndNextNextResult)
-      {
-        ped->hWndNextNextResult=hWnd;
-        return FALSE;
-      }
-    }
+    if (!StackModelessAdd(lpStack, hWnd))
+      return FALSE;
   }
   return TRUE;
 }

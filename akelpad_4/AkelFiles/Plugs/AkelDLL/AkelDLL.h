@@ -1593,6 +1593,7 @@ typedef struct _MODELESS {
 typedef struct {
   MODELESS *first;
   MODELESS *last;
+  int nElements;
 } STACKMODELESS;
 
 typedef struct {
