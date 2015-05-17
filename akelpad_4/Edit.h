@@ -598,16 +598,6 @@ typedef struct _INIHANDLE {
 } INIHANDLE;
 
 typedef struct {
-  HWND hWndToFind;
-  HWND hWndResult;
-  HWND hWndNextResult;
-  HWND hWndNextNextResult;
-  BOOL bFound;
-  BOOL bNextNext;
-  int nCount;
-} ENUMDLG;
-
-typedef struct {
   DOCK *first;
   DOCK *last;
   int nElements;
@@ -1072,6 +1062,7 @@ BOOL TranslateMessageDialog(LPMSG lpMsg);
 
 MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd);
 MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd);
+BOOL StackModelessMembers(STACKMODELESS *hStack1, STACKMODELESS *hStack2);
 BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd);
 void StackModelessFree(STACKMODELESS *hStack);
 

@@ -423,6 +423,7 @@ UINT dwLoadStringLastID=0;
 HWND hDlgModeless=NULL;
 int nModelessType=MLT_NONE;
 STACKMODELESS hModelessStack={0};
+STACKMODELESS hEnumModelessStack={0};
 
 //Recode dialog
 RECT rcRecodeMinMaxDialog={246, 264, 0, 0};
@@ -1316,6 +1317,7 @@ void WinMainCleanUp()
   StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
   StackBkImageFree(&hBkImagesStack);
+  StackModelessFree(&hEnumModelessStack);
   StackModelessFree(&hModelessStack);
   StackDockFree(&hDocksStack);
   StackThemeFree(&hThemesStack);
