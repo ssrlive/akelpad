@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.6                    *
+ *                  Wide functions header v2.7                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -133,6 +133,7 @@ UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex);
 UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 LRESULT CallWindowProcWide(WNDPROC lpPrevWndFunc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT DefWindowProcWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT DefDlgProcWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpClassName, const wchar_t *wpWindowName);
 int GetWindowTextLengthWide(HWND hWnd);
 int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax);
@@ -2228,6 +2229,24 @@ LRESULT DefWindowProcWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);
   else if (WideGlobal_bOldWindows == TRUE)
     return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined DefDlgProcWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define DefDlgProcWide_INCLUDED
+#undef DefDlgProcWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LRESULT DefDlgProcWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return DefDlgProcW(hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == TRUE)
+    return DefDlgProcA(hWnd, uMsg, wParam, lParam);
 
   WideNotInitialized();
   return 0;
