@@ -9611,7 +9611,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         hWndDirection=hWndInSelection;
       else if (moCur.dwSearchOptions & FRF_ALLFILES)
         hWndDirection=hWndAllFiles;
-      else if (moCur.dwSearchOptions & FRF_BEGINNING)
+      else if ((moCur.dwSearchOptions & FRF_BEGINNING) || bSpecialCheck)
         hWndDirection=hWndBeginning;
       else if (moCur.dwSearchOptions & FRF_DOWN)
         hWndDirection=hWndForward;
