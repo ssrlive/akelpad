@@ -10365,6 +10365,13 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
       if (wszResultText)
       {
+        if (!(dwFlags & FRF_REGEXP) && nGetTextNewLine == AELB_ASIS)
+        {
+          crInitialRE.cpMin=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
+          crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(lpFrame->ei.hWndEdit, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
+        }
+        else SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
+
         if (dwFlags & FRF_REGEXP)
         {
           //Remember scroll
@@ -10373,13 +10380,6 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         else
         {
           //Remember selection
-          if (nGetTextNewLine == AELB_ASIS)
-          {
-            crInitialRE.cpMin=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
-            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(lpFrame->ei.hWndEdit, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
-          }
-          else SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
-
           if (dwFlags & FRF_SELECTION)
           {
             nMin=0;
@@ -10462,8 +10462,17 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           {
             if (dwFlags & FRF_REGEXP)
             {
-              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
+              if (dwFlags & FRF_UP)
+              {
+                crInitialSel.ciMin=crInsert.ciMax;
+                crInitialSel.ciMax=crInsert.ciMax;
+                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, -(crInitialRE.cpMax - crInitialRE.cpMin), nGetTextNewLine);
+              }
+              else
+              {
+                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
+                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
+              }
             }
             else
             {
