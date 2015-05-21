@@ -3594,7 +3594,7 @@ void main()
 
       if (PatExec(&sreg, sreg.first, wpStr, wpMaxStr))
       {
-        lstrcpynW(wszResult, sreg.first->wpStrStart, (sreg.first->wpStrEnd - sreg.first->wpStrStart) + 1);
+        lstrcpynW(wszResult, sreg.first->wpStrStart, (int)sreg.first->nStrLen + 1);
         MessageBoxW(NULL, wszResult, L"Matched", MB_OK);
       }
       else MessageBoxW(NULL, L"", L"Not matched", MB_OK);
@@ -3635,7 +3635,7 @@ void main()
         {
           //wpResult+=xprintfW(wpResult, L"%d [%.%ds]\n", lpREGroupNext->nIndex, lpREGroupNext->nStrLen, lpREGroupNext->wpStrStart);
           wpResult+=wsprintfW(wpResult, L"%d [", lpREGroupNext->nIndex);
-          lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (lpREGroupNext->nStrLen) + 1);
+          lstrcpynW(wpResult, lpREGroupNext->wpStrStart, (int)lpREGroupNext->nStrLen + 1);
           wpResult+=lpREGroupNext->nStrLen;
           wpResult+=wsprintfW(wpResult, L"]\n");
         }
