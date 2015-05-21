@@ -10367,7 +10367,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
       if (wszResultText)
       {
-        if (!(dwFlags & FRF_REGEXP) && nGetTextNewLine == AELB_ASIS)
+        if (nGetTextNewLine == AELB_ASIS)
         {
           crInitialRE.cpMin=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &crCurSel.ciMin, AELB_ASIS, FALSE);
           crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(lpFrame->ei.hWndEdit, &crCurSel.ciMax, &crCurSel.ciMin, AELB_ASIS, FALSE);
