@@ -731,6 +731,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else
           lpUndoItem=lpUndoItem->prev;
       }
+      else if (wParam & AEGUP_FIRST)
+      {
+        *lppUndoItem=ae->ptxt->hUndoStack.first;
+        return -1;
+      }
+      else if (wParam & AEGUP_LAST)
+      {
+        *lppUndoItem=ae->ptxt->hUndoStack.last;
+        return -1;
+      }
       else
       {
         //AEGUP_CURRENT
