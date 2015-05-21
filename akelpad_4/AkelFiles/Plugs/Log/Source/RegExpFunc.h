@@ -211,33 +211,43 @@ typedef struct {
 } PATEXEC;
 
 typedef struct {
-  const wchar_t *wpPat;      //Pattern for process.
-  const wchar_t *wpMaxPat;   //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
-  const wchar_t *wpStr;      //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
-  const wchar_t *wpMaxStr;   //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpText;     //PatExec: Text begin. Valid if wpStr is not NULL.
-  const wchar_t *wpMaxText;  //PatExec: Text end. Valid if wpStr is not NULL.
-  AECHARINDEX ciStr;         //AE_PatExec: First character for process. Used if wpStr is NULL.
-  AECHARINDEX ciMaxStr;      //AE_PatExec: Last character at which processing is stopped.
-  const wchar_t *wpRep;      //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
-  const wchar_t *wpMaxRep;   //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;           //See RESE_* defines.
-  const wchar_t *wpDelim;    //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim; //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
-  const wchar_t *wpNewLine;  //New line string. If NULL, default will be used "\r\n".
-  INT_PTR nErrorOffset;      //Contain wpPat offset, if error occurred during compile pattern.
-  int nReplaceCount;         //Receives replace count number.
-  const wchar_t *wpLeftStr;  //PatExec: First replace occurrence in string.
-  const wchar_t *wpRightStr; //PatExec: Unmatched right part of string.
-  AECHARINDEX ciLeftStr;     //AE_PatExec: First replace occurrence in string.
-  AECHARINDEX ciRightStr;    //AE_PatExec: Unmatched right part of string.
-  wchar_t *wszResult;        //Buffer that received replace result. If NULL, PatReplace returns required buffer size in characters.
+  const wchar_t *wpStr;          //Points to any place of PATREPLACE.wpStr.
+  AECHARINDEX ciStr;             //AE_PatExec: Points to any place of AkelEdit document.
+  INT_PTR nShift;                //Shift point according to replace operation.
+} PATREPLACEPOINT;
+
+typedef struct {
+  const wchar_t *wpPat;          //Pattern for process.
+  const wchar_t *wpMaxPat;       //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
+  const wchar_t *wpStr;          //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
+  const wchar_t *wpMaxStr;       //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
+  const wchar_t *wpText;         //PatExec: Text begin. Valid if wpStr is not NULL.
+  const wchar_t *wpMaxText;      //PatExec: Text end. Valid if wpStr is not NULL.
+  AECHARINDEX ciStr;             //AE_PatExec: First character for process. Used if wpStr is NULL.
+  AECHARINDEX ciMaxStr;          //AE_PatExec: Last character at which processing is stopped.
+  const wchar_t *wpRep;          //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
+  const wchar_t *wpMaxRep;       //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
+  DWORD dwOptions;               //See RESE_* defines.
+  const wchar_t *wpDelim;        //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  const wchar_t *wpNewLine;      //New line string. If NULL, default will be used "\r\n".
+  PATREPLACEPOINT *lpPointArray; //Pointer to an array of PATREPLACEPOINT.
+  int nPointCount;               //Number of elements in lpPointArray. If zero, lpPointArray is ignored.
+  INT_PTR nErrorOffset;          //Contain wpPat offset, if error occurred during compile pattern.
+  int nReplaceCount;             //Receives replace count number.
+  const wchar_t *wpLeftStr;      //PatExec: First replace occurrence in string.
+  const wchar_t *wpRightStr;     //PatExec: Unmatched right part of string.
+  AECHARINDEX ciLeftStr;         //AE_PatExec: First replace occurrence in string.
+  AECHARINDEX ciRightStr;        //AE_PatExec: Unmatched right part of string.
+  wchar_t *wszResult;            //Buffer that received replace result. If NULL, PatReplace returns required buffer size in characters.
 } PATREPLACE;
 
 typedef struct {
   const wchar_t *wpRep;
   const wchar_t *wpMaxRep;
   const wchar_t *wpNewLine;
+  PATREPLACEPOINT *lpPointArray;
+  int nPointCount;
   const wchar_t *wpRightStr;
   AECHARINDEX ciRightStr;
   wchar_t *wszBuf;
@@ -3237,6 +3247,8 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pep.wpRep=pr->wpRep;
   pep.wpMaxRep=pr->wpMaxRep;
   pep.wpNewLine=pr->wpNewLine?pr->wpNewLine:L"\r\n";
+  pep.lpPointArray=pr->lpPointArray;
+  pep.nPointCount=pr->nPointCount;
   pep.wszBuf=pr->wszResult;
   pep.wpBufCount=pep.wszBuf;
 
@@ -3303,6 +3315,7 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
   PATEXECPARAM *pep=(PATEXECPARAM *)pe->lParam;
   REGROUP *lpREGroupRef;
   const wchar_t *wpRep=pep->wpRep;
+  const wchar_t *wpStartRep;
   int nPatChar;
   int nIndex;
 
@@ -3314,6 +3327,8 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
     pep->wpBufCount+=lpREGroupRoot->wpStrStart - pe->wpStr;
 
     //Replace matched part of string
+    wpStartRep=pep->wpBufCount;
+
     while (wpRep < pep->wpMaxRep)
     {
       nPatChar=PatEscChar(&wpRep);
@@ -3346,6 +3361,20 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
       ++wpRep;
     }
     pep->wpRightStr=lpREGroupRoot->wpStrEnd;
+
+    //Shift points
+    if (pep->nPointCount)
+    {
+      INT_PTR nDiff=lpREGroupRoot->nStrLen - (pep->wpBufCount - wpStartRep);
+
+      for (nIndex=0; nIndex < pep->nPointCount; ++nIndex)
+      {
+        if (pep->lpPointArray[nIndex].wpStr >= lpREGroupRoot->wpStrEnd)
+          pep->lpPointArray[nIndex].nShift-=nDiff;
+        else if (pep->lpPointArray[nIndex].wpStr > lpREGroupRoot->wpStrStart)
+          pep->lpPointArray[nIndex].nShift-=(pep->lpPointArray[nIndex].wpStr - lpREGroupRoot->wpStrStart);
+      }
+    }
   }
   else
   {
@@ -3364,6 +3393,7 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
   PATEXECPARAM *pep=(PATEXECPARAM *)pe->lParam;
   REGROUP *lpREGroupRef;
   const wchar_t *wpRep=pep->wpRep;
+  const wchar_t *wpStartRep;
   int nPatChar;
   int nIndex;
 
@@ -3373,6 +3403,8 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
     pep->wpBufCount+=AE_PatStrCopy(&pe->ciStr, &lpREGroupRoot->ciStrStart, pep->wszBuf?pep->wpBufCount:NULL, NULL);
 
     //Replace matched part of string
+    wpStartRep=pep->wpBufCount;
+
     while (wpRep < pep->wpMaxRep)
     {
       nPatChar=PatEscChar(&wpRep);
@@ -3403,6 +3435,20 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
       ++wpRep;
     }
     pep->ciRightStr=lpREGroupRoot->ciStrEnd;
+
+    //Shift points
+    if (pep->nPointCount)
+    {
+      INT_PTR nDiff=lpREGroupRoot->nStrLen - (pep->wpBufCount - wpStartRep);
+
+      for (nIndex=0; nIndex < pep->nPointCount; ++nIndex)
+      {
+        if (AEC_IndexCompare(&pep->lpPointArray[nIndex].ciStr, &lpREGroupRoot->ciStrEnd) >= 0)
+          pep->lpPointArray[nIndex].nShift-=nDiff;
+        else if (AEC_IndexCompare(&pep->lpPointArray[nIndex].ciStr, &lpREGroupRoot->ciStrStart) > 0)
+          pep->lpPointArray[nIndex].nShift-=AE_PatStrCopy(&lpREGroupRoot->ciStrStart, &pep->lpPointArray[nIndex].ciStr, NULL, NULL);
+      }
+    }
   }
   else
   {
@@ -3619,6 +3665,7 @@ void main()
     pr.dwOptions=RESE_GLOBAL|RESE_MULTILINE;
     pr.wpDelim=NULL;
     pr.wpNewLine=NULL;
+    pr.nPointCount=0;
     pr.wszResult=NULL;
     nResultTextLen=PatReplace(&pr);
 

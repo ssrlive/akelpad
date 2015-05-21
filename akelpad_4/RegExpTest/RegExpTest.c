@@ -648,6 +648,7 @@ int TextReplaceRE(const wchar_t *wpStr, const wchar_t *wpIt, const wchar_t *wpWi
   pr.dwOptions=dwOptions;
   pr.wpDelim=NULL;
   pr.wpNewLine=NULL;
+  pr.nPointCount=0;
   pr.wszResult=NULL;
   nResultTextLen=PatReplace(&pr);
 

@@ -10093,6 +10093,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   wchar_t *wszFullText;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
+  PATREPLACEPOINT lpPointArray[3];
+  int nPointCount;
   int nFindItLenEsc;
   int nReplaceWithLenEsc;
   int nGetTextNewLine;
@@ -10105,9 +10107,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   INT_PTR nRangeTextLen;
   INT_PTR nResultTextLen;
   INT_PTR nChanges=0;
-  INT_PTR nChangedFiles=0;
+  int nChangedFiles=0;
   INT_PTR nResult=-1;
-  int nFirstLine=0;
   int i;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
@@ -10199,6 +10200,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
     pr.wpNewLine=GetNewLineString(lpFrame->ei.nNewLine);
+    pr.nPointCount=0;
     lpFrame->nCompileErrorOffset=0;
     lpFrame->bCompileErrorReplace=FALSE;
   }
@@ -10353,7 +10355,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       {
         if (nFindItLenEsc < nReplaceWithLenEsc)
         {
-          if (StrReplaceW(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
+          if (StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, NULL, &nResultTextLen, NULL, 0))
             wszResultText=API_AllocWide(nResultTextLen + 1);
         }
         else
@@ -10372,53 +10374,84 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         }
         else SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&crInitialRE);
 
-        if (dwFlags & FRF_REGEXP)
+        //Remember selection
+        if (dwFlags & FRF_SELECTION)
         {
-          //Remember scroll
-          nFirstLine=SaveLineScroll(lpFrame->ei.hWndEdit);
+          nMin=0;
+          nMax=-MAXINT_PTR;
         }
-        else
+        else if ((dwFlags & FRF_BEGINNING) || (dwFlags & FRF_UP))
         {
-          //Remember selection
-          if (dwFlags & FRF_SELECTION)
-          {
-            nMin=0;
-            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
-          }
-          else if ((dwFlags & FRF_BEGINNING) || (dwFlags & FRF_UP))
-          {
-            nMin=crInitialRE.cpMin;
-            nMax=crInitialRE.cpMax;
-          }
-          else if (dwFlags & FRF_DOWN)
-          {
-            nMin=0;
-            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
-          }
-          if (nMin == nMax)
-            nMax=-MAXINT_PTR;
+          nMin=crInitialRE.cpMin;
+          nMax=crInitialRE.cpMax;
+        }
+        else if (dwFlags & FRF_DOWN)
+        {
+          nMin=0;
+          nMax=crInitialRE.cpMax - crInitialRE.cpMin;
+        }
+        if (nMin == nMax)
+          nMax=-MAXINT_PTR;
 
-          //Remember scroll
-          SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
+        //Remember scroll
+        SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
-          if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-          {
-            if (nGetTextNewLine == AELB_ASIS)
-              nFirstVisible=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciFirstVisibleBefore, AELB_ASIS, FALSE);
-            else
-              nFirstVisible=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore);
-          }
-          else nFirstVisible=-MAXINT_PTR;
+        if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
+        {
+          if (nGetTextNewLine == AELB_ASIS)
+            nFirstVisible=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciFirstVisibleBefore, AELB_ASIS, FALSE);
+          else
+            nFirstVisible=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore);
+        }
+        else nFirstVisible=-MAXINT_PTR;
+
+        nPointCount=0;
+        if (nMin != 0)
+        {
+          lpPointArray[nPointCount].wpStr=wszRangeText + nMin;
+          lpPointArray[nPointCount].nShift=nMin;
+          ++nPointCount;
+        }
+        if (nMax != 0 && nMax != -MAXINT_PTR)
+        {
+          lpPointArray[nPointCount].wpStr=wszRangeText + nMax;
+          lpPointArray[nPointCount].nShift=nMax;
+          ++nPointCount;
+        }
+        if (nFirstVisible != 0 && nFirstVisible != -MAXINT_PTR)
+        {
+          lpPointArray[nPointCount].wpStr=wszRangeText + nFirstVisible;
+          lpPointArray[nPointCount].nShift=nFirstVisible;
+          ++nPointCount;
         }
 
         //Replace operation
         if (dwFlags & FRF_REGEXP)
         {
+          pr.lpPointArray=lpPointArray;
+          pr.nPointCount=nPointCount;
           pr.wszResult=wszResultText;
           nResultTextLen=PatReplace(&pr);
           nChanges=pr.nReplaceCount;
         }
-        else nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -MAXINT_PTR)?NULL:&nMax, (nFirstVisible == -MAXINT_PTR)?NULL:&nFirstVisible);
+        else nChanges=StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, wszResultText, &nResultTextLen, lpPointArray, nPointCount);
+
+        nPointCount=0;
+        if (nMin != 0)
+        {
+          nMin=lpPointArray[nPointCount].nShift;
+          ++nPointCount;
+        }
+        if (nMax != 0 && nMax != -MAXINT_PTR)
+        {
+          nMax=lpPointArray[nPointCount].nShift;
+          ++nPointCount;
+        }
+        if (nFirstVisible != 0 && nFirstVisible != -MAXINT_PTR)
+        {
+          nFirstVisible=lpPointArray[nPointCount].nShift;
+          ++nPointCount;
+        }
 
         if (nChanges)
         {
@@ -10460,43 +10493,26 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           }
           else
           {
-            if (dwFlags & FRF_REGEXP)
+            if (nMax == -MAXINT_PTR)
+              nMax=nMin;
+
+            if ((dwFlags & FRF_BEGINNING) || (dwFlags & FRF_UP))
             {
-              if (dwFlags & FRF_UP)
+              if (nGetTextNewLine == AELB_ASIS)
               {
-                crInitialSel.ciMin=crInsert.ciMax;
-                crInitialSel.ciMax=crInsert.ciMax;
-                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, -(crInitialRE.cpMax - crInitialRE.cpMin), nGetTextNewLine);
+                SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
+                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, nMin, AELB_ASIS);
               }
-              else
-              {
-                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMax);
-              }
+              else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nMin, &crInitialSel.ciMin);
+
+              crInitialSel.ciMax=crInitialSel.ciMin;
+              IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
             }
-            else
+            else if (dwFlags & FRF_DOWN)
             {
-              if (nMax == -MAXINT_PTR)
-                nMax=nMin;
-
-              if ((dwFlags & FRF_BEGINNING) || (dwFlags & FRF_UP))
-              {
-                if (nGetTextNewLine == AELB_ASIS)
-                {
-                  SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
-                  IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMin, nMin, AELB_ASIS);
-                }
-                else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nMin, &crInitialSel.ciMin);
-
-                crInitialSel.ciMax=crInitialSel.ciMin;
-                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
-              }
-              else if (dwFlags & FRF_DOWN)
-              {
-                SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-                crInitialSel.ciMax=crInitialSel.ciMin;
-                IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
-              }
+              SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
+              crInitialSel.ciMax=crInitialSel.ciMin;
+              IndexOffset(lpFrame->ei.hWndEdit, &crInitialSel.ciMax, nMax - nMin, nGetTextNewLine);
             }
             SetSel(lpFrame->ei.hWndEdit, &crInitialSel, (bInitialColumnSel?AESELT_COLUMNON:0)|AESELT_LOCKSCROLL, bCaretAtStart?&crInitialSel.ciMin:&crInitialSel.ciMax);
           }
@@ -10506,29 +10522,22 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
 
           //Restore scroll
-          if (dwFlags & FRF_REGEXP)
+          if (nFirstVisible != -MAXINT_PTR)
           {
-            RestoreLineScroll(lpFrame->ei.hWndEdit, nFirstLine);
-          }
-          else
-          {
-            if (nFirstVisible != -MAXINT_PTR)
+            if (nGetTextNewLine == AELB_ASIS)
             {
-              if (nGetTextNewLine == AELB_ASIS)
-              {
-                SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciFirstVisibleBefore);
-                IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, AELB_ASIS);
-              }
-              else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
+              SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciFirstVisibleBefore);
+              IndexOffset(lpFrame->ei.hWndEdit, &ciFirstVisibleBefore, nFirstVisible, AELB_ASIS);
+            }
+            else RichOffsetToAkelIndex(lpFrame->ei.hWndEdit, nFirstVisible, &ciFirstVisibleBefore);
 
-              if ((int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != ciFirstVisibleBefore.nLine)
-              {
-                POINT64 ptScrollPos;
+            if ((int)SendMessage(lpFrame->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0) != ciFirstVisibleBefore.nLine)
+            {
+              POINT64 ptScrollPos;
 
-                ptScrollPos.x=-1;
-                ptScrollPos.y=SendMessage(lpFrame->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, ciFirstVisibleBefore.nLine);
-                SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
-              }
+              ptScrollPos.x=-1;
+              ptScrollPos.y=SendMessage(lpFrame->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, ciFirstVisibleBefore.nLine);
+              SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptScrollPos);
             }
           }
         }
@@ -10637,7 +10646,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   return nResult;
 }
 
-INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis)
+INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, PATREPLACEPOINT *lpPointArray, int nPointCount)
 {
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
@@ -10646,12 +10655,10 @@ INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt
   const wchar_t *wpItCount;
   const wchar_t *wpWithMax;
   const wchar_t *wpWithCount;
-  const wchar_t *wpMin=NULL;
-  const wchar_t *wpMax=NULL;
-  const wchar_t *wpFirstVis=NULL;
   wchar_t *wpResultCount;
   INT_PTR nChanges=0;
-  int nDiff;
+  INT_PTR nDiff;
+  int nIndex;
 
   if (nTextLen == -1)
     nTextLen=xstrlenW(wpText) + 1;
@@ -10659,15 +10666,11 @@ INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt
     nItLen=(int)xstrlenW(wpIt);
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
+  nDiff=nItLen - nWithLen;
   wpTextMax=wpText + nTextLen;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
   wpResultCount=wszResult;
-
-  nDiff=nItLen - nWithLen;
-  if (nMin) wpMin=wpText + *nMin;
-  if (nMax) wpMax=wpText + *nMax;
-  if (nFirstVis) wpFirstVis=wpText + *nFirstVis;
 
   for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
@@ -10707,20 +10710,15 @@ INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt
         Replace:
         if (wszResult)
         {
-          if (nMin)
+          if (nPointCount)
           {
-            if (wpMin > wpMatchCount) *nMin-=nDiff;
-            else if (wpMin > wpTextCount) *nMin-=(wpMin - wpTextCount);
-          }
-          if (nMax)
-          {
-            if (wpMax > wpMatchCount) *nMax-=nDiff;
-            else if (wpMax > wpTextCount) *nMax=*nMax - (wpMax - wpTextCount) + nWithLen;
-          }
-          if (nFirstVis)
-          {
-            if (wpFirstVis > wpMatchCount) *nFirstVis-=nDiff;
-            else if (wpFirstVis > wpTextCount) *nFirstVis-=(wpFirstVis - wpTextCount);
+            for (nIndex=0; nIndex < nPointCount; ++nIndex)
+            {
+              if (lpPointArray[nIndex].wpStr > wpMatchCount)
+                lpPointArray[nIndex].nShift-=nDiff;
+              else if (lpPointArray[nIndex].wpStr > wpTextCount)
+                lpPointArray[nIndex].nShift-=(lpPointArray[nIndex].wpStr - wpTextCount);
+            }
           }
 
           for (wpWithCount=wpWith; wpWithCount < wpWithMax; ++wpWithCount)
@@ -21145,17 +21143,17 @@ void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSec
     wchar_t wszAMPM[128];
     INT_PTR nChanges=0;
 
-    nChanges+=StrReplaceW(wpFormat, -1, L"tt", -1, L"\x0002", 1, FRF_MATCHCASE, wszBuffer, NULL, NULL, NULL, NULL);
-    nChanges+=StrReplaceW(wszBuffer, -1, L"t", -1, L"\x0001", 1, FRF_MATCHCASE, wszOutput, NULL, NULL, NULL, NULL);
+    nChanges+=StrReplace(wpFormat, -1, L"tt", -1, L"\x0002", 1, FRF_MATCHCASE, wszBuffer, NULL, NULL, 0);
+    nChanges+=StrReplace(wszBuffer, -1, L"t", -1, L"\x0001", 1, FRF_MATCHCASE, wszOutput, NULL, NULL, 0);
     GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszOutput, wszBuffer, 128);
     GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszBuffer, wszOutput, 128);
     if (nChanges)
     {
       GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"tt", wszAMPM, 128);
-      StrReplaceW(wszOutput, -1, L"\x0002", 1, wszAMPM, -1, FRF_MATCHCASE, wszBuffer, NULL, NULL, NULL, NULL);
+      StrReplace(wszOutput, -1, L"\x0002", 1, wszAMPM, -1, FRF_MATCHCASE, wszBuffer, NULL, NULL, 0);
 
       GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"t", wszAMPM, 128);
-      StrReplaceW(wszBuffer, -1, L"\x0001", 1, wszAMPM, -1, FRF_MATCHCASE, wszOutput, NULL, NULL, NULL, NULL);
+      StrReplace(wszBuffer, -1, L"\x0001", 1, wszAMPM, -1, FRF_MATCHCASE, wszOutput, NULL, NULL, 0);
     }
   }
 }
