@@ -254,6 +254,9 @@ library Scripts
     //Get argument value. Arguments example: `-ArgName1=Value1 -ArgName2="Value2" /ArgName3=Value3`.
     HRESULT GetArgValue([in] BSTR wpArgName, [in] VARIANT vtDefault, [out, retval] VARIANT *vtResult);
 
+    //Create dialog.
+    [vararg] HRESULT CreateDialog([in] DWORD dwExStyle, [in] VARIANT vtClassName, [in] VARIANT vtWindowName, [in] DWORD dwStyle, [in] int x, [in] int y, [in] int nWidth, [in] int nHeight, [in] VARIANT vtWndParent, [in] VARIANT vtMenu, [in] VARIANT vtInstance, [in] VARIANT vtParam, [in] BSTR wpFaceName, [in] DWORD dwFontStyle, [in] int nPointSize, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtWnd);
+
     //Register window class.
     [vararg] HRESULT WindowRegisterClass([in] BSTR wpClassName, [in] SAFEARRAY(VARIANT) *psa, [out, retval] WORD *wAtom);
 

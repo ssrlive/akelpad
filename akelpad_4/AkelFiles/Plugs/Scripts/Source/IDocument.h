@@ -82,6 +82,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_VarType)(THIS_ VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgLine)(THIS_ BOOL, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgValue)(THIS_ BSTR, VARIANT, VARIANT *) PURE;
+  STDMETHOD_(HRESULT, Document_CreateDialog)(THIS_ DWORD, VARIANT, VARIANT, DWORD, int, int, int, int, VARIANT, VARIANT, VARIANT, VARIANT, BSTR, DWORD, int, SAFEARRAY **, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_WindowRegisterClass)(THIS_ BSTR, SAFEARRAY **, WORD *) PURE;
   STDMETHOD_(HRESULT, Document_WindowUnregisterClass)(THIS_ BSTR, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_WindowRegisterDialog)(THIS_ VARIANT, BOOL *) PURE;
@@ -199,6 +200,13 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define AKDLL_CALLBACKSEND  (WM_USER + 3)
 #define AKDLL_POSTQUIT      (WM_USER + 4)
 
+#ifndef DS_SHELLFONT
+  #define DS_SHELLFONT (DS_SETFONT|DS_FIXEDSYS)
+#endif
+#ifndef AlignPointer
+  #define AlignPointer(p, a)  (((UINT_PTR)p) + (a - ((UINT_PTR)p) % a) % a)
+#endif
+
 typedef struct {
   IDocumentVtbl *lpVtbl;
   DWORD dwCount;
@@ -261,6 +269,7 @@ typedef struct _CALLBACKITEM {
   void *lpScriptThread;
   MSGINTSTACK hMsgIntStack;
   wchar_t *wpClassName;
+  BOOL bDlgProc;
   BOOL bNoNextProc;
   BOOL bShow;
 } CALLBACKITEM;
@@ -286,6 +295,30 @@ typedef struct {
   VARIANT *vtResult;
   HRESULT hr;
 } INPUTBOX;
+
+typedef struct {
+  WORD dlgVer;
+  WORD signature;
+  DWORD helpID;
+  DWORD exStyle;
+  DWORD style;
+  WORD cDlgItems;
+  short x;
+  short y;
+  short cx;
+  short cy;
+} DLGTEMPLATEEX;
+
+typedef struct {
+  DWORD helpID;
+  DWORD exStyle;
+  DWORD style;
+  short x;
+  short y;
+  short cx;
+  short cy;
+  DWORD id;
+} DLGITEMTEMPLATEEX;
 
 //Global variables
 extern CALLBACKSTACK g_hSubclassCallbackStack;
@@ -371,6 +404,10 @@ HRESULT STDMETHODCALLTYPE Document_Debug(IDocument *this, DWORD dwDebug, DWORD *
 HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int *nType);
 HRESULT STDMETHODCALLTYPE Document_GetArgLine(IDocument *this, BOOL bNoEncloseQuotes, BSTR *wpArgLine);
 HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, VARIANT vtDefault, VARIANT *vtResult);
+HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtMenu, VARIANT vtInstance, VARIANT vtParam, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, VARIANT *vtWnd);
+HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD *lpdwSize);
+LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
+LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom);
 HRESULT STDMETHODCALLTYPE Document_WindowUnregisterClass(IDocument *this, BSTR wpClassName, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterDialog(IDocument *this, VARIANT vtDlg, BOOL *bResult);

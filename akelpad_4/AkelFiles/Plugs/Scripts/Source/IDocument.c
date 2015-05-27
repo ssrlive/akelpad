@@ -84,6 +84,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_VarType,
   Document_GetArgLine,
   Document_GetArgValue,
+  Document_CreateDialog,
   Document_WindowRegisterClass,
   Document_WindowUnregisterClass,
   Document_WindowRegisterDialog,
@@ -1810,6 +1811,323 @@ HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, 
   return hr;
 }
 
+HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtMenu, VARIANT vtInstance, VARIANT vtParam, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, VARIANT *vtWnd)
+{
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+  CALLBACKITEM *lpCallback;
+  wchar_t *wpClassName=(wchar_t *)GetVariantInt(&vtClassName, NULL);
+  wchar_t *wpWindowName=(wchar_t *)GetVariantInt(&vtWindowName, NULL);
+  HINSTANCE hInstance=(HINSTANCE)GetVariantInt(&vtInstance, NULL);
+  HWND hWndParent=(HWND)GetVariantInt(&vtWndParent, NULL);
+  HMENU hMenu=(HMENU)GetVariantInt(&vtMenu, NULL);
+  LPARAM lParam=GetVariantInt(&vtParam, NULL);
+  HGLOBAL hTemplate;
+  DLGTEMPLATEEX *lpTemplate;
+  HWND hDlg=NULL;
+  DWORD dwSize;
+  HRESULT hr=NOERROR;
+
+  //For dialog we need to change WNDCLASSW.lpfnWndProc to DefDlgProcWide
+  if (lpCallback=StackGetCallbackByClass(&lpScriptThread->hDialogCallbackStack, wpClassName))
+  {
+    if (!lpCallback->hHandle)
+    {
+      //First window associated with wAtom.
+      HWND hWndHidden;
+
+      if (hWndHidden=CreateWindowExWide(0, wpClassName, L"", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstanceDLL, NULL))
+      {
+        SetClassLongPtrWide(hWndHidden, GCLP_WNDPROC, (UINT_PTR)DefDlgProcWide);
+        DestroyWindow(hWndHidden);
+      }
+    }
+  }
+  else return CO_E_CANTDETERMINECLASS;
+  //else return CO_E_CLASSSTRING;
+
+  if (!hInstance) hInstance=hInstanceDLL;
+
+  if ((hr=FillDialogTemplate(NULL, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, &dwSize)) == NOERROR)
+  {
+    if (hTemplate=GlobalAlloc(GMEM_ZEROINIT, dwSize))
+    {
+      if (lpTemplate=(DLGTEMPLATEEX *)GlobalLock(hTemplate))
+      {
+        FillDialogTemplate(lpTemplate, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, NULL);
+        GlobalUnlock(hTemplate);
+        hDlg=CreateDialogIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
+        GlobalFree(hTemplate);
+      }
+    }
+  }
+  SetVariantInt(vtWnd, (INT_PTR)hDlg);
+
+  return hr;
+}
+
+HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD *lpdwSize)
+{
+  DLGITEMTEMPLATEEX *lpdit;
+  WORD *lpw;
+  BYTE *lpb;
+  LPARAM lParamItem;
+  WORD wParamItemSize;
+  VARIANT *pvtParameter;
+  SAFEARRAY *psa=*lpItems;
+  unsigned char *lpData;
+  DWORD dwElement;
+  DWORD dwElementSum;
+  HRESULT hr=NOERROR;
+
+  lpData=(unsigned char *)(psa->pvData);
+  dwElementSum=psa->rgsabound[0].cElements;
+
+  if (dwElementSum % 10 != 0)
+    return DISP_E_BADPARAMCOUNT;
+
+  if (lpdt)
+  {
+    lpdt->dlgVer=1;
+    lpdt->signature=0xFFFF;
+    lpdt->helpID=0;
+    lpdt->exStyle=dwExStyle;
+    lpdt->style=dwStyle;
+    lpdt->cDlgItems=(WORD)(dwElementSum / 10);
+    lpdt->x=(short)x;
+    lpdt->y=(short)y;
+    lpdt->cx=(short)nWidth;
+    lpdt->cy=(short)nHeight;
+  }
+  //Don't use "lpw=(WORD *)(lpdt + 1)" because of wrong alignment
+  lpw=(WORD *)((BYTE *)lpdt + offsetof(DLGTEMPLATEEX, cy) + sizeof(short));
+
+  //Menu
+  if (!hMenu)
+  {
+    if (lpdt) *lpw=0;
+    ++lpw;
+  }
+  else if ((INT_PTR)hMenu < 0xFFFF)
+  {
+    if (lpdt) *lpw=0xFFFF;
+    ++lpw;
+    if (lpdt) *lpw=(WORD)(INT_PTR)hMenu;
+    ++lpw;
+  }
+  else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, (wchar_t *)hMenu, MAX_PATH) + (lpdt?1:0);
+
+  //Class
+  if (!wpClassName)
+  {
+    if (lpdt) *lpw=0;
+    ++lpw;
+  }
+  else if ((INT_PTR)wpClassName < 0xFFFF)
+  {
+    if (lpdt) *lpw=0xFFFF;
+    ++lpw;
+    if (lpdt) *lpw=(WORD)(INT_PTR)wpClassName;
+    ++lpw;
+  }
+  else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, wpClassName, MAX_PATH) + (lpdt?1:0);
+
+  //Title
+  if (!wpWindowName)
+  {
+    if (lpdt) *lpw=0;
+    ++lpw;
+  }
+  else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, wpWindowName, MAX_PATH) + (lpdt?1:0);
+
+  if ((dwStyle & DS_SETFONT) || (dwStyle & DS_SHELLFONT))
+  {
+    LOGFONTW lfGui;
+    HFONT hGuiFont;
+    HDC hDC;
+
+    //Default GUI font
+    hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+    if (bOldWindows)
+    {
+      LOGFONTA lfA;
+
+      GetObjectA(hGuiFont, sizeof(LOGFONTA), &lfA);
+      LogFontAtoW(&lfA, &lfGui);
+    }
+    else GetObjectW(hGuiFont, sizeof(LOGFONTW), &lfGui);
+
+    if (!nPointSize)
+    {
+      if (hDC=GetDC(hMainWnd))
+      {
+        nPointSize=MulDiv(mod(lfGui.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
+        ReleaseDC(hMainWnd, hDC);
+      }
+    }
+    if (dwFontStyle != FS_NONE)
+    {
+      lfGui.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+      lfGui.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+    }
+    if (*wpFaceName != '\0')
+    {
+      xstrcpynW(lfGui.lfFaceName, wpFaceName, LF_FACESIZE);
+    }
+
+    //Point size
+    if (lpdt) *lpw=(WORD)nPointSize;
+    ++lpw;
+
+    //Weight
+    if (lpdt) *lpw=(WORD)lfGui.lfWeight;
+    ++lpw;
+
+    if (lpdt)
+    {
+      lpb=(BYTE *)lpw;
+
+      //Italic
+      *lpb++=lfGui.lfItalic;
+
+      //Character set
+      *lpb++=lfGui.lfCharSet /*DEFAULT_CHARSET*/;
+    }
+    ++lpw;
+
+    //Face name
+    lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, lfGui.lfFaceName, LF_FACESIZE) + (lpdt?1:0);
+  }
+
+  for (dwElement=0; dwElement < dwElementSum; ++dwElement)
+  {
+    lpw=(WORD *)AlignPointer(lpw, sizeof(DWORD));
+    lpdit=(DLGITEMTEMPLATEEX *)lpw;
+    lpw=(WORD *)(lpdit + 1);
+
+    //helpID
+    if (lpdt) lpdit->helpID=0;
+
+    //ExStyle
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->exStyle=(DWORD)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //Class
+    pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+    wpClassName=(wchar_t *)GetVariantInt(pvtParameter, NULL);
+    ++dwElement;
+
+    if (!wpClassName)
+    {
+      if (lpdt) *lpw=0;
+      ++lpw;
+    }
+    else if ((INT_PTR)wpClassName < 0xFFFF)
+    {
+      if (lpdt) *lpw=0xFFFF;
+      ++lpw;
+      if (lpdt) *lpw=(WORD)(INT_PTR)wpClassName;
+      ++lpw;
+    }
+    else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, wpClassName, MAX_PATH) + (lpdt?1:0);
+
+    //Title
+    pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+    wpWindowName=(wchar_t *)GetVariantInt(pvtParameter, NULL);
+    ++dwElement;
+
+    if (!wpWindowName)
+    {
+      if (lpdt) *lpw=0;
+      ++lpw;
+    }
+    else if ((INT_PTR)wpWindowName < 0xFFFF)
+    {
+      if (lpdt) *lpw=0xFFFF;
+      ++lpw;
+      if (lpdt) *lpw=(WORD)(INT_PTR)wpWindowName;
+      ++lpw;
+    }
+    else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, wpWindowName, MAX_PATH) + (lpdt?1:0);
+
+    //Style
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->style=(DWORD)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //x
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->x=(short)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //y
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->y=(short)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //Width
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->cx=(short)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //Height
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->cy=(short)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //ID
+    if (lpdt)
+    {
+      pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+      lpdit->id=(DWORD)GetVariantInt(pvtParameter, NULL);
+    }
+    ++dwElement;
+
+    //Creation data
+    pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+    if ((lParamItem=GetVariantInt(pvtParameter, NULL)) && (wParamItemSize=*(WORD *)lParamItem) > 0)
+    {
+      xmemcpy(lpw, (void *)lParamItem, wParamItemSize);
+      lpw=(WORD *)((BYTE *)lpw + wParamItemSize);
+    }
+    else ++lpw;
+  }
+  if (lpdwSize) *lpdwSize=(DWORD)((BYTE *)lpw - (BYTE *)lpdt);
+  return hr;
+}
+
+LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW)
+{
+  xmemcpy(lfW, lfA, offsetof(LOGFONTW, lfFaceName));
+  MultiByteToWideChar(CP_ACP, 0, lfA->lfFaceName, -1, lfW->lfFaceName, LF_FACESIZE);
+  return lfW;
+}
+
+LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA)
+{
+  xmemcpy(lfA, lfW, offsetof(LOGFONTW, lfFaceName));
+  WideCharToMultiByte(CP_ACP, 0, lfW->lfFaceName, -1, lfA->lfFaceName, LF_FACESIZE, NULL, NULL);
+  return lfA;
+}
+
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
@@ -2723,14 +3041,20 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   CALLBACKITEM *lpCallback=NULL;
   LRESULT lResult=0;
 
-  if (uMsg == WM_NCCREATE)
+  if (uMsg == WM_NCCREATE ||
+      uMsg == WM_INITDIALOG)
   {
     if (lParam)
     {
       CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
-      IDispatch *objCallback=(IDispatch *)cs->lpCreateParams;
+      IDispatch *objCallback=NULL;
       CALLBACKITEM *lpNewCallback;
       ATOM wAtom;
+
+      if (uMsg == WM_NCCREATE)
+        objCallback=(IDispatch *)cs->lpCreateParams;
+      else if (uMsg == WM_INITDIALOG)
+        objCallback=(IDispatch *)lParam;
 
       if (objCallback)
       {
@@ -2746,6 +3070,7 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             objCallback->lpVtbl->AddRef(objCallback);
             lpCallback->objFunction=objCallback;
             lpCallback->hHandle=(HANDLE)hWnd;
+            lpCallback->bDlgProc=(uMsg == WM_INITDIALOG);
           }
           else
           {
@@ -2756,6 +3081,7 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
               lpNewCallback->dwData=wAtom;
               lpNewCallback->lpScriptThread=(void *)lpScriptThread;
               lpNewCallback->nCallbackType=CIT_DIALOG;
+              lpNewCallback->bDlgProc=(uMsg == WM_INITDIALOG);
 
               //Copy message filter
               StackCopy((stack *)lpCallback->hMsgIntStack.first, (stack *)lpCallback->hMsgIntStack.last, (stack **)&lpNewCallback->hMsgIntStack.first, (stack **)&lpNewCallback->hMsgIntStack.last, sizeof(MSGINT));
@@ -2790,6 +3116,7 @@ LRESULT CALLBACK DialogCallbackProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       }
     }
     if (lResult) return lResult;
+    if (lpCallback->bDlgProc) return FALSE;
   }
 
   return DefWindowProcWide(hWnd, uMsg, wParam, lParam);
@@ -3203,19 +3530,19 @@ LRESULT CALLBACK HookCallbackCommonProc(int nCallbackIndex, int nCode, WPARAM wP
 
 HWND CreateScriptsThreadDummyWindow()
 {
-  WNDCLASSW wndclassW;
+  WNDCLASSW wndclass;
 
-  wndclassW.style        =0;
-  wndclassW.lpfnWndProc  =ScriptsThreadProc;
-  wndclassW.cbClsExtra   =0;
-  wndclassW.cbWndExtra   =DLGWINDOWEXTRA;
-  wndclassW.hInstance    =hInstanceDLL;
-  wndclassW.hIcon        =NULL;
-  wndclassW.hCursor      =NULL;
-  wndclassW.hbrBackground=NULL;
-  wndclassW.lpszMenuName =NULL;
-  wndclassW.lpszClassName=L"ScriptsThread";
-  RegisterClassWide(&wndclassW);
+  wndclass.style        =0;
+  wndclass.lpfnWndProc  =ScriptsThreadProc;
+  wndclass.cbClsExtra   =0;
+  wndclass.cbWndExtra   =DLGWINDOWEXTRA;
+  wndclass.hInstance    =hInstanceDLL;
+  wndclass.hIcon        =NULL;
+  wndclass.hCursor      =NULL;
+  wndclass.hbrBackground=NULL;
+  wndclass.lpszMenuName =NULL;
+  wndclass.lpszClassName=L"ScriptsThread";
+  RegisterClassWide(&wndclass);
 
   return CreateWindowExWide(0, L"ScriptsThread", L"", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstanceDLL, NULL);
 }

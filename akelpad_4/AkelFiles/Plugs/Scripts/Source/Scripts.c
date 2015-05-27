@@ -50,6 +50,7 @@
 #define CreateProcessWide
 #define CreateWindowExWide
 #define DefWindowProcWide
+#define DefDlgProcWide
 #define DialogBoxParamWide
 #define DialogBoxWide
 #define DispatchMessageWide
@@ -74,6 +75,7 @@
 #define RegisterClassWide
 #define SetDlgItemTextWide
 #define SetFileAttributesWide
+#define SetClassLongPtrWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
 #define ShellExecuteWide
