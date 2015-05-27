@@ -663,6 +663,8 @@
 #define AEGUP_CURRENT         0x00
 #define AEGUP_NEXT            0x01
 #define AEGUP_PREV            0x02
+#define AEGUP_FIRST           0x04 //Always return -1.
+#define AEGUP_LAST            0x08 //Always return -1.
 #define AEGUP_NOUNDO          0x10 //Return -1 if undo item located in undo.
 #define AEGUP_NOREDO          0x20 //Return -1 if undo item located in redo.
 
