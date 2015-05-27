@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.7                    *
+ *                  Wide functions header v2.8                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -208,6 +208,29 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText);
 #endif
 #ifndef GWLP_USERDATA
   #define GWLP_USERDATA (-21)
+#endif
+
+//GetClassLongPtrWide/SetClassLongPtrWide
+#ifndef GCLP_MENUNAME
+  #define GCLP_MENUNAME (-8)
+#endif
+#ifndef GCLP_HBRBACKGROUND
+  #define GCLP_HBRBACKGROUND (-10)
+#endif
+#ifndef GCLP_HCURSOR
+  #define GCLP_HCURSOR (-12)
+#endif
+#ifndef GCLP_HICON
+  #define GCLP_HICON (-14)
+#endif
+#ifndef GCLP_HMODULE
+  #define GCLP_HMODULE (-16)
+#endif
+#ifndef GCLP_WNDPROC
+  #define GCLP_WNDPROC (-24)
+#endif
+#ifndef GCLP_HICONSM
+  #define GCLP_HICONSM (-34)
 #endif
 
 //IconExtractWide
