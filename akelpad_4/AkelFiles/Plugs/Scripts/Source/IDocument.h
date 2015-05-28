@@ -152,6 +152,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 //Document_WindowGetMessage flags
 #define WGM_ENABLE    0x1
 #define WGM_NOKEYSEND 0x2
+#define WGM_KEYDOWNUP 0x4
 
 //Document_ScriptNoMutex type
 #define ULT_UNLOCKSCRIPTSQUEUE   0x1
