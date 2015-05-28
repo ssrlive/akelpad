@@ -1819,7 +1819,7 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
   wchar_t *wpWindowName=(wchar_t *)GetVariantInt(&vtWindowName, NULL);
   HWND hWndParent=(HWND)GetVariantInt(&vtWndParent, NULL);
   LPARAM lParam=GetVariantInt(&vtParam, NULL);
-  BOOL bModal=FALSE;
+  DWORD dwFlags=0;
   HINSTANCE hInstance=NULL;
   HMENU hMenu=NULL;
   BSTR wpFaceName=NULL;
@@ -1848,7 +1848,7 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
       break;
     }
     if (dwElement == 0)
-      bModal=(BOOL)GetVariantInt(pvtParameter, NULL);
+      dwFlags=(DWORD)GetVariantInt(pvtParameter, NULL);
     else if (dwElement == 1)
       hMenu=(HMENU)GetVariantInt(pvtParameter, NULL);
     else if (dwElement == 2)
@@ -1882,15 +1882,15 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
 
   if (!hInstance) hInstance=hInstanceDLL;
 
-  if ((hr=FillDialogTemplate(NULL, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, dwElement, &dwSize)) == NOERROR)
+  if ((hr=FillDialogTemplate(NULL, dwFlags, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, dwElement, &dwSize)) == NOERROR)
   {
     if (hTemplate=GlobalAlloc(GMEM_ZEROINIT, dwSize))
     {
       if (lpTemplate=(DLGTEMPLATEEX *)GlobalLock(hTemplate))
       {
-        FillDialogTemplate(lpTemplate, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, dwElement, NULL);
+        FillDialogTemplate(lpTemplate, dwFlags, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, dwElement, NULL);
         GlobalUnlock(hTemplate);
-        if (bModal)
+        if (dwFlags & CDF_MODAL)
           nResult=DialogBoxIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
         else
           nResult=(INT_PTR)CreateDialogIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
@@ -1903,7 +1903,7 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
   return hr;
 }
 
-HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD dwElement, DWORD *lpdwSize)
+HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD dwElement, DWORD *lpdwSize)
 {
   DLGITEMTEMPLATEEX *lpdit;
   WORD *lpw;
@@ -1913,24 +1913,13 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
   unsigned char *lpData;
   DWORD dwElementSum;
   DWORD dwOptional;
+  POINT ptUnit={0};
+  POINT ptUnit96={0};
   HRESULT hr=NOERROR;
 
   lpData=(unsigned char *)(psa->pvData);
   dwElementSum=psa->rgsabound[0].cElements;
 
-  if (lpdt)
-  {
-    lpdt->dlgVer=1;
-    lpdt->signature=0xFFFF;
-    lpdt->helpID=0;
-    lpdt->exStyle=dwExStyle;
-    lpdt->style=dwStyle;
-    lpdt->cDlgItems=0;
-    lpdt->x=(short)x;
-    lpdt->y=(short)y;
-    lpdt->cx=(short)nWidth;
-    lpdt->cy=(short)nHeight;
-  }
   //Don't use "lpw=(WORD *)(lpdt + 1)" because of wrong alignment
   lpw=(WORD *)((BYTE *)lpdt + offsetof(DLGTEMPLATEEX, cy) + sizeof(short));
 
@@ -1972,11 +1961,16 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
   }
   else lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, wpWindowName, MAX_PATH) + (lpdt?1:0);
 
-  if ((dwStyle & DS_SETFONT) || (dwStyle & DS_SHELLFONT))
+  if ((dwStyle & DS_SETFONT) || (dwStyle & DS_SHELLFONT) || (dwFlags & CDF_PIXELS))
   {
     LOGFONTW lfGui;
+    TEXTMETRICA tmGui;
+    HDC hDC=NULL;
     HFONT hGuiFont;
-    HDC hDC;
+    HFONT hFontOld=NULL;
+    SIZE sizeWidth;
+    int nStrLen=52;
+    const char *pStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     //Default GUI font
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -1989,18 +1983,46 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     }
     else GetObjectW(hGuiFont, sizeof(LOGFONTW), &lfGui);
 
-    if (!nPointSize)
+    if (lpdt)
     {
-      if (hDC=GetDC(hMainWnd))
+      if (dwFlags & CDF_PIXELS)
       {
-        nPointSize=MulDiv(mod(lfGui.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
-        ReleaseDC(hMainWnd, hDC);
+        if (!hDC)
+          hDC=GetDC(hMainWnd);
+        if (hDC)
+        {
+          //Current dialog base unit
+          hFontOld=(HFONT)SelectObject(hDC, hGuiFont);
+          if (GetTextMetricsA(hDC, &tmGui))
+          {
+            GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
+            ptUnit.x=(sizeWidth.cx / 26 + 1) / 2;
+            ptUnit.y=tmGui.tmHeight;
+          }
+          if (hFontOld) SelectObject(hDC, hFontOld);
+
+          //Normal unit (without screen scale)
+          ptUnit96.x=MulDiv(ptUnit.x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
+          ptUnit96.y=MulDiv(ptUnit.y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
+        }
       }
-    }
-    if (dwFontStyle != FS_NONE)
-    {
-      lfGui.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
-      lfGui.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+      if (!nPointSize)
+      {
+        if (!hDC)
+          hDC=GetDC(hMainWnd);
+        if (hDC)
+          nPointSize=MulDiv(mod(lfGui.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
+      }
+      if (hDC)
+      {
+        ReleaseDC(hMainWnd, hDC);
+        hDC=NULL;
+      }
+      if (dwFontStyle != FS_NONE)
+      {
+        lfGui.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+        lfGui.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+      }
     }
     if (wpFaceName && *wpFaceName != '\0')
     {
@@ -2031,9 +2053,43 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, lfGui.lfFaceName, LF_FACESIZE) + (lpdt?1:0);
   }
 
+  if (lpdt)
+  {
+    lpdt->dlgVer=1;
+    lpdt->signature=0xFFFF;
+    lpdt->helpID=0;
+    lpdt->exStyle=dwExStyle;
+    lpdt->style=dwStyle;
+    lpdt->cDlgItems=0;
+    lpdt->x=(short)x;
+    if (dwFlags & CDF_PIXELS)
+    {
+      lpdt->x=(short)MulDiv(lpdt->x, ptUnit.x, ptUnit96.x);
+      lpdt->x=(short)MulDiv(lpdt->x, 4, ptUnit.x);
+    }
+    lpdt->y=(short)y;
+    if (dwFlags & CDF_PIXELS)
+    {
+      lpdt->y=(short)MulDiv(lpdt->y, ptUnit.y, ptUnit96.y);
+      lpdt->y=(short)MulDiv(lpdt->y, 8, ptUnit.y);
+    }
+    lpdt->cx=(short)nWidth;
+    if (dwFlags & CDF_PIXELS)
+    {
+      lpdt->cx=(short)MulDiv(lpdt->cx, ptUnit.x, ptUnit96.x);
+      lpdt->cx=(short)MulDiv(lpdt->cx, 4, ptUnit.x);
+    }
+    lpdt->cy=(short)nHeight;
+    if (dwFlags & CDF_PIXELS)
+    {
+      lpdt->cy=(short)MulDiv(lpdt->cy, ptUnit.y, ptUnit96.y);
+      lpdt->cy=(short)MulDiv(lpdt->cy, 8, ptUnit.y);
+    }
+  }
+
   while (dwElement < dwElementSum)
   {
-    lpw=(WORD *)AlignPointer(lpw, sizeof(DWORD));
+    lpw=(WORD *)AlignValue(lpw, sizeof(DWORD));
     lpdit=(DLGITEMTEMPLATEEX *)lpw;
     lpw=(WORD *)(lpdit + 1);
 
@@ -2099,6 +2155,11 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     {
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->x=(short)GetVariantInt(pvtParameter, NULL);
+      if (dwFlags & CDF_PIXELS)
+      {
+        lpdit->x=(short)MulDiv(lpdit->x, ptUnit.x, ptUnit96.x);
+        lpdit->x=(short)MulDiv(lpdit->x, 4, ptUnit.x);
+      }
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2107,6 +2168,11 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     {
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->y=(short)GetVariantInt(pvtParameter, NULL);
+      if (dwFlags & CDF_PIXELS)
+      {
+        lpdit->y=(short)MulDiv(lpdit->y, ptUnit.y, ptUnit96.y);
+        lpdit->y=(short)MulDiv(lpdit->y, 8, ptUnit.y);
+      }
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2115,6 +2181,11 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     {
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cx=(short)GetVariantInt(pvtParameter, NULL);
+      if (dwFlags & CDF_PIXELS)
+      {
+        lpdit->cx=(short)MulDiv(lpdit->cx, ptUnit.x, ptUnit96.x);
+        lpdit->cx=(short)MulDiv(lpdit->cx, 4, ptUnit.x);
+      }
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2123,6 +2194,11 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     {
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cy=(short)GetVariantInt(pvtParameter, NULL);
+      if (dwFlags & CDF_PIXELS)
+      {
+        lpdit->cy=(short)MulDiv(lpdit->cy, ptUnit.y, ptUnit96.y);
+        lpdit->cy=(short)MulDiv(lpdit->cy, 8, ptUnit.y);
+      }
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 

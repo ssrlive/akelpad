@@ -144,6 +144,10 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define RST_SELECT               -1
 #define RST_SELECTRESTORESCROLL  -2
 
+//Document_CreateDialog flags
+#define CDF_MODAL  0x1
+#define CDF_PIXELS 0x2
+
 //Document_WindowSubClass window handle
 #define WSC_MAINPROC     1
 #define WSC_EDITPROC     2
@@ -204,8 +208,8 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #ifndef DS_SHELLFONT
   #define DS_SHELLFONT (DS_SETFONT|DS_FIXEDSYS)
 #endif
-#ifndef AlignPointer
-  #define AlignPointer(p, a)  (((UINT_PTR)p) + (a - ((UINT_PTR)p) % a) % a)
+#ifndef AlignValue
+  #define AlignValue(v, a)  (((UINT_PTR)v) + (a - ((UINT_PTR)v) % a) % a)
 #endif
 
 typedef struct {
@@ -406,7 +410,7 @@ HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int 
 HRESULT STDMETHODCALLTYPE Document_GetArgLine(IDocument *this, BOOL bNoEncloseQuotes, BSTR *wpArgLine);
 HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, VARIANT vtDefault, VARIANT *vtResult);
 HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtParam, SAFEARRAY **lpItems, VARIANT *vtWnd);
-HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD dwElement, DWORD *lpdwSize);
+HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD dwElement, DWORD *lpdwSize);
 LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
 LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom);
