@@ -1819,6 +1819,7 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
   wchar_t *wpWindowName=(wchar_t *)GetVariantInt(&vtWindowName, NULL);
   HWND hWndParent=(HWND)GetVariantInt(&vtWndParent, NULL);
   LPARAM lParam=GetVariantInt(&vtParam, NULL);
+  BOOL bModal=FALSE;
   HINSTANCE hInstance=NULL;
   HMENU hMenu=NULL;
   BSTR wpFaceName=NULL;
@@ -1831,8 +1832,8 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
   DWORD dwElementSum;
   HGLOBAL hTemplate;
   DLGTEMPLATEEX *lpTemplate;
-  HWND hDlg=NULL;
   DWORD dwSize;
+  INT_PTR nResult=0;
   HRESULT hr=NOERROR;
 
   lpData=(unsigned char *)(psa->pvData);
@@ -1847,14 +1848,16 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
       break;
     }
     if (dwElement == 0)
-      hMenu=(HMENU)GetVariantInt(pvtParameter, NULL);
+      bModal=(BOOL)GetVariantInt(pvtParameter, NULL);
     else if (dwElement == 1)
-      hInstance=(HINSTANCE)GetVariantInt(pvtParameter, NULL);
+      hMenu=(HMENU)GetVariantInt(pvtParameter, NULL);
     else if (dwElement == 2)
-      wpFaceName=pvtParameter->bstrVal;
+      hInstance=(HINSTANCE)GetVariantInt(pvtParameter, NULL);
     else if (dwElement == 3)
-      dwFontStyle=(DWORD)GetVariantInt(pvtParameter, NULL);
+      wpFaceName=pvtParameter->bstrVal;
     else if (dwElement == 4)
+      dwFontStyle=(DWORD)GetVariantInt(pvtParameter, NULL);
+    else if (dwElement == 5)
       nPointSize=(int)GetVariantInt(pvtParameter, NULL);
     else
       return DISP_E_BADPARAMCOUNT;
@@ -1887,12 +1890,15 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
       {
         FillDialogTemplate(lpTemplate, dwExStyle, wpClassName, wpWindowName, dwStyle, x, y, nWidth, nHeight, hMenu, wpFaceName, dwFontStyle, nPointSize, lpItems, dwElement, NULL);
         GlobalUnlock(hTemplate);
-        hDlg=CreateDialogIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
+        if (bModal)
+          nResult=DialogBoxIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
+        else
+          nResult=(INT_PTR)CreateDialogIndirectParam(hInstance, (DLGTEMPLATE *)hTemplate, hWndParent, (DLGPROC)DialogCallbackProc, lParam);
         GlobalFree(hTemplate);
       }
     }
   }
-  SetVariantInt(vtWnd, (INT_PTR)hDlg);
+  SetVariantInt(vtWnd, nResult);
 
   return hr;
 }
@@ -2040,12 +2046,12 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->exStyle=(DWORD)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //Class
     pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
     wpClassName=(wchar_t *)GetVariantInt(pvtParameter, NULL);
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     if (!wpClassName)
     {
@@ -2064,7 +2070,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
     //Title
     pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
     wpWindowName=(wchar_t *)GetVariantInt(pvtParameter, NULL);
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     if (!wpWindowName)
     {
@@ -2086,7 +2092,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->style=(DWORD)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //x
     if (lpdt)
@@ -2094,7 +2100,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->x=(short)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //y
     if (lpdt)
@@ -2102,7 +2108,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->y=(short)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //Width
     if (lpdt)
@@ -2110,7 +2116,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cx=(short)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //Height
     if (lpdt)
@@ -2118,7 +2124,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cy=(short)GetVariantInt(pvtParameter, NULL);
     }
-    ++dwElement;
+    if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
     //ID
     if (lpdt)
@@ -2127,6 +2133,10 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
       lpdit->id=(DWORD)GetVariantInt(pvtParameter, NULL);
     }
     ++dwElement;
+
+    //Creation data
+    if (lpdt) *lpw=0;
+    ++lpw;
 
     //Optional item parameters
     for (dwOptional=0; dwElement < dwElementSum; ++dwElement, ++dwOptional)
@@ -2142,17 +2152,12 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClas
         //Creation data
         LPARAM lParamItem;
         WORD wParamItemSize;
-      
-        pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
+
         if ((lParamItem=GetVariantInt(pvtParameter, NULL)) && (wParamItemSize=*(WORD *)lParamItem) > 0)
         {
-          xmemcpy(lpw, (void *)lParamItem, wParamItemSize);
+          --lpw;
+          if (lpdt) xmemcpy(lpw, (void *)lParamItem, wParamItemSize);
           lpw=(WORD *)((BYTE *)lpw + wParamItemSize);
-        }
-        else
-        {
-          if (lpdt) *lpw=0;
-          ++lpw;
         }
       }
       else return DISP_E_BADPARAMCOUNT;
@@ -2292,7 +2297,9 @@ HRESULT STDMETHODCALLTYPE Document_WindowGetMessage(IDocument *this, DWORD dwFla
     {
       if (lpCallback->hHandle && IsDialogMessageWide((HWND)lpCallback->hHandle, &msg))
       {
-        if (!(lpScriptThread->dwMessageLoop & WGM_NOKEYSEND) && (HWND)lpCallback->hHandle != msg.hwnd && msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST)
+        if (!(lpScriptThread->dwMessageLoop & WGM_NOKEYSEND) && (HWND)lpCallback->hHandle != msg.hwnd &&
+             (!(lpScriptThread->dwMessageLoop & WGM_KEYDOWNUP) ? (msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST) :
+                                                                 (msg.message == WM_KEYDOWN || msg.message == WM_KEYUP)))
         {
           SendMessage((HWND)lpCallback->hHandle, msg.message, msg.wParam, msg.lParam);
         }
