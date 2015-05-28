@@ -2329,6 +2329,7 @@ ___________________________________
     0x1  //WGM_ENABLE    Устанавливается в любом случае.
     0x2  //WGM_NOKEYSEND Не посылать сообщения клавиш диалогу от дочерних окон
          //              (WM_KEYDOWN, WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+    0x4  //WGM_KEYDOWNUP Посылать только сообщения WM_KEYDOWN, WM_KEYUP диалогу от дочерних окон.
          //По умолчанию 0x0.
 
 Возвращаемое значение

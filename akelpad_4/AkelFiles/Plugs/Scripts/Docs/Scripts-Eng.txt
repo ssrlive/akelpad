@@ -2327,6 +2327,7 @@ Arguments
     0x1  //WGM_ENABLE    Set in any case.
     0x2  //WGM_NOKEYSEND Don't send key messages to dialog from children windows
          //              (WM_KEYDOWN, WM_KEYUP, WM_CHAR, WM_DEADCHAR, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR, WM_SYSDEADCHAR, WM_UNICHAR).
+    0x4  //WGM_KEYDOWNUP Send only WM_KEYDOWN, WM_KEYUP messages to dialog from children windows.
          //Default is 0x0.
 
 Return Value
