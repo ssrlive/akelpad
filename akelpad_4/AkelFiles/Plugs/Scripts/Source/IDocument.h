@@ -82,7 +82,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_VarType)(THIS_ VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgLine)(THIS_ BOOL, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgValue)(THIS_ BSTR, VARIANT, VARIANT *) PURE;
-  STDMETHOD_(HRESULT, Document_CreateDialog)(THIS_ DWORD, VARIANT, VARIANT, DWORD, int, int, int, int, VARIANT, VARIANT, VARIANT, VARIANT, BSTR, DWORD, int, SAFEARRAY **, VARIANT *) PURE;
+  STDMETHOD_(HRESULT, Document_CreateDialog)(THIS_ DWORD, VARIANT, VARIANT, DWORD, int, int, int, int, VARIANT, VARIANT, SAFEARRAY **, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_WindowRegisterClass)(THIS_ BSTR, SAFEARRAY **, WORD *) PURE;
   STDMETHOD_(HRESULT, Document_WindowUnregisterClass)(THIS_ BSTR, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_WindowRegisterDialog)(THIS_ VARIANT, BOOL *) PURE;
@@ -404,8 +404,8 @@ HRESULT STDMETHODCALLTYPE Document_Debug(IDocument *this, DWORD dwDebug, DWORD *
 HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int *nType);
 HRESULT STDMETHODCALLTYPE Document_GetArgLine(IDocument *this, BOOL bNoEncloseQuotes, BSTR *wpArgLine);
 HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, VARIANT vtDefault, VARIANT *vtResult);
-HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtMenu, VARIANT vtInstance, VARIANT vtParam, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, VARIANT *vtWnd);
-HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD *lpdwSize);
+HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtParam, SAFEARRAY **lpItems, VARIANT *vtWnd);
+HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwExStyle, wchar_t *wpClassName, wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HMENU hMenu, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize, SAFEARRAY **lpItems, DWORD dwElement, DWORD *lpdwSize);
 LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW);
 LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 HRESULT STDMETHODCALLTYPE Document_WindowRegisterClass(IDocument *this, BSTR wpClassName, SAFEARRAY **psa, WORD *wAtom);
