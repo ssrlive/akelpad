@@ -228,6 +228,7 @@ AkelPad.WindowRegisterClass                  +ActiveX
 AkelPad.WindowUnregisterClass                +ActiveX
 AkelPad.WindowRegisterDialog                 +ActiveX
 AkelPad.WindowUnregisterDialog               +ActiveX
+AkelPad.CreateDialog                         +ActiveX
 AkelPad.WindowGetMessage                     +ActiveX
 AkelPad.WindowSubClass                       +ActiveX
 AkelPad.WindowNextProc                       +ActiveX
@@ -2292,11 +2293,6 @@ _______________________________________
     return (dwNumber & 0xffff);
   }
 
-  function HIWORD(dwNumber)
-  {
-    return (dwNumber >> 16);
-  }
-
 
 AkelPad.WindowUnregisterDialog (+ActiveX)
 _________________________________________
@@ -2315,6 +2311,155 @@ _________________________________________
 
 Пример:
   См. пример WindowRegisterDialog.
+
+
+AkelPad.CreateDialog (+ActiveX)
+_______________________________
+
+Создать диалог.
+
+  CreateDialog(nExStyle, pClassName, pTitle, nStyle, x, y, nWidth, nHeight, hWndParent, lParam[, nFlags][, hMenu][, hInstance][, pFaceName][, nFontStyle][, nPointSize], "|",
+               nExStyle1, pClassName1, pTitle1, nStyle1, x1, y1, nWidth1, nHeight1, nId1[, lParam1], "|",
+               nExStyle2, pClassName2, pTitle2, nStyle2, x2, y2, nWidth2, nHeight2, nId2[, lParam2], "|",
+               [...]);
+
+Аргументы
+  nExStyle
+    Расширенный стиль диалога. См. описание CreateWindowEx в MSDN.
+  pClassName
+    Имя класса зарегистрированное с помощью AkelPad.WindowRegisterClass.
+  pTitle
+    Текст заголовка диалога.
+  nStyle
+    Стиль диалога. См. описание CreateWindowEx в MSDN.
+  x
+    Горизонтальная позиция диалога в экранных координатах.
+  y
+    Вертикальная позиция диалога в экранных координатах.
+  nWidth
+    Ширина диалога.
+  nHeight
+    Высота диалога.
+  hWndParent
+    Родительское окно создаваемого диалога.
+  lParam
+    Указатель на процедуру диалога.
+  nFlags
+    0x1  //CDF_MODAL   Создать модальный диалог. Если не указано, создаётся немодальный диалог, который требует наличия AkelPad.WindowGetMessage.
+    0x2  //CDF_PIXELS  Координаты указываются в пикселях для 96 DPI. Если не указано, координаты
+         //            указываются в единицах диалогового окна, которые зависят от размеров шрифта диалога.
+         //По умолчанию 0x0.
+  hMenu
+    Дескриптор меню или, в зависимости от стиля, дескриптор дочернего окна. См. описание CreateWindowEx в MSDN. Если ноль, не используется (по умолчанию).
+  hInstance
+    Дескриптор модуля, который будет связан с окном. Если ноль, будет использован дескриптор AkelPad.GetInstanceDll (по умолчанию).
+  pFaceName
+    Имя шрифта, например, "Courier". Если "", используется системный шрифт для диалогов (по умолчанию).
+    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+  nFontStyle
+    0 игнорировать (по умолчанию).
+    1 обычный шрифт.
+    2 жирный шрифт.
+    3 курсивный шрифт.
+    4 жирный курсивный шрифт.
+    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+  nPointSize
+    Размер шрифта. Не изменяется, если 0 (по умолчанию).
+    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+  "|"
+    Свидетельствует об окончании передачи параметров диалога и начале передачи параметров элементов управления.
+  nExStyle1
+    Расширенный стиль окна. См. описание CreateWindowEx в MSDN.
+  pClassName1
+    Имя класса, например, "BUTTON". См. описание CreateWindowEx в MSDN.
+  pTitle1
+    Текст элемента управления.
+  nStyle1
+    Стиль окна. См. описание CreateWindowEx в MSDN.
+  x1
+    Горизонтальная позиция окна в клиентских координатах (относительно родительского окна).
+  y1
+    Вертикальная позиция окна в клиентских координатах (относительно родительского окна).
+  nWidth1
+    Ширина окна.
+  nHeight1
+    Высота окна.
+  nId1
+    Идентификатор элемента управления.
+  lParam1
+    Данные для создания окна. Первый WORD указывает размер данных, в байтах, для создания (включая WORD размера).
+    Элемент управления получит эти данные в параметре lParam сообщения WM_CREATE. Если ноль, не используется (по умолчанию).
+  "|"
+    Свидетельствует об окончании передачи параметров элемента управления.
+  ...
+    Параметры следующего элемента управления.
+
+Возвращаемое значение
+  Если nFlags не содержит флаг CDF_MODAL, то возвращается дескриптор диалога.
+  Если nFlags содержит флаг CDF_MODAL, то возвращается значение переданное в "user32::EndDialog".
+
+Пример:
+  var hMainWnd=AkelPad.GetMainWnd();
+  var oSys=AkelPad.SystemFunction();
+  var hWndDialog=0;
+  var wCommand;
+  var dwFlags=0x2 /*CDF_PIXELS*/;
+
+  //Control IDs
+  var IDC_BUTTON1=1001;
+  var IDC_BUTTON2=1002;
+  var IDC_EDIT=1003;
+
+  if (AkelPad.WindowRegisterClass("My Class"))
+  {
+    AkelPad.CreateDialog(0, "My Class", "My Title",  0x90ca0040 /*DS_SETFONT|WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX*/, 10, 10, 300, 200, hMainWnd, DialogCallback, dwFlags, "|",
+                         0, "BUTTON", "Button text 1", 0x50010001 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_DEFPUSHBUTTON*/, 10, 10, 200, 20, IDC_BUTTON1, "|",
+                         0, "BUTTON", "Button text 2", 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 10, 50, 200, 20, IDC_BUTTON2, "|",
+                         0, "EDIT", "Edit text 3", 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 10, 90, 200, 20, IDC_EDIT);
+
+    if (hWndDialog && !(dwFlags & 0x1 /*CDF_MODAL*/))
+    {
+      AkelPad.ScriptNoMutex();
+      AkelPad.WindowGetMessage(0x4 /*WGM_KEYDOWNUP*/);
+    }
+    AkelPad.WindowUnregisterClass("My Class");
+  }
+
+  function DialogCallback(hWnd, uMsg, wParam, lParam)
+  {
+    if (uMsg == 0x110 /*WM_INITDIALOG*/)
+    {
+      hWndDialog=hWnd;
+    }
+    else if (uMsg == 273 /*WM_COMMAND*/)
+    {
+      wCommand=LOWORD(wParam);
+
+      if (wCommand == IDC_BUTTON1 ||
+          wCommand == IDC_BUTTON2)
+      {
+        AkelPad.MessageBox(hWnd, "Button=" + wCommand, WScript.ScriptName, 0 /*MB_OK*/);
+      }
+      else if (wCommand == 2 /*IDCANCEL*/)
+      {
+        //Destroy dialog
+        if (!(dwFlags & 0x1 /*CDF_MODAL*/))
+        {
+          //Exit message loop
+          oSys.Call("user32::PostQuitMessage", 0);
+
+          oSys.Call("user32::DestroyWindow", hWnd);
+        }
+        else oSys.Call("user32::EndDialog", hWnd, 0);
+      }
+    }
+    return 0;
+  }
+
+  function LOWORD(dwNumber)
+  {
+    return (dwNumber & 0xffff);
+  }
 
 
 AkelPad.WindowGetMessage (+ActiveX)
