@@ -255,7 +255,7 @@ library Scripts
     HRESULT GetArgValue([in] BSTR wpArgName, [in] VARIANT vtDefault, [out, retval] VARIANT *vtResult);
 
     //Create dialog.
-    [vararg] HRESULT CreateDialog([in] DWORD dwExStyle, [in] VARIANT vtClassName, [in] VARIANT vtWindowName, [in] DWORD dwStyle, [in] int x, [in] int y, [in] int nWidth, [in] int nHeight, [in] VARIANT vtWndParent, [in] VARIANT vtParam, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtWnd);
+    [vararg] HRESULT CreateDialog([in] DWORD dwExStyle, [in] VARIANT vtClassName, [in] VARIANT vtTitle, [in] DWORD dwStyle, [in] int x, [in] int y, [in] int nWidth, [in] int nHeight, [in] VARIANT vtWndParent, [in] VARIANT vtParam, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtWnd);
 
     //Register window class.
     [vararg] HRESULT WindowRegisterClass([in] BSTR wpClassName, [in] SAFEARRAY(VARIANT) *psa, [out, retval] WORD *wAtom);
