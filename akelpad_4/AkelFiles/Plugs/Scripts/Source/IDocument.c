@@ -2006,12 +2006,15 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
           ptUnit96.y=MulDiv(ptUnit.y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
         }
       }
-      if (!nPointSize)
+      if (dwStyle & DS_SETFONT)
       {
-        if (!hDC)
-          hDC=GetDC(hMainWnd);
-        if (hDC)
-          nPointSize=MulDiv(mod(lfGui.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
+        if (!nPointSize)
+        {
+          if (!hDC)
+            hDC=GetDC(hMainWnd);
+          if (hDC)
+            nPointSize=MulDiv(mod(lfGui.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
+        }
       }
       if (hDC)
       {
@@ -2034,23 +2037,23 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
       //Point size
       if (lpdt) *lpw=(WORD)nPointSize;
       ++lpw;
-  
+
       //Weight
       if (lpdt) *lpw=(WORD)lfGui.lfWeight;
       ++lpw;
-  
+
       if (lpdt)
       {
         lpb=(BYTE *)lpw;
-  
+
         //Italic
         *lpb++=lfGui.lfItalic;
-  
+
         //Character set
         *lpb++=lfGui.lfCharSet /*DEFAULT_CHARSET*/;
       }
       ++lpw;
-  
+
       //Face name
       lpw+=xstrcpynW(lpdt?(wchar_t *)lpw:NULL, lfGui.lfFaceName, LF_FACESIZE) + (lpdt?1:0);
     }
