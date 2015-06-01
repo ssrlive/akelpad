@@ -10200,7 +10200,6 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     pr.wpDelim=lpFrame->wszWordDelimiters;
     pr.wpMaxDelim=lpFrame->wszWordDelimiters + xstrlenW(lpFrame->wszWordDelimiters);
     pr.wpNewLine=GetNewLineString(lpFrame->ei.nNewLine);
-    pr.nPointCount=0;
     lpFrame->nCompileErrorOffset=0;
     lpFrame->bCompileErrorReplace=FALSE;
   }
@@ -10343,6 +10342,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.dwOptions|=RESE_GLOBAL;
         if (dwFlags & FRF_WHOLEWORD)
           pr.dwOptions|=RESE_WHOLEWORD;
+        pr.nPointCount=0;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
@@ -10561,6 +10561,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.ciStr=crCurSel.ciMin;
         pr.ciMaxStr=crCurSel.ciMax;
         pr.dwOptions|=RESE_ISMATCH;
+        pr.nPointCount=0;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
 
@@ -22102,6 +22103,7 @@ void UpdateTitle(FRAMEDATA *lpFrame)
         pr.dwOptions=RESE_ISMATCH;
         pr.wpDelim=NULL;
         pr.wpNewLine=NULL;
+        pr.nPointCount=0;
         pr.wszResult=wszTabName;
         PatReplace(&pr);
 
