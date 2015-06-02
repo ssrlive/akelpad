@@ -49,7 +49,7 @@ Call("Scripts::Main", 1, "SCRIPT", "ARGUMENTS")
     "SCRIPT"
       Script file. If "", then last processed script used.
     "ARGUMENTS"
-      Argumets (default is "").
+      Arguments (default is "").
   Examples:
     Call("Scripts::Main", 1, "InsertDate.js")
     Call("Scripts::Main", 1, "InsertDate.js", `"dd MMMM yyyy"`)
@@ -367,7 +367,7 @@ Check AkelEdit control usage in program or in specified window.
 
   IsAkelEdit([hWnd]);
 
-Argumets
+Arguments
   hWnd
     Edit window handle. If zero or not specified, then returned AkelEdit usage in program.
 
@@ -419,7 +419,7 @@ GetSelStart, GetSelEnd, SetSel, GetSelText, GetTextRange, ReplaceSel will use th
 
   SetEditWnd(hHandle);
 
-Argumets
+Arguments
   hHandle
     Edit window handle or the following value:
       1   //SEW_FOCUS  Use window handle that has focus.
@@ -2350,51 +2350,51 @@ Arguments
   hMenu
     Menu handle or, depending on style, child window handle. See description of CreateWindowEx in MSDN. If zero, not used (default).
   hInstance
-    Дескриптор модуля, который будет связан с окном. Если ноль, будет использован дескриптор AkelPad.GetInstanceDll (по умолчанию).
+    Instance handle of the module to be associated with the window. If zero, AkelPad.GetInstanceDll handle will be used (default).
   pFaceName
-    Имя шрифта, например, "Courier". Если "", используется системный шрифт для диалогов (по умолчанию).
-    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+    Font face, for example, "Courier". If "", system font for dialogs is used (default).
+    Processed only, when nStyle has 0x40 /*DS_SETFONT*/ flag.
   nFontStyle
-    0 игнорировать (по умолчанию).
-    1 обычный шрифт.
-    2 жирный шрифт.
-    3 курсивный шрифт.
-    4 жирный курсивный шрифт.
-    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+    0 ignored (default).
+    1 normal.
+    2 bold.
+    3 italic.
+    4 bold italic.
+    Processed only, when nStyle has 0x40 /*DS_SETFONT*/ flag.
   nPointSize
-    Размер шрифта. Не изменяется, если 0 (по умолчанию).
-    Обрабатывается только, когда nStyle имеет флаг 0x40 /*DS_SETFONT*/.
+    Font size. Unchanged, if 0 (default).
+    Processed only, when nStyle has 0x40 /*DS_SETFONT*/ flag.
   "|"
-    Свидетельствует об окончании передачи параметров диалога и начале передачи параметров элементов управления.
+    Indicates the end of the dialog parameters and the start of controls parameters.
   nExStyle1
-    Расширенный стиль окна. See description of CreateWindowEx in MSDN.
+    Extended window style. See description of CreateWindowEx in MSDN.
   pClassName1
-    Имя класса, например, "BUTTON". See description of CreateWindowEx in MSDN.
+    Class name, example, "BUTTON". See description of CreateWindowEx in MSDN.
   pTitle1
-    Текст элемента управления.
+    Control text.
   nStyle1
-    Стиль окна. See description of CreateWindowEx in MSDN.
+    Control style. See description of CreateWindowEx in MSDN.
   x1
-    Горизонтальная позиция окна в клиентских координатах (относительно родительского окна).
+    Horizontal control position in client coordinates.
   y1
-    Вертикальная позиция окна в клиентских координатах (относительно родительского окна).
+    Vertical control position in client coordinates.
   nWidth1
-    Ширина окна.
+    Control width.
   nHeight1
-    Высота окна.
+    Control height
   nId1
-    Идентификатор элемента управления.
+    Control identifier.
   lParam1
-    Данные для создания окна. Первый WORD указывает размер данных, в байтах, для создания (включая WORD размера).
-    Элемент управления получит эти данные в параметре lParam сообщения WM_CREATE. Если ноль, не используется (по умолчанию).
+    The creation data. First word indicates the size, in bytes, of the creation data (including the size word).
+    Control receives a pointer to this data in the lParam parameter of the WM_CREATE message. If zero, not used (default).
   "|"
-    Свидетельствует об окончании передачи параметров элемента управления.
+    Indicates the end of the control parameters.
   ...
-    Параметры следующего элемента управления.
+    Arguments for the next control.
 
 Return Value
-  Если nFlags не содержит флаг CDF_MODAL, то возвращается дескриптор диалога.
-  Если nFlags содержит флаг CDF_MODAL, то возвращается значение переданное в "user32::EndDialog".
+  If nFlags not contain CDF_MODAL, then return value is dialog handle.
+  If nFlags contain CDF_MODAL, then return value is value passed to "user32::EndDialog".
 
 Example:
   var hMainWnd=AkelPad.GetMainWnd();
