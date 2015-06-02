@@ -12,8 +12,8 @@
 // -Direction=Ru->En  -From Russian to English.
 //
 // Usage:
-// -"Convert layout" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
-// -"Transliteration" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
+// "Convert layout" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
+// "Transliteration" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
 //
 //
 // Description(1049): Исправляет раскладку клавиатуры или транслитерирует текст.
@@ -25,8 +25,8 @@
 // -Direction=Ru->En  -Из русского в английский.
 //
 // Применение:
-// -"Исправить набор" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
-// -"Транслитерация" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
+// "Исправить набор" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Layout -Direction=En->Ru`)
+// "Транслитерация" Call("Scripts::Main", 1, "Keyboard.js", `-Type=Translit -Direction=Ru->En`)
 
 //Arguments
 var pType=AkelPad.GetArgValue("Type", "").toLowerCase();

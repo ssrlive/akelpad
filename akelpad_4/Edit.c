@@ -9576,9 +9576,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         if (wCommand != wLastReplaceButtonID)
         {
           SendMessage(hDlg, DM_SETDEFID, wCommand, 0);
-          SetDefButtonStyle(hWndFindNextButton, (HWND)lParam);
-          SetDefButtonStyle(hWndReplaceButton, (HWND)lParam);
-          SetDefButtonStyle(hWndReplaceAllButton, (HWND)lParam);
+          SetDefButton(hWndFindNextButton, (HWND)lParam);
+          SetDefButton(hWndReplaceButton, (HWND)lParam);
+          SetDefButton(hWndReplaceAllButton, (HWND)lParam);
           wLastReplaceButtonID=wCommand;
         }
 
@@ -10824,7 +10824,7 @@ void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput)
   *b=L'\0';
 }
 
-BOOL SetDefButtonStyle(HWND hWnd, HWND hWndNewDef)
+BOOL SetDefButton(HWND hWnd, HWND hWndNewDef)
 {
   DWORD dwStyle=(DWORD)GetWindowLongPtrWide(hWnd, GWL_STYLE);
 
