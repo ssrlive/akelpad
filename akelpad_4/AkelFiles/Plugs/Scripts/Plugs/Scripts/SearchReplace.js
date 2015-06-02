@@ -1,9 +1,17 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.3
+// Version: 1.4
 // Author: Shengalts Aleksander aka Instructor
 //
 //
 // Description(1033): Search and replace using regular expressions.
+//
+// Arguments:
+// -ShowCountOfChanges=false  -Show count of changes (default is true).
+// -SearchStrings=10          -Maximum count of search strings (default is 10).
+// -DefButtonID=1019          -Default button ID. See IDC_* defines below (default is 1016).
+//
+// Usage:
+// Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
 //
 // Example for "Replace with function" option:
 //   What: \d+
@@ -15,6 +23,14 @@
 //
 // Description(1049): Поиск/замена с использованием регулярных выражений.
 //
+// Аргументы:
+// -ShowCountOfChanges=false  -Выдавать количество замен (по умолчанию true).
+// -SearchStrings=10          -Максимальное число строк поиска (по умолчанию 10).
+// -DefButtonID=1016          -Идентификатор кнопки по умолчанию. См. описание IDC_* ниже (по умолчанию 1016).
+//
+// Применение:
+// Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
+//
 // Пример опции "Заменять на функцию":
 //   Что: \d+
 //   Чем: parseInt($0) + 1;
@@ -25,6 +41,30 @@
 //Arguments
 var bShowCountOfChanges=AkelPad.GetArgValue("ShowCountOfChanges", true);
 var nSearchStrings=AkelPad.GetArgValue("SearchStrings", 10);
+var nDefButtonID=AkelPad.GetArgValue("DefButtonID", 1016 /*IDC_FIND_BUTTON*/);
+
+//Control IDs
+var IDC_FIND              =1001;
+var IDC_REPLACE           =1002;
+var IDC_TEMPLATE          =1003;
+var IDC_REGEXP            =1004;
+var IDC_MATCHCASE         =1005;
+var IDC_MULTILINE         =1006;
+var IDC_ESCAPESEQ         =1007;
+var IDC_FUNCTION          =1008;
+var IDC_GROUP1            =1009;
+var IDC_FORWARD           =1010;
+var IDC_BACKWARD          =1011;
+var IDC_BEGINNING         =1012;
+var IDC_INSEL             =1013;
+var IDC_ALLFILES          =1014;
+var IDC_GROUP2            =1015;
+var IDC_FIND_BUTTON       =1016;
+var IDC_FINDALL_BUTTON    =1017;
+var IDC_REPLACE_BUTTON    =1018;
+var IDC_REPLACEALL_BUTTON =1019;
+var IDC_CANCEL            =1020;
+var IDC_STATIC            =-1;
 
 //Buttons
 var BT_FIND       =1;
@@ -38,27 +78,6 @@ var DN_UP        =0x00000002;
 var DN_BEGINNING =0x00000004;
 var DN_SELECTION =0x00000008;
 var DN_ALLFILES  =0x00000010;
-
-//Control IDs
-var IDC_FIND              =1001;
-var IDC_REPLACE           =1002;
-var IDC_TEMPLATE          =1003;
-var IDC_REGEXP            =1004;
-var IDC_MATCHCASE         =1005;
-var IDC_MULTILINE         =1006;
-var IDC_ESCAPESEQ         =1007;
-var IDC_FUNCTION          =1008;
-var IDC_FORWARD           =1009;
-var IDC_BACKWARD          =1010;
-var IDC_BEGINNING         =1011;
-var IDC_INSEL             =1012;
-var IDC_ALLFILES          =1013;
-var IDC_FIND_BUTTON       =1014;
-var IDC_FINDALL_BUTTON    =1015;
-var IDC_REPLACE_BUTTON    =1016;
-var IDC_REPLACEALL_BUTTON =1017;
-var IDC_CANCEL            =1018;
-var IDC_STATIC            =-1;
 
 //String IDs
 var STRID_LOWJSCRIPT   =0;
@@ -98,7 +117,7 @@ var PUTFIND_MAXSEL  =16384;
 var FINDALL_MAXLINE =200;
 
 //Dialog messages
-var AKDLG_PUTFIND   =1025;  //WM_USER + 1
+var AKDLG_PUTFIND   =1124;  //WM_USER + 100
 
 //RESIZEDIALOG type
 var RDS_SIZE =0x1;  //Resize control
@@ -199,19 +218,30 @@ if (hWndEdit)
       rcRdsMinMax.bottom=ScaleY(200) + sizeNonClient.cy;
 
       //Create dialog
-      hWndDialog=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                           0,                              //dwExStyle
-                           pClassName,                     //lpClassName
-                           0,                              //lpWindowName
-                           0x90CE0000,                     //WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX|WS_THICKFRAME
-                           ScaleX(0),                      //x
-                           ScaleY(0),                      //y
-                           ScaleX(392) + sizeNonClient.cx, //nWidth
-                           ScaleY(200) + sizeNonClient.cy, //nHeight
-                           hMainWnd,                       //hWndParent
-                           0,                              //ID
-                           hInstanceDLL,                   //hInstance
-                           DialogCallback);                //Script function callback. To use it class must be registered by WindowRegisterClass.
+      AkelPad.CreateDialog(0, pClassName, pScriptName, 0x90ce0040 /*DS_SETFONT|WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX|WS_THICKFRAME*/, 0, 0, 392, 200, hMainWnd, DialogCallback, 0x2 /*CDF_PIXELS*/, "|",
+                           0, "STATIC", GetLangString(STRID_WHAT), 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 6, 18, 33, 20, IDC_STATIC, "|",
+                           0, "COMBOBOX", "", 0x50210042 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWN|CBS_AUTOHSCROLL*/, 41, 15, 227, 160, IDC_FIND, "|",
+                           0, "STATIC", GetLangString(STRID_WITH), 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 6, 41, 33, 20, IDC_STATIC, "|",
+                           0, "COMBOBOX", "", 0x50210042 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWN|CBS_AUTOHSCROLL*/, 41, 37, 227, 160, IDC_REPLACE, "|",
+                           0x20000 /*WS_EX_STATICEDGE*/, "BUTTON", ">", 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 270, 15, 12, 43, IDC_TEMPLATE, "|",
+                           0, "BUTTON", GetLangString(STRID_REGEXP), 0x50010003 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX*/, 14, 70, 158, 20, IDC_REGEXP, "|",
+                           0, "BUTTON", GetLangString(STRID_MATCHCASE), 0x50010003 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX*/, 14, 91, 158, 20, IDC_MATCHCASE, "|",
+                           0, "BUTTON", GetLangString(STRID_MULTILINE), 0x50010003 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX*/, 14, 112, 158, 20, IDC_MULTILINE, "|",
+                           0, "BUTTON", GetLangString(STRID_ESCAPESEQ), 0x50010003 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX*/, 14, 133, 158, 20, IDC_ESCAPESEQ, "|",
+                           0, "BUTTON", GetLangString(STRID_FUNCTION), 0x50010003 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX*/, 14, 154, 158, 20, IDC_FUNCTION, "|",
+                           0, "BUTTON", GetLangString(STRID_DIRECTION), 0x50000007 /*WS_VISIBLE|WS_CHILD|BS_GROUPBOX*/, 182, 67, 99, 94, IDC_GROUP1, "|",
+                           0, "BUTTON", GetLangString(STRID_FORWARD), 0x50000009 /*WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON*/, 189, 83, 90, 16, IDC_FORWARD, "|",
+                           0, "BUTTON", GetLangString(STRID_BACKWARD), 0x50000009 /*WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON*/, 189, 101, 90, 16, IDC_BACKWARD, "|",
+                           0, "BUTTON", GetLangString(STRID_BEGINNING), 0x50000009 /*WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON*/, 189, 119, 90, 16, IDC_BEGINNING, "|",
+                           0, "BUTTON", GetLangString(STRID_INSEL), 0x50000009 /*WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON*/, 189, 137, 90, 16, IDC_INSEL, "|",
+                           0, "BUTTON", GetLangString(STRID_ALLFILES), 0x40000009 /*WS_CHILD|BS_AUTORADIOBUTTON*/, 189, 164, 90, 16, IDC_ALLFILES, "|",
+                           0, "BUTTON", "", 0x40000007 /*WS_CHILD|BS_GROUPBOX*/, 182, 153, 99, 31, IDC_GROUP2, "|",
+                           0, "BUTTON", GetLangString(STRID_FINDNEXT), 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 294, 10, 81, 23, IDC_FIND_BUTTON, "|",
+                           0, "BUTTON", GetLangString(STRID_REPLACE), 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 294, 37, 81, 23, IDC_REPLACE_BUTTON, "|",
+                           0, "BUTTON", GetLangString(STRID_REPLACEALL), 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 294, 63, 81, 23, IDC_REPLACEALL_BUTTON, "|",
+                           0, "BUTTON", GetLangString(STRID_FINDALL), 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 294, 89, 81, 23, IDC_FINDALL_BUTTON, "|",
+                           0, "BUTTON", GetLangString(STRID_CANCEL), 0x50010000 /*WS_VISIBLE|WS_CHILD|WS_TABSTOP*/, 294, 115, 81, 23, IDC_CANCEL);
+
       if (hWndDialog)
       {
         //Allow other scripts running
@@ -235,8 +265,40 @@ if (hWndEdit)
 
 function DialogCallback(hWnd, uMsg, wParam, lParam)
 {
-  if (uMsg == 1)  //WM_CREATE
+  if (uMsg == 0x110 /*WM_INITDIALOG*/)
   {
+    hWndDialog=hWnd;
+
+    hWndWhat=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_FIND);
+    hWndWith=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_REPLACE);
+    hWndTemplate=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_TEMPLATE);
+    hWndRegExp=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_REGEXP);
+    hWndCase=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_MATCHCASE);
+    hWndMultiline=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_MULTILINE);
+    hWndEscSequences=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_ESCAPESEQ);
+    hWndReplaceFunction=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_FUNCTION);
+    hWndGroup1=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_GROUP1);
+    hWndDown=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_FORWARD);
+    hWndUp=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_BACKWARD);
+    hWndBeginning=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_BEGINNING);
+    hWndSelection=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_INSEL);
+    hWndAllFiles=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_ALLFILES);
+    hWndGroup2=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_GROUP2);
+    hWndFindButton=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_FIND_BUTTON);
+    hWndReplaceButton=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_REPLACE_BUTTON);
+    hWndReplaceAllButton=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_REPLACEALL_BUTTON);
+    hWndFindAllButton=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_FINDALL_BUTTON);
+    hWndCancel=oSys.Call("user32::GetDlgItem", hWndDialog, IDC_CANCEL);
+
+    if (nDefButtonID)
+    {
+      var hWndDef=oSys.Call("user32::GetDlgItem", hWndDialog, nDefButtonID);
+      var dwStyle=oSys.Call("user32::GetWindowLong" + _TCHAR, hWndDef, -16 /*GWL_STYLE*/);
+
+      AkelPad.SendMessage(hWndDialog, 1025 /*DM_SETDEFID*/, nDefButtonID, 0);
+      AkelPad.SendMessage(hWndDef, 0xF4 /*BM_SETSTYLE*/, dwStyle|0x1 /*BS_DEFPUSHBUTTON*/, true);
+    }
+
     lpTemplates=[[GetLangString(STRID_TEMPLATE1), "^[ \\t]*$\\n*", "", "rm"],
                  [GetLangString(STRID_TEMPLATE2), "(^[ \\t]+)|([ \\t]+$)", "", "rm"],
                  [GetLangString(STRID_TEMPLATE3), "[^\\n]", " ", "r"]];
@@ -299,469 +361,28 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       oSet.End();
     }
 
-    hGuiFont=oSys.Call("gdi32::GetStockObject", 17 /*DEFAULT_GUI_FONT*/);
-
-    //Dialog caption
-    oSys.Call("user32::SetWindowText" + _TCHAR, hWnd, pScriptName);
-
-    ////Static window What
-
-    //Create window
-    hWndWhatLabel=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                         0,            //dwExStyle
-                         "STATIC",     //lpClassName
-                         0,            //lpWindowName
-                         0x50000000,   //WS_VISIBLE|WS_CHILD
-                         ScaleX(6),    //x
-                         ScaleY(18),   //y
-                         ScaleX(33),   //nWidth
-                         ScaleY(20),   //nHeight
-                         hWnd,         //hWndParent
-                         IDC_STATIC,   //ID
-                         hInstanceDLL, //hInstance
-                         0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndWhatLabel, hGuiFont, GetLangString(STRID_WHAT));
-
-
-    ////Edit window What
-
-    //Create window
-    hWndWhat=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                       0,            //dwExStyle
-                       "COMBOBOX",   //lpClassName
-                       0,            //lpWindowName
-                       0x50210042,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWN|CBS_AUTOHSCROLL
-                       ScaleX(41),   //x
-                       ScaleY(15),   //y
-                       ScaleX(227),  //nWidth
-                       ScaleY(160),  //nHeight
-                       hWnd,         //hWndParent
-                       IDC_FIND,     //ID
-                       hInstanceDLL, //hInstance
-                       0);           //lpParam
-    //Fill combobox
+    //Fill "What" combobox
     for (i=0; i < nSearchStrings && typeof lpFindStrings[i] != "undefined"; ++i)
     {
-      oSys.Call("user32::SendMessage" + _TCHAR, hWndWhat, 0x143 /*CB_ADDSTRING*/, 0, lpFindStrings[i]);
+      AkelPad.SendMessage(hWndWhat, 0x143 /*CB_ADDSTRING*/, 0, lpFindStrings[i]);
     }
+    AkelPad.SendMessage(hWnd, AKDLG_PUTFIND, true, 0);
 
-    //Set font and text
-    oSys.Call("user32::PostMessage" + _TCHAR, hWnd, AKDLG_PUTFIND, true, 0);
-
-
-    ////Static window With
-
-    //Create window
-    hWndWithLabel=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                         0,            //dwExStyle
-                         "STATIC",     //lpClassName
-                         0,            //lpWindowName
-                         0x50000000,   //WS_VISIBLE|WS_CHILD
-                         ScaleX(6),    //x
-                         ScaleY(41),   //y
-                         ScaleX(33),   //nWidth
-                         ScaleY(20),   //nHeight
-                         hWnd,         //hWndParent
-                         IDC_STATIC,   //ID
-                         hInstanceDLL, //hInstance
-                         0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndWithLabel, hGuiFont, GetLangString(STRID_WITH));
-
-
-    ////Edit window With
-
-    //Create window
-    hWndWith=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                       0,            //dwExStyle
-                       "COMBOBOX",   //lpClassName
-                       0,            //lpWindowName
-                       0x50210042,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWN|CBS_AUTOHSCROLL
-                       ScaleX(41),   //x
-                       ScaleY(37),   //y
-                       ScaleX(227),  //nWidth
-                       ScaleY(160),  //nHeight
-                       hWnd,         //hWndParent
-                       IDC_REPLACE,  //ID
-                       hInstanceDLL, //hInstance
-                       0);           //lpParam
-    //Fill combobox
+    //Fill "With" combobox
     for (i=0; i < nSearchStrings && typeof lpReplaceStrings[i] != "undefined"; ++i)
     {
-      oSys.Call("user32::SendMessage" + _TCHAR, hWndWith, 0x143 /*CB_ADDSTRING*/, 0, lpReplaceStrings[i]);
+      AkelPad.SendMessage(hWndWith, 0x143 /*CB_ADDSTRING*/, 0, lpReplaceStrings[i]);
     }
-
-    //Set font and text
-    SetWindowFontAndText(hWndWith, hGuiFont, "");
     AkelPad.SendMessage(hWndWith, 0x14E /*CB_SETCURSEL*/, 0, 0);
-
-
-    ////Button window Templates
-
-    //Create window
-    hWndTemplate=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                           0x20000,      //WS_EX_STATICEDGE
-                           "BUTTON",     //lpClassName
-                           0,            //lpWindowName
-                           0x50010000,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP
-                           ScaleX(270),  //x
-                           ScaleY(15),   //y
-                           ScaleX(12),   //nWidth
-                           ScaleY(43),   //nHeight
-                           hWnd,         //hWndParent
-                           IDC_TEMPLATE, //ID
-                           hInstanceDLL, //hInstance
-                           0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndTemplate, hGuiFont, ">");
-
-
-    ////Checkbox RegExp
-
-    //Create window
-    hWndRegExp=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                         0,             //dwExStyle
-                         "BUTTON",      //lpClassName
-                         0,             //lpWindowName
-                         0x50010003,    //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX
-                         ScaleX(14),    //x
-                         ScaleY(70),    //y
-                         ScaleX(158),   //nWidth
-                         ScaleY(20),    //nHeight
-                         hWnd,          //hWndParent
-                         IDC_REGEXP,    //ID
-                         hInstanceDLL,  //hInstance
-                         0);            //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndRegExp, hGuiFont, GetLangString(STRID_REGEXP));
-
-
-    ////Checkbox Sensitive
-
-    //Create window
-    hWndCase=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                       0,             //dwExStyle
-                       "BUTTON",      //lpClassName
-                       0,             //lpWindowName
-                       0x50010003,    //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX
-                       ScaleX(14),    //x
-                       ScaleY(91),    //y
-                       ScaleX(158),   //nWidth
-                       ScaleY(20),    //nHeight
-                       hWnd,          //hWndParent
-                       IDC_MATCHCASE, //ID
-                       hInstanceDLL,  //hInstance
-                       0);            //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndCase, hGuiFont, GetLangString(STRID_MATCHCASE));
-
-
-    ////Checkbox Multiline
-
-    //Create window
-    hWndMultiline=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                            0,             //dwExStyle
-                            "BUTTON",      //lpClassName
-                            0,             //lpWindowName
-                            0x50010003,    //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX
-                            ScaleX(14),    //x
-                            ScaleY(112),   //y
-                            ScaleX(158),   //nWidth
-                            ScaleY(20),    //nHeight
-                            hWnd,          //hWndParent
-                            IDC_MULTILINE, //ID
-                            hInstanceDLL,  //hInstance
-                            0);            //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndMultiline, hGuiFont, GetLangString(STRID_MULTILINE));
-
-
-    ////Checkbox Esc-sequences
-
-    //Create window
-    hWndEscSequences=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                               0,             //dwExStyle
-                               "BUTTON",      //lpClassName
-                               0,             //lpWindowName
-                               0x50010003,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX
-                               ScaleX(14),   //x
-                               ScaleY(133),  //y
-                               ScaleX(158),  //nWidth
-                               ScaleY(20),   //nHeight
-                               hWnd,          //hWndParent
-                               IDC_ESCAPESEQ, //ID
-                               hInstanceDLL,  //hInstance
-                               0);            //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndEscSequences, hGuiFont, GetLangString(STRID_ESCAPESEQ));
-
-
-    ////Checkbox Replace with function
-
-    //Create window
-    hWndReplaceFunction=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                                  0,            //dwExStyle
-                                  "BUTTON",     //lpClassName
-                                  0,            //lpWindowName
-                                  0x50010003,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_AUTOCHECKBOX
-                                  ScaleX(14),   //x
-                                  ScaleY(154),  //y
-                                  ScaleX(158),  //nWidth
-                                  ScaleY(20),   //nHeight
-                                  hWnd,         //hWndParent
-                                  IDC_FUNCTION, //ID
-                                  hInstanceDLL, //hInstance
-                                  0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndReplaceFunction, hGuiFont, GetLangString(STRID_FUNCTION));
-
-
-    ////GroupBox 1
-
-    //Create window
-    hWndGroup1=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                         0,            //dwExStyle
-                         "BUTTON",     //lpClassName
-                         0,            //lpWindowName
-                         0x50000007,   //WS_VISIBLE|WS_CHILD|BS_GROUPBOX
-                         ScaleX(182),  //x
-                         ScaleY(67),   //y
-                         ScaleX(99),   //nWidth
-                         ScaleY(94),   //nHeight
-                         hWnd,         //hWndParent
-                         IDC_STATIC,   //ID
-                         hInstanceDLL, //hInstance
-                         0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndGroup1, hGuiFont, GetLangString(STRID_DIRECTION));
-
-
-    ////Radiobutton Down
-
-    //Create window
-    hWndDown=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                       0,            //dwExStyle
-                       "BUTTON",     //lpClassName
-                       0,            //lpWindowName
-                       0x50000009,   //WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON
-                       ScaleX(189),  //x
-                       ScaleY(83),   //y
-                       ScaleX(90),   //nWidth
-                       ScaleY(16),   //nHeight
-                       hWnd,         //hWndParent
-                       IDC_FORWARD,  //ID
-                       hInstanceDLL, //hInstance
-                       0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndDown, hGuiFont, GetLangString(STRID_FORWARD));
-
-
-    ////Radiobutton Up
-
-    //Create window
-    hWndUp=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                     0,            //dwExStyle
-                     "BUTTON",     //lpClassName
-                     0,            //lpWindowName
-                     0x50000009,   //WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON
-                     ScaleX(189),  //x
-                     ScaleY(101),  //y
-                     ScaleX(90),   //nWidth
-                     ScaleY(16),   //nHeight
-                     hWnd,         //hWndParent
-                     IDC_BACKWARD, //ID
-                     hInstanceDLL, //hInstance
-                     0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndUp, hGuiFont, GetLangString(STRID_BACKWARD));
-
-
-    ////Radiobutton Beginning
-
-    //Create window
-    hWndBeginning=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                            0,             //dwExStyle
-                            "BUTTON",      //lpClassName
-                            0,             //lpWindowName
-                            0x50000009,    //WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON
-                            ScaleX(189),   //x
-                            ScaleY(119),   //y
-                            ScaleX(90),    //nWidth
-                            ScaleY(16),    //nHeight
-                            hWnd,          //hWndParent
-                            IDC_BEGINNING, //ID
-                            hInstanceDLL,  //hInstance
-                            0);            //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndBeginning, hGuiFont, GetLangString(STRID_BEGINNING));
-
-
-    ////Radiobutton Selection
-
-    //Create window
-    hWndSelection=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                            0,            //dwExStyle
-                            "BUTTON",     //lpClassName
-                            0,            //lpWindowName
-                            0x50000009,   //WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON
-                            ScaleX(189),  //x
-                            ScaleY(137),  //y
-                            ScaleX(90),   //nWidth
-                            ScaleY(16),   //nHeight
-                            hWnd,         //hWndParent
-                            IDC_INSEL,    //ID
-                            hInstanceDLL, //hInstance
-                            0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndSelection, hGuiFont, GetLangString(STRID_INSEL));
-
 
     if (AkelPad.IsMDI())
     {
-      ////Radiobutton AllFiles
-
-      //Create window
-      hWndAllFiles=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                             0,            //dwExStyle
-                             "BUTTON",     //lpClassName
-                             0,            //lpWindowName
-                             0x50000009,   //WS_VISIBLE|WS_CHILD|BS_AUTORADIOBUTTON
-                             ScaleX(189),  //x
-                             ScaleY(164),  //y
-                             ScaleX(90),   //nWidth
-                             ScaleY(16),   //nHeight
-                             hWnd,         //hWndParent
-                             IDC_ALLFILES, //ID
-                             hInstanceDLL, //hInstance
-                             0);           //lpParam
-      //Set font and text
-      SetWindowFontAndText(hWndAllFiles, hGuiFont, GetLangString(STRID_ALLFILES));
-
-
-      ////GroupBox 2
-
-      //Create window
-      hWndGroup2=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                           0,            //dwExStyle
-                           "BUTTON",     //lpClassName
-                           0,            //lpWindowName
-                           0x50000007,   //WS_VISIBLE|WS_CHILD|BS_GROUPBOX
-                           ScaleX(182),  //x
-                           ScaleY(153),  //y
-                           ScaleX(99),   //nWidth
-                           ScaleY(31),   //nHeight
-                           hWnd,         //hWndParent
-                           IDC_STATIC,   //ID
-                           hInstanceDLL, //hInstance
-                           0);           //lpParam
-      //Set font and text
-      SetWindowFontAndText(hWndGroup2, hGuiFont, "");
+      oSys.Call("user32::ShowWindow", hWndAllFiles, 5 /*SW_SHOW*/);
+      oSys.Call("user32::ShowWindow", hWndGroup2, 5 /*SW_SHOW*/);
     }
-
-
-    ////Button window FindNext
-
-    //Create window
-    hWndFindButton=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                           0,               //dwExStyle
-                           "BUTTON",        //lpClassName
-                           0,               //lpWindowName
-                           0x50010001,      //WS_VISIBLE|WS_CHILD|WS_TABSTOP|BS_DEFPUSHBUTTON
-                           ScaleX(294),     //x
-                           ScaleY(10),      //y
-                           ScaleX(81),      //nWidth
-                           ScaleY(23),      //nHeight
-                           hWnd,            //hWndParent
-                           IDC_FIND_BUTTON, //ID
-                           hInstanceDLL,    //hInstance
-                           0);              //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndFindButton, hGuiFont, GetLangString(STRID_FINDNEXT));
-
-
-    ////Button window Replace
-
-    //Create window
-    hWndReplaceButton=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                          0,                  //dwExStyle
-                          "BUTTON",           //lpClassName
-                          0,                  //lpWindowName
-                          0x50010000,         //WS_VISIBLE|WS_CHILD|WS_TABSTOP
-                          ScaleX(294),        //x
-                          ScaleY(37),         //y
-                          ScaleX(81),         //nWidth
-                          ScaleY(23),         //nHeight
-                          hWnd,               //hWndParent
-                          IDC_REPLACE_BUTTON, //ID
-                          hInstanceDLL,       //hInstance
-                          0);                 //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndReplaceButton, hGuiFont, GetLangString(STRID_REPLACE));
-
-
-    ////Button window ReplaceAll
-
-    //Create window
-    hWndReplaceAllButton=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                             0,                     //dwExStyle
-                             "BUTTON",              //lpClassName
-                             0,                     //lpWindowName
-                             0x50010000,            //WS_VISIBLE|WS_CHILD|WS_TABSTOP
-                             ScaleX(294),           //x
-                             ScaleY(63),            //y
-                             ScaleX(81),            //nWidth
-                             ScaleY(23),            //nHeight
-                             hWnd,                  //hWndParent
-                             IDC_REPLACEALL_BUTTON, //ID
-                             hInstanceDLL,          //hInstance
-                             0);                    //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndReplaceAllButton, hGuiFont, GetLangString(STRID_REPLACEALL));
-
-
-    ////Button window FindAll
 
     //Check that Log.dll exists
     bLogPluginExists=IsFileExist(AkelPad.GetAkelDir(4 /*ADTYPE_PLUGS*/) + "\\Log.dll");
-
-    //Create window
-    hWndFindAllButton=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                           0,                  //dwExStyle
-                           "BUTTON",           //lpClassName
-                           0,                  //lpWindowName
-                           0x50010000,         //WS_VISIBLE|WS_CHILD|WS_TABSTOP
-                           ScaleX(294),        //x
-                           ScaleY(89),         //y
-                           ScaleX(81),         //nWidth
-                           ScaleY(23),         //nHeight
-                           hWnd,               //hWndParent
-                           IDC_FINDALL_BUTTON, //ID
-                           hInstanceDLL,       //hInstance
-                           0);                 //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndFindAllButton, hGuiFont, GetLangString(STRID_FINDALL));
-
-
-    ////Button window Cancel
-
-    //Create window
-    hWndCancel=oSys.Call("user32::CreateWindowEx" + _TCHAR,
-                         0,            //dwExStyle
-                         "BUTTON",     //lpClassName
-                         0,            //lpWindowName
-                         0x50010000,   //WS_VISIBLE|WS_CHILD|WS_TABSTOP
-                         ScaleX(294),  //x
-                         ScaleY(115),  //y
-                         ScaleX(81),   //nWidth
-                         ScaleY(23),   //nHeight
-                         hWnd,         //hWndParent
-                         IDC_CANCEL,   //ID
-                         hInstanceDLL, //hInstance
-                         0);           //lpParam
-    //Set font and text
-    SetWindowFontAndText(hWndCancel, hGuiFont, GetLangString(STRID_CANCEL));
-
 
     //Checks
     if (ScriptEngineMajorVersion() <= 5 && ScriptEngineMinorVersion() < 5)
@@ -788,11 +409,15 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       else
         nDirection=DN_DOWN;
     }
-    else if (nDirection == DN_BEGINNING) AkelPad.SendMessage(hWndBeginning, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
-    else if (nDirection == DN_SELECTION) AkelPad.SendMessage(hWndSelection, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
+    else if (nDirection == DN_BEGINNING)
+      AkelPad.SendMessage(hWndBeginning, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
+    else if (nDirection == DN_SELECTION)
+      AkelPad.SendMessage(hWndSelection, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
 
-    if (nDirection == DN_DOWN) AkelPad.SendMessage(hWndDown, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
-    else if (nDirection == DN_UP) AkelPad.SendMessage(hWndUp, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
+    if (nDirection == DN_DOWN)
+      AkelPad.SendMessage(hWndDown, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
+    else if (nDirection == DN_UP)
+      AkelPad.SendMessage(hWndUp, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
 
     //Set RESIZEDIALOG
     rds=[[hWndWhat,             RDS_SIZE|RDS_X],
@@ -820,7 +445,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     CenterWindow(hMainWnd, hWnd);
 
     //Update buttons
-    oSys.Call("user32::PostMessage" + _TCHAR, hWnd, 273 /*WM_COMMAND*/, IDC_FIND, 0);
+    AkelPad.SendMessage(hWnd, 273 /*WM_COMMAND*/, IDC_FIND, 0);
   }
   else if (uMsg == AKDLG_PUTFIND)
   {
@@ -833,7 +458,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
 
       if (nSelStart != nSelEnd && nSelEnd - nSelStart < PUTFIND_MAXSEL && !(nDirection == DN_SELECTION) && !AkelPad.SendMessage(hWndEditCur, 3127 /*AEM_GETCOLUMNSEL*/, 0, 0))
       {
-        SetWindowFontAndText(hWndWhat, hGuiFont, AkelPad.GetSelText());
+        oSys.Call("user32::SetWindowText" + _TCHAR, hWndWhat, AkelPad.GetSelText());
         AkelPad.SendMessage(hWndWhat, 0x142 /*CB_SETEDITSEL*/, 0, MAKELONG(0, -1));
         oSys.Call("user32::SetWindowLong" + _TCHAR, 0 /*DWL_MSGRESULT*/, true);
         return true;
@@ -841,10 +466,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     }
     //If called from WM_INITDIALOG
     if (wParam)
-    {
-      SetWindowFontAndText(hWndWhat, hGuiFont, "");
       AkelPad.SendMessage(hWndWhat, 0x14E /*CB_SETCURSEL*/, 0, 0);
-    }
     return false;
   }
   else if (uMsg == 7)  //WM_SETFOCUS
@@ -875,15 +497,6 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
         else
           nDirection=DN_DOWN;
 
-        if (oSys.Call("user32::IsWindowEnabled", hWndFindButton))
-          oSys.Call("user32::PostMessage" + _TCHAR, hWndDialog, 273 /*WM_COMMAND*/, IDC_FIND_BUTTON, 0);
-      }
-    }
-    else if (wParam == 13)  //VK_RETURN
-    {
-      if (!hWndOutput)
-      {
-        //Return key pushes OK button
         if (oSys.Call("user32::IsWindowEnabled", hWndFindButton))
           oSys.Call("user32::PostMessage" + _TCHAR, hWndDialog, 273 /*WM_COMMAND*/, IDC_FIND_BUTTON, 0);
       }
@@ -1819,12 +1432,6 @@ function DeleteFromArray(lpArray, nPos, nCount)
     lpArray[i]=lpArray[i + nCount];
   }
   lpArray.length-=nCount;
-}
-
-function SetWindowFontAndText(hWnd, hFont, pText)
-{
-  AkelPad.SendMessage(hWnd, 48 /*WM_SETFONT*/, hFont, 1);
-  oSys.Call("user32::SetWindowText" + _TCHAR, hWnd, pText);
 }
 
 function SaveLineScroll(hWnd)
