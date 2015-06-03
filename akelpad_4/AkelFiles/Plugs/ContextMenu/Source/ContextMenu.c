@@ -650,7 +650,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 1, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 4, 0);
   pv->pPluginName="ContextMenu";
 }
 
@@ -1363,8 +1363,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     OldEditDlgProc=(WNDPROC)GetWindowLongPtrWide(hWndText, GWLP_WNDPROC);
     SetWindowLongPtrWide(hWndText, GWLP_WNDPROC, (UINT_PTR)NewEditDlgProc);
 
-    if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
+    SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
 
     nMenuType=TYPE_UNKNOWN;
     SendMessage(hWndType, CB_SETCURSEL, nExtMenuIndex, 0);
@@ -1618,8 +1617,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwSaveFlags=0;
       }
 
-      if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
+      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
       DestroyWindow(hWndMainDlg);
       hWndMainDlg=NULL;
     }

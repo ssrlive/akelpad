@@ -499,7 +499,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 4, 0);
   pv->pPluginName="Sessions";
 }
 
@@ -807,10 +807,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowLongPtrWide(hWndItemsList, GWLP_WNDPROC, (UINT_PTR)NewTreeViewProc);
 
     if (nDialogType == DLGT_MODELESS)
-    {
-      if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-        SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
-    }
+      SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_ADD);
   }
   else if (uMsg == AKDLL_SETUP)
   {
@@ -1787,9 +1784,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EndDialog(hWndMainDlg, 0);
         else
         {
-          if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 3, 0)) == 1)
-            SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
-
+          SendMessage(hMainWnd, AKD_SETMODELESS, (WPARAM)hDlg, MLA_DELETE);
           DestroyWindow(hWndMainDlg);
         }
         hWndMainDlg=NULL;
