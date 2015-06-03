@@ -162,7 +162,7 @@ var hWndReplaceButton;
 var hWndReplaceAllButton;
 var hWndCancel;
 var hWndFocus;
-var ptScale=[];
+var rcControl=[];
 var rcRdsMinMax=[];
 var rcRdsCurrent=[];
 var rds=[];
@@ -203,20 +203,6 @@ if (hWndEdit)
   {
     if (lpBuffer=AkelPad.MemAlloc(256 * _TSIZE))
     {
-      var sizeNonClient=[];
-
-      sizeNonClient.cx=oSys.Call("user32::GetSystemMetrics", 32 /*SM_CXSIZEFRAME*/) * 2;
-      sizeNonClient.cy=oSys.Call("user32::GetSystemMetrics", 33 /*SM_CYSIZEFRAME*/) * 2 + oSys.Call("user32::GetSystemMetrics", 4 /*SM_CYCAPTION*/);
-
-      //Get scale factor for ScaleX and ScaleY
-      ScaleInit(0, hMainWnd);
-
-      //Min/max dialog sizes: left, top - minimum; right, bottom - maximum. Each member is valid if not equal to zero.
-      rcRdsMinMax.left=ScaleX(392) + sizeNonClient.cx;
-      rcRdsMinMax.top=ScaleY(200) + sizeNonClient.cy;
-      rcRdsMinMax.right=0;
-      rcRdsMinMax.bottom=ScaleY(200) + sizeNonClient.cy;
-
       //Create dialog
       AkelPad.CreateDialog(0, pClassName, pScriptName, 0x90ce0040 /*DS_SETFONT|WS_VISIBLE|WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX|WS_THICKFRAME*/, 0, 0, 392, 200, hMainWnd, DialogCallback, 0x2 /*CDF_PIXELS*/, "|",
                            0, "STATIC", GetLangString(STRID_WHAT), 0x50000000 /*WS_VISIBLE|WS_CHILD*/, 6, 18, 33, 20, IDC_STATIC, "|",
@@ -419,6 +405,13 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     else if (nDirection == DN_UP)
       AkelPad.SendMessage(hWndUp, 241 /*BM_SETCHECK*/, 1 /*BST_CHECKED*/, 0);
 
+    //Min/max dialog sizes: left, top - minimum; right, bottom - maximum. Each member is valid if not equal to zero.
+    GetWindowSize(hWnd, 0, rcControl);
+    rcRdsMinMax.left=rcControl.right;
+    rcRdsMinMax.top=rcControl.bottom;
+    rcRdsMinMax.right=0;
+    rcRdsMinMax.bottom=rcControl.bottom;
+
     //Set RESIZEDIALOG
     rds=[[hWndWhat,             RDS_SIZE|RDS_X],
          [hWndWith,             RDS_SIZE|RDS_X],
@@ -512,7 +505,6 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       {
         var hMenu;
         var nCmd;
-        var rcControl=[];
         var lpCurTemplate=[0, 0, 0, 0];
         var pNewTemplateName;
         var bEnable;
@@ -1674,44 +1666,6 @@ function max(a, b)
 function min(a, b)
 {
   return a <= b?a:b;
-}
-
-function ScaleInit(hDC, hWnd)
-{
-  if (!ptScale.x && !ptScale.y)
-  {
-    var hNewDC=hDC;
-
-    if (!hDC) hNewDC=oSys.Call("user32::GetDC", hWnd);
-
-    if (hNewDC)
-    {
-      ptScale.x=oSys.Call("gdi32::GetDeviceCaps", hNewDC, 88 /*LOGPIXELSX*/);
-      ptScale.y=oSys.Call("gdi32::GetDeviceCaps", hNewDC, 90 /*LOGPIXELSY*/);
-
-      //Align to 16 pixel
-      if (ptScale.x % 16) ptScale.x+=16 - ptScale.x % 16;
-      if (ptScale.y % 16) ptScale.y+=16 - ptScale.y % 16;
-    }
-    else return false;
-
-    if (!hDC) oSys.Call("user32::ReleaseDC", hWnd, hNewDC);
-  }
-  return true;
-}
-
-function ScaleX(x)
-{
-  if (ptScale.x)
-    return oSys.Call("kernel32::MulDiv", x, ptScale.x, 96);
-  return x;
-}
-
-function ScaleY(y)
-{
-  if (ptScale.y)
-    return oSys.Call("kernel32::MulDiv", y, ptScale.y, 96);
-  return y;
 }
 
 function GetLangString(nStringID)
