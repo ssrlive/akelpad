@@ -1045,7 +1045,7 @@ void NotifyInitDialogEnd(int nType, HWND hDlg, LPARAM lParam);
 
 int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType, HICON hIcon, BUTTONMESSAGEBOX *bmb);
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-BOOL ScaleInit(HDC hDC, HWND hWnd);
+BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *ptUnitCur, POINT *ptUnit96);
 int ScaleX(int x);
 int ScaleY(int y);
 

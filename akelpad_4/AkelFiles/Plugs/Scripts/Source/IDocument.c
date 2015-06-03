@@ -1913,7 +1913,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
   unsigned char *lpData;
   DWORD dwElementSum;
   DWORD dwOptional;
-  POINT ptUnit={0};
+  POINT ptUnitCur={0};
   POINT ptUnit96={0};
   HRESULT hr=NOERROR;
 
@@ -1964,13 +1964,8 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
   if ((dwStyle & DS_SETFONT) || (dwFlags & CDF_PIXELS))
   {
     LOGFONTW lfGui;
-    TEXTMETRICA tmGui;
     HDC hDC=NULL;
     HFONT hGuiFont;
-    HFONT hFontOld=NULL;
-    SIZE sizeWidth;
-    int nStrLen=52;
-    const char *pStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     //Default GUI font
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -1990,21 +1985,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
         if (!hDC)
           hDC=GetDC(hMainWnd);
         if (hDC)
-        {
-          //Current dialog base unit
-          hFontOld=(HFONT)SelectObject(hDC, hGuiFont);
-          if (GetTextMetricsA(hDC, &tmGui))
-          {
-            GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
-            ptUnit.x=(sizeWidth.cx / 26 + 1) / 2;
-            ptUnit.y=tmGui.tmHeight;
-          }
-          if (hFontOld) SelectObject(hDC, hFontOld);
-
-          //Normal unit (without screen scale)
-          ptUnit96.x=MulDiv(ptUnit.x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
-          ptUnit96.y=MulDiv(ptUnit.y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
-        }
+          GetDialogUnits(hDC, hGuiFont, &ptUnitCur, &ptUnit96);
       }
       if (dwStyle & DS_SETFONT)
       {
@@ -2069,28 +2050,16 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
     lpdt->cDlgItems=0;
     lpdt->x=(short)x;
     if (dwFlags & CDF_PIXELS)
-    {
-      lpdt->x=(short)MulDiv(lpdt->x, ptUnit.x, ptUnit96.x);
-      lpdt->x=(short)MulDiv(lpdt->x, 4, ptUnit.x);
-    }
+      lpdt->x=(short)PixelToUnitX(lpdt->x, &ptUnitCur, &ptUnit96);
     lpdt->y=(short)y;
     if (dwFlags & CDF_PIXELS)
-    {
-      lpdt->y=(short)MulDiv(lpdt->y, ptUnit.y, ptUnit96.y);
-      lpdt->y=(short)MulDiv(lpdt->y, 8, ptUnit.y);
-    }
+      lpdt->y=(short)PixelToUnitY(lpdt->y, &ptUnitCur, &ptUnit96);
     lpdt->cx=(short)nWidth;
     if (dwFlags & CDF_PIXELS)
-    {
-      lpdt->cx=(short)MulDiv(lpdt->cx, ptUnit.x, ptUnit96.x);
-      lpdt->cx=(short)MulDiv(lpdt->cx, 4, ptUnit.x);
-    }
+      lpdt->cx=(short)PixelToUnitX(lpdt->cx, &ptUnitCur, &ptUnit96);
     lpdt->cy=(short)nHeight;
     if (dwFlags & CDF_PIXELS)
-    {
-      lpdt->cy=(short)MulDiv(lpdt->cy, ptUnit.y, ptUnit96.y);
-      lpdt->cy=(short)MulDiv(lpdt->cy, 8, ptUnit.y);
-    }
+      lpdt->cy=(short)PixelToUnitY(lpdt->cy, &ptUnitCur, &ptUnit96);
   }
 
   while (dwElement < dwElementSum)
@@ -2162,10 +2131,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->x=(short)GetVariantInt(pvtParameter, NULL);
       if (dwFlags & CDF_PIXELS)
-      {
-        lpdit->x=(short)MulDiv(lpdit->x, ptUnit.x, ptUnit96.x);
-        lpdit->x=(short)MulDiv(lpdit->x, 4, ptUnit.x);
-      }
+        lpdit->x=(short)PixelToUnitX(lpdit->x, &ptUnitCur, &ptUnit96);
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2175,10 +2141,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->y=(short)GetVariantInt(pvtParameter, NULL);
       if (dwFlags & CDF_PIXELS)
-      {
-        lpdit->y=(short)MulDiv(lpdit->y, ptUnit.y, ptUnit96.y);
-        lpdit->y=(short)MulDiv(lpdit->y, 8, ptUnit.y);
-      }
+        lpdit->y=(short)PixelToUnitY(lpdit->y, &ptUnitCur, &ptUnit96);
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2188,10 +2151,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cx=(short)GetVariantInt(pvtParameter, NULL);
       if (dwFlags & CDF_PIXELS)
-      {
-        lpdit->cx=(short)MulDiv(lpdit->cx, ptUnit.x, ptUnit96.x);
-        lpdit->cx=(short)MulDiv(lpdit->cx, 4, ptUnit.x);
-      }
+        lpdit->cx=(short)PixelToUnitX(lpdit->cx, &ptUnitCur, &ptUnit96);
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2201,10 +2161,7 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
       pvtParameter=(VARIANT *)(lpData + dwElement * sizeof(VARIANT));
       lpdit->cy=(short)GetVariantInt(pvtParameter, NULL);
       if (dwFlags & CDF_PIXELS)
-      {
-        lpdit->cy=(short)MulDiv(lpdit->cy, ptUnit.y, ptUnit96.y);
-        lpdit->cy=(short)MulDiv(lpdit->cy, 8, ptUnit.y);
-      }
+        lpdit->cy=(short)PixelToUnitY(lpdit->cy, &ptUnitCur, &ptUnit96);
     }
     if (++dwElement >= dwElementSum) return DISP_E_BADPARAMCOUNT;
 
@@ -2249,6 +2206,65 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
   }
   if (lpdwSize) *lpdwSize=(DWORD)((BYTE *)lpw - (BYTE *)lpdt);
   return hr;
+}
+
+BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *ptUnitCur, POINT *ptUnit96)
+{
+  TEXTMETRICA tmGui;
+  HFONT hFontOld;
+  SIZE sizeWidth;
+  const char *pStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  int nStrLen=52;
+  BOOL bFreeDC=FALSE;
+  BOOL bResult=FALSE;
+
+  if (!hDC)
+  {
+    hDC=GetDC(hMainWnd);
+    bFreeDC=TRUE;
+  }
+  if (!hFont)
+    hFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+  if (hDC)
+  {
+    hFontOld=(HFONT)SelectObject(hDC, hFont);
+    if (GetTextMetricsA(hDC, &tmGui))
+    {
+      //Current dialog base unit
+      GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
+      ptUnitCur->x=(sizeWidth.cx / 26 + 1) / 2;
+      ptUnitCur->y=tmGui.tmHeight;
+
+      //Normal unit (without screen scale)
+      ptUnit96->x=MulDiv(ptUnitCur->x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
+      ptUnit96->y=MulDiv(ptUnitCur->y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
+
+      bResult=TRUE;
+    }
+    if (hFontOld) SelectObject(hDC, hFontOld);
+    if (bFreeDC) ReleaseDC(hMainWnd, hDC);
+  }
+  return bResult;
+}
+
+int PixelToUnitX(int x, const POINT *ptUnitCur, const POINT *ptUnit96)
+{
+  if (ptUnitCur->x)
+  {
+    x=MulDiv(x, ptUnitCur->x, ptUnit96->x);
+    x=MulDiv(x, 4, ptUnitCur->x);
+  }
+  return x;
+}
+
+int PixelToUnitY(int y, const POINT *ptUnitCur, const POINT *ptUnit96)
+{
+  if (ptUnitCur->y)
+  {
+    y=MulDiv(y, ptUnitCur->y, ptUnit96->y);
+    y=MulDiv(y, 8, ptUnitCur->y);
+  }
+  return y;
 }
 
 LOGFONTW* LogFontAtoW(const LOGFONTA *lfA, LOGFONTW *lfW)
