@@ -9311,7 +9311,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static BOOL bSpecialCheck=FALSE;
   static BOOL bInSelAutoCheck=FALSE;
   HWND hWndFocus=NULL;
-  HWND hWndDirection;
+  HWND hWndDirection=NULL;
   HWND hWndError;
   HWND hWndComboboxEdit;
   BOOL bReplace=FALSE;
