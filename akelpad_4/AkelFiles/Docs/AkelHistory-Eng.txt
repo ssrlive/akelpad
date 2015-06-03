@@ -1,5 +1,5 @@
 
-AkelPad 4.9.4 ()
+AkelPad 4.9.4 (Jun 03, 2015)
 ----------------------------
 Changed: no tab icon sizing if screen scale other than 96 dpi.
 Changed: switching between modeless dialogs with commands 4332 and 4333.
@@ -26,7 +26,7 @@ Fixed: system menu opening in modeless dialogs.
 Fixed: middle mouse button click cause new tab creation when menu is opened.
 
 
-AkelPad 4.9.2 (Jun 05, 2014)
+AkelPad 4.9.2 (Jan 05, 2014)
 ----------------------------
 Changed: massive repainting optimizations to reduce flickering.
 
