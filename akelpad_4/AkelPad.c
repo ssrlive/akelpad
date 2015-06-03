@@ -481,7 +481,8 @@ AEPRINT prn;
 PRINTINFO prninfo={0};
 
 //Zooming factor
-POINT ptScale={0};
+POINT ptUnitCur={0};
+POINT ptUnit96={0};
 
 //Edit state
 AECHARRANGE crCurSel={0};

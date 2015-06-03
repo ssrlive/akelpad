@@ -266,7 +266,8 @@ extern AEPRINT prn;
 extern PRINTINFO prninfo;
 
 //Zooming factor
-extern POINT ptScale;
+extern POINT ptUnitCur;
+extern POINT ptUnit96;
 
 //Edit state
 extern AECHARRANGE crCurSel;
@@ -5909,7 +5910,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     hWndPrinter=GetDlgItem(hDlg, IDC_PSD_PRINTER_BUTTON);
 
     //Get scale factor for ScaleX and ScaleY
-    ScaleInit(NULL, hDlg);
+    GetDialogUnits(NULL, hGuiFont, &ptUnitCur, &ptUnit96);
     nExtend=ScaleY(155);
 
     GetWindowRect(hDlg, &rcDlg);
@@ -6822,7 +6823,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowLongPtrWide(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
     //Get scale factor for ScaleX and ScaleY
-    ScaleInit(NULL, hDlg);
+    GetDialogUnits(NULL, NULL, &ptUnitCur, &ptUnit96);
     rcPreviewWindow.left=ScaleX(10);
     rcPreviewWindow.top=ScaleY(50);
 
@@ -16561,7 +16562,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
 
       //Get scale factor for ScaleX and ScaleY
-      ScaleInit(hDC, NULL);
+      GetDialogUnits(hDC, hGuiFont, &ptUnitCur, &ptUnit96);
       nButtonWidth=max(nButtonWidth, ScaleX(75));
       nButtonHeight=ScaleY(23);
       nButtonEdge=ScaleX(6);
@@ -16703,41 +16704,56 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   return FALSE;
 }
 
-BOOL ScaleInit(HDC hDC, HWND hWnd)
+BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *ptUnitCur, POINT *ptUnit96)
 {
-  if (!ptScale.x && !ptScale.y)
+  TEXTMETRICA tmGui;
+  HFONT hFontOld;
+  SIZE sizeWidth;
+  const char *pStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  int nStrLen=52;
+  BOOL bFreeDC=FALSE;
+  BOOL bResult=FALSE;
+
+  if (!hDC)
   {
-    HDC hNewDC=hDC;
-
-    if (!hDC) hNewDC=GetDC(hWnd);
-
-    if (hNewDC)
-    {
-      ptScale.x=GetDeviceCaps(hNewDC, LOGPIXELSX);
-      ptScale.y=GetDeviceCaps(hNewDC, LOGPIXELSY);
-
-      //Align to 16 pixel
-      if (ptScale.x % 16) ptScale.x+=16 - ptScale.x % 16;
-      if (ptScale.y % 16) ptScale.y+=16 - ptScale.y % 16;
-    }
-    else return FALSE;
-
-    if (!hDC) ReleaseDC(hWnd, hNewDC);
+    hDC=GetDC(hMainWnd);
+    bFreeDC=TRUE;
   }
-  return TRUE;
+  if (!hFont)
+    hFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+  if (hDC)
+  {
+    hFontOld=(HFONT)SelectObject(hDC, hFont);
+    if (GetTextMetricsA(hDC, &tmGui))
+    {
+      //Current dialog base unit
+      GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
+      ptUnitCur->x=(sizeWidth.cx / 26 + 1) / 2;
+      ptUnitCur->y=tmGui.tmHeight;
+
+      //Normal unit (without screen scale)
+      ptUnit96->x=MulDiv(ptUnitCur->x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
+      ptUnit96->y=MulDiv(ptUnitCur->y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
+
+      bResult=TRUE;
+    }
+    if (hFontOld) SelectObject(hDC, hFontOld);
+    if (bFreeDC) ReleaseDC(hMainWnd, hDC);
+  }
+  return bResult;
 }
 
 int ScaleX(int x)
 {
-  if (ptScale.x)
-    return MulDiv(x, ptScale.x, 96);
+  if (ptUnitCur.x)
+    x=MulDiv(x, ptUnitCur.x, ptUnit96.x);
   return x;
 }
 
 int ScaleY(int y)
 {
-  if (ptScale.y)
-    return MulDiv(y, ptScale.y, 96);
+  if (ptUnitCur.y)
+    y=MulDiv(y, ptUnitCur.y, ptUnit96.y);
   return y;
 }
 
