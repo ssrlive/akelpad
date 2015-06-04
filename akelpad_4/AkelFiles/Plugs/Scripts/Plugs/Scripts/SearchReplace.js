@@ -8,7 +8,7 @@
 // Arguments:
 // -ShowCountOfChanges=false  -Show count of changes (default is true).
 // -SearchStrings=10          -Maximum count of search strings (default is 10).
-// -DefButtonID=1019          -Default button ID. See IDC_* defines below (default is 1016).
+// -DefButtonID=1016          -Default button ID. See IDC_* defines below (default is 1016).
 //
 // Usage:
 // Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
