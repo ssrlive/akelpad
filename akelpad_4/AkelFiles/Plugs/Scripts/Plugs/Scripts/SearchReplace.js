@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.4
+// Version: 1.5
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -462,25 +462,27 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       AkelPad.SendMessage(hWndWhat, 0x14E /*CB_SETCURSEL*/, 0, 0);
     return false;
   }
-  else if (uMsg == 7)  //WM_SETFOCUS
+  else if (uMsg == 6 /*WM_ACTIVATE*/)
   {
-    //Remember plugin edit window
-    if (!bMessageBox)
+    if (LOWORD(wParam) != 0 /*WA_INACTIVE*/)
     {
-      if (AkelPad.IsAkelEdit(wParam) == 2 /*ISAEW_PLUGIN*/)
-        hWndPluginEdit=AkelPad.SetEditWnd(wParam);
-      else
-        hWndPluginEdit=0;
-    }
+      hWndFocus=oSys.Call("user32::GetFocus");
 
-    if (hWndOutput)
-      oSys.Call("user32::SetFocus", hWndCancel);
-    else
-      oSys.Call("user32::SetFocus", hWndWhat);
+      //Remember plugin edit window
+      if (!bMessageBox)
+      {
+        if (AkelPad.IsAkelEdit(hWndFocus) == 2 /*ISAEW_PLUGIN*/)
+          hWndPluginEdit=AkelPad.SetEditWnd(hWndFocus);
+        else
+          hWndPluginEdit=0;
+      }
+      if (hWndOutput)
+        oSys.Call("user32::SetFocus", hWndCancel);
+    }
   }
-  else if (uMsg == 256)  //WM_KEYDOWN
+  else if (uMsg == 256 /*WM_KEYDOWN*/)
   {
-    if (wParam == 114) //VK_F3
+    if (wParam == 114 /*VK_F3*/)
     {
       if (!hWndOutput)
       {
@@ -495,7 +497,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       }
     }
   }
-  else if (uMsg == 273)  //WM_COMMAND
+  else if (uMsg == 273 /*WM_COMMAND*/)
   {
     wCommand=LOWORD(wParam);
 
@@ -845,7 +847,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       oSys.Call("user32::PostMessage" + _TCHAR, hWndDialog, 16 /*WM_CLOSE*/, 0, 0);
     }
   }
-  else if (uMsg == 16)  //WM_CLOSE
+  else if (uMsg == 16 /*WM_CLOSE*/)
   {
     //Stop find all operation
     if (nButton == BT_FINDALL)
@@ -899,7 +901,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     //Destroy dialog
     oSys.Call("user32::DestroyWindow", hWnd);
   }
-  else if (uMsg == 2)  //WM_DESTROY
+  else if (uMsg == 2 /*WM_DESTROY*/)
   {
     //Exit message loop
     oSys.Call("user32::PostQuitMessage", 0);
