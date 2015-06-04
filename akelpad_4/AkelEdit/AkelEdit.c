@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.9.4                               *
+ *                      AkelEdit text control v1.9.5                               *
  *                                                                                 *
  * Copyright 2007-2015 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -739,6 +739,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else if (wParam & AEGUP_LAST)
       {
         *lppUndoItem=ae->ptxt->hUndoStack.last;
+        return -1;
+      }
+      else if (wParam & AEGUP_SAVED)
+      {
+        *lppUndoItem=ae->ptxt->lpSavePoint;
         return -1;
       }
       else

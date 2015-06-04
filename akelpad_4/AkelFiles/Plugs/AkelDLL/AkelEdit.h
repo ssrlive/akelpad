@@ -667,6 +667,7 @@
 #define AEGUP_LAST            0x08 //Always return -1.
 #define AEGUP_NOUNDO          0x10 //Return -1 if undo item located in undo.
 #define AEGUP_NOREDO          0x20 //Return -1 if undo item located in redo.
+#define AEGUP_SAVED           0x40 //Always return -1.
 
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
