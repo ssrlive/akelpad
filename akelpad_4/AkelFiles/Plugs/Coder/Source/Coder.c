@@ -4979,19 +4979,15 @@ HWND GetCurEdit()
 
 HWND GetFocusEdit()
 {
-  EDITINFO ei;
   MANUALSET *lpManual;
   HWND hWndFocus=GetFocus();
 
   if (hWndFocus)
   {
-    //Check that focused window is a known edit window
-    if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)hWndFocus, (LPARAM)&ei))
-      return ei.hWndEdit;
     if (lpManual=StackGetManual(&hManualStack, hWndFocus, NULL))
       return lpManual->hWndEdit;
   }
-  return NULL;
+  return GetCurEdit();
 }
 
 void UpdateEdit(HWND hWnd, DWORD dwFlags)
