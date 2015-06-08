@@ -2883,19 +2883,15 @@ HWND GetCurEdit()
 
 HWND GetFocusEdit()
 {
-  EDITINFO ei;
   WINDOWBOARD *lpBoard;
   HWND hWndFocus=GetFocus();
 
   if (hWndFocus)
   {
-    //Check that focused window is a known edit window
-    if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)hWndFocus, (LPARAM)&ei))
-      return ei.hWndEdit;
     if (lpBoard=StackGetBoard(&hWindowStack, hWndFocus, NULL, GB_READ))
       return lpBoard->hWndEdit;
   }
-  return NULL;
+  return GetCurEdit();
 }
 
 void GetBoardColors(HWND hWnd)
