@@ -28,7 +28,6 @@ RECT rcCodeFoldDockRect={0};
 int nCodeFoldDockSide=DKS_RIGHT;
 DOCK *dkCodeFoldDlg=NULL;
 BOOL bCodeFoldDockWaitResize=FALSE;
-BOOL bCodeFoldDialogRectSave=FALSE;
 STACKFOLDWINDOW hFoldWindowsStack={0};
 FOLDWINDOW *lpCurrentFoldWindow=NULL;
 BOOL bFocusResetList=FALSE;
