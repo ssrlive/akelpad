@@ -854,6 +854,18 @@ void DestroyDock(HWND hWndDock, DWORD dwType)
   SendMessage(hWndDock, WM_COMMAND, IDCANCEL, dwType);
 }
 
+void SetEditWindowSettings()
+{
+  HFONT hFontEdit;
+
+  SendMessage(hWndOutputView, EM_SETUNDOLIMIT, 0, 0);
+  SendMessage(hWndOutputView, AEM_SETOPTIONS, AECOOP_OR, AECO_READONLY);
+  if (oe.dwOutputFlags & OUTF_WRAP)
+    SendMessage(hWndOutputView, AEM_SETWORDWRAP, AEWW_WORD, 0);
+  hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+  SendMessage(hWndOutputView, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
+}
+
 void SetCoderAlias()
 {
   if (*oe.wszCoderAlias || dwDllFunction)
@@ -952,6 +964,7 @@ void SetCoderAlias()
 
           dwDllFunction|=CODER_CODEFOLD;
         }
+        SetEditWindowSettings();
       }
     }
   }
@@ -1020,8 +1033,6 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
-    HFONT hFontEdit;
-
     hWndOutputView=GetDlgItem(hDlg, IDC_DOCK_OUTPUTWATCH);
     hWndInputEdit=GetDlgItem(hDlg, IDC_DOCK_EXECINPUT_EDIT);
     hWndInputButton=GetDlgItem(hDlg, IDC_DOCK_INPUT_BUTTON);
@@ -1031,13 +1042,8 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     SetDlgItemTextWide(hDlg, IDC_DOCK_INPUT_BUTTON, GetLangStringW(wLangModule, STRID_INPUT));
     SetWindowTextWide(hWndRunStopButton, GetLangStringW(wLangModule, STRID_RUNDLG));
-    SendMessage(hWndOutputView, EM_SETUNDOLIMIT, 0, 0);
-    SendMessage(hWndOutputView, AEM_SETOPTIONS, AECOOP_OR, AECO_READONLY);
-    if (oe.dwOutputFlags & OUTF_WRAP)
-      SendMessage(hWndOutputView, AEM_SETWORDWRAP, AEWW_WORD, 0);
-    hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
-    SendMessage(hWndOutputView, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
 
+    SetEditWindowSettings();
     EnableWindow(hWndInputEdit, FALSE);
     EnableWindow(hWndInputButton, FALSE);
     if (oe.dwOutputFlags & OUTF_HIDEINPUT)
