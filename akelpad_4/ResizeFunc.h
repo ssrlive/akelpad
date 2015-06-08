@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Resize functions header v1.2                  *
+ *                 Resize functions header v1.3                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -406,6 +406,11 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
                       GetClientPos(hWndControl, hDlg, &lpDRW->rcBeforeClient);
                       if (!xstrcmpiW(wszClassName, L"EDIT"))
                         lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXVSCROLL), lpDRW->rcBeforeClient.left);
+                      else if (!xstrcmpiW(wszClassName, L"STATIC"))
+                      {
+                        if ((GetWindowLongPtrWide(hWndControl, GWL_STYLE) & SS_SUNKEN) || (GetWindowLongPtrWide(hWndControl, GWL_EXSTYLE) & WS_EX_CLIENTEDGE))
+                          lpDRW->rcBeforeClient.right=max(lpDRW->rcBeforeClient.right - GetSystemMetrics(SM_CXEDGE) - 1, lpDRW->rcBeforeClient.left);
+                      }
                     }
                   }
                 }
