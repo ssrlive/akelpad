@@ -89,23 +89,24 @@
 #define STRID_PARSEMSG_UNKNOWNMETHOD          10
 #define STRID_PARSEMSG_METHODALREADYDEFINED   11
 #define STRID_PARSEMSG_NOMETHOD               12
-#define STRID_PARSEMSG_NOOPENSET              13
-#define STRID_PARSEMSG_NOCOMMA                14
-#define STRID_PARSEMSG_NOCLOSEPARENTHESIS     15
-#define STRID_PARSEMSG_NOEOL                  16
-#define STRID_IF_NOCOMMA                      17
-#define STRID_IF_NOCLOSEPARENTHESIS           18
-#define STRID_IF_UNKNOWNOPERATOR              19
-#define STRID_IF_UNKNOWNMETHOD                20
-#define STRID_IF_CALLERROR                    21
-#define STRID_IF_NOFALSE                      22
-#define STRID_IF_FOCUSCHANGED                 23
-#define STRID_IF_WRONGPARAMCOUNT              24
-#define STRID_IF_SCRIPTDENIED                 25
-#define STRID_PLUGIN                          26
-#define STRID_OK                              27
-#define STRID_CANCEL                          28
-#define STRID_DEFAULTMENU                     29
+#define STRID_PARSEMSG_WRONGPARAMCOUNT        13
+#define STRID_PARSEMSG_NOOPENSET              14
+#define STRID_PARSEMSG_NOCOMMA                15
+#define STRID_PARSEMSG_NOCLOSEPARENTHESIS     16
+#define STRID_PARSEMSG_NOEOL                  17
+#define STRID_IF_NOCOMMA                      18
+#define STRID_IF_NOCLOSEPARENTHESIS           19
+#define STRID_IF_UNKNOWNOPERATOR              20
+#define STRID_IF_UNKNOWNMETHOD                21
+#define STRID_IF_CALLERROR                    22
+#define STRID_IF_NOFALSE                      23
+#define STRID_IF_FOCUSCHANGED                 24
+#define STRID_IF_WRONGPARAMCOUNT              25
+#define STRID_IF_SCRIPTDENIED                 26
+#define STRID_PLUGIN                          27
+#define STRID_OK                              28
+#define STRID_CANCEL                          29
+#define STRID_DEFAULTMENU                     30
 
 #define AKDLL_RECREATE        (WM_USER + 100)
 #define AKDLL_REFRESH         (WM_USER + 101)
@@ -1499,7 +1500,11 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
           {
             if (!hParamMenuName.first)
             {
-              MethodParseParameters(&hParamMenuName, wpCount, &wpCount);
+              if (!MethodParseParameters(&hParamMenuName, wpCount, &wpCount))
+              {
+                nMessageID=STRID_PARSEMSG_WRONGPARAMCOUNT;
+                goto Error;
+              }
               if (*(wpCount - 1) == L')') --wpCount;
               if (!bInRow) MethodFreeParameters(&hParamMenuName);
               bMethod=TRUE;
@@ -1564,7 +1569,11 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                 lpButton->tbb.fsStyle=TBSTYLE_BUTTON;
                 lpButton->tbb.dwData=0;
                 lpButton->tbb.iString=0;
-                MethodParseParameters(&lpButton->hParamStack, wpCount, &wpCount);
+                if (!MethodParseParameters(&lpButton->hParamStack, wpCount, &wpCount))
+                {
+                  nMessageID=STRID_PARSEMSG_WRONGPARAMCOUNT;
+                  goto Error;
+                }
                 if (*(wpCount - 1) == L')') --wpCount;
 
                 if (dwAction == EXTACT_COMMAND)
@@ -1587,7 +1596,11 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
             }
             else
             {
-              MethodParseParameters(&hParamButton, wpCount, &wpCount);
+              if (!MethodParseParameters(&hParamButton, wpCount, &wpCount))
+              {
+                nMessageID=STRID_PARSEMSG_WRONGPARAMCOUNT;
+                goto Error;
+              }
               if (*(wpCount - 1) == L')') --wpCount;
               MethodFreeParameters(&hParamButton);
             }
@@ -3116,6 +3129,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041C\x0435\x0442\x043E\x0434\x0020\x0443\x0436\x0435\x0020\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x002E";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"\x042D\x043B\x0435\x043C\x0435\x043D\x0442\x0020\x043D\x0435\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0020\x043C\x0435\x0442\x043E\x0434\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x044B\x043F\x043E\x043B\x043D\x0435\x043D\x0438\x044F\x002E";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"\x041D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432\x002E";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"\x041D\x0435\x0442\x0020\x043E\x0442\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0433\x043E SET().";
     if (nStringID == STRID_PARSEMSG_NOCOMMA)
@@ -3333,6 +3348,8 @@ SEPARATOR1\r";
       return L"Method already defined.";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"The element does not use method for execution.";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"Wrong number of parameters.";
     if (nStringID == STRID_PARSEMSG_NOOPENSET)
       return L"No opening SET().";
     if (nStringID == STRID_PARSEMSG_NOCOMMA)
