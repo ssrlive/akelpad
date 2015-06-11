@@ -198,7 +198,7 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText);
-HOTKEYITEM* ParseCommand(const wchar_t *wpCount, const wchar_t *wpHotkeyName, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult);
+HOTKEYITEM* ParseCommand(const wchar_t *wpCount, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult);
 void ShowError(int nMessageID, const wchar_t *wpLineBegin, const wchar_t *wpCount);
 int CallHotkey(HSTACK *hStack, WORD wHotkey, BOOL bGlobal);
 HOTKEYITEM* StackInsertHotkey(HSTACK *hStack);
@@ -1025,7 +1025,13 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Hotkey command
       if (wszHotkeyCommand=AllocControlText(hWndCommand, NULL))
       {
-        hiNewElement=ParseCommand(wszHotkeyCommand, wszHotkeyName, &hHotkeysStack, hiOldElement, NULL, &dwParse);
+        if (hiNewElement=ParseCommand(wszHotkeyCommand, &hHotkeysStack, hiOldElement, NULL, &dwParse))
+        {
+          xstrcpynW(hiNewElement->wszHotkeyName, wszHotkeyName, MAX_PATH);
+          hiNewElement->dwHotkey=wHotkey;
+          hiNewElement->bGlobal=bGlobalState;
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, hiNewElement->dwHotkey, 0);
+        }
         GlobalFree((HGLOBAL)wszHotkeyCommand);
 
         if (dwParse & PCMD_ERRORMSG)
@@ -1331,7 +1337,7 @@ BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       dwHotkey=GetDlgItemInt(hDlg, IDC_INPUTBOX_EDIT, NULL, FALSE);
       SendMessage(hWndHotkey, HKM_SETHOTKEY, dwHotkey, 0);
-      bGlobalState=SendMessage(hWndCheck, BM_GETCHECK, 0, 0);
+      bGlobalState=(BOOL)SendMessage(hWndCheck, BM_GETCHECK, 0, 0);
       EndDialog(hDlg, 1);
     }
     else if (LOWORD(wParam) == IDCANCEL)
@@ -1782,8 +1788,10 @@ void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText)
       GetWord(wpCount, wszHotkeyName, MAX_PATH, &wpCount, NULL);
 
       //Command
-      if (hiElement=ParseCommand(wpCount, wszHotkeyName, hStack, NULL, &wpCount, NULL))
+      if (hiElement=ParseCommand(wpCount, hStack, NULL, &wpCount, NULL))
       {
+        xstrcpynW(hiElement->wszHotkeyName, wszHotkeyName, MAX_PATH);
+
         //Hotkey
         MethodGetName(wpCount, wszMethodName, MAX_PATH, &wpCount);
 
@@ -1811,7 +1819,7 @@ void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText)
   }
 }
 
-HOTKEYITEM* ParseCommand(const wchar_t *wpCount, const wchar_t *wpHotkeyName, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult)
+HOTKEYITEM* ParseCommand(const wchar_t *wpCount, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult)
 {
   STACKEXTPARAM hParamStack={0};
   wchar_t wszMethodName[MAX_PATH];
@@ -1883,8 +1891,6 @@ HOTKEYITEM* ParseCommand(const wchar_t *wpCount, const wchar_t *wpHotkeyName, HS
         hiElement->hParamStack=hParamStack;
         xmemset(&hParamStack, 0, sizeof(STACKEXTPARAM));
 
-        xstrcpynW(hiElement->wszHotkeyName, wpHotkeyName, MAX_PATH);
-        hiElement->dwHotkey=0;
         hiElement->bAutoLoad=nPlus;
         hiElement->dwAction=dwAction;
         CopyWideStr(wpCommand, wpCount - wpCommand, &hiElement->wpHotkeyCommand);
