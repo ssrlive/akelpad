@@ -1489,7 +1489,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
   if (pvtData->vt == VT_BSTR)
   {
     #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
-      if (!pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
+      if (pvtData->bstrVal && !pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
       {
         //JScript doesn't support VT_I8, so __int64 number converted to string.
       }
@@ -1501,6 +1501,8 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
         nStringLen=SysStringLen(pvtData->bstrVal);
       else
         nStringLen=nDataLen;
+      if (!lpString)
+        lpString=(unsigned char *)L"";
     }
   }
 
