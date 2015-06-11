@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 5)
 
 
 //// Defines
@@ -100,6 +100,7 @@
 #define IEE_UNKNOWNMETHOD      4
 #define IEE_CALLERROR          5
 #define IEE_NOFALSE            6
+#define IEE_NULLSTRING         7
 
 //MI_ONFINISH type
 #define MOF_NONE        0
@@ -667,19 +668,21 @@
 #define DLLSF_ONEXIT  0x2  //Save plugins stack on program exit.
 
 //AKD_TRANSLATEMESSAGE types
-#define TMSG_GLOBAL       0x01  //Translate hotkey from global accelerator table (PLUGINDATA.hGlobalAccel).
-#define TMSG_DIALOG       0x02  //Translate message from modeless (see AKD_SETMODELESS) or dockable dialog (see AKD_DOCK).
-#define TMSG_PLUGIN       0x04  //Translate plugin message (see AKD_DLL*, AKD_CALLPROC, AKD_POSTMESSAGE).
-#define TMSG_HOTKEY       0x08  //Translate plugin hotkey.
-#define TMSG_ACCELERATOR  0x10  //Translate hotkey from main accelerator table (PLUGINDATA.hMainAccel).
-#define TMSG_DEFAULT      0x20  //Default message processing.
+#define TMSG_GLOBAL        0x01  //Translate hotkey from global accelerator table (PLUGINDATA.hGlobalAccel).
+#define TMSG_DIALOG        0x02  //Translate message from modeless (see AKD_SETMODELESS) or dockable dialog (see AKD_DOCK).
+#define TMSG_PLUGIN        0x04  //Translate plugin message (see AKD_DLL*, AKD_CALLPROC, AKD_POSTMESSAGE).
+#define TMSG_HOTKEY        0x08  //Translate plugin hotkey.
+#define TMSG_ACCELERATOR   0x10  //Translate hotkey from main accelerator table (PLUGINDATA.hMainAccel).
+#define TMSG_DEFAULT       0x20  //Default message processing.
+#define TMSG_HOTKEYGLOBAL  0x40  //Translate plugin global hotkey.
 
 #define TMSG_ALL  (TMSG_GLOBAL      |\
                    TMSG_DIALOG      |\
                    TMSG_PLUGIN      |\
                    TMSG_HOTKEY      |\
                    TMSG_ACCELERATOR |\
-                   TMSG_DEFAULT)
+                   TMSG_DEFAULT     |\
+                   TMSG_HOTKEYGLOBAL)
 
 //Context menu owner
 #define NCM_EDIT     1  //Edit control.
@@ -2217,6 +2220,7 @@ typedef struct {
 #define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
 #define AKDN_INITDIALOGBEGIN       (WM_USER + 63)  //0x43F
 #define AKDN_INITDIALOGEND         (WM_USER + 64)  //0x440
+#define AKDN_HOTKEYGLOBAL          (WM_USER + 70)  //0x446
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -2817,6 +2821,12 @@ Notification message, sends to the main procedure after processing WM_INITDIALOG
 
 Return Value
  Zero.
+
+
+AKDN_HOTKEYGLOBAL
+_________________
+
+Same as AKDN_HOTKEY, but sends to the main procedure before any other keyboard key processing.
 
 
 AKD_GETMAINPROC, AKD_GETEDITPROC, AKD_GETFRAMEPROC

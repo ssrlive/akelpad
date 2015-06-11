@@ -13832,7 +13832,11 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
 
 DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
 {
+  int nHotkeyGlobalStatus=0;
   int nHotkeyStatus=0;
+
+  if ((dwType & TMSG_HOTKEYGLOBAL) && (nHotkeyGlobalStatus=TranslateMessageHotkey(NULL, lpMsg)) > 0)
+    return TMSG_HOTKEYGLOBAL;
 
   if ((dwType & TMSG_GLOBAL) && TranslateMessageGlobal(lpMsg))
     return TMSG_GLOBAL;
@@ -13855,7 +13859,7 @@ DWORD TranslateMessageAll(DWORD dwType, LPMSG lpMsg)
         dwType&=~TMSG_ACCELERATOR;
     }
   }
-  if ((dwType & TMSG_ACCELERATOR) && nHotkeyStatus == 0 && TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
+  if ((dwType & TMSG_ACCELERATOR) && !nHotkeyGlobalStatus && !nHotkeyStatus && TranslateAcceleratorWide(hMainWnd, hMainAccel, lpMsg))
     return TMSG_ACCELERATOR;
 
   if (dwType & TMSG_DEFAULT)
@@ -14013,21 +14017,29 @@ int TranslateMessageHotkey(STACKPLUGINFUNCTION *hStack, LPMSG lpMsg)
     if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
     wHotkey=MAKEWORD(lpMsg->wParam, nMod);
 
-    for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
+    if (hStack)
     {
-      if (pfElement->wHotkey == wHotkey)
+      for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
       {
-        PLUGINCALLSENDW pcs;
+        if (pfElement->wHotkey == wHotkey)
+        {
+          PLUGINCALLSENDW pcs;
 
-        pcs.lParam=0;
-        pcs.dwSupport=0;
-        if (CallPluginSend(&pfElement, pfElement->wszFunction, &pcs, 0) & UD_HOTKEY_DODEFAULT)
-          break;
-        return TRUE;
+          pcs.lParam=0;
+          pcs.dwSupport=0;
+          if (CallPluginSend(&pfElement, pfElement->wszFunction, &pcs, 0) & UD_HOTKEY_DODEFAULT)
+            break;
+          return TRUE;
+        }
       }
+      nResult=FALSE;
+      SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&nResult);
     }
-    nResult=FALSE;
-    SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&nResult);
+    else
+    {
+      nResult=FALSE;
+      SendMessage(hMainWnd, AKDN_HOTKEYGLOBAL, (WPARAM)wHotkey, (LPARAM)&nResult);
+    }
     return nResult;
   }
   return FALSE;
@@ -19806,12 +19818,18 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 INT_PTR IfExpression(const wchar_t *wpIn, const wchar_t **wppOut, int *lpnError)
 {
   INT_PTR nResultVar=0;
-  INT_PTR nValue1;
+  INT_PTR nValue1=0;
   INT_PTR nValue2;
   INT_PTR nValue3;
   int nSign1;
   int nSign2;
   int nSign3;
+
+  if (!wpIn)
+  {
+    *lpnError=IEE_NULLSTRING;
+    goto End;
+  }
 
   FirstValueInGroup:
   nValue1=IfGroup(wpIn, &wpIn, &nSign1, &nResultVar, lpnError);
