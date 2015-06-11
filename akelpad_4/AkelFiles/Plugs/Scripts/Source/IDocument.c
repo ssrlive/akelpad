@@ -2389,10 +2389,11 @@ HRESULT STDMETHODCALLTYPE Document_WindowGetMessage(IDocument *this, DWORD dwFla
 
   while (GetMessageWide(&msg, NULL, 0, 0) > 0)
   {
-    //Dialog message
-    if (TranslateAcceleratorWide(hMainWnd, hGlobalAccel, &msg))
+    //Global hotkeys
+    if (SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_GLOBAL|TMSG_HOTKEYGLOBAL, (LPARAM)&msg))
       continue;
 
+    //Dialog message
     for (lpCallback=lpScriptThread->hDialogCallbackStack.first; lpCallback; lpCallback=lpCallback->next)
     {
       if (lpCallback->hHandle && IsDialogMessageWide((HWND)lpCallback->hHandle, &msg))
