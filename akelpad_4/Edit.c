@@ -16867,6 +16867,18 @@ int DockSetSide(STACKDOCK *hDocks, DOCK *dkData, int nSide)
   return StackMoveIndex((stack **)&hDocks->first, (stack **)&hDocks->last, (stack *)dkData, nIndex);
 }
 
+BOOL StackDockIsValid(STACKDOCK *hDocks, DOCK *lpCheckIt)
+{
+  DOCK *lpDock;
+
+  for (lpDock=hDocks->first; lpDock; lpDock=lpDock->next)
+  {
+    if (lpDock == lpCheckIt)
+      return TRUE;
+  }
+  return FALSE;
+}
+
 DOCK* StackDockFindWindow(STACKDOCK *hDocks, HWND hWnd, BOOL bChild)
 {
   DOCK *lpDock;
@@ -17085,7 +17097,8 @@ BOOL TranslateMessageDialog(LPMSG lpMsg)
   {
     if (lpModeless->hWnd && IsDialogMessageWide(lpModeless->hWnd, lpMsg))
     {
-      if (lpMsg->hwnd != lpModeless->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+      if (StackModelessIsValid(&hModelessStack, lpModeless) &&
+          lpMsg->hwnd != lpModeless->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
       {
         SendMessageWide(lpModeless->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
       }
@@ -17099,7 +17112,8 @@ BOOL TranslateMessageDialog(LPMSG lpMsg)
     {
       if (lpDock->hWnd && IsDialogMessageWide(lpDock->hWnd, lpMsg))
       {
-        if (!(lpDock->dwFlags & DKF_NOKEYSEND) && lpMsg->hwnd != lpDock->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
+        if (StackDockIsValid(&hDocksStack, lpDock) && !(lpDock->dwFlags & DKF_NOKEYSEND) &&
+            lpMsg->hwnd != lpDock->hWnd && lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
         {
           SendMessageWide(lpDock->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
         }
@@ -17136,6 +17150,18 @@ MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd)
       break;
   }
   return lpModeless;
+}
+
+BOOL StackModelessIsValid(STACKMODELESS *hStack, MODELESS *lpCheckIt)
+{
+  MODELESS *lpModeless;
+
+  for (lpModeless=hStack->first; lpModeless; lpModeless=lpModeless->next)
+  {
+    if (lpModeless == lpCheckIt)
+      return TRUE;
+  }
+  return FALSE;
 }
 
 BOOL StackModelessMembers(STACKMODELESS *hStack1, STACKMODELESS *hStack2)

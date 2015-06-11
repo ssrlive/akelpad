@@ -1051,17 +1051,18 @@ int ScaleY(int y);
 
 DOCK* StackDockAdd(STACKDOCK *hDocks, DOCK *dkData);
 int DockSetSide(STACKDOCK *hDocks, DOCK *dkData, int nSide);
-void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData);
+BOOL StackDockIsValid(STACKDOCK *hDocks, DOCK *lpCheckIt);
 DOCK* StackDockFindWindow(STACKDOCK *hDocks, HWND hWnd, BOOL bChild);
 HWND StackDockNextWindow(STACKDOCK *hDocks, DOCK *dkData, BOOL bPrevious);
 DOCK* StackDockFromPoint(STACKDOCK *hDocks, POINT *ptScreen);
 HDWP StackDockSize(HDWP hDwp, STACKDOCK *hDocks, NSIZE *ns);
-BOOL StackDockUpdateCheck(STACKDOCK *hDocks);
+void StackDockDelete(STACKDOCK *hDocks, DOCK *dkData);
 void StackDockFree(STACKDOCK *hDocks);
 BOOL TranslateMessageDialog(LPMSG lpMsg);
 
 MODELESS* StackModelessAdd(STACKMODELESS *hStack, HWND hWnd);
 MODELESS* StackModelessGet(STACKMODELESS *hStack, HWND hWnd);
+BOOL StackModelessIsValid(STACKMODELESS *hStack, MODELESS *lpCheckIt);
 BOOL StackModelessMembers(STACKMODELESS *hStack1, STACKMODELESS *hStack2);
 BOOL StackModelessDelete(STACKMODELESS *hStack, HWND hWnd);
 void StackModelessFree(STACKMODELESS *hStack);
