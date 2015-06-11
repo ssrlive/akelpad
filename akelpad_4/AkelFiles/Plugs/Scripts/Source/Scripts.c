@@ -2649,7 +2649,7 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
     pvtParameter=pvtParameter->pvarVal;
 
   #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
-    if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
+    if (pvtParameter->vt == VT_BSTR && pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
       return xatoiW(pvtParameter->bstrVal + 1, NULL);
@@ -2659,10 +2659,13 @@ UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bA
   {
     if (bAnsi)
     {
-      nUniLen=SysStringLen(pvtParameter->bstrVal);
-      nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
-      if (dwValue=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
-        WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwValue, nAnsiLen + 1, NULL, NULL);
+      if (pvtParameter->bstrVal)
+      {
+        nUniLen=SysStringLen(pvtParameter->bstrVal);
+        nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
+        if (dwValue=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
+          WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwValue, nAnsiLen + 1, NULL, NULL);
+      }
     }
     else dwValue=(UINT_PTR)pvtParameter->bstrVal;
   }
@@ -2694,7 +2697,7 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
       return (UINT_PTR)pvtParameter->pdispVal;
   }
   #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
-    if (pvtParameter->vt == VT_BSTR && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
+    if (pvtParameter->vt == VT_BSTR && pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
     {
       //JScript doesn't support VT_I8, so __int64 number converted to string.
       return xatoiW(pvtParameter->bstrVal + 1, NULL);
