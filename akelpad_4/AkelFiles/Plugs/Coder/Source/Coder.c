@@ -298,7 +298,7 @@ void __declspec(dllexport) Settings(PLUGINDATA *pd)
             //Update
             if (nInitCodeFold)
             {
-              SetActiveEdit(pd->hWndEdit, hWndCodeFoldList, SAE_RESETFOLD|SAE_RESETLIST);
+              lpCurrentFoldWindow=SetActiveEdit(pd->hWndEdit, hWndCodeFoldList, SAE_RESETFOLD|SAE_RESETLIST);
               InvalidateRect(pd->hWndEdit, NULL, TRUE);
             }
             if (bInitHighLight)
