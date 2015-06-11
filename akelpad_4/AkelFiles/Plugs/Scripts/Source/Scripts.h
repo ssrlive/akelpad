@@ -257,6 +257,7 @@ extern LANGID wLangModule;
 extern HICON g_hPluginIcon;
 extern BOOL g_MainMessageBox;
 extern BOOL bInitCommon;
+extern TRANSLATEPROC TranslateMessageProc;
 extern char szScriptsDir[MAX_PATH];
 extern wchar_t wszScriptsDir[MAX_PATH];
 extern char szAkelPadDir[MAX_PATH];

@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 6)
 
 
 //// Defines
@@ -945,6 +945,13 @@ DECLARE_HANDLE (HINIFILE);
 DECLARE_HANDLE (HINISECTION);
 DECLARE_HANDLE (HINIKEY);
 
+typedef DWORD (*TRANSLATEPROC)(DWORD dwType, LPMSG lpMsg);
+//dwType  see TMSG_* defines.
+//lpMsg   pointer to an MSG structure that contains message information.
+//
+//Return Value
+// One of the TMSG_* defines, that was last processed.
+//
 typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 typedef void (CALLBACK *CALLPROC)(void *);
 typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSupport);
@@ -4646,10 +4653,14 @@ Process window message.
 
 Return Value
  One of the TMSG_* defines, that was last processed.
+ Pointer to a TRANSLATEPROC, if lParam is NULL. Use TRANSLATEPROC, instead of AKD_TRANSLATEMESSAGE for better performance.
 
 Example:
  MSG msg;
+ TRANSLATEPROC TranslateMessageProc;
  BOOL bExitLoop=FALSE;
+
+ TranslateMessageProc=(TRANSLATEPROC)SendMessage(pd->hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)NULL);
 
  for (;;)
  {
@@ -4658,7 +4669,7 @@ Example:
      if (msg.message == WM_QUIT)
        bExitLoop=TRUE;
      else
-       SendMessage(pd->hMainWnd, AKD_TRANSLATEMESSAGE, TMSG_ALL, (LPARAM)&msg);
+       TranslateMessageProc(TMSG_ALL, &msg);
    }
    if (bExitLoop)
      break;

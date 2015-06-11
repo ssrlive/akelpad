@@ -111,6 +111,7 @@ BOOL bMainOnFinish=FALSE;
 DWORD dwSaveFlags=0;
 HWND hWndMainDlg=NULL;
 HWND hWndScriptsList=NULL;
+TRANSLATEPROC TranslateMessageProc=NULL;
 WNDPROC lpOldFilterProc=NULL;
 RECT rcMainMinMaxDialog={253, 337, 0, 0};
 RECT rcMainCurrentDialog={0};
@@ -3332,6 +3333,8 @@ void InitCommon(PLUGINDATA *pd)
   xprintfW(wszPluginTitle, GetLangStringW(wLangModule, STRID_PLUGIN), wszPluginName);
   xprintfW(wszScriptsDir, L"%s\\AkelFiles\\Plugs\\Scripts", pd->wszAkelDir);
   xstrcpynW(wszAkelPadDir, pd->wszAkelDir, MAX_PATH);
+  if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 5, 0)) >= 0)
+    TranslateMessageProc=(TRANSLATEPROC)SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)NULL);
   ReadOptions(0);
 }
 
