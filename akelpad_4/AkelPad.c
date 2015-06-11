@@ -3921,6 +3921,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case AKD_TRANSLATEMESSAGE:
       {
+        if (!lParam)
+          return (LRESULT)TranslateMessageAll;
         return TranslateMessageAll((DWORD)wParam, (LPMSG)lParam);
       }
       case AKD_MESSAGEBOX:
