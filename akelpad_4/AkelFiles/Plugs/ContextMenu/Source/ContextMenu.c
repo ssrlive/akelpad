@@ -114,44 +114,45 @@
 #define STRID_PARSEMSG_UNKNOWNMETHOD          15
 #define STRID_PARSEMSG_METHODALREADYDEFINED   16
 #define STRID_PARSEMSG_NOMETHOD               17
-#define STRID_PARSEMSG_UNNAMEDSUBMENU         18
-#define STRID_PARSEMSG_NOOPENBRACKET          19
-#define STRID_PARSEMSG_NOOPENSET              20
-#define STRID_PARSEMSG_NOCOMMA                21
-#define STRID_PARSEMSG_NOCLOSEPARENTHESIS     22
-#define STRID_PARSEMSG_NOEOL                  23
-#define STRID_IF_NOCOMMA                      24
-#define STRID_IF_NOCLOSEPARENTHESIS           25
-#define STRID_IF_UNKNOWNOPERATOR              26
-#define STRID_IF_UNKNOWNMETHOD                27
-#define STRID_IF_CALLERROR                    28
-#define STRID_IF_NOFALSE                      29
-#define STRID_IF_FOCUSCHANGED                 30
-#define STRID_IF_WRONGPARAMCOUNT              31
-#define STRID_MENU_OPEN                       32
-#define STRID_MENU_MOVEUP                     33
-#define STRID_MENU_MOVEDOWN                   34
-#define STRID_MENU_SORT                       35
-#define STRID_MENU_DELETE                     36
-#define STRID_MENU_DELETEOLD                  37
-#define STRID_MENU_EDIT                       38
-#define STRID_FAVOURITES                      39
-#define STRID_SHOWFILE                        40
-#define STRID_FAVADDING                       41
-#define STRID_FAVEDITING                      42
-#define STRID_FAVNAME                         43
-#define STRID_FAVFILE                         44
-#define STRID_LOADFIRST                       45
-#define STRID_PLUGIN                          46
-#define STRID_OK                              47
-#define STRID_CANCEL                          48
-#define STRID_CLOSE                           49
-#define STRID_DEFAULTMANUAL                   50
-#define STRID_DEFAULTMAIN                     51
-#define STRID_DEFAULTEDIT                     52
-#define STRID_DEFAULTTAB                      53
-#define STRID_DEFAULTURL                      54
-#define STRID_DEFAULTRECENTFILES              55
+#define STRID_PARSEMSG_WRONGPARAMCOUNT        18
+#define STRID_PARSEMSG_UNNAMEDSUBMENU         19
+#define STRID_PARSEMSG_NOOPENBRACKET          20
+#define STRID_PARSEMSG_NOOPENSET              21
+#define STRID_PARSEMSG_NOCOMMA                22
+#define STRID_PARSEMSG_NOCLOSEPARENTHESIS     23
+#define STRID_PARSEMSG_NOEOL                  24
+#define STRID_IF_NOCOMMA                      25
+#define STRID_IF_NOCLOSEPARENTHESIS           26
+#define STRID_IF_UNKNOWNOPERATOR              27
+#define STRID_IF_UNKNOWNMETHOD                28
+#define STRID_IF_CALLERROR                    29
+#define STRID_IF_NOFALSE                      30
+#define STRID_IF_FOCUSCHANGED                 31
+#define STRID_IF_WRONGPARAMCOUNT              32
+#define STRID_MENU_OPEN                       33
+#define STRID_MENU_MOVEUP                     34
+#define STRID_MENU_MOVEDOWN                   35
+#define STRID_MENU_SORT                       36
+#define STRID_MENU_DELETE                     37
+#define STRID_MENU_DELETEOLD                  38
+#define STRID_MENU_EDIT                       39
+#define STRID_FAVOURITES                      40
+#define STRID_SHOWFILE                        41
+#define STRID_FAVADDING                       42
+#define STRID_FAVEDITING                      43
+#define STRID_FAVNAME                         44
+#define STRID_FAVFILE                         45
+#define STRID_LOADFIRST                       46
+#define STRID_PLUGIN                          47
+#define STRID_OK                              48
+#define STRID_CANCEL                          49
+#define STRID_CLOSE                           50
+#define STRID_DEFAULTMANUAL                   51
+#define STRID_DEFAULTMAIN                     52
+#define STRID_DEFAULTEDIT                     53
+#define STRID_DEFAULTTAB                      54
+#define STRID_DEFAULTURL                      55
+#define STRID_DEFAULTRECENTFILES              56
 
 #define AKDLL_MENUINDEX   (WM_USER + 100)
 
@@ -2861,7 +2862,11 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nType
               nMessageID=STRID_PARSEMSG_NOOPENBRACKET;
               goto Error;
             }
-            MethodParseParameters(&hParamStack, ++wpCount, &wpCount);
+            if (!MethodParseParameters(&hParamStack, ++wpCount, &wpCount))
+            {
+              nMessageID=STRID_PARSEMSG_WRONGPARAMCOUNT;
+              goto Error;
+            }
             if (*(wpCount - 1) == L')') --wpCount;
 
             MethodComment(wpCount, &wpCount);
@@ -3037,7 +3042,11 @@ BOOL CreateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nType
               lpMenuItem->nSubMenuIndex=nSubMenuIndex;
               lpMenuItem->nFileIconIndex=-1;
               lpMenuItem->nImageListIconIndex=-1;
-              MethodParseParameters(&lpMenuItem->hParamStack, wpCount, &wpCount);
+              if (!MethodParseParameters(&lpMenuItem->hParamStack, wpCount, &wpCount))
+              {
+                nMessageID=STRID_PARSEMSG_WRONGPARAMCOUNT;
+                goto Error;
+              }
               if (*(wpCount - 1) == L')') --wpCount;
 
               if (dwAction == EXTACT_COMMAND)
@@ -5659,6 +5668,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041C\x0435\x0442\x043E\x0434\x0020\x0443\x0436\x0435\x0020\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x002E";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"\x042D\x043B\x0435\x043C\x0435\x043D\x0442\x0020\x043D\x0435\x0020\x0438\x0441\x043F\x043E\x043B\x044C\x0437\x0443\x0435\x0442\x0020\x043C\x0435\x0442\x043E\x0434\x0430\x0020\x0434\x043B\x044F\x0020\x0432\x044B\x043F\x043E\x043B\x043D\x0435\x043D\x0438\x044F\x002E";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"\x041D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432\x002E";
     if (nStringID == STRID_PARSEMSG_UNNAMEDSUBMENU)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0437\x0430\x0433\x043E\x043B\x043E\x0432\x043E\x043A\x0020\x043F\x043E\x0434\x043C\x0435\x043D\x044E\x002E";
     if (nStringID == STRID_PARSEMSG_NOOPENBRACKET)
@@ -6249,6 +6260,8 @@ EXPLORER\r";
       return L"Method already defined.";
     if (nStringID == STRID_PARSEMSG_NOMETHOD)
       return L"The element does not use method for execution.";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"Wrong number of parameters.";
     if (nStringID == STRID_PARSEMSG_UNNAMEDSUBMENU)
       return L"Unable to find the title of a submenu.";
     if (nStringID == STRID_PARSEMSG_NOOPENBRACKET)
