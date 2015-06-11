@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Method functions header v1.1                  *
+ *                 Method functions header v1.2                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -169,8 +169,8 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
   End:
   if (*wpParamEnd == L')')
     ++wpParamEnd;
-  else
-    MethodFreeParameters(hParamStack);
+  //else
+  //  MethodFreeParameters(hParamStack);
   if (wppText) *wppText=wpParamEnd;
   return hParamStack->nElements;
 }
