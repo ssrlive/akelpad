@@ -74,36 +74,39 @@
 #define DLLA_HOTKEYS_CHECKHOTKEY   1
 #define DLLA_HOTKEYS_STARTSTOP     10
 
-#define STRID_NAME                1
-#define STRID_NAME_AMP            2
-#define STRID_COMMAND             3
-#define STRID_COMMAND_AMP         4
-#define STRID_HOTKEY              5
-#define STRID_KEYAMP              6
-#define STRID_KEYCODE             7
-#define STRID_CODE                8
-#define STRID_ADD                 9
-#define STRID_MODIFY              10
-#define STRID_RENAME              11
-#define STRID_MOVEUP              12
-#define STRID_MOVEDOWN            13
-#define STRID_DELETE              14
-#define STRID_ALLKEYS             15
-#define STRID_ALLKEYS_AMP         16
-#define STRID_MENU_ITEMRENAME     17
-#define STRID_MENU_ITEMMOVEUP     18
-#define STRID_MENU_ITEMMOVEDOWN   19
-#define STRID_MENU_ITEMDELETE     20
-#define STRID_ONLYASSIGNED        21
-#define STRID_AUTOLOAD            22
-#define STRID_SYNTAX_ERROR        23
-#define STRID_NAME_EXISTS         24
-#define STRID_HOTKEY_EXISTS       25
-#define STRID_LOADFIRST           26
-#define STRID_PLUGIN              27
-#define STRID_OK                  28
-#define STRID_CANCEL              29
-#define STRID_CLOSE               30
+#define STRID_PARSEMSG_UNKNOWNMETHOD       1
+#define STRID_PARSEMSG_WRONGPARAMCOUNT     2
+#define STRID_PARSEMSG_NOCLOSEPARENTHESIS  3
+#define STRID_NAME                         4
+#define STRID_NAME_AMP                     5
+#define STRID_COMMAND                      6
+#define STRID_COMMAND_AMP                  7
+#define STRID_HOTKEY                       8
+#define STRID_KEYAMP                       9
+#define STRID_KEYCODE                      10
+#define STRID_CODE                         11
+#define STRID_GLOBALKEY                    12
+#define STRID_ADD                          13
+#define STRID_MODIFY                       14
+#define STRID_RENAME                       15
+#define STRID_MOVEUP                       16
+#define STRID_MOVEDOWN                     17
+#define STRID_DELETE                       18
+#define STRID_ALLKEYS                      19
+#define STRID_ALLKEYS_AMP                  20
+#define STRID_MENU_ITEMRENAME              21
+#define STRID_MENU_ITEMMOVEUP              22
+#define STRID_MENU_ITEMMOVEDOWN            23
+#define STRID_MENU_ITEMDELETE              24
+#define STRID_ONLYASSIGNED                 25
+#define STRID_AUTOLOAD                     26
+#define STRID_NAME_EXISTS                  27
+#define STRID_HOTKEY_EXISTS                28
+#define STRID_LOADFIRST                    29
+#define STRID_PLUGIN                       30
+#define STRID_OK                           31
+#define STRID_CANCEL                       32
+#define STRID_CLOSE                        33
 
 #define AKDLL_MSGHOTKEYEXISTS (WM_USER + 100)
 #define AKDLL_UPDATEADDMODIFY (WM_USER + 101)
@@ -136,6 +139,11 @@
 #define FS_FONTITALIC      3
 #define FS_FONTBOLDITALIC  4
 
+//ParseCommand return value
+#define PCMD_FAILED   0x0
+#define PCMD_SUCCESS  0x1
+#define PCMD_ERRORMSG 0x2
+
 #ifndef LVM_SETEXTENDEDLISTVIEWSTYLE
   #define LVM_SETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 54)
 #endif
@@ -159,6 +167,7 @@ typedef struct _HOTKEYITEM {
   wchar_t wszHotkeyName[MAX_PATH];
   wchar_t *wpHotkeyCommand;
   DWORD dwHotkey;
+  BOOL bGlobal;
   BOOL bAutoLoad;
   DWORD dwAction;
   STACKEXTPARAM hParamStack;
@@ -189,7 +198,9 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText);
-int CallHotkey(HSTACK *hStack, WORD wHotkey);
+HOTKEYITEM* ParseCommand(const wchar_t *wpCount, const wchar_t *wpHotkeyName, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult);
+void ShowError(int nMessageID, const wchar_t *wpLineBegin, const wchar_t *wpCount);
+int CallHotkey(HSTACK *hStack, WORD wHotkey, BOOL bGlobal);
 HOTKEYITEM* StackInsertHotkey(HSTACK *hStack);
 HOTKEYITEM* StackGetHotkeyByHotkey(HSTACK *hStack, DWORD dwHotkey);
 HOTKEYITEM* StackGetHotkeyByName(HSTACK *hStack, wchar_t *wpName);
@@ -208,7 +219,8 @@ int GetControlText(HWND hWnd, wchar_t *wszText, int nTextMax);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 int FindAccelerator(ACCEL *lpMainAccelArray, int nMainAccelCount, int nCmd);
 int GetCurFile(wchar_t *wszFile, int nMaxFile);
-wchar_t* CopyWideLen(const wchar_t *wpText, INT_PTR nTextLen);
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst);
+BOOL FreeWideStr(wchar_t **wppWideStr);
 INT_PTR RemoveLeadTrailSpaces(wchar_t *wszText, INT_PTR nTextLen);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
@@ -267,6 +279,7 @@ int nAllKeysColumnWidth1=255;
 int nAllKeysColumnWidth2=210;
 int nAllKeysColumnWidth3=106;
 BOOL bAllKeysOnlyAssigned=FALSE;
+BOOL bGlobalState=FALSE;
 WNDPROCDATA *NewMainProcData=NULL;
 CMDLIST cmdMain[]={{4101,  "IDM_FILE_NEW"},
                    {4102,  "IDM_FILE_CREATENEW"},
@@ -823,6 +836,11 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrText=RGB(0xFF, 0x00, 0x00);
               lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
             }
+            else if (hiElement->bGlobal)
+            {
+              lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
+              lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+            }
           }
           lResult=CDRF_DODEFAULT;
         }
@@ -862,7 +880,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hiElement=StackGetHotkeyByName(&hHotkeysStack, wszHotkeyName))
         {
           SetWindowTextWide(hWndAddModifyHotkey, GetLangStringW(wLangModule, STRID_MODIFY));
-          if (!xstrcmpW(wszHotkeyCommand, hiElement->wpHotkeyCommand) && hiElement->dwHotkey == wHotkey)
+          if (!xstrcmpW(wszHotkeyCommand, hiElement->wpHotkeyCommand) && hiElement->dwHotkey == wHotkey && hiElement->bGlobal == bGlobalState)
             bEnable=FALSE;
         }
         GlobalFree((HGLOBAL)wszHotkeyCommand);
@@ -899,22 +917,21 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowTextWide(hWndName, hiLastSelItem->wszHotkeyName);
       SetWindowTextWide(hWndCommand, hiLastSelItem->wpHotkeyCommand);
       SendMessage(hWndHotkey, HKM_SETHOTKEY, hiLastSelItem->dwHotkey, 0);
+      bGlobalState=hiLastSelItem->bGlobal;
 
       if (pfElement=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, hiLastSelItem->dwHotkey))
       {
         xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_HOTKEY_EXISTS), pfElement->wszFunction);
         MessageBoxW(hDlg, wszBuffer, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
       }
-
-      PostMessage(hDlg, AKDLL_UPDATEADDMODIFY, 0, 0);
     }
     else
     {
       EnableWindow(hWndMoveUpHotkey, FALSE);
       EnableWindow(hWndMoveDownHotkey, FALSE);
       EnableWindow(hWndDeleteHotkey, FALSE);
-      PostMessage(hDlg, AKDLL_UPDATEADDMODIFY, 0, 0);
     }
+    PostMessage(hDlg, AKDLL_UPDATEADDMODIFY, 0, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -954,12 +971,10 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       HOTKEYITEM *hiElement=NULL;
       wchar_t wszHotkeyName[MAX_PATH];
       wchar_t *wszHotkeyCommand;
-      const wchar_t *wpText;
-      DWORD dwAction;
+      DWORD dwParse;
       WORD wHotkey;
       int nNewIndex;
       int nOldIndex=-1;
-      int nPlus;
       int a;
       int b;
       BOOL bAddHotkey=TRUE;
@@ -997,7 +1012,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Is hotkey already assigned via HotKeys plugin
         if (hiElement=StackGetHotkeyByHotkey(&hHotkeysStack, wHotkey))
         {
-          if (bAddHotkey || hiOldElement != hiElement)
+          if (!hiOldElement || hiOldElement != hiElement)
           {
             xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_HOTKEY_EXISTS), hiElement->wszHotkeyName);
             MessageBoxW(hDlg, wszBuffer, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
@@ -1010,76 +1025,14 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Hotkey command
       if (wszHotkeyCommand=AllocControlText(hWndCommand, NULL))
       {
-        RemoveLeadTrailSpaces(wszHotkeyCommand, -1);
-        wpText=wszHotkeyCommand;
-
-        //AutoLoad
-        if (*wpText == L'+')
-        {
-          ++wpText;
-          nPlus=1;
-        }
-        else nPlus=0;
-
-        //Command
-        dwAction=0;
-        MethodGetName(wpText, wszBuffer, BUFFER_SIZE, &wpText);
-
-        if (!xstrcmpiW(wszBuffer, L"Command"))
-          dwAction=EXTACT_COMMAND;
-        else if (!xstrcmpiW(wszBuffer, L"Call"))
-          dwAction=EXTACT_CALL;
-        else if (!xstrcmpiW(wszBuffer, L"Exec"))
-          dwAction=EXTACT_EXEC;
-        else if (!xstrcmpiW(wszBuffer, L"OpenFile"))
-          dwAction=EXTACT_OPENFILE;
-        else if (!xstrcmpiW(wszBuffer, L"SaveFile"))
-          dwAction=EXTACT_SAVEFILE;
-        else if (!xstrcmpiW(wszBuffer, L"Font"))
-          dwAction=EXTACT_FONT;
-        else if (!xstrcmpiW(wszBuffer, L"Recode"))
-          dwAction=EXTACT_RECODE;
-        else if (!xstrcmpiW(wszBuffer, L"Insert"))
-          dwAction=EXTACT_INSERT;
-
-        if (dwAction)
-        {
-          if (bAddHotkey)
-          {
-            if (hiNewElement=StackInsertHotkey(&hHotkeysStack))
-            {
-              xstrcpynW(hiNewElement->wszHotkeyName, wszHotkeyName, MAX_PATH);
-              hiNewElement->dwHotkey=wHotkey;
-              hiNewElement->bAutoLoad=nPlus;
-              hiNewElement->dwAction=dwAction;
-              MethodParseParameters(&hiNewElement->hParamStack, wpText, &wpText);
-
-              //Command string
-              hiNewElement->wpHotkeyCommand=CopyWideLen(wszHotkeyCommand, wpText - wszHotkeyCommand);
-            }
-          }
-          else
-          {
-            hiNewElement=hiOldElement;
-
-            if (hiNewElement)
-            {
-              xstrcpynW(hiNewElement->wszHotkeyName, wszHotkeyName, MAX_PATH);
-              hiNewElement->dwHotkey=wHotkey;
-              hiNewElement->bAutoLoad=nPlus;
-              hiNewElement->dwAction=dwAction;
-              GlobalFree((HGLOBAL)hiNewElement->wpHotkeyCommand);
-              MethodFreeParameters(&hiNewElement->hParamStack);
-              MethodParseParameters(&hiNewElement->hParamStack, wpText, &wpText);
-
-              //Command string
-              hiNewElement->wpHotkeyCommand=CopyWideLen(wszHotkeyCommand, wpText - wszHotkeyCommand);
-            }
-          }
-        }
-        else MessageBoxW(hDlg, GetLangStringW(wLangModule, STRID_SYNTAX_ERROR), wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-
+        hiNewElement=ParseCommand(wszHotkeyCommand, wszHotkeyName, &hHotkeysStack, hiOldElement, NULL, &dwParse);
         GlobalFree((HGLOBAL)wszHotkeyCommand);
+
+        if (dwParse & PCMD_ERRORMSG)
+        {
+          SetFocus(hWndCommand);
+          return FALSE;
+        }
       }
       nNewIndex=HotkeyListSetItem(hWndMainList, nOldIndex, hiNewElement, bAddHotkey, NULL);
 
@@ -1200,13 +1153,13 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         for (dwSize=0, hiElement=(HOTKEYITEM *)hHotkeysStack.first; hiElement; hiElement=hiElement->next)
         {
-          dwSize+=(DWORD)xprintfW(NULL, L"\"%s\" %s Hotkey(%d)\r", hiElement->wszHotkeyName, hiElement->wpHotkeyCommand, hiElement->dwHotkey) - 1;
+          dwSize+=(DWORD)xprintfW(NULL, L"\"%s\" %s Hotkey(%d%s)\r", hiElement->wszHotkeyName, hiElement->wpHotkeyCommand, hiElement->dwHotkey, (hiElement->bGlobal?L", 1":L"")) - 1;
         }
         if (wszHotkeyText=(wchar_t *)HeapAlloc(hHeap, 0, (dwSize + 1) * sizeof(wchar_t)))
         {
           for (dwSize=0, hiElement=(HOTKEYITEM *)hHotkeysStack.first; hiElement; hiElement=hiElement->next)
           {
-            dwSize+=(DWORD)xprintfW(wszHotkeyText + dwSize, L"\"%s\" %s Hotkey(%d)\r", hiElement->wszHotkeyName, hiElement->wpHotkeyCommand, hiElement->dwHotkey);
+            dwSize+=(DWORD)xprintfW(wszHotkeyText + dwSize, L"\"%s\" %s Hotkey(%d%s)\r", hiElement->wszHotkeyName, hiElement->wpHotkeyCommand, hiElement->dwHotkey, (hiElement->bGlobal?L", 1":L""));
           }
         }
         dwSaveFlags|=OF_LISTTEXT;
@@ -1349,7 +1302,9 @@ void HotkeyListSelItem(HWND hWnd, int nIndex)
 
 BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndCheck;
   static HICON hPluginIcon;
+  static BOOL *lpbGlobal;
   DWORD dwHotkey;
 
   if (uMsg == WM_INITDIALOG)
@@ -1358,13 +1313,17 @@ BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
+    hWndCheck=GetDlgItem(hDlg, IDC_INPUTBOX_CHECK);
+
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_KEYCODE));
     SetDlgItemTextWide(hDlg, IDC_INPUTBOX_LABEL, GetLangStringW(wLangModule, STRID_CODE));
+    SetDlgItemTextWide(hDlg, IDC_INPUTBOX_CHECK, GetLangStringW(wLangModule, STRID_GLOBALKEY));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
     dwHotkey=(DWORD)SendMessage(hWndHotkey, HKM_GETHOTKEY, 0, 0);
     SetDlgItemInt(hDlg, IDC_INPUTBOX_EDIT, dwHotkey, FALSE);
+    if (bGlobalState) SendMessage(hWndCheck, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -1372,6 +1331,7 @@ BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       dwHotkey=GetDlgItemInt(hDlg, IDC_INPUTBOX_EDIT, NULL, FALSE);
       SendMessage(hWndHotkey, HKM_SETHOTKEY, dwHotkey, 0);
+      bGlobalState=SendMessage(hWndCheck, BM_GETCHECK, 0, 0);
       EndDialog(hDlg, 1);
     }
     else if (LOWORD(wParam) == IDCANCEL)
@@ -1505,6 +1465,7 @@ BOOL CALLBACK AllKeysDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SetWindowTextWide(hWndName, hiElement->wszHotkeyName);
           SetWindowTextWide(hWndCommand, hiElement->wpHotkeyCommand);
           SendMessage(hWndHotkey, HKM_SETHOTKEY, hiElement->dwHotkey, 0);
+          bGlobalState=FALSE;
 
           PostMessage(hWndMainDlg, AKDLL_UPDATEADDMODIFY, 0, 0);
         }
@@ -1629,7 +1590,7 @@ void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilt
 
               //hiItem->wpHotkeyCommand
               xprintfW(wszHotkeyCommand, L"Command(%d)", cmdMain[i].nCmd);
-              hiItem->wpHotkeyCommand=CopyWideLen(wszHotkeyCommand, -1);
+              CopyWideStr(wszHotkeyCommand, -1, &hiItem->wpHotkeyCommand);
 
               //hiItem->dwHotkey
               if (lpAccelItem)
@@ -1722,7 +1683,7 @@ void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilt
           }
           else wszHotkeyCommand[0]=L'\0';
 
-          hiItem->wpHotkeyCommand=CopyWideLen(wszHotkeyCommand, -1);
+          CopyWideStr(wszHotkeyCommand, -1, &hiItem->wpHotkeyCommand);
 
           //hiItem->dwHotkey
           hiItem->dwHotkey=dwHotkey;
@@ -1748,7 +1709,7 @@ void FillAllKeysList(HWND hWndList, HSTACK *hAllKeysStack, const wchar_t *wpFilt
           xprintfW(hiItem->wszHotkeyName, L"Hotkeys::%s", hiElement->wszHotkeyName);
 
           //hiItem->wpHotkeyCommand
-          hiItem->wpHotkeyCommand=CopyWideLen(hiElement->wpHotkeyCommand, -1);
+          CopyWideStr(hiElement->wpHotkeyCommand, -1, &hiItem->wpHotkeyCommand);
 
           //hiItem->dwHotkey
           hiItem->dwHotkey=hiElement->dwHotkey;
@@ -1791,11 +1752,11 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == AKDN_HOTKEY)
+  if (uMsg == AKDN_HOTKEY || uMsg == AKDN_HOTKEYGLOBAL)
   {
     int *nProcess=(int *)lParam;
 
-    *nProcess=CallHotkey(&hHotkeysStack, (WORD)wParam);
+    *nProcess=CallHotkey(&hHotkeysStack, (WORD)wParam, (uMsg == AKDN_HOTKEYGLOBAL));
   }
 
   //Call next procedure
@@ -1805,86 +1766,152 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void CreateHotkeyStack(HSTACK *hStack, const wchar_t *wpText)
 {
   HOTKEYITEM *hiElement=NULL;
+  wchar_t wszMethodName[MAX_PATH];
   wchar_t wszHotkeyName[MAX_PATH];
-  const wchar_t *wpCommand;
-  DWORD dwAction;
-  int nPlus;
+  const wchar_t *wpCount=wpText;
+  const wchar_t *wpLineBegin;
 
-  if (wpText)
+  if (wpCount)
   {
-    for (; *wpText; NextLine(&wpText))
+    while (*wpCount)
     {
+      if (!SkipComment(&wpCount)) break;
+      wpLineBegin=wpCount;
+
       //Name
-      if (!SkipComment(&wpText)) break;
-      GetWord(wpText, wszHotkeyName, MAX_PATH, &wpText, NULL);
-
-      //AutoLoad
-      while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-      wpCommand=wpText;
-
-      if (*wpText == L'+')
-      {
-        ++wpText;
-        nPlus=1;
-      }
-      else nPlus=0;
+      GetWord(wpCount, wszHotkeyName, MAX_PATH, &wpCount, NULL);
 
       //Command
-      hiElement=NULL;
-      dwAction=0;
-      MethodGetName(wpText, wszBuffer, BUFFER_SIZE, &wpText);
-
-      if (!xstrcmpiW(wszBuffer, L"Command"))
-        dwAction=EXTACT_COMMAND;
-      else if (!xstrcmpiW(wszBuffer, L"Call"))
-        dwAction=EXTACT_CALL;
-      else if (!xstrcmpiW(wszBuffer, L"Exec"))
-        dwAction=EXTACT_EXEC;
-      else if (!xstrcmpiW(wszBuffer, L"OpenFile"))
-        dwAction=EXTACT_OPENFILE;
-      else if (!xstrcmpiW(wszBuffer, L"SaveFile"))
-        dwAction=EXTACT_SAVEFILE;
-      else if (!xstrcmpiW(wszBuffer, L"Font"))
-        dwAction=EXTACT_FONT;
-      else if (!xstrcmpiW(wszBuffer, L"Recode"))
-        dwAction=EXTACT_RECODE;
-      else if (!xstrcmpiW(wszBuffer, L"Insert"))
-        dwAction=EXTACT_INSERT;
-
-      if (dwAction)
+      if (hiElement=ParseCommand(wpCount, wszHotkeyName, hStack, NULL, &wpCount, NULL))
       {
-        if (hiElement=StackInsertHotkey(hStack))
+        //Hotkey
+        MethodGetName(wpCount, wszMethodName, MAX_PATH, &wpCount);
+
+        if (!xstrcmpiW(wszMethodName, L"Hotkey"))
         {
-          xstrcpynW(hiElement->wszHotkeyName, wszHotkeyName, MAX_PATH);
-          hiElement->dwHotkey=0;
-          hiElement->bAutoLoad=nPlus;
-          hiElement->dwAction=dwAction;
-          MethodParseParameters(&hiElement->hParamStack, wpText, &wpText);
-
-          //Command string
-          hiElement->wpHotkeyCommand=CopyWideLen(wpCommand, wpText - wpCommand);
-
-          //Hotkey
-          MethodGetName(wpText, wszBuffer, BUFFER_SIZE, &wpText);
-
-          if (!xstrcmpiW(wszBuffer, L"Hotkey"))
+          MethodComment(wpCount, &wpCount);
+          hiElement->dwHotkey=(DWORD)xatoiW(wpCount, &wpCount);
+          MethodComment(wpCount, &wpCount);
+          if (*wpCount == L',')
           {
-            while (*wpText == L' ' || *wpText == L'\t') ++wpText;
-
-            hiElement->dwHotkey=(DWORD)xatoiW(wpText, NULL);
-            while (*wpText != L')' && *wpText != L'\0')
-              ++wpText;
-            if (*wpText == L')')
-              ++wpText;
+            MethodComment(wpCount + 1, &wpCount);
+            hiElement->bGlobal=(BOOL)xatoiW(wpCount, &wpCount);
+            MethodComment(wpCount, &wpCount);
           }
+
+          if (*wpCount != L')')
+            ShowError(STRID_PARSEMSG_NOCLOSEPARENTHESIS, wpLineBegin, wpCount);
+          else
+            ++wpCount;
         }
-        else break;
+        else ShowError(STRID_PARSEMSG_UNKNOWNMETHOD, wpLineBegin, wpCount);
       }
+      if (!NextLine(&wpCount)) break;
     }
   }
 }
 
-int CallHotkey(HSTACK *hStack, WORD wHotkey)
+HOTKEYITEM* ParseCommand(const wchar_t *wpCount, const wchar_t *wpHotkeyName, HSTACK *hStack, HOTKEYITEM *hiElement, const wchar_t **wppCount, DWORD *lpdwParseResult)
+{
+  STACKEXTPARAM hParamStack={0};
+  wchar_t wszMethodName[MAX_PATH];
+  const wchar_t *wpLineBegin;
+  const wchar_t *wpCommand;
+  DWORD dwAction;
+  int nPlus;
+  DWORD dwResult=PCMD_FAILED;
+
+  while (*wpCount == L' ' || *wpCount == L'\t') ++wpCount;
+  wpLineBegin=wpCount;
+  wpCommand=wpCount;
+
+  if (*wpCount == L'+')
+  {
+    ++wpCount;
+    nPlus=1;
+  }
+  else nPlus=0;
+
+  //Command
+  if (!MethodGetName(wpCount, wszMethodName, MAX_PATH, &wpCount))
+    goto End;
+
+  if (!xstrcmpiW(wszMethodName, L"Command"))
+    dwAction=EXTACT_COMMAND;
+  else if (!xstrcmpiW(wszMethodName, L"Call"))
+    dwAction=EXTACT_CALL;
+  else if (!xstrcmpiW(wszMethodName, L"Exec"))
+    dwAction=EXTACT_EXEC;
+  else if (!xstrcmpiW(wszMethodName, L"OpenFile"))
+    dwAction=EXTACT_OPENFILE;
+  else if (!xstrcmpiW(wszMethodName, L"SaveFile"))
+    dwAction=EXTACT_SAVEFILE;
+  else if (!xstrcmpiW(wszMethodName, L"Font"))
+    dwAction=EXTACT_FONT;
+  else if (!xstrcmpiW(wszMethodName, L"Recode"))
+    dwAction=EXTACT_RECODE;
+  else if (!xstrcmpiW(wszMethodName, L"Insert"))
+    dwAction=EXTACT_INSERT;
+  else
+    dwAction=0;
+
+  if (dwAction)
+  {
+    if (!MethodParseParameters(&hParamStack, wpCount, &wpCount))
+    {
+      ShowError(STRID_PARSEMSG_WRONGPARAMCOUNT, wpLineBegin, wpCount);
+      dwResult|=PCMD_ERRORMSG;
+    }
+    if (*(wpCount - 1) == L')') --wpCount;
+
+    MethodComment(wpCount, &wpCount);
+    if (*wpCount != L')')
+    {
+      ShowError(STRID_PARSEMSG_NOCLOSEPARENTHESIS, wpLineBegin, wpCount);
+      dwResult|=PCMD_ERRORMSG;
+    }
+    else ++wpCount;
+
+    if (!(dwResult & PCMD_ERRORMSG) || !lpdwParseResult)
+    {
+      if (!hiElement)
+        hiElement=StackInsertHotkey(hStack);
+
+      if (hiElement)
+      {
+        MethodFreeParameters(&hiElement->hParamStack);
+        hiElement->hParamStack=hParamStack;
+        xmemset(&hParamStack, 0, sizeof(STACKEXTPARAM));
+
+        xstrcpynW(hiElement->wszHotkeyName, wpHotkeyName, MAX_PATH);
+        hiElement->dwHotkey=0;
+        hiElement->bAutoLoad=nPlus;
+        hiElement->dwAction=dwAction;
+        CopyWideStr(wpCommand, wpCount - wpCommand, &hiElement->wpHotkeyCommand);
+        dwResult|=PCMD_SUCCESS;
+      }
+    }
+    MethodFreeParameters(&hParamStack);
+  }
+  else
+  {
+    ShowError(STRID_PARSEMSG_UNKNOWNMETHOD, wpLineBegin, wpCount);
+    dwResult|=PCMD_ERRORMSG;
+  }
+
+  End:
+  if (wppCount) *wppCount=wpCount;
+  if (lpdwParseResult) *lpdwParseResult=dwResult;
+  return hiElement;
+}
+
+void ShowError(int nMessageID, const wchar_t *wpLineBegin, const wchar_t *wpCount)
+{
+  xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), min(wpCount - wpLineBegin, BUFFER_SIZE - 1), wpLineBegin);
+  MessageBoxW(hWndMainDlg?hWndMainDlg:hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+}
+
+int CallHotkey(HSTACK *hStack, WORD wHotkey, BOOL bGlobal)
 {
   HOTKEYITEM *lpElement;
   EXTPARAM *lpParameter;
@@ -1894,301 +1921,304 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey)
 
   if (lpElement=StackGetHotkeyByHotkey(hStack, wHotkey))
   {
-    if (lpElement->dwAction == EXTACT_COMMAND)
+    if (lpElement->bGlobal == bGlobal)
     {
-      int nCommand=0;
-      LPARAM lParam=0;
-
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-        nCommand=(int)lpParameter->nNumber;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-        lParam=lpParameter->nNumber;
-
-      if (nCommand > 0)
+      if (lpElement->dwAction == EXTACT_COMMAND)
       {
-        SendMessage(hMainWnd, WM_COMMAND, nCommand, lParam);
-      }
-      else if (nCommand == -1)
-      {
-        //Skip accelerators
-        return -1;
-      }
-    }
-    else if (lpElement->dwAction == EXTACT_CALL)
-    {
-      PLUGINCALLSENDW pcs;
-      wchar_t *wpFunction=lpElement->hParamStack.first->wpString;
-      int nStructSize;
-      BOOL bCall=FALSE;
-      INT_PTR nCallResult;
+        int nCommand=0;
+        LPARAM lParam=0;
 
-      if (lpElement->bAutoLoad)
-      {
-        pcs.pFunction=wpFunction;
-        pcs.lParam=0;
-        pcs.dwSupport=PDS_GETSUPPORT;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+          nCommand=(int)lpParameter->nNumber;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+          lParam=lpParameter->nNumber;
 
-        if (SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs) != UD_FAILED)
+        if (nCommand > 0)
         {
-          if (pcs.dwSupport & PDS_NOAUTOLOAD)
-          {
-            xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_AUTOLOAD), wpFunction);
-            MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-          }
-          else bCall=TRUE;
+          SendMessage(hMainWnd, WM_COMMAND, nCommand, lParam);
+        }
+        else if (nCommand == -1)
+        {
+          //Skip accelerators
+          return -1;
         }
       }
-      else bCall=TRUE;
-
-      if (bCall)
+      else if (lpElement->dwAction == EXTACT_CALL)
       {
-        PLUGINFUNCTION *pf;
-        PLUGINCALLPOSTW *pcp;
+        PLUGINCALLSENDW pcs;
+        wchar_t *wpFunction=lpElement->hParamStack.first->wpString;
+        int nStructSize;
+        BOOL bCall=FALSE;
+        INT_PTR nCallResult;
+
+        if (lpElement->bAutoLoad)
+        {
+          pcs.pFunction=wpFunction;
+          pcs.lParam=0;
+          pcs.dwSupport=PDS_GETSUPPORT;
+
+          if (SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs) != UD_FAILED)
+          {
+            if (pcs.dwSupport & PDS_NOAUTOLOAD)
+            {
+              xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_AUTOLOAD), wpFunction);
+              MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+            }
+            else bCall=TRUE;
+          }
+        }
+        else bCall=TRUE;
+
+        if (bCall)
+        {
+          PLUGINFUNCTION *pf;
+          PLUGINCALLPOSTW *pcp;
+
+          SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+
+          if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)) && pf->bRunning)
+          {
+            //Function is running therefore call plugin through PostMessage.
+            //Because called function can unload itself with unsublass (AKD_SETMAINPROC) and AKDN_HOTKEY can go to unloaded memory.
+            nStructSize=MethodStructParameters(&lpElement->hParamStack, NULL);
+            if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
+            {
+              xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
+              if (nStructSize > 0)
+              {
+                pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
+                MethodStructParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
+              }
+              else pcp->lParam=0;
+
+              PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
+            }
+          }
+          else
+          {
+            //Function is not running therefore call plugin through SendMessage and check UD_HOTKEY_DODEFAULT flag.
+            if (nStructSize=MethodStructParameters(&lpElement->hParamStack, NULL))
+            {
+              if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+                MethodStructParameters(&lpElement->hParamStack, (unsigned char *)pcs.lParam);
+            }
+            else pcs.lParam=0;
+
+            pcs.pFunction=wpFunction;
+            pcs.dwSupport=0;
+            nCallResult=SendMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)&pcs);
+            if (nCallResult > 0 && (nCallResult & UD_HOTKEY_DODEFAULT))
+              return 0;
+          }
+        }
+      }
+      else if (lpElement->dwAction == EXTACT_EXEC)
+      {
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+        wchar_t *wpCmdLine=NULL;
+        wchar_t *wpWorkDir=NULL;
+        BOOL bWait=FALSE;
+        int nShowWindow=-1;
 
         SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+          wpCmdLine=lpParameter->wpExpanded;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+          wpWorkDir=lpParameter->wpExpanded;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
+          bWait=(BOOL)lpParameter->nNumber;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 4))
+          nShowWindow=(int)lpParameter->nNumber;
 
-        if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)) && pf->bRunning)
+        if (wpCmdLine)
         {
-          //Function is running therefore call plugin through PostMessage.
-          //Because called function can unload itself with unsublass (AKD_SETMAINPROC) and AKDN_HOTKEY can go to unloaded memory.
-          nStructSize=MethodStructParameters(&lpElement->hParamStack, NULL);
-          if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW) + nStructSize))
+          xmemset(&si, 0, sizeof(STARTUPINFOW));
+          si.cb=sizeof(STARTUPINFOW);
+          if (nShowWindow >= 0)
           {
-            xstrcpynW(pcp->szFunction, wpFunction, MAX_PATH);
-            if (nStructSize > 0)
+            si.dwFlags=STARTF_USESHOWWINDOW;
+            si.wShowWindow=(WORD)nShowWindow;
+          }
+          if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
+          {
+            if (bWait)
             {
-              pcp->lParam=(LPARAM)((unsigned char *)pcp + sizeof(PLUGINCALLPOSTW));
-              MethodStructParameters(&lpElement->hParamStack, (unsigned char *)pcp->lParam);
+              WaitForSingleObject(pi.hProcess, INFINITE);
+              //GetExitCodeProcess(pi.hProcess, &dwExit);
             }
-            else pcp->lParam=0;
-
-            PostMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)pcp);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
           }
-        }
-        else
-        {
-          //Function is not running therefore call plugin through SendMessage and check UD_HOTKEY_DODEFAULT flag.
-          if (nStructSize=MethodStructParameters(&lpElement->hParamStack, NULL))
-          {
-            if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-              MethodStructParameters(&lpElement->hParamStack, (unsigned char *)pcs.lParam);
-          }
-          else pcs.lParam=0;
-
-          pcs.pFunction=wpFunction;
-          pcs.dwSupport=0;
-          nCallResult=SendMessage(hMainWnd, AKD_DLLCALLW, (lpElement->bAutoLoad?DLLCF_SWITCHAUTOLOAD|DLLCF_SAVEONEXIT:0), (LPARAM)&pcs);
-          if (nCallResult > 0 && (nCallResult & UD_HOTKEY_DODEFAULT))
-            return 0;
         }
       }
-    }
-    else if (lpElement->dwAction == EXTACT_EXEC)
-    {
-      STARTUPINFOW si;
-      PROCESS_INFORMATION pi;
-      wchar_t *wpCmdLine=NULL;
-      wchar_t *wpWorkDir=NULL;
-      BOOL bWait=FALSE;
-      int nShowWindow=-1;
-
-      SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-        wpCmdLine=lpParameter->wpExpanded;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-        wpWorkDir=lpParameter->wpExpanded;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
-        bWait=(BOOL)lpParameter->nNumber;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 4))
-        nShowWindow=(int)lpParameter->nNumber;
-
-      if (wpCmdLine)
+      else if (lpElement->dwAction == EXTACT_OPENFILE ||
+               lpElement->dwAction == EXTACT_SAVEFILE)
       {
-        xmemset(&si, 0, sizeof(STARTUPINFOW));
-        si.cb=sizeof(STARTUPINFOW);
-        if (nShowWindow >= 0)
+        wchar_t *wpFile=NULL;
+        int nCodePage=-1;
+        BOOL bBOM=-1;
+
+        SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+          wpFile=lpParameter->wpExpanded;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+          nCodePage=(int)lpParameter->nNumber;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
+          bBOM=(BOOL)lpParameter->nNumber;
+
+        if (lpElement->dwAction == EXTACT_OPENFILE)
         {
-          si.dwFlags=STARTF_USESHOWWINDOW;
-          si.wShowWindow=(WORD)nShowWindow;
+          OPENDOCUMENTW od;
+
+          od.dwFlags=OD_ADT_BINARYERROR;
+          if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECTCODEPAGE;
+          if (bBOM == -1) od.dwFlags|=OD_ADT_DETECTBOM;
+
+          od.pFile=wpFile;
+          od.pWorkDir=NULL;
+          od.nCodePage=nCodePage;
+          od.bBOM=bBOM;
+          SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
         }
-        if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, (wpWorkDir && *wpWorkDir)?wpWorkDir:NULL, &si, &pi))
+        else if (lpElement->dwAction == EXTACT_SAVEFILE)
         {
-          if (bWait)
+          EDITINFO ei;
+          SAVEDOCUMENTW sd;
+
+          if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
           {
-            WaitForSingleObject(pi.hProcess, INFINITE);
-            //GetExitCodeProcess(pi.hProcess, &dwExit);
+            if (nCodePage == -1)
+              nCodePage=ei.nCodePage;
+            if (bBOM == -1)
+              bBOM=ei.bBOM;
+            sd.pFile=wpFile;
+            sd.nCodePage=nCodePage;
+            sd.bBOM=bBOM;
+            sd.dwFlags=SD_UPDATE;
+            SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
           }
-          CloseHandle(pi.hProcess);
-          CloseHandle(pi.hThread);
         }
       }
-    }
-    else if (lpElement->dwAction == EXTACT_OPENFILE ||
-             lpElement->dwAction == EXTACT_SAVEFILE)
-    {
-      wchar_t *wpFile=NULL;
-      int nCodePage=-1;
-      BOOL bBOM=-1;
-
-      SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-        wpFile=lpParameter->wpExpanded;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-        nCodePage=(int)lpParameter->nNumber;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
-        bBOM=(BOOL)lpParameter->nNumber;
-
-      if (lpElement->dwAction == EXTACT_OPENFILE)
-      {
-        OPENDOCUMENTW od;
-
-        od.dwFlags=OD_ADT_BINARYERROR;
-        if (nCodePage == -1) od.dwFlags|=OD_ADT_DETECTCODEPAGE;
-        if (bBOM == -1) od.dwFlags|=OD_ADT_DETECTBOM;
-
-        od.pFile=wpFile;
-        od.pWorkDir=NULL;
-        od.nCodePage=nCodePage;
-        od.bBOM=bBOM;
-        SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
-      }
-      else if (lpElement->dwAction == EXTACT_SAVEFILE)
+      else if (lpElement->dwAction == EXTACT_FONT)
       {
         EDITINFO ei;
-        SAVEDOCUMENTW sd;
+        LOGFONTW lfNew;
+        HDC hDC;
+        wchar_t *wpFaceName=NULL;
+        DWORD dwFontStyle=0;
+        int nPointSize=0;
+
+        SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+          wpFaceName=lpParameter->wpExpanded;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+          dwFontStyle=(DWORD)lpParameter->nNumber;
+        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
+          nPointSize=(int)lpParameter->nNumber;
 
         if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
         {
-          if (nCodePage == -1)
-            nCodePage=ei.nCodePage;
-          if (bBOM == -1)
-            bBOM=ei.bBOM;
-          sd.pFile=wpFile;
-          sd.nCodePage=nCodePage;
-          sd.bBOM=bBOM;
-          sd.dwFlags=SD_UPDATE;
-          SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
-        }
-      }
-    }
-    else if (lpElement->dwAction == EXTACT_FONT)
-    {
-      EDITINFO ei;
-      LOGFONTW lfNew;
-      HDC hDC;
-      wchar_t *wpFaceName=NULL;
-      DWORD dwFontStyle=0;
-      int nPointSize=0;
-
-      SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-        wpFaceName=lpParameter->wpExpanded;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-        dwFontStyle=(DWORD)lpParameter->nNumber;
-      if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 3))
-        nPointSize=(int)lpParameter->nNumber;
-
-      if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
-      {
-        if (SendMessage(hMainWnd, AKD_GETFONTW, (WPARAM)ei.hWndEdit, (LPARAM)&lfNew))
-        {
-          if (nPointSize)
+          if (SendMessage(hMainWnd, AKD_GETFONTW, (WPARAM)ei.hWndEdit, (LPARAM)&lfNew))
           {
-            if (hDC=GetDC(ei.hWndEdit))
+            if (nPointSize)
             {
-              lfNew.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-              ReleaseDC(ei.hWndEdit, hDC);
-            }
-          }
-          if (dwFontStyle != FS_NONE)
-          {
-            lfNew.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
-            lfNew.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
-          }
-          if (*wpFaceName != L'\0')
-          {
-            xstrcpynW(lfNew.lfFaceName, wpFaceName, LF_FACESIZE);
-          }
-          SendMessage(hMainWnd, AKD_SETFONTW, (WPARAM)ei.hWndEdit, (LPARAM)&lfNew);
-        }
-      }
-    }
-    else if (lpElement->dwAction == EXTACT_RECODE)
-    {
-      EDITINFO ei;
-      TEXTRECODE tr={0};
-
-      if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
-      {
-        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-          tr.nCodePageFrom=(int)lpParameter->nNumber;
-        if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-          tr.nCodePageTo=(int)lpParameter->nNumber;
-
-        SendMessage(hMainWnd, AKD_RECODESEL, (WPARAM)ei.hWndEdit, (LPARAM)&tr);
-      }
-    }
-    else if (lpElement->dwAction == EXTACT_INSERT)
-    {
-      EDITINFO ei;
-      wchar_t *wpText=NULL;
-      wchar_t *wpUnescText=NULL;
-      int nTextLen=-1;
-      int nUnescTextLen;
-      DWORD dwCaret=(DWORD)-1;
-      BOOL bEscSequences=FALSE;
-
-      if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
-      {
-        if (!ei.bReadOnly)
-        {
-          SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
-          if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
-            wpText=lpParameter->wpExpanded;
-          if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
-            bEscSequences=(BOOL)lpParameter->nNumber;
-
-          if (bEscSequences)
-          {
-            if (nUnescTextLen=(int)TranslateEscapeString(ei.hWndEdit, wpText, NULL, NULL))
-            {
-              if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+              if (hDC=GetDC(ei.hWndEdit))
               {
-                nTextLen=(int)TranslateEscapeString(ei.hWndEdit, wpText, wpUnescText, &dwCaret);
-                wpText=wpUnescText;
+                lfNew.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+                ReleaseDC(ei.hWndEdit, hDC);
               }
             }
-          }
-          if (wpText)
-          {
-            AEREPLACESELW rs;
-            AECHARINDEX ciInsertPos;
-
-            rs.pText=wpText;
-            rs.dwTextLen=(UINT_PTR)nTextLen;
-            rs.nNewLine=AELB_ASINPUT;
-            rs.dwFlags=AEREPT_COLUMNASIS;
-            rs.ciInsertStart=&ciInsertPos;
-            rs.ciInsertEnd=NULL;
-            SendMessage(ei.hWndEdit, AEM_REPLACESELW, 0, (LPARAM)&rs);
-
-            if (dwCaret != (DWORD)-1)
+            if (dwFontStyle != FS_NONE)
             {
-              AEINDEXOFFSET io;
-
-              io.ciCharIn=&ciInsertPos;
-              io.ciCharOut=&ciInsertPos;
-              io.nOffset=dwCaret;
-              io.nNewLine=AELB_ASINPUT;
-              SendMessage(ei.hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&io);
-              SendMessage(ei.hWndEdit, AEM_EXSETSEL, (WPARAM)&ciInsertPos, (LPARAM)&ciInsertPos);
+              lfNew.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+              lfNew.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
             }
+            if (*wpFaceName != L'\0')
+            {
+              xstrcpynW(lfNew.lfFaceName, wpFaceName, LF_FACESIZE);
+            }
+            SendMessage(hMainWnd, AKD_SETFONTW, (WPARAM)ei.hWndEdit, (LPARAM)&lfNew);
           }
-          if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
         }
       }
+      else if (lpElement->dwAction == EXTACT_RECODE)
+      {
+        EDITINFO ei;
+        TEXTRECODE tr={0};
+
+        if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
+        {
+          if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+            tr.nCodePageFrom=(int)lpParameter->nNumber;
+          if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+            tr.nCodePageTo=(int)lpParameter->nNumber;
+
+          SendMessage(hMainWnd, AKD_RECODESEL, (WPARAM)ei.hWndEdit, (LPARAM)&tr);
+        }
+      }
+      else if (lpElement->dwAction == EXTACT_INSERT)
+      {
+        EDITINFO ei;
+        wchar_t *wpText=NULL;
+        wchar_t *wpUnescText=NULL;
+        int nTextLen=-1;
+        int nUnescTextLen;
+        DWORD dwCaret=(DWORD)-1;
+        BOOL bEscSequences=FALSE;
+
+        if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
+        {
+          if (!ei.bReadOnly)
+          {
+            SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpElement->hParamStack, (LPARAM)ep);
+            if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 1))
+              wpText=lpParameter->wpExpanded;
+            if (lpParameter=MethodGetParameter(&lpElement->hParamStack, 2))
+              bEscSequences=(BOOL)lpParameter->nNumber;
+
+            if (bEscSequences)
+            {
+              if (nUnescTextLen=(int)TranslateEscapeString(ei.hWndEdit, wpText, NULL, NULL))
+              {
+                if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+                {
+                  nTextLen=(int)TranslateEscapeString(ei.hWndEdit, wpText, wpUnescText, &dwCaret);
+                  wpText=wpUnescText;
+                }
+              }
+            }
+            if (wpText)
+            {
+              AEREPLACESELW rs;
+              AECHARINDEX ciInsertPos;
+
+              rs.pText=wpText;
+              rs.dwTextLen=(UINT_PTR)nTextLen;
+              rs.nNewLine=AELB_ASINPUT;
+              rs.dwFlags=AEREPT_COLUMNASIS;
+              rs.ciInsertStart=&ciInsertPos;
+              rs.ciInsertEnd=NULL;
+              SendMessage(ei.hWndEdit, AEM_REPLACESELW, 0, (LPARAM)&rs);
+
+              if (dwCaret != (DWORD)-1)
+              {
+                AEINDEXOFFSET io;
+
+                io.ciCharIn=&ciInsertPos;
+                io.ciCharOut=&ciInsertPos;
+                io.nOffset=dwCaret;
+                io.nNewLine=AELB_ASINPUT;
+                SendMessage(ei.hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&io);
+                SendMessage(ei.hWndEdit, AEM_EXSETSEL, (WPARAM)&ciInsertPos, (LPARAM)&ciInsertPos);
+              }
+            }
+            if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
+          }
+        }
+      }
+      return 1;
     }
-    return 1;
   }
   return 0;
 }
@@ -2235,7 +2265,7 @@ void StackMoveHotkeyByIndex(HSTACK *hStack, int nOldIndex, int nNewIndex)
 
 void StackDeleteHotkey(HSTACK *hStack, HOTKEYITEM *hiElement)
 {
-  GlobalFree((HGLOBAL)hiElement->wpHotkeyCommand);
+  FreeWideStr(&hiElement->wpHotkeyCommand);
   MethodFreeParameters(&hiElement->hParamStack);
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)hiElement);
 }
@@ -2246,7 +2276,7 @@ void StackFreeHotkey(HSTACK *hStack)
 
   for (hiElement=(HOTKEYITEM *)hStack->first; hiElement; hiElement=hiElement->next)
   {
-    GlobalFree((HGLOBAL)hiElement->wpHotkeyCommand);
+    FreeWideStr(&hiElement->wpHotkeyCommand);
     MethodFreeParameters(&hiElement->hParamStack);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
@@ -2524,14 +2554,28 @@ int GetCurFile(wchar_t *wszFile, int nMaxFile)
   return 0;
 }
 
-wchar_t* CopyWideLen(const wchar_t *wpText, INT_PTR nTextLen)
+INT_PTR CopyWideStr(const wchar_t *wpSrc, INT_PTR nSrcLen, wchar_t **wppDst)
 {
-  wchar_t *wszStr;
+  wchar_t *wszDst=*wppDst;
 
-  if (nTextLen == -1) nTextLen=xstrlenW(wpText);
-  if (wszStr=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nTextLen + 1) * sizeof(wchar_t)))
-    xstrcpynW(wszStr, wpText, nTextLen + 1);
-  return wszStr;
+  if (nSrcLen == -1)
+    nSrcLen=xstrlenW(wpSrc);
+  if (wszDst)
+    FreeWideStr(&wszDst);
+  if (wszDst=(wchar_t *)GlobalAlloc(GMEM_FIXED, (nSrcLen + 1) * sizeof(wchar_t)))
+    xstrcpynW(wszDst, wpSrc, nSrcLen + 1);
+  *wppDst=wszDst;
+  return nSrcLen;
+}
+
+BOOL FreeWideStr(wchar_t **wppWideStr)
+{
+  if (wppWideStr && *wppWideStr && !GlobalFree((HGLOBAL)*wppWideStr))
+  {
+    *wppWideStr=NULL;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 INT_PTR RemoveLeadTrailSpaces(wchar_t *wszText, INT_PTR nTextLen)
@@ -2660,6 +2704,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 {
   if (wLangID == LANG_RUSSIAN)
   {
+    if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
+      return L"\x041D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x044B\x0439\x0020\x043C\x0435\x0442\x043E\x0434.\n\n%.%ds";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"\x041D\x0435\x0432\x0435\x0440\x043D\x043E\x0435\x0020\x043A\x043E\x043B\x0438\x0447\x0435\x0441\x0442\x0432\x043E\x0020\x043F\x0430\x0440\x0430\x043C\x0435\x0442\x0440\x043E\x0432\x002E";
+    if (nStringID == STRID_PARSEMSG_NOCLOSEPARENTHESIS)
+      return L"\x041D\x0435\x0442\x0020\x0437\x0430\x043A\x0440\x044B\x0432\x0430\x044E\x0449\x0435\x0439\x0020\x0441\x043A\x043E\x0431\x043A\x0438 \")\".\n\n%.%ds";
     if (nStringID == STRID_NAME)
       return L"\x0418\x043C\x044F";
     if (nStringID == STRID_NAME_AMP)
@@ -2676,6 +2726,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041A\x043E\x0434\x0020\x0433\x043E\x0440\x044F\x0447\x0435\x0439\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0438";
     if (nStringID == STRID_CODE)
       return L"\x041A\x043E\x0434:";
+    if (nStringID == STRID_GLOBALKEY)
+      return L"\x0413\x043B\x043E\x0431\x0430\x043B\x044C\x043D\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430";
     if (nStringID == STRID_ADD)
       return L"\x0414\x043E\x0431\x0430\x0432\x0438\x0442\x044C";
     if (nStringID == STRID_MODIFY)
@@ -2702,8 +2754,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041F\x043E\x043A\x0430\x0437\x044B\x0432\x0430\x0442\x044C\x0020\x0442\x043E\x043B\x044C\x043A\x043E\x0020\x043D\x0430\x0437\x043D\x0430\x0447\x0435\x043D\x043D\x044B\x0435\x0020\x0049\x0044\x004D\x005F\x0020\x043A\x043E\x043C\x0430\x043D\x0434\x044B";
     if (nStringID == STRID_AUTOLOAD)
       return L"\x0022\x0025\x0073\x0022\x0020\x043D\x0435\x0020\x043F\x043E\x0434\x0434\x0435\x0440\x0436\x0438\x0432\x0430\x0435\x0442\x0020\x0430\x0432\x0442\x043E\x0437\x0430\x0433\x0440\x0443\x0437\x043A\x0443\x0020\x0028\x0022\x002B\x0022\x0020\x043F\x0435\x0440\x0435\x0434\x0020\x0022\x0043\x0061\x006C\x006C\x0022\x0029\x002E";
-    if (nStringID == STRID_SYNTAX_ERROR)
-      return L"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x043E\x0448\x0438\x0431\x043A\x0430\x002E";
     if (nStringID == STRID_NAME_EXISTS)
       return L"\x0418\x043C\x044F\x0020\x0443\x0436\x0435\x0020\x0441\x0443\x0449\x0435\x0441\x0442\x0432\x0443\x0435\x0442\x002E";
     if (nStringID == STRID_HOTKEY_EXISTS)
@@ -2721,6 +2771,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
   }
   else
   {
+    if (nStringID == STRID_PARSEMSG_UNKNOWNMETHOD)
+      return L"Unknown method.\n\n%.%ds";
+    if (nStringID == STRID_PARSEMSG_WRONGPARAMCOUNT)
+      return L"Wrong number of parameters.";
+    if (nStringID == STRID_PARSEMSG_NOCLOSEPARENTHESIS)
+      return L"No close parenthesis \")\".\n\n%.%ds";
     if (nStringID == STRID_NAME)
       return L"Name";
     if (nStringID == STRID_NAME_AMP)
@@ -2737,6 +2793,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Hotkey code";
     if (nStringID == STRID_CODE)
       return L"Code:";
+    if (nStringID == STRID_GLOBALKEY)
+      return L"Global key";
     if (nStringID == STRID_ADD)
       return L"Add";
     if (nStringID == STRID_MODIFY)
@@ -2763,8 +2821,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Show only assigned IDM_ commands";
     if (nStringID == STRID_AUTOLOAD)
       return L"\"%s\" doesn't support autoload (\"+\" before \"Call\").";
-    if (nStringID == STRID_SYNTAX_ERROR)
-      return L"Syntax error.";
     if (nStringID == STRID_NAME_EXISTS)
       return L"\"%s\" name already exits.";
     if (nStringID == STRID_HOTKEY_EXISTS)

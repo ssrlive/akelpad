@@ -25,6 +25,7 @@
 #define IDC_MAIN_FILTER                 1117
 #define IDC_INPUTBOX_LABEL              1201
 #define IDC_INPUTBOX_EDIT               1202
+#define IDC_INPUTBOX_CHECK              1203
 #define IDC_ALLKEYS_LIST                1301
 #define IDC_ALLKEYS_ONLYASSIGNED        1302
 #define IDC_ALLKEYS_FILTER              1303
