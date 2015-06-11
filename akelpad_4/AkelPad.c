@@ -2013,11 +2013,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 wpParamStr=lpParamStack->first->wpExpanded;
               else
                 wpParamStr=lpParamStack->first->wpString;
-              nResult=IfExpression(wpParamStr, &wpStop, &nError);
-              if (!(dwFlags & IEF_STACKEXTPARAM))
-                wpCount=wpExpression + (wpStop - wpParamStr) + (wpCount - wpExpression);
-              else
-                wpCount=wpStop;
+              if (wpParamStr)
+              {
+                nResult=IfExpression(wpParamStr, &wpStop, &nError);
+                if (!(dwFlags & IEF_STACKEXTPARAM))
+                  wpCount=wpExpression + (wpStop - wpParamStr) + (wpCount - wpExpression);
+                else
+                  wpCount=wpStop;
+              }
             }
             if (!(dwFlags & IEF_STACKEXTPARAM))
               MethodFreeParameters(lpParamStack);
