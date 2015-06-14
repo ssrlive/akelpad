@@ -2395,6 +2395,8 @@ HRESULT STDMETHODCALLTYPE Document_WindowGetMessage(IDocument *this, DWORD dwFla
       if (TranslateMessageProc(TMSG_GLOBAL|TMSG_HOTKEYGLOBAL, &msg))
         continue;
     }
+    else if (TranslateAcceleratorWide(hMainWnd, hGlobalAccel, &msg))
+      continue;
 
     //Dialog message
     for (lpCallback=lpScriptThread->hDialogCallbackStack.first; lpCallback; lpCallback=lpCallback->next)
