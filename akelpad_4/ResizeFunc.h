@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Resize functions header v1.3                  *
+ *                 Resize functions header v1.4                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -473,67 +473,68 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
           if (bClipChildren)
           {
             RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE|RDW_ERASE|RDW_ALLCHILDREN);
-            return TRUE;
           }
-
-          //Collect changed rectangles
-          for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
+          else
           {
-            //Check is this window was intersected before resize
-            for (lpIntersectDRW=hDRWStack.first; lpIntersectDRW; lpIntersectDRW=lpIntersectDRW->next)
+            //Collect changed rectangles
+            for (lpDRW=hDRWStack.first; lpDRW; lpDRW=lpDRW->next)
             {
-              if (lpIntersectDRW != lpDRW)
-                if (IntersectRect(&rcIntersect, &lpIntersectDRW->rcBeforeWindow, &lpDRW->rcBeforeWindow))
-                  break;
-            }
-            GetWindowPos(lpDRW->hWnd, hDlg, &rcAfterWindow);
-            SetRectRgn(hRgnControl, rcAfterWindow.left, rcAfterWindow.top, rcAfterWindow.right, rcAfterWindow.bottom);
-            CombineRgn(hRgnAllChild, hRgnAllChild, hRgnControl, RGN_OR);
+              //Check is this window was intersected before resize
+              for (lpIntersectDRW=hDRWStack.first; lpIntersectDRW; lpIntersectDRW=lpIntersectDRW->next)
+              {
+                if (lpIntersectDRW != lpDRW)
+                  if (IntersectRect(&rcIntersect, &lpIntersectDRW->rcBeforeWindow, &lpDRW->rcBeforeWindow))
+                    break;
+              }
+              GetWindowPos(lpDRW->hWnd, hDlg, &rcAfterWindow);
+              SetRectRgn(hRgnControl, rcAfterWindow.left, rcAfterWindow.top, rcAfterWindow.right, rcAfterWindow.bottom);
+              CombineRgn(hRgnAllChild, hRgnAllChild, hRgnControl, RGN_OR);
 
-            if (lpIntersectDRW || lpDRW->rcBeforeWindow.left != rcAfterWindow.left || lpDRW->rcBeforeWindow.top != rcAfterWindow.top)
-            {
-              //All control
-              CombineRgn(hRgnChanged, hRgnControl, NULL, RGN_COPY);
+              if (lpIntersectDRW || lpDRW->rcBeforeWindow.left != rcAfterWindow.left || lpDRW->rcBeforeWindow.top != rcAfterWindow.top)
+              {
+                //All control
+                CombineRgn(hRgnChanged, hRgnControl, NULL, RGN_COPY);
+              }
+              else
+              {
+                //Only changed parts
+                SetRectRgn(hRgnChanged, lpDRW->rcBeforeClient.left, lpDRW->rcBeforeClient.top, lpDRW->rcBeforeClient.right, lpDRW->rcBeforeClient.bottom);
+                CombineRgn(hRgnChanged, hRgnControl, hRgnChanged, RGN_DIFF);
+              }
+              CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnChanged, RGN_OR);
             }
-            else
-            {
-              //Only changed parts
-              SetRectRgn(hRgnChanged, lpDRW->rcBeforeClient.left, lpDRW->rcBeforeClient.top, lpDRW->rcBeforeClient.right, lpDRW->rcBeforeClient.bottom);
-              CombineRgn(hRgnChanged, hRgnControl, hRgnChanged, RGN_DIFF);
-            }
-            CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnChanged, RGN_OR);
+            GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
+
+            //Erase parent window background without children
+            GetClientRect(hDlg, &rcControl);
+            SetRectRgn(hRgnControl, rcControl.left, rcControl.top, rcControl.right, rcControl.bottom);
+            CombineRgn(hRgnToErase, hRgnControl, hRgnAllChild, RGN_DIFF);
+            InvalidateRgn(hDlg, hRgnToErase, TRUE);
+            UpdateWindow(hDlg);
+
+            //{
+            //  //Region debug
+            //  HBRUSH hBrush;
+            //  HDC hDC;
+            //
+            //  if (hDC=GetDC(hDlg))
+            //  {
+            //    if (hBrush=CreateSolidBrush(RGB(0xFF, 0x00, 0x00)))
+            //    {
+            //      FillRgn(hDC, hRgnToErase, hBrush);
+            //      DeleteObject(hBrush);
+            //    }
+            //    ReleaseDC(hDlg, hDC);
+            //  }
+            //}
+
+            //Remove erased region and draw children
+            CombineRgn(hRgnToDrawBefore, hRgnToDrawBefore, hRgnToErase, RGN_DIFF);
+            CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToErase, RGN_DIFF);
+            CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
+            InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
+            UpdateWindow(hDlg);
           }
-          GetUpdateRgn(hDlg, hRgnToDrawBefore, FALSE);
-
-          //Erase parent window background without children
-          GetClientRect(hDlg, &rcControl);
-          SetRectRgn(hRgnControl, rcControl.left, rcControl.top, rcControl.right, rcControl.bottom);
-          CombineRgn(hRgnToErase, hRgnControl, hRgnAllChild, RGN_DIFF);
-          InvalidateRgn(hDlg, hRgnToErase, TRUE);
-          UpdateWindow(hDlg);
-
-          //{
-          //  //Region debug
-          //  HBRUSH hBrush;
-          //  HDC hDC;
-          //
-          //  if (hDC=GetDC(hDlg))
-          //  {
-          //    if (hBrush=CreateSolidBrush(RGB(0xFF, 0x00, 0x00)))
-          //    {
-          //      FillRgn(hDC, hRgnToErase, hBrush);
-          //      DeleteObject(hBrush);
-          //    }
-          //    ReleaseDC(hDlg, hDC);
-          //  }
-          //}
-
-          //Remove erased region and draw children
-          CombineRgn(hRgnToDrawBefore, hRgnToDrawBefore, hRgnToErase, RGN_DIFF);
-          CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToErase, RGN_DIFF);
-          CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
-          InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
-          UpdateWindow(hDlg);
         }
         DeleteObject(hRgnChanged);
         DeleteObject(hRgnControl);
