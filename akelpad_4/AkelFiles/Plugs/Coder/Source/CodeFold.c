@@ -1328,7 +1328,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                 while (lpFold->parent)
                   lpFold=lpFold->parent;
 
-                if (!fwChange->crTextChange.ciMin.lpLine || AEC_IndexCompare(&lpFold->lpMinPoint->ciPoint, &fwChange->crTextChange.ciMin) <= 0)
+                if (!fwChange->crTextChange.ciMin.lpLine || AEC_IndexCompare(&lpFold->lpMinPoint->ciPoint, &fwChange->crTextChange.ciMin) < 0)
                 {
                   fwChange->crTextChange.ciMin=lpFold->lpMinPoint->ciPoint;
                   fwChange->lpTextChangeMinParent=lpFold;
