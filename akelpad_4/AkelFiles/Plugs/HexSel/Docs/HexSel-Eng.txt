@@ -1,5 +1,5 @@
 *****************************************************************
-***                   HexSel AkelPad plugin v6.8              ***
+***                   HexSel AkelPad plugin v6.9              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
