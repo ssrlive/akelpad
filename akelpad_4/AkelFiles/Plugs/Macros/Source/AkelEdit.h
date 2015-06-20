@@ -2220,7 +2220,7 @@ Return Value
  If a nonzero value, the control does not handle the mouse message.
 
 Remarks
- To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
+ To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with AECOE_DETECTURL flag.
 
 
 AEN_MARKER
