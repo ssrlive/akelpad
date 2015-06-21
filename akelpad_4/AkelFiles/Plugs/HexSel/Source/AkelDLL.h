@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 7)
 
 
 //// Defines
@@ -71,7 +71,7 @@
   //External parameters
   #define EXTPARAM_CHAR     1
   #define EXTPARAM_INT      2
-  #define EXTPARAM_LPINT    3
+  #define EXTPARAM_VAR      3
 #endif
 
 //Expand flags

@@ -19327,8 +19327,8 @@ void MethodExpandParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
               {
                 for (lpExpParam=ep; lpExpParam->wpVar; ++lpExpParam)
                 {
-                  if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? !xstrcmpnW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1) :
-                                                                   !xstrcmpinW(lpExpParam->wpVar, wpSource - 1, (UINT_PTR)-1))
+                  if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? !xstrcmpnW(lpExpParam->wpVar, wpSource - 1, lpExpParam->nVarLen) :
+                                                                   !xstrcmpinW(lpExpParam->wpVar, wpSource - 1, lpExpParam->nVarLen))
                   {
                     break;
                   }
@@ -19413,6 +19413,27 @@ void MethodExpandParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep)
       }
       if (wszSource != wszTarget)
         GlobalFree((HGLOBAL)wszSource);
+    }
+    else if (lpParameter->dwType == EXTPARAM_VAR)
+    {
+      if (ep)
+      {
+        for (lpExpParam=ep; lpExpParam->wpVar; ++lpExpParam)
+        {
+          if ((lpExpParam->dwFlags & EXPPARAM_MATCHCASE) ? !xstrcmpnW(lpExpParam->wpVar, lpParameter->wpString, lpExpParam->nVarLen) :
+                                                           !xstrcmpinW(lpExpParam->wpVar, lpParameter->wpString, lpExpParam->nVarLen))
+          {
+            break;
+          }
+        }
+        if (lpExpParam->wpVar)
+        {
+          if (lpExpParam->dwFlags & EXPPARAM_INT)
+            lpParameter->nNumber=lpExpParam->nReplaceWith;
+          else if (lpExpParam->dwFlags & EXPPARAM_LPHANDLE)
+            lpParameter->nNumber=*(INT_PTR *)lpExpParam->nReplaceWith;
+        }
+      }
     }
   }
 }
@@ -19967,11 +19988,20 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
   }
   else
   {
+    STACKEXTPARAM hParamStack={0};
+    static PLUGINCALLSENDW pcs;
+    EXTPARAM *lpParameter;
+    int nCallResult=UD_FAILED;
+    EXPPARAM ep[]={{L"&nResult", 8, (INT_PTR)&pcs.nResult, EXPPARAM_MATCHCASE|EXPPARAM_INT},
+                   {L"nResult", 7, (INT_PTR)lpnResultVar, EXPPARAM_MATCHCASE|EXPPARAM_LPHANDLE},
+                   {0, 0, 0, 0}};
+
+    //Initialize &nResult
+    pcs.nResult=0;
+
     if (!(nSendMain=xstrcmpnW(L"SendMain(", wpIn, (UINT_PTR)-1)) ||
         !(nSendEdit=xstrcmpnW(L"SendEdit(", wpIn, (UINT_PTR)-1)))
     {
-      STACKEXTPARAM hParamStack={0};
-      EXTPARAM *lpParameter;
       HWND hWndEdit;
       INT_PTR nParam1;
       INT_PTR nParam2=0;
@@ -19983,20 +20013,21 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         *lpnError=IEE_WRONGPARAMCOUNT;
         goto End;
       }
+      MethodExpandParameters(&hParamStack, ep);
       lpParameter=hParamStack.first;
       nParam1=lpParameter->nNumber;
 
       lpParameter=lpParameter->next;
-      if (lpParameter->dwType == EXTPARAM_INT)
-        nParam2=lpParameter->nNumber;
-      else if (lpParameter->dwType == EXTPARAM_CHAR)
+      if (lpParameter->dwType == EXTPARAM_CHAR)
         nParam2=bOldWindows?(INT_PTR)lpParameter->pString:(INT_PTR)lpParameter->wpString;
+      else
+        nParam2=lpParameter->nNumber;
 
       lpParameter=lpParameter->next;
-      if (lpParameter->dwType == EXTPARAM_INT)
-        nParam3=lpParameter->nNumber;
-      else if (lpParameter->dwType == EXTPARAM_CHAR)
+      if (lpParameter->dwType == EXTPARAM_CHAR)
         nParam3=bOldWindows?(INT_PTR)lpParameter->pString:(INT_PTR)lpParameter->wpString;
+      else
+        nParam3=lpParameter->nNumber;
 
       if (!nSendMain)
         nValue=SendMessage(hMainWnd, (UINT)nParam1, nParam2, nParam3);
@@ -20005,71 +20036,46 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         if (hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, (LPARAM)NULL))
           nValue=SendMessage(hWndEdit, (UINT)nParam1, nParam2, nParam3);
       }
-      MethodFreeParameters(&hParamStack);
+      nCallResult=0;
 
       //Move back to check that method was closed with ')'.
       --wpIn;
     }
     else if (!xstrcmpnW(L"Call(", wpIn, (UINT_PTR)-1))
     {
-      STACKEXTPARAM hParamStack={0};
-      EXTPARAM *lpParameter;
-      PLUGINCALLSENDW pcs;
       int nStructSize;
-      int nCallResult=UD_FAILED;
 
-      if (MethodParseParameters(&hParamStack, wpIn + 5, &wpIn))
+      if (!MethodParseParameters(&hParamStack, wpIn + 5, &wpIn))
       {
-        MethodExpandParameters(&hParamStack, NULL);
-
-        //&nResult is the result for Call method.
-        for (lpParameter=hParamStack.first; lpParameter; lpParameter=lpParameter->next)
-        {
-          if (lpParameter->dwType == EXTPARAM_LPINT)
-          {
-            if (!xstrcmpW(lpParameter->wpString, L"nResult"))
-            {
-              lpParameter->nNumber=(INT_PTR)&pcs.nResult;
-              break;
-            }
-          }
-        }
-
-        if (nStructSize=MethodStructParameters(&hParamStack, NULL))
-        {
-          if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
-            MethodStructParameters(&hParamStack, (unsigned char *)pcs.lParam);
-        }
-        else pcs.lParam=0;
-
-        pcs.dwSupport=PDS_STRWIDE;
-        pcs.nResult=0;
-        nCallResult=(int)CallPluginSend(NULL, hParamStack.first->wpString, &pcs, 0);
-        if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
-        nValue=pcs.nResult;
-        if (lpParameter) *lpnResultVar=nValue;
-        MethodFreeParameters(&hParamStack);
-
-        //Move back to check that method was closed with ')'.
-        --wpIn;
-      }
-      if (nCallResult < 0)
-      {
-        *lpnError=IEE_CALLERROR;
+        *lpnError=IEE_WRONGPARAMCOUNT;
         goto End;
       }
+      MethodExpandParameters(&hParamStack, ep);
+
+      if (nStructSize=MethodStructParameters(&hParamStack, NULL))
+      {
+        if (pcs.lParam=(LPARAM)GlobalAlloc(GPTR, nStructSize))
+          MethodStructParameters(&hParamStack, (unsigned char *)pcs.lParam);
+      }
+      else pcs.lParam=0;
+
+      pcs.dwSupport=PDS_STRWIDE;
+      nCallResult=(int)CallPluginSend(NULL, hParamStack.first->wpString, &pcs, 0);
+      if (pcs.lParam) GlobalFree((HGLOBAL)pcs.lParam);
+      nValue=pcs.nResult;
+
+      //Move back to check that method was closed with ')'.
+      --wpIn;
     }
     else if (!xstrcmpnW(L"AkelPad.", wpIn, (UINT_PTR)-1))
     {
-      STACKEXTPARAM hParamStack={0};
       wchar_t wszMethodName[MAX_PATH];
-      int nCallResult=UD_FAILED;
 
       MethodGetScript(wpIn, wszMethodName, MAX_PATH, &wpIn);
       if (*(wpIn - 1) == L'(')
       {
         MethodParseParameters(&hParamStack, wpIn, &wpIn);
-        MethodExpandParameters(&hParamStack, NULL);
+        MethodExpandParameters(&hParamStack, ep);
       }
       else bCheckClose=FALSE;
 
@@ -20086,7 +20092,6 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
           int *lpnError;
         } DLLEXTSCRIPTS;
 
-        PLUGINCALLSENDW pcs;
         DLLEXTSCRIPTS des;
 
         des.dwStructSize=sizeof(DLLEXTSCRIPTS);
@@ -20100,26 +20105,40 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
         pcs.dwSupport=PDS_STRWIDE;
         nCallResult=(int)CallPluginSend(NULL, L"Scripts::Main", &pcs, 0);
       }
-      MethodFreeParameters(&hParamStack);
-
       if (bCheckClose)
       {
         //Move back to check that method was closed with ')'.
         --wpIn;
       }
-      if (nCallResult < 0)
-      {
-        *lpnError=IEE_CALLERROR;
-        goto End;
-      }
-      if (*lpnError != IEE_SUCCESS)
-        goto End;
     }
     else
     {
       *lpnError=IEE_UNKNOWNMETHOD;
       goto End;
     }
+
+    //Retrive &nResult
+    for (lpParameter=hParamStack.first; lpParameter; lpParameter=lpParameter->next)
+    {
+      if (lpParameter->dwType == EXTPARAM_VAR)
+      {
+        if (!xstrcmpW(lpParameter->wpString, L"&nResult"))
+        {
+          nValue=pcs.nResult;
+          break;
+        }
+      }
+    }
+    MethodFreeParameters(&hParamStack);
+
+    if (nCallResult < 0)
+    {
+      *lpnError=IEE_CALLERROR;
+      goto End;
+    }
+    if (*lpnError != IEE_SUCCESS)
+      goto End;
+
     IfComment(wpIn, &wpIn);
     if (bCheckClose)
     {
@@ -20130,6 +20149,7 @@ INT_PTR IfValue(const wchar_t *wpIn, const wchar_t **wppOut, INT_PTR *lpnResultV
       }
       ++wpIn;
     }
+    *lpnResultVar=nValue;
   }
   if (bNegative) nValue=-nValue;
   if (bBitwiseNOT) nValue=~nValue;
