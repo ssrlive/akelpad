@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Method functions header v1.2                  *
+ *                 Method functions header v1.3                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -16,7 +16,7 @@
 //External parameters
 #define EXTPARAM_CHAR     1
 #define EXTPARAM_INT      2
-#define EXTPARAM_LPINT    3
+#define EXTPARAM_VAR      3
 
 typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
@@ -135,20 +135,20 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     {
       ++hParamStack->nElements;
 
-      if (*wpParamBegin == L'&')
-      {
-        lpParameter->dwType=EXTPARAM_LPINT;
-        nStringLen=wpParamEnd - wpParamBegin - 1;
-        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
-          xstrcpynW(lpParameter->wpString, wpParamBegin + 1, nStringLen + 1);
-      }
-      else
+      if (*wpParamBegin >= L'0' && *wpParamBegin <= L'9')
       {
         lpParameter->dwType=EXTPARAM_INT;
         if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
           lpParameter->nNumber=hex2decW(wpParamBegin + 2, -2, NULL);
         else
           lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+      }
+      else
+      {
+        lpParameter->dwType=EXTPARAM_VAR;
+        nStringLen=wpParamEnd - wpParamBegin;
+        if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
+          xstrcpynW(lpParameter->wpString, wpParamBegin, nStringLen + 1);
       }
     }
   }
@@ -282,7 +282,7 @@ void MethodFreeParameters(STACKEXTPARAM *hParamStack)
 
   for (lpParameter=hParamStack->first; lpParameter; lpParameter=lpParameter->next)
   {
-    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_LPINT)
+    if (lpParameter->dwType == EXTPARAM_CHAR || lpParameter->dwType == EXTPARAM_VAR)
     {
       if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
       if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
