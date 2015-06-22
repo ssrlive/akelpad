@@ -397,7 +397,8 @@ HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int
 
   if (nPart == CPF_DIR)
   {
-    GetFileDir(wpFile, nFileLen, wszBuffer, BUFFER_SIZE);
+    if (!GetFileDir(wpFile, nFileLen, wszBuffer, BUFFER_SIZE))
+      wszBuffer[0]=L'\0';
     if (!(*wpPath=SysAllocString(wszBuffer)))
       hr=E_OUTOFMEMORY;
   }
@@ -412,7 +413,8 @@ HRESULT STDMETHODCALLTYPE Document_GetFilePath(IDocument *this, BSTR wpFile, int
   }
   else if (nPart == CPF_FILEBASENAME)
   {
-    GetBaseName(wpFile, nFileLen, wszBuffer, BUFFER_SIZE);
+    if (!GetBaseName(wpFile, nFileLen, wszBuffer, BUFFER_SIZE))
+      wszBuffer[0]=L'\0';
     if (!(*wpPath=SysAllocString(wszBuffer)))
       hr=E_OUTOFMEMORY;
   }
