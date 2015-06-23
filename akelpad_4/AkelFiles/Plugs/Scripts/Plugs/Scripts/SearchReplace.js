@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.5
+// Version: 1.6
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -453,7 +453,6 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
       {
         oSys.Call("user32::SetWindowText" + _TCHAR, hWndWhat, AkelPad.GetSelText());
         AkelPad.SendMessage(hWndWhat, 0x142 /*CB_SETEDITSEL*/, 0, MAKELONG(0, -1));
-        oSys.Call("user32::SetWindowLong" + _TCHAR, 0 /*DWL_MSGRESULT*/, true);
         return true;
       }
     }
