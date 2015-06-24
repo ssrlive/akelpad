@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 Method functions header v1.3                  *
+ *                 Method functions header v1.4                  *
  *                                                               *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -135,7 +135,8 @@ int MethodParseParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, con
     {
       ++hParamStack->nElements;
 
-      if (*wpParamBegin >= L'0' && *wpParamBegin <= L'9')
+      if ((*wpParamBegin >= L'0' && *wpParamBegin <= L'9') ||
+          (*wpParamBegin == L'-' && *(wpParamBegin + 1) >= L'0' && *(wpParamBegin + 1) <= L'9'))
       {
         lpParameter->dwType=EXTPARAM_INT;
         if (*wpParamBegin == L'0' && *(wpParamBegin + 1) == L'x')
