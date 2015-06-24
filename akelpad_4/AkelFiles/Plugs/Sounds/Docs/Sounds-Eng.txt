@@ -1,5 +1,5 @@
 *****************************************************************
-***                Sounds AkelPad plugin v3.1                 ***
+***                Sounds AkelPad plugin v3.2                 ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
