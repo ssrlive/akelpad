@@ -1,4 +1,9 @@
 
+AkelPad 4.9.5 ()
+----------------------------
+Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
+
+
 AkelPad 4.9.4 (Jun 03, 2015)
 ----------------------------
 Changed: no tab icon sizing if screen scale other than 96 dpi.
