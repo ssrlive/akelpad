@@ -5943,9 +5943,14 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGED)
       {
-        StackRecentCaretFree(&lpFrameCurrent->hRecentCaretStack);
-        lpFrameCurrent->lpCurRecentCaret=NULL;
-        lpFrameCurrent->hCurUndoItem=NULL;
+        AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
+
+        if (!(aentc->dwType & AETCT_WRAP))
+        {
+          StackRecentCaretFree(&lpFrameCurrent->hRecentCaretStack);
+          lpFrameCurrent->lpCurRecentCaret=NULL;
+          lpFrameCurrent->hCurUndoItem=NULL;
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGING)
       {
