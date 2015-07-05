@@ -2140,6 +2140,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_StackFoldUpdate(ae, (int)lParam);
     }
+    case AEM_GETFOLDHIDEOFFSET:
+    {
+      return MAKELONG(ae->ptxt->nHideMinLineOffset, ae->ptxt->nHideMaxLineOffset);
+    }
+    case AEM_SETFOLDHIDEOFFSET:
+    {
+      ae->ptxt->nHideMinLineOffset=(short)LOWORD(wParam);
+      ae->ptxt->nHideMaxLineOffset=(short)HIWORD(wParam);
+      return 0;
+    }
 
     //Window data
     case AEM_CREATEDOCUMENT:
@@ -6457,7 +6467,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
     }
 
     //Find fold by line
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE, nLine, NULL, &lpSubling, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE|(ae->ptxt->nHideMaxLineOffset >= 0?AEFF_FOLDEND:0), nLine, NULL, &lpSubling, &lpPrevSubling);
 
     while (lpSubling)
     {
@@ -6493,7 +6503,7 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE, nLine, NULL, &lpSubling, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE|(ae->ptxt->nHideMaxLineOffset >= 0?AEFF_FOLDEND:0), nLine, NULL, &lpSubling, &lpPrevSubling);
     lpFold=lpSubling;
 
     while (lpSubling)

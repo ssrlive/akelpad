@@ -1698,6 +1698,8 @@ typedef struct {
 #define AEM_COLLAPSELINE          (WM_USER + 2390)
 #define AEM_COLLAPSEFOLD          (WM_USER + 2391)
 #define AEM_UPDATEFOLD            (WM_USER + 2392)
+#define AEM_GETFOLDHIDEOFFSET     (WM_USER + 2393)
+#define AEM_SETFOLDHIDEOFFSET     (WM_USER + 2394)
 
 //Document
 #define AEM_CREATEDOCUMENT        (WM_USER + 2401)
@@ -5420,6 +5422,40 @@ Example:
  SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold1, FALSE);
  SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold2, AECF_EXPAND|AECF_NOUPDATE);
  SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, nFirstVisibleLine);
+
+
+AEM_GETFOLDHIDEOFFSET
+_____________________
+
+Retrieve folding hide line offsets.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The low-order word contains the fold begin line offset to hide. Default is 1.
+ The high-order word contains the fold end line offset to hide. Default is -1.
+
+Example:
+ DWORD dwHideLineOffsets=SendMessage(hWndEdit, AEM_GETFOLDHIDEOFFSET, 0, 0);
+ int nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
+ int nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
+
+
+AEM_SETFOLDHIDEOFFSET
+_____________________
+
+Set folding hide line offsets.
+
+(DWORD)wParam == the low-order word contains the fold begin line offset to hide. Default is 1.
+                 the high-order word contains the fold end line offset to hide. Default is -1.
+lParam        == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(1, 0), 0);
 
 
 AEM_CREATEDOCUMENT
