@@ -3365,14 +3365,16 @@ int CALLBACK PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMatch
     //Shift points
     if (pep->nPointCount)
     {
+      PATREPLACEPOINT *lpPointCount;
+      PATREPLACEPOINT *lpPointMax=pep->lpPointArray + pep->nPointCount;
       INT_PTR nDiff=lpREGroupRoot->nStrLen - (pep->wpBufCount - wpStartRep);
 
-      for (nIndex=0; nIndex < pep->nPointCount; ++nIndex)
+      for (lpPointCount=pep->lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
       {
-        if (pep->lpPointArray[nIndex].wpStr >= lpREGroupRoot->wpStrEnd)
-          pep->lpPointArray[nIndex].nShift-=nDiff;
-        else if (pep->lpPointArray[nIndex].wpStr > lpREGroupRoot->wpStrStart)
-          pep->lpPointArray[nIndex].nShift-=(pep->lpPointArray[nIndex].wpStr - lpREGroupRoot->wpStrStart);
+        if (lpPointCount->wpStr >= lpREGroupRoot->wpStrEnd)
+          lpPointCount->nShift-=nDiff;
+        else if (lpPointCount->wpStr > lpREGroupRoot->wpStrStart)
+          lpPointCount->nShift-=(lpPointCount->wpStr - lpREGroupRoot->wpStrStart);
       }
     }
   }
@@ -3439,14 +3441,16 @@ int CALLBACK AE_PatReplaceCallback(PATEXEC *pe, REGROUP *lpREGroupRoot, BOOL bMa
     //Shift points
     if (pep->nPointCount)
     {
+      PATREPLACEPOINT *lpPointCount;
+      PATREPLACEPOINT *lpPointMax=pep->lpPointArray + pep->nPointCount;
       INT_PTR nDiff=lpREGroupRoot->nStrLen - (pep->wpBufCount - wpStartRep);
 
-      for (nIndex=0; nIndex < pep->nPointCount; ++nIndex)
+      for (lpPointCount=pep->lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
       {
-        if (AEC_IndexCompare(&pep->lpPointArray[nIndex].ciStr, &lpREGroupRoot->ciStrEnd) >= 0)
-          pep->lpPointArray[nIndex].nShift-=nDiff;
-        else if (AEC_IndexCompare(&pep->lpPointArray[nIndex].ciStr, &lpREGroupRoot->ciStrStart) > 0)
-          pep->lpPointArray[nIndex].nShift-=AE_PatStrCopy(&lpREGroupRoot->ciStrStart, &pep->lpPointArray[nIndex].ciStr, NULL, NULL);
+        if (AEC_IndexCompare(&lpPointCount->ciStr, &lpREGroupRoot->ciStrEnd) >= 0)
+          lpPointCount->nShift-=nDiff;
+        else if (AEC_IndexCompare(&lpPointCount->ciStr, &lpREGroupRoot->ciStrStart) > 0)
+          lpPointCount->nShift-=AE_PatStrCopy(&lpREGroupRoot->ciStrStart, &lpPointCount->ciStr, NULL, NULL);
       }
     }
   }

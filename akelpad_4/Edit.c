@@ -10650,6 +10650,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
 
 INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, PATREPLACEPOINT *lpPointArray, int nPointCount)
 {
+  PATREPLACEPOINT *lpPointCount;
+  PATREPLACEPOINT *lpPointMax;
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
   const wchar_t *wpMatchCount;
@@ -10660,7 +10662,6 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
   wchar_t *wpResultCount;
   INT_PTR nChanges=0;
   INT_PTR nDiff;
-  int nIndex;
 
   if (nTextLen == -1)
     nTextLen=xstrlenW(wpText) + 1;
@@ -10668,6 +10669,8 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
     nItLen=(int)xstrlenW(wpIt);
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
+  if (nPointCount)
+    lpPointMax=lpPointArray + nPointCount;
   nDiff=nItLen - nWithLen;
   wpTextMax=wpText + nTextLen;
   wpItMax=wpIt + nItLen;
@@ -10714,12 +10717,12 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
         {
           if (nPointCount)
           {
-            for (nIndex=0; nIndex < nPointCount; ++nIndex)
+            for (lpPointCount=lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
             {
-              if (lpPointArray[nIndex].wpStr > wpMatchCount)
-                lpPointArray[nIndex].nShift-=nDiff;
-              else if (lpPointArray[nIndex].wpStr > wpTextCount)
-                lpPointArray[nIndex].nShift-=(lpPointArray[nIndex].wpStr - wpTextCount);
+              if (lpPointCount->wpStr > wpMatchCount)
+                lpPointCount->nShift-=nDiff;
+              else if (lpPointCount->wpStr > wpTextCount)
+                lpPointCount->nShift-=(lpPointCount->wpStr - wpTextCount);
             }
           }
 
