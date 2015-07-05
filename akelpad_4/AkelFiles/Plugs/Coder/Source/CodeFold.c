@@ -899,6 +899,7 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndTagMark;
   static HWND hWndCollapseOnOpen;
   static HWND hWndNoPrintCollapsed;
+  static HWND hWndHideFoldEnd;
   static HWND hWndFindRootHotkey;
   static HWND hWndFindRootDepth;
   static HWND hWndFindRootDepthSpin;
@@ -919,6 +920,7 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndTagMark=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_TAGMARK);
     hWndCollapseOnOpen=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_COLLAPSEONOPEN);
     hWndNoPrintCollapsed=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_NOPRINTCOLLAPSED);
+    hWndHideFoldEnd=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HIDEFOLDEND);
     hWndFindRootHotkey=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTHOTKEY);
     hWndFindRootDepth=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_EDIT);
     hWndFindRootDepthSpin=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_SPIN);
@@ -936,6 +938,7 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_TAGMARK, GetLangStringW(wLangModule, STRID_TAGMARK));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_COLLAPSEONOPEN, GetLangStringW(wLangModule, STRID_COLLAPSEONOPEN));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_NOPRINTCOLLAPSED, GetLangStringW(wLangModule, STRID_NOPRINTCOLLAPSED));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HIDEFOLDEND, GetLangStringW(wLangModule, STRID_HIDEFOLDEND));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOT_GROUP, GetLangStringW(wLangModule, STRID_FINDROOT));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTHOTKEY_LABEL, GetLangStringW(wLangModule, STRID_HOTKEY));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_LABEL, GetLangStringW(wLangModule, STRID_DEPTH));
@@ -961,6 +964,8 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCollapseOnOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (bNoPrintCollapsed)
       SendMessage(hWndNoPrintCollapsed, BM_SETCHECK, BST_CHECKED, 0);
+    if (bHideFoldEnd)
+      SendMessage(hWndHideFoldEnd, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hWndFindRootDepthSpin, UDM_SETBUDDY, (WPARAM)hWndFindRootDepth, 0);
     SendMessage(hWndFindRootDepthSpin, UDM_SETRANGE, 0, MAKELONG(99, 0));
@@ -1019,6 +1024,7 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       bTagMarkEnable=(BOOL)SendMessage(hWndTagMark, BM_GETCHECK, 0, 0);
       bCollapseOnOpen=(BOOL)SendMessage(hWndCollapseOnOpen, BM_GETCHECK, 0, 0);
       bNoPrintCollapsed=(BOOL)SendMessage(hWndNoPrintCollapsed, BM_GETCHECK, 0, 0);
+      bHideFoldEnd=(BOOL)SendMessage(hWndHideFoldEnd, BM_GETCHECK, 0, 0);
 
       dwFindRootLevel=(WORD)SendMessage(hWndFindRootHotkey, HKM_GETHOTKEY, 0, 0);
       nFindRootMaxDepth=GetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_EDIT, NULL, FALSE);
@@ -4618,6 +4624,7 @@ void ReadCodeFoldOptions(HANDLE hOptions)
   WideOption(hOptions, L"TagMarkEnable", PO_DWORD, (LPBYTE)&bTagMarkEnable, sizeof(DWORD));
   WideOption(hOptions, L"CollapseOnOpen", PO_DWORD, (LPBYTE)&bCollapseOnOpen, sizeof(DWORD));
   WideOption(hOptions, L"NoPrintCollapsed", PO_DWORD, (LPBYTE)&bNoPrintCollapsed, sizeof(DWORD));
+  WideOption(hOptions, L"HideFoldEnd", PO_DWORD, (LPBYTE)&bHideFoldEnd, sizeof(DWORD));
   WideOption(hOptions, L"FindRootMaxDepth", PO_DWORD, (LPBYTE)&nFindRootMaxDepth, sizeof(DWORD));
   WideOption(hOptions, L"CurrentCollapse", PO_DWORD, (LPBYTE)&dwCurrentCollapse, sizeof(DWORD));
   WideOption(hOptions, L"CurrentGoBegin", PO_DWORD, (LPBYTE)&dwCurrentGoBegin, sizeof(DWORD));
@@ -4656,6 +4663,7 @@ void SaveCodeFoldOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"TagMarkEnable", PO_DWORD, (LPBYTE)&bTagMarkEnable, sizeof(DWORD));
     WideOption(hOptions, L"CollapseOnOpen", PO_DWORD, (LPBYTE)&bCollapseOnOpen, sizeof(DWORD));
     WideOption(hOptions, L"NoPrintCollapsed", PO_DWORD, (LPBYTE)&bNoPrintCollapsed, sizeof(DWORD));
+    WideOption(hOptions, L"HideFoldEnd", PO_DWORD, (LPBYTE)&bHideFoldEnd, sizeof(DWORD));
     WideOption(hOptions, L"FindRootMaxDepth", PO_DWORD, (LPBYTE)&nFindRootMaxDepth, sizeof(DWORD));
     WideOption(hOptions, L"CurrentCollapse", PO_DWORD, (LPBYTE)&dwCurrentCollapse, sizeof(DWORD));
     WideOption(hOptions, L"CurrentGoBegin", PO_DWORD, (LPBYTE)&dwCurrentGoBegin, sizeof(DWORD));

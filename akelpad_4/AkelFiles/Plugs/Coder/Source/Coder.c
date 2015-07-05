@@ -6138,6 +6138,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0432\x043E\x0440\x0430\x0447\x0438\x0432\x0430\x0442\x044C\x0020\x0432\x0441\x0435\x0020\x043F\x0440\x0438\x0020\x043E\x0442\x043A\x0440\x044B\x0442\x0438\x0438";
     if (nStringID == STRID_NOPRINTCOLLAPSED)
       return L"\x041D\x0435\x0020\x043F\x0435\x0447\x0430\x0442\x0430\x0442\x044C\x0020\x0441\x0432\x0435\x0440\x043D\x0443\x0442\x044B\x0435\x0020\x0441\x0442\x0440\x043E\x043A\x0438";
+    if (nStringID == STRID_HIDEFOLDEND)
+      return L"\x0421\x043A\x0440\x044B\x0432\x0430\x0442\x044C\x0020\x043F\x043E\x0441\x043B\x0435\x0434\x043D\x044E\x044E\x0020\x0441\x0442\x0440\x043E\x043A\x0443\x0020\x0431\x043B\x043E\x043A\x0430";
     if (nStringID == STRID_FINDROOT)
       return L"\x041D\x0430\x0439\x0442\x0438\x0020\x043A\x043E\x0440\x0435\x043D\x044C";
     if (nStringID == STRID_HOTKEY)
@@ -6368,6 +6370,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Collapse all on open";
     if (nStringID == STRID_NOPRINTCOLLAPSED)
       return L"No print collapsed lines";
+    if (nStringID == STRID_HIDEFOLDEND)
+      return L"Hide fold last line";
     if (nStringID == STRID_FINDROOT)
       return L"Find root level";
     if (nStringID == STRID_HOTKEY)
