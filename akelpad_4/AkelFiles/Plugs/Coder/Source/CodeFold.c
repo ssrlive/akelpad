@@ -1693,6 +1693,7 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
             lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
             lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
+            lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
             if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
             {
               lpFoldWindow->nHideMaxLineOffset=0;
@@ -2000,7 +2001,8 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
               nVPos+=nCharHeight;
               AEC_NextLine(&ciFirstLine);
             }
-            else SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine);
+            else if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine))
+              break;
           }
           BitBlt(hDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.bottom - lpFoldWindow->rcBoard.top, hBufferDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, SRCCOPY);
 
@@ -2843,6 +2845,9 @@ void StackFreeFoldWindows(STACKFOLDWINDOW *hStack)
       StackDeleteManual(&hManualStack, lpFoldWindow->lpUser, CODER_CODEFOLD);
     else
       FreeFolds(lpFoldWindow, TRUE);
+
+    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
+      SendMessage(lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
   }
 
   if (nMDI == WMD_PMDI)
