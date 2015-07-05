@@ -241,6 +241,8 @@ typedef struct _FOLDWINDOW {
   HWND hWndEdit;
   AEHDOC hDocEdit;
   RECT rcBoard;
+  int nHideMinLineOffset;
+  int nHideMaxLineOffset;
   AECHARRANGE crTextChange;
   AEFOLD *lpTextChangeMinParent;
   AEFOLD *lpTextChangeMaxParent;
