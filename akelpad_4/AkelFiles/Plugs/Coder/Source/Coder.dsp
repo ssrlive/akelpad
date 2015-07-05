@@ -170,6 +170,10 @@ SOURCE=.\Resources\12.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\Resources\13.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\Resources\Coder.rc
 # End Source File
 # End Group
