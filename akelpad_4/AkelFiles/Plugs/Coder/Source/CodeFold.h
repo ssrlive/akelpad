@@ -31,14 +31,15 @@
 #define STRID_TAGMARK                225
 #define STRID_COLLAPSEONOPEN         226
 #define STRID_NOPRINTCOLLAPSED       227
-#define STRID_FINDROOT               228
-#define STRID_HOTKEY                 229
-#define STRID_DEPTH                  230
-#define STRID_HOTKEYCURRENT          231
-#define STRID_HOTKEYALL              232
-#define STRID_COLLAPSE               233
-#define STRID_NEXTLEVEL              234
-#define STRID_PREVLEVEL              235
+#define STRID_HIDEFOLDEND            228
+#define STRID_FINDROOT               229
+#define STRID_HOTKEY                 230
+#define STRID_DEPTH                  231
+#define STRID_HOTKEYCURRENT          232
+#define STRID_HOTKEYALL              233
+#define STRID_COLLAPSE               234
+#define STRID_NEXTLEVEL              235
+#define STRID_PREVLEVEL              236
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
 #define DLLA_CODEFOLD_ADDWINDOW  50
