@@ -41,9 +41,10 @@ int nShowDock=CFSD_AUTO;
 int nFollowCaret=FCO_ANYWHERE;
 BOOL bFoldListSystemColors=FALSE;
 BOOL bFoldListSystemFont=TRUE;
-BOOL bNoPrintCollapsed=FALSE;
-BOOL bCollapseOnOpen=FALSE;
 BOOL bTagMarkEnable=TRUE;
+BOOL bCollapseOnOpen=FALSE;
+BOOL bNoPrintCollapsed=FALSE;
+BOOL bHideFoldEnd=FALSE;
 int nDrawNodeType=DNT_ROUND;
 int nFindRootMaxDepth=0;
 HCURSOR hCursorArrow=NULL;
@@ -1680,6 +1681,19 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           SetEditRect(NULL, hWnd, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, 0);
           UpdateWindow(hWnd);
 
+          //Initialize edit settings
+          {
+            DWORD dwHideLineOffsets=SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
+
+            lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
+            lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
+            if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
+            {
+              lpFoldWindow->nHideMaxLineOffset=0;
+              SendMessage(hWnd, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffset), 0);
+            }
+          }
+
           //WM_PAINT was sended after UpdateWindow, so don't redraw edit.
           *lResult=0;
           return TRUE;
@@ -1905,8 +1919,11 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                   RoundRect(hBufferDC, (nHPos - BOARD_WIDTH / 2), (nVPos + nCharHeight / 2 - BOARD_WIDTH / 2), (nHPos + BOARD_WIDTH / 2) + 1, (nVPos + nCharHeight / 2 + BOARD_WIDTH / 2) + 1, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0);
 
                   //Line after node
-                  MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
-                  LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
+                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !lpFold->bCollapse || lpFold->parent)
+                  {
+                    MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
+                    LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
+                  }
 
                   //Draw sign
                   if (lpFold->bCollapse)
@@ -1965,17 +1982,10 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                 }
                 else
                 {
-                  if (lpFold->bCollapse)
-                  {
-                    nVPos-=nCharHeight;
-                  }
-                  else
-                  {
-                    //Vertical line
-                    MoveToEx(hBufferDC, nHPos, nVPos, NULL);
-                    LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
-                    nLastFigure=FRG_LINE;
-                  }
+                  //Vertical line
+                  MoveToEx(hBufferDC, nHPos, nVPos, NULL);
+                  LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
+                  nLastFigure=FRG_LINE;
                 }
               }
               else nLastFigure=FRG_NONE;
