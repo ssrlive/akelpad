@@ -5433,8 +5433,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- The low-order word contains the fold begin line offset to hide. Default is 1.
- The high-order word contains the fold end line offset to hide. Default is -1.
+ The low-order word contains the fold begin line offset to hide.
+ The high-order word contains the fold end line offset to hide.
 
 Example:
  DWORD dwHideLineOffsets=SendMessage(hWndEdit, AEM_GETFOLDHIDEOFFSET, 0, 0);
@@ -5447,8 +5447,8 @@ _____________________
 
 Set folding hide line offsets.
 
-(DWORD)wParam == the low-order word contains the fold begin line offset to hide. Default is 1.
-                 the high-order word contains the fold end line offset to hide. Default is -1.
+(DWORD)wParam == the low-order word contains the fold begin line offset to hide. Must be >= 1. Default is 1.
+                 the high-order word contains the fold end line offset to hide. Must be <= 0. Default is -1.
 lParam        == not used.
 
 Return Value
