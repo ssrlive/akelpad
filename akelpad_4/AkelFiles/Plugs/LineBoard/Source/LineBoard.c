@@ -1769,7 +1769,7 @@ BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             }
           }
 
-          if (ciFirstLine.nLine > ciLastLine.nLine && rcDraw.top < rcDraw.bottom)
+          if (rcDraw.top < rcDraw.bottom)
           {
             FillRect(hBufferDC, &rcDraw, hBrushBoard);
           }
