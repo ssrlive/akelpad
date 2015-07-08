@@ -160,6 +160,11 @@
 #define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
 #define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
 
+//AEM_GETFOLDCOUNT types
+#define AEFC_ALL              0  //All folds.
+#define AEFC_COLLAPSED        1  //Collapsed folds.
+#define AEFC_COLORED          2  //Colored folds.
+
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
 #define AECF_COLLAPSE         0x00000001  //Collapse fold.
@@ -5225,14 +5230,14 @@ ________________
 
 Retrieve folds count.
 
-wParam == not used.
-lParam == not used.
+(int)wParam == see AEFC_* defines.
+lParam      == not used.
 
 Return Value
  Number of folds.
 
 Example:
-  SendMessage(hWndEdit, AEM_GETFOLDCOUNT, 0, 0);
+  SendMessage(hWndEdit, AEM_GETFOLDCOUNT, AEFC_ALL, 0);
 
 
 AEM_ADDFOLD

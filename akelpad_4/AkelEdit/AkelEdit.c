@@ -2058,7 +2058,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_GETFOLDCOUNT:
     {
-      return ae->ptxt->nFoldAllCount;
+      if (wParam == AEFC_ALL)
+        return ae->ptxt->nFoldAllCount;
+      if (wParam == AEFC_COLLAPSED)
+        return ae->ptxt->nFoldCollapseCount;
+      if (wParam == AEFC_COLORED)
+        return ae->ptxt->nFoldColorCount;
+      return 0;
     }
     case AEM_ADDFOLD:
     {
@@ -6195,6 +6201,8 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
       ++ae->ptxt->nFoldColorCount;
     }
     ++ae->ptxt->nFoldAllCount;
+    if (lpNewElement->bCollapse)
+      ++ae->ptxt->nFoldCollapseCount;
   }
   ae->ptxt->lpVPosFold=NULL;
   return lpNewElement;
@@ -6454,7 +6462,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
 
-  if (ae->ptxt->hFoldsStack.first)
+  if (ae->ptxt->hFoldsStack.first && ae->ptxt->nFoldCollapseCount)
   {
     //Check input fold
     if (ae->ptxt->lpIsCollapsedLastCall && ae->ptxt->lpIsCollapsedLastCall->bCollapse)
@@ -6514,6 +6522,10 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
             AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
         {
           lpSubling->bCollapse=!lpSubling->bCollapse;
+          if (lpSubling->bCollapse)
+            ++ae->ptxt->nFoldCollapseCount;
+          else
+            --ae->ptxt->nFoldCollapseCount;
           ++nResult;
         }
       }
@@ -6546,6 +6558,10 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
     if (!lpCount->bCollapse != !(dwFlags & AECF_COLLAPSE))
     {
       lpCount->bCollapse=!lpCount->bCollapse;
+      if (lpCount->bCollapse)
+        ++ae->ptxt->nFoldCollapseCount;
+      else
+        --ae->ptxt->nFoldCollapseCount;
       ++nResult;
     }
     if (dwFlags & AECF_RECURSE)
@@ -6697,6 +6713,8 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
     --ae->ptxt->nFoldColorCount;
   }
   --ae->ptxt->nFoldAllCount;
+  if (lpFold->bCollapse)
+    --ae->ptxt->nFoldCollapseCount;
 
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
@@ -6746,6 +6764,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
   }
   ae->ptxt->nFoldColorCount=0;
   ae->ptxt->nFoldAllCount=0;
+  ae->ptxt->nFoldCollapseCount=0;
 
   return nCollapse;
 }
@@ -6760,7 +6779,7 @@ int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos)
   int nLine=(int)(nVPos / ae->ptxt->nCharHeight);
   int nHiddenLines=0;
 
-  if (ae->ptxt->hFoldsStack.first)
+  if (ae->ptxt->hFoldsStack.first && ae->ptxt->nFoldCollapseCount)
   {
     dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
     if (ae->ptxt->lpVPosFold)
@@ -6852,7 +6871,7 @@ INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine)
   int nCurMaxLine;
   int nHiddenLines=0;
 
-  if (ae->ptxt->hFoldsStack.first)
+  if (ae->ptxt->hFoldsStack.first && ae->ptxt->nFoldCollapseCount)
   {
     dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
     if (ae->ptxt->lpVPosFold)
