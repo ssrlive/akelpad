@@ -8369,7 +8369,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         if (nType == AEGI_NEXTUNCOLLAPSEDLINE)
         {
-          if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
+          while (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           {
             ciCharTmp=lpCollapsed->lpMaxPoint->ciPoint;
             while (ciCharTmp.nLine > AE_LastCollapsibleLine(ae, lpCollapsed))
@@ -8400,7 +8400,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         if (nType == AEGI_PREVUNCOLLAPSEDLINE)
         {
-          if (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
+          while (lpCollapsed=AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           {
             ciCharTmp=lpCollapsed->lpMinPoint->ciPoint;
             while (ciCharTmp.nLine < AE_FirstCollapsibleLine(ae, lpCollapsed))
