@@ -8374,7 +8374,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
             ciCharTmp=lpCollapsed->lpMaxPoint->ciPoint;
             while (ciCharTmp.nLine > AE_LastCollapsibleLine(ae, lpCollapsed))
               AEC_PrevLine(&ciCharTmp);
-            AEC_NextLine(&ciCharTmp);
+            if (!AEC_NextLine(&ciCharTmp))
+              break;
           }
         }
       }
@@ -8405,7 +8406,8 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
             ciCharTmp=lpCollapsed->lpMinPoint->ciPoint;
             while (ciCharTmp.nLine < AE_FirstCollapsibleLine(ae, lpCollapsed))
               AEC_NextLine(&ciCharTmp);
-            AEC_PrevLine(&ciCharTmp);
+            if (!AEC_PrevLine(&ciCharTmp))
+              break;
           }
         }
       }
