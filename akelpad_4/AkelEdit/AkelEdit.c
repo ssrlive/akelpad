@@ -6752,20 +6752,23 @@ int AE_StackFoldFree(AKELEDIT *ae)
 
 INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
 {
+  if (dwFlags & AEVPF_VPOSFROMLINE)
+    return AE_VPosFromLine(ae, (int)nValue);
+  if (dwFlags & AEVPF_LINEFROMVPOS)
+    return AE_LineFromVPos(ae, nValue);
+  return -1;
+}
+
+INT_PTR AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos)
+{
   AEFOLD *lpSubling=NULL;
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   int nCurMinLine;
   int nCurMaxLine;
-  int nLine=0;
+  int nLine=(int)(nVPos / ae->ptxt->nCharHeight);
+  int nHiddenCount;
   int nHiddenLines=0;
-
-  if (dwFlags & AEVPF_VPOSFROMLINE)
-    nLine=(int)nValue;
-  else if (dwFlags & AEVPF_LINEFROMVPOS)
-    nLine=(int)(nValue / ae->ptxt->nCharHeight);
-  else
-    return -1;
 
   if (ae->ptxt->hFoldsStack.first)
   {
@@ -6782,16 +6785,14 @@ INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
     {
       lpSubling=ae->ptxt->lpVPosFold;
       nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
-      if (dwFlags & AEVPF_LINEFROMVPOS)
-        nLine+=ae->ptxt->nVPosFoldHiddenLines;
     }
 
-    if (nLine >= lpSubling->lpMinPoint->ciPoint.nLine)
+    if (nLine > lpSubling->lpMinPoint->ciPoint.nLine - nHiddenLines)
     {
+      nLine+=nHiddenLines;
+
       while (lpSubling)
       {
-        if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
-          break;
         ae->ptxt->lpVPosFold=lpSubling;
         ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
 
@@ -6805,21 +6806,14 @@ INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
           if (nCurMinLine <= nCurMaxLine)
           {
             //Hidden count
-            if (nLine <= nCurMaxLine && (dwFlags & AEVPF_VPOSFROMLINE))
-            {
-              nHiddenLines+=nLine - nCurMinLine + 1;
-              break;
-            }
-            else
-            {
-              nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
-              if (dwFlags & AEVPF_LINEFROMVPOS)
-                nLine+=nCurMaxLine - nCurMinLine + 1;
-            }
+            nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
+            nLine+=nCurMaxLine - nCurMinLine + 1;
           }
           lpSubling=AEC_NextFold(lpSubling, FALSE);
           continue;
         }
+        if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
+          break;
         lpSubling=AEC_NextFold(lpSubling, TRUE);
       }
     }
@@ -6829,9 +6823,101 @@ INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
 
       while (lpSubling)
       {
-        if (nLine > lpSubling->lpMaxPoint->ciPoint.nLine)
-          break;
+        if (lpSubling->bCollapse)
+        {
+          //Get collapsible range
+          nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(ae, lpSubling);
 
+          //Hidden count
+          if (nCurMinLine <= nCurMaxLine)
+            nHiddenCount=nCurMaxLine - nCurMinLine + 1;
+          else
+            nHiddenCount=0;
+          if (nLine > nCurMaxLine - (nHiddenLines - nHiddenCount)) break;
+          nHiddenLines-=nHiddenCount;
+
+          ae->ptxt->lpVPosFold=lpSubling;
+          ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+          lpSubling=AEC_PrevFold(lpSubling, FALSE);
+          continue;
+        }
+        if (nLine > lpSubling->lpMaxPoint->ciPoint.nLine - nHiddenLines)
+          break;
+        ae->ptxt->lpVPosFold=lpSubling;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+        lpSubling=AEC_PrevFold(lpSubling, TRUE);
+      }
+      nLine+=nHiddenLines;
+    }
+  }
+  return nLine;
+}
+
+INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine)
+{
+  AEFOLD *lpSubling=NULL;
+  DWORD dwFirst=(DWORD)-1;
+  DWORD dwSecond=(DWORD)-1;
+  int nCurMinLine;
+  int nCurMaxLine;
+  int nHiddenLines=0;
+
+  if (ae->ptxt->hFoldsStack.first)
+  {
+    dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+    if (ae->ptxt->lpVPosFold)
+      dwSecond=mod(nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+
+    if (dwFirst <= dwSecond)
+    {
+      lpSubling=ae->ptxt->hFoldsStack.first;
+      nHiddenLines=0;
+    }
+    else if (dwSecond <= dwFirst)
+    {
+      lpSubling=ae->ptxt->lpVPosFold;
+      nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
+    }
+
+    if (nLine >= lpSubling->lpMinPoint->ciPoint.nLine)
+    {
+      while (lpSubling)
+      {
+        ae->ptxt->lpVPosFold=lpSubling;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+
+        if (lpSubling->bCollapse)
+        {
+          //Get collapsible range
+          nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(ae, lpSubling);
+          if (nLine < nCurMinLine) break;
+
+          if (nCurMinLine <= nCurMaxLine)
+          {
+            //Hidden count
+            if (nLine <= nCurMaxLine)
+            {
+              nHiddenLines+=nLine - nCurMinLine + 1;
+              break;
+            }
+            nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
+          }
+          lpSubling=AEC_NextFold(lpSubling, FALSE);
+          continue;
+        }
+        if (nLine <= lpSubling->lpMinPoint->ciPoint.nLine)
+          break;
+        lpSubling=AEC_NextFold(lpSubling, TRUE);
+      }
+    }
+    else
+    {
+      lpSubling=AEC_PrevFold(lpSubling, FALSE);
+
+      while (lpSubling)
+      {
         if (lpSubling->bCollapse)
         {
           //Get collapsible range
@@ -6842,37 +6928,27 @@ INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags)
           if (nCurMinLine <= nCurMaxLine)
           {
             //Hidden count
-            if (nLine >= nCurMinLine && (dwFlags & AEVPF_VPOSFROMLINE))
+            if (nLine >= nCurMinLine)
             {
               nHiddenLines-=nCurMaxLine - nLine + 1;
               break;
             }
-            else
-            {
-              nHiddenLines-=nCurMaxLine - nCurMinLine + 1;
-              if (dwFlags & AEVPF_LINEFROMVPOS)
-                nLine-=nCurMaxLine - nCurMinLine + 1;
-            }
+            nHiddenLines-=nCurMaxLine - nCurMinLine + 1;
           }
           ae->ptxt->lpVPosFold=lpSubling;
           ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
           lpSubling=AEC_PrevFold(lpSubling, FALSE);
           continue;
         }
-        if (!lpSubling->firstChild)
-        {
-          ae->ptxt->lpVPosFold=lpSubling;
-          ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
-        }
+        if (nLine > lpSubling->lpMaxPoint->ciPoint.nLine)
+          break;
+        ae->ptxt->lpVPosFold=lpSubling;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
         lpSubling=AEC_PrevFold(lpSubling, TRUE);
       }
     }
   }
-  if (dwFlags & AEVPF_LINEFROMVPOS)
-    return nLine;
-  if (dwFlags & AEVPF_VPOSFROMLINE)
-    return (INT_PTR)(nLine - nHiddenLines) * ae->ptxt->nCharHeight;
-  return -1;
+  return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)

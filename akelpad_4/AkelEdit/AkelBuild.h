@@ -839,6 +839,8 @@ BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold);
 BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold);
 int AE_StackFoldFree(AKELEDIT *ae);
 INT_PTR AE_VPos(AKELEDIT *ae, INT_PTR nValue, DWORD dwFlags);
+INT_PTR AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos);
+INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointUnreserve(AKELEDIT *ae);
