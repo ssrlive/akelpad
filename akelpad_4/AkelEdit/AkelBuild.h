@@ -548,6 +548,7 @@ typedef struct {
   //Folding
   AESTACKFOLD hFoldsStack;
   int nFoldAllCount;
+  int nFoldCollapseCount;
   int nFoldColorCount;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
