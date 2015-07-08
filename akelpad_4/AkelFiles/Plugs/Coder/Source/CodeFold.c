@@ -1689,7 +1689,7 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
           //Initialize edit settings
           {
-            DWORD dwHideLineOffsets=SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
+            DWORD dwHideLineOffsets=(DWORD)SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
 
             lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
             lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
@@ -2080,7 +2080,6 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     RECT rcClickable;
     POINT pt;
     int nClickLine;
-    BOOL bWithChildren;
 
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
@@ -2102,23 +2101,22 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           {
             if (lpClick->lpMinPoint->ciPoint.nLine == nClickLine)
             {
-              //If folds start at the same line, use deepless
-              for (lpDeepless=lpClick->parent; lpDeepless; lpDeepless=lpDeepless->parent)
-              {
-                if (lpDeepless->lpMinPoint->ciPoint.nLine == nClickLine)
-                  lpClick=lpDeepless;
-                else
-                  break;
-              }
-              if (GetKeyState(VK_CONTROL) < 0)
-                bWithChildren=TRUE;
-              else
-                bWithChildren=FALSE;
-
               if (uMsg == WM_SETCURSOR)
+              {
                 SetCursor(hCursorArrow);
+              }
               else
-                FoldSwitchCollapse(lpFoldWindow, lpClick, bWithChildren?AECF_RECURSE:0);
+              {
+                //If folds start at the same line, use deepless
+                for (lpDeepless=lpClick->parent; lpDeepless; lpDeepless=lpDeepless->parent)
+                {
+                  if (lpDeepless->lpMinPoint->ciPoint.nLine == nClickLine)
+                    lpClick=lpDeepless;
+                  else
+                    break;
+                }
+                FoldSwitchCollapse(lpFoldWindow, lpClick, (GetKeyState(VK_CONTROL) < 0?AECF_RECURSE:0));
+              }
               *lResult=1;
               return TRUE;
             }
