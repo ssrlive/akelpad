@@ -1756,7 +1756,8 @@ BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             }
             else
             {
-              SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine);
+              if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine))
+                break;
 
               if (nLineModificationWidth && (hPenModifiedSaved || hPenModifiedUnsaved))
               {
