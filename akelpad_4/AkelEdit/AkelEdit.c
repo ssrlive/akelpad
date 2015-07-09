@@ -1324,9 +1324,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     case AEM_VPOSFROMLINE:
     {
       if (wParam == AECT_GLOBAL)
-        return AE_VPosFromLine(ae, lParam);
+        return AE_VPosFromLine(ae, (int)lParam);
       if (wParam == AECT_CLIENT)
-        return ae->rcDraw.top + (AE_VPosFromLine(ae, lParam) - ae->nVScrollPos);
+        return ae->rcDraw.top + (AE_VPosFromLine(ae, (int)lParam) - ae->nVScrollPos);
     }
     case AEM_GETMOUSESTATE:
     {
