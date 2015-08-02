@@ -6206,6 +6206,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0423\x0447\x0438\x0442\x044B\x0432\x0430\x0442\x044C\x0020\x0440\x0430\x0437\x0434\x0435\x043B\x0438\x0442\x0435\x043B\x0438\x0020\x0441\x043F\x0440\x0430\x0432\x0430\x0020\x043E\x0442\x0020\x043A\x0430\x0440\x0435\x0442\x043A\x0438";
     if (nStringID == STRID_SYNTAXDELIMITERS)
       return L"\x0418\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x0442\x044C\x0020\x0440\x0430\x0437\x0434\x0435\x043B\x0438\x0442\x0435\x043B\x0438\x0020\x0438\x0437\x0020\x0441\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x043E\x0439\x0020\x0442\x0435\x043C\x044B";
+    if (nStringID == STRID_COMPLETECASESENSITIVE)
+      return L"\x0414\x043E\x043F\x043E\x043B\x043D\x044F\x0442\x044C\x0020\x0441\x0020\x0443\x0447\x0451\x0442\x043E\x043C\x0020\x0440\x0435\x0433\x0438\x0441\x0442\x0440\x0430";
   }
   else
   {
@@ -6438,6 +6440,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Consider delimiters from right at the caret";
     if (nStringID == STRID_SYNTAXDELIMITERS)
       return L"Use delimiters from syntax theme";
+    if (nStringID == STRID_COMPLETECASESENSITIVE)
+      return L"Case sensitive completion";
   }
   return L"";
 }

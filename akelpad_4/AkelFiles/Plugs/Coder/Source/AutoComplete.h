@@ -26,6 +26,7 @@
 #define STRID_NOSYMBOLMARK               320
 #define STRID_RIGHTDELIMITERS            321
 #define STRID_SYNTAXDELIMITERS           322
+#define STRID_COMPLETECASESENSITIVE      323
 
 #define DLLA_AUTOCOMPLETE_ADDWINDOW 50
 #define DLLA_AUTOCOMPLETE_DELWINDOW 51
@@ -159,6 +160,8 @@ void CloseAutoCompleteWindow();
 void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart);
 void SetSelListbox(int nIndex);
 BLOCKINFO* GetDataListbox(int nItem);
+int CompleteStrCmp(const wchar_t *wpString1, const wchar_t *wpString2);
+int CompleteStrCmpLen(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
 
 //Scheme
 int ParseBlock(SYNTAXFILE *lpScheme, HSTACK *hHotSpotStack, const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput, int *nOutputLines);
