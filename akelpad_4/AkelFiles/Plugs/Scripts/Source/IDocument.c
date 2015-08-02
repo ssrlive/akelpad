@@ -1174,6 +1174,8 @@ HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wp
             {
               WaitForInputIdle(pi.hProcess, INFINITE);
             }
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
           }
         }
         GlobalFree((HGLOBAL)wszExecuteDirectoryExp);
