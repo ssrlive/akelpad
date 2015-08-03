@@ -252,6 +252,10 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"")) goto Error;
 
   nLine=__LINE__;
+  TextReplaceRE(L"-1+3", L"-|+", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
+  nLine=__LINE__;
   TextReplaceRE(L"abc", L"[\\K]", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;
 
