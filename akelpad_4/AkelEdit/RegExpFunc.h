@@ -606,6 +606,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
         lpREGroupItem=lpREGroupNew;
       }
+      wpCharStart=NULL;
       continue;
     }
     else if (*wpPat == L')')
