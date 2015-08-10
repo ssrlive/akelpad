@@ -289,3 +289,7 @@ ArrowOverlay
     0  don't draw.
     1  draw normal.
     2  draw white as mask, i.e. white color in arrow icon removed from result icon (default).
+GrayedIcons
+  Drawing grayed icons (one of the following):
+    0  icons on inactive buttons drawing by system (default).
+    1  icons on inactive buttons drawing by plugin.

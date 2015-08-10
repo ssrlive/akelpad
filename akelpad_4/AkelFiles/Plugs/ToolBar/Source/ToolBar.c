@@ -7,6 +7,7 @@
 #include "StrFunc.h"
 #include "WideFunc.h"
 #include "MethodFunc.h"
+#include "IconMenu.h"
 #include "AkelEdit.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
@@ -17,6 +18,7 @@
 #define StackInsertAfter
 #define StackInsertBefore
 #define StackInsertIndex
+#define StackMoveBefore
 #define StackDelete
 #define StackClear
 #define StackSize
@@ -73,6 +75,10 @@
 //Include method functions
 #define ALLMETHODFUNC
 #include "MethodFunc.h"
+
+//Include icon menu functions
+#define ICONMENU_INCLUDE
+#include "IconMenu.h"
 
 //Defines
 #define DLLA_TOOLBAR_ROWS      1
@@ -169,6 +175,10 @@
 #define BIS_ICON32          1 //32x32 icons.
 #define BIS_ICON24          2 //24x24 icons.
 
+//Grayed icons
+#define GI_SYSTEM          0 //System drawing.
+#define GI_PLUGIN          1 //Plugin drawing.
+
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
@@ -229,6 +239,7 @@ typedef struct {
   TOOLBARITEM *first;
   TOOLBARITEM *last;
   HIMAGELIST hImageList;
+  HIMAGELIST hDisabledImageList;
   int nRows;
   int nSepRows;
   STACKSTATEIF hStateIfStack;
@@ -272,7 +283,6 @@ VOID CALLBACK PaintTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTim
 
 BOOL CreateToolbarWindow();
 BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText);
-HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput);
 DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags);
 int ParseRows(STACKROW *lpRowListStack);
 ROWITEM* GetRow(STACKROW *lpRowListStack, int nRow);
@@ -354,6 +364,7 @@ int nArrowOverlay=IAO_COPYWHITEASMASK;
 int nBigIcons=BIS_ICON16;
 BOOL bFlatButtons=TRUE;
 int nIconsBit=32;
+int nGrayedIcons=GI_SYSTEM;
 int nToolbarSide=TBSIDE_TOP;
 int nSidePriority=TSP_TOPBOTTOM;
 SIZE sizeToolbar={0};
@@ -1079,7 +1090,7 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   const wchar_t *wpStrEnd;
   wchar_t *wpFileName;
   HICON hIcon;
-  HICON hIconMixed;
+  HICON hAdjustIcon;
   DWORD dwAction;
   DWORD dwNewFlags=0;
   DWORD dwSetFlags=0;
@@ -1126,6 +1137,12 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
     }
     hStack->hImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
     ImageList_SetBkColor(hStack->hImageList, GetSysColor(COLOR_BTNFACE));
+
+    if (nGrayedIcons == GI_PLUGIN)
+    {
+      hStack->hDisabledImageList=ImageList_Create(sizeIcon.cx, sizeIcon.cy, (nIconsBit == 16?ILC_COLOR16:ILC_COLOR32)|ILC_MASK, 0, 0);
+      ImageList_SetBkColor(hStack->hDisabledImageList, GetSysColor(COLOR_BTNFACE));
+    }
 
     //Rows
     hStack->nRows=1;
@@ -1484,14 +1501,22 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
                   {
                     if (!hIconArrowOverlay)
                       hIconArrowOverlay=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(nArrowOverlay == IAO_COPYNORMAL?IDI_ICONARROW1:IDI_ICONARROW2), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-                    if (hIconMixed=MixIcons(hIcon, hIconArrowOverlay, nArrowOverlay == IAO_COPYWHITEASMASK))
+                    if (hAdjustIcon=IconMenu_MixIcons(NULL, hIcon, hIconArrowOverlay, nArrowOverlay == IAO_COPYWHITEASMASK))
                     {
                       DestroyIcon(hIcon);
-                      hIcon=hIconMixed;
+                      hIcon=hAdjustIcon;
                     }
                   }
                 }
                 ImageList_AddIcon(hStack->hImageList, hIcon);
+                if (hStack->hDisabledImageList)
+                {
+                  if (hAdjustIcon=IconMenu_AdjustIcon(NULL, hIcon, TRUE, 30, 0))
+                  {
+                    ImageList_AddIcon(hStack->hDisabledImageList, hAdjustIcon);
+                    DestroyIcon(hAdjustIcon);
+                  }
+                }
                 DestroyIcon(hIcon);
               }
             }
@@ -1703,138 +1728,6 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
   return FALSE;
 }
 
-HICON MixIcons(HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput)
-{
-  ICONINFO iiInput;
-  ICONINFO iiOverlay;
-  ICONINFO iiOutput;
-  BITMAP bmInput;
-  BITMAP bmOverlay;
-  BITMAPINFO bmi;
-  DWORD dwIconWidth;
-  DWORD dwIconHeight;
-  HICON hOutputIcon=NULL;
-  HDC hDC;
-  BYTE *lpInputColorBits;
-  BYTE *lpInputMaskBits;
-  BYTE *lpOverlayColorBits;
-  BYTE *lpOverlayMaskBits;
-  DWORD *lpInputColorPixel;
-  DWORD *lpInputMaskPixel;
-  DWORD *lpOverlayColorPixel;
-  DWORD *lpOverlayMaskPixel;
-  DWORD x;
-  DWORD y;
-  INT_PTR nOffset;
-
-  //Get icon bitmaps
-  if (!GetIconInfo(hIconInput, &iiInput))
-    return NULL;
-  if (!GetIconInfo(hIconOverlay, &iiOverlay))
-    return NULL;
-
-  if (iiInput.hbmColor && iiInput.hbmMask &&
-      iiOverlay.hbmColor && iiOverlay.hbmMask &&
-      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bmInput) &&
-      GetObjectA(iiOverlay.hbmColor, sizeof(BITMAP), &bmOverlay) &&
-      bmInput.bmHeight == bmOverlay.bmHeight &&
-      bmInput.bmWidth == bmOverlay.bmWidth)
-  {
-    if (hDC=GetDC(NULL))
-    {
-      dwIconWidth=bmInput.bmWidth;
-      dwIconHeight=bmInput.bmHeight;
-
-      bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-      bmi.bmiHeader.biWidth=dwIconWidth;
-      bmi.bmiHeader.biHeight=dwIconHeight;
-      bmi.bmiHeader.biPlanes=1;
-      bmi.bmiHeader.biBitCount=32;
-      bmi.bmiHeader.biCompression=BI_RGB;
-      bmi.bmiHeader.biSizeImage=0;
-      bmi.bmiHeader.biXPelsPerMeter=0;
-      bmi.bmiHeader.biYPelsPerMeter=0;
-      bmi.bmiHeader.biClrUsed=0;
-      bmi.bmiHeader.biClrImportant=0;
-
-      GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpOverlayColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)lpOverlayColorBits, &bmi, DIB_RGB_COLORS);
-      GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpOverlayMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)lpOverlayMaskBits, &bmi, DIB_RGB_COLORS);
-
-      GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpInputColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
-      GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-      if (lpInputMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-        GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
-
-      if (lpInputColorBits && lpInputMaskBits && lpOverlayColorBits && lpOverlayMaskBits)
-      {
-        lpOverlayMaskPixel=(DWORD *)lpOverlayMaskBits;
-
-        for (y=0; y < dwIconHeight; ++y)
-        {
-          for (x=0; x < dwIconWidth; ++x)
-          {
-            nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
-            lpInputColorPixel=(DWORD *)(lpInputColorBits + nOffset);
-            lpInputMaskPixel=(DWORD *)(lpInputMaskBits + nOffset);
-
-            if (!*lpOverlayMaskPixel)
-            {
-              //Copy pixel from Overlay to Input
-              lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
-
-              //Remove alpha and compare with white color
-              if (bWhiteInOverlayAsMaskInInput && (*lpOverlayColorPixel & 0x00FFFFFF) == 0xFFFFFF)
-              {
-                *lpInputColorPixel=0xFFFFFF;
-                *lpInputMaskPixel=0xFFFFFF;
-              }
-              else
-              {
-                *lpInputColorPixel=*lpOverlayColorPixel;
-                *lpInputMaskPixel=0;
-              }
-            }
-            if (!*lpInputMaskPixel)
-            {
-              //Fill pixel alpha channel, otherwise non 32-bit icon not painted.
-              if (!((BYTE *)lpInputColorPixel)[3])
-                ((BYTE *)lpInputColorPixel)[3]=0xFF;
-            }
-            ++lpOverlayMaskPixel;
-          }
-        }
-        SetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
-        SetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
-
-        //Create new icon
-        iiOutput.xHotspot=iiInput.xHotspot;
-        iiOutput.yHotspot=iiInput.yHotspot;
-        iiOutput.hbmColor=iiInput.hbmColor;
-        iiOutput.hbmMask=iiInput.hbmMask;
-        iiOutput.fIcon=TRUE;
-        hOutputIcon=CreateIconIndirect(&iiOutput);
-
-        GlobalFree((HGLOBAL)lpInputColorBits);
-        GlobalFree((HGLOBAL)lpInputMaskBits);
-        GlobalFree((HGLOBAL)lpOverlayColorBits);
-        GlobalFree((HGLOBAL)lpOverlayMaskBits);
-      }
-      ReleaseDC(NULL, hDC);
-    }
-  }
-  DeleteObject(iiInput.hbmColor);
-  DeleteObject(iiInput.hbmMask);
-  DeleteObject(iiOverlay.hbmColor);
-  DeleteObject(iiOverlay.hbmMask);
-  return hOutputIcon;
-}
-
 DWORD IsFlagOn(DWORD dwSetFlags, DWORD dwCheckFlags)
 {
   if (!dwSetFlags) return 0;
@@ -1961,6 +1854,11 @@ void FreeToolbarData(STACKTOOLBAR *hStack)
     ImageList_Destroy(hStack->hImageList);
     hStack->hImageList=NULL;
   }
+  if (hStack->hDisabledImageList)
+  {
+    ImageList_Destroy(hStack->hDisabledImageList);
+    hStack->hDisabledImageList=NULL;
+  }
   if (hIconArrowOverlay)
   {
     DestroyIcon(hIconArrowOverlay);
@@ -1990,6 +1888,7 @@ void SetToolbarButtons(STACKTOOLBAR *hStack)
   nMaxRowWidth=sizeButtons.cx;
   SendMessage(hToolbar, TB_SETBUTTONSIZE, 0, MAKELONG(sizeButtons.cx, sizeButtons.cy));
   SendMessage(hToolbar, TB_SETIMAGELIST, 0, (LPARAM)hStack->hImageList);
+  SendMessage(hToolbar, TB_SETDISABLEDIMAGELIST, 0, (LPARAM)hStack->hDisabledImageList);
 
   for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
   {
@@ -3040,6 +2939,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&nBigIcons, sizeof(DWORD));
     WideOption(hOptions, L"FlatButtons", PO_DWORD, (LPBYTE)&bFlatButtons, sizeof(DWORD));
     WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
+    WideOption(hOptions, L"GrayedIcons", PO_DWORD, (LPBYTE)&nGrayedIcons, sizeof(DWORD));
     WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
     WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
     WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&nArrowOverlay, sizeof(DWORD));
@@ -3068,6 +2968,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"BigIcons", PO_DWORD, (LPBYTE)&nBigIcons, sizeof(DWORD));
       WideOption(hOptions, L"FlatButtons", PO_DWORD, (LPBYTE)&bFlatButtons, sizeof(DWORD));
       WideOption(hOptions, L"IconsBit", PO_DWORD, (LPBYTE)&nIconsBit, sizeof(DWORD));
+      WideOption(hOptions, L"GrayedIcons", PO_DWORD, (LPBYTE)&nGrayedIcons, sizeof(DWORD));
       WideOption(hOptions, L"ToolbarSide", PO_DWORD, (LPBYTE)&nToolbarSide, sizeof(DWORD));
       WideOption(hOptions, L"SidePriority", PO_DWORD, (LPBYTE)&nSidePriority, sizeof(DWORD));
       WideOption(hOptions, L"ArrowOverlay", PO_DWORD, (LPBYTE)&nArrowOverlay, sizeof(DWORD));
