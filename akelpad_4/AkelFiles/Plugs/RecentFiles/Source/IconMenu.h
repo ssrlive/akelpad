@@ -1,5 +1,5 @@
 /******************************************************************
- *                 IconMenu functions header v2.7                 *
+ *                 IconMenu functions header v2.8                 *
  *                                                                *
  *  2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
@@ -111,6 +111,7 @@ ICONMENUITEM* IconMenu_GetItemById(HICONMENU hIconMenu, INT_PTR nItemID);
 ICONMENUITEM* IconMenu_GetSubMenuItem(ICONMENUSUBMENU *lpSubMenu, INT_PTR nItemID, UINT uFlags);
 void IconMenu_GetSubMenuSize(ICONMENUSUBMENU *lpSubMenu);
 void IconMenu_RoundRect(HDC hDC, RECT *rcRect, COLORREF crEdge, COLORREF crBk);
+HICON IconMenu_MixIcons(HDC hDC, HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput);
 HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightnessPercent, int nContrastPercent);
 COLORREF IconMenu_Grayscale(COLORREF crColor);
 COLORREF IconMenu_Brightness(COLORREF crColor, int nPercent);
@@ -426,6 +427,143 @@ void IconMenu_RoundRect(HDC hDC, RECT *rcRect, COLORREF crEdge, COLORREF crBk)
   }
 }
 
+HICON IconMenu_MixIcons(HDC hDC, HICON hIconInput, HICON hIconOverlay, BOOL bWhiteInOverlayAsMaskInInput)
+{
+  ICONINFO iiInput;
+  ICONINFO iiOverlay;
+  ICONINFO iiOutput;
+  BITMAP bmInput;
+  BITMAP bmOverlay;
+  BITMAPINFO bmi;
+  DWORD dwIconWidth;
+  DWORD dwIconHeight;
+  HICON hOutputIcon=NULL;
+  BYTE *lpInputColorBits;
+  BYTE *lpInputMaskBits;
+  BYTE *lpOverlayColorBits;
+  BYTE *lpOverlayMaskBits;
+  DWORD *lpInputColorPixel;
+  DWORD *lpInputMaskPixel;
+  DWORD *lpOverlayColorPixel;
+  DWORD *lpOverlayMaskPixel;
+  DWORD x;
+  DWORD y;
+  INT_PTR nOffset;
+  BOOL bFreeDC=FALSE;
+
+  //Get icon bitmaps
+  if (!GetIconInfo(hIconInput, &iiInput))
+    return NULL;
+  if (!GetIconInfo(hIconOverlay, &iiOverlay))
+    return NULL;
+
+  if (iiInput.hbmColor && iiInput.hbmMask &&
+      iiOverlay.hbmColor && iiOverlay.hbmMask &&
+      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bmInput) &&
+      GetObjectA(iiOverlay.hbmColor, sizeof(BITMAP), &bmOverlay) &&
+      bmInput.bmHeight == bmOverlay.bmHeight &&
+      bmInput.bmWidth == bmOverlay.bmWidth)
+  {
+    if (!hDC)
+    {
+      hDC=GetDC(NULL);
+      bFreeDC=TRUE;
+    }
+    if (hDC)
+    {
+      dwIconWidth=bmInput.bmWidth;
+      dwIconHeight=bmInput.bmHeight;
+
+      bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+      bmi.bmiHeader.biWidth=dwIconWidth;
+      bmi.bmiHeader.biHeight=dwIconHeight;
+      bmi.bmiHeader.biPlanes=1;
+      bmi.bmiHeader.biBitCount=32;
+      bmi.bmiHeader.biCompression=BI_RGB;
+      bmi.bmiHeader.biSizeImage=0;
+      bmi.bmiHeader.biXPelsPerMeter=0;
+      bmi.bmiHeader.biYPelsPerMeter=0;
+      bmi.bmiHeader.biClrUsed=0;
+      bmi.bmiHeader.biClrImportant=0;
+
+      GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpOverlayColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiOverlay.hbmColor, 0, bmOverlay.bmHeight, (void *)lpOverlayColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpOverlayMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiOverlay.hbmMask, 0, bmOverlay.bmHeight, (void *)lpOverlayMaskBits, &bmi, DIB_RGB_COLORS);
+
+      GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpInputMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
+
+      if (lpInputColorBits && lpInputMaskBits && lpOverlayColorBits && lpOverlayMaskBits)
+      {
+        lpOverlayMaskPixel=(DWORD *)lpOverlayMaskBits;
+
+        for (y=0; y < dwIconHeight; ++y)
+        {
+          for (x=0; x < dwIconWidth; ++x)
+          {
+            nOffset=(BYTE *)lpOverlayMaskPixel - (BYTE *)lpOverlayMaskBits;
+            lpInputColorPixel=(DWORD *)(lpInputColorBits + nOffset);
+            lpInputMaskPixel=(DWORD *)(lpInputMaskBits + nOffset);
+
+            if (!*lpOverlayMaskPixel)
+            {
+              //Copy pixel from Overlay to Input
+              lpOverlayColorPixel=(DWORD *)(lpOverlayColorBits + nOffset);
+
+              //Remove alpha and compare with white color
+              if (bWhiteInOverlayAsMaskInInput && (*lpOverlayColorPixel & 0x00FFFFFF) == 0xFFFFFF)
+              {
+                *lpInputColorPixel=0xFFFFFF;
+                *lpInputMaskPixel=0xFFFFFF;
+              }
+              else
+              {
+                *lpInputColorPixel=*lpOverlayColorPixel;
+                *lpInputMaskPixel=0;
+              }
+            }
+            if (!*lpInputMaskPixel)
+            {
+              //Fill pixel alpha channel, otherwise non 32-bit icon not painted.
+              if (!((BYTE *)lpInputColorPixel)[3])
+                ((BYTE *)lpInputColorPixel)[3]=0xFF;
+            }
+            ++lpOverlayMaskPixel;
+          }
+        }
+        SetDIBits(hDC, iiInput.hbmColor, 0, bmInput.bmHeight, (void *)lpInputColorBits, &bmi, DIB_RGB_COLORS);
+        SetDIBits(hDC, iiInput.hbmMask, 0, bmInput.bmHeight, (void *)lpInputMaskBits, &bmi, DIB_RGB_COLORS);
+
+        //Create new icon
+        iiOutput.xHotspot=iiInput.xHotspot;
+        iiOutput.yHotspot=iiInput.yHotspot;
+        iiOutput.hbmColor=iiInput.hbmColor;
+        iiOutput.hbmMask=iiInput.hbmMask;
+        iiOutput.fIcon=TRUE;
+        hOutputIcon=CreateIconIndirect(&iiOutput);
+
+        GlobalFree((HGLOBAL)lpInputColorBits);
+        GlobalFree((HGLOBAL)lpInputMaskBits);
+        GlobalFree((HGLOBAL)lpOverlayColorBits);
+        GlobalFree((HGLOBAL)lpOverlayMaskBits);
+      }
+      if (bFreeDC) ReleaseDC(NULL, hDC);
+    }
+  }
+  DeleteObject(iiInput.hbmColor);
+  DeleteObject(iiInput.hbmMask);
+  DeleteObject(iiOverlay.hbmColor);
+  DeleteObject(iiOverlay.hbmMask);
+  return hOutputIcon;
+}
+
 HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightnessPercent, int nContrastPercent)
 {
   ICONINFO iiInput;
@@ -442,77 +580,87 @@ HICON IconMenu_AdjustIcon(HDC hDC, HICON hIcon, BOOL bGrayscale, int nBrightness
   COLORREF crColorPixel;
   DWORD x;
   DWORD y;
+  BOOL bFreeDC=FALSE;
 
   //Get icon bitmaps
   if (!GetIconInfo(hIcon, &iiInput))
     return NULL;
 
-  if (iiInput.hbmColor && iiInput.hbmMask && GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
+  if (iiInput.hbmColor && iiInput.hbmMask &&
+      GetObjectA(iiInput.hbmColor, sizeof(BITMAP), &bm))
   {
-    //dwIconWidth=iiInput.xHotspot * 2;
-    //dwIconHeight=iiInput.yHotspot * 2;
-    dwIconWidth=bm.bmWidth;
-    dwIconHeight=bm.bmHeight;
-
-    bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth=dwIconWidth;
-    bmi.bmiHeader.biHeight=dwIconHeight;
-    bmi.bmiHeader.biPlanes=1;
-    bmi.bmiHeader.biBitCount=32;
-    bmi.bmiHeader.biCompression=BI_RGB;
-    bmi.bmiHeader.biSizeImage=0;
-    bmi.bmiHeader.biXPelsPerMeter=0;
-    bmi.bmiHeader.biYPelsPerMeter=0;
-    bmi.bmiHeader.biClrUsed=0;
-    bmi.bmiHeader.biClrImportant=0;
-
-    GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-    if (lpColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-      GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpColorBits, &bmi, DIB_RGB_COLORS);
-    GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
-    if (lpMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
-      GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpMaskBits, &bmi, DIB_RGB_COLORS);
-
-    if (lpColorBits && lpMaskBits)
+    if (!hDC)
     {
-      lpColorPixel=lpColorBits;
-      lpMaskPixel=lpMaskBits;
+      hDC=GetDC(NULL);
+      bFreeDC=TRUE;
+    }
+    if (hDC)
+    {
+      dwIconWidth=bm.bmWidth;
+      dwIconHeight=bm.bmHeight;
 
-      for (y=0; y < dwIconHeight; ++y)
+      bmi.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+      bmi.bmiHeader.biWidth=dwIconWidth;
+      bmi.bmiHeader.biHeight=dwIconHeight;
+      bmi.bmiHeader.biPlanes=1;
+      bmi.bmiHeader.biBitCount=32;
+      bmi.bmiHeader.biCompression=BI_RGB;
+      bmi.bmiHeader.biSizeImage=0;
+      bmi.bmiHeader.biXPelsPerMeter=0;
+      bmi.bmiHeader.biYPelsPerMeter=0;
+      bmi.bmiHeader.biClrUsed=0;
+      bmi.bmiHeader.biClrImportant=0;
+
+      GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpColorBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpColorBits, &bmi, DIB_RGB_COLORS);
+      GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)NULL, &bmi, DIB_RGB_COLORS);
+      if (lpMaskBits=(BYTE *)GlobalAlloc(GPTR, bmi.bmiHeader.biSizeImage))
+        GetDIBits(hDC, iiInput.hbmMask, 0, dwIconHeight, (void *)lpMaskBits, &bmi, DIB_RGB_COLORS);
+
+      if (lpColorBits && lpMaskBits)
       {
-        for (x=0; x < dwIconWidth; ++x)
+        lpColorPixel=lpColorBits;
+        lpMaskPixel=lpMaskBits;
+
+        for (y=0; y < dwIconHeight; ++y)
         {
-          if (!lpMaskPixel[0])
+          for (x=0; x < dwIconWidth; ++x)
           {
-            crColorPixel=RGB(lpColorPixel[2], lpColorPixel[1], lpColorPixel[0]);
+            if (!lpMaskPixel[0])
+            {
+              crColorPixel=RGB(lpColorPixel[2], lpColorPixel[1], lpColorPixel[0]);
 
-            //Change brightness and contrast of pixel
-            if (bGrayscale) crColorPixel=IconMenu_Grayscale(crColorPixel);
-            crColorPixel=IconMenu_Brightness(crColorPixel, nBrightnessPercent);
-            crColorPixel=IconMenu_Contrast(crColorPixel, nContrastPercent);
+              //Change brightness and contrast of pixel
+              if (bGrayscale) crColorPixel=IconMenu_Grayscale(crColorPixel);
+              crColorPixel=IconMenu_Brightness(crColorPixel, nBrightnessPercent);
+              crColorPixel=IconMenu_Contrast(crColorPixel, nContrastPercent);
 
-            lpColorPixel[0]=GetBValue(crColorPixel);
-            lpColorPixel[1]=GetGValue(crColorPixel);
-            lpColorPixel[2]=GetRValue(crColorPixel);
+              lpColorPixel[0]=GetBValue(crColorPixel);
+              lpColorPixel[1]=GetGValue(crColorPixel);
+              lpColorPixel[2]=GetRValue(crColorPixel);
 
-            //Alpha channel
-            //lpColorPixel[3]=0;
+              //Alpha channel
+              //lpColorPixel[3]=0;
+            }
+            lpColorPixel+=4;
+            lpMaskPixel+=4;
           }
-          lpColorPixel+=4;
-          lpMaskPixel+=4;
         }
-      }
-      SetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpColorBits, &bmi, DIB_RGB_COLORS);
-      GlobalFree((HGLOBAL)lpColorBits);
-      GlobalFree((HGLOBAL)lpMaskBits);
+        SetDIBits(hDC, iiInput.hbmColor, 0, dwIconHeight, (void *)lpColorBits, &bmi, DIB_RGB_COLORS);
 
-      //Create new icon
-      iiOutput.xHotspot=iiInput.xHotspot;
-      iiOutput.yHotspot=iiInput.yHotspot;
-      iiOutput.hbmColor=iiInput.hbmColor;
-      iiOutput.hbmMask=iiInput.hbmMask;
-      iiOutput.fIcon=TRUE;
-      hOutputIcon=CreateIconIndirect(&iiOutput);
+        //Create new icon
+        iiOutput.xHotspot=iiInput.xHotspot;
+        iiOutput.yHotspot=iiInput.yHotspot;
+        iiOutput.hbmColor=iiInput.hbmColor;
+        iiOutput.hbmMask=iiInput.hbmMask;
+        iiOutput.fIcon=TRUE;
+        hOutputIcon=CreateIconIndirect(&iiOutput);
+
+        GlobalFree((HGLOBAL)lpColorBits);
+        GlobalFree((HGLOBAL)lpMaskBits);
+      }
+      if (bFreeDC) ReleaseDC(NULL, hDC);
     }
   }
   DeleteObject(iiInput.hbmColor);
