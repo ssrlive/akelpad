@@ -46,10 +46,6 @@ void _WinMain()
   int nStartTime;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
-  nLine=__LINE__;
-  TextReplaceRE(L"abc", L"(?<=a)|(?=a)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"[x]a[x]bc")) goto Error;
-
   //Test compilation
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
@@ -595,6 +591,11 @@ void _WinMain()
   nLine=__LINE__;
   TextReplaceRE(L"1.2", L"(-?\\d+)\\.\\d+", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"(?<=a)|(?=a)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]a[x]bc")) goto Error;
+
 
   //POSIX result "[x]"
   //PCRE result "[x]sufficient"

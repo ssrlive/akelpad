@@ -1983,8 +1983,6 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
             lpREGroupChild->wpPatLeft=lpREGroupItem->wpPatLeft;
           if (wpPatRight > lpREGroupChild->wpPatLeft)
             lpREGroupChild->wpPatRight=wpPatRight;
-          if (lpREGroupItem->nGroupLen != lpREGroupChild->nGroupLen)
-            lpREGroupChild->nGroupLen=-1;
           lpREGroupChild->dwFlags|=lpREGroupItem->dwFlags;
           if (lpREGroupChild->nIndex == -1)
             lpREGroupChild->nIndex=lpREGroupItem->nIndex;
