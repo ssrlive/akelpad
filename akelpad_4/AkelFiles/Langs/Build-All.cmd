@@ -47,6 +47,9 @@ if not %ERRORLEVEL% == 0 goto END
 call :COMPILE "German" 0x407
 if not %ERRORLEVEL% == 0 goto END
 
+call :COMPILE "Greek" 0x408
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Hungarian" 0x40E
 if not %ERRORLEVEL% == 0 goto END
 
