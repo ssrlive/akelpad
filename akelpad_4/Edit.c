@@ -19084,7 +19084,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
     wpCmdLine=*wppCmdLine;
     wpCmdLineNext=*wppCmdLine;
 
-    for (; GetCommandLineArg(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, &wpCmdLineNext, !(dwCmdLineOptions & CLO_NONOTEPADCMD)); wpCmdLine=wpCmdLineNext)
+    for (; GetCommandLineArg(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, &wpCmdLineNext, (!bIgnoreNextArg && !(dwCmdLineOptions & CLO_NONOTEPADCMD))); wpCmdLine=wpCmdLineNext)
     {
       if (bIgnoreNextArg)
       {

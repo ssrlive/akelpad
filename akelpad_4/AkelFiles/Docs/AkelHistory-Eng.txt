@@ -4,6 +4,7 @@ AkelPad 4.9.5 ()
 Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
 Fixed: possible transfer of the Enter pressing to another process when closing dialog
        created by plugin.
+Fixed: parsing command line parameter /Z with MS Notepad compatibility mode on.
 
 
 AkelPad 4.9.4 (Jun 03, 2015)
