@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.9.3"
+  !define PRODUCT_VERSION "4.9.5"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -78,9 +78,10 @@ RequestExecutionLevel admin
 !define LANG_CZECH                1029
 !define LANG_HUNGARIAN            1038
 
-!define INSTTYPE_STANDARD  1
-!define INSTTYPE_TOTALCMD  2
-!define INSTTYPE_NOTEPAD   3
+!define INSTTYPE_STANDARD   1
+!define INSTTYPE_TOTALCMD   2
+!define INSTTYPE_NOTEPAD    3
+!define INSTTYPE_NOTEPADALT 4
 
 !define SHORTCUT_QUICKLAUNCH  0x1
 !define SHORTCUT_DESKTOP      0x2
@@ -91,6 +92,7 @@ Var PARAMETERS
 Var INI
 Var HWND
 Var REDCTL
+Var ALTCTL
 Var INSTTYPE
 Var SHORTCUT
 Var COMSPEC
@@ -142,12 +144,16 @@ LangString TypeTotalcmd ${LANG_ENGLISH} 'Editor for Total Commander'
 LangString TypeTotalcmd ${LANG_RUSSIAN} 'Редактор для Total Commander'
 LangString TypeNotepad ${LANG_ENGLISH} 'Windows notepad replacement'
 LangString TypeNotepad ${LANG_RUSSIAN} 'Замена блокнота Windows'
+LangString TypeNotepadAlt ${LANG_ENGLISH} 'Alternative - via registry'
+LangString TypeNotepadAlt ${LANG_RUSSIAN} 'Альтернативная - через реестр'
 LangString TypeStandardText ${LANG_ENGLISH} 'Program will be installed to the specified directory.'
 LangString TypeStandardText ${LANG_RUSSIAN} 'Программа будет установлена в указанную директорию.'
 LangString TypeTotalcmdText ${LANG_ENGLISH} 'Program will be installed as external editor for Total Commander file manager.'
 LangString TypeTotalcmdText ${LANG_RUSSIAN} 'Программа будет установлена как внешний редактор для файлового менеджера Total Commander.'
 LangString TypeNotepadText ${LANG_ENGLISH} 'Windows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
 LangString TypeNotepadText ${LANG_RUSSIAN} 'Блокнот Windows будет заменен программой. Копия блокнота будет восстановлена после удаления программы.'
+LangString TypeNotepadTextAlt ${LANG_ENGLISH} 'Windows notepad calls will be redirected to AkelPad.'
+LangString TypeNotepadTextAlt ${LANG_RUSSIAN} `Вызовы блокнота Windows будут перенаправлены на AkelPad.`
 LangString DirectoryInfoTitle ${LANG_ENGLISH} 'Choose Install Location'
 LangString DirectoryInfoTitle ${LANG_RUSSIAN} 'Выбор папки установки'
 LangString DirectoryInfoText ${LANG_ENGLISH} 'Choose the folder in which to install $(^Name).'
@@ -271,25 +277,26 @@ Function .onInit
   InitPluginsDir
 
   StrCpy $REDCTL 0
+  StrCpy $ALTCTL 1
 
   GetTempFileName $INI $PLUGINSDIR
   File /oname=$INI "Pages\InstallType.ini"
 
   GetTempFileName $0 $PLUGINSDIR
   File /oname=$0 "Graphics\IconTypeStandard.ico"
-  WriteINIStr "$INI" "Field 7" "Text" "$0"
-
-  GetTempFileName $0 $PLUGINSDIR
-  File /oname=$0 "Graphics\IconTypeTotalcmd.ico"
   WriteINIStr "$INI" "Field 8" "Text" "$0"
 
   GetTempFileName $0 $PLUGINSDIR
-  File /oname=$0 "Graphics\IconTypeNotepad.ico"
+  File /oname=$0 "Graphics\IconTypeTotalcmd.ico"
   WriteINIStr "$INI" "Field 9" "Text" "$0"
 
   GetTempFileName $0 $PLUGINSDIR
-  File /oname=$0 "Graphics\WizardWelcome.bmp"
+  File /oname=$0 "Graphics\IconTypeNotepad.ico"
   WriteINIStr "$INI" "Field 10" "Text" "$0"
+
+  GetTempFileName $0 $PLUGINSDIR
+  File /oname=$0 "Graphics\WizardWelcome.bmp"
+  WriteINIStr "$INI" "Field 11" "Text" "$0"
 FunctionEnd
 
 Function CustomShow
@@ -312,17 +319,31 @@ Function CustomShow
   SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepad)'
 
   ReadINIStr $0 "$INI" "Field 4" "HWND"
-  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandardText)'
+  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadAlt)'
+  ${If} $INSTTYPE == ${INSTTYPE_STANDARD}
+  ${OrIf} $INSTTYPE == ${INSTTYPE_TOTALCMD}
+    EnableWindow $0 0
+  ${EndIf}
+  ${If} $ALTCTL == 1
+    SendMessage $0 ${BM_SETCHECK} 1 0
+  ${EndIf}
 
   ReadINIStr $0 "$INI" "Field 5" "HWND"
-  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeTotalcmdText)'
+  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandardText)'
 
   ReadINIStr $0 "$INI" "Field 6" "HWND"
-  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadText)'
+  SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeTotalcmdText)'
 
+  ReadINIStr $0 "$INI" "Field 7" "HWND"
+  ${If} $ALTCTL == 1
+    SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadTextAlt)'
+  ${Else}
+    SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadText)'
+  ${EndIf}
   ${If} $REDCTL == 1
     SetCtlColors $0 /BRANDING 0xFF0000
   ${EndIf}
+
 
   InstallOptions::show
   Pop $0
@@ -331,30 +352,46 @@ FunctionEnd
 Function CustomLeave
   ReadINIStr $0 "$INI" "Settings" "State"
   StrCmp $0 0 next
-  StrCmp $0 1 color_standard
-  StrCmp $0 2 color_totalcmd
-  StrCmp $0 3 color_notepad
+  StrCmp $0 1 standard
+  StrCmp $0 2 totalcmd
+  StrCmp $0 3 notepad
+  StrCmp $0 4 notepadalt
   abort
 
-  color_standard:
-  color_totalcmd:
+  standard:
+  totalcmd:
+  ReadINIStr $0 "$INI" "Field 4" "HWND"
+  EnableWindow $0 0
   ${If} $REDCTL == 0
     abort
   ${EndIf}
-
-  ReadINIStr $0 "$INI" "Field 6" "HWND"
+  ReadINIStr $0 "$INI" "Field 7" "HWND"
   SetCtlColors $0 /BRANDING 0x000000
   ShowWindow $0 ${SW_HIDE}
   ShowWindow $0 ${SW_SHOW}
   StrCpy $REDCTL 0
   abort
 
-  color_notepad:
-  ReadINIStr $0 "$INI" "Field 6" "HWND"
-  SetCtlColors $0 /BRANDING 0xFF0000
-  ShowWindow $0 ${SW_HIDE}
-  ShowWindow $0 ${SW_SHOW}
-  StrCpy $REDCTL 1
+  notepad:
+  notepadalt:
+  ReadINIStr $ALTCTL "$INI" "Field 4" "State"
+  ${If} $ALTCTL == 1
+    ReadINIStr $0 "$INI" "Field 7" "HWND"
+    SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadTextAlt)'
+    StrCpy $REDCTL 0
+    SetCtlColors $0 /BRANDING 0x000000
+    ShowWindow $0 ${SW_HIDE}
+    ShowWindow $0 ${SW_SHOW}
+  ${Else}
+    ReadINIStr $0 "$INI" "Field 7" "HWND"
+    SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepadText)'
+    StrCpy $REDCTL 1
+    SetCtlColors $0 /BRANDING 0xFF0000
+    ShowWindow $0 ${SW_HIDE}
+    ShowWindow $0 ${SW_SHOW}
+  ${EndIf}
+  ReadINIStr $0 "$INI" "Field 4" "HWND"
+  EnableWindow $0 1
   abort
 
   next:
@@ -370,7 +407,11 @@ Function CustomLeave
   ${EndIf}
   ReadINIStr $0 "$INI" "Field 3" "State"
   ${If} $0 == 1
-    StrCpy $INSTTYPE ${INSTTYPE_NOTEPAD}
+    ${If} $ALTCTL == 1
+      StrCpy $INSTTYPE ${INSTTYPE_NOTEPADALT}
+    ${Else}
+      StrCpy $INSTTYPE ${INSTTYPE_NOTEPAD}
+    ${EndIf}
   ${EndIf}
 
   getdir:
@@ -393,6 +434,8 @@ Function DirectoryShow
     SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextTotalcmd)'
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextNotepad)'
+  ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPADALT}
+    SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextStandard)'
   ${EndIf}
 
   GetDlgItem $0 $R0 1050
@@ -452,6 +495,7 @@ FunctionEnd
 
 Function GetInstallDirectory
   ${If} $INSTTYPE == ${INSTTYPE_STANDARD}
+  ${OrIf} $INSTTYPE == ${INSTTYPE_NOTEPADALT}
     !if ${PRODUCT_BIT} == "64"
       StrCpy $INSTDIR "$PROGRAMFILES64\${PRODUCT_NAME}"
     !else
@@ -692,6 +736,10 @@ Section
       ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\AkelPad.exe"
     ${EndIf}
+  ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPADALT}
+    ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
+
+    WriteRegStr HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "Debugger" `"$SETUPDIR\AkelPad.exe" /z`
   ${EndIf}
 
   RegInfo:
@@ -700,6 +748,7 @@ Section
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayIcon" "$SETUPEXE"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString" "$SETUPDIR\AkelFiles\Uninstall.exe"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "InstallType" "$INSTTYPE"
 
   ClearErrors
   ReadRegStr $0 HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule"
@@ -806,6 +855,7 @@ Section un.install
 
   ${un.GetParent} "$INSTDIR" $SETUPDIR
 
+  ReadRegStr $INSTTYPE HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "InstallType"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
   Delete "$SETUPDIR\AkelFiles\Uninstall.exe"
 
@@ -939,6 +989,10 @@ Section un.install
   goto DeleteFiles
 
   _standard:
+  ReadRegStr $0 HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "Debugger"
+  ${If} $0 == `"$SETUPDIR\AkelPad.exe" /z`
+    DeleteRegValue HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "Debugger"
+  ${EndIf}
   ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
 
   DeleteFiles:
