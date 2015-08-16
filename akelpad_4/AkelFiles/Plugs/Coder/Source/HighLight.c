@@ -2021,9 +2021,11 @@ void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)
         qi.pQuoteExclude=lpElement->wpQuoteExclude;
         qi.nQuoteExcludeLen=lpElement->nQuoteExcludeLen;
         qi.dwFlags=lpElement->dwFlags;
+        qi.dwFontStyle=lpElement->dwFontStyle;
         qi.crText=lpElement->dwColor1;
         qi.crBk=lpElement->dwColor2;
-        qi.dwFontStyle=lpElement->dwFontStyle;
+        qi.dwRuleID=lpElement->dwRuleID;
+        qi.dwParentID=lpElement->dwParentID;
 
         if (qi.nQuoteIncludeLen)
           qi.dwFlags|=AEHLF_QUOTEINCLUDE;

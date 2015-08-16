@@ -59,6 +59,7 @@
 //Highlight search types
 #define AEHF_ISFIRSTCHAR    0x00000001
 #define AEHF_FINDFIRSTCHAR  0x00000002
+#define AEHF_FINDCHILD      0x00000004
 
 //AE_HighlightIsDelimiter flags
 #define AEHID_BACK          0x00000001  //Check backward.
@@ -326,6 +327,8 @@ typedef struct _AEQUOTESTART {
   int nQuoteStartLen;
   wchar_t chEscape;
   DWORD dwFlags;
+  DWORD dwRuleID;
+  DWORD dwParentID;
 
   //Stack with the same pQuoteStart.
   AESTACKQUOTEITEMHANDLE hQuoteItemHandleStack;
