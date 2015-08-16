@@ -10824,6 +10824,7 @@ INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGE
 
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm)
 {
+  AEQUOTEMATCH qmTmp;
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
   AECHARINDEX ciTmpCount;
@@ -10838,6 +10839,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
     return 0;
+  if (dwSearchType & AEHF_FINDCHILD)
+  {
+    if (!qm->lpQuote || !qm->lpQuote->dwRuleID)
+      return 0;
+    xmemcpy(&qmTmp, qm, sizeof(AEQUOTEMATCH));
+  }
 
   NextTheme:
   if (bDefaultTheme || !ae->popt->lpActiveTheme)
@@ -10886,6 +10893,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
           {
             //Quote start
+            if ((dwSearchType & AEHF_FINDCHILD) && qmTmp.lpQuote)
+            {
+              if (!lpQuoteStart->dwParentID || lpQuoteStart->dwParentID != qmTmp.lpQuote->dwRuleID)
+                continue;
+            }
+
             if (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
             {
               if ((lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, 0)) || AEC_IsFirstCharInLine(&ciCount))
@@ -11144,14 +11157,31 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     bDefaultTheme=TRUE;
     goto NextTheme;
   }
+
+  if (dwSearchType & AEHF_FINDCHILD)
+  {
+    if (nQuoteLen)
+    {
+      AEQUOTEMATCHITEM *lpQuoteMatchItem;
+
+      if (!AE_HeapStackInsertBefore(ae, (stack **)&qm->hParentStack.first, (stack **)&qm->hParentStack.last, NULL, (stack **)&lpQuoteMatchItem, sizeof(AEQUOTEMATCHITEM)))
+      {
+        lpQuoteMatchItem->lpQuote=qmTmp.lpQuote;
+        lpQuoteMatchItem->crQuoteStart=qmTmp.crQuoteStart;
+        lpQuoteMatchItem->crQuoteEnd=qmTmp.crQuoteEnd;
+      }
+    }
+    else xmemcpy(qm, &qmTmp, sizeof(AEQUOTEMATCH));
+  }
   return nQuoteLen;
 }
 
 BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm)
 {
-  STACKREGROUP *lpREGroupStack;
+  AEQUOTEMATCH qmTmp;
   AECHARINDEX ciCount;
   AECHARINDEX ciMaxLine;
+  STACKREGROUP *lpREGroupStack;
   AESTACKQUOTE *lpQuoteStack;
   AEQUOTEITEMW *lpQuoteItem;
   BOOL bDefaultTheme=FALSE;
@@ -11159,6 +11189,12 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
     return FALSE;
+  if (dwSearchType & AEHF_FINDCHILD)
+  {
+    if (!qm->lpQuote || !qm->lpQuote->dwRuleID)
+      return FALSE;
+    xmemcpy(&qmTmp, qm, sizeof(AEQUOTEMATCH));
+  }
 
   NextTheme:
   if (bDefaultTheme || !ae->popt->lpActiveTheme)
@@ -11198,6 +11234,12 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 
         for (lpQuoteItem=lpQuoteStack->first; lpQuoteItem; lpQuoteItem=lpQuoteItem->next)
         {
+          if ((dwSearchType & AEHF_FINDCHILD) && qmTmp.lpQuote)
+          {
+            if (!lpQuoteItem->dwParentID || lpQuoteItem->dwParentID != qmTmp.lpQuote->dwRuleID)
+              continue;
+          }
+
           if (lpQuoteItem->dwFlags & AEHLF_REGEXP)
           {
             lpREGroupStack=(STACKREGROUP *)lpQuoteItem->lpREGroupStack;
@@ -11222,7 +11264,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
                   break;
                 }
               }
-              return TRUE;
+              bResult=TRUE;
+              goto End;
             }
             else AE_PatReset(lpREGroupStack);
           }
@@ -11235,7 +11278,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
       else
         break;
     }
-    if (bResult) return TRUE;
+    if (bResult) goto End;
   }
 
   EndTheme:
@@ -11244,7 +11287,24 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
     bDefaultTheme=TRUE;
     goto NextTheme;
   }
-  return FALSE;
+
+  End:
+  if (dwSearchType & AEHF_FINDCHILD)
+  {
+    if (bResult)
+    {
+      AEQUOTEMATCHITEM *lpQuoteMatchItem;
+
+      if (!AE_HeapStackInsertBefore(ae, (stack **)&qm->hParentStack.first, (stack **)&qm->hParentStack.last, NULL, (stack **)&lpQuoteMatchItem, sizeof(AEQUOTEMATCHITEM)))
+      {
+        lpQuoteMatchItem->lpQuote=qmTmp.lpQuote;
+        lpQuoteMatchItem->crQuoteStart=qmTmp.crQuoteStart;
+        lpQuoteMatchItem->crQuoteEnd=qmTmp.crQuoteEnd;
+      }
+    }
+    else xmemcpy(qm, &qmTmp, sizeof(AEQUOTEMATCH));
+  }
+  return bResult;
 }
 
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
@@ -11751,6 +11811,8 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
     lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
     lpQuoteDst->crText=lpQuoteSrc->crText;
     lpQuoteDst->crBk=lpQuoteSrc->crBk;
+    lpQuoteDst->dwRuleID=lpQuoteSrc->dwRuleID;
+    lpQuoteDst->dwParentID=lpQuoteSrc->dwParentID;
     ++lpQuoteStack->nElementsAll;
 
     if (lpQuoteDst->dwFlags & AEHLF_REGEXP)
@@ -11910,7 +11972,9 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
         lpQuoteStart->dwFlags == lpQuoteItem->dwFlags &&
         lpQuoteStart->chEscape == lpQuoteItem->chEscape &&
         //AEQUOTEITEMs with filter flags should not be merged
-        !(lpQuoteStart->dwFlags & (AEHLF_QUOTEINCLUDE|AEHLF_QUOTEEXCLUDE|AEHLF_QUOTEEMPTY|AEHLF_QUOTEWITHOUTDELIMITERS)))
+        !(lpQuoteStart->dwFlags & (AEHLF_QUOTEINCLUDE|AEHLF_QUOTEEXCLUDE|AEHLF_QUOTEEMPTY|AEHLF_QUOTEWITHOUTDELIMITERS)) &&
+        //AEQUOTEITEMs with rule ID should not be merged
+        !lpQuoteStart->dwRuleID)
     {
       if (!lpQuoteItem->nQuoteStartLen)
         break;
@@ -11932,6 +11996,8 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
       lpQuoteStart->nQuoteStartLen=lpQuoteItem->nQuoteStartLen;
       lpQuoteStart->chEscape=lpQuoteItem->chEscape;
       lpQuoteStart->dwFlags=lpQuoteItem->dwFlags;
+      lpQuoteStart->dwRuleID=lpQuoteItem->dwRuleID;
+      lpQuoteStart->dwParentID=lpQuoteItem->dwParentID;
     }
   }
 
@@ -11940,6 +12006,18 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
     lpQuoteItemHandle->lpQuoteItem=lpQuoteItem;
   }
   return lpQuoteStart;
+}
+
+AEQUOTEITEMW* AE_HighlightFindQuoteByID(AESTACKQUOTE *lpQuoteStack, DWORD dwRuleID)
+{
+  AEQUOTEITEMW *lpQuoteItem;
+
+  for (lpQuoteItem=lpQuoteStack->first; lpQuoteItem; lpQuoteItem=lpQuoteItem->next)
+  {
+    if (dwRuleID == lpQuoteItem->dwRuleID)
+      break;
+  }
+  return lpQuoteItem;
 }
 
 void AE_HighlightDeleteQuoteData(AEQUOTEITEMW *aeqi)
@@ -14098,6 +14176,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
     DeleteObject(hBitmap);
     DeleteDC(to.hDC);
   }
+  AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 }
 
 void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
@@ -14288,6 +14367,8 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine)
 {
+  int nFoundChild=0;
+
   if (to->dwPrintFlags & AEPRN_COLOREDSELECTION)
   {
     if (AEC_IsCharInSelection(&to->ciDrawLine))
@@ -14448,11 +14529,13 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         else if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm))
           AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm);
       }
+      else if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm)))
+        nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm);
 
       //Check quote start
       if (hlp->qm.lpQuote)
       {
-        if (!(hlp->dwPaintType & AEHPT_QUOTE))
+        if (!(hlp->dwPaintType & AEHPT_QUOTE) || nFoundChild)
         {
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteEnd.ciMax) < 0)
           {
@@ -14855,7 +14938,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
         hlp->mrm.lpMarkRange=NULL;
       }
     }
-    if (hlp->qm.lpQuote)
+    while (hlp->qm.lpQuote)
     {
       if (((hlp->qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteEnd.ciMin) >= 0) ||
           (!(hlp->qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteEnd.ciMax) >= 0))
@@ -14874,9 +14957,19 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
         }
         if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
           AE_PatReset((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack);
+
+        if (hlp->qm.hParentStack.last)
+        {
+          hlp->qm.lpQuote=hlp->qm.hParentStack.last->lpQuote;
+          hlp->qm.crQuoteStart=hlp->qm.hParentStack.last->crQuoteStart;
+          hlp->qm.crQuoteEnd=hlp->qm.hParentStack.last->crQuoteEnd;
+          AE_HeapStackDelete(ae, (stack **)&hlp->qm.hParentStack.first, (stack **)&hlp->qm.hParentStack.last, (stack *)hlp->qm.hParentStack.last);
+          continue;
+        }
         hlp->dwPaintType&=~AEHPT_QUOTE;
         hlp->qm.lpQuote=NULL;
       }
+      break;
     }
     if (hlp->wm.lpDelim1)
     {

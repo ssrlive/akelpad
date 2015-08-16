@@ -1205,6 +1205,8 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;             //See AEHLS_* defines.
   COLORREF crText;               //Quote text color. If -1, then don't set.
   COLORREF crBk;                 //Quote background color. If -1, then don't set.
+  DWORD dwRuleID;                //Rule identifier.
+  DWORD dwParentID;              //Parent rule identifier.
   void *lpQuoteStart;            //Don't use it. For internal code only.
   union {
     void *lpREGroupStack;        //Don't use it. For internal code only.
@@ -1269,10 +1271,24 @@ typedef struct {
   CHARRANGE64 crMarkRange;
 } AEMARKRANGEMATCH;
 
+typedef struct _AEQUOTEMATCH {
+  struct _AEQUOTEMATCH *next;
+  struct _AEQUOTEMATCH *prev;
+  AEQUOTEITEMW *lpQuote;
+  AECHARRANGE crQuoteStart;
+  AECHARRANGE crQuoteEnd;
+} AEQUOTEMATCHITEM;
+
+typedef struct {
+  AEQUOTEMATCHITEM *first;
+  AEQUOTEMATCHITEM *last;
+} AESTACKQUOTEMATCH;
+
 typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
 
 typedef struct {

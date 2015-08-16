@@ -78,6 +78,8 @@ typedef struct _QUOTEINFO {
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
+  DWORD dwRuleID;
+  DWORD dwParentID;
 } QUOTEINFO;
 
 typedef struct _MARKTEXT {
