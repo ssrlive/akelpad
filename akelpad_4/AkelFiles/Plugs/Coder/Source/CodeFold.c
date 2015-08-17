@@ -2632,8 +2632,7 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
   {
     if (lpFoldStart->nFoldStartLen == nFoldStartLen &&
         (lpFoldStart->dwFlags & FIF_MATCHCASE) == (lpFoldInfo->dwFlags & FIF_MATCHCASE) &&
-        //FOLDSTART with rule ID should not be merged
-        !lpFoldStart->dwRuleID)
+        lpFoldStart->dwRuleID == lpFoldInfo->dwRuleID)
     {
       if (((lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpW(lpFoldStart->wpFoldStart, wpFoldStart)) ||
           (!(lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpiW(lpFoldStart->wpFoldStart, wpFoldStart)))
