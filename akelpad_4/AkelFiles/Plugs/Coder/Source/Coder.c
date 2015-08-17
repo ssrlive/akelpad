@@ -2420,8 +2420,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
-  DWORD dwRuleID;
   DWORD dwParentID;
+  DWORD dwRuleID;
   BOOL bQuoteString;
   BOOL bExactTitle;
 
@@ -2529,6 +2529,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
                 dwColor2=(DWORD)-1;
+                dwParentID=0;
 
                 for (;;)
                 {
@@ -2579,6 +2580,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else break;
 
+                  //Parent ID
+                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                  {
+                    dwParentID=xatoiW(wszBuffer, NULL);
+                  }
+
                   //Add to stack
                   if (lpDelimElement=StackInsertDelimiter(&lpSyntaxFile->hDelimiterStack, nDelimiterLen))
                   {
@@ -2588,6 +2595,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpDelimElement->dwFontStyle=dwFontStyle;
                     lpDelimElement->dwColor1=dwColor1;
                     lpDelimElement->dwColor2=dwColor2;
+                    lpDelimElement->dwParentID=dwParentID;
                   }
                   break;
                 }
@@ -2925,8 +2933,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
                 dwColor2=(DWORD)-1;
-                dwRuleID=0;
                 dwParentID=0;
+                dwRuleID=0;
 
                 for (;;)
                 {
@@ -3013,15 +3021,15 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else break;
 
-                  //Rule ID
+                  //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwRuleID=xatoiW(wszBuffer, NULL);
+                    dwParentID=xatoiW(wszBuffer, NULL);
 
-                    //Parent ID
+                    //Rule ID
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
-                      dwParentID=xatoiW(wszBuffer, NULL);
+                      dwRuleID=xatoiW(wszBuffer, NULL);
                     }
                   }
 
@@ -3041,8 +3049,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpQuoteElement->dwFontStyle=dwFontStyle;
                     lpQuoteElement->dwColor1=dwColor1;
                     lpQuoteElement->dwColor2=dwColor2;
-                    lpQuoteElement->dwRuleID=dwRuleID;
                     lpQuoteElement->dwParentID=dwParentID;
+                    lpQuoteElement->dwRuleID=dwRuleID;
                   }
                   break;
                 }
@@ -3066,8 +3074,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 wpQuoteStart=NULL;
                 wpQuoteEnd=NULL;
                 dwFlags=AEHLF_MATCHCASE;
-                dwRuleID=0;
                 dwParentID=0;
+                dwRuleID=0;
 
                 for (;;)
                 {
@@ -3098,15 +3106,15 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else break;
 
-                  //Rule ID
+                  //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwRuleID=xatoiW(wszBuffer, NULL);
+                    dwParentID=xatoiW(wszBuffer, NULL);
 
-                    //Parent ID
+                    //Rule ID
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
-                      dwParentID=xatoiW(wszBuffer, NULL);
+                      dwRuleID=xatoiW(wszBuffer, NULL);
                     }
                   }
 
@@ -3118,8 +3126,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpQuoteElement->wpQuoteEnd=wpQuoteEnd;
                     lpQuoteElement->nQuoteEndLen=nQuoteEndLen;
                     lpQuoteElement->dwFlags=dwFlags|AEHLF_REGEXP;
-                    lpQuoteElement->dwRuleID=dwRuleID;
                     lpQuoteElement->dwParentID=dwParentID;
+                    lpQuoteElement->dwRuleID=dwRuleID;
                   }
                   break;
                 }
@@ -3143,6 +3151,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
                 dwColor2=(DWORD)-1;
+                dwParentID=0;
 
                 for (;;)
                 {
@@ -3193,6 +3202,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else break;
 
+                  //Parent ID
+                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                  {
+                    dwParentID=xatoiW(wszBuffer, NULL);
+                  }
+
                   //Add to stack
                   if (lpWordElement=StackInsertWord(&lpSyntaxFile->hWordStack, &lpSyntaxFile->hWordOrderStack, nWordLen))
                   {
@@ -3202,6 +3217,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpWordElement->dwFontStyle=dwFontStyle;
                     lpWordElement->dwColor1=dwColor1;
                     lpWordElement->dwColor2=dwColor2;
+                    lpWordElement->dwParentID=dwParentID;
                   }
                   break;
                 }
@@ -3536,6 +3552,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
                 dwColor2=(DWORD)-1;
+                dwParentID=0;
+                dwRuleID=0;
 
                 for (;;)
                 {
@@ -3606,6 +3624,18 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else break;
 
+                  //Parent ID
+                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                  {
+                    dwParentID=xatoiW(wszBuffer, NULL);
+
+                    //Rule ID
+                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                    {
+                      dwRuleID=xatoiW(wszBuffer, NULL);
+                    }
+                  }
+
                   //Add to stack
                   if (lpFoldInfo=StackInsertFoldInfo(&lpSyntaxFile->hFoldStack))
                   {
@@ -3659,6 +3689,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpFoldInfo->dwFontStyle=dwFontStyle;
                     lpFoldInfo->dwColor1=dwColor1;
                     lpFoldInfo->dwColor2=dwColor2;
+                    lpFoldInfo->dwParentID=dwParentID;
+                    lpFoldInfo->dwRuleID=dwRuleID;
 
                     if (dwFlags & FIF_REGEXPSTART)
                       lpSyntaxFile->hFoldStack.nCommonFirstChar=-1;

@@ -164,6 +164,7 @@
 #define AEFC_ALL              0  //All folds.
 #define AEFC_COLLAPSED        1  //Collapsed folds.
 #define AEFC_COLORED          2  //Colored folds.
+#define AEFC_WITHID           3  //Folds with ID.
 
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
@@ -906,6 +907,8 @@ typedef struct _AEFOLD {
   DWORD dwFontStyle;          //See AEHLS_* defines.
   COLORREF crText;            //Text color. If -1, then don't set.
   COLORREF crBk;              //Background color. If -1, then don't set.
+  DWORD dwParentID;           //Parent rule identifier.
+  DWORD dwRuleID;             //Rule identifier.
   UINT_PTR dwUserData;        //User data.
 } AEFOLD;
 
@@ -1129,6 +1132,7 @@ typedef struct _AEDELIMITEMA {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
+  DWORD dwParentID;          //Parent rule identifier.
 } AEDELIMITEMA;
 
 typedef struct _AEDELIMITEMW {
@@ -1141,6 +1145,7 @@ typedef struct _AEDELIMITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
+  DWORD dwParentID;          //Parent rule identifier.
 } AEDELIMITEMW;
 
 typedef struct _AEWORDITEMA {
@@ -1153,6 +1158,7 @@ typedef struct _AEWORDITEMA {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
+  DWORD dwParentID;          //Parent rule identifier.
 } AEWORDITEMA;
 
 typedef struct _AEWORDITEMW {
@@ -1165,27 +1171,30 @@ typedef struct _AEWORDITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
+  DWORD dwParentID;          //Parent rule identifier.
 } AEWORDITEMW;
 
 typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *next;
   struct _AEQUOTEITEMA *prev;
-  int nIndex;                   //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
-  const char *pQuoteStart;      //Quote start string.
-  int nQuoteStartLen;           //Quote start string length.
-  const char *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
-  int nQuoteEndLen;             //Quote end string length.
-  char chEscape;                //Escape character. If it precedes quote string then quote ignored.
-  const char *pQuoteInclude;    //Quote include string.
-  int nQuoteIncludeLen;         //Quote include string length.
-  const char *pQuoteExclude;    //Quote exclude string.
-  int nQuoteExcludeLen;         //Quote exclude string length.
-  DWORD dwFlags;                //See AEHLF_* defines.
-  DWORD dwFontStyle;            //See AEHLS_* defines.
-  COLORREF crText;              //Quote text color. If -1, then don't set.
-  COLORREF crBk;                //Quote background color. If -1, then don't set.
-  void *lpQuoteStart;           //Don't use it. For internal code only.
-  INT_PTR nCompileErrorOffset;  //Contain pQuoteStart offset, if error occurred during compile regular exression pattern.
+  int nIndex;                    //Reserved. Quote start items are automatically grouped in standalone stack, if following members are equal: pQuoteStart, chEscape and dwFlags with AEHLF_QUOTESTART_ISDELIMITER, AEHLF_ATLINESTART, AEHLF_QUOTESTART_ISWORD.
+  const char *pQuoteStart;       //Quote start string.
+  int nQuoteStartLen;            //Quote start string length.
+  const char *pQuoteEnd;         //Quote end string. If NULL, line end used as quote end.
+  int nQuoteEndLen;              //Quote end string length.
+  char chEscape;                 //Escape character. If it precedes quote string then quote ignored.
+  const char *pQuoteInclude;     //Quote include string.
+  int nQuoteIncludeLen;          //Quote include string length.
+  const char *pQuoteExclude;     //Quote exclude string.
+  int nQuoteExcludeLen;          //Quote exclude string length.
+  DWORD dwFlags;                 //See AEHLF_* defines.
+  DWORD dwFontStyle;             //See AEHLS_* defines.
+  COLORREF crText;               //Quote text color. If -1, then don't set.
+  COLORREF crBk;                 //Quote background color. If -1, then don't set.
+  void *lpQuoteStart;            //Don't use it. For internal code only.
+  DWORD dwParentID;              //Parent rule identifier.
+  DWORD dwRuleID;                //Rule identifier.
+  INT_PTR nCompileErrorOffset;   //Contain pQuoteStart offset, if error occurred during compile regular exression pattern.
 } AEQUOTEITEMA;
 
 typedef struct _AEQUOTEITEMW {
@@ -1205,6 +1214,8 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;             //See AEHLS_* defines.
   COLORREF crText;               //Quote text color. If -1, then don't set.
   COLORREF crBk;                 //Quote background color. If -1, then don't set.
+  DWORD dwParentID;              //Parent rule identifier.
+  DWORD dwRuleID;                //Rule identifier.
   void *lpQuoteStart;            //Don't use it. For internal code only.
   union {
     void *lpREGroupStack;        //Don't use it. For internal code only.
@@ -1269,10 +1280,24 @@ typedef struct {
   CHARRANGE64 crMarkRange;
 } AEMARKRANGEMATCH;
 
+typedef struct _AEQUOTEMATCH {
+  struct _AEQUOTEMATCH *next;
+  struct _AEQUOTEMATCH *prev;
+  AEQUOTEITEMW *lpQuote;
+  AECHARRANGE crQuoteStart;
+  AECHARRANGE crQuoteEnd;
+} AEQUOTEMATCHITEM;
+
+typedef struct {
+  AEQUOTEMATCHITEM *first;
+  AEQUOTEMATCHITEM *last;
+} AESTACKQUOTEMATCH;
+
 typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
 
 typedef struct {
@@ -1287,6 +1312,7 @@ typedef struct {
 typedef struct {
   CHARRANGE64 crFold;
   AEFOLD *lpFold;
+  BOOL bColored;
 } AEFOLDMATCH;
 
 typedef struct {

@@ -188,6 +188,8 @@ typedef struct _FOLDINFO {
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
+  DWORD dwParentID;
+  DWORD dwRuleID;
   STACKREGROUP sregEnd;
 } FOLDINFO;
 
