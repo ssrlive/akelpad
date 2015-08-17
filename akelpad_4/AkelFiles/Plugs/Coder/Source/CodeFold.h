@@ -170,6 +170,8 @@ typedef struct _FOLDSTART {
   int nFoldStartLen;
   int nFoldStartPointLen;
   STACKREGROUP sregStart;
+  DWORD dwParentID;
+  DWORD dwRuleID;
 
   //Stack with the same wpFoldStart.
   HSTACK hFoldInfoHandleStack;

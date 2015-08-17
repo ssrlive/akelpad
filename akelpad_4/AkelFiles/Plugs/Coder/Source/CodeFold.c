@@ -2630,15 +2630,15 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
 
   while (lpFoldStart)
   {
-    if (lpFoldStart->nFoldStartLen == nFoldStartLen)
+    if (lpFoldStart->nFoldStartLen == nFoldStartLen &&
+        (lpFoldStart->dwFlags & FIF_MATCHCASE) == (lpFoldInfo->dwFlags & FIF_MATCHCASE) &&
+        //FOLDSTART with rule ID should not be merged
+        !lpFoldStart->dwRuleID)
     {
-      if (!(lpFoldStart->dwFlags & FIF_MATCHCASE) == !(lpFoldInfo->dwFlags & FIF_MATCHCASE))
+      if (((lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpW(lpFoldStart->wpFoldStart, wpFoldStart)) ||
+          (!(lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpiW(lpFoldStart->wpFoldStart, wpFoldStart)))
       {
-        if (((lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpW(lpFoldStart->wpFoldStart, wpFoldStart)) ||
-            (!(lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpiW(lpFoldStart->wpFoldStart, wpFoldStart)))
-        {
-          break;
-        }
+        break;
       }
     }
     lpFoldStart=lpFoldStart->next;
@@ -2652,6 +2652,8 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
       lpFoldStart->wpFoldStart=wpFoldStart;
       lpFoldStart->nFoldStartLen=nFoldStartLen;
       lpFoldStart->nFoldStartPointLen=nFoldStartLen;
+      lpFoldStart->dwParentID=lpFoldInfo->dwParentID;
+      lpFoldStart->dwRuleID=lpFoldInfo->dwRuleID;
 
       if (lpFoldStart->dwFlags & FIF_REGEXPSTART)
       {
@@ -4176,6 +4178,8 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   {
     for (lpFoldStart=(FOLDSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStartStack.first; lpFoldStart; lpFoldStart=lpFoldStart->next)
     {
+      if (lpFoldStart->dwParentID && (!lpLevel || lpFoldStart->dwParentID != lpLevel->pfd->lpFoldInfo->dwRuleID))
+        continue;
       if (lpFoldInfo=IsFoldStart(lpFoldStart, ft, ciChar))
       {
         *dwFoldStop=IFE_FOLDSTART;

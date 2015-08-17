@@ -3681,8 +3681,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     else lpFoldInfo->nFoldEndPointLen=nFoldEndLen;
 
                     lpFoldInfo->dwFlags=dwFlags;
-                    if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))
-                      goto FreeFold;
                     lpFoldInfo->wpFoldEnd=wpFoldEnd;
                     lpFoldInfo->nFoldEndLen=nFoldEndLen;
                     lpFoldInfo->wpDelimiters=wpFoldDelimiters;
@@ -3691,6 +3689,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpFoldInfo->dwColor2=dwColor2;
                     lpFoldInfo->dwParentID=dwParentID;
                     lpFoldInfo->dwRuleID=dwRuleID;
+                    if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))
+                      goto FreeFold;
 
                     if (dwFlags & FIF_REGEXPSTART)
                       lpSyntaxFile->hFoldStack.nCommonFirstChar=-1;
