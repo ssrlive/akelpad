@@ -1980,6 +1980,7 @@ void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)
         di.crText=lpElement->dwColor1;
         di.crBk=lpElement->dwColor2;
         di.dwFontStyle=lpElement->dwFontStyle;
+        di.dwParentID=lpElement->dwParentID;
         SendMessage(hWnd, AEM_HLADDDELIMITERW, (WPARAM)lpSyntaxFile->hThemeHighLight, (LPARAM)&di);
 
         lpElement=lpElement->next;
@@ -1998,6 +1999,7 @@ void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)
         wi.crText=lpElement->dwColor1;
         wi.crBk=lpElement->dwColor2;
         wi.dwFontStyle=lpElement->dwFontStyle;
+        wi.dwParentID=lpElement->dwParentID;
         SendMessage(hWnd, AEM_HLADDWORDW, (WPARAM)lpSyntaxFile->hThemeHighLight, (LPARAM)&wi);
 
         lpElement=lpElement->prev;
@@ -2024,8 +2026,8 @@ void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)
         qi.dwFontStyle=lpElement->dwFontStyle;
         qi.crText=lpElement->dwColor1;
         qi.crBk=lpElement->dwColor2;
-        qi.dwRuleID=lpElement->dwRuleID;
         qi.dwParentID=lpElement->dwParentID;
+        qi.dwRuleID=lpElement->dwRuleID;
 
         if (qi.nQuoteIncludeLen)
           qi.dwFlags|=AEHLF_QUOTEINCLUDE;

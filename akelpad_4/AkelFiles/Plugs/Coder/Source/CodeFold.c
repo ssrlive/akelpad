@@ -3224,6 +3224,8 @@ void CreateFold(LEVEL *lpLevel, HWND hWnd, BOOL bCollapse)
   fold.dwFontStyle=lpLevel->pfd->lpFoldInfo->dwFontStyle;
   fold.crText=lpLevel->pfd->lpFoldInfo->dwColor1;
   fold.crBk=lpLevel->pfd->lpFoldInfo->dwColor2;
+  fold.dwParentID=lpLevel->pfd->lpFoldInfo->dwParentID;
+  fold.dwRuleID=lpLevel->pfd->lpFoldInfo->dwRuleID;
   fold.dwUserData=(UINT_PTR)lpLevel->pfd;
   fold.dwFontStyle=fold.dwFontStyle;
   lpLevel->pfd->lpFold=(AEFOLD *)SendMessage(hWnd, AEM_ADDFOLD, 0, (LPARAM)&fold);
