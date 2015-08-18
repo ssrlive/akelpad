@@ -10845,7 +10845,10 @@ INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGE
 
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
 {
-  AEQUOTEMATCH qmTmp;
+  AEQUOTEITEMW *lpParentQuote=qm->lpQuote;
+  AECHARRANGE crParentQuoteStart;
+  AECHARRANGE crParentQuoteEnd;
+  AEFOLD *lpFold=fm->lpFold;
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
   AECHARINDEX ciTmpCount;
@@ -10864,7 +10867,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   {
     if (!qm->lpQuote || !qm->lpQuote->dwRuleID)
       return 0;
-    xmemcpy(&qmTmp, qm, sizeof(AEQUOTEMATCH));
+    crParentQuoteStart=qm->crQuoteStart;
+    crParentQuoteEnd=qm->crQuoteEnd;
   }
 
   NextTheme:
@@ -10916,14 +10920,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             //Quote start
             if (lpQuoteStart->dwParentID)
             {
-              if ((dwSearchType & AEHF_FINDCHILD) ? (!qmTmp.lpQuote || lpQuoteStart->dwParentID != qmTmp.lpQuote->dwRuleID) :
-                                                    (!fm->lpFold || lpQuoteStart->dwParentID != fm->lpFold->dwRuleID))
+              if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteStart->dwParentID != lpParentQuote->dwRuleID) :
+                                                    (!lpFold || lpQuoteStart->dwParentID != lpFold->dwRuleID))
                 continue;
             }
 
             if (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
             {
-              if ((lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, 0, fm->lpFold)) || AEC_IsFirstCharInLine(&ciCount))
+              if ((lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, 0, lpParentQuote, lpFold)) || AEC_IsFirstCharInLine(&ciCount))
               {
                 if (lpDelimItem)
                 {
@@ -10967,8 +10971,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   if (!AE_IsEscaped(&ciCount, lpQuoteStart->chEscape))
                   {
                     if (!(lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISWORD) ||
-                        ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, 0, fm->lpFold) || AEC_IsLastCharInLine(&ft.crFound.ciMax)) &&
-                         (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, AEHID_BACK, fm->lpFold) || AEC_IsFirstCharInLine(&ft.crFound.ciMin))))
+                        ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, 0, lpParentQuote, lpFold) || AEC_IsLastCharInLine(&ft.crFound.ciMax)) &&
+                         (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, AEHID_BACK, lpParentQuote, lpFold) || AEC_IsFirstCharInLine(&ft.crFound.ciMin))))
                     {
                       ciTmpCount=ft.crFound.ciMax;
                       nTmpQuoteLen=lpQuoteStart->nQuoteStartLen;
@@ -11017,7 +11021,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
             if (qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER)
             {
-              if ((lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, 0, fm->lpFold)) || AEC_IsLastCharInLine(&ciCount))
+              if ((lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, 0, lpParentQuote, lpFold)) || AEC_IsLastCharInLine(&ciCount))
               {
                 if (lpDelimItem)
                 {
@@ -11054,8 +11058,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   if (!AE_IsEscaped(&ciCount, qm->lpQuote->chEscape))
                   {
                     if (!(qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISWORD) ||
-                        ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, 0, fm->lpFold) || AEC_IsLastCharInLine(&ft.crFound.ciMax)) &&
-                         (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, AEHID_BACK, fm->lpFold) || AEC_IsFirstCharInLine(&ft.crFound.ciMin))))
+                        ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, 0, lpParentQuote, lpFold) || AEC_IsLastCharInLine(&ft.crFound.ciMax)) &&
+                         (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, AEHID_BACK, lpParentQuote, lpFold) || AEC_IsFirstCharInLine(&ft.crFound.ciMin))))
                     {
                       nQuoteLen+=qm->lpQuote->nQuoteEndLen;
                       qm->crQuoteEnd.ciMin=ft.crFound.ciMin;
@@ -11071,12 +11075,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               goto QuoteStartNext;
             if (qm->lpQuote->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
             {
-              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0, fm->lpFold))
+              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0, lpParentQuote, lpFold))
                 goto QuoteStartNext;
             }
             if (qm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
             {
-              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0, fm->lpFold))
+              if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, 0, lpParentQuote, lpFold))
                 goto QuoteStartNext;
             }
             if (qm->lpQuote->dwFlags & AEHLF_QUOTEINCLUDE)
@@ -11188,19 +11192,27 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
       if (!AE_HeapStackInsertBefore(ae, (stack **)&qm->hParentStack.first, (stack **)&qm->hParentStack.last, NULL, (stack **)&lpQuoteMatchItem, sizeof(AEQUOTEMATCHITEM)))
       {
-        lpQuoteMatchItem->lpQuote=qmTmp.lpQuote;
-        lpQuoteMatchItem->crQuoteStart=qmTmp.crQuoteStart;
-        lpQuoteMatchItem->crQuoteEnd=qmTmp.crQuoteEnd;
+        lpQuoteMatchItem->lpQuote=lpParentQuote;
+        lpQuoteMatchItem->crQuoteStart=crParentQuoteStart;
+        lpQuoteMatchItem->crQuoteEnd=crParentQuoteEnd;
       }
     }
-    else xmemcpy(qm, &qmTmp, sizeof(AEQUOTEMATCH));
+    else
+    {
+      qm->lpQuote=lpParentQuote;
+      qm->crQuoteStart=crParentQuoteStart;
+      qm->crQuoteEnd=crParentQuoteEnd;
+    }
   }
   return nQuoteLen;
 }
 
 BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
 {
-  AEQUOTEMATCH qmTmp;
+  AEQUOTEITEMW *lpParentQuote=qm->lpQuote;
+  AECHARRANGE crParentQuoteStart;
+  AECHARRANGE crParentQuoteEnd;
+  AEFOLD *lpFold=fm->lpFold;
   AECHARINDEX ciCount;
   AECHARINDEX ciMaxLine;
   STACKREGROUP *lpREGroupStack;
@@ -11215,7 +11227,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
   {
     if (!qm->lpQuote || !qm->lpQuote->dwRuleID)
       return FALSE;
-    xmemcpy(&qmTmp, qm, sizeof(AEQUOTEMATCH));
+    crParentQuoteStart=qm->crQuoteStart;
+    crParentQuoteEnd=qm->crQuoteEnd;
   }
 
   NextTheme:
@@ -11258,8 +11271,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         {
           if (lpQuoteItem->dwParentID)
           {
-            if ((dwSearchType & AEHF_FINDCHILD) ? (!qmTmp.lpQuote || lpQuoteItem->dwParentID != qmTmp.lpQuote->dwRuleID) :
-                                                  (!fm->lpFold || lpQuoteItem->dwParentID != fm->lpFold->dwRuleID))
+            if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteItem->dwParentID != lpParentQuote->dwRuleID) :
+                                                  (!lpFold || lpQuoteItem->dwParentID != lpFold->dwRuleID))
               continue;
           }
 
@@ -11320,12 +11333,17 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 
       if (!AE_HeapStackInsertBefore(ae, (stack **)&qm->hParentStack.first, (stack **)&qm->hParentStack.last, NULL, (stack **)&lpQuoteMatchItem, sizeof(AEQUOTEMATCHITEM)))
       {
-        lpQuoteMatchItem->lpQuote=qmTmp.lpQuote;
-        lpQuoteMatchItem->crQuoteStart=qmTmp.crQuoteStart;
-        lpQuoteMatchItem->crQuoteEnd=qmTmp.crQuoteEnd;
+        lpQuoteMatchItem->lpQuote=lpParentQuote;
+        lpQuoteMatchItem->crQuoteStart=crParentQuoteStart;
+        lpQuoteMatchItem->crQuoteEnd=crParentQuoteEnd;
       }
     }
-    else xmemcpy(qm, &qmTmp, sizeof(AEQUOTEMATCH));
+    else
+    {
+      qm->lpQuote=lpParentQuote;
+      qm->crQuoteStart=crParentQuoteStart;
+      qm->crQuoteEnd=crParentQuoteEnd;
+    }
   }
   return bResult;
 }
@@ -11372,7 +11390,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
         }
 
         //Is delimiter
-        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, fm->lpFold))
+        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
         {
           wm->lpDelim1=lpDelimItem;
           wm->crDelim1.ciMin=ft.crFound.ciMin;
@@ -11386,7 +11404,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
         if ((!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax)) ||
             (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFold.cpMax)
         {
-          if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE, fm->lpFold))
+          if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
             goto SetEmptyFirstDelim;
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -11427,7 +11445,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
       {
         //Is delimiter
-        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, fm->lpFold))
+        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
         {
           wm->lpDelim2=lpDelimItem;
           wm->crDelim2.ciMin=ft.crFound.ciMin;
@@ -11455,12 +11473,12 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     SetWord:
     wm->crWord.ciMin=wm->crDelim1.ciMax;
     wm->crWord.ciMax=wm->crDelim2.ciMin;
-    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, fm->lpFold);
+    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, qm->lpQuote, fm->lpFold);
   }
   return nWordLen;
 }
 
-AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags, AEFOLD *lpFold)
+AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold)
 {
   AEDELIMITEMW *lpDelimItem;
   AECHARINDEX ciDelimStart=*ciChar;
@@ -11479,7 +11497,8 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
 
   for (; lpDelimItem; lpDelimItem=lpDelimItem->next)
   {
-    if (lpDelimItem->dwParentID && (!lpFold || lpDelimItem->dwParentID != lpFold->dwRuleID))
+    if (lpDelimItem->dwParentID && ((!lpFold || lpDelimItem->dwParentID != lpFold->dwRuleID) &&
+                                   (!lpQuote || lpDelimItem->dwParentID != lpQuote->dwRuleID)))
       continue;
     ft->pText=lpDelimItem->pDelimiter;
     ft->dwTextLen=lpDelimItem->nDelimiterLen;
@@ -11515,7 +11534,7 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
   return NULL;
 }
 
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEFOLD *lpFold)
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold)
 {
   AESTACKWORD *lpWordStack;
   AEWORDITEMW *lpWordItem;
@@ -11543,7 +11562,8 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
       {
         if (lpWordItem->dwFlags & AEHLF_WORDCOMPOSITION)
         {
-          if (lpWordItem->dwParentID && (!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID))
+          if (lpWordItem->dwParentID && ((!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID) &&
+                                         (!lpQuote || lpWordItem->dwParentID != lpQuote->dwRuleID)))
             continue;
           ciCount=crWord->ciMin;
 
@@ -11575,7 +11595,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     {
       if (lpWordItem->nWordLen == nWordLen)
       {
-        if (lpWordItem->dwParentID && ((!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID)) &&
+        if (lpWordItem->dwParentID && ((!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID) &&
                                        (!lpQuote || lpWordItem->dwParentID != lpQuote->dwRuleID)))
           continue;
         ft->pText=lpWordItem->pWord;
