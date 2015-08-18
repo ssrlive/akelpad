@@ -11473,7 +11473,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     SetWord:
     wm->crWord.ciMin=wm->crDelim1.ciMax;
     wm->crWord.ciMax=wm->crDelim2.ciMin;
-    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, qm->lpQuote, fm->lpFold);
+    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, qm, fm);
   }
   return nWordLen;
 }
@@ -11534,7 +11534,7 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
   return NULL;
 }
 
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold)
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
 {
   AESTACKWORD *lpWordStack;
   AEWORDITEMW *lpWordItem;
@@ -11562,8 +11562,10 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
       {
         if (lpWordItem->dwFlags & AEHLF_WORDCOMPOSITION)
         {
-          if (lpWordItem->dwParentID && ((!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID) &&
-                                         (!lpQuote || lpWordItem->dwParentID != lpQuote->dwRuleID)))
+          if (lpWordItem->dwParentID && ((!fm->lpFold || lpWordItem->dwParentID != fm->lpFold->dwRuleID) &&
+                                         (!qm->lpQuote || lpWordItem->dwParentID != qm->lpQuote->dwRuleID ||
+                                          AEC_IndexCompare(&crWord->ciMin, &qm->crQuoteStart.ciMax) < 0 ||
+                                          AEC_IndexCompare(&crWord->ciMax, &qm->crQuoteEnd.ciMin) > 0)))
             continue;
           ciCount=crWord->ciMin;
 
@@ -11595,8 +11597,10 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     {
       if (lpWordItem->nWordLen == nWordLen)
       {
-        if (lpWordItem->dwParentID && ((!lpFold || lpWordItem->dwParentID != lpFold->dwRuleID) &&
-                                       (!lpQuote || lpWordItem->dwParentID != lpQuote->dwRuleID)))
+        if (lpWordItem->dwParentID && ((!fm->lpFold || lpWordItem->dwParentID != fm->lpFold->dwRuleID) &&
+                                       (!qm->lpQuote || lpWordItem->dwParentID != qm->lpQuote->dwRuleID ||
+                                        AEC_IndexCompare(&crWord->ciMin, &qm->crQuoteStart.ciMax) < 0 ||
+                                        AEC_IndexCompare(&crWord->ciMax, &qm->crQuoteEnd.ciMin) > 0)))
           continue;
         ft->pText=lpWordItem->pWord;
         ft->dwTextLen=lpWordItem->nWordLen;
