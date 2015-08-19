@@ -14586,15 +14586,22 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             //Horizontal scroling when <...> is the parent for "...":
             //<a href="Long string...">
             AECHARINDEX ciDrawLine=to->ciDrawLine;
+            DWORD dwSelFlag=(hlp->dwPaintType & AEHPT_SELECTION);
+            DWORD dwColSelFlag=(to->dwPrintFlags & AEPRN_COLOREDSELECTION);
+
+            hlp->dwPaintType|=AEHPT_SELECTION;
+            to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
 
             for (to->ciDrawLine=hlp->qm.crQuoteStart.ciMax; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_IndexInc(&to->ciDrawLine))
             {
               AE_PaintCheckHighlightCloseItem(ae, to, hlp);
 
-              if (!(AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
-                AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
+              if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
+                nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
             }
             to->ciDrawLine=ciDrawLine;
+            if (!dwSelFlag) hlp->dwPaintType&=~AEHPT_SELECTION;
+            if (dwColSelFlag) to->dwPrintFlags|=AEPRN_COLOREDSELECTION;
           }
         }
         else if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
