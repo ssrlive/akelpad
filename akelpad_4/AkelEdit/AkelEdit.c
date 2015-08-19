@@ -13629,6 +13629,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   DeleteObject(ae->popt->hbrBasicBk);
   ae->popt->hbrBasicBk=NULL;
   ae->bPrinting=FALSE;
+  AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 
   return bContinuePrint;
 }
@@ -14580,6 +14581,21 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
             hlp->qm.crQuoteEnd.ciMax=to->ciDrawLine;
           }
+          else if (hlp->qm.lpQuote->dwRuleID)
+          {
+            //Horizontal scroling when <...> is the parent for "...":
+            //<a href="Long string...">
+            AECHARINDEX ciDrawLine=to->ciDrawLine;
+
+            for (to->ciDrawLine=hlp->qm.crQuoteStart.ciMax; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_IndexInc(&to->ciDrawLine))
+            {
+              AE_PaintCheckHighlightCloseItem(ae, to, hlp);
+
+              if (!(AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
+                AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
+            }
+            to->ciDrawLine=ciDrawLine;
+          }
         }
         else if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
           AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm);
@@ -15216,15 +15232,15 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
       if (AEC_IndexCompare(&to.ciDrawLine, &gh->crText.ciMax) >= 0)
-        goto End;
+        goto LastPaint;
 
       //Check highlight close
       AE_PaintCheckHighlightCloseItem(ae, &to, &hlp);
-      if (to.gh->dwError) return;
+      if (to.gh->dwError) goto End;
 
       //Check highlight open
       AE_PaintCheckHighlightOpenItem(ae, &to, &hlp, ae->ptxt->nLineCount);
-      if (to.gh->dwError) return;
+      if (to.gh->dwError) goto End;
 
       if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
 
@@ -15232,7 +15248,7 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       to.nDrawCharOffset+=AEC_IndexInc(&to.ciDrawLine);
     }
     AE_PaintTextOut(ae, &to, &hlp);
-    if (to.gh->dwError) return;
+    if (to.gh->dwError) goto End;
 
     //Next line
     if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
@@ -15241,9 +15257,12 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
     to.wpStartDraw=to.ciDrawLine.lpLine->wpLine;
   }
 
-  End:
+  LastPaint:
   AE_PaintTextOut(ae, &to, &hlp);
-  //if (to.gh->dwError) return;
+  //if (to.gh->dwError) goto End;
+
+  End:
+  AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 }
 
 void AE_MButtonDraw(AKELEDIT *ae)
