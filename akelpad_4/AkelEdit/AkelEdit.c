@@ -14563,8 +14563,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 
   //if (ae->popt->lpActiveTheme)
   {
-    //Only if char not in URL and fold
-    if (!(hlp->dwPaintType & AEHPT_LINK) && !(hlp->dwPaintType & AEHPT_FOLD))
+    //Only if char not in URL and color fold
+    if (!(hlp->dwPaintType & (AEHPT_LINK|AEHPT_FOLD)))
     {
       //Quote find
       if (AEC_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
@@ -14629,7 +14629,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             }
           }
         }
-        if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_QUOTE) && !(hlp->qm.lpQuote->dwFlags & AEHLF_NOCOLOR))
+        if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_QUOTE) &&
+            !(hlp->qm.lpQuote->dwFlags & AEHLF_NOCOLOR) && AEC_IndexCompare(&hlp->qm.crQuoteStart.ciMin, &hlp->qm.crQuoteEnd.ciMax))
         {
           if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
           {
