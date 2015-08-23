@@ -14588,14 +14588,14 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             AECHARINDEX ciDrawLine=to->ciDrawLine;
             DWORD dwSelFlag=(hlp->dwPaintType & AEHPT_SELECTION);
             DWORD dwColSelFlag=(to->dwPrintFlags & AEPRN_COLOREDSELECTION);
-          
+
             hlp->dwPaintType|=AEHPT_SELECTION;
             to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
-          
+
             for (to->ciDrawLine=hlp->qm.crQuoteStart.ciMax; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_NextCharInLine(&to->ciDrawLine))
             {
               AE_PaintCheckHighlightCloseItem(ae, to, hlp);
-          
+
               if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
                 nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
             }
