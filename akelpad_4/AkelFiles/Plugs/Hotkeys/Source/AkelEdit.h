@@ -397,16 +397,19 @@
 #define AEUV_STACK         1  //Retrieve URL visit stack.
                               //lParam                    == not used.
                               //(AESTACKURLVISIT *)Return == pointer to an URL visit stack.
-#define AEUV_GET           2  //Retrieve URL visit item.
+#define AEUV_GETBYRANGE    2  //Retrieve URL visit item by characters range.
                               //(AECHARRANGE *)lParam     == URL range.
                               //(AEURLVISIT *)Return      == pointer to an URL visit item.
-#define AEUV_ADD           3  //Add URL visit item.
-                              //(AECHARRANGE *)lParam     == URL range.
+#define AEUV_GETBYTEXT     3  //Retrieve URL visit item by text.
+                              //(const wchar_t *)lParam   == URL string.
                               //(AEURLVISIT *)Return      == pointer to an URL visit item.
-#define AEUV_DEL           4  //Delete URL visit item.
+#define AEUV_ADD           4  //Add URL visit item.
+                              //(AECHARRANGE *)lParam     == URL range. Can be NULL.
+                              //(AEURLVISIT *)Return      == pointer to an URL visit item.
+#define AEUV_DEL           5  //Delete URL visit item.
                               //(AEURLVISIT *)lParam      == pointer to an URL visit item.
                               //Return                    == zero.
-#define AEUV_FREE          5  //Free URL visit stack.
+#define AEUV_FREE          6  //Free URL visit stack.
                               //lParam                    == not used.
                               //Return                    == zero.
 
