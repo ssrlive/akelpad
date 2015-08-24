@@ -393,6 +393,24 @@
 #define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
 #define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
 
+//AEM_URLVISIT operations
+#define AEUV_STACK         1  //Retrieve URL visit stack.
+                              //lParam                    == not used.
+                              //(AESTACKURLVISIT *)Return == pointer to an URL visit stack.
+#define AEUV_GET           2  //Retrieve URL visit item.
+                              //(AECHARRANGE *)lParam     == URL range.
+                              //(AEURLVISIT *)Return      == pointer to an URL visit item.
+#define AEUV_ADD           3  //Add URL visit item.
+                              //(AECHARRANGE *)lParam     == URL range.
+                              //(AEURLVISIT *)Return      == pointer to an URL visit item.
+#define AEUV_DEL           4  //Delete URL visit item.
+                              //(AEURLVISIT *)lParam      == pointer to an URL visit item.
+                              //Return                    == zero.
+#define AEUV_FREE          5  //Free URL visit stack.
+                              //lParam                    == not used.
+                              //Return                    == zero.
+
+
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT          0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
 #define AECLR_CARET            0x00000002  //Sets caret color. crCaret member is valid.
@@ -469,6 +487,7 @@
 #define AEHLF_QUOTEEMPTY             0x00008000  //Quote doesn't contain any character.
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
+#define AEHLF_NOCOLOR                0x01000000  //Don't use it. For internal code only.
                                                  //Regular exression:
 #define AEHLF_REGEXP                 0x10000000  //Can be used in AEQUOTEITEM.dwFlags.
                                                  //  AEQUOTEITEM.pQuoteStart is a regular exression pattern,
@@ -1106,6 +1125,21 @@ typedef struct {
   LRESULT lResult; //Result after window message returns.
 } AESENDMESSAGE;
 
+typedef struct _AEURLVISIT {
+  struct _AEURLVISIT *next;
+  struct _AEURLVISIT *prev;
+  wchar_t *pUrlText;    //URL string.
+  INT_PTR nUrlTextLen;  //URL string length.
+  int nVisitCount;      //Count of visits.
+  BOOL bStatic;         //TRUE  Control don't delete item with zero visits.
+                        //FALSE Control could automatically delete this item with zero visits.
+} AEURLVISIT;
+
+typedef struct {
+  AEURLVISIT *first;
+  AEURLVISIT *last;
+} AESTACKURLVISIT;
+
 typedef struct {
   DWORD dwFlags;          //[in]     See AEPRN_* defines.
   HDC hPrinterDC;         //[in]     Printer device context.
@@ -1626,6 +1660,7 @@ typedef struct {
 #define AEM_INDEXTOCOLUMN         (WM_USER + 2123)
 #define AEM_COLUMNTOINDEX         (WM_USER + 2124)
 #define AEM_INDEXINURL            (WM_USER + 2125)
+#define AEM_URLVISIT              (WM_USER + 2126)
 #define AEM_ADDPOINT              (WM_USER + 2141)
 #define AEM_DELPOINT              (WM_USER + 2142)
 #define AEM_GETPOINTSTACK         (WM_USER + 2143)
@@ -3714,6 +3749,34 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_INDEXINURL, (WPARAM)&ciCaret, (LPARAM)&crUrl);
+
+
+AEM_URLVISIT
+____________
+
+URL visit operations.
+
+(int)wParam  == see AEUV_* defines.
+(void)lParam == depend of AEUV_* define.
+
+Return Value
+ Depend of AEUV_* define.
+
+Example:
+ AECHARINDEX ciCaret;
+ AECHARRANGE crUrl;
+ AEURLVISIT *lpUrlVisit;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ if (SendMessage(hWndEdit, AEM_INDEXINURL, (WPARAM)&ciCaret, (LPARAM)&crUrl))
+ {
+   if (lpUrlVisit=(AEURLVISIT *)SendMessage(hWndEdit, AEM_URLVISIT, AEUV_GET, (LPARAM)&crUrl))
+   {
+     //Reset count of visits. Control could automatically delete item with zero visits.
+     lpUrlVisit->nVisitCount=0;
+     InvalidateRect(hWndEdit, NULL, FALSE);
+   }
+ }
 
 
 AEM_ADDPOINT
