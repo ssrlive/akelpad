@@ -999,15 +999,19 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         return (LRESULT)&ae->ptxt->hUrlVisitStack;
       }
-      else if (wParam == AEUV_GET)
+      else if (wParam == AEUV_GETBYRANGE)
       {
-        return (LRESULT)AE_UrlVisitGet(ae, (AECHARRANGE *)lParam);
+        return (LRESULT)AE_UrlVisitGetByRange(ae, (AECHARRANGE *)lParam);
+      }
+      else if (wParam == AEUV_GETBYTEXT)
+      {
+        return (LRESULT)AE_UrlVisitGetByText(ae, (const wchar_t *)lParam);
       }
       else if (wParam == AEUV_ADD)
       {
         AEURLVISIT *lpUrlVisit;
 
-        if (!(lpUrlVisit=AE_UrlVisitGet(ae, (AECHARRANGE *)lParam)))
+        if (!(lpUrlVisit=AE_UrlVisitGetByRange(ae, (AECHARRANGE *)lParam)))
           lpUrlVisit=AE_UrlVisitInsert(ae, (AECHARRANGE *)lParam);
         if (lpUrlVisit)
           ++lpUrlVisit->nVisitCount;
@@ -10587,31 +10591,30 @@ BOOL AE_IsPointOnMarker(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY)
 AEURLVISIT* AE_UrlVisitInsert(AKELEDIT *ae, const AECHARRANGE *crUrl)
 {
   AEURLVISIT *lpUrlVisit=NULL;
-  wchar_t *wpUrlText;
-  INT_PTR nUrlTextLen;
 
-  if (nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, NULL, 0, AELB_ASIS, FALSE, FALSE))
+  if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUrlVisitStack.first, (stack **)&ae->ptxt->hUrlVisitStack.last, (stack **)&lpUrlVisit, -1, sizeof(AEURLVISIT)))
   {
-    if (wpUrlText=(wchar_t *)AE_HeapAlloc(ae, 0, nUrlTextLen * sizeof(wchar_t)))
+    if (crUrl)
     {
-      nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, wpUrlText, (UINT_PTR)-1, AELB_ASIS, FALSE, FALSE);
-
-      if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUrlVisitStack.first, (stack **)&ae->ptxt->hUrlVisitStack.last, (stack **)&lpUrlVisit, -1, sizeof(AEURLVISIT)))
+      if (lpUrlVisit->nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, NULL, 0, AELB_ASIS, FALSE, FALSE))
       {
-        lpUrlVisit->pUrlText=wpUrlText;
-        lpUrlVisit->nUrlTextLen=nUrlTextLen;
-        lpUrlVisit->nVisitCount=0;
+        if (lpUrlVisit->pUrlText=(wchar_t *)AE_HeapAlloc(ae, 0, lpUrlVisit->nUrlTextLen * sizeof(wchar_t)))
+        {
+          lpUrlVisit->nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, lpUrlVisit->pUrlText, (UINT_PTR)-1, AELB_ASIS, FALSE, FALSE);
+        }
       }
     }
   }
   return lpUrlVisit;
 }
 
-AEURLVISIT* AE_UrlVisitGet(AKELEDIT *ae, const AECHARRANGE *crUrl)
+AEURLVISIT* AE_UrlVisitGetByRange(AKELEDIT *ae, const AECHARRANGE *crUrl)
 {
   AEFINDTEXTW ft;
   AEURLVISIT *lpUrlVisit;
   INT_PTR nUrlTextLen=0;
+
+  if (!crUrl) return NULL;
 
   for (lpUrlVisit=ae->ptxt->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
   {
@@ -10629,6 +10632,22 @@ AEURLVISIT* AE_UrlVisitGet(AKELEDIT *ae, const AECHARRANGE *crUrl)
       ft.nNewLine=AELB_R;
 
       if (AE_IsMatch(ae, &ft, &crUrl->ciMin))
+        return lpUrlVisit;
+    }
+  }
+  return NULL;
+}
+
+AEURLVISIT* AE_UrlVisitGetByText(AKELEDIT *ae, const wchar_t *wpText)
+{
+  AEURLVISIT *lpUrlVisit;
+  INT_PTR nUrlTextLen=xstrlenW(wpText);
+
+  for (lpUrlVisit=ae->ptxt->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
+  {
+    if (lpUrlVisit->nUrlTextLen == nUrlTextLen)
+    {
+      if (!xstrcmpiW(lpUrlVisit->pUrlText, wpText))
         return lpUrlVisit;
     }
   }
@@ -14508,7 +14527,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         //Is cursor on URL
         if (ae->nCurrentCursor == AECC_URL && !xmemcmp(&ae->crMouseOnLink, &hlp->crLink, sizeof(AECHARRANGE)))
           hlp->dwActiveText=ae->popt->aec.crUrlCursorText;
-        else if ((lpUrlVisit=AE_UrlVisitGet(ae, &hlp->crLink)) && lpUrlVisit->nVisitCount > 0)
+        else if ((lpUrlVisit=AE_UrlVisitGetByRange(ae, &hlp->crLink)) && lpUrlVisit->nVisitCount > 0)
           hlp->dwActiveText=ae->popt->aec.crUrlVisitText;
         else
           hlp->dwActiveText=ae->popt->aec.crUrlText;
@@ -22266,7 +22285,7 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     lnk.lParam=lParam;
     lnk.crLink.ciMin=crText.ciMin;
     lnk.crLink.ciMax=crText.ciMax;
-    if (lpUrlVisit=AE_UrlVisitGet(ae, &crText))
+    if (lpUrlVisit=AE_UrlVisitGetByRange(ae, &crText))
       lnk.nVisitCount=lpUrlVisit->nVisitCount;
     else
       lnk.nVisitCount=0;
