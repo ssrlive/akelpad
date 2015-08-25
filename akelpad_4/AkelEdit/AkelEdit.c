@@ -11452,9 +11452,10 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
           goto FindWordEnding;
         }
 
-        if (AEC_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0)
+        if (AEC_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0 ||
+            AEC_IndexCompare(&ciCount, &wm->crDelim1.ciMax) == 0)
           goto SetEmptyFirstDelim;
-        if ((!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax)) ||
+        if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) ||
             (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFold.cpMax)
         {
           if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
@@ -11483,15 +11484,9 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     //Find word ending (forward)
     FindWordEnding:
     if (AEC_IndexCompare(&wm->crDelim1.ciMax, ciChar) > 0)
-    {
-      ciCount=wm->crDelim1.ciMax;
-      nWordLen=0;
-    }
-    else
-    {
-      ciCount=*ciChar;
-      AEC_IndexInc(&ciCount);
-    }
+      return 0;
+    ciCount=*ciChar;
+    AEC_IndexInc(&ciCount);
 
     while (ciCount.lpLine)
     {
@@ -14695,7 +14690,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           }
         }
         if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_QUOTE) &&
-            !(hlp->qm.lpQuote->dwFlags & AEHLF_NOCOLOR) && AEC_IndexCompare(&hlp->qm.crQuoteStart.ciMin, &hlp->qm.crQuoteEnd.ciMax))
+            /*!(hlp->qm.lpQuote->dwFlags & AEHLF_NOCOLOR) &&*/ AEC_IndexCompare(&hlp->qm.crQuoteStart.ciMin, &hlp->qm.crQuoteEnd.ciMax))
         {
           if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
           {
