@@ -3695,7 +3695,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpFoldInfo->dwColor2=dwColor2;
                     lpFoldInfo->dwParentID=dwParentID;
                     lpFoldInfo->dwRuleID=dwRuleID;
-                    lpFoldInfo->nSyntaxFileOffset=wpLineStart - wpTextStart;
+                    lpFoldInfo->crSyntaxFileLine.cpMin=wpLineStart - wpTextStart;
+                    lpFoldInfo->crSyntaxFileLine.cpMax=wpText - wpTextStart;
                     if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))
                       goto FreeFold;
 
@@ -6177,10 +6178,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0432\x0435\x0440\x043D\x0443\x0442\x044C\x0020\x0441\x043F\x0438\x0441\x043E\x043A";
     if (nStringID == STRID_LISTCOPY)
       return L"\x041A\x043E\x043F\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0441\x043F\x0438\x0441\x043E\x043A";
+    if (nStringID == STRID_GOTORULE)
+      return L"\x041F\x0435\x0440\x0435\x0439\x0442\x0438\x0020\x043A\x0020\x043F\x0440\x0430\x0432\x0438\x043B\x0443";
     if (nStringID == STRID_STATISTICS)
       return L"\x0421\x0442\x0430\x0442\x0438\x0441\x0442\x0438\x043A\x0430";
     if (nStringID == STRID_STATISTICS_MSG)
-      return L"\x0412\x0441\x0435\x0433\x043E\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n    \x041A\x043E\x0440\x043D\x0435\x0432\x044B\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n    \x0414\x043E\x0447\x0435\x0440\x043D\x0438\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n\x0414\x043E\x0447\x0435\x0440\x043D\x0438\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x0020\x0442\x0435\x043A\x0443\x0449\x0435\x0433\x043E\x0020\x0431\x043B\x043E\x043A\x0430\x003A %d\n\x0421\x043C\x0435\x0449\x0435\x043D\x0438\x0435\x0020\x043F\x0440\x0430\x0432\x0438\x043B\x0430\x0020\x0432\x0020\x0441\x0438\x043D\x0442\x0430\x043A\x0441\x002E\x0020\x0444\x0430\x0439\x043B\x0435\x003A %d\n";
+      return L"\x0412\x0441\x0435\x0433\x043E\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n    \x041A\x043E\x0440\x043D\x0435\x0432\x044B\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n    \x0414\x043E\x0447\x0435\x0440\x043D\x0438\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x003A %d\n\x0414\x043E\x0447\x0435\x0440\x043D\x0438\x0445\x0020\x0431\x043B\x043E\x043A\x043E\x0432\x0020\x0442\x0435\x043A\x0443\x0449\x0435\x0433\x043E\x0020\x0431\x043B\x043E\x043A\x0430\x003A %d\n";
     if (nStringID == STRID_SETUP)
       return L"\x041D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x002E\x002E\x002E";
     if (nStringID == STRID_SHOWDOCK_GROUP)
@@ -6411,10 +6414,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Collapse list";
     if (nStringID == STRID_LISTCOPY)
       return L"Copy list";
+    if (nStringID == STRID_GOTORULE)
+      return L"Go to rule";
     if (nStringID == STRID_STATISTICS)
       return L"Statistics";
     if (nStringID == STRID_STATISTICS_MSG)
-      return L"All folds: %d\n    Root folds: %d\n    Children folds: %d\nCurrent fold children: %d\nRule syntax file offset: %d\n";
+      return L"All folds: %d\n    Root folds: %d\n    Children folds: %d\nCurrent fold children: %d\n";
     if (nStringID == STRID_SETUP)
       return L"Settings...";
     if (nStringID == STRID_NONE)

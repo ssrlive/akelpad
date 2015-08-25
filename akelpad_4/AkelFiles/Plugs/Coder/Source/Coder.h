@@ -519,6 +519,7 @@ extern wchar_t wszBuffer[BUFFER_SIZE];
 extern wchar_t wszMessage[MAX_PATH];
 extern wchar_t wszPluginName[MAX_PATH];
 extern wchar_t wszPluginTitle[MAX_PATH];
+extern wchar_t wszCoderDir[MAX_PATH];
 extern HINSTANCE hInstanceDLL;
 extern HWND hMainWnd;
 extern HWND hWndEdit;
