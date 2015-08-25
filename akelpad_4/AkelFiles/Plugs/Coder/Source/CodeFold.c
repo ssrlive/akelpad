@@ -3110,7 +3110,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   CreateFold(lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
 
                   //LEVEL item now is not needed
-                  StackDeleteLevel(hLevelStack, lpLevel);
+                  //StackDeleteLevel(hLevelStack, lpLevel);
                 }
                 lpLevel=lpParent;
               }
@@ -3257,11 +3257,15 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
             CreateFold(lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
 
             //LEVEL item now is not needed
-            StackDeleteLevel(hLevelStack, lpLevel);
+            //StackDeleteLevel(hLevelStack, lpLevel);
           }
         }
       }
       lpLevel=lpParent;
+    }
+    if (hLevelStack != &lpFoldWindow->pfwd->hTempStack)
+    {
+      StackFreeLevels(hLevelStack);
     }
 
     if (bCollapseOnOpen && !crRange) SendMessage(hWnd, AEM_UPDATEFOLD, 0, (LPARAM)nFirstVisibleLine);
@@ -4234,8 +4238,18 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   {
     for (lpFoldStart=(FOLDSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStartStack.first; lpFoldStart; lpFoldStart=lpFoldStart->next)
     {
-      if (lpFoldStart->dwParentID && (!lpLevel || lpFoldStart->dwParentID != lpLevel->pfd->lpFoldInfo->dwRuleID))
-        continue;
+      if (lpFoldStart->dwParentID)
+      {
+        if (!lpLevel || lpFoldStart->dwParentID != lpLevel->pfd->lpFoldInfo->dwRuleID)
+          continue;
+        
+        if (lpFoldStart->dwFlags & FIF_XMLCHILD)
+        {
+          //Allow only one FIF_XMLCHILD
+          if (lpLevel->next && (lpLevel->next->pfd->lpFoldInfo->dwFlags & FIF_XMLCHILD))
+            continue;
+        }
+      }
       if (lpFoldInfo=IsFoldStart(lpFoldStart, ft, ciChar))
       {
         *dwFoldStop=IFE_FOLDSTART;
