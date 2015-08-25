@@ -152,8 +152,8 @@
 #define IDM_CODEFOLD_LISTEXPAND         5006
 #define IDM_CODEFOLD_LISTCOLLAPSE       5007
 #define IDM_CODEFOLD_LISTCOPY           5008
-#define IDM_CODEFOLD_GOTORULE           5009
-#define IDM_CODEFOLD_STATISTICS         5010
+#define IDM_CODEFOLD_STATISTICS         5009
+#define IDM_CODEFOLD_GORULE             5010
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
