@@ -333,9 +333,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTEXPAND, GetLangStringW(wLangModule, STRID_LISTEXPAND));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTCOLLAPSE, GetLangStringW(wLangModule, STRID_LISTCOLLAPSE));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_LISTCOPY, GetLangStringW(wLangModule, STRID_LISTCOPY));
-    AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_GOTORULE, GetLangStringW(wLangModule, STRID_GOTORULE));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_STATISTICS, GetLangStringW(wLangModule, STRID_STATISTICS));
     AppendMenuWide(hMenuTreeView, MF_SEPARATOR, 0, NULL);
+    AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_GORULE, GetLangStringW(wLangModule, STRID_GORULE));
     AppendMenuWide(hMenuTreeView, MF_STRING, IDM_CODEFOLD_SETUP, GetLangStringW(wLangModule, STRID_SETUP));
     SetMenuDefaultItem(hMenuTreeView, IDM_CODEFOLD_GOBEGIN, FALSE);
 
@@ -544,42 +544,6 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           }
           SendMessage(hMainWnd, AKD_SETCLIPBOARDTEXT, (WPARAM)wszText, (LPARAM)-1);
         }
-        else if (nCmd == IDM_CODEFOLD_GOTORULE)
-        {
-          wchar_t wszFile[MAX_PATH];
-          AEFOLD *lpCurFold;
-          FOLDINFO *lpFoldInfo;
-          OPENDOCUMENTW od;
-          HWND hWndEdit;
-
-          if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
-          {
-            xprintfW(wszFile, L"%s\\%s", wszCoderDir, lpCurrentFoldWindow->pfwd->lpSyntaxFile->wszSyntaxFileName);
-            od.pFile=wszFile;
-            od.pWorkDir=NULL;
-            od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-            od.nCodePage=0;
-            od.bBOM=0;
-            if (SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od) == EOD_SUCCESS)
-            {
-              if (hWndEdit=GetCurEdit())
-              {
-                lpFoldInfo=FoldData(lpCurFold)->lpFoldInfo;
-//nOffset=-IndexSubtract(lpFrameCurrent->ei.hWndEdit, NULL, &ciCurCaret, AELB_ASIS, FALSE);
-//
-//  AEINDEXSUBTRACT aeis;
-//
-//  aeis.ciChar1=ciChar1;
-//  aeis.ciChar2=ciChar2;
-//  aeis.nNewLine=AELB_ASIS;
-//  aeis.bColumnSel=FALSE;
-//  return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
-
-                SendMessage(hWndEdit, EM_SETSEL, lpFoldInfo->crSyntaxFileLine.cpMin, lpFoldInfo->crSyntaxFileLine.cpMax);
-              }
-            }
-          }
-        }
         else if (nCmd == IDM_CODEFOLD_STATISTICS)
         {
           AEFOLD *lpCurFold;
@@ -606,6 +570,56 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
           xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_STATISTICS_MSG), nAllFoldCount, nRootFoldCount, nAllFoldCount - nRootFoldCount, nSelChildCount);
           MessageBoxW(hMainWnd, wszBuffer, L"Coder::CodeFold", MB_OK|MB_ICONINFORMATION);
+        }
+        else if (nCmd == IDM_CODEFOLD_GORULE)
+        {
+          AEINDEXOFFSET aeio;
+          AESELECTION aes;
+          AECHARRANGE crLine;
+          CHARRANGE64 crSyntaxFileLine;
+          wchar_t wszFile[MAX_PATH];
+          AEFOLD *lpCurFold;
+          OPENDOCUMENTW od;
+          HWND hWndEdit;
+
+          if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
+          {
+            crSyntaxFileLine=FoldData(lpCurFold)->lpFoldInfo->crSyntaxFileLine;
+
+            xprintfW(wszFile, L"%s\\%s", wszCoderDir, lpCurrentFoldWindow->pfwd->lpSyntaxFile->wszSyntaxFileName);
+            od.pFile=wszFile;
+            od.pWorkDir=NULL;
+            od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+            od.nCodePage=0;
+            od.bBOM=0;
+            if (SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od) == EOD_SUCCESS)
+            {
+              if (hWndEdit=GetCurEdit())
+              {
+                SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crLine.ciMin);
+                aeio.ciCharIn=&crLine.ciMin;
+                aeio.ciCharOut=&crLine.ciMin;
+                aeio.nOffset=crSyntaxFileLine.cpMin;
+                aeio.nNewLine=AELB_ASIS;
+                SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
+
+                aeio.ciCharIn=&crLine.ciMin;
+                aeio.ciCharOut=&crLine.ciMax;
+                aeio.nOffset=crSyntaxFileLine.cpMax - crSyntaxFileLine.cpMin;
+                aeio.nNewLine=AELB_ASIS;
+                SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
+
+                aes.crSel=crLine;
+                aes.dwFlags=AESELT_LOCKSCROLL;
+                aes.dwType=0;
+                SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&crLine.ciMin, (LPARAM)&aes);
+
+                ScrollToPoint(hWndEdit, NULL);
+
+                PostMessage(hWndCodeFoldDlg, AKDLL_SETFOCUS, 0, 0);
+              }
+            }
+          }
         }
         else if (nCmd == IDM_CODEFOLD_SETUP)
         {

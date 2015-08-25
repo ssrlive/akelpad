@@ -12,9 +12,9 @@
 #define STRID_LISTEXPAND             206
 #define STRID_LISTCOLLAPSE           207
 #define STRID_LISTCOPY               208
-#define STRID_GOTORULE               209
-#define STRID_STATISTICS             210
-#define STRID_STATISTICS_MSG         211
+#define STRID_STATISTICS             209
+#define STRID_STATISTICS_MSG         210
+#define STRID_GORULE                 211
 #define STRID_SETUP                  212
 #define STRID_NONE                   213
 #define STRID_SHOWDOCK_GROUP         214
