@@ -13932,6 +13932,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           ae->popt->lpActiveTheme=NULL;
       }
       to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND|(ae->popt->bHideSelection?0:AEPRN_COLOREDSELECTION);
+      hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
       //Paint lines
       while (to.ciDrawLine.lpLine)
@@ -13948,7 +13949,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           to.nStartDrawWidth=to.nDrawLineWidth;
           to.nMaxDrawCharsCount=0;
           to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
-          hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
           //Remember first paint char in line for notify
           pntNotify.ciMinDraw=to.ciDrawLine;
@@ -14213,15 +14213,20 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
             break;
 
           if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+          {
+            hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
             ++to.nDrawCharOffset;
+          }
           AEC_NextLine(&to.ciDrawLine);
         }
         else
         {
           if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &to.ciDrawLine, &to.ciDrawLine))
+          {
+            hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
             to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset - AE_IndexSubtract(ae, &lpCollapsed->lpMaxPoint->ciPoint, &to.ciDrawLine, AELB_R, FALSE, FALSE);
-          else
-            break;
+          }
+          else break;
         }
       }
 
