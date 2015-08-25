@@ -1334,6 +1334,7 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
 

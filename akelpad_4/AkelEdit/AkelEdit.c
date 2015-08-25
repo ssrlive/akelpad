@@ -14625,48 +14625,53 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     if (!(hlp->dwPaintType & (AEHPT_LINK|AEHPT_FOLD)))
     {
       //Quote find
-      if (AEC_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
+      if (hlp->dwFindFirst & AEHPT_QUOTE)
       {
-        if (hlp->dwFindFirst & AEHPT_QUOTE)
+        hlp->dwFindFirst&=~AEHPT_QUOTE;
+
+        if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm) &&
+            !AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm))
         {
-          hlp->dwFindFirst&=~AEHPT_QUOTE;
-          if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm) &&
-              !AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm))
-          {
-            hlp->qm.lpQuote=NULL;
-            hlp->qm.crQuoteStart.ciMin=to->ciDrawLine;
-            hlp->qm.crQuoteStart.ciMax=to->ciDrawLine;
-            hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
-            hlp->qm.crQuoteEnd.ciMax=to->ciDrawLine;
-          }
-          else if (hlp->qm.lpQuote->dwRuleID)
-          {
-            //Horizontal scroling when <...> is the parent for "...":
-            //<a href="Long string...">
-            AECHARINDEX ciDrawLine=to->ciDrawLine;
-            DWORD dwSelFlag=(hlp->dwPaintType & AEHPT_SELECTION);
-            DWORD dwColSelFlag=(to->dwPrintFlags & AEPRN_COLOREDSELECTION);
-
-            hlp->dwPaintType|=AEHPT_SELECTION;
-            to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
-
-            for (to->ciDrawLine=hlp->qm.crQuoteStart.ciMax; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_NextCharInLine(&to->ciDrawLine))
-            {
-              AE_PaintCheckHighlightCloseItem(ae, to, hlp);
-
-              if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
-                nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
-            }
-            to->ciDrawLine=ciDrawLine;
-            if (!dwSelFlag) hlp->dwPaintType&=~AEHPT_SELECTION;
-            if (dwColSelFlag) to->dwPrintFlags|=AEPRN_COLOREDSELECTION;
-          }
+          hlp->qm.lpQuote=NULL;
+          hlp->qm.crQuoteStart.ciMin=to->ciDrawLine;
+          hlp->qm.crQuoteStart.ciMax=to->ciDrawLine;
+          hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
+          hlp->qm.crQuoteEnd.ciMax=to->ciDrawLine;
         }
-        else if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
-          AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm);
+        hlp->qm.ciChildScan=hlp->qm.crQuoteStart.ciMax;
       }
-      else if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
-        nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
+      else if (AEC_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
+      {
+        if (AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm) ||
+            AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
+        {
+          hlp->qm.ciChildScan=hlp->qm.crQuoteStart.ciMax;
+        }
+      }
+
+      if (hlp->qm.lpQuote && hlp->qm.lpQuote->dwRuleID)
+      {
+        //Horizontal scroling when <...> is the parent for "...":
+        //<a href="Long string...">
+        AECHARINDEX ciDrawLine=to->ciDrawLine;
+        DWORD dwSelFlag=(hlp->dwPaintType & AEHPT_SELECTION);
+        DWORD dwColSelFlag=(to->dwPrintFlags & AEPRN_COLOREDSELECTION);
+
+        hlp->dwPaintType|=AEHPT_SELECTION;
+        to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
+
+        for (to->ciDrawLine=hlp->qm.ciChildScan; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_NextCharInLine(&to->ciDrawLine))
+        {
+          AE_PaintCheckHighlightCloseItem(ae, to, hlp);
+
+          if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
+            nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
+        }
+        hlp->qm.ciChildScan=to->ciDrawLine;
+        to->ciDrawLine=ciDrawLine;
+        if (!dwSelFlag) hlp->dwPaintType&=~AEHPT_SELECTION;
+        if (dwColSelFlag) to->dwPrintFlags|=AEPRN_COLOREDSELECTION;
+      }
 
       //Check quote start
       if (hlp->qm.lpQuote)
@@ -15098,6 +15103,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
 
         if (hlp->qm.hParentStack.last)
         {
+          hlp->qm.ciChildScan=hlp->qm.crQuoteEnd.ciMax;
           hlp->qm.lpQuote=hlp->qm.hParentStack.last->lpQuote;
           hlp->qm.crQuoteStart=hlp->qm.hParentStack.last->crQuoteStart;
           hlp->qm.crQuoteEnd=hlp->qm.hParentStack.last->crQuoteEnd;
