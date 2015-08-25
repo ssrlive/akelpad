@@ -546,6 +546,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         else if (nCmd == IDM_CODEFOLD_STATISTICS)
         {
           AEFOLD *lpFold;
+          AEFOLD *lpCurFold;
           AEFOLD *lpStopFold;
           int nRootFoldCount=0;
           int nSelChildCount=-1;
@@ -555,8 +556,10 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           {
             ++nRootFoldCount;
           }
-          if (lpFold=GetCurFoldTreeView(hWndCodeFoldList))
+          if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
           {
+            lpFold=lpCurFold;
+
             for (lpStopFold=AEC_NextFold(lpFold, FALSE); lpFold != lpStopFold; lpFold=AEC_NextFold(lpFold, TRUE))
             {
               ++nSelChildCount;
@@ -564,7 +567,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           }
           nAllFoldCount=(int)SendMessage(lpCurrentFoldWindow->hWndEdit, AEM_GETFOLDCOUNT, 0, 0);
 
-          xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_STATISTICS_MSG), nAllFoldCount, nRootFoldCount, nAllFoldCount - nRootFoldCount, nSelChildCount);
+          xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_STATISTICS_MSG), nAllFoldCount, nRootFoldCount, nAllFoldCount - nRootFoldCount, nSelChildCount, (lpCurFold ? FoldData(lpCurFold)->lpFoldInfo->nSyntaxFileOffset : 0));
           MessageBoxW(hMainWnd, wszBuffer, L"Coder::CodeFold", MB_OK|MB_ICONINFORMATION);
         }
         else if (nCmd == IDM_CODEFOLD_SETUP)
@@ -3887,18 +3890,21 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
   {
     SendMessage(lpFoldWindow->hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
     nCaretOffset=(int)SendMessage(lpFoldWindow->hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciCaret);
+    lpFold=FoldGet(lpFoldWindow, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_FOLDEND|AEFF_RECURSE, nCaretOffset, NULL);
 
-    if (lpFold=FoldGet(lpFoldWindow, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_FOLDEND|AEFF_RECURSE, nCaretOffset, NULL))
+    Begin:
+    if (lpFold)
     {
       lpFoldInfo=FoldData(lpFold)->lpFoldInfo;
-      if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
+      if (lpFoldInfo->dwFlags & FIF_XMLCHILD)
       {
-        if (lpFold->next || lpFold->parent)
-          nTagEndLen=lpFoldInfo->nFoldEndPointLen;
-        else
-          lpFoldInfo=NULL;
+        lpFold=lpFold->parent;
+        goto Begin;
       }
-      else nTagEndLen=lpFold->lpMaxPoint->nPointLen;
+      if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
+        nTagEndLen=lpFoldInfo->nFoldEndPointLen;
+      else
+        nTagEndLen=lpFold->lpMaxPoint->nPointLen;
 
       if (lpFoldInfo)
       {

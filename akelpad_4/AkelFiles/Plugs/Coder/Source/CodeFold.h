@@ -125,9 +125,10 @@
 #define FIF_NOLISTFOLD              0x00040000  //Don't show fold in list.
 #define FIF_REGEXPSTART             0x00100000  //Regular expressions of fixed length in fold start or skip start.
 #define FIF_REGEXPEND               0x00200000  //Regular expressions of fixed length in fold end or skip end.
-#define FIF_XMLNAMED_ONETAG         0x10000000  //
-#define FIF_XMLNONAME_ONETAG        0x20000000  //
-#define FIF_XMLNONAME_TWOTAG        0x40000000  //
+#define FIF_XMLNAMED_ONETAG         0x10000000
+#define FIF_XMLNONAME_ONETAG        0x20000000
+#define FIF_XMLNONAME_TWOTAG        0x40000000
+#define FIF_XMLCHILD                0x80000000
 
 
 //// Structures
@@ -193,6 +194,7 @@ typedef struct _FOLDINFO {
   DWORD dwParentID;
   DWORD dwRuleID;
   STACKREGROUP sregEnd;
+  INT_PTR nSyntaxFileOffset;
 } FOLDINFO;
 
 typedef struct _FOLDINFOHANDLE {
