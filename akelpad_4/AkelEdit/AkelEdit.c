@@ -11322,15 +11322,15 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 
         for (lpQuoteItem=lpQuoteStack->first; lpQuoteItem; lpQuoteItem=lpQuoteItem->next)
         {
-          if (lpQuoteItem->dwParentID)
-          {
-            if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteItem->dwParentID != lpParentQuote->dwRuleID) :
-                                                  (!lpFold || lpQuoteItem->dwParentID != lpFold->dwRuleID))
-              continue;
-          }
-
           if (lpQuoteItem->dwFlags & AEHLF_REGEXP)
           {
+            if (lpQuoteItem->dwParentID)
+            {
+              if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteItem->dwParentID != lpParentQuote->dwRuleID) :
+                                                    (!lpFold || lpQuoteItem->dwParentID != lpFold->dwRuleID))
+                continue;
+            }
+
             lpREGroupStack=(STACKREGROUP *)lpQuoteItem->lpREGroupStack;
             if (dwSearchType & AEHF_FINDFIRSTCHAR)
               AE_PatReset(lpREGroupStack);
