@@ -886,7 +886,7 @@ BEGIN
     CONTROL         "«апоминать раскладку клавиатуры дл€ вкладки (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "ћолча закрывать несохраненную пустую вкладку (MDI)",
+    CONTROL         "ћолча закрывать несохраненный пустой документ",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "¬ставить дату, если файл содержит .LOG в начале",

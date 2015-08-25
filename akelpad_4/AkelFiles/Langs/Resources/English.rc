@@ -881,7 +881,7 @@ BEGIN
     CONTROL         "Remember keyboard layout of each tab (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Silently close unsaved empty tab (MDI)",
+    CONTROL         "Silently close unsaved empty document",
                     IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Insert date if file has .LOG at the beginning",

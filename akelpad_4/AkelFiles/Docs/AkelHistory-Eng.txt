@@ -2,6 +2,7 @@
 AkelPad 4.9.5 ()
 ----------------------------
 Added: alternative (via registry) Windows notepad replacement in installer.
+Added: option "Silently close unsaved empty tab (MDI)" now also work in SDI mode.
 
 Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
 Fixed: possible transfer of the Enter pressing to another process when closing dialog
