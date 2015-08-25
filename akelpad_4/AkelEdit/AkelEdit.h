@@ -490,7 +490,6 @@
 #define AEHLF_QUOTEEMPTY             0x00008000  //Quote doesn't contain any character.
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
-#define AEHLF_NOCOLOR                0x01000000  //Don't use it. For internal code only.
                                                  //Regular exression:
 #define AEHLF_REGEXP                 0x10000000  //Can be used in AEQUOTEITEM.dwFlags.
                                                  //  AEQUOTEITEM.pQuoteStart is a regular exression pattern,
