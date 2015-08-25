@@ -12,34 +12,35 @@
 #define STRID_LISTEXPAND             206
 #define STRID_LISTCOLLAPSE           207
 #define STRID_LISTCOPY               208
-#define STRID_STATISTICS             209
-#define STRID_STATISTICS_MSG         210
-#define STRID_SETUP                  211
-#define STRID_NONE                   212
-#define STRID_SHOWDOCK_GROUP         213
-#define STRID_AUTO                   214
-#define STRID_ALWAYS                 215
-#define STRID_FOLDLIMIT              216
-#define STRID_FOLLOWCARET_GROUP      217
-#define STRID_ANYWHERE               218
-#define STRID_ROOT                   219
-#define STRID_LISTSYSTEMCOLORS       220
-#define STRID_LISTSYSTEMFONT         221
-#define STRID_DRAWNODE               222
-#define STRID_ROUND                  223
-#define STRID_SQUARE                 224
-#define STRID_TAGMARK                225
-#define STRID_COLLAPSEONOPEN         226
-#define STRID_NOPRINTCOLLAPSED       227
-#define STRID_HIDEFOLDEND            228
-#define STRID_FINDROOT               229
-#define STRID_HOTKEY                 230
-#define STRID_DEPTH                  231
-#define STRID_HOTKEYCURRENT          232
-#define STRID_HOTKEYALL              233
-#define STRID_COLLAPSE               234
-#define STRID_NEXTLEVEL              235
-#define STRID_PREVLEVEL              236
+#define STRID_GOTORULE               209
+#define STRID_STATISTICS             210
+#define STRID_STATISTICS_MSG         211
+#define STRID_SETUP                  212
+#define STRID_NONE                   213
+#define STRID_SHOWDOCK_GROUP         214
+#define STRID_AUTO                   215
+#define STRID_ALWAYS                 216
+#define STRID_FOLDLIMIT              217
+#define STRID_FOLLOWCARET_GROUP      218
+#define STRID_ANYWHERE               219
+#define STRID_ROOT                   220
+#define STRID_LISTSYSTEMCOLORS       221
+#define STRID_LISTSYSTEMFONT         222
+#define STRID_DRAWNODE               223
+#define STRID_ROUND                  224
+#define STRID_SQUARE                 225
+#define STRID_TAGMARK                226
+#define STRID_COLLAPSEONOPEN         227
+#define STRID_NOPRINTCOLLAPSED       228
+#define STRID_HIDEFOLDEND            229
+#define STRID_FINDROOT               230
+#define STRID_HOTKEY                 231
+#define STRID_DEPTH                  232
+#define STRID_HOTKEYCURRENT          233
+#define STRID_HOTKEYALL              234
+#define STRID_COLLAPSE               235
+#define STRID_NEXTLEVEL              236
+#define STRID_PREVLEVEL              237
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
 #define DLLA_CODEFOLD_ADDWINDOW  50
@@ -194,7 +195,7 @@ typedef struct _FOLDINFO {
   DWORD dwParentID;
   DWORD dwRuleID;
   STACKREGROUP sregEnd;
-  INT_PTR nSyntaxFileOffset;
+  CHARRANGE64 crSyntaxFileLine;
 } FOLDINFO;
 
 typedef struct _FOLDINFOHANDLE {
