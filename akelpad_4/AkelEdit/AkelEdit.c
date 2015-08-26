@@ -11484,7 +11484,10 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     //Find word ending (forward)
     FindWordEnding:
     if (AEC_IndexCompare(&wm->crDelim1.ciMax, ciChar) > 0)
+    {
+      wm->crDelim2=wm->crDelim1;
       return 0;
+    }
     ciCount=*ciChar;
     AEC_IndexInc(&ciCount);
 
