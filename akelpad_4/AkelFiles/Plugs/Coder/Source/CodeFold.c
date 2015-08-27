@@ -577,7 +577,6 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           AESELECTION aes;
           AECHARRANGE crLine;
           CHARRANGE64 crSyntaxFileLine;
-          wchar_t wszFile[MAX_PATH];
           AEFOLD *lpCurFold;
           OPENDOCUMENTW od;
           HWND hWndEdit;
@@ -586,8 +585,8 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           {
             crSyntaxFileLine=FoldData(lpCurFold)->lpFoldInfo->crSyntaxFileLine;
 
-            xprintfW(wszFile, L"%s\\%s", wszCoderDir, lpCurrentFoldWindow->pfwd->lpSyntaxFile->wszSyntaxFileName);
-            od.pFile=wszFile;
+            xprintfW(wszBuffer, L"%s\\%s", wszCoderDir, lpCurrentFoldWindow->pfwd->lpSyntaxFile->wszSyntaxFileName);
+            od.pFile=wszBuffer;
             od.pWorkDir=NULL;
             od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
             od.nCodePage=0;
@@ -609,7 +608,8 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
                 aeio.nNewLine=AELB_ASIS;
                 SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
 
-                aes.crSel=crLine;
+                aes.crSel.ciMin=crLine.ciMin;
+                aes.crSel.ciMax=crLine.ciMax;
                 aes.dwFlags=AESELT_LOCKSCROLL;
                 aes.dwType=0;
                 SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&crLine.ciMin, (LPARAM)&aes);

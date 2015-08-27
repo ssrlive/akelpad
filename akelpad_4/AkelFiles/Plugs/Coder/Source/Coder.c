@@ -2584,7 +2584,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwParentID=xatoiW(wszBuffer, NULL);
+                    dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
                   }
 
                   //Add to stack
@@ -3025,12 +3025,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwParentID=xatoiW(wszBuffer, NULL);
+                    dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
 
                     //Rule ID
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
-                      dwRuleID=xatoiW(wszBuffer, NULL);
+                      dwRuleID=(DWORD)xatoiW(wszBuffer, NULL);
                     }
                   }
 
@@ -3110,12 +3110,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwParentID=xatoiW(wszBuffer, NULL);
+                    dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
 
                     //Rule ID
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
-                      dwRuleID=xatoiW(wszBuffer, NULL);
+                      dwRuleID=(DWORD)xatoiW(wszBuffer, NULL);
                     }
                   }
 
@@ -3206,7 +3206,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwParentID=xatoiW(wszBuffer, NULL);
+                    dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
                   }
 
                   //Add to stack
@@ -3629,7 +3629,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                   {
-                    dwParentID=xatoiW(wszBuffer, NULL);
+                    dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
 
                     //Rule ID
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
