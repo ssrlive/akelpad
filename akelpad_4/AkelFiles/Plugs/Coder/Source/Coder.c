@@ -2397,6 +2397,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
   wchar_t *wpFoldStart;
   wchar_t *wpFoldEnd;
   wchar_t *wpFoldDelimiters;
+  wchar_t *wpRuleFile;
   wchar_t wchEscape;
   DWORD dwFileSize;
   DWORD dwBytesRead;
@@ -2413,6 +2414,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
   int nFoldStartLen;
   int nFoldEndLen;
   int nDelimitersLen;
+  int nRuleLen;
   int nBlockLen;
   int nBlockParsedLen;
   int nLinesInBlock;
@@ -3549,6 +3551,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 wpFoldStart=NULL;
                 wpFoldEnd=NULL;
                 wpFoldDelimiters=NULL;
+                wpRuleFile=NULL;
                 dwFlags=FIF_MATCHCASE;
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
@@ -3632,9 +3635,17 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
 
                     //Rule ID
-                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                    if ((nRuleLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack)))
                     {
-                      dwRuleID=xatoiW(wszBuffer, NULL);
+                      if (wszBuffer[0] >= L'0' && wszBuffer[0] <= L'9')
+                        dwRuleID=(DWORD)xatoiW(wszBuffer, NULL);
+                      else
+                      {
+                        if (wpRuleFile=(wchar_t *)GlobalAlloc(GPTR, (nRuleLen + 1) * sizeof(wchar_t)))
+                          xmemcpy(wpRuleFile, wszBuffer, (nRuleLen + 1) * sizeof(wchar_t));
+                        else
+                          break;
+                      }
                     }
                   }
 
@@ -3695,6 +3706,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpFoldInfo->dwColor2=dwColor2;
                     lpFoldInfo->dwParentID=dwParentID;
                     lpFoldInfo->dwRuleID=dwRuleID;
+                    lpFoldInfo->wpRuleFile=wpRuleFile;
                     lpFoldInfo->crSyntaxFileLine.cpMin=wpLineStart - wpTextStart;
                     lpFoldInfo->crSyntaxFileLine.cpMax=wpText - wpTextStart;
                     if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))

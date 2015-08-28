@@ -2102,6 +2102,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nFoldColorCount;
       if (wParam == AEFC_WITHID)
         return ae->ptxt->nFoldWithIdCount;
+      if (wParam == AEFC_WITHTHEME)
+        return ae->ptxt->nFoldWithThemeCount;
       return 0;
     }
     case AEM_ADDFOLD:
@@ -6243,6 +6245,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
     lpNewElement->crBk=lpFold->crBk;
     lpNewElement->dwParentID=lpFold->dwParentID;
     lpNewElement->dwRuleID=lpFold->dwRuleID;
+    lpNewElement->hRuleTheme=lpFold->hRuleTheme;
 
     lpNewElement->dwUserData=lpFold->dwUserData;
 
@@ -6254,6 +6257,8 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
     }
     if (lpNewElement->dwRuleID)
       ++ae->ptxt->nFoldWithIdCount;
+    if (lpNewElement->hRuleTheme)
+      ++ae->ptxt->nFoldWithThemeCount;
     ++ae->ptxt->nFoldAllCount;
     if (lpNewElement->bCollapse)
       ++ae->ptxt->nFoldCollapseCount;
@@ -6768,6 +6773,8 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   }
   if (lpFold->dwRuleID)
     --ae->ptxt->nFoldWithIdCount;
+  if (lpFold->hRuleTheme)
+    --ae->ptxt->nFoldWithThemeCount;
   --ae->ptxt->nFoldAllCount;
   if (lpFold->bCollapse)
     --ae->ptxt->nFoldCollapseCount;
@@ -6820,6 +6827,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
   }
   ae->ptxt->nFoldColorCount=0;
   ae->ptxt->nFoldWithIdCount=0;
+  ae->ptxt->nFoldWithThemeCount=0;
   ae->ptxt->nFoldAllCount=0;
   ae->ptxt->nFoldCollapseCount=0;
 
@@ -13918,6 +13926,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
+      hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
       to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND|(ae->popt->bHideSelection?0:AEPRN_COLOREDSELECTION);
 
       //Paint lines
@@ -14253,6 +14262,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
       DeleteObject(hbrSelBk);
       DeleteObject(ae->popt->hbrBasicBk);
       ae->popt->hbrBasicBk=NULL;
+      ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp.fm.hActiveThemeBegin;
     }
     EndPaint(ae->hWndEdit, &ps);
   }
@@ -14529,7 +14539,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     }
   }
 
-  if (ae->ptxt->nFoldColorCount || ae->ptxt->nFoldWithIdCount)
+  if (ae->ptxt->nFoldColorCount || ae->ptxt->nFoldWithIdCount || ae->ptxt->nFoldWithThemeCount)
   {
     //Only if char not in URL
     if (!(hlp->dwPaintType & AEHPT_LINK))
@@ -14538,6 +14548,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       if (!hlp->fm.bColored || !hlp->fm.lpFold || hlp->fm.crFold.cpMax < to->nDrawCharOffset)
       {
         AEFOLD *lpColored=NULL;
+        AEFOLD *lpThemed=NULL;
         AEFOLD *lpCount;
 
         AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
@@ -14546,8 +14557,13 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 
         while (lpCount)
         {
-          if (ae->ptxt->nFoldColorCount)
+          if (ae->ptxt->nFoldColorCount || ae->ptxt->nFoldWithThemeCount)
           {
+            if (lpCount->hRuleTheme)
+            {
+              //Fold has highlight theme
+              lpThemed=lpCount;
+            }
             if (lpCount->dwFontStyle != AEHLS_NONE ||
                 lpCount->crText != (DWORD)-1 ||
                 lpCount->crBk != (DWORD)-1)
@@ -14566,6 +14582,11 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           {
             hlp->fm.lpFold=lpColored;
             hlp->fm.bColored=TRUE;
+          }
+          if (lpThemed && (AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
+          {
+            hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
+            ae->popt->lpActiveTheme=(AETHEMEITEMW *)lpThemed->hRuleTheme;
           }
           hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
           hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
@@ -15027,6 +15048,11 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           //Draw full highlighted text or last part of it
           AE_PaintTextOut(ae, to, hlp);
         }
+      }
+      if (hlp->fm.lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == hlp->fm.lpFold->hRuleTheme)
+      {
+        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
+        hlp->fm.hActiveThemePrev=NULL;
       }
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;

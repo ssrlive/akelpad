@@ -165,6 +165,7 @@
 #define AEFC_COLLAPSED        1  //Collapsed folds.
 #define AEFC_COLORED          2  //Colored folds.
 #define AEFC_WITHID           3  //Folds with ID.
+#define AEFC_WITHTHEME        4  //Folds with highlight theme.
 
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
@@ -930,6 +931,7 @@ typedef struct _AEFOLD {
   COLORREF crBk;              //Background color. If -1, then don't set.
   DWORD dwParentID;           //Parent rule identifier.
   DWORD dwRuleID;             //Rule identifier.
+  AEHTHEME hRuleTheme;        //Rule highlight theme.
   UINT_PTR dwUserData;        //User data.
 } AEFOLD;
 
@@ -1350,6 +1352,8 @@ typedef struct {
   CHARRANGE64 crFold;
   AEFOLD *lpFold;
   BOOL bColored;
+  AEHTHEME hActiveThemeBegin;
+  AEHTHEME hActiveThemePrev;
 } AEFOLDMATCH;
 
 typedef struct {

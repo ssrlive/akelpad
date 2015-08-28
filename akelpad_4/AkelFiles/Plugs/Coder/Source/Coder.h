@@ -342,7 +342,7 @@ typedef struct _SYNTAXFILE {
   STACKBLOCKORDER hBlockOrderStack;
   wchar_t wszSyntaxFileName[MAX_PATH];
   VARTHEME *lpVarThemeLink;
-  HANDLE hThemeHighLight;
+  AEHTHEME hThemeHighLight;
   //HighLight
   DWORD dwFontFlags;
   LOGFONTW lfFont;

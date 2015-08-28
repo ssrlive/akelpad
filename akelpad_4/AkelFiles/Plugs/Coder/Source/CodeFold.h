@@ -194,6 +194,9 @@ typedef struct _FOLDINFO {
   DWORD dwColor2;
   DWORD dwParentID;
   DWORD dwRuleID;
+  wchar_t *wpRuleFile;
+  SYNTAXFILE *lpRuleFile;
+  SYNTAXFILE *lpPrevFile;
   STACKREGROUP sregEnd;
   CHARRANGE64 crSyntaxFileLine;
 } FOLDINFO;
@@ -323,8 +326,8 @@ FOLDWINDOW* StackGetFoldWindowByUserEdit(STACKFOLDWINDOW *hStack, HWND hWndEdit)
 void StackDeleteFoldWindow(STACKFOLDWINDOW *hStack, FOLDWINDOW *lpFoldWindow);
 void StackFreeFoldWindows(STACKFOLDWINDOW *hStack);
 FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, HWND hWnd, AECHARRANGE *crRange);
-void CreateFold(LEVEL *lpLevel, HWND hWnd, BOOL bCollapse);
-void CreateAllFolds(STACKLEVEL *hLevelStack, HWND hWnd);
+void CreateFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, HWND hWnd, BOOL bCollapse);
+void CreateAllFolds(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, HWND hWnd);
 LEVEL* StackInsertLevel(STACKLEVEL *hLevelStack, AECHARINDEX *ciChar);
 void StackDeleteLevel(STACKLEVEL *hLevelStack, LEVEL *lpLevel);
 void StackFreeLevels(STACKLEVEL *hLevelStack);
