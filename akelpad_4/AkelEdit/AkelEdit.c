@@ -2359,23 +2359,54 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return (LRESULT)AE_HighlightCreateTheme(wpThemeName);
     }
-    case AEM_HLGETTHEMEA:
+    case AEM_HLFINDTHEME:
     {
-      char *pThemeName=(char *)lParam;
-      wchar_t wszThemeName[MAX_PATH];
-
-      if (!pThemeName)
+      if (wParam == AEHLFT_CURRENT)
+      {
         return (LRESULT)ae->popt->lpActiveTheme;
-      MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
-      return (LRESULT)AE_HighlightGetTheme(wszThemeName);
-    }
-    case AEM_HLGETTHEMEW:
-    {
-      wchar_t *wpThemeName=(wchar_t *)lParam;
+      }
+      else if (wParam == AEHLFT_BYNAMEA)
+      {
+        char *pThemeName=(char *)lParam;
+        wchar_t wszThemeName[MAX_PATH];
 
-      if (!wpThemeName)
+        if (!pThemeName)
+          return (LRESULT)ae->popt->lpActiveTheme;
+        MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
+        return (LRESULT)AE_HighlightGetTheme(wszThemeName);
+      }
+      else if (wParam == AEHLFT_BYNAMEW)
+      {
+        wchar_t *wpThemeName=(wchar_t *)lParam;
+
+        if (!wpThemeName)
+          return (LRESULT)ae->popt->lpActiveTheme;
+        return (LRESULT)AE_HighlightGetTheme(wpThemeName);
+      }
+      else if (wParam == AEHLFT_BYFOLD)
+      {
+        AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
+
+        if (ae->ptxt->nFoldWithThemeCount)
+        {
+          AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, NULL, &ff->lpParent, &ff->lpPrevSubling);
+
+          while (ff->lpParent)
+          {
+            if (ff->lpParent->hRuleTheme)
+              return (LRESULT)ff->lpParent->hRuleTheme;
+
+            if (ff->lpParent->parent)
+            {
+              ff->lpParent=ff->lpParent->parent;
+              continue;
+            }
+            break;
+          }
+        }
         return (LRESULT)ae->popt->lpActiveTheme;
-      return (LRESULT)AE_HighlightGetTheme(wpThemeName);
+      }
+      return 0;
     }
     case AEM_HLGETTHEMENAMEA:
     {
