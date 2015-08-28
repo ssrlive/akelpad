@@ -1626,7 +1626,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                   }
 
                   //Fill lpFold member.
-                  CreateAllFolds(&fwChange->pfwd->hTempStack, fwChange->hWndEdit);
+                  CreateAllFolds(lpCurrentFoldWindow, &fwChange->pfwd->hTempStack, fwChange->hWndEdit);
 
                   //Update list and edit control
                   if (lpCurrentFoldWindow && lpCurrentFoldWindow->hWndEdit == fwChange->hWndEdit)
@@ -2755,6 +2755,7 @@ void StackDeleteFoldInfo(STACKFOLD *hFoldStack, HSTACK *hFoldStartStack, FOLDINF
   }
   if (lpFoldInfo->wpFoldEnd) GlobalFree((HGLOBAL)lpFoldInfo->wpFoldEnd);
   if (lpFoldInfo->wpDelimiters) GlobalFree((HGLOBAL)lpFoldInfo->wpDelimiters);
+  if (lpFoldInfo->wpRuleFile) GlobalFree((HGLOBAL)lpFoldInfo->wpRuleFile);
   PatFree(&lpFoldInfo->sregEnd);
   StackDelete((stack **)&hFoldStack->first, (stack **)&hFoldStack->last, (stack *)lpFoldInfo);
 }
@@ -2774,8 +2775,9 @@ void StackFreeFoldInfo(STACKFOLD *hFoldStack, HSTACK *hFoldStartStack)
 
   for (lpFoldInfo=(FOLDINFO *)hFoldStack->first; lpFoldInfo; lpFoldInfo=lpFoldInfo->next)
   {
-    GlobalFree((HGLOBAL)lpFoldInfo->wpFoldEnd);
-    GlobalFree((HGLOBAL)lpFoldInfo->wpDelimiters);
+    if (lpFoldInfo->wpFoldEnd) GlobalFree((HGLOBAL)lpFoldInfo->wpFoldEnd);
+    if (lpFoldInfo->wpDelimiters) GlobalFree((HGLOBAL)lpFoldInfo->wpDelimiters);
+    if (lpFoldInfo->wpRuleFile) GlobalFree((HGLOBAL)lpFoldInfo->wpRuleFile);
     PatFree(&lpFoldInfo->sregEnd);
   }
   StackClear((stack **)&hFoldStack->first, (stack **)&hFoldStack->last);
@@ -3107,7 +3109,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                 if (hLevelStack != &lpFoldWindow->pfwd->hTempStack)
                 {
                   //Create fold
-                  CreateFold(lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
+                  CreateFold(lpFoldWindow, lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
 
                   //LEVEL item now is not needed
                   StackDeleteLevel(hLevelStack, lpLevel);
@@ -3155,6 +3157,21 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   lpLevel->crFoundMin.ciMin=ft.crFound.ciMin;
                   lpLevel->crFoundMin.ciMax=ft.crFound.ciMax;
                   GetFoldName(lpLevel->pfd, &lpLevel->pointMin.ciPoint, NULL);
+
+                  if (lpFoldInfo->wpRuleFile)
+                  {
+                    //Assign rule syntax file
+                    if (!lpFoldInfo->lpRuleFile)
+                      lpFoldInfo->lpRuleFile=StackGetSyntaxFileByName(&hSyntaxFilesStack, lpFoldInfo->wpRuleFile);
+                    if (lpFoldInfo->lpRuleFile)
+                    {
+                      StackRequestSyntaxFile(lpFoldInfo->lpRuleFile);
+                      if (!lpFoldInfo->lpRuleFile->hThemeHighLight)
+                        CreateEditTheme(lpFoldInfo->lpRuleFile, hWnd);
+                      lpFoldInfo->lpPrevFile=lpFoldWindow->pfwd->lpSyntaxFile;
+                      lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpRuleFile;
+                    }
+                  }
 
                   lpParent=lpLevel;
                 }
@@ -3254,7 +3271,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
           if (hLevelStack != &lpFoldWindow->pfwd->hTempStack)
           {
             //Create fold
-            CreateFold(lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
+            CreateFold(lpFoldWindow, lpLevel, hWnd, (bCollapseOnOpen && !crRange && !lpLevel->lpParent));
 
             //LEVEL item now is not needed
             StackDeleteLevel(hLevelStack, lpLevel);
@@ -3269,18 +3286,26 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
   return lpFoldWindow;
 }
 
-void CreateFold(LEVEL *lpLevel, HWND hWnd, BOOL bCollapse)
+void CreateFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, HWND hWnd, BOOL bCollapse)
 {
   AEFOLD fold;
+  FOLDINFO *lpFoldInfo=lpLevel->pfd->lpFoldInfo;
 
+  if (lpFoldInfo->wpRuleFile && lpFoldInfo->lpRuleFile == lpFoldWindow->pfwd->lpSyntaxFile)
+  {
+    //Return syntax file
+    lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpPrevFile;
+    lpFoldInfo->lpPrevFile=NULL;
+  }
   fold.lpMinPoint=&lpLevel->pointMin;
   fold.lpMaxPoint=&lpLevel->pointMax;
   fold.bCollapse=bCollapse;
-  fold.dwFontStyle=lpLevel->pfd->lpFoldInfo->dwFontStyle;
-  fold.crText=lpLevel->pfd->lpFoldInfo->dwColor1;
-  fold.crBk=lpLevel->pfd->lpFoldInfo->dwColor2;
-  fold.dwParentID=lpLevel->pfd->lpFoldInfo->dwParentID;
-  fold.dwRuleID=lpLevel->pfd->lpFoldInfo->dwRuleID;
+  fold.dwFontStyle=lpFoldInfo->dwFontStyle;
+  fold.crText=lpFoldInfo->dwColor1;
+  fold.crBk=lpFoldInfo->dwColor2;
+  fold.dwParentID=lpFoldInfo->dwParentID;
+  fold.dwRuleID=lpFoldInfo->dwRuleID;
+  fold.hRuleTheme=(lpFoldInfo->lpRuleFile ? lpFoldInfo->lpRuleFile->hThemeHighLight : 0);
   fold.dwUserData=(UINT_PTR)lpLevel->pfd;
   fold.dwFontStyle=fold.dwFontStyle;
   lpLevel->pfd->lpFold=(AEFOLD *)SendMessage(hWnd, AEM_ADDFOLD, 0, (LPARAM)&fold);
@@ -3288,7 +3313,7 @@ void CreateFold(LEVEL *lpLevel, HWND hWnd, BOOL bCollapse)
   lpLevel->pfd->lpFold->lpMaxPoint->dwUserData=(UINT_PTR)lpLevel->pfd->lpFold;
 }
 
-void CreateAllFolds(STACKLEVEL *hLevelStack, HWND hWnd)
+void CreateAllFolds(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, HWND hWnd)
 {
   LEVEL *lpLevel=(LEVEL *)hLevelStack->first;
   LEVEL *lpNextLevel;
@@ -3300,7 +3325,7 @@ void CreateAllFolds(STACKLEVEL *hLevelStack, HWND hWnd)
     if (!lpLevel->pfd->lpFold)
     {
       //Create fold
-      CreateFold(lpLevel, hWnd, FALSE);
+      CreateFold(lpFoldWindow, lpLevel, hWnd, FALSE);
 
       //LEVEL item now is not needed
       StackDeleteLevel(hLevelStack, lpLevel);
@@ -4238,7 +4263,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
       {
         if (!lpLevel || lpFoldStart->dwParentID != lpLevel->pfd->lpFoldInfo->dwRuleID)
           continue;
-        
+
         if (lpFoldStart->dwFlags & FIF_XMLCHILD)
         {
           //Allow FIF_XMLCHILD only at the parent beginning

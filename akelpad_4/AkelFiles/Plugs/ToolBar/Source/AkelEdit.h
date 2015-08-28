@@ -165,6 +165,7 @@
 #define AEFC_COLLAPSED        1  //Collapsed folds.
 #define AEFC_COLORED          2  //Colored folds.
 #define AEFC_WITHID           3  //Folds with ID.
+#define AEFC_WITHTHEME        4  //Folds with highlight theme.
 
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
@@ -490,7 +491,6 @@
 #define AEHLF_QUOTEEMPTY             0x00008000  //Quote doesn't contain any character.
 #define AEHLF_QUOTEINCLUDE           0x00010000  //Quote include string is valid.
 #define AEHLF_QUOTEEXCLUDE           0x00020000  //Quote exclude string is valid.
-#define AEHLF_NOCOLOR                0x01000000  //Don't use it. For internal code only.
                                                  //Regular exression:
 #define AEHLF_REGEXP                 0x10000000  //Can be used in AEQUOTEITEM.dwFlags.
                                                  //  AEQUOTEITEM.pQuoteStart is a regular exression pattern,
@@ -931,6 +931,7 @@ typedef struct _AEFOLD {
   COLORREF crBk;              //Background color. If -1, then don't set.
   DWORD dwParentID;           //Parent rule identifier.
   DWORD dwRuleID;             //Rule identifier.
+  AEHTHEME hRuleTheme;        //Rule highlight theme.
   UINT_PTR dwUserData;        //User data.
 } AEFOLD;
 
@@ -1334,6 +1335,7 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
 
@@ -1350,6 +1352,8 @@ typedef struct {
   CHARRANGE64 crFold;
   AEFOLD *lpFold;
   BOOL bColored;
+  AEHTHEME hActiveThemeBegin;
+  AEHTHEME hActiveThemePrev;
 } AEFOLDMATCH;
 
 typedef struct {

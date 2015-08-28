@@ -540,6 +540,7 @@ typedef struct {
   int nFoldCollapseCount;
   int nFoldColorCount;
   int nFoldWithIdCount;
+  int nFoldWithThemeCount;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
   AEFOLD *lpFindFoldLastCall;
