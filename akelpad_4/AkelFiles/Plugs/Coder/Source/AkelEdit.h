@@ -464,6 +464,16 @@
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
+//AEM_HLFINDTHEME type
+#define AEHLFT_CURRENT 0  //Current theme handle.
+                          //lParam == not used.
+#define AEHLFT_BYNAMEA 1  //Find by ansi theme name.
+                          //(char *)lParam == ansi theme name to retrieve. If NULL, active theme handle will be returned.
+#define AEHLFT_BYNAMEW 2  //Find by unicode theme name.
+                          //(wchar_t *)lParam == unicode theme name to retrieve. If NULL, active theme handle will be returned.
+#define AEHLFT_BYFOLD  3  //Find theme at specified location (AEFINDFOLD.dwFindIt). If no folds found with own theme (AEFOLD.hRuleTheme), then current theme handle returns.
+                          //(AEFINDFOLD *)lParam == pointer to a AEFINDFOLD structure.
+
 //Highlight options
 #define AEHLO_IGNOREFONTNORMAL       0x00000001  //Use AEHLS_NONE font style, if font style to change is AEHLS_FONTNORMAL.
 #define AEHLO_IGNOREFONTBOLD         0x00000002  //Use AEHLS_FONTNORMAL font style, if font style to change is AEHLS_FONTBOLD.
@@ -1797,8 +1807,7 @@ typedef struct {
 //Highlight
 #define AEM_HLCREATETHEMEA        (WM_USER + 2501)
 #define AEM_HLCREATETHEMEW        (WM_USER + 2502)
-#define AEM_HLGETTHEMEA           (WM_USER + 2503)
-#define AEM_HLGETTHEMEW           (WM_USER + 2504)
+#define AEM_HLFINDTHEME           (WM_USER + 2504)
 #define AEM_HLGETTHEMENAMEA       (WM_USER + 2505)
 #define AEM_HLGETTHEMENAMEW       (WM_USER + 2506)
 #define AEM_HLGETTHEMESTACK       (WM_USER + 2507)
@@ -6026,34 +6035,19 @@ Example:
  }
 
 
-AEM_HLGETTHEMEA
+AEM_HLFINDTHEME
 _______________
 
-Retrieve highlight theme handle.
+Find highlight theme handle.
 
-wParam         == not used.
-(char *)lParam == ansi theme name to retrieve. If NULL, active theme handle will be returned.
+(int)wParam  == see AEHLFT_* defines.
+(void)lParam == depend of AEHLFT_* define.
 
 Return Value
  Theme handle.
 
 Example:
- AEHTHEME hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)"MyTheme");
-
-
-AEM_HLGETTHEMEW
-_______________
-
-Retrieve highlight theme handle.
-
-wParam            == not used.
-(wchar_t *)lParam == unicode theme name to retrieve. If NULL, active theme handle will be returned.
-
-Return Value
- Theme handle.
-
-Example:
- AEHTHEME hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)L"MyTheme");
+ AEHTHEME hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLFINDTHEME, AEHLFT_BYNAMEW, (LPARAM)L"MyTheme");
 
 
 AEM_HLGETTHEMENAMEA

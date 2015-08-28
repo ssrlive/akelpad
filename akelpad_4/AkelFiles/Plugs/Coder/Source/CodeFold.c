@@ -4404,6 +4404,13 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
 
       if (!lpSkipInfo)
       {
+        //AEFINDFOLD ff;
+        //AEHTHEME hTheme;
+        //
+        //ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_RECURSE;
+        //ff.dwFindIt=(UINT_PTR)&ciChar;
+        //hTheme=(AEHTHEME)SendMessage(lpFoldWindow->hWndEdit, AEM_HLFINDTHEME, AEHLFT_BYFOLD, (LPARAM)&ff);
+
         for (lpFoldInfo=(FOLDINFO *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.first; lpFoldInfo; lpFoldInfo=lpFoldInfo->next)
         {
           //Fold start

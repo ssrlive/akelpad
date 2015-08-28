@@ -848,7 +848,7 @@ BOOL CALLBACK HighLightEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         if (!lpSyntaxFile->hThemeHighLight)
           CreateEditTheme(lpSyntaxFile, hWnd);
 
-        if (lpSyntaxFile->hThemeHighLight != (HANDLE)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
+        if (lpSyntaxFile->hThemeHighLight != (HANDLE)SendMessage(hWnd, AEM_HLFINDTHEME, AEHLFT_CURRENT, 0))
         {
           if (lpHighlightWindow)
           {
@@ -2245,7 +2245,7 @@ void UnassignTheme(HWND hWnd)
   HANDLE hThemeHighLight;
   wchar_t wszThemeName[MAX_PATH];
 
-  if (hThemeHighLight=(HANDLE)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
+  if (hThemeHighLight=(HANDLE)SendMessage(hWnd, AEM_HLFINDTHEME, AEHLFT_CURRENT, 0))
   {
     if (SendMessage(hWnd, AEM_HLGETTHEMENAMEW, (WPARAM)hThemeHighLight, (LPARAM)wszThemeName))
     {
