@@ -3354,8 +3354,11 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
   int i;
   BOOL bDynamic=FALSE;
 
+  if (!hMenuStack)
+    return FALSE;
   if (!hManualStack)
     hManualStack=&hMenuManualStack;
+
   if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
   {
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
@@ -3542,6 +3545,7 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSu
 
   if (!hManualStack)
     hManualStack=&hMenuManualStack;
+
   if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
   {
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
