@@ -10,6 +10,9 @@
 !ifndef PRODUCT_DIR
   !define PRODUCT_DIR "Files"
 !endif
+!ifndef PRODUCT_NOTEPAD
+  !define PRODUCT_NOTEPAD "notepad"
+!endif
 
 ;_____________________________________________________________________________________________
 ;
@@ -26,10 +29,7 @@ RequestExecutionLevel admin
 
 ############  Functions  ############
 !include "LogicLib.nsh"
-
-!if ${PRODUCT_BIT} == "64"
-  !include "x64.nsh"
-!endif
+!include "x64.nsh"
 
 !include "FileFunc.nsh"
 !insertmacro GetParameters
@@ -558,12 +558,11 @@ Function SetInstallDirectory
     ${If} $SETUPDIR == $WINDIR
     ${OrIf} $SETUPDIR == $SYSDIR
     ${OrIf} $SETUPDIR == $WINDIR\SysWOW64
-      !if ${PRODUCT_BIT} == "64"
-        ${If} $SETUPDIR == $SYSDIR
-          ;Force install to SysWOW64, because AkelUpdater and uninstaller are x86 bit.
-          StrCpy $SETUPDIR "$WINDIR\SysWOW64"
-        ${EndIf}
-      !endif
+      ${If} ${RunningX64}
+      ${AndIf} $SETUPDIR == $SYSDIR
+        ;Force install to SysWOW64, because AkelUpdater and uninstaller are x86 bit.
+        StrCpy $SETUPDIR "$WINDIR\SysWOW64"
+      ${EndIf}
       StrCpy $SETUPEXE "$SETUPDIR\notepad.exe"
     ${EndIf}
   ${EndIf}
@@ -597,9 +596,9 @@ Function CreateShortcuts
 FunctionEnd
 
 Section
-  !if ${PRODUCT_BIT} == "64"
+  ${If} ${RunningX64}
     ${DisableX64FSRedirection}
-  !endif
+  ${EndIf}
 
   SetOutPath "$SETUPDIR"
   !if ${PRODUCT_BIT} == "64"
@@ -640,83 +639,49 @@ Section
     WriteINIStr "$TCINI" "Configuration" "Editor" "$0"
     WriteINIStr "$TCINI" "Configuration" "MultiRenameEdit" "$0"
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
-    SearchPath $0 takeown.exe
-    ${If} $0 != ''
-      SearchPath $0 cacls.exe
-      ${If} $0 != ''
-        nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
-        Pop $0
-        nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
-        Pop $0
-        !if ${PRODUCT_BIT} == "64"
-          nsExec::Exec 'takeown.exe /F $WINDIR\SysWOW64\notepad.exe'
-          Pop $0
-        !endif
-
-        ;Use icacls.exe if possible, because "echo y" will be useless on French OS (prompt between "O/N").
-        SearchPath $0 icacls.exe
-        ${If} $0 != ''
-          nsExec::Exec 'icacls.exe $WINDIR\notepad.exe /grant "$USERNAME":F'
-          Pop $0
-          nsExec::Exec 'icacls.exe $SYSDIR\notepad.exe /grant "$USERNAME":F'
-          Pop $0
-          !if ${PRODUCT_BIT} == "64"
-            nsExec::Exec 'icacls.exe $WINDIR\SysWOW64\notepad.exe /grant "$USERNAME":F'
-            Pop $0
-          !endif
-        ${Else}
-          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
-          Pop $0
-          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
-          Pop $0
-          !if ${PRODUCT_BIT} == "64"
-            nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
-            Pop $0
-          !endif
-        ${EndIf}
-      ${EndIf}
-    ${EndIf}
+    ;Take notepad.exe ownership to replace it
+    File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
 
     #Create backup
-    ${IfNot} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
+    ${If} ${FileExists} "$WINDIR\notepad.exe"
+    ${AndIfNot} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
       CopyFiles /SILENT "$WINDIR\notepad.exe" "$WINDIR\notepad_AkelUndo.exe"
     ${EndIf}
-    ${IfNot} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
+    ${If} ${FileExists} "$SYSDIR\notepad.exe"
+    ${AndIfNot} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
       CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\notepad_AkelUndo.exe"
+    ${EndIf}
+    ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+    ${AndIfNot} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+      CopyFiles /SILENT "$WINDIR\SysWOW64\notepad.exe" "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
     ${EndIf}
     ${If} ${FileExists} "$SYSDIR\DLLCACHE\notepad.exe"
       Delete "$SYSDIR\DLLCACHE\notepad.exe"
     ${EndIf}
-    !if ${PRODUCT_BIT} == "64"
-      ${IfNot} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
-        CopyFiles /SILENT "$WINDIR\SysWOW64\notepad.exe" "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
-      ${EndIf}
-      ${If} ${FileExists} "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
-        Delete "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
-      ${EndIf}
-    !endif
+    ${If} ${FileExists} "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
+      Delete "$WINDIR\SysWOW64\DLLCACHE\notepad.exe"
+    ${EndIf}
 
     ${If} $SETUPDIR == $WINDIR
     ${OrIf} $SETUPDIR == $SYSDIR
     ${OrIf} $SETUPDIR == $WINDIR\SysWOW64
-      !if ${PRODUCT_BIT} == "64"
-        ${If} $SETUPDIR == $WINDIR
-          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
-          File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
-        ${ElseIf} $SETUPDIR == $SYSDIR
-          File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
-          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
-        ${ElseIf} $SETUPDIR == $WINDIR\SysWOW64
-          File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
-          File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
+      ${If} $SETUPDIR == $WINDIR
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
         ${EndIf}
-      !else
-        ${If} $SETUPDIR == $WINDIR
-          File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
-        ${ElseIf} $SETUPDIR == $SYSDIR
-          File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
+        File /oname=$SYSDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+      ${ElseIf} $SETUPDIR == $SYSDIR
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+          File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
         ${EndIf}
-      !endif
+        File /oname=$WINDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+      ${ElseIf} $SETUPDIR == $WINDIR\SysWOW64
+        File /oname=$WINDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+        File /oname=$SYSDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+      ${EndIf}
 
       ${If} ${FileExists} "$SETUPDIR\notepad.exe"
         Delete "$SETUPDIR\notepad.exe"
@@ -725,14 +690,12 @@ Section
       ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
     ${Else}
-      !if ${PRODUCT_BIT} == "64"
-        File /oname=$WINDIR\notepad.exe "Redirect\notepad-x64.exe"
-        File /oname=$SYSDIR\notepad.exe "Redirect\notepad-x64.exe"
-        File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\notepad-x64.exe"
-      !else
-        File /oname=$WINDIR\notepad.exe "Redirect\notepad.exe"
-        File /oname=$SYSDIR\notepad.exe "Redirect\notepad.exe"
-      !endif
+      ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+        File /oname=$WINDIR\SysWOW64\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+      ${EndIf}
+      File /oname=$WINDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+      File /oname=$SYSDIR\notepad.exe "Redirect\${PRODUCT_NOTEPAD}.exe"
+
       ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
       WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\AkelPad.exe"
     ${EndIf}
@@ -849,9 +812,9 @@ Function un.uninstConfirmLeave
 FunctionEnd
 
 Section un.install
-  !if ${PRODUCT_BIT} == "64"
+  ${If} ${RunningX64}
     ${DisableX64FSRedirection}
-  !endif
+  ${EndIf}
 
   ${un.GetParent} "$INSTDIR" $SETUPDIR
 
@@ -879,68 +842,37 @@ Section un.install
   #UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
   #_notepad:
-  SearchPath $0 takeown.exe
-  ${If} $0 != ''
-    SearchPath $0 cacls.exe
-    ${If} $0 != ''
-      nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
-      Pop $0
-      nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
-      Pop $0
-      !if ${PRODUCT_BIT} == "64"
-        nsExec::Exec 'takeown.exe /F $WINDIR\SysWOW64\notepad.exe'
-        Pop $0
-      !endif
+  ${If} $INSTTYPE == ${INSTTYPE_NOTEPAD}
+    ;Take notepad.exe ownership to replace it
+    File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
+    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
 
-      ;Use icacls.exe if possible, because "echo y" will be useless on French OS (prompt between "O/N").
-      SearchPath $0 icacls.exe
-      ${If} $0 != ''
-        nsExec::Exec 'icacls.exe $WINDIR\notepad.exe /grant "$USERNAME":F'
-        Pop $0
-        nsExec::Exec 'icacls.exe $SYSDIR\notepad.exe /grant "$USERNAME":F'
-        Pop $0
-        !if ${PRODUCT_BIT} == "64"
-          nsExec::Exec 'icacls.exe $WINDIR\SysWOW64\notepad.exe /grant "$USERNAME":F'
-          Pop $0
-        !endif
-      ${Else}
-        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\notepad.exe /G "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '$COMSPEC /c echo y|cacls.exe $SYSDIR\notepad.exe /G "$USERNAME":F'
-        Pop $0
-        !if ${PRODUCT_BIT} == "64"
-          nsExec::Exec '$COMSPEC /c echo y|cacls.exe $WINDIR\SysWOW64\notepad.exe /G "$USERNAME":F'
-          Pop $0
-        !endif
-      ${EndIf}
+    ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
+      ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
+    ${ElseIf} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
+      ExecWait '"$SYSDIR\notepad.exe" /deassoc /quit'
+    ${ElseIf} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
+      ExecWait '"$WINDIR\SysWOW64\notepad.exe" /deassoc /quit'
+    ${Else}
+      goto _totalcmd
     ${EndIf}
-  ${EndIf}
 
-  ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
-    ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
-  ${ElseIf} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
-    ExecWait '"$SYSDIR\notepad.exe" /deassoc /quit'
-  ${ElseIf} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
-    ExecWait '"$WINDIR\SysWOW64\notepad.exe" /deassoc /quit'
-  ${Else}
-    goto _totalcmd
-  ${EndIf}
-
-  #Restore backup
-  ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
-    Delete "$WINDIR\notepad.exe"
-    Rename "$WINDIR\notepad_AkelUndo.exe" "$WINDIR\notepad.exe"
-  ${EndIf}
-  ${If} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
-    Delete "$SYSDIR\notepad.exe"
-    Rename "$SYSDIR\notepad_AkelUndo.exe" "$SYSDIR\notepad.exe"
-  ${EndIf}
-  !if ${PRODUCT_BIT} == "64"
+    #Restore backup
+    ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
+      Delete "$WINDIR\notepad.exe"
+      Rename "$WINDIR\notepad_AkelUndo.exe" "$WINDIR\notepad.exe"
+    ${EndIf}
+    ${If} ${FileExists} "$SYSDIR\notepad_AkelUndo.exe"
+      Delete "$SYSDIR\notepad.exe"
+      Rename "$SYSDIR\notepad_AkelUndo.exe" "$SYSDIR\notepad.exe"
+    ${EndIf}
     ${If} ${FileExists} "$WINDIR\SysWOW64\notepad_AkelUndo.exe"
       Delete "$WINDIR\SysWOW64\notepad.exe"
       Rename "$WINDIR\SysWOW64\notepad_AkelUndo.exe" "$WINDIR\SysWOW64\notepad.exe"
     ${EndIf}
-  !endif
+  ${EndIf}
 
   DeleteRegValue HKLM "Software\Akelsoft\AkelPad" "Path"
 
