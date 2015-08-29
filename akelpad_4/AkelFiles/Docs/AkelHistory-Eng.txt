@@ -7,6 +7,7 @@ Added: option "Silently close unsaved empty tab (MDI)" now also work in SDI mode
 Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
 Fixed: possible transfer of the Enter pressing to another process when closing dialog
        created by plugin.
+Fixed: notepad replacement by installer on x64 system.
 Fixed: parsing command line parameter /Z with MS Notepad compatibility mode on.
 
 
