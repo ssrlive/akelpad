@@ -14,6 +14,7 @@
 #include "..\AkelEdit\StrFunc.h"
 
 //Include string functions
+#define xmemset
 #define xstrlenW
 #define xatoiW
 #include "..\AkelEdit\StrFunc.h"
@@ -28,11 +29,13 @@
 #define STRID_ERRORGETFILESECURITY  6
 #define STRID_ERRORSETFILESECURITY  7
 #define STRID_ERRORGETPRIVILEGE     8
+#define STRID_ERRORICALC            9
 
 #define BUFFER_SIZE      1024
 
 //AkelAdmin action
 #define AAA_CMDINIT             11
+#define AAA_TAKEOWN             12  //Became file owner.
 #define AAA_EXIT                20  //Exit from pipe server.
 #define AAA_SECURITYGET         21  //Retrieve file security.
 #define AAA_SECURITYSETEVERYONE 22  //Add all access for the file.
@@ -79,6 +82,7 @@ typedef struct {
 DWORD WINAPI ThreadProc(LPVOID lpParameter);
 BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
+BOOL Exec(wchar_t *wpCmdLine);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
@@ -101,6 +105,8 @@ DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION,
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
 BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptorWPtr)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *);
 BOOL (WINAPI *GetSecurityDescriptorSaclPtr)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *);
+BOOL (WINAPI *IsWow64ProcessPtr)(HANDLE, BOOL *);
+BOOL (WINAPI *Wow64EnableWow64FsRedirectionPtr)(BOOL);
 
 
 //GCC
@@ -162,6 +168,61 @@ void _WinMain()
                 }
               }
             }
+          }
+        }
+        else if (nAction == AAA_TAKEOWN)
+        {
+          wchar_t wszFile[MAX_PATH];
+          wchar_t wszUser[MAX_PATH];
+          wchar_t *wpFileName;
+          DWORD dwUserLen;
+
+          //Second argument file to take own.
+          if (GetCommandLineArg(pArguments, wszBuffer, MAX_PATH, &pArguments))
+          {
+            #ifndef _WIN64
+              HMODULE hKernel32;
+              HANDLE hProcess;
+              BOOL bWin64;
+              BOOL bWow64FsRedirection=FALSE;
+
+              //Get functions addresses
+              hKernel32=GetModuleHandleW(L"kernel32.dll");
+              IsWow64ProcessPtr=(BOOL (WINAPI *)(HANDLE, BOOL *))GetProcAddress(hKernel32, "IsWow64Process");
+              Wow64EnableWow64FsRedirectionPtr=(BOOL (WINAPI *)(BOOL))GetProcAddress(hKernel32, "Wow64EnableWow64FsRedirection");
+
+              if (IsWow64ProcessPtr && Wow64EnableWow64FsRedirectionPtr)
+              {
+                hProcess=GetCurrentProcess();
+                if (IsWow64ProcessPtr(hProcess, &bWin64) && bWin64)
+                {
+                  Wow64EnableWow64FsRedirectionPtr(TRUE);
+                  bWow64FsRedirection=TRUE;
+                }
+              }
+            #endif
+
+            if (SearchPathW(NULL, L"takeown.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+            {
+              wsprintfW(wszBuffer, L"takeown.exe /F \"%s\"", wszFile);
+              if (Exec(wszBuffer))
+              {
+                //Don't use cacls.exe, because "echo y" will be useless on French OS (prompt between "O/N").
+                if (SearchPathW(NULL, L"icacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+                {
+                  if (GetUserNameW(wszUser, &dwUserLen))
+                  {
+                    wsprintfW(wszBuffer, L"icacls.exe \"%s\" /grant \"%s\":F", wszFile, wszUser);
+                    Exec(wszBuffer);
+                  }
+                }
+                else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORICALC), STR_AKELADMIN, MB_ICONEXCLAMATION);
+              }
+            }
+            #ifndef _WIN64
+              if (bWow64FsRedirection)
+                Wow64EnableWow64FsRedirectionPtr(FALSE);
+            #endif
           }
         }
       }
@@ -436,6 +497,25 @@ BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable)
   return bResult;
 }
 
+BOOL Exec(wchar_t *wpCmdLine)
+{
+  STARTUPINFOW si;
+  PROCESS_INFORMATION pi;
+  BOOL bResult;
+
+  xmemset(&si, 0, sizeof(STARTUPINFOW));
+  si.cb=sizeof(STARTUPINFOW);
+  si.dwFlags=STARTF_USESHOWWINDOW;
+  si.wShowWindow=SW_HIDE;
+
+  if (bResult=CreateProcessW(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+  {
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+  }
+  return bResult;
+}
+
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
 {
   if (nLen=GetModuleFileNameW(hInstance, wszExeDir, nLen))
@@ -528,6 +608,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
     if (nStringID == STRID_ERRORGETPRIVILEGE)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x043E\x043B\x0443\x0447\x0438\x0442\x044C\x0020\x043F\x0440\x0438\x0432\x0438\x043B\x0435\x0433\x0438\x0438\x0020\x0434\x043B\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x043A\x0438\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0435\x043A\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
+    if (nStringID == STRID_ERRORICALC)
+      return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0444\x0430\x0439\x043B \"icalc.exe\"";
   }
   else
   {
@@ -547,6 +629,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Can't set security options for file \"%s\"";
     if (nStringID == STRID_ERRORGETPRIVILEGE)
       return L"Can't get privilege to set security options of file \"%s\"";
+    if (nStringID == STRID_ERRORICALC)
+      return L"Can't find \"icalc.exe\"";
   }
   return L"";
 }
