@@ -3013,7 +3013,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
     while (ciCount.lpLine)
     {
       CheckChar:
-      while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+      while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
       {
         if (!lpParent && AEC_IndexCompare(&ciCount, &crScan.ciMax) >= 0)
           goto Close;
