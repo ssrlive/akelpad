@@ -3629,11 +3629,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     dwParentID=(DWORD)xatoiW(wszBuffer, NULL);
 
                     //Rule ID
-                    if ((nRuleLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack)))
+                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
-                      if (wszBuffer[0] >= L'0' && wszBuffer[0] <= L'9')
-                        dwRuleID=(DWORD)xatoiW(wszBuffer, NULL);
-                      else
+                      dwRuleID=(DWORD)xatoiW(wszBuffer, NULL);
+
+                      //Rule file
+                      if ((nRuleLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack)))
                       {
                         if (wpRuleFile=(wchar_t *)GlobalAlloc(GPTR, (nRuleLen + 1) * sizeof(wchar_t)))
                           xmemcpy(wpRuleFile, wszBuffer, (nRuleLen + 1) * sizeof(wchar_t));
