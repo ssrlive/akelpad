@@ -268,6 +268,7 @@ typedef struct {
   INT_PTR last;
   int nCommonFirstChar;
   BOOL bVisible;
+  int nFoldWithThemeCount;
 } STACKFOLD;
 
 typedef struct _VARINFO {

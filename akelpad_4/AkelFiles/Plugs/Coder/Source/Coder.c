@@ -3723,6 +3723,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     }
                     if (!(dwFlags & FIF_NOLISTFOLD))
                       lpSyntaxFile->hFoldStack.bVisible=TRUE;
+                    if (lpFoldInfo->wpRuleFile)
+                      ++lpSyntaxFile->hFoldStack.nFoldWithThemeCount;
                     break;
 
                     FreeFold:

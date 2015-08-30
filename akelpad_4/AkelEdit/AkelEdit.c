@@ -2385,7 +2385,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       else if (wParam == AEHLFT_BYFOLD)
       {
-        AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
+        AEFINDFOLD *ff=(AEFINDFOLD *)lParam;
 
         if (ae->ptxt->nFoldWithThemeCount)
         {
@@ -2395,14 +2395,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           {
             if (ff->lpParent->hRuleTheme)
               return (LRESULT)ff->lpParent->hRuleTheme;
-
-            if (ff->lpParent->parent)
-            {
-              ff->lpParent=ff->lpParent->parent;
-              continue;
-            }
-            break;
+            ff->lpParent=ff->lpParent->parent;
           }
+        }
+        else
+        {
+          ff->lpParent=NULL;
+          ff->lpPrevSubling=NULL;
         }
         return (LRESULT)ae->popt->lpActiveTheme;
       }

@@ -331,6 +331,7 @@ void CreateAllFolds(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, HWND hWnd
 LEVEL* StackInsertLevel(STACKLEVEL *hLevelStack, AECHARINDEX *ciChar);
 void StackDeleteLevel(STACKLEVEL *hLevelStack, LEVEL *lpLevel);
 void StackFreeLevels(STACKLEVEL *hLevelStack);
+SYNTAXFILE* GetSyntaxFileByFold(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 AEFOLD* FoldNextDepth(AEFOLD *lpFold, int *nCurDepth, int nMaxDepth);
 AEFOLD* FoldGet(FOLDWINDOW *lpFoldWindow, DWORD dwFlags, UINT_PTR dwFindIt, AEFOLD **lpPrevSubling);
 AEFOLD* FoldAtIndex(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, DWORD dwFoldStop);
