@@ -110,7 +110,6 @@ DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION,
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
 BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptorWPtr)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *);
 BOOL (WINAPI *GetSecurityDescriptorSaclPtr)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *);
-BOOL (WINAPI *IsWow64ProcessPtr)(HANDLE, BOOL *);
 BOOL (WINAPI *Wow64EnableWow64FsRedirectionPtr)(BOOL);
 
 
@@ -177,7 +176,7 @@ void _WinMain()
       {
         wchar_t wszFile[MAX_PATH];
         wchar_t wszUser[MAX_PATH];
-        wchar_t *wpFileName;
+        wchar_t wszSysDir[MAX_PATH];
         DWORD dwUserLen;
 
         WideInitialize();
@@ -189,52 +188,48 @@ void _WinMain()
           {
             #ifndef _WIN64
               HMODULE hKernel32;
-              HANDLE hProcess;
-              BOOL bWin64;
-              BOOL bWow64FsRedirection=FALSE;
 
               //Get functions addresses
               hKernel32=GetModuleHandleW(L"kernel32.dll");
-              IsWow64ProcessPtr=(BOOL (WINAPI *)(HANDLE, BOOL *))GetProcAddress(hKernel32, "IsWow64Process");
               Wow64EnableWow64FsRedirectionPtr=(BOOL (WINAPI *)(BOOL))GetProcAddress(hKernel32, "Wow64EnableWow64FsRedirection");
 
-              if (IsWow64ProcessPtr && Wow64EnableWow64FsRedirectionPtr)
-              {
-                hProcess=GetCurrentProcess();
-                if (IsWow64ProcessPtr(hProcess, &bWin64) && bWin64)
-                {
-                  Wow64EnableWow64FsRedirectionPtr(FALSE);
-                  bWow64FsRedirection=TRUE;
-                }
-              }
+              if (Wow64EnableWow64FsRedirectionPtr)
+                Wow64EnableWow64FsRedirectionPtr(FALSE);
             #endif
+            GetSystemDirectoryW(wszSysDir, MAX_PATH);
 
-            if (SearchPathW(NULL, L"takeown.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+            wsprintfW(wszBuffer, L"%s\\takeown.exe", wszSysDir);
+            if (FileExistsWide(wszBuffer))
             {
-              wsprintfW(wszBuffer, L"takeown.exe /F \"%s\"", wszFile);
+              wsprintfW(wszBuffer, L"%s\\takeown.exe /F \"%s\"", wszSysDir, wszFile);
               if (Exec(wszBuffer))
               {
                 dwUserLen=MAX_PATH;
                 if (GetUserNameW(wszUser, &dwUserLen))
                 {
                   //Use icacls.exe, because "echo y" will be useless on French OS (prompt between "O/N").
-                  if (SearchPathW(NULL, L"icacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+                  wsprintfW(wszBuffer, L"%s\\icacls.exe", wszSysDir);
+                  if (FileExistsWide(wszBuffer))
                   {
-                    wsprintfW(wszBuffer, L"icacls.exe \"%s\" /grant \"%s\":F", wszFile, wszUser);
+                    wsprintfW(wszBuffer, L"%s\\icacls.exe \"%s\" /grant \"%s\":F", wszSysDir, wszFile, wszUser);
                     Exec(wszBuffer);
                   }
-                  //else if (SearchPathW(NULL, L"cacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+                  //else
                   //{
-                  //  wsprintfW(wszBuffer, L"cmd.exe /c echo y|cacls.exe \"%s\" /G \"%s\":F", wszFile, wszUser);
-                  //  Exec(wszBuffer);
+                  //  wsprintfW(wszBuffer, L"%s\\cacls.exe", wszSysDir);
+                  //  if (FileExistsWide(wszBuffer))
+                  //  {
+                  //    wsprintfW(wszBuffer, L"cmd.exe /c echo y|cacls.exe \"%s\" /G \"%s\":F", wszFile, wszUser);
+                  //    Exec(wszBuffer);
+                  //  }
                   //}
                 }
               }
             }
             #ifndef _WIN64
-              if (bWow64FsRedirection)
+              if (Wow64EnableWow64FsRedirectionPtr)
                 Wow64EnableWow64FsRedirectionPtr(TRUE);
-            #endif
+           #endif
           }
         }
       }
