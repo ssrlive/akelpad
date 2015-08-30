@@ -577,6 +577,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           AESELECTION aes;
           AECHARRANGE crLine;
           CHARRANGE64 crSyntaxFileLine;
+          SYNTAXFILE *lpSyntaxFile;
           AEFOLD *lpCurFold;
           OPENDOCUMENTW od;
           HWND hWndEdit;
@@ -584,8 +585,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
           {
             crSyntaxFileLine=FoldData(lpCurFold)->lpFoldInfo->crSyntaxFileLine;
+            lpSyntaxFile=GetSyntaxFileByFold(lpCurrentFoldWindow, lpCurFold->hRuleTheme?lpCurFold->parent:lpCurFold);
 
-            xprintfW(wszBuffer, L"%s\\%s", wszCoderDir, lpCurrentFoldWindow->pfwd->lpSyntaxFile->wszSyntaxFileName);
+            xprintfW(wszBuffer, L"%s\\%s", wszCoderDir, lpSyntaxFile->wszSyntaxFileName);
             od.pFile=wszBuffer;
             od.pWorkDir=NULL;
             od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
@@ -2753,9 +2755,12 @@ void StackDeleteFoldInfo(STACKFOLD *hFoldStack, HSTACK *hFoldStartStack, FOLDINF
     PatFree(&lpFoldInfo->lpFoldStart->sregStart);
     StackDelete((stack **)&hFoldStartStack->first, (stack **)&hFoldStartStack->last, (stack *)lpFoldInfo->lpFoldStart);
   }
+  if (lpFoldInfo->wpRuleFile)
+    --hFoldStack->nFoldWithThemeCount;
   if (lpFoldInfo->wpFoldEnd) GlobalFree((HGLOBAL)lpFoldInfo->wpFoldEnd);
   if (lpFoldInfo->wpDelimiters) GlobalFree((HGLOBAL)lpFoldInfo->wpDelimiters);
   if (lpFoldInfo->wpRuleFile) GlobalFree((HGLOBAL)lpFoldInfo->wpRuleFile);
+
   PatFree(&lpFoldInfo->sregEnd);
   StackDelete((stack **)&hFoldStack->first, (stack **)&hFoldStack->last, (stack *)lpFoldInfo);
 }
@@ -2781,6 +2786,7 @@ void StackFreeFoldInfo(STACKFOLD *hFoldStack, HSTACK *hFoldStartStack)
     PatFree(&lpFoldInfo->sregEnd);
   }
   StackClear((stack **)&hFoldStack->first, (stack **)&hFoldStack->last);
+  hFoldStack->nFoldWithThemeCount=0;
 }
 
 void StackEndBoard(STACKFOLDWINDOW *hStack, FOLDWINDOW *lpFoldWindow)
@@ -3114,6 +3120,13 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   //LEVEL item now is not needed
                   StackDeleteLevel(hLevelStack, lpLevel);
                 }
+
+                if (lpFoldInfo->wpRuleFile && lpFoldInfo->lpRuleFile == lpFoldWindow->pfwd->lpSyntaxFile)
+                {
+                  //Return syntax file
+                  lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpPrevFile;
+                  lpFoldInfo->lpPrevFile=NULL;
+                }
                 lpLevel=lpParent;
               }
             }
@@ -3172,7 +3185,6 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                       lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpRuleFile;
                     }
                   }
-
                   lpParent=lpLevel;
                 }
               }
@@ -3254,6 +3266,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
     while (lpLevel)
     {
       lpParent=lpLevel->lpParent;
+      lpFoldInfo=lpLevel->pfd->lpFoldInfo;
 
       if (!lpLevel->pointMax.ciPoint.lpLine)
       {
@@ -3278,6 +3291,12 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
           }
         }
       }
+      if (lpFoldInfo->wpRuleFile && lpFoldInfo->lpRuleFile == lpFoldWindow->pfwd->lpSyntaxFile)
+      {
+        //Return syntax file
+        lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpPrevFile;
+        lpFoldInfo->lpPrevFile=NULL;
+      }
       lpLevel=lpParent;
     }
 
@@ -3291,12 +3310,6 @@ void CreateFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, HWND hWnd, BOOL bColla
   AEFOLD fold;
   FOLDINFO *lpFoldInfo=lpLevel->pfd->lpFoldInfo;
 
-  if (lpFoldInfo->wpRuleFile && lpFoldInfo->lpRuleFile == lpFoldWindow->pfwd->lpSyntaxFile)
-  {
-    //Return syntax file
-    lpFoldWindow->pfwd->lpSyntaxFile=lpFoldInfo->lpPrevFile;
-    lpFoldInfo->lpPrevFile=NULL;
-  }
   fold.lpMinPoint=&lpLevel->pointMin;
   fold.lpMaxPoint=&lpLevel->pointMax;
   fold.bCollapse=bCollapse;
@@ -3372,6 +3385,23 @@ void StackDeleteLevel(STACKLEVEL *hLevelStack, LEVEL *lpLevel)
 void StackFreeLevels(STACKLEVEL *hLevelStack)
 {
   StackClear((stack **)&hLevelStack->first, (stack **)&hLevelStack->last);
+}
+
+SYNTAXFILE* GetSyntaxFileByFold(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold)
+{
+  FOLDINFO *lpFoldInfo;
+
+  for (; lpFold; lpFold=lpFold->parent)
+  {
+    if (lpFold->hRuleTheme)
+    {
+      lpFoldInfo=FoldData(lpFold)->lpFoldInfo;
+      if (lpFoldInfo->wpRuleFile)
+        return lpFoldInfo->lpRuleFile;
+      break;
+    }
+  }
+  return lpFoldWindow->pfwd->lpSyntaxFile;
 }
 
 AEFOLD* FoldNextDepth(AEFOLD *lpFold, int *nCurDepth, int nFindRootMaxDepth)
@@ -4390,9 +4420,20 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
   SKIPSTART *lpSkipStart;
   SKIPINFOHANDLE *lpSkipInfoHandle;
   AEFINDTEXTW ft;
+  AEFINDFOLD ff;
   AECHARINDEX ciCount=crSearchRange->ciMin;
+  SYNTAXFILE *lpSyntaxFile=lpFoldWindow->pfwd->lpSyntaxFile;
   DWORD dwFoldMatch=0;
   BOOL bMatch;
+
+  if (lpSyntaxFile->hFoldStack.nFoldWithThemeCount)
+  {
+    ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_RECURSE;
+    ff.dwFindIt=(UINT_PTR)&ciCount;
+    SendMessage(lpFoldWindow->hWndEdit, AEM_HLFINDTHEME, AEHLFT_BYFOLD, (LPARAM)&ff);
+    if (ff.lpParent)
+      lpSyntaxFile=FoldData(ff.lpParent)->lpFoldInfo->lpRuleFile;
+  }
 
   while (ciCount.lpLine)
   {
@@ -4404,14 +4445,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
 
       if (!lpSkipInfo)
       {
-        //AEFINDFOLD ff;
-        //AEHTHEME hTheme;
-        //
-        //ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_RECURSE;
-        //ff.dwFindIt=(UINT_PTR)&ciChar;
-        //hTheme=(AEHTHEME)SendMessage(lpFoldWindow->hWndEdit, AEM_HLFINDTHEME, AEHLFT_BYFOLD, (LPARAM)&ff);
-
-        for (lpFoldInfo=(FOLDINFO *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.first; lpFoldInfo; lpFoldInfo=lpFoldInfo->next)
+        for (lpFoldInfo=(FOLDINFO *)lpSyntaxFile->hFoldStack.first; lpFoldInfo; lpFoldInfo=lpFoldInfo->next)
         {
           //Fold start
           if (lpFoldInfo->lpFoldStart->dwFlags & FIF_REGEXPSTART)
@@ -4459,7 +4493,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
         //Skip start
         if (!dwFoldMatch)
         {
-          for (lpSkipStart=(SKIPSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hSkipStartStack.first; lpSkipStart; lpSkipStart=lpSkipStart->next)
+          for (lpSkipStart=(SKIPSTART *)lpSyntaxFile->hSkipStartStack.first; lpSkipStart; lpSkipStart=lpSkipStart->next)
           {
             if (lpSkipInfo=IsSkipStart(lpSkipStart, &ft, &ciCount))
               goto NextChar;

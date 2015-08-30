@@ -1,13 +1,14 @@
 
 AkelPad 4.9.5 ()
 ----------------------------
-Added: alternative (via registry) Windows notepad replacement in installer.
+Added: possibility to use nested syntax highlighting rules.
+Added: alternative Windows notepad replacement (via registry) in installer.
 Added: option "Silently close unsaved empty tab (MDI)" now also work in SDI mode.
 
 Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
 Fixed: possible transfer of the Enter pressing to another process when closing dialog
        created by plugin.
-Fixed: notepad replacement by installer on x64 system.
+Fixed: notepad replacement by installer on x64 systems.
 Fixed: parsing command line parameter /Z with MS Notepad compatibility mode on.
 
 
