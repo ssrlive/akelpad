@@ -1359,7 +1359,8 @@ typedef struct {
 } AEWORDMATCH;
 
 typedef struct {
-  CHARRANGE64 crFold;
+  CHARRANGE64 crFoldStart;
+  CHARRANGE64 crFoldEnd;
   AEFOLD *lpFold;
   BOOL bColored;
   AEHTHEME hActiveThemeBegin;
