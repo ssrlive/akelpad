@@ -11494,7 +11494,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
             AEC_IndexCompare(&ciCount, &wm->crDelim1.ciMax) == 0)
           goto SetEmptyFirstDelim;
         if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) ||
-            (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFold.cpMax)
+            (nCharOffset - (nWordLen - AEC_IndexLen(&ciCount))) == fm->crFoldEnd.cpMax)
         {
           if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_BACK|AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
             goto SetEmptyFirstDelim;
@@ -14575,60 +14575,66 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     if (!(hlp->dwPaintType & AEHPT_LINK))
     {
       //Fold find
-      if (!hlp->fm.bColored || !hlp->fm.lpFold || hlp->fm.crFold.cpMax < to->nDrawCharOffset)
+      if (/*!hlp->fm.bColored || */to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMin || to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax)
       {
         AEFOLD *lpColored=NULL;
         AEFOLD *lpThemed=NULL;
         AEFOLD *lpCount;
 
-        AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
-        hlp->fm.bColored=FALSE;
-        lpCount=hlp->fm.lpFold;
-
-        while (lpCount)
+        AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &lpCount, NULL);
+        if (hlp->fm.lpFold != lpCount)
         {
-          if (ae->ptxt->nFoldColorCount || ae->ptxt->nFoldWithThemeCount)
+          hlp->fm.lpFold=lpCount;
+          hlp->fm.bColored=FALSE;
+
+          if (hlp->fm.lpFold)
           {
-            if (lpCount->hRuleTheme)
+            if (ae->ptxt->nFoldWithThemeCount || ae->ptxt->nFoldColorCount)
             {
-              //Fold has highlight theme
-              lpThemed=lpCount;
+              for (lpCount=hlp->fm.lpFold; lpCount; lpCount=lpCount->parent)
+              {
+                if (lpCount->hRuleTheme)
+                {
+                  //Fold has highlight theme
+                  lpThemed=lpCount;
+                  break;
+                }
+                if (lpCount->dwFontStyle != AEHLS_NONE ||
+                    lpCount->crText != (DWORD)-1 ||
+                    lpCount->crBk != (DWORD)-1)
+                {
+                  //Fold has highlighting information
+                  if (!lpColored) lpColored=lpCount;
+                }
+              }
+              if (lpThemed && (AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
+              {
+                if (hlp->fm.lpFold != lpThemed)
+                {
+                  //Activate child fold with own theme
+                  hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
+                  ae->popt->lpActiveTheme=(AETHEMEITEMW *)lpThemed->hRuleTheme;
+                }
+              }
+              if (lpColored)
+              {
+                hlp->fm.lpFold=lpColored;
+                hlp->fm.bColored=TRUE;
+              }
             }
-            if (lpCount->dwFontStyle != AEHLS_NONE ||
-                lpCount->crText != (DWORD)-1 ||
-                lpCount->crBk != (DWORD)-1)
-            {
-              //Fold has highlighting information
-              lpColored=lpCount;
-            }
-            if (lpCount->parent)
-            {
-              //Check the parent
-              lpCount=lpCount->parent;
-              continue;
-            }
+            hlp->fm.crFoldStart.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
+            hlp->fm.crFoldStart.cpMax=hlp->fm.lpFold->lpMinPoint->nPointOffset + hlp->fm.lpFold->lpMinPoint->nPointLen;
+            hlp->fm.crFoldEnd.cpMin=hlp->fm.lpFold->lpMaxPoint->nPointOffset;
+            hlp->fm.crFoldEnd.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
           }
-          if (lpColored)
-          {
-            hlp->fm.lpFold=lpColored;
-            hlp->fm.bColored=TRUE;
-          }
-          if (lpThemed && (AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
-          {
-            hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
-            ae->popt->lpActiveTheme=(AETHEMEITEMW *)lpThemed->hRuleTheme;
-          }
-          hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
-          hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
-          break;
         }
       }
 
       //Check fold start
       if (hlp->fm.bColored)
       {
-        if (to->nDrawCharOffset >= hlp->fm.crFold.cpMin &&
-            to->nDrawCharOffset < hlp->fm.crFold.cpMax)
+        if (to->nDrawCharOffset >= hlp->fm.crFoldStart.cpMin &&
+            to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMax)
         {
           if (!(hlp->dwPaintType & AEHPT_FOLD))
           {
@@ -15069,11 +15075,13 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
   }
   if (hlp->fm.lpFold)
   {
-    if (to->nDrawCharOffset >= hlp->fm.crFold.cpMax)
+    if (to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax ||
+        (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMin))
     {
       if (!(hlp->dwPaintType & AEHPT_SELECTION))
       {
-        if (to->nDrawCharOffset == hlp->fm.crFold.cpMax)
+        if (to->nDrawCharOffset == hlp->fm.crFoldEnd.cpMax ||
+            (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset == hlp->fm.crFoldEnd.cpMin))
         {
           //Draw full highlighted text or last part of it
           AE_PaintTextOut(ae, to, hlp);
@@ -15215,6 +15223,16 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       }
     }
   }
+
+  //Activate root fold with own theme
+  if (hlp->fm.lpFold && hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset >= hlp->fm.crFoldStart.cpMax)
+  {
+    if ((AEHTHEME)ae->popt->lpActiveTheme != hlp->fm.lpFold->hRuleTheme)
+    {
+      hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
+      ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.lpFold->hRuleTheme;
+    }
+  }
 }
 
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
@@ -15234,7 +15252,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
   {
     if (hlp->wm.lpDelim1)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->wm.crDelim1.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->wm.crDelim1.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_DELIM1;
         hlp->wm.lpDelim1=NULL;
@@ -15242,7 +15260,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     }
     if (hlp->wm.lpWord)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->wm.crWord.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->wm.crWord.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_WORD;
         hlp->wm.lpWord=NULL;
@@ -15250,7 +15268,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     }
     if (hlp->wm.lpDelim2)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->wm.crDelim2.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->wm.crDelim2.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_DELIM2;
         hlp->wm.lpDelim2=NULL;
@@ -15258,7 +15276,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     }
     if (hlp->qm.lpQuote)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->qm.crQuoteEnd.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->qm.crQuoteEnd.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_QUOTE;
         hlp->qm.lpQuote=NULL;
@@ -15266,7 +15284,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     }
     if (hlp->mrm.lpMarkRange)
     {
-      if (to->nDrawCharOffset >= hlp->mrm.crMarkRange.cpMax)
+      if (to->nDrawCharOffset > hlp->mrm.crMarkRange.cpMax)
       {
         hlp->dwPaintType&=~AEHPT_MARKRANGE;
         hlp->mrm.lpMarkRange=NULL;
@@ -15274,7 +15292,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     }
     if (hlp->mtm.lpMarkText)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->mtm.crMarkText.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->mtm.crMarkText.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_MARKTEXT;
         hlp->mtm.lpMarkText=NULL;
@@ -15283,7 +15301,8 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
   }
   if (hlp->fm.lpFold)
   {
-    if (to->nDrawCharOffset >= hlp->fm.crFold.cpMax)
+    if (to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMax ||
+        (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMin))
     {
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
@@ -15294,7 +15313,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
   {
     if (hlp->crLink.ciMin.lpLine && hlp->crLink.ciMax.lpLine)
     {
-      if (AEC_IndexCompare(ciChar, &hlp->crLink.ciMax) >= 0)
+      if (AEC_IndexCompare(ciChar, &hlp->crLink.ciMax) > 0)
       {
         hlp->dwPaintType&=~AEHPT_LINK;
         hlp->crLink.ciMin.lpLine=NULL;
