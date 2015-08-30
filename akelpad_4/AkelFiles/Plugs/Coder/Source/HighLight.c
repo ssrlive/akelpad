@@ -1941,7 +1941,7 @@ BOOL IsMatchMark(AEMARKTEXTITEMW *lpMarkItem, STACKDELIM *lpDelimiterStack, HWND
   BOOL bMatched;
 
   if (lpMarkItem->dwFlags & AEHLF_REGEXP)
-    return IsMatchRE(lpMarkItem->lpREGroupStack, &ft->crFound, ciChar);
+    return (IsMatchRE(lpMarkItem->lpREGroupStack, &ft->crFound, ciChar) >= 0);
   if (lpMarkItem->dwFlags & AEHLF_WHOLEWORD)
     if (!IsDelimiterFromLeft(lpDelimiterStack, hWnd, ciChar))
       return FALSE;
