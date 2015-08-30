@@ -214,17 +214,21 @@ void _WinMain()
               wsprintfW(wszBuffer, L"takeown.exe /F \"%s\"", wszFile);
               if (Exec(wszBuffer))
               {
-                //Don't use cacls.exe, because "echo y" will be useless on French OS (prompt between "O/N").
-                if (SearchPathW(NULL, L"icacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+                dwUserLen=MAX_PATH;
+                if (GetUserNameW(wszUser, &dwUserLen))
                 {
-                  dwUserLen=MAX_PATH;
-                  if (GetUserNameW(wszUser, &dwUserLen))
+                  //Use icacls.exe, because "echo y" will be useless on French OS (prompt between "O/N").
+                  if (SearchPathW(NULL, L"icacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
                   {
                     wsprintfW(wszBuffer, L"icacls.exe \"%s\" /grant \"%s\":F", wszFile, wszUser);
                     Exec(wszBuffer);
                   }
+                  //else if (SearchPathW(NULL, L"cacls.exe", NULL, MAX_PATH, wszBuffer, &wpFileName))
+                  //{
+                  //  wsprintfW(wszBuffer, L"cmd.exe /c echo y|cacls.exe \"%s\" /G \"%s\":F", wszFile, wszUser);
+                  //  Exec(wszBuffer);
+                  //}
                 }
-                else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORICALC), STR_AKELADMIN, MB_ICONEXCLAMATION);
               }
             }
             #ifndef _WIN64
@@ -620,8 +624,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0439\x043A\x0438\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0434\x043B\x044F\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
     if (nStringID == STRID_ERRORGETPRIVILEGE)
       return L"\x041D\x0435\x0020\x0443\x0434\x0430\x0435\x0442\x0441\x044F\x0020\x043F\x043E\x043B\x0443\x0447\x0438\x0442\x044C\x0020\x043F\x0440\x0438\x0432\x0438\x043B\x0435\x0433\x0438\x0438\x0020\x0434\x043B\x044F\x0020\x0443\x0441\x0442\x0430\x043D\x043E\x0432\x043A\x0438\x0020\x043D\x0430\x0441\x0442\x0440\x043E\x0435\x043A\x0020\x0431\x0435\x0437\x043E\x043F\x0430\x0441\x043D\x043E\x0441\x0442\x0438\x0020\x0444\x0430\x0439\x043B\x0430 \"%s\"";
-    if (nStringID == STRID_ERRORICALC)
-      return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0444\x0430\x0439\x043B \"icalc.exe\"";
   }
   else
   {
@@ -641,8 +643,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Can't set security options for file \"%s\"";
     if (nStringID == STRID_ERRORGETPRIVILEGE)
       return L"Can't get privilege to set security options of file \"%s\"";
-    if (nStringID == STRID_ERRORICALC)
-      return L"Can't find \"icalc.exe\"";
   }
   return L"";
 }
