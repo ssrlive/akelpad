@@ -2607,14 +2607,7 @@ SKIPSTART* StackInsertSkipStart(HSTACK *hSkipStartStack, SKIPINFO *lpSkipInfo, w
         if (nSkipStartLen && !PatCompile(&lpSkipStart->sregStart, wpSkipStart, wpSkipStart + nSkipStartLen))
         {
           lpSkipStart->sregStart.first->dwFlags&=~REGF_ROOTANY;
-          if (lpSkipStart->sregStart.first->nGroupLen == -1)
-          {
-            xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_FIXEDLENGTH), lpLoadSyntaxFile->wszSyntaxFileName, nSkipStartLen, wpSkipStart);
-            MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-            PatFree(&lpSkipStart->sregStart);
-            StackDelete((stack **)&hSkipStartStack->first, (stack **)&hSkipStartStack->last, (stack *)lpSkipStart);
-            return NULL;
-          }
+          lpSkipStart->nSkipStartLen=(int)lpSkipInfo->sregEnd.first->nGroupLen;
         }
         else
         {
@@ -2717,14 +2710,6 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
         {
           lpFoldStart->sregStart.first->dwFlags&=~REGF_ROOTANY;
           lpFoldStart->nFoldStartPointLen=(int)lpFoldStart->sregStart.first->nGroupLen;
-          if (lpFoldStart->nFoldStartPointLen == -1)
-          {
-            xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_FIXEDLENGTH), lpLoadSyntaxFile->wszSyntaxFileName, nFoldStartLen, wpFoldStart);
-            MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-            PatFree(&lpFoldStart->sregStart);
-            StackDelete((stack **)&hFoldStartStack->first, (stack **)&hFoldStartStack->last, (stack *)lpFoldStart);
-            return NULL;
-          }
         }
         else
         {
@@ -3059,6 +3044,11 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   lpLevel=lpParent;
                   goto CheckNoCatch;
                 }
+                if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
+                  lpLevel->pointMax.nPointLen=ft.dwTextLen;
+                else
+                  lpLevel->pointMax.nPointLen=lpFoldInfo->nFoldEndPointLen;
+
                 if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
                 {
                   lpLevel->pointMax.nPointLen=0;
@@ -3071,8 +3061,6 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   ciCloseTag=ft.crFound.ciMax;
 
                   //Expand XML tag from "</" to "</name>"
-                  lpLevel->pointMax.nPointLen=lpFoldInfo->nFoldEndPointLen;
-
                   do
                   {
                     ++lpLevel->pointMax.nPointLen;
@@ -3104,7 +3092,6 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   lpParent=lpLevel;
                   goto CheckChar;
                 }
-                else lpLevel->pointMax.nPointLen=lpFoldInfo->nFoldEndPointLen;
 
                 SetLevelMax:
                 lpLevel->pfd->lpFoldInfo=lpFoldInfo;
@@ -3140,10 +3127,14 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
               {
                 if (lpLevel=StackInsertLevel(hLevelStack, &ft.crFound.ciMin))
                 {
+                  if (lpFoldInfo->dwFlags & FIF_REGEXPSTART)
+                    lpLevel->pointMin.nPointLen=ft.dwTextLen;
+                  else
+                    lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
+
                   if ((lpFoldInfo->dwFlags & FIF_XMLTAG) &&
                       (lpFoldInfo->dwFlags & FIF_XMLNONAME_TWOTAG))
                   {
-                    lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
                     AEC_ValidCharInLine(&ft.crFound.ciMax);
 
                     do
@@ -3160,7 +3151,6 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                     }
                     while (AEC_NextCharInLine(&ft.crFound.ciMax));
                   }
-                  else lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
 
                   SetLevelMin:
                   lpLevel->lpParent=lpParent;
@@ -4213,10 +4203,10 @@ BOOL CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   return FALSE;
 }
 
-BOOL CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar)
+INT_PTR CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciStr=*ciChar;
-  DWORD dwCount=(DWORD)-1;
+  INT_PTR nMatchLen;
 
   if (!sreg->first) return 0;
 
@@ -4224,13 +4214,12 @@ BOOL CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARIN
   {
     crFound->ciMin=sreg->first->ciStrStart;
     crFound->ciMax=sreg->first->ciStrEnd;
-    dwCount=(DWORD)sreg->first->nStrLen;
+    nMatchLen=sreg->first->nStrLen;
   }
-  AE_PatReset(sreg);
+  else nMatchLen=-1;
 
-  if (dwCount == (DWORD)-1)
-    return FALSE;
-  return TRUE;
+  AE_PatReset(sreg);
+  return nMatchLen;
 }
 
 BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
@@ -4316,10 +4305,19 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
 
 FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 {
+  INT_PTR nMatchLen;
   BOOL bMatch;
 
   if (lpFoldStart->dwFlags & FIF_REGEXPSTART)
-    bMatch=IsMatchRE(&lpFoldStart->sregStart, &ft->crFound, ciChar);
+  {
+    nMatchLen=IsMatchRE(&lpFoldStart->sregStart, &ft->crFound, ciChar);
+    if (nMatchLen >= 0)
+    {
+      ft->dwTextLen=nMatchLen;
+      bMatch=TRUE;
+    }
+    else bMatch=FALSE;
+  }
   else
   {
     ft->dwFlags=lpFoldStart->dwFlags;
@@ -4343,10 +4341,19 @@ FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
 
 FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 {
+  INT_PTR nMatchLen;
   BOOL bMatch;
 
   if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
-    bMatch=IsMatchRE(&lpFoldInfo->sregEnd, &ft->crFound, ciChar);
+  {
+    nMatchLen=IsMatchRE(&lpFoldInfo->sregEnd, &ft->crFound, ciChar);
+    if (nMatchLen >= 0)
+    {
+      ft->dwTextLen=nMatchLen;
+      bMatch=TRUE;
+    }
+    else bMatch=FALSE;
+  }
   else
   {
     ft->dwFlags=lpFoldInfo->dwFlags;
@@ -4365,10 +4372,19 @@ FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 
 SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 {
+  INT_PTR nMatchLen;
   BOOL bMatch;
 
   if (lpSkipStart->dwFlags & FIF_REGEXPSTART)
-    bMatch=IsMatchRE(&lpSkipStart->sregStart, &ft->crFound, ciChar);
+  {
+    nMatchLen=IsMatchRE(&lpSkipStart->sregStart, &ft->crFound, ciChar);
+    if (nMatchLen >= 0)
+    {
+      ft->dwTextLen=nMatchLen;
+      bMatch=TRUE;
+    }
+    else bMatch=FALSE;
+  }
   else
   {
     ft->dwFlags=lpSkipStart->dwFlags;
@@ -4392,10 +4408,19 @@ SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
 
 SKIPINFO* IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 {
+  INT_PTR nMatchLen;
   BOOL bMatch;
 
   if (lpSkipInfo->dwFlags & FIF_REGEXPEND)
-    bMatch=IsMatchRE(&lpSkipInfo->sregEnd, &ft->crFound, ciChar);
+  {
+    nMatchLen=IsMatchRE(&lpSkipInfo->sregEnd, &ft->crFound, ciChar);
+    if (nMatchLen >= 0)
+    {
+      ft->dwTextLen=nMatchLen;
+      bMatch=TRUE;
+    }
+    else bMatch=FALSE;
+  }
   else
   {
     ft->dwFlags=lpSkipInfo->dwFlags;
@@ -4450,7 +4475,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           //Fold start
           if (lpFoldInfo->lpFoldStart->dwFlags & FIF_REGEXPSTART)
           {
-            bMatch=IsMatchRE(&lpFoldInfo->lpFoldStart->sregStart, &ft.crFound, &ciCount);
+            bMatch=(IsMatchRE(&lpFoldInfo->lpFoldStart->sregStart, &ft.crFound, &ciCount) >= 0);
             if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDSTART))
               return lpFoldInfo;
           }
@@ -4471,7 +4496,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           //Fold end
           if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
           {
-            bMatch=IsMatchRE(&lpFoldInfo->sregEnd, &ft.crFound, &ciCount);
+            bMatch=(IsMatchRE(&lpFoldInfo->sregEnd, &ft.crFound, &ciCount) >= 0);
             if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDEND))
               return lpFoldInfo;
           }

@@ -3504,13 +3504,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       if (nSkipEndLen && !PatCompile(&lpSkipInfo->sregEnd, wpSkipEnd, wpSkipEnd + nSkipEndLen))
                       {
                         lpSkipInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
-                        if (lpSkipInfo->sregEnd.first->nGroupLen == -1)
-                        {
-                          xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_FIXEDLENGTH), lpSyntaxFile->wszSyntaxFileName, nSkipEndLen, wpSkipEnd);
-                          MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-                          PatFree(&lpSkipInfo->sregEnd);
-                          goto FreeSkip;
-                        }
+                        nSkipEndLen=(int)lpSkipInfo->sregEnd.first->nGroupLen;
                       }
                       else
                       {
@@ -3680,13 +3674,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       {
                         lpFoldInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
                         lpFoldInfo->nFoldEndPointLen=(int)lpFoldInfo->sregEnd.first->nGroupLen;
-                        if (lpFoldInfo->nFoldEndPointLen == -1)
-                        {
-                          xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_FIXEDLENGTH), lpSyntaxFile->wszSyntaxFileName, nFoldEndLen, wpFoldEnd);
-                          MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-                          PatFree(&lpFoldInfo->sregEnd);
-                          goto FreeFold;
-                        }
                       }
                       else
                       {
@@ -6144,8 +6131,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x0443\x044E\x0020\x043F\x0435\x0440\x0435\x043C\x0435\x043D\x043D\x0443\x044E \"%.%ds\", \x043A\x043E\x0442\x043E\x0440\x0430\x044F\x0020\x043E\x0442\x0441\x0443\x0442\x0441\x0442\x0432\x0443\x0435\x0442\x0020\x0432\x0020\x0430\x043A\x0442\x0438\x0432\x043D\x043E\x0439\x0020\x0442\x0435\x043C\x0435 \"%s\". \x041F\x0440\x043E\x0434\x043E\x043B\x0436\x0438\x0442\x044C\x003F";
     if (nStringID == STRID_REGEXP_COMPILEERROR)
       return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043E\x0448\x0438\x0431\x043A\x0443\x0020\x0432\x0020\x0440\x0435\x0433\x0443\x043B\x044F\x0440\x043D\x043E\x043C\x0020\x0432\x044B\x0440\x0430\x0436\x0435\x043D\x0438\x0438 \"%.%ds\"";
-    if (nStringID == STRID_REGEXP_FIXEDLENGTH)
-      return L"\"%s\" \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x0440\x0435\x0433\x0443\x043B\x044F\x0440\x043D\x043E\x0435\x0020\x0432\x044B\x0440\x0430\x0436\x0435\x043D\x0438\x0435\x0020\x043D\x0435\x0020\x0444\x0438\x043A\x0441\x0438\x0440\x043E\x0432\x0430\x043D\x043D\x043E\x0439\x0020\x0434\x043B\x0438\x043D\x044B \"%.%ds\"";
     if (nStringID == STRID_UNKNOWNSECTION)
       return L"\"%s\" (\x0441\x043C\x0435\x0449\x0435\x043D\x0438\x0435 %Id) \x0441\x043E\x0434\x0435\x0440\x0436\x0438\x0442\x0020\x043D\x0435\x0438\x0437\x0432\x0435\x0441\x0442\x043D\x043E\x0435\x0020\x0438\x043C\x044F\x0020\x0441\x0435\x043A\x0446\x0438\x0438 \"%s\".";
     if (nStringID == STRID_UNKNOWNSYNTAXFILE)
@@ -6380,8 +6365,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\"%s\" contain unknown variable \"%.%ds\" that doesn't exist in current theme \"%s\". Continue?";
     if (nStringID == STRID_REGEXP_COMPILEERROR)
       return L"\"%s\" contain non valid regular expression \"%.%ds\"";
-    if (nStringID == STRID_REGEXP_FIXEDLENGTH)
-      return L"\"%s\" contain non fixed length regular expression \"%.%ds\"";
     if (nStringID == STRID_UNKNOWNSECTION)
       return L"\"%s\" (offset %Id) contain unknown section name \"%s\".";
     if (nStringID == STRID_UNKNOWNSYNTAXFILE)

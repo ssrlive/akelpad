@@ -353,7 +353,7 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags);
 void UpdateTagMark(FOLDWINDOW *lpFoldWindow);
 BOOL RemoveTagMark(FOLDWINDOW *lpFoldWindow);
 BOOL CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
-BOOL CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar);
+INT_PTR CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar);
 BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECHARINDEX *ciChar, DWORD *dwFoldStop);
 FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar);
