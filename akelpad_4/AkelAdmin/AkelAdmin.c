@@ -12,18 +12,12 @@
 #include <windows.h>
 #include <aclapi.h>
 #include "..\AkelEdit\StrFunc.h"
-#include "..\WideFunc.h"
 
 //Include string functions
-#define xmemset
 #define xstrlenW
 #define xatoiW
 #include "..\AkelEdit\StrFunc.h"
 
-//Include wide functions
-#define GetFileAttributesWide
-#define FileExistsWide
-#include "..\WideFunc.h"
 
 //Defines
 #define STRID_ERRORWIN              1
@@ -34,13 +28,11 @@
 #define STRID_ERRORGETFILESECURITY  6
 #define STRID_ERRORSETFILESECURITY  7
 #define STRID_ERRORGETPRIVILEGE     8
-#define STRID_ERRORICALC            9
 
 #define BUFFER_SIZE      1024
 
 //AkelAdmin action
 #define AAA_CMDINIT             11
-#define AAA_TAKEOWN             12  //Became file owner.
 #define AAA_EXIT                20  //Exit from pipe server.
 #define AAA_SECURITYGET         21  //Retrieve file security.
 #define AAA_SECURITYSETEVERYONE 22  //Add all access for the file.
@@ -87,7 +79,6 @@ typedef struct {
 DWORD WINAPI ThreadProc(LPVOID lpParameter);
 BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable);
 int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
-BOOL Exec(wchar_t *wpCmdLine);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);
@@ -110,7 +101,6 @@ DWORD (WINAPI *SetSecurityInfoPtr)(HANDLE, SE_OBJECT_TYPE, SECURITY_INFORMATION,
 DWORD (WINAPI *SetEntriesInAclWPtr)(ULONG, PEXPLICIT_ACCESSW, PACL, PACL *);
 BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptorWPtr)(wchar_t *, DWORD, SECURITY_DESCRIPTOR **, ULONG *);
 BOOL (WINAPI *GetSecurityDescriptorSaclPtr)(SECURITY_DESCRIPTOR *, BOOL *, PACL *, BOOL *);
-BOOL (WINAPI *Wow64EnableWow64FsRedirectionPtr)(BOOL);
 
 
 //GCC
@@ -140,107 +130,45 @@ void _WinMain()
     //Get program directory
     nExeDirLen=GetExeDir(hInstance, wszBuffer, BUFFER_SIZE);
 
-    //Skip executable
-    GetCommandLineArg(pArguments, NULL, 0, &pArguments);
-
-    //First argument is action number (currently only one action).
-    if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
+    if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer, nExeDirLen)))
     {
-      nAction=(int)xatoiW(wszBuffer, NULL);
+      //Skip executable
+      GetCommandLineArg(pArguments, NULL, 0, &pArguments);
 
-      //Initialize pipe server
-      if (nAction == AAA_CMDINIT)
+      //First argument is action number (currently only one action).
+      if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
       {
-        //Second argument is caller process id.
-        if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
+        nAction=(int)xatoiW(wszBuffer, NULL);
+
+        //Initialize pipe server
+        if (nAction == AAA_CMDINIT)
         {
-          dwInitProcessId=(DWORD)xatoiW(wszBuffer, NULL);
-
-          if (hThread=CreateThread(NULL, 0, ThreadProc, NULL, 0, &dwThreadId))
+          //Second argument is caller process id.
+          if (GetCommandLineArg(pArguments, wszBuffer, BUFFER_SIZE, &pArguments))
           {
-            //Wait for hThread and process messages to avoid busy cursor.
-            MSG msg;
+            dwInitProcessId=(DWORD)xatoiW(wszBuffer, NULL);
 
-            while (MsgWaitForMultipleObjects(1, &hThread, FALSE, INFINITE, QS_ALLINPUT) != WAIT_OBJECT_0)
+            if (hThread=CreateThread(NULL, 0, ThreadProc, NULL, 0, &dwThreadId))
             {
-              while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+              //Wait for hThread and process messages to avoid busy cursor.
+              MSG msg;
+
+              while (MsgWaitForMultipleObjects(1, &hThread, FALSE, INFINITE, QS_ALLINPUT) != WAIT_OBJECT_0)
               {
-                TranslateMessage(&msg);
-                DispatchMessageW(&msg);
-              }
-            }
-          }
-        }
-      }
-      else if (nAction == AAA_TAKEOWN)
-      {
-        wchar_t wszFile[MAX_PATH];
-        wchar_t wszUser[MAX_PATH];
-        wchar_t wszSysDir[MAX_PATH];
-        DWORD dwUserLen;
-
-        WideInitialize();
-
-        //Second argument file to take own.
-        if (GetCommandLineArg(pArguments, wszFile, MAX_PATH, &pArguments))
-        {
-          if (FileExistsWide(wszFile))
-          {
-            #ifndef _WIN64
-              HMODULE hKernel32;
-
-              //Get functions addresses
-              hKernel32=GetModuleHandleW(L"kernel32.dll");
-              Wow64EnableWow64FsRedirectionPtr=(BOOL (WINAPI *)(BOOL))GetProcAddress(hKernel32, "Wow64EnableWow64FsRedirection");
-
-              if (Wow64EnableWow64FsRedirectionPtr)
-                Wow64EnableWow64FsRedirectionPtr(FALSE);
-            #endif
-            GetSystemDirectoryW(wszSysDir, MAX_PATH);
-
-            wsprintfW(wszBuffer, L"%s\\takeown.exe", wszSysDir);
-            if (FileExistsWide(wszBuffer))
-            {
-              wsprintfW(wszBuffer, L"%s\\takeown.exe /F \"%s\"", wszSysDir, wszFile);
-              if (Exec(wszBuffer))
-              {
-                dwUserLen=MAX_PATH;
-                if (GetUserNameW(wszUser, &dwUserLen))
+                while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
                 {
-                  //Use icacls.exe, because "echo y" will be useless on French OS (prompt between "O/N").
-                  wsprintfW(wszBuffer, L"%s\\icacls.exe", wszSysDir);
-                  if (FileExistsWide(wszBuffer))
-                  {
-                    wsprintfW(wszBuffer, L"%s\\icacls.exe \"%s\" /grant \"%s\":F", wszSysDir, wszFile, wszUser);
-                    Exec(wszBuffer);
-                  }
-                  //else
-                  //{
-                  //  wsprintfW(wszBuffer, L"%s\\cacls.exe", wszSysDir);
-                  //  if (FileExistsWide(wszBuffer))
-                  //  {
-                  //    wsprintfW(wszBuffer, L"cmd.exe /c echo y|cacls.exe \"%s\" /G \"%s\":F", wszFile, wszUser);
-                  //    Exec(wszBuffer);
-                  //  }
-                  //}
+                  TranslateMessage(&msg);
+                  DispatchMessageW(&msg);
                 }
               }
             }
-            #ifndef _WIN64
-              if (Wow64EnableWow64FsRedirectionPtr)
-                Wow64EnableWow64FsRedirectionPtr(TRUE);
-           #endif
           }
         }
       }
-    }
-    if (nAction == 0)
-    {
-      if (!lstrcmpiW(L"AkelFiles", GetFileName(wszBuffer, nExeDirLen)))
+      if (nAction == 0)
         MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORCALL), STR_AKELADMIN, MB_ICONEXCLAMATION);
-      else
-        MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORDIR), STR_AKELADMIN, MB_ICONEXCLAMATION);
     }
+    else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORDIR), STR_AKELADMIN, MB_ICONEXCLAMATION);
   }
   else MessageBoxW(NULL, GetLangStringW(wLangModule, STRID_ERRORWIN), STR_AKELADMIN, MB_ICONEXCLAMATION);
 
@@ -504,25 +432,6 @@ BOOL EnablePrivilege(const wchar_t *wpName, BOOL bEnable)
         bResult=TRUE;
     }
     CloseHandle(hToken);
-  }
-  return bResult;
-}
-
-BOOL Exec(wchar_t *wpCmdLine)
-{
-  STARTUPINFOW si;
-  PROCESS_INFORMATION pi;
-  BOOL bResult;
-
-  xmemset(&si, 0, sizeof(STARTUPINFOW));
-  si.cb=sizeof(STARTUPINFOW);
-  si.dwFlags=STARTF_USESHOWWINDOW;
-  si.wShowWindow=SW_HIDE;
-
-  if (bResult=CreateProcessW(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-  {
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
   }
   return bResult;
 }
