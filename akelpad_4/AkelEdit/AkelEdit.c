@@ -15304,6 +15304,11 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     if (to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMax ||
         (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMin))
     {
+      if (hlp->fm.lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == hlp->fm.lpFold->hRuleTheme)
+      {
+        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
+        hlp->fm.hActiveThemePrev=NULL;
+      }
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
       hlp->fm.bColored=FALSE;
