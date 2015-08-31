@@ -14609,7 +14609,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               }
               if (lpThemed && (AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
               {
-                if (hlp->fm.lpFold != lpThemed)
+                if (hlp->fm.lpFold != lpThemed || to->nDrawCharOffset >= (lpThemed->lpMinPoint->nPointOffset + lpThemed->lpMinPoint->nPointLen))
                 {
                   //Activate child fold with own theme
                   hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
