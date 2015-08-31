@@ -1598,7 +1598,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                       }
                       if (lpFoldDataExist)
                       {
-                        if (lpFoldExist->bCollapse)
+                        if (lpFoldExist->dwFlags & AEFOLDF_COLLAPSED)
                           bNeedUpdate=TRUE;
                         DeleteFoldData(lpFoldDataExist);
                         SendMessage(fwChange->hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFoldExist, FALSE);
@@ -1617,7 +1617,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                         (!AEC_IndexCompare(&lpFoldExist->lpMinPoint->ciPoint, &fwChange->crTextChange.ciMax) &&
                          !AEC_IndexCompare(&lpFoldExist->lpMinPoint->ciPoint, &lpFoldExist->lpMaxPoint->ciPoint)))
                     {
-                      if (lpFoldExist->bCollapse)
+                      if (lpFoldExist->dwFlags & AEFOLDF_COLLAPSED)
                         bNeedUpdate=TRUE;
                       DeleteFoldData(FoldData(lpFoldExist));
                       SendMessage(fwChange->hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFoldExist, FALSE);
@@ -1956,7 +1956,7 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                   }
 
                   //Draw node
-                  if (lpFold->bCollapse)
+                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
                   {
                     if (hActiveNodeCloseBrush && hCurrentPen == hActiveFoldPen)
                       SelectObject(hBufferDC, hActiveNodeCloseBrush);
@@ -1982,14 +1982,14 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                   RoundRect(hBufferDC, (nHPos - BOARD_WIDTH / 2), (nVPos + nCharHeight / 2 - BOARD_WIDTH / 2), (nHPos + BOARD_WIDTH / 2) + 1, (nVPos + nCharHeight / 2 + BOARD_WIDTH / 2) + 1, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0);
 
                   //Line after node
-                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !lpFold->bCollapse || lpFold->parent)
+                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !(lpFold->dwFlags & AEFOLDF_COLLAPSED) || lpFold->parent)
                   {
                     MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
                     LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
                   }
 
                   //Draw sign
-                  if (lpFold->bCollapse)
+                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
                   {
                     if (hActiveNodeClosePen && hCurrentPen == hActiveFoldPen)
                       SelectObject(hBufferDC, hActiveNodeClosePen);
@@ -2005,7 +2005,7 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                     else if (hNormalNodeOpenPen && hCurrentPen != hActiveFoldPen)
                       SelectObject(hBufferDC, hNormalNodeOpenPen);
                   }
-                  if (lpFold->bCollapse)
+                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
                   {
                     //Plus
                     MoveToEx(hBufferDC, nHPos - BOARD_WIDTH / 2 + 2, nVPos + nCharHeight / 2, NULL);
@@ -3302,7 +3302,7 @@ void CreateFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, HWND hWnd, BOOL bColla
 
   fold.lpMinPoint=&lpLevel->pointMin;
   fold.lpMaxPoint=&lpLevel->pointMax;
-  fold.bCollapse=bCollapse;
+  fold.dwFlags=(bCollapse ? AEFOLDF_COLLAPSED : 0);
   fold.dwFontStyle=lpFoldInfo->dwFontStyle;
   fold.crText=lpFoldInfo->dwColor1;
   fold.crBk=lpFoldInfo->dwColor2;
@@ -3628,12 +3628,12 @@ void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags)
 {
   if (lpFold)
   {
-    SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, (lpFold->bCollapse?AECF_EXPAND:AECF_COLLAPSE)|dwFlags);
+    SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, dwFlags|(lpFold->dwFlags & AEFOLDF_COLLAPSED ? AECF_EXPAND : AECF_COLLAPSE));
   }
   else
   {
     if (lpFold=(AEFOLD *)lpFoldWindow->pfwd->lpFoldStack->first)
-      SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)NULL, (lpFold->bCollapse?AECF_EXPAND:AECF_COLLAPSE)|dwFlags);
+      SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)NULL, dwFlags|(lpFold->dwFlags & AEFOLDF_COLLAPSED ? AECF_EXPAND : AECF_COLLAPSE));
   }
 }
 
