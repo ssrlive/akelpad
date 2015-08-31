@@ -15078,23 +15078,27 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
     if (to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax ||
         (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMin))
     {
+      AEFOLD *lpFold=hlp->fm.lpFold;
+
       if (!(hlp->dwPaintType & AEHPT_SELECTION))
       {
         if (to->nDrawCharOffset == hlp->fm.crFoldEnd.cpMax ||
-            (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset == hlp->fm.crFoldEnd.cpMin))
+            (lpFold->hRuleTheme && to->nDrawCharOffset == hlp->fm.crFoldEnd.cpMin))
         {
           //Draw full highlighted text or last part of it
           AE_PaintTextOut(ae, to, hlp);
         }
       }
-      if (hlp->fm.lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == hlp->fm.lpFold->hRuleTheme)
-      {
-        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
-        hlp->fm.hActiveThemePrev=NULL;
-      }
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
       hlp->fm.bColored=FALSE;
+
+      if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
+      {
+        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
+        hlp->fm.hActiveThemePrev=NULL;
+        AE_PaintCheckHighlightReset(ae, to, hlp, &lpFold->lpMaxPoint->ciPoint);
+      }
     }
   }
   //if (ae->popt->lpActiveTheme)
@@ -15304,14 +15308,18 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
     if (to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMax ||
         (hlp->fm.lpFold->hRuleTheme && to->nDrawCharOffset > hlp->fm.crFoldEnd.cpMin))
     {
-      if (hlp->fm.lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == hlp->fm.lpFold->hRuleTheme)
-      {
-        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
-        hlp->fm.hActiveThemePrev=NULL;
-      }
+      AEFOLD *lpFold=hlp->fm.lpFold;
+
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
       hlp->fm.bColored=FALSE;
+
+      if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
+      {
+        ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
+        hlp->fm.hActiveThemePrev=NULL;
+        AE_PaintCheckHighlightReset(ae, to, hlp, &lpFold->lpMaxPoint->ciPoint);
+      }
     }
   }
   if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
@@ -15326,6 +15334,25 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
       }
     }
   }
+}
+
+void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
+{
+  AECHARINDEX ciReset=*ciChar;
+
+  //Reset delimiters, word, quote when theme is changed.
+  hlp->wm.crDelim1.ciMin=ciReset;
+  hlp->wm.crDelim1.ciMax=ciReset;
+  hlp->wm.crWord.ciMin=ciReset;
+  hlp->wm.crWord.ciMax=ciReset;
+  hlp->wm.crDelim2.ciMin=ciReset;
+  hlp->wm.crDelim2.ciMax=ciReset;
+  hlp->qm.crQuoteStart.ciMin=ciReset;
+  hlp->qm.crQuoteStart.ciMax=ciReset;
+  hlp->qm.crQuoteEnd.ciMin=ciReset;
+  hlp->qm.crQuoteEnd.ciMax=ciReset;
+  AEC_IndexInc(&ciReset);
+  AE_PaintCheckHighlightCleanUp(ae, to, hlp, &ciReset);
 }
 
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
