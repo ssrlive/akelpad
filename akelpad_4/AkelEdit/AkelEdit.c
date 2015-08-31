@@ -14620,16 +14620,16 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             {
               for (lpCount=hlp->fm.lpFold; lpCount; lpCount=lpCount->parent)
               {
+                if (lpCount->dwFlags & AEFOLDF_STYLED)
+                {
+                  //Fold has highlighting information
+                  if (!lpColored) lpColored=lpCount;
+                }
                 if (lpCount->hRuleTheme)
                 {
                   //Fold has highlight theme
                   lpThemed=lpCount;
                   break;
-                }
-                if (lpCount->dwFlags & AEFOLDF_STYLED)
-                {
-                  //Fold has highlighting information
-                  if (!lpColored) lpColored=lpCount;
                 }
               }
               if (lpThemed && (AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
