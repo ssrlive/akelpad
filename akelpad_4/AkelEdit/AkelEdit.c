@@ -15093,6 +15093,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       hlp->fm.lpFold=NULL;
       hlp->fm.bColored=FALSE;
 
+      //Return to main theme
       if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
       {
         ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
@@ -15314,6 +15315,7 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
       hlp->fm.lpFold=NULL;
       hlp->fm.bColored=FALSE;
 
+      //Return to main theme
       if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
       {
         ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
