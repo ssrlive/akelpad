@@ -666,11 +666,6 @@ Section
       ${EndIf}
     ${EndIf}
 
-    ;File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
-
     #Create backup
     ${If} ${FileExists} "$WINDIR\notepad.exe"
     ${AndIfNot} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
@@ -887,20 +882,15 @@ Section un.install
         Pop $0
         nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
         Pop $0
-      ;${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
+      ${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
+          Pop $0
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
+          Pop $0
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
+          Pop $0
       ${EndIf}
     ${EndIf}
-
-    ;File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
-    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
 
     ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
       ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
