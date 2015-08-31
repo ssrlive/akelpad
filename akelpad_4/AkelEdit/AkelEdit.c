@@ -14575,7 +14575,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     if (!(hlp->dwPaintType & AEHPT_LINK))
     {
       //Fold find
-      if (/*!hlp->fm.bColored || */to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMin || to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax)
+      if (to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMin || to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax)
       {
         AEFOLD *lpColored=NULL;
         AEFOLD *lpThemed=NULL;
@@ -14668,7 +14668,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
   //if (ae->popt->lpActiveTheme)
   {
     //Only if char not in URL and color fold
-    if (!(hlp->dwPaintType & (AEHPT_LINK|AEHPT_FOLD)))
+    if (!(hlp->dwPaintType & AEHPT_LINK) && (!(hlp->dwPaintType & AEHPT_FOLD) || hlp->fm.lpFold->dwRuleID))
     {
       //Quote find
       if (hlp->dwFindFirst & AEHPT_QUOTE)
@@ -15149,7 +15149,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
               (!(hlp->qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteEnd.ciMax) == 0))
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText)
+            if (!hlp->mtm.lpMarkText && AllowPaint(hlp, AEHPT_FOLD, hlp->qm.lpQuote->dwParentID))
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15181,7 +15181,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim1.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && (!hlp->qm.lpQuote || hlp->wm.lpDelim1->dwParentID == hlp->qm.lpQuote->dwRuleID) && !hlp->crLink.ciMin.lpLine)
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpDelim1->dwParentID))
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15200,7 +15200,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crWord.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && (!hlp->qm.lpQuote || hlp->wm.lpWord->dwParentID == hlp->qm.lpQuote->dwRuleID) && !hlp->crLink.ciMin.lpLine)
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpWord->dwParentID))
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15219,7 +15219,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim2.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && (!hlp->qm.lpQuote || hlp->wm.lpDelim2->dwParentID == hlp->qm.lpQuote->dwRuleID) && !hlp->crLink.ciMin.lpLine)
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpDelim2->dwParentID))
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15357,6 +15357,30 @@ void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AE
   hlp->qm.crQuoteEnd.ciMax=ciReset;
   AEC_IndexInc(&ciReset);
   AE_PaintCheckHighlightCleanUp(ae, to, hlp, &ciReset);
+}
+
+BOOL AllowPaint(AEHLPAINT *hlp, DWORD dwPaintTypeToCheck, DWORD dwParentID)
+{
+  if (dwPaintTypeToCheck & AEHPT_QUOTE)
+  {
+    if (hlp->qm.lpQuote)
+    {
+      if (dwParentID || hlp->qm.lpQuote->dwRuleID)
+        return (dwParentID == hlp->qm.lpQuote->dwRuleID);
+      return FALSE;
+    }
+  }
+  if (dwPaintTypeToCheck & AEHPT_FOLD)
+  {
+    if (hlp->fm.lpFold)
+    {
+      if (dwParentID || hlp->fm.lpFold->dwRuleID)
+        return (dwParentID == hlp->fm.lpFold->dwRuleID);
+      if (hlp->fm.bColored)
+        return FALSE;
+    }
+  }
+  return TRUE;
 }
 
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
