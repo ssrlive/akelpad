@@ -640,10 +640,36 @@ Section
     WriteINIStr "$TCINI" "Configuration" "MultiRenameEdit" "$0"
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ;Take notepad.exe ownership to replace it
-    File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
+    ${If} ${FileExists} "$SYSDIR\takeown.exe"
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
+      Pop $0
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
+      Pop $0
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
+      Pop $0
+
+      ;Use icacls.exe instead of cacls.exe. Because "echo y" will be useless on French OS (prompt between "O/N").
+      ${If} ${FileExists} "$SYSDIR\icacls.exe"
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+      ;${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ${EndIf}
+    ${EndIf}
+
+    ;File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
 
     #Create backup
     ${If} ${FileExists} "$WINDIR\notepad.exe"
@@ -844,10 +870,37 @@ Section un.install
   #_notepad:
   ${If} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ;Take notepad.exe ownership to replace it
-    File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
-    ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
+    ;Take notepad.exe ownership to replace it
+    ${If} ${FileExists} "$SYSDIR\takeown.exe"
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
+      Pop $0
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
+      Pop $0
+      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
+      Pop $0
+
+      ;Use icacls.exe instead of cacls.exe. Because "echo y" will be useless on French OS (prompt between "O/N").
+      ${If} ${FileExists} "$SYSDIR\icacls.exe"
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
+        Pop $0
+      ;${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
+      ;    Pop $0
+      ${EndIf}
+    ${EndIf}
+
+    ;File /oname=$PLUGINSDIR\AkelAdmin.exe "${PRODUCT_DIR}\AkelFiles\AkelAdmin.exe"
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\notepad.exe"` $0
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$SYSDIR\notepad.exe"` $0
+    ;ExecWait `"$PLUGINSDIR\AkelAdmin.exe" 12 "$WINDIR\SysWOW64\notepad.exe"` $0
 
     ${If} ${FileExists} "$WINDIR\notepad_AkelUndo.exe"
       ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
