@@ -641,28 +641,46 @@ Section
   ${ElseIf} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ;Take notepad.exe ownership to replace it
     ${If} ${FileExists} "$SYSDIR\takeown.exe"
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
-      Pop $0
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
-      Pop $0
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
-      Pop $0
+      ${If} ${FileExists} "$WINDIR\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
+        Pop $0
+      ${EndIf}
+      ${If} ${FileExists} "$SYSDIR\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
+        Pop $0
+      ${EndIf}
+      ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
+        Pop $0
+      ${EndIf}
 
       ;Use icacls.exe instead of cacls.exe. Because "echo y" will be useless on French OS (prompt between "O/N").
       ${If} ${FileExists} "$SYSDIR\icacls.exe"
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
-      ;${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
-      ;    nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
-      ;    Pop $0
+        ${If} ${FileExists} "$WINDIR\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$SYSDIR\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+      ${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
+        ${If} ${FileExists} "$WINDIR\notepad.exe"
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$SYSDIR\notepad.exe"
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+          nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
+          Pop $0
+        ${EndIf}
       ${EndIf}
     ${EndIf}
 
@@ -865,30 +883,47 @@ Section un.install
   #_notepad:
   ${If} $INSTTYPE == ${INSTTYPE_NOTEPAD}
     ;Take notepad.exe ownership to replace it
-    ;Take notepad.exe ownership to replace it
     ${If} ${FileExists} "$SYSDIR\takeown.exe"
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
-      Pop $0
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
-      Pop $0
-      nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
-      Pop $0
+      ${If} ${FileExists} "$WINDIR\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\notepad.exe"'
+        Pop $0
+      ${EndIf}
+      ${If} ${FileExists} "$SYSDIR\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$SYSDIR\notepad.exe"'
+        Pop $0
+      ${EndIf}
+      ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+        nsExec::Exec '"$SYSDIR\takeown.exe" /F "$WINDIR\SysWOW64\notepad.exe"'
+        Pop $0
+      ${EndIf}
 
       ;Use icacls.exe instead of cacls.exe. Because "echo y" will be useless on French OS (prompt between "O/N").
       ${If} ${FileExists} "$SYSDIR\icacls.exe"
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
-        nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
-        Pop $0
+        ${If} ${FileExists} "$WINDIR\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$SYSDIR\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$SYSDIR\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
+          nsExec::Exec '"$SYSDIR\icacls.exe" "$WINDIR\SysWOW64\notepad.exe" /grant "$USERNAME":F'
+          Pop $0
+        ${EndIf}
       ${ElseIf} ${FileExists} "$SYSDIR\cacls.exe"
+        ${If} ${FileExists} "$WINDIR\notepad.exe"
           nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\notepad.exe" /G "$USERNAME":F'
           Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$SYSDIR\notepad.exe"
           nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$SYSDIR\notepad.exe" /G "$USERNAME":F'
           Pop $0
+        ${EndIf}
+        ${If} ${FileExists} "$WINDIR\SysWOW64\notepad.exe"
           nsExec::Exec '$COMSPEC /c echo y|"$SYSDIR\cacls.exe" "$WINDIR\SysWOW64\notepad.exe" /G "$USERNAME":F'
           Pop $0
+        ${EndIf}
       ${EndIf}
     ${EndIf}
 
