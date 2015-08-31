@@ -1,5 +1,5 @@
 *****************************************************************
-***                Sessions AkelPad plugin v8.8               ***
+***                Sessions AkelPad plugin v8.9               ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)

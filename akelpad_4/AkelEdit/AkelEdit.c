@@ -6269,20 +6269,20 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
       lpNewElement->lpMaxPoint->dwFlags=lpFold->lpMaxPoint->dwFlags|AEPTF_FOLD;
       lpNewElement->lpMaxPoint->dwUserData=lpFold->lpMaxPoint->dwUserData;
     }
-    lpNewElement->bCollapse=lpFold->bCollapse;
+    lpNewElement->dwFlags=lpFold->dwFlags;
     lpNewElement->dwFontStyle=lpFold->dwFontStyle;
     lpNewElement->crText=lpFold->crText;
     lpNewElement->crBk=lpFold->crBk;
     lpNewElement->dwParentID=lpFold->dwParentID;
     lpNewElement->dwRuleID=lpFold->dwRuleID;
     lpNewElement->hRuleTheme=lpFold->hRuleTheme;
-
     lpNewElement->dwUserData=lpFold->dwUserData;
 
     if (lpNewElement->dwFontStyle != AEHLS_NONE ||
         lpNewElement->crText != (DWORD)-1 ||
         lpNewElement->crBk != (DWORD)-1)
     {
+      lpNewElement->dwFlags|=AEFOLDF_STYLED;
       ++ae->ptxt->nFoldColorCount;
     }
     if (lpNewElement->dwRuleID)
@@ -6290,7 +6290,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
     if (lpNewElement->hRuleTheme)
       ++ae->ptxt->nFoldWithThemeCount;
     ++ae->ptxt->nFoldAllCount;
-    if (lpNewElement->bCollapse)
+    if (lpNewElement->dwFlags & AEFOLDF_COLLAPSED)
       ++ae->ptxt->nFoldCollapseCount;
   }
   ae->ptxt->lpVPosFold=NULL;
@@ -6554,7 +6554,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
   if (ae->ptxt->hFoldsStack.first && ae->ptxt->nFoldCollapseCount)
   {
     //Check input fold
-    if (ae->ptxt->lpIsCollapsedLastCall && ae->ptxt->lpIsCollapsedLastCall->bCollapse)
+    if (ae->ptxt->lpIsCollapsedLastCall && (ae->ptxt->lpIsCollapsedLastCall->dwFlags & AEFOLDF_COLLAPSED))
     {
       if (AE_FirstCollapsibleLine(ae, ae->ptxt->lpIsCollapsedLastCall) <= nLine &&
           AE_LastCollapsibleLine(ae, ae->ptxt->lpIsCollapsedLastCall) >= nLine)
@@ -6568,7 +6568,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
 
     while (lpSubling)
     {
-      if (lpSubling->bCollapse)
+      if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
       {
         if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
             AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
@@ -6605,16 +6605,21 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
     while (lpSubling)
     {
-      if (!lpSubling->bCollapse != !(dwFlags & AECF_COLLAPSE))
+      if (!(lpSubling->dwFlags & AEFOLDF_COLLAPSED) != !(dwFlags & AECF_COLLAPSE))
       {
         if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
             AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
         {
-          lpSubling->bCollapse=!lpSubling->bCollapse;
-          if (lpSubling->bCollapse)
-            ++ae->ptxt->nFoldCollapseCount;
-          else
+          if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
+          {
+            lpSubling->dwFlags&=~AEFOLDF_COLLAPSED;
             --ae->ptxt->nFoldCollapseCount;
+          }
+          else
+          {
+            lpSubling->dwFlags|=AEFOLDF_COLLAPSED;
+            ++ae->ptxt->nFoldCollapseCount;
+          }
           ++nResult;
         }
       }
@@ -6644,13 +6649,18 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
 
   while (lpCount)
   {
-    if (!lpCount->bCollapse != !(dwFlags & AECF_COLLAPSE))
+    if (!(lpCount->dwFlags & AEFOLDF_COLLAPSED) != !(dwFlags & AECF_COLLAPSE))
     {
-      lpCount->bCollapse=!lpCount->bCollapse;
-      if (lpCount->bCollapse)
-        ++ae->ptxt->nFoldCollapseCount;
-      else
+      if (lpCount->dwFlags & AEFOLDF_COLLAPSED)
+      {
+        lpCount->dwFlags&=~AEFOLDF_COLLAPSED;
         --ae->ptxt->nFoldCollapseCount;
+      }
+      else
+      {
+        lpCount->dwFlags|=AEFOLDF_COLLAPSED;
+        ++ae->ptxt->nFoldCollapseCount;
+      }
       ++nResult;
     }
     if (dwFlags & AECF_RECURSE)
@@ -6767,7 +6777,7 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AEFOLD *lpElement;
   AEFOLD **lppFirstChild;
   AEFOLD **lppLastChild;
-  BOOL bCollapse=lpFold->bCollapse;
+  BOOL bCollapsed=(lpFold->dwFlags & AEFOLDF_COLLAPSED);
 
   if (lpFold == ae->ptxt->lpIsCollapsedLastCall)
     ae->ptxt->lpIsCollapsedLastCall=NULL;
@@ -6806,13 +6816,13 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   if (lpFold->hRuleTheme)
     --ae->ptxt->nFoldWithThemeCount;
   --ae->ptxt->nFoldAllCount;
-  if (lpFold->bCollapse)
+  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
     --ae->ptxt->nFoldCollapseCount;
 
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
-  return bCollapse;
+  return bCollapsed;
 }
 
 int AE_StackFoldFree(AKELEDIT *ae)
@@ -6840,7 +6850,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
     lpNextSubling=lpSubling->next;
 
     //Delete fold
-    if (lpSubling->bCollapse) ++nCollapse;
+    if (lpSubling->dwFlags & AEFOLDF_COLLAPSED) ++nCollapse;
     AE_StackPointDelete(ae, lpSubling->lpMinPoint);
     AE_StackPointDelete(ae, lpSubling->lpMaxPoint);
     if (!lpParent)
@@ -6900,7 +6910,7 @@ int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos)
         ae->ptxt->lpVPosFold=lpSubling;
         ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
 
-        if (lpSubling->bCollapse)
+        if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
         {
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
@@ -6927,7 +6937,7 @@ int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos)
 
       while (lpSubling)
       {
-        if (lpSubling->bCollapse)
+        if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
         {
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
@@ -6990,7 +7000,7 @@ INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine)
         ae->ptxt->lpVPosFold=lpSubling;
         ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
 
-        if (lpSubling->bCollapse)
+        if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
         {
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
@@ -7021,7 +7031,7 @@ INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine)
 
       while (lpSubling)
       {
-        if (lpSubling->bCollapse)
+        if (lpSubling->dwFlags & AEFOLDF_COLLAPSED)
         {
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
@@ -11009,12 +11019,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
           {
             //Quote start
-            if (lpQuoteStart->dwParentID)
-            {
-              if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteStart->dwParentID != lpParentQuote->dwRuleID) :
-                                                    (!lpFold || lpQuoteStart->dwParentID != lpFold->dwRuleID))
-                continue;
-            }
+            if (!AE_HighlightAllowed(lpParentQuote, lpFold, lpQuoteStart->dwParentID))
+              continue;
 
             if (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
             {
@@ -11362,12 +11368,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         {
           if (lpQuoteItem->dwFlags & AEHLF_REGEXP)
           {
-            if (lpQuoteItem->dwParentID)
-            {
-              if ((dwSearchType & AEHF_FINDCHILD) ? (!lpParentQuote || lpQuoteItem->dwParentID != lpParentQuote->dwRuleID) :
-                                                    (!lpFold || lpQuoteItem->dwParentID != lpFold->dwRuleID))
-                continue;
-            }
+            if (!AE_HighlightAllowed(lpParentQuote, lpFold, lpQuoteItem->dwParentID))
+              continue;
 
             lpREGroupStack=(STACKREGROUP *)lpQuoteItem->lpREGroupStack;
             if (dwSearchType & AEHF_FINDFIRSTCHAR)
@@ -11443,6 +11445,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
+  AEQUOTEITEMW *lpQuote=qm->lpQuote;
   AEDELIMITEMW *lpDelimItem;
   int nWordLen=0;
 
@@ -11473,15 +11476,19 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
         nWordLen+=AEC_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORDLENGTH)
           return 0;
-        if (qm->lpQuote && !qm->lpQuote->dwRuleID)
+
+        if (qm->lpQuote)
         {
           if (AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
-              AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMax) >= 0)
-            return 0;
+              AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMin) >= 0)
+          {
+            lpQuote=qm->lpQuote;
+          }
+          else lpQuote=NULL;
         }
 
         //Is delimiter
-        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
+        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, lpQuote, fm->lpFold))
         {
           wm->lpDelim1=lpDelimItem;
           wm->crDelim1.ciMin=ft.crFound.ciMin;
@@ -11533,8 +11540,18 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     {
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
       {
+        if (qm->lpQuote)
+        {
+          if (AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
+              AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMin) >= 0)
+          {
+            lpQuote=qm->lpQuote;
+          }
+          else lpQuote=NULL;
+        }
+
         //Is delimiter
-        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, qm->lpQuote, fm->lpFold))
+        if (lpDelimItem=AE_HighlightIsDelimiter(ae, &ft, &ciCount, AEHID_LINEEDGE, lpQuote, fm->lpFold))
         {
           wm->lpDelim2=lpDelimItem;
           wm->crDelim2.ciMin=ft.crFound.ciMin;
@@ -11562,7 +11579,16 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
     SetWord:
     wm->crWord.ciMin=wm->crDelim1.ciMax;
     wm->crWord.ciMax=wm->crDelim2.ciMin;
-    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, qm, fm);
+    if (qm->lpQuote)
+    {
+      if (AEC_IndexCompare(&wm->crWord.ciMax, &qm->crQuoteEnd.ciMax) <= 0 &&
+          AEC_IndexCompare(&wm->crWord.ciMin, &qm->crQuoteStart.ciMin) >= 0)
+      {
+        lpQuote=qm->lpQuote;
+      }
+      else lpQuote=NULL;
+    }
+    wm->lpWord=AE_HighlightIsWord(ae, NULL, &wm->crWord, nWordLen, lpQuote, fm->lpFold);
   }
   return nWordLen;
 }
@@ -11586,9 +11612,9 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
 
   for (; lpDelimItem; lpDelimItem=lpDelimItem->next)
   {
-    if (lpDelimItem->dwParentID && ((!lpFold || lpDelimItem->dwParentID != lpFold->dwRuleID) &&
-                                   (!lpQuote || lpDelimItem->dwParentID != lpQuote->dwRuleID)))
+    if (!AE_HighlightAllowed(lpQuote, lpFold, lpDelimItem->dwParentID))
       continue;
+
     ft->pText=lpDelimItem->pDelimiter;
     ft->dwTextLen=lpDelimItem->nDelimiterLen;
     ft->dwFlags=(lpDelimItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
@@ -11623,7 +11649,7 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
   return NULL;
 }
 
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold)
 {
   AESTACKWORD *lpWordStack;
   AEWORDITEMW *lpWordItem;
@@ -11651,11 +11677,9 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
       {
         if (lpWordItem->dwFlags & AEHLF_WORDCOMPOSITION)
         {
-          if (lpWordItem->dwParentID && ((!fm->lpFold || lpWordItem->dwParentID != fm->lpFold->dwRuleID) &&
-                                         (!qm->lpQuote || lpWordItem->dwParentID != qm->lpQuote->dwRuleID ||
-                                          AEC_IndexCompare(&crWord->ciMin, &qm->crQuoteStart.ciMax) < 0 ||
-                                          AEC_IndexCompare(&crWord->ciMax, &qm->crQuoteEnd.ciMin) > 0)))
+          if (!AE_HighlightAllowed(lpQuote, lpFold, lpWordItem->dwParentID))
             continue;
+
           ciCount=crWord->ciMin;
 
           while (AEC_IndexCompare(&ciCount, &crWord->ciMax) < 0)
@@ -11686,11 +11710,9 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     {
       if (lpWordItem->nWordLen == nWordLen)
       {
-        if (lpWordItem->dwParentID && ((!fm->lpFold || lpWordItem->dwParentID != fm->lpFold->dwRuleID) &&
-                                       (!qm->lpQuote || lpWordItem->dwParentID != qm->lpQuote->dwRuleID ||
-                                        AEC_IndexCompare(&crWord->ciMin, &qm->crQuoteStart.ciMax) < 0 ||
-                                        AEC_IndexCompare(&crWord->ciMax, &qm->crQuoteEnd.ciMin) > 0)))
+        if (!AE_HighlightAllowed(lpQuote, lpFold, lpWordItem->dwParentID))
           continue;
+
         ft->pText=lpWordItem->pWord;
         ft->dwTextLen=lpWordItem->nWordLen;
         ft->dwFlags=(lpWordItem->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
@@ -11899,6 +11921,9 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEITEMW *lpQuoteSrc, AEQUOTEITEMW *lpQuoteDst)
 {
   AESTACKQUOTE *lpQuoteStack=lpTheme?&lpTheme->hQuoteStack:&ae->ptxt->hQuoteStack;
+  DWORD dwFontStyle=lpQuoteSrc->dwFontStyle;
+  COLORREF crText=lpQuoteSrc->crText;
+  COLORREF crBk=lpQuoteSrc->crBk;
 
   if (!lpQuoteDst)
     lpQuoteDst=AE_HighlightInsertQuote(ae, lpTheme, lpQuoteSrc->nIndex);
@@ -11943,9 +11968,9 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
       }
     }
     lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
-    lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
-    lpQuoteDst->crText=lpQuoteSrc->crText;
-    lpQuoteDst->crBk=lpQuoteSrc->crBk;
+    lpQuoteDst->dwFontStyle=dwFontStyle;
+    lpQuoteDst->crText=crText;
+    lpQuoteDst->crBk=crBk;
     lpQuoteDst->dwParentID=lpQuoteSrc->dwParentID;
     lpQuoteDst->dwRuleID=lpQuoteSrc->dwRuleID;
     ++lpQuoteStack->nElementsAll;
@@ -11960,9 +11985,6 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
       const wchar_t *wpCount;
       const wchar_t *wpCountMax;
       DWORD dwFlags;
-      DWORD dwFontStyle;
-      COLORREF crText;
-      COLORREF crBk;
 
       if (!lpQuoteDst->pQuoteStart || !*lpQuoteDst->pQuoteStart)
         goto FreeQuote;
@@ -12079,6 +12101,12 @@ AEQUOTEITEMW* AE_HighlightAddQuote(AKELEDIT *ae, AETHEMEITEMW *lpTheme, AEQUOTEI
     else
     {
       lpQuoteDst->lpQuoteStart=(void *)AE_HighlightInsertQuoteStart(ae, lpTheme, lpQuoteDst);
+    }
+    if (dwFontStyle != AEHLS_NONE ||
+        crText != (DWORD)-1 ||
+        crBk != (DWORD)-1)
+    {
+      lpQuoteDst->dwFlags|=AEHLF_STYLED;
     }
   }
   return lpQuoteDst;
@@ -14585,7 +14613,6 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         if (hlp->fm.lpFold != lpCount)
         {
           hlp->fm.lpFold=lpCount;
-          hlp->fm.bColored=FALSE;
 
           if (hlp->fm.lpFold)
           {
@@ -14599,9 +14626,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                   lpThemed=lpCount;
                   break;
                 }
-                if (lpCount->dwFontStyle != AEHLS_NONE ||
-                    lpCount->crText != (DWORD)-1 ||
-                    lpCount->crBk != (DWORD)-1)
+                if (lpCount->dwFlags & AEFOLDF_STYLED)
                 {
                   //Fold has highlighting information
                   if (!lpColored) lpColored=lpCount;
@@ -14619,10 +14644,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                 }
               }
               if (lpColored)
-              {
                 hlp->fm.lpFold=lpColored;
-                hlp->fm.bColored=TRUE;
-              }
             }
             hlp->fm.crFoldStart.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
             hlp->fm.crFoldStart.cpMax=hlp->fm.lpFold->lpMinPoint->nPointOffset + hlp->fm.lpFold->lpMinPoint->nPointLen;
@@ -14633,7 +14655,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
 
       //Check fold start
-      if (hlp->fm.bColored)
+      if (hlp->fm.lpFold && (hlp->fm.lpFold->dwFlags & AEFOLDF_STYLED))
       {
         if (to->nDrawCharOffset >= hlp->fm.crFoldStart.cpMin &&
             to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMax)
@@ -14667,8 +14689,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 
   //if (ae->popt->lpActiveTheme)
   {
-    //Only if char not in URL and color fold
-    if (!(hlp->dwPaintType & AEHPT_LINK) && (!(hlp->dwPaintType & AEHPT_FOLD) || hlp->fm.lpFold->dwRuleID))
+    //Only if char not in URL and not in color fold without ID
+    if (!(hlp->dwPaintType & AEHPT_LINK) && !(hlp->fm.lpFold && (hlp->fm.lpFold->dwFlags & AEFOLDF_STYLED) && !hlp->fm.lpFold->dwRuleID))
     {
       //Quote find
       if (hlp->dwFindFirst & AEHPT_QUOTE)
@@ -14838,7 +14860,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
 
       //Only if char not in quote
-      if (!hlp->qm.lpQuote || AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMin) < 0 || hlp->qm.lpQuote->dwRuleID)
+      if (!hlp->qm.lpQuote || hlp->qm.lpQuote->dwRuleID || AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMin) < 0)
       {
         //Word find
         if (AEC_IndexCompare(&hlp->wm.crDelim2.ciMax, &to->ciDrawLine) <= 0)
@@ -15093,7 +15115,6 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       }
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
-      hlp->fm.bColored=FALSE;
 
       //Return to main theme
       if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
@@ -15149,7 +15170,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
               (!(hlp->qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteEnd.ciMax) == 0))
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && AllowPaint(hlp, AEHPT_FOLD, hlp->qm.lpQuote->dwParentID))
+            if (!hlp->mtm.lpMarkText)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15181,7 +15202,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim1.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpDelim1->dwParentID))
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15200,7 +15221,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crWord.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpWord->dwParentID))
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15219,7 +15240,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
           if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim2.ciMax) == 0)
           {
             //Draw full highlighted text or last part of it
-            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine && AllowPaint(hlp, AEHPT_QUOTE|AEHPT_FOLD, hlp->wm.lpDelim2->dwParentID))
+            if (!hlp->mtm.lpMarkText && !hlp->crLink.ciMin.lpLine)
             {
               AE_PaintTextOut(ae, to, hlp);
             }
@@ -15315,7 +15336,6 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
 
       hlp->dwPaintType&=~AEHPT_FOLD;
       hlp->fm.lpFold=NULL;
-      hlp->fm.bColored=FALSE;
 
       //Return to main theme
       if (lpFold->hRuleTheme && (AEHTHEME)ae->popt->lpActiveTheme == lpFold->hRuleTheme)
@@ -15345,41 +15365,48 @@ void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AE
   AECHARINDEX ciReset=*ciChar;
 
   //Reset delimiters, word, quote when theme is changed.
-  hlp->wm.crDelim1.ciMin=ciReset;
-  hlp->wm.crDelim1.ciMax=ciReset;
-  hlp->wm.crWord.ciMin=ciReset;
-  hlp->wm.crWord.ciMax=ciReset;
-  hlp->wm.crDelim2.ciMin=ciReset;
-  hlp->wm.crDelim2.ciMax=ciReset;
-  hlp->qm.crQuoteStart.ciMin=ciReset;
-  hlp->qm.crQuoteStart.ciMax=ciReset;
-  hlp->qm.crQuoteEnd.ciMin=ciReset;
-  hlp->qm.crQuoteEnd.ciMax=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crDelim1.ciMin) < 0)
+    hlp->wm.crDelim1.ciMin=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crDelim1.ciMax) < 0)
+    hlp->wm.crDelim1.ciMax=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crWord.ciMin) < 0)
+    hlp->wm.crWord.ciMin=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crWord.ciMax) < 0)
+    hlp->wm.crWord.ciMax=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crDelim2.ciMin) < 0)
+    hlp->wm.crDelim2.ciMin=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->wm.crDelim2.ciMax) < 0)
+    hlp->wm.crDelim2.ciMax=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->qm.crQuoteStart.ciMin) < 0)
+    hlp->qm.crQuoteStart.ciMin=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->qm.crQuoteStart.ciMax) < 0)
+    hlp->qm.crQuoteStart.ciMax=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->qm.crQuoteEnd.ciMin) < 0)
+    hlp->qm.crQuoteEnd.ciMin=ciReset;
+  if (AEC_IndexCompare(&ciReset, &hlp->qm.crQuoteEnd.ciMax) < 0)
+    hlp->qm.crQuoteEnd.ciMax=ciReset;
   AEC_IndexInc(&ciReset);
   AE_PaintCheckHighlightCleanUp(ae, to, hlp, &ciReset);
 }
 
-BOOL AllowPaint(AEHLPAINT *hlp, DWORD dwPaintTypeToCheck, DWORD dwParentID)
+BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLD *lpFold, DWORD dwParentID)
 {
-  if (dwPaintTypeToCheck & AEHPT_QUOTE)
+  if (lpQuote)
   {
-    if (hlp->qm.lpQuote)
-    {
-      if (dwParentID || hlp->qm.lpQuote->dwRuleID)
-        return (dwParentID == hlp->qm.lpQuote->dwRuleID);
+    if (dwParentID)
+      return (dwParentID == lpQuote->dwRuleID);
+    if (lpQuote->dwFlags & AEHLF_STYLED)
       return FALSE;
-    }
   }
-  if (dwPaintTypeToCheck & AEHPT_FOLD)
+  if (lpFold)
   {
-    if (hlp->fm.lpFold)
-    {
-      if (dwParentID || hlp->fm.lpFold->dwRuleID)
-        return (dwParentID == hlp->fm.lpFold->dwRuleID);
-      if (hlp->fm.bColored)
-        return FALSE;
-    }
+    if (dwParentID)
+      return (dwParentID == lpFold->dwRuleID);
+    if (lpFold->dwFlags & AEFOLDF_STYLED)
+      return FALSE;
   }
+  if (dwParentID)
+    return FALSE;
   return TRUE;
 }
 

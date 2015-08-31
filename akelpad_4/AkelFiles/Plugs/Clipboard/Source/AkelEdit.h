@@ -518,6 +518,7 @@
                                                  //    AEQUOTEITEM.pQuoteEnd    \0=(0,\1,0)
                                                  //Can be used in AEMARKTEXTITEM.dwFlags.
                                                  //  AEMARKTEXTITEM.pMarkText is a regular exression pattern.
+#define AEHLF_STYLED                 0x80000000  //Don't use it. For internal code only.
 
 //Highlight font style
 #define AEHLS_NONE                   0  //Current style.
@@ -552,6 +553,10 @@
 //AEREGROUPCOLOR flags
 #define AEREGCF_BACKREFCOLORTEXT  0x00000001  //AEREGROUPCOLOR.crText is backreference index for text color in format #RRGGBB or RRGGBB.
 #define AEREGCF_BACKREFCOLORBK    0x00000002  //AEREGROUPCOLOR.crBk is backreference index for background color in format #RRGGBB or RRGGBB.
+
+//Fold flags
+#define AEFOLDF_COLLAPSED    0x00000001  //Fold is collapsed.
+#define AEFOLDF_STYLED       0x80000000  //Don't use it. For internal code only.
 
 //AEM_FINDFOLD flags
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -935,7 +940,7 @@ typedef struct _AEFOLD {
   struct _AEFOLD *lastChild;  //Pointer to the last child AEFOLD structure.
   AEPOINT *lpMinPoint;        //Minimum line point.
   AEPOINT *lpMaxPoint;        //Maximum line point.
-  BOOL bCollapse;             //Collapse state.
+  DWORD dwFlags;              //See AEFOLDF_* defines.
   DWORD dwFontStyle;          //See AEHLS_* defines.
   COLORREF crText;            //Text color. If -1, then don't set.
   COLORREF crBk;              //Background color. If -1, then don't set.
@@ -1345,6 +1350,7 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  BOOL bColored;
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
@@ -1359,9 +1365,9 @@ typedef struct {
 } AEWORDMATCH;
 
 typedef struct {
+  AEFOLD *lpFold;
   CHARRANGE64 crFoldStart;
   CHARRANGE64 crFoldEnd;
-  AEFOLD *lpFold;
   BOOL bColored;
   AEHTHEME hActiveThemeBegin;
   AEHTHEME hActiveThemePrev;
@@ -5367,7 +5373,7 @@ Example:
  SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&pointMin.ciPoint, (LPARAM)&pointMax.ciPoint);
  fold.lpMinPoint=&pointMin;
  fold.lpMaxPoint=&pointMax;
- fold.bCollapse=FALSE;
+ fold.dwFlags=0;
  fold.dwFontStyle=AEHLS_NONE;
  fold.crText=RGB(0xFF, 0x00, 0x00);
  fold.crBk=(DWORD)-1;

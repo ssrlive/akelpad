@@ -4410,11 +4410,11 @@ int GetCollapsedFoldsString(HSTACK *hFoldsStack, wchar_t *wszString)
   int nFoldCount=0;
   int nSize=0;
 
-  for (lpFold=(AEFOLD *)hFoldsStack->first; lpFold; lpFold=AEC_NextFold(lpFold, !lpFold->bCollapse))
+  for (lpFold=(AEFOLD *)hFoldsStack->first; lpFold; lpFold=AEC_NextFold(lpFold, !(lpFold->dwFlags & AEFOLDF_COLLAPSED)))
   {
     ++nFoldCount;
 
-    if (lpFold->bCollapse)
+    if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
     {
       nSize+=xitoaW(nFoldCount, wszString?wszString + nSize:NULL);
 
@@ -4440,7 +4440,7 @@ int SetCollapsedFoldsString(HWND hWnd, HSTACK *hFoldsStack, const wchar_t *wpStr
   int nFoldNumber=0;
   int nCollapsed=0;
 
-  for (lpFold=(AEFOLD *)hFoldsStack->first; lpFold; lpFold=AEC_NextFold(lpFold, !lpFold->bCollapse))
+  for (lpFold=(AEFOLD *)hFoldsStack->first; lpFold; lpFold=AEC_NextFold(lpFold, !(lpFold->dwFlags & AEFOLDF_COLLAPSED)))
   {
     ++nFoldCount;
 
