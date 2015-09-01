@@ -2,7 +2,7 @@ library AkelDLL_lib;
 
 uses
   Windows, Messages, SysUtils, RichEdit,
-  AkelDLL_h;
+  AkelDLL;
 
 //Identification
 procedure DllAkelPadID(var pv: TPluginVersion); cdecl; export;
