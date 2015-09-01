@@ -11018,6 +11018,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           for (lpQuoteStart=lpQuoteStartStack->first; lpQuoteStart; lpQuoteStart=lpQuoteStart->next)
           {
             //Quote start
+            if ((dwSearchType & AEHF_FINDCHILD) && !lpQuoteStart->dwParentID)
+              continue;
             if (!AE_HighlightAllowed(lpParentQuote, fm, lpQuoteStart->dwParentID, &ciCount))
               continue;
 
@@ -11366,6 +11368,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         {
           if (lpQuoteItem->dwFlags & AEHLF_REGEXP)
           {
+            if ((dwSearchType & AEHF_FINDCHILD) && !lpQuoteItem->dwParentID)
+              continue;
             if (!AE_HighlightAllowed(lpParentQuote, fm, lpQuoteItem->dwParentID, &ciCount))
               continue;
 
