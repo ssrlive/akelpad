@@ -77,6 +77,9 @@ if not %ERRORLEVEL% == 0 goto END
 call :COMPILE "Ukrainian" 0x422
 if not %ERRORLEVEL% == 0 goto END
 
+call :COMPILE "Uzbek" 0x443
+if not %ERRORLEVEL% == 0 goto END
+
 :END
 if not "%1" == "/S" @PAUSE
 goto :EOF
