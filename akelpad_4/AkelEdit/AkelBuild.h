@@ -905,8 +905,8 @@ INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGE
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
 BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
-AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold);
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLD *lpFold);
+AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags, AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm);
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm);
 AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName);
 BOOL AE_HighlightIsThemeExists(AETHEMEITEMW *aeti);
@@ -962,7 +962,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
 void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
-BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLD *lpFold, DWORD dwParentID, const AECHARINDEX *ciChar);
+BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, DWORD dwParentID, const AECHARINDEX *ciChar);
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);

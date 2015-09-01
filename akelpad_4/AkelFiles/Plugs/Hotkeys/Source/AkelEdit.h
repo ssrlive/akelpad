@@ -1350,7 +1350,6 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
-  BOOL bColored;
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
@@ -1368,7 +1367,8 @@ typedef struct {
   AEFOLD *lpFold;
   CHARRANGE64 crFoldStart;
   CHARRANGE64 crFoldEnd;
-  BOOL bColored;
+  INT_PTR nFoldStartMax;
+  AECHARINDEX ciFoldStartMax;
   AEHTHEME hActiveThemeBegin;
   AEHTHEME hActiveThemePrev;
 } AEFOLDMATCH;

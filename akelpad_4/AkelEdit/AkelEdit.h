@@ -1367,6 +1367,8 @@ typedef struct {
   AEFOLD *lpFold;
   CHARRANGE64 crFoldStart;
   CHARRANGE64 crFoldEnd;
+  INT_PTR nFoldStartMax;
+  AECHARINDEX ciFoldStartMax;
   AEHTHEME hActiveThemeBegin;
   AEHTHEME hActiveThemePrev;
 } AEFOLDMATCH;
