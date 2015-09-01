@@ -3,6 +3,8 @@ AkelPad 4.9.5 ()
 ----------------------------
 Added: possibility to use nested syntax highlighting rules.
 Added: alternative Windows notepad replacement (via registry) in installer.
+Added: Greek language module (Johnakiss).
+Added: Uzbek language module (Shamsiddinov Zafar).
 Added: option "Silently close unsaved empty tab (MDI)" now also work in SDI mode.
 
 Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
