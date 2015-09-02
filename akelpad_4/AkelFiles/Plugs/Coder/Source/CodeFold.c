@@ -2681,7 +2681,7 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
   {
     if (lpFoldStart->nFoldStartLen == nFoldStartLen &&
         (lpFoldStart->dwFlags & FIF_MATCHCASE) == (lpFoldInfo->dwFlags & FIF_MATCHCASE) &&
-        lpFoldStart->dwRuleID == lpFoldInfo->dwRuleID)
+        lpFoldStart->nRuleID == lpFoldInfo->nRuleID)
     {
       if (((lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpW(lpFoldStart->wpFoldStart, wpFoldStart)) ||
           (!(lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpiW(lpFoldStart->wpFoldStart, wpFoldStart)))
@@ -2700,8 +2700,8 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
       lpFoldStart->wpFoldStart=wpFoldStart;
       lpFoldStart->nFoldStartLen=nFoldStartLen;
       lpFoldStart->nFoldStartPointLen=nFoldStartLen;
-      lpFoldStart->dwParentID=lpFoldInfo->dwParentID;
-      lpFoldStart->dwRuleID=lpFoldInfo->dwRuleID;
+      lpFoldStart->nParentID=lpFoldInfo->nParentID;
+      lpFoldStart->nRuleID=lpFoldInfo->nRuleID;
 
       if (lpFoldStart->dwFlags & FIF_REGEXPSTART)
       {
@@ -3045,7 +3045,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   goto CheckNoCatch;
                 }
                 if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
-                  lpLevel->pointMax.nPointLen=ft.dwTextLen;
+                  lpLevel->pointMax.nPointLen=(int)ft.dwTextLen;
                 else
                   lpLevel->pointMax.nPointLen=lpFoldInfo->nFoldEndPointLen;
 
@@ -3128,7 +3128,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                 if (lpLevel=StackInsertLevel(hLevelStack, &ft.crFound.ciMin))
                 {
                   if (lpFoldInfo->dwFlags & FIF_REGEXPSTART)
-                    lpLevel->pointMin.nPointLen=ft.dwTextLen;
+                    lpLevel->pointMin.nPointLen=(int)ft.dwTextLen;
                   else
                     lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
 
@@ -3306,8 +3306,8 @@ void CreateFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, HWND hWnd, BOOL bColla
   fold.dwFontStyle=lpFoldInfo->dwFontStyle;
   fold.crText=lpFoldInfo->dwColor1;
   fold.crBk=lpFoldInfo->dwColor2;
-  fold.dwParentID=lpFoldInfo->dwParentID;
-  fold.dwRuleID=lpFoldInfo->dwRuleID;
+  fold.nParentID=lpFoldInfo->nParentID;
+  fold.nRuleID=lpFoldInfo->nRuleID;
   fold.hRuleTheme=(lpFoldInfo->lpRuleFile ? lpFoldInfo->lpRuleFile->hThemeHighLight : 0);
   fold.dwUserData=(UINT_PTR)lpLevel->pfd;
   fold.dwFontStyle=fold.dwFontStyle;
@@ -4278,9 +4278,9 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   {
     for (lpFoldStart=(FOLDSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStartStack.first; lpFoldStart; lpFoldStart=lpFoldStart->next)
     {
-      if (lpFoldStart->dwParentID)
+      if (lpFoldStart->nParentID)
       {
-        if (!lpLevel || lpFoldStart->dwParentID != lpLevel->pfd->lpFoldInfo->dwRuleID)
+        if (!lpLevel || lpFoldStart->nParentID != lpLevel->pfd->lpFoldInfo->nRuleID)
           continue;
 
         if (lpFoldStart->dwFlags & FIF_XMLCHILD)

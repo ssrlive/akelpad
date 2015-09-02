@@ -212,7 +212,7 @@ typedef struct _DELIMITERINFO {
   DWORD dwColor1;
   DWORD dwColor2;
   DWORD dwFontStyle;
-  DWORD dwParentID;
+  int nParentID;
 } DELIMITERINFO;
 
 typedef struct {

@@ -944,8 +944,8 @@ typedef struct _AEFOLD {
   DWORD dwFontStyle;          //See AEHLS_* defines.
   COLORREF crText;            //Text color. If -1, then don't set.
   COLORREF crBk;              //Background color. If -1, then don't set.
-  DWORD dwParentID;           //Parent rule identifier.
-  DWORD dwRuleID;             //Rule identifier.
+  int nParentID;              //Parent rule identifier.
+  int nRuleID;                //Rule identifier.
   AEHTHEME hRuleTheme;        //Rule highlight theme.
   UINT_PTR dwUserData;        //User data.
 } AEFOLD;
@@ -1185,7 +1185,7 @@ typedef struct _AEDELIMITEMA {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwParentID;          //Parent rule identifier.
+  int nParentID;             //Parent rule identifier.
 } AEDELIMITEMA;
 
 typedef struct _AEDELIMITEMW {
@@ -1198,7 +1198,7 @@ typedef struct _AEDELIMITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwParentID;          //Parent rule identifier.
+  int nParentID;             //Parent rule identifier.
 } AEDELIMITEMW;
 
 typedef struct _AEWORDITEMA {
@@ -1211,7 +1211,7 @@ typedef struct _AEWORDITEMA {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwParentID;          //Parent rule identifier.
+  int nParentID;             //Parent rule identifier.
 } AEWORDITEMA;
 
 typedef struct _AEWORDITEMW {
@@ -1224,7 +1224,7 @@ typedef struct _AEWORDITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwParentID;          //Parent rule identifier.
+  int nParentID;             //Parent rule identifier.
 } AEWORDITEMW;
 
 typedef struct _AEQUOTEITEMA {
@@ -1245,8 +1245,8 @@ typedef struct _AEQUOTEITEMA {
   COLORREF crText;               //Quote text color. If -1, then don't set.
   COLORREF crBk;                 //Quote background color. If -1, then don't set.
   void *lpQuoteStart;            //Don't use it. For internal code only.
-  DWORD dwParentID;              //Parent rule identifier.
-  DWORD dwRuleID;                //Rule identifier.
+  int nParentID;                 //Parent rule identifier.
+  int nRuleID;                   //Rule identifier.
   INT_PTR nCompileErrorOffset;   //Contain pQuoteStart offset, if error occurred during compile regular exression pattern.
 } AEQUOTEITEMA;
 
@@ -1267,8 +1267,8 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;             //See AEHLS_* defines.
   COLORREF crText;               //Quote text color. If -1, then don't set.
   COLORREF crBk;                 //Quote background color. If -1, then don't set.
-  DWORD dwParentID;              //Parent rule identifier.
-  DWORD dwRuleID;                //Rule identifier.
+  int nParentID;                 //Parent rule identifier.
+  int nRuleID;                   //Rule identifier.
   void *lpQuoteStart;            //Don't use it. For internal code only.
   union {
     void *lpREGroupStack;        //Don't use it. For internal code only.

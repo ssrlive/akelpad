@@ -318,8 +318,8 @@ typedef struct _AEQUOTESTART {
   int nQuoteStartLen;
   wchar_t chEscape;
   DWORD dwFlags;
-  DWORD dwRuleID;
-  DWORD dwParentID;
+  int nRuleID;
+  int nParentID;
 
   //Stack with the same pQuoteStart.
   AESTACKQUOTEITEMHANDLE hQuoteItemHandleStack;
@@ -962,7 +962,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
 void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
-BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, DWORD dwParentID, const AECHARINDEX *ciChar);
+BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, const AECHARINDEX *ciChar);
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
