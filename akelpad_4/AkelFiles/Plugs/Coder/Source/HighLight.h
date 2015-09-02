@@ -54,7 +54,7 @@ typedef struct _WORDINFO {
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
-  DWORD dwParentID;
+  int nParentID;
 } WORDINFO;
 
 typedef struct _WORDORDER {
@@ -79,8 +79,8 @@ typedef struct _QUOTEINFO {
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
-  DWORD dwParentID;
-  DWORD dwRuleID;
+  int nParentID;
+  int nRuleID;
 } QUOTEINFO;
 
 typedef struct _MARKTEXT {

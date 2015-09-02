@@ -172,8 +172,8 @@ typedef struct _FOLDSTART {
   int nFoldStartLen;
   int nFoldStartPointLen;
   STACKREGROUP sregStart;
-  DWORD dwParentID;
-  DWORD dwRuleID;
+  int nParentID;
+  int nRuleID;
 
   //Stack with the same wpFoldStart.
   HSTACK hFoldInfoHandleStack;
@@ -192,8 +192,8 @@ typedef struct _FOLDINFO {
   DWORD dwFontStyle;
   DWORD dwColor1;
   DWORD dwColor2;
-  DWORD dwParentID;
-  DWORD dwRuleID;
+  int nParentID;
+  int nRuleID;
   wchar_t *wpRuleFile;
   SYNTAXFILE *lpRuleFile;
   SYNTAXFILE *lpPrevFile;
