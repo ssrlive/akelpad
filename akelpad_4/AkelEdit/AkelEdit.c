@@ -11022,7 +11022,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             //Quote start
             if ((dwSearchType & AEHF_FINDCHILD) && !lpQuoteStart->nParentID)
               continue;
-            if (!AE_HighlightAllowed(lpParentQuote, fm, lpQuoteStart->nParentID, &ciCount))
+            if (!AE_HighlightAllowed(lpParentQuote, (dwSearchType & AEHF_FINDCHILD ? NULL : fm), lpQuoteStart->nParentID, &ciCount))
               continue;
 
             if (lpQuoteStart->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
@@ -11050,7 +11050,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             {
               if (!lpQuoteStart->pQuoteStart || !*lpQuoteStart->pQuoteStart)
               {
-                if (AEC_IsFirstCharInLine(&ciCount))
+                if (!(lpQuoteStart->dwFlags & AEHLF_ATLINESTART) || AEC_IsFirstCharInLine(&ciCount))
                 {
                   //Quote start is empty == ""
                   ciTmpCount=ciCount;
@@ -11297,6 +11297,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         lpQuoteMatchItem->crQuoteStart.ciMax=crParentQuoteStart.ciMax;
         lpQuoteMatchItem->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
         lpQuoteMatchItem->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
+        if (AEC_IndexCompare(&qm->crQuoteStart.ciMin, &crParentQuoteStart.ciMin) < 0)
+          qm->crQuoteStart.ciMin=crParentQuoteStart.ciMin;
+        if (AEC_IndexCompare(&qm->crQuoteStart.ciMax, &crParentQuoteStart.ciMin) < 0)
+          qm->crQuoteStart.ciMax=crParentQuoteStart.ciMin;
+        if (AEC_IndexCompare(&qm->crQuoteEnd.ciMin, &crParentQuoteEnd.ciMax) > 0)
+          qm->crQuoteEnd.ciMin=crParentQuoteEnd.ciMax;
+        if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &crParentQuoteEnd.ciMax) > 0)
+          qm->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
       }
     }
     else
@@ -11378,7 +11386,7 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
           {
             if ((dwSearchType & AEHF_FINDCHILD) && !lpQuoteItem->nParentID)
               continue;
-            if (!AE_HighlightAllowed(lpParentQuote, fm, lpQuoteItem->nParentID, &ciCount))
+            if (!AE_HighlightAllowed(lpParentQuote, (dwSearchType & AEHF_FINDCHILD ? NULL : fm), lpQuoteItem->nParentID, &ciCount))
               continue;
 
             lpREGroupStack=(STACKREGROUP *)lpQuoteItem->lpREGroupStack;
@@ -11441,6 +11449,14 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         lpQuoteMatchItem->crQuoteStart.ciMax=crParentQuoteStart.ciMax;
         lpQuoteMatchItem->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
         lpQuoteMatchItem->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
+        if (AEC_IndexCompare(&qm->crQuoteStart.ciMin, &crParentQuoteStart.ciMin) < 0)
+          qm->crQuoteStart.ciMin=crParentQuoteStart.ciMin;
+        if (AEC_IndexCompare(&qm->crQuoteStart.ciMax, &crParentQuoteStart.ciMin) < 0)
+          qm->crQuoteStart.ciMax=crParentQuoteStart.ciMin;
+        if (AEC_IndexCompare(&qm->crQuoteEnd.ciMin, &crParentQuoteEnd.ciMax) > 0)
+          qm->crQuoteEnd.ciMin=crParentQuoteEnd.ciMax;
+        if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &crParentQuoteEnd.ciMax) > 0)
+          qm->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
       }
     }
     else
@@ -15441,7 +15457,7 @@ BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, 
     if (lpQuote->dwFlags & AEHLF_STYLED)
       return FALSE;
   }
-  if (fm->lpFold)
+  if (fm && fm->lpFold)
   {
     if (nParentID && fm->lpFold->nRuleID)
     {
