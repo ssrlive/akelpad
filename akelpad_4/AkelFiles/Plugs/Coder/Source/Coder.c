@@ -5572,9 +5572,9 @@ void ReadSyntaxFiles()
           wpParamStart=lpKey->wszString;
           nParamCount=0;
 
-          for (wpCount=wpParamStart; *wpCount && *wpCount != L'\"'; ++wpCount)
+          for (wpCount=wpParamStart; *wpCount != L'\"'; ++wpCount)
           {
-            if (*wpCount == L',' || *wpCount == L':')
+            if (*wpCount == L',' || *wpCount == L':' || *wpCount == L'\0')
             {
               if (nParamCount == 0)
               {
@@ -5597,6 +5597,7 @@ void ReadSyntaxFiles()
                 ++wpCount;
                 break;
               }
+              if (!*wpCount) break;
             }
           }
 
