@@ -14020,6 +14020,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
+      hlp.fm.hDoc=(AEHDOC)ae;
       hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
       to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND|(ae->popt->bHideSelection?0:AEPRN_COLOREDSELECTION);
 
@@ -15459,9 +15460,16 @@ BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, 
   }
   if (fm && fm->lpFold)
   {
-    if (nParentID && fm->lpFold->nRuleID)
+    int nRuleID;
+    
+    if (fm->lpFold->hRuleTheme == (AEHTHEME)((AKELEDIT *)fm->hDoc)->popt->lpActiveTheme)
+      nRuleID=0;
+    else
+      nRuleID=fm->lpFold->nRuleID;
+
+    if (nParentID && nRuleID)
     {
-      if (nParentID == fm->lpFold->nRuleID)
+      if (nParentID == nRuleID)
         return TRUE;
       if (nParentID == -1)
         return FALSE;
