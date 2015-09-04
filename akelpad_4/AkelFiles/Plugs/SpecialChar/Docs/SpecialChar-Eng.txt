@@ -1,5 +1,5 @@
 *****************************************************************
-***              SpecialChar AkelPad plugin v6.4              ***
+***              SpecialChar AkelPad plugin v6.5              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
