@@ -3962,6 +3962,15 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags)
       dwLastPostUpdateFlags=0;
     }
   }
+
+  //Send AKDN_DLLCODER notification
+  {
+    NCODERUPDATE ncu;
+
+    ncu.hWndEdit=hWndEdit;
+    ncu.dwFlags=dwFlags;
+    SendMessage(hMainWnd, AKDN_DLLCODER, 0, (LPARAM)&ncu);
+  }
   return lpFoldWindow;
 }
 

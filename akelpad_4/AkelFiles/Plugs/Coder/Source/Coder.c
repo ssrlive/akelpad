@@ -532,6 +532,62 @@ void __declspec(dllexport) Settings(PLUGINDATA *pd)
             if (lpnVariableValueLen) *lpnVariableValueLen=nVariableValueLen;
           }
         }
+        else if (nAction == DLLA_CODER_FILLVARLIST)
+        {
+          SYNTAXFILE *lpSyntaxFile;
+          VARTHEME *lpVarTheme=NULL;
+          VARINFO *lpVarInfo;
+          HWND hWnd=NULL;
+          AEHDOC hDoc=NULL;
+          CODERTHEMEITEM *cti=NULL;
+          COLORREF crColor;
+
+          if (IsExtCallParamValid(pd->lParam, 2))
+            hWnd=(HWND)GetExtCallParam(pd->lParam, 2);
+          if (IsExtCallParamValid(pd->lParam, 3))
+            hDoc=(AEHDOC)GetExtCallParam(pd->lParam, 3);
+          if (IsExtCallParamValid(pd->lParam, 4))
+            cti=(CODERTHEMEITEM *)GetExtCallParam(pd->lParam, 4);
+
+          if (cti)
+          {
+            if (lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, hWnd, hDoc, NULL))
+            {
+              lpVarTheme=lpSyntaxFile->lpVarThemeLink;
+              if (!lpVarTheme) lpVarTheme=lpVarThemeActive;
+
+              if (lpVarTheme)
+              {
+                lpVarInfoFastCheck=NULL;
+
+                for (; cti->wpVarName; ++cti)
+                {
+                  if (lpVarInfo=StackGetVarByName(&lpVarTheme->hVarStack, cti->wpVarName, -1))
+                  {
+                    if (cti->dwVarFlags & VARF_EXTSTRING)
+                      cti->nVarValue=(INT_PTR)lpVarInfo->wpVarValue;
+                    else if (cti->dwVarFlags & VARF_EXTINTCOLOR ||
+                             cti->dwVarFlags & VARF_EXTLPINTCOLOR)
+                    {
+                      if (*lpVarInfo->wpVarValue == L'#')
+                      {
+                        crColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+
+                        if (cti->dwVarFlags & VARF_EXTINTCOLOR)
+                          cti->nVarValue=crColor;
+                        else if (cti->dwVarFlags & VARF_EXTLPINTCOLOR)
+                          *(COLORREF *)cti->nVarValue=crColor;
+                      }
+                    }
+                    cti->dwVarFlags=lpVarInfo->dwVarFlags | (cti->dwVarFlags & (VARF_EXTSTRING|VARF_EXTINTCOLOR|VARF_EXTLPINTCOLOR));
+                    lpVarInfoFastCheck=lpVarInfo->next;
+                  }
+                  else break;
+                }
+              }
+            }
+          }
+        }
         else if (nAction == DLLA_CODER_GETVARTHEMEDATA)
         {
           SYNTAXFILE *lpSyntaxFile;

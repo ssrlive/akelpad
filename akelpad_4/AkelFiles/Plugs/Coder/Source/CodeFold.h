@@ -86,13 +86,6 @@
 #define FCO_ANYWHERE        1
 #define FCO_ONLYROOT        2
 
-//SetActiveEdit flags
-#define SAE_NOFOLD          0x01
-#define SAE_NOLIST          0x02
-#define SAE_RESETFOLD       0x04
-#define SAE_RESETLIST       0x08
-#define SAE_IGNOREMAXFOLDS  0x10
-
 //IsFold input flags
 #define IFF_CHECKFIRSTFOLDSTART 0x10
 
