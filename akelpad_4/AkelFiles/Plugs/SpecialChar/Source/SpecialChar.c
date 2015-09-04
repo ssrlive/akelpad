@@ -158,44 +158,28 @@ typedef struct {
 #endif
 
 //Coder external call
-#define DLLA_CODER_GETVARTHEMEDATA  24
+#define DLLA_CODER_FILLVARLIST      23
 
-typedef struct _VARINFO {
-  struct _VARINFO *next;
-  struct _VARINFO *prev;
-  wchar_t *wpVarName;
-  int nVarNameLen;
-  wchar_t *wpVarValue;
-  int nVarValueLen;
-} VARINFO;
+//Variable flags
+#define VARF_LOWPRIORITY   0x001 //Global variable has low priority.
+                                 //Next flags for DLLA_CODER_FILLVARLIST:
+#define VARF_EXTSTRING     0x100 //Copy string pointer to (const wchar_t *)CODERTHEMEITEM.nVarValue.
+#define VARF_EXTINTCOLOR   0x200 //Copy color integer to (COLORREF)CODERTHEMEITEM.nVarValue or -1 if not color.
+#define VARF_EXTLPINTCOLOR 0x400 //Copy color integer to (COLORREF *)CODERTHEMEITEM.nVarValue or -1 if not color.
 
 typedef struct {
-  VARINFO *first;
-  VARINFO *last;
-} STACKVAR;
-
-typedef struct _VARTHEME {
-  struct _VARTHEME *next;
-  struct _VARTHEME *prev;
-  STACKVAR hVarStack;
-  wchar_t wszVarThemeName[MAX_PATH];
-  int nVarThemeNameLen;
-  const wchar_t *wpTextData;
-} VARTHEME;
+  const wchar_t *wpVarName;
+  INT_PTR nVarValue;
+  DWORD dwVarFlags;         //See VARF_* defines.
+} CODERTHEMEITEM;
 
 typedef struct {
   UINT_PTR dwStructSize;
   INT_PTR nAction;
   HWND hWndEdit;
   AEHDOC hDocEdit;
-  VARTHEME **lppVarThemeGlobal;
-  VARTHEME **lppVarThemeActive;
-} DLLEXTCODERGETVARTHEMEDATA;
-
-typedef struct {
-  const wchar_t *wpVar;
-  COLORREF *lpcrValue;
-} CODERTHEMEITEM;
+  CODERTHEMEITEM *cti;
+} DLLEXTCODERFILLVARLIST;
 
 //Functions prototypes
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -205,7 +189,6 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 COLORREF GetIndentColor(BOOL bCharInSel, SPECIALCHAR *pscIndentDraw, AECOLORS *aec);
 void GetCoderColors(HWND hWnd);
-VARINFO* StackGetVarByName(STACKVAR *hStackGlobal, STACKVAR *hStackActive, const wchar_t *wpVarName, int nVarNameLen);
 void CreateSpecialCharStack(STACKSPECIALCHAR *hStack, const wchar_t *wpText);
 void FreeSpecialCharStack(STACKSPECIALCHAR *hStack);
 int HexCharToValue(const wchar_t **wpText);
@@ -257,14 +240,13 @@ int nIndentLineSize=0;
 BOOL bIndentLineSolid=FALSE;
 DWORD dwPaintOptions=0;
 SPECIALCHAR scCoder;
-CODERTHEMEITEM cti[]={{L"SpecialChar_BasicFontStyle", &scCoder.dwBasicFontStyle},
-                      {L"SpecialChar_BasicTextColor", &scCoder.dwBasicTextColor},
-                      {L"SpecialChar_BasicBkColor",   &scCoder.dwBasicBkColor},
-                      {L"SpecialChar_SelFontStyle",   &scCoder.dwSelFontStyle},
-                      {L"SpecialChar_SelTextColor",   &scCoder.dwSelTextColor},
-                      {L"SpecialChar_SelBkColor",     &scCoder.dwSelBkColor},
-                      {0, 0}};
-VARINFO *lpVarInfoFastCheck;
+CODERTHEMEITEM cti[]={{L"SpecialChar_BasicFontStyle", (INT_PTR)&scCoder.dwBasicFontStyle, VARF_EXTLPINTCOLOR},
+                      {L"SpecialChar_BasicTextColor", (INT_PTR)&scCoder.dwBasicTextColor, VARF_EXTLPINTCOLOR},
+                      {L"SpecialChar_BasicBkColor",   (INT_PTR)&scCoder.dwBasicBkColor,   VARF_EXTLPINTCOLOR},
+                      {L"SpecialChar_SelFontStyle",   (INT_PTR)&scCoder.dwSelFontStyle,   VARF_EXTLPINTCOLOR},
+                      {L"SpecialChar_SelTextColor",   (INT_PTR)&scCoder.dwSelTextColor,   VARF_EXTLPINTCOLOR},
+                      {L"SpecialChar_SelBkColor",     (INT_PTR)&scCoder.dwSelBkColor,     VARF_EXTLPINTCOLOR},
+                      {0, 0, 0}};
 BOOL bCoderTheme=TRUE;
 WNDPROCDATA *NewMainProcData=NULL;
 WNDPROCDATA *NewFrameProcData=NULL;
@@ -276,7 +258,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 1, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 5, 0);
   pv->pPluginName="SpecialChar";
 }
 
@@ -2050,95 +2032,34 @@ COLORREF GetIndentColor(BOOL bCharInSel, SPECIALCHAR *pscIndentDraw, AECOLORS *a
 
 void GetCoderColors(HWND hWnd)
 {
-  scCoder.dwBasicFontStyle=(DWORD)-1;
-  scCoder.dwBasicTextColor=(DWORD)-1;
-  scCoder.dwBasicBkColor=(DWORD)-1;
-  scCoder.dwSelFontStyle=(DWORD)-1;
-  scCoder.dwSelTextColor=(DWORD)-1;
-  scCoder.dwSelBkColor=(DWORD)-1;
+  int i;
+
+  //Default colors
+  for (i=0; cti[i].wpVarName; ++i)
+  {
+    *(COLORREF *)cti[i].nVarValue=(COLORREF)-1;
+  }
 
   if (bCoderTheme)
   {
-    PLUGINFUNCTION *pfCoder=NULL;
+    PLUGINFUNCTION *pfCoder;
     PLUGINCALLSENDW pcs;
-    DLLEXTCODERGETVARTHEMEDATA decgvtd;
-    VARTHEME *lpVarThemeGlobal=NULL;
-    VARTHEME *lpVarThemeActive=NULL;
-    STACKVAR *hStackGlobal=NULL;
-    STACKVAR *hStackActive=NULL;
-    VARINFO *lpVarInfo;
-    int i;
+    DLLEXTCODERFILLVARLIST decfvl;
 
     if ((pfCoder=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::HighLight", 0)) && pfCoder->bRunning)
     {
-      decgvtd.dwStructSize=sizeof(DLLEXTCODERGETVARTHEMEDATA);
-      decgvtd.nAction=DLLA_CODER_GETVARTHEMEDATA;
-      decgvtd.hWndEdit=hWnd;
-      decgvtd.hDocEdit=NULL;
-      decgvtd.lppVarThemeGlobal=&lpVarThemeGlobal;
-      decgvtd.lppVarThemeActive=&lpVarThemeActive;
+      decfvl.dwStructSize=sizeof(DLLEXTCODERFILLVARLIST);
+      decfvl.nAction=DLLA_CODER_FILLVARLIST;
+      decfvl.hWndEdit=hWnd;
+      decfvl.hDocEdit=NULL;
+      decfvl.cti=cti;
 
       pcs.pFunction=L"Coder::Settings";
-      pcs.lParam=(LPARAM)&decgvtd;
+      pcs.lParam=(LPARAM)&decfvl;
       pcs.dwSupport=PDS_STRWIDE;
       SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-
-      if (lpVarThemeGlobal || lpVarThemeActive)
-      {
-        if (lpVarThemeGlobal) hStackGlobal=&lpVarThemeGlobal->hVarStack;
-        if (lpVarThemeActive) hStackActive=&lpVarThemeActive->hVarStack;
-        lpVarInfoFastCheck=NULL;
-
-        for (i=0; cti[i].wpVar; ++i)
-        {
-          if (lpVarInfo=StackGetVarByName(hStackGlobal, hStackActive, cti[i].wpVar, -1))
-          {
-            if (*lpVarInfo->wpVarValue == L'#')
-              *cti[i].lpcrValue=GetColorFromStr(lpVarInfo->wpVarValue + 1);
-            lpVarInfoFastCheck=lpVarInfo->next;
-          }
-          else break;
-        }
-      }
     }
   }
-}
-
-VARINFO* StackGetVarByName(STACKVAR *hStackGlobal, STACKVAR *hStackActive, const wchar_t *wpVarName, int nVarNameLen)
-{
-  STACKVAR *hStackCurrent;
-  VARINFO *lpElement=lpVarInfoFastCheck;
-
-  if (lpElement)
-  {
-    lpVarInfoFastCheck=NULL;
-
-    if ((nVarNameLen == lpElement->nVarNameLen && !xstrcmpnW(wpVarName, lpElement->wpVarName, nVarNameLen)) ||
-        (nVarNameLen == -1 && !xstrcmpW(wpVarName, lpElement->wpVarName)))
-    {
-      return lpElement;
-    }
-  }
-
-  //Firstly search in GLOBAL var theme
-  hStackCurrent=hStackGlobal;
-
-  for (;;)
-  {
-    for (lpElement=hStackCurrent->first; lpElement; lpElement=lpElement->next)
-    {
-      if ((nVarNameLen == lpElement->nVarNameLen && !xstrcmpnW(wpVarName, lpElement->wpVarName, nVarNameLen)) ||
-          (nVarNameLen == -1 && !xstrcmpW(wpVarName, lpElement->wpVarName)))
-      {
-        return lpElement;
-      }
-    }
-    if (hStackActive == hStackCurrent || hStackActive == NULL)
-      break;
-    //Secondly search in input var theme
-    hStackCurrent=hStackActive;
-  }
-  return NULL;
 }
 
 void CreateSpecialCharStack(STACKSPECIALCHAR *hStack, const wchar_t *wpText)
