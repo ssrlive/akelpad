@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 0, 7)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 1, 0)
 
 
 //// Defines
@@ -666,6 +666,13 @@
 //AKD_DLLSAVE flags
 #define DLLSF_NOW     0x1  //Save plugins stack immediately.
 #define DLLSF_ONEXIT  0x2  //Save plugins stack on program exit.
+
+//AKDN_DLLCODER set active edit flags
+#define SAE_NOFOLD          0x01
+#define SAE_NOLIST          0x02
+#define SAE_RESETFOLD       0x04
+#define SAE_RESETLIST       0x08
+#define SAE_IGNOREMAXFOLDS  0x10
 
 //AKD_TRANSLATEMESSAGE types
 #define TMSG_GLOBAL        0x01  //Translate hotkey from global accelerator table (PLUGINDATA.hGlobalAccel).
@@ -1741,25 +1748,30 @@ typedef struct {
 } NSAVEDOCUMENT;
 
 typedef struct {
-  DWORD *dwStyle;         //Pointer to a maximized state variable (WS_MAXIMIZE or zero).
-  DWORD *dwShow;          //Pointer to a SW_ constants combination variable.
-  BOOL bProcess;          //TRUE   show main window.
-                          //FALSE  do not show main window.
+  DWORD *dwStyle;  //Pointer to a maximized state variable (WS_MAXIMIZE or zero).
+  DWORD *dwShow;   //Pointer to a SW_ constants combination variable.
+  BOOL bProcess;   //TRUE   show main window.
+                   //FALSE  do not show main window.
 } NMAINSHOW;
 
 typedef struct {
-  HWND hWnd;              //Context menu window.
-  UINT uType;             //Type:    NCM_EDIT, NCM_TAB or NCM_STATUS.
-  POINT pt;               //Context menu coordiates.
-  BOOL bMouse;            //Context menu is requested with mouse.
-  BOOL bProcess;          //TRUE   show context menu.
-                          //FALSE  do not show context menu.
+  HWND hWnd;       //Context menu window.
+  UINT uType;      //Type:    NCM_EDIT, NCM_TAB or NCM_STATUS.
+  POINT pt;        //Context menu coordiates.
+  BOOL bMouse;     //Context menu is requested with mouse.
+  BOOL bProcess;   //TRUE   show context menu.
+                   //FALSE  do not show context menu.
 } NCONTEXTMENU;
 
 typedef struct {
-  RECT rcInitial;         //Initial client RECT (read-only).
-  RECT rcCurrent;         //Current client RECT (writeable).
+  RECT rcInitial;  //Initial client RECT (read-only).
+  RECT rcCurrent;  //Current client RECT (writeable).
 } NSIZE;
+
+typedef struct {
+  HWND hWndEdit;   //Changed edit window.
+  DWORD dwFlags;   //See SAE_* defines.
+} NCODERUPDATE;
 
 
 //// AkelPad menu messages
@@ -2212,6 +2224,7 @@ typedef struct {
 
 #define AKDN_DLLCALL               (WM_USER + 41)  //0x429
 #define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
+#define AKDN_DLLCODER              (WM_USER + 43)  //0x42B
 
 #define AKDN_ACTIVATE              (WM_USER + 50)  //0x432
 #define AKDN_SIZE_ONSTART          (WM_USER + 51)  //0x433
@@ -2739,6 +2752,18 @@ Notification message, sends to the main procedure after plugin unload.
 
 wParam              == not used.
 (UNISTRING *)lParam == pointer to a UNISTRING structure, that specified unloaded function name in format "Plugin::Function".
+
+Return Value
+ Zero.
+
+
+AKDN_DLLCODER
+_____________
+
+Notification message, sends to the main procedure by Coder plugin.
+
+(int)wParam  == 0 - set active edit. (NCODERUPDATE *)lParam is a pointer to a NCODERUPDATE structure.
+(void)lParam == depend on wParam.
 
 Return Value
  Zero.

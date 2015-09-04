@@ -1369,6 +1369,7 @@ typedef struct {
   CHARRANGE64 crFoldEnd;
   INT_PTR nFoldStartMax;
   AECHARINDEX ciFoldStartMax;
+  AEHDOC hDoc;
   AEHTHEME hActiveThemeBegin;
   AEHTHEME hActiveThemePrev;
 } AEFOLDMATCH;
