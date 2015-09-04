@@ -128,37 +128,38 @@
 #define STRID_OPENONSTART             30
 #define STRID_SAVEONEXIT              31
 #define STRID_SHOWPATH                32
-#define STRID_DIALOGTYPE              33
-#define STRID_MODALDIALOG             34
-#define STRID_MODELESSDIALOG          35
-#define STRID_DOCKABLEDIALOG          36
-#define STRID_AUTOLOAD                37
-#define STRID_SYSTEMFONT              38
-#define STRID_SAVEDATA                39
-#define STRID_SAVEACTIVE              40
-#define STRID_SAVECODEPAGE            41
-#define STRID_SAVESELECTION           42
-#define STRID_SAVEWORDWRAP            43
-#define STRID_SAVEREADONLY            44
-#define STRID_SAVEOVERTYPE            45
-#define STRID_SAVEBOOKMARKS           46
-#define STRID_SAVEALIAS               47
-#define STRID_SAVEFOLDS               48
-#define STRID_SAVEMARKS               49
-#define STRID_SAVERELATIVE            50
-#define STRID_PLUGIN                  51
-#define STRID_OK                      52
-#define STRID_CANCEL                  53
-#define STRID_CLOSE                   54
-#define STRID_CURRENTSESSION          55
-#define STRID_ALREADY_EXIST           56
-#define STRID_RENAME_ERROR            57
-#define STRID_SESSION_CHANGED         58
-#define STRID_CONFIRM_DELETE          59
-#define STRID_RESTARTPROGRAM          60
-#define STRID_SDI_ISNTSUPPORTED       61
-#define STRID_FILTER                  62
-#define STRID_DROPTOCURRENT           63
+#define STRID_SAVERELATIVE            33
+#define STRID_SYSTEMFONT              34
+#define STRID_CODERTHEME              35
+#define STRID_DIALOGTYPE              36
+#define STRID_MODALDIALOG             37
+#define STRID_MODELESSDIALOG          38
+#define STRID_DOCKABLEDIALOG          39
+#define STRID_AUTOLOAD                40
+#define STRID_SAVEDATA                41
+#define STRID_SAVEACTIVE              42
+#define STRID_SAVECODEPAGE            43
+#define STRID_SAVESELECTION           44
+#define STRID_SAVEWORDWRAP            45
+#define STRID_SAVEREADONLY            46
+#define STRID_SAVEOVERTYPE            47
+#define STRID_SAVEBOOKMARKS           48
+#define STRID_SAVEALIAS               49
+#define STRID_SAVEFOLDS               50
+#define STRID_SAVEMARKS               51
+#define STRID_PLUGIN                  52
+#define STRID_OK                      53
+#define STRID_CANCEL                  54
+#define STRID_CLOSE                   55
+#define STRID_CURRENTSESSION          56
+#define STRID_ALREADY_EXIST           57
+#define STRID_RENAME_ERROR            58
+#define STRID_SESSION_CHANGED         59
+#define STRID_CONFIRM_DELETE          60
+#define STRID_RESTARTPROGRAM          61
+#define STRID_SDI_ISNTSUPPORTED       62
+#define STRID_FILTER                  63
+#define STRID_DROPTOCURRENT           64
 
 #define DLLA_SESSIONS_OPEN          1
 #define DLLA_SESSIONS_SAVE          2
@@ -280,7 +281,7 @@ typedef struct {
 #define DLLA_LINEBOARD_SETBOOKMARKS  13
 #define DLLA_LINEBOARD_DELBOOKMARKS  14
 
-//Coder::HighLight structures
+//Coder structures
 typedef struct _MARKTEXT {
   struct _MARKTEXT *next;
   struct _MARKTEXT *prev;
@@ -292,6 +293,12 @@ typedef struct {
   MARKTEXT *first;
   MARKTEXT *last;
 } STACKMARKTEXT;
+
+typedef struct {
+  const wchar_t *wpVarName;
+  INT_PTR nVarValue;
+  DWORD dwVarFlags;         //See VARF_* defines.
+} CODERTHEMEITEM;
 
 //Coder external call
 typedef struct {
@@ -329,8 +336,17 @@ typedef struct {
   INT_PTR nMarkTextLen;
 } DLLEXTHIGHLIGHTMARK;
 
+typedef struct {
+  UINT_PTR dwStructSize;
+  INT_PTR nAction;
+  HWND hWndEdit;
+  AEHDOC hDocEdit;
+  CODERTHEMEITEM *cti;
+} DLLEXTCODERFILLVARLIST;
+
 #define DLLA_CODER_SETALIAS         6
 #define DLLA_CODER_GETALIAS         18
+#define DLLA_CODER_FILLVARLIST      23
 #define DLLA_HIGHLIGHT_MARK         2
 #define DLLA_HIGHLIGHT_GETMARKSTACK 12
 
@@ -339,6 +355,13 @@ typedef struct {
 #define MARKFLAG_MATCHCASE 0x1
 #define MARKFLAG_REGEXP    0x2
 #define MARKFLAG_WHOLEWORD 0x4
+
+//Variable flags
+#define VARF_LOWPRIORITY   0x001 //Global variable has low priority.
+                                 //Next flags for DLLA_CODER_FILLVARLIST:
+#define VARF_EXTSTRING     0x100 //Copy string pointer to (const wchar_t *)CODERTHEMEITEM.nVarValue.
+#define VARF_EXTINTCOLOR   0x200 //Copy color integer to (COLORREF)CODERTHEMEITEM.nVarValue or -1 if not color.
+#define VARF_EXTLPINTCOLOR 0x400 //Copy color integer to (COLORREF *)CODERTHEMEITEM.nVarValue or -1 if not color.
 
 //Functions prototypes
 void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow);
@@ -400,6 +423,8 @@ LPARAM TreeItemParam(HWND hWndTreeView, HTREEITEM hItem);
 HTREEITEM TreeCursorItem(HWND hWndTreeView);
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
 
+void GetCoderColors(HWND hWnd);
+void SetListColors(HWND hWndEdit, HWND hWndList);
 int GetCollapsedFoldsString(HSTACK *hFoldsStack, wchar_t *wszString);
 int SetCollapsedFoldsString(HWND hWnd, HSTACK *hFoldsStack, const wchar_t *wpString);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
@@ -478,6 +503,12 @@ BOOL bSaveOnExit=FALSE;
 int nDialogType=DLGT_MODAL;
 int nNewDialogType=0;
 BOOL bDockAutoload=TRUE;
+COLORREF crListTextColor;
+COLORREF crListBkColor;
+CODERTHEMEITEM cti[]={{L"Sessions_ListTextColor", (INT_PTR)&crListTextColor, VARF_EXTLPINTCOLOR},
+                      {L"Sessions_ListBkColor",   (INT_PTR)&crListBkColor,   VARF_EXTLPINTCOLOR},
+                      {0, 0, 0}};
+BOOL bCoderTheme=TRUE;
 BOOL bListSystemFont=TRUE;
 BOOL bShowPath=FALSE;
 BOOL bItemOpening=FALSE;
@@ -795,6 +826,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
       SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
     }
+    SetListColors(NULL, hWndItemsList);
 
     ImageList_SetBkColor(hImageList, (COLORREF)SendMessage(hWndItemsList, TVM_GETBKCOLOR, 0, 0));
     SendMessage(hWndItemsList, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImageList);
@@ -1980,11 +2012,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveOnExit;
   static HWND hWndSaveName;
   static HWND hWndShowPath;
+  static HWND hWndSaveRelative;
+  static HWND hWndDlgSystemFont;
+  static HWND hWndDlgCoderTheme;
   static HWND hWndDlgTypeModal;
   static HWND hWndDlgTypeModeless;
   static HWND hWndDlgTypeDockable;
   static HWND hWndDlgDockAutoload;
-  static HWND hWndDlgSystemFont;
   static HWND hWndSaveActive;
   static HWND hWndSaveCodepage;
   static HWND hWndSaveSelection;
@@ -1995,7 +2029,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveAlias;
   static HWND hWndSaveFolds;
   static HWND hWndSaveMarks;
-  static HWND hWndSaveRelative;
   int nState;
 
   if (uMsg == WM_INITDIALOG)
@@ -2009,11 +2042,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveOnExit=GetDlgItem(hDlg, IDC_SETTINGS_SAVEONEXIT);
     hWndSaveName=GetDlgItem(hDlg, IDC_SETTINGS_SAVENAME);
     hWndShowPath=GetDlgItem(hDlg, IDC_SETTINGS_SHOWPATH);
+    hWndSaveRelative=GetDlgItem(hDlg, IDC_SETTINGS_SAVERELATIVE);
+    hWndDlgSystemFont=GetDlgItem(hDlg, IDC_SETTINGS_SYSTEMFONT);
+    hWndDlgCoderTheme=GetDlgItem(hDlg, IDC_SETTINGS_CODERTHEME);
     hWndDlgTypeModal=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_MODAL);
     hWndDlgTypeModeless=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS);
     hWndDlgTypeDockable=GetDlgItem(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE);
     hWndDlgDockAutoload=GetDlgItem(hDlg, IDC_SETTINGS_DOCKAUTOLOAD);
-    hWndDlgSystemFont=GetDlgItem(hDlg, IDC_SETTINGS_SYSTEMFONT);
     hWndSaveActive=GetDlgItem(hDlg, IDC_SETTINGS_SAVEACTIVE);
     hWndSaveCodepage=GetDlgItem(hDlg, IDC_SETTINGS_SAVECODEPAGE);
     hWndSaveSelection=GetDlgItem(hDlg, IDC_SETTINGS_SAVESELECTION);
@@ -2024,7 +2059,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveAlias=GetDlgItem(hDlg, IDC_SETTINGS_SAVEALIAS);
     hWndSaveFolds=GetDlgItem(hDlg, IDC_SETTINGS_SAVEFOLDS);
     hWndSaveMarks=GetDlgItem(hDlg, IDC_SETTINGS_SAVEMARKS);
-    hWndSaveRelative=GetDlgItem(hDlg, IDC_SETTINGS_SAVERELATIVE);
 
     SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_SETTINGS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVESESSIONS_GROUP, GetLangStringW(wLangModule, STRID_SAVESESSIONS));
@@ -2034,12 +2068,14 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_OPENONSTART, GetLangStringW(wLangModule, STRID_OPENONSTART));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEONEXIT, GetLangStringW(wLangModule, STRID_SAVEONEXIT));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SHOWPATH, GetLangStringW(wLangModule, STRID_SHOWPATH));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVERELATIVE, GetLangStringW(wLangModule, STRID_SAVERELATIVE));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SYSTEMFONT, GetLangStringW(wLangModule, STRID_SYSTEMFONT));
+    SetDlgItemTextWide(hDlg, IDC_SETTINGS_CODERTHEME, GetLangStringW(wLangModule, STRID_CODERTHEME));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_GROUP, GetLangStringW(wLangModule, STRID_DIALOGTYPE));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_MODAL, GetLangStringW(wLangModule, STRID_MODALDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_MODELESS, GetLangStringW(wLangModule, STRID_MODELESSDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DLGTYPE_DOCKABLE, GetLangStringW(wLangModule, STRID_DOCKABLEDIALOG));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_DOCKAUTOLOAD, GetLangStringW(wLangModule, STRID_AUTOLOAD));
-    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SYSTEMFONT, GetLangStringW(wLangModule, STRID_SYSTEMFONT));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEDATA_GROUP, GetLangStringW(wLangModule, STRID_SAVEDATA));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEACTIVE, GetLangStringW(wLangModule, STRID_SAVEACTIVE));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVECODEPAGE, GetLangStringW(wLangModule, STRID_SAVECODEPAGE));
@@ -2051,7 +2087,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEALIAS, GetLangStringW(wLangModule, STRID_SAVEALIAS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEFOLDS, GetLangStringW(wLangModule, STRID_SAVEFOLDS));
     SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVEMARKS, GetLangStringW(wLangModule, STRID_SAVEMARKS));
-    SetDlgItemTextWide(hDlg, IDC_SETTINGS_SAVERELATIVE, GetLangStringW(wLangModule, STRID_SAVERELATIVE));
 
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
@@ -2068,6 +2103,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (bOpenOnStart) SendMessage(hWndOpenOnStart, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveOnExit) SendMessage(hWndSaveOnExit, BM_SETCHECK, BST_CHECKED, 0);
     if (bShowPath) SendMessage(hWndShowPath, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveRelative) SendMessage(hWndSaveRelative, BM_SETCHECK, BST_CHECKED, 0);
+    if (bListSystemFont) SendMessage(hWndDlgSystemFont, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCoderTheme) SendMessage(hWndDlgCoderTheme, BM_SETCHECK, BST_CHECKED, 0);
+
     if ((nNewDialogType? nNewDialogType : nDialogType) == DLGT_MODAL)
     {
       SendMessage(hWndDlgTypeModal, BM_SETCHECK, BST_CHECKED, 0);
@@ -2084,7 +2123,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       EnableWindow(hWndDlgDockAutoload, TRUE);
     }
     if (bDockAutoload) SendMessage(hWndDlgDockAutoload, BM_SETCHECK, BST_CHECKED, 0);
-    if (bListSystemFont) SendMessage(hWndDlgSystemFont, BM_SETCHECK, BST_CHECKED, 0);
 
     if (dwSaveData & SSD_ACTIVE) SendMessage(hWndSaveActive, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODEPAGE) SendMessage(hWndSaveCodepage, BM_SETCHECK, BST_CHECKED, 0);
@@ -2096,8 +2134,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (dwSaveData & SSD_CODERALIAS) SendMessage(hWndSaveAlias, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODERFOLDS) SendMessage(hWndSaveFolds, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveData & SSD_CODERMARKS) SendMessage(hWndSaveMarks, BM_SETCHECK, BST_CHECKED, 0);
-
-    if (bSaveRelative) SendMessage(hWndSaveRelative, BM_SETCHECK, BST_CHECKED, 0);
 
     PostMessage(hDlg, WM_COMMAND, IDC_SETTINGS_OPENONSTART, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_SETTINGS_SAVEONEXIT, 0);
@@ -2136,6 +2172,39 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         bRestart=TRUE;
       }
 
+      nState=(BOOL)SendMessage(hWndShowPath, BM_GETCHECK, 0, 0);
+      if (bShowPath != nState)
+      {
+        bShowPath=nState;
+        PostMessage(hWndMainDlg, WM_COMMAND, MAKELONG(IDC_SESSION_LIST, CBN_SELCHANGE), (LPARAM)0);
+      }
+      bSaveRelative=(BOOL)SendMessage(hWndSaveRelative, BM_GETCHECK, 0, 0);
+
+      nState=(BOOL)SendMessage(hWndDlgSystemFont, BM_GETCHECK, 0, 0);
+      if (nState != bListSystemFont)
+      {
+        bListSystemFont=nState;
+        if (!bListSystemFont)
+        {
+          HFONT hFontEdit;
+
+          hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
+          SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
+        }
+        else SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)NULL, FALSE);
+      }
+      nState=(BOOL)SendMessage(hWndDlgCoderTheme, BM_GETCHECK, 0, 0);
+      if (nState != bCoderTheme)
+      {
+        bCoderTheme=nState;
+        if (!bCoderTheme)
+        {
+          SendMessage(hWndItemsList, TVM_SETTEXTCOLOR, 0, (LPARAM)(DWORD)-1);
+          SendMessage(hWndItemsList, TVM_SETBKCOLOR, 0, (LPARAM)(DWORD)-1);
+        }
+        else SetListColors(NULL, hWndItemsList);
+      }
+
       //Dialog type
       nState=0;
       if (SendMessage(hWndDlgTypeModal, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -2157,20 +2226,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
       }
       bDockAutoload=(BOOL)SendMessage(hWndDlgDockAutoload, BM_GETCHECK, 0, 0);
-
-      nState=(BOOL)SendMessage(hWndDlgSystemFont, BM_GETCHECK, 0, 0);
-      if (nState != bListSystemFont)
-      {
-        bListSystemFont=nState;
-        if (!bListSystemFont)
-        {
-          HFONT hFontEdit;
-
-          hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
-          SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
-        }
-        else SendMessage(hWndItemsList, WM_SETFONT, (WPARAM)NULL, FALSE);
-      }
 
       //Save data
       dwSaveData=0;
@@ -2195,8 +2250,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       if (SendMessage(hWndSaveMarks, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveData|=SSD_CODERMARKS;
 
-      bSaveRelative=(BOOL)SendMessage(hWndSaveRelative, BM_GETCHECK, 0, 0);
-
       //Restart message
       if (bRestart)
         MessageBoxW(hDlg, GetLangStringW(wLangModule, STRID_RESTARTPROGRAM), wszPluginTitle, MB_OK|MB_ICONINFORMATION);
@@ -2205,12 +2258,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       GetWindowTextWide(hWndSaveName, wszSaveOnExit, MAX_PATH);
       bOpenOnStart=(BOOL)SendMessage(hWndOpenOnStart, BM_GETCHECK, 0, 0);
       bSaveOnExit=(BOOL)SendMessage(hWndSaveOnExit, BM_GETCHECK, 0, 0);
-      nState=(BOOL)SendMessage(hWndShowPath, BM_GETCHECK, 0, 0);
-      if (bShowPath != nState)
-      {
-        bShowPath=nState;
-        PostMessage(hWndMainDlg, WM_COMMAND, MAKELONG(IDC_SESSION_LIST, CBN_SELCHANGE), (LPARAM)0);
-      }
 
       dwSaveFlags|=OF_SETTINGS;
       EndDialog(hDlg, 0);
@@ -2585,6 +2632,13 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ShowWindow(hWndDockDlg, SW_SHOW);
       dkSessionsDlg->dwFlags&=~DKF_HIDDEN;
     }
+  }
+  else if (uMsg == AKDN_DLLCODER)
+  {
+    NCODERUPDATE *ncu=(NCODERUPDATE *)lParam;
+
+    if (ncu->dwFlags & SAE_RESETLIST)
+      SetListColors(NULL, hWndItemsList);
   }
   else if (uMsg == WM_CLOSE ||
            uMsg == WM_QUERYENDSESSION)
@@ -4404,6 +4458,51 @@ void ClearTreeView(HWND hWndTreeView, BOOL bRedraw)
   if (bRedraw) InvalidateRect(hWndTreeView, NULL, TRUE);
 }
 
+void GetCoderColors(HWND hWnd)
+{
+  int i;
+
+  //Default colors
+  for (i=0; cti[i].wpVarName; ++i)
+  {
+    *(COLORREF *)cti[i].nVarValue=(COLORREF)-1;
+  }
+
+  if (bCoderTheme)
+  {
+    PLUGINFUNCTION *pfCoder;
+    PLUGINCALLSENDW pcs;
+    DLLEXTCODERFILLVARLIST decfvl;
+
+    if ((pfCoder=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::HighLight", 0)) && pfCoder->bRunning)
+    {
+      decfvl.dwStructSize=sizeof(DLLEXTCODERFILLVARLIST);
+      decfvl.nAction=DLLA_CODER_FILLVARLIST;
+      decfvl.hWndEdit=hWnd;
+      decfvl.hDocEdit=NULL;
+      decfvl.cti=cti;
+
+      pcs.pFunction=L"Coder::Settings";
+      pcs.lParam=(LPARAM)&decfvl;
+      pcs.dwSupport=PDS_STRWIDE;
+      SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+    }
+  }
+}
+
+void SetListColors(HWND hWndEdit, HWND hWndList)
+{
+  if (bCoderTheme)
+  {
+    if (!hWndEdit) hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, 0);
+    GetCoderColors(hWndEdit);
+    if ((DWORD)SendMessage(hWndList, TVM_GETTEXTCOLOR, 0, 0) != crListTextColor)
+      SendMessage(hWndList, TVM_SETTEXTCOLOR, 0, (LPARAM)crListTextColor);
+    if ((DWORD)SendMessage(hWndList, TVM_GETBKCOLOR, 0, 0) != crListBkColor)
+      SendMessage(hWndList, TVM_SETBKCOLOR, 0, (LPARAM)crListBkColor);
+  }
+}
+
 int GetCollapsedFoldsString(HSTACK *hFoldsStack, wchar_t *wszString)
 {
   AEFOLD *lpFold;
@@ -4855,10 +4954,11 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"SaveOnExitEnable", PO_DWORD, (LPBYTE)&bSaveOnExit, sizeof(DWORD));
     WideOption(hOptions, L"SaveOnExitSession", PO_STRING, (LPBYTE)wszSaveOnExit, sizeof(wszSaveOnExit));
     WideOption(hOptions, L"ShowPath", PO_DWORD, (LPBYTE)&bShowPath, sizeof(DWORD));
-    WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
     WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
-    WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
     WideOption(hOptions, L"ListSystemFont", PO_DWORD, (LPBYTE)&bListSystemFont, sizeof(DWORD));
+    WideOption(hOptions, L"CoderTheme", PO_DWORD, (LPBYTE)&bCoderTheme, sizeof(DWORD));
+    WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
+    WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
     WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nDialogType, sizeof(DWORD));
 
     if (nDialogType == DLGT_DOCKABLE)
@@ -4886,10 +4986,11 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveOnExitEnable", PO_DWORD, (LPBYTE)&bSaveOnExit, sizeof(DWORD));
       WideOption(hOptions, L"SaveOnExitSession", PO_STRING, (LPBYTE)wszSaveOnExit, ((int)xstrlenW(wszSaveOnExit) + 1) * sizeof(wchar_t));
       WideOption(hOptions, L"ShowPath", PO_DWORD, (LPBYTE)&bShowPath, sizeof(DWORD));
-      WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
       WideOption(hOptions, L"SaveRelative", PO_DWORD, (LPBYTE)&bSaveRelative, sizeof(DWORD));
-      WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
       WideOption(hOptions, L"ListSystemFont", PO_DWORD, (LPBYTE)&bListSystemFont, sizeof(DWORD));
+      WideOption(hOptions, L"CoderTheme", PO_DWORD, (LPBYTE)&bCoderTheme, sizeof(DWORD));
+      WideOption(hOptions, L"SaveData", PO_DWORD, (LPBYTE)&dwSaveData, sizeof(DWORD));
+      WideOption(hOptions, L"DockAutoload", PO_DWORD, (LPBYTE)&bDockAutoload, sizeof(DWORD));
       if (nNewDialogType)
         WideOption(hOptions, L"DialogType", PO_DWORD, (LPBYTE)&nNewDialogType, sizeof(DWORD));
     }
@@ -4984,6 +5085,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x0438\x0442\x044C\x0020\x043D\x0430\x0020\x0432\x044B\x0445\x043E\x0434\x0435\x003A";
     if (nStringID == STRID_SHOWPATH)
       return L"\x041F\x043E\x043A\x0430\x0437\x044B\x0432\x0430\x0442\x044C\x0020\x043F\x0443\x0442\x044C\x0020\x0444\x0430\x0439\x043B\x043E\x0432";
+    if (nStringID == STRID_SAVERELATIVE)
+      return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043F\x0443\x0442\x044C\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430\x0020\x043A\x0430\x043A\x0020\x0025\x0061";
+    if (nStringID == STRID_SYSTEMFONT)
+      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0439\x0020\x0448\x0440\x0438\x0444\x0442\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
+    if (nStringID == STRID_CODERTHEME)
+      return L"\x0418\x0441\x043F\x043E\x043B\x044C\x0437\x043E\x0432\x0430\x0442\x044C\x0020\x0442\x0435\x043C\x044B Coder";
     if (nStringID == STRID_DIALOGTYPE)
       return L"\x0422\x0438\x043F\x0020\x0434\x0438\x0430\x043B\x043E\x0433\x0430";
     if (nStringID == STRID_MODALDIALOG)
@@ -4994,8 +5101,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041F\x0440\x0438\x043A\x0440\x0435\x043F\x043B\x0435\x043D\x043D\x044B\x0439\x0020\x0434\x0438\x0430\x043B\x043E\x0433";
     if (nStringID == STRID_AUTOLOAD)
       return L"\x0410\x0432\x0442\x043E\x0437\x0430\x0433\x0440\x0443\x0437\x043A\x0430";
-    if (nStringID == STRID_SYSTEMFONT)
-      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x043D\x044B\x0439\x0020\x0448\x0440\x0438\x0444\x0442\x0020\x0432\x0020\x0441\x043F\x0438\x0441\x043A\x0435";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_SAVEDATA)
@@ -5020,8 +5125,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x0432\x0435\x0440\x043D\x0443\x0442\x044B\x0435\x0020\x0431\x043B\x043E\x043A\x0438 Coder";
     if (nStringID == STRID_SAVEMARKS)
       return L"\x041E\x0442\x043C\x0435\x0442\x043A\x0438\x0020\x0442\x0435\x043A\x0441\x0442\x0430 Coder";
-    if (nStringID == STRID_SAVERELATIVE)
-      return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043F\x0443\x0442\x044C\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430\x0020\x043A\x0430\x043A\x0020\x0025\x0061";
     if (nStringID == STRID_OK)
       return L"\x004F\x004B";
     if (nStringID == STRID_CANCEL)
@@ -5113,6 +5216,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Save on exit:";
     if (nStringID == STRID_SHOWPATH)
       return L"Show files path";
+    if (nStringID == STRID_SAVERELATIVE)
+      return L"Save AkelPad path as %a";
+    if (nStringID == STRID_SYSTEMFONT)
+      return L"System font in list";
+    if (nStringID == STRID_CODERTHEME)
+      return L"Use Coder themes";
     if (nStringID == STRID_DIALOGTYPE)
       return L"Dialog type";
     if (nStringID == STRID_MODALDIALOG)
@@ -5123,8 +5232,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Dockable dialog";
     if (nStringID == STRID_AUTOLOAD)
       return L"Autoload";
-    if (nStringID == STRID_SYSTEMFONT)
-      return L"System font in list";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
     if (nStringID == STRID_SAVEDATA)
@@ -5149,8 +5256,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Coder collapsed folds";
     if (nStringID == STRID_SAVEMARKS)
       return L"Coder text marks";
-    if (nStringID == STRID_SAVERELATIVE)
-      return L"Save AkelPad path as %a";
     if (nStringID == STRID_OK)
       return L"OK";
     if (nStringID == STRID_CANCEL)
