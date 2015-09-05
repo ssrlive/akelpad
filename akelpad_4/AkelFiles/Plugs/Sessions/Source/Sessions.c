@@ -4492,7 +4492,7 @@ void GetCoderColors(HWND hWnd)
 
 void SetListColors(HWND hWndEdit, HWND hWndList)
 {
-  if (bCoderTheme)
+  if (bCoderTheme && hWndList)
   {
     if (!hWndEdit) hWndEdit=(HWND)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_WNDEDIT, 0);
     GetCoderColors(hWndEdit);
