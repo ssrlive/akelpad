@@ -359,6 +359,7 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
   xmemset(&ei, 0, sizeof(EXCEPINFO));
   scriptError->lpVtbl->GetSourcePosition(scriptError, &dwIncludeIndex, &nLine, &nChar);
   scriptError->lpVtbl->GetExceptionInfo(scriptError, &ei);
+  if (g_bScriptArg) return ei.scode;
 
   if (lpScriptThread->bQuiting)
   {
