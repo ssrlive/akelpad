@@ -8,6 +8,7 @@
 CALLBACKSTACK g_hSubclassCallbackStack={0};
 CALLBACKSTACK g_hHookCallbackStack={0};
 ITypeInfo *g_DocumentTypeInfo=NULL;
+BOOL g_bScriptArg=FALSE;
 WNDPROCDATA *g_lpSubclassMainProc=NULL;
 WNDPROCDATA *g_lpSubclassEditProc=NULL;
 WNDPROCDATA *g_lpSubclassFrameProc=NULL;
@@ -1789,6 +1790,7 @@ HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, 
   wchar_t *wszArgValue;
   HRESULT hr=NOERROR;
 
+  g_bScriptArg=TRUE;
   VariantInit(vtResult);
 
   if (lpScriptArg=StackGetArgumentByName(&lpScriptThread->hArgStack, wpArgName, SysStringLen(wpArgName)))
@@ -1814,6 +1816,7 @@ HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, 
     if (vtDefault.vt != VT_ERROR)
       hr=VariantCopy(vtResult, &vtDefault);
   }
+  g_bScriptArg=FALSE;
   return hr;
 }
 

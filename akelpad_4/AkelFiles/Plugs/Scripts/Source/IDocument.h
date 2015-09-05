@@ -329,6 +329,7 @@ typedef struct {
 extern CALLBACKSTACK g_hSubclassCallbackStack;
 extern CALLBACKSTACK g_hHookCallbackStack;
 extern ITypeInfo *g_DocumentTypeInfo;
+extern BOOL g_bScriptArg;
 extern const IDocumentVtbl MyIDocumentVtbl;
 
 //Functions prototypes
