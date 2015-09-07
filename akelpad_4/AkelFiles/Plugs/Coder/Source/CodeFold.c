@@ -581,6 +581,7 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
           AEFOLD *lpCurFold;
           OPENDOCUMENTW od;
           HWND hWndEdit;
+          int nOpenResult;
 
           if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
           {
@@ -593,7 +594,8 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
             od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
             od.nCodePage=0;
             od.bBOM=0;
-            if (SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od) == EOD_SUCCESS)
+            nOpenResult=(int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+            if (nOpenResult == EOD_SUCCESS || nOpenResult == EOD_WINDOWEXIST)
             {
               if (hWndEdit=GetCurEdit())
               {
