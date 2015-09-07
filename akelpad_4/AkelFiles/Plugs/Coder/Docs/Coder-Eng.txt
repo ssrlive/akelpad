@@ -509,3 +509,9 @@ Variables for SpecialChar plugin:
     Text color in selection. If 0, not set.
   SpecialChar_SelBkColor
     Background color in selection. If 0, not set.
+
+Variables for Sessions plugin:
+  Sessions_ListTextColor
+    List text color. If 0, not set.
+  Sessions_ListBkColor
+    List background color. If 0, not set.
