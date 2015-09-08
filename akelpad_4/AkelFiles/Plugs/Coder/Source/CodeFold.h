@@ -43,6 +43,7 @@
 #define STRID_PREVLEVEL              237
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
+#define DLLA_CODEFOLD_GORULE     2
 #define DLLA_CODEFOLD_ADDWINDOW  50
 #define DLLA_CODEFOLD_DELWINDOW  51
 #define DLLA_CODEFOLD_GETWINDOW  52
@@ -334,6 +335,7 @@ BOOL GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciInput, AECHARRANGE *
 void FoldInView(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, int nMenuAction);
 BOOL FoldSelect(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags);
+void GoRule(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 void DeleteFoldData(FOLDDATA *lpFoldData);
 void FreeFolds(FOLDWINDOW *lpFoldWindow, BOOL bUpdate);
 INT_PTR EndOfPoint(FOLDWINDOW *lpFoldWindow, const AEPOINT *lpPoint, AECHARINDEX *ciChar);
