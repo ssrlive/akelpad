@@ -139,6 +139,11 @@ Call("Coder::CodeFold", 1, *WINDOW)
       return hWnd;
     }
 
+Call("Coder::CodeFold", 2)
+  Parameters:
+    2
+      Go to rule.
+
 
 *** External call Coder::Settings ***
 

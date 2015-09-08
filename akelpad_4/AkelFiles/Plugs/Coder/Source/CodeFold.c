@@ -106,6 +106,15 @@ void __declspec(dllexport) CodeFold(PLUGINDATA *pd)
           }
           else SendMessage(hWndCodeFoldDlg, WM_COMMAND, IDC_CODEFOLD_HIDE, 0);
         }
+        else if (nAction == DLLA_CODEFOLD_GORULE)
+        {
+          AEFOLD *lpFold;
+
+          if (lpFold=GetCaretFold(lpCurrentFoldWindow, NULL))
+          {
+            GoRule(lpCurrentFoldWindow, lpFold);
+          }
+        }
         else if (nAction == DLLA_CODEFOLD_ADDWINDOW)
         {
           MANUALSET *lpManual;
@@ -573,56 +582,11 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         }
         else if (nCmd == IDM_CODEFOLD_GORULE)
         {
-          AEINDEXOFFSET aeio;
-          AESELECTION aes;
-          AECHARRANGE crLine;
-          CHARRANGE64 crSyntaxFileLine;
-          SYNTAXFILE *lpSyntaxFile;
-          AEFOLD *lpCurFold;
-          OPENDOCUMENTW od;
-          HWND hWndEdit;
-          int nOpenResult;
+          AEFOLD *lpFold;
 
-          if (lpCurFold=GetCurFoldTreeView(hWndCodeFoldList))
+          if (lpFold=GetCurFoldTreeView(hWndCodeFoldList))
           {
-            crSyntaxFileLine=FoldData(lpCurFold)->lpFoldInfo->crSyntaxFileLine;
-            lpSyntaxFile=GetSyntaxFileByFold(lpCurrentFoldWindow, lpCurFold->hRuleTheme?lpCurFold->parent:lpCurFold);
-
-            xprintfW(wszBuffer, L"%s\\%s", wszCoderDir, lpSyntaxFile->wszSyntaxFileName);
-            od.pFile=wszBuffer;
-            od.pWorkDir=NULL;
-            od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-            od.nCodePage=0;
-            od.bBOM=0;
-            nOpenResult=(int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
-            if (nOpenResult == EOD_SUCCESS || nOpenResult == EOD_WINDOWEXIST)
-            {
-              if (hWndEdit=GetCurEdit())
-              {
-                SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crLine.ciMin);
-                aeio.ciCharIn=&crLine.ciMin;
-                aeio.ciCharOut=&crLine.ciMin;
-                aeio.nOffset=crSyntaxFileLine.cpMin;
-                aeio.nNewLine=AELB_ASIS;
-                SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
-
-                aeio.ciCharIn=&crLine.ciMin;
-                aeio.ciCharOut=&crLine.ciMax;
-                aeio.nOffset=crSyntaxFileLine.cpMax - crSyntaxFileLine.cpMin;
-                aeio.nNewLine=AELB_ASIS;
-                SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
-
-                aes.crSel.ciMin=crLine.ciMin;
-                aes.crSel.ciMax=crLine.ciMax;
-                aes.dwFlags=AESELT_LOCKSCROLL;
-                aes.dwType=0;
-                SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&crLine.ciMin, (LPARAM)&aes);
-
-                ScrollToPoint(hWndEdit, NULL);
-
-                PostMessage(hWndCodeFoldDlg, AKDLL_SETFOCUS, 0, 0);
-              }
-            }
+            GoRule(lpCurrentFoldWindow, lpFold);
           }
         }
         else if (nCmd == IDM_CODEFOLD_SETUP)
@@ -3636,6 +3600,61 @@ void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags)
   {
     if (lpFold=(AEFOLD *)lpFoldWindow->pfwd->lpFoldStack->first)
       SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)NULL, dwFlags|(lpFold->dwFlags & AEFOLDF_COLLAPSED ? AECF_EXPAND : AECF_COLLAPSE));
+  }
+}
+
+void GoRule(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold)
+{
+  SYNTAXFILE *lpSyntaxFile;
+  OPENDOCUMENTW od;
+  AEINDEXOFFSET aeio;
+  AESELECTION aes;
+  AECHARRANGE crLine;
+  CHARRANGE64 crSyntaxFileLine;
+  HWND hWndEdit;
+  int nOpenResult;
+
+  if (!lpFold) return;
+
+  if (lpSyntaxFile=GetSyntaxFileByFold(lpFoldWindow, lpFold->hRuleTheme?lpFold->parent:lpFold))
+  {
+    crSyntaxFileLine=FoldData(lpFold)->lpFoldInfo->crSyntaxFileLine;
+
+    xprintfW(wszBuffer, L"%s\\%s", wszCoderDir, lpSyntaxFile->wszSyntaxFileName);
+    od.pFile=wszBuffer;
+    od.pWorkDir=NULL;
+    od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+    od.nCodePage=0;
+    od.bBOM=0;
+    nOpenResult=(int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+    if (nOpenResult == EOD_SUCCESS || nOpenResult == EOD_WINDOWEXIST)
+    {
+      if (hWndEdit=GetCurEdit())
+      {
+        SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crLine.ciMin);
+        aeio.ciCharIn=&crLine.ciMin;
+        aeio.ciCharOut=&crLine.ciMin;
+        aeio.nOffset=crSyntaxFileLine.cpMin;
+        aeio.nNewLine=AELB_ASIS;
+        SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
+
+        aeio.ciCharIn=&crLine.ciMin;
+        aeio.ciCharOut=&crLine.ciMax;
+        aeio.nOffset=crSyntaxFileLine.cpMax - crSyntaxFileLine.cpMin;
+        aeio.nNewLine=AELB_ASIS;
+        SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
+
+        aes.crSel.ciMin=crLine.ciMin;
+        aes.crSel.ciMax=crLine.ciMax;
+        aes.dwFlags=AESELT_LOCKSCROLL;
+        aes.dwType=0;
+        SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&crLine.ciMin, (LPARAM)&aes);
+
+        ScrollToPoint(hWndEdit, NULL);
+
+        if (hWndCodeFoldDlg) PostMessage(hWndCodeFoldDlg, AKDLL_SETFOCUS, 0, 0);
+      }
+    }
   }
 }
 

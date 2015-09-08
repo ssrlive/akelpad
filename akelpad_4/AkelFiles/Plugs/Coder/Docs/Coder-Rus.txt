@@ -140,6 +140,11 @@ Call("Coder::CodeFold", 1, *WINDOW)
       return hWnd;
     }
 
+Call("Coder::CodeFold", 2)
+  Параметры:
+    2
+      Перейти к правилу.
+
 
 *** Внешний вызов Coder::Settings ***
 
