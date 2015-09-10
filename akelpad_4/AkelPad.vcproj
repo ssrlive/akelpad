@@ -53,6 +53,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				BufferSecurityCheck="false"
 				PrecompiledHeaderFile=".\Debug/AkelPad.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -75,7 +76,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib imm32.lib version.lib libc.lib"
+				AdditionalDependencies="comctl32.lib imm32.lib version.lib libcmt.lib"
 				OutputFile=".\Debug/AkelPad.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -91,6 +92,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -150,6 +152,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				BufferSecurityCheck="false"
 				PrecompiledHeaderFile=".\Debug/AkelPad.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -163,7 +166,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG,AKELEDIT_STATICBUILD,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=32"
+				PreprocessorDefinitions="_DEBUG,AKELEDIT_STATICBUILD,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=64"
 				Culture="1033"
 				AdditionalIncludeDirectories="AkelEdit\Resources"
 			/>
@@ -172,7 +175,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib imm32.lib version.lib libc.lib"
+				AdditionalDependencies="comctl32.lib imm32.lib version.lib libcmt.lib"
 				OutputFile=".\Debug/AkelPad.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -188,6 +191,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -443,6 +447,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;AKELEDIT_STATICBUILD;RC_VERSIONLANGID=0x409"
 				StringPooling="true"
 				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/AkelPad.pch"
 				AssemblerListingLocation=".\Release/"
@@ -482,6 +487,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -541,6 +547,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;AKELEDIT_STATICBUILD;RC_VERSIONLANGID=0x409"
 				StringPooling="true"
 				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/AkelPad.pch"
 				AssemblerListingLocation=".\Release/"
@@ -555,7 +562,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG,AKELEDIT_STATICBUILD,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=32"
+				PreprocessorDefinitions="NDEBUG,AKELEDIT_STATICBUILD,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=64"
 				Culture="1033"
 				AdditionalIncludeDirectories="AkelEdit\Resources"
 			/>
@@ -580,6 +587,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -639,6 +647,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;RC_VERSIONLANGID=0x409"
 				StringPooling="true"
 				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/AkelPad.pch"
 				AssemblerListingLocation=".\Release/"
@@ -676,6 +685,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -735,6 +745,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;RC_VERSIONLANGID=0x409"
 				StringPooling="true"
 				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/AkelPad.pch"
 				AssemblerListingLocation=".\Release/"
@@ -748,7 +759,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=32"
+				PreprocessorDefinitions="NDEBUG,RC_EXEVERSION,RC_VERSIONLANGID=0x409,RC_VERSIONBIT=64"
 				Culture="1033"
 			/>
 			<Tool
@@ -772,6 +783,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
