@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include "StackFunc.h"
 #include "StrFunc.h"
@@ -52,6 +53,7 @@ void UninitMain();
 //Global variables
 HWND hMainWnd;
 BOOL bOldWindows;
+BOOL bWindowsNT4=FALSE;
 BOOL bInitCommon=FALSE;
 BOOL bInitMain=FALSE;
 char szFontsDir[MAX_PATH];
@@ -60,6 +62,10 @@ char szBuffer[BUFFER_SIZE];
 wchar_t wszBuffer[BUFFER_SIZE];
 HSTACK hFontsStack={0};
 BOOL bFontsAdded=FALSE;
+
+//GetProcAddress
+int (WINAPI *AddFontResourceExWPtr)(const wchar_t *, DWORD, VOID *);
+BOOL (WINAPI *RemoveFontResourceExWPtr)(const wchar_t *, DWORD, VOID *);
 
 
 //Identification
@@ -117,6 +123,28 @@ void InitCommon(PLUGINDATA *pd)
   //Initialize WideFunc.h header
   WideInitialize();
 
+  //Get functions addresses
+  {
+    HMODULE hGdi32;
+
+    hGdi32=GetModuleHandleA("gdi32.dll");
+    AddFontResourceExWPtr=(int (WINAPI *)(const wchar_t *, DWORD, VOID *))GetProcAddress(hGdi32, "AddFontResourceExW");
+    RemoveFontResourceExWPtr=(BOOL (WINAPI *)(const wchar_t *, DWORD, VOID *))GetProcAddress(hGdi32, "RemoveFontResourceExW");
+  }
+
+  //Is Windows NT4?
+  {
+    OSVERSIONINFO ovi;
+
+    ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+    GetVersionEx(&ovi);
+    if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+    {
+      if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)
+        bWindowsNT4=TRUE;
+    }
+  }
+
   xprintfW(wszFontsDir, L"%s\\AkelFiles\\Plugs\\Fonts", pd->wszAkelDir);
 }
 
@@ -153,7 +181,10 @@ void InitMain()
               !xstrcmpiW(wpExt, L"pfm"))
           {
             xprintfW(wszBuffer, L"%s\\%s", wszFontsDir, wfd.cFileName);
-            AddFontResourceWide(wszBuffer);
+            if (bOldWindows || bWindowsNT4)
+              AddFontResourceWide(wszBuffer);
+            else
+              AddFontResourceExWPtr(wszBuffer, FR_PRIVATE, 0);
             bFontsAdded=TRUE;
 
             if (!StackInsertIndex((stack **)&hFontsStack.first, (stack **)&hFontsStack.last, (stack **)&fn, -1, sizeof(FONTNAME)))
@@ -185,7 +216,10 @@ void UninitMain()
 
     while (lpElement)
     {
-      RemoveFontResourceWide(lpElement->wszFont);
+      if (bOldWindows || bWindowsNT4)
+        RemoveFontResourceWide(lpElement->wszFont);
+      else
+        RemoveFontResourceExWPtr(lpElement->wszFont, FR_PRIVATE, 0);
 
       lpElement=lpElement->next;
     }
