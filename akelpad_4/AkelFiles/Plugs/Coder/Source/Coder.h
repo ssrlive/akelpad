@@ -632,11 +632,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor 0\r\
 AutoComplete_ListBasicBkColor 0\r\
 AutoComplete_ListSelTextColor 0\r\
@@ -737,11 +737,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #000000\r\
 AutoComplete_ListBasicBkColor #FFFFFF\r\
 AutoComplete_ListSelTextColor #000000\r\
@@ -842,11 +842,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #E8E2DD\r\
 AutoComplete_ListBasicBkColor #2B211C\r\
 AutoComplete_ListSelTextColor #FFFFFF\r\
@@ -947,11 +947,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #FFFFFF\r\
 AutoComplete_ListBasicBkColor #002240\r\
 AutoComplete_ListSelTextColor #FFFFFF\r\
@@ -1052,11 +1052,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #080808\r\
 AutoComplete_ListBasicBkColor #F9F9F9\r\
 AutoComplete_ListSelTextColor #080808\r\
@@ -1157,11 +1157,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #000000\r\
 AutoComplete_ListBasicBkColor #FFFFFF\r\
 AutoComplete_ListSelTextColor #000000\r\
@@ -1262,11 +1262,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #000000\r\
 AutoComplete_ListBasicBkColor #EEEEEE\r\
 AutoComplete_ListSelTextColor #000000\r\
@@ -1367,11 +1367,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #000000\r\
 AutoComplete_ListBasicBkColor #FFFFFF\r\
 AutoComplete_ListSelTextColor #000000\r\
@@ -1472,11 +1472,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #000000\r\
 AutoComplete_ListBasicBkColor #FFFFFF\r\
 AutoComplete_ListSelTextColor #000000\r\
@@ -1577,11 +1577,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #F8F8F2\r\
 AutoComplete_ListBasicBkColor #272822\r\
 AutoComplete_ListSelTextColor #F8F8F2\r\
@@ -1613,6 +1613,111 @@ L"Sessions_ListTextColor #F8F8F2\r\
 Sessions_ListBkColor #272822\r"
 
 #define TXT_MONOKAI_VARTHEME (TXT_MONOKAI_VARTHEME_BASIC TXT_MONOKAI_VARTHEME_HIGHLIGHT TXT_MONOKAI_VARTHEME_CODEFOLD TXT_MONOKAI_VARTHEME_AUTOCOMPLETE TXT_MONOKAI_VARTHEME_LINEBOARD TXT_MONOKAI_VARTHEME_SPECIALCHAR TXT_MONOKAI_VARTHEME_SESSIONS)
+
+//Obsidian variable theme
+#define TXT_OBSIDIAN_VARTHEME_BASIC \
+L"STR #EC7600\r\
+COMM #7D8C93\r\
+VAR #8C8CB4\r\
+DEL1 #E8E2B7\r\
+DEL2 #E8E2B7\r\
+TYPE #D75028\r\
+OP #93C763\r\
+TAG #8CBBAD\r\
+ATTR #678CB1\r\
+IF #A082BD\r\
+AREA #99A38A\r\
+NUM #FFCD22\r"
+
+#define TXT_OBSIDIAN_VARTHEME_HIGHLIGHT \
+L"HighLight_FontStyle 0\r\
+HighLight_FontSize 0\r\
+HighLight_FaceName \"\"\r\
+HighLight_BasicTextColor #E0E2E4\r\
+HighLight_BasicBkColor #293134\r\
+HighLight_SelTextColor #FFFFFF\r\
+HighLight_SelBkColor #4B595C\r\
+HighLight_LineTextColor #E0E2E4\r\
+HighLight_LineBkColor #2E383B\r\
+HighLight_LineBorderColor #424C50\r\
+HighLight_AltTextColor #E0E2E4\r\
+HighLight_AltBkColor #2A3336\r\
+HighLight_AltBorderColor #262D2F\r\
+HighLight_ColumnColor #7F878B\r\
+HighLight_MarkerColor #467984\r\
+HighLight_CaretColor #FFD155\r\
+HighLight_UrlColor #66C6FF\r\
+HighLight_ActiveUrlColor #A8DEFF\r\
+HighLight_VisitUrlColor #A8DEFF\r\
+HighLight_BkImageFile \"\"\r\
+HighLight_BkImageAlpha 128\r\
+HighLight_AutoMarkFlags 1\r\
+HighLight_AutoMarkFontStyle 0\r\
+HighLight_AutoMarkTextColor #FFFFFF\r\
+HighLight_AutoMarkBkColor #963A46\r"
+
+#define TXT_OBSIDIAN_VARTHEME_CODEFOLD \
+L"CodeFold_PanelFirstBkColor #2E373A\r\
+CodeFold_PanelSecondBkColor #2E373A\r\
+CodeFold_PanelNormalFoldColor #106678\r\
+CodeFold_PanelActiveFoldColor #A1C2C9\r\
+CodeFold_PanelNormalNodeOpenBkColor #2E373A\r\
+CodeFold_PanelNormalNodeCloseBkColor #106678\r\
+CodeFold_PanelActiveNodeOpenBkColor #2E373A\r\
+CodeFold_PanelActiveNodeCloseBkColor #A1C2C9\r\
+CodeFold_PanelNormalNodeOpenSignColor #106678\r\
+CodeFold_PanelNormalNodeCloseSignColor #76A7B1\r\
+CodeFold_PanelActiveNodeOpenSignColor #A1C2C9\r\
+CodeFold_PanelActiveNodeCloseSignColor #2E373A\r\
+CodeFold_ListTextColor #E0E2E4\r\
+CodeFold_ListBkColor #293134\r\
+CodeFold_TagMarkFlags 0\r\
+CodeFold_TagMarkFontStyle 1\r\
+CodeFold_TagMarkTextColor #E0E2E4\r\
+CodeFold_TagMarkBkColor #37625E\r"
+
+#define TXT_OBSIDIAN_VARTHEME_AUTOCOMPLETE \
+L"AutoComplete_ListFontStyle 0\r\
+AutoComplete_ListFontSize 0\r\
+AutoComplete_ListFaceName \"\"\r\
+AutoComplete_ListLineGap 0\r\
+AutoComplete_ListBlockIcon \"\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
+AutoComplete_ListHlBaseIcon \"\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
+AutoComplete_ListDocWordIcon \"\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
+AutoComplete_ListBasicTextColor #E0E2E4\r\
+AutoComplete_ListBasicBkColor #293134\r\
+AutoComplete_ListSelTextColor #FFFFFF\r\
+AutoComplete_ListSelBkColor #4B595C\r\
+AutoComplete_Indent \"  \"\r"
+
+#define TXT_OBSIDIAN_VARTHEME_LINEBOARD \
+L"LineBoard_TextColor #C0C9CB\r\
+LineBoard_BkColor #4E595E\r\
+LineBoard_BorderColor #4E595E\r\
+LineBoard_BookmarkTextColor #222222\r\
+LineBoard_BookmarkBkColor #D3D155\r\
+LineBoard_BookmarkBorderColor #EDECBA\r\
+LineBoard_LineUnsavedColor #FFB13E\r\
+LineBoard_LineSavedColor #AEDB5B\r\
+LineBoard_RulerScaleColor #9FABAF\r\
+LineBoard_RulerCaretColor #FF3515\r"
+
+#define TXT_OBSIDIAN_VARTHEME_SPECIALCHAR \
+L"SpecialChar_BasicFontStyle 0\r\
+SpecialChar_BasicTextColor #4E595E\r\
+SpecialChar_BasicBkColor 0\r\
+SpecialChar_SelFontStyle 0\r\
+SpecialChar_SelTextColor #737C80\r\
+SpecialChar_SelBkColor 0\r"
+
+#define TXT_OBSIDIAN_VARTHEME_SESSIONS \
+L"Sessions_ListTextColor #E0E2E4\r\
+Sessions_ListBkColor #293134\r"
+
+#define TXT_OBSIDIAN_VARTHEME (TXT_OBSIDIAN_VARTHEME_BASIC TXT_OBSIDIAN_VARTHEME_HIGHLIGHT TXT_OBSIDIAN_VARTHEME_CODEFOLD TXT_OBSIDIAN_VARTHEME_AUTOCOMPLETE TXT_OBSIDIAN_VARTHEME_LINEBOARD TXT_OBSIDIAN_VARTHEME_SPECIALCHAR TXT_OBSIDIAN_VARTHEME_SESSIONS)
 
 //Solarized Light variable theme
 #define TXT_SOLARIZEDLIGHT_VARTHEME_BASIC \
@@ -1682,11 +1787,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #586E75\r\
 AutoComplete_ListBasicBkColor #FDF6E3\r\
 AutoComplete_ListSelTextColor #586E75\r\
@@ -1787,11 +1892,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #839496\r\
 AutoComplete_ListBasicBkColor #002B36\r\
 AutoComplete_ListSelTextColor #FFFFFF\r\
@@ -1892,11 +1997,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #DDE6CF\r\
 AutoComplete_ListBasicBkColor #0D0D0D\r\
 AutoComplete_ListSelTextColor #DDE6CF\r\
@@ -1997,11 +2102,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #F8F8F8\r\
 AutoComplete_ListBasicBkColor #060606\r\
 AutoComplete_ListSelTextColor #F8F8F8\r\
@@ -2102,11 +2207,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #F8F8F8\r\
 AutoComplete_ListBasicBkColor #141414\r\
 AutoComplete_ListSelTextColor #F8F8F8\r\
@@ -2207,11 +2312,11 @@ AutoComplete_ListFontSize 0\r\
 AutoComplete_ListFaceName \"\"\r\
 AutoComplete_ListLineGap 0\r\
 AutoComplete_ListBlockIcon \"\"\r\
-AutoComplete_ListBlockIconMargins \"0;1\"\r\
+AutoComplete_ListBlockIconMargins 0;1\r\
 AutoComplete_ListHlBaseIcon \"\"\r\
-AutoComplete_ListHlBaseIconMargins \"0;1\"\r\
+AutoComplete_ListHlBaseIconMargins 0;1\r\
 AutoComplete_ListDocWordIcon \"\"\r\
-AutoComplete_ListDocWordIconMargins \"0;1\"\r\
+AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #FFFFFF\r\
 AutoComplete_ListBasicBkColor #3F3F3F\r\
 AutoComplete_ListSelTextColor #DFDFBF\r\
