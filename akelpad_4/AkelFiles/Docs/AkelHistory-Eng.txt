@@ -1,5 +1,5 @@
 
-AkelPad 4.9.5 ()
+AkelPad 4.9.5 (Sep 11, 2015)
 ----------------------------
 Added: possibility to use nested syntax highlighting rules.
 Added: alternative Windows notepad replacement (via registry) in installer.
