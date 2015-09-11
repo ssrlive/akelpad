@@ -4594,6 +4594,7 @@ void AddInternalVarThemes(STACKVARTHEME *hStack)
                                 {L"Lazy", TXT_LAZY_VARTHEME},
                                 {L"Mac Classic", TXT_MACCLASSIC_VARTHEME},
                                 {L"Monokai", TXT_MONOKAI_VARTHEME},
+                                {L"Obsidian", TXT_OBSIDIAN_VARTHEME},
                                 {L"Solarized Light", TXT_SOLARIZEDLIGHT_VARTHEME},
                                 {L"Solarized Dark", TXT_SOLARIZEDDARK_VARTHEME},
                                 {L"SpaceCadet", TXT_SPACECADET_VARTHEME},
