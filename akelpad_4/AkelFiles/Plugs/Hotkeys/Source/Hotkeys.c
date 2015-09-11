@@ -1310,7 +1310,6 @@ BOOL CALLBACK InputDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCheck;
   static HICON hPluginIcon;
-  static BOOL *lpbGlobal;
   DWORD dwHotkey;
 
   if (uMsg == WM_INITDIALOG)
