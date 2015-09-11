@@ -371,68 +371,6 @@ Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELEN
     }
 
 
-*** Menu for ContextMenu plugin ***
-
-"Mark" Icon("%a\AkelFiles\Plugs\Coder.dll", 0)
-{
-  "Cyan" Call("Coder::HighLight", 2, 0, "#9BFFFF", 1, 0, 11) Icon("%a\AkelFiles\Plugs\Coder.dll", 6)
-  "Orange" Call("Coder::HighLight", 2, 0, "#FFCD9B", 1, 0, 12) Icon("%a\AkelFiles\Plugs\Coder.dll", 7)
-  "Yellow" Call("Coder::HighLight", 2, 0, "#FFFF9B", 1, 0, 13) Icon("%a\AkelFiles\Plugs\Coder.dll", 8)
-  "Violet" Call("Coder::HighLight", 2, 0, "#BE7DFF", 1, 0, 14) Icon("%a\AkelFiles\Plugs\Coder.dll", 9)
-  "Green" Call("Coder::HighLight", 2, 0, "#88E188", 1, 0, 15) Icon("%a\AkelFiles\Plugs\Coder.dll", 10)
-  SEPARATOR
-  -"Remove all marks" Call("Coder::HighLight", 3, 0) Icon("%a\AkelFiles\Plugs\Coder.dll", 11)
-}
-"Syntax theme" Icon("%a\AkelFiles\Plugs\Coder.dll", 4)
-{
-  "1s" Call("Coder::Settings", 1, "1s")
-  "Assembler" Call("Coder::Settings", 1, "asm")
-  "AutoIt" Call("Coder::Settings", 1, "au3")
-  "Bat" Call("Coder::Settings", 1, "bat")
-  "C++" Call("Coder::Settings", 1, "cpp")
-  "Sharp" Call("Coder::Settings", 1, "cs")
-  "CSS" Call("Coder::Settings", 1, "css")
-  "HTML" Call("Coder::Settings", 1, "html")
-  "Ini" Call("Coder::Settings", 1, "ini")
-  "Inno" Call("Coder::Settings", 1, "iss")
-  "JScript" Call("Coder::Settings", 1, "js")
-  "Lua" Call("Coder::Settings", 1, "lua")
-  "NSIS" Call("Coder::Settings", 1, "nsi")
-  "Pascal" Call("Coder::Settings", 1, "dpr")
-  "Perl" Call("Coder::Settings", 1, "pl")
-  "PHP" Call("Coder::Settings", 1, "php")
-  "Python" Call("Coder::Settings", 1, "py")
-  "Resource" Call("Coder::Settings", 1, "rc")
-  "SQL" Call("Coder::Settings", 1, "sql")
-  "VBScript" Call("Coder::Settings", 1, "vbs")
-  "XML" Call("Coder::Settings", 1, "xml")
-  SEPARATOR
-  "None" Call("Coder::Settings", 1, "?")
-}
-"Color theme" Icon("%a\AkelFiles\Plugs\Coder.dll", 5)
-{
-  "Default" Call("Coder::Settings", 5, "Default")
-  SEPARATOR
-  "Active4D" Call("Coder::Settings", 5, "Active4D")
-  "Bespin" Call("Coder::Settings", 5, "Bespin")
-  "Cobalt" Call("Coder::Settings", 5, "Cobalt")
-  "Dawn" Call("Coder::Settings", 5, "Dawn")
-  "Earth" Call("Coder::Settings", 5, "Earth")
-  "iPlastic" Call("Coder::Settings", 5, "iPlastic")
-  "Lazy" Call("Coder::Settings", 5, "Lazy")
-  "Mac Classic" Call("Coder::Settings", 5, "Mac Classic")
-  "Monokai" Call("Coder::Settings", 5, "Monokai")
-  "Solarized Light" Call("Coder::Settings", 5, "Solarized Light")
-  "Solarized Dark" Call("Coder::Settings", 5, "Solarized Dark")
-  "SpaceCadet" Call("Coder::Settings", 5, "SpaceCadet")
-  "Sunburst" Call("Coder::Settings", 5, "Sunburst")
-  "Twilight" Call("Coder::Settings", 5, "Twilight")
-  "Zenburn" Call("Coder::Settings", 5, "Zenburn")
-  SEPARATOR
-  "Settings..." Call("Coder::Settings")
-}
-
-
 *** Structure of cache file ***
 
 [Cache]
@@ -447,6 +385,38 @@ DCD8500001CF30A3
   Optional manual parameter. If 1, then do not update file types information from cpp.coder.
 "*.cpp" "*.c"
   File types.
+
+
+*** Hierarchy description, that used in *.coder files ***
+
+In rule, which is the parent, specified identifier (Rule ID). In child rule,
+which will work only inside parent, specified identifier of the parent (Parent ID).
+
+For example, separator "/" will be found and highlighted "#FF0000", only if it is between "<" and ">".
+  Quotes:
+  ;===================================================================================
+  ;Flags  Font    Color   Color   Quote   Quote   Escape  Quote   Quote   Parent  Rule
+  ;       style   text    bkgrnd  start   end     char    include exclude ID      ID
+  ;===================================================================================
+  ;5=1+4
+  5       0       0       0       "<"     ">"     ""      ""      ""      0       123
+
+  Delimiters:
+  ;===============================================
+  ;Flags  Font    Color   Color   Char(s)   Parent
+  ;       style   text    bkgrnd            ID
+  ;===============================================
+  1       0       #FF0000 0       "/"       123
+
+- Can be several rules with the same identifier (Rule ID). In this case, child rules,
+  for which specified this identifier (Parent ID), will work in any parent.
+- Parent (Parent ID) for the section "Delimiters:" can be "Quotes:", "QuotesRE:", "Folds:".
+- Parent (Parent ID) for the section "Words:" can be "Quotes:", "QuotesRE:", "Folds:".
+- Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
+- Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
+- Parent (Parent ID) for the section "Folds:" can be "Folds:".
+- If parent (Parent ID) is -1, then rule must be located in the root (without parent).
+- If parent (Parent ID) is -2, then rule should not be located in the root (any parent).
 
 
 *** Variables description, that not used in *.coder files ***
