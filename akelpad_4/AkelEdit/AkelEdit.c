@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.9.5                               *
+ *                      AkelEdit text control v1.9.6                               *
  *                                                                                 *
  * Copyright 2007-2015 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -13549,6 +13549,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   hlp.dwActiveBk=hlp.dwDefaultBk;
   hlp.dwPaintType=0;
   hlp.dwFontStyle=AEHLS_NONE;
+  hlp.fm.hDoc=(AEHDOC)ae;
+  hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
 
   //Fill page rectangle
   if (!(prn->dwFlags & AEPRN_TEST))
@@ -13768,6 +13770,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
   DeleteObject(ae->popt->hbrBasicBk);
   ae->popt->hbrBasicBk=NULL;
+  ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp.fm.hActiveThemeBegin;
   ae->bPrinting=FALSE;
   AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 
@@ -15519,6 +15522,8 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
+  hlp.fm.hDoc=(AEHDOC)ae;
+  hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
 
   //Set AECHARCOLORS flags
   aecc.dwFlags=gh->dwFlags;
@@ -15571,6 +15576,7 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   //if (to.gh->dwError) goto End;
 
   End:
+  ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp.fm.hActiveThemeBegin;
   AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 }
 
