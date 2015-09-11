@@ -13549,8 +13549,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   hlp.dwActiveBk=hlp.dwDefaultBk;
   hlp.dwPaintType=0;
   hlp.dwFontStyle=AEHLS_NONE;
-  hlp.fm.hDoc=(AEHDOC)ae;
-  hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
+  hlp.fm.hDoc=(AEHDOC)&ph->aePrint;
+  hlp.fm.hActiveThemeBegin=(AEHTHEME)ph->aePrint.popt->lpActiveTheme;
 
   //Fill page rectangle
   if (!(prn->dwFlags & AEPRN_TEST))
@@ -13663,14 +13663,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
-      if (to.nDrawCharOffset >= nMaxDrawCharOffset)
-        goto PrintLineEnd;
-
-      if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
-      {
-        nCharWidth=AE_GetCharWidth(&ph->aePrint, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
-      }
-
       if (!(prn->dwFlags & AEPRN_TEST))
       {
         if (prn->dwFlags & AEPRN_COLOREDTEXT)
@@ -13682,7 +13674,9 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
           AE_PaintCheckHighlightOpenItem(&ph->aePrint, &to, &hlp, ae->ptxt->nLineCount);
         }
       }
+      if (to.nDrawCharOffset >= nMaxDrawCharOffset) goto PrintLineEnd;
       if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
+      nCharWidth=AE_GetCharWidth(&ph->aePrint, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
 
       if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
       {
@@ -13770,7 +13764,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
   DeleteObject(ae->popt->hbrBasicBk);
   ae->popt->hbrBasicBk=NULL;
-  ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp.fm.hActiveThemeBegin;
+  ph->aePrint.popt->lpActiveTheme=(AETHEMEITEMW *)hlp.fm.hActiveThemeBegin;
   ae->bPrinting=FALSE;
   AE_HeapStackClear(ae, (stack **)&hlp.qm.hParentStack.first, (stack **)&hlp.qm.hParentStack.last);
 
@@ -14208,11 +14202,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           //Scan line
           while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
           {
-            if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
-            {
-              nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
-            }
-
             //Check highlight close
             AE_PaintCheckHighlightCloseItem(ae, &to, &hlp);
 
@@ -14220,6 +14209,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
             AE_PaintCheckHighlightOpenItem(ae, &to, &hlp, nLastDrawLine);
 
             if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
+            nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
 
             //Draw text up to tab character
             if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
@@ -15464,7 +15454,7 @@ BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, 
   if (fm && fm->lpFold)
   {
     int nRuleID;
-    
+
     if (fm->lpFold->hRuleTheme == (AEHTHEME)((AKELEDIT *)fm->hDoc)->popt->lpActiveTheme)
       nRuleID=0;
     else
@@ -15545,9 +15535,6 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
 
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
-      if (AEC_IndexCompare(&to.ciDrawLine, &gh->crText.ciMax) >= 0)
-        goto LastPaint;
-
       //Check highlight close
       AE_PaintCheckHighlightCloseItem(ae, &to, &hlp);
       if (to.gh->dwError) goto End;
@@ -15556,6 +15543,8 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       AE_PaintCheckHighlightOpenItem(ae, &to, &hlp, ae->ptxt->nLineCount);
       if (to.gh->dwError) goto End;
 
+      if (AEC_IndexCompare(&to.ciDrawLine, &gh->crText.ciMax) >= 0)
+        goto LastPaint;
       if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
 
       //Increment char count
