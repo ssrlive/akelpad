@@ -1,5 +1,5 @@
 *****************************************************************
-***                Macros AkelPad plugin v5.9                 ***
+***                Macros AkelPad plugin v6.1                 ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -60,14 +60,15 @@ Call("Macros::Main", 4, *DWORD)
       Get last error. Use with Scripts plugin.
     *DWORD
       Pointer to a DWORD variable.
-        0x000  //MS_IDLE
-        0x001  //MS_PLAYING
-        0x002  //MS_NOEDIT
-        0x004  //MS_READONLY
-        0x008  //MS_WAITTIMEOUT
-        0x010  //MS_TOOLBARSTOP
-        0x020  //MS_REPEATLIMIT
-        0x040  //MS_EOFRICHED
-        0x080  //MS_SEARCHENDED
-        0x100  //MS_FRAMENOWINDOWS
-        0x200  //MS_PROGRAMEXIT
+        0x0000  //MS_IDLE
+        0x0001  //MS_PLAYING
+        0x0002  //MS_NOEDIT
+        0x0004  //MS_READONLY
+        0x0008  //MS_WAITTIMEOUT
+        0x0010  //MS_TOOLBARSTOP
+        0x0020  //MS_REPEATLIMIT
+        0x0040  //MS_EOFRICHED
+        0x0080  //MS_SEARCHENDED
+        0x0100  //MS_FRAMENOWINDOWS
+        0x0200  //MS_PROGRAMEXIT
+        0x1000  //MS_INITIALIZING

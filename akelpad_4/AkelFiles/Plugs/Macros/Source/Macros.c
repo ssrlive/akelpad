@@ -127,17 +127,18 @@
 #define CE_CTRLENDFINISH  3
 
 //Macro state and MacroPlay return value
-#define MS_IDLE           0x000
-#define MS_PLAYING        0x001
-#define MS_NOEDIT         0x002
-#define MS_READONLY       0x004
-#define MS_WAITTIMEOUT    0x008
-#define MS_TOOLBARSTOP    0x010
-#define MS_REPEATLIMIT    0x020
-#define MS_EOFRICHED      0x040
-#define MS_SEARCHENDED    0x080
-#define MS_FRAMENOWINDOWS 0x100
-#define MS_PROGRAMEXIT    0x200
+#define MS_IDLE           0x0000
+#define MS_PLAYING        0x0001
+#define MS_NOEDIT         0x0002
+#define MS_READONLY       0x0004
+#define MS_WAITTIMEOUT    0x0008
+#define MS_TOOLBARSTOP    0x0010
+#define MS_REPEATLIMIT    0x0020
+#define MS_EOFRICHED      0x0040
+#define MS_SEARCHENDED    0x0080
+#define MS_FRAMENOWINDOWS 0x0100
+#define MS_PROGRAMEXIT    0x0200
+#define MS_INITIALIZING   0x1000
 
 //Exec macro flags
 #define EMF_SCRIPTSNOSYNC 0x1
@@ -1550,9 +1551,12 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
 {
-  wchar_t *wpName=(wchar_t *)lpParameter;
+  if (!(dwMacroState & MS_PLAYING))
+  {
+    wchar_t *wpName=(wchar_t *)lpParameter;
 
-  ExecMacro(wpName, 1, 0);
+    ExecMacro(wpName, 1, 0);
+  }
   return TRUE;
 }
 
@@ -1565,6 +1569,8 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   wchar_t wszMacro[MAX_PATH];
   int nRepeat;
   DWORD dwFlags;
+
+  dwMacroState=MS_INITIALIZING;
 
   //Copy to thread memory
   xstrcpynW(wszMacro, em->wpMacro, MAX_PATH);
@@ -1606,6 +1612,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     SetEvent(hExecMutex);
     CloseHandle(hExecMutex);
   }
+  dwMacroState&=~MS_INITIALIZING;
 
   //Change icon from stop end to play end
   if (hToolBarIconPlayToEnd)
