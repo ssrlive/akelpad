@@ -452,7 +452,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
       }
     }
-    else if (LOWORD(wParam) <= IDC_AUTOCOMPLETE_SETUP_SYNTAXDELIMITERS_ENABLE)
+    else if (LOWORD(wParam) <= IDC_AUTOCOMPLETE_SETUP_CASESENSITIVE_ENABLE)
     {
       if (!bInitDialog)
         SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
