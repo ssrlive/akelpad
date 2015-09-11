@@ -1,4 +1,9 @@
 
+AkelPad 4.9.6 ()
+----------------------------
+Fixed: print text with nested syntax highlighting rules.
+
+
 AkelPad 4.9.5 (Sep 11, 2015)
 ----------------------------
 Added: possibility to use nested syntax highlighting rules.
