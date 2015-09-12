@@ -1,5 +1,5 @@
 
-AkelPad 4.9.6 ()
+AkelPad 4.9.6 (Sep 12, 2015)
 ----------------------------
 Fixed: print text with nested syntax highlighting rules.
 Fixed: text scrolling to caret while dragging a file on edit window.
