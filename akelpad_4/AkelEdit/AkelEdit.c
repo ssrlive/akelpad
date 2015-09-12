@@ -22790,9 +22790,12 @@ HRESULT WINAPI AEIDropTarget_DragLeave(LPUNKNOWN lpTable)
   AEIDropTarget *pDropTarget=(AEIDropTarget *)lpTable;
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
 
-  AE_DropTargetDropCursor(pDropTarget, NULL, NULL);
-  ae->bDropping=FALSE;
-  if (!ae->bFocus) DestroyCaret();
+  if (ae->bDropping)
+  {
+    AE_DropTargetDropCursor(pDropTarget, NULL, NULL);
+    ae->bDropping=FALSE;
+    if (!ae->bFocus) DestroyCaret();
+  }
   AE_NotifyDropTarget(ae, AEDT_TARGETLEAVE, NULL, NULL);
   return S_OK;
 }
