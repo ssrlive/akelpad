@@ -1350,6 +1350,7 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  AECHARINDEX ciFindFirst;
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
 } AEQUOTEMATCH;
