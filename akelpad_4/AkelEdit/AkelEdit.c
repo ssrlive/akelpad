@@ -10996,10 +10996,10 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     if (dwSearchType & AEHF_FINDFIRSTCHAR)
     {
       AEC_WrapLineBegin(&ciCount);
+      if (AEC_IndexCompare(&qm->ciFindFirst, &ciCount) > 0)
+        ciCount=qm->ciFindFirst;
       if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &ciCount) > 0)
         ciCount=qm->crQuoteEnd.ciMax;
-      if (AEC_IndexCompare(&qm->ciChildScan, &ciCount) > 0)
-        ciCount=qm->ciChildScan;
     }
 
     BeginQuoteParse:
@@ -11367,6 +11367,8 @@ BOOL AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
     if (dwSearchType & AEHF_FINDFIRSTCHAR)
     {
       AEC_WrapLineBegin(&ciCount);
+      if (AEC_IndexCompare(&qm->ciFindFirst, &ciCount) > 0)
+        ciCount=qm->ciFindFirst;
       if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &ciCount) > 0)
         ciCount=qm->crQuoteEnd.ciMax;
     }
@@ -13547,7 +13549,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
   hlp.dwActiveText=hlp.dwDefaultText;
   hlp.dwActiveBk=hlp.dwDefaultBk;
-  hlp.dwPaintType=0;
   hlp.dwFontStyle=AEHLS_NONE;
   hlp.fm.hDoc=(AEHDOC)&ph->aePrint;
   hlp.fm.hActiveThemeBegin=(AEHTHEME)ph->aePrint.popt->lpActiveTheme;
@@ -13657,10 +13658,23 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
   to.nStartDrawWidth=to.nDrawLineWidth;
   to.nMaxDrawCharsCount=0;
-  hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
   while (to.ciDrawLine.lpLine)
   {
+    if (AEC_IsFirstCharInLine(&to.ciDrawLine))
+    {
+      if (!(prn->dwFlags & AEPRN_TEST))
+      {
+        if ((prn->dwFlags & AEPRN_COLOREDTEXT))
+        {
+          //Close all previous items
+          AE_PaintCheckHighlightCleanUp(&ph->aePrint, &to, &hlp, &prn->crText.ciMin);
+        }
+      }
+      hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_WORD;
+      hlp.dwFindFirst&=~hlp.dwPaintType;
+    }
+
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
       if (!(prn->dwFlags & AEPRN_TEST))
@@ -13720,31 +13734,19 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
 
     //Next line
-    if (to.ciDrawLine.lpLine->nLineBreak == AELB_WRAP)
-    {
-      AE_PaintTextOut(&ph->aePrint, &to, &hlp);
-      AEC_NextLine(&to.ciDrawLine);
-      to.wpStartDraw=to.ciDrawLine.lpLine->wpLine;
-    }
-    else
+    if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
     {
       ++to.nDrawCharOffset;
       break;
     }
+    AE_PaintTextOut(&ph->aePrint, &to, &hlp);
+    AEC_NextLine(&to.ciDrawLine);
+    to.wpStartDraw=to.ciDrawLine.lpLine->wpLine;
   }
 
   PrintLineEnd:
   to.nDrawCharOffset+=AE_IndexSubtract(&ph->aePrint, &prn->crText.ciMin, &to.ciDrawLine, AELB_R, FALSE, FALSE);
   AE_PaintTextOut(&ph->aePrint, &to, &hlp);
-
-  if (!(prn->dwFlags & AEPRN_TEST))
-  {
-    if (prn->dwFlags & AEPRN_COLOREDTEXT)
-    {
-      //Close all previous items
-      AE_PaintCheckHighlightCleanUp(&ph->aePrint, &to, &hlp, &prn->crText.ciMin);
-    }
-  }
 
   //Next line
   to.ptFirstCharInLine.y+=ph->aePrint.ptxt->nCharHeight;
@@ -14029,6 +14031,8 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         {
           //Close all previous items
           AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
+          hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_WORD;
+          hlp.dwFindFirst&=~hlp.dwPaintType;
 
           //Get first paint char in line
           AE_GetCharInLine(ae, to.ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &to.ciDrawLine.nCharInLine, &to.nDrawLineWidth, FALSE);
@@ -14036,7 +14040,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           to.nStartDrawWidth=to.nDrawLineWidth;
           to.nMaxDrawCharsCount=0;
           to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
-          hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
           //Remember first paint char in line for notify
           pntNotify.ciMinDraw=to.ciDrawLine;
@@ -14111,7 +14114,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           }
           hlp.dwActiveText=hlp.dwDefaultText;
           hlp.dwActiveBk=hlp.dwDefaultBk;
-          hlp.dwPaintType=0;
           hlp.dwFontStyle=AEHLS_NONE;
 
           //Erase space where text will be drawn.
@@ -14298,11 +14300,6 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
 
           if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
             ++to.nDrawCharOffset;
-          else
-          {
-            if (AEC_IndexCompare(&hlp.qm.ciChildScan, &hlp.qm.crQuoteEnd.ciMax) >= 0)
-              hlp.qm.ciChildScan=to.ciDrawLine;
-          }
           AEC_NextLine(&to.ciDrawLine);
         }
         else
@@ -14583,13 +14580,13 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     {
       if (hlp->dwFindFirst & AEHPT_LINK)
       {
-        hlp->dwFindFirst&=~AEHPT_LINK;
         if (!AE_HighlightFindUrl(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp->crLink))
         {
           hlp->crLink.ciMin=to->ciDrawLine;
           hlp->crLink.ciMin.lpLine=NULL;
           hlp->crLink.ciMax=hlp->crLink.ciMin;
         }
+        hlp->dwFindFirst&=~AEHPT_LINK;
       }
       else AE_HighlightFindUrl(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp->crLink);
     }
@@ -14670,11 +14667,21 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                   if (to->nDrawCharOffset >= lpThemed->lpMinPoint->nPointOffset + lpThemed->lpMinPoint->nPointLen &&
                       to->nDrawCharOffset < lpThemed->lpMaxPoint->nPointOffset)
                   {
-                    if ((AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme && hlp->fm.lpFold != lpThemed)
+                    if ((AEHTHEME)ae->popt->lpActiveTheme != lpThemed->hRuleTheme)
                     {
                       //Activate child fold with own theme
                       hlp->fm.hActiveThemePrev=(AEHTHEME)ae->popt->lpActiveTheme;
                       ae->popt->lpActiveTheme=(AETHEMEITEMW *)lpThemed->hRuleTheme;
+                    }
+                  }
+                  else
+                  {
+                    //Return to main theme
+                    if ((AEHTHEME)ae->popt->lpActiveTheme == lpThemed->hRuleTheme)
+                    {
+                      ae->popt->lpActiveTheme=(AETHEMEITEMW *)hlp->fm.hActiveThemePrev;
+                      hlp->fm.hActiveThemePrev=NULL;
+                      AE_PaintCheckHighlightReset(ae, to, hlp, &lpThemed->lpMaxPoint->ciPoint);
                     }
                   }
                 }
@@ -14739,8 +14746,6 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       //Quote find
       if (hlp->dwFindFirst & AEHPT_QUOTE)
       {
-        hlp->dwFindFirst&=~AEHPT_QUOTE;
-
         if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm) &&
             !AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm))
         {
@@ -14750,6 +14755,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
           hlp->qm.crQuoteEnd.ciMax=to->ciDrawLine;
         }
+        hlp->dwFindFirst&=~AEHPT_QUOTE;
+        hlp->qm.ciFindFirst=to->ciDrawLine;
         hlp->qm.ciChildScan=hlp->qm.crQuoteStart.ciMax;
       }
       else if (AEC_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
@@ -14909,10 +14916,10 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         //Word find
         if (AEC_IndexCompare(&hlp->wm.crDelim2.ciMax, &to->ciDrawLine) <= 0)
         {
-          if (hlp->dwFindFirst & AEHPT_DELIM1)
+          if (hlp->dwFindFirst & AEHPT_WORD)
           {
-            hlp->dwFindFirst&=~AEHPT_DELIM1;
             AE_HighlightFindWord(ae, &to->ciDrawLine, to->nDrawCharOffset, AEHF_FINDFIRSTCHAR, &hlp->wm, &hlp->qm, &hlp->fm);
+            hlp->dwFindFirst&=~AEHPT_WORD;
           }
           else AE_HighlightFindWord(ae, &to->ciDrawLine, to->nDrawCharOffset, AEHF_ISFIRSTCHAR, &hlp->wm, &hlp->qm, &hlp->fm);
         }
@@ -15050,13 +15057,13 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     {
       if (hlp->dwFindFirst & AEHPT_MARKTEXT)
       {
-        hlp->dwFindFirst&=~AEHPT_MARKTEXT;
         if (!AE_HighlightFindMarkText(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->mtm))
         {
           hlp->mtm.lpMarkText=NULL;
           hlp->mtm.crMarkText.ciMin=to->ciDrawLine;
           hlp->mtm.crMarkText.ciMax=to->ciDrawLine;
         }
+        hlp->dwFindFirst&=~AEHPT_MARKTEXT;
       }
       else AE_HighlightFindMarkText(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->mtm);
     }
@@ -15521,8 +15528,9 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   while (to.ciDrawLine.lpLine)
   {
     //Close all previous items
-    AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &gh->crText.ciMin);
-    hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
+    AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
+    hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_WORD;
+    hlp.dwFindFirst&=~hlp.dwPaintType;
 
     //Default colors
     AE_GetBasicCharColors(ae, &to.ciDrawLine, &aecc);
@@ -15530,7 +15538,6 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
     hlp.dwDefaultBk=aecc.crBk;
     hlp.dwActiveText=hlp.dwDefaultText;
     hlp.dwActiveBk=hlp.dwDefaultBk;
-    hlp.dwPaintType=0;
     hlp.dwFontStyle=AEHLS_NONE;
 
     while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
