@@ -1,5 +1,5 @@
 *****************************************************************
-***                Format AkelPad plugin v3.1                 ***
+***                Format AkelPad plugin v3.2                 ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -76,37 +76,45 @@ Extracts links from HTML text.
 
 *** External call ***
 
-Call("Format::LineSortStrAsc", 1)
+Call("Format::LineSortStrAsc", FLAGS)
   Parameters:
-    1
-      Case sensitive.
+    FLAGS (sum of the following members):
+      1  Match case.
+      2  Match locale (slower).
+      By default: 0.
 
-Call("Format::LineSortStrDesc", 1)
+Call("Format::LineSortStrDesc", FLAGS)
   Parameters:
-    1
-      Case sensitive.
+    FLAGS (sum of the following members):
+      1  Match case.
+      2  Match locale (slower).
+      By default: 0.
 
-Call("Format::LineSortIntAsc", 1)
+Call("Format::LineSortIntAsc", FLAGS)
   Parameters:
-    1
-      Case sensitive.
+    FLAGS (sum of the following members):
+      1  Match case.
+      2  Match locale (slower).
+      By default: 0.
 
-Call("Format::LineSortIntDesc", 1)
+Call("Format::LineSortIntDesc", FLAGS)
   Parameters:
-    1
-      Case sensitive.
+    FLAGS (sum of the following members):
+      1  Match case.
+      2  Match locale (slower).
+      By default: 0.
 
 Call("Format::LineGetUnique", 1)
   Parameters:
     1
-      Case sensitive.
+      Match case.
 
 Call("Format::LineGetDuplicates", 1)
   Parameters:
     1
-      Case sensitive.
+      Match case.
 
 Call("Format::LineRemoveDuplicates", 1)
   Parameters:
     1
-      Case sensitive.
+      Match case.
