@@ -431,7 +431,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 6, 0);
   pv->pPluginName="Log";
 }
 
@@ -1931,6 +1931,13 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ShowWindow(hWndDockDlg, SW_SHOW);
       dkOutputDlg->dwFlags&=~DKF_HIDDEN;
     }
+  }
+  else if (uMsg == AKDN_DLLCODER)
+  {
+    NCODERUPDATE *ncu=(NCODERUPDATE *)lParam;
+
+    if (ncu->dwFlags & SAE_RESETLIST)
+      SetCoderAlias();
   }
   else if (uMsg == AKDN_MAIN_ONFINISH)
   {
