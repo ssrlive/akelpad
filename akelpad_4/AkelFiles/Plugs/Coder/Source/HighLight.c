@@ -716,77 +716,80 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
         DWORD *lpdwAutoMarkTextColor;
         DWORD *lpdwAutoMarkBkColor;
 
-        if (lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, aensc->hdr.hwndFrom, NULL, NULL))
+        if (!(aensc->dwType & AESCT_WRAP))
         {
-          StackRequestSyntaxFile(lpSyntaxFile);
-
-          lpdwAutoMarkFlags=&lpSyntaxFile->dwAutoMarkFlags;
-          lpdwAutoMarkFontStyle=&lpSyntaxFile->dwAutoMarkFontStyle;
-          lpdwAutoMarkTextColor=&lpSyntaxFile->dwAutoMarkTextColor;
-          lpdwAutoMarkBkColor=&lpSyntaxFile->dwAutoMarkBkColor;
-        }
-        else
-        {
-          //Document without syntax theme
-          lpdwAutoMarkFlags=&dwAutoMarkFlags;
-          lpdwAutoMarkFontStyle=&dwAutoMarkFontStyle;
-          lpdwAutoMarkTextColor=&dwAutoMarkTextColor;
-          lpdwAutoMarkBkColor=&dwAutoMarkBkColor;
-        }
-
-        if (bAutoMarkEnable &&
-            (*lpdwAutoMarkFontStyle != AEHLS_NONE ||
-             *lpdwAutoMarkTextColor != (DWORD)-1 ||
-             *lpdwAutoMarkBkColor != (DWORD)-1))
-        {
-          HIGHLIGHTWINDOW *lpHighlightWindow;
-          EDITINFO ei;
-          CHARRANGE64 cr;
-
-          if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)aensc->hdr.hwndFrom, (LPARAM)&ei))
+          if (lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, aensc->hdr.hwndFrom, NULL, NULL))
           {
-            if (lpHighlightWindow=StackGetHighLightWindow(&hHighLightWindowsStack, ei.hWndMaster?ei.hWndMaster:ei.hWndEdit, ei.hDocMaster?ei.hDocMaster:ei.hDocEdit))
+            StackRequestSyntaxFile(lpSyntaxFile);
+
+            lpdwAutoMarkFlags=&lpSyntaxFile->dwAutoMarkFlags;
+            lpdwAutoMarkFontStyle=&lpSyntaxFile->dwAutoMarkFontStyle;
+            lpdwAutoMarkTextColor=&lpSyntaxFile->dwAutoMarkTextColor;
+            lpdwAutoMarkBkColor=&lpSyntaxFile->dwAutoMarkBkColor;
+          }
+          else
+          {
+            //Document without syntax theme
+            lpdwAutoMarkFlags=&dwAutoMarkFlags;
+            lpdwAutoMarkFontStyle=&dwAutoMarkFontStyle;
+            lpdwAutoMarkTextColor=&dwAutoMarkTextColor;
+            lpdwAutoMarkBkColor=&dwAutoMarkBkColor;
+          }
+
+          if (bAutoMarkEnable &&
+              (*lpdwAutoMarkFontStyle != AEHLS_NONE ||
+               *lpdwAutoMarkTextColor != (DWORD)-1 ||
+               *lpdwAutoMarkBkColor != (DWORD)-1))
+          {
+            HIGHLIGHTWINDOW *lpHighlightWindow;
+            EDITINFO ei;
+            CHARRANGE64 cr;
+
+            if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)aensc->hdr.hwndFrom, (LPARAM)&ei))
             {
-              SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-
-              if (!bFindingMark && cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel &&
-                   (nAutoMarkType == MARKAUTO_SYMBOLS ||
-                     (nAutoMarkType == MARKAUTO_WORDS &&
-                      SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&aensc->crSel.ciMin) &&
-                      !SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&aensc->crSel.ciMin) &&
-                      SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&aensc->crSel.ciMax) &&
-                      !SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&aensc->crSel.ciMax))))
+              if (lpHighlightWindow=StackGetHighLightWindow(&hHighLightWindowsStack, ei.hWndMaster?ei.hWndMaster:ei.hWndEdit, ei.hDocMaster?ei.hDocMaster:ei.hDocEdit))
               {
-                wchar_t *wpMarkText;
-                INT_PTR nMarkTextLen=0;
-                BOOL bUpdate=FALSE;
+                SendMessage(ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-                if (UnmarkSelection(lpHighlightWindow, MARKID_SELECTION, (DWORD)-1, (DWORD)-1))
-                  bUpdate=TRUE;
-
-                if (!SendMessage(ei.hWndEdit, AEM_GETLINENUMBER, AEGL_UNWRAPSELMULTILINE, 0))
+                if (!bFindingMark && cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel &&
+                     (nAutoMarkType == MARKAUTO_SYMBOLS ||
+                       (nAutoMarkType == MARKAUTO_WORDS &&
+                        SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&aensc->crSel.ciMin) &&
+                        !SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&aensc->crSel.ciMin) &&
+                        SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&aensc->crSel.ciMax) &&
+                        !SendMessage(ei.hWndEdit, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&aensc->crSel.ciMax))))
                 {
-                  if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
+                  wchar_t *wpMarkText;
+                  INT_PTR nMarkTextLen=0;
+                  BOOL bUpdate=FALSE;
+
+                  if (UnmarkSelection(lpHighlightWindow, MARKID_SELECTION, (DWORD)-1, (DWORD)-1))
+                    bUpdate=TRUE;
+
+                  if (!SendMessage(ei.hWndEdit, AEM_GETLINENUMBER, AEGL_UNWRAPSELMULTILINE, 0))
                   {
-                    if (MarkSelection(lpHighlightWindow, wpMarkText, (int)nMarkTextLen, *lpdwAutoMarkTextColor, *lpdwAutoMarkBkColor, *lpdwAutoMarkFlags, *lpdwAutoMarkFontStyle, MARKID_SELECTION))
-                      bUpdate=TRUE;
-                    SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpMarkText);
+                    if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
+                    {
+                      if (MarkSelection(lpHighlightWindow, wpMarkText, (int)nMarkTextLen, *lpdwAutoMarkTextColor, *lpdwAutoMarkBkColor, *lpdwAutoMarkFlags, *lpdwAutoMarkFontStyle, MARKID_SELECTION))
+                        bUpdate=TRUE;
+                      SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpMarkText);
+                    }
+                  }
+
+                  //Update edit
+                  if (bUpdate)
+                  {
+                    UpdateEditAndClones(ei.hWndEdit, UE_DRAWRECT);
+                    //UpdateEditAll(UE_DRAWRECT);
                   }
                 }
-
-                //Update edit
-                if (bUpdate)
+                else
                 {
-                  UpdateEditAndClones(ei.hWndEdit, UE_DRAWRECT);
-                  //UpdateEditAll(UE_DRAWRECT);
-                }
-              }
-              else
-              {
-                if (UnmarkSelection(lpHighlightWindow, MARKID_SELECTION, (DWORD)-1, (DWORD)-1))
-                {
-                  UpdateEditAndClones(ei.hWndEdit, UE_DRAWRECT);
-                  //UpdateEditAll(UE_DRAWRECT);
+                  if (UnmarkSelection(lpHighlightWindow, MARKID_SELECTION, (DWORD)-1, (DWORD)-1))
+                  {
+                    UpdateEditAndClones(ei.hWndEdit, UE_DRAWRECT);
+                    //UpdateEditAll(UE_DRAWRECT);
+                  }
                 }
               }
             }
