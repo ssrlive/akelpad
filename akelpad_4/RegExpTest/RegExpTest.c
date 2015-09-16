@@ -596,6 +596,10 @@ void _WinMain()
   TextReplaceRE(L"abc", L"(?<=a)|(?=a)", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]a[x]bc")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"1,2,3", L"([\\d,]+),[^\\n]+", L"(\\1)", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"(1,2)")) goto Error;
+
 
   //POSIX result "[x]"
   //PCRE result "[x]sufficient"
