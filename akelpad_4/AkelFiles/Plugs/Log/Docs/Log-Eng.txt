@@ -1,5 +1,5 @@
 *****************************************************************
-***                  Log AkelPad plugin v5.0                  ***
+***                  Log AkelPad plugin v5.1                  ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
