@@ -14574,6 +14574,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine)
 {
   int nFoundChild=0;
+  BOOL bLockHighLight=FALSE;
 
   if (to->dwPrintFlags & AEPRN_COLOREDSELECTION)
   {
@@ -14591,6 +14592,9 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       hlp->dwFontStyle=AEHLS_NONE;
     }
   }
+  if (hlp->dwPaintType & (AEHPT_SELECTION|AEHPT_MARKRANGE|AEHPT_MARKTEXT))
+    bLockHighLight=TRUE;
+
   if (ae->popt->dwOptionsEx & AECOE_DETECTURL)
   {
     //Url find
@@ -14617,7 +14621,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         if (AEC_IndexCompare(&to->ciDrawLine, &hlp->crLink.ciMin) >= 0 &&
             AEC_IndexCompare(&to->ciDrawLine, &hlp->crLink.ciMax) < 0)
         {
-          if (!(hlp->dwPaintType & AEHPT_SELECTION))
+          if (!bLockHighLight)
           {
             //Draw text before range for highlight
             AE_PaintTextOut(ae, to, hlp);
@@ -14625,7 +14629,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwPaintType|=AEHPT_LINK;
         }
       }
-      if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_LINK))
+      if (!bLockHighLight && (hlp->dwPaintType & AEHPT_LINK))
       {
         AEURLVISIT *lpUrlVisit;
 
@@ -14731,7 +14735,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         {
           if (!(hlp->dwPaintType & AEHPT_FOLD))
           {
-            if (!(hlp->dwPaintType & AEHPT_SELECTION))
+            if (!bLockHighLight)
             {
               //Draw text before fold
               AE_PaintTextOut(ae, to, hlp);
@@ -14739,7 +14743,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             hlp->dwPaintType|=AEHPT_FOLD;
           }
         }
-        if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_FOLD))
+        if (!bLockHighLight && (hlp->dwPaintType & AEHPT_FOLD))
         {
           if (hlp->fm.lpFold->crText != (DWORD)-1)
             hlp->dwActiveText=hlp->fm.lpFold->crText;
@@ -14820,7 +14824,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             if ((!(hlp->qm.lpQuote->dwFlags & AEHLF_QUOTESTART_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMin) >= 0) ||
                 ((hlp->qm.lpQuote->dwFlags & AEHLF_QUOTESTART_NOHIGHLIGHT) && AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMax) >= 0))
             {
-              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              if (!bLockHighLight)
               {
                 //Draw text before range for highlight
                 AE_PaintTextOut(ae, to, hlp);
@@ -14829,7 +14833,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             }
           }
         }
-        if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_QUOTE) && AEC_IndexCompare(&hlp->qm.crQuoteStart.ciMin, &hlp->qm.crQuoteEnd.ciMax))
+        if (!bLockHighLight && (hlp->dwPaintType & AEHPT_QUOTE) && AEC_IndexCompare(&hlp->qm.crQuoteStart.ciMin, &hlp->qm.crQuoteEnd.ciMax))
         {
           if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
           {
@@ -14846,7 +14850,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             {
               if (lpREGroupColor=(AEREGROUPCOLOR *)lpREGroup->dwUserData)
               {
-                if (!(hlp->dwPaintType & AEHPT_SELECTION))
+                if (!bLockHighLight)
                 {
                   if (!AEC_IndexCompare(&to->ciDrawLine, &lpREGroup->ciStrStart))
                   {
@@ -14902,7 +14906,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             }
             if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk || dwFontStyle != hlp->dwFontStyle)
             {
-              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              if (!bLockHighLight)
               {
                 //Draw text before color change
                 AE_PaintTextOut(ae, to, hlp);
@@ -14950,7 +14954,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim1.ciMin) >= 0 &&
                 AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim1.ciMax) < 0)
             {
-              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              if (!bLockHighLight)
               {
                 //Draw text before range for highlight
                 AE_PaintTextOut(ae, to, hlp);
@@ -14958,7 +14962,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwPaintType|=AEHPT_DELIM1;
             }
           }
-          if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_DELIM1))
+          if (!bLockHighLight && (hlp->dwPaintType & AEHPT_DELIM1))
           {
             if (hlp->wm.lpDelim1->crText != (DWORD)-1)
               hlp->dwActiveText=hlp->wm.lpDelim1->crText;
@@ -14979,7 +14983,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crWord.ciMin) >= 0 &&
                 AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crWord.ciMax) < 0)
             {
-              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              if (!bLockHighLight)
               {
                 //Draw text before range for highlight
                 AE_PaintTextOut(ae, to, hlp);
@@ -14987,7 +14991,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwPaintType|=AEHPT_WORD;
             }
           }
-          if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_WORD))
+          if (!bLockHighLight && (hlp->dwPaintType & AEHPT_WORD))
           {
             if (hlp->wm.lpWord->crText != (DWORD)-1)
               hlp->dwActiveText=hlp->wm.lpWord->crText;
@@ -15008,7 +15012,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             if (AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim2.ciMin) >= 0 &&
                 AEC_IndexCompare(&to->ciDrawLine, &hlp->wm.crDelim2.ciMax) < 0)
             {
-              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              if (!bLockHighLight)
               {
                 //Draw text before range for highlight
                 AE_PaintTextOut(ae, to, hlp);
@@ -15016,7 +15020,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwPaintType|=AEHPT_DELIM2;
             }
           }
-          if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_DELIM2))
+          if (!bLockHighLight && (hlp->dwPaintType & AEHPT_DELIM2))
           {
             if (hlp->wm.lpDelim2->crText != (DWORD)-1)
               hlp->dwActiveText=hlp->wm.lpDelim2->crText;
@@ -15047,7 +15051,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         if (to->nDrawCharOffset >= hlp->mrm.crMarkRange.cpMin &&
             to->nDrawCharOffset < hlp->mrm.crMarkRange.cpMax)
         {
-          if (!(hlp->dwPaintType & AEHPT_SELECTION))
+          if (!(hlp->dwPaintType & (AEHPT_SELECTION|AEHPT_MARKTEXT)))
           {
             //Draw text before mark
             AE_PaintTextOut(ae, to, hlp);
@@ -15055,7 +15059,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwPaintType|=AEHPT_MARKRANGE;
         }
       }
-      if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_MARKRANGE))
+      if (!(hlp->dwPaintType & (AEHPT_SELECTION|AEHPT_MARKTEXT)) && (hlp->dwPaintType & AEHPT_MARKRANGE))
       {
         if (hlp->mrm.lpMarkRange->crText != (DWORD)-1)
           hlp->dwActiveText=hlp->mrm.lpMarkRange->crText;
