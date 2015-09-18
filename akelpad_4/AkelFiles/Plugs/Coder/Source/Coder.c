@@ -6260,6 +6260,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0412\x0435\x0437\x0434\x0435";
     if (nStringID == STRID_ROOT)
       return L"\x041F\x043E\x0020\x043A\x043E\x0440\x043D\x044E";
+    if (nStringID == STRID_SHOWPANEL)
+      return L"\x041F\x043E\x043A\x0430\x0437\x0430\x0442\x044C\x0020\x043F\x0430\x043D\x0435\x043B\x044C";
     if (nStringID == STRID_DRAWNODE)
       return L"\x0420\x0438\x0441\x043E\x0432\x0430\x0442\x044C\x0020\x0443\x0437\x0435\x043B\x0020\x043A\x0430\x043A";
     if (nStringID == STRID_ROUND)
@@ -6494,6 +6496,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Anywhere";
     if (nStringID == STRID_ROOT)
       return L"On root";
+    if (nStringID == STRID_SHOWPANEL)
+      return L"Show panel";
     if (nStringID == STRID_DRAWNODE)
       return L"Draw node as";
     if (nStringID == STRID_ROUND)
