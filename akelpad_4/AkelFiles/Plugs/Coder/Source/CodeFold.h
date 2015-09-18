@@ -26,21 +26,22 @@
 #define STRID_ROOT                   220
 #define STRID_LISTSYSTEMCOLORS       221
 #define STRID_LISTSYSTEMFONT         222
-#define STRID_DRAWNODE               223
-#define STRID_ROUND                  224
-#define STRID_SQUARE                 225
-#define STRID_TAGMARK                226
-#define STRID_COLLAPSEONOPEN         227
-#define STRID_NOPRINTCOLLAPSED       228
-#define STRID_HIDEFOLDEND            229
-#define STRID_FINDROOT               230
-#define STRID_HOTKEY                 231
-#define STRID_DEPTH                  232
-#define STRID_HOTKEYCURRENT          233
-#define STRID_HOTKEYALL              234
-#define STRID_COLLAPSE               235
-#define STRID_NEXTLEVEL              236
-#define STRID_PREVLEVEL              237
+#define STRID_SHOWPANEL              223
+#define STRID_DRAWNODE               224
+#define STRID_ROUND                  225
+#define STRID_SQUARE                 226
+#define STRID_TAGMARK                227
+#define STRID_COLLAPSEONOPEN         228
+#define STRID_NOPRINTCOLLAPSED       229
+#define STRID_HIDEFOLDEND            230
+#define STRID_FINDROOT               231
+#define STRID_HOTKEY                 232
+#define STRID_DEPTH                  233
+#define STRID_HOTKEYCURRENT          234
+#define STRID_HOTKEYALL              235
+#define STRID_COLLAPSE               236
+#define STRID_NEXTLEVEL              237
+#define STRID_PREVLEVEL              238
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
 #define DLLA_CODEFOLD_GORULE     2
@@ -246,6 +247,7 @@ typedef struct _FOLDWINDOW {
   HWND hWndEdit;
   AEHDOC hDocEdit;
   RECT rcBoard;
+  BOOL bInitEdit;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
   int nHideMaxLineOffsetOld;
@@ -338,6 +340,7 @@ void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags)
 void GoRule(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 void DeleteFoldData(FOLDDATA *lpFoldData);
 void FreeFolds(FOLDWINDOW *lpFoldWindow, BOOL bUpdate);
+void RestoreHideLineEnd(FOLDWINDOW *lpFoldWindow);
 INT_PTR EndOfPoint(FOLDWINDOW *lpFoldWindow, const AEPOINT *lpPoint, AECHARINDEX *ciChar);
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
 void FillTreeView(HWND hWndTreeView, FOLDWINDOW *lpFoldWindow, const wchar_t *wpFilter);

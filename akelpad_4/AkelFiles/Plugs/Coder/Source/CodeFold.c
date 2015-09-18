@@ -41,11 +41,12 @@ int nShowDock=CFSD_AUTO;
 int nFollowCaret=FCO_ANYWHERE;
 BOOL bFoldListSystemColors=FALSE;
 BOOL bFoldListSystemFont=TRUE;
+BOOL bShowPanel=TRUE;
+int nDrawNodeType=DNT_ROUND;
 BOOL bTagMarkEnable=TRUE;
 BOOL bCollapseOnOpen=FALSE;
 BOOL bNoPrintCollapsed=FALSE;
 BOOL bHideFoldEnd=FALSE;
-int nDrawNodeType=DNT_ROUND;
 int nFindRootMaxDepth=0;
 HCURSOR hCursorArrow=NULL;
 DWORD dwFoldListTextColor;
@@ -761,7 +762,12 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndFollowCaretNone;
   static HWND hWndListSystemColors;
   static HWND hWndListSystemFont;
+  static HWND hWndShowPanel;
+  static HWND hWndDrawNodeSquare;
+  static HWND hWndDrawNodeRound;
   static int nShowDockDlg;
+  static BOOL bShowPanelDlg;
+  static int nDrawNodeTypeDlg;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -776,6 +782,9 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndFollowCaretNone=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FOLLOWCARET_NONE);
     hWndListSystemColors=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_LISTSYSTEMCOLORS);
     hWndListSystemFont=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_LISTSYSTEMFONT);
+    hWndShowPanel=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_SHOWPANEL);
+    hWndDrawNodeSquare=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE);
+    hWndDrawNodeRound=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_ROUND);
 
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_SHOWDOCK_GROUP, GetLangStringW(wLangModule, STRID_SHOWDOCK_GROUP));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_SHOWDOCK_AUTO, GetLangStringW(wLangModule, STRID_AUTO));
@@ -786,10 +795,14 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FOLLOWCARET_ANYWHERE, GetLangStringW(wLangModule, STRID_ANYWHERE));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FOLLOWCARET_ONLYROOT, GetLangStringW(wLangModule, STRID_ROOT));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FOLLOWCARET_NONE, GetLangStringW(wLangModule, STRID_NONE));
-    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT_GROUP, GetLangStringW(wLangModule, STRID_MAXDOCUMENT));
-    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT_POSTLABEL, GetLangStringW(wLangModule, STRID_CHARS));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_LISTSYSTEMCOLORS, GetLangStringW(wLangModule, STRID_LISTSYSTEMCOLORS));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_LISTSYSTEMFONT, GetLangStringW(wLangModule, STRID_LISTSYSTEMFONT));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT_GROUP, GetLangStringW(wLangModule, STRID_MAXDOCUMENT));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT_POSTLABEL, GetLangStringW(wLangModule, STRID_CHARS));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_SHOWPANEL, GetLangStringW(wLangModule, STRID_SHOWPANEL));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_GROUP, GetLangStringW(wLangModule, STRID_DRAWNODE));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE, GetLangStringW(wLangModule, STRID_SQUARE));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_ROUND, GetLangStringW(wLangModule, STRID_ROUND));
 
     nShowDockDlg=nShowDock;
     if (nShowDockDlg == CFSD_NONE)
@@ -807,12 +820,24 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (nFollowCaret == FCO_NONE)
       SendMessage(hWndFollowCaretNone, BM_SETCHECK, BST_CHECKED, 0);
 
-    SetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT, nCharsLimit, FALSE);
-
     if (bFoldListSystemColors)
       SendMessage(hWndListSystemColors, BM_SETCHECK, BST_CHECKED, 0);
     if (bFoldListSystemFont)
       SendMessage(hWndListSystemFont, BM_SETCHECK, BST_CHECKED, 0);
+
+    SetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT, nCharsLimit, FALSE);
+
+    bShowPanelDlg=bShowPanel;
+    if (bShowPanelDlg)
+      SendMessage(hWndShowPanel, BM_SETCHECK, BST_CHECKED, 0);
+
+    nDrawNodeTypeDlg=nDrawNodeType;
+    if (nDrawNodeTypeDlg == DNT_ROUND)
+      SendMessage(hWndDrawNodeRound, BM_SETCHECK, BST_CHECKED, 0);
+    else
+      SendMessage(hWndDrawNodeSquare, BM_SETCHECK, BST_CHECKED, 0);
+
+    SendMessage(hDlg, WM_COMMAND, IDC_CODEFOLD_SETUP_SHOWPANEL, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -829,6 +854,11 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       EnableWindow(hWndShowDockFoldLimitLabel, (nShowDockDlg == CFSD_AUTO));
       EnableWindow(hWndShowDockFoldLimit, (nShowDockDlg == CFSD_AUTO));
+      EnableWindow(hWndFollowCaretEverywhere, (nShowDockDlg != CFSD_NONE));
+      EnableWindow(hWndFollowCaretOnlyRoot, (nShowDockDlg != CFSD_NONE));
+      EnableWindow(hWndFollowCaretNone, (nShowDockDlg != CFSD_NONE));
+      EnableWindow(hWndListSystemColors, (nShowDockDlg != CFSD_NONE));
+      EnableWindow(hWndListSystemFont, (nShowDockDlg != CFSD_NONE));
 
       if (nShowDockDlg != nShowDock)
         SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
@@ -846,6 +876,26 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
       }
+    }
+    else if (LOWORD(wParam) == IDC_CODEFOLD_SETUP_SHOWPANEL)
+    {
+      bShowPanelDlg=(BOOL)SendMessage(hWndShowPanel, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndDrawNodeRound, bShowPanelDlg);
+      EnableWindow(hWndDrawNodeSquare, bShowPanelDlg);
+
+      if (bShowPanelDlg != bShowPanel)
+        SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
+    }
+    else if (LOWORD(wParam) == IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE ||
+             LOWORD(wParam) == IDC_CODEFOLD_SETUP_DRAWNODE_ROUND)
+    {
+      if (SendMessage(hWndDrawNodeSquare, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDrawNodeTypeDlg=DNT_SQUARE;
+      else if (SendMessage(hWndDrawNodeRound, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDrawNodeTypeDlg=DNT_ROUND;
+
+      if (nDrawNodeTypeDlg != nDrawNodeType)
+        SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
     }
   }
   else if (uMsg == WM_NOTIFY)
@@ -874,8 +924,6 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       else if (SendMessage(hWndFollowCaretNone, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nFollowCaret=FCO_NONE;
 
-      nCharsLimit=GetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT, NULL, FALSE);
-
       bFoldListSystemColors=(BOOL)SendMessage(hWndListSystemColors, BM_GETCHECK, 0, 0);
 
       bState=(BOOL)SendMessage(hWndListSystemFont, BM_GETCHECK, 0, 0);
@@ -891,6 +939,11 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
         else SendMessage(hWndCodeFoldList, WM_SETFONT, (WPARAM)NULL, FALSE);
       }
+
+      nCharsLimit=GetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_CHARSLIMIT, NULL, FALSE);
+
+      bShowPanel=bShowPanelDlg;
+      nDrawNodeType=nDrawNodeTypeDlg;
 
       if (nInitCodeFold)
       {
@@ -916,8 +969,6 @@ BOOL CALLBACK CodeFold1SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndDrawNodeSquare;
-  static HWND hWndDrawNodeRound;
   static HWND hWndTagMark;
   static HWND hWndCollapseOnOpen;
   static HWND hWndNoPrintCollapsed;
@@ -932,13 +983,10 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndAllCollapse;
   static HWND hWndAllNextLevel;
   static HWND hWndAllPrevLevel;
-  static int nDrawNodeTypeDlg;
 
   if (uMsg == WM_INITDIALOG)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
-    hWndDrawNodeSquare=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE);
-    hWndDrawNodeRound=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_ROUND);
     hWndTagMark=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_TAGMARK);
     hWndCollapseOnOpen=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_COLLAPSEONOPEN);
     hWndNoPrintCollapsed=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_NOPRINTCOLLAPSED);
@@ -954,9 +1002,6 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndAllNextLevel=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HOTKEYALL_NEXTLEVEL);
     hWndAllPrevLevel=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HOTKEYALL_PREVLEVEL);
 
-    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_GROUP, GetLangStringW(wLangModule, STRID_DRAWNODE));
-    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE, GetLangStringW(wLangModule, STRID_SQUARE));
-    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_DRAWNODE_ROUND, GetLangStringW(wLangModule, STRID_ROUND));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_TAGMARK, GetLangStringW(wLangModule, STRID_TAGMARK));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_COLLAPSEONOPEN, GetLangStringW(wLangModule, STRID_COLLAPSEONOPEN));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_NOPRINTCOLLAPSED, GetLangStringW(wLangModule, STRID_NOPRINTCOLLAPSED));
@@ -973,12 +1018,6 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYALL_COLLAPSE_LABEL, GetLangStringW(wLangModule, STRID_COLLAPSE));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYALL_NEXTLEVEL_LABEL, GetLangStringW(wLangModule, STRID_NEXTLEVEL));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYALL_PREVLEVEL_LABEL, GetLangStringW(wLangModule, STRID_PREVLEVEL));
-
-    nDrawNodeTypeDlg=nDrawNodeType;
-    if (nDrawNodeTypeDlg == DNT_ROUND)
-      SendMessage(hWndDrawNodeRound, BM_SETCHECK, BST_CHECKED, 0);
-    else
-      SendMessage(hWndDrawNodeSquare, BM_SETCHECK, BST_CHECKED, 0);
 
     if (bTagMarkEnable)
       SendMessage(hWndTagMark, BM_SETCHECK, BST_CHECKED, 0);
@@ -1014,19 +1053,8 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_CODEFOLD_SETUP_DRAWNODE_SQUARE ||
-        LOWORD(wParam) == IDC_CODEFOLD_SETUP_DRAWNODE_ROUND)
-    {
-      if (SendMessage(hWndDrawNodeSquare, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        nDrawNodeTypeDlg=DNT_SQUARE;
-      else if (SendMessage(hWndDrawNodeRound, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        nDrawNodeTypeDlg=DNT_ROUND;
-
-      if (nDrawNodeTypeDlg != nDrawNodeType)
-        SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
-    }
-    else if (LOWORD(wParam) >= IDC_CODEFOLD_SETUP_TAGMARK &&
-             LOWORD(wParam) <= IDC_CODEFOLD_SETUP_HOTKEYALL_PREVLEVEL)
+    if (LOWORD(wParam) >= IDC_CODEFOLD_SETUP_TAGMARK &&
+        LOWORD(wParam) <= IDC_CODEFOLD_SETUP_HOTKEYALL_PREVLEVEL)
     {
       SendMessage(hWndPropSheet, PSM_CHANGED, (WPARAM)hDlg, 0);
     }
@@ -1042,7 +1070,6 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       PSHNOTIFY *pshn=(PSHNOTIFY *)lParam;
 
-      nDrawNodeType=nDrawNodeTypeDlg;
       bTagMarkEnable=(BOOL)SendMessage(hWndTagMark, BM_GETCHECK, 0, 0);
       bCollapseOnOpen=(BOOL)SendMessage(hWndCollapseOnOpen, BM_GETCHECK, 0, 0);
       bNoPrintCollapsed=(BOOL)SendMessage(hWndNoPrintCollapsed, BM_GETCHECK, 0, 0);
@@ -1061,9 +1088,9 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (nInitCodeFold)
       {
+        //Reassign hotkeys
         UninitCodeFold(INIT_CODEFOLD_HOTKEYS);
         InitCodeFold();
-        UpdateEditAll(UE_FIRSTPIXEL);
       }
 
       if (pshn->lParam)
@@ -1681,379 +1708,384 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
     if (lpFoldWindow)
     {
-      if (!lpFoldWindow->pfwd->lpSyntaxFile)
+      //Initialize edit settings
+      if (!lpFoldWindow->bInitEdit)
       {
-        if (lpFoldWindow->rcBoard.right)
-        {
-          //Remove rect
-          nWidth=lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left;
-          lpFoldWindow->rcBoard.left=0;
-          lpFoldWindow->rcBoard.right=0;
-          SetEditRect(NULL, lpFoldWindow->hWndEdit, 0, nWidth);
-          UpdateWindow(hWnd);
+        DWORD dwHideLineOffsets=(DWORD)SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
 
-          //WM_PAINT was sended after UpdateWindow, so don't redraw edit.
-          *lResult=0;
-          return TRUE;
+        lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
+        lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
+        lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
+        if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
+        {
+          lpFoldWindow->nHideMaxLineOffset=0;
+          SendMessage(hWnd, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffset), 0);
         }
+        lpFoldWindow->bInitEdit=TRUE;
       }
-      else
+
+      if (bShowPanel)
       {
-        if (!lpFoldWindow->rcBoard.right)
+        if (!lpFoldWindow->pfwd->lpSyntaxFile)
         {
-          //Add rect
-          SendMessage(hWnd, AEM_GETRECT, 0, (LPARAM)&rcDraw);
-          GetClientRect(hWnd, &lpFoldWindow->rcBoard);
-          lpFoldWindow->rcBoard.left=rcDraw.left;
-          lpFoldWindow->rcBoard.right=rcDraw.left + BOARD_WIDTH + BOARD_EDGE * 2;
-          SetEditRect(NULL, hWnd, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, 0);
-          UpdateWindow(hWnd);
-
-          //Initialize edit settings
+          if (lpFoldWindow->rcBoard.right)
           {
-            DWORD dwHideLineOffsets=(DWORD)SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
+            //Remove rect
+            nWidth=lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left;
+            lpFoldWindow->rcBoard.left=0;
+            lpFoldWindow->rcBoard.right=0;
+            SetEditRect(NULL, lpFoldWindow->hWndEdit, 0, nWidth);
+            UpdateWindow(hWnd);
 
-            lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
-            lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
-            lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
-            if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
-            {
-              lpFoldWindow->nHideMaxLineOffset=0;
-              SendMessage(hWnd, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffset), 0);
-            }
+            //WM_PAINT was sended after UpdateWindow, so don't redraw edit.
+            *lResult=0;
+            return TRUE;
           }
-
-          //WM_PAINT was sended after UpdateWindow, so don't redraw edit.
-          *lResult=0;
-          return TRUE;
         }
-
-        //Call next procedure
-        if (lpFoldWindow->lpUser)
-          *lResult=CallWindowProcWide(lpFoldWindow->lpUser->lpOldEditProc, hWnd, uMsg, wParam, lParam);
         else
-          *lResult=NewEditProcData->NextProc(hWnd, uMsg, wParam, lParam);
-
-        if (hDC=GetDC(hWnd))
         {
-          AEFOLD *lpFold=NULL;
-          AEFOLD *lpCaretFold=NULL;
-          AEFOLD *lpRootFold;
-          AEFOLD *lpDeepless;
-          AECHARINDEX ciFirstLine;
-          AECHARINDEX ciLastLine;
-          HDC hBufferDC;
-          HBITMAP hBitmap;
-          HBITMAP hBitmapOld;
-          HBRUSH hHollowBrush=NULL;
-          HBRUSH hNormalFoldBrush;
-          HBRUSH hActiveFoldBrush;
-          HBRUSH hNormalNodeOpenBrush=NULL;
-          HBRUSH hNormalNodeCloseBrush=NULL;
-          HBRUSH hActiveNodeOpenBrush=NULL;
-          HBRUSH hActiveNodeCloseBrush=NULL;
-          HBRUSH hBrushOld;
-          HBRUSH hFirstBkBrush;
-          HPEN hSecondBkPen;
-          HPEN hNormalFoldPen;
-          HPEN hActiveFoldPen;
-          HPEN hNormalNodeOpenPen=NULL;
-          HPEN hNormalNodeClosePen=NULL;
-          HPEN hActiveNodeOpenPen=NULL;
-          HPEN hActiveNodeClosePen=NULL;
-          HPEN hCurrentPen;
-          HPEN hPenOld;
-          RECT rcBoard;
-          int nLastFigure=FRG_NONE;
-          int nHPos;
-          int nVPos;
-          int nCharHeight;
-          int nBoardWidth;
-          int i;
-          BOOL bCaretFold=FALSE;
-
-          GetClientRect(hWnd, &rcBoard);
-          lpFoldWindow->rcBoard.bottom=rcBoard.bottom;
-
-          hBufferDC=CreateCompatibleDC(hDC);
-          hBitmap=CreateCompatibleBitmap(hDC, lpFoldWindow->rcBoard.right, lpFoldWindow->rcBoard.bottom);
-          hBitmapOld=(HBITMAP)SelectObject(hBufferDC, hBitmap);
-
-          SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstLine);
-          SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTVISIBLELINE, (LPARAM)&ciLastLine);
-          AEC_NextLineEx(&ciLastLine, &ciLastLine);
-
-          nHPos=lpFoldWindow->rcBoard.left + (lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left) / 2;
-          nVPos=(int)SendMessage(hWnd, AEM_VPOSFROMLINE, AECT_CLIENT, ciFirstLine.nLine);
-          nCharHeight=(int)SendMessage(hWnd, AEM_GETCHARSIZE, AECS_HEIGHT, 0);
-
-          hNormalFoldPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalFoldColor);
-          hActiveFoldPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveFoldColor);
-          hSecondBkPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelSecondBkColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor != (DWORD)-1)
-            hNormalNodeOpenPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor != (DWORD)-1)
-            hNormalNodeClosePen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor != (DWORD)-1)
-            hActiveNodeOpenPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor != (DWORD)-1)
-            hActiveNodeClosePen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor);
-
-          //Erase board background
-          hFirstBkBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelFirstBkColor);
-          FillRect(hBufferDC, &lpFoldWindow->rcBoard, hFirstBkBrush);
-
-          hPenOld=(HPEN)SelectObject(hBufferDC, hSecondBkPen);
-          nBoardWidth=lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left;
-          for (i=lpFoldWindow->rcBoard.top; i < lpFoldWindow->rcBoard.bottom + nBoardWidth; i+=2)
+          if (!lpFoldWindow->rcBoard.right)
           {
-            MoveToEx(hBufferDC, lpFoldWindow->rcBoard.left, i, NULL);
-            LineTo(hBufferDC, lpFoldWindow->rcBoard.right, i - nBoardWidth);
+            //Add rect
+            SendMessage(hWnd, AEM_GETRECT, 0, (LPARAM)&rcDraw);
+            GetClientRect(hWnd, &lpFoldWindow->rcBoard);
+            lpFoldWindow->rcBoard.left=rcDraw.left;
+            lpFoldWindow->rcBoard.right=rcDraw.left + BOARD_WIDTH + BOARD_EDGE * 2;
+            SetEditRect(NULL, hWnd, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, 0);
+            UpdateWindow(hWnd);
+
+            //WM_PAINT was sended after UpdateWindow, so don't redraw edit.
+            *lResult=0;
+            return TRUE;
           }
-          hCurrentPen=hNormalFoldPen;
-          SelectObject(hBufferDC, hCurrentPen);
 
-          //Brushes
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor != (DWORD)-1)
-            hNormalNodeOpenBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor != (DWORD)-1)
-            hNormalNodeCloseBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor != (DWORD)-1)
-            hActiveNodeOpenBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor);
-          if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor != (DWORD)-1)
-            hActiveNodeCloseBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor);
-          hNormalFoldBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalFoldColor);
-          hActiveFoldBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveFoldColor);
-          hHollowBrush=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
-          hBrushOld=(HBRUSH)SelectObject(hBufferDC, hHollowBrush);
+          //Call next procedure
+          if (lpFoldWindow->lpUser)
+            *lResult=CallWindowProcWide(lpFoldWindow->lpUser->lpOldEditProc, hWnd, uMsg, wParam, lParam);
+          else
+            *lResult=NewEditProcData->NextProc(hWnd, uMsg, wParam, lParam);
 
-          while (ciFirstLine.nLine <= ciLastLine.nLine)
+          if (hDC=GetDC(hWnd))
           {
-            if (!SendMessage(hWnd, AEM_ISLINECOLLAPSED, ciFirstLine.nLine, 0))
+            AEFOLD *lpFold=NULL;
+            AEFOLD *lpCaretFold=NULL;
+            AEFOLD *lpRootFold;
+            AEFOLD *lpDeepless;
+            AECHARINDEX ciFirstLine;
+            AECHARINDEX ciLastLine;
+            HDC hBufferDC;
+            HBITMAP hBitmap;
+            HBITMAP hBitmapOld;
+            HBRUSH hHollowBrush=NULL;
+            HBRUSH hNormalFoldBrush;
+            HBRUSH hActiveFoldBrush;
+            HBRUSH hNormalNodeOpenBrush=NULL;
+            HBRUSH hNormalNodeCloseBrush=NULL;
+            HBRUSH hActiveNodeOpenBrush=NULL;
+            HBRUSH hActiveNodeCloseBrush=NULL;
+            HBRUSH hBrushOld;
+            HBRUSH hFirstBkBrush;
+            HPEN hSecondBkPen;
+            HPEN hNormalFoldPen;
+            HPEN hActiveFoldPen;
+            HPEN hNormalNodeOpenPen=NULL;
+            HPEN hNormalNodeClosePen=NULL;
+            HPEN hActiveNodeOpenPen=NULL;
+            HPEN hActiveNodeClosePen=NULL;
+            HPEN hCurrentPen;
+            HPEN hPenOld;
+            RECT rcBoard;
+            int nLastFigure=FRG_NONE;
+            int nHPos;
+            int nVPos;
+            int nCharHeight;
+            int nBoardWidth;
+            int i;
+            BOOL bCaretFold=FALSE;
+
+            GetClientRect(hWnd, &rcBoard);
+            lpFoldWindow->rcBoard.bottom=rcBoard.bottom;
+
+            hBufferDC=CreateCompatibleDC(hDC);
+            hBitmap=CreateCompatibleBitmap(hDC, lpFoldWindow->rcBoard.right, lpFoldWindow->rcBoard.bottom);
+            hBitmapOld=(HBITMAP)SelectObject(hBufferDC, hBitmap);
+
+            SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstLine);
+            SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTVISIBLELINE, (LPARAM)&ciLastLine);
+            AEC_NextLineEx(&ciLastLine, &ciLastLine);
+
+            nHPos=lpFoldWindow->rcBoard.left + (lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left) / 2;
+            nVPos=(int)SendMessage(hWnd, AEM_VPOSFROMLINE, AECT_CLIENT, ciFirstLine.nLine);
+            nCharHeight=(int)SendMessage(hWnd, AEM_GETCHARSIZE, AECS_HEIGHT, 0);
+
+            hNormalFoldPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalFoldColor);
+            hActiveFoldPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveFoldColor);
+            hSecondBkPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelSecondBkColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor != (DWORD)-1)
+              hNormalNodeOpenPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor != (DWORD)-1)
+              hNormalNodeClosePen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor != (DWORD)-1)
+              hActiveNodeOpenPen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor != (DWORD)-1)
+              hActiveNodeClosePen=CreatePen(PS_SOLID, 0, lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor);
+
+            //Erase board background
+            hFirstBkBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelFirstBkColor);
+            FillRect(hBufferDC, &lpFoldWindow->rcBoard, hFirstBkBrush);
+
+            hPenOld=(HPEN)SelectObject(hBufferDC, hSecondBkPen);
+            nBoardWidth=lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left;
+            for (i=lpFoldWindow->rcBoard.top; i < lpFoldWindow->rcBoard.bottom + nBoardWidth; i+=2)
             {
-              lpFold=FoldGet(lpFoldWindow, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_FOLDEND|AEFF_RECURSE, ciFirstLine.nLine, NULL);
+              MoveToEx(hBufferDC, lpFoldWindow->rcBoard.left, i, NULL);
+              LineTo(hBufferDC, lpFoldWindow->rcBoard.right, i - nBoardWidth);
+            }
+            hCurrentPen=hNormalFoldPen;
+            SelectObject(hBufferDC, hCurrentPen);
 
-              //Skip one line folds
-              while (lpFold)
+            //Brushes
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor != (DWORD)-1)
+              hNormalNodeOpenBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor != (DWORD)-1)
+              hNormalNodeCloseBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor != (DWORD)-1)
+              hActiveNodeOpenBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor);
+            if (lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor != (DWORD)-1)
+              hActiveNodeCloseBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor);
+            hNormalFoldBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelNormalFoldColor);
+            hActiveFoldBrush=CreateSolidBrush(lpFoldWindow->pfwd->lpSyntaxFile->dwFoldPanelActiveFoldColor);
+            hHollowBrush=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+            hBrushOld=(HBRUSH)SelectObject(hBufferDC, hHollowBrush);
+
+            while (ciFirstLine.nLine <= ciLastLine.nLine)
+            {
+              if (!SendMessage(hWnd, AEM_ISLINECOLLAPSED, ciFirstLine.nLine, 0))
               {
-                if (lpFold->lpMinPoint->ciPoint.nLine == lpFold->lpMaxPoint->ciPoint.nLine)
+                lpFold=FoldGet(lpFoldWindow, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_FOLDEND|AEFF_RECURSE, ciFirstLine.nLine, NULL);
+
+                //Skip one line folds
+                while (lpFold)
                 {
-                  if (!lpFold->parent && lpFold->prev &&
-                                         lpFold->prev->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine &&
-                                         lpFold->prev->lpMinPoint->ciPoint.nLine != lpFold->prev->lpMaxPoint->ciPoint.nLine)
+                  if (lpFold->lpMinPoint->ciPoint.nLine == lpFold->lpMaxPoint->ciPoint.nLine)
                   {
-                    lpFold=lpFold->prev;
+                    if (!lpFold->parent && lpFold->prev &&
+                                           lpFold->prev->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine &&
+                                           lpFold->prev->lpMinPoint->ciPoint.nLine != lpFold->prev->lpMaxPoint->ciPoint.nLine)
+                    {
+                      lpFold=lpFold->prev;
+                    }
+                    else lpFold=lpFold->parent;
                   }
-                  else lpFold=lpFold->parent;
-                }
-                else break;
-              }
-
-              if (lpFold)
-              {
-                //If folds start at the same line, use deepless
-                for (lpDeepless=lpFold; lpDeepless; lpDeepless=lpDeepless->parent)
-                {
-                  if (lpDeepless->lpMinPoint->ciPoint.nLine == ciFirstLine.nLine)
-                    lpFold=lpDeepless;
-                  else
-                    break;
+                  else break;
                 }
 
-                //If folds end at the same line, use deepless
-                for (lpDeepless=lpFold; lpDeepless; lpDeepless=lpDeepless->parent)
+                if (lpFold)
                 {
-                  if (lpDeepless->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine)
-                    lpFold=lpDeepless;
-                  else
-                    break;
-                }
-
-                //If line is on fold end, then check is line also on next subling fold start
-                if (lpFold->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine)
-                {
-                  if (lpFold->next &&
-                      lpFold->next->lpMinPoint->ciPoint.nLine == ciFirstLine.nLine &&
-                      lpFold->next->lpMinPoint->ciPoint.nLine != lpFold->next->lpMaxPoint->ciPoint.nLine)
+                  //If folds start at the same line, use deepless
+                  for (lpDeepless=lpFold; lpDeepless; lpDeepless=lpDeepless->parent)
                   {
-                    lpFold=lpFold->next;
-                  }
-                }
-              }
-
-              if (lpFold)
-              {
-                //Active fold
-                if (!bCaretFold)
-                {
-                  bCaretFold=TRUE;
-                  lpCaretFold=GetCaretFold(lpFoldWindow, NULL);
-
-                  //Skip one line folds
-                  while (lpCaretFold)
-                  {
-                    if (lpCaretFold->lpMinPoint->ciPoint.nLine == lpCaretFold->lpMaxPoint->ciPoint.nLine)
-                      lpCaretFold=lpCaretFold->parent;
+                    if (lpDeepless->lpMinPoint->ciPoint.nLine == ciFirstLine.nLine)
+                      lpFold=lpDeepless;
                     else
                       break;
                   }
-                }
-                if (lpCaretFold && AEC_IndexCompare(&lpCaretFold->lpMinPoint->ciPoint, &lpFold->lpMinPoint->ciPoint) <= 0 &&
-                                   AEC_IndexCompare(&lpCaretFold->lpMaxPoint->ciPoint, &lpFold->lpMaxPoint->ciPoint) >= 0)
-                  hCurrentPen=hActiveFoldPen;
-                else
-                  hCurrentPen=hNormalFoldPen;
-                SelectObject(hBufferDC, hCurrentPen);
 
-                //Draw figures
-                if (nLastFigure == FRG_FOLDEND)
-                {
-                  MoveToEx(hBufferDC, nHPos, nVPos - nCharHeight / 2, NULL);
-                  LineTo(hBufferDC, nHPos, nVPos);
-                }
-
-                if (ciFirstLine.nLine == lpFold->lpMinPoint->ciPoint.nLine)
-                {
-                  if (nLastFigure != FRG_NONE)
+                  //If folds end at the same line, use deepless
+                  for (lpDeepless=lpFold; lpDeepless; lpDeepless=lpDeepless->parent)
                   {
-                    //Line before node
-                    MoveToEx(hBufferDC, nHPos, nVPos, NULL);
-                    LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2 - BOARD_WIDTH / 2);
+                    if (lpDeepless->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine)
+                      lpFold=lpDeepless;
+                    else
+                      break;
                   }
 
-                  //Draw node
-                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
+                  //If line is on fold end, then check is line also on next subling fold start
+                  if (lpFold->lpMaxPoint->ciPoint.nLine == ciFirstLine.nLine)
                   {
-                    if (hActiveNodeCloseBrush && hCurrentPen == hActiveFoldPen)
-                      SelectObject(hBufferDC, hActiveNodeCloseBrush);
-                    else if (hNormalNodeCloseBrush && hCurrentPen != hActiveFoldPen)
-                      SelectObject(hBufferDC, hNormalNodeCloseBrush);
-                    else
+                    if (lpFold->next &&
+                        lpFold->next->lpMinPoint->ciPoint.nLine == ciFirstLine.nLine &&
+                        lpFold->next->lpMinPoint->ciPoint.nLine != lpFold->next->lpMaxPoint->ciPoint.nLine)
                     {
-                      if (hCurrentPen == hActiveFoldPen)
-                        SelectObject(hBufferDC, hActiveFoldBrush);
-                      else
-                        SelectObject(hBufferDC, hNormalFoldBrush);
+                      lpFold=lpFold->next;
                     }
                   }
+                }
+
+                if (lpFold)
+                {
+                  //Active fold
+                  if (!bCaretFold)
+                  {
+                    bCaretFold=TRUE;
+                    lpCaretFold=GetCaretFold(lpFoldWindow, NULL);
+
+                    //Skip one line folds
+                    while (lpCaretFold)
+                    {
+                      if (lpCaretFold->lpMinPoint->ciPoint.nLine == lpCaretFold->lpMaxPoint->ciPoint.nLine)
+                        lpCaretFold=lpCaretFold->parent;
+                      else
+                        break;
+                    }
+                  }
+                  if (lpCaretFold && AEC_IndexCompare(&lpCaretFold->lpMinPoint->ciPoint, &lpFold->lpMinPoint->ciPoint) <= 0 &&
+                                     AEC_IndexCompare(&lpCaretFold->lpMaxPoint->ciPoint, &lpFold->lpMaxPoint->ciPoint) >= 0)
+                    hCurrentPen=hActiveFoldPen;
+                  else
+                    hCurrentPen=hNormalFoldPen;
+                  SelectObject(hBufferDC, hCurrentPen);
+
+                  //Draw figures
+                  if (nLastFigure == FRG_FOLDEND)
+                  {
+                    MoveToEx(hBufferDC, nHPos, nVPos - nCharHeight / 2, NULL);
+                    LineTo(hBufferDC, nHPos, nVPos);
+                  }
+
+                  if (ciFirstLine.nLine == lpFold->lpMinPoint->ciPoint.nLine)
+                  {
+                    if (nLastFigure != FRG_NONE)
+                    {
+                      //Line before node
+                      MoveToEx(hBufferDC, nHPos, nVPos, NULL);
+                      LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2 - BOARD_WIDTH / 2);
+                    }
+
+                    //Draw node
+                    if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
+                    {
+                      if (hActiveNodeCloseBrush && hCurrentPen == hActiveFoldPen)
+                        SelectObject(hBufferDC, hActiveNodeCloseBrush);
+                      else if (hNormalNodeCloseBrush && hCurrentPen != hActiveFoldPen)
+                        SelectObject(hBufferDC, hNormalNodeCloseBrush);
+                      else
+                      {
+                        if (hCurrentPen == hActiveFoldPen)
+                          SelectObject(hBufferDC, hActiveFoldBrush);
+                        else
+                          SelectObject(hBufferDC, hNormalFoldBrush);
+                      }
+                    }
+                    else
+                    {
+                      if (hActiveNodeOpenBrush && hCurrentPen == hActiveFoldPen)
+                        SelectObject(hBufferDC, hActiveNodeOpenBrush);
+                      else if (hNormalNodeOpenBrush && hCurrentPen != hActiveFoldPen)
+                        SelectObject(hBufferDC, hNormalNodeOpenBrush);
+                      else
+                        SelectObject(hBufferDC, hHollowBrush);
+                    }
+                    RoundRect(hBufferDC, (nHPos - BOARD_WIDTH / 2), (nVPos + nCharHeight / 2 - BOARD_WIDTH / 2), (nHPos + BOARD_WIDTH / 2) + 1, (nVPos + nCharHeight / 2 + BOARD_WIDTH / 2) + 1, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0);
+
+                    //Line after node
+                    if (lpFoldWindow->nHideMaxLineOffset < 0 || !(lpFold->dwFlags & AEFOLDF_COLLAPSED) || lpFold->parent)
+                    {
+                      MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
+                      LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
+                    }
+
+                    //Draw sign
+                    if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
+                    {
+                      if (hActiveNodeClosePen && hCurrentPen == hActiveFoldPen)
+                        SelectObject(hBufferDC, hActiveNodeClosePen);
+                      else if (hNormalNodeClosePen && hCurrentPen != hActiveFoldPen)
+                        SelectObject(hBufferDC, hNormalNodeClosePen);
+                      else
+                        SelectObject(hBufferDC, hSecondBkPen);
+                    }
+                    else
+                    {
+                      if (hActiveNodeOpenPen && hCurrentPen == hActiveFoldPen)
+                        SelectObject(hBufferDC, hActiveNodeOpenPen);
+                      else if (hNormalNodeOpenPen && hCurrentPen != hActiveFoldPen)
+                        SelectObject(hBufferDC, hNormalNodeOpenPen);
+                    }
+                    if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
+                    {
+                      //Plus
+                      MoveToEx(hBufferDC, nHPos - BOARD_WIDTH / 2 + 2, nVPos + nCharHeight / 2, NULL);
+                      LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2 - 1, nVPos + nCharHeight / 2);
+                      MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 - BOARD_WIDTH / 2 + 2, NULL);
+                      LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2 - 1);
+
+                      nLastFigure=FRG_FOLDSTARTPLUS;
+                    }
+                    else
+                    {
+                      //Minus
+                      MoveToEx(hBufferDC, nHPos - BOARD_WIDTH / 2 + 2, nVPos + nCharHeight / 2, NULL);
+                      LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2 - 1, nVPos + nCharHeight / 2);
+
+                      nLastFigure=FRG_FOLDSTARTMINUS;
+                    }
+                  }
+                  else if (ciFirstLine.nLine == lpFold->lpMaxPoint->ciPoint.nLine)
+                  {
+                    //Line to the right
+                    MoveToEx(hBufferDC, nHPos, nVPos, NULL);
+                    LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2);
+                    MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2, NULL);
+                    LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2, nVPos + nCharHeight / 2);
+
+                    if (lpFold->parent)
+                    {
+                      for (lpRootFold=lpFold->parent; lpRootFold->parent; lpRootFold=lpRootFold->parent);
+
+                      if (ciFirstLine.nLine == lpRootFold->lpMaxPoint->ciPoint.nLine)
+                        nLastFigure=FRG_NONE;
+                      else
+                        nLastFigure=FRG_FOLDEND;
+                    }
+                    else nLastFigure=FRG_NONE;
+                  }
                   else
                   {
-                    if (hActiveNodeOpenBrush && hCurrentPen == hActiveFoldPen)
-                      SelectObject(hBufferDC, hActiveNodeOpenBrush);
-                    else if (hNormalNodeOpenBrush && hCurrentPen != hActiveFoldPen)
-                      SelectObject(hBufferDC, hNormalNodeOpenBrush);
-                    else
-                      SelectObject(hBufferDC, hHollowBrush);
-                  }
-                  RoundRect(hBufferDC, (nHPos - BOARD_WIDTH / 2), (nVPos + nCharHeight / 2 - BOARD_WIDTH / 2), (nHPos + BOARD_WIDTH / 2) + 1, (nVPos + nCharHeight / 2 + BOARD_WIDTH / 2) + 1, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0);
-
-                  //Line after node
-                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !(lpFold->dwFlags & AEFOLDF_COLLAPSED) || lpFold->parent)
-                  {
-                    MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
+                    //Vertical line
+                    MoveToEx(hBufferDC, nHPos, nVPos, NULL);
                     LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
-                  }
-
-                  //Draw sign
-                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
-                  {
-                    if (hActiveNodeClosePen && hCurrentPen == hActiveFoldPen)
-                      SelectObject(hBufferDC, hActiveNodeClosePen);
-                    else if (hNormalNodeClosePen && hCurrentPen != hActiveFoldPen)
-                      SelectObject(hBufferDC, hNormalNodeClosePen);
-                    else
-                      SelectObject(hBufferDC, hSecondBkPen);
-                  }
-                  else
-                  {
-                    if (hActiveNodeOpenPen && hCurrentPen == hActiveFoldPen)
-                      SelectObject(hBufferDC, hActiveNodeOpenPen);
-                    else if (hNormalNodeOpenPen && hCurrentPen != hActiveFoldPen)
-                      SelectObject(hBufferDC, hNormalNodeOpenPen);
-                  }
-                  if (lpFold->dwFlags & AEFOLDF_COLLAPSED)
-                  {
-                    //Plus
-                    MoveToEx(hBufferDC, nHPos - BOARD_WIDTH / 2 + 2, nVPos + nCharHeight / 2, NULL);
-                    LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2 - 1, nVPos + nCharHeight / 2);
-                    MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 - BOARD_WIDTH / 2 + 2, NULL);
-                    LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2 - 1);
-
-                    nLastFigure=FRG_FOLDSTARTPLUS;
-                  }
-                  else
-                  {
-                    //Minus
-                    MoveToEx(hBufferDC, nHPos - BOARD_WIDTH / 2 + 2, nVPos + nCharHeight / 2, NULL);
-                    LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2 - 1, nVPos + nCharHeight / 2);
-
-                    nLastFigure=FRG_FOLDSTARTMINUS;
+                    nLastFigure=FRG_LINE;
                   }
                 }
-                else if (ciFirstLine.nLine == lpFold->lpMaxPoint->ciPoint.nLine)
-                {
-                  //Line to the right
-                  MoveToEx(hBufferDC, nHPos, nVPos, NULL);
-                  LineTo(hBufferDC, nHPos, nVPos + nCharHeight / 2);
-                  MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2, NULL);
-                  LineTo(hBufferDC, nHPos + BOARD_WIDTH / 2, nVPos + nCharHeight / 2);
+                else nLastFigure=FRG_NONE;
 
-                  if (lpFold->parent)
-                  {
-                    for (lpRootFold=lpFold->parent; lpRootFold->parent; lpRootFold=lpRootFold->parent);
-
-                    if (ciFirstLine.nLine == lpRootFold->lpMaxPoint->ciPoint.nLine)
-                      nLastFigure=FRG_NONE;
-                    else
-                      nLastFigure=FRG_FOLDEND;
-                  }
-                  else nLastFigure=FRG_NONE;
-                }
-                else
-                {
-                  //Vertical line
-                  MoveToEx(hBufferDC, nHPos, nVPos, NULL);
-                  LineTo(hBufferDC, nHPos, nVPos + nCharHeight);
-                  nLastFigure=FRG_LINE;
-                }
+                //Next line
+                nVPos+=nCharHeight;
+                AEC_NextLine(&ciFirstLine);
               }
-              else nLastFigure=FRG_NONE;
-
-              //Next line
-              nVPos+=nCharHeight;
-              AEC_NextLine(&ciFirstLine);
+              else if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine))
+                break;
             }
-            else if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTUNCOLLAPSEDLINE, (LPARAM)&ciFirstLine))
-              break;
+            BitBlt(hDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.bottom - lpFoldWindow->rcBoard.top, hBufferDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, SRCCOPY);
+
+            //Brushes
+            SelectObject(hBufferDC, hBrushOld);
+            if (hNormalNodeOpenBrush) DeleteObject(hNormalNodeOpenBrush);
+            if (hNormalNodeCloseBrush) DeleteObject(hNormalNodeCloseBrush);
+            if (hActiveNodeOpenBrush) DeleteObject(hActiveNodeOpenBrush);
+            if (hActiveNodeCloseBrush) DeleteObject(hActiveNodeCloseBrush);
+            if (hFirstBkBrush) DeleteObject(hFirstBkBrush);
+            DeleteObject(hNormalFoldBrush);
+            DeleteObject(hActiveFoldBrush);
+
+            //Pens
+            SelectObject(hBufferDC, hPenOld);
+            if (hNormalNodeOpenPen) DeleteObject(hNormalNodeOpenPen);
+            if (hNormalNodeClosePen) DeleteObject(hNormalNodeClosePen);
+            if (hActiveNodeOpenPen) DeleteObject(hActiveNodeOpenPen);
+            if (hActiveNodeClosePen) DeleteObject(hActiveNodeClosePen);
+            DeleteObject(hNormalFoldPen);
+            DeleteObject(hActiveFoldPen);
+            DeleteObject(hSecondBkPen);
+
+            SelectObject(hBufferDC, hBitmapOld);
+            DeleteDC(hBufferDC);
+            DeleteObject(hBitmap);
+            ReleaseDC(hWnd, hDC);
           }
-          BitBlt(hDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, lpFoldWindow->rcBoard.right - lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.bottom - lpFoldWindow->rcBoard.top, hBufferDC, lpFoldWindow->rcBoard.left, lpFoldWindow->rcBoard.top, SRCCOPY);
-
-          //Brushes
-          SelectObject(hBufferDC, hBrushOld);
-          if (hNormalNodeOpenBrush) DeleteObject(hNormalNodeOpenBrush);
-          if (hNormalNodeCloseBrush) DeleteObject(hNormalNodeCloseBrush);
-          if (hActiveNodeOpenBrush) DeleteObject(hActiveNodeOpenBrush);
-          if (hActiveNodeCloseBrush) DeleteObject(hActiveNodeCloseBrush);
-          if (hFirstBkBrush) DeleteObject(hFirstBkBrush);
-          DeleteObject(hNormalFoldBrush);
-          DeleteObject(hActiveFoldBrush);
-
-          //Pens
-          SelectObject(hBufferDC, hPenOld);
-          if (hNormalNodeOpenPen) DeleteObject(hNormalNodeOpenPen);
-          if (hNormalNodeClosePen) DeleteObject(hNormalNodeClosePen);
-          if (hActiveNodeOpenPen) DeleteObject(hActiveNodeOpenPen);
-          if (hActiveNodeClosePen) DeleteObject(hActiveNodeClosePen);
-          DeleteObject(hNormalFoldPen);
-          DeleteObject(hActiveFoldPen);
-          DeleteObject(hSecondBkPen);
-
-          SelectObject(hBufferDC, hBitmapOld);
-          DeleteDC(hBufferDC);
-          DeleteObject(hBitmap);
-          ReleaseDC(hWnd, hDC);
+          return TRUE;
         }
-        return TRUE;
       }
     }
   }
@@ -2840,6 +2872,7 @@ void StackDeleteFoldWindow(STACKFOLDWINDOW *hStack, FOLDWINDOW *lpFoldWindow)
 
   if (lpFoldWindow->pfwd == &lpFoldWindow->fwd)
     FreeFolds(lpFoldWindow, FALSE);
+  RestoreHideLineEnd(lpFoldWindow);
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFoldWindow);
 }
 
@@ -2857,9 +2890,7 @@ void StackFreeFoldWindows(STACKFOLDWINDOW *hStack)
       StackDeleteManual(&hManualStack, lpFoldWindow->lpUser, CODER_CODEFOLD);
     else
       FreeFolds(lpFoldWindow, TRUE);
-
-    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
-      SendMessage(lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
+    RestoreHideLineEnd(lpFoldWindow);
   }
 
   if (nMDI == WMD_PMDI)
@@ -3680,6 +3711,21 @@ void FreeFolds(FOLDWINDOW *lpFoldWindow, BOOL bUpdate)
     SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_DELETEFOLD, (WPARAM)NULL, bUpdate);
   else
     SendMessage(lpFoldWindow->hWndEdit, AEM_DELETEFOLD, (WPARAM)NULL, bUpdate);
+}
+
+void RestoreHideLineEnd(FOLDWINDOW *lpFoldWindow)
+{
+  if (nMDI == WMD_PMDI)
+  {
+    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
+      SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
+  }
+  else
+  {
+    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
+      SendMessage(lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
+  }
+  lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
 }
 
 INT_PTR EndOfPoint(FOLDWINDOW *lpFoldWindow, const AEPOINT *lpPoint, AECHARINDEX *ciChar)
@@ -4816,6 +4862,7 @@ void ReadCodeFoldOptions(HANDLE hOptions)
   WideOption(hOptions, L"FollowCaret", PO_DWORD, (LPBYTE)&nFollowCaret, sizeof(DWORD));
   WideOption(hOptions, L"FoldListSystemColors", PO_DWORD, (LPBYTE)&bFoldListSystemColors, sizeof(DWORD));
   WideOption(hOptions, L"FoldListSystemFont", PO_DWORD, (LPBYTE)&bFoldListSystemFont, sizeof(DWORD));
+  WideOption(hOptions, L"ShowPanel", PO_DWORD, (LPBYTE)&bShowPanel, sizeof(DWORD));
   WideOption(hOptions, L"DrawNodeType", PO_DWORD, (LPBYTE)&nDrawNodeType, sizeof(DWORD));
   WideOption(hOptions, L"TagMarkEnable", PO_DWORD, (LPBYTE)&bTagMarkEnable, sizeof(DWORD));
   WideOption(hOptions, L"CollapseOnOpen", PO_DWORD, (LPBYTE)&bCollapseOnOpen, sizeof(DWORD));
@@ -4855,6 +4902,7 @@ void SaveCodeFoldOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"FollowCaret", PO_DWORD, (LPBYTE)&nFollowCaret, sizeof(DWORD));
     WideOption(hOptions, L"FoldListSystemColors", PO_DWORD, (LPBYTE)&bFoldListSystemColors, sizeof(DWORD));
     WideOption(hOptions, L"FoldListSystemFont", PO_DWORD, (LPBYTE)&bFoldListSystemFont, sizeof(DWORD));
+    WideOption(hOptions, L"ShowPanel", PO_DWORD, (LPBYTE)&bShowPanel, sizeof(DWORD));
     WideOption(hOptions, L"DrawNodeType", PO_DWORD, (LPBYTE)&nDrawNodeType, sizeof(DWORD));
     WideOption(hOptions, L"TagMarkEnable", PO_DWORD, (LPBYTE)&bTagMarkEnable, sizeof(DWORD));
     WideOption(hOptions, L"CollapseOnOpen", PO_DWORD, (LPBYTE)&bCollapseOnOpen, sizeof(DWORD));
