@@ -1744,8 +1744,7 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         lpFoldWindow->bInitEdit=TRUE;
       }
 
-      if (nShowNodes == CFSN_NONE ||
-          (nShowNodes == CFSN_AUTO && !lpFoldWindow->pfwd->lpSyntaxFile) ||
+      if (nShowNodes == CFSN_NONE || !lpFoldWindow->pfwd->lpSyntaxFile ||
           (nShowNodes == CFSN_ASLIST && (!dkCodeFoldDlg || (dkCodeFoldDlg->dwFlags & DKF_HIDDEN))))
       {
         if (lpFoldWindow->rcBoard.right)
