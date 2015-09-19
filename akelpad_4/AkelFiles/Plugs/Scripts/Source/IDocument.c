@@ -1977,7 +1977,10 @@ HRESULT FillDialogTemplate(DLGTEMPLATEEX *lpdt, DWORD dwFlags, DWORD dwExStyle, 
     HFONT hGuiFont;
 
     //Default GUI font
-    hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+    if (dwStyle & DS_SETFONT)
+      hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+    else
+      hGuiFont=(HFONT)GetStockObject(SYSTEM_FONT);
     if (bOldWindows)
     {
       LOGFONTA lfA;

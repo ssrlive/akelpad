@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v17.4              ***
+***                 Scripts AkelPad plugin v17.5              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
