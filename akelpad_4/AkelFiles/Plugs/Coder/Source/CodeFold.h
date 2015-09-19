@@ -20,28 +20,29 @@
 #define STRID_SHOWDOCK_GROUP         214
 #define STRID_AUTO                   215
 #define STRID_ALWAYS                 216
-#define STRID_FOLDLIMIT              217
-#define STRID_FOLLOWCARET_GROUP      218
-#define STRID_ANYWHERE               219
-#define STRID_ROOT                   220
-#define STRID_LISTSYSTEMCOLORS       221
-#define STRID_LISTSYSTEMFONT         222
-#define STRID_SHOWPANEL              223
-#define STRID_DRAWNODE               224
-#define STRID_ROUND                  225
-#define STRID_SQUARE                 226
-#define STRID_TAGMARK                227
-#define STRID_COLLAPSEONOPEN         228
-#define STRID_NOPRINTCOLLAPSED       229
-#define STRID_HIDEFOLDEND            230
-#define STRID_FINDROOT               231
-#define STRID_HOTKEY                 232
-#define STRID_DEPTH                  233
-#define STRID_HOTKEYCURRENT          234
-#define STRID_HOTKEYALL              235
-#define STRID_COLLAPSE               236
-#define STRID_NEXTLEVEL              237
-#define STRID_PREVLEVEL              238
+#define STRID_ASLIST                 217
+#define STRID_FOLDLIMIT              218
+#define STRID_FOLLOWCARET_GROUP      219
+#define STRID_ANYWHERE               220
+#define STRID_ROOT                   221
+#define STRID_LISTSYSTEMCOLORS       222
+#define STRID_LISTSYSTEMFONT         223
+#define STRID_SHOWNODES_GROUP        224
+#define STRID_DRAWNODE               225
+#define STRID_ROUND                  226
+#define STRID_SQUARE                 227
+#define STRID_TAGMARK                228
+#define STRID_COLLAPSEONOPEN         229
+#define STRID_NOPRINTCOLLAPSED       230
+#define STRID_HIDEFOLDEND            231
+#define STRID_FINDROOT               232
+#define STRID_HOTKEY                 233
+#define STRID_DEPTH                  234
+#define STRID_HOTKEYCURRENT          235
+#define STRID_HOTKEYALL              236
+#define STRID_COLLAPSE               237
+#define STRID_NEXTLEVEL              238
+#define STRID_PREVLEVEL              239
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
 #define DLLA_CODEFOLD_GORULE     2
@@ -67,6 +68,11 @@
 #define CFSD_NONE     0
 #define CFSD_AUTO     1
 #define CFSD_ALWAYS   2
+
+//Show nodes panel setting
+#define CFSN_NONE     0
+#define CFSN_AUTO     1
+#define CFSN_ASLIST   2
 
 //Sizes
 #define BOARD_WIDTH      10
