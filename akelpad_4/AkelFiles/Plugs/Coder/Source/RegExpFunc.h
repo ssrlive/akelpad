@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v2.2                  *
+ *                  RegExp functions header v2.3                  *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -1196,9 +1196,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                 goto EndLoop;
               wpGreedyStrEnd=wpStr;
             }
-            //str - "long string", find - "([^#]*@?)*"
-            if (nNextMatched & REE_ENDSTRING)
-              goto EndLoop;
+            ////str - "long string", find - "([^#]*@?)*"
+            //if (nNextMatched & REE_ENDSTRING)
+            //  goto EndLoop;
           }
         }
         else nNextMatched=-1;
@@ -1628,8 +1628,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     nNextMatched=REE_TRUE;
   else
     nNextMatched|=REE_NEXTMATCH;
-  if (wpStr >= wpMaxStr)
-    nNextMatched|=REE_ENDSTRING;
+  //if (wpStr >= wpMaxStr)
+  //  nNextMatched|=REE_ENDSTRING;
   if (!lpREGroupItem->parent && hStack->wpRootStart)
     hStack->first->wpStrStart=hStack->wpRootStart;
   return nNextMatched;
@@ -2450,9 +2450,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 goto EndLoop;
               ciGreedyStrEnd=ciStr;
             }
-            //str - "long string", find - "([^#]*@?)*"
-            if (nNextMatched & REE_ENDSTRING)
-              goto EndLoop;
+            ////str - "long string", find - "([^#]*@?)*"
+            //if (nNextMatched & REE_ENDSTRING)
+            //  goto EndLoop;
           }
         }
         else nNextMatched=-1;
@@ -2912,8 +2912,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
     nNextMatched=REE_TRUE;
   else
     nNextMatched|=REE_NEXTMATCH;
-  if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
-    nNextMatched|=REE_ENDSTRING;
+  //if (AEC_IndexCompare(&ciStr, &ciMaxStr) >= 0)
+  //  nNextMatched|=REE_ENDSTRING;
   if (!lpREGroupItem->parent && hStack->ciRootStart.lpLine)
     hStack->first->ciStrStart=hStack->ciRootStart;
   return nNextMatched;
