@@ -6830,7 +6830,7 @@ int AE_FoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
 
   //Find caret fold
   if (!lpFold && (dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-    AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_GETROOT, (UINT_PTR)&ae->ciCaretIndex, NULL, &lpFold, NULL);
+    AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_GETROOT|(ae->ptxt->nHideMaxLineOffset >= 0?AEFF_FOLDEND:0), (UINT_PTR)&ae->ciCaretIndex, NULL, &lpFold, NULL);
 
   FoldScroll:
   AE_FoldScroll(ae, lpFold, dwFlags);
