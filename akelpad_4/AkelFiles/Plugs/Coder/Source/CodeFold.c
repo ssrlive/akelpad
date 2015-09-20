@@ -1998,7 +1998,8 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                   RoundRect(hBufferDC, (nHPos - BOARD_WIDTH / 2), (nVPos + nCharHeight / 2 - BOARD_WIDTH / 2), (nHPos + BOARD_WIDTH / 2) + 1, (nVPos + nCharHeight / 2 + BOARD_WIDTH / 2) + 1, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0, (nDrawNodeType == DNT_ROUND)?BOARD_WIDTH:0);
 
                   //Line after node
-                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !(lpFold->dwFlags & AEFOLDF_COLLAPSED) || lpFold->parent)
+                  if (lpFoldWindow->nHideMaxLineOffset < 0 || !(lpFold->dwFlags & AEFOLDF_COLLAPSED) || lpFold->parent ||
+                      (lpFoldWindow->nHideMaxLineOffset == 0 && lpFold->next && lpFold->lpMaxPoint->ciPoint.nLine == lpFold->next->lpMinPoint->ciPoint.nLine))
                   {
                     MoveToEx(hBufferDC, nHPos, nVPos + nCharHeight / 2 + BOARD_WIDTH / 2, NULL);
                     LineTo(hBufferDC, nHPos, nVPos + nCharHeight);

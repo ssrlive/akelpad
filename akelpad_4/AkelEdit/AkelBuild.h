@@ -760,10 +760,6 @@ typedef struct {
   #define AE_FirstCollapsibleLine(ae, lpFold)  (((AEFOLD *)lpFold)->lpMinPoint->ciPoint.nLine + ((AKELEDIT *)ae)->ptxt->nHideMinLineOffset)
 #endif
 
-#ifndef AE_LastCollapsibleLine
-  #define AE_LastCollapsibleLine(ae, lpFold)  (((AEFOLD *)lpFold)->lpMaxPoint->ciPoint.nLine + ((AKELEDIT *)ae)->ptxt->nHideMaxLineOffset)
-#endif
-
 
 //// Functions prototypes
 
@@ -822,14 +818,15 @@ AEPENITEM* AE_StackPenItemGet(HSTACK *hStack, COLORREF crPenColor, COLORREF crIn
 void AE_StackPenItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold);
 void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, UINT_PTR dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
-AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine);
-int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
-int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
-void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
-INT_PTR AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold);
 BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold);
 int AE_StackFoldFree(AKELEDIT *ae);
+int AE_LastCollapsibleLine(AKELEDIT *ae, AEFOLD *lpFold);
+AEFOLD* AE_IsLineCollapsed(AKELEDIT *ae, int nLine);
+int AE_LineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
+int AE_FoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
+void AE_FoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
+INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
 int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos);
 INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
