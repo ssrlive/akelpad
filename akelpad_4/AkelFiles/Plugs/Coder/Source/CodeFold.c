@@ -1347,7 +1347,8 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             }
           }
         }
-        SendMessage(aensc->hdr.hwndFrom, AEM_COLLAPSELINE, aensc->ciCaret.nLine, AECF_EXPAND);
+        if (SendMessage(aensc->hdr.hwndFrom, AEM_COLLAPSELINE, aensc->ciCaret.nLine, AECF_EXPAND))
+          ScrollToPoint(aensc->hdr.hwndFrom, NULL);
       }
       else
       {
