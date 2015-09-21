@@ -48,6 +48,7 @@ BOOL bCollapseOnOpen=FALSE;
 BOOL bNoPrintCollapsed=FALSE;
 BOOL bHideFoldEnd=FALSE;
 int nFindRootMaxDepth=0;
+DWORD dwFindRootFlags=0;
 HCURSOR hCursorArrow=NULL;
 DWORD dwFoldListTextColor;
 DWORD dwFoldListBkColor;
@@ -996,6 +997,8 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndFindRootHotkey;
   static HWND hWndFindRootDepth;
   static HWND hWndFindRootDepthSpin;
+  static HWND hWndFindRootMatchCase;
+  static HWND hWndFindRootWholeWord;
   static HWND hWndCurrentCollapse;
   static HWND hWndCurrentGoBegin;
   static HWND hWndCurrentGoEnd;
@@ -1014,6 +1017,8 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndFindRootHotkey=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTHOTKEY);
     hWndFindRootDepth=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_EDIT);
     hWndFindRootDepthSpin=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_SPIN);
+    hWndFindRootMatchCase=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTMATCHCASE);
+    hWndFindRootWholeWord=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_FINDROOTWHOLEWORD);
     hWndCurrentCollapse=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_COLLAPSE);
     hWndCurrentGoBegin=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_GOBEGIN);
     hWndCurrentGoEnd=GetDlgItem(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_GOEND);
@@ -1029,6 +1034,8 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOT_GROUP, GetLangStringW(wLangModule, STRID_FINDROOT));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTHOTKEY_LABEL, GetLangStringW(wLangModule, STRID_HOTKEY));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_LABEL, GetLangStringW(wLangModule, STRID_DEPTH));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTMATCHCASE, GetLangStringW(wLangModule, STRID_MATCHCASE));
+    SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_FINDROOTWHOLEWORD, GetLangStringW(wLangModule, STRID_WHOLEWORD));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_GROUP, GetLangStringW(wLangModule, STRID_HOTKEYCURRENT));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_COLLAPSE_LABEL, GetLangStringW(wLangModule, STRID_COLLAPSE));
     SetDlgItemTextWide(hDlg, IDC_CODEFOLD_SETUP_HOTKEYCURRENT_GOBEGIN_LABEL, GetLangStringW(wLangModule, STRID_GOBEGIN));
@@ -1051,6 +1058,11 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndFindRootDepthSpin, UDM_SETBUDDY, (WPARAM)hWndFindRootDepth, 0);
     SendMessage(hWndFindRootDepthSpin, UDM_SETRANGE, 0, MAKELONG(99, 0));
     SetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_EDIT, nFindRootMaxDepth, FALSE);
+
+    if (dwFindRootFlags & AEFR_MATCHCASE)
+      SendMessage(hWndFindRootMatchCase, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwFindRootFlags & AEFR_WHOLEWORD)
+      SendMessage(hWndFindRootWholeWord, BM_SETCHECK, BST_CHECKED, 0);
 
     InitCodeFold();
     SendMessage(hWndFindRootHotkey, HKM_SETHOTKEY, dwFindRootLevel, 0);
@@ -1097,6 +1109,12 @@ BOOL CALLBACK CodeFold2SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       dwFindRootLevel=(WORD)SendMessage(hWndFindRootHotkey, HKM_GETHOTKEY, 0, 0);
       nFindRootMaxDepth=GetDlgItemInt(hDlg, IDC_CODEFOLD_SETUP_FINDROOTDEPTH_EDIT, NULL, FALSE);
+
+      dwFindRootFlags=0;
+      if (SendMessage(hWndFindRootMatchCase, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwFindRootFlags|=AEFR_MATCHCASE;
+      if (SendMessage(hWndFindRootWholeWord, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwFindRootFlags|=AEFR_WHOLEWORD;
 
       dwCurrentCollapse=(WORD)SendMessage(hWndCurrentCollapse, HKM_GETHOTKEY, 0, 0);
       dwCurrentGoBegin=(WORD)SendMessage(hWndCurrentGoBegin, HKM_GETHOTKEY, 0, 0);
@@ -1348,7 +1366,10 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           }
         }
         if (SendMessage(aensc->hdr.hwndFrom, AEM_COLLAPSELINE, aensc->ciCaret.nLine, AECF_EXPAND))
-          ScrollToPoint(aensc->hdr.hwndFrom, NULL);
+        {
+          if (aensc->dwType & AESCT_KEYBOARD)
+            ScrollToPoint(aensc->hdr.hwndFrom, NULL);
+        }
       }
       else
       {
@@ -2528,7 +2549,7 @@ BOOL CALLBACK FindRootLevelProc(void *lpParameter, LPARAM lParam, DWORD dwSuppor
                           continue;
                       }
 
-                      ft.dwFlags=AEFR_DOWN;
+                      ft.dwFlags=AEFR_DOWN|(dwFindRootFlags & (AEFR_MATCHCASE|AEFR_WHOLEWORD));
                       ft.pText=wszText;
                       ft.dwTextLen=(UINT_PTR)-1;
                       ft.nNewLine=AELB_ASIS;
@@ -3650,7 +3671,10 @@ void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags)
   else
   {
     if (lpFold=(AEFOLD *)lpFoldWindow->pfwd->lpFoldStack->first)
+    {
       SendMessage(lpFoldWindow->hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)NULL, dwFlags|(lpFold->dwFlags & AEFOLDF_COLLAPSED ? AECF_EXPAND : AECF_COLLAPSE));
+      ScrollToPoint(lpFoldWindow->hWndEdit, NULL);
+    }
   }
 }
 
@@ -4887,6 +4911,7 @@ void ReadCodeFoldOptions(HANDLE hOptions)
   WideOption(hOptions, L"NoPrintCollapsed", PO_DWORD, (LPBYTE)&bNoPrintCollapsed, sizeof(DWORD));
   WideOption(hOptions, L"HideFoldEnd", PO_DWORD, (LPBYTE)&bHideFoldEnd, sizeof(DWORD));
   WideOption(hOptions, L"FindRootMaxDepth", PO_DWORD, (LPBYTE)&nFindRootMaxDepth, sizeof(DWORD));
+  WideOption(hOptions, L"FindRootFlags", PO_DWORD, (LPBYTE)&dwFindRootFlags, sizeof(DWORD));
   WideOption(hOptions, L"CurrentCollapse", PO_DWORD, (LPBYTE)&dwCurrentCollapse, sizeof(DWORD));
   WideOption(hOptions, L"CurrentGoBegin", PO_DWORD, (LPBYTE)&dwCurrentGoBegin, sizeof(DWORD));
   WideOption(hOptions, L"CurrentGoEnd", PO_DWORD, (LPBYTE)&dwCurrentGoEnd, sizeof(DWORD));
@@ -4927,6 +4952,7 @@ void SaveCodeFoldOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"NoPrintCollapsed", PO_DWORD, (LPBYTE)&bNoPrintCollapsed, sizeof(DWORD));
     WideOption(hOptions, L"HideFoldEnd", PO_DWORD, (LPBYTE)&bHideFoldEnd, sizeof(DWORD));
     WideOption(hOptions, L"FindRootMaxDepth", PO_DWORD, (LPBYTE)&nFindRootMaxDepth, sizeof(DWORD));
+    WideOption(hOptions, L"FindRootFlags", PO_DWORD, (LPBYTE)&dwFindRootFlags, sizeof(DWORD));
     WideOption(hOptions, L"CurrentCollapse", PO_DWORD, (LPBYTE)&dwCurrentCollapse, sizeof(DWORD));
     WideOption(hOptions, L"CurrentGoBegin", PO_DWORD, (LPBYTE)&dwCurrentGoBegin, sizeof(DWORD));
     WideOption(hOptions, L"CurrentGoEnd", PO_DWORD, (LPBYTE)&dwCurrentGoEnd, sizeof(DWORD));
