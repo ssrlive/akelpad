@@ -38,11 +38,13 @@
 #define STRID_FINDROOT               232
 #define STRID_HOTKEY                 233
 #define STRID_DEPTH                  234
-#define STRID_HOTKEYCURRENT          235
-#define STRID_HOTKEYALL              236
-#define STRID_COLLAPSE               237
-#define STRID_NEXTLEVEL              238
-#define STRID_PREVLEVEL              239
+#define STRID_MATCHCASE              235
+#define STRID_WHOLEWORD              236
+#define STRID_HOTKEYCURRENT          237
+#define STRID_HOTKEYALL              238
+#define STRID_COLLAPSE               239
+#define STRID_NEXTLEVEL              240
+#define STRID_PREVLEVEL              241
 
 #define DLLA_CODEFOLD_SHOWDOCK   1
 #define DLLA_CODEFOLD_GORULE     2

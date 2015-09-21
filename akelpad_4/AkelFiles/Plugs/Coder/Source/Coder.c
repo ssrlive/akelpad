@@ -6284,6 +6284,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0413\x043E\x0440\x044F\x0447\x0430\x044F\x0020\x043A\x043B\x0430\x0432\x0438\x0448\x0430";
     if (nStringID == STRID_DEPTH)
       return L"\x0413\x043B\x0443\x0431\x0438\x043D\x0430";
+    if (nStringID == STRID_MATCHCASE)
+      return L"\x0423\x0447\x0438\x0442\x044B\x0432\x0430\x0442\x044C\x0020\x0440\x0435\x0433\x0438\x0441\x0442\x0440";
+    if (nStringID == STRID_WHOLEWORD)
+      return L"\x0421\x043B\x043E\x0432\x043E\x0020\x0446\x0435\x043B\x0438\x043A\x043E\x043C";
     if (nStringID == STRID_HOTKEYCURRENT)
       return L"\x0422\x0435\x043A\x0443\x0449\x0438\x0439\x0020\x0443\x0440\x043E\x0432\x0435\x043D\x044C";
     if (nStringID == STRID_HOTKEYALL)
@@ -6522,6 +6526,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Hotkey";
     if (nStringID == STRID_DEPTH)
       return L"Depth";
+    if (nStringID == STRID_MATCHCASE)
+      return L"Match case";
+    if (nStringID == STRID_WHOLEWORD)
+      return L"Whole word";
     if (nStringID == STRID_HOTKEYCURRENT)
       return L"Current level";
     if (nStringID == STRID_HOTKEYALL)
