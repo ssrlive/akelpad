@@ -3714,9 +3714,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                           else if (nFoldEndLen == 2 && !xstrcmpW(wpFoldEnd, L"/>"))
                             dwFlags|=FIF_XMLNONAME_ONETAG;
                         }
-                        else if (nFoldEndLen == 1 && !xstrcmpW(wpFoldEnd, L">"))
-                          dwFlags|=FIF_XMLNAMED_ONETAG;
-                        else if (nFoldEndLen == 2 && !xstrcmpW(wpFoldEnd, L"/>"))
+                        else if (nFoldEndLen > 0 && wpFoldEnd[nFoldEndLen - 1] == L'>')
                           dwFlags|=FIF_XMLNAMED_ONETAG;
                       }
                       else if (nParentID)

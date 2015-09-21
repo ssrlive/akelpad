@@ -96,6 +96,10 @@
 #define FCO_ANYWHERE        1
 #define FCO_ONLYROOT        2
 
+//LEVEL flags
+#define LVLF_MULTILINE      0x1
+#define LVLF_XMLCHILD       0x2
+
 //IsFold input flags
 #define IFF_CHECKFIRSTFOLDSTART 0x10
 
@@ -227,7 +231,7 @@ typedef struct _LEVEL {
   AEPOINT pointMax;
   AECHARRANGE crFoundMin;
   AECHARRANGE crFoundMax;
-  BOOL bMultiLine;
+  DWORD dwFlags;
 } LEVEL;
 
 typedef struct {
