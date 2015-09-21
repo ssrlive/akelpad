@@ -1020,7 +1020,7 @@ BEGIN
                             "Kritická chyba: nedostatek pamìti. Doporuèujeme ukonèit program."
     MSG_ERROR_BINARY        """%s"" je binární soubor. Pokraèovat?"
     MSG_ERROR_IO            "Vstupní/Výstupní chyba."
-    MSG_ERROR_SYNTAX        "Chyba syntaxe."
+    MSG_ERROR_SYNTAX        "Chyba syntaxe (%d)."
     MSG_ERROR_PRINT         "Nelze spustit tisk dokumentu."
     MSG_ERROR_RUN           "Nelze spustit program."
     MSG_ERROR_LOAD_DLL      "Nelze naèíst ""%s""."

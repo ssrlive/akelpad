@@ -1011,7 +1011,7 @@ BEGIN
                             "Kriittinen virhe: muisti ei riitä. Ohjelman sulkeminen on suositeltavaa."
     MSG_ERROR_BINARY        """%s"" on binääritiedosto. Jatketaanko?"
     MSG_ERROR_IO            "Syöttö/tulostusvirhe."
-    MSG_ERROR_SYNTAX        "Syntaksivirhe."
+    MSG_ERROR_SYNTAX        "Syntaksivirhe (%d)."
     MSG_ERROR_PRINT         "Asiakirjaa ei voi tulostaa."
     MSG_ERROR_RUN           "Ohjelmaa ei voi käynnistää."
     MSG_ERROR_LOAD_DLL      "Tiedostoa ""%s"" ei voi ladata."

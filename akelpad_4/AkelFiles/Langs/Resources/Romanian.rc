@@ -1008,7 +1008,7 @@ BEGIN
                             "Eroare criticã: memorie insuficientã. Este recomandat sã închizi programul."
     MSG_ERROR_BINARY        """%s"" e o filã binarã. Continui?"
     MSG_ERROR_IO            "Eroare de intrare/ieºire (I/O)."
-    MSG_ERROR_SYNTAX        "Eroare de sintaxã."
+    MSG_ERROR_SYNTAX        "Eroare de sintaxã (%d)."
     MSG_ERROR_PRINT         "Nu pot tipãri documentul."
     MSG_ERROR_RUN           "Nu pot rula programul."
     MSG_ERROR_LOAD_DLL      "Nu pot încãrca ""%s""."

@@ -988,7 +988,7 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "严重错误: 内存不足。建议终止本程序。"
     MSG_ERROR_BINARY        """%s"" 是一个二进制文件。继续?"
     MSG_ERROR_IO            "输入/输出错误。"
-    MSG_ERROR_SYNTAX        "语法错误。"
+    MSG_ERROR_SYNTAX        "语法错误 (%d)。"
     MSG_ERROR_PRINT         "无法打印文档。"
     MSG_ERROR_RUN           "无法运行程序。"
     MSG_ERROR_LOAD_DLL      "无法加载 ""%s""。"

@@ -1007,7 +1007,7 @@ BEGIN
                             "Kritieke fout: niet genoeg geheugen. Het wordt aanbevolen het programma te beëindigen."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"
     MSG_ERROR_IO            "Invoer/uitvoer fout."
-    MSG_ERROR_SYNTAX        "Syntaxis fout."
+    MSG_ERROR_SYNTAX        "Syntaxis fout (%d)."
     MSG_ERROR_PRINT         "Kan document niet printen."
     MSG_ERROR_RUN           "Kan programma niet starten."
     MSG_ERROR_LOAD_DLL      "Kan ""%s"" niet laden."

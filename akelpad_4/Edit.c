@@ -9636,7 +9636,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
             ((moCur.dwSearchOptions & FRF_REGEXP) ||
              (moCur.dwSearchOptions & FRF_ESCAPESEQ)))
         {
-          API_LoadString(hLangModule, MSG_ERROR_SYNTAX, wszMsg, BUFFER_SIZE);
+          API_LoadString(hLangModule, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
+          xprintfW(wszMsg, wbuf, lpFrameCurrent->nCompileErrorOffset);
           API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
           if (lpFrameCurrent->bCompileErrorReplace)
             hWndError=hWndReplace;
