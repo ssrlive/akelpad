@@ -1024,7 +1024,7 @@ BEGIN
                             "Schwerwiegender Fehler: nicht genügend Speicher. Es wird empfohlen, das Programm zu beenden."
     MSG_ERROR_BINARY        """%s"" ist eine binäre Datei. Weitermachen?"
     MSG_ERROR_IO            "Eingabe-/Ausgabefehler."
-    MSG_ERROR_SYNTAX        "Syntaxfehler."
+    MSG_ERROR_SYNTAX        "Syntaxfehler (%d)."
     MSG_ERROR_PRINT         "Das Dokument kann nicht gedruckt werden."
     MSG_ERROR_RUN           "Das Programm kann nicht ausgeführt werden."
     MSG_ERROR_LOAD_DLL      """%s"" kann nicht geladen werden."

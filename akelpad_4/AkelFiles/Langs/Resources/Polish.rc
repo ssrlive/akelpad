@@ -1002,7 +1002,7 @@ BEGIN
                             "B³¹d krytyczny: za ma³o pamiêci. Zaleca siê zakoñczenie programu."
     MSG_ERROR_BINARY        """%s"" jest plikiem binarnym. Kontynuowaæ?"
     MSG_ERROR_IO            "B³¹d wejœcia/wyjœcia."
-    MSG_ERROR_SYNTAX        "B³¹d sk³adni."
+    MSG_ERROR_SYNTAX        "B³¹d sk³adni (%d)."
     MSG_ERROR_PRINT         "Nie mo¿na wydrukowaæ dokumentu."
     MSG_ERROR_RUN           "Nie mo¿na uruchomiæ programu."
     MSG_ERROR_LOAD_DLL      "Nie mo¿na wczytaæ ""%s""."

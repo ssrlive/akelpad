@@ -1004,7 +1004,7 @@ BEGIN
                             "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" egy bináris fájl. Folytatja?"
     MSG_ERROR_IO            "Bemeneti/kimeneti hiba."
-    MSG_ERROR_SYNTAX        "Szintaktikai hiba."
+    MSG_ERROR_SYNTAX        "Szintaktikai hiba (%d)."
     MSG_ERROR_PRINT         "Nem lehet nyomtatni a dokumentumot."
     MSG_ERROR_RUN           "Nem tudja futtatni a programot."
     MSG_ERROR_LOAD_DLL      "Nem tudja betölteni ""%s""."

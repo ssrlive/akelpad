@@ -1000,7 +1000,7 @@ BEGIN
                             "重大なエラー: メモリが足りません。プログラムを終了してください。"
     MSG_ERROR_BINARY        """%s"" はバイナリ ファイルです。続行しますか?"
     MSG_ERROR_IO            "入力/出力エラーです。"
-    MSG_ERROR_SYNTAX        "構文エラーです。"
+    MSG_ERROR_SYNTAX        "構文エラーです (%d)。"
     MSG_ERROR_PRINT         "ドキュメントを印刷できません。"
     MSG_ERROR_RUN           "プログラムを実行できません。"
     MSG_ERROR_LOAD_DLL      """%s"" を読み込めません。"

@@ -1010,7 +1010,7 @@ BEGIN
                             "Erreur critique: mémoire insuffisante. Veuillez terminer le programme."
     MSG_ERROR_BINARY        """%s"" est un fichier binaire. Continuer?"
     MSG_ERROR_IO            "Erreur d'entrée/sortie."
-    MSG_ERROR_SYNTAX        "Erreur de syntaxe."
+    MSG_ERROR_SYNTAX        "Erreur de syntaxe (%d)."
     MSG_ERROR_PRINT         "Impossible d'imprimer le document."
     MSG_ERROR_RUN           "Impossible d'exécuter le programme."
     MSG_ERROR_LOAD_DLL      "Impossible de charger ""%s""."

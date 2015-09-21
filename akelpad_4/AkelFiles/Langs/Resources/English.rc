@@ -997,7 +997,7 @@ BEGIN
                             "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" is a binary file. Continue?"
     MSG_ERROR_IO            "Input/output error."
-    MSG_ERROR_SYNTAX        "Syntax error."
+    MSG_ERROR_SYNTAX        "Syntax error (symbol %d)."
     MSG_ERROR_PRINT         "Cannot print document."
     MSG_ERROR_RUN           "Cannot run program."
     MSG_ERROR_LOAD_DLL      "Cannot load ""%s""."

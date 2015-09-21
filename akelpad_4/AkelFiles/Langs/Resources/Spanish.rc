@@ -1010,7 +1010,7 @@ BEGIN
                             "Error crítico: no hay suficiente memoria. Es recomendable finalizar el programa."
     MSG_ERROR_BINARY        """%s"" es un archivo binario. ¿Continuar?"
     MSG_ERROR_IO            "Error de entrada/salida."
-    MSG_ERROR_SYNTAX        "Error de sintaxis."
+    MSG_ERROR_SYNTAX        "Error de sintaxis (%d)."
     MSG_ERROR_PRINT         "No se puede imprimir el documento."
     MSG_ERROR_RUN           "No se puede ejecutar el programa."
     MSG_ERROR_LOAD_DLL      "No se puede cargar ""%s""."

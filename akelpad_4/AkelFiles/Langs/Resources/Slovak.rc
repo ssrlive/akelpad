@@ -1014,7 +1014,7 @@ BEGIN
                             "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" je bin·rny s˙bor. PokraËovaù?"
     MSG_ERROR_IO            "Vstupno-v˝stupn· chyba."
-    MSG_ERROR_SYNTAX        "Syntaktick· chyba."
+    MSG_ERROR_SYNTAX        "Syntaktick· chyba (%d)."
     MSG_ERROR_PRINT         "Nepodarilo sa spustiù tlaË dokumentu."
     MSG_ERROR_RUN           "Nepodarilo sa spustiù program."
     MSG_ERROR_LOAD_DLL      "Nepodarilo sa naËÌtaù ""%s""."

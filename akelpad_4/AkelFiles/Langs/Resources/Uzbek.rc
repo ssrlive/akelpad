@@ -1033,7 +1033,7 @@ BEGIN
                             "Kritik xatolik: xotira yetarli emas. Dastur ishini tugallash tavsiya etiladi."
     MSG_ERROR_BINARY        """%s"" binar fayl. Davom etilsinmi?"
     MSG_ERROR_IO            "Kiritish/chiqarishda xatolik."
-    MSG_ERROR_SYNTAX        "Sintaktik xatolik."
+    MSG_ERROR_SYNTAX        "Sintaktik xatolik (%d)."
     MSG_ERROR_PRINT         "Hujjatni chop etishda xatolik"
     MSG_ERROR_RUN           "Dasturga kirishning imkoni yo‘q."
     MSG_ERROR_LOAD_DLL      """%s""ni yuklab bo‘lmadi."
