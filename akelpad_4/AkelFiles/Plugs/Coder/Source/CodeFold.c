@@ -3065,11 +3065,11 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
               if (lpLevel)
               {
                 lpParent=lpLevel->lpParent;
-                if (lpParent && lpLevel->bMultiLine)
-                  lpParent->bMultiLine=TRUE;
+                if (lpParent && (lpLevel->dwFlags & LVLF_MULTILINE))
+                  lpParent->dwFlags|=LVLF_MULTILINE;
 
                 if ((lpFoldInfo->dwFlags & FIF_DENYFOLD) ||
-                    (!bTagMarkEnable && !lpLevel->bMultiLine))
+                    (!bTagMarkEnable && !(lpLevel->dwFlags & LVLF_MULTILINE)))
                 {
                   if ((lpFoldInfo->dwFlags & FIF_DENYFOLD) && lpFoldInfo->lpFoldStart->nElements > 1)
                   {
@@ -3169,6 +3169,9 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                     lpLevel->pointMin.nPointLen=(int)ft.dwTextLen;
                   else
                     lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
+
+                  if (lpFoldInfo->dwFlags & FIF_XMLCHILD)
+                    lpLevel->dwFlags|=LVLF_XMLCHILD;
 
                   if ((lpFoldInfo->dwFlags & FIF_XMLTAG) &&
                       (lpFoldInfo->dwFlags & FIF_XMLNONAME_TWOTAG))
@@ -3273,7 +3276,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
         lpSkipInfo=NULL;
 
         //Level contain more than one line
-        if (lpLevel) lpLevel->bMultiLine=TRUE;
+        if (lpLevel) lpLevel->dwFlags|=LVLF_MULTILINE;
       }
       AEC_NextLine(&ciCount);
     }
@@ -4403,8 +4406,8 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
 
         if (lpFoldStart->dwFlags & FIF_XMLCHILD)
         {
-          //Allow FIF_XMLCHILD only at the parent beginning
-          if (AEC_IndexCompare(&lpLevel->crFoundMin.ciMax, ciChar) != 0)
+          //Find FIF_XMLCHILD only once
+          if (lpLevel->dwFlags & LVLF_XMLCHILD)
             continue;
         }
       }
