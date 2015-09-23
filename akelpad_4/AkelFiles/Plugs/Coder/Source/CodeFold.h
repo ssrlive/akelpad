@@ -99,6 +99,7 @@
 //LEVEL flags
 #define LVLF_MULTILINE      0x1
 #define LVLF_XMLCHILD       0x2
+#define LVLF_NOXMLCHILD     0x4
 
 //IsFold input flags
 #define IFF_CHECKFIRSTFOLDSTART 0x10
