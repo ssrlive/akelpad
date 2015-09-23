@@ -3168,8 +3168,8 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   else
                     lpLevel->pointMin.nPointLen=lpFoldInfo->lpFoldStart->nFoldStartPointLen;
 
-                  if (lpFoldInfo->dwFlags & FIF_XMLCHILD)
-                    lpLevel->dwFlags|=LVLF_XMLCHILD;
+                  if ((lpFoldInfo->dwFlags & FIF_XMLCHILD) && lpParent)
+                    lpParent->dwFlags|=LVLF_XMLCHILD;
 
                   if ((lpFoldInfo->dwFlags & FIF_XMLTAG) &&
                       (lpFoldInfo->dwFlags & FIF_XMLNONAME_TWOTAG))
@@ -4392,6 +4392,11 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
 
   //Fold start
   FoldStart:
+  if (ciChar->lpLine->wpLine[ciChar->nCharInLine] == L'>' && lpLevel)
+  {
+    if (lpLevel->pfd->lpFoldInfo->dwFlags & FIF_XMLTAG)
+      lpLevel->dwFlags|=LVLF_NOXMLCHILD;
+  }
   if (lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.nCommonFirstChar == -1 ||
       (wchar_t)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.nCommonFirstChar == ciChar->lpLine->wpLine[ciChar->nCharInLine])
   {
@@ -4405,7 +4410,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
         if (lpFoldStart->dwFlags & FIF_XMLCHILD)
         {
           //Find FIF_XMLCHILD only once
-          if (lpLevel->dwFlags & LVLF_XMLCHILD)
+          if (lpLevel->dwFlags & (LVLF_XMLCHILD|LVLF_NOXMLCHILD))
             continue;
         }
       }
