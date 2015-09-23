@@ -259,7 +259,6 @@ typedef struct _FOLDWINDOW {
   HWND hWndEdit;
   AEHDOC hDocEdit;
   RECT rcBoard;
-  BOOL bInitEdit;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
   int nHideMaxLineOffsetOld;

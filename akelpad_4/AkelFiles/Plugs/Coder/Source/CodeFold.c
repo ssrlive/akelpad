@@ -1750,22 +1750,6 @@ BOOL CALLBACK CodeFoldEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
     if (lpFoldWindow)
     {
-      //Initialize edit settings
-      if (!lpFoldWindow->bInitEdit)
-      {
-        DWORD dwHideLineOffsets=(DWORD)SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
-
-        lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
-        lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
-        lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
-        if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
-        {
-          lpFoldWindow->nHideMaxLineOffset=0;
-          SendMessage(hWnd, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffset), 0);
-        }
-        lpFoldWindow->bInitEdit=TRUE;
-      }
-
       if (nShowNodes == CFSN_NONE || !lpFoldWindow->pfwd->lpSyntaxFile ||
           (nShowNodes == CFSN_ASLIST && (!dkCodeFoldDlg || (dkCodeFoldDlg->dwFlags & DKF_HIDDEN))))
       {
@@ -3016,6 +3000,20 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
           lpFoldWindow->pfwd=&lpFoldWindow->fwd;
           lpFoldWindow->pfwd->lpSyntaxFile=lpSyntaxFile;
           lpFoldWindow->pfwd->lpFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0);
+        }
+      }
+
+      //Initialize edit settings
+      {
+        DWORD dwHideLineOffsets=(DWORD)SendMessage(hWnd, AEM_GETFOLDHIDEOFFSET, 0, 0);
+
+        lpFoldWindow->nHideMinLineOffset=(short)LOWORD(dwHideLineOffsets);
+        lpFoldWindow->nHideMaxLineOffset=(short)HIWORD(dwHideLineOffsets);
+        lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
+        if (bHideFoldEnd && lpFoldWindow->nHideMaxLineOffset != 0)
+        {
+          lpFoldWindow->nHideMaxLineOffset=0;
+          SendMessage(hWnd, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffset), 0);
         }
       }
       hLevelStack=&lpFoldWindow->pfwd->hLevelStack;
