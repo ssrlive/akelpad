@@ -4134,13 +4134,12 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         }
         if (lpFoldInfo->dwFlags & FIF_XMLTAG)
         {
-          if ((lpFoldInfo->dwFlags & FIF_XMLNONAME_ONETAG) ||
-              (lpFoldInfo->dwFlags & FIF_XMLNAMED_ONETAG))
+          if (lpFoldInfo->dwFlags & (FIF_XMLNONAME_ONETAG|FIF_XMLNAMED_ONETAG))
           {
             if (nCaretOffset > lpFold->lpMinPoint->nPointOffset && nCaretOffset < lpFold->lpMaxPoint->nPointOffset + nTagEndLen)
               bMark=TRUE;
           }
-          else
+          else if (lpFoldInfo->dwFlags & (FIF_XMLNONAME_TWOTAG|FIF_XMLNAMED_TWOTAG))
           {
             ftXmlHeadClose.dwFlags=AEFR_DOWN|AEFR_MATCHCASE;
             ftXmlHeadClose.pText=L">";

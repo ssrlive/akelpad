@@ -3709,13 +3709,18 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       {
                         if (nFoldStartLen == 1)
                         {
-                          if (nFoldEndLen == 2 && !xstrcmpW(wpFoldEnd, L"</"))
+                          if (!xstrcmpW(wpFoldEnd, L"</"))
                             dwFlags|=FIF_XMLNONAME_TWOTAG;
-                          else if (nFoldEndLen == 2 && !xstrcmpW(wpFoldEnd, L"/>"))
+                          else if (!xstrcmpW(wpFoldEnd, L"/>"))
                             dwFlags|=FIF_XMLNONAME_ONETAG;
                         }
-                        else if (nFoldEndLen > 0 && wpFoldEnd[nFoldEndLen - 1] == L'>')
-                          dwFlags|=FIF_XMLNAMED_ONETAG;
+                        else if (nFoldEndLen > 0)
+                        {
+                          if (!xstrcmpnW(wpFoldEnd, L"</", 2))
+                            dwFlags|=FIF_XMLNAMED_TWOTAG;
+                          else if (wpFoldEnd[nFoldEndLen - 1] == L'>')
+                            dwFlags|=FIF_XMLNAMED_ONETAG;
+                        }
                       }
                       else if (nParentID)
                       {
