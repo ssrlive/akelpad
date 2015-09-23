@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v17.5              ***
+***                 Scripts AkelPad plugin v17.6              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -1176,11 +1176,17 @@ _______________
 
 Add code from file.
 
-  Include(pFileName);
+  Include(pFileName[, nFlags][, nCodePage][, bBOM]);
 
 Arguments
   pFileName
     File name, that located in "[AkelPad]\AkelFiles\Plugs\Scripts\Include" directory.
+  nFlags
+    See nFlags description of AkelPad.ReadFile method.
+  nCodePage
+    See nCodePage description of AkelPad.ReadFile method.
+  bBOM
+    See bBOM description of AkelPad.ReadFile method.
 
 Remarks
   Method Include is the same as code eval(AkelPad.ReadFile("...")), but allow to detect error placement in include file, if error appear.
@@ -1190,11 +1196,19 @@ Return Value
   false  failed.
 
 Example:
-  var pParent;
+   var lpItems;
+   var nItem;
 
-  AkelPad.Include("CommonFunctions.js");
-  pParent=GetParent("C:\\Program Files\\1.txt");
-  WScript.Echo(pParent);
+   if (!AkelPad.Include("ShowMenu.js")) WScript.Quit();
+
+   lpItems=[["ItemA", MF_NORMAL, 101],
+            ["ItemB", MF_SUBMENU],
+              ["ItemB-1", MF_NORMAL, 102],
+              ["ItemB-2", MF_NORMAL, 103],
+              ["ItemB-3", MF_NORMAL|MF_LAST, 104],
+            ["ItemC", MF_NORMAL, 105]];
+   nItem=ShowMenu(lpItems, POS_CARET, POS_CARET);
+   WScript.Echo("" + nItem);
 
 
 AkelPad.IsInclude

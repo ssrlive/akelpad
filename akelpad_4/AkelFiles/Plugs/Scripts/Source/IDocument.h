@@ -63,7 +63,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_Command)(THIS_ int, VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_Font)(THIS_ BSTR, DWORD, int ) PURE;
   STDMETHOD_(HRESULT, Document_Recode)(THIS_ int, int ) PURE;
-  STDMETHOD_(HRESULT, Document_Include)(THIS_ BSTR, BOOL *) PURE;
+  STDMETHOD_(HRESULT, Document_Include)(THIS_ BSTR, DWORD, int, BOOL, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_IsInclude)(THIS_ BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_OpenFile)(THIS_ BSTR, DWORD, int, BOOL, int *) PURE;
   STDMETHOD_(HRESULT, Document_ReadFile)(THIS_ BSTR, DWORD, int, BOOL, VARIANT, BSTR *) PURE;
@@ -391,7 +391,7 @@ HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wp
 HRESULT STDMETHODCALLTYPE Document_Command(IDocument *this, int nCommand, VARIANT vtLParam, VARIANT *vtResult);
 HRESULT STDMETHODCALLTYPE Document_Font(IDocument *this, BSTR wpFaceName, DWORD dwFontStyle, int nPointSize);
 HRESULT STDMETHODCALLTYPE Document_Recode(IDocument *this, int nCodePageFrom, int nCodePageTo);
-HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, BOOL *bResult);
+HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_IsInclude(IDocument *this, BSTR *wpFileName);
 HRESULT STDMETHODCALLTYPE Document_OpenFile(IDocument *this, BSTR wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, int *nResult);
 HRESULT STDMETHODCALLTYPE Document_ReadFile(IDocument *this, BSTR wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, VARIANT vtBytesMax, BSTR *wpText);

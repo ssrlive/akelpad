@@ -1246,7 +1246,7 @@ HRESULT STDMETHODCALLTYPE Document_Recode(IDocument *this, int nCodePageFrom, in
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, BOOL *bResult)
+HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL *bResult)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   INCLUDEITEM *lpIncludeItem;
@@ -1262,7 +1262,7 @@ HRESULT STDMETHODCALLTYPE Document_Include(IDocument *this, BSTR wpFileName, BOO
     xprintfW(lpScriptThread->wszScriptInclude, L"%s\\AkelFiles\\Plugs\\Scripts\\Include\\%s", wszAkelPadDir, wpFileName);
     xstrcpynW(lpIncludeItem->wszInclude, lpScriptThread->wszScriptInclude, MAX_PATH);
 
-    if (DetectAndReadFile(NULL, lpScriptThread->wszScriptInclude, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM, 0, 0, &wpContent, (UINT_PTR)-1))
+    if (DetectAndReadFile(NULL, lpScriptThread->wszScriptInclude, dwFlags, &nCodePage, &bBOM, &wpContent, (UINT_PTR)-1))
     {
       lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
       if ((hr=lpScriptThread->objActiveScriptParse->lpVtbl->ParseScriptText(lpScriptThread->objActiveScriptParse, wpContent, NULL, NULL, NULL, lpScriptThread->hIncludesStack.nElements, 0, 0, NULL, NULL)) == S_OK)
