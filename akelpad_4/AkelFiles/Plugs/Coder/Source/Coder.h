@@ -476,7 +476,7 @@ VARTHEME* RequestVarTheme(STACKVARTHEME *hStack, const wchar_t *wpVarThemeName);
 void GetVarThemeGlobals(VARTHEME *lpVarTheme);
 int FillVarThemeList(HWND hWnd, VARTHEME *lpVarTheme);
 LPARAM ListViewItemParam(HWND hWnd, int nItem);
-VARINFO* StackInsertVar(STACKVAR *hStack, const wchar_t *wpVarName, int nVarNameLen, const wchar_t *wpVarValue, int nVarValueLen);
+VARINFO* StackInsertVar(STACKVAR *hStack, const wchar_t *wpVarName, int nVarNameLen, const wchar_t *wpVarValue, int nVarValueLen, BOOL bUnescape);
 VARINFO* StackGetVarByName(STACKVAR *hStack, const wchar_t *wpVarName, int nVarNameLen);
 VARINFO* StackGetVarByIndex(STACKVAR *hStack, int nIndex);
 void StackDeleteVar(STACKVAR *hStack, VARINFO *lpElement);

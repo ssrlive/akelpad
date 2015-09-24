@@ -1553,7 +1553,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
             nResult=DialogBoxParamWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_GENERAL_VAREDIT), hDlg, (DLGPROC)GeneralVarEditDlgProc, (LPARAM)&vi);
             if (!bVarThemeGlobal && vi.prev)
             {
-              StackInsertVar(&hVarThemeGlobal.hVarStack, vi.wpVarName, vi.nVarNameLen, vi.wpVarValue, vi.nVarValueLen);
+              StackInsertVar(&hVarThemeGlobal.hVarStack, vi.wpVarName, vi.nVarNameLen, vi.wpVarValue, vi.nVarValueLen, FALSE);
               nResult=0;
             }
 
@@ -1563,7 +1563,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
             {
               if (nCmd == IDC_GENERAL_ADDITEM)
               {
-                if (lpVarInfo=StackInsertVar(&vtCur.hVarStack, vi.wpVarName, vi.nVarNameLen, vi.wpVarValue, vi.nVarValueLen))
+                if (lpVarInfo=StackInsertVar(&vtCur.hVarStack, vi.wpVarName, vi.nVarNameLen, vi.wpVarValue, vi.nVarValueLen, FALSE))
                 {
                   lpVarInfo->dwVarFlags=vi.dwVarFlags;
 
@@ -4736,7 +4736,7 @@ LPARAM ListViewItemParam(HWND hWnd, int nItem)
   return 0;
 }
 
-VARINFO* StackInsertVar(STACKVAR *hStack, const wchar_t *wpVarName, int nVarNameLen, const wchar_t *wpVarValue, int nVarValueLen)
+VARINFO* StackInsertVar(STACKVAR *hStack, const wchar_t *wpVarName, int nVarNameLen, const wchar_t *wpVarValue, int nVarValueLen, BOOL bUnescape)
 {
   VARINFO *lpVarInfo=NULL;
 
@@ -4745,7 +4745,12 @@ VARINFO* StackInsertVar(STACKVAR *hStack, const wchar_t *wpVarName, int nVarName
     if (lpVarInfo->wpVarName=(wchar_t *)GlobalAlloc(GPTR, (nVarNameLen + 1) * sizeof(wchar_t)))
       lpVarInfo->nVarNameLen=(int)xstrcpynW(lpVarInfo->wpVarName, wpVarName, nVarNameLen + 1);
     if (lpVarInfo->wpVarValue=(wchar_t *)GlobalAlloc(GPTR, (nVarValueLen + 1) * sizeof(wchar_t)))
-      lpVarInfo->nVarValueLen=(int)UnescapeString(wpVarValue, nVarValueLen, lpVarInfo->wpVarValue);
+    {
+      if (bUnescape)
+        lpVarInfo->nVarValueLen=(int)UnescapeString(wpVarValue, nVarValueLen, lpVarInfo->wpVarValue);
+      else
+        lpVarInfo->nVarValueLen=(int)xstrcpynW(lpVarInfo->wpVarValue, wpVarValue, nVarValueLen + 1);
+    }
   }
   return lpVarInfo;
 }
@@ -4865,7 +4870,7 @@ int ParseStringToVars(STACKVAR *lpVarStack, const wchar_t *wpText)
     else
       dwVarFlags=0;
 
-    if (lpVarInfo=StackInsertVar(lpVarStack, wszVarName, nVarNameLen, wpVarValueStart, nVarValueLen))
+    if (lpVarInfo=StackInsertVar(lpVarStack, wszVarName, nVarNameLen, wpVarValueStart, nVarValueLen, TRUE))
     {
       lpVarInfo->dwVarFlags=dwVarFlags;
 
