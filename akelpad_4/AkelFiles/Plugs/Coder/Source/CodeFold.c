@@ -353,6 +353,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     //Set dock title
     {
       BUTTONDRAW bd;
+      RECT rcTitleText;
+      RECT rcTitleHide;
+      RECT rcTitleClose;
 
       xprintfW(wszBuffer, L"%s::CodeFold", wszPluginName);
       SetWindowTextWide(hWndTitleText, wszBuffer);
@@ -360,8 +363,20 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       bd.dwFlags=BIF_DOWNARROW|BIF_ETCHED;
       SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndTitleHide, (LPARAM)&bd);
 
-      bd.dwFlags=BIF_CROSS|BIF_ETCHED;
-      SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndTitleClose, (LPARAM)&bd);
+      if (!bCodeFoldDockWaitResize)
+      {
+        bd.dwFlags=BIF_CROSS|BIF_ETCHED;
+        SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndTitleClose, (LPARAM)&bd);
+      }
+      else
+      {
+        GetWindowSize(hWndTitleText, hDlg, &rcTitleText);
+        GetWindowSize(hWndTitleHide, hDlg, &rcTitleHide);
+        GetWindowSize(hWndTitleClose, hDlg, &rcTitleClose);
+        ShowWindow(hWndTitleClose, SW_HIDE);
+        SetWindowPos(hWndTitleHide, 0, rcTitleClose.left, rcTitleClose.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        SetWindowPos(hWndTitleText, 0, 0, 0, rcTitleText.right + (rcTitleClose.left - rcTitleHide.left), rcTitleText.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+      }
     }
 
     lpOldFilterProc=(WNDPROC)GetWindowLongPtrWide(hWndCodeFoldFilter, GWLP_WNDPROC);
