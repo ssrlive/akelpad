@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.1
+// Version: 1.2
 // Author: Shengalts Aleksander aka Instructor
 //
 // Description(1033): Filter lines using regular expressions.
@@ -94,7 +94,7 @@ if (hWndEdit)
         AkelPad.ScriptNoMutex();
 
         //Message loop
-        AkelPad.WindowGetMessage();
+        AkelPad.WindowGetMessage(0x4 /*WGM_KEYDOWNUP*/);
       }
       AkelPad.MemFree(lpBuffer);
     }

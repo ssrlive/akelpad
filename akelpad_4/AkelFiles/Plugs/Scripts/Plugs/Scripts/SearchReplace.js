@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.6
+// Version: 1.7
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -234,7 +234,7 @@ if (hWndEdit)
         AkelPad.ScriptNoMutex();
 
         //Message loop
-        AkelPad.WindowGetMessage();
+        AkelPad.WindowGetMessage(0x4 /*WGM_KEYDOWNUP*/);
       }
       AkelPad.MemFree(lpBuffer);
     }
