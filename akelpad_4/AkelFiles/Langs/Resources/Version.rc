@@ -39,6 +39,7 @@ BEGIN
             VALUE "OriginalFilename", RC_VERSIONNAME "\0"
             VALUE "ProductName", "AkelPad\0"
             VALUE "ProductVersion", "0, 0, 0, 0\0"
+            VALUE "CompanyName", "AkelSoft\0"
         END
     END
     BLOCK "VarFileInfo"
