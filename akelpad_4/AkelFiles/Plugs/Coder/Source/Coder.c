@@ -1960,6 +1960,7 @@ BOOL CALLBACK GeneralVarEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndName;
   static HWND hWndValue;
   static HWND hWndCheckbox;
+  static HWND hWndOK;
   static VARINFO *vi;
   static int nCmd;
   static BOOL bVarThemeGlobal;
@@ -1974,6 +1975,7 @@ BOOL CALLBACK GeneralVarEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndName=GetDlgItem(hDlg, IDC_GENERAL_VARNAME);
     hWndValue=GetDlgItem(hDlg, IDC_GENERAL_VARVALUE);
     hWndCheckbox=GetDlgItem(hDlg, IDC_GENERAL_VARCHECKBOX);
+    hWndOK=GetDlgItem(hDlg, IDOK);
 
     if (nCmd == IDC_GENERAL_ADDITEM)
       SetWindowTextWide(hDlg, GetLangStringW(wLangModule, STRID_ADDVAR));
@@ -2008,7 +2010,14 @@ BOOL CALLBACK GeneralVarEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDOK)
+    if (LOWORD(wParam) == IDC_GENERAL_VARNAME)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        EnableWindow(hWndOK, GetWindowTextLengthWide(hWndName) > 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
     {
       vi->nVarNameLen=GetWindowTextWide(hWndName, vi->wpVarName, MAX_PATH);
       vi->nVarValueLen=GetWindowTextWide(hWndValue, vi->wpVarValue, MAX_PATH);
