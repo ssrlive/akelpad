@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v2.8                    *
+ *                  Wide functions header v2.9                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -26,6 +26,7 @@
 
 //Global variables
 extern BOOL WideGlobal_bOldWindows;
+extern BOOL WideGlobal_bWinVista;
 extern BOOL WideGlobal_bWideInitialized;
 extern BOOL (WINAPI *WideGlobal_GetCPInfoExAPtr)(UINT, DWORD, LPCPINFOEXA);
 extern BOOL (WINAPI *WideGlobal_GetCPInfoExWPtr)(UINT, DWORD, LPCPINFOEXW);
@@ -2733,7 +2734,26 @@ HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDesired, int
 
   if (!ied.hIcon)
   {
-    if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE|LOAD_LIBRARY_AS_IMAGE_RESOURCE))
+    //Detect Windows Vista and higher
+    if (WideGlobal_bWinVista == -1)
+    {
+      WideGlobal_bWinVista=FALSE;
+      if (!WideGlobal_bOldWindows)
+      {
+        OSVERSIONINFO ovi;
+
+        ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+        GetVersionEx(&ovi);
+        if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+        {
+          if (ovi.dwMajorVersion >= 6)
+            WideGlobal_bWinVista=TRUE;
+        }
+      }
+    }
+
+    //Don't use LOAD_LIBRARY_AS_IMAGE_RESOURCE if not supported, because of LoadLibraryEx error.
+    if (hModule=LoadLibraryExWide(wpFile, NULL, LOAD_LIBRARY_AS_DATAFILE|(WideGlobal_bWinVista?LOAD_LIBRARY_AS_IMAGE_RESOURCE:0)))
     {
       if ((int)nIconIndex < 0)
       {
@@ -3651,6 +3671,7 @@ BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText)
 
 //// Global variables
 BOOL WideGlobal_bOldWindows=-1;
+BOOL WideGlobal_bWinVista=-1;
 BOOL WideGlobal_bWideInitialized=-1;
 #ifdef GetCPInfoExWide_INCLUDED
   BOOL (WINAPI *WideGlobal_GetCPInfoExAPtr)(UINT, DWORD, LPCPINFOEXA)=NULL;
