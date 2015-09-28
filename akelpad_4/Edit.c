@@ -10091,6 +10091,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   wchar_t *wszFullText;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
+  wchar_t *wpResultText=NULL;
   PATREPLACEPOINT lpPointArray[3];
   int nPointCount;
   int nFindItLenEsc;
@@ -10353,13 +10354,14 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       {
         if (nFindItLenEsc < nReplaceWithLenEsc)
         {
-          if (StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, NULL, &nResultTextLen, NULL, 0))
+          if (StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, NULL, NULL, &nResultTextLen, NULL, 0))
             wszResultText=API_AllocWide(nResultTextLen + 1);
         }
         else
         {
           //We don't need allocate new buffer since output string is less than input
           wszResultText=wszRangeText;
+          nResultTextLen=nRangeTextLen;
         }
       }
 
@@ -10430,9 +10432,10 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           pr.nPointCount=nPointCount;
           pr.wszResult=wszResultText;
           nResultTextLen=PatReplace(&pr);
+          wpResultText=wszResultText;
           nChanges=pr.nReplaceCount;
         }
-        else nChanges=StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, wszResultText, &nResultTextLen, lpPointArray, nPointCount);
+        else nChanges=StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFlags, wszResultText, &wpResultText, &nResultTextLen, lpPointArray, nPointCount);
 
         nPointCount=0;
         if (nMin != 0)
@@ -10482,7 +10485,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
           }
           else nReplaceSelNewLine=AELB_ASIS;
 
-          ReplaceSelW(lpFrame->ei.hWndEdit, wszResultText, nResultTextLen, nReplaceSelNewLine, (bColumnSel?AEREPT_COLUMNON:0)|AEREPT_LOCKSCROLL, &crInsert.ciMin, &crInsert.ciMax);
+          ReplaceSelW(lpFrame->ei.hWndEdit, wpResultText, nResultTextLen, nReplaceSelNewLine, (bColumnSel?AEREPT_COLUMNON:0)|AEREPT_LOCKSCROLL, &crInsert.ciMin, &crInsert.ciMax);
 
           //Restore selection
           if (dwFlags & FRF_SELECTION)
@@ -10645,7 +10648,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
   return nResult;
 }
 
-INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, PATREPLACEPOINT *lpPointArray, int nPointCount)
+INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, wchar_t **wppResult, INT_PTR *nResultLen, PATREPLACEPOINT *lpPointArray, int nPointCount)
 {
   PATREPLACEPOINT *lpPointCount;
   PATREPLACEPOINT *lpPointMax;
@@ -10657,6 +10660,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
   const wchar_t *wpWithMax;
   const wchar_t *wpWithCount;
   wchar_t *wpResultCount;
+  wchar_t *wpResultMax;
   INT_PTR nChanges=0;
   INT_PTR nDiff;
 
@@ -10668,81 +10672,165 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
     nWithLen=(int)xstrlenW(wpWith);
   if (nPointCount)
     lpPointMax=lpPointArray + nPointCount;
+  else
+    lpPointMax=NULL;
   nDiff=nItLen - nWithLen;
   wpTextMax=wpText + nTextLen;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
-  wpResultCount=wszResult;
 
-  for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
+  if (dwFlags & FRF_UP)
   {
-    if (dwFlags & FRF_WHOLEWORD)
-    {
-      if (wpTextCount == wpText)
-      {
-        if (dwFlags & FRF_WHOLEWORDGOODSTART)
-          goto Find;
-      }
-      else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount - 1)))
-        goto Find;
-      goto Next;
-    }
+    wpResultMax=wszResult + *nResultLen;
+    wpResultCount=wpResultMax - 1;
 
-    Find:
-    wpMatchCount=wpTextCount;
-    wpItCount=wpIt;
-
-    while (*wpMatchCount == *wpItCount ||
-           (!(dwFlags & FRF_MATCHCASE) && WideCharLower(*wpMatchCount) == WideCharLower(*wpItCount)))
+    for (wpTextCount=wpTextMax - 1; wpTextCount >= wpText; --wpTextCount)
     {
-      if (++wpItCount >= wpItMax)
+      if (dwFlags & FRF_WHOLEWORD)
       {
-        if (dwFlags & FRF_WHOLEWORD)
+        if (wpTextCount + 1 >= wpTextMax)
         {
-          if (wpMatchCount + 1 >= wpTextMax)
-          {
-            if (dwFlags & FRF_WHOLEWORDGOODEND)
-              goto Replace;
-          }
-          else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount + 1)))
-            goto Replace;
-          goto Next;
+          if (dwFlags & FRF_WHOLEWORDGOODEND)
+            goto FindUp;
         }
+        else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount + 1)))
+          goto FindUp;
+        goto NextUp;
+      }
 
-        Replace:
-        if (wszResult)
+      FindUp:
+      wpMatchCount=wpTextCount;
+      wpItCount=wpItMax - 1;
+
+      while (*wpMatchCount == *wpItCount ||
+             (!(dwFlags & FRF_MATCHCASE) && WideCharLower(*wpMatchCount) == WideCharLower(*wpItCount)))
+      {
+        if (--wpItCount < wpIt)
         {
-          if (nPointCount)
+          if (dwFlags & FRF_WHOLEWORD)
           {
-            for (lpPointCount=lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
+            if (wpMatchCount <= wpText)
             {
-              if (lpPointCount->wpStr > wpMatchCount)
-                lpPointCount->nShift-=nDiff;
-              else if (lpPointCount->wpStr > wpTextCount)
-                lpPointCount->nShift-=(lpPointCount->wpStr - wpTextCount);
+              if (dwFlags & FRF_WHOLEWORDGOODSTART)
+                goto ReplaceUp;
             }
+            else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount - 1)))
+              goto ReplaceUp;
+            goto NextUp;
           }
 
-          for (wpWithCount=wpWith; wpWithCount < wpWithMax; ++wpWithCount)
-            *wpResultCount++=*wpWithCount;
-        }
-        else wpResultCount+=nWithLen;
+          ReplaceUp:
+          if (wszResult)
+          {
+            if (nPointCount)
+            {
+              for (lpPointCount=lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
+              {
+                if (lpPointCount->wpStr > wpMatchCount)
+                  lpPointCount->nShift-=nDiff;
+                else if (lpPointCount->wpStr > wpTextCount)
+                  lpPointCount->nShift-=(lpPointCount->wpStr - wpTextCount);
+              }
+            }
 
-        wpTextCount=wpMatchCount + 1;
-        wpItCount=wpIt;
-        ++nChanges;
-        if (wpTextCount >= wpTextMax) goto End;
+            for (wpWithCount=wpWithMax - 1; wpWithCount >= wpWith; --wpWithCount)
+              *wpResultCount--=*wpWithCount;
+          }
+          else wpResultCount-=nWithLen;
+
+          wpTextCount=wpMatchCount - 1;
+          wpItCount=wpItMax - 1;
+          ++nChanges;
+          if (wpTextCount < wpText) goto EndUp;
+        }
+        if (--wpMatchCount < wpText) break;
       }
-      if (++wpMatchCount >= wpTextMax) break;
+
+      NextUp:
+      if (wszResult) *wpResultCount=*wpTextCount;
+      --wpResultCount;
     }
 
-    Next:
-    if (wszResult) *wpResultCount=*wpTextCount;
-    ++wpResultCount;
+    EndUp:
+    if (wpTextCount < wpText) ++wpResultCount;
+    if (nResultLen) *nResultLen=wpResultMax - wpResultCount;
+    if (wszResult) *wppResult=wpResultCount;
   }
+  else
+  {
+    wpResultCount=wszResult;
 
-  End:
-  if (nResultLen) *nResultLen=wpResultCount - wszResult;
+    for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
+    {
+      if (dwFlags & FRF_WHOLEWORD)
+      {
+        if (wpTextCount == wpText)
+        {
+          if (dwFlags & FRF_WHOLEWORDGOODSTART)
+            goto FindDown;
+        }
+        else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount - 1)))
+          goto FindDown;
+        goto NextDown;
+      }
+
+      FindDown:
+      wpMatchCount=wpTextCount;
+      wpItCount=wpIt;
+
+      while (*wpMatchCount == *wpItCount ||
+             (!(dwFlags & FRF_MATCHCASE) && WideCharLower(*wpMatchCount) == WideCharLower(*wpItCount)))
+      {
+        if (++wpItCount >= wpItMax)
+        {
+          if (dwFlags & FRF_WHOLEWORD)
+          {
+            if (wpMatchCount + 1 >= wpTextMax)
+            {
+              if (dwFlags & FRF_WHOLEWORDGOODEND)
+                goto ReplaceDown;
+            }
+            else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount + 1)))
+              goto ReplaceDown;
+            goto NextDown;
+          }
+
+          ReplaceDown:
+          if (wszResult)
+          {
+            if (nPointCount)
+            {
+              for (lpPointCount=lpPointArray; lpPointCount < lpPointMax; ++lpPointCount)
+              {
+                if (lpPointCount->wpStr > wpMatchCount)
+                  lpPointCount->nShift-=nDiff;
+                else if (lpPointCount->wpStr > wpTextCount)
+                  lpPointCount->nShift-=(lpPointCount->wpStr - wpTextCount);
+              }
+            }
+
+            for (wpWithCount=wpWith; wpWithCount < wpWithMax; ++wpWithCount)
+              *wpResultCount++=*wpWithCount;
+          }
+          else wpResultCount+=nWithLen;
+
+          wpTextCount=wpMatchCount + 1;
+          wpItCount=wpIt;
+          ++nChanges;
+          if (wpTextCount >= wpTextMax) goto EndDown;
+        }
+        if (++wpMatchCount >= wpTextMax) break;
+      }
+
+      NextDown:
+      if (wszResult) *wpResultCount=*wpTextCount;
+      ++wpResultCount;
+    }
+
+    EndDown:
+    if (nResultLen) *nResultLen=wpResultCount - wszResult;
+    if (wszResult) *wppResult=wszResult;
+  }
   return nChanges;
 }
 
@@ -16956,7 +17044,7 @@ HDWP StackDockSize(HDWP hDwp, STACKDOCK *hDocks, NSIZE *ns)
   DOCK *lpDock;
   RECT rcDock;
   RECT rcWindow;
-  int nSide;
+  int nSide=0;
   int nLoop=0;
 
   hDocksStack.bSizing=TRUE;
@@ -21224,17 +21312,17 @@ void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSec
     wchar_t wszAMPM[128];
     INT_PTR nChanges=0;
 
-    nChanges+=StrReplace(wpFormat, -1, L"tt", -1, L"\x0002", 1, FRF_MATCHCASE, wszBuffer, NULL, NULL, 0);
-    nChanges+=StrReplace(wszBuffer, -1, L"t", -1, L"\x0001", 1, FRF_MATCHCASE, wszOutput, NULL, NULL, 0);
+    nChanges+=StrReplace(wpFormat, -1, L"tt", -1, L"\x0002", 1, FRF_MATCHCASE, wszBuffer, NULL, NULL, NULL, 0);
+    nChanges+=StrReplace(wszBuffer, -1, L"t", -1, L"\x0001", 1, FRF_MATCHCASE, wszOutput, NULL, NULL, NULL, 0);
     GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszOutput, wszBuffer, 128);
     GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszBuffer, wszOutput, 128);
     if (nChanges)
     {
       GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"tt", wszAMPM, 128);
-      StrReplace(wszOutput, -1, L"\x0002", 1, wszAMPM, -1, FRF_MATCHCASE, wszBuffer, NULL, NULL, 0);
+      StrReplace(wszOutput, -1, L"\x0002", 1, wszAMPM, -1, FRF_MATCHCASE, wszBuffer, NULL, NULL, NULL, 0);
 
       GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"t", wszAMPM, 128);
-      StrReplace(wszBuffer, -1, L"\x0001", 1, wszAMPM, -1, FRF_MATCHCASE, wszOutput, NULL, NULL, 0);
+      StrReplace(wszBuffer, -1, L"\x0001", 1, wszAMPM, -1, FRF_MATCHCASE, wszOutput, NULL, NULL, NULL, 0);
     }
   }
 }
