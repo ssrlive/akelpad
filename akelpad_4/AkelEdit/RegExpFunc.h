@@ -3246,8 +3246,16 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pep.wpRep=pr->wpRep;
   pep.wpMaxRep=pr->wpMaxRep;
   pep.wpNewLine=pr->wpNewLine?pr->wpNewLine:L"\r\n";
-  pep.lpPointArray=pr->lpPointArray;
-  pep.nPointCount=pr->nPointCount;
+  if (pr->nPointCount)
+  {
+    pep.lpPointArray=pr->lpPointArray;
+    pep.nPointCount=pr->nPointCount;
+  }
+  else
+  {
+    pep.lpPointArray=NULL;
+    pep.nPointCount=0;
+  }
   pep.wszBuf=pr->wszResult;
   pep.wpBufCount=pep.wszBuf;
 
