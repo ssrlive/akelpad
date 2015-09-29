@@ -46,6 +46,10 @@ void _WinMain()
   int nStartTime;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"a>1", L"([^>]*[^x])?>", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]1")) goto Error;
+
   //Test compilation
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
