@@ -1018,6 +1018,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
+  INT_PTR nGreedyStrLen;
   int nStrChar;
   int nCharSize=0;
   int nPatChar;
@@ -1152,7 +1153,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
 
-        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch) ||
+        if ((((wpGreedyStrEnd ? (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch :
+                                (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch) &&
+              nCurMatch >= lpREGroupItem->nMinMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
@@ -1195,6 +1198,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               if (!(lpREGroupItem->dwFlags & REGF_GREEDY))
                 goto EndLoop;
               wpGreedyStrEnd=wpStr;
+              nGreedyStrLen=lpREGroupItem->nStrLen;
             }
             ////str - "long string", find - "([^#]*@?)*"
             //if (nNextMatched & REE_ENDSTRING)
@@ -1614,6 +1618,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   if (wpGreedyStrEnd)
   {
     lpREGroupItem->wpStrEnd=wpGreedyStrEnd;
+    lpREGroupItem->nStrLen=nGreedyStrLen;
     if (nNextMatched == REE_FALSE)
       nNextMatched=REE_TRUE;
     goto ReturnTrue;
@@ -2281,6 +2286,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
+  INT_PTR nGreedyStrLen;
   int nStrChar;
   int nPatChar;
   int nPatNextChar;
@@ -2404,7 +2410,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
 
-        if ((((DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch && nCurMatch >= lpREGroupItem->nMinMatch) ||
+        if ((((ciGreedyStrEnd.lpLine ? (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch :
+                                       (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch) &&
+              nCurMatch >= lpREGroupItem->nMinMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
@@ -2449,6 +2457,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               if (!(lpREGroupItem->dwFlags & REGF_GREEDY))
                 goto EndLoop;
               ciGreedyStrEnd=ciStr;
+              nGreedyStrLen=lpREGroupItem->nStrLen;
             }
             ////str - "long string", find - "([^#]*@?)*"
             //if (nNextMatched & REE_ENDSTRING)
@@ -2898,6 +2907,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   if (ciGreedyStrEnd.lpLine)
   {
     lpREGroupItem->ciStrEnd=ciGreedyStrEnd;
+    lpREGroupItem->nStrLen=nGreedyStrLen;
     if (nNextMatched == REE_FALSE)
       nNextMatched=REE_TRUE;
     goto ReturnTrue;
