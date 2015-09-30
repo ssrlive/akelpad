@@ -1704,7 +1704,7 @@ BLOCKINFO* GetDataListbox(int nItem)
     if (lpBlock->dwStructType & BIT_DOCWORD)
     {
       lpDocWord=(DOCWORDINFO *)lpBlock;
-      biDocWordBlock.dwStructType=lpBlock->dwStructType;
+      biDocWordBlock.dwStructType=BIT_DOCWORD;
       if (dwCompleteListSymbolMark == CLSM_NOMARK)
       {
         biDocWordBlock.wpTitle=lpDocWord->wpDocWord;
@@ -2109,13 +2109,11 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         wpIndentBlock=lpBlockMaster->wpBlock;
 
       if (bSaveTypedCaseOnce ||
-          ((lpBlockMaster->dwStructType & BIT_DOCWORD) &&
-           (lpBlockMaster->dwStructType & BIT_NOSYNTAXFILE) &&
-            bSaveTypedCase))
+          (bSaveTypedCase && (lpBlockMaster->dwStructType & BIT_DOCWORD)))
       {
         CONVERTCASE cc;
         AECHARRANGE aecr;
-        wchar_t *wpReplaceWith=wpIndentBlock + (nMax - nMin);
+        wchar_t *wpReplaceWith=wpIndentBlock;
 
         if (bInheritTypedCase)
         {
@@ -2137,7 +2135,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         cr.cpMin=nMax;
         cr.cpMax=nMax;
         SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
-        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)wpReplaceWith);
+        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpReplaceWith + (nMax - nMin)));
         if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
       }
       else
@@ -2344,6 +2342,7 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack
                 }
               }
             }
+            biHighLightBlock.dwStructType=BIT_HLBASE;
             if (dwCompleteListSymbolMark == CLSM_NOMARK)
             {
               biHighLightBlock.wpTitle=lpHighLightWord->wpWord;
@@ -2400,6 +2399,7 @@ BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack
                 return NULL;
             }
           }
+          biDocWordBlock.dwStructType=BIT_DOCWORD;
           if (dwCompleteListSymbolMark == CLSM_NOMARK)
           {
             biDocWordBlock.wpTitle=lpDocWord->wpDocWord;
@@ -2597,7 +2597,6 @@ void StackFillDocWord(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, c
               if (lpDocWordInfo->wpDocWord=(wchar_t *)GlobalAlloc(GPTR, (nDocWordLen + 1) * sizeof(wchar_t)))
                 xmemcpy(lpDocWordInfo->wpDocWord, wszBuffer, (nDocWordLen + 1) * sizeof(wchar_t));
               lpDocWordInfo->nDocWordLen=nDocWordLen;
-              if (!lpSyntaxFile) lpDocWordInfo->dwStructType|=BIT_NOSYNTAXFILE;
             }
           }
         }

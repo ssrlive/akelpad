@@ -57,7 +57,6 @@
 #define BIT_BLOCK          0x1
 #define BIT_HLBASE         0x2
 #define BIT_DOCWORD        0x4
-#define BIT_NOSYNTAXFILE   0x8
 
 //dwCompleteListSymbolMark
 #define CLSM_NOMARK        0x0
