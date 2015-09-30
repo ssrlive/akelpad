@@ -1431,6 +1431,18 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
   }
   else return CAWE_NOEDITWINDOW;
 
+  if (lpSyntaxFile && lpSyntaxFile->hFoldStack.nFoldWithThemeCount && lpCurrentFoldWindow)
+  {
+    SYNTAXFILE *lpSyntaxFileCaret;
+    AEFOLD *lpFold;
+  
+    if (lpFold=GetCaretFold(lpCurrentFoldWindow, NULL))
+    {
+      if (lpSyntaxFileCaret=GetSyntaxFileByFold(lpCurrentFoldWindow, lpFold))
+        lpSyntaxFile=lpSyntaxFileCaret;
+    }
+  }
+
   if (lpSyntaxFile && lpSyntaxFile->hExactBlockStack.first && (dwFlags & CAW_COMPLETEONE))
   {
     AECHARINDEX ciCaret;
