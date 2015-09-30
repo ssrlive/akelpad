@@ -2506,11 +2506,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                     AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
               {
                 if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                {
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                    goto NextOR;
-                  goto EndLoop;
-                }
+                  goto NextGroup;
                 lpREGroupNextNext=lpREGroupNext->firstChild->next;
               }
               else
@@ -2520,11 +2516,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
                 else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
                   lpREGroupNextNext=lpREGroupNext->firstChild->next;
                 else
-                {
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                    goto NextOR;
-                  goto EndLoop;
-                }
+                  goto NextGroup;
               }
               if (!AE_PatExec(hStack, lpREGroupNextNext, &ciStr, &ciMaxStr))
               {
