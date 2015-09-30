@@ -46,10 +46,6 @@ void _WinMain()
   int nStartTime;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
-  nLine=__LINE__;
-  TextReplaceRE(L"a>1", L"([^>]*[^x])?>", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"[x]1")) goto Error;
-
   //Test compilation
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
@@ -607,6 +603,22 @@ void _WinMain()
   nLine=__LINE__;
   TextReplaceRE(L"aa", L"a?a", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ab", L"(a?.)b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"ab", L"(a?.)?b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"a>1", L"(a*[^b])?>", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]1")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"a>1", L"([^>]*>)?>", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"a[x]1")) goto Error;
 
 
   //POSIX result "[x]"
