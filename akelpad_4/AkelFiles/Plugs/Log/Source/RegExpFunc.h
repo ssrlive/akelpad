@@ -676,6 +676,11 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
           if (!(lpREGroupItem->conditionRef=PatGetGroup(hStack, nPatRefIndex)))
             goto Error;
         }
+        else
+        {
+          if (!(lpREGroupItem->dwFlags & (REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD)))
+            goto Error;
+        }
         lpREGroupItem->dwFlags|=REGF_IFCONDITION;
         lpREGroupNextAuto=lpREGroupItem;
       }
