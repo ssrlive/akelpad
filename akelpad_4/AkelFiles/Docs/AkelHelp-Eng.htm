@@ -1967,7 +1967,7 @@
       <td>(?(<i>condition</i>)<i>pattern-true</i>|<i>pattern-false</i>)
       <br><br>(?(<i>condition</i>)<i>pattern-true</i>)
       </td>
-      <td>If the condition is satisfied, the pattern-true is used; otherwise the pattern-false (if present) is used. Condition can be pattern or a number of backreference, which will be checked for match success. For example, '(a)?b(?(1)c|d)' matches the "abc" in "abc" and "bd" in "zbd". Because, if "а" found, then trying to find "с" after "b", if "а" not found, then trying to find "d" after "b".</td>
+      <td>If the condition is satisfied, the pattern-true is used; otherwise the pattern-false (if present) is used. Condition can be pattern with positive/negative lookahead/lookbehind search or a number of backreference, which will be checked for match success. For example, '(a)?b(?(1)c|d)' matches the "abc" in "abc" and "bd" in "zbd". Because, if "a" found, then trying to find "c" after "b", if "a" not found, then trying to find "d" after "b".</td>
     </tr>
     <tr>
       <td>(?<i>options</i>)</td>

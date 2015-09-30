@@ -259,6 +259,10 @@ void _WinMain()
   TextReplaceRE(L"abc", L"[\\K]", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"a(?(b)bc)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
   //Test execution
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"(a*)+", L"[x]", dwOptions, &wpResult);
