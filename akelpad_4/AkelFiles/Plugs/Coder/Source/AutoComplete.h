@@ -19,14 +19,15 @@
 #define STRID_ADDDOCUMENTWORDS           313
 #define STRID_COMPLETENONSYNTAXDOCUMENT  314
 #define STRID_SAVETYPEDCASE              315
-#define STRID_MAXDOCUMENT                316
-#define STRID_CHARS                      317
-#define STRID_ADDHIGHLIGHTWORDS          318
-#define STRID_HLBASECOLORS               319
-#define STRID_NOSYMBOLMARK               320
-#define STRID_RIGHTDELIMITERS            321
-#define STRID_SYNTAXDELIMITERS           322
-#define STRID_COMPLETECASESENSITIVE      323
+#define STRID_INHERITTYPEDCASE           316
+#define STRID_MAXDOCUMENT                317
+#define STRID_CHARS                      318
+#define STRID_ADDHIGHLIGHTWORDS          319
+#define STRID_HLBASECOLORS               320
+#define STRID_NOSYMBOLMARK               321
+#define STRID_RIGHTDELIMITERS            322
+#define STRID_SYNTAXDELIMITERS           323
+#define STRID_COMPLETECASESENSITIVE      324
 
 #define DLLA_AUTOCOMPLETE_ADDWINDOW 50
 #define DLLA_AUTOCOMPLETE_DELWINDOW 51

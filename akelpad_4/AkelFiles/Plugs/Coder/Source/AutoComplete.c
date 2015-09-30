@@ -40,6 +40,7 @@ BOOL bAddDocumentWords=TRUE;
 BOOL bCompleteNonSyntaxDocument=TRUE;
 BOOL bSaveTypedCase=TRUE;
 BOOL bSaveTypedCaseOnce=FALSE;
+BOOL bInheritTypedCase=TRUE;
 BOOL bMaxDocumentEnable=TRUE;
 int nMaxDocumentChars=1000000;
 BOOL bAddHighLightWords=TRUE;
@@ -370,6 +371,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static HWND hWndAddDocumentWords;
   static HWND hWndCompleteNonSyntaxDocument;
   static HWND hWndSaveTypedCase;
+  static HWND hWndInheritTypedCase;
   static HWND hWndMaxDocumentEnable;
   static HWND hWndMaxDocumentChars;
   static HWND hWndMaxDocumentPostLabel;
@@ -383,6 +385,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
   static BOOL bAddDocumentWordsDlg;
   static BOOL bMaxDocumentEnableDlg;
   static BOOL bCompleteNonSyntaxDocumentDlg;
+  static BOOL bSaveTypedCaseDlg;
   static BOOL bAddHighLightWordsDlg;
   static BOOL bCompleteListSystemColorsDlg;
   static BOOL bInitDialog;
@@ -393,6 +396,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     bAddDocumentWordsDlg=bAddDocumentWords;
     bMaxDocumentEnableDlg=bMaxDocumentEnable;
     bCompleteNonSyntaxDocumentDlg=bCompleteNonSyntaxDocument;
+    bSaveTypedCaseDlg=bSaveTypedCase;
     bAddHighLightWordsDlg=bAddHighLightWords;
     bCompleteListSystemColorsDlg=bCompleteListSystemColors;
 
@@ -400,6 +404,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     hWndAddDocumentWords=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS);
     hWndCompleteNonSyntaxDocument=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT);
     hWndSaveTypedCase=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE);
+    hWndInheritTypedCase=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_INHERITTYPEDCASE);
     hWndMaxDocumentEnable=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE);
     hWndMaxDocumentChars=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS);
     hWndMaxDocumentPostLabel=GetDlgItem(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_POSTLABEL);
@@ -415,6 +420,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS, GetLangStringW(wLangModule, STRID_ADDDOCUMENTWORDS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT, GetLangStringW(wLangModule, STRID_COMPLETENONSYNTAXDOCUMENT));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE, GetLangStringW(wLangModule, STRID_SAVETYPEDCASE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_INHERITTYPEDCASE, GetLangStringW(wLangModule, STRID_INHERITTYPEDCASE));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE, GetLangStringW(wLangModule, STRID_MAXDOCUMENT));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_POSTLABEL, GetLangStringW(wLangModule, STRID_CHARS));
     SetDlgItemTextWide(hDlg, IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS, GetLangStringW(wLangModule, STRID_ADDHIGHLIGHTWORDS));
@@ -430,7 +436,8 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     SetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, nMaxDocumentChars, FALSE);
     if (bCompleteNonSyntaxDocument) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveTypedCase) SendMessage(hWndSaveTypedCase, BM_SETCHECK, BST_CHECKED, 0);
-
+    if (bInheritTypedCase) SendMessage(hWndInheritTypedCase, BM_SETCHECK, BST_CHECKED, 0);
+    
     if (bAddHighLightWords) SendMessage(hWndAddHighLightWords, BM_SETCHECK, BST_CHECKED, 0);
     if (bCompleteListItemHlBaseColors) SendMessage(hWndListItemHlBaseColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
     if (bCompleteListSystemColors) SendMessage(hWndListSysColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
@@ -460,16 +467,20 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
     if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS ||
         LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE ||
-        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT)
+        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT ||
+        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE)
     {
       bAddDocumentWordsDlg=(BOOL)SendMessage(hWndAddDocumentWords, BM_GETCHECK, 0, 0);
       bMaxDocumentEnableDlg=(BOOL)SendMessage(hWndMaxDocumentEnable, BM_GETCHECK, 0, 0);
       bCompleteNonSyntaxDocumentDlg=(BOOL)SendMessage(hWndCompleteNonSyntaxDocument, BM_GETCHECK, 0, 0);
+      bSaveTypedCaseDlg=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
+
       EnableWindow(hWndMaxDocumentEnable, bAddDocumentWordsDlg);
       EnableWindow(hWndMaxDocumentChars, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
       EnableWindow(hWndMaxDocumentPostLabel, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
       EnableWindow(hWndCompleteNonSyntaxDocument, bAddDocumentWordsDlg);
       EnableWindow(hWndSaveTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg);
+      EnableWindow(hWndInheritTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg && bSaveTypedCaseDlg);
     }
     else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS ||
              LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_LISTSYSCOLORS_ENABLE)
@@ -494,8 +505,9 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
       bAddDocumentWords=bAddDocumentWordsDlg;
       bMaxDocumentEnable=bMaxDocumentEnableDlg;
       bCompleteNonSyntaxDocument=bCompleteNonSyntaxDocumentDlg;
+      bSaveTypedCase=bSaveTypedCaseDlg;
       nMaxDocumentChars=GetDlgItemInt(hDlg, IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_CHARS, NULL, FALSE);
-      bSaveTypedCase=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
+      bInheritTypedCase=(BOOL)SendMessage(hWndInheritTypedCase, BM_GETCHECK, 0, 0);
 
       bAddHighLightWords=bAddHighLightWordsDlg;
       bCompleteListItemHlBaseColors=(BOOL)SendMessage(hWndListItemHlBaseColorsEnable, BM_GETCHECK, 0, 0);
@@ -2089,10 +2101,32 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
            (lpBlockMaster->dwStructType & BIT_NOSYNTAXFILE) &&
             bSaveTypedCase))
       {
+        CONVERTCASE cc;
+        AECHARRANGE aecr;
+        wchar_t *wpReplaceWith=wpIndentBlock + (nMax - nMin);
+
+        if (bInheritTypedCase)
+        {
+          SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMin, (LPARAM)&aecr.ciMin);
+          SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&aecr.ciMax);
+          cc.wszText=NULL;
+          cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
+          if (cc.nCase != SCT_NONE)
+          {
+            cc.nTextLen=xstrlenW(wpReplaceWith);
+            if (cc.wszText=(wchar_t *)GlobalAlloc(GPTR, cc.nTextLen * sizeof(wchar_t) + 2))
+            {
+              xmemcpy(cc.wszText, wpReplaceWith, cc.nTextLen * sizeof(wchar_t) + 2);
+              SendMessage(hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
+              wpReplaceWith=cc.wszText;
+            }
+          }
+        }
         cr.cpMin=nMax;
         cr.cpMax=nMax;
         SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
-        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpIndentBlock + (nMax - nMin)));
+        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)wpReplaceWith);
+        if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
       }
       else
       {
@@ -2657,6 +2691,7 @@ void ReadAutoCompleteOptions(HANDLE hOptions)
   WideOption(hOptions, L"AddDocumentWords", PO_DWORD, (LPBYTE)&bAddDocumentWords, sizeof(DWORD));
   WideOption(hOptions, L"CompleteNonSyntaxDocument", PO_DWORD, (LPBYTE)&bCompleteNonSyntaxDocument, sizeof(DWORD));
   WideOption(hOptions, L"SaveTypedCase", PO_DWORD, (LPBYTE)&bSaveTypedCase, sizeof(DWORD));
+  WideOption(hOptions, L"InheritTypedCase", PO_DWORD, (LPBYTE)&bInheritTypedCase, sizeof(DWORD));
   WideOption(hOptions, L"MaxDocumentEnable", PO_DWORD, (LPBYTE)&bMaxDocumentEnable, sizeof(DWORD));
   WideOption(hOptions, L"MaxDocumentChars", PO_DWORD, (LPBYTE)&nMaxDocumentChars, sizeof(DWORD));
   WideOption(hOptions, L"AddHighLightWords", PO_DWORD, (LPBYTE)&bAddHighLightWords, sizeof(DWORD));
@@ -2689,6 +2724,7 @@ void SaveAutoCompleteOptions(HANDLE hOptions, DWORD dwFlags)
     WideOption(hOptions, L"AddDocumentWords", PO_DWORD, (LPBYTE)&bAddDocumentWords, sizeof(DWORD));
     WideOption(hOptions, L"CompleteNonSyntaxDocument", PO_DWORD, (LPBYTE)&bCompleteNonSyntaxDocument, sizeof(DWORD));
     WideOption(hOptions, L"SaveTypedCase", PO_DWORD, (LPBYTE)&bSaveTypedCase, sizeof(DWORD));
+    WideOption(hOptions, L"InheritTypedCase", PO_DWORD, (LPBYTE)&bInheritTypedCase, sizeof(DWORD));
     WideOption(hOptions, L"MaxDocumentEnable", PO_DWORD, (LPBYTE)&bMaxDocumentEnable, sizeof(DWORD));
     WideOption(hOptions, L"MaxDocumentChars", PO_DWORD, (LPBYTE)&nMaxDocumentChars, sizeof(DWORD));
     WideOption(hOptions, L"AddHighLightWords", PO_DWORD, (LPBYTE)&bAddHighLightWords, sizeof(DWORD));
