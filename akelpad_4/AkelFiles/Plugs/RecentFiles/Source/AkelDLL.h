@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 1, 1)
 
 
 //// Defines
@@ -2269,7 +2269,7 @@ typedef struct {
 
 //Text retrieval and modification
 #define AKD_WRITEFILECONTENT       (WM_USER + 141)
-#define AKD_DETECTSELCASE          (WM_USER + 143)
+#define AKD_DETECTCASE             (WM_USER + 143)
 #define AKD_CONVERTCASE            (WM_USER + 144)
 #define AKD_DETECTANSITEXT         (WM_USER + 146)
 #define AKD_DETECTUNITEXT          (WM_USER + 147)
@@ -3195,19 +3195,19 @@ Example:
 // }
 
 /*
-AKD_DETECTSELCASE
-_________________
+AKD_DETECTCASE
+______________
 
-Detect selection case.
+Detect text case.
 
-(HWND)wParam == edit window, NULL for current edit window.
-lParam       == not used.
+(HWND)wParam          == edit window, NULL for current edit window.
+(AECHARRANGE *)lParam == characters range to detect. If NULL, current selection will be used.
 
 Return Value
  See SCT_* defines.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_DETECTSELCASE, (WPARAM)NULL, 0);
+ SendMessage(pd->hMainWnd, AKD_DETECTCASE, (WPARAM)NULL, (LPARAM)NULL);
 
 
 AKD_CONVERTCASE

@@ -2452,7 +2452,7 @@ void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
   }
 }
 
-int DetectSelCase(HWND hWnd)
+int DetectCase(HWND hWnd, AECHARRANGE *lpcrRange)
 {
   AECHARRANGE crSel;
   DWORD dwCaseType=DC_UPPERCASE|DC_LOWERCASE|DC_SENTENCECASE|DC_TITLECASE;
@@ -2462,8 +2462,16 @@ int DetectSelCase(HWND hWnd)
   BOOL bStartSentence=TRUE;
   BOOL bStartTitle=TRUE;
 
-  if (!GetSel(hWnd, &crSel, &bColumnSel, NULL) || bColumnSel)
-    return SCT_NONE;
+  if (!lpcrRange)
+  {
+    if (!GetSel(hWnd, &crSel, &bColumnSel, NULL) || bColumnSel)
+      return SCT_NONE;
+  }
+  else
+  {
+    crSel.ciMin=lpcrRange->ciMin;
+    crSel.ciMax=lpcrRange->ciMax;
+  }
   AEC_ValidCharInLine(&crSel.ciMin);
   AEC_ValidCharInLine(&crSel.ciMax);
 
@@ -11329,7 +11337,7 @@ int PasteCase(HWND hWnd, BOOL bAnsi)
   {
     if (--nDataLen > 0)
     {
-      if (nCase=DetectSelCase(hWnd))
+      if (nCase=DetectCase(hWnd, NULL))
         ConvertCase(wszData, nDataLen, nCase);
     }
     ReplaceSelW(hWnd, wszData, nDataLen, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);

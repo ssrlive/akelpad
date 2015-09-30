@@ -2039,14 +2039,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Text retrieval and modification
-      case AKD_DETECTSELCASE:
+      case AKD_DETECTCASE:
       {
         HWND hWnd=(HWND)wParam;
 
         if (!hWnd)
           hWnd=lpFrameCurrent->ei.hWndEdit;
 
-        return DetectSelCase(hWnd);
+        return DetectCase(hWnd, (AECHARRANGE *)lParam);
       }
       case AKD_CONVERTCASE:
       {
