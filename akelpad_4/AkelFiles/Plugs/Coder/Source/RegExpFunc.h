@@ -1153,9 +1153,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
 
-        if ((((wpGreedyStrEnd ? (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch :
-                                (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch) &&
-              nCurMatch >= lpREGroupItem->nMinMatch) ||
+        if (((nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
@@ -1239,8 +1237,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             lpREGroupNext->wpStrStart=wpStr;
             lpREGroupNext->nSelfMatch=0;
 
-            if (lpREGroupNext->dwFlags & REGF_IFPARENT)
+            if ((lpREGroupItem->dwFlags & REGF_IFPARENT) || (lpREGroupNext->dwFlags & REGF_IFPARENT))
             {
+              //str - "abc", find - "(a)(?(1)bc)"
+              if (lpREGroupItem->dwFlags & REGF_IFPARENT)
+                lpREGroupNext=lpREGroupItem;
+
               if (lpREGroupNext->firstChild->conditionRef ?
                     lpREGroupNext->firstChild->conditionRef->nStrLen :
                     PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
@@ -2410,9 +2412,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
 
-        if ((((ciGreedyStrEnd.lpLine ? (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch :
-                                       (DWORD)nCurMatch < (DWORD)lpREGroupItem->nMaxMatch) &&
-              nCurMatch >= lpREGroupItem->nMinMatch) ||
+        if (((nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
@@ -2498,8 +2498,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             lpREGroupNext->ciStrStart=ciStr;
             lpREGroupNext->nSelfMatch=0;
 
-            if (lpREGroupNext->dwFlags & REGF_IFPARENT)
+            if ((lpREGroupItem->dwFlags & REGF_IFPARENT) || (lpREGroupNext->dwFlags & REGF_IFPARENT))
             {
+              //str - "abc", find - "(a)(?(1)bc)"
+              if (lpREGroupItem->dwFlags & REGF_IFPARENT)
+                lpREGroupNext=lpREGroupItem;
+
               if (lpREGroupNext->firstChild->conditionRef ?
                     lpREGroupNext->firstChild->conditionRef->nStrLen :
                     AE_PatExec(hStack, lpREGroupNext->firstChild, &ciStr, &ciMaxStr))
