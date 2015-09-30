@@ -1253,11 +1253,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                     PatExec(hStack, lpREGroupNext->firstChild, wpStr, wpMaxStr))
               {
                 if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
-                {
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                    goto NextOR;
-                  goto EndLoop;
-                }
+                  goto NextGroup;
                 lpREGroupNextNext=lpREGroupNext->firstChild->next;
               }
               else
@@ -1267,11 +1263,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
                 else if (lpREGroupNext->firstChild->next->dwFlags & REGF_IFFALSE)
                   lpREGroupNextNext=lpREGroupNext->firstChild->next;
                 else
-                {
-                  if (lpREGroupNext->dwFlags & REGF_OR)
-                    goto NextOR;
-                  goto EndLoop;
-                }
+                  goto NextGroup;
               }
               if (!PatExec(hStack, lpREGroupNextNext, wpStr, wpMaxStr))
               {

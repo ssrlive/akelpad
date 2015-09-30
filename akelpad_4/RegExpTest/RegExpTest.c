@@ -330,7 +330,15 @@ void _WinMain()
 
   nLine=__LINE__;
   TextReplaceRE(L"mam,pap", L"(?(?<=a)m)", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"ma[x],pap")) goto Error;
+  if (xstrcmpW(wpResult, L"[x]m[x]a[x][x],[x]p[x]ap[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"<>", L"<(a)?(?(1)=b)>", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"<a=b>", L"<(a)?(?(1)=b)>", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"129", L"\\d{1,3}?9", L"[x]", dwOptions, &wpResult);
