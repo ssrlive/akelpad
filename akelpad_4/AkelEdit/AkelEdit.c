@@ -12203,6 +12203,7 @@ AEQUOTESTART* AE_HighlightInsertQuoteStart(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQ
     if (lpQuoteStart->nQuoteStartLen == lpQuoteItem->nQuoteStartLen &&
         lpQuoteStart->dwFlags == lpQuoteItem->dwFlags &&
         lpQuoteStart->chEscape == lpQuoteItem->chEscape &&
+        lpQuoteStart->nParentID == lpQuoteItem->nParentID &&
         lpQuoteStart->nRuleID == lpQuoteItem->nRuleID &&
         //AEQUOTEITEMs with filter flags should not be merged
         !(lpQuoteStart->dwFlags & (AEHLF_QUOTEINCLUDE|AEHLF_QUOTEEXCLUDE|AEHLF_QUOTEEMPTY|AEHLF_QUOTEWITHOUTDELIMITERS)))
