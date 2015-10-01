@@ -2719,8 +2719,8 @@ FOLDSTART* StackInsertFoldStart(HSTACK *hFoldStartStack, FOLDINFO *lpFoldInfo, w
   {
     if (lpFoldStart->nFoldStartLen == nFoldStartLen &&
         (lpFoldStart->dwFlags & FIF_MATCHCASE) == (lpFoldInfo->dwFlags & FIF_MATCHCASE) &&
-        lpFoldStart->nRuleID == lpFoldInfo->nRuleID &&
-        lpFoldStart->nParentID == lpFoldInfo->nParentID)
+        lpFoldStart->nParentID == lpFoldInfo->nParentID &&
+        lpFoldStart->nRuleID == lpFoldInfo->nRuleID)
     {
       if (((lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpW(lpFoldStart->wpFoldStart, wpFoldStart)) ||
           (!(lpFoldStart->dwFlags & FIF_MATCHCASE) && !xstrcmpiW(lpFoldStart->wpFoldStart, wpFoldStart)))
