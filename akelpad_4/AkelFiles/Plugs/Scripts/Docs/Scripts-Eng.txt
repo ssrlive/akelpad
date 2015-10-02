@@ -1411,11 +1411,11 @@ ________________________________________
 
 Call system function.
 
-  Call(pDllFunction[, ...]);
+  Call(vDllFunction[, ...]);
 
 Arguments
-  pDllFunction
-    Function name in format "Dll::Function".
+  vDllFunction
+    Function name in string format "Dll::Function" or function address in number format.
   ...
     Function parameters, must be integer, pointer or string.
     String parameter: in Windows 95/98/Me - Ansi string,
