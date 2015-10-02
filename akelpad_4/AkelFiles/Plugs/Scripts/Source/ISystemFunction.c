@@ -166,18 +166,28 @@ HRESULT STDMETHODCALLTYPE SystemFunction_AddParameter(ISystemFunction *this, VAR
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllFunction, SAFEARRAY **psa, VARIANT *vtResult)
+HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, VARIANT vtDllFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealSystemFunction *)this)->lpScriptThread;
+  VARIANT *pvtDllFunction=&vtDllFunction;
   SYSTEMFUNCTION *sf;
   HMODULE hModule=NULL;
   FARPROC lpProcedure=NULL;
   char szFunction[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
   wchar_t wszDll[MAX_PATH];
+  wchar_t *wpDllFunction=NULL;
+  UINT_PTR dwDllFunction;
   INT_PTR nResult=0;
   BOOL bLoadLibrary=FALSE;
   int i;
+
+  sf=&((IRealSystemFunction *)this)->sf;
+  dwDllFunction=GetVariantValue(pvtDllFunction, &pvtDllFunction, FALSE);
+  if (pvtDllFunction->vt == VT_BSTR && pvtDllFunction->bstrVal && pvtDllFunction->bstrVal[0])
+    wpDllFunction=(wchar_t *)dwDllFunction;
+  else
+    lpProcedure=(FARPROC)dwDllFunction;
 
   //Fill call stack
   {
@@ -199,9 +209,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
     }
   }
 
-  sf=&((IRealSystemFunction *)this)->sf;
-
-  if (*wpDllFunction)
+  if (wpDllFunction)
   {
     wszFunction[0]=L'\0';
     wszDll[0]=L'\0';
@@ -219,35 +227,33 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, BSTR wpDllF
     if (!(hModule=GetModuleHandleWide(wszDll)))
     {
       if (hModule=LoadLibraryWide(wszDll))
-      {
         bLoadLibrary=TRUE;
-      }
     }
     WideCharToMultiByte(CP_ACP, 0, wszFunction, -1, szFunction, MAX_PATH, NULL, NULL);
 
     if (hModule)
-    {
-      if (lpProcedure=GetProcAddress(hModule, szFunction))
-      {
-        //Call function
-        nResult=AsmCallSysFunc(&sf->hSysParamStack, &sf->hSaveStack, lpProcedure);
-
-        //Get last error
-        sf->dwLastError=GetLastError();
-
-        //Free call parameters
-        StackFreeSysParams(&sf->hSaveStack);
-      }
-      if (bLoadLibrary)
-      {
-        FreeLibrary(hModule);
-      }
-    }
+      lpProcedure=GetProcAddress(hModule, szFunction);
+  }
+  if (lpProcedure)
+  {
+    //Call function
+    nResult=AsmCallSysFunc(&sf->hSysParamStack, &sf->hSaveStack, lpProcedure);
+    
+    //Get last error
+    sf->dwLastError=GetLastError();
   }
 
-  if (lpScriptThread && lpScriptThread->dwDebug & DBG_SYSCALL)
+  //Free call parameters
+  StackFreeSysParams(&sf->hSaveStack);
+
+  if (bLoadLibrary)
   {
-    if (!hModule)
+    FreeLibrary(hModule);
+  }
+
+  if (lpScriptThread && (lpScriptThread->dwDebug & DBG_SYSCALL))
+  {
+    if (wpDllFunction && !hModule)
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_SYSCALL), wszDll);
       return E_POINTER;

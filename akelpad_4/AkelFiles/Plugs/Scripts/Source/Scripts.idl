@@ -329,7 +329,7 @@ library Scripts
     HRESULT AddParameter([in] VARIANT vtParameter);
 
     //Call system function.
-    [vararg] HRESULT Call([in] BSTR wpDllFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+    [vararg] HRESULT Call([in] VARIANT vtDllFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Get call function last error.
     HRESULT GetLastError([out, retval] DWORD *dwLastError);
