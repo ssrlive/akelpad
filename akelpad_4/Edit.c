@@ -10762,7 +10762,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
     EndUp:
     if (wpTextCount < wpText) ++wpResultCount;
     if (nResultLen) *nResultLen=wpResultMax - wpResultCount;
-    if (wszResult) *wppResult=wpResultCount;
+    if (wppResult) *wppResult=wpResultCount;
   }
   else
   {
@@ -10837,7 +10837,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
 
     EndDown:
     if (nResultLen) *nResultLen=wpResultCount - wszResult;
-    if (wszResult) *wppResult=wszResult;
+    if (wppResult) *wppResult=wszResult;
   }
   return nChanges;
 }
