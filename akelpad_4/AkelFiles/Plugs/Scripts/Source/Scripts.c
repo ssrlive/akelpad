@@ -2396,6 +2396,10 @@ void FreeScriptResources(SCRIPTTHREAD *lpScriptThread, BOOL bDebug)
     }
     StackFreePointers(&lpScriptThread->hPointersStack);
   }
+  if (lpScriptThread->hSinkStack.nElements)
+  {
+    StackFreeSinks(&lpScriptThread->hSinkStack);
+  }
   if (lpScriptThread->hWndScriptsThreadDummy)
   {
     DestroyWindow(lpScriptThread->hWndScriptsThreadDummy);

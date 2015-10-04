@@ -79,6 +79,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_MemRead,
   Document_MemStrPtr,
   Document_MemPtrStr,
+  Document_MemPtrDispatch,
   Document_MemFree,
   Document_DebugJIT,
   Document_Debug,
@@ -1708,6 +1709,13 @@ HRESULT STDMETHODCALLTYPE Document_MemPtrStr(IDocument *this, VARIANT vtPointer,
   if (!(*wpString=SysAllocString(wszBuffer)))
     hr=E_OUTOFMEMORY;
   return hr;
+}
+
+HRESULT STDMETHODCALLTYPE Document_MemPtrDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch)
+{
+  vtPointer.vt=VT_DISPATCH;
+  *objDispatch=(IDispatch *)GetVariantInt(&vtPointer, NULL);
+  return NOERROR;
 }
 
 HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer)
