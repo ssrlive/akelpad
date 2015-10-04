@@ -76,6 +76,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_MemRead)(THIS_ VARIANT, DWORD, int, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_MemStrPtr)(THIS_ BSTR, BOOL, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_MemPtrStr)(THIS_ VARIANT, BSTR *) PURE;
+  STDMETHOD_(HRESULT, Document_MemPtrDispatch)(THIS_ VARIANT, IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_MemFree)(THIS_ VARIANT ) PURE;
   STDMETHOD_(HRESULT, Document_DebugJIT)(THIS) PURE;
   STDMETHOD_(HRESULT, Document_Debug)(THIS_ DWORD, DWORD *) PURE;
@@ -404,6 +405,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, DWORD dwType, int nDataLen, VARIANT *vtData);
 HRESULT STDMETHODCALLTYPE Document_MemStrPtr(IDocument *this, BSTR wpString, BOOL bConvert, VARIANT *vtPointer);
 HRESULT STDMETHODCALLTYPE Document_MemPtrStr(IDocument *this, VARIANT vtPointer, BSTR *wpString);
+HRESULT STDMETHODCALLTYPE Document_MemPtrDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch);
 HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer);
 HRESULT STDMETHODCALLTYPE Document_DebugJIT(IDocument *this);
 HRESULT STDMETHODCALLTYPE Document_Debug(IDocument *this, DWORD dwDebug, DWORD *dwResult);

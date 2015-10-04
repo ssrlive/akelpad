@@ -176,6 +176,7 @@ typedef struct _SCRIPTTHREAD {
 
   INCLUDESTACK hIncludesStack;
   POINTERSTACK hPointersStack;
+  SINKSTACK hSinkStack;
   DWORD dwDebug;
   DWORD dwDebugJIT;
   BOOL bInitDebugJIT;
