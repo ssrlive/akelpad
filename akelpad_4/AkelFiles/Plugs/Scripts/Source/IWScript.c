@@ -334,6 +334,20 @@ HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objCo
       }
     }
   }
+
+  ////Show connected interfaces
+  //{
+  //  IID iidConnect;
+  //  BSTR wpIDD;
+  //
+  //  for (lpConnectItem=objISink->hConnectStack.first; lpConnectItem; lpConnectItem=lpConnectItem->next)
+  //  {
+  //    lpConnectItem->objConnectionPoint->lpVtbl->GetConnectionInterface(lpConnectItem->objConnectionPoint, &iidConnect);
+  //    StringFromIID(&iidConnect, &wpIDD);
+  //    MessageBoxW(NULL, wpIDD, NULL, 0);
+  //    SysFreeString(wpIDD);
+  //  }
+  //}
   return hr;
 }
 
