@@ -79,11 +79,11 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_MemRead,
   Document_MemStrPtr,
   Document_MemPtrStr,
-  Document_MemPtrDispatch,
   Document_MemFree,
   Document_DebugJIT,
   Document_Debug,
   Document_VarType,
+  Document_VarDispatch,
   Document_GetArgLine,
   Document_GetArgValue,
   Document_CreateDialog,
@@ -1711,13 +1711,6 @@ HRESULT STDMETHODCALLTYPE Document_MemPtrStr(IDocument *this, VARIANT vtPointer,
   return hr;
 }
 
-HRESULT STDMETHODCALLTYPE Document_MemPtrDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch)
-{
-  vtPointer.vt=VT_DISPATCH;
-  *objDispatch=(IDispatch *)GetVariantInt(&vtPointer, NULL);
-  return NOERROR;
-}
-
 HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
@@ -1763,6 +1756,12 @@ HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int 
   if (pvtData->vt == (VT_BYREF|VT_VARIANT))
     pvtData=pvtData->pvarVal;
   *nType=pvtData->vt;
+  return NOERROR;
+}
+
+HRESULT STDMETHODCALLTYPE Document_VarDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch)
+{
+  *objDispatch=(IDispatch *)GetVariantInt(&vtPointer, NULL);
   return NOERROR;
 }
 

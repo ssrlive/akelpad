@@ -215,6 +215,7 @@ AkelPad.MemFree                              +ActiveX
 AkelPad.DebugJIT                             +ActiveX
 AkelPad.Debug                                +ActiveX
 AkelPad.VarType                              +ActiveX
+AkelPad.VarDispatch                          +ActiveX
 AkelPad.GetArgLine
 AkelPad.GetArgValue
 AkelPad.ScriptSettings
@@ -238,6 +239,9 @@ AkelPad.ThreadUnhook                         +ActiveX
 AkelPad.ScriptNoMutex
 AkelPad.ScriptExitCode
 AkelPad.ScriptHandle                         +ActiveX
+WScript.ScriptBaseName                       +ActiveX
+WScript.ConnectObject                        +ActiveX
+WScript.DisconnectObject                     +ActiveX
 _TCHAR                                       +ActiveX uses as AkelPad.Constants._TCHAR
 vbTCHAR                                      +ActiveX uses as AkelPad.Constants.vbTCHAR
 _TSTR                                        +ActiveX uses as AkelPad.Constants._TSTR
@@ -1820,6 +1824,28 @@ Example:
   WScript.Echo("" + AkelPad.VarType(pString));
 
 
+AkelPad.VarDispatch (+ActiveX)
+______________________________
+
+Get IDispatch object of a pointer.
+
+  VarDispatch(lpPointer);
+
+Arguments
+  lpPointer
+    Pointer to IDispatch object.
+
+Return Value
+  Object. IDispatch object.
+
+Example:
+  var oIE=new ActiveXObject("InternetExplorer.Application");
+  //IDispatch -> pointer
+  var nIE=_PtrAdd(oIE, 0);
+  //Pointer -> IDispatch
+  var oReturnIE=AkelPad.VarDispatch(nIE);
+
+
 AkelPad.GetArgLine
 __________________
 
@@ -2839,6 +2865,81 @@ Example (deny changing font size by scrolling mouse wheel with Ctrl key):
   }
 
 
+WScript.ScriptBaseName (+ActiveX)
+_________________________________
+
+Get script base name.
+
+  WScript.ScriptBaseName
+
+Return Value
+  String. Script base name.
+
+Example:
+  WScript.Echo(WScript.ScriptBaseName);
+
+
+WScript.ConnectObject (+ActiveX)
+________________________________
+
+Connects to the object's events.
+
+  ConnectObject(oEventSource, pPrefix[, vIID]);
+
+Arguments
+  oEventSource
+    Object to connect.
+  pPrefix
+    Prefix of the functions to handle receiving events.
+  vIID
+    Event interface IID.
+    - vIID can be string in format "{00000000-0000-0000-0000-000000000000}".
+    - vIID can be pointer. Example:
+        var lpDIID_DWebBrowserEvents2=AkelPad.MemAlloc(16 /*sizeof(IID)*/);
+        oSys.Call("ole32::IIDFromString", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}", lpDIID_DWebBrowserEvents2);
+    - If vIID not specified, connect to all possible interfaces of the object.
+
+Return Value
+  Number. Count of successfully connected interfaces.
+
+Example:
+  var oIE=new ActiveXObject("InternetExplorer.Application");
+  var oSys=AkelPad.SystemFunction();
+
+  if (WScript.ConnectObject(oIE, "IE_", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}" /*DIID_DWebBrowserEvents2*/))
+  {
+    oIE.Visible=true;
+    oIE.Navigate("http://akelpad.sourceforge.net/");
+    AkelPad.WindowGetMessage();
+    WScript.DisconnectObject(oIE);
+  }
+  oIE.Quit();
+
+  function IE_DocumentComplete(pDisp, URL)
+  {
+    AkelPad.MessageBox(oIE.HWND, URL, WScript.ScriptName, 0 /*MB_OK*/);
+    oSys.Call("user32::PostQuitMessage", 0);
+  }
+
+
+WScript.DisconnectObject (+ActiveX)
+___________________________________
+
+Disconnects from the object's events.
+
+  DisconnectObject(oEventSource);
+
+Arguments
+  oEventSource
+    Connected object.
+
+Return Value
+  Zero.
+
+Example:
+  See ConnectObject example.
+
+
 _TCHAR (+ActiveX)
 _________________
 
@@ -2954,7 +3055,7 @@ Return Value
   Number. Pointer.
 
 Example:
-  See AkelPad.ThreadHook example.
+  See ThreadHook example.
 
 
 vbPtrAdd (+ActiveX)
@@ -2983,7 +3084,7 @@ Return Value
   Number. Pointer.
 
 Example:
-  See AkelPad.WindowRegisterClass example (VBScript).
+  See WindowRegisterClass example (VBScript).
 
 
 vbPtrMath (+ActiveX)

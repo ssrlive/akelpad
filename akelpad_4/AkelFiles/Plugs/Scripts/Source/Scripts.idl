@@ -42,7 +42,7 @@ library Scripts
     HRESULT Quit([in, defaultvalue(0)] int nErrorCode);
 
     //Connect to object.
-    HRESULT ConnectObject([in] IDispatch *objConnectTo, [in] BSTR wpPrefix, [in, optional] VARIANT vtIID);
+    HRESULT ConnectObject([in] IDispatch *objConnectTo, [in] BSTR wpPrefix, [in, optional] VARIANT vtIID, [out, retval] int *nCount);
 
     //Disconnect from object.
     HRESULT DisconnectObject([in] IDispatch *objConnectTo);
@@ -243,9 +243,6 @@ library Scripts
     //Get string representation of a pointer.
     HRESULT MemPtrStr([in] VARIANT vtPointer, [out, retval] BSTR *wpString);
 
-    //Convert pointer to IDispatch object.
-    HRESULT MemPtrDispatch([in] VARIANT vtPointer, [out, retval] IDispatch **objDispatch);
-
     //Free memory.
     HRESULT MemFree([in] VARIANT vtPointer);
 
@@ -257,6 +254,9 @@ library Scripts
 
     //Get variable type.
     HRESULT VarType([in] VARIANT vtData, [out, retval] int *nType);
+
+    //Get IDispatch object of a pointer.
+    HRESULT VarDispatch([in] VARIANT vtPointer, [out, retval] IDispatch **objDispatch);
 
     //Get argument line.
     HRESULT GetArgLine([in, defaultvalue(1)] BOOL bNoEncloseQuotes, [out, retval] BSTR *wpArgLine);

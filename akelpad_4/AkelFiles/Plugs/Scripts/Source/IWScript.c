@@ -254,7 +254,7 @@ HRESULT STDMETHODCALLTYPE WScript_Quit(IWScript *this, int nErrorCode)
   return SCRIPT_E_PROPAGATE;
 }
 
-HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID)
+HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID, int *nCount)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealWScript *)this)->lpScriptThread;
   VARIANT *pvtIID=&vtIID;
@@ -348,6 +348,10 @@ HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objCo
   //    SysFreeString(wpIDD);
   //  }
   //}
+
+  *nCount=objISink->hConnectStack.nElements;
+  if (!*nCount)
+    StackDeleteSink(&lpScriptThread->hSinkStack, lpSinkItem);
   return hr;
 }
 
