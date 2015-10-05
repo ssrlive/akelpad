@@ -28,7 +28,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, WScript_Echo)(THIS_ BSTR) PURE;
   STDMETHOD_(HRESULT, WScript_Sleep)(THIS_ int) PURE;
   STDMETHOD_(HRESULT, WScript_Quit)(THIS_ int) PURE;
-  STDMETHOD_(HRESULT, WScript_ConnectObject)(THIS_ IDispatch *, BSTR, VARIANT) PURE;
+  STDMETHOD_(HRESULT, WScript_ConnectObject)(THIS_ IDispatch *, BSTR, VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, WScript_DisconnectObject)(THIS_ IDispatch *) PURE;
 };
 
@@ -102,7 +102,7 @@ HRESULT STDMETHODCALLTYPE WScript_Name(IWScript *this, BSTR *wpDllName);
 HRESULT STDMETHODCALLTYPE WScript_Echo(IWScript *this, BSTR wpText);
 HRESULT STDMETHODCALLTYPE WScript_Sleep(IWScript *this, int nTime);
 HRESULT STDMETHODCALLTYPE WScript_Quit(IWScript *this, int nErrorCode);
-HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID);
+HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID, int *nCount);
 HRESULT STDMETHODCALLTYPE WScript_DisconnectObject(IWScript *this, IDispatch *objConnectTo);
 
 HRESULT STDMETHODCALLTYPE Sink_QueryInterface(IDispatch *this, REFIID vTableGuid, void **ppv);

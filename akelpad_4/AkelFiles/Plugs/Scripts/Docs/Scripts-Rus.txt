@@ -216,6 +216,7 @@ AkelPad.MemFree                              +ActiveX
 AkelPad.DebugJIT                             +ActiveX
 AkelPad.Debug                                +ActiveX
 AkelPad.VarType                              +ActiveX
+AkelPad.VarDispatch                          +ActiveX
 AkelPad.GetArgLine
 AkelPad.GetArgValue
 AkelPad.ScriptSettings
@@ -239,6 +240,9 @@ AkelPad.ThreadUnhook                         +ActiveX
 AkelPad.ScriptNoMutex
 AkelPad.ScriptExitCode
 AkelPad.ScriptHandle                         +ActiveX
+WScript.ScriptBaseName                       +ActiveX
+WScript.ConnectObject                        +ActiveX
+WScript.DisconnectObject                     +ActiveX
 _TCHAR                                       +ActiveX используется как AkelPad.Constants._TCHAR
 vbTCHAR                                      +ActiveX используется как AkelPad.Constants.vbTCHAR
 _TSTR                                        +ActiveX используется как AkelPad.Constants._TSTR
@@ -1844,6 +1848,28 @@ __________________
     WScript.Echo(pArgLine);
 
 
+AkelPad.VarDispatch (+ActiveX)
+______________________________
+
+Получить IDispatch объект по указателю.
+
+  VarDispatch(lpPointer);
+
+Аргументы
+  lpPointer
+    Указатель на IDispatch объект.
+
+Возвращаемое значение
+  Объект. IDispatch объект.
+
+Пример:
+  var oIE=new ActiveXObject("InternetExplorer.Application");
+  //IDispatch -> указатель
+  var nIE=_PtrAdd(oIE, 0);
+  //Указатель -> IDispatch
+  var oReturnIE=AkelPad.VarDispatch(nIE);
+
+
 AkelPad.GetArgValue
 ___________________
 
@@ -2841,6 +2867,67 @@ _______________________________
   }
 
 
+WScript.ConnectObject (+ActiveX)
+________________________________
+
+Подсоединиться к событиям объекта.
+
+  ConnectObject(oEventSource, pPrefix[, vIID]);
+
+Аргументы
+  oEventSource
+    Объект, к которому необходимо подсоединиться.
+  pPrefix
+    Префикс для функций, куда будут приходить события.
+  vIID
+    IID интерфейса событий.
+    - vIID может быть строкой в формате "{00000000-0000-0000-0000-000000000000}".
+    - vIID может быть указателем. Пример:
+        var lpDIID_DWebBrowserEvents2=AkelPad.MemAlloc(16 /*sizeof(IID)*/);
+        oSys.Call("ole32::IIDFromString", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}", lpDIID_DWebBrowserEvents2);
+    - Если vIID не указан, подсоединиться ко всем возможным интерфейсам объекта.
+
+Возвращаемое значение
+  Число. Количество интерфейсов, к которым успешно удалось подключиться.
+
+Пример:
+  var oIE=new ActiveXObject("InternetExplorer.Application");
+  var oSys=AkelPad.SystemFunction();
+
+  if (WScript.ConnectObject(oIE, "IE_", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}" /*DIID_DWebBrowserEvents2*/))
+  {
+    oIE.Visible=true;
+    oIE.Navigate("http://akelpad.sourceforge.net/");
+    AkelPad.WindowGetMessage();
+    WScript.DisconnectObject(oIE);
+  }
+  oIE.Quit();
+
+  function IE_DocumentComplete(pDisp, URL)
+  {
+    AkelPad.MessageBox(oIE.HWND, URL, WScript.ScriptName, 0 /*MB_OK*/);
+    oSys.Call("user32::PostQuitMessage", 0);
+  }
+
+
+WScript.DisconnectObject (+ActiveX)
+___________________________________
+
+Отсоединиться от событий объекта.
+
+  DisconnectObject(oEventSource);
+
+Аргументы
+  oEventSource
+    Объект, с которым произведено соединение.
+
+Возвращаемое значение
+  Ноль.
+
+Пример:
+  См. пример ConnectObject.
+
+
 _TCHAR (+ActiveX)
 _________________
 
@@ -2956,7 +3043,7 @@ __________________
   Число. Указатель.
 
 Пример:
-  See AkelPad.ThreadHook example.
+  См. пример ThreadHook.
 
 
 vbPtrAdd (+ActiveX)
@@ -2985,7 +3072,7 @@ __________________
   Число. Указатель.
 
 Пример:
-  See AkelPad.WindowRegisterClass example (VBScript).
+  См. пример WindowRegisterClass (VBScript).
 
 
 vbPtrMath (+ActiveX)

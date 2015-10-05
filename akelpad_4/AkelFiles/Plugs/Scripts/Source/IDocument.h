@@ -76,11 +76,11 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_MemRead)(THIS_ VARIANT, DWORD, int, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_MemStrPtr)(THIS_ BSTR, BOOL, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_MemPtrStr)(THIS_ VARIANT, BSTR *) PURE;
-  STDMETHOD_(HRESULT, Document_MemPtrDispatch)(THIS_ VARIANT, IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_MemFree)(THIS_ VARIANT ) PURE;
   STDMETHOD_(HRESULT, Document_DebugJIT)(THIS) PURE;
   STDMETHOD_(HRESULT, Document_Debug)(THIS_ DWORD, DWORD *) PURE;
   STDMETHOD_(HRESULT, Document_VarType)(THIS_ VARIANT, int *) PURE;
+  STDMETHOD_(HRESULT, Document_VarDispatch)(THIS_ VARIANT, IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_GetArgLine)(THIS_ BOOL, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetArgValue)(THIS_ BSTR, VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_CreateDialog)(THIS_ DWORD, VARIANT, VARIANT, DWORD, int, int, int, int, VARIANT, VARIANT, SAFEARRAY **, VARIANT *) PURE;
@@ -405,11 +405,11 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, DWORD dwType, int nDataLen, VARIANT *vtData);
 HRESULT STDMETHODCALLTYPE Document_MemStrPtr(IDocument *this, BSTR wpString, BOOL bConvert, VARIANT *vtPointer);
 HRESULT STDMETHODCALLTYPE Document_MemPtrStr(IDocument *this, VARIANT vtPointer, BSTR *wpString);
-HRESULT STDMETHODCALLTYPE Document_MemPtrDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch);
 HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer);
 HRESULT STDMETHODCALLTYPE Document_DebugJIT(IDocument *this);
 HRESULT STDMETHODCALLTYPE Document_Debug(IDocument *this, DWORD dwDebug, DWORD *dwResult);
 HRESULT STDMETHODCALLTYPE Document_VarType(IDocument *this, VARIANT vtData, int *nType);
+HRESULT STDMETHODCALLTYPE Document_VarDispatch(IDocument *this, VARIANT vtPointer, IDispatch **objDispatch);
 HRESULT STDMETHODCALLTYPE Document_GetArgLine(IDocument *this, BOOL bNoEncloseQuotes, BSTR *wpArgLine);
 HRESULT STDMETHODCALLTYPE Document_GetArgValue(IDocument *this, BSTR wpArgName, VARIANT vtDefault, VARIANT *vtResult);
 HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle, VARIANT vtClassName, VARIANT vtTitle, DWORD dwStyle, int x, int y, int nWidth, int nHeight, VARIANT vtWndParent, VARIANT vtParam, SAFEARRAY **lpItems, VARIANT *vtWnd);
