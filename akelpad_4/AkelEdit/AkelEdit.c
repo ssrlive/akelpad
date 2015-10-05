@@ -11490,6 +11490,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
   AEQUOTEITEMW *lpQuote=qm->lpQuote;
   AEDELIMITEMW *lpDelimItem;
   AEFOLDMATCH *fmTmp;
+  INT_PTR nCountOffset;
   int nCharLen;
   int nWordLeft=0;
   int nWordRight=0;
@@ -11548,11 +11549,13 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
             AEC_IndexCompare(&ciCount, &wm->crDelim1.ciMax) == 0)
           goto SetEmptyFirstDelim;
         if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) ||
-            nCharOffset - (nWordLeft - nCharLen) == fm->crFoldEnd.cpMax)
+            !AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMin) ||
+            (nCountOffset=nCharOffset - (nWordLeft - nCharLen)) == fm->crFoldEnd.cpMax ||
+            nCountOffset == fm->crFoldStart.cpMin)
         {
           if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax))
             lpQuote=NULL;
-          if (nCharOffset - (nWordLeft - nCharLen) == fm->crFoldEnd.cpMax)
+          if (nCountOffset == fm->crFoldEnd.cpMax)
             fmTmp=NULL;
           else
             fmTmp=fm;
