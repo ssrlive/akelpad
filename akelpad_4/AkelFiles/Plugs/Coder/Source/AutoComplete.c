@@ -38,8 +38,8 @@ DWORD dwCompleteNext=0;        //"None"
 DWORD dwCompletePrev=0;        //"None"
 BOOL bAddDocumentWords=TRUE;
 BOOL bCompleteNonSyntaxDocument=TRUE;
-BOOL bSaveTypedCase=TRUE;
-BOOL bSaveTypedCaseOnce=FALSE;
+BOOL bSaveTypedCase=FALSE;
+BOOL bSaveTypedCaseOnce=-1;
 BOOL bInheritTypedCase=TRUE;
 BOOL bMaxDocumentEnable=TRUE;
 int nMaxDocumentChars=1000000;
@@ -880,11 +880,9 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
                   if (lpBlockInfo=GetDataListbox(-1))
                   {
                     if (GetKeyState(VK_SHIFT) < 0)
-                      bSaveTypedCaseOnce=TRUE;
-                    else
-                      bSaveTypedCaseOnce=FALSE;
+                      bSaveTypedCaseOnce=!bSaveTypedCase;
                     CompleteTitlePart(NULL, lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
-                    bSaveTypedCaseOnce=FALSE;
+                    bSaveTypedCaseOnce=-1;
                     msg->message=WM_NULL;
                   }
                 }
@@ -1386,11 +1384,9 @@ LRESULT CALLBACK NewListboxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (lpBlockInfo=GetDataListbox(-1))
     {
       if (GetKeyState(VK_SHIFT) < 0)
-        bSaveTypedCaseOnce=TRUE;
-      else
-        bSaveTypedCaseOnce=FALSE;
+        bSaveTypedCaseOnce=!bSaveTypedCase;
       CompleteTitlePart(NULL, lpBlockInfo, nWindowBlockBegin, nWindowBlockEnd);
-      bSaveTypedCaseOnce=FALSE;
+      bSaveTypedCaseOnce=-1;
     }
     SendMessage(hWndAutoComplete, WM_CLOSE, 0, 0);
     return FALSE;
@@ -2108,8 +2104,8 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       if (!wpIndentBlock)
         wpIndentBlock=lpBlockMaster->wpBlock;
 
-      if (bSaveTypedCaseOnce ||
-          (bSaveTypedCase && (lpBlockMaster->dwStructType & BIT_DOCWORD)))
+      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce :
+                                    (bSaveTypedCase/* && (lpBlockMaster->dwStructType & BIT_DOCWORD)*/))
       {
         CONVERTCASE cc;
         AECHARRANGE aecr;
