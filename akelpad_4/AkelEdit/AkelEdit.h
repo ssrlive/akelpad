@@ -1333,12 +1333,13 @@ typedef struct {
   CHARRANGE64 crMarkRange;
 } AEMARKRANGEMATCH;
 
-typedef struct _AEQUOTEMATCH {
-  struct _AEQUOTEMATCH *next;
-  struct _AEQUOTEMATCH *prev;
+typedef struct _AEQUOTEMATCHITEM {
+  struct _AEQUOTEMATCHITEM *next;
+  struct _AEQUOTEMATCHITEM *prev;
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  INT_PTR nQuoteLen;
 } AEQUOTEMATCHITEM;
 
 typedef struct {
@@ -1350,6 +1351,7 @@ typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
+  INT_PTR nQuoteLen;
   AECHARINDEX ciFindFirst;
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
@@ -1364,6 +1366,17 @@ typedef struct {
   AECHARRANGE crDelim2;
 } AEWORDMATCH;
 
+typedef struct _AEACTIVETHEMEITEM {
+  struct _AEACTIVETHEMEITEM *next;
+  struct _AEACTIVETHEMEITEM *prev;
+  AEHTHEME hActiveTheme;
+} AEACTIVETHEMEITEM;
+
+typedef struct {
+  AEACTIVETHEMEITEM *first;
+  AEACTIVETHEMEITEM *last;
+} AESTACKACTIVETHEME;
+
 typedef struct {
   AEFOLD *lpFold;
   CHARRANGE64 crFoldStart;
@@ -1372,7 +1385,7 @@ typedef struct {
   AECHARINDEX ciFoldStartMax;
   AEHDOC hDoc;
   AEHTHEME hActiveThemeBegin;
-  AEHTHEME hActiveThemePrev;
+  AESTACKACTIVETHEME hParentStack;
 } AEFOLDMATCH;
 
 typedef struct {
