@@ -1,4 +1,11 @@
 
+AkelPad 4.9.7 ()
+----------------------------
+Changed: "Replace all" with up direction.
+
+Added: error position in regular expression error message.
+
+
 AkelPad 4.9.6 (Sep 14, 2015)
 ----------------------------
 Fixed: print text with nested syntax highlighting rules.
