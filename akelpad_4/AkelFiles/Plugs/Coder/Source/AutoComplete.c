@@ -437,7 +437,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
     if (bCompleteNonSyntaxDocument) SendMessage(hWndCompleteNonSyntaxDocument, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveTypedCase) SendMessage(hWndSaveTypedCase, BM_SETCHECK, BST_CHECKED, 0);
     if (bInheritTypedCase) SendMessage(hWndInheritTypedCase, BM_SETCHECK, BST_CHECKED, 0);
-    
+
     if (bAddHighLightWords) SendMessage(hWndAddHighLightWords, BM_SETCHECK, BST_CHECKED, 0);
     if (bCompleteListItemHlBaseColors) SendMessage(hWndListItemHlBaseColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
     if (bCompleteListSystemColors) SendMessage(hWndListSysColorsEnable, BM_SETCHECK, BST_CHECKED, 0);
@@ -1431,7 +1431,7 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
   {
     SYNTAXFILE *lpSyntaxFileCaret;
     AEFOLD *lpFold;
-  
+
     if (lpFold=GetCaretFold(lpCurrentFoldWindow, NULL))
     {
       if (lpSyntaxFileCaret=GetSyntaxFileByFold(lpCurrentFoldWindow, lpFold))
@@ -1915,8 +1915,9 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
   STACKDELIM *hDelimiterStack=NULL;
   AEFINDTEXTW ft;
   AECHARINDEX ciChar;
-  GETTEXTRANGE gtr;
+  AECHARRANGE aecr;
   CHARRANGE64 cr;
+  GETTEXTRANGE gtr;
   BLOCKINFO *lpBlockMaster;
   BLOCKINFOHANDLE *lpBlockHandle;
   HOTSPOT *lpHotSpot;
@@ -1932,6 +1933,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
   int nSpaceCount=0;
   int a;
   int b;
+  BOOL bReplaced=FALSE;
 
   if (hWndEdit=GetFocusEdit())
   {
@@ -1958,6 +1960,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
           StackResetHotSpot(lpCurrentBlockElement);
         lpCurrentBlockElement=NULL;
       }
+      ft.dwFlags=0;
 
       //Smart complete multiple abbreviations, like $~GetAkelDir $~AkelPad.GetAkelDir.
       //Avoid expanding "AkelPad.GetAkel" to "AkelPad.AkelPad.GetAkelDir();".
@@ -1967,7 +1970,6 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         {
           if (xstrstrW(lpBlockHandle->lpBlockInfo->wpTitle, lpBlockHandle->lpBlockInfo->nTitleLen, lpBlockInfo->wpTitle, lpBlockInfo->nTitleLen, FALSE, &wpStrBegin, &wpStrEnd))
           {
-            ft.dwFlags=0;
             ft.pText=lpBlockHandle->lpBlockInfo->wpTitle;
             ft.dwTextLen=wpStrBegin - lpBlockHandle->lpBlockInfo->wpTitle;
 
@@ -1995,7 +1997,6 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       {
         if (xstrstrW(lpBlockMaster->wpBlock, lpBlockMaster->nBlockLen, lpBlockInfo->wpTitle, (int)(nMax - nMin), FALSE, &wpStrBegin, &wpStrEnd))
         {
-          ft.dwFlags=0;
           ft.pText=lpBlockMaster->wpBlock;
           ft.dwTextLen=wpStrBegin - lpBlockMaster->wpBlock;
 
@@ -2023,7 +2024,6 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&ciChar);
 
         //Check full block match from right
-        ft.dwFlags=0;
         ft.pText=wpStrBegin;
         ft.dwTextLen=wpStrEnd - wpStrBegin;
 
@@ -2104,37 +2104,43 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       if (!wpIndentBlock)
         wpIndentBlock=lpBlockMaster->wpBlock;
 
-      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce :
-                                    (bSaveTypedCase/* && (lpBlockMaster->dwStructType & BIT_DOCWORD)*/))
+      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce : bSaveTypedCase)
       {
-        CONVERTCASE cc;
-        AECHARRANGE aecr;
-        wchar_t *wpReplaceWith=wpIndentBlock;
+        SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMin, (LPARAM)&aecr.ciMin);
+        SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&aecr.ciMax);
 
-        if (bInheritTypedCase)
+        //Compare to avoid expanding "com" to "comlPad.Command(0);".
+        ft.pText=wpIndentBlock;
+        ft.dwTextLen=nMax - nMin;
+        if (IsMatch(&ft, &aecr.ciMin))
         {
-          SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMin, (LPARAM)&aecr.ciMin);
-          SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&aecr.ciMax);
-          cc.wszText=NULL;
-          cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
-          if (cc.nCase != SCT_NONE)
+          CONVERTCASE cc;
+          wchar_t *wpReplaceWith=wpIndentBlock;
+
+          if (bInheritTypedCase)
           {
-            cc.nTextLen=xstrlenW(wpReplaceWith);
-            if (cc.wszText=(wchar_t *)GlobalAlloc(GPTR, cc.nTextLen * sizeof(wchar_t) + 2))
+            cc.wszText=NULL;
+            cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
+            if (cc.nCase != SCT_NONE)
             {
-              xmemcpy(cc.wszText, wpReplaceWith, cc.nTextLen * sizeof(wchar_t) + 2);
-              SendMessage(hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
-              wpReplaceWith=cc.wszText;
+              cc.nTextLen=xstrlenW(wpReplaceWith);
+              if (cc.wszText=(wchar_t *)GlobalAlloc(GPTR, cc.nTextLen * sizeof(wchar_t) + 2))
+              {
+                xmemcpy(cc.wszText, wpReplaceWith, cc.nTextLen * sizeof(wchar_t) + 2);
+                SendMessage(hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
+                wpReplaceWith=cc.wszText;
+              }
             }
           }
+          cr.cpMin=nMax;
+          cr.cpMax=nMax;
+          SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
+          SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpReplaceWith + (nMax - nMin)));
+          bReplaced=TRUE;
+          if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
         }
-        cr.cpMin=nMax;
-        cr.cpMax=nMax;
-        SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
-        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpReplaceWith + (nMax - nMin)));
-        if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
       }
-      else
+      if (!bReplaced)
       {
         cr.cpMin=nMin;
         cr.cpMax=nMax;
