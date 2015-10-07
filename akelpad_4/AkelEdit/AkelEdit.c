@@ -13588,6 +13588,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
+  hlp.cb=sizeof(AEHLPAINT);
   ae->popt->hbrBasicBk=CreateSolidBrush(ae->popt->aec.crBasicBk);
   hlp.dwDefaultText=ae->popt->aec.crBasicText;
   hlp.dwDefaultBk=ae->popt->aec.crBasicBk;
@@ -14064,6 +14065,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
         if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
+      hlp.cb=sizeof(AEHLPAINT);
       hlp.fm.hDoc=(AEHDOC)ae;
       hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
       to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND|(ae->popt->bHideSelection?0:AEPRN_COLOREDSELECTION);
@@ -15577,6 +15579,7 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
 
   //Set AEHLPAINT
   xmemset(&hlp, 0, sizeof(AEHLPAINT));
+  hlp.cb=sizeof(AEHLPAINT);
   hlp.fm.hDoc=(AEHDOC)ae;
   hlp.fm.hActiveThemeBegin=(AEHTHEME)ae->popt->lpActiveTheme;
 
