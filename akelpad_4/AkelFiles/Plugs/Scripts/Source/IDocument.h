@@ -20,7 +20,6 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   // IDocument methods
   STDMETHOD_(HRESULT, Document_Constants)(THIS_ IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_Global)(THIS_ IDispatch **) PURE;
-  STDMETHOD_(HRESULT, Document_WScript)(THIS_ IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_GetMainWnd)(THIS_ VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_GetAkelDir)(THIS_ int, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_GetInstanceExe)(THIS_ VARIANT *) PURE;
@@ -99,6 +98,9 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_ScriptNoMutex)(THIS_ DWORD, DWORD *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptExitCode)(THIS_ VARIANT, BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptHandle)(THIS_ VARIANT, int, VARIANT *) PURE;
+  STDMETHOD_(HRESULT, Document_ConnectObject)(THIS_ IDispatch *, BSTR, VARIANT, int *) PURE;
+  STDMETHOD_(HRESULT, Document_DisconnectObject)(THIS_ IDispatch *) PURE;
+  STDMETHOD_(HRESULT, Document_ActiveXThis)(THIS_ IDispatch *) PURE;
 };
 
 //Defines
@@ -346,7 +348,6 @@ HRESULT STDMETHODCALLTYPE Document_Invoke(IDocument *this, DISPID dispid, REFIID
 
 HRESULT STDMETHODCALLTYPE Document_Constants(IDocument *this, IDispatch **objConstants);
 HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal);
-HRESULT STDMETHODCALLTYPE Document_WScript(IDocument *this, IDispatch **objWScript);
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd);
 HRESULT STDMETHODCALLTYPE Document_GetAkelDir(IDocument *this, int nSubDir, BSTR *wpDir);
 HRESULT STDMETHODCALLTYPE Document_GetInstanceExe(IDocument *this, VARIANT *vtInstance);
@@ -436,6 +437,9 @@ HRESULT STDMETHODCALLTYPE Document_ThreadUnhook(IDocument *this, VARIANT vtHook,
 HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlockType, DWORD *dwResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptExitCode(IDocument *this, VARIANT vtExitCode, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData, int nOperation, VARIANT *vtResult);
+HRESULT STDMETHODCALLTYPE Document_ConnectObject(IDocument *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID, int *nCount);
+HRESULT STDMETHODCALLTYPE Document_DisconnectObject(IDocument *this, IDispatch *objConnectTo);
+HRESULT STDMETHODCALLTYPE Document_ActiveXThis(IDocument *this, IDispatch *objConnectTo);
 
 HWND GetCurEdit(IDocument *this);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);

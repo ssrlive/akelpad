@@ -147,10 +147,14 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
                 }
               }
             }
-            if (st->objActiveScriptParse->lpVtbl->ParseScriptText(st->objActiveScriptParse, st->wpScriptText, NULL, NULL, NULL, dwDebugSourceContext, 0, st->bInitDebugJIT?SCRIPTTEXT_HOSTMANAGESSOURCE:0, NULL, NULL) == S_OK)
+            if (st->objActiveScript->lpVtbl->GetScriptDispatch(st->objActiveScript, NULL, &st->objThis) == S_OK)
             {
-              st->objActiveScript->lpVtbl->SetScriptState(st->objActiveScript, SCRIPTSTATE_CONNECTED);
-              nResult=S_OK;
+              if (st->objActiveScriptParse->lpVtbl->ParseScriptText(st->objActiveScriptParse, st->wpScriptText, NULL, NULL, NULL, dwDebugSourceContext, 0, st->bInitDebugJIT?SCRIPTTEXT_HOSTMANAGESSOURCE:0, NULL, NULL) == S_OK)
+              {
+                st->objActiveScript->lpVtbl->SetScriptState(st->objActiveScript, SCRIPTSTATE_CONNECTED);
+                nResult=S_OK;
+              }
+              st->objThis->lpVtbl->Release(st->objThis);
             }
           }
         }

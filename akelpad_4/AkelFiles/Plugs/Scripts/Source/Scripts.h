@@ -155,6 +155,7 @@ typedef struct _SCRIPTTHREAD {
   IProcessDebugManager *objProcessDebugManager;
   IDebugApplication *objDebugApplication;
   IDebugDocumentHelper *objDebugDocumentHelper;
+  IDispatch *objThis;
   IRealActiveScriptSite MyActiveScriptSite;
   IRealActiveScriptSiteWindow MyActiveScriptSiteWindow;
   IRealActiveScriptSiteDebug MyActiveScriptSiteDebug;

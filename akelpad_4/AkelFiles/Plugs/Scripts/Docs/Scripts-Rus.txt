@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v17.9              ***
+***                 Scripts AkelPad plugin v18.0              ***
 *****************************************************************
 
 2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -240,9 +240,10 @@ AkelPad.ThreadUnhook                         +ActiveX
 AkelPad.ScriptNoMutex
 AkelPad.ScriptExitCode
 AkelPad.ScriptHandle                         +ActiveX
-WScript.ScriptBaseName                       +ActiveX
-WScript.ConnectObject                        +ActiveX
-WScript.DisconnectObject                     +ActiveX
+AkelPad.ConnectObject                        +ActiveX
+AkelPad.DisconnectObject                     +ActiveX
+AkelPad.ActiveXThis                          +ActiveX
+WScript.ScriptBaseName
 _TCHAR                                       +ActiveX используется как AkelPad.Constants._TCHAR
 vbTCHAR                                      +ActiveX используется как AkelPad.Constants.vbTCHAR
 _TSTR                                        +ActiveX используется как AkelPad.Constants._TSTR
@@ -2867,7 +2868,7 @@ _______________________________
   }
 
 
-WScript.ConnectObject (+ActiveX)
+AkelPad.ConnectObject (+ActiveX)
 ________________________________
 
 Подсоединиться к событиям объекта.
@@ -2894,12 +2895,12 @@ ________________________________
   var oIE=new ActiveXObject("InternetExplorer.Application");
   var oSys=AkelPad.SystemFunction();
 
-  if (WScript.ConnectObject(oIE, "IE_", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}" /*DIID_DWebBrowserEvents2*/))
+  if (AkelPad.ConnectObject(oIE, "IE_", "{34A715A0-6587-11D0-924A-0020AFC7AC4D}" /*DIID_DWebBrowserEvents2*/))
   {
     oIE.Visible=true;
     oIE.Navigate("http://akelpad.sourceforge.net/");
     AkelPad.WindowGetMessage();
-    WScript.DisconnectObject(oIE);
+    AkelPad.DisconnectObject(oIE);
   }
   oIE.Quit();
 
@@ -2910,7 +2911,7 @@ ________________________________
   }
 
 
-WScript.DisconnectObject (+ActiveX)
+AkelPad.DisconnectObject (+ActiveX)
 ___________________________________
 
 Отсоединиться от событий объекта.
@@ -2926,6 +2927,38 @@ ___________________________________
 
 Пример:
   См. пример ConnectObject.
+
+
+AkelPad.ActiveXThis (+ActiveX)
+______________________________
+
+Передать корневой IDispatch плагину. Требуется некоторым методам для работы в режиме ActiveX.
+
+  ActiveXThis(this);
+
+Аргументы
+  this
+    Корневой IDispatch скрипта.
+
+Возвращаемое значение
+  Ноль.
+
+Пример:
+  См. раздел ActiveX.
+
+
+WScript.ScriptBaseName
+______________________
+
+Получить базовое имя скрипта.
+
+  WScript.ScriptBaseName
+
+Возвращаемое значение
+  Строка. Базовое имя скрипта.
+
+Пример:
+  WScript.Echo(WScript.ScriptBaseName);
 
 
 _TCHAR (+ActiveX)
@@ -3091,6 +3124,7 @@ Scripts.dll может быть использован в сторонних приложениях после регистрации биб
   if (typeof AkelPad == "undefined")
   {
     AkelPad=new ActiveXObject("AkelPad.Document");
+    AkelPad.ActiveXThis(this);
     _TCHAR=AkelPad.Constants._TCHAR;
     _TSTR=AkelPad.Constants._TSTR;
     _TSIZE=AkelPad.Constants._TSIZE;

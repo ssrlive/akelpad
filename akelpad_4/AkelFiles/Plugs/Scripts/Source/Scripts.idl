@@ -72,9 +72,6 @@ library Scripts
     //Create Global object (make sense if Scripts.dll used as ActiveXObject).
     [id(3), propget] HRESULT Global([out, retval] IDispatch **objGlobal);
 
-    //Create WScript object (make sense if Scripts.dll used as ActiveXObject).
-    [id(4), propget] HRESULT WScript([out, retval] IDispatch **objWScript);
-
     //Get main window handle.
     HRESULT GetMainWnd([out, retval] VARIANT *vtWnd);
 
@@ -311,6 +308,15 @@ library Scripts
 
     //Different operations with script.
     HRESULT ScriptHandle([in] VARIANT vtData, [in] int nOperation, [out, retval] VARIANT *vtResult);
+
+    //Connect to object.
+    HRESULT ConnectObject([in] IDispatch *objConnectTo, [in] BSTR wpPrefix, [in, optional] VARIANT vtIID, [out, retval] int *nCount);
+
+    //Disconnect from object.
+    HRESULT DisconnectObject([in] IDispatch *objConnectTo);
+
+    //Get ActiveX "this" object.
+    HRESULT ActiveXThis([in] IDispatch *objThis);
   };
 
   //AkelPad.ScriptSettings object
