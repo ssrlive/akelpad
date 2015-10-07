@@ -4102,8 +4102,9 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags)
 
 void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
 {
-  AEFINDTEXTW ftXmlHeadClose;
   AECHARINDEX ciCaret;
+  CHARRANGE64 crTagStart;
+  CHARRANGE64 crTagEnd;
   CHARRANGE64 crXmlHeadClose={0};
   SYNTAXFILE *lpSyntaxFile=lpFoldWindow->pfwd->lpSyntaxFile;
   AEFOLD *lpFold;
@@ -4132,19 +4133,24 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         lpFold=lpFold->parent;
         goto Begin;
       }
-      if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
-        nTagEndLen=lpFoldInfo->nFoldEndPointLen;
-      else
-        nTagEndLen=lpFold->lpMaxPoint->nPointLen;
 
       if (lpFoldInfo)
       {
+        if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
+          nTagEndLen=lpFoldInfo->nFoldEndPointLen;
+        else
+          nTagEndLen=lpFold->lpMaxPoint->nPointLen;
+        crTagStart.cpMin=lpFold->lpMinPoint->nPointOffset;
+        crTagStart.cpMax=lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen;
+        crTagEnd.cpMin=lpFold->lpMaxPoint->nPointOffset;
+        crTagEnd.cpMax=lpFold->lpMaxPoint->nPointOffset + nTagEndLen;
+
         if (((lpFold->lpMinPoint->nPointLen == 1 && !(lpFoldInfo->dwFlags & FIF_XMLTAG)) ?
-               (nCaretOffset == lpFold->lpMinPoint->nPointOffset || nCaretOffset == lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen) :
-               (nCaretOffset > lpFold->lpMinPoint->nPointOffset && nCaretOffset < lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen)) ||
+               (nCaretOffset == crTagStart.cpMin || nCaretOffset == crTagStart.cpMax) :
+               (nCaretOffset > crTagStart.cpMin && nCaretOffset < crTagStart.cpMax)) ||
             ((nTagEndLen == 1 && !(lpFoldInfo->dwFlags & FIF_XMLTAG)) ?
-               (nCaretOffset == lpFold->lpMaxPoint->nPointOffset || nCaretOffset == lpFold->lpMaxPoint->nPointOffset + nTagEndLen) :
-               (nCaretOffset > lpFold->lpMaxPoint->nPointOffset && nCaretOffset < lpFold->lpMaxPoint->nPointOffset + nTagEndLen)))
+               (nCaretOffset == crTagEnd.cpMin || nCaretOffset == crTagEnd.cpMax) :
+               (nCaretOffset > crTagEnd.cpMin && nCaretOffset < crTagEnd.cpMax)))
         {
           bMark=TRUE;
         }
@@ -4152,23 +4158,53 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         {
           if (lpFoldInfo->dwFlags & (FIF_XMLNONAME_ONETAG|FIF_XMLNAMED_ONETAG))
           {
-            if (nCaretOffset > lpFold->lpMinPoint->nPointOffset && nCaretOffset < lpFold->lpMaxPoint->nPointOffset + nTagEndLen)
+            if (nCaretOffset > crTagStart.cpMin && nCaretOffset < crTagEnd.cpMax)
               bMark=TRUE;
           }
           else if (lpFoldInfo->dwFlags & (FIF_XMLNONAME_TWOTAG|FIF_XMLNAMED_TWOTAG))
           {
-            ftXmlHeadClose.dwFlags=AEFR_DOWN|AEFR_MATCHCASE;
-            ftXmlHeadClose.pText=L">";
-            ftXmlHeadClose.dwTextLen=1;
-            ftXmlHeadClose.nNewLine=AELB_ASIS;
-            ftXmlHeadClose.crSearch.ciMin=lpFold->lpMinPoint->ciPoint;
-            ftXmlHeadClose.crSearch.ciMax=lpFold->lpMaxPoint->ciPoint;
-            if (bXmlHeadClose=(BOOL)SendMessage(hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ftXmlHeadClose))
+            AECHARINDEX ciCount;
+            INT_PTR nCountOffset=lpFold->lpMinPoint->nPointOffset;
+            wchar_t wchQuote=0;
+            wchar_t wchChar;
+
+            //Find tag open name and then ">"
+            crTagStart.cpMin=nCountOffset;
+            crTagStart.cpMax=0;
+
+            for (ciCount=lpFold->lpMinPoint->ciPoint; AEC_IndexCompare(&ciCount, &lpFold->lpMaxPoint->ciPoint) < 0; AEC_NextChar(&ciCount), ++nCountOffset)
             {
-              crXmlHeadClose.cpMin=SendMessage(lpFoldWindow->hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ftXmlHeadClose.crFound.ciMin);
-              crXmlHeadClose.cpMax=SendMessage(lpFoldWindow->hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ftXmlHeadClose.crFound.ciMax);
-              if (nCaretOffset > lpFold->lpMinPoint->nPointOffset && nCaretOffset < crXmlHeadClose.cpMax)
-                bMark=TRUE;
+              wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+
+              if (wchQuote)
+              {
+                if (wchQuote == wchChar)
+                  wchQuote=0;
+                continue;
+              }
+              if (wchChar == L'\'' || wchChar == L'"')
+              {
+                wchQuote=wchChar;
+              }
+              else if (wchChar == L'>')
+              {
+                if (!crTagStart.cpMax)
+                  crTagStart.cpMax=nCountOffset + 1;
+                else
+                {
+                  crXmlHeadClose.cpMin=nCountOffset;
+                  crXmlHeadClose.cpMax=nCountOffset + 1;
+                  bXmlHeadClose=TRUE;
+                }
+                if (nCaretOffset > crTagStart.cpMin && nCaretOffset < nCountOffset + 1)
+                  bMark=TRUE;
+                break;
+              }
+              else if (!crTagStart.cpMax)
+              {
+                if (wchChar == L' ' || wchChar == L'\t')
+                  crTagStart.cpMax=nCountOffset;
+              }
             }
           }
         }
@@ -4177,15 +4213,15 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         {
           if (lpFold == lpFoldWindow->pfwd->lpTagMark &&
                 lpFoldWindow->pfwd->hTagMarkFirst &&
-                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkFirst)->crMarkRange.cpMin == lpFold->lpMinPoint->nPointOffset &&
-                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkFirst)->crMarkRange.cpMax == lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen &&
+                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkFirst)->crMarkRange.cpMin == crTagStart.cpMin &&
+                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkFirst)->crMarkRange.cpMax == crTagStart.cpMax &&
                 !lpFoldWindow->pfwd->hTagMarkSecond == !bXmlHeadClose &&
                   (!lpFoldWindow->pfwd->hTagMarkSecond ||
                     (((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkSecond)->crMarkRange.cpMin == crXmlHeadClose.cpMin &&
                      ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkSecond)->crMarkRange.cpMax == crXmlHeadClose.cpMax)) &&
                 lpFoldWindow->pfwd->hTagMarkThird &&
-                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkThird)->crMarkRange.cpMin == lpFold->lpMaxPoint->nPointOffset &&
-                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkThird)->crMarkRange.cpMax == lpFold->lpMaxPoint->nPointOffset + nTagEndLen)
+                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkThird)->crMarkRange.cpMin == crTagEnd.cpMin &&
+                  ((AEMARKRANGEITEM *)lpFoldWindow->pfwd->hTagMarkThird)->crMarkRange.cpMax == crTagEnd.cpMax)
           {
             //Highlighted fold unchanged
           }
@@ -4205,8 +4241,8 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
             mri.dwFontStyle=mri.dwFontStyle;
 
             //Highlight beginning
-            mri.crMarkRange.cpMin=lpFold->lpMinPoint->nPointOffset;
-            mri.crMarkRange.cpMax=lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen;
+            mri.crMarkRange.cpMin=crTagStart.cpMin;
+            mri.crMarkRange.cpMax=crTagStart.cpMax;
             lpFoldWindow->pfwd->hTagMarkFirst=(AEHMARKRANGE)SendMessage(lpFoldWindow->hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)NULL, (LPARAM)&mri);
 
             //Highlight XML beginning close ">"
@@ -4220,8 +4256,8 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
             //Highlight ending
             if (nTagEndLen)
             {
-              mri.crMarkRange.cpMin=lpFold->lpMaxPoint->nPointOffset;
-              mri.crMarkRange.cpMax=lpFold->lpMaxPoint->nPointOffset + nTagEndLen;
+              mri.crMarkRange.cpMin=crTagEnd.cpMin;
+              mri.crMarkRange.cpMax=crTagEnd.cpMax;
               lpFoldWindow->pfwd->hTagMarkThird=(AEHMARKRANGE)SendMessage(lpFoldWindow->hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)NULL, (LPARAM)&mri);
             }
 
