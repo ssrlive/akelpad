@@ -1389,6 +1389,7 @@ typedef struct {
 } AEFOLDMATCH;
 
 typedef struct {
+  DWORD cb;              //Size of the structure.
   DWORD dwDefaultText;   //Text color without highlighting.
   DWORD dwDefaultBk;     //Background color without highlighting.
   DWORD dwActiveText;    //Text color with highlighting.
