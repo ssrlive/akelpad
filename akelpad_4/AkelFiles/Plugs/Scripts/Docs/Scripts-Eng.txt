@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v17.8              ***
+***                 Scripts AkelPad plugin v17.9              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -3100,12 +3100,15 @@ Scripts.dll can be used in third party applications after library registration.
 - x64 version registration: "%SystemRoot%\System32\regsvr32.exe" Scripts.dll
 
 Usage example:
-  var AkelPad=new ActiveXObject("AkelPad.Document");
-  var _TCHAR=AkelPad.Constants._TCHAR;
-  var _TSTR=AkelPad.Constants._TSTR;
-  var _TSIZE=AkelPad.Constants._TSIZE;
-  var _X64=AkelPad.Constants._X64;
-
+  if (typeof AkelPad == "undefined")
+  {
+    AkelPad=new ActiveXObject("AkelPad.Document");
+    _TCHAR=AkelPad.Constants._TCHAR;
+    _TSTR=AkelPad.Constants._TSTR;
+    _TSIZE=AkelPad.Constants._TSIZE;
+    _X64=AkelPad.Constants._X64;
+    _PtrAdd=function(n1, n2) {return AkelPad.Global._PtrAdd(n1, n2);};
+  }
   var oSys=AkelPad.SystemFunction();
   var lpBuffer;
   var pWinDir="";

@@ -72,6 +72,9 @@ library Scripts
     //Create Global object (make sense if Scripts.dll used as ActiveXObject).
     [id(3), propget] HRESULT Global([out, retval] IDispatch **objGlobal);
 
+    //Create WScript object (make sense if Scripts.dll used as ActiveXObject).
+    [id(4), propget] HRESULT WScript([out, retval] IDispatch **objWScript);
+
     //Get main window handle.
     HRESULT GetMainWnd([out, retval] VARIANT *vtWnd);
 
