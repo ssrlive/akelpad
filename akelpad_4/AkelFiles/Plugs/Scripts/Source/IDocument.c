@@ -23,7 +23,6 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_Invoke,
   Document_Constants,
   Document_Global,
-  Document_WScript,
   Document_GetMainWnd,
   Document_GetAkelDir,
   Document_GetInstanceExe,
@@ -101,7 +100,10 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_ThreadUnhook,
   Document_ScriptNoMutex,
   Document_ScriptExitCode,
-  Document_ScriptHandle
+  Document_ScriptHandle,
+  Document_ConnectObject,
+  Document_DisconnectObject,
+  Document_ActiveXThis
 };
 
 CALLBACKBUSYNESS g_cbHook[]={{(INT_PTR)HookCallback1Proc,  FALSE},
@@ -238,11 +240,6 @@ HRESULT STDMETHODCALLTYPE Document_Constants(IDocument *this, IDispatch **objCon
 HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal)
 {
   return Class_CreateInstance(NULL, NULL, &IID_IGlobal, (void **)objGlobal);
-}
-
-HRESULT STDMETHODCALLTYPE Document_WScript(IDocument *this, IDispatch **objWScript)
-{
-  return Class_CreateInstance(NULL, NULL, &IID_IWScript, (void **)objWScript);
 }
 
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd)
@@ -2872,6 +2869,64 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
     }
   }
   SetVariantInt(vtResult, nResult);
+  return hr;
+}
+
+HRESULT STDMETHODCALLTYPE Document_ConnectObject(IDocument *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID, int *nCount)
+{
+  return WScript_ConnectObject((IWScript *)this, objConnectTo, wpPrefix, vtIID, nCount);
+}
+
+HRESULT STDMETHODCALLTYPE Document_DisconnectObject(IDocument *this, IDispatch *objConnectTo)
+{
+  return WScript_DisconnectObject((IWScript *)this, objConnectTo);
+}
+
+HRESULT STDMETHODCALLTYPE Document_ActiveXThis(IDocument *this, IDispatch *objThis)
+{
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+  wchar_t *wpWScript=L"WScript";
+  wchar_t *wpScriptFullName=L"ScriptFullName";
+  VARIANT vtWScript;
+  VARIANT vtScriptFullName;
+  DISPID dispid;
+  DISPPARAMS dispp;
+  HRESULT hr=NOERROR;
+
+  if (!lpScriptThread->objActiveScript)
+  {
+    //Get script file from WScript.ScriptFullName
+    xmemset(&dispp, 0, sizeof(DISPPARAMS));
+    VariantInit(&vtWScript);
+    VariantInit(&vtScriptFullName);
+    if (!(hr=objThis->lpVtbl->GetIDsOfNames(objThis, &IID_NULL, &wpWScript, 1, LOCALE_USER_DEFAULT, &dispid)))
+    {
+      if (!(hr=objThis->lpVtbl->Invoke(objThis, dispid, &IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispp, &vtWScript, 0, 0)))
+      {
+        if (vtWScript.vt == VT_DISPATCH)
+        {
+          if (!(hr=vtWScript.pdispVal->lpVtbl->GetIDsOfNames(vtWScript.pdispVal, &IID_NULL, &wpScriptFullName, 1, LOCALE_USER_DEFAULT, &dispid)))
+          {
+            if (!(hr=vtWScript.pdispVal->lpVtbl->Invoke(vtWScript.pdispVal, dispid, &IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispp, &vtScriptFullName, 0, 0)))
+            {
+              if (vtScriptFullName.vt == VT_BSTR)
+              {
+                const wchar_t *wpFileName;
+
+                wpFileName=GetFileNameWide(vtScriptFullName.bstrVal, -1);
+                xstrcpynW(lpScriptThread->wszScriptName, wpFileName, MAX_PATH);
+                GetBaseName(lpScriptThread->wszScriptName, -1, lpScriptThread->wszScriptBaseName, MAX_PATH);
+                xstrcpynW(lpScriptThread->wszScriptFile, vtScriptFullName.bstrVal, MAX_PATH);
+              }
+            }
+          }
+        }
+      }
+    }
+    VariantClear(&vtWScript);
+    VariantClear(&vtScriptFullName);
+    lpScriptThread->objThis=objThis;
+  }
   return hr;
 }
 

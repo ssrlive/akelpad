@@ -504,7 +504,6 @@ HRESULT STDMETHODCALLTYPE Sink_Invoke(IDispatch *this, DISPID dispid, REFIID rii
   ITypeLib *objTypeLib=NULL;
   ITypeInfo *objTypeInfo;
   ITypeInfo *objTypeInfoGuid=NULL;
-  IDispatch *objCall;
   BSTR wpName;
   UINT dwIndex;
   UINT dwCount;
@@ -542,7 +541,7 @@ HRESULT STDMETHODCALLTYPE Sink_Invoke(IDispatch *this, DISPID dispid, REFIID rii
     }
     if (!hr)
     {
-      if (!(hr=lpScriptThread->objActiveScript->lpVtbl->GetScriptDispatch(lpScriptThread->objActiveScript, NULL, &objCall)))
+      if (lpScriptThread->objThis)
       {
         wchar_t *wszCallFunc;
         BSTR wpCallFunc;
@@ -555,13 +554,12 @@ HRESULT STDMETHODCALLTYPE Sink_Invoke(IDispatch *this, DISPID dispid, REFIID rii
           wpCallFunc=wszCallFunc + 2;
           xprintfW(wpCallFunc, L"%s%s", objRealSink->wpPrefix, wpName);
 
-          if (!(hr=objCall->lpVtbl->GetIDsOfNames(objCall, riid, &wpCallFunc, 1, lcid, &dispidScript)))
+          if (!(hr=lpScriptThread->objThis->lpVtbl->GetIDsOfNames(lpScriptThread->objThis, riid, &wpCallFunc, 1, lcid, &dispidScript)))
           {
-            hr=objCall->lpVtbl->Invoke(objCall, dispidScript, riid, lcid, wFlags, params, result, pexcepinfo, puArgErr);
+            hr=lpScriptThread->objThis->lpVtbl->Invoke(lpScriptThread->objThis, dispidScript, riid, lcid, wFlags, params, result, pexcepinfo, puArgErr);
           }
           GlobalFree((HGLOBAL)wszCallFunc);
         }
-        objCall->lpVtbl->Release(objCall);
       }
       if (objTypeInfoGuid)
         objTypeInfoGuid->lpVtbl->Release(objTypeInfoGuid);
