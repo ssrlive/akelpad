@@ -389,10 +389,11 @@ DCD8500001CF30A3
 
 *** Hierarchy description, that used in *.coder files ***
 
-In rule, which is the parent, specified identifier (Rule ID). In child rule,
-which will work only inside parent, specified identifier of the parent (Parent ID).
+Rule ID, Parent ID
+  In rule, which is the parent, specified identifier (Rule ID). In child rule,
+  which will work only inside parent, specified identifier of the parent (Parent ID).
 
-For example, separator "/" will be found and highlighted "#FF0000", only if it is between "<" and ">".
+  For example, separator "/" will be found and highlighted "#FF0000", only if it is between "<" and ">".
   Quotes:
   ;===================================================================================
   ;Flags  Font    Color   Color   Quote   Quote   Escape  Quote   Quote   Parent  Rule
@@ -408,15 +409,24 @@ For example, separator "/" will be found and highlighted "#FF0000", only if it i
   ;===============================================
   1       0       #FF0000 0       "/"       123
 
-- Can be several rules with the same identifier (Rule ID). In this case, child rules,
-  for which specified this identifier (Parent ID), will work in any parent.
-- Parent (Parent ID) for the section "Delimiters:" can be "Quotes:", "QuotesRE:", "Folds:".
-- Parent (Parent ID) for the section "Words:" can be "Quotes:", "QuotesRE:", "Folds:".
-- Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
-- Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
-- Parent (Parent ID) for the section "Folds:" can be "Folds:".
-- If parent (Parent ID) is -1, then rule must be located in the root (without parent).
-- If parent (Parent ID) is -2, then rule should not be located in the root (any parent).
+  - Can be several rules with the same identifier (Rule ID). In this case, child rules,
+    for which specified this identifier (Parent ID), will work in any parent.
+  - Parent (Parent ID) for the section "Delimiters:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Words:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Folds:" can be "Folds:".
+  - If parent (Parent ID) is -1, then rule must be located in the root (without parent).
+  - If parent (Parent ID) is -2, then rule should not be located in the root (any parent).
+
+Rule file
+  Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.
+
+  - Captured text by the fold start and fold end expressions will be highlighted by the
+    current .coder file and the contents by the rule file.
+  - In string file rule specifies a particular .coder file, for example, "cpp.coder" or
+     alias in the format: "alias: .cpp".
+  - See html.coder for example.
 
 
 *** Variables description, that not used in *.coder files ***

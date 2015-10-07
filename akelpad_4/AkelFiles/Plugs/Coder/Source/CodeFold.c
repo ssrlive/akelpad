@@ -3220,7 +3220,12 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   {
                     //Assign rule syntax file
                     if (!lpFoldInfo->lpRuleFile)
-                      lpFoldInfo->lpRuleFile=StackGetSyntaxFileByName(&hSyntaxFilesStack, lpFoldInfo->wpRuleFile);
+                    {
+                      if (!xstrcmpnW(L"alias:", lpFoldInfo->wpRuleFile, (UINT_PTR)-1))
+                        lpFoldInfo->lpRuleFile=StackGetSyntaxFileByFile(&hSyntaxFilesStack, lpFoldInfo->wpRuleFile + 6);
+                      else
+                        lpFoldInfo->lpRuleFile=StackGetSyntaxFileByName(&hSyntaxFilesStack, lpFoldInfo->wpRuleFile);
+                    }
                     if (lpFoldInfo->lpRuleFile)
                     {
                       StackRequestSyntaxFile(lpFoldInfo->lpRuleFile);
