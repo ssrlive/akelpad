@@ -448,6 +448,7 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
     SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS, 0);
     SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS, 0);
+    SendMessage(hDlg, WM_COMMAND, IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE, 0);
     bInitDialog=FALSE;
   }
   else if (uMsg == WM_COMMAND)
@@ -467,20 +468,16 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
     if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ADDDOCUMENTWORDS ||
         LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_MAXDOCUMENT_ENABLE ||
-        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT ||
-        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE)
+        LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_COMPLETENONSYNTAXDOCUMENT)
     {
       bAddDocumentWordsDlg=(BOOL)SendMessage(hWndAddDocumentWords, BM_GETCHECK, 0, 0);
       bMaxDocumentEnableDlg=(BOOL)SendMessage(hWndMaxDocumentEnable, BM_GETCHECK, 0, 0);
       bCompleteNonSyntaxDocumentDlg=(BOOL)SendMessage(hWndCompleteNonSyntaxDocument, BM_GETCHECK, 0, 0);
-      bSaveTypedCaseDlg=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
 
       EnableWindow(hWndMaxDocumentEnable, bAddDocumentWordsDlg);
       EnableWindow(hWndMaxDocumentChars, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
       EnableWindow(hWndMaxDocumentPostLabel, bAddDocumentWordsDlg && bMaxDocumentEnableDlg);
       EnableWindow(hWndCompleteNonSyntaxDocument, bAddDocumentWordsDlg);
-      EnableWindow(hWndSaveTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg);
-      EnableWindow(hWndInheritTypedCase, bAddDocumentWordsDlg && bCompleteNonSyntaxDocumentDlg && bSaveTypedCaseDlg);
     }
     else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_ADDHIGHLIGHTWORDS ||
              LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_LISTSYSCOLORS_ENABLE)
@@ -488,6 +485,11 @@ BOOL CALLBACK AutoCompleteSetup2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
       bAddHighLightWordsDlg=(BOOL)SendMessage(hWndAddHighLightWords, BM_GETCHECK, 0, 0);
       bCompleteListSystemColorsDlg=(BOOL)SendMessage(hWndListSysColorsEnable, BM_GETCHECK, 0, 0);
       EnableWindow(hWndListItemHlBaseColorsEnable, bAddHighLightWordsDlg && !bCompleteListSystemColorsDlg);
+    }
+    else if (LOWORD(wParam) == IDC_AUTOCOMPLETE_SETUP_SAVETYPEDCASE)
+    {
+      bSaveTypedCaseDlg=(BOOL)SendMessage(hWndSaveTypedCase, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndInheritTypedCase, bSaveTypedCaseDlg);
     }
   }
   else if (uMsg == WM_NOTIFY)
