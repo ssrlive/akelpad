@@ -418,6 +418,7 @@ Rule ID, Parent ID
   - Parent (Parent ID) for the section "Folds:" can be "Folds:".
   - If parent (Parent ID) is -1, then rule must be located in the root (without parent).
   - If parent (Parent ID) is -2, then rule should not be located in the root (any parent).
+  - If parent (Parent ID) is -3, then rule can be without parent or with any parent.
 
 Rule file
   Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.
