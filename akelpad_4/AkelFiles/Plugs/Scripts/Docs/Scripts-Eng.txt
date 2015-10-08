@@ -2930,7 +2930,7 @@ Example:
 AkelPad.ActiveXThis (+ActiveX)
 ______________________________
 
-Send root IDispatch to plugin. Required for some methods to work in ActiveX mode.
+Send root IDispatch to plugin. Required for some methods to work in ActiveX mode (ConnectObject, ScriptHandle).
 
   ActiveXThis(this);
 
