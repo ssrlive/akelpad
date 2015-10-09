@@ -119,6 +119,17 @@ Call("Scripts::Main", 5, "SCRIPT", OPERATION, *RESULT)
 Call("Scripts::Main", 6, SCRIPTHANDLE, OPERATION, *RESULT)
   Same as 5, but use script handle, instead of script file.
 
+Call("Scripts::Main", 7, "METHOD", *RESULT)
+  Parameters:
+    7
+      Call Scripts plugin method directly. Intended for ContextMenu, Hotkeys, Toolbar plugins.
+    "METHOD"
+      Script plugin method with arguments.
+    *RESULT
+      Call result.
+  Example:
+    "Find next paragraph" Call("Scripts::Main", 7, `AkelPad.TextFind(0, "(?<=\n\n)(?!\n)", 0x80001 /*FRF_DOWN|FRF_REGEXP*/)`)
+
 
 *** Service information in script ***
 

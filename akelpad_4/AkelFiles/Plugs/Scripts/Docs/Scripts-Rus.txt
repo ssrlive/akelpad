@@ -120,6 +120,17 @@ Call("Scripts::Main", 5, "SCRIPT", OPERATION, *RESULT)
 Call("Scripts::Main", 6, SCRIPTHANDLE, OPERATION, *RESULT)
   То же, что и 5, но используется дескриптор скрипта вместо файла скрипта.
 
+Call("Scripts::Main", 7, "METHOD", *RESULT)
+  Параметры:
+    7
+      Вызывать метод Scripts плагина напрямую. Предназначено для ContextMenu, Hotkeys, Toolbar плагинов.
+    "METHOD"
+      Метод Scripts плагина с аргументами.
+    *RESULT
+      Результат вызова.
+  Пример:
+    "Найти следующий параграф" Call("Scripts::Main", 7, `AkelPad.TextFind(0, "(?<=\n\n)(?!\n)", 0x80001 /*FRF_DOWN|FRF_REGEXP*/)`)
+
 
 *** Служебная информация в скрипте ***
 
