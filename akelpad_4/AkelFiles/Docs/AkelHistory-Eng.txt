@@ -3,6 +3,7 @@ AkelPad 4.9.7 ()
 ----------------------------
 Changed: "Replace all" with up direction.
 
+Added: option to find/replace dialog ". matches \n".
 Added: command line parameter /NewInstance - force create new program instance.
 Added: command line parameter /MainClass("MyAkelPad4") - set class name for a new program
       instance.

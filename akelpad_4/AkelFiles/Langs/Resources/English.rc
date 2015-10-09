@@ -392,7 +392,7 @@ END
 
 IDD_OFN DIALOGEX 0, 0, 275, 120
 STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "&Codepage:",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
     COMBOBOX        IDC_OFN_CODEPAGE,53,1,145,130,CBS_DROPDOWNLIST | 
@@ -492,9 +492,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,65,97,12
     CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,27,66,58
     CONTROL         "&Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -531,9 +533,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,79,97,12
     CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direction",IDC_STATIC,121,41,66,58
     CONTROL         "&Down",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -578,7 +582,7 @@ IDD_RECODE DIALOGEX 70, 70, 278, 214
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Recode"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     RTEXT           "From:",IDC_RECODE_CODEPAGEFROM_LABEL,6,11,35,8
     COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
