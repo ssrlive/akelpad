@@ -46,11 +46,12 @@
 //Include wide functions
 #define AppendMenuWide
 #define CallWindowProcWide
+#define CreateEventWide
 #define CreateFileWide
 #define CreateProcessWide
 #define CreateWindowExWide
-#define DefWindowProcWide
 #define DefDlgProcWide
+#define DefWindowProcWide
 #define DialogBoxParamWide
 #define DialogBoxWide
 #define DispatchMessageWide
@@ -73,9 +74,9 @@
 #define ListView_SetItemWide
 #define LoadLibraryWide
 #define RegisterClassWide
+#define SetClassLongPtrWide
 #define SetDlgItemTextWide
 #define SetFileAttributesWide
-#define SetClassLongPtrWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
 #define ShellExecuteWide
@@ -129,8 +130,8 @@ BOOL bOpeningDlg=FALSE;
 DWORD dwGlobalDebugJIT=JIT_FROMSTART;
 BOOL bGlobalDebugEnable=FALSE;
 DWORD dwGlobalDebugCode=0;
-const char *pMutexInitName="AkelPad::Scripts::MutexInit";
-const char *pMutexExecName="AkelPad::Scripts::MutexExec";
+wchar_t wszMutexInitName[MAX_PATH];
+wchar_t wszMutexExecName[MAX_PATH];
 wchar_t wszScriptsDir[MAX_PATH];
 wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
@@ -2070,7 +2071,7 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINC
       return;
   }
 
-  if (hInitMutex=CreateEventA(NULL, FALSE, FALSE, pMutexInitName))
+  if (hInitMutex=CreateEventWide(NULL, FALSE, FALSE, wszMutexInitName))
   {
     if (GetLastError() != ERROR_ALREADY_EXISTS)
     {
@@ -2210,7 +2211,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     if (es->hInitMutex)
     {
       //Protect from double execution
-      lpScriptThread->hExecMutex=CreateEventA(NULL, FALSE, FALSE, pMutexExecName);
+      lpScriptThread->hExecMutex=CreateEventWide(NULL, FALSE, FALSE, wszMutexExecName);
 
       if (!nWaitForScriptSignal)
       {
@@ -3337,6 +3338,8 @@ void InitCommon(PLUGINDATA *pd)
   xprintfW(wszPluginTitle, GetLangStringW(wLangModule, STRID_PLUGIN), wszPluginName);
   xprintfW(wszScriptsDir, L"%s\\AkelFiles\\Plugs\\Scripts", pd->wszAkelDir);
   xstrcpynW(wszAkelPadDir, pd->wszAkelDir, MAX_PATH);
+  xprintfW(wszMutexInitName, L"AkelPad::Scripts::MutexInit::%d", GetCurrentProcessId());
+  xprintfW(wszMutexExecName, L"AkelPad::Scripts::MutexExec::%d", GetCurrentProcessId());
   if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 5, 0)) >= 0)
     TranslateMessageProc=(TRANSLATEPROC)SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)NULL);
   ReadOptions(0);
