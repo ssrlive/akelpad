@@ -9309,6 +9309,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
   static HWND hWndRegExp;
+  static HWND hWndRegExpDot;
   static HWND hWndForward;
   static HWND hWndBackward;
   static HWND hWndBeginning;
@@ -9350,6 +9351,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
     hWndRegExp=GetDlgItem(hDlg, IDC_SEARCH_REGEXP);
+    hWndRegExpDot=GetDlgItem(hDlg, IDC_SEARCH_REGEXPDOT);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
@@ -9410,10 +9412,18 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (moCur.dwSearchOptions & FRF_UP)
       SendMessage(hWndBackward, BM_SETCHECK, BST_CHECKED, 0);
 
-    if (moCur.dwSearchOptions & FRF_MATCHCASE) SendMessage(hWndMatchCase, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwSearchOptions & FRF_WHOLEWORD) SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwSearchOptions & FRF_ESCAPESEQ) SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.dwSearchOptions & FRF_REGEXP) SendMessage(hWndRegExp, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & FRF_MATCHCASE)
+      SendMessage(hWndMatchCase, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & FRF_WHOLEWORD)
+      SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & FRF_ESCAPESEQ)
+      SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & FRF_REGEXP)
+      SendMessage(hWndRegExp, BM_SETCHECK, BST_CHECKED, 0);
+    else
+      EnableWindow(hWndRegExpDot, FALSE);
+    if (!(moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT))
+      SendMessage(hWndRegExpDot, BM_SETCHECK, BST_CHECKED, 0);
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOXEDIT))
     {
@@ -9467,20 +9477,26 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       return TRUE;
     else if (wCommand == IDC_SEARCH_MATCHCASE)
     {
-      if (SendMessage(hWndMatchCase, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=FRF_MATCHCASE;
-      else moCur.dwSearchOptions&=~FRF_MATCHCASE;
+      if (SendMessage(hWndMatchCase, BM_GETCHECK, 0, 0))
+        moCur.dwSearchOptions|=FRF_MATCHCASE;
+      else
+        moCur.dwSearchOptions&=~FRF_MATCHCASE;
       return TRUE;
     }
     else if (wCommand == IDC_SEARCH_WHOLEWORD)
     {
-      if (SendMessage(hWndWholeWord, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=FRF_WHOLEWORD;
-      else moCur.dwSearchOptions&=~FRF_WHOLEWORD;
+      if (SendMessage(hWndWholeWord, BM_GETCHECK, 0, 0))
+        moCur.dwSearchOptions|=FRF_WHOLEWORD;
+      else
+        moCur.dwSearchOptions&=~FRF_WHOLEWORD;
       return TRUE;
     }
     else if (wCommand == IDC_SEARCH_ESCAPESEQ)
     {
-      if (SendMessage(hWndEscapeSeq, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=FRF_ESCAPESEQ;
-      else moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
+      if (SendMessage(hWndEscapeSeq, BM_GETCHECK, 0, 0))
+        moCur.dwSearchOptions|=FRF_ESCAPESEQ;
+      else
+        moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
       if (moCur.dwSearchOptions & FRF_ESCAPESEQ)
       {
         SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -9490,13 +9506,24 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (wCommand == IDC_SEARCH_REGEXP)
     {
-      if (SendMessage(hWndRegExp, BM_GETCHECK, 0, 0)) moCur.dwSearchOptions|=FRF_REGEXP;
-      else moCur.dwSearchOptions&=~FRF_REGEXP;
+      if (SendMessage(hWndRegExp, BM_GETCHECK, 0, 0))
+        moCur.dwSearchOptions|=FRF_REGEXP;
+      else
+        moCur.dwSearchOptions&=~FRF_REGEXP;
       if (moCur.dwSearchOptions & FRF_REGEXP)
       {
         SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_UNCHECKED, 0);
         moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
       }
+      EnableWindow(hWndRegExpDot, (moCur.dwSearchOptions & FRF_REGEXP));
+      return TRUE;
+    }
+    else if (wCommand == IDC_SEARCH_REGEXPDOT)
+    {
+      if (SendMessage(hWndRegExpDot, BM_GETCHECK, 0, 0))
+        moCur.dwSearchOptions&=~FRF_REGEXPNONEWLINEDOT;
+      else
+        moCur.dwSearchOptions|=FRF_REGEXPNONEWLINEDOT;
       return TRUE;
     }
     else if (wCommand == IDC_SEARCH_FORWARD)

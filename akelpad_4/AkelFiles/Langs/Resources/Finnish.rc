@@ -497,9 +497,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "Säännölliset &lausekkeet",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
+    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,65,97,12
     CONTROL         "Es&cape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Suunta",IDC_STATIC,121,27,67,58
     CONTROL         "&Alas",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -536,9 +538,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "Sää&nnölliset lausekkeet",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
+    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,79,97,12
     CONTROL         "Es&cape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Suunta",IDC_STATIC,121,41,67,58
     CONTROL         "&Alas",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,

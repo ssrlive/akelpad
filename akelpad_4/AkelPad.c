@@ -965,6 +965,7 @@ void _WinMain()
           (moInit.dwSearchOptions & FRF_SELECTION) |
           (moInit.dwSearchOptions & FRF_ESCAPESEQ) |
           (moInit.dwSearchOptions & FRF_REGEXP) |
+          (moInit.dwSearchOptions & FRF_REGEXPNONEWLINEDOT) |
           (moInit.dwSearchOptions & FRF_ALLFILES) |
           (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
