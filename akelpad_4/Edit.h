@@ -21,7 +21,6 @@
 #define APP_SDI_CLASSW              L"AkelPad SDI Class"
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_PRINTPREVIEW_CLASSW     L"AkelPad Print Preview"
-#define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_REGHOMEW                L"Software\\Akelsoft\\AkelPad"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSW  L"shengalts@mail.ru"
