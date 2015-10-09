@@ -141,6 +141,7 @@
 #define ComboBox_InsertStringWide
 #define CreateDialogWide
 #define CreateDirectoryWide
+#define CreateEventWide
 #define CreateFileWide
 #define CreateFontIndirectWide
 #define CreateMDIWindowWide
@@ -249,6 +250,9 @@ DWORD dwCmdShow=SW_SHOWNORMAL;
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
+STARTUPINFOA lpStartupInfoA;
+wchar_t wszMainClass[MAX_PATH];
+BOOL bNewInstance=FALSE;
 
 //Identification
 DWORD dwExeVersion=0;
@@ -282,6 +286,7 @@ wchar_t *wpCmdParamsStart=NULL;
 wchar_t *wpCmdParamsEnd=NULL;
 DWORD dwCmdLineOptions=0;
 BOOL bCmdLineQuitAsEnd=FALSE;
+int nParseCmdLineOnLoad=0;
 
 //Language
 HMODULE hLangModule;
@@ -685,6 +690,9 @@ void _WinMain()
   nExeDirLen=GetFileDir(wszExeFile, nExeFileLen, wszExeDir, MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, wszExeDir, nExeDirLen + 1, szExeDir, MAX_PATH, NULL, NULL);
 
+  //Main window class
+  xstrcpynW(wszMainClass, APP_MAIN_CLASSW, MAX_PATH);
+
   //Zero AkelAdmin variables
   wszAkelAdminPipe[0]=L'\0';
   wszAkelAdminExe[0]=L'\0';
@@ -991,68 +999,67 @@ void _WinMain()
   //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
-
   //Get startup info
   #ifndef AKELPAD_DLLBUILD
-  {
-    STARTUPINFOA lpStartupInfoA;
-
     lpStartupInfoA.cb=sizeof(STARTUPINFOA);
     GetStartupInfoA(&lpStartupInfoA);
     if (lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW)
       dwCmdShow=lpStartupInfoA.wShowWindow;
+  #endif
 
-    //Mutex
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+
+  //Parse commmand line on load
+  if (wpCmdLine)
+    nParseCmdLineOnLoad=ParseCmdLine(&wpCmdLine, PCL_ONLOAD);
+
+  //Mutex
+  #ifndef AKELPAD_DLLBUILD
     if (!(lpStartupInfoA.dwFlags & STARTF_NOMUTEX))
     {
-      if (hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
+      if (hMutex=CreateEventWide(NULL, FALSE, FALSE, wszMainClass))
       {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
           WaitForSingleObject(hMutex, INFINITE);
       }
     }
-  }
 
-  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && (moCur.dwSingleOpenProgram & SOP_ON))
-  {
-    HWND hWndFriend;
-    DWORD dwAtom;
-
-    //Pass command line to opened instance
-    if (hWndFriend=FindAkelCopy())
+    if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && (moCur.dwSingleOpenProgram & SOP_ON) && !bNewInstance)
     {
-      dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
-      if (dwCmdShow != SW_HIDE && dwCmdShow != SW_SHOWMINNOACTIVE && dwCmdShow != SW_SHOWNA && dwCmdShow != SW_SHOWNOACTIVATE)
-        ActivateWindow(hWndFriend);
+      HWND hWndFriend;
+      DWORD dwAtom;
 
-      //Wait until we can send PostMessage.
-      while (!IsWindowEnabled(hWndFriend) || SendMessage(hWndFriend, AKD_GETQUEUE, QS_ALLEVENTS, 0))
+      //Pass command line to opened instance
+      if (hWndFriend=FindAkelCopy())
       {
-        Sleep(100);
+        dwAtom=(DWORD)GetClassLongPtrWide(hWndFriend, GCW_ATOM);
+        if (dwCmdShow != SW_HIDE && dwCmdShow != SW_SHOWMINNOACTIVE && dwCmdShow != SW_SHOWNA && dwCmdShow != SW_SHOWNOACTIVATE)
+          ActivateWindow(hWndFriend);
 
-        //Is window still exist?
-        if (GetClassLongPtrWide(hWndFriend, GCW_ATOM) != dwAtom)
-          goto Quit;
+        //Wait until we can send PostMessage.
+        while (!IsWindowEnabled(hWndFriend) || SendMessage(hWndFriend, AKD_GETQUEUE, QS_ALLEVENTS, 0))
+        {
+          Sleep(100);
+
+          //Is window still exist?
+          if (GetClassLongPtrWide(hWndFriend, GCW_ATOM) != dwAtom)
+            goto Quit;
+        }
+
+        //Send command line parameters without CmdLineBegin and CmdLineEnd
+        *wpCmdParamsEnd=L'\0';
+        SendCmdLine(hWndFriend, wpCmdParamsStart, TRUE, TRUE);
+        goto Quit;
       }
-
-      //Send command line parameters without CmdLineBegin and CmdLineEnd
-      *wpCmdParamsEnd=L'\0';
-      SendCmdLine(hWndFriend, wpCmdParamsStart, TRUE, TRUE);
-      goto Quit;
     }
-  }
   #endif
 
-  //Parse commmand line on load
   if (wpCmdLine)
   {
-    int nResult=ParseCmdLine(&wpCmdLine, PCL_ONLOAD);
-
-    if (nResult == PCLE_QUIT)
+    if (nParseCmdLineOnLoad == PCLE_QUIT)
       goto Quit;
-    else if (nResult != PCLE_ONLOAD)
+    else if (nParseCmdLineOnLoad != PCLE_ONLOAD)
       wpCmdLine=NULL;
   }
 
@@ -1194,7 +1201,7 @@ void _WinMain()
   //so use COLOR_WINDOW and return 1 in WM_ERASEBKGND.
   wndclassW.hbrBackground=(HBRUSH)(UINT_PTR)(COLOR_WINDOW + 1);
   wndclassW.lpszMenuName =NULL;
-  wndclassW.lpszClassName=APP_MAIN_CLASSW;
+  wndclassW.lpszClassName=wszMainClass;
   if (!RegisterClassWide(&wndclassW)) goto Quit;
 
   if (nMDI == WMD_MDI)
@@ -1235,7 +1242,7 @@ void _WinMain()
   #endif
 
   hMainWnd=CreateWindowExWide(0,
-                              APP_MAIN_CLASSW, // window class name
+                              wszMainClass,    // window class name
                               APP_MAIN_TITLEW, // window caption
                               mc.dwStyle,      // window style
                               mc.x,            // initial x position

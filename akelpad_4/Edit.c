@@ -34,6 +34,12 @@ extern DWORD dwProcessId;
 extern MAINCREATE mc;
 extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
+#ifndef AKELEDIT_STATICBUILD
+  extern HMODULE hAkelLib;
+#endif
+extern STARTUPINFOA lpStartupInfoA;
+extern wchar_t wszMainClass[MAX_PATH];
+extern BOOL bNewInstance;
 
 //Identification
 extern DWORD dwExeVersion;
@@ -67,6 +73,7 @@ extern wchar_t *wpCmdParamsStart;
 extern wchar_t *wpCmdParamsEnd;
 extern DWORD dwCmdLineOptions;
 extern BOOL bCmdLineQuitAsEnd;
+extern int nParseCmdLineOnLoad;
 
 //Language
 extern HMODULE hLangModule;
@@ -19066,8 +19073,8 @@ char* GetCommandLineParamsA()
     while (*++pCmdLine != '\"' && *pCmdLine != '\0');
   else
     while (*++pCmdLine != ' ' && *pCmdLine != '\0');
-  if (*pCmdLine == '\"')
-    while (*++pCmdLine == ' ');
+  if (*pCmdLine) ++pCmdLine;
+  while (*pCmdLine == ' ') ++pCmdLine;
   return pCmdLine;
 }
 
@@ -19079,8 +19086,8 @@ wchar_t* GetCommandLineParamsW()
     while (*++wpCmdLine != L'\"' && *wpCmdLine != L'\0');
   else
     while (*++wpCmdLine != L' ' && *wpCmdLine != L'\0');
-  if (*wpCmdLine == L'\"')
-    while (*++wpCmdLine == L' ');
+  if (*wpCmdLine) ++wpCmdLine;
+  while (*wpCmdLine == L' ') ++wpCmdLine;
   return wpCmdLine;
 }
 
@@ -19171,6 +19178,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
   int nCallMethod;
   BOOL bFileOpenedSDI=FALSE;
   BOOL bIgnoreNextArg=FALSE;
+  int nResult=PCLE_SUCCESS;
 
   if (wppCmdLine && *wppCmdLine)
   {
@@ -19216,11 +19224,13 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         }
         if (!xstrcmpiW(wszCmdArg, L"/QUIT"))
         {
-          return PCLE_QUIT;
+          nResult=PCLE_QUIT;
+          goto End;
         }
         if (!xstrcmpiW(wszCmdArg, L"/END"))
         {
-          return PCLE_END;
+          nResult=PCLE_END;
+          goto End;
         }
         if (!xstrcmpiW(wszCmdArg, L"/P"))
         {
@@ -19290,11 +19300,29 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
             ShowWindow(hMainWnd, dwCmdShow);
           continue;
         }
-        if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
+        if (!xstrcmpinW(L"/MainClass(", wszCmdArg, (UINT_PTR)-1))
+        {
+          if (GetCommandLineArg(wszCmdArg + 11, wbuf, MAX_PATH, NULL, FALSE))
+            xprintfW(wszMainClass, wbuf, GetCurrentProcessId());
+          continue;
+        }
+        if (!xstrcmpiW(wszCmdArg, L"/NewInstance"))
+        {
+          bNewInstance=TRUE;
+          continue;
+        }
+        if (nType == PCL_ONLOAD)
+        {
+          nResult=PCLE_ONLOAD;
+          goto End;
+        }
 
         //Process actions
         if (nCallMethod=CallMethod(wszCmdArg, L""))
-          return nCallMethod;
+        {
+          nResult=nCallMethod;
+          goto End;
+        }
         continue;
       }
       if (!*wszCmdArg) continue;
@@ -19314,37 +19342,58 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
                 ActivateWindow(hWndFriend);
                 SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
                 SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
-                return PCLE_QUIT;
+                nResult=PCLE_QUIT;
+                goto End;
               }
             }
           }
         }
-        if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
+        if (nType == PCL_ONLOAD)
+        {
+          nResult=PCLE_ONLOAD;
+          goto End;
+        }
 
         if (!bFileOpenedSDI)
         {
           if (!SaveChanged(0))
-            return PCLE_SAVEERROR;
+          {
+            nResult=PCLE_SAVEERROR;
+            goto End;
+          }
           nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
-            return PCLE_OPENERROR;
+          {
+            nResult=PCLE_OPENERROR;
+            goto End;
+          }
           bFileOpenedSDI=TRUE;
           continue;
         }
         hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
         SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
         SendCmdLine(hWndFriend, wpCmdLine, TRUE, TRUE);
-        return PCLE_WINDOWEXIST;
+        nResult=PCLE_WINDOWEXIST;
+        goto End;
       }
-      if (nType == PCL_ONLOAD) return PCLE_ONLOAD;
+      if (nType == PCL_ONLOAD)
+      {
+        nResult=PCLE_ONLOAD;
+        goto End;
+      }
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
       nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
       if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
-        return PCLE_OPENERROR;
+      {
+        nResult=PCLE_OPENERROR;
+        goto End;
+      }
     }
+    End:
+    *wppCmdLine=wpCmdLine;
   }
-  return PCLE_SUCCESS;
+  return nResult;
 }
 
 void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd)
