@@ -491,7 +491,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "使用正規表達式",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
-    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,21,65,97,12
     CONTROL         "使用 Esc 逸出序列碼",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
@@ -532,7 +532,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "使用正規表達式",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
-    CONTROL         ". matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
+    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,21,79,97,12
     CONTROL         "使用 Esc 逸出序列碼",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12

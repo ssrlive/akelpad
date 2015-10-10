@@ -9494,27 +9494,32 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     else if (wCommand == IDC_SEARCH_ESCAPESEQ)
     {
       if (SendMessage(hWndEscapeSeq, BM_GETCHECK, 0, 0))
-        moCur.dwSearchOptions|=FRF_ESCAPESEQ;
-      else
-        moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
-      if (moCur.dwSearchOptions & FRF_ESCAPESEQ)
       {
-        SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
-        moCur.dwSearchOptions&=~FRF_REGEXP;
+        moCur.dwSearchOptions|=FRF_ESCAPESEQ;
+        if (moCur.dwSearchOptions & FRF_REGEXP)
+        {
+          SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
+          moCur.dwSearchOptions&=~FRF_REGEXP;
+          EnableWindow(hWndRegExpDot, FALSE);
+        }
       }
+      else moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
+
       return TRUE;
     }
     else if (wCommand == IDC_SEARCH_REGEXP)
     {
       if (SendMessage(hWndRegExp, BM_GETCHECK, 0, 0))
-        moCur.dwSearchOptions|=FRF_REGEXP;
-      else
-        moCur.dwSearchOptions&=~FRF_REGEXP;
-      if (moCur.dwSearchOptions & FRF_REGEXP)
       {
-        SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_UNCHECKED, 0);
-        moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
+        moCur.dwSearchOptions|=FRF_REGEXP;
+        if (moCur.dwSearchOptions & FRF_ESCAPESEQ)
+        {
+          SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_UNCHECKED, 0);
+          moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
+        }
       }
+      else moCur.dwSearchOptions&=~FRF_REGEXP;
+
       EnableWindow(hWndRegExpDot, (moCur.dwSearchOptions & FRF_REGEXP));
       return TRUE;
     }
