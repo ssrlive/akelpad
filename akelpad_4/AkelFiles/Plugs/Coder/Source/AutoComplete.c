@@ -2113,41 +2113,35 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       if (!wpIndentBlock)
         wpIndentBlock=lpBlockMaster->wpBlock;
 
-      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce : bSaveTypedCase)
+      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce : (bSaveTypedCase && !(lpBlockInfo->dwStructType & BIT_BLOCK)))
       {
+        CONVERTCASE cc;
+        wchar_t *wpReplaceWith=wpIndentBlock;
+
         SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMin, (LPARAM)&aecr.ciMin);
         SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&aecr.ciMax);
 
-        //Compare to avoid expanding "com" to "comlPad.Command(0);".
-        ft.pText=wpIndentBlock;
-        ft.dwTextLen=nMax - nMin;
-        if (IsMatch(&ft, &aecr.ciMin))
+        if (bInheritTypedCase)
         {
-          CONVERTCASE cc;
-          wchar_t *wpReplaceWith=wpIndentBlock;
-
-          if (bInheritTypedCase)
+          cc.wszText=NULL;
+          cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
+          if (cc.nCase != SCT_NONE)
           {
-            cc.wszText=NULL;
-            cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
-            if (cc.nCase != SCT_NONE)
+            cc.nTextLen=xstrlenW(wpReplaceWith);
+            if (cc.wszText=(wchar_t *)GlobalAlloc(GPTR, cc.nTextLen * sizeof(wchar_t) + 2))
             {
-              cc.nTextLen=xstrlenW(wpReplaceWith);
-              if (cc.wszText=(wchar_t *)GlobalAlloc(GPTR, cc.nTextLen * sizeof(wchar_t) + 2))
-              {
-                xmemcpy(cc.wszText, wpReplaceWith, cc.nTextLen * sizeof(wchar_t) + 2);
-                SendMessage(hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
-                wpReplaceWith=cc.wszText;
-              }
+              xmemcpy(cc.wszText, wpReplaceWith, cc.nTextLen * sizeof(wchar_t) + 2);
+              SendMessage(hMainWnd, AKD_CONVERTCASE, 0, (LPARAM)&cc);
+              wpReplaceWith=cc.wszText;
             }
           }
-          cr.cpMin=nMax;
-          cr.cpMax=nMax;
-          SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
-          SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpReplaceWith + (nMax - nMin)));
-          bReplaced=TRUE;
-          if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
         }
+        cr.cpMin=nMax;
+        cr.cpMax=nMax;
+        SendMessage(hWndEdit, EM_EXSETSEL64, 0, (LPARAM)&cr);
+        SendMessage(hMainWnd, AKD_REPLACESELW, (WPARAM)hWndEdit, (LPARAM)(wpReplaceWith + (nMax - nMin)));
+        bReplaced=TRUE;
+        if (cc.wszText) GlobalFree((HGLOBAL)cc.wszText);
       }
       if (!bReplaced)
       {
