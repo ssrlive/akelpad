@@ -1756,6 +1756,13 @@ int CompleteStrCmpLen(const wchar_t *wpString1, const wchar_t *wpString2, UINT_P
   return xstrcmpinW(wpString1, wpString2, dwMaxLength);
 }
 
+wchar_t CompleteFirstChar(wchar_t wchChar)
+{
+  if (bCompleteCaseSensitive)
+    return wchChar;
+  return WideCharLower(wchChar);
+}
+
 int ParseBlock(SYNTAXFILE *lpScheme, HSTACK *hHotSpotStack, const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput, int *nOutputLines)
 {
   VARINFO *lpElement;
@@ -2182,7 +2189,7 @@ BLOCKINFO* StackInsertBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack, wc
   BLOCKINFO *lpElement=(BLOCKINFO *)hStack->first;
   BLOCKINFO *lpElementNew=NULL;
   BLOCKORDER *lpBlockOrder=NULL;
-  wchar_t wchFirstLowerChar=WideCharLower(*wpTitle);
+  wchar_t wchFirstLowerChar=CompleteFirstChar(*wpTitle);
 
   if (wchFirstLowerChar < FIRST_NONLATIN)
   {
@@ -2267,7 +2274,7 @@ BLOCKINFO* StackGetExactBlock(SYNTAXFILE *lpSyntaxFile, AECHARINDEX *ciCaret, IN
 BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne)
 {
   BLOCKINFO *lpBlockElement;
-  wchar_t wchFirstLowerChar=WideCharLower(*wpTitlePart);
+  wchar_t wchFirstLowerChar=CompleteFirstChar(*wpTitlePart);
 
   if (lpSyntaxFile)
   {
@@ -2619,7 +2626,7 @@ DOCWORDINFO* StackInsertDocWord(STACKDOCWORDS *hStack, wchar_t *wpDocWord, int n
 {
   DOCWORDINFO *lpElement=hStack->first;
   DOCWORDINFO *lpElementNew=NULL;
-  wchar_t wchFirstLowerChar=WideCharLower(*wpDocWord);
+  wchar_t wchFirstLowerChar=CompleteFirstChar(*wpDocWord);
 
   if (wchFirstLowerChar < FIRST_NONLATIN)
   {

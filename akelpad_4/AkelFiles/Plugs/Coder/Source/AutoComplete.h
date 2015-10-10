@@ -162,6 +162,7 @@ void SetSelListbox(int nIndex);
 BLOCKINFO* GetDataListbox(int nItem);
 int CompleteStrCmp(const wchar_t *wpString1, const wchar_t *wpString2);
 int CompleteStrCmpLen(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
+wchar_t CompleteFirstChar(wchar_t wchChar);
 
 //Scheme
 int ParseBlock(SYNTAXFILE *lpScheme, HSTACK *hHotSpotStack, const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput, int *nOutputLines);
