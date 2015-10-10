@@ -495,12 +495,12 @@ BEGIN
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "Expressões regulares",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
-    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,55,10,9
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direção",IDC_STATIC,109,27,78,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
@@ -536,12 +536,12 @@ BEGIN
     CONTROL         "Palavra inteira",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "Expressões regulares",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
-    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,69,10,9
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "Direção",IDC_STATIC,109,41,78,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
@@ -1133,6 +1133,7 @@ BEGIN
     STR_ONLYMODIFIED        "Modificado"
     STR_ONLYUNMODIFIED      "Não-modificado"
     STR_INVERTSELECTION     "Inverter seleção"
+    STR_NEWLINEDOT          ". matches \\n"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Sim"
     STR_MESSAGEBOX_NO       "Não"
