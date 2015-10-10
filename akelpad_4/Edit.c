@@ -9309,7 +9309,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
   static HWND hWndRegExp;
-  static HWND hWndRegExpDot;
+  static HWND hWndRegExpArrow;
   static HWND hWndForward;
   static HWND hWndBackward;
   static HWND hWndBeginning;
@@ -9320,6 +9320,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndReplaceButton;
   static HWND hWndReplaceAllButton;
   static HWND hWndCancelButton;
+  static HMENU hMenuArrow;
   static BOOL bSpecialCheck=FALSE;
   static BOOL bInSelAutoCheck=FALSE;
   HWND hWndFocus=NULL;
@@ -9351,7 +9352,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
     hWndRegExp=GetDlgItem(hDlg, IDC_SEARCH_REGEXP);
-    hWndRegExpDot=GetDlgItem(hDlg, IDC_SEARCH_REGEXPDOT);
+    hWndRegExpArrow=GetDlgItem(hDlg, IDC_SEARCH_REGEXP_ARROW);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
@@ -9421,9 +9422,39 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     if (moCur.dwSearchOptions & FRF_REGEXP)
       SendMessage(hWndRegExp, BM_SETCHECK, BST_CHECKED, 0);
     else
-      EnableWindow(hWndRegExpDot, FALSE);
-    if (!(moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT))
-      SendMessage(hWndRegExpDot, BM_SETCHECK, BST_CHECKED, 0);
+      EnableWindow(hWndRegExpArrow, FALSE);
+
+    //Set button image
+    {
+      BUTTONDRAW bd;
+      RECT rcCheckBox;
+      RECT rcArrow;
+      SIZE sizeWidth;
+      HDC hDC;
+      HFONT hFont;
+      HFONT hFontOld;
+      int nTextLen;
+
+      bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+      SetButtonDraw(hWndRegExpArrow, &bd);
+
+      if (hDC=GetDC(hWndRegExp))
+      {
+        //Get checkbox text size
+        hFont=(HFONT)SendMessage(hWndRegExp, WM_GETFONT, 0, 0);
+        hFontOld=(HFONT)SelectObject(hDC, hFont);
+        nTextLen=GetWindowTextWide(hWndRegExp, wbuf, BUFFER_SIZE);
+        GetTextExtentPoint32W(hDC, wbuf, nTextLen, &sizeWidth);
+
+        //Resize checkbox and move arrow near to it
+        GetWindowSize(hWndRegExp, hDlg, &rcCheckBox);
+        GetWindowSize(hWndRegExpArrow, hDlg, &rcArrow);
+        SetWindowPos(hWndRegExp, 0, 0, 0, sizeWidth.cx + 16, rcCheckBox.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+        SetWindowPos(hWndRegExpArrow, 0, rcCheckBox.left + sizeWidth.cx + 16, rcArrow.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        if (hFontOld) SelectObject(hDC, hFontOld);
+        ReleaseDC(hDlg, hDC);
+      }
+    }
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOXEDIT))
     {
@@ -9500,7 +9531,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
           SendMessage(hWndRegExp, BM_SETCHECK, BST_UNCHECKED, 0);
           moCur.dwSearchOptions&=~FRF_REGEXP;
-          EnableWindow(hWndRegExpDot, FALSE);
+          EnableWindow(hWndRegExpArrow, FALSE);
         }
       }
       else moCur.dwSearchOptions&=~FRF_ESCAPESEQ;
@@ -9520,15 +9551,33 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       else moCur.dwSearchOptions&=~FRF_REGEXP;
 
-      EnableWindow(hWndRegExpDot, (moCur.dwSearchOptions & FRF_REGEXP));
+      EnableWindow(hWndRegExpArrow, (moCur.dwSearchOptions & FRF_REGEXP));
       return TRUE;
     }
-    else if (wCommand == IDC_SEARCH_REGEXPDOT)
+    else if (wCommand == IDC_SEARCH_REGEXP_ARROW)
     {
-      if (SendMessage(hWndRegExpDot, BM_GETCHECK, 0, 0))
-        moCur.dwSearchOptions&=~FRF_REGEXPNONEWLINEDOT;
-      else
-        moCur.dwSearchOptions|=FRF_REGEXPNONEWLINEDOT;
+      RECT rcArrow;
+      int nCmd;
+
+      if (!hMenuArrow)
+      {
+        if (hMenuArrow=CreatePopupMenu())
+        {
+          API_LoadString(hLangModule, STR_NEWLINEDOT, wbuf, BUFFER_SIZE);
+          AppendMenuWide(hMenuArrow, MF_STRING, IDC_SEARCH_REGEXP_MENUDOT, wbuf);
+        }
+      }
+      CheckMenuItem(hMenuArrow, IDC_SEARCH_REGEXP_MENUDOT, (moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT)?MF_CHECKED:MF_UNCHECKED);
+      GetWindowRect(hWndRegExpArrow, &rcArrow);
+      nCmd=TrackPopupMenu(hMenuArrow, TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, rcArrow.left, rcArrow.bottom, 0, hDlg, NULL);
+
+      if (nCmd == IDC_SEARCH_REGEXP_MENUDOT)
+      {
+        if (moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT)
+          moCur.dwSearchOptions&=~FRF_REGEXPNONEWLINEDOT;
+        else
+          moCur.dwSearchOptions|=FRF_REGEXPNONEWLINEDOT;
+      }
       return TRUE;
     }
     else if (wCommand == IDC_SEARCH_FORWARD)
@@ -9765,6 +9814,11 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         moCur.dwSearchOptions&=~FRF_SELECTION;
       if (moCur.nSearchStrings)
         SaveComboboxSearch(hWndFind, hWndReplace);
+      if (hMenuArrow)
+      {
+        DestroyMenu(hMenuArrow);
+        hMenuArrow=NULL;
+      }
       GetWindowSize(hDlg, NULL, &moCur.rcSearchCurrentDialog);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;

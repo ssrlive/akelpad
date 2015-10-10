@@ -495,11 +495,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
     CONTROL         "正規表現",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,53,109,12
-    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,97,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,120,55,10,9
     CONTROL         "エスケープシーケンス",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,121,27,66,58
     CONTROL         "下へ",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -536,11 +536,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
     CONTROL         "正規表現",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,67,109,12
-    CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,97,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,120,69,10,9
     CONTROL         "エスケープシーケンス",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
-    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
                     WS_GROUP
     GROUPBOX        "方向",IDC_STATIC,121,41,66,58
     CONTROL         "下へ",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -1109,6 +1109,7 @@ BEGIN
     STR_ONLYMODIFIED        "変更あり"
     STR_ONLYUNMODIFIED      "変更なし"
     STR_INVERTSELECTION     "選択を反転"
+    STR_NEWLINEDOT          ". matches \\n"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "はい(&Y)"
     STR_MESSAGEBOX_NO       "いいえ(&N)"
