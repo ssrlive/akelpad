@@ -493,7 +493,7 @@ BEGIN
     CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
     CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,65,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,97,12
     CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
@@ -521,7 +521,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -534,7 +534,7 @@ BEGIN
     CONTROL         "Regular e&xpressions",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
     CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,79,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,97,12
     CONTROL         "&Esc-sequences",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 

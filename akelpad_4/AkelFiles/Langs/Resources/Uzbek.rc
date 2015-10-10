@@ -500,7 +500,7 @@ BEGIN
     CONTROL         "&Davomiy ifoda",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,53,109,12
     CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,65,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,97,12
     CONTROL         "Esc-&davomchisi",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,77,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,89,96,12,NOT 
@@ -541,7 +541,7 @@ BEGIN
     CONTROL         "&Davomiy ifoda",IDC_SEARCH_REGEXP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,67,109,12
     CONTROL         ". &matches \\n",IDC_SEARCH_REGEXPDOT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,79,97,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,97,12
     CONTROL         "Esc-&davomchisi",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,91,109,12
     LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,103,96,12,NOT 
