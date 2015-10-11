@@ -1928,6 +1928,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
   CHARRANGE64 cr;
   GETTEXTRANGE gtr;
   BLOCKINFO *lpBlockMaster;
+  WORDINFO *lpWordInfo=NULL;
   BLOCKINFOHANDLE *lpBlockHandle;
   HOTSPOT *lpHotSpot;
   const wchar_t *wpTitleCaret;
@@ -1962,6 +1963,8 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         lpBlockMaster=lpBlockInfo->master;
       else
         lpBlockMaster=lpBlockInfo;
+      if (lpBlockInfo->dwStructType & BIT_HLBASE)
+        lpWordInfo=(WORDINFO *)lpBlockInfo->lpRef;
 
       if (lpBlockInfo->dwStructType & BIT_BLOCK)
       {
@@ -2113,7 +2116,9 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
       if (!wpIndentBlock)
         wpIndentBlock=lpBlockMaster->wpBlock;
 
-      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce : (bSaveTypedCase && !(lpBlockInfo->dwStructType & BIT_BLOCK)))
+      if (bSaveTypedCaseOnce > -1 ? bSaveTypedCaseOnce :
+                                   (bSaveTypedCase && ((lpBlockInfo->dwStructType & BIT_DOCWORD) ||
+                                                       ((lpBlockInfo->dwStructType & BIT_HLBASE) && !(lpWordInfo->dwFlags & AEHLF_MATCHCASE)))))
       {
         CONVERTCASE cc;
         wchar_t *wpReplaceWith=wpIndentBlock;

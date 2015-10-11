@@ -3491,7 +3491,6 @@ AEFOLD* FoldGet(FOLDWINDOW *lpFoldWindow, DWORD dwFlags, UINT_PTR dwFindIt, AEFO
 AEFOLD* FoldAtIndex(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, DWORD dwFoldStop)
 {
   AEFINDFOLD ff;
-  AECHARINDEX ciEndOfPoint;
 
   ff.dwFlags=AEFF_FINDINDEX|(dwFoldStop & IFE_FOLDSTART?AEFF_FOLDSTART:0)|(dwFoldStop & IFE_FOLDEND?AEFF_FOLDEND:0)|AEFF_RECURSE;
   ff.dwFindIt=(UINT_PTR)ciChar;
@@ -3506,8 +3505,7 @@ AEFOLD* FoldAtIndex(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, DWORD dwFoldS
     }
     if (dwFoldStop & IFE_FOLDEND)
     {
-      EndOfPoint(lpFoldWindow, ff.lpParent->lpMaxPoint, &ciEndOfPoint);
-      if (!AEC_IndexCompare(&ciEndOfPoint, ciChar))
+      if (!AEC_IndexCompare(&ff.lpParent->lpMaxPoint->ciPoint, ciChar))
         return ff.lpParent;
     }
   }
