@@ -105,8 +105,9 @@
 #define IFF_CHECKFIRSTFOLDSTART 0x10
 
 //IsFold return value
-#define IFE_FOLDSTART           0x1
-#define IFE_FOLDEND             0x2
+#define IFE_FOLDSTART        0x1
+#define IFE_FOLDEND          0x2
+#define IFE_FOLDENDMAX       0x4
 
 //StackGetFoldByLine flags
 #define GL_DEEPESTLEVEL  0x1

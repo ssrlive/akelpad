@@ -3505,8 +3505,19 @@ AEFOLD* FoldAtIndex(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, DWORD dwFoldS
     }
     if (dwFoldStop & IFE_FOLDEND)
     {
-      if (!AEC_IndexCompare(&ff.lpParent->lpMaxPoint->ciPoint, ciChar))
-        return ff.lpParent;
+      if (dwFoldStop & IFE_FOLDENDMAX)
+      {
+        AECHARINDEX ciEndOfPoint;
+
+        EndOfPoint(lpFoldWindow, ff.lpParent->lpMaxPoint, &ciEndOfPoint);
+        if (!AEC_IndexCompare(&ciEndOfPoint, ciChar))
+          return ff.lpParent;
+      }
+      else
+      {
+        if (!AEC_IndexCompare(&ff.lpParent->lpMaxPoint->ciPoint, ciChar))
+          return ff.lpParent;
+      }
     }
   }
   return NULL;
@@ -4687,7 +4698,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           }
           if (bMatch)
           {
-            if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMax, IFE_FOLDEND))
+            if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDEND))
               return lpFoldInfo;
             dwFoldMatch=IFE_FOLDEND;
           }
@@ -4721,7 +4732,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           }
         }
 
-        if (lpFold=FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDSTART|IFE_FOLDEND))
+        if (lpFold=FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDSTART|IFE_FOLDEND|IFE_FOLDENDMAX))
           return FoldData(lpFold)->lpFoldInfo;
       }
 
