@@ -51,6 +51,7 @@
 #define REGF_IFTRUE           0x01000000
 #define REGF_IFFALSE          0x02000000
 #define REGF_REFEXIST         0x04000000
+#define REGF_NOTFIXEDPARENT   0x08000000
 #define REGF_GREEDY           0x10000000
 #define REGF_POSSESSIVE       0x20000000
 #define REGF_INVERTGREEDY     0x40000000
@@ -459,7 +460,10 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
             if (lpREGroupRef->nGroupLen != -1)
               lpREGroupItem->nGroupLen+=lpREGroupRef->nGroupLen;
             else
+            {
               lpREGroupItem->nGroupLen=-1;
+              lpREGroupItem->dwFlags|=REGF_NOTFIXEDPARENT;
+            }
           }
         }
         else
@@ -586,6 +590,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
 
         PatCloseGroups(lpREGroupOr, wpPat, wpPat + 1, &lpREGroupNextAuto);
         lpREGroupItem->nGroupLen=-1;
+        lpREGroupItem->dwFlags|=REGF_NOTFIXEDPARENT;
         if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
           goto Error;
       }
@@ -666,6 +671,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         }
         else lpREGroupItem->parent->nGroupLen=-1;
       }
+      if (lpREGroupItem->parent->nGroupLen == -1)
+        lpREGroupItem->dwFlags|=REGF_NOTFIXEDPARENT;
+
       if ((lpREGroupItem->parent->dwFlags & REGF_IFPARENT) && lpREGroupItem->parent->firstChild == lpREGroupItem->parent->lastChild)
       {
         nPatRefIndex=(int)xatoiW(lpREGroupItem->wpPatStart, &wpStrTmp);
@@ -825,7 +833,9 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       else
       {
         lpREGroupItem->nGroupLen=-1;
+        lpREGroupItem->dwFlags|=REGF_NOTFIXEDPARENT;
         lpREGroupNew->nGroupLen=-1;
+        lpREGroupNew->dwFlags|=REGF_NOTFIXEDPARENT;
       }
       if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD|REGF_NEGATIVEFIXED))
       {
@@ -1158,7 +1168,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         lpREGroupItem->wpStrEnd=wpStr;
         lpREGroupItem->nStrLen=wpStr - wpStrStart;
 
-        if (((nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch) ||
+        if (((nCurMatch >= lpREGroupItem->nMinMatch &&
+             (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch &&
+             (lpREGroupItem->dwFlags & REGF_NOTFIXEDPARENT)) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
@@ -2026,6 +2038,8 @@ REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const w
       }
       else lpREGroupItem->parent->nGroupLen=-1;
     }
+    if (lpREGroupItem->parent->nGroupLen == -1)
+      lpREGroupItem->dwFlags|=REGF_NOTFIXEDPARENT;
     lpREGroupItem=lpREGroupItem->parent;
   }
   while (lpREGroupItem);
@@ -2409,7 +2423,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         lpREGroupItem->ciStrEnd=ciStr;
         lpREGroupItem->nStrLen=nStrLen;
 
-        if (((nCurMatch >= lpREGroupItem->nMinMatch && (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch) ||
+        if (((nCurMatch >= lpREGroupItem->nMinMatch &&
+             (DWORD)nCurMatch <= (DWORD)lpREGroupItem->nMaxMatch &&
+             (lpREGroupItem->dwFlags & REGF_NOTFIXEDPARENT)) ||
             //str - "abc", find "a(bc|b)c"
             (lpREGroupItem->dwFlags & REGF_OR)) &&
             //str - "123", find "(?>\d+?)3"
