@@ -11326,14 +11326,6 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
         lpQuoteMatchItem->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
         lpQuoteMatchItem->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
         lpQuoteMatchItem->nQuoteLen=nParentQuoteLen;
-        //if (AEC_IndexCompare(&qm->crQuoteStart.ciMin, &crParentQuoteStart.ciMin) < 0)
-        //  qm->crQuoteStart.ciMin=crParentQuoteStart.ciMin;
-        //if (AEC_IndexCompare(&qm->crQuoteStart.ciMax, &crParentQuoteStart.ciMin) < 0)
-        //  qm->crQuoteStart.ciMax=crParentQuoteStart.ciMin;
-        //if (AEC_IndexCompare(&qm->crQuoteEnd.ciMin, &crParentQuoteEnd.ciMax) > 0)
-        //  qm->crQuoteEnd.ciMin=crParentQuoteEnd.ciMax;
-        //if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &crParentQuoteEnd.ciMax) > 0)
-        //  qm->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
       }
     }
     else
@@ -11484,14 +11476,6 @@ INT_PTR AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD d
         lpQuoteMatchItem->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
         lpQuoteMatchItem->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
         lpQuoteMatchItem->nQuoteLen=nParentQuoteLen;
-        //if (AEC_IndexCompare(&qm->crQuoteStart.ciMin, &crParentQuoteStart.ciMin) < 0)
-        //  qm->crQuoteStart.ciMin=crParentQuoteStart.ciMin;
-        //if (AEC_IndexCompare(&qm->crQuoteStart.ciMax, &crParentQuoteStart.ciMin) < 0)
-        //  qm->crQuoteStart.ciMax=crParentQuoteStart.ciMin;
-        //if (AEC_IndexCompare(&qm->crQuoteEnd.ciMin, &crParentQuoteEnd.ciMax) > 0)
-        //  qm->crQuoteEnd.ciMin=crParentQuoteEnd.ciMax;
-        //if (AEC_IndexCompare(&qm->crQuoteEnd.ciMax, &crParentQuoteEnd.ciMax) > 0)
-        //  qm->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
       }
     }
     else
@@ -14850,12 +14834,19 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         hlp->dwPaintType|=AEHPT_SELECTION;
         to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
 
-        for (to->ciDrawLine=hlp->qm.ciChildScan; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; AEC_NextCharInLine(&to->ciDrawLine))
+        for (to->ciDrawLine=hlp->qm.ciChildScan; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; )
         {
           AE_PaintCheckHighlightCloseItem(ae, to, hlp);
 
           if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
             nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
+          if (nFoundChild)
+          {
+            //Empty quote start
+            if (!AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMax))
+              continue;
+          }
+          AEC_NextCharInLine(&to->ciDrawLine);
         }
         hlp->qm.ciChildScan=to->ciDrawLine;
         to->ciDrawLine=ciDrawLine;
