@@ -11,6 +11,7 @@
 #include "Coder.h"
 #include "HighLight.h"
 #include "CodeFold.h"
+#include "AutoComplete.h"
 #include "Resources\Resource.h"
 
 
@@ -1493,42 +1494,96 @@ void GetPosFromChar(HWND hWnd, int nCharIndex, POINT *pt, TEXTMETRICA *tm)
 }
 */
 
-WORDINFO* StackInsertWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack, int nWordLen)
+WORDINFO* StackInsertWord(STACKWORD *hStack, STACKWORDALPHA *hAlphaStack, STACKWORDORDER *hOrderStack, const wchar_t *wpWord, int nWordLen)
 {
-  WORDINFO *lpElement1;
-  WORDINFO *lpElement2=NULL;
+  WORDINFO *lpElement;
+  WORDINFO *lpElementNew=NULL;
+  WORDALPHA *lpWordAlpha=NULL;
   WORDORDER *lpWordOrder=NULL;
 
   if ((DWORD)nWordLen < sizeof(hStack->lpWordLens) / sizeof(INT_PTR))
   {
     if (hStack->lpWordLens[nWordLen])
     {
-      lpElement1=(WORDINFO *)hStack->lpWordLens[nWordLen];
+      lpElement=(WORDINFO *)hStack->lpWordLens[nWordLen];
     }
     else
     {
-      lpElement1=(WORDINFO *)hStack->first;
+      lpElement=(WORDINFO *)hStack->first;
 
-      while (lpElement1)
+      while (lpElement)
       {
-        if (lpElement1->nWordLen >= nWordLen)
+        if (lpElement->nWordLen >= nWordLen)
           break;
 
-        lpElement1=lpElement1->next;
+        lpElement=lpElement->next;
       }
     }
-    StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(WORDINFO));
+    StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement, (stack **)&lpElementNew, sizeof(WORDINFO));
 
-    if (lpElement2)
+    if (lpElementNew)
     {
-      hStack->lpWordLens[nWordLen]=(INT_PTR)lpElement2;
+      hStack->lpWordLens[nWordLen]=(INT_PTR)lpElementNew;
 
+      if (bAddHighLightWords)
+      {
+        //Add to the alphabetically sorted stack
+        if (lpWordAlpha=StackInsertWordAlpha(hAlphaStack, wpWord))
+        {
+          lpWordAlpha->wpWord=wpWord;
+          lpWordAlpha->nWordLen=nWordLen;
+          lpWordAlpha->lpWordInfo=lpElementNew;
+        }
+      }
       //Remember initial order
       if (!StackInsertIndex((stack **)&hOrderStack->first, (stack **)&hOrderStack->last, (stack **)&lpWordOrder, -1, sizeof(WORDORDER)))
-        lpWordOrder->lpWordInfo=lpElement2;
+        lpWordOrder->lpWordInfo=lpElementNew;
     }
   }
-  return lpElement2;
+  return lpElementNew;
+}
+
+WORDALPHA* StackInsertWordAlpha(STACKWORDALPHA *hStack, const wchar_t *wpWord)
+{
+  WORDALPHA *lpElement=(WORDALPHA *)hStack->first;
+  WORDALPHA *lpElementNew=NULL;
+  wchar_t wchFirstLowerChar=CompleteFirstChar(*wpWord);
+
+  if (wchFirstLowerChar < FIRST_NONLATIN)
+  {
+    if (hStack->lpSorted[wchFirstLowerChar])
+      lpElement=(WORDALPHA *)hStack->lpSorted[wchFirstLowerChar];
+    else
+      lpElement=(WORDALPHA *)hStack->first;
+  }
+  else lpElement=(WORDALPHA *)hStack->lpSorted[FIRST_NONLATIN];
+
+  while (lpElement)
+  {
+    if (lpElement->wchFirstLowerChar >= wchFirstLowerChar)
+    {
+      if (CompleteStrCmp(lpElement->wpWord, wpWord) >= 0)
+        break;
+    }
+    lpElement=lpElement->next;
+  }
+  StackInsertBefore((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement, (stack **)&lpElementNew, sizeof(WORDALPHA));
+
+  if (lpElementNew)
+  {
+    if (wchFirstLowerChar < FIRST_NONLATIN)
+    {
+      if (!hStack->lpSorted[wchFirstLowerChar] || (INT_PTR)lpElement == hStack->lpSorted[wchFirstLowerChar])
+        hStack->lpSorted[wchFirstLowerChar]=(INT_PTR)lpElementNew;
+    }
+    else
+    {
+      if (!hStack->lpSorted[FIRST_NONLATIN] || (INT_PTR)lpElement == hStack->lpSorted[FIRST_NONLATIN])
+        hStack->lpSorted[FIRST_NONLATIN]=(INT_PTR)lpElementNew;
+    }
+    lpElementNew->wchFirstLowerChar=wchFirstLowerChar;
+  }
+  return lpElementNew;
 }
 
 WORDINFO* StackGetWord(STACKWORD *hStack, wchar_t *wpWord, int nWordLen)
@@ -1559,7 +1614,7 @@ WORDINFO* StackGetWord(STACKWORD *hStack, wchar_t *wpWord, int nWordLen)
   return NULL;
 }
 
-void StackFreeWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack)
+void StackFreeWord(STACKWORD *hStack, STACKWORDALPHA *hAlphaStack, STACKWORDORDER *hOrderStack)
 {
   WORDINFO *lpElement=(WORDINFO *)hStack->first;
 
@@ -1572,6 +1627,8 @@ void StackFreeWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   xmemset(hStack->lpWordLens, 0, sizeof(hStack->lpWordLens));
 
+  if (hAlphaStack)
+    StackClear((stack **)&hAlphaStack->first, (stack **)&hAlphaStack->last);
   if (hOrderStack)
     StackClear((stack **)&hOrderStack->first, (stack **)&hOrderStack->last);
 }

@@ -85,14 +85,14 @@ typedef struct _BLOCKINFO {
   struct _BLOCKINFO *prev;
   DWORD dwStructType;
   wchar_t wchFirstLowerChar;
-  wchar_t *wpTitle;
+  const wchar_t *wpTitle;
   int nTitleLen;
   BOOL bExactTitle;
 
   struct _BLOCKINFO *master;
   INT_PTR *firstHandle;
   INT_PTR *lastHandle;
-  wchar_t *wpBlock;
+  const wchar_t *wpBlock;
   int nBlockLen;
   int nLinesInBlock;
   HSTACK hHotSpotStack;
@@ -157,7 +157,7 @@ BOOL MoveAutoCompleteWindow();
 void CloseAutoCompleteWindow();
 
 //AutoComplete window listbox
-void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart);
+void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen);
 void SetSelListbox(int nIndex);
 BLOCKINFO* GetDataListbox(int nItem);
 int CompleteStrCmp(const wchar_t *wpString1, const wchar_t *wpString2);
@@ -177,7 +177,7 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
 
 //Block
 BLOCKINFO* StackInsertExactBlock(STACKBLOCK *hStack);
-BLOCKINFO* StackInsertBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack, wchar_t *wpTitle, int nTitleLen);
+BLOCKINFO* StackInsertBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack, wchar_t *wpTitle);
 BLOCKINFO* StackGetExactBlock(SYNTAXFILE *lpSyntaxFile, AECHARINDEX *ciCaret, INT_PTR nCaretOffset, INT_PTR *nMin, INT_PTR *nMax);
 BLOCKINFO* StackGetBlock(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen, BOOL *bOnlyOne);
 void StackFreeBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack);
@@ -205,5 +205,6 @@ void UninitAutoComplete();
 //// Global variables
 
 extern SYNTAXFILE *lpSyntaxFileAutoComplete;
+extern BOOL bAddHighLightWords;
 
 #endif

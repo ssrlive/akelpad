@@ -3277,7 +3277,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
 
                   //Add to stack
-                  if (lpWordElement=StackInsertWord(&lpSyntaxFile->hWordStack, &lpSyntaxFile->hWordOrderStack, nWordLen))
+                  if (lpWordElement=StackInsertWord(&lpSyntaxFile->hWordStack, &lpSyntaxFile->hWordAlphaStack, &lpSyntaxFile->hWordOrderStack, wpWord, nWordLen))
                   {
                     lpWordElement->wpWord=wpWord;
                     lpWordElement->nWordLen=nWordLen;
@@ -4037,7 +4037,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         if (lpTitleInfo->bExactTitle)
                           lpBlockInfo=StackInsertExactBlock(&lpSyntaxFile->hExactBlockStack);
                         else
-                          lpBlockInfo=StackInsertBlock(&lpSyntaxFile->hBlockStack, &lpSyntaxFile->hBlockOrderStack, lpTitleInfo->wpTitle, lpTitleInfo->nTitleLen);
+                          lpBlockInfo=StackInsertBlock(&lpSyntaxFile->hBlockStack, &lpSyntaxFile->hBlockOrderStack, lpTitleInfo->wpTitle);
 
                         if (lpBlockInfo)
                         {
@@ -4247,7 +4247,7 @@ void StackFreeSyntaxFiles(STACKSYNTAXFILE *hStack)
     StackFreeWildcard(&lpElement->hWildcardStack);
 
     StackFreeDelimiter(&lpElement->hDelimiterStack);
-    StackFreeWord(&lpElement->hWordStack, &lpElement->hWordOrderStack);
+    StackFreeWord(&lpElement->hWordStack, &lpElement->hWordAlphaStack, &lpElement->hWordOrderStack);
     StackFreeQuote(&lpElement->hQuoteStack);
     if (hWndCurEdit && lpElement->hThemeHighLight)
       SendMessage(hWndCurEdit, AEM_HLDELETETHEME, (WPARAM)lpElement->hThemeHighLight, 0);

@@ -63,6 +63,15 @@ typedef struct _WORDORDER {
   WORDINFO *lpWordInfo;
 } WORDORDER;
 
+typedef struct _WORDALPHA {
+  struct _WORDALPHA *next;
+  struct _WORDALPHA *prev;
+  wchar_t wchFirstLowerChar;
+  const wchar_t *wpWord;
+  int nWordLen;
+  WORDINFO *lpWordInfo;
+} WORDALPHA;
+
 typedef struct _QUOTEINFO {
   struct _QUOTEINFO *next;
   struct _QUOTEINFO *prev;
@@ -133,9 +142,10 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 BOOL CALLBACK HighLightEditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 void PaintRichEditA(SYNTAXFILE *lpSyntaxFile, HWND hWnd, RECT *rcUpdateRect);
 void PaintRichEditW(SYNTAXFILE *lpSyntaxFile, HWND hWnd, RECT *rcUpdateRect);
-WORDINFO* StackInsertWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack, int nWordLen);
+WORDINFO* StackInsertWord(STACKWORD *hStack, STACKWORDALPHA *hAlphaStack, STACKWORDORDER *hOrderStack, const wchar_t *wpWord, int nWordLen);
+WORDALPHA* StackInsertWordAlpha(STACKWORDALPHA *hStack, const wchar_t *wpWord);
 WORDINFO* StackGetWord(STACKWORD *hStack, wchar_t *wpWord, int nWordLen);
-void StackFreeWord(STACKWORD *hStack, STACKWORDORDER *hOrderStack);
+void StackFreeWord(STACKWORD *hStack, STACKWORDALPHA *hAlphaStack, STACKWORDORDER *hOrderStack);
 QUOTEINFO* StackInsertQuote(STACKQUOTE *hStack, int nQuoteStartLen);
 void StackFreeQuote(STACKQUOTE *hStack);
 HIGHLIGHTWINDOW* StackInsertHighLightWindow(STACKHIGHLIGHTWINDOW *hStack);
