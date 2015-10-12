@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v18.3                ***
+***                 Coder AkelPad plugin v18.4                ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -416,9 +416,13 @@ Rule ID, Parent ID
   - Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
   - Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
   - Parent (Parent ID) for the section "Folds:" can be "Folds:".
-  - If parent (Parent ID) is -1, then rule must be located in the root (without parent).
-  - If parent (Parent ID) is -2, then rule should not be located in the root (any parent).
-  - If parent (Parent ID) is -3, then rule can be without parent or with any parent.
+  - If parent (Parent ID) is -1, then rule must be without parent with identifier > 0.
+  - If parent (Parent ID) is -2, then rule must have parent with identifier > 0.
+  - If parent (Parent ID) is -3, then rule can be without parent (with identifier > 0) or with
+    parent (with identifier > 0). In contrast to identifier 0, allows to highlight elements in
+    parent with identifier > 0, which has its own style. In section "Folds:" -3 is equivalent to 0,
+    because style usage for rules in "Folds:" section imposes no restrictions on usage inside it
+    other rules from section "Folds:".
 
 Rule file
   Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.

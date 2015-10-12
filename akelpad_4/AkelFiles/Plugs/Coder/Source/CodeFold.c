@@ -4467,18 +4467,15 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   {
     for (lpFoldStart=(FOLDSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStartStack.first; lpFoldStart; lpFoldStart=lpFoldStart->next)
     {
-      if (lpFoldStart->nParentID)
+      if (!FoldAllowed(lpLevel, lpFoldStart->nParentID))
+        continue;
+      if (lpFoldStart->nParentID && (lpFoldStart->dwFlags & FIF_XMLCHILD))
       {
-        if (!lpLevel || lpFoldStart->nParentID != lpLevel->pfd->lpFoldInfo->nRuleID)
+        //Find FIF_XMLCHILD only once
+        if (lpLevel->dwFlags & (LVLF_XMLCHILD|LVLF_NOXMLCHILD))
           continue;
-
-        if (lpFoldStart->dwFlags & FIF_XMLCHILD)
-        {
-          //Find FIF_XMLCHILD only once
-          if (lpLevel->dwFlags & (LVLF_XMLCHILD|LVLF_NOXMLCHILD))
-            continue;
-        }
       }
+
       if (lpFoldInfo=IsFoldStart(lpFoldStart, ft, ciChar))
       {
         *dwFoldStop=IFE_FOLDSTART;
@@ -4490,6 +4487,29 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
     goto FoldEnd;
 
   return NULL;
+}
+
+BOOL FoldAllowed(LEVEL *lpLevel, int nParentID)
+{
+  int nLevelParentID;
+
+  if (lpLevel)
+    nLevelParentID=lpLevel->pfd->lpFoldInfo->nRuleID;
+  else
+    nLevelParentID=0;
+
+  if (nParentID && nLevelParentID)
+  {
+    if (nParentID == nLevelParentID)
+      return TRUE;
+    if (nParentID == -1)
+      return FALSE;
+    if (nParentID == -2 || nParentID == -3)
+      return TRUE;
+  }
+  if (nParentID > 0 || nParentID == -2)
+    return FALSE;
+  return TRUE;
 }
 
 FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
