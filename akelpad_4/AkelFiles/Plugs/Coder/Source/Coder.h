@@ -258,6 +258,12 @@ typedef struct {
 } STACKWORDORDER;
 
 typedef struct {
+  INT_PTR first; //WORDALPHA *
+  INT_PTR last;  //WORDALPHA *
+  INT_PTR lpSorted[FIRST_NONLATIN + 1];
+} STACKWORDALPHA;
+
+typedef struct {
   INT_PTR first;
   INT_PTR last;
 } STACKQUOTE;
@@ -341,6 +347,7 @@ typedef struct _SYNTAXFILE {
   STACKWILDCARD hWildcardStack;
   STACKDELIM hDelimiterStack;
   STACKWORD hWordStack;
+  STACKWORDALPHA hWordAlphaStack;
   STACKWORDORDER hWordOrderStack;
   STACKQUOTE hQuoteStack;
   STACKSKIP hSkipStack;
