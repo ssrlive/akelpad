@@ -14686,17 +14686,16 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       {
         AEFOLD *lpThemed=NULL;
         AEFOLD *lpCount;
+        AEFOLD *lpFold;
 
-        AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &lpCount, NULL);
-        if (hlp->fm.lpFold != lpCount)
+        AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &lpFold, NULL);
+        if (hlp->fm.lpFold != lpFold)
         {
-          hlp->fm.lpFold=lpCount;
-
-          if (hlp->fm.lpFold)
+          if (lpFold)
           {
             if (ae->ptxt->nFoldWithThemeCount || ae->ptxt->nFoldColorCount)
             {
-              for (lpCount=hlp->fm.lpFold; lpCount; lpCount=lpCount->parent)
+              for (lpCount=lpFold; lpCount; lpCount=lpCount->parent)
               {
                 if (lpCount->dwFlags & AEFOLDF_STYLED)
                 {
@@ -14741,21 +14740,22 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                 }
                 else
                 {
-                  hlp->fm.lpFold=NULL;
+                  lpFold=NULL;
                   lpColored=NULL;
                 }
               }
               if (lpColored)
-                hlp->fm.lpFold=lpColored;
+                lpFold=lpColored;
             }
-            if (hlp->fm.lpFold)
+            if (lpFold)
             {
-              hlp->fm.crFoldStart.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
-              hlp->fm.crFoldStart.cpMax=hlp->fm.lpFold->lpMinPoint->nPointOffset + hlp->fm.lpFold->lpMinPoint->nPointLen;
-              hlp->fm.crFoldEnd.cpMin=hlp->fm.lpFold->lpMaxPoint->nPointOffset;
-              hlp->fm.crFoldEnd.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
+              hlp->fm.crFoldStart.cpMin=lpFold->lpMinPoint->nPointOffset;
+              hlp->fm.crFoldStart.cpMax=lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen;
+              hlp->fm.crFoldEnd.cpMin=lpFold->lpMaxPoint->nPointOffset;
+              hlp->fm.crFoldEnd.cpMax=lpFold->lpMaxPoint->nPointOffset + lpFold->lpMaxPoint->nPointLen;
             }
           }
+          hlp->fm.lpFold=lpFold;
         }
       }
 
@@ -14775,6 +14775,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             hlp->dwPaintType|=AEHPT_FOLD;
           }
         }
+
         if (!bLockHighLight && (hlp->dwPaintType & AEHPT_FOLD))
         {
           if (hlp->fm.lpFold->crText != (DWORD)-1)
