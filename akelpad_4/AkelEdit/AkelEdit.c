@@ -14602,6 +14602,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine)
 {
+  AEFOLD *lpColored=NULL;
   INT_PTR nFoundChild=0;
   BOOL bLockHighLight=FALSE;
 
@@ -14683,7 +14684,6 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       //Fold find
       if (to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMin || to->nDrawCharOffset >= hlp->fm.crFoldEnd.cpMax)
       {
-        AEFOLD *lpColored=NULL;
         AEFOLD *lpThemed=NULL;
         AEFOLD *lpCount;
 
@@ -14762,10 +14762,10 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       //Check fold start
       if (hlp->fm.lpFold && (hlp->fm.lpFold->dwFlags & AEFOLDF_STYLED))
       {
-        if (to->nDrawCharOffset >= hlp->fm.crFoldStart.cpMin &&
-            to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMax)
+        if (!(hlp->dwPaintType & AEHPT_FOLD) || lpColored)
         {
-          if (!(hlp->dwPaintType & AEHPT_FOLD))
+          if (to->nDrawCharOffset >= hlp->fm.crFoldStart.cpMin &&
+              to->nDrawCharOffset < hlp->fm.crFoldEnd.cpMax)
           {
             if (!bLockHighLight)
             {
