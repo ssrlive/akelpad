@@ -25,8 +25,6 @@
 #define REO_MULTILINE         0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
 #define REO_WHOLEWORD         0x0004 //Whole word match.
 #define REO_NONEWLINEDOT      0x0008 //Symbol . specifies any character except new line.
-#define REO_NOSTARTRANGEBEGIN 0x0400 //Internal.
-#define REO_NOSTARTRANGEEND   0x0800 //Internal.
 #define REO_REFEXIST          0x1000 //Internal.
 
 //REGROUP flags
@@ -168,18 +166,23 @@ typedef struct _REGROUP {
 } REGROUP;
 
 typedef struct {
-  REGROUP *first;
-  REGROUP *last;
+  REGROUP *first;                //Filled by PatCompile. Must be zero before passing to PatCompile.
+  REGROUP *last;                 //Filled by PatCompile. Must be zero before passing to PatCompile.
   DWORD dwOptions;               //See REO_* defines.
   const wchar_t *wpDelim;        //List of delimiters. If NULL, default list will be used " \t\n".
   const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   const wchar_t *wpText;         //PatExec: Text begin.
   const wchar_t *wpMaxText;      //PatExec: Text end.
-  const wchar_t *wpRootStart;    //PatExec: Begin of root string.
-  AECHARINDEX ciRootStart;       //AE_PatExec: Begin of root string.
-  INT_PTR nMaxBackward;          //Maximum backward group length.
-  int nLastIndex;                //Last captured index.
-  int nDeepness;                 //For debugging.
+  const wchar_t *wpRange;        //PatExec: Range begin (for \a).
+  const wchar_t *wpMaxRange;     //PatExec: Range end (for \z).
+  AECHARINDEX ciRange;           //AE_PatExec: Range begin (for \a).
+  AECHARINDEX ciMaxRange;        //AE_PatExec: Range end (for \z).
+
+  const wchar_t *wpRootStart;    //Internal (for \K).
+  AECHARINDEX ciRootStart;       //Internal (for \K).
+  INT_PTR nMaxBackward;          //Maximum backward group length. Filled by PatCompile.
+  int nLastIndex;                //Last captured index. Filled by PatCompile.
+  int nDeepness;                 //For PatExec/AE_PatExec debugging.
 } STACKREGROUP;
 
 
@@ -192,18 +195,23 @@ typedef int (CALLBACK *PATEXECCALLBACK)(void *pe, REGROUP *lpREGroupRoot, BOOL b
 // See RESEC_* defines.
 
 typedef struct {
+  DWORD dwOptions;              //See RESE_* defines.
+  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  const wchar_t *wpText;        //PatExec: Text begin. Valid if wpStr is not NULL.
+  const wchar_t *wpMaxText;     //PatExec: Text end. Valid if wpStr is not NULL.
+  const wchar_t *wpRange;       //PatExec: Range begin (for \a). Valid if wpStr is not NULL.
+  const wchar_t *wpMaxRange;    //PatExec: Range end (for \z). Valid if wpStr is not NULL.
+  AECHARINDEX ciRange;          //AE_PatExec: Range begin (for \a). Valid if wpStr is NULL.
+  AECHARINDEX ciMaxRange;       //AE_PatExec: Range end (for \z). Valid if wpStr is NULL.
+
   STACKREGROUP *lpREGroupStack; //Groups stack. Must be zero if PatStructExec called for the first time.
   const wchar_t *wpPat;         //Pattern for process.
   const wchar_t *wpMaxPat;      //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;         //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
   const wchar_t *wpMaxStr;      //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpText;        //PatExec: Text begin. Valid if wpStr is not NULL.
-  const wchar_t *wpMaxText;     //PatExec: Text end. Valid if wpStr is not NULL.
   AECHARINDEX ciStr;            //AE_PatExec: First character for process. Used if wpStr is NULL.
-  AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped.
-  DWORD dwOptions;              //See RESE_* defines.
-  const wchar_t *wpDelim;       //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim;    //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  AECHARINDEX ciMaxStr;         //AE_PatExec: Last character at which processing is stopped. Used if wpStr is NULL.
   INT_PTR nErrorOffset;         //Contain wpPat offset, if error occurred during compile pattern.
 
   //Callback
@@ -218,19 +226,24 @@ typedef struct {
 } PATREPLACEPOINT;
 
 typedef struct {
+  DWORD dwOptions;               //See RESE_* defines.
+  const wchar_t *wpDelim;        //List of delimiters. If NULL, default list will be used " \t\n".
+  const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
+  const wchar_t *wpText;         //PatExec: Text begin. Valid if wpStr is not NULL.
+  const wchar_t *wpMaxText;      //PatExec: Text end. Valid if wpStr is not NULL.
+  const wchar_t *wpRange;        //PatExec: Range begin (for \a). Valid if wpStr is not NULL.
+  const wchar_t *wpMaxRange;     //PatExec: Range end (for \z). Valid if wpStr is not NULL.
+  AECHARINDEX ciRange;           //AE_PatExec: Range begin (for \a). Valid if wpStr is NULL.
+  AECHARINDEX ciMaxRange;        //AE_PatExec: Range end (for \z). Valid if wpStr is NULL.
+
   const wchar_t *wpPat;          //Pattern for process.
   const wchar_t *wpMaxPat;       //Pointer to the last character. If wpPat is null-terminated, then wpMaxPat is pointer to the NULL character.
   const wchar_t *wpStr;          //PatExec: String for process. If NULL, ciStr and ciMaxStr will be used.
   const wchar_t *wpMaxStr;       //PatExec: Pointer to the last character. If wpStr is null-terminated, then wpMaxStr is pointer to the NULL character.
-  const wchar_t *wpText;         //PatExec: Text begin. Valid if wpStr is not NULL.
-  const wchar_t *wpMaxText;      //PatExec: Text end. Valid if wpStr is not NULL.
   AECHARINDEX ciStr;             //AE_PatExec: First character for process. Used if wpStr is NULL.
-  AECHARINDEX ciMaxStr;          //AE_PatExec: Last character at which processing is stopped.
+  AECHARINDEX ciMaxStr;          //AE_PatExec: Last character at which processing is stopped. Used if wpStr is NULL.
   const wchar_t *wpRep;          //String to replace with. Can be used "\n" or "\nn" - the n'th captured submatch.
   const wchar_t *wpMaxRep;       //Pointer to the last character. If wpRep is null-terminated, then wpMaxRep is pointer to the NULL character.
-  DWORD dwOptions;               //See RESE_* defines.
-  const wchar_t *wpDelim;        //List of delimiters. If NULL, default list will be used " \t\n".
-  const wchar_t *wpMaxDelim;     //Pointer to the last character. If wpDelim is null-terminated, then wpMaxDelim is pointer to the NULL character.
   const wchar_t *wpNewLine;      //New line string. If NULL, default will be used "\r\n".
   PATREPLACEPOINT *lpPointArray; //Pointer to an array of PATREPLACEPOINT.
   int nPointCount;               //Number of elements in lpPointArray. If zero, lpPointArray is ignored.
@@ -474,19 +487,20 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         if (lpREGroupItem->dwFlags & (REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
           goto Error;
       }
-      else if (*wpPat == L'A' || *wpPat == L'a')
+      else if (*wpPat == L'A')
       {
         if (lpREGroupItem->wpPatStart != wpPat - 1)
           goto Error;
         ++wpPat;
       }
-      else if (*wpPat == L'Z' || *wpPat == L'z')
+      else if (*wpPat == L'Z')
       {
         if (wpPat + 1 < wpMaxPat && *(wpPat + 1) != L')')
           goto Error;
         ++wpPat;
       }
-      else if (*wpPat == L'B' || *wpPat == L'b')
+      else if (*wpPat == L'a' || *wpPat == L'z' ||
+               *wpPat == L'B' || *wpPat == L'b')
       {
         ++wpPat;
       }
@@ -1362,7 +1376,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             goto BoundMatch;
           else if (wpStr == hStack->wpMaxText && *(wpPat + 1) == L'Z')
             goto BoundMatch;
-          else if (!(hStack->dwOptions & REO_NOSTARTRANGEEND) && *(wpPat + 1) == L'z')
+          else if (wpStr == hStack->wpMaxRange && *(wpPat + 1) == L'z')
             goto BoundMatch;
         }
         goto EndLoop;
@@ -1509,17 +1523,26 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             }
             goto EndLoop;
           }
+          else if (dwCmpResult & RECCE_STREND)
+          {
+            goto EndLoop;
+          }
           else if (dwCmpResult & RECCE_RANGEBEGIN)
           {
-            if (!(hStack->dwOptions & REO_NOSTARTRANGEBEGIN) && wpStr == hStack->first->wpStrStart)
+            if (wpStr == hStack->wpRange)
             {
               ++wpPat;
               continue;
             }
             goto EndLoop;
           }
-          else if ((dwCmpResult & RECCE_STREND) || (dwCmpResult & RECCE_RANGEEND))
+          else if (dwCmpResult & RECCE_RANGEEND)
           {
+            if (wpStr == hStack->wpMaxRange)
+            {
+              ++wpPat;
+              continue;
+            }
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_ROOTBEGIN)
@@ -2353,9 +2376,15 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           lpREGroupItem->nSelfMatch=0;
         }
         if (lpREGroupItem->dwFlags & REGF_ROOTMULTILINE)
-          AEC_NextLine(&ciStr);
+        {
+          if (!AEC_NextLine(&ciStr))
+            break;
+        }
         else
-          AEC_NextChar(&ciStr);
+        {
+          if (!AEC_NextChar(&ciStr))
+            break;
+        }
       }
       lpREGroupItem->dwFlags|=REGF_ROOTITEM|REGF_ROOTANY;
       return bResult;
@@ -2637,7 +2666,10 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               goto BoundMatch;
           }
           else if (*(wpPat + 1) == L'z')
-            goto BoundMatch;
+          {
+            if (!AEC_IndexCompare(&ciStr, &hStack->ciMaxRange))
+              goto BoundMatch;
+          }
         }
         goto EndLoop;
 
@@ -2783,17 +2815,26 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             }
             goto EndLoop;
           }
+          else if (dwCmpResult & RECCE_STREND)
+          {
+            goto EndLoop;
+          }
           else if (dwCmpResult & RECCE_RANGEBEGIN)
           {
-            if (!AEC_IndexCompare(&ciStr, &hStack->first->ciStrStart))
+            if (!AEC_IndexCompare(&ciStr, &hStack->ciRange))
             {
               ++wpPat;
               continue;
             }
             goto EndLoop;
           }
-          else if ((dwCmpResult & RECCE_STREND) || (dwCmpResult & RECCE_RANGEEND))
+          else if (dwCmpResult & RECCE_RANGEEND)
           {
+            if (!AEC_IndexCompare(&ciStr, &hStack->ciMaxRange))
+            {
+              ++wpPat;
+              continue;
+            }
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_ROOTBEGIN)
@@ -3170,6 +3211,13 @@ int PatStructExec(PATEXEC *pe)
       pe->lpREGroupStack->wpMaxDelim=pe->wpDelim?pe->wpMaxDelim:NULL;
       pe->lpREGroupStack->wpText=pe->wpText;
       pe->lpREGroupStack->wpMaxText=pe->wpMaxText;
+      pe->lpREGroupStack->wpRange=pe->wpRange;
+      pe->lpREGroupStack->wpMaxRange=pe->wpMaxRange;
+      #ifdef __AKELEDIT_H__
+        pe->lpREGroupStack->ciRange=pe->ciRange;
+        pe->lpREGroupStack->ciMaxRange=pe->ciMaxRange;
+      #endif
+
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
         return 0;
     }
@@ -3210,7 +3258,6 @@ int PatStructExec(PATEXEC *pe)
       wpStrNext=lpREGroupRoot->wpStrEnd;
       if (!lpREGroupRoot->nStrLen) //*(pe->wpMaxPat - 1) == L'^' or L'$'
         wpStrNext+=PatStrChar(wpStrNext, pe->wpMaxStr, &nStrChar) + 1;
-      pe->lpREGroupStack->dwOptions|=REO_NOSTARTRANGEBEGIN;
 
       PatReset(pe->lpREGroupStack);
     }
@@ -3261,7 +3308,7 @@ INT_PTR PatReplace(PATREPLACE *pr)
   PATEXEC pe;
   PATEXECPARAM pep;
 
-  //Replace using RegExp
+  //Fill PATEXECPARAM
   pep.wpRep=pr->wpRep;
   pep.wpMaxRep=pr->wpMaxRep;
   pep.wpNewLine=pr->wpNewLine?pr->wpNewLine:L"\r\n";
@@ -3278,23 +3325,28 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pep.wszBuf=pr->wszResult;
   pep.wpBufCount=pep.wszBuf;
 
+  //Fill PATEXEC
+  pe.dwOptions=pr->dwOptions;
+  pe.wpDelim=pr->wpDelim;
+  pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;
+  pe.wpText=pr->wpText;
+  pe.wpMaxText=pr->wpMaxText;
+  pe.wpRange=pr->wpRange;
+  pe.wpMaxRange=pr->wpMaxRange;
+  #ifdef __AKELEDIT_H__
+    pe.ciRange=pr->ciRange;
+    pe.ciMaxRange=pr->ciMaxRange;
+  #endif
+
   pe.lpREGroupStack=0;
   pe.wpPat=pr->wpPat;
   pe.wpMaxPat=pr->wpMaxPat;
   pe.wpStr=pr->wpStr;
   pe.wpMaxStr=pr->wpMaxStr;
-  pe.wpText=pr->wpText;
-  pe.wpMaxText=pr->wpMaxText;
-  if (!pr->wpStr)
-  {
-    #ifdef __AKELEDIT_H__
-      pe.ciStr=pr->ciStr;
-      pe.ciMaxStr=pr->ciMaxStr;
-    #endif
-  }
-  pe.dwOptions=pr->dwOptions;
-  pe.wpDelim=pr->wpDelim;
-  pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;
+  #ifdef __AKELEDIT_H__
+    pe.ciStr=pr->ciStr;
+    pe.ciMaxStr=pr->ciMaxStr;
+  #endif
   if (pr->wpStr)
   {
     pe.lpCallback=(PATEXECCALLBACK)PatReplaceCallback;
@@ -3621,6 +3673,8 @@ void main()
     {
       sreg.wpText=wpStr;
       sreg.wpMaxText=wpMaxStr;
+      sreg.wpRange=wpStr;
+      sreg.wpMaxRange=wpMaxStr;
 
       if (PatExec(&sreg, sreg.first, wpStr, wpMaxStr))
       {
@@ -3642,15 +3696,17 @@ void main()
     wchar_t *wpResult;
 
     //Fill structure for PatStructExec
-    pe.lpREGroupStack=0;
     pe.wpStr=L"1234567890 11223344556677889900";
     pe.wpMaxStr=pe.wpStr + lstrlenW(pe.wpStr);
-    pe.wpText=pe.wpStr;
-    pe.wpMaxText=pe.wpMaxStr;
     pe.wpPat=L"(23)(.*)(89)";
     pe.wpMaxPat=pe.wpPat + lstrlenW(pe.wpPat);
+    pe.lpREGroupStack=0;
     pe.dwOptions=RESE_MATCHCASE;
     pe.wpDelim=NULL;
+    pe.wpText=pe.wpStr;
+    pe.wpMaxText=pe.wpMaxStr;
+    pe.wpRange=pe.wpStr;
+    pe.wpMaxRange=pe.wpMaxStr;
     pe.lpCallback=NULL;
 
     while (PatStructExec(&pe))
@@ -3686,14 +3742,16 @@ void main()
 
     pr.wpStr=L"1234567890 1234567890";
     pr.wpMaxStr=pr.wpStr + lstrlenW(pr.wpStr);
-    pr.wpText=pr.wpStr;
-    pr.wpMaxText=pr.wpMaxStr;
     pr.wpPat=L"(23)(.*)(89)";
     pr.wpMaxPat=pr.wpPat + lstrlenW(pr.wpPat);
     pr.wpRep=L"\\1abc\\3";
     pr.wpMaxRep=pr.wpRep + lstrlenW(pr.wpRep);
     pr.dwOptions=RESE_GLOBAL|RESE_MULTILINE;
     pr.wpDelim=NULL;
+    pr.wpText=pr.wpStr;
+    pr.wpMaxText=pr.wpMaxStr;
+    pr.wpRange=pr.wpStr;
+    pr.wpMaxRange=pr.wpMaxStr;
     pr.wpNewLine=NULL;
     pr.nPointCount=0;
     pr.wszResult=NULL;

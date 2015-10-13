@@ -10437,11 +10437,13 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
       {
         pr.wpStr=wszRangeText;
         pr.wpMaxStr=wszRangeText + nRangeTextLen;
-        pr.wpText=wszFullText;
-        pr.wpMaxText=pr.wpMaxStr;
         pr.dwOptions|=RESE_GLOBAL;
         if (dwFlags & FRF_WHOLEWORD)
           pr.dwOptions|=RESE_WHOLEWORD;
+        pr.wpText=wszFullText;
+        pr.wpMaxText=pr.wpMaxStr;
+        pr.wpRange=pr.wpStr;
+        pr.wpMaxRange=pr.wpMaxStr;
         pr.nPointCount=0;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
@@ -10663,6 +10665,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
         pr.ciStr=crCurSel.ciMin;
         pr.ciMaxStr=crCurSel.ciMax;
         pr.dwOptions|=RESE_ISMATCH;
+        pr.ciRange=pr.ciStr;
+        pr.ciMaxRange=pr.ciMaxStr;
         pr.nPointCount=0;
         pr.wszResult=NULL;
         nResultTextLen=PatReplace(&pr);
@@ -22405,14 +22409,16 @@ void UpdateTitle(FRAMEDATA *lpFrame)
 
         pr.wpStr=wpFileName;
         pr.wpMaxStr=pr.wpStr + xstrlenW(pr.wpStr);
-        pr.wpText=pr.wpStr;
-        pr.wpMaxText=pr.wpMaxStr;
         pr.wpPat=moCur.wszTabNameFind;
         pr.wpMaxPat=pr.wpPat + xstrlenW(pr.wpPat);
         pr.wpRep=moCur.wszTabNameRep;
         pr.wpMaxRep=pr.wpRep + xstrlenW(pr.wpRep);
         pr.dwOptions=RESE_ISMATCH;
         pr.wpDelim=NULL;
+        pr.wpText=pr.wpStr;
+        pr.wpMaxText=pr.wpMaxStr;
+        pr.wpRange=pr.wpStr;
+        pr.wpMaxRange=pr.wpMaxStr;
         pr.wpNewLine=NULL;
         pr.nPointCount=0;
         pr.wszResult=wszTabName;
