@@ -66,7 +66,7 @@ typedef struct _WORDORDER {
 typedef struct _WORDALPHA {
   struct _WORDALPHA *next;
   struct _WORDALPHA *prev;
-  wchar_t wchFirstLowerChar;
+  wchar_t wchFirstChar;
   const wchar_t *wpWord;
   int nWordLen;
   WORDINFO *lpWordInfo;

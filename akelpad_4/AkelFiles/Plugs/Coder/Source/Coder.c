@@ -3937,6 +3937,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
               BLOCKINFO *lpBlockInfo;
               BLOCKINFOHANDLE *lpBlockInfoHandle;
               TITLEINFO *lpTitleInfo;
+              STACKREGROUP *sregTitle;
               const wchar_t *wpTitleBegin;
               wchar_t *wszTitle;
               const wchar_t *wpBlockBegin;
@@ -3944,6 +3945,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
               wchar_t *wszBlockParsed;
               STACKTITLE hTitleStack;
               HSTACK hHotSpotStack;
+              DWORD dwTitleFlags;
               int nTitleLen;
 
               while (*wpText)
@@ -3951,6 +3953,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 lpBlockMaster=NULL;
                 lpBlockInfo=NULL;
                 lpTitleInfo=NULL;
+                sregTitle=NULL;
                 wpTitleBegin=NULL;
                 wszTitle=NULL;
                 wszBlockParsed=NULL;
@@ -3958,45 +3961,84 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 hTitleStack.last=0;
                 hHotSpotStack.first=0;
                 hHotSpotStack.last=0;
+                dwTitleFlags=0;
                 bExactTitle=-1;
 
                 //Title
                 while (*wpText)
                 {
-                  //Skip comment
-                  if (*wpText == L'$' && (*(wpText + 1) == L';' || *(wpText + 1) == L'#') && *(wpText - 1) != L'$')
-                    while (*++wpText != L'\r' && *wpText != L'\0');
-
-                  if (*wpText == L'$' && (*(wpText + 1) == L'~' || *(wpText + 1) == L'=') && *(wpText - 1) != L'$')
+                  if (*wpText == L'$')
                   {
-                    if (*(wpText + 1) == L'~')
-                      bExactTitle=FALSE;
-                    else
-                      bExactTitle=TRUE;
-                    wpText+=2;
-                    wpTitleBegin=wpText;
-                    while (*wpText != L' ' && *wpText != L'\t' && *wpText != L'\r' && *wpText != L'\0') ++wpText;
-                    nTitleLen=(int)(wpText - wpTitleBegin);
-
-                    if (nTitleLen)
+                    if (*++wpText == L';' || *wpText == L'#')
                     {
-                      if (wszTitle=(wchar_t *)GlobalAlloc(GPTR, (nTitleLen + 1) * sizeof(wchar_t)))
-                      {
-                        xmemcpy(wszTitle, wpTitleBegin, nTitleLen * sizeof(wchar_t));
-                        wszTitle[nTitleLen]=L'\0';
+                      //Skip comment
+                      if (!NextLine(&wpText))
+                        break;
+                      continue;
+                    }
+                    if (*wpText == L'(')
+                    {
+                      dwTitleFlags=(DWORD)xatoiW(wpText + 1, &wpText);
+                      if (*wpText == L')')
+                        ++wpText;
+                      else
+                        break;
+                    }
+                    if (*wpText == L'~' || *wpText == L'=')
+                    {
+                      if (*wpText == L'~')
+                        bExactTitle=FALSE;
+                      else
+                        bExactTitle=TRUE;
+                      wpTitleBegin=++wpText;
+                      while (*wpText != L' ' && *wpText != L'\t' && *wpText != L'\r' && *wpText != L'\0') ++wpText;
+                      nTitleLen=(int)(wpText - wpTitleBegin);
 
-                        if (lpTitleInfo=StackInsertTitle(&hTitleStack))
+                      if (nTitleLen)
+                      {
+                        if (wszTitle=(wchar_t *)GlobalAlloc(GPTR, (nTitleLen + 1) * sizeof(wchar_t)))
                         {
-                          lpTitleInfo->wpTitle=wszTitle;
-                          lpTitleInfo->nTitleLen=nTitleLen;
-                          lpTitleInfo->bExactTitle=bExactTitle;
+                          xmemcpy(wszTitle, wpTitleBegin, nTitleLen * sizeof(wchar_t));
+                          wszTitle[nTitleLen]=L'\0';
+
+                          if (lpTitleInfo=StackInsertTitle(&hTitleStack))
+                          {
+                            if (dwTitleFlags & TF_REGEXP)
+                            {
+                              if (sregTitle=(STACKREGROUP *)GlobalAlloc(GPTR, sizeof(STACKREGROUP)))
+                              {
+                                sregTitle->dwOptions=REO_MULTILINE;
+                                if (bCompleteCaseSensitive)
+                                  sregTitle->dwOptions|=REO_MATCHCASE;
+                                if (dwTitleFlags & TF_FORCECASESENSITIVE)
+                                  sregTitle->dwOptions|=REO_MATCHCASE;
+                                else if (dwTitleFlags & TF_FORCECASEINSENSITIVE)
+                                  sregTitle->dwOptions&=~REO_MATCHCASE;
+                                if (PatCompile(sregTitle, wszTitle, wszTitle + nTitleLen))
+                                {
+                                  xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_COMPILEERROR), lpSyntaxFile->wszSyntaxFileName, nTitleLen, wszTitle);
+                                  MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+                                  goto FreeBlock;
+                                }
+                                //sregTitle->first->dwFlags&=~REGF_ROOTANY;
+                                lpTitleInfo->sregTitle=sregTitle;
+                                sregTitle=NULL;
+                              }
+                              else goto FreeBlock;
+                            }
+                            lpTitleInfo->wpTitle=wszTitle;
+                            lpTitleInfo->nTitleLen=nTitleLen;
+                            lpTitleInfo->dwTitleFlags=dwTitleFlags;
+                            lpTitleInfo->bExactTitle=bExactTitle;
+                          }
+                          else break;
+
+                          wszTitle=NULL;
                         }
                         else break;
-
-                        wszTitle=NULL;
                       }
-                      else break;
                     }
+                    else break;
                   }
                   if (*wpText == L'\r')
                   {
@@ -4012,17 +4054,20 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   wpBlockBegin=wpText;
                   while (*wpText)
                   {
-                    //Skip comment
-                    if (*wpText == L'$' && (*(wpText + 1) == L';' || *(wpText + 1) == L'#') && *(wpText - 1) != L'$')
-                      while (*++wpText != L'\r' && *wpText != L'\0');
-
-                    //Find next abbreviation definition
-                    if (*wpText == L'$' && (*(wpText + 1) == L'~' || *(wpText + 1) == L'=') && *(wpText - 1) != L'$')
+                    if (*wpText == L'$')
+                    {
+                      //Find next abbreviation definition
+                      if (*++wpText == L'~' || *wpText == L'=' || *wpText == L'(')
+                      {
+                        --wpText;
+                        break;
+                      }
+                    }
+                    if (!NextLine(&wpText))
                       break;
-                    ++wpText;
                   }
-                  wpBlockEnd=wpText - 1;
-                  nBlockLen=(int)(wpBlockEnd - wpBlockBegin) + 1;
+                  wpBlockEnd=wpText;
+                  nBlockLen=(int)(wpBlockEnd - wpBlockBegin);
 
                   if (nBlockParsedLen=ParseBlock(lpSyntaxFile, &hHotSpotStack, wpBlockBegin, nBlockLen, NULL, NULL))
                   {
@@ -4043,7 +4088,9 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         {
                           lpBlockInfo->wpTitle=lpTitleInfo->wpTitle;
                           lpBlockInfo->nTitleLen=lpTitleInfo->nTitleLen;
+                          lpBlockInfo->dwTitleFlags=lpTitleInfo->dwTitleFlags;
                           lpBlockInfo->bExactTitle=lpTitleInfo->bExactTitle;
+                          lpBlockInfo->sregTitle=lpTitleInfo->sregTitle;
 
                           if (lpTitleInfo == (TITLEINFO *)hTitleStack.first)
                           {
@@ -4072,9 +4119,11 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 }
 
                 //Free
+                FreeBlock:
                 if (!lpBlockInfo)
                   StackFreeHotSpot(&hHotSpotStack);
                 StackFreeTitle(&hTitleStack);
+                if (sregTitle) GlobalFree((HGLOBAL)sregTitle);
                 if (wszTitle) GlobalFree((HGLOBAL)wszTitle);
                 if (wszBlockParsed) GlobalFree((HGLOBAL)wszBlockParsed);
               }

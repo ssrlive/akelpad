@@ -58,6 +58,12 @@
 #define BIT_HLBASE         0x2
 #define BIT_DOCWORD        0x4
 
+//Title flags
+#define TF_FORCECASESENSITIVE   0x1
+#define TF_FORCECASEINSENSITIVE 0x2
+#define TF_REGEXP               0x4
+#define TF_NOLISTBOX            0x8
+
 //dwCompleteListSymbolMark
 #define CLSM_NOMARK        0x0
 #define CLSM_NOMARKIFICON  0x1
@@ -87,7 +93,9 @@ typedef struct _BLOCKINFO {
   wchar_t wchFirstLowerChar;
   const wchar_t *wpTitle;
   int nTitleLen;
+  DWORD dwTitleFlags;
   BOOL bExactTitle;
+  STACKREGROUP *sregTitle;
 
   struct _BLOCKINFO *master;
   INT_PTR *firstHandle;
@@ -125,7 +133,7 @@ typedef struct _DOCWORDINFO {
   struct _DOCWORDINFO *next;
   struct _DOCWORDINFO *prev;
   DWORD dwStructType;
-  wchar_t wchFirstLowerChar;
+  wchar_t wchFirstChar;
   wchar_t *wpDocWord;
   int nDocWordLen;
 } DOCWORDINFO;
@@ -160,8 +168,8 @@ void CloseAutoCompleteWindow();
 void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const wchar_t *wpTitlePart, int nTitlePartLen);
 void SetSelListbox(int nIndex);
 BLOCKINFO* GetDataListbox(int nItem);
-int CompleteStrCmp(const wchar_t *wpString1, const wchar_t *wpString2);
-int CompleteStrCmpLen(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
+int CompleteStrCmp(DWORD dwTitleFlags, const wchar_t *wpString1, const wchar_t *wpString2);
+int CompleteStrCmpLen(DWORD dwTitleFlags, const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
 wchar_t CompleteFirstChar(wchar_t wchChar);
 
 //Scheme
@@ -206,5 +214,6 @@ void UninitAutoComplete();
 
 extern SYNTAXFILE *lpSyntaxFileAutoComplete;
 extern BOOL bAddHighLightWords;
+extern BOOL bCompleteCaseSensitive;
 
 #endif

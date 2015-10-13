@@ -1547,12 +1547,12 @@ WORDALPHA* StackInsertWordAlpha(STACKWORDALPHA *hStack, const wchar_t *wpWord)
 {
   WORDALPHA *lpElement=(WORDALPHA *)hStack->first;
   WORDALPHA *lpElementNew=NULL;
-  wchar_t wchFirstLowerChar=CompleteFirstChar(*wpWord);
+  wchar_t wchFirstChar=CompleteFirstChar(*wpWord);
 
-  if (wchFirstLowerChar < FIRST_NONLATIN)
+  if (wchFirstChar < FIRST_NONLATIN)
   {
-    if (hStack->lpSorted[wchFirstLowerChar])
-      lpElement=(WORDALPHA *)hStack->lpSorted[wchFirstLowerChar];
+    if (hStack->lpSorted[wchFirstChar])
+      lpElement=(WORDALPHA *)hStack->lpSorted[wchFirstChar];
     else
       lpElement=(WORDALPHA *)hStack->first;
   }
@@ -1560,9 +1560,9 @@ WORDALPHA* StackInsertWordAlpha(STACKWORDALPHA *hStack, const wchar_t *wpWord)
 
   while (lpElement)
   {
-    if (lpElement->wchFirstLowerChar >= wchFirstLowerChar)
+    if (lpElement->wchFirstChar >= wchFirstChar)
     {
-      if (CompleteStrCmp(lpElement->wpWord, wpWord) >= 0)
+      if (CompleteStrCmp(0, lpElement->wpWord, wpWord) >= 0)
         break;
     }
     lpElement=lpElement->next;
@@ -1571,17 +1571,17 @@ WORDALPHA* StackInsertWordAlpha(STACKWORDALPHA *hStack, const wchar_t *wpWord)
 
   if (lpElementNew)
   {
-    if (wchFirstLowerChar < FIRST_NONLATIN)
+    if (wchFirstChar < FIRST_NONLATIN)
     {
-      if (!hStack->lpSorted[wchFirstLowerChar] || (INT_PTR)lpElement == hStack->lpSorted[wchFirstLowerChar])
-        hStack->lpSorted[wchFirstLowerChar]=(INT_PTR)lpElementNew;
+      if (!hStack->lpSorted[wchFirstChar] || (INT_PTR)lpElement == hStack->lpSorted[wchFirstChar])
+        hStack->lpSorted[wchFirstChar]=(INT_PTR)lpElementNew;
     }
     else
     {
       if (!hStack->lpSorted[FIRST_NONLATIN] || (INT_PTR)lpElement == hStack->lpSorted[FIRST_NONLATIN])
         hStack->lpSorted[FIRST_NONLATIN]=(INT_PTR)lpElementNew;
     }
-    lpElementNew->wchFirstLowerChar=wchFirstLowerChar;
+    lpElementNew->wchFirstChar=wchFirstChar;
   }
   return lpElementNew;
 }

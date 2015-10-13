@@ -322,7 +322,9 @@ typedef struct _TITLEINFO {
   struct _TITLEINFO *prev;
   wchar_t *wpTitle;
   int nTitleLen;
+  DWORD dwTitleFlags;     //See TF_* defines
   BOOL bExactTitle;
+  STACKREGROUP *sregTitle;
 } TITLEINFO;
 
 typedef struct {
