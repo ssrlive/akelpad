@@ -4003,7 +4003,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
 
                           if (lpTitleInfo=StackInsertTitle(&hTitleStack))
                           {
-                            if (dwTitleFlags & TF_REGEXP)
+                            if (bExactTitle && (dwTitleFlags & TF_REGEXP))
                             {
                               if (sregTitle=(STACKREGROUP *)GlobalAlloc(GPTR, sizeof(STACKREGROUP)))
                               {
