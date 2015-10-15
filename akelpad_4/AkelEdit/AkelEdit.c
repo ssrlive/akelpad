@@ -10982,7 +10982,7 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
   AEQUOTESTART *lpQuoteStart;
   AEQUOTEITEMHANDLE *lpQuoteItemHandle;
   AEDELIMITEMW *lpDelimItem=NULL;
-  INT_PTR nParentQuoteLen;
+  INT_PTR nParentQuoteLen=0;
   INT_PTR nQuoteLen=0;
   INT_PTR nTmpQuoteLen;
   BOOL bDefaultTheme=FALSE;
@@ -11368,7 +11368,7 @@ INT_PTR AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD d
   STACKREGROUP *lpREGroupStack;
   AESTACKQUOTE *lpQuoteStack;
   AEQUOTEITEMW *lpQuoteItem;
-  INT_PTR nParentQuoteLen;
+  INT_PTR nParentQuoteLen=0;
   INT_PTR nQuoteLen=0;
   BOOL bDefaultTheme=FALSE;
 
@@ -11574,9 +11574,11 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharO
         if (AEC_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0 ||
             AEC_IndexCompare(&ciCount, &wm->crDelim1.ciMax) == 0)
           goto SetEmptyFirstDelim;
+        nCountOffset=nCharOffset - (nWordLeft - nCharLen);
+
         if ((qm->nQuoteLen && (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) ||
                                !AEC_IndexCompare(&ciCount, &qm->crQuoteStart.ciMin))) ||
-            (nCountOffset=nCharOffset - (nWordLeft - nCharLen)) == fm->crFoldEnd.cpMax ||
+            nCountOffset == fm->crFoldEnd.cpMax ||
             nCountOffset == fm->crFoldStart.cpMin)
         {
           if (!AEC_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax))
