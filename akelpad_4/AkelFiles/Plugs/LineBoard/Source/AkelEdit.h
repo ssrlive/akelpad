@@ -464,6 +464,9 @@
 #define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
 #define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
 
+//AEM_HLCREATETHEME flags
+#define AEHLCT_QUOTESREGEXPMOREPRIORITY 0x001  //Quotes with AEHLF_REGEXP have more priority in front of quotes without AEHLF_REGEXP.
+
 //AEM_HLFINDTHEME type
 #define AEHLFT_CURRENT 0  //Current theme handle.
                           //lParam == not used.
@@ -5987,7 +5990,7 @@ __________________
 
 Create empty highlight theme.
 
-wParam            == not used.
+(DWORD)wParam     == see AEHLCT_* defines.
 (wchar_t *)lParam == unicode theme name.
 
 Return Value

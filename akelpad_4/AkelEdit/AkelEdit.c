@@ -2351,13 +2351,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       wchar_t wszThemeName[MAX_PATH];
 
       MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
-      return (LRESULT)AE_HighlightCreateTheme(wszThemeName);
+      return (LRESULT)AE_HighlightCreateTheme((DWORD)wParam, wszThemeName);
     }
     case AEM_HLCREATETHEMEW:
     {
       wchar_t *wpThemeName=(wchar_t *)lParam;
 
-      return (LRESULT)AE_HighlightCreateTheme(wpThemeName);
+      return (LRESULT)AE_HighlightCreateTheme((DWORD)wParam, wpThemeName);
     }
     case AEM_HLFINDTHEME:
     {
@@ -10952,6 +10952,23 @@ INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGE
   return 0;
 }
 
+INT_PTR AE_HighlightFindQuoteOrder(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
+{
+  INT_PTR nResult;
+
+  if (ae->popt->lpActiveTheme && (ae->popt->lpActiveTheme->dwFlags & AEHLCT_QUOTESREGEXPMOREPRIORITY))
+  {
+    if (!(nResult=AE_HighlightFindQuoteRE(ae, ciChar, dwSearchType, qm, fm)))
+      nResult=AE_HighlightFindQuote(ae, ciChar, dwSearchType, qm, fm);
+  }
+  else
+  {
+    if (!(nResult=AE_HighlightFindQuote(ae, ciChar, dwSearchType, qm, fm)))
+      nResult=AE_HighlightFindQuoteRE(ae, ciChar, dwSearchType, qm, fm);
+  }
+  return nResult;
+}
+
 INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm)
 {
   AEQUOTEITEMW *lpParentQuote=qm->lpQuote;
@@ -11836,7 +11853,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
   return lpWordItem;
 }
 
-AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName)
+AETHEMEITEMW* AE_HighlightCreateTheme(DWORD dwFlags, wchar_t *wpThemeName)
 {
   AETHEMEITEMW *lpElement=NULL;
 
@@ -11845,6 +11862,7 @@ AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName)
     if (!AE_HeapStackInsertIndex(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack **)&lpElement, -1, sizeof(AETHEMEITEMW)))
     {
       xstrcpynW(lpElement->wszThemeName, wpThemeName, MAX_PATH);
+      lpElement->dwFlags=dwFlags;
     }
   }
   return lpElement;
@@ -14801,8 +14819,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       //Quote find
       if (hlp->dwFindFirst & AEHPT_QUOTE)
       {
-        if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm) &&
-            !AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm))
+        if (!AE_HighlightFindQuoteOrder(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm, &hlp->fm))
         {
           hlp->qm.lpQuote=NULL;
           hlp->qm.crQuoteStart.ciMin=to->ciDrawLine;
@@ -14817,8 +14834,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
       else if (AEC_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
       {
-        if (AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm) ||
-            AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
+        if (AE_HighlightFindQuoteOrder(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->qm, &hlp->fm))
         {
           hlp->qm.ciChildScan=hlp->qm.crQuoteStart.ciMax;
         }
@@ -14839,9 +14855,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         {
           AE_PaintCheckHighlightCloseItem(ae, to, hlp);
 
-          if (!(nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm)))
-            nFoundChild=AE_HighlightFindQuoteRE(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm);
-          if (nFoundChild)
+          if (nFoundChild=AE_HighlightFindQuoteOrder(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm))
           {
             //Empty quote start
             if (!AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMax))
