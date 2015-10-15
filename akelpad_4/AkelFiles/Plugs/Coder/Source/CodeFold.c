@@ -4491,16 +4491,16 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
 
 BOOL FoldAllowed(LEVEL *lpLevel, int nParentID)
 {
-  int nLevelParentID;
+  int nLevelRuleID;
 
   if (lpLevel)
-    nLevelParentID=lpLevel->pfd->lpFoldInfo->nRuleID;
+    nLevelRuleID=lpLevel->pfd->lpFoldInfo->nRuleID;
   else
-    nLevelParentID=0;
+    nLevelRuleID=0;
 
-  if (nParentID && nLevelParentID)
+  if (nParentID && nLevelRuleID)
   {
-    if (nParentID == nLevelParentID)
+    if (nParentID == nLevelRuleID)
       return TRUE;
     if (nParentID == -1)
       return FALSE;

@@ -2492,6 +2492,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
   int nRuleID;
   BOOL bQuoteString;
   BOOL bExactTitle;
+  BOOL bQuotesRegExpMorePriority;
 
   xprintfW(wszFile, L"%s\\%s", wszCoderDir, lpSyntaxFile->wszSyntaxFileName);
   if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
@@ -2527,6 +2528,10 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
             lpVarStack=&lpVarThemeActive->hVarStack;
           else
             lpVarStack=&lpSyntaxFile->lpVarThemeLink->hVarStack;
+
+          //"QuotesRE:" priority
+          lpSyntaxFile->dwCreateFlags=0;
+          bQuotesRegExpMorePriority=-1;
 
           if (lpSyntaxFile)
           {
@@ -2989,6 +2994,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
             }
             else if (!xstrcmpiW(wszBuffer, L"Quotes:"))
             {
+              if (bQuotesRegExpMorePriority == -1)
+              {
+                lpSyntaxFile->dwCreateFlags&=~AEHLCT_QUOTESREGEXPMOREPRIORITY;
+                bQuotesRegExpMorePriority=FALSE;
+              }
+
               for (;;)
               {
                 //Parse line
@@ -3135,6 +3146,12 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
             }
             else if (!xstrcmpiW(wszBuffer, L"QuotesRE:"))
             {
+              if (bQuotesRegExpMorePriority == -1)
+              {
+                lpSyntaxFile->dwCreateFlags|=AEHLCT_QUOTESREGEXPMOREPRIORITY;
+                bQuotesRegExpMorePriority=TRUE;
+              }
+
               for (;;)
               {
                 //Parse line
