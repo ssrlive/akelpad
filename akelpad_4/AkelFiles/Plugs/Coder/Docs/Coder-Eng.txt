@@ -417,7 +417,7 @@ Rule ID, Parent ID
   - Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
   - Parent (Parent ID) for the section "Folds:" can be "Folds:".
   - If parent (Parent ID) is 0 (default):
-    - Inside non-styled quote ("Quotes:", "QuotesRE:"), rule ignored.
+    - Inside non-styled quote ("Quotes:", "QuotesRE:"), rule processed.
     - Inside styled quote ("Quotes:", "QuotesRE:"), rule ignored.
     - Inside non-styled fold ("Folds:"), rule processed.
     - Inside styled fold ("Folds:"), rule from "Folds:" processed, from other sections ignored.
