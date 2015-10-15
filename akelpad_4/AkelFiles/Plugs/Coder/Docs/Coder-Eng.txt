@@ -416,13 +416,16 @@ Rule ID, Parent ID
   - Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
   - Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
   - Parent (Parent ID) for the section "Folds:" can be "Folds:".
-  - If parent (Parent ID) is -1, then rule must be without parent with identifier > 0.
-  - If parent (Parent ID) is -2, then rule must have parent with identifier > 0.
-  - If parent (Parent ID) is -3, then rule can be without parent (with identifier > 0) or with
-    parent (with identifier > 0). In contrast to identifier 0, allows to highlight elements in
-    parent with identifier > 0, which has its own style. In section "Folds:" -3 is equivalent to 0,
-    because style usage for rules in "Folds:" section imposes no restrictions on usage inside it
-    other rules from section "Folds:".
+  - If parent (Parent ID) is 0 (default):
+    - Inside non-styled quote ("Quotes:", "QuotesRE:"), rule ignored.
+    - Inside styled quote ("Quotes:", "QuotesRE:"), rule ignored.
+    - Inside non-styled fold ("Folds:"), rule processed.
+    - Inside styled fold ("Folds:"), rule from "Folds:" processed, from other sections ignored.
+  - If parent (Parent ID) is -1, then rule must be without parent with identifier (Rule ID) > 0.
+  - If parent (Parent ID) is -2, then rule must have parent with identifier (Rule ID) > 0.
+  - If parent (Parent ID) is -3:
+    - Inside parent with identifier (Rule ID) == 0, see processing of parent (Parent ID) equal to 0.
+    - Inside parent with identifier (Rule ID) > 0, rule processed.
 
 Rule file
   Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.
