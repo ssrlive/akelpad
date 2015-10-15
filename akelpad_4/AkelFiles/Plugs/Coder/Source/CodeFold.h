@@ -234,7 +234,7 @@ typedef struct _LEVEL {
   AEPOINT pointMax;
   AECHARRANGE crFoundMin;
   AECHARRANGE crFoundMax;
-  DWORD dwFlags;
+  DWORD dwFlags;          //See LVLF_* defines.
 } LEVEL;
 
 typedef struct {
