@@ -14990,7 +14990,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
       }
 
       //Only if char not in quote
-      if (!hlp->qm.lpQuote || hlp->qm.lpQuote->nRuleID || AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMin) < 0)
+      if (!hlp->qm.lpQuote || !(hlp->qm.lpQuote->dwFlags & AEHLF_STYLED) || AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMin) < 0)
       {
         //Word find
         if (AEC_IndexCompare(&hlp->wm.crDelim2.ciMax, &to->ciDrawLine) <= 0)
