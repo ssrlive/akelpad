@@ -1047,7 +1047,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
-  INT_PTR nGreedyStrLen;
+  INT_PTR nGreedyStrLen=0;
   int nStrChar;
   int nCharSize=0;
   int nPatChar;
@@ -2322,7 +2322,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
   INT_PTR nBackupStrLen;
   INT_PTR nPrevStrLen;
   INT_PTR nRefLen;
-  INT_PTR nGreedyStrLen;
+  INT_PTR nGreedyStrLen=0;
   int nStrChar;
   int nPatChar;
   int nPatNextChar;
