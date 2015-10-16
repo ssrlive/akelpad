@@ -14963,11 +14963,6 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             }
             if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk || dwFontStyle != hlp->dwFontStyle)
             {
-              if (!bLockHighLight)
-              {
-                //Draw text before color change
-                AE_PaintTextOut(ae, to, hlp);
-              }
               hlp->dwActiveText=dwActiveText;
               hlp->dwActiveBk=dwActiveBk;
               hlp->dwFontStyle=dwFontStyle;
