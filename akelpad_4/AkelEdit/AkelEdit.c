@@ -14620,6 +14620,33 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   to->nMaxDrawCharsCount=0;
 }
 
+REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar, REGROUP **lppREGroupEnd)
+{
+  REGROUP *lpREGroupItem;
+  int nCompare;
+
+  for (lpREGroupItem=hStack->first; lpREGroupItem;)
+  {
+    if (lpREGroupItem->nStrLen)
+    {
+      if (lpREGroupItem->dwUserData)
+      {
+        if (AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrStart) < 0)
+          return NULL;
+
+        nCompare=AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrEnd);
+        if (nCompare == 0)
+          *lppREGroupEnd=lpREGroupItem;
+        else if (nCompare < 0)
+          break;
+      }
+      lpREGroupItem=PatNextGroup(lpREGroupItem);
+    }
+    else lpREGroupItem=PatNextGroupNoChild(lpREGroupItem);
+  }
+  return lpREGroupItem;
+}
+
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine)
 {
   AEFOLD *lpColored=NULL;
@@ -14895,6 +14922,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           if (hlp->qm.lpQuote->dwFlags & AEHLF_REGEXP)
           {
             REGROUP *lpREGroup;
+            REGROUP *lpREGroupEnd=NULL;
             AEREGROUPCOLOR *lpREGroupColor;
             wchar_t wszColor[12];
             wchar_t *wpColor=wszColor;
@@ -14903,18 +14931,20 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             DWORD dwActiveBk=hlp->dwDefaultBk;
             DWORD dwFontStyle=hlp->dwFontStyle;
 
-            if (lpREGroup=AE_PatCharInGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, &to->ciDrawLine))
+            lpREGroup=AE_PatCharInGroup((STACKREGROUP *)hlp->qm.lpQuote->lpREGroupStack, &to->ciDrawLine, &lpREGroupEnd);
+
+            if ((lpREGroup && lpREGroup->dwUserData) || (lpREGroupEnd && lpREGroupEnd->dwUserData))
             {
-              if (lpREGroupColor=(AEREGROUPCOLOR *)lpREGroup->dwUserData)
+              if (!bLockHighLight)
               {
-                if (!bLockHighLight)
+                if ((lpREGroup && !AEC_IndexCompare(&to->ciDrawLine, &lpREGroup->ciStrStart)) || lpREGroupEnd)
                 {
-                  if (!AEC_IndexCompare(&to->ciDrawLine, &lpREGroup->ciStrStart))
-                  {
-                    //Draw text before group color is started
-                    AE_PaintTextOut(ae, to, hlp);
-                  }
+                  //Draw text before group color is started or closed
+                  AE_PaintTextOut(ae, to, hlp);
                 }
+              }
+              if (lpREGroup && (lpREGroupColor=(AEREGROUPCOLOR *)lpREGroup->dwUserData))
+              {
                 if (lpREGroupColor->crText != (DWORD)-1)
                 {
                   if (lpREGroupColor->dwFlags & AEREGCF_BACKREFCOLORTEXT)
@@ -14951,22 +14981,13 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
                   }
                   else dwActiveBk=lpREGroupColor->crBk;
                 }
-
                 //if (lpREGroupColor->dwFontStyle != AEHLS_NONE)
                   dwFontStyle=lpREGroupColor->dwFontStyle;
               }
             }
-            else
-            {
-              //if (hlp->qm.lpQuote->dwFontStyle != AEHLS_NONE)
-                dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
-            }
-            if (dwActiveText != hlp->dwActiveText || dwActiveBk != hlp->dwActiveBk || dwFontStyle != hlp->dwFontStyle)
-            {
-              hlp->dwActiveText=dwActiveText;
-              hlp->dwActiveBk=dwActiveBk;
-              hlp->dwFontStyle=dwFontStyle;
-            }
+            hlp->dwActiveText=dwActiveText;
+            hlp->dwActiveBk=dwActiveBk;
+            hlp->dwFontStyle=dwFontStyle;
           }
           else
           {
