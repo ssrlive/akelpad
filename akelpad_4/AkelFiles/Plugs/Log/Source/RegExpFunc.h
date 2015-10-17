@@ -303,7 +303,6 @@ void PatFree(STACKREGROUP *hStack);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
   INT_PTR AE_PatStrCmp(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
   INT_PTR AE_PatStrSub(const AECHARINDEX *ciStart, const AECHARINDEX *ciEnd);
-  REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar);
   REGROUP* AE_PatNextGroupForExec(REGROUP *lpREGroupItem);
   void AE_PatReset(STACKREGROUP *hStack);
 #endif
@@ -3098,26 +3097,6 @@ INT_PTR AE_PatStrSub(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
     }
   }
   return (nCompare < 0)?-nCount:nCount;
-}
-
-REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar)
-{
-  REGROUP *lpREGroupItem;
-
-  for (lpREGroupItem=hStack->first; lpREGroupItem;)
-  {
-    if (lpREGroupItem->nStrLen)
-    {
-      if (lpREGroupItem->dwUserData)
-      {
-        if (AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrStart) >= 0 && AEC_IndexCompare(ciChar, &lpREGroupItem->ciStrEnd) < 0)
-          break;
-      }
-      lpREGroupItem=PatNextGroup(lpREGroupItem);
-    }
-    else lpREGroupItem=PatNextGroupNoChild(lpREGroupItem);
-  }
-  return lpREGroupItem;
 }
 
 REGROUP* AE_PatNextGroupForExec(REGROUP *lpREGroupItem)
