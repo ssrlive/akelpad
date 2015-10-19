@@ -2492,7 +2492,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
   int nRuleID;
   BOOL bQuoteString;
   BOOL bExactTitle;
-  BOOL bQuotesRegExpMorePriority;
 
   xprintfW(wszFile, L"%s\\%s", wszCoderDir, lpSyntaxFile->wszSyntaxFileName);
   if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
@@ -2528,10 +2527,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
             lpVarStack=&lpVarThemeActive->hVarStack;
           else
             lpVarStack=&lpSyntaxFile->lpVarThemeLink->hVarStack;
-
-          //"QuotesRE:" priority
-          lpSyntaxFile->dwCreateFlags=0;
-          bQuotesRegExpMorePriority=-1;
 
           if (lpSyntaxFile)
           {
@@ -2992,14 +2987,9 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 break;
               }
             }
-            else if (!xstrcmpiW(wszBuffer, L"Quotes:"))
+            else if (!xstrcmpiW(wszBuffer, L"Quotes:") ||
+                     !xstrcmpiW(wszBuffer, L"QuotesRE:"))
             {
-              if (bQuotesRegExpMorePriority == -1)
-              {
-                lpSyntaxFile->dwCreateFlags&=~AEHLCT_QUOTESREGEXPMOREPRIORITY;
-                bQuotesRegExpMorePriority=FALSE;
-              }
-
               for (;;)
               {
                 //Parse line
@@ -3025,80 +3015,102 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   }
                   else goto SectionStart;
 
-                  //Font style
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                  {
-                    dwFontStyle=(DWORD)xatoiW(wszBuffer, NULL);
-                  }
-                  else break;
+                  //Regular expression pattern, if quoted or font style, if number.
+                  if (!(nQuoteStartLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)))
+                    break;
 
-                  //Color
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                  if (bQuoteString)
                   {
-                    if (*wszBuffer == L'#')
-                    {
-                      dwColor1=GetColorFromStr(wszBuffer + 1);
-                    }
-                    else if (*wszBuffer != L'0') break;
-                  }
-                  else break;
+                    dwFlags|=AEHLF_REGEXP;
 
-                  //Background color
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                  {
-                    if (*wszBuffer == L'#')
-                    {
-                      dwColor2=GetColorFromStr(wszBuffer + 1);
-                    }
-                    else if (*wszBuffer != L'0') break;
-                  }
-                  else break;
-
-                  //Quote start
-                  if ((nQuoteStartLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
-                  {
+                    //Pattern
                     if (wpQuoteStart=(wchar_t *)GlobalAlloc(GPTR, (nQuoteStartLen + 1) * sizeof(wchar_t)))
                       xmemcpy(wpQuoteStart, wszBuffer, (nQuoteStartLen + 1) * sizeof(wchar_t));
                     else
                       break;
-                  }
-                  else break;
 
-                  //Quote end
-                  if ((nQuoteEndLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
-                  {
-                    if (wpQuoteEnd=(wchar_t *)GlobalAlloc(GPTR, (nQuoteEndLen + 1) * sizeof(wchar_t)))
-                      xmemcpy(wpQuoteEnd, wszBuffer, (nQuoteEndLen + 1) * sizeof(wchar_t));
-                    else
-                      break;
+                    //Match map
+                    if ((nQuoteEndLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
+                    {
+                      if (nExpandLen=ExpandVars(wszBuffer, nQuoteEndLen, NULL, 0, lpVarStack))
+                        if (wpQuoteEnd=(wchar_t *)GlobalAlloc(GPTR, nExpandLen * sizeof(wchar_t)))
+                          nQuoteEndLen=(int)ExpandVars(wszBuffer, nQuoteEndLen, wpQuoteEnd, nExpandLen, lpVarStack);
+                    }
+                    else break;
                   }
-                  else break;
-
-                  //Escape
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack) || bQuoteString)
-                    wchEscape=wszBuffer[0];
                   else
-                    break;
-
-                  //Quote include
-                  if ((nQuoteIncludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
                   {
-                    if (wpQuoteInclude=(wchar_t *)GlobalAlloc(GPTR, (nQuoteIncludeLen + 1) * sizeof(wchar_t)))
-                      xmemcpy(wpQuoteInclude, wszBuffer, (nQuoteIncludeLen + 1) * sizeof(wchar_t));
+                    //Font style
+                    dwFontStyle=(DWORD)xatoiW(wszBuffer, NULL);
+
+                    //Color
+                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                    {
+                      if (*wszBuffer == L'#')
+                      {
+                        dwColor1=GetColorFromStr(wszBuffer + 1);
+                      }
+                      else if (*wszBuffer != L'0') break;
+                    }
+                    else break;
+  
+                    //Background color
+                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
+                    {
+                      if (*wszBuffer == L'#')
+                      {
+                        dwColor2=GetColorFromStr(wszBuffer + 1);
+                      }
+                      else if (*wszBuffer != L'0') break;
+                    }
+                    else break;
+  
+                    //Quote start
+                    if ((nQuoteStartLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
+                    {
+                      if (wpQuoteStart=(wchar_t *)GlobalAlloc(GPTR, (nQuoteStartLen + 1) * sizeof(wchar_t)))
+                        xmemcpy(wpQuoteStart, wszBuffer, (nQuoteStartLen + 1) * sizeof(wchar_t));
+                      else
+                        break;
+                    }
+                    else break;
+  
+                    //Quote end
+                    if ((nQuoteEndLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
+                    {
+                      if (wpQuoteEnd=(wchar_t *)GlobalAlloc(GPTR, (nQuoteEndLen + 1) * sizeof(wchar_t)))
+                        xmemcpy(wpQuoteEnd, wszBuffer, (nQuoteEndLen + 1) * sizeof(wchar_t));
+                      else
+                        break;
+                    }
+                    else break;
+  
+                    //Escape
+                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack) || bQuoteString)
+                      wchEscape=wszBuffer[0];
                     else
                       break;
+  
+                    //Quote include
+                    if ((nQuoteIncludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
+                    {
+                      if (wpQuoteInclude=(wchar_t *)GlobalAlloc(GPTR, (nQuoteIncludeLen + 1) * sizeof(wchar_t)))
+                        xmemcpy(wpQuoteInclude, wszBuffer, (nQuoteIncludeLen + 1) * sizeof(wchar_t));
+                      else
+                        break;
+                    }
+                    else break;
+  
+                    //Quote exclude
+                    if ((nQuoteExcludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
+                    {
+                      if (wpQuoteExclude=(wchar_t *)GlobalAlloc(GPTR, (nQuoteExcludeLen + 1) * sizeof(wchar_t)))
+                        xmemcpy(wpQuoteExclude, wszBuffer, (nQuoteExcludeLen + 1) * sizeof(wchar_t));
+                      else
+                        break;
+                    }
+                    else break;
                   }
-                  else break;
-
-                  //Quote exclude
-                  if ((nQuoteExcludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
-                  {
-                    if (wpQuoteExclude=(wchar_t *)GlobalAlloc(GPTR, (nQuoteExcludeLen + 1) * sizeof(wchar_t)))
-                      xmemcpy(wpQuoteExclude, wszBuffer, (nQuoteExcludeLen + 1) * sizeof(wchar_t));
-                    else
-                      break;
-                  }
-                  else break;
 
                   //Parent ID
                   if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
@@ -3139,87 +3151,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   if (wpQuoteEnd) GlobalFree((HGLOBAL)wpQuoteEnd);
                   if (wpQuoteInclude) GlobalFree((HGLOBAL)wpQuoteInclude);
                   if (wpQuoteExclude) GlobalFree((HGLOBAL)wpQuoteExclude);
-                }
-                if (!NextLine(&wpText)) goto FreeText;
-                if (bSyntaxFileLoadError) goto FreeText;
-              }
-            }
-            else if (!xstrcmpiW(wszBuffer, L"QuotesRE:"))
-            {
-              if (bQuotesRegExpMorePriority == -1)
-              {
-                lpSyntaxFile->dwCreateFlags|=AEHLCT_QUOTESREGEXPMOREPRIORITY;
-                bQuotesRegExpMorePriority=TRUE;
-              }
-
-              for (;;)
-              {
-                //Parse line
-                lpQuoteElement=NULL;
-                wpQuoteStart=NULL;
-                wpQuoteEnd=NULL;
-                dwFlags=AEHLF_MATCHCASE;
-                nParentID=0;
-                nRuleID=0;
-
-                for (;;)
-                {
-                  //Highlight flags
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                  {
-                    dwFlags=(DWORD)xatoiW(wszBuffer, NULL);
-                    if (dwFlags == 0 && wszBuffer[0] != L'0') break;
-                  }
-                  else goto SectionStart;
-
-                  //Pattern
-                  if ((nQuoteStartLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
-                  {
-                    if (wpQuoteStart=(wchar_t *)GlobalAlloc(GPTR, (nQuoteStartLen + 1) * sizeof(wchar_t)))
-                      xmemcpy(wpQuoteStart, wszBuffer, (nQuoteStartLen + 1) * sizeof(wchar_t));
-                    else
-                      break;
-                  }
-                  else break;
-
-                  //Match map
-                  if ((nQuoteEndLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
-                  {
-                    if (nExpandLen=ExpandVars(wszBuffer, nQuoteEndLen, NULL, 0, lpVarStack))
-                      if (wpQuoteEnd=(wchar_t *)GlobalAlloc(GPTR, nExpandLen * sizeof(wchar_t)))
-                        nQuoteEndLen=(int)ExpandVars(wszBuffer, nQuoteEndLen, wpQuoteEnd, nExpandLen, lpVarStack);
-                  }
-                  else break;
-
-                  //Parent ID
-                  if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                  {
-                    nParentID=(int)xatoiW(wszBuffer, NULL);
-
-                    //Rule ID
-                    if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
-                    {
-                      nRuleID=(int)xatoiW(wszBuffer, NULL);
-                    }
-                  }
-
-                  //Add to stack
-                  if (lpQuoteElement=StackInsertQuote(&lpSyntaxFile->hQuoteStack, nQuoteStartLen))
-                  {
-                    lpQuoteElement->wpQuoteStart=wpQuoteStart;
-                    lpQuoteElement->nQuoteStartLen=nQuoteStartLen;
-                    lpQuoteElement->wpQuoteEnd=wpQuoteEnd;
-                    lpQuoteElement->nQuoteEndLen=nQuoteEndLen;
-                    lpQuoteElement->dwFlags=dwFlags|AEHLF_REGEXP;
-                    lpQuoteElement->nParentID=nParentID;
-                    lpQuoteElement->nRuleID=nRuleID;
-                  }
-                  break;
-                }
-                if (!lpQuoteElement)
-                {
-                  if (wpQuoteStart) GlobalFree((HGLOBAL)wpQuoteStart);
-                  if (wpQuoteEnd) GlobalFree((HGLOBAL)wpQuoteEnd);
                 }
                 if (!NextLine(&wpText)) goto FreeText;
                 if (bSyntaxFileLoadError) goto FreeText;

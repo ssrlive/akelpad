@@ -335,7 +335,7 @@ typedef struct _AETHEMEITEMW {
   struct _AETHEMEITEMW *next;
   struct _AETHEMEITEMW *prev;
   wchar_t wszThemeName[MAX_PATH];
-  DWORD dwFlags;                      //See AEHLCT_* defines.
+  WPARAM wParam;                      //Value passed to WPARAM of AEM_HLCREATETHEME.
   AESTACKDELIM hDelimiterStack;
   AESTACKWORD hWordStack;
   AESTACKQUOTE hQuoteStack;
@@ -903,11 +903,10 @@ AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AEC
 INT_PTR AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGEMATCH *mrm);
 INT_PTR AE_HighlightFindQuoteOrder(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
 INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
-INT_PTR AE_HighlightFindQuoteRE(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, INT_PTR nCharOffset, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm, AEFOLDMATCH *fm);
 AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD dwFlags, AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm);
 AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen, AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm);
-AETHEMEITEMW* AE_HighlightCreateTheme(DWORD dwFlags, wchar_t *wpThemeName);
+AETHEMEITEMW* AE_HighlightCreateTheme(WPARAM wParam, wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName);
 BOOL AE_HighlightIsThemeExists(AETHEMEITEMW *aeti);
 void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti);

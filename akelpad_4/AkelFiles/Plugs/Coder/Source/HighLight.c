@@ -2025,7 +2025,7 @@ void CreateEditTheme(SYNTAXFILE *lpSyntaxFile, HWND hWnd)
 
   xprintfW(wszBuffer, L"HighLight::File::%s", lpSyntaxFile->wszSyntaxFileName);
 
-  if (lpSyntaxFile->hThemeHighLight=(HANDLE)SendMessage(hWnd, AEM_HLCREATETHEMEW, lpSyntaxFile->dwCreateFlags, (LPARAM)wszBuffer))
+  if (lpSyntaxFile->hThemeHighLight=(HANDLE)SendMessage(hWnd, AEM_HLCREATETHEMEW, 0, (LPARAM)wszBuffer))
   {
     //Transfer delimiters
     {
