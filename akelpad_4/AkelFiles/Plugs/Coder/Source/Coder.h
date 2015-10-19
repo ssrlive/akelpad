@@ -360,7 +360,6 @@ typedef struct _SYNTAXFILE {
   STACKBLOCK hBlockStack;
   STACKBLOCK hExactBlockStack;
   STACKBLOCKORDER hBlockOrderStack;
-  DWORD dwCreateFlags;
   wchar_t wszSyntaxFileName[MAX_PATH];
   VARTHEME *lpVarThemeLink;
   AEHTHEME hThemeHighLight;
