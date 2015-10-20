@@ -1787,14 +1787,14 @@ BLOCKINFO* GetDataListbox(int nItem)
 
 int CompleteStrCmp(DWORD dwTitleFlags, const wchar_t *wpString1, const wchar_t *wpString2)
 {
-  if ((dwTitleFlags & (TF_FORCECASESENSITIVE|TF_FORCECASEINSENSITIVE)) ? (dwTitleFlags & TF_FORCECASESENSITIVE) : bCompleteCaseSensitive)
+  if ((dwTitleFlags & (TF_FORCECASESENSITIVE|TF_FORCECASEINSENSITIVE)) ? (dwTitleFlags & TF_FORCECASESENSITIVE) : (DWORD)bCompleteCaseSensitive)
     return xstrcmpW(wpString1, wpString2);
   return xstrcmpiW(wpString1, wpString2);
 }
 
 int CompleteStrCmpLen(DWORD dwTitleFlags, const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength)
 {
-  if ((dwTitleFlags & (TF_FORCECASESENSITIVE|TF_FORCECASEINSENSITIVE)) ? (dwTitleFlags & TF_FORCECASESENSITIVE) : bCompleteCaseSensitive)
+  if ((dwTitleFlags & (TF_FORCECASESENSITIVE|TF_FORCECASEINSENSITIVE)) ? (dwTitleFlags & TF_FORCECASESENSITIVE) : (DWORD)bCompleteCaseSensitive)
     return xstrcmpnW(wpString1, wpString2, dwMaxLength);
   return xstrcmpinW(wpString1, wpString2, dwMaxLength);
 }

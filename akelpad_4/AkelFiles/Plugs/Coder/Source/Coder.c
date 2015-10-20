@@ -2997,7 +2997,10 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 wpQuoteStart=NULL;
                 wpQuoteEnd=NULL;
                 wpQuoteInclude=NULL;
+                nQuoteIncludeLen=0;
                 wpQuoteExclude=NULL;
+                nQuoteExcludeLen=0;
+                wchEscape=0;
                 dwFlags=AEHLF_MATCHCASE;
                 dwFontStyle=0;
                 dwColor1=(DWORD)-1;
