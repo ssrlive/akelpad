@@ -9567,7 +9567,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           AppendMenuWide(hMenuArrow, MF_STRING, IDC_SEARCH_REGEXP_MENUDOT, wbuf);
         }
       }
-      CheckMenuItem(hMenuArrow, IDC_SEARCH_REGEXP_MENUDOT, (moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT)?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMenuArrow, IDC_SEARCH_REGEXP_MENUDOT, (moCur.dwSearchOptions & FRF_REGEXPNONEWLINEDOT)?MF_UNCHECKED:MF_CHECKED);
       GetWindowRect(hWndRegExpArrow, &rcArrow);
       nCmd=TrackPopupMenu(hMenuArrow, TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, rcArrow.left, rcArrow.bottom, 0, hDlg, NULL);
 
