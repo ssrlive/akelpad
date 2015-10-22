@@ -2963,6 +2963,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
   SKIPINFOHANDLE *lpSkipInfoHandle;
   int nFirstVisibleLine=0;
   int nTagNameLen;
+  BOOL bFoldEndNoCatch;
   DWORD dwMatchResult=0;
 
   if (lpSyntaxFile=StackGetSyntaxFileByWindow(&hSyntaxFilesStack, hWnd, NULL, NULL))
@@ -3074,8 +3075,13 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
         {
           if (lpFoldInfo=IsFold(lpFoldWindow, lpLevel, &ft, &ciCount, &dwMatchResult))
           {
+            bFoldEndNoCatch=FALSE;
+
             if (dwMatchResult & IFE_FOLDEND)
             {
+              if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
+                bFoldEndNoCatch=TRUE;
+
               if (lpLevel)
               {
                 lpParent=lpLevel->lpParent;
@@ -3101,12 +3107,8 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                 else
                   lpLevel->pointMax.nPointLen=lpFoldInfo->nFoldEndPointLen;
 
-                if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
-                {
-                  lpLevel->pointMax.nPointLen=0;
-                }
-                else if ((lpFoldInfo->dwFlags & FIF_XMLTAG) &&
-                         (lpFoldInfo->dwFlags & FIF_XMLNONAME_TWOTAG))
+                if ((lpFoldInfo->dwFlags & FIF_XMLTAG) &&
+                     (lpFoldInfo->dwFlags & FIF_XMLNONAME_TWOTAG))
                 {
                   AEC_NextCharEx(&lpLevel->crFoundMin.ciMin, &ciOpenTag);
                   AEC_ValidCharInLine(&ft.crFound.ciMax);
@@ -3136,13 +3138,28 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                       if (WideCharLower((wchar_t)AEC_CharAtIndex(&ciCloseTag)) !=
                           WideCharLower((wchar_t)AEC_CharAtIndex(&ciOpenTag)))
                         break;
-                      if (!--nTagNameLen) goto SetLevelMax;
+                      if (!--nTagNameLen)
+                      {
+                        bFoldEndNoCatch=FALSE;
+                        goto SetLevelMax;
+                      }
                     }
                     while (AEC_NextCharInLine(&ciCloseTag) && AEC_NextCharInLine(&ciOpenTag));
+                  }
+                  if (bFoldEndNoCatch)
+                  {
+                    //Close "<x>" fold in "<y><x></y>"
+                    ft.crFound.ciMax=ft.crFound.ciMin;
+                    lpLevel->pointMax.nPointLen=0;
+                    goto SetLevelMax;
                   }
                   ciCount=ft.crFound.ciMax;
                   lpParent=lpLevel;
                   goto CheckChar;
+                }
+                if (bFoldEndNoCatch)
+                {
+                  lpLevel->pointMax.nPointLen=0;
                 }
 
                 SetLevelMax:
@@ -3241,7 +3258,7 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
             }
 
             CheckNoCatch:
-            if ((lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH) && (dwMatchResult & IFE_FOLDEND))
+            if (bFoldEndNoCatch)
             {
               if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH_SIBLING)
                 dwMatchResult=IFF_CHECKFIRSTFOLDSTART;
@@ -4150,10 +4167,10 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
 
       if (lpFoldInfo)
       {
-        if (lpFoldInfo->dwFlags & FIF_FOLDEND_NOCATCH)
-          nTagEndLen=lpFoldInfo->nFoldEndPointLen;
-        else
+        if (lpFold->lpMaxPoint->nPointLen)
           nTagEndLen=lpFold->lpMaxPoint->nPointLen;
+        else
+          nTagEndLen=1;
         crTagStart.cpMin=lpFold->lpMinPoint->nPointOffset;
         crTagStart.cpMax=lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen;
         crTagEnd.cpMin=lpFold->lpMaxPoint->nPointOffset;
