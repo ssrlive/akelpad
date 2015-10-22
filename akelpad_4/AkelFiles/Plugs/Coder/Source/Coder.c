@@ -3056,7 +3056,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       else if (*wszBuffer != L'0') break;
                     }
                     else break;
-  
+
                     //Background color
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, NULL, lpVarStack))
                     {
@@ -3067,7 +3067,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       else if (*wszBuffer != L'0') break;
                     }
                     else break;
-  
+
                     //Quote start
                     if ((nQuoteStartLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
                     {
@@ -3077,7 +3077,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         break;
                     }
                     else break;
-  
+
                     //Quote end
                     if ((nQuoteEndLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
                     {
@@ -3087,13 +3087,13 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         break;
                     }
                     else break;
-  
+
                     //Escape
                     if (GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack) || bQuoteString)
                       wchEscape=wszBuffer[0];
                     else
                       break;
-  
+
                     //Quote include
                     if ((nQuoteIncludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
                     {
@@ -3103,7 +3103,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         break;
                     }
                     else break;
-  
+
                     //Quote exclude
                     if ((nQuoteExcludeLen=GetWord(wpText, wszBuffer, BUFFER_SIZE, &wpText, &bQuoteString, lpVarStack)) || bQuoteString)
                     {
@@ -3514,9 +3514,14 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   //Add to stack
                   if (lpSkipInfo=StackInsertSkipInfo(&lpSyntaxFile->hSkipStack))
                   {
+                    lpSkipInfo->dwFlags=dwFlags;
+                    if (!(lpSkipInfo->lpSkipStart=StackInsertSkipStart(&lpSyntaxFile->hSkipStartStack, lpSkipInfo, wpSkipStart, nSkipStartLen)))
+                      goto FreeSkip;
+
                     if (dwFlags & FIF_REGEXPEND)
                     {
                       lpSkipInfo->sregEnd.dwOptions=REO_MULTILINE|(dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
+                      lpSkipInfo->sregEnd.ref100=&lpSkipInfo->lpSkipStart->sregStart;
                       if (nSkipEndLen && !PatCompile(&lpSkipInfo->sregEnd, wpSkipEnd, wpSkipEnd + nSkipEndLen))
                       {
                         lpSkipInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
@@ -3529,9 +3534,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         goto FreeSkip;
                       }
                     }
-                    lpSkipInfo->dwFlags=dwFlags;
-                    if (!(lpSkipInfo->lpSkipStart=StackInsertSkipStart(&lpSyntaxFile->hSkipStartStack, lpSkipInfo, wpSkipStart, nSkipStartLen)))
-                      goto FreeSkip;
                     lpSkipInfo->wpSkipEnd=wpSkipEnd;
                     lpSkipInfo->nSkipEndLen=nSkipEndLen;
                     lpSkipInfo->wchEscape=wchEscape;
@@ -3670,7 +3672,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         if (nFoldStartLen == 1)
                         {
                           if (!xstrcmpW(wpFoldEnd, L"</"))
-                            dwFlags|=FIF_XMLNONAME_TWOTAG;
+                           dwFlags|=FIF_XMLNONAME_TWOTAG;
                           else if (!xstrcmpW(wpFoldEnd, L"/>"))
                             dwFlags|=FIF_XMLNONAME_ONETAG;
                         }
@@ -3687,22 +3689,6 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                         dwFlags|=FIF_XMLCHILD;
                       }
                     }
-                    if (dwFlags & FIF_REGEXPEND)
-                    {
-                      lpFoldInfo->sregEnd.dwOptions=REO_MULTILINE|(dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
-                      if (nFoldEndLen && !PatCompile(&lpFoldInfo->sregEnd, wpFoldEnd, wpFoldEnd + nFoldEndLen))
-                      {
-                        lpFoldInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
-                        lpFoldInfo->nFoldEndPointLen=(int)lpFoldInfo->sregEnd.first->nGroupLen;
-                      }
-                      else
-                      {
-                        xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_COMPILEERROR), lpSyntaxFile->wszSyntaxFileName, nFoldEndLen, wpFoldEnd);
-                        MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
-                        goto FreeFold;
-                      }
-                    }
-                    else lpFoldInfo->nFoldEndPointLen=nFoldEndLen;
 
                     lpFoldInfo->dwFlags=dwFlags;
                     lpFoldInfo->wpFoldEnd=wpFoldEnd;
@@ -3718,6 +3704,24 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     lpFoldInfo->crSyntaxFileLine.cpMax=wpText - wpTextStart;
                     if (!(lpFoldInfo->lpFoldStart=StackInsertFoldStart(&lpSyntaxFile->hFoldStartStack, lpFoldInfo, wpFoldStart, nFoldStartLen)))
                       goto FreeFold;
+
+                    if (dwFlags & FIF_REGEXPEND)
+                    {
+                      lpFoldInfo->sregEnd.dwOptions=REO_MULTILINE|(dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
+                      lpFoldInfo->sregEnd.ref100=&lpFoldInfo->lpFoldStart->sregStart;
+                      if (nFoldEndLen && !PatCompile(&lpFoldInfo->sregEnd, wpFoldEnd, wpFoldEnd + nFoldEndLen))
+                      {
+                        lpFoldInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
+                        lpFoldInfo->nFoldEndPointLen=(int)lpFoldInfo->sregEnd.first->nGroupLen;
+                      }
+                      else
+                      {
+                        xprintfW(wszMessage, GetLangStringW(wLangModule, STRID_REGEXP_COMPILEERROR), lpSyntaxFile->wszSyntaxFileName, nFoldEndLen, wpFoldEnd);
+                        MessageBoxW(hMainWnd, wszMessage, wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
+                        goto FreeFold;
+                      }
+                    }
+                    else lpFoldInfo->nFoldEndPointLen=nFoldEndLen;
 
                     if (dwFlags & FIF_REGEXPSTART)
                       lpSyntaxFile->hFoldStack.nCommonFirstChar=-1;
@@ -3735,8 +3739,11 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     break;
 
                     FreeFold:
-                    StackDelete((stack **)&lpSyntaxFile->hFoldStack.first, (stack **)&lpSyntaxFile->hFoldStack.last, (stack *)lpFoldInfo);
+                    StackDeleteFoldInfo(&lpSyntaxFile->hFoldStack, &lpSyntaxFile->hFoldStartStack, lpFoldInfo);
                     lpFoldInfo=NULL;
+                    wpFoldStart=NULL;
+                    wpFoldEnd=NULL;
+                    wpFoldDelimiters=NULL;
                   }
                   break;
                 }
