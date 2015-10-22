@@ -109,7 +109,7 @@ void _WinMain()
 
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"b\\a", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"")) goto Error;
+  if (xstrcmpW(wpResult, L"abc")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\Za", L"[x]", dwOptions, &wpResult);
@@ -117,7 +117,7 @@ void _WinMain()
 
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\za", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"")) goto Error;
+  if (xstrcmpW(wpResult, L"abc")) goto Error;
 
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"]", L"[x]", dwOptions, &wpResult);
@@ -636,6 +636,13 @@ void _WinMain()
   TextReplaceRE(L"abc", L"(a)b(c)", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]")) goto Error;
 
+  nLine=__LINE__;
+  TextReplaceRE(L"a", L"a|(?=a)", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"a", L"(?=a)|a", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]a")) goto Error;
 
   //POSIX result "[x]"
   //PCRE result "[x]sufficient"
@@ -688,18 +695,21 @@ int TextReplaceRE(const wchar_t *wpStr, const wchar_t *wpIt, const wchar_t *wpWi
 
   pr.wpStr=wpStr;
   pr.wpMaxStr=pr.wpStr + nStrLen;
-  pr.wpText=pr.wpStr;
-  pr.wpMaxText=pr.wpMaxStr;
   pr.wpPat=wpIt;
   pr.wpMaxPat=pr.wpPat + nItLen;
   pr.wpRep=wpWith;
   pr.wpMaxRep=pr.wpRep + nWithLen;
   pr.dwOptions=dwOptions;
   pr.wpDelim=NULL;
+  pr.wpText=pr.wpStr;
+  pr.wpMaxText=pr.wpMaxStr;
+  pr.wpRange=pr.wpStr;
+  pr.wpMaxRange=pr.wpMaxStr;
   pr.wpNewLine=NULL;
   pr.nPointCount=0;
   pr.wszResult=NULL;
   nResultTextLen=PatReplace(&pr);
+
 
   if (nResultTextLen)
   {
