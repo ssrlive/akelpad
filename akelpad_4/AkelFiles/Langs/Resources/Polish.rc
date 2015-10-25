@@ -1111,7 +1111,7 @@ BEGIN
     STR_ONLYMODIFIED        "Zmienione"
     STR_ONLYUNMODIFIED      "Niezmienione"
     STR_INVERTSELECTION     "Odwróæ zaznaczenie"
-    STR_NEWLINEDOT          ". matches \\n"
+    STR_NEWLINEDOT          ". dopasowuje \\n"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "&Tak"
     STR_MESSAGEBOX_NO       "&Nie"
