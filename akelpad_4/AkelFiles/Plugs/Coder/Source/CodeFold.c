@@ -4170,7 +4170,12 @@ void UpdateTagMark(FOLDWINDOW *lpFoldWindow)
         if (lpFold->lpMaxPoint->nPointLen)
           nTagEndLen=lpFold->lpMaxPoint->nPointLen;
         else
-          nTagEndLen=1;
+        {
+          if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
+            nTagEndLen=1;
+          else
+            nTagEndLen=lpFoldInfo->nFoldEndPointLen;
+        }
         crTagStart.cpMin=lpFold->lpMinPoint->nPointOffset;
         crTagStart.cpMax=lpFold->lpMinPoint->nPointOffset + lpFold->lpMinPoint->nPointLen;
         crTagEnd.cpMin=lpFold->lpMaxPoint->nPointOffset;
