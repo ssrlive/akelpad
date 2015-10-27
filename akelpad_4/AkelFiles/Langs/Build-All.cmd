@@ -23,6 +23,9 @@ if not %ERRORLEVEL% == 0 goto END
 call :COMPILE "Brazilian" 0x416
 if not %ERRORLEVEL% == 0 goto END
 
+call :COMPILE "Catalan" 0x403
+if not %ERRORLEVEL% == 0 goto END
+
 call :COMPILE "Chinese (Simplified)" 0x804
 if not %ERRORLEVEL% == 0 goto END
 
