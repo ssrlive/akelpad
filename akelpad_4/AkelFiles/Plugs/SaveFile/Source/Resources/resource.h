@@ -18,6 +18,10 @@
 #define IDC_AUTOSAVE_SAVEDIR            1112
 #define IDC_AUTOSAVE_SAVEDIR_BROWSE     1113
 #define IDC_AUTOSAVE_SAVEDIR_NOTE       1114
+#define IDC_AUTOSAVE_TMPFILE_GROUP      1115
+#define IDC_AUTOSAVE_TMPDELETE_CHECK    1116
+#define IDC_AUTOSAVE_TMPTOBIN_CHECK     1117
+#define IDC_AUTOSAVE_TMPRECOVER_CHECK   1118
 #define IDC_SAVENOBOM_TITLE             1201
 #define IDC_SAVENOBOM_GROUP             1202
 #define IDC_SAVENOBOM_FORCE_RADIO       1203
@@ -30,7 +34,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
