@@ -6358,6 +6358,9 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWnd == (HWND)wParam)
       {
+        if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA))
+          SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwMdiFrameActivating, (LPARAM)lpFrame);
+
         //Switching between
         if (lpFrameCurrent->hWndEditParent)
         {
@@ -6807,6 +6810,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           --nDocumentsCount;
           UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
+          SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, FWA_NOTIFY_BEFOREDESTROY, (LPARAM)lpFrame);
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, 0, (LPARAM)lpFrame);
 
           //Avoid program exit blinking on last frame close

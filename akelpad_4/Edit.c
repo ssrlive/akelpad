@@ -926,13 +926,6 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
   if (lpFrameCurrent != lpFrame)
   {
-    //Save deactivated frame data
-    if (lpFrameCurrent == &fdDefault)
-      lpFramePrevious=NULL;
-    else
-      lpFramePrevious=lpFrameCurrent;
-    SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwFlags, (LPARAM)lpFramePrevious);
-
     if (nMDI == WMD_MDI)
     {
       //Activate frame
@@ -941,6 +934,12 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
     }
     else if (nMDI == WMD_PMDI)
     {
+      if (lpFrameCurrent == &fdDefault)
+        lpFramePrevious=NULL;
+      else
+        lpFramePrevious=lpFrameCurrent;
+      SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwFlags, (LPARAM)lpFramePrevious);
+
       if (!(dwFlags & FWA_NOUPDATEORDER))
       {
         //Move item to the end of stack, to use access order later.
