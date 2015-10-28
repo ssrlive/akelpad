@@ -710,13 +710,13 @@
 #define FWF_TABNEXT        9  //Retrieve next tab item frame data. lParam is a frame data pointer.
 #define FWF_TABPREV        10 //Retrieve previous tab item frame data. lParam is a frame data pointer.
 
-//AKD_FRAMEACTIVATE, AKDN_FRAME_ACTIVATE flags
+//AKD_FRAMEACTIVATE, AKDN_FRAME_ACTIVATE, AKDN_FRAME_DEACTIVATE flags
 #define FWA_NOUPDATEORDER         0x00000001  //Don't update access order during activating.
 #define FWA_NOUPDATEEDIT          0x00000002  //For WMD_PMDI mode. Don't redraw edit control area during activating.
 #define FWA_NOVISUPDATE           0x00000004  //For WMD_PMDI mode. Don't make any visual updates during activating. Use it only if you later will activate back frame that has lost active status.
 #define FWA_NEXT                  0x00000010  //Activate next frame.
 #define FWA_PREV                  0x00000020  //Activate previous frame.
-                                              //AKDN_FRAME_ACTIVATE only flags:
+                                              //AKDN_FRAME_ACTIVATE, AKDN_FRAME_DEACTIVATE only flags:
 #define FWA_NOTIFY_CREATE         0x00000100  //Frame activating after creation.
 #define FWA_NOTIFY_BEFOREDESTROY  0x00000200  //Frame activating for destroying.
 #define FWA_NOTIFY_AFTERDESTROY   0x00000400  //Previous frame activating because current one has been destroyed.
