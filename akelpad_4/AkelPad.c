@@ -6810,7 +6810,6 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           --nDocumentsCount;
           UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
-          SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, FWA_NOTIFY_BEFOREDESTROY, (LPARAM)lpFrame);
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, 0, (LPARAM)lpFrame);
 
           //Avoid program exit blinking on last frame close
