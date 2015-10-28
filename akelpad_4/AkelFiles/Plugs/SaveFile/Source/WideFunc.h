@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v3.0                    *
+ *                  Wide functions header v3.1                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -38,6 +38,8 @@ extern BOOL (WINAPI *WideGlobal_SHGetPathFromIDListAPtr)(LPCITEMIDLIST, char *);
 extern BOOL (WINAPI *WideGlobal_SHGetPathFromIDListWPtr)(LPCITEMIDLIST, wchar_t *);
 extern LPITEMIDLIST (WINAPI *WideGlobal_SHBrowseForFolderAPtr)(LPBROWSEINFOA);
 extern LPITEMIDLIST (WINAPI *WideGlobal_SHBrowseForFolderWPtr)(LPBROWSEINFOW);
+extern int (WINAPI *WideGlobal_SHFileOperationAPtr)(LPSHFILEOPSTRUCTA);
+extern int (WINAPI *WideGlobal_SHFileOperationWPtr)(LPSHFILEOPSTRUCTW);
 
 //Common
 void WideInitialize();
@@ -85,6 +87,7 @@ BOOL DirExistsWide(const wchar_t *wpDir);
 HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t *wpFile, const wchar_t *wpParameters, const wchar_t *wpDirectory, INT nShowCmd);
 BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath);
 LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi);
+int SHFileOperationWide(SHFILEOPSTRUCTW *lpfos);
 BOOL GetOpenFileNameWide(LPOPENFILENAMEW lpofn);
 BOOL GetSaveFileNameWide(LPOPENFILENAMEW lpofn);
 BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave);
@@ -1092,6 +1095,59 @@ LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi)
   else WideNotInitialized();
 
   return NULL;
+}
+#endif
+
+#if defined SHFileOperationWide || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
+#define SHFileOperationWide_INCLUDED
+#undef SHFileOperationWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+#ifndef PTRWIDEFUNC_INCLUDED
+  #define PTRWIDEFUNC_INCLUDED
+#endif
+int SHFileOperationWide(SHFILEOPSTRUCTW *lpfos)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (WideGlobal_SHFileOperationWPtr)
+      return WideGlobal_SHFileOperationWPtr(lpfos);
+  }
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    if (WideGlobal_SHFileOperationAPtr)
+    {
+      SHFILEOPSTRUCTA fosA;
+      int nResult;
+
+      fosA.hwnd=lpfos->hwnd;
+      fosA.wFunc=lpfos->wFunc;
+      fosA.pFrom=AllocAnsiLen(lpfos->pFrom, (int)xarraysizeW(lpfos->pFrom, NULL));
+      if (lpfos->pTo)
+        fosA.pTo=AllocAnsiLen(lpfos->pTo, (int)xarraysizeW(lpfos->pTo, NULL));
+      else
+        fosA.pTo=NULL;
+      fosA.fFlags=lpfos->fFlags;
+      fosA.fAnyOperationsAborted=lpfos->fAnyOperationsAborted;
+      fosA.hNameMappings=lpfos->hNameMappings;
+      if (lpfos->fFlags & FOF_WANTMAPPINGHANDLE)
+        fosA.lpszProgressTitle=AllocAnsi(lpfos->lpszProgressTitle);
+      else
+        fosA.lpszProgressTitle=NULL;
+
+      if (nResult=WideGlobal_SHFileOperationAPtr(&fosA))
+        lpfos->hNameMappings=fosA.hNameMappings;
+
+      FreeAnsi((char *)fosA.pFrom);
+      FreeAnsi((char *)fosA.pTo);
+      FreeAnsi((char *)fosA.lpszProgressTitle);
+      return nResult;
+    }
+  }
+  else WideNotInitialized();
+
+  return 0;
 }
 #endif
 
@@ -3720,6 +3776,10 @@ BOOL WideGlobal_bWideInitialized=-1;
   LPITEMIDLIST (WINAPI *WideGlobal_SHBrowseForFolderAPtr)(LPBROWSEINFOA)=NULL;
   LPITEMIDLIST (WINAPI *WideGlobal_SHBrowseForFolderWPtr)(LPBROWSEINFOW)=NULL;
 #endif
+#ifdef SHFileOperationWide_INCLUDED
+  int (WINAPI *WideGlobal_SHFileOperationAPtr)(LPSHFILEOPSTRUCTA)=NULL;
+  int (WINAPI *WideGlobal_SHFileOperationWPtr)(LPSHFILEOPSTRUCTW)=NULL;
+#endif
 
 //// Common
 void WideInitialize()
@@ -3755,6 +3815,9 @@ void WideInitialize()
         #ifdef SHBrowseForFolderWide_INCLUDED
           WideGlobal_SHBrowseForFolderAPtr=(LPITEMIDLIST (WINAPI *)(LPBROWSEINFOA))GetProcAddress(hShell32, "SHBrowseForFolderA");
         #endif
+        #ifdef SHFileOperationWide_INCLUDED
+          WideGlobal_SHFileOperationAPtr=(int (WINAPI *)(LPSHFILEOPSTRUCTA))GetProcAddress(hShell32, "SHFileOperationA");
+        #endif
       }
       else
       {
@@ -3772,6 +3835,9 @@ void WideInitialize()
         #endif
         #ifdef SHBrowseForFolderWide_INCLUDED
           WideGlobal_SHBrowseForFolderWPtr=(LPITEMIDLIST (WINAPI *)(LPBROWSEINFOW))GetProcAddress(hShell32, "SHBrowseForFolderW");
+        #endif
+        #ifdef SHFileOperationWide_INCLUDED
+          WideGlobal_SHFileOperationWPtr=(int (WINAPI *)(LPSHFILEOPSTRUCTW))GetProcAddress(hShell32, "SHFileOperationW");
         #endif
       }
     }
