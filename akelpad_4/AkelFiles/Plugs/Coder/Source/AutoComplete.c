@@ -1652,24 +1652,31 @@ void FillListbox(SYNTAXFILE *lpSyntaxFile, STACKDOCWORDS *hDocWordsStack, const 
     if (bAddHighLightWords)
     {
       WORDORDER *lpWordOrder=(WORDORDER *)lpSyntaxFile->hWordOrderStack.first;
+      WORDORDER *lpWordAdded=NULL;
       wchar_t *wpString=wszBuffer;
       int nItem;
 
-      while (lpWordOrder)
+      for (; lpWordOrder; lpWordOrder=lpWordOrder->next)
       {
         if (lpWordOrder->lpWordInfo->nWordLen >= nTitlePartLen)
         {
           if (!CompleteStrCmpLen(0, wpTitlePart, lpWordOrder->lpWordInfo->wpWord, (UINT_PTR)-1))
           {
+            //Avoid to add the same word to list. Can appear if different parent used.
+            if (lpWordAdded && (bCompleteListSystemColors || !bCompleteListItemHlBaseColors || (lpWordAdded->lpWordInfo->dwColor1 == lpWordOrder->lpWordInfo->dwColor1 &&
+                                                                                                lpWordAdded->lpWordInfo->dwColor2 == lpWordOrder->lpWordInfo->dwColor2)) &&
+                               !xstrcmpW(lpWordAdded->lpWordInfo->wpWord, lpWordOrder->lpWordInfo->wpWord))
+              continue;
+
             if (dwCompleteListSymbolMark == CLSM_NOMARK)
               wpString=lpWordOrder->lpWordInfo->wpWord;
             else
               xprintfW(wpString, L"%s*", lpWordOrder->lpWordInfo->wpWord);
             if ((nItem=ListBox_AddStringWide(hWndListBox, wpString)) != LB_ERR)
               SendMessage(hWndListBox, LB_SETITEMDATA, nItem, (LPARAM)lpWordOrder->lpWordInfo);
+            lpWordAdded=lpWordOrder;
           }
         }
-        lpWordOrder=lpWordOrder->next;
       }
     }
   }
