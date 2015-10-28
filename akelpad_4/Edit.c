@@ -906,7 +906,6 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
 
 FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
-  FRAMEDATA *lpFramePrevious;
   BOOL bPrev=-1;
 
   if (dwFlags & FWA_NEXT)
@@ -934,11 +933,8 @@ FRAMEDATA* ActivateFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
     }
     else if (nMDI == WMD_PMDI)
     {
-      if (lpFrameCurrent == &fdDefault)
-        lpFramePrevious=NULL;
-      else
-        lpFramePrevious=lpFrameCurrent;
-      SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwFlags, (LPARAM)lpFramePrevious);
+      if (lpFrameCurrent != &fdDefault)
+        SendMessage(hMainWnd, AKDN_FRAME_DEACTIVATE, dwFlags, (LPARAM)lpFrameCurrent);
 
       if (!(dwFlags & FWA_NOUPDATEORDER))
       {
