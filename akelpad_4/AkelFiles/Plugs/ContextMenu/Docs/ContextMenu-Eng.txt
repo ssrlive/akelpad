@@ -143,6 +143,8 @@ Special menu items:
           check following items, if caret active column is on.
         SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
           check following items, if script SearchReplace.js is working.
+        SET(128, If(`AkelPad.IsPluginRunning("Coder::HighLight")`, 0x1, 0x0))
+          check following items, if Coder::HighLight is working.
   UNSET(flags)
     unset text parse flags. See SET() for description.
 

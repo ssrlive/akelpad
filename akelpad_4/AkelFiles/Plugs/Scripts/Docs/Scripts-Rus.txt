@@ -123,7 +123,7 @@ Call("Scripts::Main", 6, SCRIPTHANDLE, OPERATION, *RESULT)
 Call("Scripts::Main", 7, "METHOD", *RESULT)
   Параметры:
     7
-      Вызывать метод Scripts плагина напрямую. Предназначено для ContextMenu, Hotkeys, Toolbar плагинов.
+      Вызвать метод Scripts плагина напрямую. Предназначено для ContextMenu, Hotkeys, Toolbar плагинов.
     "METHOD"
       Метод Scripts плагина с аргументами.
     *RESULT

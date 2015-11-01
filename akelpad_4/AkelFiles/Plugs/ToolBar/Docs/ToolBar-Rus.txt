@@ -117,6 +117,8 @@ ToolBar::Main
           отметить последующие пункты, если включен активный столбец.
         SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
           отметить последующие пункты, если работает скрипт SearchReplace.js.
+        SET(128, If(`AkelPad.IsPluginRunning("Coder::HighLight")`, 0x1, 0x0))
+          отметить последующие пункты, если работает Coder::HighLight.
 UNSET(128)
   UNSET(флаги)
     снимает флаг обработки текста. См. SET() для описания.
