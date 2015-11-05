@@ -2466,7 +2466,7 @@ int DetectCase(HWND hWnd, AECHARRANGE *lpcrRange)
 
   if (!lpcrRange)
   {
-    if (!GetSel(hWnd, &crSel, &bColumnSel, NULL) || bColumnSel)
+    if (!GetSel(hWnd, &crSel, &bColumnSel, NULL) || (bColumnSel && crSel.ciMin.nLine != crSel.ciMax.nLine))
       return SCT_NONE;
   }
   else
