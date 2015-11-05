@@ -1,11 +1,17 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
+#include "StackFunc.h"
 #include "StrFunc.h"
 #include "WideFunc.h"
 #include "AkelDLL.h"
 #include "Resources\Resource.h"
 
+
+//Include stack functions
+#define StackInsertBefore
+#define StackClear
+#include "StackFunc.h"
 
 //Include string functions
 #define WideCharLower
@@ -21,7 +27,6 @@
 #define xprintfW
 #include "StrFunc.h"
 
-
 //Include wide functions
 #define CallWindowProcWide
 #define ComboBox_GetLBTextWide
@@ -30,6 +35,8 @@
 #define DialogBoxWide
 #define ExpandEnvironmentStringsWide
 #define FileExistsWide
+#define FindFirstFileWide
+#define FindNextFileWide
 #define GetDlgItemTextWide
 #define GetFileAttributesWide
 #define GetWindowLongPtrWide
@@ -43,26 +50,29 @@
 #include "WideFunc.h"
 
 //Defines
-#define STRID_SAVEMOMENT   1
-#define STRID_SAVEINTERVAL 2
-#define STRID_MIN          3
-#define STRID_SAVEFOCUS    4
-#define STRID_SAVEFRAME    5
-#define STRID_SAVEMETHOD   6
-#define STRID_SAVESIMPLE   7
-#define STRID_SAVENEAR     8
-#define STRID_SAVEDIR      9
-#define STRID_SAVEDIRVARS  10
-#define STRID_TMPFILE      11
-#define STRID_TMPDELETE    12
-#define STRID_TMPTOBIN     13
-#define STRID_TMPRECOVER   14
-#define STRID_SAVENOBOM    15
-#define STRID_FORCENOBOM   16
-#define STRID_DLGUNCHECK   17
-#define STRID_PLUGIN       18
-#define STRID_OK           19
-#define STRID_CANCEL       20
+#define STRID_SAVEMOMENT           1
+#define STRID_SAVEINTERVAL         2
+#define STRID_MIN                  3
+#define STRID_SAVEFOCUS            4
+#define STRID_SAVEFRAME            5
+#define STRID_SAVEMETHOD           6
+#define STRID_SAVESIMPLE           7
+#define STRID_SAVENEAR             8
+#define STRID_SAVEDIR              9
+#define STRID_SAVEDIRVARS          10
+#define STRID_SESSIONS_GROUP       11
+#define STRID_SESSIONS_SILENTEXIT  12
+#define STRID_SESSIONS_SAVEFILE    13
+#define STRID_TMPFILE              14
+#define STRID_TMPDELETE            15
+#define STRID_TMPTOBIN             16
+#define STRID_TMPRECOVER           17
+#define STRID_SAVENOBOM            18
+#define STRID_FORCENOBOM           19
+#define STRID_DLGUNCHECK           20
+#define STRID_PLUGIN               21
+#define STRID_OK                   22
+#define STRID_CANCEL               23
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
@@ -80,6 +90,10 @@
 #define SMET_SIMPLE  0x1
 #define SMET_NEAR    0x2
 #define SMET_DIR     0x4
+
+//Sessions plugin
+#define SES_SILENTEXIT  0x1
+#define SES_SAVEFILE    0x2
 
 //.tmp file
 #define REMC_DELETE   0x1
@@ -110,6 +124,26 @@
 #define NOBOM_UTF32BE    0x00000010
 #define NOBOM_DLGUNCHECK 0x00000100
 
+typedef struct _BACKUPFILE {
+  struct _BACKUPFILE *next;
+  struct _BACKUPFILE *prev;
+  wchar_t wszFile[MAX_PATH];
+} BACKUPFILE;
+
+typedef struct {
+  BACKUPFILE *first;
+  BACKUPFILE *last;
+} STACKBACKUPFILE;
+
+//Sessions external call
+#define DLLA_SESSIONS_SAVE          2
+
+typedef struct {
+  UINT_PTR dwStructSize;
+  INT_PTR nAction;
+  wchar_t *wpSession;
+} DLLEXTSESSIONSSAVE;
+
 //Functions prototypes
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK SaveFileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -125,6 +159,7 @@ void UncheckBOM(HWND hDlg);
 int GetComboboxCodepage(HWND hWnd);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -161,6 +196,7 @@ UINT_PTR dwSaveTimer=0;
 DWORD dwSaveMoment=SMOM_TIME;
 DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
+DWORD dwSessions=0;
 DWORD dwTmpFile=REMC_DELETE|REMC_RECOVER;
 int nAppActive=TRUE;
 DWORD dwSaveNoBomSettings=NOBOM_UTF8;
@@ -268,6 +304,58 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpOldSaveFileProc=(WNDPROC)GetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC);
         SetWindowLongPtrWide(nid->hWnd, GWLP_WNDPROC, (UINT_PTR)SaveFileProc);
       }
+    }
+  }
+  else if (uMsg == AKDN_OPENDOCUMENT_START)
+  {
+    NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
+
+    if (bInitAutoSave)
+    {
+      wchar_t wszSearch[MAX_PATH];
+      wchar_t wszBackupFile[MAX_PATH];
+      wchar_t wszDir[MAX_PATH];
+      const wchar_t *wpName;
+      WIN32_FIND_DATAW wfd;
+      HANDLE hSearch;
+      int nNameLen;
+      int nDirLen;
+      BOOL bGoodFormat=FALSE;
+      STACKBACKUPFILE hBackupStack={0};
+      BACKUPFILE *lpBackupFile;
+
+      wpName=GetFileName(nod->wszFile, -1);
+      nNameLen=(int)xstrlenW(wpName);
+      nDirLen=(int)GetFileDir(nod->wszFile, -1, wszDir, MAX_PATH);
+      wszBackupFile[0]=L'\0';
+      xprintfW(wszSearch, L"%s.*.tmp", nod->wszFile);
+
+      if ((hSearch=FindFirstFileWide(wszSearch, &wfd)) != INVALID_HANDLE_VALUE)
+      {
+        do
+        {
+          //Is backup format
+          for (wpName=wfd.cFileName + nNameLen + 1; *wpName; ++wpName)
+          {
+            if (!xstrcmpiW(wpName, L".tmp"))
+            {
+              if (!StackInsertBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)NULL, (stack **)&lpBackupFile, sizeof(BACKUPFILE)))
+                xprintfW(lpBackupFile->wszFile, L"%s\\%s", wszDir, wfd.cFileName);
+              break;
+            }
+            if (*wpName < L'0' || *wpName > L'9')
+              break;
+          }
+        }
+        while (FindNextFileWide(hSearch, &wfd));
+
+        FindClose(hSearch);
+      }
+      if (hBackupStack.first)
+      {
+
+      }
+      StackClear((stack **)&hBackupStack.first, (stack **)&hBackupStack.last);
     }
   }
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
@@ -412,6 +500,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveDirCheck;
   static HWND hWndSaveDir;
   static HWND hWndSaveDirBrowse;
+  static HWND hWndSessionsSilentExit;
+  static HWND hWndSessionsSaveFile;
   static HWND hWndTmpDelete;
   static HWND hWndTmpToBin;
   static HWND hWndTmpRecover;
@@ -425,7 +515,9 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndUTF32BE;
   static DWORD dwSaveMomentDlg;
   static DWORD dwSaveMethodDlg;
+  static DWORD dwSessionsDlg;
   static DWORD dwTmpFileDlg;
+  static BOOL bSessionsRunning;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -443,6 +535,8 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveDirCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR_CHECK);
     hWndSaveDir=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR);
     hWndSaveDirBrowse=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR_BROWSE);
+    hWndSessionsSilentExit=GetDlgItem(hDlg, IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK);
+    hWndSessionsSaveFile=GetDlgItem(hDlg, IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK);
     hWndTmpDelete=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPDELETE_CHECK);
     hWndTmpToBin=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPTOBIN_CHECK);
     hWndTmpRecover=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPRECOVER_CHECK);
@@ -462,14 +556,17 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEFOCUS_CHECK, GetLangStringW(wLangModule, STRID_SAVEFOCUS));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEFRAME_CHECK, GetLangStringW(wLangModule, STRID_SAVEFRAME));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_METHOD_GROUP, GetLangStringW(wLangModule, STRID_SAVEMETHOD));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPFILE_GROUP, GetLangStringW(wLangModule, STRID_TMPFILE));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPDELETE_CHECK, GetLangStringW(wLangModule, STRID_TMPDELETE));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPTOBIN_CHECK, GetLangStringW(wLangModule, STRID_TMPTOBIN));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPRECOVER_CHECK, GetLangStringW(wLangModule, STRID_TMPRECOVER));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVESIMPLE_CHECK, GetLangStringW(wLangModule, STRID_SAVESIMPLE));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVENEAR_CHECK, GetLangStringW(wLangModule, STRID_SAVENEAR));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_CHECK, GetLangStringW(wLangModule, STRID_SAVEDIR));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_NOTE, GetLangStringW(wLangModule, STRID_SAVEDIRVARS));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_GROUP, GetLangStringW(wLangModule, STRID_SESSIONS_GROUP));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK, GetLangStringW(wLangModule, STRID_SESSIONS_SILENTEXIT));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK, GetLangStringW(wLangModule, STRID_SESSIONS_SAVEFILE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPFILE_GROUP, GetLangStringW(wLangModule, STRID_TMPFILE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPDELETE_CHECK, GetLangStringW(wLangModule, STRID_TMPDELETE));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPTOBIN_CHECK, GetLangStringW(wLangModule, STRID_TMPTOBIN));
+    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPRECOVER_CHECK, GetLangStringW(wLangModule, STRID_TMPRECOVER));
     SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_GROUP, GetLangStringW(wLangModule, STRID_SAVENOBOM));
     SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_FORCE_RADIO, GetLangStringW(wLangModule, STRID_FORCENOBOM));
     SetDlgItemTextWide(hDlg, IDC_SAVENOBOM_DLGUNCHECK_RADIO, GetLangStringW(wLangModule, STRID_DLGUNCHECK));
@@ -496,6 +593,20 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (dwTmpFileDlg & REMC_TOBIN) SendMessage(hWndTmpToBin, BM_SETCHECK, BST_CHECKED, 0);
     if (dwTmpFileDlg & REMC_RECOVER) SendMessage(hWndTmpRecover, BM_SETCHECK, BST_CHECKED, 0);
 
+    dwSessionsDlg=dwSessions;
+    if (dwSessionsDlg & SES_SILENTEXIT) SendMessage(hWndSessionsSilentExit, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwSessionsDlg & SES_SAVEFILE) SendMessage(hWndSessionsSaveFile, BM_SETCHECK, BST_CHECKED, 0);
+
+    //Is Sessions plugin running
+    {
+      PLUGINFUNCTION *pf;
+
+      if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0))
+        bSessionsRunning=pf->bRunning;
+      else
+        bSessionsRunning=FALSE;
+    }
+
     SendMessage(hWndSaveDir, EM_LIMITTEXT, MAX_PATH, 0);
     SetWindowTextWide(hWndSaveDir, wszSaveDir);
 
@@ -518,24 +629,26 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   }
   else if (uMsg == WM_COMMAND)
   {
-    DWORD dwState;
+    WORD wCommand=LOWORD(wParam);
+    DWORD dwSaveMethodNew;
+    DWORD dwSessionsNew;
 
     //Save moment
-    if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEINTERVAL_CHECK)
+    if (wCommand == IDC_AUTOSAVE_SAVEINTERVAL_CHECK)
     {
       if (SendMessage(hWndSaveIntervalCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveMomentDlg|=SMOM_TIME;
       else
         dwSaveMomentDlg&=~SMOM_TIME;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEFOCUS_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_SAVEFOCUS_CHECK)
     {
       if (SendMessage(hWndSaveFocusCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveMomentDlg|=SMOM_FOCUS;
       else
         dwSaveMomentDlg&=~SMOM_FOCUS;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEFRAME_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_SAVEFRAME_CHECK)
     {
       if (SendMessage(hWndSaveFrameCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveMomentDlg|=SMOM_FRAME;
@@ -544,49 +657,62 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
 
     //Save method
-    dwState=dwSaveMethodDlg;
-    if (LOWORD(wParam) == IDC_AUTOSAVE_SAVESIMPLE_CHECK)
+    dwSaveMethodNew=dwSaveMethodDlg;
+    if (wCommand == IDC_AUTOSAVE_SAVESIMPLE_CHECK)
     {
       if (SendMessage(hWndSaveSimpleCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        dwState|=SMET_SIMPLE;
+        dwSaveMethodNew|=SMET_SIMPLE;
       else
-        dwState&=~SMET_SIMPLE;
+        dwSaveMethodNew&=~SMET_SIMPLE;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVENEAR_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_SAVENEAR_CHECK)
     {
       if (SendMessage(hWndSaveNearCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        dwState|=SMET_NEAR;
+        dwSaveMethodNew|=SMET_NEAR;
       else
-        dwState&=~SMET_NEAR;
+        dwSaveMethodNew&=~SMET_NEAR;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEDIR_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_SAVEDIR_CHECK)
     {
       if (SendMessage(hWndSaveDirCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        dwState|=SMET_DIR;
+        dwSaveMethodNew|=SMET_DIR;
       else
-        dwState&=~SMET_DIR;
+        dwSaveMethodNew&=~SMET_DIR;
     }
-    if (!dwState)
-      SendMessage(GetDlgItem(hDlg, LOWORD(wParam)), BM_SETCHECK, BST_CHECKED, 0);
-    else
-      dwSaveMethodDlg=dwState;
+
+    //Sessions plugin
+    dwSessionsNew=dwSessionsDlg;
+    if (wCommand == IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK)
+    {
+      if (SendMessage(hWndSessionsSilentExit, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwSessionsNew|=SES_SILENTEXIT;
+      else
+        dwSessionsNew&=~SES_SILENTEXIT;
+    }
+    else if (wCommand == IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK)
+    {
+      if (SendMessage(hWndSessionsSaveFile, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwSessionsNew|=SES_SAVEFILE;
+      else
+        dwSessionsNew&=~SES_SAVEFILE;
+    }
 
     //.tmp file
-    if (LOWORD(wParam) == IDC_AUTOSAVE_TMPDELETE_CHECK)
+    if (wCommand == IDC_AUTOSAVE_TMPDELETE_CHECK)
     {
       if (SendMessage(hWndTmpDelete, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwTmpFileDlg|=REMC_DELETE;
       else
         dwTmpFileDlg&=~REMC_DELETE;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_TMPTOBIN_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_TMPTOBIN_CHECK)
     {
       if (SendMessage(hWndTmpToBin, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwTmpFileDlg|=REMC_TOBIN;
       else
         dwTmpFileDlg&=~REMC_TOBIN;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_TMPRECOVER_CHECK)
+    else if (wCommand == IDC_AUTOSAVE_TMPRECOVER_CHECK)
     {
       if (SendMessage(hWndTmpRecover, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwTmpFileDlg|=REMC_RECOVER;
@@ -594,39 +720,36 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         dwTmpFileDlg&=~REMC_RECOVER;
     }
 
-    //Enable windows
-    if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEINTERVAL_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_SAVEFOCUS_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_SAVEFRAME_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_SAVESIMPLE_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_SAVENEAR_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_SAVEDIR_CHECK ||
-        LOWORD(wParam) == IDC_AUTOSAVE_TMPDELETE_CHECK)
+    if (!dwSaveMethodNew && !(dwSessionsNew & SES_SAVEFILE))
+      SendMessage(GetDlgItem(hDlg, wCommand), BM_SETCHECK, BST_CHECKED, 0);
+    else
     {
-      if (!dwSaveMomentDlg)
-      {
-        EnableWindow(hWndSaveSimpleCheck, FALSE);
-        EnableWindow(hWndSaveNearCheck, FALSE);
-        EnableWindow(hWndSaveDirCheck, FALSE);
-        EnableWindow(hWndSaveDir, FALSE);
-        EnableWindow(hWndSaveDirBrowse, FALSE);
-        EnableWindow(hWndTmpDelete, FALSE);
-        EnableWindow(hWndTmpToBin, FALSE);
-        EnableWindow(hWndTmpRecover, FALSE);
-      }
-      else
-      {
-        EnableWindow(hWndSaveSimpleCheck, TRUE);
-        EnableWindow(hWndSaveNearCheck, TRUE);
-        EnableWindow(hWndSaveDirCheck, TRUE);
-        EnableWindow(hWndSaveDir, (dwSaveMethodDlg & SMET_DIR));
-        EnableWindow(hWndSaveDirBrowse, (dwSaveMethodDlg & SMET_DIR));
-        EnableWindow(hWndTmpDelete, (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)));
-        EnableWindow(hWndTmpToBin, (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
-        EnableWindow(hWndTmpRecover, (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
-      }
+      dwSaveMethodDlg=dwSaveMethodNew;
+      dwSessionsDlg=dwSessionsNew;
     }
-    else if (LOWORD(wParam) == IDC_AUTOSAVE_SAVEDIR_BROWSE)
+
+    //Enable windows
+    if (wCommand == IDC_AUTOSAVE_SAVEINTERVAL_CHECK ||
+        wCommand == IDC_AUTOSAVE_SAVEFOCUS_CHECK ||
+        wCommand == IDC_AUTOSAVE_SAVEFRAME_CHECK ||
+        wCommand == IDC_AUTOSAVE_SAVESIMPLE_CHECK ||
+        wCommand == IDC_AUTOSAVE_SAVENEAR_CHECK ||
+        wCommand == IDC_AUTOSAVE_SAVEDIR_CHECK ||
+        wCommand == IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK ||
+        wCommand == IDC_AUTOSAVE_TMPDELETE_CHECK)
+    {
+      EnableWindow(hWndSaveSimpleCheck, dwSaveMomentDlg);
+      EnableWindow(hWndSaveNearCheck, dwSaveMomentDlg);
+      EnableWindow(hWndSaveDirCheck, dwSaveMomentDlg || (dwSessionsDlg & SES_SILENTEXIT));
+      EnableWindow(hWndSaveDir, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)) || (dwSessionsDlg & SES_SILENTEXIT));
+      EnableWindow(hWndSaveDirBrowse, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)) || (dwSessionsDlg & SES_SILENTEXIT));
+      EnableWindow(hWndSessionsSilentExit, (dwSaveMethodDlg & SMET_DIR) && bSessionsRunning);
+      EnableWindow(hWndSessionsSaveFile, dwSaveMomentDlg && bSessionsRunning);
+      EnableWindow(hWndTmpDelete, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)));
+      EnableWindow(hWndTmpToBin, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
+      EnableWindow(hWndTmpRecover, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
+    }
+    else if (wCommand == IDC_AUTOSAVE_SAVEDIR_BROWSE)
     {
       BROWSEINFOW bi;
       LPITEMIDLIST pIdList;
@@ -656,11 +779,12 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDOK)
+    else if (wCommand == IDOK)
     {
       dwSaveMoment=dwSaveMomentDlg;
       dwSaveMethod=dwSaveMethodDlg;
       dwTmpFile=dwTmpFileDlg;
+      dwSessions=dwSessionsDlg;
       dwSaveInterval=GetDlgItemInt(hDlg, IDC_AUTOSAVE_SAVEINTERVAL, NULL, FALSE);
 
       GetWindowTextWide(hWndSaveDir, wszSaveDir, MAX_PATH);
@@ -701,7 +825,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDCANCEL)
+    else if (wCommand == IDCANCEL)
     {
       EndDialog(hDlg, 0);
       return TRUE;
@@ -743,35 +867,64 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 
 void DoAutoSave(FRAMEDATA *lpFrame, int nSaveMoment)
 {
-  if (!lpFrame) lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, 0);
+  static BOOL bProcessing=FALSE;
 
-  if (nMDI == WMD_SDI || nSaveMoment == SMOM_FRAME)
+  if (!bProcessing)
   {
-    MakeBackupFile(lpFrame);
-  }
-  else if (nMDI == WMD_PMDI || nMDI == WMD_MDI)
-  {
-    FRAMEDATA *lpFrameInit=lpFrame;
-    FRAMEDATA *lpFrameCount=lpFrameInit;
+    bProcessing=TRUE;
 
-    while (lpFrameCount)
+    if (dwSaveMethod & (SMET_SIMPLE|SMET_NEAR|SMET_DIR))
     {
-      if (IsBackupNeeded(lpFrameCount))
-      {
-        if (nMDI == WMD_PMDI)
-          SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOUPDATEORDER, (LPARAM)lpFrameCount);
+      if (!lpFrame) lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, 0);
 
-        if (!MakeBackupFile(lpFrameCount))
-          break;
+      if (nMDI == WMD_SDI || nSaveMoment == SMOM_FRAME)
+      {
+        MakeBackupFile(lpFrame);
       }
-
-      if (lpFrameInit == (lpFrameCount=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_NEXT, (LPARAM)lpFrameCount)))
+      else if (nMDI == WMD_PMDI || nMDI == WMD_MDI)
       {
-        if (nMDI == WMD_PMDI)
-          SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOUPDATEORDER, (LPARAM)lpFrameInit);
-        break;
+        FRAMEDATA *lpFrameInit=lpFrame;
+        FRAMEDATA *lpFrameCount=lpFrameInit;
+
+        while (lpFrameCount)
+        {
+          if (IsBackupNeeded(lpFrameCount))
+          {
+            if (nMDI == WMD_PMDI)
+              SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOUPDATEORDER, (LPARAM)lpFrameCount);
+
+            if (!MakeBackupFile(lpFrameCount))
+              break;
+          }
+
+          if (lpFrameInit == (lpFrameCount=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_NEXT, (LPARAM)lpFrameCount)))
+          {
+            if (nMDI == WMD_PMDI)
+              SendMessage(hMainWnd, AKD_FRAMEACTIVATE, FWA_NOUPDATEORDER, (LPARAM)lpFrameInit);
+            break;
+          }
+        }
       }
     }
+    if (dwSessions & SES_SAVEFILE)
+    {
+      PLUGINFUNCTION *pfSessions;
+      PLUGINCALLSENDW pcs;
+      DLLEXTSESSIONSSAVE dess;
+
+      if ((pfSessions=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0)) && pfSessions->bRunning)
+      {
+        dess.dwStructSize=sizeof(DLLEXTSESSIONSSAVE);
+        dess.nAction=DLLA_SESSIONS_SAVE;
+        dess.wpSession=L"AutoSave";
+
+        pcs.pFunction=L"Sessions::Main";
+        pcs.lParam=(LPARAM)&dess;
+        pcs.dwSupport=PDS_STRWIDE;
+        SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+      }
+    }
+    bProcessing=FALSE;
   }
 }
 
@@ -803,58 +956,51 @@ BOOL IsBackupNeeded(FRAMEDATA *lpFrame)
 
 BOOL MakeBackupFile(FRAMEDATA *lpFrame)
 {
-  static BOOL bProcessing=FALSE;
   SAVEDOCUMENTW sd;
   wchar_t wszSaveFile[MAX_PATH];
   BOOL bResult=TRUE;
 
-  if (!bProcessing)
+  if (lpFrame->ei.bModified)
   {
-    bProcessing=TRUE;
-
-    if (lpFrame->ei.bModified)
+    if (dwSaveMethod & SMET_SIMPLE)
     {
-      if (dwSaveMethod & SMET_SIMPLE)
+      if (*lpFrame->ei.wszFile)
       {
-        if (*lpFrame->ei.wszFile)
-        {
-          xstrcpynW(wszSaveFile, lpFrame->ei.wszFile, MAX_PATH);
-          sd.pFile=wszSaveFile;
-          sd.nCodePage=lpFrame->ei.nCodePage;
-          sd.bBOM=lpFrame->ei.bBOM;
-          sd.dwFlags=SD_UPDATE;
-          if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
-            bResult=FALSE;
-        }
-      }
-      if (dwSaveMethod & SMET_NEAR)
-      {
-        if (*lpFrame->ei.wszFile)
-        {
-          xprintfW(wszSaveFile, L"%s.%Id.tmp", lpFrame->ei.wszFile, lpFrame->ei.hDocEdit);
-          sd.pFile=wszSaveFile;
-          sd.nCodePage=lpFrame->ei.nCodePage;
-          sd.bBOM=lpFrame->ei.bBOM;
-          sd.dwFlags=0;
-          if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
-            bResult=FALSE;
-        }
-      }
-      if (dwSaveMethod & SMET_DIR)
-      {
-        if (*wszSaveDirExp)
-        {
-          xprintfW(wszSaveFile, L"%s\\%s.%Id.tmp", wszSaveDirExp, GetFileName(lpFrame->ei.wszFile, -1), lpFrame->ei.hDocEdit);
-          sd.pFile=wszSaveFile;
-          sd.nCodePage=lpFrame->ei.nCodePage;
-          sd.bBOM=lpFrame->ei.bBOM;
-          sd.dwFlags=0;
-          if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
-            bResult=FALSE;
-        }
+        xstrcpynW(wszSaveFile, lpFrame->ei.wszFile, MAX_PATH);
+        sd.pFile=wszSaveFile;
+        sd.nCodePage=lpFrame->ei.nCodePage;
+        sd.bBOM=lpFrame->ei.bBOM;
+        sd.dwFlags=SD_UPDATE;
+        if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
+          bResult=FALSE;
       }
     }
-    bProcessing=FALSE;
+    if (dwSaveMethod & SMET_NEAR)
+    {
+      if (*lpFrame->ei.wszFile)
+      {
+        xprintfW(wszSaveFile, L"%s.%Id.tmp", lpFrame->ei.wszFile, lpFrame->ei.hDocEdit);
+        sd.pFile=wszSaveFile;
+        sd.nCodePage=lpFrame->ei.nCodePage;
+        sd.bBOM=lpFrame->ei.bBOM;
+        sd.dwFlags=0;
+        if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
+          bResult=FALSE;
+      }
+    }
+    if (dwSaveMethod & SMET_DIR)
+    {
+      if (*wszSaveDirExp)
+      {
+        xprintfW(wszSaveFile, L"%s\\%s.%Id.tmp", wszSaveDirExp, GetFileName(lpFrame->ei.wszFile, -1), lpFrame->ei.hDocEdit);
+        sd.pFile=wszSaveFile;
+        sd.nCodePage=lpFrame->ei.nCodePage;
+        sd.bBOM=lpFrame->ei.bBOM;
+        sd.dwFlags=0;
+        if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
+          bResult=FALSE;
+      }
+    }
   }
   return bResult;
 }
@@ -1008,6 +1154,24 @@ const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen)
   return wpFile;
 }
 
+int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax)
+{
+  const wchar_t *wpCount;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; (INT_PTR)wpCount >= (INT_PTR)wpFile; --wpCount)
+  {
+    if (*wpCount == L'\\')
+    {
+      --wpCount;
+      break;
+    }
+  }
+  ++wpCount;
+  return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
+}
+
 
 //// Options
 
@@ -1034,6 +1198,7 @@ void ReadOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, MAX_PATH * sizeof(wchar_t));
+      WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
     }
     if (dwFlags & OF_SAVENOBOM)
@@ -1057,6 +1222,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, (lstrlenW(wszSaveDir) + 1) * sizeof(wchar_t));
+      WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
     }
     if (dwFlags & OF_SAVENOBOM)
@@ -1100,6 +1266,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043A\x043E\x043F\x0438\x044E\x0020\x0432\x0020\x0434\x0438\x0440\x0435\x043A\x0442\x043E\x0440\x0438\x0438\x003A";
     if (nStringID == STRID_SAVEDIRVARS)
       return L"\x0025\x0061\x0020\x002D\x0020\x0434\x0438\x0440\x0435\x043A\x0442\x043E\x0440\x0438\x044F\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430";
+    if (nStringID == STRID_SESSIONS_GROUP)
+      return L"Sessions \x043F\x043B\x0430\x0433\x0438\x043D (AutoSave.session)";
+    if (nStringID == STRID_SESSIONS_SILENTEXIT)
+      return L"\x041C\x043E\x043B\x0447\x0430\x0020\x0432\x044B\x0445\x043E\x0434\x0438\x0442\x044C\x002F\x0432\x043E\x0441\x0441\x0442\x0430\x043D\x0430\x0432\x043B\x0438\x0432\x0430\x0442\x044C";
+    if (nStringID == STRID_SESSIONS_SAVEFILE)
+      return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x0444\x0430\x0439\x043B\x0020\x0441\x0435\x0441\x0441\x0438\x0438";
     if (nStringID == STRID_TMPFILE)
       return L"\x0423\x0434\x0430\x043B\x0435\x043D\x0438\x0435\x002F\x0412\x043E\x0441\x0441\x0442\x0430\x043D\x043E\x0432\x043B\x0435\x043D\x0438\x0435\x0020\x002E\x0074\x006D\x0070\x0020\x0444\x0430\x0439\x043B\x0430";
     if (nStringID == STRID_TMPDELETE)
@@ -1143,6 +1315,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Save a copy in directory:";
     if (nStringID == STRID_SAVEDIRVARS)
       return L"%a - AkelPad directory";
+    if (nStringID == STRID_SESSIONS_GROUP)
+      return L"Sessions plugin (AutoSave.session)";
+    if (nStringID == STRID_SESSIONS_SILENTEXIT)
+      return L"Silent exit/restore";
+    if (nStringID == STRID_SESSIONS_SAVEFILE)
+      return L"Save session file";
     if (nStringID == STRID_TMPFILE)
       return L"Delete/Restore .tmp file";
     if (nStringID == STRID_TMPDELETE)
