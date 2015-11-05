@@ -3214,8 +3214,11 @@ int PatStructExec(PATEXEC *pe)
       pe->lpREGroupStack->wpRange=pe->wpRange;
       pe->lpREGroupStack->wpMaxRange=pe->wpMaxRange;
       #ifdef __AKELEDIT_H__
+      if (!pe->wpStr)
+      {
         pe->lpREGroupStack->ciRange=pe->ciRange;
         pe->lpREGroupStack->ciMaxRange=pe->ciMaxRange;
+      }
       #endif
 
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
