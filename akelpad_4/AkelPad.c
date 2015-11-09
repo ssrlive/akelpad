@@ -2141,7 +2141,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           if (*wpWorkDir) SetCurrentDirectoryWide(wpWorkDir);
-          nResult=OpenDocument((HWND)wParam, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
+          nResult=OpenDocument((HWND)wParam, od->hDoc, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
           if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
         }
         API_FreeWide(wpFile);
@@ -2160,7 +2160,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           xprintfW(wpFile, L"%S", (char *)sd->pFile);
         else
           xprintfW(wpFile, L"%s", (wchar_t *)sd->pFile);
-        nResult=SaveDocument((HWND)wParam, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
+        nResult=SaveDocument((HWND)wParam, sd->hDoc, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
 
         API_FreeWide(wpFile);
         return nResult;
@@ -4409,7 +4409,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         if (*wpWorkDir) SetCurrentDirectoryWide(wpWorkDir);
-        nResult=OpenDocument(odpA->hWnd, wpFile, odpA->dwFlags, odpA->nCodePage, odpA->bBOM);
+        nResult=OpenDocument(odpA->hWnd, odpA->hDoc, wpFile, odpA->dwFlags, odpA->nCodePage, odpA->bBOM);
         if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
       }
       API_FreeWide(wpFile);
@@ -4705,31 +4705,31 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_FILE_SAVEAS_ANSI:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, nAnsiCodePage, FALSE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, nAnsiCodePage, FALSE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_OEM:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, nOemCodePage, FALSE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, nOemCodePage, FALSE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_KOIR:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_KOI8_R, FALSE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, CP_KOI8_R, FALSE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_UTF16LE:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16LE, TRUE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16LE, TRUE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_UTF16BE:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16BE, TRUE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16BE, TRUE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_UTF8:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
       }
       case IDM_FILE_SAVEAS_UTF8_NOBOM:
       {
-        return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
+        return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
       }
       case IDM_FILE_CODEPAGEMENU:
       {
@@ -5081,7 +5081,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
 
-          if (OpenDocument(NULL, lpFrameCurrent->wszFile, OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM) == EOD_SUCCESS)
+          if (OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM) == EOD_SUCCESS)
           {
             lpFrameClone=lpFrameCurrent;
             aes.dwFlags|=AESELT_LOCKSCROLL|AESELT_INDEXUPDATE;
@@ -5248,7 +5248,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
                     if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
                     {
-                      OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+                      OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
                     }
                     else
                     {
@@ -5590,7 +5590,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpRecentFile=RecentFilesFindByIndex(wCommand - IDM_RECENT_FILES - 1))
           {
             xstrcpynW(wpFile, lpRecentFile->wszFile, MAX_PATH);
-            nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE, 0, FALSE);
+            nOpen=OpenDocument(NULL, NULL, wpFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE, 0, FALSE);
           }
           API_FreeWide(wpFile);
         }
@@ -5622,7 +5622,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (wCommand >= IDM_POPUP_SAVEAS && wCommand < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
-      return SaveDocument(NULL, lpFrameCurrent->wszFile, lpCodepageList[wCommand - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
+      return SaveDocument(NULL, NULL, lpFrameCurrent->wszFile, lpCodepageList[wCommand - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
     }
   }
   else if (uMsg == WM_NOTIFY)

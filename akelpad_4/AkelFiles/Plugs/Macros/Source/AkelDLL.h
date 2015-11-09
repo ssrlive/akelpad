@@ -1319,6 +1319,7 @@ typedef struct {
   DWORD dwFlags;            //Open flags. See OD_* defines.
   int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
   BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
+  AEHDOC hDoc;              //Edit document. Can be NULL.
 } OPENDOCUMENTA;
 
 typedef struct {
@@ -1327,19 +1328,22 @@ typedef struct {
   DWORD dwFlags;            //Open flags. See OD_* defines.
   int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
   BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
+  AEHDOC hDoc;              //Edit document. Can be NULL.
 } OPENDOCUMENTW;
 
 typedef struct {
-  HWND hWnd;                 //Window to fill in, NULL for current edit window.
-  DWORD dwFlags;             //Open flags. See OD_* defines.
-  int nCodePage;             //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
-  BOOL bBOM;                 //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
-  char szFile[MAX_PATH];     //File to open.
-  char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set.
+  HWND hWnd;                    //Edit window to fill in, NULL for current edit window.
+  AEHDOC hDoc;                  //Edit document. Can be NULL.
+  DWORD dwFlags;                //Open flags. See OD_* defines.
+  int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
+  BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
+  char szFile[MAX_PATH];        //File to open.
+  char szWorkDir[MAX_PATH];     //Set working directory before open, if (!*szWorkDir) then don't set.
 } OPENDOCUMENTPOSTA;
 
 typedef struct {
-  HWND hWnd;                    //Window to fill in, NULL for current edit window.
+  HWND hWnd;                    //Edit window to fill in, NULL for current edit window.
+  AEHDOC hDoc;                  //Edit document. Can be NULL.
   DWORD dwFlags;                //Open flags. See OD_* defines.
   int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECTCODEPAGE).
   BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECTBOM).
@@ -1352,6 +1356,7 @@ typedef struct {
   int nCodePage;         //File code page.
   BOOL bBOM;             //File BOM.
   DWORD dwFlags;         //See SD_* defines.
+  AEHDOC hDoc;           //Edit document. Can be NULL.
 } SAVEDOCUMENTA;
 
 typedef struct {
@@ -1359,6 +1364,7 @@ typedef struct {
   int nCodePage;         //File code page.
   BOOL bBOM;             //File BOM.
   DWORD dwFlags;         //See SD_* defines.
+  AEHDOC hDoc;           //Edit document. Can be NULL.
 } SAVEDOCUMENTW;
 
 typedef struct {
@@ -2690,7 +2696,7 @@ _______________________
 
 Notification message, sends to the main procedure before document opened.
 
-(HWND)wParam            == edit window.
+(FRAMEDATA *)wParam     == pointer to a FRAMEDATA structure.
 (NOPENDOCUMENT *)lParam == pointer to a NOPENDOCUMENT structure.
 
 Return Value
@@ -2702,8 +2708,8 @@ ________________________
 
 Notification message, sends to the main procedure after document opened.
 
-(HWND)wParam == edit window.
-(int)lParam  == see EOD_* defines.
+(FRAMEDATA *)wParam == pointer to a FRAMEDATA structure.
+(int)lParam         == see EOD_* defines.
 
 Return Value
  Zero.
@@ -2714,7 +2720,7 @@ _______________________
 
 Notification message, sends to the main procedure before document saved.
 
-(HWND)wParam            == edit window.
+(FRAMEDATA *)wParam     == pointer to a FRAMEDATA structure.
 (NSAVEDOCUMENT *)lParam == pointer to a NSAVEDOCUMENT structure.
 
 Return Value
@@ -2726,8 +2732,8 @@ ________________________
 
 Notification message, sends to the main procedure after document saved.
 
-(HWND)wParam == edit window.
-(int)lParam  == see ESD_* defines.
+(FRAMEDATA *)wParam == pointer to a FRAMEDATA structure.
+(int)lParam         == see ESD_* defines.
 
 Return Value
  Zero.
@@ -3514,6 +3520,7 @@ Example (Unicode):
   od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
+  od.hDoc=NULL;
   SendMessage(pd->hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
 
@@ -3535,6 +3542,7 @@ Example (Unicode):
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
  sd.dwFlags=SD_UPDATE;
+ sd.hDoc=NULL;
  SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
 
 
@@ -4658,6 +4666,7 @@ Example (Unicode):
    pmsd->sd.nCodePage=65001;
    pmsd->sd.bBOM=TRUE;
    pmsd->sd.dwFlags=SD_UPDATE;
+   pmsd->sd.hDoc=NULL;
 
    //Post message
    pmsd->pm.hWnd=pd->hMainWnd;
@@ -5641,6 +5650,7 @@ Example (Ansi):
   odp.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   odp.nCodePage=0;
   odp.bBOM=0;
+  odp.hDoc=NULL;
 
   cds.dwData=CD_OPENDOCUMENTA;
   cds.cbData=sizeof(OPENDOCUMENTPOSTA);

@@ -421,7 +421,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 1, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="Hotkeys";
 }
 
@@ -2084,6 +2084,7 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey, BOOL bGlobal)
           od.pWorkDir=NULL;
           od.nCodePage=nCodePage;
           od.bBOM=bBOM;
+          od.hDoc=NULL;
           SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
         }
         else if (lpElement->dwAction == EXTACT_SAVEFILE)
@@ -2101,6 +2102,7 @@ int CallHotkey(HSTACK *hStack, WORD wHotkey, BOOL bGlobal)
             sd.nCodePage=nCodePage;
             sd.bBOM=bBOM;
             sd.dwFlags=SD_UPDATE;
+            sd.hDoc=NULL;
             SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
           }
         }

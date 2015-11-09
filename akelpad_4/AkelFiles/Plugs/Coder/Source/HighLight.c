@@ -647,13 +647,10 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
   if (uMsg == AKDN_OPENDOCUMENT_START)
   {
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
-    EDITINFO ei;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
-    if (SendMessage(hMainWnd, AKD_GETEDITINFO, wParam, (LPARAM)&ei))
-    {
-      if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nod->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(ei.wszFile, -1)))
-        bUpdateTheme=TRUE;
-    }
+    if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nod->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(lpFrame->ei.wszFile, -1)))
+      bUpdateTheme=TRUE;
 
     //WM_PAINT can be send in AEM_STREAMIN of OpenDocument in Edit.c, so fill wszOpenFile.
     xstrcpynW(wszOpenFile, nod->wszFile, MAX_PATH);
@@ -661,15 +658,12 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
   {
     NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
-    EDITINFO ei;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
     if (nsd->dwFlags & SD_UPDATE)
     {
-      if (SendMessage(hMainWnd, AKD_GETEDITINFO, wParam, (LPARAM)&ei))
-      {
-        if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nsd->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(ei.wszFile, -1)))
-          bUpdateTheme=TRUE;
-      }
+      if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nsd->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(lpFrame->ei.wszFile, -1)))
+        bUpdateTheme=TRUE;
     }
   }
   else if (uMsg == AKDN_OPENDOCUMENT_FINISH)
@@ -678,8 +672,10 @@ BOOL CALLBACK HighLightParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
   }
   else if (uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
     if (bUpdateTheme)
-      UpdateEditAndClones((HWND)wParam, UE_DRAWRECT);
+      UpdateEditAndClones(lpFrame->ei.hWndEdit, UE_DRAWRECT);
   }
   else if (uMsg == AKDN_EDIT_ONCLOSE)
   {

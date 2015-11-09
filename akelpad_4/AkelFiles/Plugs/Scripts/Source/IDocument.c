@@ -1305,6 +1305,7 @@ HRESULT STDMETHODCALLTYPE Document_OpenFile(IDocument *this, BSTR wpFile, DWORD 
   od.dwFlags=dwFlags;
   od.nCodePage=nCodePage;
   od.bBOM=bBOM;
+  od.hDoc=NULL;
   *nResult=(int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
   return NOERROR;
@@ -1396,9 +1397,10 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags, VARIANT vtDoc, int *nResult)
 {
   HWND hWnd=(HWND)GetVariantInt(&vtWnd, NULL);
+  AEHDOC hDoc=(AEHDOC)GetVariantInt(&vtDoc, NULL);
   SAVEDOCUMENTW sd;
   EDITINFO ei;
 
@@ -1412,6 +1414,7 @@ HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR
     sd.nCodePage=nCodePage;
     sd.bBOM=bBOM;
     sd.dwFlags=dwFlags;
+    sd.hDoc=NULL;
     *nResult=(int)SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)hWnd, (LPARAM)&sd);
   }
   return NOERROR;

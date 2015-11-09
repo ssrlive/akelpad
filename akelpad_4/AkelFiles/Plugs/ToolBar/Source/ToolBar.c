@@ -389,7 +389,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 4, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="ToolBar";
 }
 
@@ -2256,6 +2256,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
         od.pWorkDir=NULL;
         od.nCodePage=nCodePage;
         od.bBOM=bBOM;
+        od.hDoc=NULL;
         SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
       }
       else if (lpElement->dwAction == EXTACT_SAVEFILE)
@@ -2273,6 +2274,7 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
           sd.nCodePage=nCodePage;
           sd.bBOM=bBOM;
           sd.dwFlags=SD_UPDATE;
+          sd.hDoc=NULL;
           SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
         }
       }
