@@ -1224,7 +1224,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             //Document opened in the same window - SDI open command or reopen command in MDI/PMDI.
             if (nMDI == WMD_SDI)
               FreeFolds(lpFoldWindow, FALSE);
-            FillLevelsStack(lpFoldWindow, &lpFoldWindow->pfwd->hLevelStack, hWndEdit, NULL);
+            FillLevelsStack(lpFoldWindow, &lpFoldWindow->pfwd->hLevelStack, lpFrame->ei.hWndEdit, NULL);
             dwLastPostUpdateFlags&=~SAE_RESETFOLD;
           }
           else if (!lpFoldWindow->rcBoard.right)
