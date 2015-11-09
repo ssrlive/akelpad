@@ -1414,7 +1414,7 @@ HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR
     sd.nCodePage=nCodePage;
     sd.bBOM=bBOM;
     sd.dwFlags=dwFlags;
-    sd.hDoc=NULL;
+    sd.hDoc=hDoc;
     *nResult=(int)SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)hWnd, (LPARAM)&sd);
   }
   return NOERROR;

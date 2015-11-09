@@ -314,6 +314,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AKDN_OPENDOCUMENT_START)
   {
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
     if (bInitAutoSave)
     {
@@ -325,10 +326,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       HANDLE hSearch;
       int nNameLen;
       int nDirLen;
-      BOOL bGoodFormat=FALSE;
       STACKBACKUPFILE hBackupStack={0};
       BACKUPFILE *lpBackupFile;
-      FRAMEDATA *lpFrame=NULL;
 
       wpName=GetFileName(nod->wszFile, -1);
       nNameLen=(int)xstrlenW(wpName);
@@ -351,9 +350,6 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 xstrcpynW(lpBackupFile->wszDir, wszDir, MAX_PATH);
                 xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
                 xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wszDir, wfd.cFileName);
-
-                if (!lpFrame)
-                  lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, 0);
                 lpBackupFile->lpFrame=lpFrame;
               }
               break;
