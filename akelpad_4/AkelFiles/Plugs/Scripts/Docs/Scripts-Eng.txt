@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v18.1              ***
+***                 Scripts AkelPad plugin v18.2              ***
 *****************************************************************
 
 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -1360,7 +1360,7 @@ ________________
 
 Save document.
 
-  SaveFile(hHandle, pFile[, nCodePage][, bBOM][, nFlags]);
+  SaveFile(hHandle, pFile[, nCodePage][, bBOM][, nFlags][, hDoc]);
 
 Arguments
   hHandle
@@ -1375,6 +1375,8 @@ Arguments
     0x1  //SD_UPDATE       Update file info in program.
     0x2  //SD_SELECTION    Save only selection.
          //Default is 0x1  (SD_UPDATE).
+  hDoc
+    Document handle. If zero (default), detected automatically.
 
 Return Value
    0  //ESD_SUCCESS        Success.

@@ -68,7 +68,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_OpenFile)(THIS_ BSTR, DWORD, int, BOOL, int *) PURE;
   STDMETHOD_(HRESULT, Document_ReadFile)(THIS_ BSTR, DWORD, int, BOOL, VARIANT, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_WriteFile)(THIS_ VARIANT, BSTR, VARIANT, int, BOOL, DWORD, int *) PURE;
-  STDMETHOD_(HRESULT, Document_SaveFile)(THIS_ VARIANT, BSTR, int, BOOL, DWORD, int *) PURE;
+  STDMETHOD_(HRESULT, Document_SaveFile)(THIS_ VARIANT, BSTR, int, BOOL, DWORD, VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, Document_ScriptSettings)(THIS_ IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_SystemFunction)(THIS_ IDispatch **) PURE;
   STDMETHOD_(HRESULT, Document_MemAlloc)(THIS_ VARIANT, VARIANT *) PURE;
@@ -400,7 +400,7 @@ HRESULT STDMETHODCALLTYPE Document_IsInclude(IDocument *this, BSTR *wpFileName);
 HRESULT STDMETHODCALLTYPE Document_OpenFile(IDocument *this, BSTR wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, int *nResult);
 HRESULT STDMETHODCALLTYPE Document_ReadFile(IDocument *this, BSTR wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, VARIANT vtBytesMax, BSTR *wpText);
 HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BSTR wpContent, VARIANT vtContentLen, int nCodePage, BOOL bBOM, DWORD dwFlags, int *nResult);
-HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags, int *nResult);
+HRESULT STDMETHODCALLTYPE Document_SaveFile(IDocument *this, VARIANT vtWnd, BSTR wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags, VARIANT vtDoc, int *nResult);
 HRESULT STDMETHODCALLTYPE Document_ScriptSettings(IDocument *this, IDispatch **objSet);
 HRESULT STDMETHODCALLTYPE Document_SystemFunction(IDocument *this, IDispatch **objSys);
 HRESULT STDMETHODCALLTYPE Document_MemAlloc(IDocument *this, VARIANT vtSize, VARIANT *vtPointer);

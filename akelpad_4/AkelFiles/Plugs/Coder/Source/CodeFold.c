@@ -1170,11 +1170,12 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   if (uMsg == AKDN_OPENDOCUMENT_START)
   {
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
     FOLDWINDOW *lpFoldWindow;
 
     if ((*nod->dwFlags) & OD_REOPEN)
     {
-      if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, (HWND)wParam, NULL))
+      if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit))
       {
         if (lpFoldWindow->pfwd->lpSyntaxFile && lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.first)
         {
@@ -1188,19 +1189,16 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
   {
     NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
     FOLDWINDOW *lpFoldWindow;
-    EDITINFO ei;
 
     if (nsd->dwFlags & SD_UPDATE)
     {
-      if (SendMessage(hMainWnd, AKD_GETEDITINFO, wParam, (LPARAM)&ei))
+      if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nsd->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(lpFrame->ei.wszFile, -1)))
       {
-        if (StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(nsd->wszFile, -1)) != StackGetSyntaxFileByFile(&hSyntaxFilesStack, GetFileName(ei.wszFile, -1)))
-        {
-          if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, (HWND)wParam, NULL))
-            FreeFolds(lpFoldWindow, FALSE);
-          bResetFold=TRUE;
-        }
+        if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit))
+          FreeFolds(lpFoldWindow, FALSE);
+        bResetFold=TRUE;
       }
     }
   }
@@ -1209,16 +1207,17 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   {
     if (bResetFold)
     {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_CURRENT, 0);
+      FRAMEDATA *lpFrameCurrent=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_CURRENT, 0);
+      FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
       FOLDWINDOW *lpFoldWindow;
       bResetFold=FALSE;
 
-      if (lpFrame->ei.hWndEdit == (HWND)wParam)
+      if (lpFrame == lpFrameCurrent)
       {
         lpLastPostUpdateFrame=lpFrame;
         dwLastPostUpdateFlags|=SAE_RESETFOLD|SAE_RESETLIST;
 
-        if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, (HWND)wParam, NULL))
+        if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit))
         {
           if (lpFoldWindow->pfwd->lpSyntaxFile && lpFoldWindow->pfwd->lpSyntaxFile->hFoldStack.first)
           {
@@ -1236,7 +1235,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         }
         PostMessage(hWndCodeFoldDlg, AKDLL_UPDATE, 0, (LPARAM)lpFrame);
       }
-      else SetActiveEdit((HWND)wParam, hWndCodeFoldList, SAE_RESETFOLD|SAE_NOLIST);
+      else SetActiveEdit(lpFrame->ei.hWndEdit, hWndCodeFoldList, SAE_RESETFOLD|SAE_NOLIST);
     }
   }
   else if (uMsg == AKDN_FRAME_ACTIVATE)
@@ -3749,6 +3748,7 @@ void GoRule(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold)
     od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
     od.nCodePage=0;
     od.bBOM=0;
+    od.hDoc=NULL;
     nOpenResult=(int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
     if (nOpenResult == EOD_SUCCESS || nOpenResult == EOD_WINDOWEXIST)
     {

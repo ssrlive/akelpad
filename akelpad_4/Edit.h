@@ -503,6 +503,7 @@ typedef struct {
 
 typedef struct _FILESTREAMDATA {
   HWND hWnd;
+  AEHDOC hDoc;
   HANDLE hFile;
   int nCodePage;
   DWORD dwMaxCharSize;
@@ -832,13 +833,13 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd);
 BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceWrite);
 BOOL SetOption(LPARAM lParam, void *lpData, int nDataSize, int nType);
 
-int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
+int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wppContent);
 int WriteFileContent(HANDLE hFile, const wchar_t *wpContent, INT_PTR nContentLen, int nCodePage, BOOL bBOM);
-BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
-int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
+BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, AEHDOC hDocEditCtrl, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
+int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir);
@@ -890,7 +891,7 @@ int CodepageListLen(int *lpCodepageList);
 int CodepageListFind(int *lpCodepageList, int nCodePage);
 void CodepageListFree(int **lpCodepageList);
 void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
-int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
+int FilePreview(HWND hWnd, AEHDOC hDoc, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, UINT_PTR dwCharsRequired, int *nCodePage);
 BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR nMinChars, int *nCodePageFrom, int *nCodePageTo);
@@ -919,6 +920,7 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
 BOOL SetDefButton(HWND hWnd, HWND hWndNewDef);
 
+LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);
 void SetSelRE(HWND hWnd, INT_PTR nSelStart, INT_PTR nSelEnd);
@@ -1151,6 +1153,7 @@ void IfComment(const wchar_t *wpText, const wchar_t **wppText);
 BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData);
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
+DWORD IsDocActive(AEHDOC hDoc);
 void UpdateShowHScroll(FRAMEDATA *lpFrame);
 int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);

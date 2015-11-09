@@ -651,7 +651,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 4, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="ContextMenu";
 }
 
@@ -2004,6 +2004,7 @@ LRESULT CALLBACK FavListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
                 od.nCodePage=0;
                 od.bBOM=0;
+                od.hDoc=NULL;
                 SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
               }
             }
@@ -4338,6 +4339,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
         od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
         od.nCodePage=0;
         od.bBOM=0;
+        od.hDoc=NULL;
         SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
       }
     }
@@ -4491,6 +4493,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
           od.pWorkDir=NULL;
           od.nCodePage=nCodePage;
           od.bBOM=bBOM;
+          od.hDoc=NULL;
           SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
         }
         else if (lpElement->dwAction == EXTACT_SAVEFILE)
@@ -4508,6 +4511,7 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
             sd.nCodePage=nCodePage;
             sd.bBOM=bBOM;
             sd.dwFlags=SD_UPDATE;
+            sd.hDoc=NULL;
             SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
           }
         }

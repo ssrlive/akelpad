@@ -530,7 +530,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 4, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="Sessions";
 }
 
@@ -3057,6 +3057,7 @@ BOOL EditSessionFile(const wchar_t *wpSessionName)
   od.dwFlags=OD_ADT_DETECTBOM|OD_ADT_DETECTCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
+  od.hDoc=NULL;
   return !SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 }
 
@@ -3968,6 +3969,7 @@ void OpenItem(SESSIONITEM *si)
     od.dwFlags=OD_ADT_DETECTBOM|((!si->nCodePage || !(dwSaveData & SSD_CODEPAGE))?OD_ADT_DETECTCODEPAGE:0)|(dwSaveData & SSD_SELECTION?OD_NOSCROLL:0);
     od.nCodePage=si->nCodePage;
     od.bBOM=0;
+    od.hDoc=NULL;
     SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
     SendMessage(hMainWnd, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);

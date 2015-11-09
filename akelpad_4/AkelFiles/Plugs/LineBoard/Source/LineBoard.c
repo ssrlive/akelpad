@@ -325,7 +325,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 5, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="LineBoard";
 }
 
@@ -1209,10 +1209,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
     WINDOWBOARD *lpBoard;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
     if (bRememberBookmarks)
     {
-      if (lpBoard=StackGetBoard(&hWindowStack, (HWND)wParam, NULL, GB_READ))
+      if (lpBoard=StackGetBoard(&hWindowStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit, GB_READ))
       {
         if (ResetBookmarksMovedFlag(lpBoard))
           SaveRecentFile(lpBoard);
@@ -1221,7 +1222,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (nLineModificationWidth && (bLineUnsavedEnable || bLineSavedEnable))
     {
-      if (bShowBoard) UpdateEditAndClones((HWND)wParam, UE_FIRSTPIXEL);
+      if (bShowBoard) UpdateEditAndClones(lpFrame->ei.hWndEdit, UE_FIRSTPIXEL);
     }
   }
   else if (uMsg == AKDN_EDIT_ONFINISH)

@@ -275,7 +275,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="Explorer";
 }
 
@@ -2020,6 +2020,7 @@ void OpenDocument(const wchar_t *wpFile)
       pmod->odp.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
       pmod->odp.nCodePage=0;
       pmod->odp.bBOM=0;
+      pmod->odp.hDoc=NULL;
 
       //Post message
       pmod->pm.hWnd=hMainWnd;
@@ -2037,6 +2038,7 @@ void OpenDocument(const wchar_t *wpFile)
   od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
+  od.hDoc=NULL;
   SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 }
 

@@ -4,6 +4,7 @@
 //
 #define IDI_ICON_PLUGIN                        101
 #define IDD_SETTINGS                           1001
+#define IDD_RECOVER                            1002
 #define IDC_AUTOSAVE_TITLE                     1101
 #define IDC_AUTOSAVE_MOMENT_GROUP              1102
 #define IDC_AUTOSAVE_SAVEINTERVAL_CHECK        1103
@@ -34,6 +35,7 @@
 #define IDC_SAVENOBOM_UTF16BE                  1207
 #define IDC_SAVENOBOM_UTF32LE                  1208
 #define IDC_SAVENOBOM_UTF32BE                  1209
+#define IDC_RECOVER_LIST                       2001
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

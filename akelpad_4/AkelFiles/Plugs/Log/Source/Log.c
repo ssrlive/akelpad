@@ -431,7 +431,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 6, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="Log";
 }
 
@@ -1887,9 +1887,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == AKDN_OPENDOCUMENT_START ||
       uMsg == AKDN_SAVEDOCUMENT_START)
   {
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
     if (!bLogOpening)
     {
-      if (hWndEditWatch == (HWND)wParam && (nMDI != WMD_PMDI || hDocEditWatch == (AEHDOC)SendMessage(hWndEditWatch, AEM_GETDOCUMENT, 0, 0)))
+      if (hWndEditWatch == lpFrame->ei.hWndEdit && hDocEditWatch == lpFrame->ei.hDocEdit)
       {
         bDocOpening=TRUE;
       }
@@ -1898,9 +1900,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AKDN_OPENDOCUMENT_FINISH ||
            uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
     if (!bLogOpening)
     {
-      if (hWndEditWatch == (HWND)wParam && (nMDI != WMD_PMDI || hDocEditWatch == (AEHDOC)SendMessage(hWndEditWatch, AEM_GETDOCUMENT, 0, 0)))
+      if (hWndEditWatch == lpFrame->ei.hWndEdit && hDocEditWatch == lpFrame->ei.hDocEdit)
       {
         bDocOpening=FALSE;
         dwCurPointer=(UINT_PTR)-1;
@@ -2954,6 +2958,7 @@ BOOL PatOpenLine(HWND hWnd, const OUTPUTEXEC *oe, const AECHARINDEX *ciChar, AET
             od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
             od.nCodePage=0;
             od.bBOM=0;
+            od.hDoc=NULL;
             SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
             bResult=TRUE;

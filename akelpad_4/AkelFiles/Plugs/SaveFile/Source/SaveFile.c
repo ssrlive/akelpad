@@ -127,7 +127,11 @@
 typedef struct _BACKUPFILE {
   struct _BACKUPFILE *next;
   struct _BACKUPFILE *prev;
+  wchar_t wszName[MAX_PATH];
+  wchar_t wszDir[MAX_PATH];
   wchar_t wszFile[MAX_PATH];
+  wchar_t wszFileBackup[MAX_PATH];
+  FRAMEDATA *lpFrame;
 } BACKUPFILE;
 
 typedef struct {
@@ -149,6 +153,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK SaveFileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
+BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 void DoAutoSave(FRAMEDATA *lpFrame, int nSaveMoment);
 BOOL IsBackupNeeded(FRAMEDATA *lpFrame);
@@ -209,7 +214,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 3, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
   pv->pPluginName="SaveFile";
 }
 
@@ -323,6 +328,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bGoodFormat=FALSE;
       STACKBACKUPFILE hBackupStack={0};
       BACKUPFILE *lpBackupFile;
+      FRAMEDATA *lpFrame=NULL;
 
       wpName=GetFileName(nod->wszFile, -1);
       nNameLen=(int)xstrlenW(wpName);
@@ -340,7 +346,16 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!xstrcmpiW(wpName, L".tmp"))
             {
               if (!StackInsertBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)NULL, (stack **)&lpBackupFile, sizeof(BACKUPFILE)))
-                xprintfW(lpBackupFile->wszFile, L"%s\\%s", wszDir, wfd.cFileName);
+              {
+                xstrcpynW(lpBackupFile->wszName, wpName, MAX_PATH);
+                xstrcpynW(lpBackupFile->wszDir, wszDir, MAX_PATH);
+                xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
+                xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wszDir, wfd.cFileName);
+
+                if (!lpFrame)
+                  lpFrame=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, 0);
+                lpBackupFile->lpFrame=lpFrame;
+              }
               break;
             }
             if (*wpName < L'0' || *wpName > L'9')
@@ -353,7 +368,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (hBackupStack.first)
       {
-
+        DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_RECOVER), hMainWnd, (DLGPROC)RecoverDlgProc);
       }
       StackClear((stack **)&hBackupStack.first, (stack **)&hBackupStack.last);
     }
@@ -361,6 +376,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
   {
     NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
     if (bInitSaveNoBOM && !(dwSaveNoBomSettings & NOBOM_DLGUNCHECK))
     {
@@ -378,19 +394,16 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (nsd->dwFlags & SD_UPDATE)
       {
-        EDITINFO ei;
-
-        if (SendMessage(hMainWnd, AKD_GETEDITINFO, wParam, (LPARAM)&ei))
-        {
-          xstrcpynW(wszFileNameNew, nsd->wszFile, MAX_PATH);
-          xstrcpynW(wszFileNameOld, ei.wszFile, MAX_PATH);
-          bRemoveBackupCheck=TRUE;
-        }
+        xstrcpynW(wszFileNameNew, nsd->wszFile, MAX_PATH);
+        xstrcpynW(wszFileNameOld, lpFrame->ei.wszFile, MAX_PATH);
+        bRemoveBackupCheck=TRUE;
       }
     }
   }
   else if (uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
     if (bInitAutoSave)
     {
       if (bRemoveBackupCheck)
@@ -399,10 +412,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (xstrcmpiW(wszFileNameNew, wszFileNameOld))
           {
-            EDITINFO ei;
-
-            if (SendMessage(hMainWnd, AKD_GETEDITINFO, wParam, (LPARAM)&ei))
-              RemoveBackupFile(wszFileNameOld, ei.hDocEdit, 0);
+            RemoveBackupFile(wszFileNameOld, lpFrame->ei.hDocEdit, 0);
           }
         }
         bRemoveBackupCheck=FALSE;
@@ -860,6 +870,52 @@ int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpDa
   return 0;
 }
 
+BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HICON hPluginIcon;
+  static HWND hWndList;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    //Load plugin icon
+    hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
+
+    hWndList=GetDlgItem(hDlg, IDC_RECOVER_LIST);
+
+    SetWindowTextWide(hDlg, wszPluginTitle);
+    SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
+    SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    WORD wCommand=LOWORD(wParam);
+
+    if (wCommand == IDOK)
+    {
+      SaveOptions(OF_AUTOSAVE|OF_SAVENOBOM);
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+    else if (wCommand == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_CLOSE)
+  {
+    PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+    return TRUE;
+  }
+  else if (uMsg == WM_DESTROY)
+  {
+    //Destroy plugin icon
+    DestroyIcon(hPluginIcon);
+  }
+  return FALSE;
+}
+
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
   DoAutoSave(NULL, SMOM_TIME);
@@ -971,6 +1027,7 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
         sd.nCodePage=lpFrame->ei.nCodePage;
         sd.bBOM=lpFrame->ei.bBOM;
         sd.dwFlags=SD_UPDATE;
+        sd.hDoc=NULL;
         if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
           bResult=FALSE;
       }
@@ -984,6 +1041,7 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
         sd.nCodePage=lpFrame->ei.nCodePage;
         sd.bBOM=lpFrame->ei.bBOM;
         sd.dwFlags=0;
+        sd.hDoc=NULL;
         if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
           bResult=FALSE;
       }
@@ -997,6 +1055,7 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
         sd.nCodePage=lpFrame->ei.nCodePage;
         sd.bBOM=lpFrame->ei.bBOM;
         sd.dwFlags=0;
+        sd.hDoc=NULL;
         if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
           bResult=FALSE;
       }
