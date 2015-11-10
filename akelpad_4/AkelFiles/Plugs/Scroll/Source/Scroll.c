@@ -1375,12 +1375,19 @@ void GetMsgProcCommon(int code, WPARAM wParam, LPARAM lParam)
     {
       HWND hWndPoint;
       POINT ptPos;
+      POINT ptClient;
 
       GetCursorPos(&ptPos);
 
-      if ((hWndPoint=WindowFromPoint(ptPos)))
+      if (hWndPoint=WindowFromPoint(ptPos))
       {
-        if (GetClassNameWide(hWndPoint, wszClassName, MAX_PATH))
+        if (hWndPoint == hMainWnd)
+        {
+          ptClient=ptPos;
+          ScreenToClient(hMainWnd, &ptClient);
+          hWndPoint=ChildWindowFromPoint(hMainWnd, ptClient);
+        }
+        if (hWndPoint && GetClassNameWide(hWndPoint, wszClassName, MAX_PATH))
         {
           if (!xstrcmpiW(wszClassName, L"SysTabControl32"))
           {
