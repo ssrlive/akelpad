@@ -1913,6 +1913,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
+      case AKDN_POSTDOCUMENT_START:
+      {
+        if ((FRAMEDATA *)wParam == lpFrameCurrent)
+        {
+          SendMessage(hMainWnd, AKDN_POSTDOCUMENT_FINISH, wParam, lParam);
+        }
+        return 0;
+      }
 
       //Command line
       case AKD_GETCMDLINEOPTIONS:

@@ -41,6 +41,7 @@
 #define GetFileAttributesWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
+#define ListBox_AddStringWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
@@ -203,6 +204,7 @@ DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
 DWORD dwSessions=0;
 DWORD dwTmpFile=REMC_DELETE|REMC_RECOVER;
+STACKBACKUPFILE hBackupStack={0};
 int nAppActive=TRUE;
 DWORD dwSaveNoBomSettings=NOBOM_UTF8;
 WNDPROC lpOldSaveFileProc;
@@ -322,11 +324,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t wszBackupFile[MAX_PATH];
       wchar_t wszDir[MAX_PATH];
       const wchar_t *wpName;
+      const wchar_t *wpCount;
       WIN32_FIND_DATAW wfd;
       HANDLE hSearch;
       int nNameLen;
       int nDirLen;
-      STACKBACKUPFILE hBackupStack={0};
       BACKUPFILE *lpBackupFile;
 
       wpName=GetFileName(nod->wszFile, -1);
@@ -340,9 +342,9 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         do
         {
           //Is backup format
-          for (wpName=wfd.cFileName + nNameLen + 1; *wpName; ++wpName)
+          for (wpCount=wfd.cFileName + nNameLen + 1; *wpCount; ++wpCount)
           {
-            if (!xstrcmpiW(wpName, L".tmp"))
+            if (!xstrcmpiW(wpCount, L".tmp"))
             {
               if (!StackInsertBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)NULL, (stack **)&lpBackupFile, sizeof(BACKUPFILE)))
               {
@@ -354,7 +356,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               }
               break;
             }
-            if (*wpName < L'0' || *wpName > L'9')
+            if (*wpCount < L'0' || *wpCount > L'9')
               break;
           }
         }
@@ -362,6 +364,12 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         FindClose(hSearch);
       }
+    }
+  }
+  else if (uMsg == AKDN_POSTDOCUMENT_FINISH)
+  {
+    if (bInitAutoSave && lParam == AKDN_OPENDOCUMENT_FINISH)
+    {
       if (hBackupStack.first)
       {
         DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_RECOVER), hMainWnd, (DLGPROC)RecoverDlgProc);
@@ -870,6 +878,7 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
   static HWND hWndList;
+  BACKUPFILE *lpBackupFile;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -882,6 +891,11 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
+
+    for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
+    {
+      ListBox_AddStringWide(hWndList, lpBackupFile->wszFileBackup);
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -889,7 +903,6 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (wCommand == IDOK)
     {
-      SaveOptions(OF_AUTOSAVE|OF_SAVENOBOM);
       EndDialog(hDlg, 0);
       return TRUE;
     }
