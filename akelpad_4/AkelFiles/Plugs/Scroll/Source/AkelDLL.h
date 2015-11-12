@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 1, 1)
+#define AKELDLL MAKE_IDENTIFIER(2, 1, 2, 0)
 
 
 //// Defines
@@ -2247,6 +2247,8 @@ typedef struct {
 #define AKDN_INITDIALOGBEGIN       (WM_USER + 63)  //0x43F
 #define AKDN_INITDIALOGEND         (WM_USER + 64)  //0x440
 #define AKDN_HOTKEYGLOBAL          (WM_USER + 70)  //0x446
+#define AKDN_POSTDOCUMENT_START    (WM_USER + 81)  //0x451
+#define AKDN_POSTDOCUMENT_FINISH   (WM_USER + 82)  //0x452
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -2865,6 +2867,30 @@ AKDN_HOTKEYGLOBAL
 _________________
 
 Same as AKDN_HOTKEY, but sends to the main procedure before any other keyboard key processing.
+
+
+AKDN_POSTDOCUMENT_START
+_______________________
+
+Internal notification message, posts to the main procedure after processing AKD_OPENDOCUMENT and AKD_SAVEDOCUMENT.
+
+(FRAMEDATA *)wParam == pointer to a FRAMEDATA structure.
+(int)lParam         == notification message: AKDN_OPENDOCUMENT_FINISH or AKDN_SAVEDOCUMENT_FINISH.
+
+Return Value
+ Zero.
+
+
+AKDN_POSTDOCUMENT_FINISH
+________________________
+
+Notification message, sends to the main procedure after processing AKDN_POSTDOCUMENT_START and when posted and current frame are equal.
+
+(FRAMEDATA *)wParam == pointer to a FRAMEDATA structure.
+(int)lParam         == notification message: AKDN_OPENDOCUMENT_FINISH or AKDN_SAVEDOCUMENT_FINISH.
+
+Return Value
+ Zero.
 
 
 AKD_GETMAINPROC, AKD_GETEDITPROC, AKD_GETFRAMEPROC

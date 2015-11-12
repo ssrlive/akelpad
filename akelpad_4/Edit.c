@@ -4757,6 +4757,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
   if (lpFrame)
   {
     SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)lpFrame, nResult);
+    PostMessage(hMainWnd, AKDN_POSTDOCUMENT_START, (WPARAM)lpFrame, AKDN_OPENDOCUMENT_FINISH);
   }
   return nResult;
 }
@@ -5575,6 +5576,7 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
   if (lpFrame)
   {
     SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)lpFrame, nResult);
+    PostMessage(hMainWnd, AKDN_POSTDOCUMENT_START, (WPARAM)lpFrame, AKDN_SAVEDOCUMENT_FINISH);
   }
   return nResult;
 }
