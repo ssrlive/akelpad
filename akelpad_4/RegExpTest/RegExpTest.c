@@ -645,8 +645,12 @@ void _WinMain()
   if (xstrcmpW(wpResult, L"[x]a")) goto Error;
 
   nLine=__LINE__;
-  TextReplaceRE(L"a\r\nb", L"(?<=a\\n)b", L"[x]", dwOptions, &wpResult);
-  if (xstrcmpW(wpResult, L"a\r\n[x]")) goto Error;
+  TextReplaceRE(L"1\r\n2", L"(?<=1\\n)2", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1\r\n[x]")) goto Error;
+
+  nLine=__LINE__;
+  TextReplaceRE(L"1\r\n2", L"(?<=1$\\n)2", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"1\r\n[x]")) goto Error;
 
   //POSIX result "[x]"
   //PCRE result "[x]sufficient"
