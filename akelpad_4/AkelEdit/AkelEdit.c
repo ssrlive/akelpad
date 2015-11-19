@@ -9327,6 +9327,11 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
               continue;
             }
           }
+          else
+          {
+            AE_StackLineDelete(ae, lpNewElement);
+            lpNewElement=NULL;
+          }
         }
       }
       break;
@@ -9455,6 +9460,11 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
             liCurLine.lpLine=lpNextElement;
           }
           lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+        }
+        else
+        {
+          AE_StackLineDelete(ae, lpNewElement);
+          lpNewElement=NULL;
         }
       }
 
@@ -17124,7 +17134,12 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
           lpElement->nLineWidth=-1;
           AE_GetLineWidth(ae, lpElement);
         }
-        else break;
+        else
+        {
+          AE_StackLineDelete(ae, lpElement);
+          lpElement=NULL;
+          break;
+        }
       }
       else break;
 
@@ -17209,10 +17224,16 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
           ++ae->ptxt->nLineCount;
           ++ae->ptxt->nLineUnwrapCount;
         }
-        lpLastLine->nLineBreak=AELB_EOF;
+        else
+        {
+          AE_StackLineDelete(ae, lpLastLine);
+          lpLastLine=lpElement;
+        }
       }
-      else if (lpElement)
-        lpElement->nLineBreak=AELB_EOF;
+      else lpLastLine=lpElement;
+
+      if (lpLastLine)
+        lpLastLine->nLineBreak=AELB_EOF;
     }
     if (ae->ptxt->nLineCount)
     {
@@ -17442,7 +17463,13 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 lpElement->nLineWidth=-1;
                 AE_GetLineWidth(ae, lpElement);
               }
-              else goto LastLine;
+              else
+              {
+                AE_StackLineDelete(ae, lpElement);
+                lpElement=ae->ptxt->hLinesStack.last;
+                if (lpElement) lpElement->nLineBreak=AELB_EOF;
+                goto LastLine;
+              }
             }
             else goto LastLine;
 
@@ -17534,10 +17561,16 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
               ++ae->ptxt->nLineCount;
               ++ae->ptxt->nLineUnwrapCount;
             }
-            lpLastLine->nLineBreak=AELB_EOF;
+            else
+            {
+              AE_StackLineDelete(ae, lpLastLine);
+              lpLastLine=lpElement;
+            }
           }
-          else if (lpElement)
-            lpElement->nLineBreak=AELB_EOF;
+          else lpLastLine=lpElement;
+
+          if (lpLastLine)
+            lpLastLine->nLineBreak=AELB_EOF;
         }
         if (ae->ptxt->nLineCount)
         {
@@ -17732,6 +17765,12 @@ int AE_JoinNewLines(AKELEDIT *ae)
             }
             lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
             AE_GetLineWidth(ae, lpNewElement);
+          }
+          else
+          {
+            AE_StackLineDelete(ae, lpNewElement);
+            lpNewElement=NULL;
+            break;
           }
         }
         else break;
@@ -18295,7 +18334,12 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
               }
             }
           }
-          else break;
+          else
+          {
+            AE_StackLineDelete(ae, lpNewElement);
+            lpNewElement=NULL;
+            break;
+          }
         }
         else break;
 
@@ -18516,6 +18560,11 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
           xmemcpy(lpNewElement->wpLine, ciDeleteStart.lpLine->wpLine, ciDeleteStart.nCharInLine * sizeof(wchar_t));
           xmemcpy(lpNewElement->wpLine + ciDeleteStart.nCharInLine, ciDeleteEnd.lpLine->wpLine + ciDeleteEnd.nCharInLine, (ciDeleteEnd.lpLine->nLineLen - ciDeleteEnd.nCharInLine) * sizeof(wchar_t));
           lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+        }
+        else
+        {
+          AE_StackLineDelete(ae, lpNewElement);
+          lpNewElement=NULL;
         }
       }
 
@@ -19008,8 +19057,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                 }
                 lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
               }
-              else break;
-
+              else
+              {
+                AE_StackLineDelete(ae, lpNewElement);
+                lpNewElement=NULL;
+                break;
+              }
               lpInsertToElement=lpElement;
 
               if (!lpElement->next)
@@ -19128,7 +19181,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
                 ++nLineCount;
               }
-              else break;
+              else
+              {
+                AE_StackLineDelete(ae, lpNewElement);
+                lpNewElement=NULL;
+                break;
+              }
             }
             if (nLineBreak == AELB_EOF) break;
 
@@ -19360,8 +19418,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                   }
                 }
               }
-              else break;
-
+              else
+              {
+                AE_StackLineDelete(ae, lpNewElement);
+                lpNewElement=NULL;
+                break;
+              }
               if (nLineBreak == AELB_EOF) break;
               ++nLineCount;
               wpLineStart=wpLineEnd;
@@ -19385,7 +19447,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                     xmemcpy(lpNewElement->wpLine + nLineLen, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                   lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                 }
-                else break;
+                else
+                {
+                  AE_StackLineDelete(ae, lpNewElement);
+                  lpNewElement=NULL;
+                  break;
+                }
               }
               else
               {
@@ -19401,7 +19468,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
                   ++nLineCount;
                 }
-                else break;
+                else
+                {
+                  AE_StackLineDelete(ae, lpNewElement);
+                  lpNewElement=NULL;
+                  break;
+                }
 
                 //End of line as new line
                 if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
@@ -19417,7 +19489,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
                       xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + nInsertCharInLine, (ciInsertFrom.lpLine->nLineLen - nInsertCharInLine) * sizeof(wchar_t));
                     lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                   }
-                  else break;
+                  else
+                  {
+                    AE_StackLineDelete(ae, lpNewElement);
+                    lpNewElement=NULL;
+                    break;
+                  }
                 }
                 else break;
               }
@@ -19438,8 +19515,12 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
                 ++nLineCount;
               }
-              else break;
-
+              else
+              {
+                AE_StackLineDelete(ae, lpNewElement);
+                lpNewElement=NULL;
+                break;
+              }
               wpLineStart=wpLineEnd;
             }
           }
