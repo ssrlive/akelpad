@@ -1139,7 +1139,25 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
     if (lpREGroupItem->dwFlags & (REGF_NEGATIVEBACKWARD|REGF_POSITIVEBACKWARD))
     {
       //Find start position
-      for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && --wpStr >= hStack->wpText; --nPrevStrLen);
+      for (nPrevStrLen=lpREGroupItem->nGroupLen; nPrevStrLen > 0 && --wpStr >= hStack->wpText; --nPrevStrLen)
+      {
+        if (*wpStr == L'\n')
+        {
+          if (wpStr - 1 >= hStack->wpText && *(wpStr - 1) == L'\r')
+          {
+            if (wpStr - 2 >= hStack->wpText && *(wpStr - 2) == L'\r')
+            {
+              //\r\r\n
+              wpStr-=2;
+            }
+            else
+            {
+              //\r\n
+              wpStr-=1;
+            }
+          }
+        }
+      }
       if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
     }
     if (!lpREGroupItem->nMinMatch &&
