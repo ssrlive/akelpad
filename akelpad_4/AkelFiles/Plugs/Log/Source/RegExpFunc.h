@@ -414,7 +414,13 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
       }
     }
 
-    if (*wpPat == L'\\')
+    if (*wpPat == L'^' ||
+        *wpPat == L'$')
+    {
+      ++wpPat;
+      continue;
+    }
+    else if (*wpPat == L'\\')
     {
       wpCharStart=wpPat;
       if (++wpPat >= wpMaxPat) goto Error;
