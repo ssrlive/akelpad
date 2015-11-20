@@ -37,11 +37,16 @@
 #define FileExistsWide
 #define FindFirstFileWide
 #define FindNextFileWide
+#define GetDateFormatWide
 #define GetDlgItemTextWide
 #define GetFileAttributesWide
+#define GetTimeFormatWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
 #define ListBox_AddStringWide
+#define ListView_InsertColumnWide
+#define ListView_InsertItemWide
+#define ListView_SetItemWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
@@ -72,8 +77,11 @@
 #define STRID_FORCENOBOM           19
 #define STRID_DLGUNCHECK           20
 #define STRID_PLUGIN               21
-#define STRID_OK                   22
-#define STRID_CANCEL               23
+#define STRID_NAME                 22
+#define STRID_TIME                 23
+#define STRID_FILE                 24
+#define STRID_OK                   25
+#define STRID_CANCEL               26
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
@@ -100,6 +108,11 @@
 #define REMC_DELETE   0x1
 #define REMC_TOBIN    0x2
 #define REMC_RECOVER  0x4
+
+//Backup list
+#define LVI_NAME         0
+#define LVI_TIME         1
+#define LVI_FILEBACKUP   2
 
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
@@ -131,8 +144,13 @@ typedef struct _BACKUPFILE {
   wchar_t wszName[MAX_PATH];
   wchar_t wszDir[MAX_PATH];
   wchar_t wszFile[MAX_PATH];
+  wchar_t wszNameBackup[MAX_PATH];
   wchar_t wszFileBackup[MAX_PATH];
+  wchar_t wszFileTime[MAX_PATH];
+  int nDiffSec;
+  FILETIME ft;
   FRAMEDATA *lpFrame;
+  BOOL bInitState;
 } BACKUPFILE;
 
 typedef struct {
@@ -166,6 +184,8 @@ int GetComboboxCodepage(HWND hWnd);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
+BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
+int FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -326,11 +346,18 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       const wchar_t *wpName;
       const wchar_t *wpCount;
       WIN32_FIND_DATAW wfd;
+      FILETIME ftFrame;
       HANDLE hSearch;
       int nNameLen;
       int nDirLen;
       BACKUPFILE *lpBackupFile;
+      BACKUPFILE *lpBackupCount;
+      int nDiff;
 
+      if (!lpFrame->ft.dwHighDateTime && !lpFrame->ft.dwLowDateTime)
+        GetFileWriteTimeWide(nod->wszFile, &ftFrame);
+      else
+        ftFrame=lpFrame->ft;
       wpName=GetFileName(nod->wszFile, -1);
       nNameLen=(int)xstrlenW(wpName);
       nDirLen=(int)GetFileDir(nod->wszFile, -1, wszDir, MAX_PATH);
@@ -351,8 +378,47 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 xstrcpynW(lpBackupFile->wszName, wpName, MAX_PATH);
                 xstrcpynW(lpBackupFile->wszDir, wszDir, MAX_PATH);
                 xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
+                xstrcpynW(lpBackupFile->wszNameBackup, wfd.cFileName, MAX_PATH);
                 xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wszDir, wfd.cFileName);
+
+                //File time
+                {
+                  wchar_t wszTime[128];
+                  wchar_t wszDate[128];
+                  FILETIME ft;
+                  SYSTEMTIME st;
+
+                  lpBackupFile->ft=wfd.ftLastWriteTime;
+                  FileTimeToLocalFileTime(&lpBackupFile->ft, &ft);
+                  FileTimeToSystemTime(&ft, &st);
+
+                  GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszTime, 128);
+                  GetDateFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszDate, 128);
+                  xprintfW(lpBackupFile->wszFileTime, L"%s %s", wszDate, wszTime);
+
+                  lpBackupFile->nDiffSec=FileTimeDiffMS(&lpBackupFile->ft, &ftFrame) / 1000;
+                }
                 lpBackupFile->lpFrame=lpFrame;
+
+                for (lpBackupCount=hBackupStack.first; lpBackupCount; lpBackupCount=lpBackupCount->next)
+                {
+                  if (lpBackupCount == lpBackupFile) continue;
+
+                  if (!xstrcmpiW(lpBackupFile->wszName, lpBackupCount->wszName))
+                  {
+                    nDiff=FileTimeDiffMS(&lpBackupFile->ft, &lpBackupCount->ft);
+                    if (nDiff < 0)
+                      break;
+
+                    if (lpBackupCount->bInitState)
+                    {
+                      lpBackupCount->bInitState=FALSE;
+                      lpBackupFile->bInitState=TRUE;
+                      break;
+                    }
+                  }
+                }
+                if (!lpBackupCount) lpBackupFile->bInitState=TRUE;
               }
               break;
             }
@@ -882,6 +948,10 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_INITDIALOG)
   {
+    LVCOLUMNW lvc;
+    LVITEMW lvi;
+    int nIndex;
+
     //Load plugin icon
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
@@ -892,9 +962,56 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
+    SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
+
+    //Columns
+    lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_NAME);
+    lvc.cx=209;
+    lvc.iSubItem=LVI_NAME;
+    ListView_InsertColumnWide(hWndList, LVI_NAME, &lvc);
+
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_TIME);
+    lvc.cx=105;
+    lvc.iSubItem=LVI_TIME;
+    ListView_InsertColumnWide(hWndList, LVI_TIME, &lvc);
+
+    lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_FILE);
+    lvc.cx=105;
+    lvc.iSubItem=LVI_FILEBACKUP;
+    ListView_InsertColumnWide(hWndList, LVI_FILEBACKUP, &lvc);
+
     for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
     {
-      ListBox_AddStringWide(hWndList, lpBackupFile->wszFileBackup);
+      lvi.mask=LVIF_TEXT|LVIF_PARAM;
+      lvi.pszText=lpBackupFile->wszNameBackup;
+      lvi.iItem=0x7FFFFFFF;
+      lvi.iSubItem=LVI_NAME;
+      lvi.lParam=(LPARAM)lpBackupFile;
+      nIndex=ListView_InsertItemWide(hWndList, &lvi);
+
+      //Two second FAT accuracy
+      if (lpBackupFile->nDiffSec > 2 && lpBackupFile->bInitState)
+      {
+        lvi.mask=LVIF_STATE;
+        lvi.iItem=nIndex;
+        lvi.iSubItem=LVI_NAME;
+        lvi.state=((TRUE + 1) << 12);
+        lvi.stateMask=LVIS_STATEIMAGEMASK;
+        ListView_SetItemWide(hWndList, &lvi);
+      }
+
+      lvi.mask=LVIF_TEXT;
+      lvi.pszText=lpBackupFile->wszFileTime;
+      lvi.iItem=nIndex;
+      lvi.iSubItem=LVI_TIME;
+      ListView_SetItemWide(hWndList, &lvi);
+
+      lvi.mask=LVIF_TEXT;
+      lvi.pszText=lpBackupFile->wszFileBackup;
+      lvi.iItem=nIndex;
+      lvi.iSubItem=LVI_FILEBACKUP;
+      ListView_SetItemWide(hWndList, &lvi);
     }
   }
   else if (uMsg == WM_COMMAND)
@@ -1240,6 +1357,32 @@ int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFi
   return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
 }
 
+BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
+{
+  WIN32_FIND_DATAW wfd;
+  HANDLE hFile;
+
+  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
+  {
+    *ft=wfd.ftLastWriteTime;
+    FindClose(hFile);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2)
+{
+  ULARGE_INTEGER ul1;
+  ULARGE_INTEGER ul2;
+
+  ul1.HighPart=ft1->dwHighDateTime;
+  ul1.LowPart=ft1->dwLowDateTime;
+  ul2.HighPart=ft2->dwHighDateTime;
+  ul2.LowPart=ft2->dwLowDateTime;
+  return (int)(ul1.QuadPart - ul2.QuadPart) / 10000;
+}
+
 
 //// Options
 
@@ -1356,6 +1499,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x043D\x0438\x043C\x0430\x0442\x044C\x0020\x0433\x0430\x043B\x043A\x0443\x0020\x0042\x004F\x004D\x0020\x0432\x0020\x0434\x0438\x0430\x043B\x043E\x0433\x0435\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x044F";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
+    if (nStringID == STRID_NAME)
+      return L"\x0418\x043C\x044F";
+    if (nStringID == STRID_TIME)
+      return L"\x0412\x0440\x0435\x043C\x044F";
+    if (nStringID == STRID_FILE)
+      return L"\x0424\x0430\x0439\x043B";
     if (nStringID == STRID_OK)
       return L"\x004F\x004B";
     if (nStringID == STRID_CANCEL)
@@ -1405,6 +1554,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Uncheck BOM in save dialog";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
+    if (nStringID == STRID_NAME)
+      return L"Name";
+    if (nStringID == STRID_TIME)
+      return L"Time";
+    if (nStringID == STRID_FILE)
+      return L"File";
     if (nStringID == STRID_OK)
       return L"OK";
     if (nStringID == STRID_CANCEL)
