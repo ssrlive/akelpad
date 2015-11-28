@@ -4376,6 +4376,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
     //MDI has no windows
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
+    hDoc=lpFrameCurrent->ei.hDocEdit;
   }
   if (!hDoc)
     hDoc=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
@@ -4477,6 +4478,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
             ActivateFrameWindow(lpFrameReopen, FWA_NOTIFY_REOPEN);
             hWnd=lpFrameCurrent->ei.hWndEdit;
             hDoc=lpFrameCurrent->ei.hDocEdit;
+            lpFrame=lpFrameCurrent;
 
             //If wpCmdLine not NULL, document just opened and does not need a reopening.
             if (SaveChanged(0) && !wpCmdLine)
@@ -4613,6 +4615,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
         DoFileNew();
         hWnd=lpFrameCurrent->ei.hWndEdit;
         hDoc=lpFrameCurrent->ei.hDocEdit;
+        lpFrame=lpFrameCurrent;
       }
 
       //Get file write time
