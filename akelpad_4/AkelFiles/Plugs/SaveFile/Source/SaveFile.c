@@ -85,8 +85,10 @@
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
-#define OF_ALL         (OF_AUTOSAVE |\
-                        OF_SAVENOBOM)
+#define OF_BACKUPRECT     0x4
+#define OF_ALL         (OF_AUTOSAVE  |\
+                        OF_SAVENOBOM |\
+                        OF_BACKUPRECT)
 
 #define BUFFER_SIZE      1024
 
@@ -147,7 +149,7 @@ typedef struct _BACKUPFILE {
   wchar_t wszNameBackup[MAX_PATH];
   wchar_t wszFileBackup[MAX_PATH];
   wchar_t wszFileTime[MAX_PATH];
-  int nDiffSec;
+  __int64 nDiffSec;
   FILETIME ft;
   FRAMEDATA *lpFrame;
   BOOL bInitState;
@@ -185,7 +187,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
-int FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2);
+__int64 FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2);
 
 INT_PTR WideOption(HANDLE hOptions, const wchar_t *pOptionName, DWORD dwType, BYTE *lpData, DWORD dwData);
 void ReadOptions(DWORD dwFlags);
@@ -215,6 +217,7 @@ BOOL bInitCommon=FALSE;
 int nInitMain=0;
 BOOL bInitAutoSave=FALSE;
 BOOL bInitSaveNoBOM=FALSE;
+DWORD dwSaveFlags=0;
 wchar_t wszSaveDir[MAX_PATH]=L"";
 wchar_t wszSaveDirExp[MAX_PATH]=L"";
 int nSaveDirExpLen;
@@ -224,6 +227,11 @@ DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
 DWORD dwSessions=0;
 DWORD dwTmpFile=REMC_DELETE|REMC_RECOVER;
+RECT rcBackupMinMaxDialog={414, 153, 0, 0};
+RECT rcBackupCurrentDialog={0};
+int nColumnWidth1=209;
+int nColumnWidth2=120;
+int nColumnWidth3=105;
 STACKBACKUPFILE hBackupStack={0};
 int nAppActive=TRUE;
 DWORD dwSaveNoBomSettings=NOBOM_UTF8;
@@ -352,7 +360,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nDirLen;
       BACKUPFILE *lpBackupFile;
       BACKUPFILE *lpBackupCount;
-      int nDiff;
+      __int64 nDiff;
 
       if (!lpFrame->ft.dwHighDateTime && !lpFrame->ft.dwLowDateTime)
         GetFileWriteTimeWide(nod->wszFile, &ftFrame);
@@ -872,6 +880,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         if (wszSaveDirExp[nSaveDirExpLen - 1] == L'\\')
           wszSaveDirExp[--nSaveDirExpLen]=L'\0';
       CreateDirectoryWide(wszSaveDirExp, NULL);
+      dwSaveFlags|=OF_AUTOSAVE;
 
       dwSaveNoBomSettings=0;
       if (SendMessage(hWndDialogUncheckRadio, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -886,8 +895,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         dwSaveNoBomSettings|=NOBOM_UTF32LE;
       if (SendMessage(hWndUTF32BE, BM_GETCHECK, 0, 0) == BST_CHECKED)
         dwSaveNoBomSettings|=NOBOM_UTF32BE;
+      dwSaveFlags|=OF_SAVENOBOM;
 
-      SaveOptions(OF_AUTOSAVE|OF_SAVENOBOM);
+      if (dwSaveFlags)
+      {
+        SaveOptions(dwSaveFlags);
+        dwSaveFlags=0;
+      }
       EndDialog(hDlg, 0);
 
       if (nInitMain)
@@ -944,7 +958,16 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
   static HWND hWndList;
+  static HWND hWndOK;
+  static HWND hWndCancel;
   BACKUPFILE *lpBackupFile;
+  static RESIZEDIALOG rds[]={{&hWndList,     RDS_SIZE|RDS_X, 0},
+                             {&hWndList,     RDS_SIZE|RDS_Y, 0},
+                             {&hWndOK,       RDS_MOVE|RDS_X, 0},
+                             {&hWndOK,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndCancel,   RDS_MOVE|RDS_X, 0},
+                             {&hWndCancel,   RDS_MOVE|RDS_Y, 0},
+                             {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -957,6 +980,8 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
     hWndList=GetDlgItem(hDlg, IDC_RECOVER_LIST);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
@@ -967,17 +992,17 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Columns
     lvc.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_NAME);
-    lvc.cx=209;
+    lvc.cx=nColumnWidth1;
     lvc.iSubItem=LVI_NAME;
     ListView_InsertColumnWide(hWndList, LVI_NAME, &lvc);
 
     lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_TIME);
-    lvc.cx=105;
+    lvc.cx=nColumnWidth2;
     lvc.iSubItem=LVI_TIME;
     ListView_InsertColumnWide(hWndList, LVI_TIME, &lvc);
 
     lvc.pszText=(wchar_t *)GetLangStringW(wLangModule, STRID_FILE);
-    lvc.cx=105;
+    lvc.cx=nColumnWidth3;
     lvc.iSubItem=LVI_FILEBACKUP;
     ListView_InsertColumnWide(hWndList, LVI_FILEBACKUP, &lvc);
 
@@ -1018,13 +1043,39 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     WORD wCommand=LOWORD(wParam);
 
-    if (wCommand == IDOK)
+    if (wCommand == IDOK ||
+        wCommand == IDCANCEL)
     {
-      EndDialog(hDlg, 0);
-      return TRUE;
-    }
-    else if (wCommand == IDCANCEL)
-    {
+      int nWidth;
+
+      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVI_NAME, 0);
+      if (nColumnWidth1 != nWidth)
+      {
+        nColumnWidth1=nWidth;
+        dwSaveFlags|=OF_BACKUPRECT;
+      }
+      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVI_TIME, 0);
+      if (nColumnWidth2 != nWidth)
+      {
+        nColumnWidth2=nWidth;
+        dwSaveFlags|=OF_BACKUPRECT;
+      }
+      nWidth=(int)SendMessage(hWndList, LVM_GETCOLUMNWIDTH, LVI_FILEBACKUP, 0);
+      if (nColumnWidth3 != nWidth)
+      {
+        nColumnWidth3=nWidth;
+        dwSaveFlags|=OF_BACKUPRECT;
+      }
+
+      if (wCommand == IDOK)
+      {
+      }
+
+      if (dwSaveFlags)
+      {
+        SaveOptions(dwSaveFlags);
+        dwSaveFlags=0;
+      }
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -1039,6 +1090,15 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Destroy plugin icon
     DestroyIcon(hPluginIcon);
   }
+
+  //Dialog resize messages
+  {
+    RESIZEDIALOGMSG rdsm={&rds[0], &rcBackupMinMaxDialog, &rcBackupCurrentDialog, RDM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+
+    if (SendMessage(hMainWnd, AKD_RESIZEDIALOG, 0, (LPARAM)&rdsm))
+      dwSaveFlags|=OF_BACKUPRECT;
+  }
+
   return FALSE;
 }
 
@@ -1371,7 +1431,7 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
   return FALSE;
 }
 
-int FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2)
+__int64 FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2)
 {
   ULARGE_INTEGER ul1;
   ULARGE_INTEGER ul2;
@@ -1380,7 +1440,7 @@ int FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2)
   ul1.LowPart=ft1->dwLowDateTime;
   ul2.HighPart=ft2->dwHighDateTime;
   ul2.LowPart=ft2->dwLowDateTime;
-  return (int)(ul1.QuadPart - ul2.QuadPart) / 10000;
+  return (__int64)(ul1.QuadPart - ul2.QuadPart) / 10000;
 }
 
 
@@ -1411,6 +1471,12 @@ void ReadOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, MAX_PATH * sizeof(wchar_t));
       WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
+
+      //Dialog rectangle
+      WideOption(hOptions, L"WindowRect", PO_BINARY, (LPBYTE)&rcBackupCurrentDialog, sizeof(RECT));
+      WideOption(hOptions, L"ColumnWidth1", PO_DWORD, (LPBYTE)&nColumnWidth1, sizeof(DWORD));
+      WideOption(hOptions, L"ColumnWidth2", PO_DWORD, (LPBYTE)&nColumnWidth2, sizeof(DWORD));
+      WideOption(hOptions, L"ColumnWidth3", PO_DWORD, (LPBYTE)&nColumnWidth3, sizeof(DWORD));
     }
     if (dwFlags & OF_SAVENOBOM)
     {
@@ -1435,6 +1501,13 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, (lstrlenW(wszSaveDir) + 1) * sizeof(wchar_t));
       WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
+    }
+    if (dwFlags & OF_BACKUPRECT)
+    {
+      WideOption(hOptions, L"WindowRect", PO_BINARY, (LPBYTE)&rcBackupCurrentDialog, sizeof(RECT));
+      WideOption(hOptions, L"ColumnWidth1", PO_DWORD, (LPBYTE)&nColumnWidth1, sizeof(DWORD));
+      WideOption(hOptions, L"ColumnWidth2", PO_DWORD, (LPBYTE)&nColumnWidth2, sizeof(DWORD));
+      WideOption(hOptions, L"ColumnWidth3", PO_DWORD, (LPBYTE)&nColumnWidth3, sizeof(DWORD));
     }
     if (dwFlags & OF_SAVENOBOM)
     {
