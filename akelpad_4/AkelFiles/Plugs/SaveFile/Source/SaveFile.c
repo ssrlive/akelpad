@@ -10,6 +10,7 @@
 
 //Include stack functions
 #define StackInsertBefore
+#define StackMoveBefore
 #define StackClear
 #include "StackFunc.h"
 
@@ -419,14 +420,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                       break;
 
                     if (lpBackupCount->bInitState)
-                    {
                       lpBackupCount->bInitState=FALSE;
-                      lpBackupFile->bInitState=TRUE;
-                      break;
-                    }
                   }
                 }
                 if (!lpBackupCount) lpBackupFile->bInitState=TRUE;
+                StackMoveBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile, (stack *)lpBackupCount);
               }
               break;
             }
