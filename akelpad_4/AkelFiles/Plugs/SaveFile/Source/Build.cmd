@@ -23,7 +23,7 @@ if "%VCDIR%" == "%VCDIR:2003=%" (
 )
 rc /R /DRC_VERSIONBIT=%BIT% /Fo"SaveFile.res" "Resources\SaveFile.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl /O1 %CLFLAGS% SaveFile.c SaveFile.res /LD /link kernel32.lib user32.lib advapi32.lib shell32.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain
+cl /O1 %CLFLAGS% SaveFile.c SaveFile.res /LD /link kernel32.lib user32.lib advapi32.lib shell32.lib libc.lib /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
