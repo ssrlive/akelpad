@@ -31,7 +31,7 @@ BOOL bCodeFoldDockWaitResize=FALSE;
 STACKFOLDWINDOW hFoldWindowsStack={0};
 FOLDWINDOW *lpCurrentFoldWindow=NULL;
 BOOL bFocusResetList=FALSE;
-BOOL bResetFold=FALSE;
+DWORD dwResetFold=0;
 BOOL bIgnoreFilter=FALSE;
 FRAMEDATA *lpLastPostUpdateFrame=NULL;
 DWORD dwLastPostUpdateFlags=0;
@@ -1184,7 +1184,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         }
       }
     }
-    bResetFold=TRUE;
+    dwResetFold|=OSM_OPEN;
   }
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
   {
@@ -1198,19 +1198,21 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         if (lpFoldWindow=StackGetFoldWindow(&hFoldWindowsStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit))
           FreeFolds(lpFoldWindow, FALSE);
-        bResetFold=TRUE;
+        dwResetFold|=OSM_SAVE;
       }
     }
   }
   else if (uMsg == AKDN_OPENDOCUMENT_FINISH ||
            uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
-    if (bResetFold)
+    if ((uMsg == AKDN_OPENDOCUMENT_FINISH && (dwResetFold & OSM_OPEN)) ||
+        (uMsg == AKDN_SAVEDOCUMENT_FINISH && (dwResetFold & OSM_SAVE)))
     {
       FRAMEDATA *lpFrameCurrent=(FRAMEDATA *)SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_CURRENT, 0);
       FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
       FOLDWINDOW *lpFoldWindow;
-      bResetFold=FALSE;
+
+      dwResetFold=0;
 
       if (lpFrame == lpFrameCurrent)
       {
@@ -1404,7 +1406,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               {
                 RemoveTagMark(fwChange);
               }
-              if (!bResetFold)
+              if (!dwResetFold)
               {
                 if (fwChange->pfwd->lpSyntaxFile)
                 {
@@ -1429,7 +1431,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               (aenpt->dwType & AEPTT_STREAMIN) ||
               (aenpt->lpPoint->dwFlags & AEPTF_FOLD))
           {
-            if (!bResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
+            if (!dwResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
             {
               fwChange->bLevelChanged=TRUE;
 
@@ -1459,7 +1461,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           AECHARRANGE *lpcrRange;
 
-          if (!bResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
+          if (!dwResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
           {
             if (((NMHDR *)lParam)->code == AEN_TEXTINSERTBEGIN)
               lpcrRange=&((AENTEXTINSERT *)lParam)->crAkelRange;
@@ -1476,7 +1478,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           AECHARRANGE *lpcrRange;
 
-          if (!bResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
+          if (!dwResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
           {
             if (((NMHDR *)lParam)->code == AEN_TEXTINSERTEND)
               lpcrRange=&((AENTEXTINSERT *)lParam)->crAkelRange;
@@ -1518,7 +1520,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
           if (!(aentc->dwType & AETCT_NONE))
           {
-            if (!bResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
+            if (!dwResetFold && fwChange && fwChange->pfwd->lpSyntaxFile)
             {
               if (aentc->dwType & AETCT_DELETEALL)
               {

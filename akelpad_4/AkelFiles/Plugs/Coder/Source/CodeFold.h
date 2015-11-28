@@ -71,6 +71,10 @@
 #define CFSD_AUTO     1
 #define CFSD_ALWAYS   2
 
+//AKDN_OPENDOCUMENT* or AKDN_SAVEDOCUMENT*
+#define OSM_OPEN      0x1
+#define OSM_SAVE      0x2
+
 //Show nodes panel setting
 #define CFSN_NONE     0
 #define CFSN_AUTO     1
