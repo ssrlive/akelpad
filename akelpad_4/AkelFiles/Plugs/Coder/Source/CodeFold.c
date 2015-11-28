@@ -4674,6 +4674,8 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
 {
   AEFOLD *lpFold;
   FOLDINFO *lpFoldInfo;
+  FOLDINFO *lpFoldInfoNext;
+  FOLDINFO *lpFoldInfoTheme=NULL;
   SKIPINFO *lpSkipInfo=NULL;
   SKIPSTART *lpSkipStart;
   SKIPINFOHANDLE *lpSkipInfoHandle;
@@ -4683,6 +4685,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
   SYNTAXFILE *lpSyntaxFile=lpFoldWindow->pfwd->lpSyntaxFile;
   DWORD dwFoldMatch=0;
   BOOL bMatch;
+  BOOL bBreak;
 
   if (lpSyntaxFile->hFoldStack.nFoldWithThemeCount)
   {
@@ -4690,7 +4693,11 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
     ff.dwFindIt=(UINT_PTR)&ciCount;
     SendMessage(lpFoldWindow->hWndEdit, AEM_HLFINDTHEME, AEHLFT_BYFOLD, (LPARAM)&ff);
     if (ff.lpParent)
-      lpSyntaxFile=FoldData(ff.lpParent)->lpFoldInfo->lpRuleFile;
+    {
+      bBreak=FALSE;
+      lpFoldInfoTheme=FoldData(ff.lpParent)->lpFoldInfo;
+      lpSyntaxFile=lpFoldInfoTheme->lpRuleFile;
+    }
   }
 
   while (ciCount.lpLine)
@@ -4703,8 +4710,10 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
 
       if (!lpSkipInfo)
       {
-        for (lpFoldInfo=(FOLDINFO *)lpSyntaxFile->hFoldStack.first; lpFoldInfo; lpFoldInfo=lpFoldInfo->next)
+        for (lpFoldInfo=(FOLDINFO *)lpSyntaxFile->hFoldStack.first; lpFoldInfo; lpFoldInfo=lpFoldInfoNext)
         {
+          lpFoldInfoNext=lpFoldInfo->next;
+
           //Fold start
           if (lpFoldInfo->lpFoldStart->dwFlags & FIF_REGEXPSTART)
           {
@@ -4727,24 +4736,39 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           }
 
           //Fold end
-          if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
+          for (;;)
           {
-            bMatch=(IsMatchRE(&lpFoldInfo->sregEnd, &ft.crFound, &ciCount) >= 0);
-            if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDEND))
-              return lpFoldInfo;
-          }
-          else
-          {
-            ft.dwFlags=lpFoldInfo->dwFlags;
-            ft.pText=lpFoldInfo->wpFoldEnd;
-            ft.dwTextLen=lpFoldInfo->nFoldEndLen;
-            bMatch=IsMatch(&ft, &ciCount);
-          }
-          if (bMatch)
-          {
-            if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDEND))
-              return lpFoldInfo;
-            dwFoldMatch=IFE_FOLDEND;
+            if (lpFoldInfo->dwFlags & FIF_REGEXPEND)
+            {
+              bMatch=(IsMatchRE(&lpFoldInfo->sregEnd, &ft.crFound, &ciCount) >= 0);
+              if (!bMatch && FoldAtIndex(lpFoldWindow, &ciCount, IFE_FOLDEND))
+                return lpFoldInfo;
+            }
+            else
+            {
+              ft.dwFlags=lpFoldInfo->dwFlags;
+              ft.pText=lpFoldInfo->wpFoldEnd;
+              ft.dwTextLen=lpFoldInfo->nFoldEndLen;
+              bMatch=IsMatch(&ft, &ciCount);
+            }
+            if (bMatch)
+            {
+              if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDEND))
+                return lpFoldInfo;
+              dwFoldMatch=IFE_FOLDEND;
+            }
+            
+            if (lpFoldInfoTheme && !lpFoldInfoNext)
+            {
+              if (bBreak)
+              {
+                bBreak=FALSE;
+                break;
+              }
+              lpFoldInfo=lpFoldInfoTheme;
+              bBreak=TRUE;
+            }
+            else break;
           }
         }
 
