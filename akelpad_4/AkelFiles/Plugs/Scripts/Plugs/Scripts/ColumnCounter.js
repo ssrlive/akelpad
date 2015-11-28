@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -90,7 +90,7 @@ if (hWndEdit)
             else if (pFirstNumber.substr(0, 1) == "0" && pFirstNumber.length > 1)
             {
               if (!nMinDigits) nMinDigits=pFirstNumber.length;
-              nCurNumber=parseInt(pFirstNumber.replace(/^0+/, ""));
+              nCurNumber=parseInt(pFirstNumber.replace(/^0+/, "") || 0);
             }
             else nCurNumber=parseInt(pFirstNumber);
 
