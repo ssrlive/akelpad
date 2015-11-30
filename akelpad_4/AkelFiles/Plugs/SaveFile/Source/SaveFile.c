@@ -45,6 +45,7 @@
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
 #define ListBox_AddStringWide
+#define ListView_GetItemWide
 #define ListView_InsertColumnWide
 #define ListView_InsertItemWide
 #define ListView_SetItemWide
@@ -184,6 +185,7 @@ void RemoveBackupFile(const wchar_t *wpEditFile, AEHDOC hDocEdit, DWORD dwTmpFla
 int DeleteBackupFile(const wchar_t *wpFile, DWORD dwTmpFlags);
 void UncheckBOM(HWND hDlg);
 int GetComboboxCodepage(HWND hWnd);
+LPARAM GetItemParam(HWND hWnd, int nIndex);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
@@ -1067,6 +1069,29 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wCommand == IDOK)
       {
+        LVITEMW lvi;
+        BACKUPFILE *lpBackupItem;
+        int nIndex;
+        int nMaxIndex=(int)SendMessage(hWndList, LVM_GETITEMCOUNT, 0, 0);
+
+        for (nIndex=0; nIndex < nMaxIndex; ++nIndex)
+        {
+          lvi.mask=LVIF_STATE;
+          lvi.iItem=nIndex;
+          lvi.iSubItem=LVI_NAME;
+          lvi.stateMask=LVIS_STATEIMAGEMASK;
+          ListView_GetItemWide(hWndList, &lvi);
+
+          if (((lvi.state & LVIS_STATEIMAGEMASK) >> 12) - 1)
+          {
+            lpBackupItem=(BACKUPFILE *)GetItemParam(hWndList, nIndex);
+
+            if (lpBackupItem)
+            {
+              MessageBoxW(NULL, lpBackupItem->wszFileBackup, NULL, 0);
+            }
+          }
+        }
       }
 
       if (dwSaveFlags)
@@ -1076,6 +1101,55 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       EndDialog(hDlg, 0);
       return TRUE;
+    }
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if (wParam == IDC_RECOVER_LIST)
+    {
+      NMLISTVIEW *pnmlv=(NMLISTVIEW *)lParam;
+
+      if (pnmlv->hdr.code == LVN_ITEMCHANGED)
+      {
+        if (pnmlv->uNewState & LVIS_STATEIMAGEMASK)
+        {
+          BACKUPFILE *lpBackupFile=(BACKUPFILE *)pnmlv->lParam;
+          BACKUPFILE *lpBackupItem;
+          BOOL bNewState=((pnmlv->uNewState & LVIS_STATEIMAGEMASK) >> 12) - 1;
+          BOOL bOldState=((pnmlv->uOldState & LVIS_STATEIMAGEMASK) >> 12) - 1;
+          static BOOL bLock;
+
+          if (bNewState >=0 && bOldState >=0 && bNewState != bOldState)
+          {
+            if (!bLock)
+            {
+              LVITEMW lvi;
+              int nIndex;
+              int nMaxIndex=(int)SendMessage(pnmlv->hdr.hwndFrom, LVM_GETITEMCOUNT, 0, 0);
+
+              //Allow only one selected item in group
+              bLock=TRUE;
+
+              for (nIndex=0; nIndex < nMaxIndex; ++nIndex)
+              {
+                if (pnmlv->iItem == nIndex) continue;
+                lpBackupItem=(BACKUPFILE *)GetItemParam(pnmlv->hdr.hwndFrom, nIndex);
+
+                if (lpBackupItem && !xstrcmpiW(lpBackupItem->wszFile, lpBackupFile->wszFile))
+                {
+                  lvi.mask=LVIF_STATE;
+                  lvi.iItem=nIndex;
+                  lvi.iSubItem=LVI_NAME;
+                  lvi.state=((FALSE + 1) << 12);
+                  lvi.stateMask=LVIS_STATEIMAGEMASK;
+                  ListView_SetItemWide(pnmlv->hdr.hwndFrom, &lvi);
+                }
+              }
+              bLock=FALSE;
+            }
+          }
+        }
+      }
     }
   }
   else if (uMsg == WM_CLOSE)
@@ -1325,6 +1399,21 @@ int GetComboboxCodepage(HWND hWnd)
     nCodePage=(int)xatoiW(wszBuffer, NULL);
   }
   return nCodePage;
+}
+
+LPARAM GetItemParam(HWND hWnd, int nIndex)
+{
+  LVITEMW lvi;
+
+  if (nIndex == -1)
+    return 0;
+  lvi.mask=LVIF_PARAM;
+  lvi.iItem=nIndex;
+  lvi.iSubItem=0;
+  lvi.lParam=0;
+  ListView_GetItemWide(hWnd, &lvi);
+
+  return lvi.lParam;
 }
 
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
