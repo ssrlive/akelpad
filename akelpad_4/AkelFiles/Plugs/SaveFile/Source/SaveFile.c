@@ -11,6 +11,7 @@
 //Include stack functions
 #define StackInsertBefore
 #define StackMoveBefore
+#define StackDelete
 #define StackClear
 #include "StackFunc.h"
 
@@ -349,7 +350,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
     FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
-    if (bInitAutoSave)
+    if (bInitAutoSave && !(*nod->dwFlags & (OD_NOUPDATE|OD_REOPEN)))
     {
       wchar_t wszSearch[MAX_PATH];
       wchar_t wszBackupFile[MAX_PATH];
@@ -444,11 +445,17 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (bInitAutoSave && lParam == AKDN_OPENDOCUMENT_FINISH)
     {
-      if (hBackupStack.first)
+      static BOOL bLock;
+
+      //Lock processing AKDN_POSTDOCUMENT_FINISH from RecoverDlgProc
+      if (!bLock)
       {
-        DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_RECOVER), hMainWnd, (DLGPROC)RecoverDlgProc);
+        bLock=TRUE;
+        if (hBackupStack.first)
+          DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_RECOVER), hMainWnd, (DLGPROC)RecoverDlgProc);
+        StackClear((stack **)&hBackupStack.first, (stack **)&hBackupStack.last);
+        bLock=FALSE;
       }
-      StackClear((stack **)&hBackupStack.first, (stack **)&hBackupStack.last);
     }
   }
   else if (uMsg == AKDN_SAVEDOCUMENT_START)
@@ -1066,6 +1073,12 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nColumnWidth3=nWidth;
         dwSaveFlags|=OF_BACKUPRECT;
       }
+      if (dwSaveFlags)
+      {
+        SaveOptions(dwSaveFlags);
+        dwSaveFlags=0;
+      }
+      EndDialog(hDlg, 0);
 
       if (wCommand == IDOK)
       {
@@ -1088,18 +1101,33 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (lpBackupItem)
             {
-              MessageBoxW(NULL, lpBackupItem->wszFileBackup, NULL, 0);
+              OPENDOCUMENTW od;
+              BACKUPFILE *lpBackupFile;
+              BACKUPFILE *lpBackupNext;
+
+              od.pFile=lpBackupItem->wszFileBackup;
+              od.pWorkDir=NULL;
+              od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
+              od.nCodePage=lpBackupItem->lpFrame->ei.nCodePage;
+              od.bBOM=lpBackupItem->lpFrame->ei.bBOM;
+              od.hDoc=lpBackupItem->lpFrame->ei.hDocEdit;
+              if (!SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)lpBackupItem->lpFrame->ei.hWndEdit, (LPARAM)&od))
+              {
+                for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupNext)
+                {
+                  lpBackupNext=lpBackupFile->next;
+
+                  if (!xstrcmpiW(lpBackupItem->wszFile, lpBackupFile->wszFile))
+                  {
+                    DeleteBackupFile(lpBackupFile->wszFileBackup, dwTmpFile);
+                    StackDelete((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile);
+                  }
+                }
+              }
             }
           }
         }
       }
-
-      if (dwSaveFlags)
-      {
-        SaveOptions(dwSaveFlags);
-        dwSaveFlags=0;
-      }
-      EndDialog(hDlg, 0);
       return TRUE;
     }
   }
