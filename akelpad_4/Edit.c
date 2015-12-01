@@ -4604,7 +4604,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
     }
     SetFilePointer64(hFile, fsd.dwBytesCurrent, FILE_BEGIN);
 
-    if (IsDocActive(hDoc))
+    if (IsDocActive(hDoc) && !(dwFlags & OD_NOUPDATE))
     {
       //Save position of the previous file before load new document
       RecentFilesSaveFile(lpFrameCurrent);
@@ -4679,7 +4679,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
         SetModifyStatus(lpFrameCurrent, FALSE);
         SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
-        if (nFileCmp)
+        if (nFileCmp && !(dwFlags & OD_NOUPDATE))
         {
           lpFrameCurrent->nStreamOffset=nStreamOffset;
           lpFrameCurrent->nFileLen=(int)xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
@@ -4752,6 +4752,8 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
           }
         }
       }
+      if (dwFlags & OD_NOUPDATE)
+        SetModifyStatus(lpFrame, TRUE);
     }
     else nResult=EOD_STREAMIN;
   }
