@@ -11,7 +11,6 @@
 //Include stack functions
 #define StackInsertBefore
 #define StackMoveBefore
-#define StackDelete
 #define StackClear
 #include "StackFunc.h"
 
@@ -155,7 +154,7 @@ typedef struct _BACKUPFILE {
   __int64 nDiffSec;
   FILETIME ft;
   FRAMEDATA *lpFrame;
-  BOOL bInitState;
+  BOOL bCheck;
 } BACKUPFILE;
 
 typedef struct {
@@ -190,6 +189,7 @@ LPARAM GetItemParam(HWND hWnd, int nIndex);
 int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 const wchar_t* GetFileName(const wchar_t *wpFile, int nFileLen);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
+const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
 __int64 FileTimeDiffMS(const FILETIME *ft1, const FILETIME *ft2);
 
@@ -230,7 +230,7 @@ DWORD dwSaveMoment=SMOM_TIME;
 DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
 DWORD dwSessions=0;
-DWORD dwTmpFile=REMC_DELETE|REMC_RECOVER;
+DWORD dwTmpFile=REMC_DELETE|REMC_TOBIN|REMC_RECOVER;
 RECT rcBackupMinMaxDialog={410, 153, 0, 0};
 RECT rcBackupCurrentDialog={0};
 int nColumnWidth1=209;
@@ -350,7 +350,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
     FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
-    if (bInitAutoSave && !(*nod->dwFlags & (OD_NOUPDATE|OD_REOPEN)))
+    if (bInitAutoSave && (dwTmpFile & REMC_RECOVER) && !(*nod->dwFlags & (OD_NOUPDATE|OD_REOPEN)))
     {
       wchar_t wszSearch[MAX_PATH];
       wchar_t wszBackupFile[MAX_PATH];
@@ -422,11 +422,11 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (nDiff < 0)
                       break;
 
-                    if (lpBackupCount->bInitState)
-                      lpBackupCount->bInitState=FALSE;
+                    if (lpBackupCount->bCheck)
+                      lpBackupCount->bCheck=FALSE;
                   }
                 }
-                if (!lpBackupCount) lpBackupFile->bInitState=TRUE;
+                if (!lpBackupCount) lpBackupFile->bCheck=TRUE;
                 StackMoveBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile, (stack *)lpBackupCount);
               }
               break;
@@ -443,7 +443,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == AKDN_POSTDOCUMENT_FINISH)
   {
-    if (bInitAutoSave && lParam == AKDN_OPENDOCUMENT_FINISH)
+    if (bInitAutoSave && (dwTmpFile & REMC_RECOVER) && lParam == AKDN_OPENDOCUMENT_FINISH)
     {
       static BOOL bLock;
 
@@ -1023,7 +1023,7 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       nIndex=ListView_InsertItemWide(hWndList, &lvi);
 
       //Two second FAT accuracy
-      if (lpBackupFile->nDiffSec > 2 && lpBackupFile->bInitState)
+      if (lpBackupFile->nDiffSec > 2 && lpBackupFile->bCheck)
       {
         lvi.mask=LVIF_STATE;
         lvi.iItem=nIndex;
@@ -1082,50 +1082,26 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wCommand == IDOK)
       {
-        LVITEMW lvi;
-        BACKUPFILE *lpBackupItem;
-        int nIndex;
-        int nMaxIndex=(int)SendMessage(hWndList, LVM_GETITEMCOUNT, 0, 0);
+        BACKUPFILE *lpBackupFile;
 
-        for (nIndex=0; nIndex < nMaxIndex; ++nIndex)
+        for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
         {
-          lvi.mask=LVIF_STATE;
-          lvi.iItem=nIndex;
-          lvi.iSubItem=LVI_NAME;
-          lvi.stateMask=LVIS_STATEIMAGEMASK;
-          ListView_GetItemWide(hWndList, &lvi);
-
-          if (((lvi.state & LVIS_STATEIMAGEMASK) >> 12) - 1)
+          if (lpBackupFile->bCheck)
           {
-            lpBackupItem=(BACKUPFILE *)GetItemParam(hWndList, nIndex);
-
-            if (lpBackupItem)
-            {
-              OPENDOCUMENTW od;
-              BACKUPFILE *lpBackupFile;
-              BACKUPFILE *lpBackupNext;
-
-              od.pFile=lpBackupItem->wszFileBackup;
-              od.pWorkDir=NULL;
-              od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
-              od.nCodePage=lpBackupItem->lpFrame->ei.nCodePage;
-              od.bBOM=lpBackupItem->lpFrame->ei.bBOM;
-              od.hDoc=lpBackupItem->lpFrame->ei.hDocEdit;
-              if (!SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)lpBackupItem->lpFrame->ei.hWndEdit, (LPARAM)&od))
-              {
-                for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupNext)
-                {
-                  lpBackupNext=lpBackupFile->next;
-
-                  if (!xstrcmpiW(lpBackupItem->wszFile, lpBackupFile->wszFile))
-                  {
-                    DeleteBackupFile(lpBackupFile->wszFileBackup, dwTmpFile);
-                    StackDelete((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile);
-                  }
-                }
-              }
-            }
+            OPENDOCUMENTW od;
+  
+            od.pFile=lpBackupFile->wszFileBackup;
+            od.pWorkDir=NULL;
+            od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
+            od.nCodePage=lpBackupFile->lpFrame->ei.nCodePage;
+            od.bBOM=lpBackupFile->lpFrame->ei.bBOM;
+            od.hDoc=lpBackupFile->lpFrame->ei.hDocEdit;
+            SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)lpBackupFile->lpFrame->ei.hWndEdit, (LPARAM)&od);
           }
+        }
+        for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
+        {
+          DeleteBackupFile(lpBackupFile->wszFileBackup, dwTmpFile);
         }
       }
       return TRUE;
@@ -1157,14 +1133,17 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
               //Allow only one selected item in group
               bLock=TRUE;
+              lpBackupFile->bCheck=bNewState;
 
               for (nIndex=0; nIndex < nMaxIndex; ++nIndex)
               {
-                if (pnmlv->iItem == nIndex) continue;
                 lpBackupItem=(BACKUPFILE *)GetItemParam(pnmlv->hdr.hwndFrom, nIndex);
+                if (lpBackupItem == lpBackupFile) continue;
 
-                if (lpBackupItem && !xstrcmpiW(lpBackupItem->wszFile, lpBackupFile->wszFile))
+                if (lpBackupItem && lpBackupItem->bCheck && !xstrcmpiW(lpBackupItem->wszFile, lpBackupFile->wszFile))
                 {
+                  lpBackupItem->bCheck=FALSE;
+
                   lvi.mask=LVIF_STATE;
                   lvi.iItem=nIndex;
                   lvi.iSubItem=LVI_NAME;
@@ -1300,10 +1279,14 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
 {
   SAVEDOCUMENTW sd;
   wchar_t wszSaveFile[MAX_PATH];
+  const wchar_t *wpExt;
   BOOL bResult=TRUE;
 
   if (lpFrame->ei.bModified)
   {
+    if ((wpExt=GetFileExt(lpFrame->ei.wszFile, -1)) && !xstrcmpiW(L"tmp", wpExt))
+      return bResult;
+
     if (dwSaveMethod & SMET_SIMPLE)
     {
       if (*lpFrame->ei.wszFile)
@@ -1530,6 +1513,20 @@ int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFi
   }
   ++wpCount;
   return (int)xstrcpynW(wszFileDir, wpFile, min(nFileDirMax, wpCount - wpFile + 1));
+}
+
+const wchar_t* GetFileExt(const wchar_t *wpFile, int nFileLen)
+{
+  const wchar_t *wpCount;
+
+  if (nFileLen == -1) nFileLen=(int)xstrlenW(wpFile);
+
+  for (wpCount=wpFile + nFileLen - 1; (INT_PTR)wpCount >= (INT_PTR)wpFile; --wpCount)
+  {
+    if (*wpCount == L'.') return wpCount + 1;
+    if (*wpCount == L'\\') break;
+  }
+  return NULL;
 }
 
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
