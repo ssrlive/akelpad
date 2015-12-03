@@ -1262,6 +1262,8 @@ Arguments
     0x020  //OD_ADT_ONLYBOM         Detect code page only if BOM mark is present, otherwise default codepage is used.
     0x100  //OD_REOPEN              Don't create new MDI window, use the exited one.
     0x200  //OD_NOSCROLL            Don't restore scroll position.
+    0x400  //OD_MULTIFILE           More documents is on queue. Use MB_YESNOCANCEL instead of MB_OKCANCEL.
+    0x800  //OD_NOUPDATE            Don't update file info.
            //Default is 0xD         (OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM).
   nCodePage
     File code page, ignored if (nFlags & OD_ADT_DETECTCODEPAGE)
