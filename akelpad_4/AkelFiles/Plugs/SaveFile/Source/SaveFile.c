@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define _WIN32_IE 0x0500
 #include <windows.h>
 #include <shlobj.h>
 #include "StackFunc.h"
@@ -41,6 +42,7 @@
 #define GetDateFormatWide
 #define GetDlgItemTextWide
 #define GetFileAttributesWide
+#define MoveFileWide
 #define GetTimeFormatWide
 #define GetWindowLongPtrWide
 #define GetWindowTextWide
@@ -68,22 +70,20 @@
 #define STRID_SAVENEAR             8
 #define STRID_SAVEDIR              9
 #define STRID_SAVEDIRVARS          10
-#define STRID_SESSIONS_GROUP       11
-#define STRID_SESSIONS_SILENTEXIT  12
-#define STRID_SESSIONS_SAVEFILE    13
-#define STRID_TMPFILE              14
-#define STRID_TMPDELETE            15
-#define STRID_TMPTOBIN             16
-#define STRID_TMPRECOVER           17
-#define STRID_SAVENOBOM            18
-#define STRID_FORCENOBOM           19
-#define STRID_DLGUNCHECK           20
-#define STRID_PLUGIN               21
-#define STRID_NAME                 22
-#define STRID_TIME                 23
-#define STRID_FILE                 24
-#define STRID_OK                   25
-#define STRID_CANCEL               26
+#define STRID_TMPFILE              11
+#define STRID_TMPDELETE            12
+#define STRID_TMPTOBIN             13
+#define STRID_TMPRECOVER           14
+#define STRID_SAVENOBOM            15
+#define STRID_FORCENOBOM           16
+#define STRID_DLGUNCHECK           17
+#define STRID_RECOVER              18
+#define STRID_NAME                 19
+#define STRID_TIME                 20
+#define STRID_FILE                 21
+#define STRID_PLUGIN               22
+#define STRID_OK                   23
+#define STRID_CANCEL               24
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
@@ -103,10 +103,6 @@
 #define SMET_SIMPLE  0x1
 #define SMET_NEAR    0x2
 #define SMET_DIR     0x4
-
-//Sessions plugin
-#define SES_SILENTEXIT  0x1
-#define SES_SAVEFILE    0x2
 
 //.tmp file
 #define REMC_DELETE   0x1
@@ -150,6 +146,7 @@ typedef struct _BACKUPFILE {
   wchar_t wszFile[MAX_PATH];
   wchar_t wszNameBackup[MAX_PATH];
   wchar_t wszFileBackup[MAX_PATH];
+  wchar_t wszDeferFileBackup[MAX_PATH];
   wchar_t wszFileTime[MAX_PATH];
   __int64 nDiffSec;
   FILETIME ft;
@@ -161,15 +158,6 @@ typedef struct {
   BACKUPFILE *first;
   BACKUPFILE *last;
 } STACKBACKUPFILE;
-
-//Sessions external call
-#define DLLA_SESSIONS_SAVE          2
-
-typedef struct {
-  UINT_PTR dwStructSize;
-  INT_PTR nAction;
-  wchar_t *wpSession;
-} DLLEXTSESSIONSSAVE;
 
 //Functions prototypes
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -229,7 +217,6 @@ UINT_PTR dwSaveTimer=0;
 DWORD dwSaveMoment=SMOM_TIME;
 DWORD dwSaveInterval=5;
 DWORD dwSaveMethod=SMET_SIMPLE;
-DWORD dwSessions=0;
 DWORD dwTmpFile=REMC_DELETE|REMC_TOBIN|REMC_RECOVER;
 RECT rcBackupMinMaxDialog={410, 153, 0, 0};
 RECT rcBackupCurrentDialog={0};
@@ -357,6 +344,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t wszDir[MAX_PATH];
       const wchar_t *wpName;
       const wchar_t *wpCount;
+      const wchar_t *wpID;
       WIN32_FIND_DATAW wfd;
       FILETIME ftFrame;
       HANDLE hSearch;
@@ -381,7 +369,10 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         do
         {
           //Is backup format
-          for (wpCount=wfd.cFileName + nNameLen + 1; *wpCount; ++wpCount)
+          wpID=wfd.cFileName + nNameLen + 1;
+          if (*wpID == L'_') ++wpID;
+
+          for (wpCount=wpID; *wpCount; ++wpCount)
           {
             if (!xstrcmpiW(wpCount, L".tmp"))
             {
@@ -392,6 +383,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
                 xstrcpynW(lpBackupFile->wszNameBackup, wfd.cFileName, MAX_PATH);
                 xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wszDir, wfd.cFileName);
+                xprintfW(lpBackupFile->wszDeferFileBackup, L"%s._%s", nod->wszFile, wpID);
 
                 //File time
                 {
@@ -426,7 +418,9 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                       lpBackupCount->bCheck=FALSE;
                   }
                 }
-                if (!lpBackupCount) lpBackupFile->bCheck=TRUE;
+                //Two second FAT accuracy
+                if (!lpBackupCount && lpBackupFile->nDiffSec > 2)
+                  lpBackupFile->bCheck=TRUE;
                 StackMoveBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile, (stack *)lpBackupCount);
               }
               break;
@@ -495,10 +489,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lParam == ESD_SUCCESS)
         {
-          if (xstrcmpiW(wszFileNameNew, wszFileNameOld))
-          {
-            RemoveBackupFile(wszFileNameOld, lpFrame->ei.hDocEdit, 0);
-          }
+          RemoveBackupFile(wszFileNameOld, lpFrame->ei.hDocEdit, 0);
         }
         bRemoveBackupCheck=FALSE;
       }
@@ -595,8 +586,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndSaveDirCheck;
   static HWND hWndSaveDir;
   static HWND hWndSaveDirBrowse;
-  static HWND hWndSessionsSilentExit;
-  static HWND hWndSessionsSaveFile;
   static HWND hWndTmpDelete;
   static HWND hWndTmpToBin;
   static HWND hWndTmpRecover;
@@ -610,9 +599,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndUTF32BE;
   static DWORD dwSaveMomentDlg;
   static DWORD dwSaveMethodDlg;
-  static DWORD dwSessionsDlg;
   static DWORD dwTmpFileDlg;
-  static BOOL bSessionsRunning;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -630,8 +617,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndSaveDirCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR_CHECK);
     hWndSaveDir=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR);
     hWndSaveDirBrowse=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEDIR_BROWSE);
-    hWndSessionsSilentExit=GetDlgItem(hDlg, IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK);
-    hWndSessionsSaveFile=GetDlgItem(hDlg, IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK);
     hWndTmpDelete=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPDELETE_CHECK);
     hWndTmpToBin=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPTOBIN_CHECK);
     hWndTmpRecover=GetDlgItem(hDlg, IDC_AUTOSAVE_TMPRECOVER_CHECK);
@@ -655,9 +640,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVENEAR_CHECK, GetLangStringW(wLangModule, STRID_SAVENEAR));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_CHECK, GetLangStringW(wLangModule, STRID_SAVEDIR));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEDIR_NOTE, GetLangStringW(wLangModule, STRID_SAVEDIRVARS));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_GROUP, GetLangStringW(wLangModule, STRID_SESSIONS_GROUP));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK, GetLangStringW(wLangModule, STRID_SESSIONS_SILENTEXIT));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK, GetLangStringW(wLangModule, STRID_SESSIONS_SAVEFILE));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPFILE_GROUP, GetLangStringW(wLangModule, STRID_TMPFILE));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPDELETE_CHECK, GetLangStringW(wLangModule, STRID_TMPDELETE));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_TMPTOBIN_CHECK, GetLangStringW(wLangModule, STRID_TMPTOBIN));
@@ -688,20 +670,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (dwTmpFileDlg & REMC_TOBIN) SendMessage(hWndTmpToBin, BM_SETCHECK, BST_CHECKED, 0);
     if (dwTmpFileDlg & REMC_RECOVER) SendMessage(hWndTmpRecover, BM_SETCHECK, BST_CHECKED, 0);
 
-    dwSessionsDlg=dwSessions;
-    if (dwSessionsDlg & SES_SILENTEXIT) SendMessage(hWndSessionsSilentExit, BM_SETCHECK, BST_CHECKED, 0);
-    if (dwSessionsDlg & SES_SAVEFILE) SendMessage(hWndSessionsSaveFile, BM_SETCHECK, BST_CHECKED, 0);
-
-    //Is Sessions plugin running
-    {
-      PLUGINFUNCTION *pf;
-
-      if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0))
-        bSessionsRunning=pf->bRunning;
-      else
-        bSessionsRunning=FALSE;
-    }
-
     SendMessage(hWndSaveDir, EM_LIMITTEXT, MAX_PATH, 0);
     SetWindowTextWide(hWndSaveDir, wszSaveDir);
 
@@ -726,7 +694,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     WORD wCommand=LOWORD(wParam);
     DWORD dwSaveMethodNew;
-    DWORD dwSessionsNew;
 
     //Save moment
     if (wCommand == IDC_AUTOSAVE_SAVEINTERVAL_CHECK)
@@ -775,23 +742,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         dwSaveMethodNew&=~SMET_DIR;
     }
 
-    //Sessions plugin
-    dwSessionsNew=dwSessionsDlg;
-    if (wCommand == IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK)
-    {
-      if (SendMessage(hWndSessionsSilentExit, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        dwSessionsNew|=SES_SILENTEXIT;
-      else
-        dwSessionsNew&=~SES_SILENTEXIT;
-    }
-    else if (wCommand == IDC_AUTOSAVE_SESSIONS_SAVEFILE_CHECK)
-    {
-      if (SendMessage(hWndSessionsSaveFile, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        dwSessionsNew|=SES_SAVEFILE;
-      else
-        dwSessionsNew&=~SES_SAVEFILE;
-    }
-
     //.tmp file
     if (wCommand == IDC_AUTOSAVE_TMPDELETE_CHECK)
     {
@@ -815,13 +765,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         dwTmpFileDlg&=~REMC_RECOVER;
     }
 
-    if (!dwSaveMethodNew && !(dwSessionsNew & SES_SAVEFILE))
+    if (!dwSaveMethodNew)
       SendMessage(GetDlgItem(hDlg, wCommand), BM_SETCHECK, BST_CHECKED, 0);
     else
-    {
       dwSaveMethodDlg=dwSaveMethodNew;
-      dwSessionsDlg=dwSessionsNew;
-    }
 
     //Enable windows
     if (wCommand == IDC_AUTOSAVE_SAVEINTERVAL_CHECK ||
@@ -830,16 +777,13 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         wCommand == IDC_AUTOSAVE_SAVESIMPLE_CHECK ||
         wCommand == IDC_AUTOSAVE_SAVENEAR_CHECK ||
         wCommand == IDC_AUTOSAVE_SAVEDIR_CHECK ||
-        wCommand == IDC_AUTOSAVE_SESSIONS_SILENTEXIT_CHECK ||
         wCommand == IDC_AUTOSAVE_TMPDELETE_CHECK)
     {
       EnableWindow(hWndSaveSimpleCheck, dwSaveMomentDlg);
       EnableWindow(hWndSaveNearCheck, dwSaveMomentDlg);
-      EnableWindow(hWndSaveDirCheck, dwSaveMomentDlg || (dwSessionsDlg & SES_SILENTEXIT));
-      EnableWindow(hWndSaveDir, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)) || (dwSessionsDlg & SES_SILENTEXIT));
-      EnableWindow(hWndSaveDirBrowse, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)) || (dwSessionsDlg & SES_SILENTEXIT));
-      EnableWindow(hWndSessionsSilentExit, (dwSaveMethodDlg & SMET_DIR) && bSessionsRunning);
-      EnableWindow(hWndSessionsSaveFile, dwSaveMomentDlg && bSessionsRunning);
+      EnableWindow(hWndSaveDirCheck, dwSaveMomentDlg);
+      EnableWindow(hWndSaveDir, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)));
+      EnableWindow(hWndSaveDirBrowse, (dwSaveMomentDlg && (dwSaveMethodDlg & SMET_DIR)));
       EnableWindow(hWndTmpDelete, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)));
       EnableWindow(hWndTmpToBin, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
       EnableWindow(hWndTmpRecover, dwSaveMomentDlg && (dwSaveMethodDlg & (SMET_DIR|SMET_NEAR)) && (dwTmpFileDlg & REMC_DELETE));
@@ -879,7 +823,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       dwSaveMoment=dwSaveMomentDlg;
       dwSaveMethod=dwSaveMethodDlg;
       dwTmpFile=dwTmpFileDlg;
-      dwSessions=dwSessionsDlg;
       dwSaveInterval=GetDlgItemInt(hDlg, IDC_AUTOSAVE_SAVEINTERVAL, NULL, FALSE);
 
       GetWindowTextWide(hWndSaveDir, wszSaveDir, MAX_PATH);
@@ -986,11 +929,13 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPluginIcon=LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON_PLUGIN));
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hPluginIcon);
 
+
     hWndList=GetDlgItem(hDlg, IDC_RECOVER_LIST);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
+    SetDlgItemTextWide(hDlg, IDC_RECOVER_LABEL, GetLangStringW(wLangModule, STRID_RECOVER));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
@@ -1022,8 +967,7 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lvi.lParam=(LPARAM)lpBackupFile;
       nIndex=ListView_InsertItemWide(hWndList, &lvi);
 
-      //Two second FAT accuracy
-      if (lpBackupFile->nDiffSec > 2 && lpBackupFile->bCheck)
+      if (lpBackupFile->bCheck)
       {
         lvi.mask=LVIF_STATE;
         lvi.iItem=nIndex;
@@ -1089,7 +1033,7 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpBackupFile->bCheck)
           {
             OPENDOCUMENTW od;
-  
+
             od.pFile=lpBackupFile->wszFileBackup;
             od.pWorkDir=NULL;
             od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
@@ -1102,6 +1046,15 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
         {
           DeleteBackupFile(lpBackupFile->wszFileBackup, dwTmpFile);
+        }
+      }
+      else
+      {
+        //Rename files
+        for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
+        {
+          if (xstrcmpiW(lpBackupFile->wszDeferFileBackup, lpBackupFile->wszFileBackup))
+            MoveFileWide(lpBackupFile->wszFileBackup, lpBackupFile->wszDeferFileBackup);
         }
       }
       return TRUE;
@@ -1225,24 +1178,6 @@ void DoAutoSave(FRAMEDATA *lpFrame, int nSaveMoment)
             break;
           }
         }
-      }
-    }
-    if (dwSessions & SES_SAVEFILE)
-    {
-      PLUGINFUNCTION *pfSessions;
-      PLUGINCALLSENDW pcs;
-      DLLEXTSESSIONSSAVE dess;
-
-      if ((pfSessions=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0)) && pfSessions->bRunning)
-      {
-        dess.dwStructSize=sizeof(DLLEXTSESSIONSSAVE);
-        dess.nAction=DLLA_SESSIONS_SAVE;
-        dess.wpSession=L"AutoSave";
-
-        pcs.pFunction=L"Sessions::Main";
-        pcs.lParam=(LPARAM)&dess;
-        pcs.dwSupport=PDS_STRWIDE;
-        SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
       }
     }
     bProcessing=FALSE;
@@ -1581,7 +1516,6 @@ void ReadOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, MAX_PATH * sizeof(wchar_t));
-      WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
 
       //Dialog rectangle
@@ -1611,7 +1545,6 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, (lstrlenW(wszSaveDir) + 1) * sizeof(wchar_t));
-      WideOption(hOptions, L"Sessions", PO_DWORD, (LPBYTE)&dwSessions, sizeof(DWORD));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
     }
     if (dwFlags & OF_BACKUPRECT)
@@ -1662,12 +1595,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043A\x043E\x043F\x0438\x044E\x0020\x0432\x0020\x0434\x0438\x0440\x0435\x043A\x0442\x043E\x0440\x0438\x0438\x003A";
     if (nStringID == STRID_SAVEDIRVARS)
       return L"\x0025\x0061\x0020\x002D\x0020\x0434\x0438\x0440\x0435\x043A\x0442\x043E\x0440\x0438\x044F\x0020\x0041\x006B\x0065\x006C\x0050\x0061\x0064\x0027\x0430";
-    if (nStringID == STRID_SESSIONS_GROUP)
-      return L"Sessions \x043F\x043B\x0430\x0433\x0438\x043D (AutoSave.session)";
-    if (nStringID == STRID_SESSIONS_SILENTEXIT)
-      return L"\x041C\x043E\x043B\x0447\x0430\x0020\x0432\x044B\x0445\x043E\x0434\x0438\x0442\x044C\x002F\x0432\x043E\x0441\x0441\x0442\x0430\x043D\x0430\x0432\x043B\x0438\x0432\x0430\x0442\x044C";
-    if (nStringID == STRID_SESSIONS_SAVEFILE)
-      return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x0444\x0430\x0439\x043B\x0020\x0441\x0435\x0441\x0441\x0438\x0438";
     if (nStringID == STRID_TMPFILE)
       return L"\x0423\x0434\x0430\x043B\x0435\x043D\x0438\x0435\x002F\x0412\x043E\x0441\x0441\x0442\x0430\x043D\x043E\x0432\x043B\x0435\x043D\x0438\x0435\x0020\x002E\x0074\x006D\x0070\x0020\x0444\x0430\x0439\x043B\x0430";
     if (nStringID == STRID_TMPDELETE)
@@ -1682,14 +1609,16 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0424\x043E\x0440\x0441\x0438\x0440\x043E\x0432\x0430\x0442\x044C\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x0435\x0020\x0431\x0435\x0437\x0020\x0042\x004F\x004D";
     if (nStringID == STRID_DLGUNCHECK)
       return L"\x0421\x043D\x0438\x043C\x0430\x0442\x044C\x0020\x0433\x0430\x043B\x043A\x0443\x0020\x0042\x004F\x004D\x0020\x0432\x0020\x0434\x0438\x0430\x043B\x043E\x0433\x0435\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x044F";
-    if (nStringID == STRID_PLUGIN)
-      return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
+    if (nStringID == STRID_RECOVER)
+      return L"\x0412\x043E\x0441\x0441\x0442\x0430\x043D\x043E\x0432\x0438\x0442\x044C:";
     if (nStringID == STRID_NAME)
       return L"\x0418\x043C\x044F";
     if (nStringID == STRID_TIME)
       return L"\x0412\x0440\x0435\x043C\x044F";
     if (nStringID == STRID_FILE)
       return L"\x0424\x0430\x0439\x043B";
+    if (nStringID == STRID_PLUGIN)
+      return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
     if (nStringID == STRID_OK)
       return L"\x004F\x004B";
     if (nStringID == STRID_CANCEL)
@@ -1717,12 +1646,6 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Save a copy in directory:";
     if (nStringID == STRID_SAVEDIRVARS)
       return L"%a - AkelPad directory";
-    if (nStringID == STRID_SESSIONS_GROUP)
-      return L"Sessions plugin (AutoSave.session)";
-    if (nStringID == STRID_SESSIONS_SILENTEXIT)
-      return L"Silent exit/restore";
-    if (nStringID == STRID_SESSIONS_SAVEFILE)
-      return L"Save session file";
     if (nStringID == STRID_TMPFILE)
       return L"Delete/Restore .tmp file";
     if (nStringID == STRID_TMPDELETE)
@@ -1737,14 +1660,16 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Force saving without BOM";
     if (nStringID == STRID_DLGUNCHECK)
       return L"Uncheck BOM in save dialog";
-    if (nStringID == STRID_PLUGIN)
-      return L"%s plugin";
+    if (nStringID == STRID_RECOVER)
+      return L"Recover:";
     if (nStringID == STRID_NAME)
       return L"Name";
     if (nStringID == STRID_TIME)
       return L"Time";
     if (nStringID == STRID_FILE)
       return L"File";
+    if (nStringID == STRID_PLUGIN)
+      return L"%s plugin";
     if (nStringID == STRID_OK)
       return L"OK";
     if (nStringID == STRID_CANCEL)
