@@ -1264,6 +1264,8 @@ ________________
     0x020  //OD_ADT_ONLYBOM         Определить кодировку, только если присутствует сигнатура BOM, иначе будет использована кодировка по умолчанию.
     0x100  //OD_REOPEN              Не создавать новое окно, использовать имеющееся.
     0x200  //OD_NOSCROLL            Не восстанавливать прокрутку текста.
+    0x400  //OD_MULTIFILE           Ещё документы в очереди. Использовать MB_YESNOCANCEL вместо MB_OKCANCEL.
+    0x800  //OD_NOUPDATE            Не обновлять информацию о файле в программе.
            //По умолчанию 0xD       (OD_ADT_BINARYERROR|OD_ADT_DETECTCODEPAGE|OD_ADT_DETECTBOM).
   nCodePage
     Кодировка файла, игнорируется если (nFlags & OD_ADT_DETECTCODEPAGE)
