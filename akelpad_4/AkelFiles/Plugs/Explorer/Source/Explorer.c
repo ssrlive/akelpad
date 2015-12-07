@@ -31,6 +31,7 @@
 #define xmemcmp
 #define xstrlenW
 #define xstrcpynW
+#define xstrcmpiW
 #define xatoiW
 #define xitoaW
 #define xuitoaW
@@ -1461,6 +1462,8 @@ BOOL CALLBACK InputBoxProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static BOOL bFindDoc;
+
   if (uMsg == AKDN_MAIN_ONSTART_IDLE)
   {
     if (bOnMainStart) PostMessage(hWndDockDlg, AKDLL_INIT, 0, 0);
@@ -1470,11 +1473,37 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (((DOCK *)wParam)->hWnd == dkExplorerDlg->hWnd)
       dwSaveFlags|=OF_RECT;
   }
-  else if (uMsg == AKDN_OPENDOCUMENT_FINISH ||
+  else if (uMsg == AKDN_OPENDOCUMENT_START)
+  {
+    NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
+
+    if (!(*nod->dwFlags & OD_NOUPDATE))
+      bFindDoc=TRUE;
+  }
+  else if (uMsg == AKDN_SAVEDOCUMENT_START)
+  {
+    NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
+    if (nsd->dwFlags & SD_UPDATE)
+    {
+      if (xstrcmpiW(lpFrame->wszFile, nsd->wszFile))
+        bFindDoc=TRUE;
+    }
+  }
+  else if (uMsg == AKDN_POSTDOCUMENT_FINISH ||
            (uMsg == AKDN_FRAME_ACTIVATE && !(wParam & FWA_NOVISUPDATE)))
   {
-    if (bAutoFind)
-      PostMessage(hWndDockDlg, AKDLL_FINDDOCUMENT, 0, 0);
+    if (uMsg == AKDN_POSTDOCUMENT_FINISH && !bFindDoc)
+    {
+      //Don't process
+    }
+    else
+    {
+      if (bAutoFind)
+        PostMessage(hWndDockDlg, AKDLL_FINDDOCUMENT, 0, 0);
+      bFindDoc=FALSE;
+    }
   }
   else if (uMsg == AKDN_SIZE_ONSTART)
   {
