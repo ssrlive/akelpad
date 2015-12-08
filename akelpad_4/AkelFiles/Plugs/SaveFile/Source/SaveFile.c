@@ -82,8 +82,10 @@
 #define STRID_TIME                 20
 #define STRID_FILE                 21
 #define STRID_PLUGIN               22
-#define STRID_OK                   23
-#define STRID_CANCEL               24
+#define STRID_YES                  23
+#define STRID_NO                   24
+#define STRID_OK                   25
+#define STRID_CANCEL               26
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
@@ -909,13 +911,16 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HICON hPluginIcon;
   static HWND hWndList;
-  static HWND hWndOK;
+  static HWND hWndYes;
+  static HWND hWndNo;
   static HWND hWndCancel;
   BACKUPFILE *lpBackupFile;
   static RESIZEDIALOG rds[]={{&hWndList,     RDS_SIZE|RDS_X, 0},
                              {&hWndList,     RDS_SIZE|RDS_Y, 0},
-                             {&hWndOK,       RDS_MOVE|RDS_X, 0},
-                             {&hWndOK,       RDS_MOVE|RDS_Y, 0},
+                             {&hWndYes,      RDS_MOVE|RDS_X, 0},
+                             {&hWndYes,      RDS_MOVE|RDS_Y, 0},
+                             {&hWndNo,       RDS_MOVE|RDS_X, 0},
+                             {&hWndNo,       RDS_MOVE|RDS_Y, 0},
                              {&hWndCancel,   RDS_MOVE|RDS_X, 0},
                              {&hWndCancel,   RDS_MOVE|RDS_Y, 0},
                              {0, 0, 0}};
@@ -932,12 +937,14 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 
     hWndList=GetDlgItem(hDlg, IDC_RECOVER_LIST);
-    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndYes=GetDlgItem(hDlg, IDYES);
+    hWndNo=GetDlgItem(hDlg, IDNO);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDC_RECOVER_LABEL, GetLangStringW(wLangModule, STRID_RECOVER));
-    SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
+    SetDlgItemTextWide(hDlg, IDYES, GetLangStringW(wLangModule, STRID_YES));
+    SetDlgItemTextWide(hDlg, IDNO, GetLangStringW(wLangModule, STRID_NO));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_INFOTIP|LVS_EX_CHECKBOXES);
@@ -995,7 +1002,8 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     WORD wCommand=LOWORD(wParam);
 
-    if (wCommand == IDOK ||
+    if (wCommand == IDYES ||
+        wCommand == IDNO ||
         wCommand == IDCANCEL)
     {
       int nWidth;
@@ -1025,23 +1033,26 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       EndDialog(hDlg, 0);
 
-      if (wCommand == IDOK)
+      if (wCommand == IDYES || wCommand == IDNO)
       {
         BACKUPFILE *lpBackupFile;
 
-        for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
+        if (wCommand == IDYES)
         {
-          if (lpBackupFile->bCheck)
+          for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
           {
-            OPENDOCUMENTW od;
+            if (lpBackupFile->bCheck)
+            {
+              OPENDOCUMENTW od;
 
-            od.pFile=lpBackupFile->wszFileBackup;
-            od.pWorkDir=NULL;
-            od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
-            od.nCodePage=lpBackupFile->lpFrame->ei.nCodePage;
-            od.bBOM=lpBackupFile->lpFrame->ei.bBOM;
-            od.hDoc=lpBackupFile->lpFrame->ei.hDocEdit;
-            SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)lpBackupFile->lpFrame->ei.hWndEdit, (LPARAM)&od);
+              od.pFile=lpBackupFile->wszFileBackup;
+              od.pWorkDir=NULL;
+              od.dwFlags=OD_ADT_BINARYERROR|OD_NOUPDATE;
+              od.nCodePage=lpBackupFile->lpFrame->ei.nCodePage;
+              od.bBOM=lpBackupFile->lpFrame->ei.bBOM;
+              od.hDoc=lpBackupFile->lpFrame->ei.hDocEdit;
+              SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)lpBackupFile->lpFrame->ei.hWndEdit, (LPARAM)&od);
+            }
           }
         }
         for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
@@ -1620,6 +1631,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0424\x0430\x0439\x043B";
     if (nStringID == STRID_PLUGIN)
       return L"%s \x043F\x043B\x0430\x0433\x0438\x043D";
+    if (nStringID == STRID_YES)
+      return L"\x0414\x0430";
+    if (nStringID == STRID_NO)
+      return L"\x041D\x0435\x0442";
     if (nStringID == STRID_OK)
       return L"\x004F\x004B";
     if (nStringID == STRID_CANCEL)
@@ -1671,6 +1686,10 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"File";
     if (nStringID == STRID_PLUGIN)
       return L"%s plugin";
+    if (nStringID == STRID_YES)
+      return L"Yes";
+    if (nStringID == STRID_NO)
+      return L"No";
     if (nStringID == STRID_OK)
       return L"OK";
     if (nStringID == STRID_CANCEL)
