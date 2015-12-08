@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 1, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 0)
 
 
 //// Defines
@@ -3540,15 +3540,15 @@ Return Value
  See EOD_* defines.
 
 Example (Unicode):
-  OPENDOCUMENTW od;
+ OPENDOCUMENTW od;
 
-  od.pFile=L"C:\\MyFile.txt";
-  od.pWorkDir=NULL;
-  od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-  od.nCodePage=0;
-  od.bBOM=0;
-  od.hDoc=NULL;
-  SendMessage(pd->hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+ od.pFile=L"C:\\MyFile.txt";
+ od.pWorkDir=NULL;
+ od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+ od.nCodePage=0;
+ od.bBOM=0;
+ od.hDoc=NULL;
+ SendMessage(pd->hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 
 
 AKD_SAVEDOCUMENT, AKD_SAVEDOCUMENTA, AKD_SAVEDOCUMENTW
