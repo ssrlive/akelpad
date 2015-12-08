@@ -337,7 +337,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
     FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
 
-    if (bInitAutoSave && (dwTmpFile & REMC_RECOVER) && !(*nod->dwFlags & (OD_NOUPDATE|OD_REOPEN)))
+    if (bInitAutoSave && (dwTmpFile & REMC_RECOVER) && !(*nod->dwFlags & (OD_NOUPDATE|OD_REOPEN)) &&
+        !SendMessage(hMainWnd, AKD_FRAMEFINDW, FWF_BYFILENAME, (LPARAM)nod->wszFile))
     {
       wchar_t wszSearch[MAX_PATH];
       wchar_t wszBackupFile[MAX_PATH];
