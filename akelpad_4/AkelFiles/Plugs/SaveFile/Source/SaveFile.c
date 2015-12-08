@@ -149,6 +149,7 @@ typedef struct _BACKUPFILE {
   wchar_t wszNameBackup[MAX_PATH];
   wchar_t wszFileBackup[MAX_PATH];
   wchar_t wszDeferFileBackup[MAX_PATH];
+  wchar_t wszDeferFileBackupNoExt[MAX_PATH];
   wchar_t wszFileTime[MAX_PATH];
   __int64 nDiffSec;
   FILETIME ft;
@@ -344,8 +345,9 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       wchar_t wszSearch[MAX_PATH];
       wchar_t wszBackupFile[MAX_PATH];
-      wchar_t wszDir[MAX_PATH];
+      wchar_t wszFileDir[MAX_PATH];
       const wchar_t *wpName;
+      const wchar_t *wpBackupDir;
       const wchar_t *wpCount;
       const wchar_t *wpID;
       WIN32_FIND_DATAW wfd;
@@ -353,6 +355,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       HANDLE hSearch;
       int nNameLen;
       int nDirLen;
+      int nDeferFileBackup;
+      DWORD dwSaveMethodOpen=dwSaveMethod;
       BACKUPFILE *lpBackupFile;
       BACKUPFILE *lpBackupCount;
       __int64 nDiff;
@@ -363,78 +367,91 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ftFrame=lpFrame->ft;
       wpName=GetFileName(nod->wszFile, -1);
       nNameLen=(int)xstrlenW(wpName);
-      nDirLen=(int)GetFileDir(nod->wszFile, -1, wszDir, MAX_PATH);
+      nDirLen=(int)GetFileDir(nod->wszFile, -1, wszFileDir, MAX_PATH);
       wszBackupFile[0]=L'\0';
-      xprintfW(wszSearch, L"%s.*.tmp", nod->wszFile);
 
-      if ((hSearch=FindFirstFileWide(wszSearch, &wfd)) != INVALID_HANDLE_VALUE)
+      while (dwSaveMethodOpen & (SMET_NEAR|SMET_DIR))
       {
-        do
+        if (dwSaveMethodOpen & SMET_DIR)
+          wpBackupDir=wszSaveDirExp;
+        else if (dwSaveMethodOpen & SMET_NEAR)
+          wpBackupDir=wszFileDir;
+        xprintfW(wszSearch, L"%s\\%s.*.tmp", wpBackupDir, wpName);
+
+        if ((hSearch=FindFirstFileWide(wszSearch, &wfd)) != INVALID_HANDLE_VALUE)
         {
-          //Is backup format
-          wpID=wfd.cFileName + nNameLen + 1;
-          if (*wpID == L'_') ++wpID;
-
-          for (wpCount=wpID; *wpCount; ++wpCount)
+          do
           {
-            if (!xstrcmpiW(wpCount, L".tmp"))
+            //Is backup format
+            wpID=wfd.cFileName + nNameLen + 1;
+            if (*wpID == L'_') ++wpID;
+
+            for (wpCount=wpID; *wpCount; ++wpCount)
             {
-              if (!StackInsertBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)NULL, (stack **)&lpBackupFile, sizeof(BACKUPFILE)))
+              if (!xstrcmpiW(wpCount, L".tmp"))
               {
-                xstrcpynW(lpBackupFile->wszName, wpName, MAX_PATH);
-                xstrcpynW(lpBackupFile->wszDir, wszDir, MAX_PATH);
-                xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
-                xstrcpynW(lpBackupFile->wszNameBackup, wfd.cFileName, MAX_PATH);
-                xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wszDir, wfd.cFileName);
-                xprintfW(lpBackupFile->wszDeferFileBackup, L"%s._%s", nod->wszFile, wpID);
-
-                //File time
+                if (!StackInsertBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)NULL, (stack **)&lpBackupFile, sizeof(BACKUPFILE)))
                 {
-                  wchar_t wszTime[128];
-                  wchar_t wszDate[128];
-                  FILETIME ft;
-                  SYSTEMTIME st;
+                  xstrcpynW(lpBackupFile->wszName, wpName, MAX_PATH);
+                  xstrcpynW(lpBackupFile->wszDir, wszFileDir, MAX_PATH);
+                  xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
+                  xstrcpynW(lpBackupFile->wszNameBackup, wfd.cFileName, MAX_PATH);
+                  xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wpBackupDir, wfd.cFileName);
+                  nDeferFileBackup=xprintfW(lpBackupFile->wszDeferFileBackup, L"%s\\%s._%s", wpBackupDir, wpName, wpID);
+                  xstrcpynW(lpBackupFile->wszDeferFileBackupNoExt, lpBackupFile->wszDeferFileBackup, nDeferFileBackup - 3);
 
-                  lpBackupFile->ft=wfd.ftLastWriteTime;
-                  FileTimeToLocalFileTime(&lpBackupFile->ft, &ft);
-                  FileTimeToSystemTime(&ft, &st);
-
-                  GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszTime, 128);
-                  GetDateFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszDate, 128);
-                  xprintfW(lpBackupFile->wszFileTime, L"%s %s", wszDate, wszTime);
-
-                  lpBackupFile->nDiffSec=FileTimeDiffMS(&lpBackupFile->ft, &ftFrame) / 1000;
-                }
-                lpBackupFile->lpFrame=lpFrame;
-
-                for (lpBackupCount=hBackupStack.first; lpBackupCount; lpBackupCount=lpBackupCount->next)
-                {
-                  if (lpBackupCount == lpBackupFile) continue;
-
-                  if (!xstrcmpiW(lpBackupFile->wszName, lpBackupCount->wszName))
+                  //File time
                   {
-                    nDiff=FileTimeDiffMS(&lpBackupFile->ft, &lpBackupCount->ft);
-                    if (nDiff < 0)
-                      break;
+                    wchar_t wszTime[128];
+                    wchar_t wszDate[128];
+                    FILETIME ft;
+                    SYSTEMTIME st;
 
-                    if (lpBackupCount->bCheck)
-                      lpBackupCount->bCheck=FALSE;
+                    lpBackupFile->ft=wfd.ftLastWriteTime;
+                    FileTimeToLocalFileTime(&lpBackupFile->ft, &ft);
+                    FileTimeToSystemTime(&ft, &st);
+
+                    GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszTime, 128);
+                    GetDateFormatWide(LOCALE_USER_DEFAULT, 0, &st, NULL, wszDate, 128);
+                    xprintfW(lpBackupFile->wszFileTime, L"%s %s", wszDate, wszTime);
+
+                    lpBackupFile->nDiffSec=FileTimeDiffMS(&lpBackupFile->ft, &ftFrame) / 1000;
                   }
-                }
-                //Two second FAT accuracy
-                if (!lpBackupCount && lpBackupFile->nDiffSec > 2)
-                  lpBackupFile->bCheck=TRUE;
-                StackMoveBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile, (stack *)lpBackupCount);
-              }
-              break;
-            }
-            if (*wpCount < L'0' || *wpCount > L'9')
-              break;
-          }
-        }
-        while (FindNextFileWide(hSearch, &wfd));
+                  lpBackupFile->lpFrame=lpFrame;
 
-        FindClose(hSearch);
+                  for (lpBackupCount=hBackupStack.first; lpBackupCount; lpBackupCount=lpBackupCount->next)
+                  {
+                    if (lpBackupCount == lpBackupFile) continue;
+
+                    if (!xstrcmpiW(lpBackupFile->wszName, lpBackupCount->wszName))
+                    {
+                      nDiff=FileTimeDiffMS(&lpBackupFile->ft, &lpBackupCount->ft);
+                      if (nDiff < 0)
+                        break;
+
+                      if (lpBackupCount->bCheck)
+                        lpBackupCount->bCheck=FALSE;
+                    }
+                  }
+                  //Two second FAT accuracy
+                  if (!lpBackupCount && lpBackupFile->nDiffSec > 2)
+                    lpBackupFile->bCheck=TRUE;
+                  StackMoveBefore((stack **)&hBackupStack.first, (stack **)&hBackupStack.last, (stack *)lpBackupFile, (stack *)lpBackupCount);
+                }
+                break;
+              }
+              if (*wpCount != L'_' && (*wpCount < L'0' || *wpCount > L'9'))
+                break;
+            }
+          }
+          while (FindNextFileWide(hSearch, &wfd));
+
+          FindClose(hSearch);
+        }
+        if (dwSaveMethodOpen & SMET_DIR)
+          dwSaveMethodOpen&=~SMET_DIR;
+        else if (dwSaveMethodOpen & SMET_NEAR)
+          dwSaveMethodOpen&=~SMET_NEAR;
       }
     }
   }
@@ -1066,7 +1083,25 @@ BOOL CALLBACK RecoverDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         for (lpBackupFile=hBackupStack.first; lpBackupFile; lpBackupFile=lpBackupFile->next)
         {
           if (xstrcmpiW(lpBackupFile->wszDeferFileBackup, lpBackupFile->wszFileBackup))
-            MoveFileWide(lpBackupFile->wszFileBackup, lpBackupFile->wszDeferFileBackup);
+          {
+            if (!FileExistsWide(lpBackupFile->wszDeferFileBackup))
+              MoveFileWide(lpBackupFile->wszFileBackup, lpBackupFile->wszDeferFileBackup);
+            else
+            {
+              wchar_t wszDeferFileBackup[MAX_PATH];
+              int i;
+
+              for (i=2; i < 1000; ++i)
+              {
+                xprintfW(wszDeferFileBackup, L"%s_%d.tmp", lpBackupFile->wszDeferFileBackupNoExt, i);
+                if (!FileExistsWide(wszDeferFileBackup))
+                {
+                  MoveFileWide(lpBackupFile->wszFileBackup, wszDeferFileBackup);
+                  break;
+                }
+              }
+            }
+          }
         }
       }
       return TRUE;
