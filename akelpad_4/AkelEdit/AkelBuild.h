@@ -594,6 +594,7 @@ typedef struct {
   wchar_t wszUrlLeftDelimiters[AEMAX_DELIMLENGTH];
   wchar_t wszUrlRightDelimiters[AEMAX_DELIMLENGTH];
   wchar_t wszUrlPrefixes[AEMAX_DELIMLENGTH];
+  int nUrlPrefixesLen;
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
   AETHEMEITEMW *lpActiveTheme;

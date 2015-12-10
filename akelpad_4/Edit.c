@@ -1547,7 +1547,7 @@ BOOL DoFileOpen()
           if (moCur.bStatusBar)
           {
             API_LoadString(hLangModule, STR_COUNT, wszString, MAX_PATH);
-            xarraysizeW(wszOfnFileList, &nFiles);
+            xarrlenW(wszOfnFileList, &nFiles);
 
             //First element in array is directory.
             --nFiles;

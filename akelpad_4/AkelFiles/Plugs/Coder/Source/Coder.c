@@ -50,8 +50,8 @@
 #define xstrcpynW
 #define xstrstrW
 #define xstrrepW
-#define xarraysizeA
-#define xarraysizeW
+#define xarrlenA
+#define xarrlenW
 #define hex2decA
 #define hex2decW
 #define xatoiA

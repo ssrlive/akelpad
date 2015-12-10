@@ -17,7 +17,7 @@
 
 //Include string functions
 #define WideCharLower
-#define xarraysizeW
+#define xarrlenW
 #define xmemcpy
 #define xstrlenW
 #define xstrcpynW

@@ -59,7 +59,7 @@
   #define xmemcpy
   #define xmemcmp
   #define xmemset
-  #define xarraysizeW
+  #define xarrlenW
   #define xstrlenA
   #define xstrlenW
   #define xstrcmpW
@@ -80,7 +80,7 @@
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
-  #define xarraysizeW_INCLUDED
+  #define xarrlenW_INCLUDED
   #define xstrlenA_INCLUDED
   #define xstrlenW_INCLUDED
   #define xstrcmpW_INCLUDED
@@ -96,7 +96,7 @@
   #define UTF8toUTF16_INCLUDED
   #define UTF16toUTF8_INCLUDED
 #endif
-#define xarraysizeA
+#define xarrlenA
 #define xstrcpyA
 #define xstrstrW
 #define xatoiA

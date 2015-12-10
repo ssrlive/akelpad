@@ -71,7 +71,8 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
-#define xarraysizeW
+#define xarrlenW
+#define xarrcpynW
 #define xstrlenA
 #define xstrlenW
 #define xstrcmpW
@@ -1648,20 +1649,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_GETURLPREFIXES:
     {
-      INT_PTR nPrefixLen=min(xarraysizeW(ae->popt->wszUrlPrefixes, NULL), (INT_PTR)wParam);
-
-      if (lParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlPrefixes, nPrefixLen * sizeof(wchar_t));
-      return nPrefixLen;
+      return xarrcpynW((wchar_t *)lParam, ae->popt->wszUrlPrefixes, wParam);
     }
     case AEM_SETURLPREFIXES:
     {
       const wchar_t *wpPrefix=lParam?(wchar_t *)lParam:AES_URLPREFIXESW;
       int nPrefix;
 
-      xmemcpy(ae->popt->wszUrlPrefixes, wpPrefix, min(xarraysizeW(wpPrefix, NULL) * sizeof(wchar_t), sizeof(ae->popt->wszUrlPrefixes)));
-      ae->popt->wszUrlPrefixes[AEMAX_DELIMLENGTH - 1]=L'\0';
-      ae->popt->wszUrlPrefixes[AEMAX_DELIMLENGTH - 2]=L'\0';
-
+      ae->popt->nUrlPrefixesLen=xarrcpynW(ae->popt->wszUrlPrefixes, wpPrefix, AEMAX_DELIMLENGTH);
       nPrefix=AE_GetUrlPrefixes(ae);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
