@@ -1653,10 +1653,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_SETURLPREFIXES:
     {
-      const wchar_t *wpPrefix=lParam?(wchar_t *)lParam:AES_URLPREFIXESW;
       int nPrefix;
 
-      ae->popt->nUrlPrefixesLen=xarrcpynW(ae->popt->wszUrlPrefixes, wpPrefix, AEMAX_DELIMLENGTH);
+      ae->popt->nUrlPrefixesLen=xarrcpynW(ae->popt->wszUrlPrefixes, lParam?(wchar_t *)lParam:AES_URLPREFIXESW, AEMAX_DELIMLENGTH);
       nPrefix=AE_GetUrlPrefixes(ae);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
