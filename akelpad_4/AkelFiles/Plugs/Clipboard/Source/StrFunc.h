@@ -1,13 +1,13 @@
 /*****************************************************************
- *              String functions header v5.9                     *
+ *              String functions header v6.0                     *
  *                                                               *
- * 2014 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
  * WideCharLower, WideCharUpper, xmemcpy, xmemcmp, xmemset,      *
- * xarraysizeA, xarraysizeW, xstrlenA, xstrlenW,                 *
- * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
+ * xarrlenA, xarrlenW, xarrcpynA, xarrcpynW,                     *
+ * xstrlenA, xstrlenW, xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW, *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
  * xstrstrA, xstrstrW, xstrrepA, xstrrepW                        *
@@ -28,8 +28,10 @@ wchar_t WideCharUpper(wchar_t c);
 void* xmemcpy(void *dest, const void *src, UINT_PTR count);
 int xmemcmp(const void *buf1, const void *buf2, UINT_PTR count);
 void* xmemset(void *dest, int c, UINT_PTR count);
-INT_PTR xarraysizeA(const char *pString, int *nElements);
-INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements);
+INT_PTR xarrlenA(const char *pString, int *nElements);
+INT_PTR xarrlenW(const wchar_t *wpString, int *nElements);
+INT_PTR xarrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength);
+INT_PTR xarrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
 INT_PTR xstrlenA(const char *pString);
 INT_PTR xstrlenW(const wchar_t *wpString);
 int xstrcmpA(const char *pString1, const char *pString2);
@@ -880,9 +882,9 @@ void* xmemcpy(void *dest, const void *src, UINT_PTR count)
  *[in] const void *buf2  Second buffer.
  *[in] UINT_PTR count    Number of bytes.
  *
- *Returns:  -1 buf1 less than buf2.
- *           0 buf1 identical to buf2.
- *           1 buf1 greater than buf2.
+ *Returns: -1 buf1 less than buf2.
+ *          0 buf1 identical to buf2.
+ *          1 buf1 greater than buf2.
  ********************************************************************/
 #if defined xmemcmp || defined ALLSTRFUNC
 #define xmemcmp_INCLUDED
@@ -948,19 +950,19 @@ void* xmemset(void *dest, int c, UINT_PTR count)
 
 /********************************************************************
  *
- *  xarraysizeA
+ *  xarrlenA
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
  *[in]  const char *pString  Pointer to a string terminated with two NULL characters.
  *[out] int *nElements       Number of elements in array, each element separated by NULL character. Can be NULL.
  *
- *Returns:  number of characters, including two NULL characters.
+ *Returns: number of characters, including two NULL characters.
  ********************************************************************/
-#if defined xarraysizeA || defined ALLSTRFUNC
-#define xarraysizeA_INCLUDED
-#undef xarraysizeA
-INT_PTR xarraysizeA(const char *pString, int *nElements)
+#if defined xarrlenA || defined ALLSTRFUNC
+#define xarrlenA_INCLUDED
+#undef xarrlenA
+INT_PTR xarrlenA(const char *pString, int *nElements)
 {
   const char *pCount=pString;
   int nCount=1;
@@ -984,19 +986,19 @@ INT_PTR xarraysizeA(const char *pString, int *nElements)
 
 /********************************************************************
  *
- *  xarraysizeW
+ *  xarrlenW
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
  *[in]  const wchar_t *wpString  Pointer to a string terminated with two NULL characters.
  *[out] int *nElements           Number of elements in array, each element separated by NULL character. Can be NULL.
  *
- *Returns:  number of characters, including two NULL characters.
+ *Returns: number of characters, including two NULL characters.
  ********************************************************************/
-#if defined xarraysizeW || defined ALLSTRFUNC
-#define xarraysizeW_INCLUDED
-#undef xarraysizeW
-INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements)
+#if defined xarrlenW || defined ALLSTRFUNC
+#define xarrlenW_INCLUDED
+#undef xarrlenW
+INT_PTR xarrlenW(const wchar_t *wpString, int *nElements)
 {
   const wchar_t *wpCount=wpString;
   int nCount=1;
@@ -1020,13 +1022,91 @@ INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements)
 
 /********************************************************************
  *
+ *  xarrcpynA
+ *
+ *Copies a specified number of characters from a source string into a buffer.
+ *
+ *[in] char *pString1       Pointer to a buffer into which the function copies characters.
+ *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
+ *                           including room for a terminating two null character. Can be NULL, if dwMaxLength isn't zero.
+ *[in] char *pString2       Pointer to a two null-terminated string from which the function copies characters.
+ *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
+ *                           including a terminating two null character.
+ *
+ *Returns:  number of characters copied, including the terminating two null character.
+ *
+ *Note:
+ *  xarrcpynA uses xarrlenA.
+ ********************************************************************/
+#if defined xarrcpynA || defined ALLSTRFUNC
+#define xarrcpynA_INCLUDED
+#undef xarrcpynA
+INT_PTR xarrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
+{
+  char *pDest=pString1;
+  char *pSrc=(char *)pString2;
+
+  if (!pSrc || dwMaxLength < 2)
+    return 0;
+  if (!pDest)
+    return min(dwMaxLength, (UINT_PTR)xarrlenA(pSrc, NULL));
+
+  while ((*pSrc || *(pSrc + 1)) && --dwMaxLength > 1)
+    *pDest++=*pSrc++;
+  *pDest++=L'\0';
+  *pDest++=L'\0';
+  return pDest - pString1;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xarrcpynW
+ *
+ *Copies a specified number of unicode characters from a source string into a buffer.
+ *
+ *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
+ *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
+ *                           including room for a terminating two null character. Can be NULL, if dwMaxLength isn't zero.
+ *[in] wchar_t *wpString2   Pointer to a two null-terminated string from which the function copies characters.
+ *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
+ *                           including a terminating two null character.
+ *
+ *Returns:  number of characters copied, including the terminating two null character.
+ *
+ *Note:
+ *  xarrcpynW uses xarrlenW.
+ ********************************************************************/
+#if defined xarrcpynW || defined ALLSTRFUNC
+#define xarrcpynW_INCLUDED
+#undef xarrcpynW
+INT_PTR xarrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength)
+{
+  wchar_t *wpDest=wpString1;
+  wchar_t *wpSrc=(wchar_t *)wpString2;
+
+  if (!wpSrc || dwMaxLength < 2)
+    return 0;
+  if (!wpDest)
+    return min(dwMaxLength, (UINT_PTR)xarrlenW(wpSrc, NULL));
+
+  while ((*wpSrc || *(wpSrc + 1)) && --dwMaxLength > 1)
+    *wpDest++=*wpSrc++;
+  *wpDest++=L'\0';
+  *wpDest++=L'\0';
+  return wpDest - wpString1;
+}
+#endif
+
+/********************************************************************
+ *
  *  xstrlenA
  *
  *Retrieves length of the string that is terminated with NULL character.
  *
  *[in] const char *pString   Pointer to a string terminated with NULL character.
  *
- *Returns:  number of characters, not including the terminating NULL character.
+ *Returns: number of characters, not including the terminating NULL character.
  ********************************************************************/
 #if defined xstrlenA || defined ALLSTRFUNC
 #define xstrlenA_INCLUDED
@@ -1049,7 +1129,7 @@ INT_PTR xstrlenA(const char *pString)
  *
  *[in] const wchar_t *wpString   Pointer to a string terminated with NULL character.
  *
- *Returns:  number of characters, not including the terminating NULL character.
+ *Returns: number of characters, not including the terminating NULL character.
  ********************************************************************/
 #if defined xstrlenW || defined ALLSTRFUNC
 #define xstrlenW_INCLUDED
@@ -1073,9 +1153,9 @@ INT_PTR xstrlenW(const wchar_t *wpString)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpA || defined ALLSTRFUNC
 #define xstrcmpA_INCLUDED
@@ -1117,9 +1197,9 @@ int xstrcmpA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpW || defined ALLSTRFUNC
 #define xstrcmpW_INCLUDED
@@ -1161,9 +1241,9 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpiA || defined ALLSTRFUNC
 #define xstrcmpiA_INCLUDED
@@ -1209,9 +1289,9 @@ int xstrcmpiA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpiW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1271,9 +1351,9 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
  *[in] UINT_PTR dwMaxLength  Number of characters to compare,
  *                            -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnA || defined ALLSTRFUNC
 #define xstrcmpnA_INCLUDED
@@ -1308,9 +1388,9 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *[in] UINT_PTR dwMaxLength   Number of characters to compare,
  *                             -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnW || defined ALLSTRFUNC
 #define xstrcmpnW_INCLUDED
@@ -1345,9 +1425,9 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMax
  *[in] UINT_PTR dwMaxLength  Number of characters to compare,
  *                            -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpinA || defined ALLSTRFUNC
 #define xstrcmpinA_INCLUDED
@@ -1385,9 +1465,9 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *[in] UINT_PTR dwMaxLength   Number of characters to compare,
  *                             -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpinW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1437,7 +1517,7 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
  *                      including the terminating null character. Can be NULL.
  *[in] char *pString2  Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpyA uses xstrlenA.
@@ -1475,7 +1555,7 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
  *                          including the terminating null character. Can be NULL.
  *[in] wchar_t *wpString2  Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpyW uses xstrlenW.
@@ -1515,7 +1595,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *[in] UINT_PTR dwMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                            including a terminating null character.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpynA uses xstrlenA.
@@ -1553,7 +1633,7 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpynW uses xstrlenW.
@@ -1597,8 +1677,8 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *[out] const char **pStrBegin  Pointer to the first char of pStr, can be NULL.
  *[out] const char **pStrEnd    Pointer to the first char after pStr, can be NULL.
  *
- *Returns:  TRUE  pStr is found.
- *          FALSE pStr isn't found.
+ *Returns: TRUE  pStr is found.
+ *         FALSE pStr isn't found.
  *
  *Note:
  *  xstrstrA uses xstrlenA.
@@ -1665,8 +1745,8 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
  *[out] const wchar_t **wpStrBegin  Pointer to the first char of wpStr, can be NULL.
  *[out] const wchar_t **wpStrEnd    Pointer to the first char after wpStr, can be NULL.
  *
- *Returns:  TRUE  wpStr is found.
- *          FALSE wpStr isn't found.
+ *Returns: TRUE  wpStr is found.
+ *         FALSE wpStr isn't found.
  *
  *Note:
  *  - xstrstrW uses xstrlenW.
@@ -1747,7 +1827,7 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
  *                            including the terminating null character if nTextLen == -1,
  *                            can be NULL.
  *
- *Returns:  number of changes.
+ *Returns: number of changes.
  *
  *Note:
  *  xstrrepA uses xstrlenA.
@@ -1838,7 +1918,7 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
  *                              including the terminating null character if nTextLen == -1,
  *                              can be NULL.
  *
- *Returns:  number of changes.
+ *Returns: number of changes.
  *
  *Note:
  *  - xstrrepW uses xstrlenW.
@@ -2838,7 +2918,7 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
  *                               "S"         unicode string.
  *
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
@@ -3100,7 +3180,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
  *                                   "S"         ansi string.
  *
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.

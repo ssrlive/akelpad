@@ -35,8 +35,8 @@
 #define xstrcmpW
 #define xstrcmpiW
 #define xstrrepW
-#define xarraysizeA
-#define xarraysizeW
+#define xarrlenA
+#define xarrlenW
 #define xatoiW
 #define xitoaW
 #define xuitoaW

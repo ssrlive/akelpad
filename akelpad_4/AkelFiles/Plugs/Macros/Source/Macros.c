@@ -24,8 +24,8 @@
 #define WideCharUpper
 #define xmemset
 #define xmemcpy
-#define xarraysizeA
-#define xarraysizeW
+#define xarrlenA
+#define xarrlenW
 #define xstrlenA
 #define xstrlenW
 #define xstrcpyW

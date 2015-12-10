@@ -37,8 +37,8 @@
 #define xmemcpy
 #define xmemset
 #define xmemcmp
-#define xarraysizeA
-#define xarraysizeW
+#define xarrlenA
+#define xarrlenW
 #define xstrcmpiW
 #define xstrcmpinW
 #define xstrcmpnW

@@ -10,7 +10,7 @@
  *  WideFunc.h header uses some functions from StrFunc.h header:  *
  *   - Basic requirement is xmemcpy.                              *
  *   - GetLongPathNameWide required xstrcpynW, xstrlenW.          *
- *   - GetOpenFileNameWide required xarraysizeA and xarraysizeW.  *
+ *   - GetOpenFileNameWide required xarrlenA and xarrlenW.        *
  *****************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
@@ -1123,9 +1123,9 @@ int SHFileOperationWide(SHFILEOPSTRUCTW *lpfos)
 
       fosA.hwnd=lpfos->hwnd;
       fosA.wFunc=lpfos->wFunc;
-      fosA.pFrom=AllocAnsiLen(lpfos->pFrom, (int)xarraysizeW(lpfos->pFrom, NULL));
+      fosA.pFrom=AllocAnsiLen(lpfos->pFrom, (int)xarrlenW(lpfos->pFrom, NULL));
       if (lpfos->pTo)
-        fosA.pTo=AllocAnsiLen(lpfos->pTo, (int)xarraysizeW(lpfos->pTo, NULL));
+        fosA.pTo=AllocAnsiLen(lpfos->pTo, (int)xarrlenW(lpfos->pTo, NULL));
       else
         fosA.pTo=NULL;
       fosA.fFlags=lpfos->fFlags;
@@ -1192,8 +1192,8 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
 
     //Make nMaxFile less than 0x7FFF otherwise crash possible
     xmemcpy(&ofnA, lpofn, sizeof(OPENFILENAMEA));
-    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, (int)xarraysizeW(lpofn->lpstrFilter, NULL));
-    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, (int)xarraysizeW(lpofn->lpstrCustomFilter, NULL));
+    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, (int)xarrlenW(lpofn->lpstrFilter, NULL));
+    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, (int)xarrlenW(lpofn->lpstrCustomFilter, NULL));
     ofnA.nMaxFile=min(lpofn->nMaxFile * sizeof(wchar_t), 0x7FFF);
     ofnA.lpstrFile=(char *)GlobalAlloc(GPTR, ofnA.nMaxFile);
     WideToAnsi(lpofn->lpstrFile, -1, ofnA.lpstrFile, ofnA.nMaxFile);
@@ -1215,9 +1215,9 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
       bResult=GetSaveFileNameA(&ofnA);
     if (bResult)
     {
-      AnsiToWide(ofnA.lpstrCustomFilter, (int)xarraysizeA(ofnA.lpstrCustomFilter, NULL), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
-      AnsiToWide(ofnA.lpstrFile, (int)xarraysizeA(ofnA.lpstrFile, NULL), lpofn->lpstrFile, lpofn->nMaxFile);
-      AnsiToWide(ofnA.lpstrFileTitle, (int)xarraysizeA(ofnA.lpstrFileTitle, NULL), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
+      AnsiToWide(ofnA.lpstrCustomFilter, (int)xarrlenA(ofnA.lpstrCustomFilter, NULL), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
+      AnsiToWide(ofnA.lpstrFile, (int)xarrlenA(ofnA.lpstrFile, NULL), lpofn->lpstrFile, lpofn->nMaxFile);
+      AnsiToWide(ofnA.lpstrFileTitle, (int)xarrlenA(ofnA.lpstrFileTitle, NULL), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
     }
 
     FreeAnsi((char *)ofnA.lpstrFilter);
