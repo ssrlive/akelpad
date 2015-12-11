@@ -805,11 +805,12 @@ void _WinMain()
   //fdInit.bUrlDelimitersEnable=FALSE;
   fdInit.bWordDelimitersEnable=TRUE;
   //fdInit.bWrapDelimitersEnable=FALSE;
-  xstrcpyW(fdInit.wszUrlPrefixes, STR_URL_PREFIXESW);
-  xstrcpyW(fdInit.wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW);
-  xstrcpyW(fdInit.wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
-  xstrcpyW(fdInit.wszWordDelimiters, STR_WORD_DELIMITERSW);
-  xstrcpyW(fdInit.wszWrapDelimiters, STR_WRAP_DELIMITERSW);
+
+  fdInit.nUrlPrefixesLen=(int)xstrcpynW(fdInit.wszUrlPrefixes, STR_URL_PREFIXESW, URL_PREFIXES_SIZE);
+  fdInit.nUrlLeftDelimitersLen=(int)xarrcpynW(fdInit.wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW, URL_DELIMITERS_SIZE) - 2;
+  fdInit.nUrlRightDelimitersLen=(int)xarrcpynW(fdInit.wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW, URL_DELIMITERS_SIZE) - 2;
+  fdInit.nWordDelimitersLen=(int)xarrcpynW(fdInit.wszWordDelimiters, STR_WORD_DELIMITERSW, WORD_DELIMITERS_SIZE) - 2;
+  fdInit.nWrapDelimitersLen=(int)xarrcpynW(fdInit.wszWrapDelimiters, STR_WRAP_DELIMITERSW, WRAP_DELIMITERS_SIZE) - 2;
   //moInit.wszBkImageFileDlg[0]=L'\0';
   fdInit.nBkImageAlpha=EDIT_BKIMAGEALPHA;
 

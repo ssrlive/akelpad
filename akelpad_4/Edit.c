@@ -3842,29 +3842,30 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"ShowURL", MOT_DWORD, &fd->bShowURL, sizeof(DWORD));
     ReadOption(&oh, L"ClickURL", MOT_DWORD, &fd->nClickURL, sizeof(DWORD));
     ReadOption(&oh, L"UrlPrefixesEnable", MOT_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
+    if (dwSize=ReadOption(&oh, L"UrlPrefixes", MOT_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes)))
     {
-      dwSize=ReadOption(&oh, L"UrlPrefixes", MOT_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
       fd->nUrlPrefixesLen=dwSize / sizeof(wchar_t) - 1;
     }
     ReadOption(&oh, L"UrlDelimitersEnable", MOT_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
+    if (dwSize=ReadOption(&oh, L"UrlLeftDelimiters", MOT_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters)))
     {
-      dwSize=ReadOption(&oh, L"UrlLeftDelimiters", MOT_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
       fd->wszUrlLeftDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
       fd->nUrlLeftDelimitersLen=(int)xarrlenW(fd->wszUrlLeftDelimiters, NULL) - 2;
-
-      dwSize=ReadOption(&oh, L"UrlRightDelimiters", MOT_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
+    }
+    if (dwSize=ReadOption(&oh, L"UrlRightDelimiters", MOT_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters)))
+    {
       fd->wszUrlRightDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
       fd->nUrlRightDelimitersLen=(int)xarrlenW(fd->wszUrlRightDelimiters, NULL) - 2;
     }
     ReadOption(&oh, L"WordDelimitersEnable", MOT_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
+    if (dwSize=ReadOption(&oh, L"WordDelimiters", MOT_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters)))
     {
-      dwSize=ReadOption(&oh, L"WordDelimiters", MOT_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
       fd->wszWordDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
       fd->nWordDelimitersLen=(int)xarrlenW(fd->wszWordDelimiters, NULL) - 2;
     }
     ReadOption(&oh, L"WrapDelimitersEnable", MOT_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
+    if (dwSize=ReadOption(&oh, L"WrapDelimiters", MOT_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters)))
     {
-      dwSize=ReadOption(&oh, L"WrapDelimiters", MOT_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
       fd->wszWrapDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
       fd->nWrapDelimitersLen=(int)xarrlenW(fd->wszWrapDelimiters, NULL) - 2;
     }
