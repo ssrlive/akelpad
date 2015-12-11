@@ -1655,7 +1655,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       int nPrefix;
 
-      ae->popt->nUrlPrefixesLen=xarrcpynW(ae->popt->wszUrlPrefixes, lParam?(wchar_t *)lParam:AES_URLPREFIXESW, AEMAX_DELIMLENGTH);
+      ae->popt->nUrlPrefixesLen=(int)xarrcpynW(ae->popt->wszUrlPrefixes, lParam?(wchar_t *)lParam:AES_URLPREFIXESW, AEMAX_DELIMLENGTH);
       nPrefix=AE_GetUrlPrefixes(ae);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
