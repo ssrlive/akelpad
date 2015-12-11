@@ -3266,7 +3266,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case FI_URLLEFTDELIMITERS:
             {
               if (wParam > 0xFFFF)
-                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE);
+                dwSize=xarrcpynW((void *)*lpdwData, lpFrame->wszUrlLeftDelimiters, URL_DELIMITERS_SIZE);
               else
                 *lpdwData=(UINT_PTR)lpFrame->wszUrlLeftDelimiters;
               break;
@@ -3274,7 +3274,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case FI_URLRIGHTDELIMITERS:
             {
               if (wParam > 0xFFFF)
-                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE);
+                dwSize=xarrcpynW((void *)*lpdwData, lpFrame->wszUrlRightDelimiters, URL_DELIMITERS_SIZE);
               else
                 *lpdwData=(UINT_PTR)lpFrame->wszUrlRightDelimiters;
               break;
@@ -3287,7 +3287,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case FI_WORDDELIMITERS:
             {
               if (wParam > 0xFFFF)
-                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE);
+                dwSize=xarrcpynW((void *)*lpdwData, lpFrame->wszWordDelimiters, WORD_DELIMITERS_SIZE);
               else
                 *lpdwData=(UINT_PTR)lpFrame->wszWordDelimiters;
               break;
@@ -3300,7 +3300,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case FI_WRAPDELIMITERS:
             {
               if (wParam > 0xFFFF)
-                dwSize=xstrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE);
+                dwSize=xarrcpynW((void *)*lpdwData, lpFrame->wszWrapDelimiters, WRAP_DELIMITERS_SIZE);
               else
                 *lpdwData=(UINT_PTR)lpFrame->wszWrapDelimiters;
               break;
