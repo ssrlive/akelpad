@@ -5068,10 +5068,10 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
       ae->aeUndo=ae;
 
     ae->popt->nWordDelimitersLen=(int)xarrcpynW(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
-    xmemcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
-    xmemcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
-    xmemcpy(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, sizeof(AES_URLRIGHTDELIMITERSW));
-    xmemcpy(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
+    ae->ptxt->nWrapDelimitersLen=(int)xarrcpynW(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
+    ae->popt->nUrlLeftDelimitersLen=(int)xarrcpynW(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
+    ae->popt->nUrlRightDelimitersLen=(int)xarrcpynW(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
+    ae->popt->nUrlPrefixesLen=(int)xarrcpynW(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, AEMAX_DELIMLENGTH);
     AE_GetUrlPrefixes(ae);
 
     //ae->rcEdit.left=cs->x;
@@ -16363,6 +16363,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
 {
   AECHARINDEX ciCount=*ciChar;
   const wchar_t *wpDelim;
+  const wchar_t *wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
   wchar_t wchChar;
   int nLen=0;
   BOOL bInList;
@@ -16373,7 +16374,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
-  for (wpDelim=ae->popt->wszWordDelimiters; *wpDelim; ++wpDelim)
+  for (wpDelim=ae->popt->wszWordDelimiters; wpDelim < wpMaxDelim; ++wpDelim)
   {
     if (*wpDelim == L'\n') bInListNewLine=TRUE;
     else if (*wpDelim == L' ') dwInListSpaces|=AEWBS_SPACE;
@@ -16514,6 +16515,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
 {
   AECHARINDEX ciCount=*ciChar;
   const wchar_t *wpDelim;
+  const wchar_t *wpMaxDelim=ae->popt->wszWordDelimiters + ae->popt->nWordDelimitersLen;
   wchar_t wchChar;
   int nLen=0;
   BOOL bInList;
@@ -16524,7 +16526,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
     return 0;
-  for (wpDelim=ae->popt->wszWordDelimiters; *wpDelim; ++wpDelim)
+  for (wpDelim=ae->popt->wszWordDelimiters; wpDelim < wpMaxDelim; ++wpDelim)
   {
     if (*wpDelim == L'\n') bInListNewLine=TRUE;
     else if (*wpDelim == L' ') dwInListSpaces|=AEWBS_SPACE;
