@@ -397,7 +397,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   xstrcpynW(lpBackupFile->wszFile, nod->wszFile, MAX_PATH);
                   xstrcpynW(lpBackupFile->wszNameBackup, wfd.cFileName, MAX_PATH);
                   xprintfW(lpBackupFile->wszFileBackup, L"%s\\%s", wpBackupDir, wfd.cFileName);
-                  nDeferFileBackup=xprintfW(lpBackupFile->wszDeferFileBackup, L"%s\\%s._%s", wpBackupDir, wpName, wpID);
+                  nDeferFileBackup=(int)xprintfW(lpBackupFile->wszDeferFileBackup, L"%s\\%s._%s", wpBackupDir, wpName, wpID);
                   xstrcpynW(lpBackupFile->wszDeferFileBackupNoExt, lpBackupFile->wszDeferFileBackup, nDeferFileBackup - 3);
 
                   //File time
