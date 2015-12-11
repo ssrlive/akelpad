@@ -1057,10 +1057,15 @@ typedef struct _FRAMEDATA {
   DWORD dwLineGap;                                    //Line gap.
   BOOL bShowURL;                                      //Show URL.
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes.
+  int nUrlPrefixesLen;                                //URL prefixes length.
   wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters.
+  int nUrlLeftDelimitersLen;                          //URL left delimiters length.
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters.
+  int nUrlRightDelimitersLen;                         //URL right delimiters length.
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
+  int nWordDelimitersLen;                             //Word delimiters length.
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters.
+  int nWrapDelimitersLen;                             //Wrap delimiters length.
   wchar_t wszBkImageFile[MAX_PATH];                   //Background image file.
   int nBkImageAlpha;                                  //Alpha transparency value that ranges from 0 to 255.
   HBITMAP hBkImageBitmap;                             //Background image handle.

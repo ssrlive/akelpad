@@ -512,6 +512,7 @@ typedef struct {
   DWORD dwWordWrap;
   DWORD dwWrapLimit;
   wchar_t wszWrapDelimiters[AEMAX_DELIMLENGTH];
+  int nWrapDelimitersLen;
 
   //Undo/Redo
   AESTACKUNDO hUndoStack;
@@ -592,7 +593,9 @@ typedef struct {
   int nWordDelimitersLen;
   DWORD dwWordBreak;
   wchar_t wszUrlLeftDelimiters[AEMAX_DELIMLENGTH];
+  int nUrlLeftDelimitersLen;
   wchar_t wszUrlRightDelimiters[AEMAX_DELIMLENGTH];
+  int nUrlRightDelimitersLen;
   wchar_t wszUrlPrefixes[AEMAX_DELIMLENGTH];
   int nUrlPrefixesLen;
   wchar_t *lpUrlPrefixes[32];
@@ -994,7 +997,7 @@ BOOL AE_IsSpacesFromLeft(const AECHARINDEX *ciChar);
 BOOL AE_IsSpacesFromRight(const AECHARINDEX *ciChar);
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType);
-BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);
+BOOL AE_IsInDelimiterList(const wchar_t *wpList, int nListLen, wchar_t c);
 BOOL AE_IsSpace(wchar_t c, DWORD dwSpacesFlags);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
 UINT_PTR AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, UINT_PTR dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);

@@ -916,8 +916,8 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace);
 INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
 INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *lpnReplaceCount, int *lpnReplaceFiles);
 INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, wchar_t **wppResult, INT_PTR *nResultLen, PATREPLACEPOINT *lpPointArray, int nPointCount);
-INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine);
-void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
+INT_PTR EscapeStringToEscapeData(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine);
+void EscapeDataToEscapeString(const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput);
 BOOL SetDefButton(HWND hWnd, HWND hWndNewDef);
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -1224,6 +1224,7 @@ int BytesInString(const wchar_t *wpString);
 const wchar_t* FindArrayByIndex(const wchar_t *wpString, int nIndex);
 char* AKD_strchr(const char *s, int c);
 wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
+BOOL IsInDelimiterList(const wchar_t *wpList, int nListLen, wchar_t c);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
