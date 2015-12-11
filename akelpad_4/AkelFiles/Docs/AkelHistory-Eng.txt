@@ -9,6 +9,7 @@ Added: Catalan language module (Hiro5).
 Added: command line parameter /NewInstance - force create new program instance.
 Added: command line parameter /MainClass("MyAkelPad4") - set class name for a new program
       instance.
+Added: possibility to set \0 symbol in delimiters.
 Added: error position in regular expression error message.
 
 
