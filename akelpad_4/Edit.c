@@ -2406,7 +2406,7 @@ void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
   {
     while (wpText < wpTextMax)
     {
-      while (wpText < wpTextMax && (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText)))
+      while (wpText < wpTextMax && (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *wpText) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpText)))
       {
         ++wpText;
       }
@@ -2426,7 +2426,7 @@ void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
   {
     while (wpText < wpTextMax)
     {
-      while (wpText < wpTextMax && AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      while (wpText < wpTextMax && IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *wpText))
       {
         ++wpText;
       }
@@ -2435,7 +2435,7 @@ void ConvertCase(wchar_t *wszText, INT_PTR nTextLen, int nCase)
         *wpText=WideCharUpper(*wpText);
         ++wpText;
       }
-      while (wpText < wpTextMax && !AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpText))
+      while (wpText < wpTextMax && !IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *wpText))
       {
         *wpText=WideCharLower(*wpText);
         ++wpText;
@@ -2501,7 +2501,7 @@ int DetectCase(HWND hWnd, AECHARRANGE *lpcrRange)
       }
       else if (bStartSentence)
       {
-        if (!AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wchChar))
+        if (!IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, wchChar))
         {
           if (wchChar != WideCharUpper(wchChar))
             dwCaseType&=~DC_SENTENCECASE;
@@ -2514,7 +2514,7 @@ int DetectCase(HWND hWnd, AECHARRANGE *lpcrRange)
     }
     if (dwCaseType & DC_TITLECASE)
     {
-      if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wchChar))
+      if (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, wchChar))
       {
         bStartTitle=TRUE;
       }
@@ -3842,14 +3842,32 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"ShowURL", MOT_DWORD, &fd->bShowURL, sizeof(DWORD));
     ReadOption(&oh, L"ClickURL", MOT_DWORD, &fd->nClickURL, sizeof(DWORD));
     ReadOption(&oh, L"UrlPrefixesEnable", MOT_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
-    ReadOption(&oh, L"UrlPrefixes", MOT_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
+    {
+      dwSize=ReadOption(&oh, L"UrlPrefixes", MOT_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
+      fd->nUrlPrefixesLen=dwSize / sizeof(wchar_t) - 1;
+    }
     ReadOption(&oh, L"UrlDelimitersEnable", MOT_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
-    ReadOption(&oh, L"UrlLeftDelimiters", MOT_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
-    ReadOption(&oh, L"UrlRightDelimiters", MOT_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
+    {
+      dwSize=ReadOption(&oh, L"UrlLeftDelimiters", MOT_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
+      fd->wszUrlLeftDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
+      fd->nUrlLeftDelimitersLen=xarrlenW(fd->wszUrlLeftDelimiters, NULL) - 2;
+
+      dwSize=ReadOption(&oh, L"UrlRightDelimiters", MOT_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
+      fd->wszUrlRightDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
+      fd->nUrlRightDelimitersLen=xarrlenW(fd->wszUrlRightDelimiters, NULL) - 2;
+    }
     ReadOption(&oh, L"WordDelimitersEnable", MOT_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
-    ReadOption(&oh, L"WordDelimiters", MOT_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
+    {
+      dwSize=ReadOption(&oh, L"WordDelimiters", MOT_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
+      fd->wszWordDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
+      fd->nWordDelimitersLen=xarrlenW(fd->wszWordDelimiters, NULL) - 2;
+    }
     ReadOption(&oh, L"WrapDelimitersEnable", MOT_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
-    ReadOption(&oh, L"WrapDelimiters", MOT_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
+    {
+      dwSize=ReadOption(&oh, L"WrapDelimiters", MOT_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
+      fd->wszWrapDelimiters[dwSize / sizeof(wchar_t) + 1]=L'\0';
+      fd->nWrapDelimitersLen=xarrlenW(fd->wszWrapDelimiters, NULL) - 2;
+    }
     ReadOption(&oh, L"Font", MOT_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
     ReadOption(&oh, L"FontFace", MOT_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
     ReadOption(&oh, L"Colors", MOT_BINARY, &fd->aec, sizeof(AECOLORS));
@@ -4112,21 +4130,21 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"UrlPrefixesEnable", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bUrlPrefixesEnable), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"UrlPrefixes", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlPrefixes), BytesInString(fd->wszUrlPrefixes)))
+  if (!SaveOption(&oh, L"UrlPrefixes", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlPrefixes), (fd->nUrlPrefixesLen + 1) * sizeof(wchar_t)))
     goto Error;
   if (!SaveOption(&oh, L"UrlDelimitersEnable", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bUrlDelimitersEnable), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"UrlLeftDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlLeftDelimiters), BytesInString(fd->wszUrlLeftDelimiters)))
+  if (!SaveOption(&oh, L"UrlLeftDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlLeftDelimiters), (fd->nUrlLeftDelimitersLen + 2) * sizeof(wchar_t)))
     goto Error;
-  if (!SaveOption(&oh, L"UrlRightDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlRightDelimiters), BytesInString(fd->wszUrlRightDelimiters)))
+  if (!SaveOption(&oh, L"UrlRightDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszUrlRightDelimiters), (fd->nUrlRightDelimitersLen + 2) * sizeof(wchar_t)))
     goto Error;
   if (!SaveOption(&oh, L"WordDelimitersEnable", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bWordDelimitersEnable), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"WordDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszWordDelimiters), BytesInString(fd->wszWordDelimiters)))
+  if (!SaveOption(&oh, L"WordDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszWordDelimiters), (fd->nWordDelimitersLen + 2) * sizeof(wchar_t)))
     goto Error;
   if (!SaveOption(&oh, L"WrapDelimitersEnable", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, bWrapDelimitersEnable), sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"WrapDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszWrapDelimiters), BytesInString(fd->wszWrapDelimiters)))
+  if (!SaveOption(&oh, L"WrapDelimiters", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, wszWrapDelimiters), (fd->nWrapDelimitersLen + 2) * sizeof(wchar_t)))
     goto Error;
   if (!SaveOption(&oh, L"Font", MOT_BINARY|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, lf), offsetof(LOGFONTW, lfFaceName)))
     goto Error;
@@ -10072,9 +10090,9 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     lpFrame->nCompileErrorOffset=0;
     lpFrame->bCompileErrorReplace=FALSE;
 
-    if (wszFindItEsc=API_AllocWide(nFindItLen + 1))
+    if (wszFindItEsc=API_AllocWide(nFindItLen + 2))
     {
-      if ((nFindItLenEsc=(int)EscapeStringToEscapeDataW(wpFindIt, nFindItLen, wszFindItEsc, NEWLINE_MAC)) < 0)
+      if ((nFindItLenEsc=(int)EscapeStringToEscapeData(wpFindIt, nFindItLen, wszFindItEsc, NEWLINE_MAC)) < 0)
       {
         lpFrame->nCompileErrorOffset=-nFindItLenEsc;
         goto End;
@@ -10292,9 +10310,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     lpFrame->nCompileErrorOffset=0;
     lpFrame->bCompileErrorReplace=FALSE;
 
-    if (wszFindItEsc=API_AllocWide(nFindItLen + 1))
+    if (wszFindItEsc=API_AllocWide(nFindItLen + 2))
     {
-      if ((nFindItLenEsc=(int)EscapeStringToEscapeDataW(wpFindIt, nFindItLen, wszFindItEsc, NEWLINE_MAC)) < 0)
+      if ((nFindItLenEsc=(int)EscapeStringToEscapeData(wpFindIt, nFindItLen, wszFindItEsc, NEWLINE_MAC)) < 0)
       {
         lpFrame->nCompileErrorOffset=-nFindItLenEsc;
         goto End;
@@ -10302,9 +10320,9 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt,
     }
     else goto End;
 
-    if (wszReplaceWithEsc=API_AllocWide(nReplaceWithLen + 1))
+    if (wszReplaceWithEsc=API_AllocWide(nReplaceWithLen + 2))
     {
-      if ((nReplaceWithLenEsc=(int)EscapeStringToEscapeDataW(wpReplaceWith, nReplaceWithLen, wszReplaceWithEsc, NEWLINE_MAC)) < 0)
+      if ((nReplaceWithLenEsc=(int)EscapeStringToEscapeData(wpReplaceWith, nReplaceWithLen, wszReplaceWithEsc, NEWLINE_MAC)) < 0)
       {
         lpFrame->nCompileErrorOffset=-nReplaceWithLenEsc;
         lpFrame->bCompileErrorReplace=TRUE;
@@ -10823,7 +10841,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
           if (dwFlags & FRF_WHOLEWORDGOODEND)
             goto FindUp;
         }
-        else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount + 1)))
+        else if (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *(wpTextCount + 1)))
           goto FindUp;
         goto NextUp;
       }
@@ -10844,7 +10862,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
               if (dwFlags & FRF_WHOLEWORDGOODSTART)
                 goto ReplaceUp;
             }
-            else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount - 1)))
+            else if (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *(wpMatchCount - 1)))
               goto ReplaceUp;
             goto NextUp;
           }
@@ -10899,7 +10917,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
           if (dwFlags & FRF_WHOLEWORDGOODSTART)
             goto FindDown;
         }
-        else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount - 1)))
+        else if (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *(wpTextCount - 1)))
           goto FindDown;
         goto NextDown;
       }
@@ -10920,7 +10938,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
               if (dwFlags & FRF_WHOLEWORDGOODEND)
                 goto ReplaceDown;
             }
-            else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount + 1)))
+            else if (IsInDelimiterList(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, *(wpMatchCount + 1)))
               goto ReplaceDown;
             goto NextDown;
           }
@@ -10964,7 +10982,7 @@ INT_PTR StrReplace(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt,
   return nChanges;
 }
 
-INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine)
+INT_PTR EscapeStringToEscapeData(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput, int nNewLine)
 {
   const wchar_t *a=wpInput;
   const wchar_t *wpInputMax;
@@ -10981,6 +10999,8 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
     if (*a == L'\\')
     {
       if (*++a == L'\\') *b=L'\\';
+      else if (*a == L't') *b=L'\t';
+      else if (*a == L'0') *b=L'\0';
       else if (*a == L'n')
       {
         if (nNewLine == NEWLINE_MAC) *b=L'\r';
@@ -10991,7 +11011,6 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
           *++b=L'\n';
         }
       }
-      else if (*a == L't') *b=L'\t';
       else if (*a == L'[')
       {
         while (*++a == L' ');
@@ -11020,26 +11039,34 @@ INT_PTR EscapeStringToEscapeDataW(const wchar_t *wpInput, INT_PTR nInputLen, wch
     else *b=*a;
   }
   *b=L'\0';
+  *(b + 1)=L'\0';
   return b - wszOutput;
 
   Error:
   *wszOutput=L'\0';
+  *(wszOutput + 1)=L'\0';
   return (wpInput - a) - 1;
 }
 
-void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput)
+void EscapeDataToEscapeString(const wchar_t *wpInput, int nInputLen, wchar_t *wszOutput)
 {
+  const wchar_t *wpMaxInput;
   const wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
 
-  for (; *a; ++b, ++a)
+  if (!nInputLen) nInputLen=xstrlenW(wpInput);
+  wpMaxInput=wpInput + nInputLen;
+
+  for (; a < wpMaxInput; ++b, ++a)
   {
     if (*a == L'\t') *b=L'\\', *++b=L't';
     else if (*a == L'\r') *b=L'\\', *++b=L'n';
     else if (*a == L'\n') *b=L'\\', *++b=L'n';
+    else if (*a == L'\0') *b=L'\\', *++b=L'0';
     else if (*a == L'\\') *b=L'\\', *++b=L'\\';
     else *b=*a;
   }
+  *b++=L'\0';
   *b=L'\0';
 }
 
@@ -15758,26 +15785,26 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     if (lpFrameCurrent->bUrlDelimitersEnable)
       SendMessage(hWndUrlDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
     EnableWindow(hWndUrlLeftDelimiters, lpFrameCurrent->bUrlDelimitersEnable);
-    EscapeDataToEscapeStringW(lpFrameCurrent->wszUrlLeftDelimiters, wbuf);
+    EscapeDataToEscapeString(lpFrameCurrent->wszUrlLeftDelimiters, lpFrameCurrent->nUrlLeftDelimitersLen, wbuf);
     SetWindowTextWide(hWndUrlLeftDelimiters, wbuf);
     SendMessage(hWndUrlLeftDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
     EnableWindow(hWndUrlRightDelimiters, lpFrameCurrent->bUrlDelimitersEnable);
-    EscapeDataToEscapeStringW(lpFrameCurrent->wszUrlRightDelimiters, wbuf);
+    EscapeDataToEscapeString(lpFrameCurrent->wszUrlRightDelimiters, lpFrameCurrent->nUrlRightDelimitersLen, wbuf);
     SetWindowTextWide(hWndUrlRightDelimiters, wbuf);
     SendMessage(hWndUrlRightDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
     if (lpFrameCurrent->bWordDelimitersEnable)
       SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
     EnableWindow(hWndWordDelimiters, lpFrameCurrent->bWordDelimitersEnable);
-    EscapeDataToEscapeStringW(lpFrameCurrent->wszWordDelimiters, wbuf);
+    EscapeDataToEscapeString(lpFrameCurrent->wszWordDelimiters, lpFrameCurrent->nWordDelimitersLen, wbuf);
     SetWindowTextWide(hWndWordDelimiters, wbuf);
     SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
 
     if (lpFrameCurrent->bWrapDelimitersEnable)
       SendMessage(hWndWrapDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
     EnableWindow(hWndWrapDelimiters, lpFrameCurrent->bWrapDelimitersEnable);
-    EscapeDataToEscapeStringW(lpFrameCurrent->wszWrapDelimiters, wbuf);
+    EscapeDataToEscapeString(lpFrameCurrent->wszWrapDelimiters, lpFrameCurrent->nWrapDelimitersLen, wbuf);
     SetWindowTextWide(hWndWrapDelimiters, wbuf);
     SendMessage(hWndWrapDelimiters, EM_LIMITTEXT, (WPARAM)WRAP_DELIMITERS_SIZE, 0);
 
@@ -15830,7 +15857,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(STR_WORD_DELIMITERSW, wbuf);
+      EscapeDataToEscapeString(STR_WORD_DELIMITERSW, 0, wbuf);
       SetWindowTextWide(hWndWordDelimiters, wbuf);
       return TRUE;
     }
@@ -15842,7 +15869,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(STR_WRAP_DELIMITERSW, wbuf);
+      EscapeDataToEscapeString(STR_WRAP_DELIMITERSW, 0, wbuf);
       SetWindowTextWide(hWndWrapDelimiters, wbuf);
       return TRUE;
     }
@@ -15888,11 +15915,11 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Url delimiters
       GetWindowTextWide(hWndUrlLeftDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, -1, wbuf2, NEWLINE_UNIX);
+      EscapeStringToEscapeData(wbuf, -1, wbuf2, NEWLINE_UNIX);
       SetFrameInfo(lpFrameCurrent, FIS_URLLEFTDELIMITERS, (UINT_PTR)wbuf2);
 
       GetWindowTextWide(hWndUrlRightDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, -1, wbuf2, NEWLINE_UNIX);
+      EscapeStringToEscapeData(wbuf, -1, wbuf2, NEWLINE_UNIX);
       SetFrameInfo(lpFrameCurrent, FIS_URLRIGHTDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
@@ -15900,7 +15927,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Word delimiters
       GetWindowTextWide(hWndWordDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, -1, wbuf2, NEWLINE_UNIX);
+      EscapeStringToEscapeData(wbuf, -1, wbuf2, NEWLINE_UNIX);
       SetFrameInfo(lpFrameCurrent, FIS_WORDDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
@@ -15908,7 +15935,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Wrap delimiters
       GetWindowTextWide(hWndWrapDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, -1, wbuf2, NEWLINE_UNIX);
+      EscapeStringToEscapeData(wbuf, -1, wbuf2, NEWLINE_UNIX);
       SetFrameInfo(lpFrameCurrent, FIS_WRAPDELIMITERS, (UINT_PTR)wbuf2);
 
       a=(BOOL)SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
@@ -20810,7 +20837,7 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     {
       if (xstrcmpW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData))
       {
-        xstrcpynW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData, URL_PREFIXES_SIZE);
+        lpFrame->nUrlPrefixesLen=xstrcpynW(lpFrame->wszUrlPrefixes, (wchar_t *)dwData, URL_PREFIXES_SIZE);
 
         if (lpFrame->bUrlPrefixesEnable >= 0)
         {
@@ -20848,9 +20875,9 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     }
     case FIS_URLLEFTDELIMITERS:
     {
-      if (xstrcmpW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData))
+      if (xmemcmp(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, (lpFrame->nUrlLeftDelimitersLen + 2) * sizeof(wchar_t)))
       {
-        xstrcpynW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
+        lpFrame->nUrlLeftDelimitersLen=xarrcpynW(lpFrame->wszUrlLeftDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE) - 2;
 
         if (lpFrame->bUrlDelimitersEnable >= 0)
         {
@@ -20865,9 +20892,9 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     }
     case FIS_URLRIGHTDELIMITERS:
     {
-      if (xstrcmpW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData))
+      if (xmemcmp(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, (lpFrame->nUrlRightDelimitersLen + 2) * sizeof(wchar_t)))
       {
-        xstrcpynW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE);
+        lpFrame->nUrlRightDelimitersLen=xarrcpynW(lpFrame->wszUrlRightDelimiters, (wchar_t *)dwData, URL_DELIMITERS_SIZE) - 2;
 
         if (lpFrame->bUrlDelimitersEnable >= 0)
         {
@@ -20905,9 +20932,9 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     }
     case FIS_WORDDELIMITERS:
     {
-      if (xstrcmpW(lpFrame->wszWordDelimiters, (wchar_t *)dwData))
+      if (xmemcmp(lpFrame->wszWordDelimiters, (wchar_t *)dwData, (lpFrame->nWordDelimitersLen + 2) * sizeof(wchar_t)))
       {
-        xstrcpynW(lpFrame->wszWordDelimiters, (wchar_t *)dwData, WORD_DELIMITERS_SIZE);
+        lpFrame->nWordDelimitersLen=xarrcpynW(lpFrame->wszWordDelimiters, (wchar_t *)dwData, WORD_DELIMITERS_SIZE) - 2;
 
         if (lpFrame->bWordDelimitersEnable >= 0)
         {
@@ -20939,9 +20966,9 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     }
     case FIS_WRAPDELIMITERS:
     {
-      if (xstrcmpW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData))
+      if (xmemcmp(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, (lpFrame->nWrapDelimitersLen + 2) * sizeof(wchar_t)))
       {
-        xstrcpynW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, WRAP_DELIMITERS_SIZE);
+        lpFrame->nWrapDelimitersLen=xarrcpynW(lpFrame->wszWrapDelimiters, (wchar_t *)dwData, WRAP_DELIMITERS_SIZE) - 2;
 
         if (lpFrame->bWrapDelimitersEnable >= 0)
         {
@@ -22790,6 +22817,25 @@ wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c)
     return NULL;
   }
 }
+
+BOOL IsInDelimiterList(const wchar_t *wpList, int nListLen, wchar_t c)
+{
+  const wchar_t *wpMaxList=wpList + nListLen;
+
+  if (c == L'\r' || c == L'\n')
+  {
+    while (wpList < wpMaxList && *wpList != L'\r' && *wpList != L'\n')
+      ++wpList;
+    return (wpList < wpMaxList);
+  }
+  else
+  {
+    while (wpList < wpMaxList && *wpList != c)
+      ++wpList;
+    return (wpList < wpMaxList);
+  }
+}
+
 
 
 //// API functions replacement

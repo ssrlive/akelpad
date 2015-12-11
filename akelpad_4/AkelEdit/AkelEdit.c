@@ -1602,20 +1602,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_GETWORDDELIMITERS:
     {
-      return xstrcpynW((wchar_t *)lParam, ae->popt->wszWordDelimiters, wParam);
+      return xarrcpynW((wchar_t *)lParam, ae->popt->wszWordDelimiters, wParam);
     }
     case AEM_SETWORDDELIMITERS:
     {
-      ae->popt->nWordDelimitersLen=(int)xstrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
+      ae->popt->nWordDelimitersLen=(int)xarrcpynW(ae->popt->wszWordDelimiters, lParam?(wchar_t *)lParam:AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
       return 0;
     }
     case AEM_GETWRAPDELIMITERS:
     {
-      return xstrcpynW((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, wParam);
+      return xarrcpynW((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, wParam);
     }
     case AEM_SETWRAPDELIMITERS:
     {
-      xstrcpynW(ae->ptxt->wszWrapDelimiters, lParam?(wchar_t *)lParam:AES_WRAPDELIMITERSW, AEMAX_DELIMLENGTH);
+      ae->ptxt->nWrapDelimitersLen=(int)xarrcpynW(ae->ptxt->wszWrapDelimiters, lParam?(wchar_t *)lParam:AES_WRAPDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
 
       if (ae->ptxt->dwWordWrap & AEWW_WORD)
       {
@@ -1627,22 +1627,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_GETURLLEFTDELIMITERS:
     {
-      return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, wParam);
+      return xarrcpynW((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, wParam);
     }
     case AEM_SETURLLEFTDELIMITERS:
     {
-      xstrcpynW(ae->popt->wszUrlLeftDelimiters, lParam?(wchar_t *)lParam:AES_URLLEFTDELIMITERSW, AEMAX_DELIMLENGTH);
+      ae->popt->nUrlLeftDelimitersLen=(int)xarrcpynW(ae->popt->wszUrlLeftDelimiters, lParam?(wchar_t *)lParam:AES_URLLEFTDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
     }
     case AEM_GETURLRIGHTDELIMITERS:
     {
-      return xstrcpynW((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, wParam);
+      return xarrcpynW((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, wParam);
     }
     case AEM_SETURLRIGHTDELIMITERS:
     {
-      xstrcpynW(ae->popt->wszUrlRightDelimiters, lParam?(wchar_t *)lParam:AES_URLRIGHTDELIMITERSW, AEMAX_DELIMLENGTH);
+      ae->popt->nUrlRightDelimitersLen=(int)xarrcpynW(ae->popt->wszUrlRightDelimiters, lParam?(wchar_t *)lParam:AES_URLRIGHTDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       AE_StackCloneUpdate(ae);
       return 0;
@@ -3473,7 +3473,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_RichOffsetToAkelIndex(ae, lParam, &ciCharIn);
 
       if (wParam == WB_ISDELIMITER)
-        return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCharIn.lpLine->wpLine[ciCharIn.nCharInLine], TRUE);
+        return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, ciCharIn.lpLine->wpLine[ciCharIn.nCharInLine]);
 
       if (wParam == WB_LEFT ||
           wParam == WB_LEFTBREAK ||
@@ -5067,7 +5067,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     else
       ae->aeUndo=ae;
 
-    ae->popt->nWordDelimitersLen=(int)xstrcpynW(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH);
+    ae->popt->nWordDelimitersLen=(int)xarrcpynW(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, AEMAX_DELIMLENGTH) - 2;
     xmemcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
     xmemcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
     xmemcpy(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, sizeof(AES_URLRIGHTDELIMITERSW));
@@ -9250,7 +9250,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
           {
             for (i=nCharEnd - 1; i >= nCharStart; --i)
             {
-              if (AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, lpInitialElement->wpLine[i], TRUE))
+              if (AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, ae->ptxt->nWrapDelimitersLen, lpInitialElement->wpLine[i]))
                 break;
             }
             if (i >= nCharStart)
@@ -10763,7 +10763,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       dwLinkLen+=AEC_IndexLen(&ciCount);
       if (dwLinkLen > ae->popt->dwUrlMaxLength)
         goto FindUrlEnding;
-      if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
+      if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ae->popt->nUrlRightDelimitersLen, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
         goto FindUrlEnding;
 
       if (AE_IsDelimiter(ae, &ciCount, AEDLM_URLLEFT|AEDLM_PREVCHAR))
@@ -10804,7 +10804,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
-      if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
+      if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ae->popt->nUrlRightDelimitersLen, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
         goto End;
       dwLinkLen+=AEC_IndexLen(&ciCount);
       if (dwLinkLen > ae->popt->dwUrlMaxLength)
@@ -11253,7 +11253,7 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
             {
               if (qm->lpQuote->pQuoteInclude && *qm->lpQuote->pQuoteInclude)
               {
-                if (!AE_IsInDelimiterList(qm->lpQuote->pQuoteInclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (qm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
+                if (!AE_wcschr(qm->lpQuote->pQuoteInclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (qm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
                   goto QuoteStartNext;
               }
             }
@@ -11261,7 +11261,7 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
             {
               if (qm->lpQuote->pQuoteExclude && *qm->lpQuote->pQuoteExclude)
               {
-                if (AE_IsInDelimiterList(qm->lpQuote->pQuoteExclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (qm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
+                if (AE_wcschr(qm->lpQuote->pQuoteExclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (qm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
                   goto QuoteStartNext;
               }
             }
@@ -11667,7 +11667,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
           {
             if (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
             {
-              if (!AE_IsInDelimiterList(lpWordItem->pWord, ciCount.lpLine->wpLine[ciCount.nCharInLine], (lpWordItem->dwFlags & AEHLF_MATCHCASE)))
+              if (!AE_wcschr(lpWordItem->pWord, ciCount.lpLine->wpLine[ciCount.nCharInLine], (lpWordItem->dwFlags & AEHLF_MATCHCASE)))
                 break;
               AEC_IndexInc(&ciCount);
             }
@@ -13567,7 +13567,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
               while (AEC_PrevCharInLine(&ciTmp) && --nTmp >= 0)
               {
-                if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ciTmp.lpLine->wpLine[ciTmp.nCharInLine], TRUE))
+                if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ph->aePrint.ptxt->nWrapDelimitersLen, ciTmp.lpLine->wpLine[ciTmp.nCharInLine]))
                 {
                   nLineLen=++nTmp;
                   AEC_NextCharInLineEx(&ciTmp, &ciCount);
@@ -16409,7 +16409,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
   else
   {
     wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
-    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, wchChar);
     bIsSpacePrev=AE_IsSpace(wchChar, dwInListSpaces);
 
     nLen+=AEC_IndexInc(&ciCount);
@@ -16432,7 +16432,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
         if (bIsSpacePrev && !bIsSpaceCur)
           goto End;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, wchChar))
       {
         if (bInList)
         {
@@ -16561,7 +16561,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   else
   {
     wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
-    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+    bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, wchChar);
     bIsSpacePrev=AE_IsSpace(wchChar, dwInListSpaces);
 
     nLen+=AEC_IndexDec(&ciCount);
@@ -16584,7 +16584,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
         if (!bIsSpacePrev && bIsSpaceCur)
           goto End;
       }
-      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+      if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, wchChar))
       {
         if (bInList)
         {
@@ -16739,22 +16739,32 @@ BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
   }
 
   if (dwType & AEDLM_WORD)
-    return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, (wchar_t)nChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ae->popt->nWordDelimitersLen, (wchar_t)nChar);
   if (dwType & AEDLM_WRAP)
-    return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, (wchar_t)nChar, TRUE);
+    return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, ae->ptxt->nWrapDelimitersLen, (wchar_t)nChar);
   if (dwType & AEDLM_URLLEFT)
-    return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, (wchar_t)nChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, ae->popt->nUrlLeftDelimitersLen, (wchar_t)nChar);
   if (dwType & AEDLM_URLRIGHT)
-    return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, (wchar_t)nChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ae->popt->nUrlRightDelimitersLen, (wchar_t)nChar);
   return FALSE;
 }
 
-BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase)
+BOOL AE_IsInDelimiterList(const wchar_t *wpList, int nListLen, wchar_t c)
 {
-  if (AE_wcschr(wpList, c, bMatchCase) != NULL)
-    return TRUE;
+  const wchar_t *wpMaxList=wpList + nListLen;
+
+  if (c == L'\r' || c == L'\n')
+  {
+    while (wpList < wpMaxList && *wpList != L'\r' && *wpList != L'\n')
+      ++wpList;
+    return (wpList < wpMaxList);
+  }
   else
-    return FALSE;
+  {
+    while (wpList < wpMaxList && *wpList != c)
+      ++wpList;
+    return (wpList < wpMaxList);
+  }
 }
 
 BOOL AE_IsSpace(wchar_t c, DWORD dwSpacesFlags)

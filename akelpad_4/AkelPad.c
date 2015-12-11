@@ -60,6 +60,7 @@
   #define xmemcmp
   #define xmemset
   #define xarrlenW
+  #define xarrcpynW
   #define xstrlenA
   #define xstrlenW
   #define xstrcmpW
@@ -81,6 +82,7 @@
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
   #define xarrlenW_INCLUDED
+  #define xarrcpynW_INCLUDED
   #define xstrlenA_INCLUDED
   #define xstrlenW_INCLUDED
   #define xstrcmpW_INCLUDED
