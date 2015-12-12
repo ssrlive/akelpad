@@ -4819,7 +4819,7 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
 {
   AECHARINDEX ciTmp;
   int nChar;
-  BOOL bInList;
+  const wchar_t *wpDelim;
 
   if (dwFoldStop & IFE_FOLDSTART)
   {
@@ -4844,9 +4844,9 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
         {
           if ((nChar=AEC_CharAtIndex(&ciTmp)) >= 0)
           {
-            bInList=IsInDelimiterList(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
+            wpDelim=AKD_wcschr(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
 
-            if (!bInList == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
+            if (!wpDelim == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
               return FALSE;
           }
         }
@@ -4855,9 +4855,9 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
       {
         if ((nChar=AEC_CharAtIndex(&crFound->ciMax)) >= 0)
         {
-          bInList=IsInDelimiterList(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
+          wpDelim=AKD_wcschr(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
 
-          if (!bInList == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
+          if (!wpDelim == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
             return FALSE;
         }
       }
@@ -4886,9 +4886,9 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
         {
           if ((nChar=AEC_CharAtIndex(&ciTmp)) >= 0)
           {
-            bInList=IsInDelimiterList(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
+            wpDelim=AKD_wcschr(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
 
-            if (!bInList == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
+            if (!wpDelim == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
               return FALSE;
           }
         }
@@ -4897,9 +4897,9 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
       {
         if ((nChar=AEC_CharAtIndex(&crFound->ciMax)) >= 0)
         {
-          bInList=IsInDelimiterList(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
+          wpDelim=AKD_wcschr(lpFoldInfo->wpDelimiters, (wchar_t)nChar);
 
-          if (!bInList == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
+          if (!wpDelim == !(lpFoldInfo->dwFlags & FIF_DENYDELIM))
             return FALSE;
         }
       }
