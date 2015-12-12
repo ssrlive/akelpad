@@ -4364,14 +4364,22 @@ void StackFreeDelimiter(STACKDELIM *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL IsInDelimiterList(const wchar_t *s, wchar_t c)
+wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c)
 {
-  for (; *s; ++s)
-  {
-    if (*s == c)
-      return TRUE;
-  }
-  return FALSE;
+  while (*s != L'\0' && *s != c)
+    ++s;
+  if (*s != L'\0')
+    return ((wchar_t *)s);
+  return NULL;
+}
+
+BOOL IsInDelimiterList(const wchar_t *wpList, int nListLen, wchar_t c)
+{
+  const wchar_t *wpMaxList=wpList + nListLen;
+
+  while (wpList < wpMaxList && *wpList != c)
+    ++wpList;
+  return (wpList < wpMaxList);
 }
 
 BOOL IsDelimiter(STACKDELIM *hDelimiterStack, HWND hWnd, int nChar)
@@ -4390,13 +4398,14 @@ BOOL IsDelimiter(STACKDELIM *hDelimiterStack, HWND hWnd, int nChar)
   {
     static wchar_t wszDelimiters[128];
     static HWND hWndPrev=NULL;
+    static int nDelimitersLen;
 
     if (hWnd != hWndPrev)
     {
       hWndPrev=hWnd;
-      SendMessage(hWnd, AEM_GETWORDDELIMITERS, 128, (LPARAM)wszDelimiters);
+      nDelimitersLen=(int)SendMessage(hWnd, AEM_GETWORDDELIMITERS, 128, (LPARAM)wszDelimiters);
     }
-    return IsInDelimiterList(wszDelimiters, (wchar_t)nChar);
+    return IsInDelimiterList(wszDelimiters, nDelimitersLen, (wchar_t)nChar);
   }
   return FALSE;
 }
