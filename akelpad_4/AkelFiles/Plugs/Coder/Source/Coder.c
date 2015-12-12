@@ -4403,7 +4403,7 @@ BOOL IsDelimiter(STACKDELIM *hDelimiterStack, HWND hWnd, int nChar)
     if (hWnd != hWndPrev)
     {
       hWndPrev=hWnd;
-      nDelimitersLen=(int)SendMessage(hWnd, AEM_GETWORDDELIMITERS, 128, (LPARAM)wszDelimiters);
+      nDelimitersLen=(int)SendMessage(hWnd, AEM_GETWORDDELIMITERS, 128, (LPARAM)wszDelimiters) - 2;
     }
     return IsInDelimiterList(wszDelimiters, nDelimitersLen, (wchar_t)nChar);
   }
