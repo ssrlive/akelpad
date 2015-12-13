@@ -67,6 +67,7 @@
 #define ListView_InsertColumnWide
 #define ListView_InsertItemWide
 #define ListView_SetItemWide
+#define OpenEventWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
@@ -245,6 +246,7 @@ char szMutexInitName[]="AkelPad::Macros::MutexInit";
 char szMutexExecName[]="AkelPad::Macros::MutexExec";
 char szMacrosDir[MAX_PATH];
 wchar_t wszMacrosDir[MAX_PATH];
+wchar_t wszScriptsExecMutex[MAX_PATH];
 wchar_t wszBuffer[BUFFER_SIZE];
 wchar_t wszLastMacro[MAX_PATH]=L"";
 STACKKEY hRecordStack={0};
@@ -1701,7 +1703,7 @@ void StackHotkeyPress(STACKKEY *hStack, BOOL bToEnd, DWORD dwFlags)
     //Scripts plugin synchronization
     if (!(dwFlags & EMF_SCRIPTSNOSYNC))
     {
-      while (hScriptsExecMutex=OpenEventA(EVENT_ALL_ACCESS, FALSE, "AkelPad::Scripts::MutexExec"))
+      while (hScriptsExecMutex=OpenEventWide(EVENT_ALL_ACCESS, FALSE, wszScriptsExecMutex))
       {
         WaitForSingleObject(hScriptsExecMutex, INFINITE);
 
@@ -2394,6 +2396,7 @@ void InitCommon(PLUGINDATA *pd)
   }
   xprintfW(wszPluginTitle, GetLangStringW(wLangModule, STRID_PLUGIN), wszPluginName);
   xprintfW(wszMacrosDir, L"%s\\AkelFiles\\Plugs\\Macros", pd->wszAkelDir);
+  xprintfW(wszScriptsExecMutex, L"AkelPad::Scripts::MutexExec::%d", GetCurrentProcessId());
   ReadOptions(0);
 
   dwMainProcessId=GetCurrentProcessId();

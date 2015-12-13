@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v3.1                    *
+ *                  Wide functions header v3.2                    *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -153,6 +153,7 @@ int TranslateAcceleratorWide(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
 BOOL IsDialogMessageWide(HWND hDlg, LPMSG lpMsg);
 LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+HANDLE OpenEventWide(DWORD dwDesiredAccess, BOOL bInheritHandle, const wchar_t *wpName);
 HANDLE CreateEventWide(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, const wchar_t *wpName);
 
 //Resources (RESOURCEWIDEFUNC). User32.lib.
@@ -2620,6 +2621,32 @@ LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return PostMessageW(hWnd, uMsg, wParam, lParam);
   else if (WideGlobal_bOldWindows == TRUE)
     return PostMessageA(hWnd, uMsg, wParam, lParam);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined OpenEventWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define OpenEventWide_INCLUDED
+#undef OpenEventWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+HANDLE OpenEventWide(DWORD dwDesiredAccess, BOOL bInheritHandle, const wchar_t *wpName)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return OpenEventW(dwDesiredAccess, bInheritHandle, wpName);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pName=AllocAnsi(wpName);
+    HANDLE hResult;
+
+    hResult=OpenEventA(dwDesiredAccess, bInheritHandle, pName);
+
+    FreeAnsi(pName);
+    return hResult;
+  }
 
   WideNotInitialized();
   return 0;
