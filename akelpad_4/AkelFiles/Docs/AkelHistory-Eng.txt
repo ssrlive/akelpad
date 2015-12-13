@@ -1,5 +1,5 @@
 
-AkelPad 4.9.7 ()
+AkelPad 4.9.7 (Dec 13, 2015)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: "Replace all" with up direction.
@@ -8,7 +8,7 @@ Added: option to find/replace dialog ". matches \n".
 Added: Catalan language module (Hiro5).
 Added: command line parameter /NewInstance - force create new program instance.
 Added: command line parameter /MainClass("MyAkelPad4") - set class name for a new program
-      instance.
+       instance.
 Added: possibility to set \0 symbol in delimiters.
 Added: error position in regular expression error message.
 
