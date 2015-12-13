@@ -16783,6 +16783,8 @@ int MessageBoxCustom(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCa
 BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static DIALOGMESSAGEBOX *lpDialog;
+  static HFONT hFont;
+  static BOOL bDeleteFont;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -16795,7 +16797,6 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     HWND hWndText;
     HWND hWndButton;
     HDC hDC;
-    HFONT hGuiFont;
     HICON hIcon;
     wchar_t wszString[MAX_PATH];
     char *pIconIndex;
@@ -16815,11 +16816,34 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     lpDialog=(DIALOGMESSAGEBOX *)lParam;
     hDlgMsgBox=hDlg;
     SystemParametersInfoA(SPI_GETSNAPTODEFBUTTON, 0, &bSnapToDefButton, 0);
-    hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+
+    //Get MessageBox font
+    if (bOldWindows)
+    {
+      NONCLIENTMETRICSA ncmA;
+
+      ncmA.cbSize=sizeof(NONCLIENTMETRICSA);
+      if (SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICSA), &ncmA, 0))
+        hFont=CreateFontIndirectA(&ncmA.lfMessageFont);
+    }
+    else
+    {
+      NONCLIENTMETRICSW ncmW;
+
+      ncmW.cbSize=sizeof(NONCLIENTMETRICSW);
+      if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICSW), &ncmW, 0))
+        hFont=CreateFontIndirectW(&ncmW.lfMessageFont);
+    }
+    if (!hFont)
+    {
+      hFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
+      bDeleteFont=FALSE;
+    }
+    else bDeleteFont=TRUE;
 
     if (hDC=GetDC(hDlg))
     {
-      SelectObject(hDC, hGuiFont);
+      SelectObject(hDC, hFont);
 
       //Get maximum button width
       for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
@@ -16837,7 +16861,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
 
       //Get scale factor for ScaleX and ScaleY
-      GetDialogUnits(hDC, hGuiFont, &ptUnitCur, &ptUnit96);
+      GetDialogUnits(hDC, hFont, &ptUnitCur, &ptUnit96);
       nButtonWidth=max(nButtonWidth, ScaleX(75));
       nButtonHeight=ScaleY(23);
       nButtonEdge=ScaleX(6);
@@ -16878,7 +16902,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       //MessageBox text
       rcTextOut.left=hIcon?ScaleY(60):nButtonOffset;
-      rcTextOut.right=max(nButtonsWidth + nButtonOffset * 2, ScaleX(500)) - nButtonOffset;
+      rcTextOut.right=max(nButtonsWidth + nButtonOffset * 2, ScaleX(GetSystemMetrics(SM_CXSCREEN) / 6 * 4)) - nButtonOffset;
       rcTextOut.top=0;
       rcTextOut.bottom=0;
 
@@ -16901,7 +16925,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (hWndText=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_NOPREFIX|SS_EDITCONTROL, rcTextOut.left, rcTextOut.top, RectW(&rcTextOut), RectH(&rcTextOut), hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL))
     {
-      SendMessage(hWndText, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+      SendMessage(hWndText, WM_SETFONT, (WPARAM)hFont, TRUE);
       SetWindowTextWide(hWndText, lpDialog->wpText);
     }
 
@@ -16937,7 +16961,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (hWndButton=CreateWindowExWide(0, L"BUTTON", NULL, dwStyle, nButtonX, nButtonY, nButtonWidth, nButtonHeight, hDlg, (HMENU)(UINT_PTR)lpButton->nButtonControlID, hInstance, NULL))
       {
-        SendMessage(hWndButton, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+        SendMessage(hWndButton, WM_SETFONT, (WPARAM)hFont, TRUE);
 
         if ((INT_PTR)lpButton->wpButtonStr > 0xFFFF)
           xstrcpynW(wszString, lpButton->wpButtonStr, MAX_PATH);
@@ -16965,12 +16989,15 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   else if (uMsg == WM_COMMAND)
   {
     BUTTONMESSAGEBOX *lpButton;
+    WORD wCommand=LOWORD(wParam);
 
     for (lpButton=lpDialog->bmb; lpButton->wpButtonStr; ++lpButton)
     {
-      if (LOWORD(wParam) == lpButton->nButtonControlID)
+      if (wCommand == IDCANCEL ? (lpButton->dwFlags & BMB_DEFAULT) : wCommand == lpButton->nButtonControlID)
       {
-        EndDialog(hDlg, LOWORD(wParam));
+        EndDialog(hDlg, wCommand);
+        if (bDeleteFont) DeleteObject(hFont);
+        hFont=NULL;
         hDlgMsgBox=NULL;
         return TRUE;
       }
