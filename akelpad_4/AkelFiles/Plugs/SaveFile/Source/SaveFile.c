@@ -347,7 +347,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t wszBackupFile[MAX_PATH];
       wchar_t wszFileDir[MAX_PATH];
       const wchar_t *wpName;
-      const wchar_t *wpBackupDir;
+      const wchar_t *wpBackupDir=NULL;
       const wchar_t *wpCount;
       const wchar_t *wpID;
       WIN32_FIND_DATAW wfd;
