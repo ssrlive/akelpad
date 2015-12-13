@@ -45,10 +45,10 @@
                                           //Compatibility: define same as ES_SAVESEL.
 
 //Strings
-#define AES_WORDDELIMITERSW     L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
-#define AES_WRAPDELIMITERSW     L" \t"
-#define AES_URLLEFTDELIMITERSW  L" \t\n'`\"(<{[="
-#define AES_URLRIGHTDELIMITERSW L" \t\n'`\")>}]"
+#define AES_WORDDELIMITERSW     L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?\0\0"
+#define AES_WRAPDELIMITERSW     L" \t\0\0"
+#define AES_URLLEFTDELIMITERSW  L" \t\n'`\"(<{[=\0\0"
+#define AES_URLRIGHTDELIMITERSW L" \t\n'`\")>}]\0\0"
 #define AES_URLPREFIXESW        L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
