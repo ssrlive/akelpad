@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v2.3                  *
+ *                  RegExp functions header v2.4                  *
  *                                                                *
  * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -3358,29 +3358,25 @@ INT_PTR PatReplace(PATREPLACE *pr)
   pe.wpMaxDelim=pr->wpDelim?pr->wpMaxDelim:NULL;
   pe.wpText=pr->wpText;
   pe.wpMaxText=pr->wpMaxText;
-  pe.wpRange=pr->wpRange;
-  pe.wpMaxRange=pr->wpMaxRange;
-  #ifdef __AKELEDIT_H__
-    pe.ciRange=pr->ciRange;
-    pe.ciMaxRange=pr->ciMaxRange;
-  #endif
-
   pe.lpREGroupStack=0;
   pe.wpPat=pr->wpPat;
   pe.wpMaxPat=pr->wpMaxPat;
   pe.wpStr=pr->wpStr;
   pe.wpMaxStr=pr->wpMaxStr;
-  #ifdef __AKELEDIT_H__
-    pe.ciStr=pr->ciStr;
-    pe.ciMaxStr=pr->ciMaxStr;
-  #endif
+
   if (pr->wpStr)
   {
+    pe.wpRange=pr->wpRange;
+    pe.wpMaxRange=pr->wpMaxRange;
     pe.lpCallback=(PATEXECCALLBACK)PatReplaceCallback;
   }
   else
   {
     #ifdef __AKELEDIT_H__
+      pe.ciRange=pr->ciRange;
+      pe.ciMaxRange=pr->ciMaxRange;
+      pe.ciStr=pr->ciStr;
+      pe.ciMaxStr=pr->ciMaxStr;
       pe.lpCallback=(PATEXECCALLBACK)AE_PatReplaceCallback;
     #endif
   }
