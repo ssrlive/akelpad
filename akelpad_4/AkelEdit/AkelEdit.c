@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.9.7                               *
+ *                      AkelEdit text control v1.9.8                               *
  *                                                                                 *
  * Copyright 2007-2015 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -14768,6 +14768,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         AECHARINDEX ciDrawLine=to->ciDrawLine;
         DWORD dwSelFlag=(hlp->dwPaintType & AEHPT_SELECTION);
         DWORD dwColSelFlag=(to->dwPrintFlags & AEPRN_COLOREDSELECTION);
+        AEQUOTEITEMW *lpQuotePrev;
 
         hlp->dwPaintType|=AEHPT_SELECTION;
         to->dwPrintFlags&=~AEPRN_COLOREDSELECTION;
@@ -14775,11 +14776,12 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
         for (to->ciDrawLine=hlp->qm.ciChildScan; AEC_IndexCompare(&to->ciDrawLine, &ciDrawLine) <= 0; )
         {
           AE_PaintCheckHighlightCloseItem(ae, to, hlp);
+          lpQuotePrev=hlp->qm.lpQuote;
 
           if (nFoundChild=AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDCHILD, &hlp->qm, &hlp->fm))
           {
-            //Empty quote start
-            if (!AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMax))
+            //Empty quote start. Avoid infinite recursion with nParentID == -3.
+            if (!AEC_IndexCompare(&to->ciDrawLine, &hlp->qm.crQuoteStart.ciMax) && hlp->qm.lpQuote != lpQuotePrev)
               continue;
           }
           AEC_NextCharInLine(&to->ciDrawLine);
