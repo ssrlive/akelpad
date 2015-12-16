@@ -9303,6 +9303,8 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
                   lpTmpPoint->ciPoint.lpLine=lpNewElement;
                   lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
                   lpTmpPoint->dwFlags|=AEPTF_MOVELINE|AEPTF_VALIDLINE;
+                  if (lpNewElement->nLineLen == lpTmpPoint->ciPoint.nCharInLine && lpNewElement->nLineBreak == AELB_WRAP)
+                    AEC_NextLine(&lpTmpPoint->ciPoint);
                   if (nCharEnd == lpInitialElement->nLineLen && !lpFirstPoint)
                     lpFirstPoint=lpTmpPoint;
                 }
