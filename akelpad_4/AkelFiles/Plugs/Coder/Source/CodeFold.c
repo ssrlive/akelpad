@@ -3306,6 +3306,8 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
 
         NextChar:
         AEC_IndexInc(&ciCount);
+        if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen && ciCount.lpLine->nLineBreak == AELB_WRAP)
+          break;
       }
       if (ciCount.lpLine->nLineBreak != AELB_WRAP)
       {
