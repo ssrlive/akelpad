@@ -3099,7 +3099,7 @@ Same as _PtrAdd. Uses for VBScript.
 
 
 _PtrMath (+ActiveX)
-__________________
+___________________
 
 Do mathematical operation with pointers.
 
@@ -3122,7 +3122,7 @@ Example:
 
 
 vbPtrMath (+ActiveX)
-___________________
+____________________
 
 Same as _PtrMath. Uses for VBScript.
 
