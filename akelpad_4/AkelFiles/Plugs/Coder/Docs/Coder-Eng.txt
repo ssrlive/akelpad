@@ -437,7 +437,7 @@ Rule file
   - See html.coder for example.
 
 
-*** Several variables description, that used in *.coder files ***
+*** Several variables description, that used in Coder::Settings themes ***
 
 Automatic selection marking:
   HighLight_AutoMarkFlags
