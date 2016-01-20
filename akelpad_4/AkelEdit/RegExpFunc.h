@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v2.4                  *
  *                                                                *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -282,10 +282,12 @@ typedef struct {
 INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wpMaxPat);
 BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr, const wchar_t *wpMaxStr);
 int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar);
-BOOL PatIsCharBoundary(const wchar_t *wpChar, int nChar, STACKREGROUP *hStack);
 int PatEscChar(const wchar_t **wppPat);
 DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPatChar);
 BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
+BOOL PatIsNextCharDelim(const wchar_t *wpChar, STACKREGROUP *hStack);
+BOOL PatIsPrevCharDelim(const wchar_t *wpChar, STACKREGROUP *hStack);
+BOOL PatIsCharBoundary(const wchar_t *wpChar, STACKREGROUP *hStack);
 int PatRefIndex(const wchar_t **wppPat);
 INT_PTR PatStrCmp(const wchar_t *wpStrStart1, const wchar_t *wpStrEnd1, DWORD dwFlags, const wchar_t *wpStrStart2, const wchar_t *wpMaxStr);
 REGROUP* PatCloseGroups(REGROUP *lpREGroupItem, const wchar_t *wpPatEnd, const wchar_t *wpPatRight, REGROUP **lppREGroupNextAuto);
@@ -303,7 +305,9 @@ void PatFree(STACKREGROUP *hStack);
 #ifdef __AKELEDIT_H__
   BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInput, const AECHARINDEX *ciMaxInput);
   int AE_PatStrChar(const AECHARINDEX *ciChar);
-  BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim);
+  BOOL AE_PatIsNextCharDelim(const AECHARINDEX *ciChar, STACKREGROUP *hStack);
+  BOOL AE_PatIsPrevCharDelim(const AECHARINDEX *ciChar, STACKREGROUP *hStack);
+  BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, STACKREGROUP *hStack);
   AELINEDATA* AE_PatNextChar(AECHARINDEX *ciChar);
   INT_PTR AE_PatStrCmp(const AECHARINDEX *ciStrStart1, const AECHARINDEX *ciStrEnd1, DWORD dwFlags, const AECHARINDEX *ciStrStart2, AECHARINDEX *ciStrEnd2, const AECHARINDEX *ciMaxStr);
   INT_PTR AE_PatStrSub(const AECHARINDEX *ciStart, const AECHARINDEX *ciEnd);
@@ -1096,21 +1100,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
         {
           if (hStack->dwOptions & REO_WHOLEWORD)
           {
-            PatStrChar(lpREGroupItem->wpStrStart, wpMaxStr, &nStrChar);
-            if (PatIsCharBoundary(lpREGroupItem->wpStrStart, nStrChar, hStack))
-            {
-              if (lpREGroupItem->wpStrEnd >= hStack->wpMaxText)
-              {
-                //Match
-              }
-              else
-              {
-                PatStrChar(lpREGroupItem->wpStrEnd, wpMaxStr, &nStrChar);
-                if (!PatIsCharBoundary(lpREGroupItem->wpStrEnd, nStrChar, hStack))
-                  goto RootReset;
-              }
-            }
-            else goto RootReset;
+            if (!PatIsPrevCharDelim(lpREGroupItem->wpStrStart, hStack) ||
+                !PatIsNextCharDelim(lpREGroupItem->wpStrEnd, hStack))
+              goto RootReset;
           }
           bResult=REE_TRUE;
           break;
@@ -1527,7 +1519,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           else if (dwCmpResult & RECCE_BOUNDARY)
           {
-            if (PatIsCharBoundary(wpStr, nStrChar, hStack))
+            if (PatIsCharBoundary(wpStr, hStack))
             {
               if (*wpPat == L'b')
               {
@@ -1746,24 +1738,6 @@ int PatStrChar(const wchar_t *wpStr, const wchar_t *wpMaxStr, int *nChar)
   return 0;
 }
 
-BOOL PatIsCharBoundary(const wchar_t *wpChar, int nChar, STACKREGROUP *hStack)
-{
-  int nPrevChar;
-  BOOL bPrevCharDelim;
-
-  if (wpChar > hStack->wpText)
-  {
-    nPrevChar=*(wpChar - 1);
-    if (nPrevChar == L'\r') nPrevChar=L'\n';
-    bPrevCharDelim=PatIsCharDelim(nPrevChar, hStack->wpDelim, hStack->wpMaxDelim);
-  }
-  else bPrevCharDelim=TRUE;
-
-  if (PatIsCharDelim(nChar, hStack->wpDelim, hStack->wpMaxDelim) != bPrevCharDelim)
-    return TRUE;
-  return FALSE;
-}
-
 int PatEscChar(const wchar_t **wppPat)
 {
   int nPatChar=**wppPat;
@@ -1980,6 +1954,39 @@ BOOL PatIsCharDelim(int nChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim
     if (*wpDelim == nChar)
       return TRUE;
   }
+  return FALSE;
+}
+
+BOOL PatIsNextCharDelim(const wchar_t *wpChar, STACKREGROUP *hStack)
+{
+  int nNextChar;
+
+  if (wpChar < hStack->wpMaxText)
+  {
+    nNextChar=*wpChar;
+    if (nNextChar == L'\r') nNextChar=L'\n';
+    return PatIsCharDelim(nNextChar, hStack->wpDelim, hStack->wpMaxDelim);
+  }
+  return TRUE;
+}
+
+BOOL PatIsPrevCharDelim(const wchar_t *wpChar, STACKREGROUP *hStack)
+{
+  int nPrevChar;
+
+  if (wpChar > hStack->wpText)
+  {
+    nPrevChar=*(wpChar - 1);
+    if (nPrevChar == L'\r') nPrevChar=L'\n';
+    return PatIsCharDelim(nPrevChar, hStack->wpDelim, hStack->wpMaxDelim);
+  }
+  return TRUE;
+}
+
+BOOL PatIsCharBoundary(const wchar_t *wpChar, STACKREGROUP *hStack)
+{
+  if (PatIsNextCharDelim(wpChar, hStack) != PatIsPrevCharDelim(wpChar, hStack))
+    return TRUE;
   return FALSE;
 }
 
@@ -2402,8 +2409,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         {
           if (hStack->dwOptions & REO_WHOLEWORD)
           {
-            if (!AE_PatIsCharBoundary(&lpREGroupItem->ciStrStart, hStack->wpDelim, hStack->wpMaxDelim) ||
-                !AE_PatIsCharBoundary(&lpREGroupItem->ciStrEnd, hStack->wpDelim, hStack->wpMaxDelim))
+            if (!AE_PatIsPrevCharDelim(&lpREGroupItem->ciStrStart, hStack) ||
+                !AE_PatIsNextCharDelim(&lpREGroupItem->ciStrEnd, hStack))
               goto RootReset;
           }
           bResult=REE_TRUE;
@@ -2692,7 +2699,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
         {
           if (*(wpPat + 1) == L'b' || *(wpPat + 1) == L'B')
           {
-            if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
+            if (AE_PatIsCharBoundary(&ciStr, hStack))
             {
               if (*(wpPat + 1) == L'b')
                 goto BoundMatch;
@@ -2831,7 +2838,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
           else if (dwCmpResult & RECCE_BOUNDARY)
           {
-            if (AE_PatIsCharBoundary(&ciStr, hStack->wpDelim, hStack->wpMaxDelim))
+            if (AE_PatIsCharBoundary(&ciStr, hStack))
             {
               if (*wpPat == L'b')
               {
@@ -3034,18 +3041,26 @@ int AE_PatStrChar(const AECHARINDEX *ciChar)
   return AEC_CharAtIndex(ciChar);
 }
 
-BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, const wchar_t *wpDelim, const wchar_t *wpMaxDelim)
+BOOL AE_PatIsNextCharDelim(const AECHARINDEX *ciChar, STACKREGROUP *hStack)
+{
+  if (!AEC_IsLastCharInFile(ciChar))
+    return PatIsCharDelim(AE_PatStrChar(ciChar), hStack->wpDelim, hStack->wpMaxDelim);
+  return TRUE;
+}
+
+BOOL AE_PatIsPrevCharDelim(const AECHARINDEX *ciChar, STACKREGROUP *hStack)
 {
   AECHARINDEX ciPrevChar=*ciChar;
-  BOOL bPrevCharDelim;
 
   AEC_PrevChar(&ciPrevChar);
   if (ciPrevChar.lpLine)
-    bPrevCharDelim=PatIsCharDelim(AE_PatStrChar(&ciPrevChar), wpDelim, wpMaxDelim);
-  else
-    bPrevCharDelim=TRUE;
+    return PatIsCharDelim(AE_PatStrChar(&ciPrevChar), hStack->wpDelim, hStack->wpMaxDelim);
+  return TRUE;
+}
 
-  if (PatIsCharDelim(AE_PatStrChar(ciChar), wpDelim, wpMaxDelim) != bPrevCharDelim)
+BOOL AE_PatIsCharBoundary(const AECHARINDEX *ciChar, STACKREGROUP *hStack)
+{
+  if (AE_PatIsNextCharDelim(ciChar, hStack) != AE_PatIsPrevCharDelim(ciChar, hStack))
     return TRUE;
   return FALSE;
 }
