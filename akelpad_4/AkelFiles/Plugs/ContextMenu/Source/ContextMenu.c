@@ -1385,6 +1385,8 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == AKDLL_MENUINDEX)
   {
+    if (IsIconic(hDlg))
+      ShowWindow(hDlg, SW_RESTORE);
     if ((WPARAM)SendMessage(hWndType, CB_GETCURSEL, 0, 0) != wParam)
       SendMessage(hWndType, CB_SETCURSEL, wParam, 0);
     PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MENUTYPE, CBN_SELCHANGE), (LPARAM)hWndType);
