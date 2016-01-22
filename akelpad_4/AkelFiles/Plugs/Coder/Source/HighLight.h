@@ -172,8 +172,8 @@ DWORD GetColorsToRestore(HIGHLIGHTWINDOW *lpHighlightWindow, AECOLORS *aecHighli
 void UnassignTheme(HWND hWnd);
 void UpdateHighLight(HWND hWnd);
 void UpdateHighLightAll();
-COLORREF GetColorFromStrAnsi(char *pColor);
-COLORREF GetColorFromStr(wchar_t *wpColor);
+COLORREF GetColorFromStrAnsi(const char *pColor, const char **pNext);
+COLORREF GetColorFromStr(const wchar_t *wpColor, const wchar_t **wpNext);
 int GetStrFromColor(COLORREF crColor, wchar_t *wszColor);
 BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData);
 void ReadHighLightOptions(HANDLE hOptions);
