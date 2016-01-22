@@ -1,8 +1,8 @@
 *****************************************************************
-***                ToolBar AkelPad plugin v12.3               ***
+***                ToolBar AkelPad plugin v12.4               ***
 *****************************************************************
 
-2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***
