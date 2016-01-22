@@ -571,7 +571,7 @@ void __declspec(dllexport) Settings(PLUGINDATA *pd)
                     {
                       if (*lpVarInfo->wpVarValue == L'#')
                       {
-                        crColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+                        crColor=GetColorFromStr(lpVarInfo->wpVarValue + 1, NULL);
 
                         if (cti->dwVarFlags & VARF_EXTINTCOLOR)
                           cti->nVarValue=crColor;
@@ -1747,7 +1747,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
             {
               if (wszBuffer[0] == L'#')
               {
-                lplvcd->clrTextBk=GetColorFromStr(wszBuffer + 1);
+                lplvcd->clrTextBk=GetColorFromStr(wszBuffer + 1, NULL);
               }
             }
           }
@@ -1785,7 +1785,7 @@ BOOL CALLBACK GeneralSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
               {
                 if (wszBuffer[0] == L'#')
                 {
-                  crColor=GetColorFromStr(wszBuffer + 1);
+                  crColor=GetColorFromStr(wszBuffer + 1, NULL);
                   if (SelectColorDialog(hDlg, &crColor))
                   {
                     wszBuffer[0]=L'#';
@@ -2621,7 +2621,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor1=GetColorFromStr(wszBuffer + 1);
+                      dwColor1=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -2632,7 +2632,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor2=GetColorFromStr(wszBuffer + 1);
+                      dwColor2=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -2747,7 +2747,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crBasicText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crBasicText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_BASICTEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2758,7 +2758,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crBasicBk=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crBasicBk=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_BASICBK;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2769,7 +2769,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crSelText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crSelText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_SELTEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2780,7 +2780,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crSelBk=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crSelBk=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_SELBK;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2791,7 +2791,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crActiveLineText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crActiveLineText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ACTIVELINETEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2802,7 +2802,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crActiveLineBk=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crActiveLineBk=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ACTIVELINEBK;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2813,7 +2813,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crActiveLineBorder=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crActiveLineBorder=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ACTIVELINEBORDER;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2824,7 +2824,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crAltLineText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crAltLineText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ALTLINETEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2835,7 +2835,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crAltLineBk=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crAltLineBk=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ALTLINEBK;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2846,7 +2846,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crAltLineBorder=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crAltLineBorder=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ALTLINEBORDER;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2857,7 +2857,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crActiveColumn=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crActiveColumn=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_ACTIVECOLUMN;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2868,7 +2868,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crColumnMarker=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crColumnMarker=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_COLUMNMARKER;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2879,7 +2879,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crCaret=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crCaret=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_CARET;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2890,7 +2890,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crUrlText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crUrlText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_URLTEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2901,7 +2901,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crUrlCursorText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crUrlCursorText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_URLCURSORTEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2912,7 +2912,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->aecColors.crUrlVisitText=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->aecColors.crUrlVisitText=GetColorFromStr(wszBuffer + 1, NULL);
                     lpSyntaxFile->aecColors.dwFlags|=AECLR_URLVISITTEXT;
                   }
                   else if (*wszBuffer != L'0') break;
@@ -2969,7 +2969,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwAutoMarkTextColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwAutoMarkTextColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -2979,7 +2979,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwAutoMarkBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwAutoMarkBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3051,7 +3051,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     {
                       if (*wszBuffer == L'#')
                       {
-                        dwColor1=GetColorFromStr(wszBuffer + 1);
+                        dwColor1=GetColorFromStr(wszBuffer + 1, NULL);
                       }
                       else if (*wszBuffer != L'0') break;
                     }
@@ -3062,7 +3062,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     {
                       if (*wszBuffer == L'#')
                       {
-                        dwColor2=GetColorFromStr(wszBuffer + 1);
+                        dwColor2=GetColorFromStr(wszBuffer + 1, NULL);
                       }
                       else if (*wszBuffer != L'0') break;
                     }
@@ -3194,7 +3194,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor1=GetColorFromStr(wszBuffer + 1);
+                      dwColor1=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -3205,7 +3205,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor2=GetColorFromStr(wszBuffer + 1);
+                      dwColor2=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -3270,7 +3270,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelFirstBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelFirstBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3280,7 +3280,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelSecondBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelSecondBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3290,7 +3290,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelNormalFoldColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelNormalFoldColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3300,7 +3300,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelActiveFoldColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelActiveFoldColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3310,7 +3310,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelNormalNodeOpenBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3320,7 +3320,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelNormalNodeCloseBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3330,7 +3330,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelActiveNodeOpenBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3340,7 +3340,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelActiveNodeCloseBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3350,7 +3350,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelNormalNodeOpenSignColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3360,7 +3360,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelNormalNodeCloseSignColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3370,7 +3370,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelActiveNodeOpenSignColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3380,7 +3380,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldPanelActiveNodeCloseSignColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3401,7 +3401,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldListTextColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldListTextColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3411,7 +3411,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwFoldListBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwFoldListBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3447,7 +3447,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwTagMarkTextColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwTagMarkTextColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3457,7 +3457,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwTagMarkBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwTagMarkBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3594,7 +3594,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor1=GetColorFromStr(wszBuffer + 1);
+                      dwColor1=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -3605,7 +3605,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                   {
                     if (*wszBuffer == L'#')
                     {
-                      dwColor2=GetColorFromStr(wszBuffer + 1);
+                      dwColor2=GetColorFromStr(wszBuffer + 1, NULL);
                     }
                     else if (*wszBuffer != L'0') break;
                   }
@@ -3851,7 +3851,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwCompleteListBasicTextColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwCompleteListBasicTextColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3861,7 +3861,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwCompleteListBasicBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwCompleteListBasicBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3871,7 +3871,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwCompleteListSelTextColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwCompleteListSelTextColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -3881,7 +3881,7 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                 {
                   if (*wszBuffer == L'#')
                   {
-                    lpSyntaxFile->dwCompleteListSelBkColor=GetColorFromStr(wszBuffer + 1);
+                    lpSyntaxFile->dwCompleteListSelBkColor=GetColorFromStr(wszBuffer + 1, NULL);
                   }
                   else if (*wszBuffer != L'0') break;
                 }
@@ -4689,7 +4689,7 @@ void GetVarThemeGlobals(VARTHEME *lpVarTheme)
     if (!(lpVarInfo=StackGetVarByName(&lpVarTheme->hVarStack, L"HighLight_AutoMarkTextColor", -1)))
       break;
     if (lpVarInfo->wpVarValue[0] == L'#')
-      dwAutoMarkTextColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+      dwAutoMarkTextColor=GetColorFromStr(lpVarInfo->wpVarValue + 1, NULL);
     else
       dwAutoMarkTextColor=(DWORD)-1;
 
@@ -4697,7 +4697,7 @@ void GetVarThemeGlobals(VARTHEME *lpVarTheme)
     if (!(lpVarInfo=StackGetVarByName(&lpVarTheme->hVarStack, L"HighLight_AutoMarkBkColor", -1)))
       break;
     if (lpVarInfo->wpVarValue[0] == L'#')
-      dwAutoMarkBkColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+      dwAutoMarkBkColor=GetColorFromStr(lpVarInfo->wpVarValue + 1, NULL);
     else
       dwAutoMarkBkColor=(DWORD)-1;
 
@@ -4706,7 +4706,7 @@ void GetVarThemeGlobals(VARTHEME *lpVarTheme)
     if (!(lpVarInfo=StackGetVarByName(&lpVarTheme->hVarStack, L"CodeFold_ListTextColor", -1)))
       break;
     if (lpVarInfo->wpVarValue[0] == L'#')
-      dwFoldListTextColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+      dwFoldListTextColor=GetColorFromStr(lpVarInfo->wpVarValue + 1, NULL);
     else
       dwFoldListTextColor=(DWORD)-1;
 
@@ -4714,7 +4714,7 @@ void GetVarThemeGlobals(VARTHEME *lpVarTheme)
     if (!(lpVarInfo=StackGetVarByName(&lpVarTheme->hVarStack, L"CodeFold_ListBkColor", -1)))
       break;
     if (lpVarInfo->wpVarValue[0] == L'#')
-      dwFoldListBkColor=GetColorFromStr(lpVarInfo->wpVarValue + 1);
+      dwFoldListBkColor=GetColorFromStr(lpVarInfo->wpVarValue + 1, NULL);
     else
       dwFoldListBkColor=(DWORD)-1;
 
