@@ -9218,11 +9218,13 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
   AELINEDATA ldLine;
   AELINEDATA *lpInitialElement=liLine->lpLine;
   AELINEDATA *lpNewElement=NULL;
-  AEPOINT *lpTmpPoint=*lppPoint;
   AEPOINT *lpFirstPoint=NULL;
+  AEPOINT *lpTmpPoint=*lppPoint;
+  AEPOINT *lpCountPoint;
   int nCharStart=0;
   int nCharEnd=0;
   int nWrappedLines=0;
+  int nPointNextLines=0;
   int nTmpLineOffset;
   int i;
 
@@ -9304,7 +9306,10 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
                   lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
                   lpTmpPoint->dwFlags|=AEPTF_MOVELINE|AEPTF_VALIDLINE;
                   if (lpNewElement->nLineLen == lpTmpPoint->ciPoint.nCharInLine && lpNewElement->nLineBreak == AELB_WRAP)
-                    AEC_NextLine(&lpTmpPoint->ciPoint);
+                  {
+                    lpTmpPoint->dwFlags|=AEPTF_NEXTLINE;
+                    ++nPointNextLines;
+                  }
                   if (nCharEnd == lpInitialElement->nLineLen && !lpFirstPoint)
                     lpFirstPoint=lpTmpPoint;
                 }
@@ -9339,6 +9344,19 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 
       liEnd.lpLine=lpNewElement;
       liEnd.nLine+=nWrappedLines;
+
+      if (nPointNextLines)
+      {
+        //Move point to the next line if it located at wrap place.
+        for (lpCountPoint=*lppPoint; lpCountPoint; lpCountPoint=lpCountPoint->next)
+        {
+          if (lpCountPoint->dwFlags & AEPTF_NEXTLINE)
+          {
+            AEC_NextLine(&lpCountPoint->ciPoint);
+            lpCountPoint->dwFlags&=~AEPTF_NEXTLINE;
+          }
+        }
+      }
     }
     if (!lpFirstPoint) lpFirstPoint=lpTmpPoint;
     *lppPoint=lpFirstPoint;
