@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.7
+// Version: 1.8
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -9,6 +9,7 @@
 // -ShowCountOfChanges=false  -Show count of changes (default is true).
 // -SearchStrings=10          -Maximum count of search strings (default is 10).
 // -DefButtonID=1016          -Default button ID. See IDC_* defines below (default is 1016).
+// -Template="Name"           -Template used on dialog open (default is "").
 //
 // Usage:
 // Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
@@ -27,6 +28,7 @@
 // -ShowCountOfChanges=false  -Выдавать количество замен (по умолчанию true).
 // -SearchStrings=10          -Максимальное число строк поиска (по умолчанию 10).
 // -DefButtonID=1016          -Идентификатор кнопки по умолчанию. См. описание IDC_* ниже (по умолчанию 1016).
+// -Template="Имя"            -Шаблон, использующийся при открытии диалога (по умолчанию "").
 //
 // Применение:
 // Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
@@ -42,6 +44,7 @@
 var bShowCountOfChanges=AkelPad.GetArgValue("ShowCountOfChanges", true);
 var nSearchStrings=AkelPad.GetArgValue("SearchStrings", 10);
 var nDefButtonID=AkelPad.GetArgValue("DefButtonID", 1016 /*IDC_FIND_BUTTON*/);
+var pTemplate=AkelPad.GetArgValue("Template", "");
 
 //Control IDs
 var IDC_FIND              =1001;
@@ -191,6 +194,7 @@ var nFindItLength;
 var nReplaceWithLength;
 var nSearchResult;
 var nButton=0;
+var nSetTemplate=0;
 var wCommand;
 var bLogPluginExists;
 var bMessageBox=false;
@@ -326,20 +330,20 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
         var nIndexOfWhat;
         var nIndexOfWith;
         var nLastIndexOf;
-        var pTemplate;
+        var pTemplateCount;
 
         for (i=0; ; ++i)
         {
-          if (pTemplate=oSet.Read("Template" + i, 3 /*PO_STRING*/))
+          if (pTemplateCount=oSet.Read("Template" + i, 3 /*PO_STRING*/))
           {
-            nIndexOfWhat=pTemplate.indexOf("=what:/");
-            nIndexOfWith=pTemplate.indexOf("/ with:/");
-            nLastIndexOf=pTemplate.lastIndexOf("/");
+            nIndexOfWhat=pTemplateCount.indexOf("=what:/");
+            nIndexOfWith=pTemplateCount.indexOf("/ with:/");
+            nLastIndexOf=pTemplateCount.lastIndexOf("/");
             lpTemplates[i]=[0, 0, 0, 0];
-            lpTemplates[i][0]=pTemplate.substr(0, nIndexOfWhat);
-            lpTemplates[i][1]=pTemplate.substr(nIndexOfWhat + 7, nIndexOfWith - (nIndexOfWhat + 7));
-            lpTemplates[i][2]=pTemplate.substr(nIndexOfWith + 8, nLastIndexOf - (nIndexOfWith + 8));
-            lpTemplates[i][3]=pTemplate.substr(nLastIndexOf + 1);
+            lpTemplates[i][0]=pTemplateCount.substr(0, nIndexOfWhat);
+            lpTemplates[i][1]=pTemplateCount.substr(nIndexOfWhat + 7, nIndexOfWith - (nIndexOfWhat + 7));
+            lpTemplates[i][2]=pTemplateCount.substr(nIndexOfWith + 8, nLastIndexOf - (nIndexOfWith + 8));
+            lpTemplates[i][3]=pTemplateCount.substr(nLastIndexOf + 1);
           }
           else break;
         }
@@ -437,6 +441,21 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     //Center dialog
     CenterWindow(hMainWnd, hWnd);
 
+    //Template on start
+    if (pTemplate)
+    {
+      for (i=0; i < lpTemplates.length; ++i)
+      {
+        if (pTemplate == lpTemplates[i][0])
+        {
+          nSetTemplate=i + 1;
+          AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_TEMPLATE, 0);
+          nSetTemplate=0;
+          break;
+        }
+      }
+    }
+
     //Update buttons
     AkelPad.SendMessage(hWnd, 273 /*WM_COMMAND*/, IDC_FIND, 0);
   }
@@ -504,113 +523,122 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
     {
       if (lpTemplates.length)
       {
-        var hMenu;
-        var nCmd;
+        var hMenu=0;
+        var nCmd=0;
         var lpCurTemplate=[0, 0, 0, 0];
         var pNewTemplateName;
         var bEnable;
         var nCurIndex=-1;
 
-        //What
-        oSys.Call("user32::GetWindowText" + _TCHAR, hWndWhat, lpBuffer, 256);
-        lpCurTemplate[1]=AkelPad.MemRead(lpBuffer, _TSTR);
-
-        //With
-        oSys.Call("user32::GetWindowText" + _TCHAR, hWndWith, lpBuffer, 256);
-        lpCurTemplate[2]=AkelPad.MemRead(lpBuffer, _TSTR);
-
-        //Flags
-        lpCurTemplate[3]="";
-        if (bRegExp)
-          lpCurTemplate[3]+="r"
-        if (bSensitive)
-          lpCurTemplate[3]+="i"
-        if (bMultiline)
-          lpCurTemplate[3]+="m"
-        if (bEscSequences)
-          lpCurTemplate[3]+="e"
-        if (bReplaceFunction)
-          lpCurTemplate[3]+="f"
-
-        if (hMenu=oSys.Call("user32::CreatePopupMenu"))
+        if (nSetTemplate)
         {
-          GetWindowSize(hWndTemplate, 0, rcControl);
-          for (i=0; i < lpTemplates.length; ++i)
+          nCmd=nSetTemplate;
+        }
+        else
+        {
+          //What
+          oSys.Call("user32::GetWindowText" + _TCHAR, hWndWhat, lpBuffer, 256);
+          lpCurTemplate[1]=AkelPad.MemRead(lpBuffer, _TSTR);
+
+          //With
+          oSys.Call("user32::GetWindowText" + _TCHAR, hWndWith, lpBuffer, 256);
+          lpCurTemplate[2]=AkelPad.MemRead(lpBuffer, _TSTR);
+
+          //Flags
+          lpCurTemplate[3]="";
+          if (bRegExp)
+            lpCurTemplate[3]+="r"
+          if (bSensitive)
+            lpCurTemplate[3]+="i"
+          if (bMultiline)
+            lpCurTemplate[3]+="m"
+          if (bEscSequences)
+            lpCurTemplate[3]+="e"
+          if (bReplaceFunction)
+            lpCurTemplate[3]+="f"
+
+          if (hMenu=oSys.Call("user32::CreatePopupMenu"))
           {
-            if (lpCurTemplate[1] == lpTemplates[i][1] &&
-                lpCurTemplate[2] == lpTemplates[i][2] &&
-                lpCurTemplate[3] == lpTemplates[i][3])
+            GetWindowSize(hWndTemplate, 0, rcControl);
+            for (i=0; i < lpTemplates.length; ++i)
             {
-              nCurIndex=i;
+              if (lpCurTemplate[1] == lpTemplates[i][1] &&
+                  lpCurTemplate[2] == lpTemplates[i][2] &&
+                  lpCurTemplate[3] == lpTemplates[i][3])
+              {
+                nCurIndex=i;
+              }
+              oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, nCurIndex == i?0x8 /*MF_STRING|MF_CHECKED*/:0x0 /*MF_STRING*/, i + 1, lpTemplates[i][0]);
             }
-            oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, nCurIndex == i?0x8 /*MF_STRING|MF_CHECKED*/:0x0 /*MF_STRING*/, i + 1, lpTemplates[i][0]);
-          }
-          oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x800 /*MF_SEPARATOR*/, 0, 0);
-          if (nCurIndex >= 0)
-          {
-            oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_RENAME));
-            oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_DELETE));
-          }
-          else oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_ADD));
-
-          nCmd=oSys.Call("user32::TrackPopupMenu", hMenu, 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON*/, rcControl.left, rcControl.top, 0, hWndDialog, 0);
-
-          if (nCmd)
-          {
-            if (nCmd <= lpTemplates.length)
+            oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x800 /*MF_SEPARATOR*/, 0, 0);
+            if (nCurIndex >= 0)
             {
-              oSys.Call("user32::SetWindowText" + _TCHAR, hWndWhat, lpTemplates[nCmd - 1][1]);
-              oSys.Call("user32::SetWindowText" + _TCHAR, hWndWith, lpTemplates[nCmd - 1][2]);
+              oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_RENAME));
+              oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_DELETE));
+            }
+            else oSys.Call("user32::AppendMenu" + _TCHAR, hMenu, 0x0 /*MF_STRING*/, ++i, GetLangString(STRID_ADD));
 
-              bEnable=lpTemplates[nCmd - 1][3].indexOf("r") >= 0;
-              AkelPad.SendMessage(hWndRegExp, 241 /*BM_SETCHECK*/, bEnable, 0);
-              AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_REGEXP, 0);
+            nCmd=oSys.Call("user32::TrackPopupMenu", hMenu, 0x182 /*TPM_RETURNCMD|TPM_NONOTIFY|TPM_LEFTBUTTON|TPM_RIGHTBUTTON*/, rcControl.left, rcControl.top, 0, hWndDialog, 0);
+          }
+        }
+        if (nCmd)
+        {
+          if (nCmd <= lpTemplates.length)
+          {
+            oSys.Call("user32::SetWindowText" + _TCHAR, hWndWhat, lpTemplates[nCmd - 1][1]);
+            oSys.Call("user32::SetWindowText" + _TCHAR, hWndWith, lpTemplates[nCmd - 1][2]);
 
-              bEnable=lpTemplates[nCmd - 1][3].indexOf("i") >= 0;
-              AkelPad.SendMessage(hWndCase, 241 /*BM_SETCHECK*/, bEnable, 0);
-              AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_MATCHCASE, 0);
+            bEnable=lpTemplates[nCmd - 1][3].indexOf("r") >= 0;
+            AkelPad.SendMessage(hWndRegExp, 241 /*BM_SETCHECK*/, bEnable, 0);
+            AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_REGEXP, 0);
 
-              bEnable=lpTemplates[nCmd - 1][3].indexOf("m") >= 0;
-              AkelPad.SendMessage(hWndMultiline, 241 /*BM_SETCHECK*/, bEnable, 0);
-              AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_MULTILINE, 0);
+            bEnable=lpTemplates[nCmd - 1][3].indexOf("i") >= 0;
+            AkelPad.SendMessage(hWndCase, 241 /*BM_SETCHECK*/, bEnable, 0);
+            AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_MATCHCASE, 0);
 
-              bEnable=lpTemplates[nCmd - 1][3].indexOf("e") >= 0;
-              AkelPad.SendMessage(hWndEscSequences, 241 /*BM_SETCHECK*/, bEnable, 0);
-              AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_ESCAPESEQ, 0);
+            bEnable=lpTemplates[nCmd - 1][3].indexOf("m") >= 0;
+            AkelPad.SendMessage(hWndMultiline, 241 /*BM_SETCHECK*/, bEnable, 0);
+            AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_MULTILINE, 0);
 
-              bEnable=lpTemplates[nCmd - 1][3].indexOf("f") >= 0;
-              AkelPad.SendMessage(hWndReplaceFunction, 241 /*BM_SETCHECK*/, bEnable, 0);
-              AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_FUNCTION, 0);
+            bEnable=lpTemplates[nCmd - 1][3].indexOf("e") >= 0;
+            AkelPad.SendMessage(hWndEscSequences, 241 /*BM_SETCHECK*/, bEnable, 0);
+            AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_ESCAPESEQ, 0);
+
+            bEnable=lpTemplates[nCmd - 1][3].indexOf("f") >= 0;
+            AkelPad.SendMessage(hWndReplaceFunction, 241 /*BM_SETCHECK*/, bEnable, 0);
+            AkelPad.SendMessage(hWndDialog, 273 /*WM_COMMAND*/, IDC_FUNCTION, 0);
+          }
+          else
+          {
+            if (nCurIndex >= 0)
+            {
+              if (nCmd == lpTemplates.length + 1)
+              {
+                //Rename
+                if (pNewTemplateName=AkelPad.InputBox(hWndDialog, GetLangString(STRID_RENAME), GetLangString(STRID_NAME), lpTemplates[nCurIndex][0]))
+                {
+                  lpTemplates[nCurIndex][0]=pNewTemplateName;
+                }
+              }
+              else if (nCmd == lpTemplates.length + 2)
+              {
+                //Delete
+                DeleteFromArray(lpTemplates, nCurIndex, 1);
+              }
             }
             else
             {
-              if (nCurIndex >= 0)
+              //Add
+              if (pNewTemplateName=AkelPad.InputBox(hWndDialog, GetLangString(STRID_ADD), GetLangString(STRID_NAME), ""))
               {
-                if (nCmd == lpTemplates.length + 1)
-                {
-                  //Rename
-                  if (pNewTemplateName=AkelPad.InputBox(hWndDialog, GetLangString(STRID_RENAME), GetLangString(STRID_NAME), lpTemplates[nCurIndex][0]))
-                  {
-                    lpTemplates[nCurIndex][0]=pNewTemplateName;
-                  }
-                }
-                else if (nCmd == lpTemplates.length + 2)
-                {
-                  //Delete
-                  DeleteFromArray(lpTemplates, nCurIndex, 1);
-                }
-              }
-              else
-              {
-                //Add
-                if (pNewTemplateName=AkelPad.InputBox(hWndDialog, GetLangString(STRID_ADD), GetLangString(STRID_NAME), ""))
-                {
-                  lpCurTemplate[0]=pNewTemplateName;
-                  lpTemplates[lpTemplates.length]=lpCurTemplate;
-                }
+                lpCurTemplate[0]=pNewTemplateName;
+                lpTemplates[lpTemplates.length]=lpCurTemplate;
               }
             }
           }
+        }
+        if (hMenu)
+        {
           //Remove BS_DEFPUSHBUTTON
           AkelPad.SendMessage(hWndTemplate, 0xF4 /*BM_SETSTYLE*/, 0, true);
           oSys.Call("user32::PostMessage" + _TCHAR, hWndDialog, 7 /*WM_SETFOCUS*/, 0, 0);
