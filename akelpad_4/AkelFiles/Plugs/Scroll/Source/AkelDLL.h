@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 2)
 
 
 //// Defines
@@ -1312,7 +1312,7 @@ typedef struct {
   HANDLE hFile;          //File handle, returned by CreateFile function.
   UINT_PTR dwMax;        //AKD_READFILECONTENT: maximum bytes to read, if -1 read entire file.
                          //AKD_WRITEFILECONTENT: wpContent length in characters. If this value is -1, the wpContent is assumed to be null-terminated and the length is calculated automatically.
-  int nCodePage;         //File codepage.
+  int nCodePage;         //File codepage. If -1, use ANSI codepage.
   BOOL bBOM;             //File BOM.
   wchar_t *wpContent;    //AKD_READFILECONTENT: returned file contents. On input points to text buffer or NULL if buffer must be allocated automatically.
                          //                     Automatically allocated buffer must be released with AKD_FREETEXT.
