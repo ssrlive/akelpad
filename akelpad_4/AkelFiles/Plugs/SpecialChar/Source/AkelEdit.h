@@ -152,8 +152,9 @@
 #define AEPTF_NOTIFYDELETE  0x00000010  //Don't use it. For internal code only.
 #define AEPTF_NOTIFYINSERT  0x00000020  //Don't use it. For internal code only.
 #define AEPTF_VALIDLINE     0x00000040  //Don't use it. For internal code only.
-#define AEPTF_NEXTLINE      0x00000080  //Don't use it. For internal code only.
+#define AEPTF_WRAPMOVESET   0x00000080  //Don't use it. For internal code only.
 #define AEPTF_FOLD          0x00000100  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+#define AEPTF_WRAPMOVE      0x00000200  //If set, move point to the next line if it located at wrap place.
 #define AEPTF_MOVEOFFSET    0x00001000  //If set, AEPOINT.nPointOffset has been changed.
 #define AEPTF_MOVELINE      0x00002000  //If set, AEPOINT.ciPoint.nLine has been changed.
 
