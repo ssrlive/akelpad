@@ -5183,6 +5183,9 @@ int WriteFileContent(HANDLE hFile, const wchar_t *wpContent, INT_PTR nContentLen
     nContentLen=xstrlenW(wpContent);
   wpContentMax=wpContent + nContentLen;
 
+  if (nCodePage == -1)
+    nCodePage=nAnsiCodePage;
+
   if (bBOM)
   {
     if (IsCodePageUnicode(nCodePage))
