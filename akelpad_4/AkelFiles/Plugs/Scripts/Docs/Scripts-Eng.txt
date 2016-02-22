@@ -2404,7 +2404,7 @@ Arguments
          //            which depend on dialog font sizes.
          //Default is 0x0.
   hMenu
-    Menu handle or, depending on style, child window handle. See description of CreateWindowEx in MSDN. If zero, not used (default).
+    Specifies the ordinal value of a menu resource in an executable file or string that specifies the name of a menu resource in an executable file. If zero, not used (default).
   hInstance
     Instance handle of the module to be associated with the window. If zero, AkelPad.GetInstanceDll handle will be used (default).
   pFaceName
