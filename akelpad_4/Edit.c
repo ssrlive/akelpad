@@ -1906,22 +1906,22 @@ BOOL DoEditCopy(HWND hWnd)
   return (BOOL)SendMessage(hWnd, AEM_COPY, 0, 0);
 }
 
-BOOL DoEditPaste(HWND hWnd, DWORD dwFlags)
+INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags)
 {
   CHARRANGE64 cr;
+  INT_PTR nResult;
 
   if (IsReadOnly(hWnd)) return FALSE;
 
   if (dwFlags & PASTE_AFTER)
     SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-  if (SendMessage(hWnd, AEM_PASTE, 0, (LPARAM)dwFlags))
+  if ((nResult=SendMessage(hWnd, AEM_PASTE, 0, (LPARAM)dwFlags)) != -1)
   {
     if (dwFlags & PASTE_AFTER)
       SendMessage(hWnd, EM_SETSEL, (WPARAM)cr.cpMin, (LPARAM)cr.cpMin);
-    return TRUE;
   }
-  return FALSE;
+  return nResult;
 }
 
 void DoEditClear(HWND hWnd)

@@ -5337,7 +5337,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         case IDM_EDIT_PASTE:
         {
-          return DoEditPaste(lpFrameCurrent->ei.hWndEdit, 0);
+          return DoEditPaste(lpFrameCurrent->ei.hWndEdit, lParam);
         }
         case IDM_EDIT_CLEAR:
         {
@@ -5514,7 +5514,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         case IDM_EDIT_PASTECOLUMN:
         {
-          return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_COLUMN);
+          return DoEditPaste(lpFrameCurrent->ei.hWndEdit, PASTE_COLUMN|PASTE_SELECT);
         }
         case IDM_EDIT_PASTEAFTER:
         {
