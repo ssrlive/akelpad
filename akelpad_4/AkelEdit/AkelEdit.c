@@ -18071,10 +18071,18 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   BOOL bColumnSel=FALSE;
   BOOL bUpdateVScroll=FALSE;
   BOOL bUpdateCaret=FALSE;
+  BOOL bCaretAtStart;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   if (!(dwFlags & AEREPT_UNDOGROUPING))
     AE_StackUndoGroupStop(ae);
+  if (dwFlags & AEREPT_SELECT)
+  {
+    if (!AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
+      bCaretAtStart=FALSE;
+    else
+      bCaretAtStart=TRUE;
+  }
 
   if (dwFlags & AEREPT_COLUMNON)
     bColumnSel=TRUE;
@@ -18125,7 +18133,17 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   if (bColumnSel)
   {
     if (ae->popt->dwOptions & AECO_PASTESELECTCOLUMN)
+    {
       AE_SetSelectionPos(ae, &ciStart, &ciEnd, bColumnSel, AESELT_LOCKNOTIFY, 0);
+      dwFlags&=~AEREPT_SELECT;
+    }
+  }
+  if (dwFlags & AEREPT_SELECT)
+  {
+    if (bCaretAtStart)
+      AE_SetSelectionPos(ae, &ciStart, &ciEnd, bColumnSel, AESELT_LOCKNOTIFY, 0);
+    else
+      AE_SetSelectionPos(ae, &ciEnd, &ciStart, bColumnSel, AESELT_LOCKNOTIFY, 0);
   }
   if (ciInsertStart) *ciInsertStart=ciStart;
   if (ciInsertEnd) *ciInsertEnd=ciEnd;
@@ -20517,7 +20535,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     else if (!bControl && !bShift && bAlt)
     {
       if (!(ae->popt->dwOptions & AECO_NOCOLUMNPASTEHOTKEY))
-        AE_EditPasteFromClipboard(ae, AEPFC_COLUMN);
+        AE_EditPasteFromClipboard(ae, AEPFC_COLUMN|AEPFC_SELECT);
     }
     return TRUE;
   }
@@ -21191,9 +21209,9 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
   UINT_PTR dwUnicodeLen=(UINT_PTR)-1;
   BOOL bColumnSel;
   BOOL bFreeText=FALSE;
-  BOOL bResult=FALSE;
+  INT_PTR nResult=-1;
 
-  if (AE_IsReadOnly(ae)) return bResult;
+  if (AE_IsReadOnly(ae)) return nResult;
   bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
 
   if (OpenClipboard(NULL))
@@ -21248,7 +21266,6 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
       {
         wchar_t *wpSource=wszText;
         wchar_t *wpTarget;
-        AECHARRANGE crRange;
         int nLineSelStart;
         int nLineSelEnd;
         int nLineSelRange;
@@ -21258,13 +21275,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
         INT_PTR nTargetLen;
         INT_PTR nTargetCount;
         int i;
-        BOOL bCaretAtStart;
 
-        if (!AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciCaretIndex) ||
-            !AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-          bCaretAtStart=TRUE;
-        else
-          bCaretAtStart=FALSE;
         nLineSelStart=AE_GetUnwrapLine(ae, ae->ciSelStartIndex.nLine);
         nLineSelEnd=AE_GetUnwrapLine(ae, ae->ciSelEndIndex.nLine);
         nLineSelRange=(nLineSelEnd - nLineSelStart) + 1;
@@ -21297,14 +21308,8 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
             }
             wpTarget[nTargetLen]=L'\0';
 
-            AE_ReplaceSel(ae, wpTarget, nTargetLen, AELB_ASINPUT, AEREPT_COLUMNON, &crRange.ciMin, &crRange.ciMax);
-            bResult=TRUE;
-
-            //Update selection
-            if (bCaretAtStart)
-              AE_SetSelectionPos(ae, &crRange.ciMin, &crRange.ciMax, TRUE, 0, 0);
-            else
-              AE_SetSelectionPos(ae, &crRange.ciMax, &crRange.ciMin, TRUE, 0, 0);
+            AE_ReplaceSel(ae, wpTarget, nTargetLen, AELB_ASINPUT, AEREPT_COLUMNON|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
+            nResult=nTargetLen;
 
             AE_HeapFree(ae, 0, (LPVOID)wpTarget);
           }
@@ -21312,8 +21317,8 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
       }
       else
       {
-        AE_ReplaceSel(ae, wszText, dwUnicodeLen, AELB_ASINPUT, bColumnSel?AEREPT_COLUMNON:0, NULL, NULL);
-        bResult=TRUE;
+        AE_ReplaceSel(ae, wszText, dwUnicodeLen, AELB_ASINPUT, (bColumnSel?AEREPT_COLUMNON:0)|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
+        nResult=dwUnicodeLen;
       }
       if (bFreeText) AE_HeapFree(NULL, 0, (LPVOID)wszText);
     }
@@ -21321,7 +21326,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
 
     CloseClipboard();
   }
-  return bResult;
+  return nResult;
 }
 
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)

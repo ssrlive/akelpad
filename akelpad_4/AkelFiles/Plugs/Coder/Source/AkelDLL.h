@@ -765,6 +765,7 @@
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define PASTE_COLUMN     0x00000002  //Paste to column selection.
+#define PASTE_SELECT     0x00000004  //Select pasted text.
 #define PASTE_CASE       0x00000800  //Detect selected text case type and paste text with this case.
 #define PASTE_AFTER      0x00001000  //Paste text after caret.
 #define PASTE_SINGLELINE 0x00002000  //Paste multiline text to single line edit control. All new lines replaced with '\r'.
@@ -1887,8 +1888,8 @@ typedef struct {
 #define IDM_EDIT_COPY                   4154  //Copy.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
-#define IDM_EDIT_PASTE                  4155  //Paste.
-                                              //Return Value: TRUE - success, FALSE - failed.
+#define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_* defines.
+                                              //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_CLEAR                  4156  //Delete.
                                               //Return Value: zero.
@@ -1984,13 +1985,13 @@ typedef struct {
                                               //Return Value: TRUE - is on, FALSE - is off.
                                               //
 #define IDM_EDIT_PASTEANSI              4191  //Paste as ANSI text.
-                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_PASTECOLUMN            4192  //Paste to column selection.
-                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_PASTEAFTER             4193  //Paste text after caret.
-                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_PASTECASE              4194  //Detect selected text case type and paste text with this case.
                                               //Return Value: see SCT_* defines.
@@ -3686,8 +3687,7 @@ Paste text from clipboard to the edit control.
 (DWORD)lParam == see PASTE_* defines.
 
 Return Value
- TRUE   success.
- FALSE  failed.
+ Number of characters pasted, -1 if error.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, 0);

@@ -346,6 +346,7 @@
 #define AEREPT_COLUMNASIS          0x00000002  //Leave column selection as is.
 #define AEREPT_LOCKSCROLL          0x00000004  //Lock edit window scroll. However edit window can be scrolled during window resize when AECO_DISABLENOSCROLL option not set.
 #define AEREPT_UNDOGROUPING        0x00000100  //Continue undo grouping.
+#define AEREPT_SELECT              0x00000200  //Select inserted text.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -371,6 +372,7 @@
 //AEM_PASTE flags
 #define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define AEPFC_COLUMN         0x00000002  //Paste to column selection.
+#define AEPFC_SELECT         0x00000004  //Select pasted text.
 
 //AEM_LOCKUPDATE FLAGS
 #define AELU_SCROLLBAR  0x00000001
@@ -2718,8 +2720,7 @@ wParam        == not used.
 (DWORD)lParam == see AEPFC_* defines.
 
 Return Value
- TRUE   success.
- FALSE  failed.
+ Number of characters pasted, -1 if error.
 
 Example:
  SendMessage(hWndEdit, AEM_PASTE, 0, 0);
