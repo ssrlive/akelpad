@@ -1510,7 +1510,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
             {
               nRefLen=PatStrCmp(lpREGroupRef->wpStrStart, lpREGroupRef->wpStrEnd, lpREGroupItem->dwFlags, wpStr, wpMaxStr);
-              if (!nRefLen) goto EndLoop;
+              if (!nRefLen && lpREGroupRef->nMinMatch) goto EndLoop;
             }
             else goto EndLoop;
 
@@ -2829,7 +2829,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
             if (lpREGroupRef=PatGetGroup(hStack, nRefIndex))
             {
               nRefLen=AE_PatStrCmp(&lpREGroupRef->ciStrStart, &lpREGroupRef->ciStrEnd, lpREGroupItem->dwFlags, &ciStr, &ciStr, &ciMaxStr);
-              if (!nRefLen) goto EndLoop;
+              if (!nRefLen && lpREGroupRef->nMinMatch) goto EndLoop;
             }
             else goto EndLoop;
 
