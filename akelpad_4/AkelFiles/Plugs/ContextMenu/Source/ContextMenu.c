@@ -3548,32 +3548,32 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSu
   BOOL bInitMenu=FALSE;
   static BOOL bUpdating;
 
+  if (!hManualStack)
+    hManualStack=&hMenuManualStack;
+
+  if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
+  {
+    if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
+      lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
+  }
+  if (lpSpecialParent)
+  {
+    //Recursive INCLUDEs
+    for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
+    {
+      if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+      {
+        if (lpSpecialMenuItem->bDynamic != TRUE)
+          UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
+        if (!lpSpecialMenuItem->bDynamic)
+          CopyMenuState(hSubMenu, lpSpecialMenuItem->nFirstIndex, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, 0);
+      }
+    }
+  }
+
   if (!bUpdating)
   {
     bUpdating=TRUE;
-    if (!hManualStack)
-      hManualStack=&hMenuManualStack;
-
-    if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
-    {
-      if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
-        lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
-    }
-    if (lpSpecialParent)
-    {
-      //Recursive INCLUDEs
-      for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
-      {
-        if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
-        {
-          if (lpSpecialMenuItem->bDynamic != TRUE)
-            UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
-          if (!lpSpecialMenuItem->bDynamic)
-            CopyMenuState(hSubMenu, lpSpecialMenuItem->nFirstIndex, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, 0);
-        }
-      }
-    }
-
     ei.hWndEdit=NULL;
     hInitMenuStack=hMenuStack;
     if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
