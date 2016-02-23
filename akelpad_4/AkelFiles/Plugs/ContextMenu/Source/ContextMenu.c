@@ -296,6 +296,7 @@ typedef struct _STATEIF {
   STACKEXTPARAM hParamStack;
   INT_PTR nValue;
   BOOL bCalculated;
+  int nStopError;
 } STATEIF;
 
 typedef struct {
@@ -3545,448 +3546,457 @@ void UpdateContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSu
   STATEIF *lpStateIf;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
+  static BOOL bUpdating;
 
-  if (!hManualStack)
-    hManualStack=&hMenuManualStack;
+  if (!bUpdating)
+  {
+    bUpdating=TRUE;
+    if (!hManualStack)
+      hManualStack=&hMenuManualStack;
 
-  if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
-  {
-    if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
-      lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
-  }
-  if (lpSpecialParent)
-  {
-    //Recursive INCLUDEs
-    for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
+    if (!(lpSpecialParent=StackGetSpecialParent(&hMenuStack->hSpecialMenuStack, hSubMenu)))
     {
-      if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+      if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
+        lpSpecialParent=StackGetSpecialParent(&hManualStack->hSpecialMenuStack, hSubMenu);
+    }
+    if (lpSpecialParent)
+    {
+      //Recursive INCLUDEs
+      for (lpSpecialMenuItem=lpSpecialParent->first; lpSpecialMenuItem; lpSpecialMenuItem=lpSpecialMenuItem->next)
       {
-        if (lpSpecialMenuItem->bDynamic != TRUE)
-          UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
-        if (!lpSpecialMenuItem->bDynamic)
-          CopyMenuState(hSubMenu, lpSpecialMenuItem->nFirstIndex, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, 0);
+        if (lpSpecialMenuItem->nItemType == SI_INCLUDE && lpSpecialMenuItem->lpIconMenuItem && hSubMenu != (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID)
+        {
+          if (lpSpecialMenuItem->bDynamic != TRUE)
+            UpdateContextMenu(hManualStack, hManualStack, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID);
+          if (!lpSpecialMenuItem->bDynamic)
+            CopyMenuState(hSubMenu, lpSpecialMenuItem->nFirstIndex, (HMENU)lpSpecialMenuItem->lpIconMenuItem->nItemID, 0);
+        }
       }
     }
-  }
 
-  ei.hWndEdit=NULL;
-  hInitMenuStack=hMenuStack;
-  if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
-  {
-    //For Menu() method loop first hManualStack
-    hMenuStack=hManualStack;
-  }
-
-  Loop:
-  for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
-    lpStateIf->bCalculated=FALSE;
-
-  for (lpMenuItem=hMenuStack->hMenuItemStack.first; lpMenuItem; lpMenuItem=lpMenuItem->next)
-  {
-    if (lpMenuItem->hSubMenu == hSubMenu)
+    ei.hWndEdit=NULL;
+    hInitMenuStack=hMenuStack;
+    if (hMenuStack->bLinkToManualMenu && hMenuStack->nType != TYPE_MANUAL)
     {
-      //Load icon optimization (part 5):
-      if (lpMenuItem->nFileIconIndex != -1)
+      //For Menu() method loop first hManualStack
+      hMenuStack=hManualStack;
+    }
+
+    Loop:
+    for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
+      lpStateIf->bCalculated=FALSE;
+
+    for (lpMenuItem=hMenuStack->hMenuItemStack.first; lpMenuItem; lpMenuItem=lpMenuItem->next)
+    {
+      if (lpMenuItem->hSubMenu == hSubMenu)
       {
-        HICON hIcon=NULL;
-
-        if (!*lpMenuItem->wszIconFile)
+        //Load icon optimization (part 5):
+        if (lpMenuItem->nFileIconIndex != -1)
         {
-          hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(lpMenuItem->nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
-        }
-        else
-        {
-          wchar_t wszPath[MAX_PATH];
-          wchar_t *wpFileName;
+          HICON hIcon=NULL;
 
-          if (TranslateFileString(lpMenuItem->wszIconFile, wszPath, MAX_PATH))
+          if (!*lpMenuItem->wszIconFile)
           {
-            if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, lpMenuItem->wszIconFile, &wpFileName))
-            {
-              //if (bBigIcons)
-              //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
-              //else
-              //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
-              hIcon=IconExtractWide(wszPath, lpMenuItem->nFileIconIndex, sizeIcon.cx, sizeIcon.cy);
-            }
+            hIcon=(HICON)LoadImageA(hInstanceDLL, MAKEINTRESOURCEA(lpMenuItem->nFileIconIndex + 100), IMAGE_ICON, sizeIcon.cx, sizeIcon.cy, 0);
           }
-        }
-        if (hIcon)
-        {
-          ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
-          DestroyIcon(hIcon);
-        }
-        else ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIconHollow);
-
-        lpMenuItem->nFileIconIndex=-1;
-      }
-
-      if (lpMenuItem->bUpdateItem && lpMenuItem->nUpdateTime != nCurrentUpdateTime)
-      {
-        if (lpMenuItem->lpStateIf)
-        {
-          DWORD dwMenuState=0;
-
-          lpStateIf=lpMenuItem->lpStateIf;
-
-          if (!lpStateIf->bCalculated)
+          else
           {
-            IFEXPRESSION ie;
-            INT_PTR nIfTrue=0;
-            INT_PTR nIfFalse=0;
-            int nMessageID;
-            EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
-                           {L"%d", 2, 0, EXPPARAM_FILEDIR},
-                           {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
-                           {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
-                           {0, 0, 0, 0}};
+            wchar_t wszPath[MAX_PATH];
+            wchar_t *wpFileName;
 
-            SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
-            if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 2))
-              nIfTrue=lpParameter->nNumber;
-            if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 3))
-              nIfFalse=lpParameter->nNumber;
-
-            nFocusChanged=-1;
-            ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
-            ie.sep=&lpStateIf->hParamStack;
-            lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
-            if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
-              ie.nError=IEE_FOCUSCHANGED;
-            nFocusChanged=0;
-
-            if (lpParameter)
+            if (TranslateFileString(lpMenuItem->wszIconFile, wszPath, MAX_PATH))
             {
-              if (lpStateIf->nValue)
-                lpStateIf->nValue=nIfTrue;
-              else
-                lpStateIf->nValue=nIfFalse;
-            }
-
-            if (ie.nError)
-            {
-              lpMenuItem->lpStateIf=NULL;
-              nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
-              xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
-              MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-              ViewItemCode(lpMenuItem);
-              return;
-            }
-            lpStateIf->bCalculated=TRUE;
-          }
-          dwMenuState=GetMenuState(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND);
-          if (!(dwMenuState & MF_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
-            CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_CHECKED ? MF_CHECKED : 0));
-          if (!(dwMenuState & (MF_GRAYED|MF_DISABLED)) != !(lpStateIf->nValue & (IFS_GRAYED|IFS_DISABLED)))
-            EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_GRAYED ? MF_GRAYED : 0)|(lpStateIf->nValue & IFS_DISABLED ? MF_DISABLED : 0));
-        }
-        else
-        {
-          if (lpMenuItem->dwAction == EXTACT_COMMAND)
-          {
-            DWORD dwMenuState=0;
-            int nCommand=0;
-
-            if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
-              nCommand=(int)lpParameter->nNumber;
-
-            if (nCommand)
-            {
-              if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
-                  nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
-                  nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
+              if (SearchPathWide(NULL, wszPath, NULL, MAX_PATH, lpMenuItem->wszIconFile, &wpFileName))
               {
-                if (!ei.hWndEdit)
-                  SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
-                if (ei.hWndEdit)
+                //if (bBigIcons)
+                //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, &hIcon, NULL, 1);
+                //else
+                //  ExtractIconExWide(wszPath, lpMenuItem->nFileIconIndex, NULL, &hIcon, 1);
+                hIcon=IconExtractWide(wszPath, lpMenuItem->nFileIconIndex, sizeIcon.cx, sizeIcon.cy);
+              }
+            }
+          }
+          if (hIcon)
+          {
+            ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIcon);
+            DestroyIcon(hIcon);
+          }
+          else ImageList_ReplaceIcon(hMenuStack->hImageList, lpMenuItem->nImageListIconIndex, hIconHollow);
+
+          lpMenuItem->nFileIconIndex=-1;
+        }
+
+        if (lpMenuItem->bUpdateItem && lpMenuItem->nUpdateTime != nCurrentUpdateTime)
+        {
+          if (lpMenuItem->lpStateIf)
+          {
+            if (!lpMenuItem->lpStateIf->nStopError)
+            {
+              DWORD dwMenuState=0;
+
+              lpStateIf=lpMenuItem->lpStateIf;
+
+              if (!lpStateIf->bCalculated)
+              {
+                IFEXPRESSION ie;
+                INT_PTR nIfTrue=0;
+                INT_PTR nIfFalse=0;
+                int nMessageID;
+                EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                               {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                               {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
+                               {L"%i", 2, lpMenuItem->nItem, EXPPARAM_INT},
+                               {0, 0, 0, 0}};
+
+                SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+                if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 2))
+                  nIfTrue=lpParameter->nNumber;
+                if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 3))
+                  nIfFalse=lpParameter->nNumber;
+
+                nFocusChanged=-1;
+                ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
+                ie.sep=&lpStateIf->hParamStack;
+                lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+                if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
+                  ie.nError=IEE_FOCUSCHANGED;
+                nFocusChanged=0;
+
+                if (lpParameter)
                 {
-                  if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
-                      (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
-                      (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+                  if (lpStateIf->nValue)
+                    lpStateIf->nValue=nIfTrue;
+                  else
+                    lpStateIf->nValue=nIfFalse;
+                }
+
+                if (ie.nError)
+                {
+                  lpStateIf->nStopError=ie.nError;
+                  nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+                  xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
+                  MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+                  ViewItemCode(lpMenuItem);
+                  return;
+                }
+                lpStateIf->bCalculated=TRUE;
+              }
+              dwMenuState=GetMenuState(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND);
+              if (!(dwMenuState & MF_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
+                CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_CHECKED ? MF_CHECKED : 0));
+              if (!(dwMenuState & (MF_GRAYED|MF_DISABLED)) != !(lpStateIf->nValue & (IFS_GRAYED|IFS_DISABLED)))
+                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|(lpStateIf->nValue & IFS_GRAYED ? MF_GRAYED : 0)|(lpStateIf->nValue & IFS_DISABLED ? MF_DISABLED : 0));
+            }
+          }
+          else
+          {
+            if (lpMenuItem->dwAction == EXTACT_COMMAND)
+            {
+              DWORD dwMenuState=0;
+              int nCommand=0;
+
+              if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
+                nCommand=(int)lpParameter->nNumber;
+
+              if (nCommand)
+              {
+                if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
+                    nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
+                    nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
+                {
+                  if (!ei.hWndEdit)
+                    SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
+                  if (ei.hWndEdit)
                   {
-                    dwMenuState=MF_CHECKED;
+                    if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
+                        (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
+                        (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+                    {
+                      dwMenuState=MF_CHECKED;
+                    }
                   }
                 }
-              }
-              else
-              {
-                if (!bInitMenu)
-                {
-                  SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
-                  bInitMenu=TRUE;
-                }
-                dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
-              }
-              if (dwMenuState != (DWORD)-1)
-              {
-                CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
-                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
-              }
-            }
-          }
-          else if (lpMenuItem->dwAction == EXTACT_CALL)
-          {
-            PLUGINFUNCTION *pf=NULL;
-            wchar_t *wpFunction=NULL;
-            DWORD dwFlags;
-            int nDllAction=0;
-            BOOL bCoderMark;
-
-            if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
-              wpFunction=lpParameter->wpString;
-            if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 2))
-              nDllAction=(int)lpParameter->nNumber;
-
-            if (wpFunction)
-            {
-              dwFlags=MF_UNCHECKED;
-              if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
-                if (pf->bRunning) dwFlags=MF_CHECKED;
-
-              //Coder special processing
-              if (!xstrcmpinW(L"Coder::", wpFunction, (UINT_PTR)-1))
-              {
-                if ((nDllAction == DLLA_CODER_SETEXTENSION || nDllAction == DLLA_CODER_SETVARTHEME) && !xstrcmpiW(wpFunction, L"Coder::Settings"))
-                  bCoderMark=FALSE;
-                else if (nDllAction == DLLA_HIGHLIGHT_MARK && !xstrcmpiW(wpFunction, L"Coder::HighLight"))
-                  bCoderMark=TRUE;
                 else
-                  bCoderMark=-1;
-
-                if (bCoderMark != -1)
                 {
-                  if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::HighLight", 0)) && pf->bRunning)
+                  if (!bInitMenu)
                   {
-                    dwFlags=MF_CHECKED;
+                    SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
+                    bInitMenu=TRUE;
                   }
-                  else if (bCoderMark == FALSE)
+                  dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
+                }
+                if (dwMenuState != (DWORD)-1)
+                {
+                  CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
+                  EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwMenuState);
+                }
+              }
+            }
+            else if (lpMenuItem->dwAction == EXTACT_CALL)
+            {
+              PLUGINFUNCTION *pf=NULL;
+              wchar_t *wpFunction=NULL;
+              DWORD dwFlags;
+              int nDllAction=0;
+              BOOL bCoderMark;
+
+              if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
+                wpFunction=lpParameter->wpString;
+              if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 2))
+                nDllAction=(int)lpParameter->nNumber;
+
+              if (wpFunction)
+              {
+                dwFlags=MF_UNCHECKED;
+                if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
+                  if (pf->bRunning) dwFlags=MF_CHECKED;
+
+                //Coder special processing
+                if (!xstrcmpinW(L"Coder::", wpFunction, (UINT_PTR)-1))
+                {
+                  if ((nDllAction == DLLA_CODER_SETEXTENSION || nDllAction == DLLA_CODER_SETVARTHEME) && !xstrcmpiW(wpFunction, L"Coder::Settings"))
+                    bCoderMark=FALSE;
+                  else if (nDllAction == DLLA_HIGHLIGHT_MARK && !xstrcmpiW(wpFunction, L"Coder::HighLight"))
+                    bCoderMark=TRUE;
+                  else
+                    bCoderMark=-1;
+
+                  if (bCoderMark != -1)
                   {
-                    if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::CodeFold", 0)) && pf->bRunning)
+                    if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::HighLight", 0)) && pf->bRunning)
                     {
                       dwFlags=MF_CHECKED;
                     }
-                    else if (nDllAction == DLLA_CODER_SETEXTENSION)
+                    else if (bCoderMark == FALSE)
                     {
-                      if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::AutoComplete", 0)) && pf->bRunning)
-                        dwFlags=MF_CHECKED;
-                    }
-                  }
-
-                  if (dwFlags == MF_CHECKED)
-                  {
-                    PLUGINCALLSENDW pcs;
-                    DLLEXTCODERCHECKALIAS decca;
-                    DLLEXTCODERCHECKVARTHEME deccvt;
-                    DLLEXTCODERCHECKMARK deccm;
-                    wchar_t wszAlias[MAX_PATH];
-                    BOOL bActive=FALSE;
-                    BOOL bCheck=FALSE;
-
-                    if (bCoderMark)
-                    {
-                      deccm.dwStructSize=sizeof(DLLEXTCODERCHECKMARK);
-                      deccm.nAction=DLLA_HIGHLIGHT_CHECKMARK;
-                      deccm.nMarkID=-1;
-                      deccm.wpColorText=NULL;
-                      deccm.wpColorBk=NULL;
-                      deccm.lpbActive=&bActive;
-                      if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 7))
-                        deccm.nMarkID=(int)lpParameter->nNumber;
-                      if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
-                        deccm.wpColorText=lpParameter->wpString;
-                      if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 4))
-                        deccm.wpColorBk=lpParameter->wpString;
-                      pcs.lParam=(LPARAM)&deccm;
-                      bCheck=TRUE;
-                    }
-                    else
-                    {
-                      if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
+                      if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::CodeFold", 0)) && pf->bRunning)
                       {
-                        if (nDllAction == DLLA_CODER_SETEXTENSION)
-                        {
-                          decca.dwStructSize=sizeof(DLLEXTCODERCHECKALIAS);
-                          decca.nAction=DLLA_CODER_CHECKALIAS;
-
-                          wszAlias[0]=L'.';
-                          xstrcpynW(wszAlias + 1, lpParameter->wpString, MAX_PATH - 1);
-                          if (!wszAlias[1]) wszAlias[0]=L'\0';
-                          decca.wpAlias=wszAlias;
-                          decca.lpbActive=&bActive;
-                          pcs.lParam=(LPARAM)&decca;
-                          bCheck=TRUE;
-                        }
-                        else
-                        {
-                          deccvt.dwStructSize=sizeof(DLLEXTCODERCHECKVARTHEME);
-                          deccvt.nAction=DLLA_CODER_CHECKVARTHEME;
-                          deccvt.wpVarTheme=lpParameter->wpString;
-                          deccvt.lpbActive=&bActive;
-                          pcs.lParam=(LPARAM)&deccvt;
-                          bCheck=TRUE;
-                        }
+                        dwFlags=MF_CHECKED;
+                      }
+                      else if (nDllAction == DLLA_CODER_SETEXTENSION)
+                      {
+                        if ((pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Coder::AutoComplete", 0)) && pf->bRunning)
+                          dwFlags=MF_CHECKED;
                       }
                     }
 
-                    if (bCheck)
+                    if (dwFlags == MF_CHECKED)
                     {
+                      PLUGINCALLSENDW pcs;
+                      DLLEXTCODERCHECKALIAS decca;
+                      DLLEXTCODERCHECKVARTHEME deccvt;
+                      DLLEXTCODERCHECKMARK deccm;
+                      wchar_t wszAlias[MAX_PATH];
+                      BOOL bActive=FALSE;
+                      BOOL bCheck=FALSE;
+
+                      if (bCoderMark)
+                      {
+                        deccm.dwStructSize=sizeof(DLLEXTCODERCHECKMARK);
+                        deccm.nAction=DLLA_HIGHLIGHT_CHECKMARK;
+                        deccm.nMarkID=-1;
+                        deccm.wpColorText=NULL;
+                        deccm.wpColorBk=NULL;
+                        deccm.lpbActive=&bActive;
+                        if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 7))
+                          deccm.nMarkID=(int)lpParameter->nNumber;
+                        if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
+                          deccm.wpColorText=lpParameter->wpString;
+                        if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 4))
+                          deccm.wpColorBk=lpParameter->wpString;
+                        pcs.lParam=(LPARAM)&deccm;
+                        bCheck=TRUE;
+                      }
+                      else
+                      {
+                        if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
+                        {
+                          if (nDllAction == DLLA_CODER_SETEXTENSION)
+                          {
+                            decca.dwStructSize=sizeof(DLLEXTCODERCHECKALIAS);
+                            decca.nAction=DLLA_CODER_CHECKALIAS;
+
+                            wszAlias[0]=L'.';
+                            xstrcpynW(wszAlias + 1, lpParameter->wpString, MAX_PATH - 1);
+                            if (!wszAlias[1]) wszAlias[0]=L'\0';
+                            decca.wpAlias=wszAlias;
+                            decca.lpbActive=&bActive;
+                            pcs.lParam=(LPARAM)&decca;
+                            bCheck=TRUE;
+                          }
+                          else
+                          {
+                            deccvt.dwStructSize=sizeof(DLLEXTCODERCHECKVARTHEME);
+                            deccvt.nAction=DLLA_CODER_CHECKVARTHEME;
+                            deccvt.wpVarTheme=lpParameter->wpString;
+                            deccvt.lpbActive=&bActive;
+                            pcs.lParam=(LPARAM)&deccvt;
+                            bCheck=TRUE;
+                          }
+                        }
+                      }
+
+                      if (bCheck)
+                      {
+                        pcs.pFunction=wpFunction;
+                        pcs.dwSupport=PDS_STRWIDE;
+                        SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+                      }
+                      if (bActive)
+                        dwFlags=MF_CHECKED;
+                      else
+                        dwFlags=MF_UNCHECKED;
+                    }
+                  }
+                }
+                //SpecialChar special processing
+                else if (!xstrcmpiW(L"SpecialChar::Settings", wpFunction))
+                {
+                  if (nDllAction == DLLA_SPECIALCHAR_OLDSET)
+                  {
+                    dwFlags=MF_UNCHECKED;
+                    if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"SpecialChar::Main", 0))
+                      if (pf->bRunning) dwFlags=MF_CHECKED;
+
+                    if (dwFlags == MF_CHECKED)
+                    {
+                      PLUGINCALLSENDW pcs;
+                      DLLEXTSPECIALCHAR desc;
+                      wchar_t *wpSpecialChar=NULL;
+                      BOOL bColorEnable=FALSE;
+                      BOOL bSelColorEnable=FALSE;
+
+                      if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
+                      {
+                        wpSpecialChar=lpParameter->wpString;
+                      }
+                      if (wpSpecialChar)
+                      {
+                        desc.dwStructSize=sizeof(DLLEXTSPECIALCHAR);
+                        desc.nAction=DLLA_SPECIALCHAR_OLDGET;
+                        desc.pSpecialChar=(unsigned char *)wpSpecialChar;
+                        desc.lpcrColor=NULL;
+                        desc.lpcrSelColor=NULL;
+                        desc.lpbColorEnable=&bColorEnable;
+                        desc.lpbSelColorEnable=&bSelColorEnable;
+
+                        pcs.pFunction=wpFunction;
+                        pcs.lParam=(LPARAM)&desc;
+                        pcs.dwSupport=PDS_STRWIDE;
+                        SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+                      }
+                      if (bColorEnable || bSelColorEnable)
+                        dwFlags=MF_CHECKED;
+                      else
+                        dwFlags=MF_UNCHECKED;
+                    }
+                  }
+                }
+                //LineBoard special processing
+                else if (!xstrcmpiW(L"LineBoard::Main", wpFunction))
+                {
+                  if (nDllAction == DLLA_LINEBOARD_SETRULERHEIGHT)
+                  {
+                    dwFlags=MF_UNCHECKED;
+                    if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"LineBoard::Main", 0))
+                      if (pf->bRunning) dwFlags=MF_CHECKED;
+
+                    if (dwFlags == MF_CHECKED)
+                    {
+                      PLUGINCALLSENDW pcs;
+                      DLLEXTLINEBOARD delb;
+                      BOOL bRulerEnable=FALSE;
+                      int nRulerHeight=FALSE;
+
+                      delb.dwStructSize=sizeof(DLLEXTLINEBOARD);
+                      delb.nAction=DLLA_LINEBOARD_GETRULERHEIGHT;
+                      delb.lpnRulerHeight=&nRulerHeight;
+                      delb.lpbRulerEnable=&bRulerEnable;
+
                       pcs.pFunction=wpFunction;
+                      pcs.lParam=(LPARAM)&delb;
                       pcs.dwSupport=PDS_STRWIDE;
                       SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
+
+                      if (bRulerEnable && nRulerHeight)
+                        dwFlags=MF_CHECKED;
+                      else
+                        dwFlags=MF_UNCHECKED;
                     }
-                    if (bActive)
-                      dwFlags=MF_CHECKED;
-                    else
-                      dwFlags=MF_UNCHECKED;
                   }
                 }
-              }
-              //SpecialChar special processing
-              else if (!xstrcmpiW(L"SpecialChar::Settings", wpFunction))
-              {
-                if (nDllAction == DLLA_SPECIALCHAR_OLDSET)
+                //Sessions special processing
+                else if (!xstrcmpiW(L"Sessions::Main", wpFunction))
                 {
-                  dwFlags=MF_UNCHECKED;
-                  if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"SpecialChar::Main", 0))
-                    if (pf->bRunning) dwFlags=MF_CHECKED;
-
-                  if (dwFlags == MF_CHECKED)
+                  if (nDllAction == DLLA_SESSIONS_STARTSTOP)
                   {
-                    PLUGINCALLSENDW pcs;
-                    DLLEXTSPECIALCHAR desc;
-                    wchar_t *wpSpecialChar=NULL;
-                    BOOL bColorEnable=FALSE;
-                    BOOL bSelColorEnable=FALSE;
-
-                    if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 3))
-                    {
-                      wpSpecialChar=lpParameter->wpString;
-                    }
-                    if (wpSpecialChar)
-                    {
-                      desc.dwStructSize=sizeof(DLLEXTSPECIALCHAR);
-                      desc.nAction=DLLA_SPECIALCHAR_OLDGET;
-                      desc.pSpecialChar=(unsigned char *)wpSpecialChar;
-                      desc.lpcrColor=NULL;
-                      desc.lpcrSelColor=NULL;
-                      desc.lpbColorEnable=&bColorEnable;
-                      desc.lpbSelColorEnable=&bSelColorEnable;
-
-                      pcs.pFunction=wpFunction;
-                      pcs.lParam=(LPARAM)&desc;
-                      pcs.dwSupport=PDS_STRWIDE;
-                      SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-                    }
-                    if (bColorEnable || bSelColorEnable)
-                      dwFlags=MF_CHECKED;
-                    else
-                      dwFlags=MF_UNCHECKED;
+                    dwFlags=MF_UNCHECKED;
+                    if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0))
+                      if (pf->bRunning) dwFlags=MF_CHECKED;
                   }
                 }
-              }
-              //LineBoard special processing
-              else if (!xstrcmpiW(L"LineBoard::Main", wpFunction))
-              {
-                if (nDllAction == DLLA_LINEBOARD_SETRULERHEIGHT)
+                //Hotkeys special processing
+                else if (!xstrcmpiW(L"Hotkeys::Main", wpFunction))
                 {
-                  dwFlags=MF_UNCHECKED;
-                  if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"LineBoard::Main", 0))
-                    if (pf->bRunning) dwFlags=MF_CHECKED;
-
-                  if (dwFlags == MF_CHECKED)
+                  if (nDllAction == DLLA_HOTKEYS_STARTSTOP)
                   {
-                    PLUGINCALLSENDW pcs;
-                    DLLEXTLINEBOARD delb;
-                    BOOL bRulerEnable=FALSE;
-                    int nRulerHeight=FALSE;
-
-                    delb.dwStructSize=sizeof(DLLEXTLINEBOARD);
-                    delb.nAction=DLLA_LINEBOARD_GETRULERHEIGHT;
-                    delb.lpnRulerHeight=&nRulerHeight;
-                    delb.lpbRulerEnable=&bRulerEnable;
-
-                    pcs.pFunction=wpFunction;
-                    pcs.lParam=(LPARAM)&delb;
-                    pcs.dwSupport=PDS_STRWIDE;
-                    SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-
-                    if (bRulerEnable && nRulerHeight)
-                      dwFlags=MF_CHECKED;
-                    else
-                      dwFlags=MF_UNCHECKED;
+                    dwFlags=MF_UNCHECKED;
+                    if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Hotkeys::Main", 0))
+                      if (pf->bRunning) dwFlags=MF_CHECKED;
                   }
                 }
-              }
-              //Sessions special processing
-              else if (!xstrcmpiW(L"Sessions::Main", wpFunction))
-              {
-                if (nDllAction == DLLA_SESSIONS_STARTSTOP)
-                {
-                  dwFlags=MF_UNCHECKED;
-                  if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Sessions::Main", 0))
-                    if (pf->bRunning) dwFlags=MF_CHECKED;
-                }
-              }
-              //Hotkeys special processing
-              else if (!xstrcmpiW(L"Hotkeys::Main", wpFunction))
-              {
-                if (nDllAction == DLLA_HOTKEYS_STARTSTOP)
-                {
-                  dwFlags=MF_UNCHECKED;
-                  if (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)L"Hotkeys::Main", 0))
-                    if (pf->bRunning) dwFlags=MF_CHECKED;
-                }
-              }
 
-              CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, dwFlags);
+                CheckMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, dwFlags);
+              }
             }
-          }
-          else if (lpMenuItem->dwAction == EXTACT_LINK)
-          {
-            if (hMenuStack->nType == TYPE_URL)
-              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_ENABLED);
-            else
-              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_GRAYED);
-          }
-          else if (lpMenuItem->dwAction == EXTACT_FAVOURITE)
-          {
-            int nCmd=0;
-            DWORD dwFlags=MF_GRAYED;
-
-            if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
-              nCmd=(int)lpParameter->nNumber;
-
-            if (nCmd == FAV_ADDDIALOG ||
-                nCmd == FAV_ADDSILENT ||
-                nCmd == FAV_DELSILENT)
+            else if (lpMenuItem->dwAction == EXTACT_LINK)
             {
-              if (*wszCurrentFile)
+              if (hMenuStack->nType == TYPE_URL)
+                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_ENABLED);
+              else
+                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|MF_GRAYED);
+            }
+            else if (lpMenuItem->dwAction == EXTACT_FAVOURITE)
+            {
+              int nCmd=0;
+              DWORD dwFlags=MF_GRAYED;
+
+              if (lpParameter=MethodGetParameter(&lpMenuItem->hParamStack, 1))
+                nCmd=(int)lpParameter->nNumber;
+
+              if (nCmd == FAV_ADDDIALOG ||
+                  nCmd == FAV_ADDSILENT ||
+                  nCmd == FAV_DELSILENT)
               {
-                if (StackGetFavouriteByFile(&hFavStack, wszCurrentFile, NULL))
+                if (*wszCurrentFile)
                 {
-                  if (nCmd == FAV_DELSILENT)
-                    dwFlags=MF_ENABLED;
+                  if (StackGetFavouriteByFile(&hFavStack, wszCurrentFile, NULL))
+                  {
+                    if (nCmd == FAV_DELSILENT)
+                      dwFlags=MF_ENABLED;
+                  }
+                  else
+                  {
+                    if (nCmd != FAV_DELSILENT)
+                      dwFlags=MF_ENABLED;
+                  }
                 }
-                else
-                {
-                  if (nCmd != FAV_DELSILENT)
-                    dwFlags=MF_ENABLED;
-                }
+                EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwFlags);
               }
-              EnableMenuItem(hMenuStack->hPopupMenu, lpMenuItem->nItem, MF_BYCOMMAND|dwFlags);
             }
           }
+          lpMenuItem->nUpdateTime=nCurrentUpdateTime;
         }
-        lpMenuItem->nUpdateTime=nCurrentUpdateTime;
       }
     }
-  }
 
-  if (hMenuStack != hInitMenuStack)
-  {
-    //For Menu() method loop next hInitMenuStack
-    hMenuStack=hInitMenuStack;
-    goto Loop;
+    if (hMenuStack != hInitMenuStack)
+    {
+      //For Menu() method loop next hInitMenuStack
+      hMenuStack=hInitMenuStack;
+      goto Loop;
+    }
+    bUpdating=FALSE;
   }
 }
 

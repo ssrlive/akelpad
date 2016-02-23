@@ -213,6 +213,7 @@ typedef struct _STATEIF {
   STACKEXTPARAM hParamStack;
   INT_PTR nValue;
   BOOL bCalculated;
+  int nStopError;
 } STATEIF;
 
 typedef struct {
@@ -1949,144 +1950,153 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
   TOOLBARITEM *lpButton;
   EXTPARAM *lpParameter;
   BOOL bInitMenu=FALSE;
+  static BOOL bUpdating;
 
-  ei.hWndEdit=NULL;
-  for (lpStateIf=hStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
-    lpStateIf->bCalculated=FALSE;
-
-  for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
+  if (!bUpdating)
   {
-    if (lpButton->bUpdateItem)
+    bUpdating=TRUE;
+    ei.hWndEdit=NULL;
+    for (lpStateIf=hStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
+      lpStateIf->bCalculated=FALSE;
+
+    for (lpButton=hStack->first; lpButton; lpButton=lpButton->next)
     {
-      if (lpButton->lpStateIf)
+      if (lpButton->bUpdateItem)
       {
-        DWORD dwButtonState;
-
-        lpStateIf=lpButton->lpStateIf;
-
-        if (!lpStateIf->bCalculated)
+        if (lpButton->lpStateIf)
         {
-          IFEXPRESSION ie;
-          INT_PTR nIfTrue=0;
-          INT_PTR nIfFalse=0;
-          int nMessageID;
-          EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
-                         {L"%d", 2, 0, EXPPARAM_FILEDIR},
-                         {L"%m", 2, (INT_PTR)hToolbar, EXPPARAM_INT},
-                         {L"%i", 2, lpButton->tbb.idCommand, EXPPARAM_INT},
-                         {0, 0, 0, 0}};
-
-          SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
-          if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 2))
-            nIfTrue=lpParameter->nNumber;
-          if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 3))
-            nIfFalse=lpParameter->nNumber;
-
-          bLockRefresh=TRUE;
-          nFocusChanged=-1;
-          ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
-          ie.sep=&lpStateIf->hParamStack;
-          lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
-          if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
-            ie.nError=IEE_FOCUSCHANGED;
-          nFocusChanged=0;
-          bLockRefresh=FALSE;
-
-          if (lpParameter)
+          if (!lpButton->lpStateIf->nStopError)
           {
-            if (lpStateIf->nValue)
-              lpStateIf->nValue=nIfTrue;
-            else
-              lpStateIf->nValue=nIfFalse;
-          }
+            DWORD dwButtonState;
 
-          if (ie.nError)
-          {
-            lpButton->lpStateIf=NULL;
-            nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
-            xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
-            MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-            ViewItemCode(lpButton);
-            return;
-          }
-          lpStateIf->bCalculated=TRUE;
-        }
-        dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
-        if (!(dwButtonState & TBSTATE_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
-          SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_CHECKED)?TRUE:FALSE);
-        if (!(dwButtonState & TBSTATE_ENABLED) == !(lpStateIf->nValue & IFS_GRAYED))
-          SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & IFS_GRAYED)?FALSE:TRUE);
-      }
-      else
-      {
-        if (lpButton->dwAction == EXTACT_COMMAND)
-        {
-          DWORD dwMenuState=0;
-          DWORD dwButtonState;
-          int nCommand=0;
+            lpStateIf=lpButton->lpStateIf;
 
-          if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 1))
-            nCommand=(int)lpParameter->nNumber;
-
-          if (nCommand)
-          {
-            if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
-                nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
-                nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
+            if (!lpStateIf->bCalculated)
             {
-              if (!ei.hWndEdit)
-                SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
-              if (ei.hWndEdit)
+              IFEXPRESSION ie;
+              INT_PTR nIfTrue=0;
+              INT_PTR nIfFalse=0;
+              int nMessageID;
+              EXPPARAM ep[]={{L"%f", 2, 0, EXPPARAM_FILE},
+                             {L"%d", 2, 0, EXPPARAM_FILEDIR},
+                             {L"%m", 2, (INT_PTR)hToolbar, EXPPARAM_INT},
+                             {L"%i", 2, lpButton->tbb.idCommand, EXPPARAM_INT},
+                             {0, 0, 0, 0}};
+
+              SendMessage(hMainWnd, AKD_METHODEXPANDPARAMETERS, (WPARAM)&lpStateIf->hParamStack, (LPARAM)ep);
+              if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 2))
+                nIfTrue=lpParameter->nNumber;
+              if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 3))
+                nIfFalse=lpParameter->nNumber;
+
+              bLockRefresh=TRUE;
+              nFocusChanged=-1;
+              ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
+              ie.sep=&lpStateIf->hParamStack;
+              lpStateIf->nValue=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)NULL, (LPARAM)&ie);
+              if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
+                ie.nError=IEE_FOCUSCHANGED;
+              nFocusChanged=0;
+              bLockRefresh=FALSE;
+
+              if (lpParameter)
               {
-                if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
-                    (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
-                    (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+                if (lpStateIf->nValue)
+                  lpStateIf->nValue=nIfTrue;
+                else
+                  lpStateIf->nValue=nIfFalse;
+              }
+
+              if (ie.nError)
+              {
+                lpStateIf->nStopError=ie.nError;
+                nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
+                xprintfW(wszBuffer, GetLangStringW(wLangModule, nMessageID), ie.wpEnd);
+                MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
+                ViewItemCode(lpButton);
+                return;
+              }
+              lpStateIf->bCalculated=TRUE;
+            }
+            dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
+            if (!(dwButtonState & TBSTATE_CHECKED) != !(lpStateIf->nValue & IFS_CHECKED))
+              SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & TBSTATE_CHECKED)?TRUE:FALSE);
+            if (!(dwButtonState & TBSTATE_ENABLED) == !(lpStateIf->nValue & IFS_GRAYED))
+              SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (lpStateIf->nValue & IFS_GRAYED)?FALSE:TRUE);
+          }
+        }
+        else
+        {
+          if (lpButton->dwAction == EXTACT_COMMAND)
+          {
+            DWORD dwMenuState=0;
+            DWORD dwButtonState;
+            int nCommand=0;
+
+            if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 1))
+              nCommand=(int)lpParameter->nNumber;
+
+            if (nCommand)
+            {
+              if (nCommand == IDM_VIEW_SPLIT_WINDOW_ALL ||
+                  nCommand == IDM_VIEW_SPLIT_WINDOW_WE ||
+                  nCommand == IDM_VIEW_SPLIT_WINDOW_NS)
+              {
+                if (!ei.hWndEdit)
+                  SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
+                if (ei.hWndEdit)
                 {
-                  dwMenuState=MF_CHECKED;
+                  if ((nCommand == IDM_VIEW_SPLIT_WINDOW_ALL && ei.hWndClone1 && ei.hWndClone2 && ei.hWndClone3) ||
+                      (nCommand == IDM_VIEW_SPLIT_WINDOW_WE && ei.hWndClone1 && !ei.hWndClone2 && !ei.hWndClone3) ||
+                      (nCommand == IDM_VIEW_SPLIT_WINDOW_NS && !ei.hWndClone1 && ei.hWndClone2 && !ei.hWndClone3))
+                  {
+                    dwMenuState=MF_CHECKED;
+                  }
                 }
               }
-            }
-            else
-            {
-              if (!bInitMenu)
+              else
               {
-                SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
-                bInitMenu=TRUE;
+                if (!bInitMenu)
+                {
+                  SendMessage(hMainWnd, WM_INITMENU, (WPARAM)hMainMenu, IMENU_EDIT|IMENU_CHECKS);
+                  bInitMenu=TRUE;
+                }
+                dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
               }
-              dwMenuState=GetMenuState(hMainMenu, nCommand, MF_BYCOMMAND);
-            }
-            if (dwMenuState != (DWORD)-1)
-            {
-              dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
-              if (!(dwMenuState & MF_CHECKED) != !(dwButtonState & TBSTATE_CHECKED))
-                SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_CHECKED)?TRUE:FALSE);
-              if (!(dwMenuState & MF_GRAYED) == !(dwButtonState & TBSTATE_ENABLED))
-                SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_GRAYED)?FALSE:TRUE);
+              if (dwMenuState != (DWORD)-1)
+              {
+                dwButtonState=(DWORD)SendMessage(hToolbar, TB_GETSTATE, lpButton->tbb.idCommand, 0);
+                if (!(dwMenuState & MF_CHECKED) != !(dwButtonState & TBSTATE_CHECKED))
+                  SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_CHECKED)?TRUE:FALSE);
+                if (!(dwMenuState & MF_GRAYED) == !(dwButtonState & TBSTATE_ENABLED))
+                  SendMessage(hToolbar, TB_ENABLEBUTTON, lpButton->tbb.idCommand, (dwMenuState & MF_GRAYED)?FALSE:TRUE);
+              }
             }
           }
-        }
-        else if (lpButton->dwAction == EXTACT_CALL)
-        {
-          PLUGINFUNCTION *pf;
-          wchar_t *wpFunction=NULL;
-          int nDllAction=0;
-          BOOL bChecked;
-
-          if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 1))
-            wpFunction=lpParameter->wpString;
-          if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 2))
-            nDllAction=(int)lpParameter->nNumber;
-
-          if (wpFunction)
+          else if (lpButton->dwAction == EXTACT_CALL)
           {
-            bChecked=FALSE;
-            if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
-              if (pf->bRunning) bChecked=TRUE;
-            SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, bChecked);
+            PLUGINFUNCTION *pf;
+            wchar_t *wpFunction=NULL;
+            int nDllAction=0;
+            BOOL bChecked;
+
+            if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 1))
+              wpFunction=lpParameter->wpString;
+            if (lpParameter=MethodGetParameter(&lpButton->hParamStack, 2))
+              nDllAction=(int)lpParameter->nNumber;
+
+            if (wpFunction)
+            {
+              bChecked=FALSE;
+              if (!lpParameter && (pf=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)wpFunction, 0)))
+                if (pf->bRunning) bChecked=TRUE;
+              SendMessage(hToolbar, TB_CHECKBUTTON, lpButton->tbb.idCommand, bChecked);
+            }
           }
         }
       }
     }
+    bUpdating=FALSE;
   }
 }
 
