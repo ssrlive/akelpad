@@ -21198,7 +21198,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae)
   return FALSE;
 }
 
-BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
+INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
 {
   HGLOBAL hDataInfo;
   HGLOBAL hData=NULL;

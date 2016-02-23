@@ -1038,7 +1038,7 @@ BOOL AE_EditUndo(AKELEDIT *ae);
 BOOL AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
 BOOL AE_EditCopyToClipboard(AKELEDIT *ae);
-BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags);
+INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags);
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode);
 void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl);
