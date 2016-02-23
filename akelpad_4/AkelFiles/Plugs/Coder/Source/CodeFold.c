@@ -91,136 +91,142 @@ void __declspec(dllexport) CodeFold(PLUGINDATA *pd)
     if (pd->lParam)
     {
       INT_PTR nAction=GetExtCallParam(pd->lParam, 1);
+      BOOL bCheckInit=TRUE;
 
-      if (nInitCodeFold)
+      if (nAction == DLLA_CODEFOLD_SHOWDOCK)
       {
-        if (nAction == DLLA_CODEFOLD_SHOWDOCK)
+        HWND *lpWndDock=NULL;
+
+        if (IsExtCallParamValid(pd->lParam, 2))
+          lpWndDock=(HWND *)GetExtCallParam(pd->lParam, 2);
+
+        if (lpWndDock)
         {
-          HWND *lpWndDock=NULL;
-
-          if (IsExtCallParamValid(pd->lParam, 2))
-            lpWndDock=(HWND *)GetExtCallParam(pd->lParam, 2);
-
-          if (lpWndDock)
-          {
-            if (dkCodeFoldDlg && !(dkCodeFoldDlg->dwFlags & DKF_HIDDEN))
-              *lpWndDock=dkCodeFoldDlg->hWnd;
-          }
-          else SendMessage(hWndCodeFoldDlg, WM_COMMAND, IDC_CODEFOLD_HIDE, 0);
+          if (dkCodeFoldDlg && !(dkCodeFoldDlg->dwFlags & DKF_HIDDEN))
+            *lpWndDock=dkCodeFoldDlg->hWnd;
+          bCheckInit=FALSE;
         }
-        else if (nAction == DLLA_CODEFOLD_GORULE)
+        else if (nInitCodeFold)
+          SendMessage(hWndCodeFoldDlg, WM_COMMAND, IDC_CODEFOLD_HIDE, 0);
+      }
+      if (bCheckInit)
+      {
+        if (nInitCodeFold)
         {
-          AEFOLD *lpFold;
-
-          if (lpFold=GetCaretFold(lpCurrentFoldWindow, NULL))
+          if (nAction == DLLA_CODEFOLD_GORULE)
           {
-            GoRule(lpCurrentFoldWindow, lpFold);
-          }
-        }
-        else if (nAction == DLLA_CODEFOLD_ADDWINDOW)
-        {
-          MANUALSET *lpManual;
-          HWND hWndEdit=NULL;
-          HWND hWndParent=NULL;
-          unsigned char *pAlias=NULL;
+            AEFOLD *lpFold;
 
-          if (IsExtCallParamValid(pd->lParam, 2))
-            hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
-          if (IsExtCallParamValid(pd->lParam, 3))
-            pAlias=(unsigned char *)GetExtCallParam(pd->lParam, 3);
-          hWndParent=GetParent(hWndEdit);
-
-          if (hWndEdit && hWndParent && pAlias)
-          {
-            //Subclass window
-            if (!(lpManual=StackGetManual(&hManualStack, hWndEdit, NULL)))
+            if (lpFold=GetCaretFold(lpCurrentFoldWindow, NULL))
             {
-              if (lpManual=StackInsertManual(&hManualStack))
-              {
-                lpManual->hWndEdit=hWndEdit;
-                lpManual->hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
-                lpManual->hWndParent=hWndParent;
-
-                lpManual->lpOldEditProc=(WNDPROC)GetWindowLongPtrWide(hWndEdit, GWLP_WNDPROC);
-                SetWindowLongPtrWide(hWndEdit, GWLP_WNDPROC, (UINT_PTR)NewUserEditProc);
-
-                lpManual->lpOldParentProc=(WNDPROC)GetWindowLongPtrWide(hWndParent, GWLP_WNDPROC);
-                SetWindowLongPtrWide(hWndParent, GWLP_WNDPROC, (UINT_PTR)NewUserParentProc);
-              }
+              GoRule(lpCurrentFoldWindow, lpFold);
             }
+          }
+          else if (nAction == DLLA_CODEFOLD_ADDWINDOW)
+          {
+            MANUALSET *lpManual;
+            HWND hWndEdit=NULL;
+            HWND hWndParent=NULL;
+            unsigned char *pAlias=NULL;
 
-            if (lpManual)
+            if (IsExtCallParamValid(pd->lParam, 2))
+              hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
+            if (IsExtCallParamValid(pd->lParam, 3))
+              pAlias=(unsigned char *)GetExtCallParam(pd->lParam, 3);
+            hWndParent=GetParent(hWndEdit);
+
+            if (hWndEdit && hWndParent && pAlias)
             {
-              if (bOldWindows)
-                MultiByteToWideChar(CP_ACP, 0, (char *)pAlias, -1, lpManual->wszAlias, MAX_PATH);
-              else
-                xstrcpynW(lpManual->wszAlias, (wchar_t *)pAlias, MAX_PATH);
-
-              //Add CodeFold element
-              lpManual->dwDllFunction|=CODER_CODEFOLD;
-
-              if (!StackGetFoldWindow(&hFoldWindowsStack, hWndEdit, NULL))
+              //Subclass window
+              if (!(lpManual=StackGetManual(&hManualStack, hWndEdit, NULL)))
               {
-                if (lpManual->lpFoldWindow=FillLevelsStack(NULL, NULL, hWndEdit, NULL))
+                if (lpManual=StackInsertManual(&hManualStack))
                 {
-                  ((FOLDWINDOW *)lpManual->lpFoldWindow)->hWndEdit=lpManual->hWndEdit;
-                  ((FOLDWINDOW *)lpManual->lpFoldWindow)->hDocEdit=lpManual->hDocEdit;
-                  ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser=lpManual;
+                  lpManual->hWndEdit=hWndEdit;
+                  lpManual->hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
+                  lpManual->hWndParent=hWndParent;
 
-                  if (nInitCodeFold)
+                  lpManual->lpOldEditProc=(WNDPROC)GetWindowLongPtrWide(hWndEdit, GWLP_WNDPROC);
+                  SetWindowLongPtrWide(hWndEdit, GWLP_WNDPROC, (UINT_PTR)NewUserEditProc);
+
+                  lpManual->lpOldParentProc=(WNDPROC)GetWindowLongPtrWide(hWndParent, GWLP_WNDPROC);
+                  SetWindowLongPtrWide(hWndParent, GWLP_WNDPROC, (UINT_PTR)NewUserParentProc);
+                }
+              }
+
+              if (lpManual)
+              {
+                if (bOldWindows)
+                  MultiByteToWideChar(CP_ACP, 0, (char *)pAlias, -1, lpManual->wszAlias, MAX_PATH);
+                else
+                  xstrcpynW(lpManual->wszAlias, (wchar_t *)pAlias, MAX_PATH);
+
+                //Add CodeFold element
+                lpManual->dwDllFunction|=CODER_CODEFOLD;
+
+                if (!StackGetFoldWindow(&hFoldWindowsStack, hWndEdit, NULL))
+                {
+                  if (lpManual->lpFoldWindow=FillLevelsStack(NULL, NULL, hWndEdit, NULL))
                   {
-                    SendMessage(hMainWnd, AKD_SETEDITNOTIFY, (LPARAM)hWndEdit, 0);
-                    UpdateEdit(hWndEdit, UE_ALLRECT);
+                    ((FOLDWINDOW *)lpManual->lpFoldWindow)->hWndEdit=lpManual->hWndEdit;
+                    ((FOLDWINDOW *)lpManual->lpFoldWindow)->hDocEdit=lpManual->hDocEdit;
+                    ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser=lpManual;
+
+                    if (nInitCodeFold)
+                    {
+                      SendMessage(hMainWnd, AKD_SETEDITNOTIFY, (LPARAM)hWndEdit, 0);
+                      UpdateEdit(hWndEdit, UE_ALLRECT);
+                    }
                   }
                 }
               }
             }
           }
-        }
-        else if (nAction == DLLA_CODEFOLD_DELWINDOW)
-        {
-          MANUALSET *lpManual;
-          HWND hWndEdit=NULL;
-
-          if (IsExtCallParamValid(pd->lParam, 2))
-            hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
-
-          if (hWndEdit)
+          else if (nAction == DLLA_CODEFOLD_DELWINDOW)
           {
-            if (lpManual=StackGetManual(&hManualStack, hWndEdit, NULL))
+            MANUALSET *lpManual;
+            HWND hWndEdit=NULL;
+
+            if (IsExtCallParamValid(pd->lParam, 2))
+              hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
+
+            if (hWndEdit)
             {
-              if (lpManual->lpFoldWindow && ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser)
-                StackDeleteManual(&hManualStack, lpManual, CODER_CODEFOLD);
+              if (lpManual=StackGetManual(&hManualStack, hWndEdit, NULL))
+              {
+                if (lpManual->lpFoldWindow && ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser)
+                  StackDeleteManual(&hManualStack, lpManual, CODER_CODEFOLD);
+              }
+            }
+          }
+          else if (nAction == DLLA_CODEFOLD_GETWINDOW)
+          {
+            MANUALSET *lpManual;
+            HWND hWndEdit=NULL;
+            BOOL *lpbFound=NULL;
+            BOOL bFound=FALSE;
+
+            if (IsExtCallParamValid(pd->lParam, 2))
+              hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
+            if (IsExtCallParamValid(pd->lParam, 3))
+              lpbFound=(BOOL *)GetExtCallParam(pd->lParam, 3);
+
+            if (hWndEdit && lpbFound)
+            {
+              if (lpManual=StackGetManual(&hManualStack, hWndEdit, NULL))
+              {
+                if (lpManual->lpFoldWindow && ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser)
+                  bFound=TRUE;
+              }
+              *lpbFound=bFound;
             }
           }
         }
-        else if (nAction == DLLA_CODEFOLD_GETWINDOW)
+        else
         {
-          MANUALSET *lpManual;
-          HWND hWndEdit=NULL;
-          BOOL *lpbFound=NULL;
-          BOOL bFound=FALSE;
-
-          if (IsExtCallParamValid(pd->lParam, 2))
-            hWndEdit=(HWND)GetExtCallParam(pd->lParam, 2);
-          if (IsExtCallParamValid(pd->lParam, 3))
-            lpbFound=(BOOL *)GetExtCallParam(pd->lParam, 3);
-
-          if (hWndEdit && lpbFound)
-          {
-            if (lpManual=StackGetManual(&hManualStack, hWndEdit, NULL))
-            {
-              if (lpManual->lpFoldWindow && ((FOLDWINDOW *)lpManual->lpFoldWindow)->lpUser)
-                bFound=TRUE;
-            }
-            *lpbFound=bFound;
-          }
+          xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_LOADFIRST), L"Coder::CodeFold");
+          MessageBoxW(pd->hMainWnd, wszBuffer, L"Coder::CodeFold", MB_OK|MB_ICONEXCLAMATION);
         }
-      }
-      else
-      {
-        xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_LOADFIRST), L"Coder::CodeFold");
-        MessageBoxW(pd->hMainWnd, wszBuffer, L"Coder::CodeFold", MB_OK|MB_ICONEXCLAMATION);
       }
 
       //If plugin already loaded, stay in memory and don't change active status
@@ -4759,7 +4765,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
                 return lpFoldInfo;
               dwFoldMatch=IFE_FOLDEND;
             }
-            
+
             if (lpFoldInfoTheme && !lpFoldInfoNext)
             {
               if (bBreak)
