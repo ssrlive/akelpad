@@ -1,4 +1,10 @@
 
+AkelPad 4.9.8 ()
+----------------------------
+Added: optional parameter for commands 4103,4106:
+       1 - force to use last directory.
+
+
 AkelPad 4.9.7 (Dec 13, 2015)
 ----------------------------
 Changed: plugin architecture. Update plugins.

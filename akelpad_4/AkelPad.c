@@ -4641,6 +4641,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_FILE_OPEN:
       {
+        if (lParam)
+          xstrcpynW(moCur.wszOfnDir, moCur.wszLastDir, MAX_PATH);
         return DoFileOpen();
       }
       case IDM_FILE_REOPEN:
@@ -4653,6 +4655,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_FILE_SAVEAS:
       {
+        if (lParam)
+          xstrcpynW(moCur.wszOfnDir, moCur.wszLastDir, MAX_PATH);
         return DoFileSaveAs(-1, -1);
       }
       case IDM_FILE_SAVEALL:
