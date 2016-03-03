@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 3)
 
 
 //// Defines
@@ -1795,7 +1795,7 @@ typedef struct {
 #define IDM_FILE_CREATENEW              4102  //Create new instance of program.
                                               //Return Value: new main window handle.
                                               //
-#define IDM_FILE_OPEN                   4103  //Open file dialog.
+#define IDM_FILE_OPEN                   4103  //Open file dialog. lParam: 1 - force to use last directory.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_FILE_REOPEN                 4104  //Reopen file.
@@ -1804,7 +1804,7 @@ typedef struct {
 #define IDM_FILE_SAVE                   4105  //Save file.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_FILE_SAVEAS                 4106  //Save file dialog.
+#define IDM_FILE_SAVEAS                 4106  //Save file dialog. lParam: 1 - force to use last directory.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_FILE_PAGESETUP              4107  //Print setup dialog.
