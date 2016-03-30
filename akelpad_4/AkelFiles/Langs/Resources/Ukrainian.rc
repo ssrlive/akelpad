@@ -1133,7 +1133,7 @@ BEGIN
     STR_ONLYMODIFIED        "Змінені"
     STR_ONLYUNMODIFIED      "Незмінені"
     STR_INVERTSELECTION     "Інвертувати позначення"
-    STR_NEWLINEDOT          ". захватывает \\n"
+    STR_NEWLINEDOT          ". захоплює \\n"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "&Так"
     STR_MESSAGEBOX_NO       "&Ні"
