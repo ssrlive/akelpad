@@ -899,20 +899,20 @@ HRESULT STDMETHODCALLTYPE Document_TextFind(IDocument *this, VARIANT vtWnd, BSTR
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFlags, BOOL bAll, VARIANT *vtResult)
+HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFindFlags, DWORD dwReplaceFlags, VARIANT *vtResult)
 {
   HWND hWnd=(HWND)GetVariantInt(&vtWnd, NULL);
   TEXTREPLACEW tr;
   INT_PTR nResult;
 
-  tr.dwFlags=dwFlags;
+  tr.dwFindFlags=dwFindFlags;
   tr.pFindIt=wpFindIt;
   tr.nFindItLen=SysStringLen(wpFindIt);
   tr.pReplaceWith=wpReplaceWith;
   tr.nReplaceWithLen=SysStringLen(wpReplaceWith);
-  tr.bAll=bAll;
+  tr.dwReplaceFlags=dwReplaceFlags;
   nResult=SendMessage(hMainWnd, AKD_TEXTREPLACEW, (WPARAM)hWnd, (LPARAM)&tr);
-  if (bAll && nResult == -1)
+  if ((dwReplaceFlags & RRF_ALL) && nResult == -1)
     nResult=tr.nChanges;
 
   SetVariantInt(vtResult, nResult);
@@ -1338,6 +1338,7 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
   FILECONTENT fc;
   DWORD dwCreationDisposition;
   DWORD dwAttr=INVALID_FILE_ATTRIBUTES;
+  DWORD dwOffSet=0;
 
   dwFile=GetVariantValue(pvtFile, &pvtFile, FALSE);
 
@@ -1375,12 +1376,12 @@ HRESULT STDMETHODCALLTYPE Document_WriteFile(IDocument *this, VARIANT vtFile, BS
   if (fc.hFile != INVALID_HANDLE_VALUE)
   {
     if (dwFlags & WFF_APPENDFILE)
-      SetFilePointer(fc.hFile, 0, NULL, FILE_END);
+      dwOffSet=SetFilePointer(fc.hFile, 0, NULL, FILE_END);
 
     fc.wpContent=wpContent;
     fc.dwMax=nContentLen;
     fc.nCodePage=nCodePage;
-    fc.bBOM=bBOM;
+    fc.bBOM=(!dwOffSet ? bBOM : FALSE);
     *nResult=(int)SendMessage(hMainWnd, AKD_WRITEFILECONTENT, 0, (LPARAM)&fc);
 
     if (pvtFile->vt == VT_BSTR)
