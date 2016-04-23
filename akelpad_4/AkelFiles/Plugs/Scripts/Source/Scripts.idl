@@ -160,7 +160,7 @@ library Scripts
     HRESULT TextFind([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] DWORD dwFlags, [out, retval] VARIANT *vtResult);
 
     //Find and replace text.
-    HRESULT TextReplace([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] BSTR wpReplaceWith, [in] DWORD dwFlags, [in] BOOL bAll, [out, retval] VARIANT *vtResult);
+    HRESULT TextReplace([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] BSTR wpReplaceWith, [in] DWORD dwFindFlags, [in] DWORD dwReplaceFlags, [out, retval] VARIANT *vtResult);
 
     //Get clipboard text.
     HRESULT GetClipboardText([in, defaultvalue(FALSE)] BOOL bAnsi, [out, retval] BSTR *wpText);
