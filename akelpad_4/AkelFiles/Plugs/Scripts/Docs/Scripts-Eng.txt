@@ -1,8 +1,8 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v18.2              ***
+***                 Scripts AkelPad plugin v18.4              ***
 *****************************************************************
 
-2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***
@@ -901,8 +901,7 @@ Return Value
   For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
 
 Example:
-  var hWndEdit=AkelPad.GetEditWnd();
-  AkelPad.TextFind(hWndEdit, "MySearchString", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/);
+  AkelPad.TextFind(0, "MySearchString", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/);
 
 
 AkelPad.TextReplace
@@ -910,7 +909,7 @@ ___________________
 
 Find and replace text.
 
-  TextReplace(hHandle, pFindIt, pReplaceWith, nFlags, bAll);
+  TextReplace(hHandle, pFindIt, pReplaceWith, nFindFlags, nReplaceFlags);
 
 Arguments
   hHandle
@@ -919,7 +918,7 @@ Arguments
     Text to find.
   pReplaceWith
     Text to replace with.
-  nFlags
+  nFindFlags
     0x00000001  //FRF_DOWN                Find down.
     0x00000002  //FRF_WHOLEWORD           Find whole word.
     0x00000004  //FRF_MATCHCASE           Search is case-sensitive.
@@ -930,22 +929,21 @@ Arguments
     0x00400000  //FRF_SELECTION           Search in selection (usage: FRF_DOWN|FRF_SELECTION).
     0x00800000  //FRF_ESCAPESEQ           Search with escape sequences.
     0x01000000  //FRF_ALLFILES            Search in all opened MDI documents (usage: FRF_DOWN|FRF_ALLFILES or FRF_DOWN|FRF_BEGINNING|FRF_ALLFILES).
-    0x08000000  //FRF_CYCLESEARCH         Cycle search (works, if bAll == false).
+    0x08000000  //FRF_CYCLESEARCH         Cycle search (don't use with RRF_ALL).
     0x10000000  //FRF_CYCLESEARCHPROMPT   Prompt during cycle search.
-  bAll
-    true   replace all.
-    false  replace single.
+  nReplaceFlags
+    0x1         //RRF_ALL                 Replace all. Default is replace single.
+    0x2         //RRF_TEST                Test only (for count of changes).
 
 Return Value
   Number. Character position of the next match.
   If there are no more matches, the return value is –1.
-  If bAll is true, the return value is count of changes.
+  If RRF_ALL flag specified, the return value is count of changes.
   If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
   For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
 
 Example:
-  var hWndEdit=AkelPad.GetEditWnd();
-  AkelPad.TextReplace(hWndEdit, "MySearchString", "MyReplaceText", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, true);
+  AkelPad.TextReplace(0, "MySearchString", "MyReplaceText", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, 0x1 /*RRF_ALL*/);
 
 
 AkelPad.GetClipboardText (+ActiveX)

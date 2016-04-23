@@ -762,6 +762,10 @@
 #define FRF_CYCLESEARCHPROMPT  0x10000000
 #define FRF_REPLACEALLNOMSG    0x20000000
 
+//Replace flags
+#define RRF_ALL                0x00000001  //Replace all.
+#define RRF_TEST               0x00000002  //Test only (for count of changes).
+
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define PASTE_COLUMN     0x00000002  //Paste to column selection.
@@ -1529,22 +1533,22 @@ typedef struct {
 } TEXTFINDW;
 
 typedef struct {
-  DWORD dwFlags;               //See FRF_* defines.
+  DWORD dwFindFlags;           //See FRF_* defines.
   const char *pFindIt;         //Find string.
   int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const char *pReplaceWith;    //Replace string.
   int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bAll;                   //Replace all.
+  DWORD dwReplaceFlags;        //See RRF_* defines.
   INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEA;
 
 typedef struct {
-  DWORD dwFlags;               //See FRF_* defines.
+  DWORD dwFindFlags;           //See FRF_* defines.
   const wchar_t *pFindIt;      //Find string.
   int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   const wchar_t *pReplaceWith; //Replace string.
   int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bAll;                   //Replace all.
+  DWORD dwReplaceFlags;        //See RRF_* defines.
   INT_PTR nChanges;            //Count of changes.
 } TEXTREPLACEW;
 
@@ -3753,7 +3757,7 @@ Example (Unicode):
  tr.nFindItLen=-1;
  tr.pReplaceWith=L"Text to replace";
  tr.nReplaceWithLen=-1;
- tr.bAll=TRUE;
+ tr.dwReplaceFlags=RRF_ALL;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
 

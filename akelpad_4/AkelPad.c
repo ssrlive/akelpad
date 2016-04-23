@@ -2324,19 +2324,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
 
-                nResult=TextReplaceW(lpFrame, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges, NULL);
+                nResult=TextReplaceW(lpFrame, tr->dwFindFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->dwReplaceFlags, &tr->nChanges, NULL);
                 GlobalFree((HGLOBAL)wpReplaceWith);
               }
               GlobalFree((HGLOBAL)wpFindIt);
             }
           }
-          else nResult=TextReplaceW(lpFrame, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges, NULL);
+          else nResult=TextReplaceW(lpFrame, tr->dwFindFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->dwReplaceFlags, &tr->nChanges, NULL);
 
           if (nResult == -1)
           {
             if (lpFrame->nCompileErrorOffset &&
-                ((tr->dwFlags & FRF_REGEXP) ||
-                 (tr->dwFlags & FRF_ESCAPESEQ)))
+                ((tr->dwFindFlags & FRF_REGEXP) ||
+                 (tr->dwFindFlags & FRF_ESCAPESEQ)))
             {
               nResult=-(100 + lpFrame->nCompileErrorOffset - 1);
             }

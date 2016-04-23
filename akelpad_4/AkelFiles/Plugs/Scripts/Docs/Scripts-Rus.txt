@@ -1,8 +1,8 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v18.2              ***
+***                 Scripts AkelPad plugin v18.4              ***
 *****************************************************************
 
-2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2016 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***
@@ -902,8 +902,7 @@ ________________
   Например, pFindIt равен "ab[c", синтаксическая ошибка в третьем символе, возвращаемое значение –102.
 
 Пример:
-  var hWndEdit=AkelPad.GetEditWnd();
-  AkelPad.TextFind(hWndEdit, "МойТекстДляПоиска", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/);
+  AkelPad.TextFind(0, "МойТекстДляПоиска", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/);
 
 
 AkelPad.TextReplace
@@ -911,7 +910,7 @@ ___________________
 
 Найти и заменить текст.
 
-  TextReplace(hHandle, pFindIt, pReplaceWith, nFlags, bAll);
+  TextReplace(hHandle, pFindIt, pReplaceWith, nFindFlags, nReplaceFlags);
 
 Аргументы
   hHandle
@@ -920,7 +919,7 @@ ___________________
     Текст для поиска.
   pReplaceWith
     Текст для замены.
-  nFlags
+  nFindFlags
     0x00000001  //FRF_DOWN                Найти вниз.
     0x00000002  //FRF_WHOLEWORD           Найти слово целиком.
     0x00000004  //FRF_MATCHCASE           Поиск чувствителен к регистру.
@@ -931,22 +930,21 @@ ___________________
     0x00400000  //FRF_SELECTION           Поиск в выделении (использование: FRF_DOWN|FRF_SELECTION).
     0x00800000  //FRF_ESCAPESEQ           Поиск с esc-последовательностями.
     0x01000000  //FRF_ALLFILES            Поиск во всех открытых вкладках (использование: FRF_DOWN|FRF_ALLFILES или FRF_DOWN|FRF_BEGINNING|FRF_ALLFILES).
-    0x08000000  //FRF_CYCLESEARCH         Поиск по кругу (работает, если bAll == false).
+    0x08000000  //FRF_CYCLESEARCH         Поиск по кругу (не использовать с RRF_ALL).
     0x10000000  //FRF_CYCLESEARCHPROMPT   Запрос при поиске по кругу.
-  bAll
-    true   заменить всё.
-    false  одна замена.
+  nReplaceFlags
+    0x1         //RRF_ALL                 Заменить всё. По умолчанию одна замена.
+    0x2         //RRF_TEST                Только протестировать (для количества замен).
 
 Возвращаемое значение
   Число. Позиция найденного текста.
   Если ничего не найдено, возвращаемое значение –1.
-  Если bAll равно true, возвращается количество замен.
+  Если указан флаг RRF_ALL, возвращается количество замен.
   Если синтаксическая ошибка в регулярном выражении (с флагом FRF_REGEXP), возвращаемое значение (–100 - СмещениеШаблона).
   Например, pFindIt равен "ab[c", синтаксическая ошибка в третьем символе, возвращаемое значение –102.
 
 Пример:
-  var hWndEdit=AkelPad.GetEditWnd();
-  AkelPad.TextReplace(hWndEdit, "МойТекстДляПоиска", "МойТекстДляЗамены", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, true);
+  AkelPad.TextReplace(0, "МойТекстДляПоиска", "МойТекстДляЗамены", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, 0x1 /*RRF_ALL*/);
 
 
 AkelPad.GetClipboardText (+ActiveX)

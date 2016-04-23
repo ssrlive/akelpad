@@ -49,7 +49,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_GetTextRange)(THIS_ VARIANT, VARIANT, int, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_ReplaceSel)(THIS_ BSTR, int ) PURE;
   STDMETHOD_(HRESULT, Document_TextFind)(THIS_ VARIANT, BSTR, DWORD, VARIANT *) PURE;
-  STDMETHOD_(HRESULT, Document_TextReplace)(THIS_ VARIANT, BSTR, BSTR, DWORD, BOOL, VARIANT *) PURE;
+  STDMETHOD_(HRESULT, Document_TextReplace)(THIS_ VARIANT, BSTR, BSTR, DWORD, DWORD, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_GetClipboardText)(THIS_ BOOL, BSTR *) PURE;
   STDMETHOD_(HRESULT, Document_SetClipboardText)(THIS_ BSTR ) PURE;
   STDMETHOD_(HRESULT, Document_IsPluginRunning)(THIS_ BSTR, BOOL *) PURE;
@@ -380,7 +380,7 @@ HRESULT STDMETHODCALLTYPE Document_GetTextRange(IDocument *this, VARIANT vtRange
 HRESULT GetTextRange(HWND hWnd, INT_PTR nRangeStart, INT_PTR nRangeEnd, int nNewLine, BOOL bColumnSel, BSTR *wpText);
 HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, int nSelect);
 HRESULT STDMETHODCALLTYPE Document_TextFind(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, DWORD dwFlags, VARIANT *vtResult);
-HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFlags, BOOL bAll, VARIANT *vtResult);
+HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFindFlags, DWORD dwReplaceFlags, VARIANT *vtResult);
 HRESULT STDMETHODCALLTYPE Document_GetClipboardText(IDocument *this, BOOL bAnsi, BSTR *wpText);
 HRESULT STDMETHODCALLTYPE Document_SetClipboardText(IDocument *this, BSTR wpText);
 HRESULT STDMETHODCALLTYPE Document_IsPluginRunning(IDocument *this, BSTR wpFunction, BOOL *bRunning);
