@@ -10506,7 +10506,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
       }
       else
       {
-        if (nFindItLenEsc < nReplaceWithLenEsc)
+        if (nFindItLenEsc < nReplaceWithLenEsc || (dwReplaceFlags & RRF_TEST))
         {
           if (nChanges=StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFindFlags, NULL, NULL, &nResultTextLen, NULL, 0))
           {
@@ -10804,7 +10804,8 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
         }
       }
     }
-    nResult=TextFindW(lpFrame, dwFindFlags|FRF_FINDFROMREPLACE, wpFindIt, nFindItLen);
+    if (!(dwReplaceFlags & RRF_TEST))
+      nResult=TextFindW(lpFrame, dwFindFlags|FRF_FINDFROMREPLACE, wpFindIt, nFindItLen);
   }
 
   End:
