@@ -761,10 +761,10 @@
 #define FRF_CYCLESEARCH        0x08000000
 #define FRF_CYCLESEARCHPROMPT  0x10000000
 #define FRF_REPLACEALLNOMSG    0x20000000
+#define FRF_TEST               0x80000000  //Test only. Without text replacement and selection.
 
 //Replace flags
 #define RRF_ALL                0x00000001  //Replace all.
-#define RRF_TEST               0x00000002  //Test only (for count of changes).
 
 //AKD_PASTE
 #define PASTE_ANSI       0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.

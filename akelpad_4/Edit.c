@@ -10208,14 +10208,22 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
 
   if (bFound)
   {
-    if (dwFlags & FRF_SELECTION)
-      ft.crFound.ciMax=crCurSel.ciMax;
-
-    SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
-    ScrollCaret(lpFrame->ei.hWndEdit);
-    SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-    nResult=cr.cpMin;
-    goto End;
+    if (dwFlags & FRF_TEST)
+    {
+      nResult=SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ft.crFound.ciMin);
+      goto End;
+    }
+    else
+    {
+      if (dwFlags & FRF_SELECTION)
+        ft.crFound.ciMax=crCurSel.ciMax;
+  
+      SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
+      ScrollCaret(lpFrame->ei.hWndEdit);
+      SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+      nResult=cr.cpMin;
+      goto End;
+    }
   }
   SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -10498,7 +10506,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
         if (pr.nReplaceCount)
         {
           nChanges=pr.nReplaceCount;
-          if (!(dwReplaceFlags & RRF_TEST))
+          if (!(dwFindFlags & FRF_TEST))
             wszResultText=API_AllocWide(nResultTextLen);
         }
         else
@@ -10506,11 +10514,11 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
       }
       else
       {
-        if (nFindItLenEsc < nReplaceWithLenEsc || (dwReplaceFlags & RRF_TEST))
+        if (nFindItLenEsc < nReplaceWithLenEsc || (dwFindFlags & FRF_TEST))
         {
           if (nChanges=StrReplace(wszRangeText, nRangeTextLen, wszFindItEsc, nFindItLenEsc, wszReplaceWithEsc, nReplaceWithLenEsc, dwFindFlags, NULL, NULL, &nResultTextLen, NULL, 0))
           {
-            if (!(dwReplaceFlags & RRF_TEST))
+            if (!(dwFindFlags & FRF_TEST))
               wszResultText=API_AllocWide(nResultTextLen + 1);
           }
         }
@@ -10728,7 +10736,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
         if (pr.nReplaceCount && !AEC_IndexCompare(&pr.ciLeftStr, &pr.ciStr) &&
             (!AEC_IndexCompare(&pr.ciRightStr, &pr.ciMaxStr) || (dwFindFlags & FRF_SELECTION)))
         {
-          if (!(dwReplaceFlags & RRF_TEST))
+          if (!(dwFindFlags & FRF_TEST))
           {
             if (pr.wszResult=API_AllocWide(nResultTextLen))
             {
@@ -10775,7 +10783,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
       {
         if (dwFindFlags & FRF_SELECTION)
         {
-          if (!(dwReplaceFlags & RRF_TEST))
+          if (!(dwFindFlags & FRF_TEST))
           {
             SendMessage(lpFrame->ei.hWndEdit, WM_SETREDRAW, FALSE, 0);
             SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
@@ -10795,7 +10803,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
         {
           if (!AEC_IndexCompare(&crCurSel.ciMax, &ft.crFound.ciMax))
           {
-            if (!(dwReplaceFlags & RRF_TEST))
+            if (!(dwFindFlags & FRF_TEST))
             {
               ReplaceSelW(lpFrame->ei.hWndEdit, wszReplaceWithEsc, nReplaceWithLenEsc, AELB_ASINPUT, 0, NULL, NULL);
             }
@@ -10804,7 +10812,7 @@ INT_PTR TextReplaceW(FRAMEDATA *lpFrame, DWORD dwFindFlags, const wchar_t *wpFin
         }
       }
     }
-    if (!(dwReplaceFlags & RRF_TEST))
+    if (!(dwFindFlags & FRF_TEST))
       nResult=TextFindW(lpFrame, dwFindFlags|FRF_FINDFROMREPLACE, wpFindIt, nFindItLen);
   }
 
