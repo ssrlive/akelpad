@@ -931,9 +931,9 @@ Arguments
     0x01000000  //FRF_ALLFILES            Search in all opened MDI documents (usage: FRF_DOWN|FRF_ALLFILES or FRF_DOWN|FRF_BEGINNING|FRF_ALLFILES).
     0x08000000  //FRF_CYCLESEARCH         Cycle search (don't use with RRF_ALL).
     0x10000000  //FRF_CYCLESEARCHPROMPT   Prompt during cycle search.
+    0x80000000  //FRF_TEST                Test only. Without text replacement and selection.
   nReplaceFlags
     0x1         //RRF_ALL                 Replace all. Default is replace single.
-    0x2         //RRF_TEST                Test only (for count of changes).
 
 Return Value
   Number. Character position of the next match.
