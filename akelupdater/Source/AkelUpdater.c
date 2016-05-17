@@ -957,6 +957,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nSelection;
       int nOffset;
 
+      EnableWindow(hWndUpdate, FALSE);
+      EnableWindow(hDlg, FALSE);
+
       for (lpFileItem=hFileStack.last; lpFileItem; lpFileItem=lpFileItem->prev)
       {
         if (lpFileItem->nChecked > 0)
@@ -2384,7 +2387,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   wchar_t *wpLineEnd;
   wchar_t *wszContentBuffer=NULL;
   wchar_t *wpContent=NULL;
-  wchar_t *wpMaxContent;
+  wchar_t *wpMaxContent=NULL;
   static wchar_t *wpVersion;
   static wchar_t *wpDescription;
   static wchar_t *wpAuthor;
@@ -2422,7 +2425,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   //Content buffer
   if (dwContentColumns)
   {
-    wszContentBuffer=GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
+    wszContentBuffer=(wchar_t *)GlobalAlloc(GPTR, (65536 + 1) * sizeof(wchar_t));
     wpMaxContent=wszContentBuffer + 65536;
     nBytesToRead=512;
   }
@@ -2534,7 +2537,7 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
                   {
                     if (ckCount->wpKey[ckCount->nKeyLen - 1] == L'(')
                     {
-                      wLang=(WORD)xatoiW(wpValue, &wpValue);
+                      wLang=(WORD)xatoiW(wpValue, (const wchar_t **)&wpValue);
                       if (LangMatchRate(wLang, wLangModule) <= LangMatchRate(wDescriptionLang, wLangModule))
                         break;
                       wDescriptionLang=wLang;
