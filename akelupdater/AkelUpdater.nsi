@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "6.3"
+!define PRODUCT_VERSION "6.5"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -9,7 +9,7 @@ RequestExecutionLevel user
 
 ############  File info  ############
 VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2015 Shengalts Aleksander aka Instructor"
+VIAddVersionKey LegalCopyright "© 2016 Shengalts Aleksander aka Instructor"
 VIAddVersionKey ProductName "${PRODUCT_NAME}"
 VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
 VIAddVersionKey Comments ""
@@ -128,6 +128,7 @@ Var WORDCOUNT
 Var LANGEXIST
 Var ZIPMIRROR
 Var ZIPLANG
+Var ONTOP
 Var DLONLY
 Var AUTO
 Var NORUN
@@ -158,6 +159,9 @@ Function .onInit
      |$\n\
      |   /LANG=[eng|rus]$\n\
      |     Select language.$\n\
+     |$\n\
+     |   /ONTOP$\n\
+     |     Set dialog always on top.$\n\
      |$\n\
      |   /BIT=[32|64]$\n\
      |     Update to 32-bit or to 64-bit version. If not specified it will be autodetected.$\n\
@@ -205,6 +209,7 @@ Function .onInit
   ${EndIf}
   StrCpy $EXEBIT 0
   StrCpy $ZIPLANG $(lng)
+  StrCpy $ONTOP 0
   StrCpy $DLONLY 0
   StrCpy $AUTO 0
   StrCpy $NORUN 0
@@ -264,6 +269,11 @@ Function .onInit
   ${IfNot} ${Errors}
     ${WordReplace} "$0" "%a" "$AKELPADDIR" "+" $0
     StrCpy $SAVEDIR $0
+  ${EndIf}
+
+  ${GetOptions} $PARAMETERS "/ONTOP" $0
+  ${IfNot} ${Errors}
+    StrCpy $ONTOP 1
   ${EndIf}
 
   ${GetOptions} $PARAMETERS "/DLONLY" $0
@@ -331,7 +341,7 @@ Function .onInit
   GetFunctionAddress $DLSCRIPTSPROC DownloadScriptsProc
 
   ;Show dialog (Result: $0="ExeVersion|DllCount", $1="Download mirror", $2="Language")
-  AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $EXEBIT $AUTO $NOCOPIES $PLUGINSDIR $DLSCRIPTSPROC "AkelUpdaterHelp.exe"
+  AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $ONTOP $EXEBIT $AUTO $NOCOPIES $PLUGINSDIR $DLSCRIPTSPROC "AkelUpdaterHelp.exe"
   Pop $R0
   ${If} $R0 == 0
     Quit

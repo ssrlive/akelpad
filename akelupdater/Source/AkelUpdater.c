@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.3                  *
+ *                 AkelUpdater NSIS plugin v6.5                  *
  *                                                               *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
@@ -407,6 +407,7 @@ WNDPROC lpOldFilterProc=NULL;
 int nInputBit=32;
 BOOL bScripts=FALSE;
 BOOL bScriptsLstLoaded=FALSE;
+BOOL bInputOnTop=FALSE;
 BOOL bInputAuto=FALSE;
 BOOL bInputNoCopies=FALSE;
 BOOL bSelectAllExe;
@@ -462,6 +463,7 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, wchar_t *varia
 
     popstringWide(wszInputVersion, MAX_PATH);
     popstringWide(wszInputLanguage, MAX_PATH);
+    bInputOnTop=popintegerWide();
     nInputBit=popintegerWide();
     bInputAuto=popintegerWide();
     bInputNoCopies=popintegerWide();
@@ -673,6 +675,10 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       PostMessage(hDlg, AKDLL_SHOWWINDOW, 0, 0);
       PostMessage(hDlg, AKDLL_UPDATESTATUS, 0, 0);
+    }
+    if (bInputOnTop)
+    {
+      SetWindowPos(hDlg, (HWND)(UINT_PTR)-1/*HWND_TOPMOST*/, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
     }
   }
   if (uMsg == AKDLL_SHOWWINDOW)
