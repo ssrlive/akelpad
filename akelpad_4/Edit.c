@@ -480,6 +480,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   if (moCur.dwPaintOptions & PAINT_NOMARKERAFTERLASTLINE)
     dwOptions|=AECO_NOMARKERAFTERLASTLINE;
+  if (moCur.dwPaintOptions & PAINT_VSCROLLBYLINE)
+    dwOptions|=AECO_VSCROLLBYLINE;
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
   if (dwOptionsEx)
     SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, dwOptionsEx);

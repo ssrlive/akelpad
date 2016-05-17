@@ -1,6 +1,8 @@
 
 AkelPad 4.9.8 ()
 ----------------------------
+Added: flag 128 in the manual parameter "PaintOptions" - unit of vertical scrolling is line
+       (default is pixel).
 Added: optional parameter for commands 4103,4106:
        1 - force to use last directory.
 
