@@ -5206,7 +5206,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_UPDATE:
       {
-        ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, moCur.wszAkelUpdaterOptions, NULL, SW_SHOWDEFAULT);
+        if (moCur.bOnTop)
+          xprintfW(wbuf, L"/ONTOP %s", moCur.wszAkelUpdaterOptions);
+        else
+          xprintfW(wbuf, L"%s", moCur.wszAkelUpdaterOptions);
+        ShellExecuteWide(hMainWnd, L"open", wszAkelUpdaterExe, wbuf, NULL, SW_SHOWDEFAULT);
         return 0;
       }
       case IDM_ABOUT:
