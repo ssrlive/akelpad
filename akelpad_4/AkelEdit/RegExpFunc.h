@@ -1410,6 +1410,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           //Any character except new line
           if (nStrChar < 0) goto EndLoop;
         }
+        else if (nStrChar == -AELB_EOF)
+          goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
@@ -2719,6 +2721,8 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           //Any character except new line
           if (nStrChar < 0) goto EndLoop;
         }
+        else if (nStrChar == -AELB_EOF)
+          goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
