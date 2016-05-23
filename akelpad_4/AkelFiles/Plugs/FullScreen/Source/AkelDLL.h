@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 4)
 
 
 //// Defines
@@ -538,6 +538,7 @@
 #define PAINT_ENTIRENEWLINEDRAW     0x00000004  //Draw new line selection to the right edge.
 #define PAINT_HIDESEL               0x00000008  //Hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus.
 #define PAINT_NOMARKERAFTERLASTLINE 0x00000010  //Disables marker painting after last line.
+#define PAINT_VSCROLLBYLINE         0x00000080  //Unit of vertical scrolling is line (default is pixel).
 #define PAINT_HIDENOSCROLL          0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
 #define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
 #define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
