@@ -3845,6 +3845,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           return nNamedCount;
         }
+        if (wParam == FWS_COUNTFILE)
+        {
+          FRAMEDATA *lpFrame;
+          wchar_t *wpFileName=(wchar_t *)lParam;
+          int nFileNameLen=xstrlenW(wpFileName);
+          int nCount=0;
+
+          for (lpFrame=hFramesStack.first; lpFrame; lpFrame=lpFrame->next)
+          {
+            if (lpFrame->nFileLen == nFileNameLen)
+            {
+              if (!xstrcmpiW(lpFrame->wszFile, wpFileName))
+                ++nCount;
+            }
+          }
+          return nCount;
+        }
         return 0;
       }
       case AKD_FRAMENOWINDOWS:

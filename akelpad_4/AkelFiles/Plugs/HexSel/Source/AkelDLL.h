@@ -731,11 +731,12 @@
 #define FWDE_NOWINDOW  3  //Frame doesn't have associated edit window (FRAMEDATA.ei.hWndEdit == NULL).
 
 //AKD_FRAMESTATS flags
-#define FWS_COUNTALL      0  //Count of windows.
-#define FWS_COUNTMODIFIED 1  //Count of modified windows.
-#define FWS_COUNTSAVED    2  //Count of unmodified windows.
-#define FWS_CURSEL        3  //Active window zero based index.
-#define FWS_COUNTNAMED    4  //Count of named windows.
+#define FWS_COUNTALL      0  //Count of windows. lParam not used.
+#define FWS_COUNTMODIFIED 1  //Count of modified windows. lParam not used.
+#define FWS_COUNTSAVED    2  //Count of unmodified windows. lParam not used.
+#define FWS_CURSEL        3  //Active window zero based index. lParam not used.
+#define FWS_COUNTNAMED    4  //Count of named windows. lParam not used.
+#define FWS_COUNTFILE     5  //Count of file in different frames. (wchar_t *)lParam is full file name string.
 
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.
@@ -4365,8 +4366,8 @@ ______________
 
 Retrieve windows statistics.
 
-(int)wParam == see FWS_* defines.
-lParam      == not used.
+(int)wParam    == see FWS_* defines.
+(void *)lParam == depend on FWS_ value.
 
 Return Value
  Depend of FWS_* define.
