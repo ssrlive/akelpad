@@ -1273,14 +1273,17 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
     {
       if (*lpFrame->ei.wszFile)
       {
-        xstrcpynW(wszSaveFile, lpFrame->ei.wszFile, MAX_PATH);
-        sd.pFile=wszSaveFile;
-        sd.nCodePage=lpFrame->ei.nCodePage;
-        sd.bBOM=lpFrame->ei.bBOM;
-        sd.dwFlags=SD_UPDATE;
-        sd.hDoc=NULL;
-        if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
-          bResult=FALSE;
+        if (SendMessage(hMainWnd, AKD_FRAMESTATS, FWS_COUNTFILE, (LPARAM)lpFrame->ei.wszFile) == 1)
+        {
+          xstrcpynW(wszSaveFile, lpFrame->ei.wszFile, MAX_PATH);
+          sd.pFile=wszSaveFile;
+          sd.nCodePage=lpFrame->ei.nCodePage;
+          sd.bBOM=lpFrame->ei.bBOM;
+          sd.dwFlags=SD_UPDATE;
+          sd.hDoc=NULL;
+          if (SendMessage(hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)&sd) != ESD_SUCCESS)
+            bResult=FALSE;
+        }
       }
     }
     if (dwSaveMethod & SMET_NEAR)
