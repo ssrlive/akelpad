@@ -510,6 +510,7 @@ HRESULT STDMETHODCALLTYPE Document_SetFrameInfo(IDocument *this, VARIANT vtFrame
 
 HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *this, VARIANT vtWnd, UINT uMsg, VARIANT vtWParam, VARIANT vtLParam, VARIANT *vtResult)
 {
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   HWND hWnd=(HWND)GetVariantInt(&vtWnd, NULL);
   VARIANT *pvtWParam=&vtWParam;
   VARIANT *pvtLParam=&vtLParam;
@@ -517,19 +518,97 @@ HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *this, VARIANT vtWnd, U
   LPARAM lParam;
   LRESULT lResult;
 
-  wParam=GetVariantValue(pvtWParam, &pvtWParam, bOldWindows);
-  lParam=GetVariantValue(pvtLParam, &pvtLParam, bOldWindows);
-
-  if (bOldWindows)
+  if (lpScriptThread->bLockSendMessage)
   {
-    lResult=SendMessageA(hWnd, uMsg, wParam, lParam);
-    if (pvtWParam->vt == VT_BSTR) GlobalFree((HGLOBAL)wParam);
-    if (pvtLParam->vt == VT_BSTR) GlobalFree((HGLOBAL)lParam);
+    wParam=GetVariantValue(pvtWParam, &pvtWParam, bOldWindows);
+    lParam=GetVariantValue(pvtLParam, &pvtLParam, bOldWindows);
+
+    if (bOldWindows)
+    {
+      lResult=SendMessageA(hWnd, uMsg, wParam, lParam);
+      if (pvtWParam->vt == VT_BSTR) GlobalFree((HGLOBAL)wParam);
+      if (pvtLParam->vt == VT_BSTR) GlobalFree((HGLOBAL)lParam);
+    }
+    else lResult=SendMessageW(hWnd, uMsg, wParam, lParam);
   }
-  else lResult=SendMessageW(hWnd, uMsg, wParam, lParam);
+  else
+  {
+    MSGMUTEX mm;
+
+    if (!nMutexMsgCount++)
+    {
+      //Optimization: don't create first mutex, if it already created
+      if (!hMutexMsgFirst)
+      {
+        xprintfW(wszBuffer, wszMutexMsgName, nMutexMsgCount);
+        hMutexMsgFirst=CreateEventWide(NULL, FALSE, FALSE, wszBuffer);
+      }
+      else ResetEvent(hMutexMsgFirst);
+
+      mm.hMutex=hMutexMsgFirst;
+    }
+    else
+    {
+      xprintfW(wszBuffer, wszMutexMsgName, nMutexMsgCount);
+      mm.hMutex=CreateEventWide(NULL, FALSE, FALSE, wszBuffer);
+    }
+    mm.bSignaled=FALSE;
+
+    if (mm.hMutex)
+    {
+      MSG msg;
+      BOOL bExitLoop=FALSE;
+
+      wParam=GetVariantValue(pvtWParam, &pvtWParam, bOldWindows);
+      lParam=GetVariantValue(pvtLParam, &pvtLParam, bOldWindows);
+
+      if (bOldWindows)
+      {
+        SendMessageCallbackA(hWnd, uMsg, wParam, lParam, SendMessageAsyncProc, (LPARAM)&mm);
+        if (pvtWParam->vt == VT_BSTR) GlobalFree((HGLOBAL)wParam);
+        if (pvtLParam->vt == VT_BSTR) GlobalFree((HGLOBAL)lParam);
+      }
+      else SendMessageCallbackW(hWnd, uMsg, wParam, lParam, SendMessageAsyncProc, (LPARAM)&mm);
+
+      if (!mm.bSignaled)
+      {
+        //Wait for mm.hMutex and process messages.
+        for (;;)
+        {
+          while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+          {
+            if (msg.message == WM_QUIT)
+              bExitLoop=TRUE;
+            else
+            {
+              if (TranslateMessageProc)
+                TranslateMessageProc(TMSG_ALL, &msg);
+            }
+          }
+          if (bExitLoop)
+            break;
+          if (MsgWaitForMultipleObjects(1, &mm.hMutex, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0)
+            break;
+        }
+      }
+      if (mm.hMutex != hMutexMsgFirst)
+        CloseHandle(mm.hMutex);
+      lResult=mm.lResult;
+    }
+    --nMutexMsgCount;
+  }
 
   SetVariantInt(vtResult, lResult);
   return NOERROR;
+}
+
+void CALLBACK SendMessageAsyncProc(HWND hWnd, UINT uMsg, UINT_PTR dwData, LRESULT lResult)
+{
+  MSGMUTEX *mm=(MSGMUTEX *)dwData;
+
+  SetEvent(mm->hMutex);
+  mm->bSignaled=TRUE;
+  mm->lResult=lResult;
 }
 
 HRESULT STDMETHODCALLTYPE Document_MessageBox(IDocument *this, VARIANT vtWnd, BSTR pText, BSTR pCaption, UINT uType, SAFEARRAY **psa, int *nResult)
@@ -1193,10 +1272,13 @@ HRESULT STDMETHODCALLTYPE Document_Exec(IDocument *this, BSTR wpCmdLine, BSTR wp
 
 HRESULT STDMETHODCALLTYPE Document_Command(IDocument *this, int nCommand, VARIANT vtLParam, VARIANT *vtResult)
 {
-  LPARAM lParam=GetVariantInt(&vtLParam, NULL);
-  INT_PTR nResult=SendMessage(hMainWnd, WM_COMMAND, (WPARAM)nCommand, lParam);
+  VARIANT vtWnd;
+  VARIANT vtWParam;
 
-  SetVariantInt(vtResult, nResult);
+  SetVariantInt(&vtWnd, (INT_PTR)hMainWnd);
+  SetVariantInt(&vtWParam, nCommand);
+  Document_SendMessage(this, vtWnd, WM_COMMAND, vtWParam, vtLParam, vtResult);
+
   return NOERROR;
 }
 
@@ -2730,6 +2812,17 @@ HRESULT STDMETHODCALLTYPE Document_ScriptNoMutex(IDocument *this, DWORD dwUnlock
     *dwResult|=ULT_UNLOCKMULTICOPY;
   }
 
+  if (dwUnlockType & ULT_LOCKSENDMESSAGE)
+  {
+    lpScriptThread->bLockSendMessage=TRUE;
+    *dwResult|=ULT_LOCKSENDMESSAGE;
+  }
+  if (dwUnlockType & ULT_UNLOCKSENDMESSAGE)
+  {
+    lpScriptThread->bLockSendMessage=FALSE;
+    *dwResult|=ULT_UNLOCKSENDMESSAGE;
+  }
+
   if (dwUnlockType & ULT_UNLOCKSCRIPTSQUEUE)
   {
     if (lpScriptThread->hExecMutex)
@@ -2813,6 +2906,8 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
         nResult=lpScriptThread->hInitMutex?TRUE:FALSE;
       else if (nOperation == SH_GETSERVICEWINDOW)
         nResult=(INT_PTR)lpScriptThread->hWndScriptsThreadDummy;
+      else if (nOperation == SH_GETLOCKSENDMESSAGE)
+        nResult=lpScriptThread->bLockSendMessage;
       else if (nOperation == SH_GETBASENAME)
       {
         vtResult->vt=VT_BSTR;
