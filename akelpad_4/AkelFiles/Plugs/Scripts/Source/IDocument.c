@@ -564,11 +564,11 @@ HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *this, VARIANT vtWnd, U
 
       if (bOldWindows)
       {
-        SendMessageCallbackA(hWnd, uMsg, wParam, lParam, SendMessageAsyncProc, (LPARAM)&mm);
+        SendMessageCallbackA(hWnd, uMsg, wParam, lParam, (SENDASYNCPROC)SendMessageAsyncProc, (LPARAM)&mm);
         if (pvtWParam->vt == VT_BSTR) GlobalFree((HGLOBAL)wParam);
         if (pvtLParam->vt == VT_BSTR) GlobalFree((HGLOBAL)lParam);
       }
-      else SendMessageCallbackW(hWnd, uMsg, wParam, lParam, SendMessageAsyncProc, (LPARAM)&mm);
+      else SendMessageCallbackW(hWnd, uMsg, wParam, lParam, (SENDASYNCPROC)SendMessageAsyncProc, (LPARAM)&mm);
 
       if (!mm.bSignaled)
       {
