@@ -219,12 +219,12 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       wchar_t *wpArguments=NULL;
       int nScriptLen=0;
       int nArgumentsLen=0;
-      int nWaitExec=0;
+      int nExecType=DLLA_SCRIPTS_EXEC;
 
       if (nAction == DLLA_SCRIPTS_EXECWAIT ||
           nAction == DLLA_SCRIPTS_EXECMAINTHREAD)
       {
-        nWaitExec=(int)nAction;
+        nExecType=(int)nAction;
         if (!(pd->dwSupport & PDS_POSTMESSAGE))
           pcs=pd->pcs;
       }
@@ -263,7 +263,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
         if (nAction == DLLA_SCRIPTS_EDIT)
           EditScript(wpScript);
         else
-          ExecScript(wpScript, wpArguments, nWaitExec, pcs);
+          ExecScript(wpScript, wpArguments, nExecType, pcs);
 
         //Returned from script execution
         if (lpScriptThread=StackGetScriptThreadByPCS(&hThreadStack, pcs))
@@ -931,7 +931,7 @@ BOOL CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Execute
       if (LOWORD(wParam) == IDC_EXEC)
-        ExecScript(wszLastScript, NULL, FALSE, NULL);
+        ExecScript(wszLastScript, NULL, DLLA_SCRIPTS_EXEC, NULL);
       else if (LOWORD(wParam) == IDC_EDIT)
         EditScript(wszLastScript);
       return TRUE;
@@ -2044,7 +2044,7 @@ BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
 {
   wchar_t *wpName=(wchar_t *)lpParameter;
 
-  ExecScript(wpName, NULL, FALSE, NULL);
+  ExecScript(wpName, NULL, DLLA_SCRIPTS_EXEC, NULL);
   return TRUE;
 }
 
@@ -2063,7 +2063,7 @@ int EditScript(wchar_t *wpScript)
   return (int)SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
 }
 
-void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINCALLSENDW *pcs)
+void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nExecType, PLUGINCALLSENDW *pcs)
 {
   SCRIPTTHREAD *lpScriptThread;
   EXECSCRIPT es;
@@ -2083,10 +2083,10 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINC
       es.wpArguments=wszArguments;
       es.nArgumentsLen=(int)xstrlenW(wszArguments);
       es.hInitMutex=hInitMutex;
-      es.nWaitExec=nWaitExec;
+      es.nExecType=nExecType;
       es.pcs=pcs;
 
-      if (nWaitExec == DLLA_SCRIPTS_EXECMAINTHREAD)
+      if (nExecType == DLLA_SCRIPTS_EXECMAINTHREAD)
       {
         hExecThread=hMainThread;
         ExecThreadProc(&es);
@@ -2095,7 +2095,7 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINC
       {
         if (hExecThread=CreateThread(NULL, 0, ExecThreadProc, &es, 0, &dwExecThreadId))
         {
-          if (nWaitExec == DLLA_SCRIPTS_EXECWAIT)
+          if (nExecType == DLLA_SCRIPTS_EXECWAIT)
           {
             //Wait for hInitMutex and process messages.
             MSG msg;
@@ -2130,14 +2130,14 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   SCRIPTTHREAD *lpScriptThread;
   HANDLE hThread=hExecThread;
   DWORD dwThreadID=GetCurrentThreadId();
-  int nWaitExec=es->nWaitExec;
+  int nExecType=es->nExecType;
   BOOL bExecuted=FALSE;
 
   if (lpScriptThread=StackInsertScriptThread(&hThreadStack))
   {
     lpScriptThread->hThread=hThread;
     lpScriptThread->dwThreadID=dwThreadID;
-    lpScriptThread->nWaitExec=nWaitExec;
+    lpScriptThread->nExecType=nExecType;
     lpScriptThread->bLockSendMessage=TRUE;
     if (bGlobalDebugEnable)
       lpScriptThread->dwDebug=dwGlobalDebugCode;
@@ -2219,7 +2219,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Protect from double execution
       lpScriptThread->hExecMutex=CreateEventWide(NULL, FALSE, FALSE, wszMutexExecName);
 
-      if (!nWaitExec)
+      if (nExecType == DLLA_SCRIPTS_EXEC)
       {
         //Thread is initialized now unlock main thread
         SetEvent(es->hInitMutex);
@@ -2301,7 +2301,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       SetEvent(es->hInitMutex);
   }
 
-  if (nWaitExec != DLLA_SCRIPTS_EXECMAINTHREAD)
+  if (nExecType != DLLA_SCRIPTS_EXECMAINTHREAD)
   {
     //Free thread handle
     hExecThread=NULL;

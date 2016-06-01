@@ -174,6 +174,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define SH_FIRSTSCRIPT           1
 #define SH_THISSCRIPT            2
 #define SH_FINDSCRIPT            3
+#define SH_GETEXECTYPE           10
 #define SH_GETTHREADHANDLE       11
 #define SH_GETTHREADID           12
 #define SH_GETMESSAGELOOP        13

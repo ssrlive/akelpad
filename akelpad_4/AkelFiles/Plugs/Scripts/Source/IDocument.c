@@ -2892,7 +2892,9 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
 
     if (lpScriptThread)
     {
-      if (nOperation == SH_GETTHREADHANDLE)
+      if (nOperation == SH_GETEXECTYPE)
+        nResult=(INT_PTR)lpScriptThread->nExecType;
+      else if (nOperation == SH_GETTHREADHANDLE)
         nResult=(INT_PTR)lpScriptThread->hThread;
       else if (nOperation == SH_GETTHREADID)
         nResult=lpScriptThread->dwThreadID;
