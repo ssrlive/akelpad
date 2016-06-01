@@ -116,7 +116,7 @@ typedef struct {
   wchar_t *wpArguments;
   int nArgumentsLen;
   HANDLE hInitMutex;
-  BOOL nWaitForScriptSignal;
+  BOOL nWaitExec;
   PLUGINCALLSENDW *pcs;
 } EXECSCRIPT;
 
@@ -145,8 +145,10 @@ typedef struct _SCRIPTTHREAD {
   HANDLE hInitMutex;
   HANDLE hExecMutex;
   BOOL bSingleCopy;
+  BOOL bLockSendMessage;
   BOOL bWaiting;
   BOOL bQuiting;
+  int nWaitExec;
   PLUGINCALLSENDW *pcs;
   HANDLE hThread;
   DWORD dwThreadID;
@@ -264,10 +266,13 @@ extern char szScriptsDir[MAX_PATH];
 extern wchar_t wszScriptsDir[MAX_PATH];
 extern char szAkelPadDir[MAX_PATH];
 extern wchar_t wszAkelPadDir[MAX_PATH];
+extern wchar_t wszMutexMsgName[MAX_PATH];
 extern wchar_t wszErrorMsg[BUFFER_SIZE];
 extern HTHREADSTACK hThreadStack;
 extern SCRIPTTHREAD *lpScriptThreadActiveX;
 extern HANDLE hMainThread;
+extern HANDLE hMutexMsgFirst;
+extern int nMutexMsgCount;
 extern BOOL bGlobalDebugJITEnable;
 
 //Functions prototypes

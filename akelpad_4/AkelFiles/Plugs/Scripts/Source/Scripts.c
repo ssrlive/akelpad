@@ -132,6 +132,7 @@ BOOL bGlobalDebugEnable=FALSE;
 DWORD dwGlobalDebugCode=0;
 wchar_t wszMutexInitName[MAX_PATH];
 wchar_t wszMutexExecName[MAX_PATH];
+wchar_t wszMutexMsgName[MAX_PATH];
 wchar_t wszScriptsDir[MAX_PATH];
 wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
@@ -142,6 +143,8 @@ SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
 HANDLE hMainThread=NULL;
 HANDLE hExecThread=NULL;
 DWORD dwExecThreadId=0;
+HANDLE hMutexMsgFirst=NULL;
+int nMutexMsgCount=0;
 UINT_PTR dwWaitScriptTimerId=0;
 UINT_PTR dwWaitScriptTimerStart=0;
 WNDPROCDATA *NewMainProcData=NULL;
@@ -2080,7 +2083,7 @@ void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nWaitExec, PLUGINC
       es.wpArguments=wszArguments;
       es.nArgumentsLen=(int)xstrlenW(wszArguments);
       es.hInitMutex=hInitMutex;
-      es.nWaitForScriptSignal=nWaitExec;
+      es.nWaitExec=nWaitExec;
       es.pcs=pcs;
 
       if (nWaitExec == DLLA_SCRIPTS_EXECMAINTHREAD)
@@ -2127,13 +2130,15 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
   SCRIPTTHREAD *lpScriptThread;
   HANDLE hThread=hExecThread;
   DWORD dwThreadID=GetCurrentThreadId();
-  int nWaitForScriptSignal=es->nWaitForScriptSignal;
+  int nWaitExec=es->nWaitExec;
   BOOL bExecuted=FALSE;
 
   if (lpScriptThread=StackInsertScriptThread(&hThreadStack))
   {
     lpScriptThread->hThread=hThread;
     lpScriptThread->dwThreadID=dwThreadID;
+    lpScriptThread->nWaitExec=nWaitExec;
+    lpScriptThread->bLockSendMessage=TRUE;
     if (bGlobalDebugEnable)
       lpScriptThread->dwDebug=dwGlobalDebugCode;
     if (dwGlobalDebugJIT & JIT_DEBUG)
@@ -2214,7 +2219,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Protect from double execution
       lpScriptThread->hExecMutex=CreateEventWide(NULL, FALSE, FALSE, wszMutexExecName);
 
-      if (!nWaitForScriptSignal)
+      if (!nWaitExec)
       {
         //Thread is initialized now unlock main thread
         SetEvent(es->hInitMutex);
@@ -2296,7 +2301,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       SetEvent(es->hInitMutex);
   }
 
-  if (nWaitForScriptSignal != DLLA_SCRIPTS_EXECMAINTHREAD)
+  if (nWaitExec != DLLA_SCRIPTS_EXECMAINTHREAD)
   {
     //Free thread handle
     hExecThread=NULL;
@@ -3341,6 +3346,7 @@ void InitCommon(PLUGINDATA *pd)
   xstrcpynW(wszAkelPadDir, pd->wszAkelDir, MAX_PATH);
   xprintfW(wszMutexInitName, L"AkelPad::Scripts::MutexInit::%d", GetCurrentProcessId());
   xprintfW(wszMutexExecName, L"AkelPad::Scripts::MutexExec::%d", GetCurrentProcessId());
+  xprintfW(wszMutexMsgName, L"AkelPad::Scripts::MutexMsg::%d::%%d", GetCurrentProcessId());
   if (SendMessage(hMainWnd, AKD_PROGRAMVERSION, 0, MAKE_IDENTIFIER(4, 9, 5, 0)) >= 0)
     TranslateMessageProc=(TRANSLATEPROC)SendMessage(hMainWnd, AKD_TRANSLATEMESSAGE, 0, (LPARAM)NULL);
   ReadOptions(0);
@@ -3364,6 +3370,12 @@ void UninitMain()
 
   //Destroy plugin icon
   if (g_hPluginIcon) DestroyIcon(g_hPluginIcon);
+
+  if (hMutexMsgFirst)
+  {
+    CloseHandle(hMutexMsgFirst);
+    hMutexMsgFirst=NULL;
+  }
 
   if (NewMainProcData)
   {

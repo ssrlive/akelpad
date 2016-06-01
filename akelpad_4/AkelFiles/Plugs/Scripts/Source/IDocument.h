@@ -163,10 +163,12 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define WGM_KEYDOWNUP 0x4
 
 //Document_ScriptNoMutex type
-#define ULT_UNLOCKSCRIPTSQUEUE   0x1
-#define ULT_UNLOCKPROGRAMTHREAD  0x2
-#define ULT_LOCKMULTICOPY        0x4
-#define ULT_UNLOCKMULTICOPY      0x8
+#define ULT_UNLOCKSCRIPTSQUEUE   0x01
+#define ULT_UNLOCKPROGRAMTHREAD  0x02
+#define ULT_LOCKMULTICOPY        0x04
+#define ULT_UNLOCKMULTICOPY      0x08
+#define ULT_LOCKSENDMESSAGE      0x10
+#define ULT_UNLOCKSENDMESSAGE    0x20
 
 //Document_ScriptHandle type
 #define SH_FIRSTSCRIPT           1
@@ -179,6 +181,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
 #define SH_GETLOCKSCRIPTSQUEUE   15
 #define SH_GETLOCKPROGRAMTHREAD  16
 #define SH_GETSERVICEWINDOW      17
+#define SH_GETLOCKSENDMESSAGE    18
 #define SH_GETBASENAME           20
 #define SH_GETNAME               21
 #define SH_GETFILE               22
@@ -298,6 +301,12 @@ typedef struct {
 } MSGSEND;
 
 typedef struct {
+  HANDLE hMutex;
+  BOOL bSignaled;
+  LRESULT lResult;
+} MSGMUTEX;
+
+typedef struct {
   BSTR wpCaption;
   BSTR wpLabel;
   BSTR wpEdit;
@@ -368,6 +377,7 @@ HRESULT STDMETHODCALLTYPE Document_GetEditModified(IDocument *this, VARIANT vtWn
 HRESULT STDMETHODCALLTYPE Document_GetEditReadOnly(IDocument *this, VARIANT vtWnd, BOOL *bReadOnly);
 HRESULT STDMETHODCALLTYPE Document_SetFrameInfo(IDocument *this, VARIANT vtFrame, int nType, VARIANT vtData, BOOL *bResult);
 HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *this, VARIANT vtWnd, UINT uMsg, VARIANT vtWParam, VARIANT vtLParam, VARIANT *vtResult);
+void CALLBACK SendMessageAsyncProc(HWND hWnd, UINT uMsg, UINT_PTR dwData, LRESULT lResult);
 HRESULT STDMETHODCALLTYPE Document_MessageBox(IDocument *this, VARIANT vtWnd, BSTR pText, BSTR pCaption, UINT uType, SAFEARRAY **psa, int *nResult);
 BUTTONMESSAGEBOX* FillButtonsArray(SAFEARRAY *psa, HICON *hIcon);
 HRESULT STDMETHODCALLTYPE Document_InputBox(IDocument *this, VARIANT vtWnd, BSTR wpCaption, BSTR wpLabel, BSTR wpEdit, VARIANT *vtResult);

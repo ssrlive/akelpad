@@ -2745,10 +2745,12 @@ Change synchronization object.
 
 Arguments
   nUnlockType
-    0x1  //ULT_UNLOCKSCRIPTSQUEUE   Allow other scripts running with this script at the same time (by default).
-    0x2  //ULT_UNLOCKPROGRAMTHREAD  Unlock main thread from waiting this script. Only if script is called with external call with code 2.
-    0x4  //ULT_LOCKMULTICOPY        Deny execution of the multiple script copies. By default execution is not denied.
-    0x8  //ULT_UNLOCKMULTICOPY      Allow execution of the multiple script copies.
+    0x01  //ULT_UNLOCKSCRIPTSQUEUE   Allow other scripts running with this script at the same time (by default).
+    0x02  //ULT_UNLOCKPROGRAMTHREAD  Unlock main thread from waiting this script. Only if script is called with external call with code 2.
+    0x04  //ULT_LOCKMULTICOPY        Deny execution of the multiple script copies. By default execution is not denied.
+    0x08  //ULT_UNLOCKMULTICOPY      Allow execution of the multiple script copies.
+    0x10  //ULT_LOCKSENDMESSAGE      AkelPad.SendMessage, AkelPad.Command called with script thread lock (by default).
+    0x20  //ULT_UNLOCKSENDMESSAGE    AkelPad.SendMessage, AkelPad.Command called call without script thread lock (slower).
 
 Return Value
   Number. Changed synchronization objects, see nUnlockType.
@@ -2817,6 +2819,9 @@ Arguments
     17  //SH_GETSERVICEWINDOW  Retrieve script service window handle. Automatically created when using WindowSubClass, ThreadHook and RegisterCallback methods.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script service window handle.
+    18  //SH_GETLOCKSENDMESSAGE  AkelPad.SendMessage, AkelPad.Command locks script thread.
+        //  vData: script handle. If zero then current script handle is used.
+        //  Return value: true - on, false - off.
     20  //SH_GETBASENAME  Retrieve script name without extension.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script name without extension
