@@ -2798,6 +2798,9 @@ Arguments
     3   //SH_FINDSCRIPT  Find script handle by its name.
         //  vData: script name.
         //  Return value: first found working script handle in stack.
+    10  //SH_GETEXECTYPE  Retrieve code of the external script call.
+        //  vData: script handle. If zero then current script handle is used.
+        //  Return value: code of the external script call.
     11  //SH_GETTHREADHANDLE  Retrieve script thread handle.
         //  vData: script handle. If zero then current script handle is used.
         //  Return value: script thread handle.

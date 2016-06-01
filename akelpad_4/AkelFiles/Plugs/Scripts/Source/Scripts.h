@@ -116,7 +116,7 @@ typedef struct {
   wchar_t *wpArguments;
   int nArgumentsLen;
   HANDLE hInitMutex;
-  BOOL nWaitExec;
+  int nExecType;
   PLUGINCALLSENDW *pcs;
 } EXECSCRIPT;
 
@@ -148,7 +148,7 @@ typedef struct _SCRIPTTHREAD {
   BOOL bLockSendMessage;
   BOOL bWaiting;
   BOOL bQuiting;
-  int nWaitExec;
+  int nExecType;
   PLUGINCALLSENDW *pcs;
   HANDLE hThread;
   DWORD dwThreadID;
@@ -298,7 +298,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
 int EditScript(wchar_t *wpScript);
-void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, BOOL bWaitExec, PLUGINCALLSENDW *pcs);
+void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nExecType, PLUGINCALLSENDW *pcs);
 DWORD WINAPI ExecThreadProc(LPVOID lpParameter);
 SCRIPTTHREAD* StackInsertScriptThread(HTHREADSTACK *hStack);
 SCRIPTTHREAD* StackGetScriptThreadCurrent();
