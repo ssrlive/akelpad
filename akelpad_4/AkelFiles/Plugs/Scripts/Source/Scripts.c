@@ -1985,12 +1985,12 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AKDN_MESSAGEBOXBEGIN)
   {
     g_MainMessageBox=TRUE;
-    ShowScriptWindowsAll(FALSE);
+    //ShowScriptWindowsAll(FALSE);
   }
   else if (uMsg == AKDN_MESSAGEBOXEND)
   {
     g_MainMessageBox=FALSE;
-    ShowScriptWindowsAll(TRUE);
+    //ShowScriptWindowsAll(TRUE);
   }
   else if (uMsg == AKDN_MAIN_ONFINISH)
   {

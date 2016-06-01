@@ -1655,6 +1655,16 @@ typedef struct {
 } DIALOGMESSAGEBOX;
 
 typedef struct {
+  INT_PTR nReserved;          //Reserved.
+  HWND hWndParent;            //Handle to the owner window.
+  const wchar_t *wpText;      //Pointer to a null-terminated string that contains the message to be displayed.
+  const wchar_t *wpCaption;   //Pointer to a null-terminated string that contains the dialog box title.
+  UINT uType;                 //Specifies the standard message box icon. See MSDN for MB_ICON* defines of the MessageBox function.
+  UINT dwLoadStringID;        //Last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
+  int nResult;                //MessageBox call result.
+} NMESSAGEBOX;
+
+typedef struct {
   HWND hWnd;           //Window handle.
   UINT uMsg;           //Specifies the message to be sent.
   WPARAM wParam;       //Specifies additional message-specific information.
@@ -2833,8 +2843,8 @@ ____________________
 
 Notification message, sends to the main procedure before messagebox is open.
 
-(HWND)wParam  == parent window of the messagebox.
-(DWORD)lParam == last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
+wParam                == not used.
+(NMESSAGEBOX *)lParam == pointer to an NMESSAGEBOX structure that contains message box information.
 
 Return Value
  Zero.
@@ -2845,8 +2855,8 @@ __________________
 
 Notification message, sends to the main procedure after messagebox is closed.
 
-(int)wParam   == MessageBox call result.
-(DWORD)lParam == same value as lParam of AKDN_MESSAGEBOXBEGIN.
+wParam                == not used.
+(NMESSAGEBOX *)lParam == pointer to an NMESSAGEBOX structure that contains message box information.
 
 Return Value
  Zero.

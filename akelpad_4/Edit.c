@@ -10219,7 +10219,7 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     {
       if (dwFlags & FRF_SELECTION)
         ft.crFound.ciMax=crCurSel.ciMax;
-  
+
       SetSel(lpFrame->ei.hWndEdit, &ft.crFound, AESELT_LOCKSCROLL, NULL);
       ScrollCaret(lpFrame->ei.hWndEdit);
       SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
@@ -23000,26 +23000,30 @@ int API_LoadString(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nBu
   return nResult;
 }
 
-int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType)
+int API_MessageBox(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType)
 {
-  HWND hWndParent=hWnd;
-  UINT dwLoadStringID=dwLoadStringLastID;
+  NMESSAGEBOX nmb;
   DWORD dwStyle;
-  int nResult;
 
-  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, (WPARAM)hWnd, (LPARAM)dwLoadStringID);
-
-  if (hWnd)
+  if (hWndParent)
   {
-    dwStyle=(DWORD)GetWindowLongPtrWide(hWnd, GWL_STYLE);
+    dwStyle=(DWORD)GetWindowLongPtrWide(hWndParent, GWL_STYLE);
     if (/*(dwStyle & WS_DISABLED) || */!(dwStyle & WS_VISIBLE))
       hWndParent=NULL;
   }
-  nResult=MessageBoxW(hWndParent, lpText, lpCaption, uType);
+  nmb.hWndParent=hWndParent;
+  nmb.wpText=wpText;
+  nmb.wpCaption=wpCaption;
+  nmb.uType=uType;
+  nmb.dwLoadStringID=dwLoadStringLastID;
+  nmb.nResult=0;
+  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, 0, (LPARAM)&nmb);
 
-  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, (WPARAM)nResult, (LPARAM)dwLoadStringID);
+  nmb.nResult=MessageBoxW(nmb.hWndParent, nmb.wpText, nmb.wpCaption, nmb.uType);
 
-  return nResult;
+  if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, 0, (LPARAM)&nmb);
+
+  return nmb.nResult;
 }
 
 HWND API_CreateDialog(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc)
