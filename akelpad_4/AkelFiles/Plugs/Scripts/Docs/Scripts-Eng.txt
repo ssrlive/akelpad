@@ -2750,7 +2750,7 @@ Arguments
     0x04  //ULT_LOCKMULTICOPY        Deny execution of the multiple script copies. By default execution is not denied.
     0x08  //ULT_UNLOCKMULTICOPY      Allow execution of the multiple script copies.
     0x10  //ULT_LOCKSENDMESSAGE      AkelPad.SendMessage, AkelPad.Command called with script thread lock (by default).
-    0x20  //ULT_UNLOCKSENDMESSAGE    AkelPad.SendMessage, AkelPad.Command called call without script thread lock (slower).
+    0x20  //ULT_UNLOCKSENDMESSAGE    AkelPad.SendMessage, AkelPad.Command called without script thread lock (slower).
 
 Return Value
   Number. Changed synchronization objects, see nUnlockType.
