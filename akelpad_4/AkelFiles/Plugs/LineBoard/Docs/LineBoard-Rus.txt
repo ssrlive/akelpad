@@ -1,8 +1,8 @@
 *****************************************************************
-***               LineBoard AkelPad plugin v12.4              ***
+***               LineBoard AkelPad plugin v12.5              ***
 *****************************************************************
 
-2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2016 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

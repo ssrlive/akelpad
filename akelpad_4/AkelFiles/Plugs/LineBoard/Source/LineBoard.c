@@ -120,6 +120,12 @@
 #define DOF_OPEN        0x1
 #define DOF_REOPEN      0x2
 
+//Save bookmarks
+#define MBS_NONE       0
+#define MBS_ALLTEXT    1
+#define MBS_UNDO       2
+#define MBS_REPLACESEL 3
+
 //StackGetBoard flags
 #define GB_READ   0x0
 #define GB_CREATE 0x1
@@ -1271,7 +1277,7 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 {
   static int nMobileBookmarksStartLine;
   static int nMobileBookmarksEndLine;
-  static BOOL bMobileBookmarksSave;
+  static int nMobileBookmarksSave;
   static BOOL bUndoRedo;
 
   if (uMsg == WM_NOTIFY)
@@ -1285,30 +1291,30 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
           AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
           WINDOWBOARD *lpBoard;
 
-          bMobileBookmarksSave=FALSE;
+          nMobileBookmarksSave=MBS_NONE;
           bUndoRedo=FALSE;
 
           if (((aentc->dwType & AETCT_SETTEXT) || (aentc->dwType & AETCT_STREAMIN)) && (dwDocOpen & DOF_REOPEN))
           {
             nMobileBookmarksStartLine=0;
             nMobileBookmarksEndLine=-1;
-            bMobileBookmarksSave=TRUE;
+            nMobileBookmarksSave=MBS_ALLTEXT;
           }
           else if ((aentc->dwType & AETCT_UNDO) || (aentc->dwType & AETCT_REDO))
           {
             nMobileBookmarksStartLine=-1;
             nMobileBookmarksEndLine=-1;
-            bMobileBookmarksSave=TRUE;
+            nMobileBookmarksSave=MBS_UNDO;
             bUndoRedo=TRUE;
           }
           else if (!aentc->bColumnSel && (aentc->dwType & AETCT_REPLACESEL) && aentc->crSel.ciMin.nLine < aentc->crSel.ciMax.nLine)
           {
             nMobileBookmarksStartLine=aentc->crSel.ciMin.nLine;
             nMobileBookmarksEndLine=aentc->crSel.ciMax.nLine;
-            bMobileBookmarksSave=TRUE;
+            nMobileBookmarksSave=MBS_REPLACESEL;
           }
 
-          if (bMobileBookmarksSave)
+          if (nMobileBookmarksSave)
           {
             //SaveMobileBookmarks
             HWND hWndMaster;
@@ -1359,10 +1365,12 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGED)
       {
-        if (bMobileBookmarksSave && nMobileBookmarksStartLine != -1)
+        AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
+
+        if (nMobileBookmarksStartLine != -1 &&
+            nMobileBookmarksSave == MBS_REPLACESEL ? nMobileBookmarksEndLine == aentc->crSel.ciMax.nLine : nMobileBookmarksSave)
         {
           //RestoreMobileBookmarks
-          AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
           WINDOWBOARD *lpBoard;
           HWND hWndMaster;
           HWND hWndEdit;
