@@ -3849,7 +3849,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FRAMEDATA *lpFrame;
           wchar_t *wpFileName=(wchar_t *)lParam;
-          int nFileNameLen=xstrlenW(wpFileName);
+          int nFileNameLen=(int)xstrlenW(wpFileName);
           int nCount=0;
 
           for (lpFrame=hFramesStack.first; lpFrame; lpFrame=lpFrame->next)

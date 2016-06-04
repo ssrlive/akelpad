@@ -18071,16 +18071,14 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   BOOL bColumnSel=FALSE;
   BOOL bUpdateVScroll=FALSE;
   BOOL bUpdateCaret=FALSE;
-  BOOL bCaretAtStart;
+  BOOL bCaretAtStart=FALSE;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   if (!(dwFlags & AEREPT_UNDOGROUPING))
     AE_StackUndoGroupStop(ae);
   if (dwFlags & AEREPT_SELECT)
   {
-    if (!AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
-      bCaretAtStart=FALSE;
-    else
+    if (AEC_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
       bCaretAtStart=TRUE;
   }
 
