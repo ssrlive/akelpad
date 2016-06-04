@@ -4374,7 +4374,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
   wchar_t wszFile[MAX_PATH];
   HANDLE hFile;
   FILESTREAMDATA fsd;
-  FRAMEDATA *lpFrame;
+  FRAMEDATA *lpFrame=NULL;
   FRAMEDATA *lpFrameReopen;
   RECENTFILE *lpRecentFile;
   HWND hWndFriend=NULL;
