@@ -2176,9 +2176,9 @@ void CompleteTitlePart(SYNTAXFILE *lpSyntaxFile, BLOCKINFO *lpBlockInfo, INT_PTR
         SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMin, (LPARAM)&aecr.ciMin);
         SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, nMax, (LPARAM)&aecr.ciMax);
 
+        cc.wszText=NULL;
         if (bInheritTypedCase)
         {
-          cc.wszText=NULL;
           cc.nCase=(int)SendMessage(hMainWnd, AKD_DETECTCASE, (WPARAM)hWndEdit, (LPARAM)&aecr);
           if (cc.nCase != SCT_NONE)
           {
