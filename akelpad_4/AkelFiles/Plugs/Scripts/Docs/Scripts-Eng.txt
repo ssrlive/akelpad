@@ -897,9 +897,9 @@ Arguments
 
 Return Value
   Number. Character position of the next match.
-  If there are no more matches, the return value is –1.
-  If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
-  For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
+  If there are no more matches, the return value is -1.
+  If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (-100 - PatternOffset).
+  For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is -102.
 
 Example:
   AkelPad.TextFind(0, "MySearchString", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/);
@@ -938,10 +938,10 @@ Arguments
 
 Return Value
   Number. Character position of the next match.
-  If there are no more matches, the return value is –1.
+  If there are no more matches, the return value is -1.
   If RRF_ALL flag specified, the return value is count of changes.
-  If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (–100 - PatternOffset).
-  For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is –102.
+  If there is syntax error in regular expression (with FRF_REGEXP flag), the return value is (-100 - PatternOffset).
+  For example, pFindIt equal to "ab[c", syntax error in third symbol, return value is -102.
 
 Example:
   AkelPad.TextReplace(0, "MySearchString", "MyReplaceText", 0x00200001 /*FRF_DOWN|FRF_BEGINNING*/, 0x1 /*RRF_ALL*/);
