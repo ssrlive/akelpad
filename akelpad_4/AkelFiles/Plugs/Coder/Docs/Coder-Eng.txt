@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v19.6                ***
+***                 Coder AkelPad plugin v19.7                ***
 *****************************************************************
 
 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -422,10 +422,18 @@ Rule ID, Parent ID
     - Inside non-styled fold ("Folds:"), rule processed.
     - Inside styled fold ("Folds:"), rule from "Folds:" processed, from other sections ignored.
   - If parent (Parent ID) is -1, then rule must be without parent with identifier (Rule ID) > 0.
-  - If parent (Parent ID) is -2, then rule must have parent with identifier (Rule ID) > 0.
+  - If parent (Parent ID) is -2:
+    - Inside parent with identifier (Rule ID) == 0, rule ignored.
+    - Inside parent with identifier (Rule ID) > 0:
+      - Rule identifier (Rule ID) ommited, rule processed.
+      - Rule identifier (Rule ID) <> parent identifier (Rule ID), rule processed.
+      - Rule identifier (Rule ID) == parent identifier (Rule ID), rule ignored.
   - If parent (Parent ID) is -3:
     - Inside parent with identifier (Rule ID) == 0, see processing of parent (Parent ID) equal to 0.
-    - Inside parent with identifier (Rule ID) > 0, rule processed.
+    - Inside parent with identifier (Rule ID) > 0:
+      - Rule identifier (Rule ID) ommited, rule processed.
+      - Rule identifier (Rule ID) <> parent identifier (Rule ID), rule processed.
+      - Rule identifier (Rule ID) == parent identifier (Rule ID), rule ignored.
 
 Rule file
   Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.

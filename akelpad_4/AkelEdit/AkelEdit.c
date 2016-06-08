@@ -11084,7 +11084,7 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
             //Quote start
             if ((dwSearchType & AEHF_FINDCHILD) && !lpQuoteStart->nParentID)
               continue;
-            if (!AE_HighlightAllowed(lpParentQuote, (dwSearchType & AEHF_FINDCHILD ? NULL : fm), lpQuoteStart->nParentID, &ciCount))
+            if (!AE_HighlightAllowed(lpParentQuote, (dwSearchType & AEHF_FINDCHILD ? NULL : fm), lpQuoteStart->nParentID, lpQuoteStart->nRuleID, &ciCount))
               continue;
 
             if (lpQuoteStart->dwFlags & AEHLF_REGEXP)
@@ -11627,7 +11627,7 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
 
   for (; lpDelimItem; lpDelimItem=lpDelimItem->next)
   {
-    if (!AE_HighlightAllowed(lpQuote, fm, lpDelimItem->nParentID, &ciDelimStart))
+    if (!AE_HighlightAllowed(lpQuote, fm, lpDelimItem->nParentID, 0, &ciDelimStart))
       continue;
 
     ft->pText=lpDelimItem->pDelimiter;
@@ -11692,7 +11692,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
       {
         if (lpWordItem->dwFlags & AEHLF_WORDCOMPOSITION)
         {
-          if (!AE_HighlightAllowed(lpQuote, fm, lpWordItem->nParentID, &crWord->ciMin))
+          if (!AE_HighlightAllowed(lpQuote, fm, lpWordItem->nParentID, 0, &crWord->ciMin))
             continue;
           ciCount=crWord->ciMin;
 
@@ -11724,7 +11724,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     {
       if (lpWordItem->nWordLen == nWordLen)
       {
-        if (!AE_HighlightAllowed(lpQuote, fm, lpWordItem->nParentID, &crWord->ciMin))
+        if (!AE_HighlightAllowed(lpQuote, fm, lpWordItem->nParentID, 0, &crWord->ciMin))
           continue;
 
         ft->pText=lpWordItem->pWord;
@@ -15468,7 +15468,7 @@ void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AE
   AE_PaintCheckHighlightCleanUp(ae, to, hlp, &ciReset);
 }
 
-BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, const AECHARINDEX *ciChar)
+BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, int nQuoteRuleID, const AECHARINDEX *ciChar)
 {
   if (lpQuote)
   {
@@ -15479,23 +15479,27 @@ BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, 
       if (nParentID == -1)
         return FALSE;
       if (nParentID == -2 || nParentID == -3)
+      {
+        if (nQuoteRuleID == lpQuote->nRuleID)
+          return FALSE;
         return TRUE;
+      }
     }
     if (lpQuote->dwFlags & AEHLF_STYLED)
       return FALSE;
   }
   if (fm && fm->lpFold)
   {
-    int nRuleID;
+    int nFoldRuleID;
 
     if (fm->lpFold->hRuleTheme == (AEHTHEME)((AKELEDIT *)fm->hDoc)->popt->lpActiveTheme)
-      nRuleID=0;
+      nFoldRuleID=0;
     else
-      nRuleID=fm->lpFold->nRuleID;
+      nFoldRuleID=fm->lpFold->nRuleID;
 
-    if (nParentID && nRuleID)
+    if (nParentID && nFoldRuleID)
     {
-      if (nParentID == nRuleID)
+      if (nParentID == nFoldRuleID)
         return TRUE;
       if (nParentID == -1)
         return FALSE;
