@@ -372,7 +372,7 @@ BOOL CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 INT_PTR CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar);
 BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECHARINDEX *ciChar, DWORD *dwFoldStop);
-BOOL FoldAllowed(LEVEL *lpLevel, int nParentID);
+BOOL FoldAllowed(LEVEL *lpLevel, int nParentID, int nFoldRuleID);
 FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar);
 FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar);
 SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar);

@@ -4499,7 +4499,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   {
     for (lpFoldStart=(FOLDSTART *)lpFoldWindow->pfwd->lpSyntaxFile->hFoldStartStack.first; lpFoldStart; lpFoldStart=lpFoldStart->next)
     {
-      if (!FoldAllowed(lpLevel, lpFoldStart->nParentID))
+      if (!FoldAllowed(lpLevel, lpFoldStart->nParentID, lpFoldStart->nRuleID))
         continue;
       if (lpFoldStart->nParentID && (lpFoldStart->dwFlags & FIF_XMLCHILD))
       {
@@ -4521,7 +4521,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
   return NULL;
 }
 
-BOOL FoldAllowed(LEVEL *lpLevel, int nParentID)
+BOOL FoldAllowed(LEVEL *lpLevel, int nParentID, int nFoldRuleID)
 {
   int nLevelRuleID;
 
@@ -4537,7 +4537,11 @@ BOOL FoldAllowed(LEVEL *lpLevel, int nParentID)
     if (nParentID == -1)
       return FALSE;
     if (nParentID == -2 || nParentID == -3)
+    {
+      if (nFoldRuleID == nLevelRuleID)
+        return FALSE;
       return TRUE;
+    }
   }
   if (nParentID > 0 || nParentID == -2)
     return FALSE;

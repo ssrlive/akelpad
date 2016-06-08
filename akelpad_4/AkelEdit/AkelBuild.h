@@ -966,7 +966,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
 void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
-BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, const AECHARINDEX *ciChar);
+BOOL AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, int nQuoteRuleID, const AECHARINDEX *ciChar);
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
