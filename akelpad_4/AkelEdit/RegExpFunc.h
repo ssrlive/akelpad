@@ -1547,6 +1547,11 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           }
           else if (dwCmpResult & RECCE_STREND)
           {
+            if (wpStr == hStack->wpMaxText)
+            {
+              ++wpPat;
+              continue;
+            }
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_RANGEBEGIN)
@@ -2858,6 +2863,11 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           }
           else if (dwCmpResult & RECCE_STREND)
           {
+            if (AEC_IsLastCharInFile(&ciStr))
+            {
+              ++wpPat;
+              continue;
+            }
             goto EndLoop;
           }
           else if (dwCmpResult & RECCE_RANGEBEGIN)
