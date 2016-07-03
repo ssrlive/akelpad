@@ -3291,11 +3291,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case EM_LINEFROMCHAR:
     {
-      return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, wParam);
+      return AE_GetLineNumber(ae, AEGL_LINEFROMRICHOFFSET, wParam);
     }
     case EM_EXLINEFROMCHAR:
     {
-      return AE_GetLineNumber(ae, AEGI_LINEFROMRICHOFFSET, lParam);
+      return AE_GetLineNumber(ae, AEGL_LINEFROMRICHOFFSET, lParam);
     }
     case EM_LINEINDEX:
     {
@@ -7884,8 +7884,8 @@ int AE_GetLineNumber(AKELEDIT *ae, int nType, INT_PTR nCharOffset)
       }
       return FALSE;
     }
-    case AEGI_LINEFROMRICHOFFSET:
-    case AEGI_UNWRAPLINEFROMRICHOFFSET:
+    case AEGL_LINEFROMRICHOFFSET:
+    case AEGL_UNWRAPLINEFROMRICHOFFSET:
     {
       AECHARINDEX ciChar={0};
 
@@ -7893,7 +7893,7 @@ int AE_GetLineNumber(AKELEDIT *ae, int nType, INT_PTR nCharOffset)
         ciChar.nLine=ae->ciCaretIndex.nLine;
       else
         AE_RichOffsetToAkelIndex(ae, nCharOffset, &ciChar);
-      if (nType == AEGI_UNWRAPLINEFROMRICHOFFSET)
+      if (nType == AEGL_UNWRAPLINEFROMRICHOFFSET)
         return AE_GetUnwrapLine(ae, ciChar.nLine);
       else
         return ciChar.nLine;

@@ -264,8 +264,8 @@
 #define AEGL_LINEUNWRAPCOUNT          11  //Total number of unwrapped text lines. If the control has no text, the return value is 1.
 #define AEGL_UNWRAPSELMULTILINE       12  //Returns value: TRUE - if selection on multiple lines. FALSE - if no selection or selection is on single line.
                                           //  Next flags require RichEdit offset in lParam.
-#define AEGI_LINEFROMRICHOFFSET       20  //Line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset). Equivalent to EM_EXLINEFROMCHAR.
-#define AEGI_UNWRAPLINEFROMRICHOFFSET 21  //Unwrapped line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset).
+#define AEGL_LINEFROMRICHOFFSET       20  //Line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset). Equivalent to EM_EXLINEFROMCHAR.
+#define AEGL_UNWRAPLINEFROMRICHOFFSET 21  //Unwrapped line of the specified RichEdit offset. lParam is RichEdit offset (if -1 caret offset).
 
 //AEM_GETINDEX and AEM_GETRICHOFFSET flags
 #define AEGI_FIRSTCHAR                 1  //First character.
