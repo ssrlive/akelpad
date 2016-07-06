@@ -1273,7 +1273,7 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
     {
       if (*lpFrame->ei.wszFile)
       {
-        if (SendMessage(hMainWnd, AKD_FRAMESTATS, FWS_COUNTFILE, (LPARAM)lpFrame->ei.wszFile) == 1)
+        if (SendMessage(hMainWnd, AKD_FRAMESTATS, FWS_COUNTFILE, (LPARAM)lpFrame->ei.wszFile) <= 1)
         {
           xstrcpynW(wszSaveFile, lpFrame->ei.wszFile, MAX_PATH);
           sd.pFile=wszSaveFile;

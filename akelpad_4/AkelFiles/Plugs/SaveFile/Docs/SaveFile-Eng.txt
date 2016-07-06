@@ -1,5 +1,5 @@
 *****************************************************************
-***                SaveFile AkelPad plugin v3.5               ***
+***                SaveFile AkelPad plugin v3.6               ***
 *****************************************************************
 
 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
