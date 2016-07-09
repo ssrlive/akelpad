@@ -4697,7 +4697,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
   SYNTAXFILE *lpSyntaxFile=lpFoldWindow->pfwd->lpSyntaxFile;
   DWORD dwFoldMatch=0;
   BOOL bMatch;
-  BOOL bBreak;
+  BOOL bBreak=TRUE;
 
   if (lpSyntaxFile->hFoldStack.nFoldWithThemeCount)
   {
