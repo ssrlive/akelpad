@@ -1,7 +1,7 @@
 /*****************************************************************
- *              String functions header v6.0                     *
+ *              String functions header v6.1                     *
  *                                                               *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -850,15 +850,36 @@ wchar_t WideCharUpper(wchar_t c)
 #undef xmemcpy
 void* xmemcpy(void *dest, const void *src, UINT_PTR count)
 {
-  unsigned char *byte_dest=(unsigned char *)dest;
-  unsigned char *byte_src=(unsigned char *)src;
-
   //Special form of memcpy implementation to avoid
   //compiler from replace this code with memcpy call.
-  if (byte_dest != byte_src)
+  if (dest != src)
   {
+    unsigned int *uint_dest=(unsigned int *)dest;
+    unsigned int *uint_src=(unsigned int *)src;
+    unsigned char *byte_dest;
+    unsigned char *byte_src;
+
+    if (count >= sizeof(unsigned int))
+    {
+      for (;;)
+      {
+        *uint_dest=*uint_src;
+        count-=sizeof(unsigned int);
+        if (count < sizeof(unsigned int))
+        {
+          ++uint_dest;
+          ++uint_src;
+          break;
+        }
+        ++uint_dest;
+        ++uint_src;
+      }
+    }
     if (count)
     {
+      byte_dest=(unsigned char *)uint_dest;
+      byte_src=(unsigned char *)uint_src;
+
       for (;;)
       {
         *byte_dest=*byte_src;
