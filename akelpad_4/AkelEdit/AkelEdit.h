@@ -1369,6 +1369,9 @@ typedef struct {
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
   int nParentType;     //See AEHAP_* defines.
+  DWORD dwFontStyle;   //See AEHLS_* defines.
+  DWORD dwActiveText;  //Text color. If -1, then don't set.
+  DWORD dwActiveBk;    //Background color. If -1, then don't set.
 } AEQUOTEMATCH;
 
 typedef struct {

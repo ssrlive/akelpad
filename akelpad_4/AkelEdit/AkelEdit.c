@@ -11411,9 +11411,9 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
         lpQuoteMatchItem->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
         lpQuoteMatchItem->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
         lpQuoteMatchItem->nQuoteLen=nParentQuoteLen;
-        lpQuoteMatchItem->dwFontStyle=hlp->dwFontStyle;
-        lpQuoteMatchItem->dwActiveText=hlp->dwActiveText;
-        lpQuoteMatchItem->dwActiveBk=hlp->dwActiveBk;
+        lpQuoteMatchItem->dwActiveText=hlp->qm.dwActiveText;
+        lpQuoteMatchItem->dwActiveBk=hlp->qm.dwActiveBk;
+        lpQuoteMatchItem->dwFontStyle=hlp->qm.dwFontStyle;
       }
     }
     else
@@ -11424,6 +11424,15 @@ INT_PTR AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwS
       qm->crQuoteEnd.ciMin=crParentQuoteEnd.ciMin;
       qm->crQuoteEnd.ciMax=crParentQuoteEnd.ciMax;
       qm->nQuoteLen=nParentQuoteLen;
+    }
+  }
+  else
+  {
+    if (nQuoteLen)
+    {
+      hlp->qm.dwActiveText=hlp->dwDefaultText;
+      hlp->qm.dwActiveBk=hlp->dwDefaultBk;
+      hlp->qm.dwFontStyle=AEHLS_NONE;
     }
   }
   if (qm->lpQuote)
@@ -14931,6 +14940,10 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             //if (hlp->qm.lpQuote->dwFontStyle != AEHLS_NONE)
               hlp->dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
           }
+          //Save active style to AEQUOTEMATCH
+          hlp->qm.dwActiveText=hlp->dwActiveText;
+          hlp->qm.dwActiveBk=hlp->dwActiveBk;
+          hlp->qm.dwFontStyle=hlp->dwFontStyle;
         }
       }
 
@@ -15256,13 +15269,19 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
 
         if (hlp->qm.hParentStack.last)
         {
+          AEQUOTEMATCHITEM *lpQuoteMatchItem=hlp->qm.hParentStack.last;
+
           hlp->qm.ciChildScan=hlp->qm.crQuoteEnd.ciMax;
-          hlp->qm.lpQuote=hlp->qm.hParentStack.last->lpQuote;
-          hlp->qm.crQuoteStart.ciMin=hlp->qm.hParentStack.last->crQuoteStart.ciMin;
-          hlp->qm.crQuoteStart.ciMax=hlp->qm.hParentStack.last->crQuoteStart.ciMax;
-          hlp->qm.crQuoteEnd.ciMin=hlp->qm.hParentStack.last->crQuoteEnd.ciMin;
-          hlp->qm.crQuoteEnd.ciMax=hlp->qm.hParentStack.last->crQuoteEnd.ciMax;
-          hlp->qm.nQuoteLen=hlp->qm.hParentStack.last->nQuoteLen;
+          hlp->qm.lpQuote=lpQuoteMatchItem->lpQuote;
+          hlp->qm.crQuoteStart.ciMin=lpQuoteMatchItem->crQuoteStart.ciMin;
+          hlp->qm.crQuoteStart.ciMax=lpQuoteMatchItem->crQuoteStart.ciMax;
+          hlp->qm.crQuoteEnd.ciMin=lpQuoteMatchItem->crQuoteEnd.ciMin;
+          hlp->qm.crQuoteEnd.ciMax=lpQuoteMatchItem->crQuoteEnd.ciMax;
+          hlp->qm.nQuoteLen=lpQuoteMatchItem->nQuoteLen;
+          hlp->qm.dwActiveText=lpQuoteMatchItem->dwActiveText;
+          hlp->qm.dwActiveBk=lpQuoteMatchItem->dwActiveBk;
+          hlp->qm.dwFontStyle=lpQuoteMatchItem->dwFontStyle;
+
           AE_HeapStackDelete(ae, (stack **)&hlp->qm.hParentStack.first, (stack **)&hlp->qm.hParentStack.last, (stack *)hlp->qm.hParentStack.last);
           continue;
         }
@@ -15539,15 +15558,21 @@ void AE_SetDefaultStyle(AEHLPAINT *hlp, int nParentType)
 
     if (lpQuoteMatchItem)
     {
+      if (lpQuoteMatchItem->dwActiveText != (DWORD)-1)
+        hlp->dwActiveText=lpQuoteMatchItem->dwActiveText;
+      else
+        hlp->dwActiveText=hlp->dwDefaultText;
+      if (lpQuoteMatchItem->dwActiveBk != (DWORD)-1)
+        hlp->dwActiveBk=lpQuoteMatchItem->dwActiveBk;
+      else
+        hlp->dwActiveBk=hlp->dwDefaultBk;
       hlp->dwFontStyle=lpQuoteMatchItem->dwFontStyle;
-      hlp->dwActiveText=lpQuoteMatchItem->dwActiveText;
-      hlp->dwActiveBk=lpQuoteMatchItem->dwActiveBk;
       return;
     }
   }
-  //hlp->dwFontStyle=AEHLS_NONE;
   hlp->dwActiveText=hlp->dwDefaultText;
   hlp->dwActiveBk=hlp->dwDefaultBk;
+  //hlp->dwFontStyle=AEHLS_NONE;
 }
 
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
