@@ -558,6 +558,12 @@
 #define AEREGCF_BACKREFCOLORTEXT  0x00000001  //AEREGROUPCOLOR.crText is backreference index for text color in format #RRGGBB or RRGGBB.
 #define AEREGCF_BACKREFCOLORBK    0x00000002  //AEREGROUPCOLOR.crBk is backreference index for background color in format #RRGGBB or RRGGBB.
 
+//Parent type
+#define AEHAP_NONE   0
+#define AEHAP_ROOT   1
+#define AEHAP_QUOTE  2
+#define AEHAP_FOLD   3
+
 //Fold flags
 #define AEFOLDF_COLLAPSED    0x00000001  //Fold is collapsed.
 #define AEFOLDF_STYLED       0x80000000  //Don't use it. For internal code only.
@@ -1344,6 +1350,9 @@ typedef struct _AEQUOTEMATCHITEM {
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
   INT_PTR nQuoteLen;
+  DWORD dwFontStyle;   //See AEHLS_* defines.
+  DWORD dwActiveText;  //Text color. If -1, then don't set.
+  DWORD dwActiveBk;    //Background color. If -1, then don't set.
 } AEQUOTEMATCHITEM;
 
 typedef struct {
@@ -1359,6 +1368,10 @@ typedef struct {
   AECHARINDEX ciFindFirst;
   AECHARINDEX ciChildScan;
   AESTACKQUOTEMATCH hParentStack;
+  int nParentType;     //See AEHAP_* defines.
+  DWORD dwFontStyle;   //See AEHLS_* defines.
+  DWORD dwActiveText;  //Text color. If -1, then don't set.
+  DWORD dwActiveBk;    //Background color. If -1, then don't set.
 } AEQUOTEMATCH;
 
 typedef struct {
