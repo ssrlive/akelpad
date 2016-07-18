@@ -2,7 +2,7 @@
 ***                Hotkeys AkelPad plugin v6.5                ***
 *****************************************************************
 
-2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2008-2016 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***
