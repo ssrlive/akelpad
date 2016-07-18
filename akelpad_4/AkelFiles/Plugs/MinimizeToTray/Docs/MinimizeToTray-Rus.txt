@@ -2,7 +2,7 @@
 ***            MinimizeToTray AkelPad plugin v4.5             ***
 *****************************************************************
 
-2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2006-2016 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

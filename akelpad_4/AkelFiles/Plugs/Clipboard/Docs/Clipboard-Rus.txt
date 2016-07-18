@@ -2,7 +2,7 @@
 ***               Clipboard AkelPad plugin v3.7               ***
 *****************************************************************
 
-2015 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2010-2016 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***
