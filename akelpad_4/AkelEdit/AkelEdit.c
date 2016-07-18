@@ -1,7 +1,7 @@
 /***********************************************************************************
  *                      AkelEdit text control v1.9.8                               *
  *                                                                                 *
- * Copyright 2007-2015 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * Copyright 2007-2016 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
  * License: this source is distributed under "BSD license" conditions.             *
  *                                                                                 *
