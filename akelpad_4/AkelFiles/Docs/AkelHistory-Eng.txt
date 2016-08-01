@@ -1,4 +1,9 @@
 
+AkelPad 4.9.9 ()
+----------------------------
+Changed: during codepage recognition character "\xF1" now refers to 1251.
+
+
 AkelPad 4.9.8 (Jul 18, 2016)
 ----------------------------
 Added: flag 128 in the manual parameter "PaintOptions" - unit of vertical scrolling is line
