@@ -229,11 +229,7 @@
 #include "WideFunc.h"
 
 //Include resize functions
-#define GetWindowPos
-#define GetWindowSize
-#define GetClientPos
-#define GetClientSize
-#define ResizeDialogMessages
+#define ALLRESIZEFUNC
 #include "ResizeFunc.h"
 
 //Include method functions
@@ -447,10 +443,38 @@ WNDPROC lpOldComboboxEdit;
 
 //Options dialog
 HHOOK hHookPropertySheet;
+HWND hWndPropertySheet;
 HWND hWndPropTab;
+HWND hWndPropOK;
+HWND hWndPropCancel;
+HWND hWndPropGeneral;
+HWND hWndPropRegistry;
+HWND hWndPropEditor1;
+HWND hWndPropEditor2;
+HWND hWndPropAdvanced;
 int nPropertyStartPage=0;
 BOOL bOptionsSave;
 BOOL bOptionsRestart;
+RECT rcPropMinMaxDialog={358, 470, 0, 0};
+BOOL bPropResize;
+WNDPROC lpOldPropProc;
+RESIZEDIALOG rdsProp[]={{&hWndPropTab,      RDS_SIZE|RDS_X, 0},
+                        {&hWndPropTab,      RDS_SIZE|RDS_Y, 0},
+                        {&hWndPropOK,       RDS_MOVE|RDS_X, 0},
+                        {&hWndPropOK,       RDS_MOVE|RDS_Y, 0},
+                        {&hWndPropCancel,   RDS_MOVE|RDS_X, 0},
+                        {&hWndPropCancel,   RDS_MOVE|RDS_Y, 0},
+                        {&hWndPropGeneral,  RDS_SIZE|RDS_X, 0},
+                        {&hWndPropGeneral,  RDS_SIZE|RDS_Y, 0},
+                        {&hWndPropRegistry, RDS_SIZE|RDS_X, 0},
+                        {&hWndPropRegistry, RDS_SIZE|RDS_Y, 0},
+                        {&hWndPropEditor1,  RDS_SIZE|RDS_X, 0},
+                        {&hWndPropEditor1,  RDS_SIZE|RDS_Y, 0},
+                        {&hWndPropEditor2,  RDS_SIZE|RDS_X, 0},
+                        {&hWndPropEditor2,  RDS_SIZE|RDS_Y, 0},
+                        {&hWndPropAdvanced, RDS_SIZE|RDS_X, 0},
+                        {&hWndPropAdvanced, RDS_SIZE|RDS_Y, 0},
+                        {0, 0, 0}};
 
 //Font/Color
 STACKFONT hFontsStack={0};
@@ -849,6 +873,7 @@ void _WinMain()
   moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
   //--Settings dialog--
+  //xmemset(&moInit.rcPropCurrentDialog, 0, sizeof(RECT));
   //moInit.wszExecuteCommand[0]=L'\0';
   //moInit.wszExecuteDirectory[0]=L'\0';
   //lpCodepageList=NULL;
