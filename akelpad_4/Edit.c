@@ -232,10 +232,22 @@ extern WNDPROC lpOldComboboxEdit;
 
 //Options dialog
 extern HHOOK hHookPropertySheet;
+extern HWND hWndPropertySheet;
 extern HWND hWndPropTab;
+extern HWND hWndPropOK;
+extern HWND hWndPropCancel;
+extern HWND hWndPropGeneral;
+extern HWND hWndPropRegistry;
+extern HWND hWndPropEditor1;
+extern HWND hWndPropEditor2;
+extern HWND hWndPropAdvanced;
 extern int nPropertyStartPage;
 extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
+extern RECT rcPropMinMaxDialog;
+extern BOOL bPropResize;
+extern WNDPROC lpOldPropProc;
+extern RESIZEDIALOG rdsProp;
 
 //Font/Color
 extern STACKFONT hFontsStack;
@@ -3901,6 +3913,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
         nCodepageListLen=CodepageListLen(lpCodepageList);
       }
     }
+    ReadOption(&oh, L"SettingsDialog", MOT_BINARY, &mo->rcPropCurrentDialog, sizeof(RECT));
     ReadOption(&oh, L"ExecuteCommand", MOT_STRING, mo->wszExecuteCommand, sizeof(mo->wszExecuteCommand));
     ReadOption(&oh, L"ExecuteDirectory", MOT_STRING, mo->wszExecuteDirectory, sizeof(mo->wszExecuteDirectory));
     ReadOption(&oh, L"DefaultCodepage", MOT_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
@@ -4192,6 +4205,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     if (!SaveOption(&oh, L"CodepageList", MOT_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
       goto Error;
   }
+  if (!SaveOption(&oh, L"SettingsDialog", MOT_BINARY|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, rcPropCurrentDialog), sizeof(RECT)))
+    goto Error;
   if (!SaveOption(&oh, L"ExecuteCommand", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszExecuteCommand), BytesInString(mo->wszExecuteCommand)))
     goto Error;
   if (!SaveOption(&oh, L"ExecuteDirectory", MOT_STRING|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, wszExecuteDirectory), BytesInString(mo->wszExecuteDirectory)))
@@ -14938,17 +14953,57 @@ LRESULT CALLBACK CBTPropertySheetProc(int iCode, WPARAM wParam, LPARAM lParam)
 
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
 {
-  //Remove "?"
   if (uMsg == PSCB_PRECREATE)
   {
+    //Remove "?"
     ((DLGTEMPLATE *)lParam)->style&=~DS_CONTEXTHELP;
+    //Make resizable
+    ((DLGTEMPLATE *)lParam)->style|=WS_THICKFRAME;
   }
   else if (uMsg == PSCB_INITIALIZED)
   {
+    hWndPropertySheet=hDlg;
     hWndPropTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0);
+    hWndPropOK=GetDlgItem(hDlg, IDOK);
+    hWndPropCancel=GetDlgItem(hDlg, IDCANCEL);
+    hWndPropGeneral=NULL;
+    hWndPropRegistry=NULL;
+    hWndPropEditor1=NULL;
+    hWndPropEditor2=NULL;
+    hWndPropAdvanced=NULL;
+
+    //SubClass property for ResizeDialogMessages
+    bPropResize=FALSE;
+    lpOldPropProc=(WNDPROC)GetWindowLongPtrWide(hWndPropertySheet, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hWndPropertySheet, GWLP_WNDPROC, (UINT_PTR)NewPropProc);
+    PostMessage(hWndPropertySheet, PSM_CREATE, 0, 0);
   }
   return TRUE;
 }
+
+LRESULT CALLBACK NewPropProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (bPropResize || uMsg == WM_PAINT)
+  {
+    ResizeDialogMessages(&rdsProp, &rcPropMinMaxDialog, &moCur.rcPropCurrentDialog, RDM_PAINTSIZEGRIP, hWnd, uMsg, wParam, lParam);
+  }
+  else if (uMsg == PSM_CREATE)
+  {
+    bPropResize=TRUE;
+    ResizeDialogMessages(&rdsProp, &rcPropMinMaxDialog, &moCur.rcPropCurrentDialog, RDM_PAINTSIZEGRIP, hWnd, WM_CREATE, 0, 0);
+  }
+  return CallWindowProcWide(lpOldPropProc, hWnd, uMsg, wParam, lParam);
+}
+
+void FitToPropTab(HWND hDlg)
+{
+  RECT rcTab;
+
+  GetWindowSize(hWndPropTab, hWndPropertySheet, &rcTab);
+  SetWindowPos(hDlg, 0, 0, 0, rcTab.right, rcTab.bottom, SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+  ResizeDialogUpdateOffsets(&rdsProp, &moCur.rcPropCurrentDialog, hWndPropertySheet);
+}
+
 
 BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -14964,6 +15019,7 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndPropGeneral=hDlg;
     hWndCommand=GetDlgItem(hDlg, IDC_OPTIONS_EXECCOM);
     hWndDirectory=GetDlgItem(hDlg, IDC_OPTIONS_EXECDIR);
     hWndAutodetectCP=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION);
@@ -15007,6 +15063,8 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     ComboBox_AddStringWide(hWndNewFileNewLine, STR_NEWLINE_UNIX);
     ComboBox_AddStringWide(hWndNewFileNewLine, STR_NEWLINE_MAC);
     SendMessage(hWndNewFileNewLine, CB_SETCURSEL, (WPARAM)(moCur.nNewFileNewLine - 1), 0);
+
+    FitToPropTab(hDlg);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -15305,6 +15363,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndPropRegistry=hDlg;
     hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
     hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
     hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
@@ -15354,6 +15413,8 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSaveCodepages)
       SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
+
+    FitToPropTab(hDlg);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -15563,6 +15624,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndPropEditor1=hDlg;
     hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
     hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
     hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
@@ -15654,6 +15716,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     if (lpFrameCurrent->bAltLineBorder)
       SendMessage(hWndAltLineBorder, BM_SETCHECK, BST_CHECKED, 0);
 
+    FitToPropTab(hDlg);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_CARETACTIVELINE, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -15776,6 +15839,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndPropEditor2=hDlg;
     hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_MOUSELEFTMARGIN);
     hWndMouseRichEdit=GetDlgItem(hDlg, IDC_OPTIONS_MOUSERICHEDIT);
     hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
@@ -15840,6 +15904,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetWindowTextWide(hWndWrapDelimiters, wbuf);
     SendMessage(hWndWrapDelimiters, EM_LIMITTEXT, (WPARAM)WRAP_DELIMITERS_SIZE, 0);
 
+    FitToPropTab(hDlg);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -15995,6 +16060,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndPropAdvanced=hDlg;
     hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
     hWndSwitchKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_SWITCH_KEYBLAYOUT);
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
@@ -16033,6 +16099,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
     SetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt);
 
+    FitToPropTab(hDlg);
     SendMessage(hDlg, WM_COMMAND, IDC_OPTIONS_CYCLESEARCH, 0);
   }
   else if (uMsg == WM_COMMAND)

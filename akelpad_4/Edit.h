@@ -160,6 +160,9 @@
 #define OS_AND        18 // &&
 #define OS_OR         19 // ||
 
+//Settings dialog
+#define PSM_CREATE                     (WM_USER + 1000)
+
 //File dialog notifications
 #define AKDLG_SETSTREAM                (WM_USER + 100)
 
@@ -420,6 +423,7 @@ typedef struct {
   DWORD dwTabOptionsMDI;
 
   //Settings dialog
+  RECT rcPropCurrentDialog;
   wchar_t wszExecuteCommand[BUFFER_SIZE];
   wchar_t wszExecuteDirectory[MAX_PATH];
   int nDefaultCodePage;
@@ -1020,6 +1024,8 @@ int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 
 LRESULT CALLBACK CBTPropertySheetProc(int iCode, WPARAM wParam, LPARAM lParam);
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam);
+LRESULT CALLBACK NewPropProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void FitToPropTab(HWND hDlg);
 BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
