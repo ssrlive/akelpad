@@ -1032,7 +1032,7 @@ void _WinMain()
   #ifndef AKELPAD_DLLBUILD
     lpStartupInfoA.cb=sizeof(STARTUPINFOA);
     GetStartupInfoA(&lpStartupInfoA);
-    if (lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW)
+    if ((lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW) && lpStartupInfoA.wShowWindow != SW_SHOWDEFAULT)
       dwCmdShow=lpStartupInfoA.wShowWindow;
   #endif
 
