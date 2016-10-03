@@ -4474,7 +4474,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
       {
         if (lpLevel->pfd->lpFoldInfo->dwFlags != lpFoldInfoHandle->lpFoldInfo->dwFlags)
         {
-          if (!CheckFlags(lpFoldInfoHandle->lpFoldInfo, &lpLevel->crFoundMin, IFE_FOLDSTART))
+          if (!CheckFoldFlags(lpFoldInfoHandle->lpFoldInfo, &lpLevel->crFoundMin, IFE_FOLDSTART))
             continue;
         }
         *dwFoldStop=IFE_FOLDEND;
@@ -4577,7 +4577,7 @@ FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
 
     for (lpFoldInfoHandle=(FOLDINFOHANDLE *)lpFoldStart->hFoldInfoHandleStack.first; lpFoldInfoHandle; lpFoldInfoHandle=lpFoldInfoHandle->next)
     {
-      if (CheckFlags(lpFoldInfoHandle->lpFoldInfo, &ft->crFound, IFE_FOLDSTART))
+      if (CheckFoldFlags(lpFoldInfoHandle->lpFoldInfo, &ft->crFound, IFE_FOLDSTART))
         return lpFoldInfoHandle->lpFoldInfo;
     }
   }
@@ -4609,7 +4609,7 @@ FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 
   if (bMatch)
   {
-    if (CheckFlags(lpFoldInfo, &ft->crFound, IFE_FOLDEND))
+    if (CheckFoldFlags(lpFoldInfo, &ft->crFound, IFE_FOLDEND))
       return lpFoldInfo;
   }
   return NULL;
@@ -4644,7 +4644,7 @@ SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
 
     for (lpSkipInfoHandle=(SKIPINFOHANDLE *)lpSkipStart->hSkipInfoHandleStack.first; lpSkipInfoHandle; lpSkipInfoHandle=lpSkipInfoHandle->next)
     {
-      if (!IsEscaped(ciChar, lpSkipInfoHandle->lpSkipInfo->wchEscape))
+      if (CheckSkipFlags(lpSkipInfoHandle->lpSkipInfo, &ft->crFound, ciChar, IFE_FOLDSTART))
         return lpSkipInfoHandle->lpSkipInfo;
     }
   }
@@ -4676,7 +4676,7 @@ SKIPINFO* IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
 
   if (bMatch)
   {
-    if (!IsEscaped(ciChar, lpSkipInfo->wchEscape))
+    if (CheckSkipFlags(lpSkipInfo, &ft->crFound, ciChar, IFE_FOLDEND))
       return lpSkipInfo;
   }
   return NULL;
@@ -4742,7 +4742,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
           }
           if (bMatch)
           {
-            if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDSTART) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDSTART))
+            if (!CheckFoldFlags(lpFoldInfo, &ft.crFound, IFE_FOLDSTART) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDSTART))
               return lpFoldInfo;
             dwFoldMatch=IFE_FOLDSTART;
           }
@@ -4765,7 +4765,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
             }
             if (bMatch)
             {
-              if (!CheckFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDEND))
+              if (!CheckFoldFlags(lpFoldInfo, &ft.crFound, IFE_FOLDEND) != !FoldAtIndex(lpFoldWindow, &ft.crFound.ciMin, IFE_FOLDEND))
                 return lpFoldInfo;
               dwFoldMatch=IFE_FOLDEND;
             }
@@ -4827,7 +4827,7 @@ FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange)
   return NULL;
 }
 
-BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
+BOOL CheckFoldFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
 {
   AECHARINDEX ciTmp;
   int nChar;
@@ -4917,6 +4917,39 @@ BOOL CheckFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop)
       }
     }
   }
+  return TRUE;
+}
+
+BOOL CheckSkipFlags(SKIPINFO *lpSkipInfo, AECHARRANGE *crFound, AECHARINDEX *ciChar, DWORD dwFoldStop)
+{
+  if (dwFoldStop & IFE_FOLDSTART)
+  {
+    if (lpSkipInfo->dwFlags & FIF_FOLDSTART_ATLINESTART)
+    {
+      if (!IsSpacesFromLeft(&crFound->ciMin))
+        return FALSE;
+    }
+    if (lpSkipInfo->dwFlags & FIF_FOLDSTART_ATLINEEND)
+    {
+      if (!IsSpacesFromRight(&crFound->ciMax))
+        return FALSE;
+    }
+  }
+  else //(dwFoldStop & IFE_FOLDEND)
+  {
+    if (lpSkipInfo->dwFlags & FIF_FOLDEND_ATLINESTART)
+    {
+      if (!IsSpacesFromLeft(&crFound->ciMin))
+        return FALSE;
+    }
+    if (lpSkipInfo->dwFlags & FIF_FOLDEND_ATLINEEND)
+    {
+      if (!IsSpacesFromRight(&crFound->ciMax))
+        return FALSE;
+    }
+  }
+  if (IsEscaped(ciChar, lpSkipInfo->wchEscape))
+    return FALSE;
   return TRUE;
 }
 
