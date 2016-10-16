@@ -4972,8 +4972,8 @@ ______________
 
 Set character external leading.
 
-(DWORD)wParam == line gap (external leading), default is zero.
-lParam        == not used.
+(int)wParam == line gap (external leading), default is zero.
+lParam      == not used.
 
 Return Value
  Zero.

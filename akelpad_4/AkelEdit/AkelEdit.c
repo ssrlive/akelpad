@@ -1707,7 +1707,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (ae->ptxt->nLineGap != (int)wParam)
       {
-        if ((int)wParam >= 0)
+        //if ((int)wParam >= 0)
         {
           POINT64 ptFirstVisLine;
           int nFirstVisibleLine=0;
