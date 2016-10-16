@@ -15682,7 +15682,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarginBottomSpin, UDM_SETBUDDY, (WPARAM)hWndMarginBottom, 0);
     SendMessage(hWndMarginBottomSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
-    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, MAKELONG(100, 0));
+    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, MAKELONG(100, -100));
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, lpFrameCurrent->nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, lpFrameCurrent->nUndoLimit, FALSE);
@@ -15695,7 +15695,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, lpFrameCurrent->rcEditMargins.right, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_TOP, lpFrameCurrent->rcEditMargins.top, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_BOTTOM, lpFrameCurrent->rcEditMargins.bottom, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, lpFrameCurrent->dwLineGap, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, lpFrameCurrent->dwLineGap, TRUE);
 
     if (lpFrameCurrent->bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
@@ -15810,7 +15810,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SetFrameInfo(lpFrameCurrent, FIS_RECTMARGINS, (UINT_PTR)&rcEditMargins);
 
       //Line gap
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, TRUE);
       SetFrameInfo(lpFrameCurrent, FIS_LINEGAP, a);
     }
   }
@@ -20881,7 +20881,7 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
     }
     case FIS_LINEGAP:
     {
-      if (lpFrame->dwLineGap != (DWORD)dwData && (int)dwData >= 0)
+      if (lpFrame->dwLineGap != (DWORD)dwData)
       {
         lpFrame->dwLineGap=(DWORD)dwData;
         SendMessage(lpFrame->ei.hWndEdit, AEM_SETLINEGAP, lpFrame->dwLineGap, 0);
