@@ -23086,7 +23086,8 @@ int API_MessageBox(HWND hWndParent, const wchar_t *wpText, const wchar_t *wpCapt
   nmb.nResult=0;
   if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXBEGIN, 0, (LPARAM)&nmb);
 
-  nmb.nResult=MessageBoxW(nmb.hWndParent, nmb.wpText, nmb.wpCaption, nmb.uType);
+  if (nmb.nResult == 0)
+    nmb.nResult=MessageBoxW(nmb.hWndParent, nmb.wpText, nmb.wpCaption, nmb.uType);
 
   if (hMainWnd) SendMessage(hMainWnd, AKDN_MESSAGEBOXEND, 0, (LPARAM)&nmb);
 
