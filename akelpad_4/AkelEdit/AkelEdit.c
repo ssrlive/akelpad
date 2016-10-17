@@ -1715,6 +1715,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (!ae->popt->nVScrollLock)
             nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
           ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + (int)wParam;
+          ae->ptxt->nCharHeight=max(ae->ptxt->nCharHeight, 1);
           ae->ptxt->nLineGap=(int)wParam;
 
           ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
@@ -9708,6 +9709,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     ae->ptxt->nPointSize=MulDiv(mod(ae->ptxt->lfFontA.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
+    ae->ptxt->nCharHeight=max(ae->ptxt->nCharHeight, 1);
     AE_GetFontCharWidth(ae, hDC);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
@@ -9759,6 +9761,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     ae->ptxt->nPointSize=MulDiv(mod(ae->ptxt->lfFontW.lfHeight), 72, GetDeviceCaps(hDC, LOGPIXELSY));
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
+    ae->ptxt->nCharHeight=max(ae->ptxt->nCharHeight, 1);
     AE_GetFontCharWidth(ae, hDC);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
@@ -13345,6 +13348,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
     ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintA.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditA.tmHeight);
     ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight + ph->aePrint.ptxt->nLineGap;
+    ph->aePrint.ptxt->nCharHeight=max(ph->aePrint.ptxt->nCharHeight, 1);
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
     if (ae->ptxt->nFixedCharWidth)
@@ -13427,6 +13431,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
     ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintW.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditW.tmHeight);
     ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight + ph->aePrint.ptxt->nLineGap;
+    ph->aePrint.ptxt->nCharHeight=max(ph->aePrint.ptxt->nCharHeight, 1);
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     AE_GetFontCharWidth(&ph->aePrint, prn->hPrinterDC);
     if (ae->ptxt->nFixedCharWidth)
