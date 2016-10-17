@@ -141,7 +141,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Keep left spaces\tCtrl+L",   IDM_OPTIONS_KEEPSPACE
         MENUITEM "Watch file &change",          IDM_OPTIONS_WATCHFILE
-        MENUITEM "Save file &time",             IDM_OPTIONS_SAVETIME
+        MENUITEM "Preserve file &time",         IDM_OPTIONS_SAVETIME
         MENUITEM "Don't open a &file twice",    IDM_OPTIONS_SINGLEOPEN_FILE
         MENUITEM "Don't open a &program twice", IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
