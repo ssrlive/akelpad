@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 5)
 
 
 //// Defines
@@ -1661,7 +1661,7 @@ typedef struct {
   const wchar_t *wpCaption;   //Pointer to a null-terminated string that contains the dialog box title.
   UINT uType;                 //Specifies the standard message box icon. See MSDN for MB_ICON* defines of the MessageBox function.
   UINT dwLoadStringID;        //Last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
-  int nResult;                //MessageBox call result.
+  int nResult;                //MessageBox call result. If non-zero value is set in AKDN_MESSAGEBOXBEGIN, then dialog will not be shown.
 } NMESSAGEBOX;
 
 typedef struct {
