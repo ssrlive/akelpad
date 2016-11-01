@@ -226,6 +226,7 @@ typedef struct {
   FOLDINFO *lpFoldInfo;
   HTREEITEM hItem;
   wchar_t *wpName;
+  int nNameOffsetFromPoint;
 } FOLDDATA;
 
 //For FillLevelsStack
@@ -351,7 +352,7 @@ AEFOLD* FoldGet(FOLDWINDOW *lpFoldWindow, DWORD dwFlags, UINT_PTR dwFindIt, AEFO
 AEFOLD* FoldAtIndex(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, DWORD dwFoldStop);
 AEFOLD* GetCaretFold(FOLDWINDOW *lpFoldWindow, AEFOLD **lpPrevSubling);
 BOOL IsFoldNameFromLeft(FOLDDATA *lpFoldData);
-BOOL GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciInput, AECHARRANGE *crNameRange);
+int GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciMinPoint, AECHARRANGE *crNameRange);
 void FoldInView(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, int nMenuAction);
 BOOL FoldSelect(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 void FoldSwitchCollapse(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold, DWORD dwFlags);
@@ -359,6 +360,7 @@ void GoRule(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold);
 void DeleteFoldData(FOLDDATA *lpFoldData);
 void FreeFolds(FOLDWINDOW *lpFoldWindow, BOOL bUpdate);
 void RestoreHideLineEnd(FOLDWINDOW *lpFoldWindow);
+INT_PTR IndexOffset(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, INT_PTR nOffset);
 INT_PTR EndOfPoint(FOLDWINDOW *lpFoldWindow, const AEPOINT *lpPoint, AECHARINDEX *ciChar);
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
 void FillTreeView(HWND hWndTreeView, FOLDWINDOW *lpFoldWindow, const wchar_t *wpFilter);

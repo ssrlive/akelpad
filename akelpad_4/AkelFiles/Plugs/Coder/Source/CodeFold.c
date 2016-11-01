@@ -3583,30 +3583,36 @@ BOOL IsFoldNameFromLeft(FOLDDATA *lpFoldData)
   return FALSE;
 }
 
-BOOL GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciInput, AECHARRANGE *crNameRange)
+int GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciMinPoint, AECHARRANGE *crNameRange)
 {
   AECHARRANGE cr;
   AELINEDATA *lpCount;
   int nNameLen;
+  int nNameOffset=0;
   int nCount;
 
   if (IsFoldNameFromLeft(lpFoldData))
   {
-    for (cr.ciMax=*ciInput; AEC_PrevChar(&cr.ciMax); )
+    for (cr.ciMax=*ciMinPoint; AEC_PrevChar(&cr.ciMax); )
     {
+      --nNameOffset;
+
       if (cr.ciMax.nCharInLine < cr.ciMax.lpLine->nLineLen)
       {
         if (cr.ciMax.lpLine->wpLine[cr.ciMax.nCharInLine] != L' ' &&
             cr.ciMax.lpLine->wpLine[cr.ciMax.nCharInLine] != L'\t')
         {
           AEC_NextChar(&cr.ciMax);
+          ++nNameOffset;
           nNameLen=AEC_WrapLineBeginEx(&cr.ciMax, &cr.ciMin);
+          nNameOffset-=nNameLen;
 
           while (cr.ciMin.lpLine->wpLine[cr.ciMin.nCharInLine] == L' ' ||
                  cr.ciMin.lpLine->wpLine[cr.ciMin.nCharInLine] == L'\t')
           {
             AEC_NextChar(&cr.ciMin);
             --nNameLen;
+            ++nNameOffset;
           }
           nNameLen=min(nNameLen, MAX_PATH);
 
@@ -3639,6 +3645,7 @@ BOOL GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciInput, AECHARRANGE *
             crNameRange->ciMin=cr.ciMin;
             crNameRange->ciMax=cr.ciMax;
           }
+          lpFoldData->nNameOffsetFromPoint=nNameOffset;
           return nNameLen;
         }
       }
@@ -3646,22 +3653,23 @@ BOOL GetFoldName(FOLDDATA *lpFoldData, const AECHARINDEX *ciInput, AECHARRANGE *
   }
   else
   {
-    nNameLen=min(ciInput->lpLine->nLineLen - ciInput->nCharInLine, MAX_PATH);
+    nNameLen=min(ciMinPoint->lpLine->nLineLen - ciMinPoint->nCharInLine, MAX_PATH);
 
     if (lpFoldData)
     {
       if (!lpFoldData->wpName)
       {
         if (lpFoldData->wpName=(wchar_t *)GlobalAlloc(GPTR, (nNameLen + 1) * sizeof(wchar_t)))
-          xstrcpynW(lpFoldData->wpName, ciInput->lpLine->wpLine + ciInput->nCharInLine, nNameLen + 1);
+          xstrcpynW(lpFoldData->wpName, ciMinPoint->lpLine->wpLine + ciMinPoint->nCharInLine, nNameLen + 1);
       }
     }
     if (crNameRange)
     {
-      crNameRange->ciMin=*ciInput;
-      crNameRange->ciMax=*ciInput;
+      crNameRange->ciMin=*ciMinPoint;
+      crNameRange->ciMax=*ciMinPoint;
       crNameRange->ciMax.nCharInLine+=nNameLen;
     }
+    lpFoldData->nNameOffsetFromPoint=0;
     return nNameLen;
   }
   return 0;
@@ -3700,8 +3708,8 @@ BOOL FoldSelect(FOLDWINDOW *lpFoldWindow, AEFOLD *lpFold)
 {
   AECHARRANGE crNameRange;
 
-  if (!GetFoldName(FoldData(lpFold), &lpFold->lpMinPoint->ciPoint, &crNameRange))
-    crNameRange.ciMin=lpFold->lpMinPoint->ciPoint;
+  crNameRange.ciMin=lpFold->lpMinPoint->ciPoint;
+  IndexOffset(lpFoldWindow, &crNameRange.ciMin, FoldData(lpFold)->nNameOffsetFromPoint);
   EndOfPoint(lpFoldWindow, lpFold->lpMaxPoint, &crNameRange.ciMax);
 
   //Set selection
@@ -3828,6 +3836,17 @@ void RestoreHideLineEnd(FOLDWINDOW *lpFoldWindow)
       SendMessage(lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
   }
   lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
+}
+
+INT_PTR IndexOffset(FOLDWINDOW *lpFoldWindow, AECHARINDEX *ciChar, INT_PTR nOffset)
+{
+  AEINDEXOFFSET io;
+
+  io.ciCharIn=ciChar;
+  io.ciCharOut=ciChar;
+  io.nOffset=nOffset;
+  io.nNewLine=AELB_R;
+  return SendMessage(lpFoldWindow->hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&io);
 }
 
 INT_PTR EndOfPoint(FOLDWINDOW *lpFoldWindow, const AEPOINT *lpPoint, AECHARINDEX *ciChar)
