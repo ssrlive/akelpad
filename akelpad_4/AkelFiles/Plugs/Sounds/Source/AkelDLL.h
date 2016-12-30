@@ -586,6 +586,7 @@
 #define TAB_NOADD_MBUTTONDOWN   0x00200000  //Don't create new tab by middle button click on the tab bar.
 #define TAB_NODEL_LBUTTONDBLCLK 0x00400000  //Don't close tab by left button double click on the tab.
 #define TAB_NODEL_MBUTTONDOWN   0x00800000  //Don't close tab by middle button click on the tab.
+#define TAB_ONEXITMODIFIEDFIRST 0x10000000  //Close modified tabs first on exit.
 
 //File types association
 #define FTA_ASSOCIATE     0x00000001  //Internal.
@@ -2153,7 +2154,7 @@ typedef struct {
 #define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE  4320  //Close all documents, but active (MDI/PMDI).
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
-#define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents.
+#define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents. lParam: modification state. TRUE - close all modified documents, FALSE - close all unmodified documents (default).
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
 #define IDM_WINDOW_FRAMECLONE           4322  //Clone current MDI window.

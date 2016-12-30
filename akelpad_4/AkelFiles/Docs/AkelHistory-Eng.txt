@@ -5,6 +5,10 @@ Changed: during codepage recognition character "\xF1" now refers to 1251.
 
 Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
+Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first
+       on exit.
+Added: optional parameter for command 4321:
+       1 - close all modified tabs.
 
 
 AkelPad 4.9.8 (Jul 18, 2016)
