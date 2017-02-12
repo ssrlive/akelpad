@@ -1368,7 +1368,8 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
         AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
 
         if (nMobileBookmarksStartLine != -1 &&
-            nMobileBookmarksSave == MBS_REPLACESEL ? nMobileBookmarksEndLine == aentc->crSel.ciMax.nLine : nMobileBookmarksSave)
+            ((nMobileBookmarksSave == MBS_REPLACESEL || nMobileBookmarksSave == MBS_UNDO) ?
+                nMobileBookmarksEndLine == aentc->crSel.ciMax.nLine : nMobileBookmarksSave))
         {
           //RestoreMobileBookmarks
           WINDOWBOARD *lpBoard;
