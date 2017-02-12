@@ -1098,37 +1098,37 @@ HRESULT STDMETHODCALLTYPE Document_IsPluginRunning(IDocument *this, BSTR wpFunct
   return NOERROR;
 }
 
-HRESULT STDMETHODCALLTYPE Document_Call(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_Call(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(0, 0, wpFunction, psa, nResult);
+  return CallPlugin(0, 0, wpFunction, psa, vtResult);
 }
 
-HRESULT STDMETHODCALLTYPE Document_CallA(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_CallA(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(0, PDS_STRANSI, wpFunction, psa, nResult);
+  return CallPlugin(0, PDS_STRANSI, wpFunction, psa, vtResult);
 }
 
-HRESULT STDMETHODCALLTYPE Document_CallW(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_CallW(IDocument *this, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(0, PDS_STRWIDE, wpFunction, psa, nResult);
+  return CallPlugin(0, PDS_STRWIDE, wpFunction, psa, vtResult);
 }
 
-HRESULT STDMETHODCALLTYPE Document_CallEx(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_CallEx(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(dwFlags, 0, wpFunction, psa, nResult);
+  return CallPlugin(dwFlags, 0, wpFunction, psa, vtResult);
 }
 
-HRESULT STDMETHODCALLTYPE Document_CallExA(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_CallExA(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(dwFlags, PDS_STRANSI, wpFunction, psa, nResult);
+  return CallPlugin(dwFlags, PDS_STRANSI, wpFunction, psa, vtResult);
 }
 
-HRESULT STDMETHODCALLTYPE Document_CallExW(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT STDMETHODCALLTYPE Document_CallExW(IDocument *this, DWORD dwFlags, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
-  return CallPlugin(dwFlags, PDS_STRWIDE, wpFunction, psa, nResult);
+  return CallPlugin(dwFlags, PDS_STRWIDE, wpFunction, psa, vtResult);
 }
 
-HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **psa, int *nResult)
+HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
   POINTERSTACK hStringsStack={0};
   POINTERITEM *lpElement=NULL;
@@ -1141,6 +1141,7 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
   DWORD dwStructSize;
   DWORD dwOffset;
   HRESULT hr=NOERROR;
+  INT_PTR nResult;
 
   lpData=(unsigned char *)((*psa)->pvData);
   dwElementSum=(*psa)->rgsabound[0].cElements;
@@ -1203,7 +1204,21 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
     pcs.pFunction=wpFunction;
     pcs.lParam=(LPARAM)lpStructure;
     pcs.dwSupport=dwSupport;
-    *nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, (WPARAM)dwFlags, (LPARAM)&pcs);
+    pcs.nResult=0;
+    nResult=(int)SendMessage(hMainWnd, AKD_DLLCALLW, (WPARAM)dwFlags, (LPARAM)&pcs);
+
+    //Return AkelPad.ScriptExitCode when script called
+    if (pcs.lParam && !xstrcmpiW(wpFunction, L"Scripts::Main"))
+    {
+      INT_PTR nAction=GetExtCallParam(pcs.lParam, 1);
+
+      if (nAction == DLLA_SCRIPTS_EXEC ||
+          nAction == DLLA_SCRIPTS_EXECWAIT ||
+          nAction == DLLA_SCRIPTS_EXECMAINTHREAD)
+      {
+        nResult=pcs.nResult;
+      }
+    }
   }
 
   //Free structure
@@ -1212,6 +1227,7 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
   //Free strings stack
   StackFreePointers(&hStringsStack);
 
+  SetVariantInt(vtResult, nResult);
   return hr;
 }
 

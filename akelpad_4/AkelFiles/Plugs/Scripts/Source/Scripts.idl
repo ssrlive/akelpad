@@ -172,22 +172,22 @@ library Scripts
     HRESULT IsPluginRunning([in] BSTR wpFunction, [out, retval] BOOL *bRunning);
 
     //Call AkelPad plugin.
-    [vararg] HRESULT Call([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT Call([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Call AkelPad plugin with Ansi strings.
-    [vararg] HRESULT CallA([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT CallA([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Call AkelPad plugin with Unicode strings.
-    [vararg] HRESULT CallW([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT CallW([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Call AkelPad plugin with flags.
-    [vararg] HRESULT CallEx([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT CallEx([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Call AkelPad plugin with flags and Ansi strings.
-    [vararg] HRESULT CallExA([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT CallExA([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Call AkelPad plugin with flags and Unicode strings.
-    [vararg] HRESULT CallExW([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *lResult);
+    [vararg] HRESULT CallExW([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
 
     //Execute program.
     HRESULT Exec([in] BSTR wpCmdLine, [in, defaultvalue(L"")] BSTR wpWorkDir, [in, defaultvalue(0)] int nWait, [in, defaultvalue(-1)] int nShowWindow, [out, retval] DWORD *dwExit);
