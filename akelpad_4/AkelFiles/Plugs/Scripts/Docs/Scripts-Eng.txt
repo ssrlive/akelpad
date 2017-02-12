@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v18.5              ***
+***                 Scripts AkelPad plugin v18.6              ***
 *****************************************************************
 
 2007-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -1020,6 +1020,7 @@ Remarks
   During plugin call string type determines automatically.
 
 Return Value
+  If script was called, then result of AkelPad.ScriptExitCode returns.
    -1  //UD_FAILED               Operation failed.
     0  //UD_UNLOAD               Plugin unloaded.
   0x1  //UD_NONUNLOAD_ACTIVE     Plugin in memory and active.
@@ -1064,6 +1065,7 @@ Remarks
   During plugin call string type determines automatically.
 
 Return Value
+  If script was called, then result of AkelPad.ScriptExitCode returns.
    -1  //UD_FAILED               Operation failed.
     0  //UD_UNLOAD               Plugin unloaded.
   0x1  //UD_NONUNLOAD_ACTIVE     Plugin in memory and active.
