@@ -21694,26 +21694,27 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
 {
   HANDLE hFile;
 
-  //FindFirstFile not equal to GetFileTime if time zone was changed,
-  //because FindFirstFile gets file time from cache.
-  //See "File Times and Daylight Saving Time" on MSDN.
-  {
-    WIN32_FIND_DATAW wfd;
-
-    if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
-    {
-      *ft=wfd.ftLastWriteTime;
-      FindClose(hFile);
-      return TRUE;
-    }
-  }
-
-  //if ((hFile=CreateFileWide(wpFile, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+  ////1. FindFirstFile not equal to GetFileTime if time zone was changed,
+  ////because FindFirstFile gets file time from cache.
+  ////See "File Times and Daylight Saving Time" on MSDN.
+  ////2. FindFirstFile not working correctly with symlink.
   //{
-  //  GetFileTime(hFile, NULL, NULL, ft);
-  //  CloseHandle(hFile);
-  //  return TRUE;
+  //  WIN32_FIND_DATAW wfd;
+  //
+  //  if ((hFile=FindFirstFileWide(wpFile, &wfd)) != INVALID_HANDLE_VALUE)
+  //  {
+  //    *ft=wfd.ftLastWriteTime;
+  //    FindClose(hFile);
+  //    return TRUE;
+  //  }
   //}
+
+  if ((hFile=CreateFileWide(wpFile, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+  {
+    GetFileTime(hFile, NULL, NULL, ft);
+    CloseHandle(hFile);
+    return TRUE;
+  }
   return FALSE;
 }
 

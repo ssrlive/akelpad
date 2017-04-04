@@ -10,6 +10,8 @@ Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified t
 Added: optional parameter for command 4321:
        1 - close all modified tabs.
 
+Fixed: file symbolic link opening with "Watch file change" option.
+
 
 AkelPad 4.9.8 (Jul 18, 2016)
 ----------------------------
