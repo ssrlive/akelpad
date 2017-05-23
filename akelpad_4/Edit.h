@@ -998,7 +998,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(STACKPLUGINFUNCTION *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
 PLUGINFUNCTION* StackHotkeyFind(STACKPLUGINFUNCTION *hStack, WORD wHotkey);
 PLUGINFUNCTION* StackPluginAdd(STACKPLUGINFUNCTION *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
-void StackPluginDelete(STACKPLUGINFUNCTION *hStack, PLUGINFUNCTION *pfElement);
+BOOL StackPluginDelete(STACKPLUGINFUNCTION *hStack, PLUGINFUNCTION *pfElement);
 BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings);
 void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(STACKPLUGINFUNCTION *hStack);
