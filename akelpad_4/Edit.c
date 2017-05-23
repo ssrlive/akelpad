@@ -13727,10 +13727,14 @@ PLUGINFUNCTION* StackPluginAdd(STACKPLUGINFUNCTION *hStack, const wchar_t *wpPlu
   return pfElement;
 }
 
-void StackPluginDelete(STACKPLUGINFUNCTION *hStack, PLUGINFUNCTION *pfElement)
+BOOL StackPluginDelete(STACKPLUGINFUNCTION *hStack, PLUGINFUNCTION *pfElement)
 {
   if (!pfElement->nRefCount)
+  {
     StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings)
@@ -13809,7 +13813,7 @@ void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL)
 
     if (!pfElement->wHotkey && !pfElement->bAutoLoad && !pfElement->bRunning)
     {
-      StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+      StackPluginDelete(hStack, pfElement);
       pfElement=NULL;
     }
     if (bDeleteNonExistentDLL && pfElement)
@@ -13820,7 +13824,7 @@ void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL)
 
         if (!FileExistsWide(wszDLL))
         {
-          StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+          StackPluginDelete(hStack, pfElement);
           pfElement=NULL;
         }
       }
