@@ -82,6 +82,11 @@
 #define TranslateAcceleratorWide
 #include "WideFunc.h"
 
+
+//Include AEC functions
+#define AEC_FUNCTIONS
+#include "AkelEdit.h"
+
 //Include method functions
 #define ALLMETHODFUNC
 #include "MethodFunc.h"
@@ -1046,8 +1051,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bMenuUrlEnable)
         {
-          AECHARINDEX ciCaret;
           AECHARRANGE aecrUrl;
+          AECHARRANGE aecrSel;
           CHARRANGE64 recrUrl;
 
           if (SendMessage(ncm->hWnd, AEM_EXGETOPTIONS, 0, 0) & AECOE_DETECTURL)
@@ -1057,13 +1062,19 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ShowUrlMenu(ncm->hWnd, &crUrlMenuShow, ncm->pt.x, ncm->pt.y);
               ncm->bProcess=FALSE;
             }
-            else if (SendMessage(ncm->hWnd, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret) &&
-                     SendMessage(ncm->hWnd, AEM_INDEXINURL, (WPARAM)&ciCaret, (LPARAM)&aecrUrl))
+            else
             {
-              recrUrl.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
-              recrUrl.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
-              ShowUrlMenu(ncm->hWnd, &recrUrl, ncm->pt.x, ncm->pt.y);
-              ncm->bProcess=FALSE;
+              SendMessage(ncm->hWnd, AEM_EXGETSEL, (WPARAM)&aecrSel.ciMin, (LPARAM)&aecrSel.ciMax);
+              if (SendMessage(ncm->hWnd, AEM_INDEXINURL, (WPARAM)&aecrSel.ciMin, (LPARAM)&aecrUrl) &&
+                  AEC_IndexCompare(&aecrSel.ciMin, &aecrUrl.ciMax) < 0 &&
+                  AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMax) <= 0 &&
+                  AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMin) > 0)
+              {
+                recrUrl.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
+                recrUrl.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
+                ShowUrlMenu(ncm->hWnd, &recrUrl, ncm->pt.x, ncm->pt.y);
+                ncm->bProcess=FALSE;
+              }
             }
           }
         }
