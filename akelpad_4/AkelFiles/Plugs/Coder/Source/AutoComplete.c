@@ -2474,7 +2474,10 @@ void StackFreeBlock(STACKBLOCK *hStack, STACKBLOCKORDER *hOrderStack)
   {
     GlobalFree((HGLOBAL)lpElement->wpTitle);
     if (lpElement->dwTitleFlags & TF_REGEXP)
+    {
       PatFree(lpElement->sregTitle);
+      GlobalFree((HGLOBAL)lpElement->sregTitle);
+    }
     if (!lpElement->master)
     {
       StackClear((stack **)&lpElement->firstHandle, (stack **)&lpElement->lastHandle);
