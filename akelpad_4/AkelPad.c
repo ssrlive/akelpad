@@ -3455,23 +3455,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case AKD_SETFONTA:
       case AKD_SETFONTW:
       {
+        HWND hWnd=(HWND)wParam;
         FRAMEDATA *lpFrame;
         LOGFONTW lfW;
 
-        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-        {
-          if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
-            LogFontAtoW((LOGFONTA *)lParam, &lfW);
-          else
-            xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+        if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
+          LogFontAtoW((LOGFONTA *)lParam, &lfW);
+        else
+          xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
 
-          if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
+        if (SetChosenFont(hWnd, &lfW))
+        {
+          if (lpFrame=GetFrameDataFromEditWindow(hWnd))
           {
             xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
             UpdateMappedPrintWidth(lpFrame);
             UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
-            return TRUE;
           }
+          return TRUE;
         }
         return FALSE;
       }
