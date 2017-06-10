@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 6)
 
 
 //// Defines
@@ -1902,7 +1902,7 @@ typedef struct {
 #define IDM_EDIT_CUT                    4153  //Cut.
                                               //Return Value: zero.
                                               //
-#define IDM_EDIT_COPY                   4154  //Copy.
+#define IDM_EDIT_COPY                   4154  //Copy. lParam: see AECFC_* defines.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
 #define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_* defines.
@@ -3715,11 +3715,12 @@ ________
 
 Copy text to clipboard from edit control.
 
-(HWND)wParam == edit window, NULL for current edit window.
-lParam       == not used.
+(HWND)wParam  == edit window, NULL for current edit window.
+(DWORD)lParam == see AECFC_* defines.
 
 Return Value
- Zero.
+ TRUE   clipboard changed.
+ FALSE  clipboard not changed.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_COPY, (WPARAM)pd->hWndEdit, 0);
