@@ -1908,11 +1908,9 @@ BOOL DoEditRedo(HWND hWnd)
   return (BOOL)SendMessage(hWnd, AEM_REDO, 0, 0);
 }
 
-void DoEditCut(HWND hWnd)
+BOOL DoEditCut(HWND hWnd, DWORD dwFlags)
 {
-  if (IsReadOnly(hWnd)) return;
-
-  SendMessage(hWnd, AEM_CUT, 0, 0);
+  return (BOOL)SendMessage(hWnd, AEM_CUT, 0, (LPARAM)dwFlags);
 }
 
 BOOL DoEditCopy(HWND hWnd, DWORD dwFlags)

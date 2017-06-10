@@ -5392,8 +5392,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         case IDM_EDIT_CUT:
         {
-          DoEditCut(lpFrameCurrent->ei.hWndEdit);
-          return 0;
+          return DoEditCut(lpFrameCurrent->ei.hWndEdit, (DWORD)lParam);
         }
         case IDM_EDIT_COPY:
         {

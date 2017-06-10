@@ -2749,11 +2749,12 @@ _______
 
 Delete the current selection, if any, and copy the deleted text to the clipboard.
 
-wParam == not used.
-lParam == not used.
+wParam        == not used.
+(DWORD)lParam == see AECFC_* defines.
 
 Return Value
- Zero.
+ TRUE   clipboard changed.
+ FALSE  clipboard not changed.
 
 Example:
  SendMessage(hWndEdit, AEM_CUT, 0, 0);

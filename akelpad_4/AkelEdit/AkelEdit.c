@@ -528,12 +528,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_CUT:
     {
-      AE_EditCut(ae);
-      return 0;
+      return AE_EditCut(ae, (DWORD)lParam);
     }
     case AEM_COPY:
     {
-      return AE_EditCopyToClipboard(ae, (DWORD)lParam);
+      AECHARRANGE cr;
+      BOOL bColumnSel=ae->bColumnSel;
+
+      if (AE_NoSelectionRange(ae, &cr, (DWORD)lParam))
+        bColumnSel=FALSE;
+      return AE_EditCopyToClipboard(ae, &cr, bColumnSel);
     }
     case AEM_CHECKCODEPAGE:
     {
@@ -3681,12 +3685,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_CUT:
     {
-      AE_EditCut(ae);
+      AE_EditCut(ae, 0);
       return 0;
     }
     case WM_COPY:
     {
-      AE_EditCopyToClipboard(ae, 0);
+      AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
       return 0;
     }
     case WM_PASTE:
@@ -20524,7 +20528,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       }
       else if (!bControl)
       {
-        AE_EditCut(ae);
+        AE_EditCut(ae, 0);
       }
     }
     return TRUE;
@@ -20545,7 +20549,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         if (bControl && !bShift)
         {
-          AE_EditCopyToClipboard(ae, 0);
+          AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
         }
         else if (!bControl && bShift)
         {
@@ -20563,7 +20567,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditCut(ae);
+      AE_EditCut(ae, 0);
     }
     return TRUE;
   }
@@ -20571,7 +20575,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditCopyToClipboard(ae, 0);
+      AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
     }
     return TRUE;
   }
@@ -21171,21 +21175,68 @@ BOOL AE_EditRedo(AKELEDIT *ae)
   return TRUE;
 }
 
-void AE_EditCut(AKELEDIT *ae)
+BOOL AE_NoSelectionRange(AKELEDIT *ae, AECHARRANGE *cr, DWORD dwFlags)
 {
-  AE_EditCopyToClipboard(ae, 0);
-  if (AE_IsReadOnly(ae)) return;
+  cr->ciMin=ae->ciSelStartIndex;
+  cr->ciMax=ae->ciSelEndIndex;
 
-  AE_NotifyChanging(ae, AETCT_CUT);
-  AE_StackUndoGroupStop(ae);
-  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
-  AE_StackUndoGroupStop(ae);
-  AE_NotifyChanged(ae); //AETCT_CUT
+  if (!AEC_IndexCompare(&cr->ciMin, &cr->ciMax))
+  {
+    if (dwFlags & AECFC_WORD)
+    {
+      cr->ciMin=ae->ciCaretIndex;
+      cr->ciMax=ae->ciCaretIndex;
+
+      if (!AE_IsDelimiter(ae, &cr->ciMin, AEDLM_WORD|AEDLM_PREVCHAR))
+        AE_GetPrevBreak(ae, &cr->ciMin, &cr->ciMin, FALSE, AEWB_LEFTWORDSTART);
+      if (!AE_IsDelimiter(ae, &cr->ciMax, AEDLM_WORD))
+        AE_GetNextBreak(ae, &cr->ciMax, &cr->ciMax, FALSE, AEWB_RIGHTWORDEND);
+    }
+    else if (dwFlags & AECFC_LINE)
+    {
+      cr->ciMin=ae->ciCaretIndex;
+      cr->ciMax=ae->ciCaretIndex;
+
+      cr->ciMin.nCharInLine=0;
+      cr->ciMax.nCharInLine=cr->ciMax.lpLine->nLineLen;
+    }
+    else if (dwFlags & AECFC_UNWRAPLINE)
+    {
+      cr->ciMin=ae->ciCaretIndex;
+      cr->ciMax=ae->ciCaretIndex;
+
+      AEC_WrapLineBeginEx(&cr->ciMin, &cr->ciMin);
+      AEC_WrapLineEndEx(&cr->ciMax, &cr->ciMax);
+    }
+    return TRUE;
+  }
+  return FALSE;
 }
 
-BOOL AE_EditCopyToClipboard(AKELEDIT *ae, DWORD dwFlags)
+BOOL AE_EditCut(AKELEDIT *ae, DWORD dwFlags)
 {
   AECHARRANGE cr;
+  BOOL bColumnSel=ae->bColumnSel;
+
+  if (AE_NoSelectionRange(ae, &cr, dwFlags))
+    bColumnSel=FALSE;
+  if (AE_EditCopyToClipboard(ae, &cr, bColumnSel))
+  {
+    if (!AE_IsReadOnly(ae))
+    {
+      AE_NotifyChanging(ae, AETCT_CUT);
+      AE_StackUndoGroupStop(ae);
+      AE_DeleteTextRange(ae, &cr.ciMin, &cr.ciMax, bColumnSel, 0);
+      AE_StackUndoGroupStop(ae);
+      AE_NotifyChanged(ae); //AETCT_CUT
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, BOOL bColumnSel)
+{
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
   HGLOBAL hDataInfo=NULL;
@@ -21194,56 +21245,33 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, DWORD dwFlags)
   AECLIPBOARDINFO *pDataInfo;
   UINT_PTR dwAnsiLen=0;
   UINT_PTR dwUnicodeLen=0;
-  BOOL bColumnSel;
+  AECHARINDEX *lpSelStart;
+  AECHARINDEX *lpSelEnd;
 
-  cr.ciMin=ae->ciSelStartIndex;
-  cr.ciMax=ae->ciSelEndIndex;
-  bColumnSel=ae->bColumnSel;
-
-  if (!AEC_IndexCompare(&cr.ciMin, &cr.ciMax))
+  if (!cr)
   {
-    if (dwFlags & AECFC_WORD)
-    {
-      cr.ciMin=ae->ciCaretIndex;
-      cr.ciMax=ae->ciCaretIndex;
-
-      if (!AE_IsDelimiter(ae, &cr.ciMin, AEDLM_WORD|AEDLM_PREVCHAR))
-        AE_GetPrevBreak(ae, &cr.ciMin, &cr.ciMin, FALSE, AEWB_LEFTWORDSTART);
-      if (!AE_IsDelimiter(ae, &cr.ciMax, AEDLM_WORD))
-        AE_GetNextBreak(ae, &cr.ciMax, &cr.ciMax, FALSE, AEWB_RIGHTWORDEND);
-    }
-    else if (dwFlags & AECFC_LINE)
-    {
-      cr.ciMin=ae->ciCaretIndex;
-      cr.ciMax=ae->ciCaretIndex;
-
-      cr.ciMin.nCharInLine=0;
-      cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
-    }
-    else if (dwFlags & AECFC_UNWRAPLINE)
-    {
-      cr.ciMin=ae->ciCaretIndex;
-      cr.ciMax=ae->ciCaretIndex;
-
-      AEC_WrapLineBeginEx(&cr.ciMin, &cr.ciMin);
-      AEC_WrapLineEndEx(&cr.ciMax, &cr.ciMax);
-    }
-    bColumnSel=FALSE;
+    lpSelStart=&ae->ciSelStartIndex;
+    lpSelEnd=&ae->ciSelEndIndex;
+  }
+  else
+  {
+    lpSelStart=&cr->ciMin;
+    lpSelEnd=&cr->ciMax;
   }
 
-  if (AEC_IndexCompare(&cr.ciMin, &cr.ciMax))
+  if (AEC_IndexCompare(lpSelStart, lpSelEnd))
   {
     if (OpenClipboard(NULL))
     {
       EmptyClipboard();
 
-      if (dwUnicodeLen=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, NULL, 0, AELB_ASOUTPUT, bColumnSel, TRUE))
+      if (dwUnicodeLen=AE_GetTextRange(ae, lpSelStart, lpSelEnd, NULL, 0, AELB_ASOUTPUT, bColumnSel, TRUE))
       {
         if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
         {
           if (pDataTargetW=GlobalLock(hDataTargetW))
           {
-            AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, bColumnSel, TRUE);
+            AE_GetTextRange(ae, lpSelStart, lpSelEnd, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, bColumnSel, TRUE);
 
             //Get Ansi text
             dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);

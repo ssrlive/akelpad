@@ -770,7 +770,7 @@ int DoFilePrint(FRAMEDATA *lpFrame, BOOL bSilent);
 void DoFilePreview(HWND hWnd);
 BOOL DoEditUndo(HWND hWnd);
 BOOL DoEditRedo(HWND hWnd);
-void DoEditCut(HWND hWnd);
+BOOL DoEditCut(HWND hWnd, DWORD dwFlags);
 BOOL DoEditCopy(HWND hWnd, DWORD dwFlags);
 INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags);
 void DoEditClear(HWND hWnd);

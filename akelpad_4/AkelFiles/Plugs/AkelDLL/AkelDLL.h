@@ -1899,8 +1899,8 @@ typedef struct {
 #define IDM_EDIT_REDO                   4152  //Redo last operation.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_CUT                    4153  //Cut.
-                                              //Return Value: zero.
+#define IDM_EDIT_CUT                    4153  //Cut. lParam: see AECFC_* defines.
+                                              //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
 #define IDM_EDIT_COPY                   4154  //Copy. lParam: see AECFC_* defines.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.

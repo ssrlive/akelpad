@@ -9,10 +9,10 @@ Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified t
        on exit.
 Added: optional parameter for command 4321:
        1 - close all modified tabs.
-Added: optional parameter for command 4154:
-       1 - copy word under caret, if no selection;
-       2 - copy line under caret, if no selection;
-       4 - copy unwrapped line under caret, if no selection.
+Added: optional parameter for commands 4153,4154:
+       1 - cut/copy word under caret, if no selection;
+       2 - cut/copy line under caret, if no selection;
+       4 - cut/copy unwrapped line under caret, if no selection.
 
 Fixed: file symbolic link opening with "Watch file change" option.
 
