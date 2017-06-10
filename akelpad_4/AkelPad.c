@@ -2281,8 +2281,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!hWnd)
           hWnd=lpFrameCurrent->ei.hWndEdit;
 
-        DoEditCopy(hWnd);
-        return 0;
+        return DoEditCopy(hWnd, (DWORD)lParam);
       }
       case AKD_TEXTFIND:
       case AKD_TEXTFINDA:
@@ -5398,7 +5397,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         case IDM_EDIT_COPY:
         {
-          return DoEditCopy(lpFrameCurrent->ei.hWndEdit);
+          return DoEditCopy(lpFrameCurrent->ei.hWndEdit, (DWORD)lParam);
         }
         case IDM_EDIT_PASTE:
         {

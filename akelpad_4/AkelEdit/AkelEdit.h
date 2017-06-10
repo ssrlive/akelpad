@@ -369,6 +369,11 @@
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
+//AEM_COPY flags
+#define AECFC_WORD           0x00000001  //Copy word under caret, if no selection.
+#define AECFC_LINE           0x00000002  //Copy line under caret, if no selection.
+#define AECFC_UNWRAPLINE     0x00000004  //Copy unwrapped line under caret, if no selection.
+
 //AEM_PASTE flags
 #define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
 #define AEPFC_COLUMN         0x00000002  //Paste to column selection.
@@ -2759,8 +2764,8 @@ ________
 
 Copy the current selection to the clipboard.
 
-wParam == not used.
-lParam == not used.
+wParam        == not used.
+(DWORD)lParam == see AECFC_* defines.
 
 Return Value
  TRUE   clipboard changed.

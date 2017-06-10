@@ -1915,9 +1915,9 @@ void DoEditCut(HWND hWnd)
   SendMessage(hWnd, AEM_CUT, 0, 0);
 }
 
-BOOL DoEditCopy(HWND hWnd)
+BOOL DoEditCopy(HWND hWnd, DWORD dwFlags)
 {
-  return (BOOL)SendMessage(hWnd, AEM_COPY, 0, 0);
+  return (BOOL)SendMessage(hWnd, AEM_COPY, 0, (LPARAM)dwFlags);
 }
 
 INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags)

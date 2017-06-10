@@ -533,7 +533,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_COPY:
     {
-      return AE_EditCopyToClipboard(ae);
+      return AE_EditCopyToClipboard(ae, (DWORD)lParam);
     }
     case AEM_CHECKCODEPAGE:
     {
@@ -3686,7 +3686,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_COPY:
     {
-      AE_EditCopyToClipboard(ae);
+      AE_EditCopyToClipboard(ae, 0);
       return 0;
     }
     case WM_PASTE:
@@ -20545,7 +20545,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         if (bControl && !bShift)
         {
-          AE_EditCopyToClipboard(ae);
+          AE_EditCopyToClipboard(ae, 0);
         }
         else if (!bControl && bShift)
         {
@@ -20571,7 +20571,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditCopyToClipboard(ae);
+      AE_EditCopyToClipboard(ae, 0);
     }
     return TRUE;
   }
@@ -21173,7 +21173,7 @@ BOOL AE_EditRedo(AKELEDIT *ae)
 
 void AE_EditCut(AKELEDIT *ae)
 {
-  AE_EditCopyToClipboard(ae);
+  AE_EditCopyToClipboard(ae, 0);
   if (AE_IsReadOnly(ae)) return;
 
   AE_NotifyChanging(ae, AETCT_CUT);
@@ -21183,8 +21183,9 @@ void AE_EditCut(AKELEDIT *ae)
   AE_NotifyChanged(ae); //AETCT_CUT
 }
 
-BOOL AE_EditCopyToClipboard(AKELEDIT *ae)
+BOOL AE_EditCopyToClipboard(AKELEDIT *ae, DWORD dwFlags)
 {
+  AECHARRANGE cr;
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
   HGLOBAL hDataInfo=NULL;
@@ -21193,20 +21194,56 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae)
   AECLIPBOARDINFO *pDataInfo;
   UINT_PTR dwAnsiLen=0;
   UINT_PTR dwUnicodeLen=0;
+  BOOL bColumnSel;
 
-  if (AEC_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+  cr.ciMin=ae->ciSelStartIndex;
+  cr.ciMax=ae->ciSelEndIndex;
+  bColumnSel=ae->bColumnSel;
+
+  if (!AEC_IndexCompare(&cr.ciMin, &cr.ciMax))
+  {
+    if (dwFlags & AECFC_WORD)
+    {
+      cr.ciMin=ae->ciCaretIndex;
+      cr.ciMax=ae->ciCaretIndex;
+
+      if (!AE_IsDelimiter(ae, &cr.ciMin, AEDLM_WORD|AEDLM_PREVCHAR))
+        AE_GetPrevBreak(ae, &cr.ciMin, &cr.ciMin, FALSE, AEWB_LEFTWORDSTART);
+      if (!AE_IsDelimiter(ae, &cr.ciMax, AEDLM_WORD))
+        AE_GetNextBreak(ae, &cr.ciMax, &cr.ciMax, FALSE, AEWB_RIGHTWORDEND);
+    }
+    else if (dwFlags & AECFC_LINE)
+    {
+      cr.ciMin=ae->ciCaretIndex;
+      cr.ciMax=ae->ciCaretIndex;
+
+      cr.ciMin.nCharInLine=0;
+      cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+    }
+    else if (dwFlags & AECFC_UNWRAPLINE)
+    {
+      cr.ciMin=ae->ciCaretIndex;
+      cr.ciMax=ae->ciCaretIndex;
+
+      AEC_WrapLineBeginEx(&cr.ciMin, &cr.ciMin);
+      AEC_WrapLineEndEx(&cr.ciMax, &cr.ciMax);
+    }
+    bColumnSel=FALSE;
+  }
+
+  if (AEC_IndexCompare(&cr.ciMin, &cr.ciMax))
   {
     if (OpenClipboard(NULL))
     {
       EmptyClipboard();
 
-      if (dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, ae->bColumnSel, TRUE))
+      if (dwUnicodeLen=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, NULL, 0, AELB_ASOUTPUT, bColumnSel, TRUE))
       {
         if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
         {
           if (pDataTargetW=GlobalLock(hDataTargetW))
           {
-            AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, ae->bColumnSel, TRUE);
+            AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, bColumnSel, TRUE);
 
             //Get Ansi text
             dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
@@ -21227,7 +21264,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae)
       if (hDataTargetA) SetClipboardData(CF_TEXT, hDataTargetA);
 
       //Special clipboard formats
-      if (ae->bColumnSel)
+      if (bColumnSel)
       {
         SetClipboardData(cfAkelEditColumnSel, NULL);
       }
