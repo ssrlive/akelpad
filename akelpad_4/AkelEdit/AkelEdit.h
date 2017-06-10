@@ -369,10 +369,10 @@
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
-//AEM_COPY flags
-#define AECFC_WORD           0x00000001  //Copy word under caret, if no selection.
-#define AECFC_LINE           0x00000002  //Copy line under caret, if no selection.
-#define AECFC_UNWRAPLINE     0x00000004  //Copy unwrapped line under caret, if no selection.
+//AEM_CUT, AEM_COPY flags
+#define AECFC_WORD           0x00000001  //Cut/Copy word under caret, if no selection.
+#define AECFC_LINE           0x00000002  //Cut/Copy line under caret, if no selection.
+#define AECFC_UNWRAPLINE     0x00000004  //Cut/Copy unwrapped line under caret, if no selection.
 
 //AEM_PASTE flags
 #define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
