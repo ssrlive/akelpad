@@ -21199,6 +21199,8 @@ BOOL AE_NoSelectionRange(AKELEDIT *ae, AECHARRANGE *cr, DWORD dwFlags)
 
       cr->ciMin.nCharInLine=0;
       cr->ciMax.nCharInLine=cr->ciMax.lpLine->nLineLen;
+      if ((dwFlags & AECFC_NEWLINE) && cr->ciMax.lpLine->nLineBreak != AELB_WRAP)
+        AEC_NextCharEx(&cr->ciMax, &cr->ciMax);
     }
     else if (dwFlags & AECFC_UNWRAPLINE)
     {
@@ -21207,6 +21209,8 @@ BOOL AE_NoSelectionRange(AKELEDIT *ae, AECHARRANGE *cr, DWORD dwFlags)
 
       AEC_WrapLineBeginEx(&cr->ciMin, &cr->ciMin);
       AEC_WrapLineEndEx(&cr->ciMax, &cr->ciMax);
+      if (dwFlags & AECFC_NEWLINE)
+        AEC_NextCharEx(&cr->ciMax, &cr->ciMax);
     }
     return TRUE;
   }
