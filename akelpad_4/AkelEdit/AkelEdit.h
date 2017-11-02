@@ -373,6 +373,7 @@
 #define AECFC_WORD           0x00000001  //Cut/Copy word under caret, if no selection.
 #define AECFC_LINE           0x00000002  //Cut/Copy line under caret, if no selection.
 #define AECFC_UNWRAPLINE     0x00000004  //Cut/Copy unwrapped line under caret, if no selection.
+#define AECFC_NEWLINE        0x00000008  //Cut/Copy also new line. Uses with AECFC_LINE or AECFC_UNWRAPLINE.
 
 //AEM_PASTE flags
 #define AEPFC_ANSI           0x00000001  //Paste text as ANSI. Default is paste as Unicode text, if no Unicode text available ANSI text will be used.
