@@ -5881,8 +5881,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
     #ifndef AKELPAD_DLLBUILD
-      //Main window will be destroyed
-      PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
+      if (!SendMessage(hMainWnd, AKDN_MAIN_ONCLOSE_PREFINISH, 0, 0))
+      {
+        //Main window will be destroyed
+        PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
+      }
     #endif
 
     return bEndSession?1:0;
