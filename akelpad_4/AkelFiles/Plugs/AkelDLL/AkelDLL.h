@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 1, 0)
 
 
 //// Defines
@@ -2230,49 +2230,50 @@ typedef struct {
 //// AkelPad main window WM_USER messages
 
 //Notification messages
-#define AKDN_MAIN_ONSTART          (WM_USER + 1)   //0x401
-#define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)   //0x402
-#define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)   //0x403
-#define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
-#define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
-#define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
-#define AKDN_MAIN_ONDESTROY        (WM_USER + 7)   //0x407
+#define AKDN_MAIN_ONSTART           (WM_USER + 1)   //0x401
+#define AKDN_MAIN_ONSTART_PRESHOW   (WM_USER + 2)   //0x402
+#define AKDN_MAIN_ONSTART_SHOW      (WM_USER + 3)   //0x403
+#define AKDN_MAIN_ONSTART_FINISH    (WM_USER + 4)   //0x404
+#define AKDN_MAIN_ONSTART_IDLE      (WM_USER + 5)   //0x405
+#define AKDN_MAIN_ONFINISH          (WM_USER + 6)   //0x406
+#define AKDN_MAIN_ONDESTROY         (WM_USER + 7)   //0x407
+#define AKDN_MAIN_ONCLOSE_PREFINISH (WM_USER + 8)   //0x408
 
-#define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
-#define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
-#define AKDN_EDIT_ONCLOSE          (WM_USER + 13)  //0x40D
+#define AKDN_EDIT_ONSTART           (WM_USER + 11)  //0x40B
+#define AKDN_EDIT_ONFINISH          (WM_USER + 12)  //0x40C
+#define AKDN_EDIT_ONCLOSE           (WM_USER + 13)  //0x40D
 
-#define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
-#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
-#define AKDN_FRAME_DEACTIVATE      (WM_USER + 23)  //0x417
-#define AKDN_FRAME_DESTROY         (WM_USER + 24)  //0x418
+#define AKDN_FRAME_NOWINDOWS        (WM_USER + 21)  //0x415
+#define AKDN_FRAME_ACTIVATE         (WM_USER + 22)  //0x416
+#define AKDN_FRAME_DEACTIVATE       (WM_USER + 23)  //0x417
+#define AKDN_FRAME_DESTROY          (WM_USER + 24)  //0x418
 
-#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
-#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
-#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 33)  //0x421
-#define AKDN_DOCK_RESIZE           (WM_USER + 34)  //0x422
+#define AKDN_DOCK_GETMINMAXINFO     (WM_USER + 31)  //0x41F
+#define AKDN_DOCK_CAPTURE_ONSTART   (WM_USER + 32)  //0x420
+#define AKDN_DOCK_CAPTURE_ONFINISH  (WM_USER + 33)  //0x421
+#define AKDN_DOCK_RESIZE            (WM_USER + 34)  //0x422
 
-#define AKDN_DLLCALL               (WM_USER + 41)  //0x429
-#define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
-#define AKDN_DLLCODER              (WM_USER + 43)  //0x42B
+#define AKDN_DLLCALL                (WM_USER + 41)  //0x429
+#define AKDN_DLLUNLOAD              (WM_USER + 42)  //0x42A
+#define AKDN_DLLCODER               (WM_USER + 43)  //0x42B
 
-#define AKDN_ACTIVATE              (WM_USER + 50)  //0x432
-#define AKDN_SIZE_ONSTART          (WM_USER + 51)  //0x433
-#define AKDN_SIZE_ONFINISH         (WM_USER + 52)  //0x434
-#define AKDN_OPENDOCUMENT_START    (WM_USER + 53)  //0x435
-#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 54)  //0x436
-#define AKDN_SAVEDOCUMENT_START    (WM_USER + 55)  //0x437
-#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 56)  //0x438
-#define AKDN_HOTKEY                (WM_USER + 57)  //0x439
-#define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
-#define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
-#define AKDN_MESSAGEBOXBEGIN       (WM_USER + 61)  //0x43D
-#define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
-#define AKDN_INITDIALOGBEGIN       (WM_USER + 63)  //0x43F
-#define AKDN_INITDIALOGEND         (WM_USER + 64)  //0x440
-#define AKDN_HOTKEYGLOBAL          (WM_USER + 70)  //0x446
-#define AKDN_POSTDOCUMENT_START    (WM_USER + 81)  //0x451
-#define AKDN_POSTDOCUMENT_FINISH   (WM_USER + 82)  //0x452
+#define AKDN_ACTIVATE               (WM_USER + 50)  //0x432
+#define AKDN_SIZE_ONSTART           (WM_USER + 51)  //0x433
+#define AKDN_SIZE_ONFINISH          (WM_USER + 52)  //0x434
+#define AKDN_OPENDOCUMENT_START     (WM_USER + 53)  //0x435
+#define AKDN_OPENDOCUMENT_FINISH    (WM_USER + 54)  //0x436
+#define AKDN_SAVEDOCUMENT_START     (WM_USER + 55)  //0x437
+#define AKDN_SAVEDOCUMENT_FINISH    (WM_USER + 56)  //0x438
+#define AKDN_HOTKEY                 (WM_USER + 57)  //0x439
+#define AKDN_CONTEXTMENU            (WM_USER + 58)  //0x43A
+#define AKDN_SEARCH_ENDED           (WM_USER + 59)  //0x43B
+#define AKDN_MESSAGEBOXBEGIN        (WM_USER + 61)  //0x43D
+#define AKDN_MESSAGEBOXEND          (WM_USER + 62)  //0x43E
+#define AKDN_INITDIALOGBEGIN        (WM_USER + 63)  //0x43F
+#define AKDN_INITDIALOGEND          (WM_USER + 64)  //0x440
+#define AKDN_HOTKEYGLOBAL           (WM_USER + 70)  //0x446
+#define AKDN_POSTDOCUMENT_START     (WM_USER + 81)  //0x451
+#define AKDN_POSTDOCUMENT_FINISH    (WM_USER + 82)  //0x452
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -2547,6 +2548,19 @@ lParam == not used.
 
 Return Value
  Zero.
+
+
+AKDN_MAIN_ONCLOSE_PREFINISH
+___________________________
+
+Notification message, sends to the main procedure before posting AKDN_MAIN_ONFINISH.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE  abort closing, don't send AKDN_MAIN_ONFINISH.
+ FALSE send AKDN_MAIN_ONFINISH.
 
 
 AKDN_EDIT_ONSTART

@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.8
+// Version: 1.9
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -492,7 +492,7 @@ function DialogCallback(hWnd, uMsg, wParam, lParam)
         if (AkelPad.IsAkelEdit(hWndFocus) == 2 /*ISAEW_PLUGIN*/)
           hWndPluginEdit=AkelPad.SetEditWnd(hWndFocus);
         else
-          hWndPluginEdit=0;
+          hWndPluginEdit=AkelPad.SetEditWnd(0);
       }
       if (hWndOutput)
         oSys.Call("user32::SetFocus", hWndCancel);
