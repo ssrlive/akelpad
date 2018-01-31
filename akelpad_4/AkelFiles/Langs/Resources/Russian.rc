@@ -139,7 +139,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Со&хранять отступы слева\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Следить за &изменением файла", IDM_OPTIONS_WATCHFILE
-        MENUITEM "&Сохранять время файла",      IDM_OPTIONS_SAVETIME
+        MENUITEM "Не &менять время файла",      IDM_OPTIONS_SAVETIME
         MENUITEM "Не открывать ф&айл дважды",   IDM_OPTIONS_SINGLEOPEN_FILE
         MENUITEM "Не открывать про&грамму дважды", 
                                                 IDM_OPTIONS_SINGLEOPEN_PROGRAM
