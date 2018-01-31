@@ -5830,6 +5830,7 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
     \"Lazy\" Call(\"Coder::Settings\", 5, \"Lazy\")\r\
     \"Mac Classic\" Call(\"Coder::Settings\", 5, \"Mac Classic\")\r\
     \"Monokai\" Call(\"Coder::Settings\", 5, \"Monokai\")\r\
+    \"Obsidian\" Call(\"Coder::Settings\", 5, \"Obsidian\")\r\
     \"Solarized Light\" Call(\"Coder::Settings\", 5, \"Solarized Light\")\r\
     \"Solarized Dark\" Call(\"Coder::Settings\", 5, \"Solarized Dark\")\r\
     \"SpaceCadet\" Call(\"Coder::Settings\", 5, \"SpaceCadet\")\r\
@@ -6422,6 +6423,7 @@ EXPLORER\r";
     \"Lazy\" Call(\"Coder::Settings\", 5, \"Lazy\")\r\
     \"Mac Classic\" Call(\"Coder::Settings\", 5, \"Mac Classic\")\r\
     \"Monokai\" Call(\"Coder::Settings\", 5, \"Monokai\")\r\
+    \"Obsidian\" Call(\"Coder::Settings\", 5, \"Obsidian\")\r\
     \"Solarized Light\" Call(\"Coder::Settings\", 5, \"Solarized Light\")\r\
     \"Solarized Dark\" Call(\"Coder::Settings\", 5, \"Solarized Dark\")\r\
     \"SpaceCadet\" Call(\"Coder::Settings\", 5, \"SpaceCadet\")\r\
