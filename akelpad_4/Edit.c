@@ -21831,7 +21831,7 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
   wchar_t *wszSource;
   wchar_t *wpSource;
   wchar_t *wpTarget=wszBuffer;
-  wchar_t *wpTargetMax=wszBuffer + (wszBuffer?nBufferSize:0x7FFFFFFF);
+  wchar_t *wpTargetMax=(wszBuffer ? (wszBuffer + nBufferSize) : (wchar_t *)MAXUINT_PTR);
   int nStringLen;
 
   //Expand environment strings
