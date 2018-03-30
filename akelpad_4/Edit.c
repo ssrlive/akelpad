@@ -9064,6 +9064,7 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
   int nIndex;
   char *szText=NULL;
   INT_PTR nAnsiLen;
+  int nFrom=0;
   int i;
   BOOL bUsedDefaultChar=TRUE;
 
@@ -9074,27 +9075,38 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
   {
     for (i=0; lpDetectCodePage[nIndex][i]; ++i)
     {
-      nAnsiLen=WideCharToMultiByte(lpDetectCodePage[nIndex][i], WC_NO_BEST_FIT_CHARS, wpText, (int)nTextLen, NULL, 0, NULL, &bUsedDefaultChar);
-
-      if (!bUsedDefaultChar)
-      {
-        if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
-        {
-          WideCharToMultiByte64(lpDetectCodePage[nIndex][i], 0, wpText, nTextLen, szText, nAnsiLen, NULL, NULL);
-          *nCodePageFrom=lpDetectCodePage[nIndex][i];
-        }
-        break;
-      }
+      nFrom=lpDetectCodePage[nIndex][i];
+      nAnsiLen=WideCharToMultiByte(nFrom, WC_NO_BEST_FIT_CHARS, wpText, (int)nTextLen, NULL, 0, NULL, &bUsedDefaultChar);
+      if (!bUsedDefaultChar) break;
     }
   }
 
-  if (szText)
+  if (bUsedDefaultChar && lpCodepageList)
   {
-    //Detect nCodePageTo
-    if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nMinChars, nCodePageTo))
-      *nCodePageTo=*nCodePageFrom;
+    for (i=0; lpCodepageList[i]; ++i)
+    {
+      if (IsCodePageUnicode(lpCodepageList[i]) && lpCodepageList[i] != CP_UNICODE_UTF8)
+        continue;
+      nFrom=lpCodepageList[i];
+      nAnsiLen=WideCharToMultiByte(nFrom, WC_NO_BEST_FIT_CHARS, wpText, (int)nTextLen, NULL, 0, NULL, &bUsedDefaultChar);
+      if (!bUsedDefaultChar) break;
+    }
+  }
 
-    API_HeapFree(hHeap, 0, (LPVOID)szText);
+  if (!bUsedDefaultChar)
+  {
+    *nCodePageFrom=nFrom;
+
+    if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
+    {
+      WideCharToMultiByte64(nFrom, 0, wpText, nTextLen, szText, nAnsiLen, NULL, NULL);
+
+      //Detect nCodePageTo
+      if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nMinChars, nCodePageTo))
+        *nCodePageTo=*nCodePageFrom;
+
+      API_HeapFree(hHeap, 0, (LPVOID)szText);
+    }
     return TRUE;
   }
   return FALSE;
