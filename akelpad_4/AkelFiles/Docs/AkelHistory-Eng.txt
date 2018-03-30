@@ -2,6 +2,9 @@
 AkelPad 4.9.9 ()
 ----------------------------
 Changed: during codepage recognition character "\xF1" now refers to 1251.
+Changed: codepage recognition in "Recode" dialog in case of failure by
+         values of "Ñodepage recognition" settings, tries to recognize by
+         all encodings from the user list.
 
 Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
