@@ -32,6 +32,7 @@
 
 //Include wide functions
 #define CallWindowProcWide
+#define ComboBox_AddStringWide
 #define ComboBox_GetLBTextWide
 #define CreateDirectoryWide
 #define DeleteFileWide
@@ -64,29 +65,30 @@
 #define STRID_SAVEMOMENT           1
 #define STRID_SAVEINTERVAL         2
 #define STRID_MIN                  3
-#define STRID_SAVEFOCUS            4
-#define STRID_SAVEFRAME            5
-#define STRID_SAVEMETHOD           6
-#define STRID_SAVESIMPLE           7
-#define STRID_SAVENEAR             8
-#define STRID_SAVEDIR              9
-#define STRID_SAVEDIRVARS          10
-#define STRID_TMPFILE              11
-#define STRID_TMPDELETE            12
-#define STRID_TMPTOBIN             13
-#define STRID_TMPRECOVER           14
-#define STRID_SAVENOBOM            15
-#define STRID_FORCENOBOM           16
-#define STRID_DLGUNCHECK           17
-#define STRID_RECOVER              18
-#define STRID_NAME                 19
-#define STRID_TIME                 20
-#define STRID_FILE                 21
-#define STRID_PLUGIN               22
-#define STRID_YES                  23
-#define STRID_NO                   24
-#define STRID_OK                   25
-#define STRID_CANCEL               26
+#define STRID_SEC                  4
+#define STRID_SAVEFOCUS            5
+#define STRID_SAVEFRAME            6
+#define STRID_SAVEMETHOD           7
+#define STRID_SAVESIMPLE           8
+#define STRID_SAVENEAR             9
+#define STRID_SAVEDIR              10
+#define STRID_SAVEDIRVARS          11
+#define STRID_TMPFILE              12
+#define STRID_TMPDELETE            13
+#define STRID_TMPTOBIN             14
+#define STRID_TMPRECOVER           15
+#define STRID_SAVENOBOM            16
+#define STRID_FORCENOBOM           17
+#define STRID_DLGUNCHECK           18
+#define STRID_RECOVER              19
+#define STRID_NAME                 20
+#define STRID_TIME                 21
+#define STRID_FILE                 22
+#define STRID_PLUGIN               23
+#define STRID_YES                  24
+#define STRID_NO                   25
+#define STRID_OK                   26
+#define STRID_CANCEL               27
 
 #define OF_AUTOSAVE       0x1
 #define OF_SAVENOBOM      0x2
@@ -106,6 +108,10 @@
 #define SMET_SIMPLE  0x1
 #define SMET_NEAR    0x2
 #define SMET_DIR     0x4
+
+//Save interval type
+#define SIT_MIN    0
+#define SIT_SEC    1
 
 //.tmp file
 #define REMC_DELETE   0x1
@@ -220,6 +226,7 @@ int nSaveDirExpLen;
 UINT_PTR dwSaveTimer=0;
 DWORD dwSaveMoment=SMOM_TIME;
 DWORD dwSaveInterval=5;
+DWORD dwSaveIntervalType=SIT_MIN;
 DWORD dwSaveMethod=SMET_SIMPLE;
 DWORD dwTmpFile=REMC_DELETE|REMC_TOBIN|REMC_RECOVER;
 RECT rcBackupMinMaxDialog={410, 153, 0, 0};
@@ -603,6 +610,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndAutoSaveTitle;
   static HWND hWndSaveIntervalCheck;
   static HWND hWndSaveInterval;
+  static HWND hWndSaveIntervalType;
   static HWND hWndSaveFocusCheck;
   static HWND hWndSaveFrameCheck;
   static HWND hWndSaveSimpleCheck;
@@ -634,6 +642,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndAutoSaveTitle=GetDlgItem(hDlg, IDC_AUTOSAVE_TITLE);
     hWndSaveIntervalCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEINTERVAL_CHECK);
     hWndSaveInterval=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEINTERVAL);
+    hWndSaveIntervalType=GetDlgItem(hDlg, IDC_AUTOSAVE_INTERVALTYPE_COMBO);
     hWndSaveFocusCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEFOCUS_CHECK);
     hWndSaveFrameCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVEFRAME_CHECK);
     hWndSaveSimpleCheck=GetDlgItem(hDlg, IDC_AUTOSAVE_SAVESIMPLE_CHECK);
@@ -656,7 +665,6 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_MOMENT_GROUP, GetLangStringW(wLangModule, STRID_SAVEMOMENT));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEINTERVAL_CHECK, GetLangStringW(wLangModule, STRID_SAVEINTERVAL));
-    SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_MIN_LABEL, GetLangStringW(wLangModule, STRID_MIN));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEFOCUS_CHECK, GetLangStringW(wLangModule, STRID_SAVEFOCUS));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_SAVEFRAME_CHECK, GetLangStringW(wLangModule, STRID_SAVEFRAME));
     SetDlgItemTextWide(hDlg, IDC_AUTOSAVE_METHOD_GROUP, GetLangStringW(wLangModule, STRID_SAVEMETHOD));
@@ -683,6 +691,10 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     SetDlgItemInt(hDlg, IDC_AUTOSAVE_SAVEINTERVAL, dwSaveInterval, FALSE);
     if (dwSaveMomentDlg & SMOM_FOCUS) SendMessage(hWndSaveFocusCheck, BM_SETCHECK, BST_CHECKED, 0);
     if (dwSaveMomentDlg & SMOM_FRAME) SendMessage(hWndSaveFrameCheck, BM_SETCHECK, BST_CHECKED, 0);
+
+    ComboBox_AddStringWide(hWndSaveIntervalType, GetLangStringW(wLangModule, STRID_MIN));
+    ComboBox_AddStringWide(hWndSaveIntervalType, GetLangStringW(wLangModule, STRID_SEC));
+    SendMessage(hWndSaveIntervalType, CB_SETCURSEL, (WPARAM)dwSaveIntervalType, 0);
 
     dwSaveMethodDlg=dwSaveMethod;
     if (dwSaveMethodDlg & SMET_SIMPLE) SendMessage(hWndSaveSimpleCheck, BM_SETCHECK, BST_CHECKED, 0);
@@ -848,6 +860,7 @@ BOOL CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       dwSaveMethod=dwSaveMethodDlg;
       dwTmpFile=dwTmpFileDlg;
       dwSaveInterval=GetDlgItemInt(hDlg, IDC_AUTOSAVE_SAVEINTERVAL, NULL, FALSE);
+      dwSaveIntervalType=(DWORD)SendMessage(hWndSaveIntervalType, CB_GETCURSEL, 0, 0);
 
       GetWindowTextWide(hWndSaveDir, wszSaveDir, MAX_PATH);
       if (nSaveDirExpLen=TranslateFileString(wszSaveDir, wszSaveDirExp, MAX_PATH))
@@ -1579,6 +1592,7 @@ void ReadOptions(DWORD dwFlags)
     {
       WideOption(hOptions, L"SaveMoment", PO_DWORD, (LPBYTE)&dwSaveMoment, sizeof(DWORD));
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
+      WideOption(hOptions, L"SaveIntervalType", PO_DWORD, (LPBYTE)&dwSaveIntervalType, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, MAX_PATH * sizeof(wchar_t));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
@@ -1608,6 +1622,7 @@ void SaveOptions(DWORD dwFlags)
     {
       WideOption(hOptions, L"SaveMoment", PO_DWORD, (LPBYTE)&dwSaveMoment, sizeof(DWORD));
       WideOption(hOptions, L"SaveInterval", PO_DWORD, (LPBYTE)&dwSaveInterval, sizeof(DWORD));
+      WideOption(hOptions, L"SaveIntervalType", PO_DWORD, (LPBYTE)&dwSaveIntervalType, sizeof(DWORD));
       WideOption(hOptions, L"SaveMethod", PO_DWORD, (LPBYTE)&dwSaveMethod, sizeof(DWORD));
       WideOption(hOptions, L"SaveDir", PO_STRING, (LPBYTE)wszSaveDir, (lstrlenW(wszSaveDir) + 1) * sizeof(wchar_t));
       WideOption(hOptions, L"TmpFile", PO_DWORD, (LPBYTE)&dwTmpFile, sizeof(DWORD));
@@ -1646,6 +1661,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043A\x0430\x0436\x0434\x044B\x0435";
     if (nStringID == STRID_MIN)
       return L"\x043C\x0438\x043D\x002E";
+    if (nStringID == STRID_SEC)
+      return L"\x0441\x0435\x043A.";
     if (nStringID == STRID_SAVEFOCUS)
       return L"\x0421\x043E\x0445\x0440\x0430\x043D\x044F\x0442\x044C\x0020\x043F\x0440\x0438\x0020\x043F\x043E\x0442\x0435\x0440\x0435\x0020\x0444\x043E\x043A\x0443\x0441\x0430";
     if (nStringID == STRID_SAVEFRAME)
@@ -1701,6 +1718,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Save every";
     if (nStringID == STRID_MIN)
       return L"min.";
+    if (nStringID == STRID_SEC)
+      return L"sec.";
     if (nStringID == STRID_SAVEFOCUS)
       return L"Save on lose focus";
     if (nStringID == STRID_SAVEFRAME)
@@ -1810,7 +1829,7 @@ void InitAutoSave()
 
   if (dwSaveMoment & SMOM_TIME)
   {
-    dwSaveTimer=SetTimer(NULL, 0, dwSaveInterval * 60000, (TIMERPROC)TimerProc);
+    dwSaveTimer=SetTimer(NULL, 0, dwSaveInterval * (dwSaveIntervalType == SIT_SEC ? 1000 : 60000), (TIMERPROC)TimerProc);
   }
 }
 
