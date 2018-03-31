@@ -1321,26 +1321,57 @@
     <tr>
       <td align=center><b>4153</b></td>
       <td>Cut
-          <br>Optional parameter:
+          <br>Optional first parameter:
           <br>1 - cut word under caret, if no selection;
           <br>2 - cut line under caret, if no selection;
           <br>4 - cut unwrapped line under caret, if no selection.
-          <br>8 - cut also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).</td>
+          <br>8 - cut also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).
+          <br>Optional second parameter:
+          <br>1 - input new line.
+          <br>2 - output new line (default).
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
     </tr>
 
     <tr>
       <td align=center><b>4154</b></td>
       <td>Copy
-          <br>Optional parameter:
+          <br>Optional first parameter:
           <br>1 - copy word under caret, if no selection;
           <br>2 - copy line under caret, if no selection;
           <br>4 - copy unwrapped line under caret, if no selection.
-          <br>8 - copy also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).</td>
+          <br>8 - copy also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).
+          <br>Optional second parameter:
+          <br>1 - input new line.
+          <br>2 - output new line (default).
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
     </tr>
 
     <tr>
       <td align=center><b>4155</b></td>
-      <td>Paste</td>
+      <td>Paste
+          <br>Optional first parameter:
+          <br>1 - paste text as ANSI. Same as 4191 command.
+          <br>2 - paste to column selection. Same as 4192 command.
+          <br>4 - select pasted text.
+          <br>Optional second parameter:
+          <br>1 - input new line (default).
+          <br>2 - output new line.
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
     </tr>
 
     <tr>
