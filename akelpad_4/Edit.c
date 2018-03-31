@@ -1908,17 +1908,17 @@ BOOL DoEditRedo(HWND hWnd)
   return (BOOL)SendMessage(hWnd, AEM_REDO, 0, 0);
 }
 
-BOOL DoEditCut(HWND hWnd, DWORD dwFlags)
+BOOL DoEditCut(HWND hWnd, DWORD dwFlags, int nNewLine)
 {
-  return (BOOL)SendMessage(hWnd, AEM_CUT, 0, (LPARAM)dwFlags);
+  return (BOOL)SendMessage(hWnd, AEM_CUT, (WPARAM)nNewLine, (LPARAM)dwFlags);
 }
 
-BOOL DoEditCopy(HWND hWnd, DWORD dwFlags)
+BOOL DoEditCopy(HWND hWnd, DWORD dwFlags, int nNewLine)
 {
-  return (BOOL)SendMessage(hWnd, AEM_COPY, 0, (LPARAM)dwFlags);
+  return (BOOL)SendMessage(hWnd, AEM_COPY, (WPARAM)nNewLine, (LPARAM)dwFlags);
 }
 
-INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags)
+INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags, int nNewLine)
 {
   CHARRANGE64 cr;
   INT_PTR nResult;
@@ -1928,7 +1928,7 @@ INT_PTR DoEditPaste(HWND hWnd, DWORD dwFlags)
   if (dwFlags & PASTE_AFTER)
     SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
 
-  if ((nResult=SendMessage(hWnd, AEM_PASTE, 0, (LPARAM)dwFlags)) != -1)
+  if ((nResult=SendMessage(hWnd, AEM_PASTE, (WPARAM)nNewLine, (LPARAM)dwFlags)) != -1)
   {
     if (dwFlags & PASTE_AFTER)
       SendMessage(hWnd, EM_SETSEL, (WPARAM)cr.cpMin, (LPARAM)cr.cpMin);

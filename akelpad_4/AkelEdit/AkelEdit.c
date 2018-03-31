@@ -524,20 +524,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_PASTE:
     {
-      return AE_EditPasteFromClipboard(ae, (DWORD)lParam);
+      int nNewLine=(int)wParam;
+
+      if (!nNewLine) nNewLine=AELB_ASINPUT;
+      return AE_EditPasteFromClipboard(ae, (DWORD)lParam, nNewLine);
     }
     case AEM_CUT:
     {
-      return AE_EditCut(ae, (DWORD)lParam);
+      int nNewLine=(int)wParam;
+
+      if (!nNewLine) nNewLine=AELB_ASOUTPUT;
+      return AE_EditCut(ae, (DWORD)lParam, nNewLine);
     }
     case AEM_COPY:
     {
       AECHARRANGE cr;
+      int nNewLine=(int)wParam;
       BOOL bColumnSel=ae->bColumnSel;
 
       if (AE_NoSelectionRange(ae, &cr, (DWORD)lParam))
         bColumnSel=FALSE;
-      return AE_EditCopyToClipboard(ae, &cr, bColumnSel);
+      if (!nNewLine) nNewLine=AELB_ASOUTPUT;
+      return AE_EditCopyToClipboard(ae, &cr, nNewLine, bColumnSel);
     }
     case AEM_CHECKCODEPAGE:
     {
@@ -3685,17 +3693,17 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_CUT:
     {
-      AE_EditCut(ae, 0);
+      AE_EditCut(ae, 0, AELB_ASOUTPUT);
       return 0;
     }
     case WM_COPY:
     {
-      AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
+      AE_EditCopyToClipboard(ae, NULL, AELB_ASOUTPUT, ae->bColumnSel);
       return 0;
     }
     case WM_PASTE:
     {
-      AE_EditPasteFromClipboard(ae, 0);
+      AE_EditPasteFromClipboard(ae, 0, AELB_ASINPUT);
       return 0;
     }
     case WM_CLEAR:
@@ -20534,7 +20542,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       }
       else if (!bControl)
       {
-        AE_EditCut(ae, 0);
+        AE_EditCut(ae, 0, AELB_ASOUTPUT);
       }
     }
     return TRUE;
@@ -20555,15 +20563,15 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         if (bControl && !bShift)
         {
-          AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
+          AE_EditCopyToClipboard(ae, NULL, AELB_ASOUTPUT, ae->bColumnSel);
         }
         else if (!bControl && bShift)
         {
-          AE_EditPasteFromClipboard(ae, 0);
+          AE_EditPasteFromClipboard(ae, 0, AELB_ASINPUT);
         }
         else if (bControl && bShift)
         {
-          AE_EditPasteFromClipboard(ae, AEPFC_ANSI);
+          AE_EditPasteFromClipboard(ae, AEPFC_ANSI, AELB_ASINPUT);
         }
       }
     }
@@ -20573,7 +20581,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditCut(ae, 0);
+      AE_EditCut(ae, 0, AELB_ASOUTPUT);
     }
     return TRUE;
   }
@@ -20581,7 +20589,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditCopyToClipboard(ae, NULL, ae->bColumnSel);
+      AE_EditCopyToClipboard(ae, NULL, AELB_ASOUTPUT, ae->bColumnSel);
     }
     return TRUE;
   }
@@ -20589,16 +20597,16 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditPasteFromClipboard(ae, 0);
+      AE_EditPasteFromClipboard(ae, 0, AELB_ASINPUT);
     }
     else if (bControl && bShift && !bAlt)
     {
-      AE_EditPasteFromClipboard(ae, AEPFC_ANSI);
+      AE_EditPasteFromClipboard(ae, AEPFC_ANSI, AELB_ASINPUT);
     }
     else if (!bControl && !bShift && bAlt)
     {
       if (!(ae->popt->dwOptions & AECO_NOCOLUMNPASTEHOTKEY))
-        AE_EditPasteFromClipboard(ae, AEPFC_COLUMN|AEPFC_SELECT);
+        AE_EditPasteFromClipboard(ae, AEPFC_COLUMN|AEPFC_SELECT, AELB_ASINPUT);
     }
     return TRUE;
   }
@@ -21223,14 +21231,14 @@ BOOL AE_NoSelectionRange(AKELEDIT *ae, AECHARRANGE *cr, DWORD dwFlags)
   return FALSE;
 }
 
-BOOL AE_EditCut(AKELEDIT *ae, DWORD dwFlags)
+BOOL AE_EditCut(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
 {
   AECHARRANGE cr;
   BOOL bColumnSel=ae->bColumnSel;
 
   if (AE_NoSelectionRange(ae, &cr, dwFlags))
     bColumnSel=FALSE;
-  if (AE_EditCopyToClipboard(ae, &cr, bColumnSel))
+  if (AE_EditCopyToClipboard(ae, &cr, nNewLine, bColumnSel))
   {
     if (!AE_IsReadOnly(ae))
     {
@@ -21245,7 +21253,7 @@ BOOL AE_EditCut(AKELEDIT *ae, DWORD dwFlags)
   return FALSE;
 }
 
-BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, BOOL bColumnSel)
+BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bColumnSel)
 {
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
@@ -21275,13 +21283,13 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, BOOL bColumnSel)
     {
       EmptyClipboard();
 
-      if (dwUnicodeLen=AE_GetTextRange(ae, lpSelStart, lpSelEnd, NULL, 0, AELB_ASOUTPUT, bColumnSel, TRUE))
+      if (dwUnicodeLen=AE_GetTextRange(ae, lpSelStart, lpSelEnd, NULL, 0, nNewLine, bColumnSel, TRUE))
       {
         if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
         {
           if (pDataTargetW=GlobalLock(hDataTargetW))
           {
-            AE_GetTextRange(ae, lpSelStart, lpSelEnd, (wchar_t *)pDataTargetW, (UINT_PTR)-1, AELB_ASOUTPUT, bColumnSel, TRUE);
+            AE_GetTextRange(ae, lpSelStart, lpSelEnd, (wchar_t *)pDataTargetW, (UINT_PTR)-1, nNewLine, bColumnSel, TRUE);
 
             //Get Ansi text
             dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
@@ -21326,7 +21334,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, BOOL bColumnSel)
   return FALSE;
 }
 
-INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
+INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
 {
   HGLOBAL hDataInfo;
   HGLOBAL hData=NULL;
@@ -21436,7 +21444,7 @@ INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
             }
             wpTarget[nTargetLen]=L'\0';
 
-            AE_ReplaceSel(ae, wpTarget, nTargetLen, AELB_ASINPUT, AEREPT_COLUMNON|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
+            AE_ReplaceSel(ae, wpTarget, nTargetLen, nNewLine, AEREPT_COLUMNON|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
             nResult=nTargetLen;
 
             AE_HeapFree(ae, 0, (LPVOID)wpTarget);
@@ -21445,7 +21453,7 @@ INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags)
       }
       else
       {
-        AE_ReplaceSel(ae, wszText, dwUnicodeLen, AELB_ASINPUT, (bColumnSel?AEREPT_COLUMNON:0)|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
+        AE_ReplaceSel(ae, wszText, dwUnicodeLen, nNewLine, (bColumnSel?AEREPT_COLUMNON:0)|(dwFlags & AEPFC_SELECT?AEREPT_SELECT:0), NULL, NULL);
         nResult=dwUnicodeLen;
       }
       if (bFreeText) AE_HeapFree(NULL, 0, (LPVOID)wszText);

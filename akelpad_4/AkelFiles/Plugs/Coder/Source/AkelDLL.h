@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 1, 1)
 
 
 //// Defines
@@ -1899,13 +1899,13 @@ typedef struct {
 #define IDM_EDIT_REDO                   4152  //Redo last operation.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_CUT                    4153  //Cut. lParam: see AECFC_* defines.
+#define IDM_EDIT_CUT                    4153  //Cut. lParam: see AECFC_ defines + 100000 * AELB_ defines.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
-#define IDM_EDIT_COPY                   4154  //Copy. lParam: see AECFC_* defines.
+#define IDM_EDIT_COPY                   4154  //Copy. lParam: see AECFC_ defines + 100000 * AELB_ defines.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
-#define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_* defines.
+#define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_ defines + 100000 * AELB_ defines.
                                               //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_CLEAR                  4156  //Delete.

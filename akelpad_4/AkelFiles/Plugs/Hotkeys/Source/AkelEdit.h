@@ -366,8 +366,8 @@
 #define AELB_WRAP     9  //No new line, this line is wrapped.
 
 //AEM_SETNEWLINE flags
-#define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
-#define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
+#define AENL_INPUT           0x00000001  //Sets default new line for the input operations, like paste.
+#define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, like cut,copy.
 
 //AEM_CUT, AEM_COPY flags
 #define AECFC_WORD           0x00000001  //Cut/Copy word under caret, if no selection.
@@ -2735,7 +2735,7 @@ _________
 
 Paste text from clipboard.
 
-wParam        == not used.
+(int)wParam   == see AELB_* defines.
 (DWORD)lParam == see AEPFC_* defines.
 
 Return Value
@@ -2750,7 +2750,7 @@ _______
 
 Delete the current selection, if any, and copy the deleted text to the clipboard.
 
-wParam        == not used.
+(int)wParam   == see AELB_* defines.
 (DWORD)lParam == see AECFC_* defines.
 
 Return Value
@@ -2766,7 +2766,7 @@ ________
 
 Copy the current selection to the clipboard.
 
-wParam        == not used.
+(int)wParam   == see AELB_* defines.
 (DWORD)lParam == see AECFC_* defines.
 
 Return Value
