@@ -1,8 +1,8 @@
 *****************************************************************
-***                   HexSel AkelPad plugin v7.1              ***
+***                   HexSel AkelPad plugin v7.2              ***
 *****************************************************************
 
-2006-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2006-2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***
@@ -30,6 +30,7 @@ Call("HexSel::Main", 1, FLAGS, "PREFIX", "SUFFIX", "INPUT", INPUTLEN, INPUTCODEP
        16  select conversion result.
       256  decimal convertion.
       512  octal convertion.
+     4096  only converted to output.
       By default: 8+16=24.
     "PREFIX"
       String before symbol code. By default current setting used.

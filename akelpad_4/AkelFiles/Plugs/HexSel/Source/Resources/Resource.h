@@ -28,11 +28,12 @@
 #define IDC_SETUP_RADIXHEX              1218
 #define IDC_SETUP_RADIXDEC              1219
 #define IDC_SETUP_RADIXOCT              1220
+#define IDC_SETUP_ONLYCONVERTED_CHECK   1221
 #define IDM_SETUP                       2001
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
