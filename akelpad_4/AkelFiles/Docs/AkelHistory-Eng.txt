@@ -16,6 +16,7 @@ Added: optional parameter for commands 4153,4154:
        1 - cut/copy word under caret, if no selection;
        2 - cut/copy line under caret, if no selection;
        4 - cut/copy unwrapped line under caret, if no selection.
+Added: optional parameter that specifies the new line format for commands 4153,4154,4155.
 
 Fixed: file symbolic link opening with "Watch file change" option.
 
