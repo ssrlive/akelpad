@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.9
+// Version: 2.0
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -1239,6 +1239,7 @@ function SearchReplace()
         var nTextCount=0;
         var lpMemText;
         var bMainDisable;
+        var bClearEdit=false;
 
         //Open output window
         if (!hWndOutput)
@@ -1248,7 +1249,6 @@ function SearchReplace()
           else
             AkelPad.Call("Log::Output", 1, "", "", "^\\((\\d+),(\\d+)\\)", "/GOTOLINE=\\1:\\2");
           hWndOutput=GetOutputWindow();
-          oSys.Call("user32::SetWindowText" + _TCHAR, hWndOutput, "");
         }
 
         //Get output window
@@ -1319,7 +1319,7 @@ function SearchReplace()
           }
           if (hWndOutput)
           {
-            if (nDirection & DN_ALLFILES)
+            if (!hWndPluginEdit && (nDirection & DN_ALLFILES))
             {
               if (lpMatches.length)
                 pLine="" + lpMatches.length + " - [" + AkelPad.GetEditFile(0) + "]:\n";
@@ -1367,6 +1367,11 @@ function SearchReplace()
                 //Set output window text
                 if (hWndOutput && pLine)
                 {
+                  if (!bClearEdit)
+                  {
+                    oSys.Call("user32::SetWindowText" + _TCHAR, hWndOutput, "");
+                    bClearEdit=true;
+                  }
                   if (nFoundFiles++)
                     AkelPad.Call("Log::Output", 4 + _TSTR, "\n", 1, 1 /*APPEND*/);
                   AkelPad.Call("Log::Output", 4 + _TSTR, pLine, pLine.length, 1 /*APPEND*/);
@@ -1402,6 +1407,11 @@ function SearchReplace()
             hWndEditCur=AkelPad.GetEditWnd();
             if (lpFrameCur != lpFrameInit)
               continue;
+          }
+          if (!bClearEdit)
+          {
+            oSys.Call("user32::SetWindowText" + _TCHAR, hWndOutput, "");
+            bClearEdit=true;
           }
           hWndOutput=0;
         }
