@@ -527,6 +527,7 @@ MENUITEM* GetCommandItem(POPUPMENU *hMenuStack, int nCommand);
 void ViewItemCode(MENUITEM *lpElement);
 void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem);
 void FreeContextMenu(POPUPMENU *hMenuStack);
+void FreeExplorerMenu(POPUPMENU *hMenuStack);
 SPECIALPARENT* StackInsertSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu);
 SPECIALPARENT* StackGetSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu);
 SPECIALMENUITEM* StackInsertSpecialItem(SPECIALPARENT *lpSpecialParent);
@@ -3408,6 +3409,7 @@ BOOL InitMenuPopup(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, HMENU hSubMen
         {
           if (!xstrcmpiW(hMenuStack->wszExplorerFile, wszCurrentFile))
             continue;
+          FreeExplorerMenu(hMenuStack);
         }
         for (i=lpSpecialMenuItem->nLastIndex; i >= lpSpecialMenuItem->nFirstIndex; --i)
         {
@@ -4718,22 +4720,7 @@ void FreeContextMenu(POPUPMENU *hMenuStack)
   {
     hMenuStack->hMdiDocumentsSubMenu=NULL;
   }
-  if (hMenuStack->pExplorerSubMenu3)
-  {
-//    hMenuStack->pExplorerSubMenu3->Release();
-    hMenuStack->pExplorerSubMenu3=NULL;
-  }
-  if (hMenuStack->pExplorerSubMenu2)
-  {
-//    hMenuStack->pExplorerSubMenu2->Release();
-    hMenuStack->pExplorerSubMenu2=NULL;
-  }
-  if (hMenuStack->pExplorerMenu)
-  {
-//    hMenuStack->pExplorerMenu->Release();
-    hMenuStack->pExplorerMenu=NULL;
-  }
-  hMenuStack->wszExplorerFile[0]=L'\0';
+  FreeExplorerMenu(hMenuStack);
 
   for (lpStateIf=hMenuStack->hStateIfStack.first; lpStateIf; lpStateIf=lpStateIf->next)
   {
@@ -4744,6 +4731,26 @@ void FreeContextMenu(POPUPMENU *hMenuStack)
   StackFreeSpecial(&hMenuStack->hSpecialMenuStack);
 
   hMenuStack->bLinkToManualMenu=FALSE;
+}
+
+void FreeExplorerMenu(POPUPMENU *hMenuStack)
+{
+  if (hMenuStack->pExplorerSubMenu3)
+  {
+    hMenuStack->pExplorerSubMenu3->lpVtbl->Release(hMenuStack->pExplorerSubMenu3);
+    hMenuStack->pExplorerSubMenu3=NULL;
+  }
+  if (hMenuStack->pExplorerSubMenu2)
+  {
+    hMenuStack->pExplorerSubMenu2->lpVtbl->Release(hMenuStack->pExplorerSubMenu2);
+    hMenuStack->pExplorerSubMenu2=NULL;
+  }
+  if (hMenuStack->pExplorerMenu)
+  {
+    hMenuStack->pExplorerMenu->lpVtbl->Release(hMenuStack->pExplorerMenu);
+    hMenuStack->pExplorerMenu=NULL;
+  }
+  hMenuStack->wszExplorerFile[0]=L'\0';
 }
 
 SPECIALPARENT* StackInsertSpecialParent(STACKSPECIALMENU *hStack, HMENU hParentMenu)
