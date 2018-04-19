@@ -5581,7 +5581,7 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
               (HIWORD(SendMessage(hWnd, AEM_GETNEWLINE, 0, 0)) != AELB_ASIS &&
                SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0) > 1))
           {
-            OpenDocument(hWnd, hDoc, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+            OpenDocument(hWnd, hDoc, lpFrameCurrent->wszFile, OD_ADT_DETECTBOM|OD_REOPEN, lpFrameCurrent->ei.nCodePage, FALSE);
           }
         }
         else

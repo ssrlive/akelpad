@@ -18,6 +18,7 @@ Added: optional parameter for commands 4153,4154:
        4 - cut/copy unwrapped line under caret, if no selection.
 Added: optional parameter that specifies the new line format for commands 4153,4154,4155.
 
+Fixed: reopening file with BOM, which has been deleted in third-party program.
 Fixed: file symbolic link opening with "Watch file change" option.
 
 
