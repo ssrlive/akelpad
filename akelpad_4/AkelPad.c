@@ -4693,7 +4693,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case IDM_FILE_REOPEN:
       {
-        return DoFileReopenAs(0, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+        return DoFileReopenAs(OD_ADT_DETECTBOM, lpFrameCurrent->ei.nCodePage, FALSE);
       }
       case IDM_FILE_SAVE:
       {
@@ -5156,7 +5156,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
 
-          if (OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM) == EOD_SUCCESS)
+          if (OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_ADT_DETECTBOM|OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, FALSE) == EOD_SUCCESS)
           {
             lpFrameClone=lpFrameCurrent;
             aes.dwFlags|=AESELT_LOCKSCROLL|AESELT_INDEXUPDATE;
@@ -5327,7 +5327,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     xprintfW(wszMsg, wbuf, lpFrameCurrent->wszFile);
                     if (API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
                     {
-                      OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+                      OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_ADT_DETECTBOM|OD_REOPEN, lpFrameCurrent->ei.nCodePage, FALSE);
                     }
                     else
                     {
