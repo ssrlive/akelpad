@@ -1,7 +1,7 @@
 /******************************************************************
- *                  RegExp functions header v2.4                  *
+ *                  RegExp functions header v2.5                  *
  *                                                                *
- * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -1069,6 +1069,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
   wchar_t wchCaseChar;
   int nCurMatch;
   int nRefIndex;
+  int nCompare;
   DWORD dwCmpResult=0;
   int nNextMatched=REE_INT_DEFAULT;
   BOOL bMatched;
@@ -1392,16 +1393,22 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       //Compare char
       nPatChar=0;
 
-      if (wpStr > wpMaxStr)
+      if (wpStr == hStack->wpMaxText)
       {
-        goto EndLoop;
-      }
-      else if (wpStr == wpMaxStr)
-      {
-        nCharSize=0;
+        nCompare=0;
         nStrChar=-AELB_EOF;
+        nCharSize=0;
       }
-      else nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
+      else
+      {
+        if (wpStr > wpMaxStr)
+          goto EndLoop;
+        else if (wpStr == wpMaxStr)
+          nCompare=0;
+        else
+          nCompare=-1;
+        nCharSize=PatStrChar(wpStr, wpMaxStr, &nStrChar);
+      }
 
       if (*wpPat == L'.')
       {
@@ -1410,12 +1417,12 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
           //Any character except new line
           if (nStrChar < 0) goto EndLoop;
         }
-        else if (nStrChar == -AELB_EOF)
+        else if (nCompare == 0)
           goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
-        if (nStrChar == -AELB_EOF)
+        if (nCompare == 0)
           goto EndLoop;
 
         if (*++wpPat == L'^')
@@ -2710,14 +2717,9 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
       //Check AEC_IsLastCharInFile in first place, because ciMaxStr could be used as RegExpGlobal_ciMaxStr.
       if (AEC_IsLastCharInFile(&ciStr))
         nCompare=0;
-      else
-        nCompare=AEC_IndexCompare(&ciStr, &ciMaxStr);
-      if (nCompare > 0)
+      else if ((nCompare=AEC_IndexCompare(&ciStr, &ciMaxStr)) > 0)
         goto EndLoop;
-      else if (nCompare == 0)
-        nStrChar=-AELB_EOF;
-      else
-        nStrChar=AE_PatStrChar(&ciStr);
+      nStrChar=AE_PatStrChar(&ciStr);
 
       if (*wpPat == L'.')
       {
@@ -2726,12 +2728,12 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
           //Any character except new line
           if (nStrChar < 0) goto EndLoop;
         }
-        else if (nStrChar == -AELB_EOF)
+        else if (nCompare == 0)
           goto EndLoop;
       }
       else if (*wpPat == L'[')
       {
-        if (nStrChar == -AELB_EOF)
+        if (nCompare == 0)
           goto EndLoop;
 
         if (*++wpPat == L'^')
