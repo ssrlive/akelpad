@@ -20,6 +20,7 @@ Added: optional parameter that specifies the new line format for commands 4153,4
 
 Fixed: reopening file with BOM, which has been deleted in third-party program.
 Fixed: file symbolic link opening with "Watch file change" option.
+Fixed: command line parameter /MainClass ignored option "Don't open a program twice".
 
 
 AkelPad 4.9.8 (Jul 18, 2016)
