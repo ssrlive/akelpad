@@ -1459,8 +1459,7 @@ BOOL CALLBACK EnumThreadWindowsProc(HWND hWnd, LPARAM lParam)
 {
   HWND *hWndFriend=(HWND *)lParam;
 
-  GetClassNameWide(hWnd, wbuf, BUFFER_SIZE);
-  if (!xstrcmpW(wbuf, APP_MAIN_CLASSW))
+  if (!GetParent(hWnd))
   {
     *hWndFriend=hWnd;
     return FALSE;
@@ -22132,7 +22131,7 @@ HWND FindAkelCopy()
   if (moCur.dwSingleOpenProgram & SOP_SAMEEXE)
     EnumWindows(EnumAkelCopyProc, (LPARAM)&hWndFriend);
   else
-    hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL);
+    hWndFriend=FindWindowExWide(NULL, NULL, wszMainClass, NULL);
   return hWndFriend;
 }
 
@@ -22141,7 +22140,7 @@ BOOL CALLBACK EnumAkelCopyProc(HWND hWnd, LPARAM lParam)
   HWND *hWndFriend=(HWND *)lParam;
 
   GetClassNameWide(hWnd, wbuf, BUFFER_SIZE);
-  if (!xstrcmpW(wbuf, APP_MAIN_CLASSW))
+  if (!xstrcmpW(wbuf, wszMainClass))
   {
     if (GetAkelPadExe(hWnd, wbuf, BUFFER_SIZE))
     {
