@@ -2621,6 +2621,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return xstrcpynW((void *)lParam, moCur.wszDefaultSaveExt, MAX_PATH);
           case MI_SEARCHOPTIONS:
             return moCur.dwSearchOptions;
+          case MI_LASTFIND:
+            return xstrcpyW((void *)lParam, wszFindText);
+          case MI_LASTREPLACE:
+            return xstrcpyW((void *)lParam, wszReplaceText);
           case MI_PRINTMARGINS:
           {
             if (lParam) xmemcpy((void *)lParam, &moCur.rcPrintMargins, sizeof(RECT));
@@ -2961,6 +2965,32 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, moCur.wszDefaultSaveExt, sizeof(moCur.wszDefaultSaveExt), INI_STRINGUNICODE);
           case MIS_SEARCHOPTIONS:
             return SetOption(lParam, &moCur.dwSearchOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_LASTFIND:
+          {
+            if (wszFindText)
+              API_FreeWide(wszFindText);
+            nFindTextLen=(int)xstrlenW((wchar_t *)lParam);
+
+            if (wszFindText=API_AllocWide(nFindTextLen + 1))
+            {
+              xstrcpynW(wszFindText, (void *)lParam, nFindTextLen + 1);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_LASTREPLACE:
+          {
+            if (wszReplaceText)
+              API_FreeWide(wszReplaceText);
+            nReplaceTextLen=(int)xstrlenW((wchar_t *)lParam);
+
+            if (wszReplaceText=API_AllocWide(nReplaceTextLen + 1))
+            {
+              xstrcpynW(wszReplaceText, (void *)lParam, nReplaceTextLen + 1);
+              return TRUE;
+            }
+            return FALSE;
+          }
           case MIS_PRINTMARGINS:
             return SetOption(lParam, &moCur.rcPrintMargins, sizeof(RECT), INI_BINARY);
           case MIS_PRINTCOLOR:
