@@ -224,8 +224,8 @@
                               //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
-#define SH_GET    1  //Retrieve search strings count.
-#define SH_CLEAR  2  //Clear search history.
+#define SH_GET          1  //Retrieve search strings count.
+#define SH_CLEAR        2  //Clear search history.
 
 //AKD_GETMAININFO type
 
@@ -316,7 +316,10 @@
 #define MI_DATELOG                   217  //Return: insert date if file has .LOG at the beginning (on\off).
 #define MI_SAVEINREADONLYMSG         221  //Return: save in read-only files warning (on\off).
 #define MI_DEFAULTSAVEEXT            224  //Return: copied chars. (wchar_t *)lParam - buffer that receives default saving extension string.
+//Find dialog
 #define MI_SEARCHOPTIONS             228  //Return: search options, see FRF_* defines.
+#define MI_LASTFIND                  229  //Return: copied chars. (wchar_t *)lParam - buffer that receives last find string, that used by IDM_EDIT_FINDNEXTDOWN, IDM_EDIT_FINDNEXTUP.
+#define MI_LASTREPLACE               230  //Return: copied chars. (wchar_t *)lParam - buffer that receives last replace string.
 //Print dialog
 #define MI_PRINTMARGINS              251  //Return: copied bytes. (RECT *)lParam - buffer that receives print margins.
 #define MI_PRINTCOLOR                255  //Return: color printing, see PRNC_* defines.
@@ -389,7 +392,10 @@
 #define MIS_DATELOG                   217  //(BOOL)lParam - insert date if file has .LOG at the beginning (on\off).
 #define MIS_SAVEINREADONLYMSG         221  //(BOOL)lParam - save in read-only files warning (on\off).
 #define MIS_DEFAULTSAVEEXT            224  //(wchar_t *)lParam - default saving extension string.
+//Find dialog
 #define MIS_SEARCHOPTIONS             228  //(DWORD)lParam - search options, see FRF_* defines.
+#define MIS_LASTFIND                  229  //(wchar_t *)lParam - last find string, that used by IDM_EDIT_FINDNEXTDOWN, IDM_EDIT_FINDNEXTUP. Note: string doesn't put into search history.
+#define MIS_LASTREPLACE               230  //(wchar_t *)lParam - last replace string. Note: string doesn't put into search history.
 //Print dialog
 #define MIS_PRINTMARGINS              251  //(RECT *)lParam - print margins.
 #define MIS_PRINTCOLOR                255  //(DWORD)lParam - color printing, see PRNC_* defines.
