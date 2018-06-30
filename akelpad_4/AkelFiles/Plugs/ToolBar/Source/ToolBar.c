@@ -744,7 +744,16 @@ LRESULT CALLBACK NewEditDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == AKDN_MAIN_ONSTART_PRESHOW)
+  if (uMsg == AKD_IFEXPRESSION)
+  {
+    LRESULT lResult;
+
+    bLockRefresh=TRUE;
+    lResult=NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
+    bLockRefresh=FALSE;
+    return lResult;
+  }
+  else if (uMsg == AKDN_MAIN_ONSTART_PRESHOW)
   {
     CreateToolbarWindow();
   }
@@ -814,6 +823,15 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
       cwprs->message == AKDN_FRAME_NOWINDOWS ||
       (cwprs->message == AKDN_FRAME_ACTIVATE && !(cwprs->wParam & FWA_NOVISUPDATE)))
   {
+    if (cwprs->message == AKDN_DLLCALL)
+    {
+      PLUGINDATA *pd=(PLUGINDATA *)cwprs->lParam;
+
+      if (pd->dwSupport & PDS_GETSUPPORT)
+        goto NextProc;
+      if (!xstrcmpiW(pd->wszFunction, L"ContextMenu::Show"))
+        goto NextProc;
+    }
     if (!bLockRefresh)
       PostMessage(hToolbarBG, AKDLL_REFRESH, 0, 0);
   }
@@ -848,6 +866,7 @@ void CALLBACK NewMainProcRet(CWPRETSTRUCT *cwprs)
   }
 
   //Call next procedure
+  NextProc:
   if (cwprs->hwnd == hMainWnd)
   {
     if (NewMainProcRetData->NextProc)
@@ -1228,11 +1247,9 @@ BOOL CreateToolbarData(STACKTOOLBAR *hStack, const wchar_t *wpText)
             }
             MethodComment(wpCount + 1, &wpCount);
 
-            bLockRefresh=TRUE;
             ie.dwFlags=IEF_METHOD;
             nIfResult=SendMessage(hMainWnd, AKD_IFEXPRESSION, (WPARAM)wpCount, (LPARAM)&ie);
             wpCount=ie.wpEnd;
-            bLockRefresh=FALSE;
             if (ie.nError)
             {
               nMessageID=(ie.nError - 1) + STRID_IF_NOCOMMA;
@@ -1989,7 +2006,6 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
               if (lpParameter=MethodGetParameter(&lpStateIf->hParamStack, 3))
                 nIfFalse=lpParameter->nNumber;
 
-              bLockRefresh=TRUE;
               nFocusChanged=-1;
               ie.dwFlags=lpStateIf->dwFlags|IEF_STACKEXTPARAM;
               ie.sep=&lpStateIf->hParamStack;
@@ -1997,7 +2013,6 @@ void UpdateToolbar(STACKTOOLBAR *hStack)
               if (ie.nError == IEE_SUCCESS && nFocusChanged == 1)
                 ie.nError=IEE_FOCUSCHANGED;
               nFocusChanged=0;
-              bLockRefresh=FALSE;
 
               if (lpParameter)
               {
@@ -2165,7 +2180,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
 
       if (lpElement->bAutoLoad)
       {
-        bLockRefresh=TRUE;
         pcs.pFunction=wpFunction;
         pcs.lParam=0;
         pcs.dwSupport=PDS_GETSUPPORT;
@@ -2179,7 +2193,6 @@ void CallToolbar(STACKTOOLBAR *hStack, int nItem)
           }
           else bCall=TRUE;
         }
-        bLockRefresh=FALSE;
       }
       else bCall=TRUE;
 
@@ -2449,12 +2462,10 @@ void CallContextMenuShow(TOOLBARITEM *lpButton, int nPosX, int nPosY, INT_PTR *l
     decm.pMenuName=pMenuName;
     decm.lpnMenuHeight=lpnMenuHeight;
 
-    bLockRefresh=TRUE;
     pcs.pFunction=L"ContextMenu::Show";
     pcs.lParam=(LPARAM)&decm;
     pcs.dwSupport=0;
     SendMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
-    bLockRefresh=FALSE;
   }
 }
 
