@@ -197,7 +197,7 @@ int ValueToNormalChar(int nValue, wchar_t *wszNormalChar);
 void SkipWhitespace(const wchar_t **wpText);
 int GetWord(const wchar_t *wpText, wchar_t *wszWord, int nWordMax, const wchar_t **wppNextWord, BOOL *lpbQuote);
 BOOL NextLine(const wchar_t **wpText);
-BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces);
+BOOL GetLineSpaces(const AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces);
 BOOL GetCharColor(HWND hWndEdit, INT_PTR nCharOffset, AECHARCOLORS *aecc);
 COLORREF GetColorFromStrAnsi(char *pColor);
 COLORREF GetColorFromStr(wchar_t *wpColor);
@@ -2218,7 +2218,7 @@ BOOL NextLine(const wchar_t **wpText)
   return TRUE;
 }
 
-BOOL GetLineSpaces(AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces)
+BOOL GetLineSpaces(const AECHARINDEX *ciMinDraw, int nTabStopSize, INT_PTR *lpnLineSpaces)
 {
   AECHARINDEX ciCount;
   INT_PTR nLineSpaces=0;
