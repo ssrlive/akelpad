@@ -14419,7 +14419,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 
   if (to->gh)
   {
-    if (nTextLen || !to->ciDrawLine.lpLine->nLineLen)
+    if (nTextLen || !to->ciDrawLine.lpLine->nLineLen || (to->dwPrintFlags & AEPRN_CALLEMPTY))
     {
       AECHARRANGE crAkelRange;
       CHARRANGE64 crRichRange;
@@ -15613,7 +15613,7 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   to.ciDrawLine=gh->crText.ciMin;
   to.nDrawCharOffset=AE_AkelIndexToRichOffset(ae, &gh->crText.ciMin);
   to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
-  to.dwPrintFlags=AEPRN_TEST|((gh->dwFlags & AEGHF_NOSELECTION)?0:AEPRN_COLOREDSELECTION);
+  to.dwPrintFlags=AEPRN_TEST|(gh->dwFlags & AEGHF_NOSELECTION?0:AEPRN_COLOREDSELECTION);
   to.gh=gh;
 
   //Set AEHLPAINT
@@ -15657,7 +15657,9 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
       //Increment char count
       to.nDrawCharOffset+=AEC_IndexInc(&to.ciDrawLine);
     }
+    to.dwPrintFlags|=(gh->dwFlags & AEGHF_CALLENDLINE?AEPRN_CALLEMPTY:0);
     AE_PaintTextOut(ae, &to, &hlp);
+    to.dwPrintFlags&=~AEPRN_CALLEMPTY;
     if (to.gh->dwError) goto End;
 
     //Next line
@@ -15668,7 +15670,9 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh)
   }
 
   LastPaint:
+  to.dwPrintFlags|=(gh->dwFlags & AEGHF_CALLENDRANGE?AEPRN_CALLEMPTY:0);
   AE_PaintTextOut(ae, &to, &hlp);
+  to.dwPrintFlags&=~AEPRN_CALLEMPTY;
   //if (to.gh->dwError) goto End;
 
   End:
@@ -16375,7 +16379,7 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, INT_PTR nMaxExtent,
 
       if (nStringWidth < nMaxExtent)
       {
-        if ((dwFlags & AECIL_HALFFIT))
+        if (dwFlags & AECIL_HALFFIT)
         {
           if (nMaxExtent - nStringWidth >= nCharWidth / 2)
           {

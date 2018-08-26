@@ -462,17 +462,18 @@
                     AECLR_ALTLINEBORDER)
 
 //Print
-#define AEPRN_TEST                      0x001  //Calculate data without painting.
-#define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x002  //Indicates that hundredths of millimeters are the unit of measurement for margins.
-#define AEPRN_INTHOUSANDTHSOFINCHES     0x004  //Indicates that thousandths of inches are the unit of measurement for margins.
-#define AEPRN_WRAPNONE                  0x008  //Print without wrapping.
-#define AEPRN_WRAPWORD                  0x010  //Print with word wrapping (default).
-#define AEPRN_WRAPSYMBOL                0x020  //Print with symbols wrapping.
-#define AEPRN_IGNOREFORMFEED            0x040  //Ignore form-feed character '\f'.
-#define AEPRN_ANSI                      0x080  //Ansi text output. Can solve draw problems on Win95/98/Me.
-#define AEPRN_COLOREDTEXT               0x100  //Print colored text.
-#define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
-#define AEPRN_COLOREDSELECTION          0x400  //Print text selection.
+#define AEPRN_TEST                      0x00001  //Calculate data without painting.
+#define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x00002  //Indicates that hundredths of millimeters are the unit of measurement for margins.
+#define AEPRN_INTHOUSANDTHSOFINCHES     0x00004  //Indicates that thousandths of inches are the unit of measurement for margins.
+#define AEPRN_WRAPNONE                  0x00008  //Print without wrapping.
+#define AEPRN_WRAPWORD                  0x00010  //Print with word wrapping (default).
+#define AEPRN_WRAPSYMBOL                0x00020  //Print with symbols wrapping.
+#define AEPRN_IGNOREFORMFEED            0x00040  //Ignore form-feed character '\f'.
+#define AEPRN_ANSI                      0x00080  //Ansi text output. Can solve draw problems on Win95/98/Me.
+#define AEPRN_COLOREDTEXT               0x00100  //Print colored text.
+#define AEPRN_COLOREDBACKGROUND         0x00200  //Print on colored background.
+#define AEPRN_COLOREDSELECTION          0x00400  //Print text selection.
+#define AEPRN_CALLEMPTY                 0x10000  //Don't use it. For internal code only.
 
 //AEM_HLFINDTHEME type
 #define AEHLFT_CURRENT 0  //Current theme handle.
@@ -545,9 +546,11 @@
 #define AEHLE_MARKRANGE              5  //Mark range - mark specified range of characters.
 
 //Highlight AEM_HLGETHIGHLIGHT flags
-#define AEGHF_NOSELECTION            0x00000001 //Ignore text selection coloring.
-#define AEGHF_NOACTIVELINE           0x00000002 //Ignore active line colors.
-#define AEGHF_NOALTLINE              0x00000004 //Ignore alternating line colors.
+#define AEGHF_NOSELECTION            0x00000001  //Ignore text selection coloring.
+#define AEGHF_NOACTIVELINE           0x00000002  //Ignore active line colors.
+#define AEGHF_NOALTLINE              0x00000004  //Ignore alternating line colors.
+#define AEGHF_CALLENDLINE            0x00010000  //Call function for end of non-empty line.
+#define AEGHF_CALLENDRANGE           0x00020000  //Call function for end range.
 
 //Highlight paint type
 #define AEHPT_SELECTION              0x00000001
