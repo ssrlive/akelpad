@@ -521,6 +521,7 @@ LRESULT CALLBACK HookCallbackCommonProc(int nCallbackIndex, int nCode, WPARAM wP
 HWND CreateScriptsThreadDummyWindow();
 LRESULT CALLBACK ScriptsThreadProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HRESULT CallScriptProc(IDispatch *objFunction, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+BOOL WaitMainForIndle(DWORD dwMilliseconds);
 
 #endif
 
