@@ -1292,7 +1292,9 @@ void _WinMain()
 
     while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
     {
+      moCur.bMessageTranslating=TRUE;
       TranslateMessageAll(TMSG_ALL, &msg);
+      moCur.bMessageTranslating=FALSE;
 
       if (bMainCheckIdle)
       {
@@ -6102,6 +6104,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       {
         AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
 
+        ++moCur.nTextChanging;
         if (lpFrameCurrent == GetFrameDataFromEditWindow(aentc->hdr.hwndFrom))
           lpFrameCurrent->nSelSubtract=0;
       }
@@ -6115,6 +6118,7 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           lpFrameCurrent->lpCurRecentCaret=NULL;
           lpFrameCurrent->hCurUndoItem=NULL;
         }
+        --moCur.nTextChanging;
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGING)
       {
