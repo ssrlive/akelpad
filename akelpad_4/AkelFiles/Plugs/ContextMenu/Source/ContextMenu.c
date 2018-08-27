@@ -166,8 +166,6 @@
 #define OF_FAVTEXT        0x4
 #define OF_FAVRECT        0x8
 
-#define BUFFER_SIZE      1024
-
 #define EXTACT_COMMAND    1
 #define EXTACT_CALL       2
 #define EXTACT_EXEC       3

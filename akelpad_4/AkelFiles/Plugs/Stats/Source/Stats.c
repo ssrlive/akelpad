@@ -23,8 +23,6 @@
 #define STRID_INFO   1
 #define STRID_PLUGIN 2
 
-#define BUFFER_SIZE       1024
-
 //Functions prototypes
 const char* GetLangStringA(LANGID wLangID, int nStringID);
 const wchar_t* GetLangStringW(LANGID wLangID, int nStringID);

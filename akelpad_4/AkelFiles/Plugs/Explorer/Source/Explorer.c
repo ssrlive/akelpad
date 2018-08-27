@@ -113,8 +113,6 @@
 #define OF_SETTINGS       0x2
 #define OF_FILTER         0x4
 
-#define BUFFER_SIZE       1024
-
 //DestroyDock type
 #define DKT_DEFAULT        0x0
 #define DKT_NOUNLOAD       0x1

@@ -171,7 +171,7 @@
 #define OF_RECT        0x1
 #define OF_SETTINGS    0x2
 
-#define BUFFER_SIZE 8192
+#define FILELIST_SIZE 8192
 
 //Folder flags
 #define FLDF_OPEN     0x1
@@ -460,8 +460,8 @@ BOOL (WINAPI *SHGetSpecialFolderPathAPtr)(HWND, char *, int, BOOL);
 BOOL (WINAPI *SHGetSpecialFolderPathWPtr)(HWND, wchar_t *, int, BOOL);
 
 //Global variables
-char szBuffer[BUFFER_SIZE];
-wchar_t wszBuffer[BUFFER_SIZE];
+char szBuffer[FILELIST_SIZE];
+wchar_t wszBuffer[FILELIST_SIZE];
 wchar_t wszPluginName[MAX_PATH];
 wchar_t wszPluginTitle[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
@@ -1473,7 +1473,7 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ofn.lpstrFile    =wszBuffer;
           ofn.lpstrFilter  =GetLangStringW(wLangModule, STRID_FILTER);
           ofn.nFilterIndex =2;
-          ofn.nMaxFile     =BUFFER_SIZE;
+          ofn.nMaxFile     =FILELIST_SIZE;
           ofn.Flags        =OFN_ALLOWMULTISELECT|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLESIZING;
           bAddFiles=GetOpenFileNameWide(&ofn);
         }

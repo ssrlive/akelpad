@@ -95,8 +95,6 @@
 #define OF_SETTINGS    0x2
 #define OF_RECT        0x4
 
-#define BUFFER_SIZE      1024
-
 #define LVI_LIST_KEY    0
 #define LVI_LIST_FILE   1
 #define LVI_LIST_LAYOUT 2

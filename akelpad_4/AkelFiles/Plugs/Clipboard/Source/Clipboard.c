@@ -56,8 +56,6 @@
 #define OF_ALL         (OF_CAPTURE |\
                         OF_PASTESERIAL)
 
-#define BUFFER_SIZE      1024
-
 //DestroyDock type
 #define DKT_DEFAULT        0x0
 #define DKT_NOUNLOAD       0x1

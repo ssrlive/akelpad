@@ -145,7 +145,6 @@
 #define OF_RUN      0x08
 #define OF_RUNRECT  0x10
 
-#define BUFFER_SIZE      1024
 #define COMMANDLINE_SIZE 32768
 
 //DestroyDock type

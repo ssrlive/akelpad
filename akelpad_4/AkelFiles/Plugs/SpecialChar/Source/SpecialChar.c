@@ -94,8 +94,6 @@
 #define OF_LISTTEXT       0x1
 #define OF_SETTINGS       0x2
 
-#define BUFFER_SIZE      1024
-
 #define SCO_SPACE        0
 #define SCO_TAB          1
 #define SCO_NEWLINE      2

@@ -111,8 +111,6 @@
 #define OF_RECT        0x2
 #define OF_VIEWRECT    0x4
 
-#define BUFFER_SIZE             1024
-
 #define LVI_MACRO_FILE          0
 #define LVI_MACRO_HOTKEY        1
 
