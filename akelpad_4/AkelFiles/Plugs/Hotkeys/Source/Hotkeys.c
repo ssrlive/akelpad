@@ -122,8 +122,6 @@
 #define LVIS_LIST_COMMAND  1
 #define LVIS_LIST_HOTKEY   2
 
-#define BUFFER_SIZE       1024
-
 #define EXTACT_COMMAND    1
 #define EXTACT_CALL       2
 #define EXTACT_EXEC       3

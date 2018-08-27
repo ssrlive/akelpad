@@ -36,8 +36,6 @@
 #include "WideFunc.h"
 
 //Defines
-#define BUFFER_SIZE      1024
-
 typedef struct _FONTNAME {
   struct _FONTNAME *next;
   struct _FONTNAME *prev;

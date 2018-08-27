@@ -73,8 +73,6 @@
 #define OF_RECT        0x1
 #define OF_SETTINGS    0x2
 
-#define BUFFER_SIZE       1024
-
 //Functions prototypes
 BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

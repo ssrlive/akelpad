@@ -97,8 +97,6 @@
                         OF_SAVENOBOM |\
                         OF_BACKUPRECT)
 
-#define BUFFER_SIZE      1024
-
 //Save moment
 #define SMOM_TIME    0x1
 #define SMOM_FOCUS   0x2

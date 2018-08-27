@@ -25,8 +25,6 @@
 #define STRID_MENU_RESTORE  1
 #define STRID_MENU_EXIT     2
 
-#define BUFFER_SIZE      1024
-
 //Functions prototypes
 LRESULT CALLBACK NewEditParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void Hide();

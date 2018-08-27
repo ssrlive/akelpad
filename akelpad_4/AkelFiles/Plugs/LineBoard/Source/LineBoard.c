@@ -106,8 +106,6 @@
 
 #define OF_SETTINGS       0x1
 
-#define BUFFER_SIZE      1024
-
 //UpdateEdit flags
 #define UE_ERASE        0x01
 #define UE_ALLRECT      0x02
