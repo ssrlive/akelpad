@@ -6226,6 +6226,7 @@ SET(4)\r\
     SEPARATOR1\r\
 UNSET(4)\r\
 \"\x0412\x044B\x0431\x043E\x0440\x0020\x043E\x043A\x043D\x0430\x002E\x002E\x002E\" Command(4327)\r\
+\"\x041F\x0435\x0440\x0435\x0439\x0442\x0438\x0020\x043A\x0020\x0444\x0430\x0439\x043B\x0443\" Exec(`explorer /select, \"%f\"`)\r\
 \"\x041C\x0435\x043D\x044E\x0020\x043F\x0440\x043E\x0432\x043E\x0434\x043D\x0438\x043A\x0430\"\r\
 {\r\
     EXPLORER\r\
@@ -6818,6 +6819,7 @@ SET(4)\r\
     SEPARATOR1\r\
 UNSET(4)\r\
 \"Select Window...\" Command(4327)\r\
+\"Go to file\" Exec(`explorer /select, \"%f\"`)\r\
 \"Explorer menu\"\r\
 {\r\
     EXPLORER\r\
