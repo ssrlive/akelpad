@@ -285,6 +285,8 @@ typedef struct {
 void CreateOutput(PLUGINDATA *pd, BOOL bShow);
 void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow);
 void DestroyDock(HWND hWndDock, DWORD dwType);
+void SetEditWindowSettings();
+void SetWordWrap(DWORD dwOutputFlags);
 void SetCoderAlias();
 void RemoveCoderAlias();
 BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -859,10 +861,23 @@ void SetEditWindowSettings()
 
   SendMessage(hWndOutputView, EM_SETUNDOLIMIT, 0, 0);
   SendMessage(hWndOutputView, AEM_SETOPTIONS, AECOOP_OR, AECO_READONLY);
-  if (oe.dwOutputFlags & OUTF_WRAP)
-    SendMessage(hWndOutputView, AEM_SETWORDWRAP, AEWW_WORD, 0);
+  SetWordWrap(oe.dwOutputFlags);
   hFontEdit=(HFONT)SendMessage(hMainWnd, AKD_GETFONT, (WPARAM)NULL, (LPARAM)NULL);
   SendMessage(hWndOutputView, WM_SETFONT, (WPARAM)hFontEdit, FALSE);
+}
+
+void SetWordWrap(DWORD dwOutputFlags)
+{
+  if (dwOutputFlags & OUTF_WRAP)
+  {
+    SendMessage(hWndOutputView, AEM_SETWORDWRAP, AEWW_WORD, 0);
+    SendMessage(hWndOutputView, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+  }
+  else
+  {
+    SendMessage(hWndOutputView, AEM_SETWORDWRAP, AEWW_NONE, 0);
+    SendMessage(hWndOutputView, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+  }
 }
 
 void SetCoderAlias()
@@ -1851,7 +1866,7 @@ BOOL CALLBACK OutputSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
       if (hWndOutputView)
       {
         if ((dwOutputFlagsOld & OUTF_WRAP) != (dwOutputFlags & OUTF_WRAP))
-          SendMessage(hWndOutputView, AEM_SETWORDWRAP, (dwOutputFlags & OUTF_WRAP)?AEWW_WORD:AEWW_NONE, 0);
+          SetWordWrap(dwOutputFlags);
         if ((dwOutputFlagsOld & OUTF_HIDEINPUT) != (dwOutputFlags & OUTF_HIDEINPUT))
           PostMessage(hWndDockDlg, AKDLL_SHOWINPUT, !(dwOutputFlags & OUTF_HIDEINPUT), 0);
       }
