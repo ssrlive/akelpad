@@ -6,6 +6,13 @@ Changed: codepage recognition in "Recode" dialog in case of failure by
          values of "Ñodepage recognition" settings, tries to recognize by
          all encodings from the user list.
 
+Added: possibility to use x86 and x64 version with the same settings. For this:
+       - 64-bit AkelPad.exe rename to AkelPad64.exe. This name is used by AkelUpdater
+         to update 64-bit version.
+       - 32-bit AkelPad.exe and 64-bit AkelPad64.exe are in the same folder.
+       - create a folder "[AkelPad]\AkelFiles\Langs64\" for 64-bit dll files.
+       - create a folder "[AkelPad]\AkelFiles\Plugs64\" for 64-bit dll files.
+         Settings of all plugins will continue to be stored in "[AkelPad]\AkelFiles\Plugs".
 Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
 Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first
