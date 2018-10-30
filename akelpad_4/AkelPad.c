@@ -531,6 +531,8 @@ int nExeFileLen;
 char szExeDir[MAX_PATH];
 wchar_t wszExeDir[MAX_PATH];
 int nExeDirLen;
+wchar_t wszLangsDll[16];
+wchar_t wszPlugsDll[16];
 wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
@@ -1109,11 +1111,28 @@ void _WinMain()
   hLangModule=hInstance;
   dwLangModule=RC_VERSIONLANGID;
 
+  #ifdef _WIN64
+    xstrcpyW(wszLangsDll, L"Langs64");
+    xprintfW(wbuf, L"%s\\AkelFiles\\%s", wszExeDir, wszLangsDll);
+    if (!DirExistsWide(wbuf))
+      xstrcpyW(wszLangsDll, L"Langs");
+
+    xstrcpyW(wszPlugsDll, L"Plugs64");
+    xprintfW(wbuf, L"%s\\AkelFiles\\%s", wszExeDir, wszPlugsDll);
+    if (!DirExistsWide(wbuf))
+      xstrcpyW(wszPlugsDll, L"Plugs");
+  #else
+    xstrcpyW(wszLangsDll, L"Langs");
+    xstrcpyW(wszPlugsDll, L"Plugs");
+  #endif
+
+
+
   if (*moCur.wszLangModule)
   {
     BOOL bResult;
 
-    xprintfW(wbuf, L"%s\\AkelFiles\\Langs\\%s", wszExeDir, moCur.wszLangModule);
+    xprintfW(wbuf, L"%s\\AkelFiles\\%s\\%s", wszExeDir, wszLangsDll, moCur.wszLangModule);
     if (bOldWindows)
     {
       WideCharToMultiByte(CP_ACP, 0, wbuf, -1, buf, MAX_PATH, NULL, NULL);

@@ -304,6 +304,9 @@ extern int nExeFileLen;
 extern char szExeDir[MAX_PATH];
 extern wchar_t wszExeDir[MAX_PATH];
 extern int nExeDirLen;
+extern wchar_t wszLangsDll[16];
+extern wchar_t wszPlugsDll[16];
+extern wchar_t wszAkelUpdaterExe[MAX_PATH];
 
 //Mdi
 extern STACKFRAMEDATA hFramesStack;
@@ -12369,7 +12372,7 @@ void LanguageMenu()
 
   for (i=1; DeleteMenu(hMainMenu, IDM_LANGUAGE + i, MF_BYCOMMAND); ++i);
 
-  xprintfW(wbuf, L"%s\\AkelFiles\\Langs\\*.dll", wszExeDir);
+  xprintfW(wbuf, L"%s\\AkelFiles\\%s\\*.dll", wszExeDir, wszLangsDll);
 
   if ((hFind=FindFirstFileWide(wbuf, &wfd)) != INVALID_HANDLE_VALUE)
   {
@@ -13829,7 +13832,7 @@ void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL)
     {
       if (ParsePluginNameW(pfElement->wszFunction, wszPlugin, NULL))
       {
-        xprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
+        xprintfW(wszDLL, L"%s\\AkelFiles\\%s\\%s.dll", wszExeDir, wszPlugsDll, wszPlugin);
 
         if (!FileExistsWide(wszDLL))
         {
@@ -13977,7 +13980,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
     {
       WideCharToMultiByte(CP_ACP, 0, wszFunction, -1, szFunction, MAX_PATH, NULL, NULL);
       WideCharToMultiByte(CP_ACP, 0, wpFunction, -1, szFullName, MAX_PATH, NULL, NULL);
-      xprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
+      xprintfW(wszDLL, L"%s\\AkelFiles\\%s\\%s.dll", wszExeDir, wszPlugsDll, wszPlugin);
       nWordLen=API_LoadString(hLangModule, STR_PLUGIN, wbuf, BUFFER_SIZE);
       wbuf[0]=WideCharLower(wbuf[0]);
       xprintfW(wszPluginWord, L"%s %s", wszPlugin, wbuf);
@@ -14751,7 +14754,7 @@ void FillPluginList(HWND hWnd)
 
   nLastFunctionIndex=-1;
   pld.hWndList=hWnd;
-  xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\*.%s", wszExeDir, wpPluginExt);
+  xprintfW(wbuf, L"%s\\AkelFiles\\%s\\*.%s", wszExeDir, wszPlugsDll, wpPluginExt);
 
   if ((hFind=FindFirstFileWide(wbuf, &wfd)) != INVALID_HANDLE_VALUE)
   {
@@ -14761,7 +14764,7 @@ void FillPluginList(HWND hWnd)
       if (xstrcmpiW(wpPluginExt, GetFileExt(wfd.cFileName, -1)))
         continue;
 
-      xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\%s", wszExeDir, wfd.cFileName);
+      xprintfW(wbuf, L"%s\\AkelFiles\\%s\\%s", wszExeDir, wszPlugsDll, wfd.cFileName);
 
       if (hInstance=LoadLibraryWide(wbuf))
       {
